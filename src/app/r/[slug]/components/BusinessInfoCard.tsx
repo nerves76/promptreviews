@@ -90,10 +90,11 @@ export default function BusinessInfoCard({ businessProfile }: BusinessInfoCardPr
         {businessProfile?.business_name || "Business Name"}
       </h1>
       
-      {/* City/State under business name */}
-      {(businessProfile?.address_city || businessProfile?.address_state) && (
+      {/* Address under business name */}
+      {(businessProfile?.address_street || businessProfile?.address_city || businessProfile?.address_state) && (
         <div className={`text-center text-base text-gray-600 font-medium ${getFontClass(businessProfile?.secondary_font || "")}`}>
           {[
+            businessProfile.address_street,
             businessProfile.address_city,
             businessProfile.address_state,
           ]

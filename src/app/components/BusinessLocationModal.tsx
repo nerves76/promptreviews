@@ -1,20 +1,17 @@
 // -----------------------------------------------------------------------------
 // Business Location Modal Component
-// A 2-step wizard for creating and editing business locations.
-// Step 1: Basic information (name, address, contact) + Review Platform Selection
-// Step 2: AI training fields (description, unique aspects, dos/don'ts)
+// A single-step form for creating and editing business locations with sharing functionality
 // -----------------------------------------------------------------------------
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Dialog } from '@headlessui/react';
-import { XMarkIcon } from '@heroicons/react/24/outline';
 import { BusinessLocation } from '@/types/business';
-import { FaMapMarkerAlt, FaImage } from 'react-icons/fa';
+import { FaMapMarkerAlt, FaImage, FaStickyNote } from 'react-icons/fa';
 import FallingStarsSection from './FallingStarsSection';
 import EmojiSentimentSection from '../dashboard/edit-prompt-page/components/EmojiSentimentSection';
 import OfferSection from '../dashboard/edit-prompt-page/components/OfferSection';
 import ReviewPlatformsSection, { ReviewPlatformLink } from '../dashboard/edit-prompt-page/components/ReviewPlatformsSection';
 import DisableAIGenerationSection from './DisableAIGenerationSection';
+import QRCodeModal from './QRCodeModal';
 import Cropper from 'react-easy-crop';
 import type { Area } from 'react-easy-crop';
 import imageCompression from 'browser-image-compression';
@@ -43,10 +40,18 @@ export default function BusinessLocationModal({
   businessLogoUrl,
   businessReviewPlatforms,
 }: BusinessLocationModalProps) {
-  // Removed step logic - now single step
+  // Form state
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showLimitModal, setShowLimitModal] = useState(false);
+  const [copySuccess, setCopySuccess] = useState("");
+  const [qrModal, setQrModal] = useState<{
+    open: boolean;
+    url: string;
+    clientName: string;
+    logoUrl?: string;
+    showNfcText?: boolean;
+  } | null>(null);
   
   // Form data state
   const [formData, setFormData] = useState<Partial<BusinessLocation>>({
@@ -69,7 +74,7 @@ export default function BusinessLocationModal({
   const [emojiSentimentQuestion, setEmojiSentimentQuestion] = useState('How was your experience?');
   const [emojiFeedbackMessage, setEmojiFeedbackMessage] = useState('How can we improve?');
   const [emojiThankYouMessage, setEmojiThankYouMessage] = useState(
-    location?.emoji_thank_you_message || "Thank you for your feedback. It's important to us.",
+    location?.emoji_thank_you_message || "Thank you for your feedback. It's important to us."
   );
   const [offerEnabled, setOfferEnabled] = useState(false);
   const [offerTitle, setOfferTitle] = useState('');
@@ -79,6 +84,10 @@ export default function BusinessLocationModal({
     location?.ai_review_enabled !== false,
   );
   const [reviewPlatforms, setReviewPlatforms] = useState<ReviewPlatformLink[]>([]);
+  
+  // Personalized note state
+  const [notePopupEnabled, setNotePopupEnabled] = useState(false);
+  const [friendlyNote, setFriendlyNote] = useState('');
 
   // Photo upload state
   const [locationPhotoUrl, setLocationPhotoUrl] = useState<string | null>(null);
@@ -108,6 +117,10 @@ export default function BusinessLocationModal({
       setOfferUrl(location.offer_url || '');
       setAiReviewEnabled(location.ai_review_enabled !== false);
       setReviewPlatforms(location.review_platforms || []);
+      
+      // Load personalized note data
+      setNotePopupEnabled(location.show_friendly_note || false);
+      setFriendlyNote(location.friendly_note || '');
       
       // Load photo data
       setLocationPhotoUrl(location.location_photo_url || null);
@@ -171,94 +184,6 @@ export default function BusinessLocationModal({
     return Object.keys(newErrors).length === 0;
   };
 
-  // Photo upload functions
-  const getCroppedImg = async (imageSrc: string, cropPixels: Area) => {
-    const image = new window.Image();
-    image.src = imageSrc;
-    await new Promise((resolve) => {
-      image.onload = resolve;
-    });
-    const canvas = document.createElement('canvas');
-    canvas.width = cropPixels.width;
-    canvas.height = cropPixels.height;
-    const ctx = canvas.getContext('2d');
-    ctx?.drawImage(
-      image,
-      cropPixels.x,
-      cropPixels.y,
-      cropPixels.width,
-      cropPixels.height,
-      0,
-      0,
-      cropPixels.width,
-      cropPixels.height,
-    );
-    return new Promise<Blob>((resolve) => {
-      canvas.toBlob((blob) => {
-        if (blob) resolve(blob);
-      }, 'image/webp');
-    });
-  };
-
-  const handleLocationPhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    setLocationPhotoError('');
-    const file = e.target.files?.[0];
-    if (!file) return;
-    
-    if (!['image/png', 'image/jpeg', 'image/jpg', 'image/webp'].includes(file.type)) {
-      setLocationPhotoError('Only PNG, JPG, or WEBP images are allowed.');
-      return;
-    }
-    
-    try {
-      const compressedFile = await imageCompression(file, {
-        maxSizeMB: 0.3, // 300KB
-        maxWidthOrHeight: 600,
-        useWebWorker: true,
-        fileType: 'image/webp', // Always convert to webp
-      });
-      
-      setRawLocationPhotoFile(compressedFile);
-      setShowCropper(true);
-      setLocationPhotoUrl(URL.createObjectURL(compressedFile));
-    } catch (err) {
-      setLocationPhotoError('Failed to compress image. Please try another file.');
-      return;
-    }
-  };
-
-  const onCropComplete = useCallback(
-    (croppedArea: Area, croppedAreaPixels: Area) => {
-      setCroppedAreaPixels(croppedAreaPixels);
-    },
-    [],
-  );
-
-  const handleCropConfirm = async () => {
-    if (!locationPhotoUrl || !croppedAreaPixels) return;
-    
-    try {
-      const croppedBlob = await getCroppedImg(locationPhotoUrl, croppedAreaPixels);
-      const croppedFile = new File(
-        [croppedBlob],
-        (rawLocationPhotoFile?.name?.replace(/\.[^.]+$/, '') || 'location') + '.webp',
-        { type: 'image/webp' },
-      );
-      setLocationPhotoFile(croppedFile);
-      setLocationPhotoUrl(URL.createObjectURL(croppedFile));
-      setShowCropper(false);
-    } catch (err) {
-      setLocationPhotoError('Failed to crop image. Please try again.');
-    }
-  };
-
-  const handleCropCancel = () => {
-    setShowCropper(false);
-    setLocationPhotoFile(null);
-    setLocationPhotoUrl(null);
-    setRawLocationPhotoFile(null);
-  };
-
   const handleSubmit = async () => {
     if (!validateForm()) {
       return;
@@ -281,14 +206,17 @@ export default function BusinessLocationModal({
         emoji_sentiment_question: emojiSentimentQuestion,
         emoji_feedback_message: emojiFeedbackMessage,
         emoji_thank_you_message: emojiThankYouMessage,
+        emoji_labels: ['Excellent', 'Satisfied', 'Neutral', 'Unsatisfied', 'Frustrated'], // Default emoji labels
         offer_enabled: offerEnabled,
         offer_title: offerTitle,
         offer_body: offerBody,
         offer_url: offerUrl,
         ai_review_enabled: aiReviewEnabled,
         review_platforms: reviewPlatforms,
-        // Photo data
-        location_photo: locationPhotoFile,
+        // Personalized note data
+        show_friendly_note: notePopupEnabled,
+        friendly_note: friendlyNote,
+        // Photo data (only send URL, file will be handled separately)
         location_photo_url: locationPhotoUrl,
       };
       
@@ -309,9 +237,14 @@ export default function BusinessLocationModal({
         console.log('🔍 Setting localStorage showPostSaveModal for location:', modalData);
         localStorage.setItem("showPostSaveModal", JSON.stringify(modalData));
         
-        // Redirect to prompt-pages to show the modal
-        console.log('🔍 Redirecting to prompt-pages for success modal');
-        window.location.href = "/prompt-pages";
+        // Close the modal first, then redirect to prompt-pages to show the success modal
+        console.log('🔍 Closing modal and redirecting to prompt-pages for success modal');
+        onClose();
+        
+        // Use setTimeout to ensure the modal closes before redirecting
+        setTimeout(() => {
+          window.location.href = "/prompt-pages?tab=locations";
+        }, 100);
         return;
       }
       
@@ -324,32 +257,149 @@ export default function BusinessLocationModal({
     }
   };
 
-  return (
-    <Dialog open={isOpen} onClose={onClose} className="relative z-50">
-      {/* Backdrop */}
-      <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+  const handleCopyLink = async () => {
+    if (!location?.prompt_page_slug) return;
+    
+    try {
+      const url = `${window.location.origin}/r/${location.prompt_page_slug}`;
+      await navigator.clipboard.writeText(url);
+      setCopySuccess("Copied!");
+      setTimeout(() => setCopySuccess(""), 2000);
+    } catch (err) {
+      console.error('Failed to copy link:', err);
+      setCopySuccess("Failed to copy");
+      setTimeout(() => setCopySuccess(""), 2000);
+    }
+  };
 
-      {/* Modal */}
+  const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      setLocationPhotoError('Please select a valid image file');
+      return;
+    }
+
+    // Validate file size (5MB limit)
+    if (file.size > 5 * 1024 * 1024) {
+      setLocationPhotoError('Image must be less than 5MB');
+      return;
+    }
+
+    try {
+      // Compress the image
+      const compressedFile = await imageCompression(file, {
+        maxSizeMB: 1,
+        maxWidthOrHeight: 1024,
+        useWebWorker: true,
+      });
+
+      // Create a preview URL
+      const previewUrl = URL.createObjectURL(compressedFile);
+      setLocationPhotoUrl(previewUrl);
+      setLocationPhotoFile(compressedFile);
+      setRawLocationPhotoFile(file);
+      setLocationPhotoError('');
+      setShowCropper(true);
+    } catch (error) {
+      console.error('Error processing image:', error);
+      setLocationPhotoError('Error processing image. Please try again.');
+    }
+  };
+
+  const onCropComplete = useCallback((croppedArea: Area, croppedAreaPixels: Area) => {
+    setCroppedAreaPixels(croppedAreaPixels);
+  }, []);
+
+  const handleCropConfirm = async () => {
+    if (!rawLocationPhotoFile || !croppedAreaPixels) return;
+
+    try {
+      const canvas = document.createElement('canvas');
+      const image = new Image();
+      
+      image.onload = () => {
+        canvas.width = croppedAreaPixels.width;
+        canvas.height = croppedAreaPixels.height;
+        
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+        
+        ctx.drawImage(
+          image,
+          croppedAreaPixels.x,
+          croppedAreaPixels.y,
+          croppedAreaPixels.width,
+          croppedAreaPixels.height,
+          0,
+          0,
+          croppedAreaPixels.width,
+          croppedAreaPixels.height
+        );
+        
+        canvas.toBlob((blob) => {
+          if (blob) {
+            const croppedFile = new File([blob], rawLocationPhotoFile.name, {
+              type: rawLocationPhotoFile.type,
+            });
+            setLocationPhotoFile(croppedFile);
+            setLocationPhotoUrl(URL.createObjectURL(blob));
+          }
+        }, rawLocationPhotoFile.type);
+      };
+      
+      image.src = URL.createObjectURL(rawLocationPhotoFile);
+      setShowCropper(false);
+    } catch (error) {
+      console.error('Error cropping image:', error);
+      setLocationPhotoError('Error cropping image. Please try again.');
+    }
+  };
+
+  const handleCropCancel = () => {
+    setShowCropper(false);
+    setLocationPhotoUrl(null);
+    setLocationPhotoFile(null);
+    setRawLocationPhotoFile(null);
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50">
+      <div className="fixed inset-0 bg-black/30" aria-hidden="true" onClick={onClose} />
       <div className="fixed inset-0 flex items-center justify-center p-4">
-        <Dialog.Panel className="mx-auto max-w-2xl w-full bg-white rounded-xl shadow-lg">
+        <div className="mx-auto max-w-4xl w-full bg-white rounded-xl shadow-lg">
           {/* Header */}
           <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4 relative">
             <div className="flex items-center gap-3">
               <FaMapMarkerAlt className="w-6 h-6 text-slate-blue" />
-              <Dialog.Title className="text-xl font-bold text-slate-blue">
+              <h2 className="text-xl font-bold text-slate-blue">
                 {location ? 'Edit Location' : 'Add New Location'}
-              </Dialog.Title>
+              </h2>
             </div>
-            <button
-              onClick={onClose}
-              className="absolute -top-4 -right-4 bg-white border border-gray-200 rounded-full shadow-lg hover:shadow-xl transition-shadow duration-200 flex items-center justify-center hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 z-20"
-              style={{ width: 48, height: 48 }}
-              aria-label="Close modal"
-            >
-              <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
+            <div className="flex items-center gap-3">
+              {/* Save button at top right */}
+              <button
+                onClick={handleSubmit}
+                disabled={isSubmitting || (!canCreateMore && !location)}
+                className="px-4 py-2 text-sm font-medium text-white bg-slate-blue rounded-md hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-blue disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isSubmitting ? 'Saving...' : (location ? 'Update Location' : 'Create Location')}
+              </button>
+              <button
+                onClick={onClose}
+                className="absolute -top-4 -right-4 bg-white border border-gray-200 rounded-full shadow-lg hover:shadow-xl transition-shadow duration-200 flex items-center justify-center hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 z-20"
+                style={{ width: 48, height: 48 }}
+                aria-label="Close modal"
+              >
+                <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
           </div>
 
           {/* Location limit indicator */}
@@ -372,108 +422,77 @@ export default function BusinessLocationModal({
             )}
 
             <div className="space-y-4">
-                {/* Location Photo/Logo Upload - FIRST ITEM */}
-                <div className="mb-6">
-                  <label className="block text-sm font-medium text-gray-700 mb-3">
-                    Location Photo/Logo
-                  </label>
-                  <div className="flex items-center gap-6">
-                    {/* Photo Preview */}
-                    <div className="flex-shrink-0">
-                      {locationPhotoUrl ? (
-                        <img
-                          src={locationPhotoUrl}
-                          alt="Location preview"
-                          className="w-24 h-24 rounded-lg object-cover border shadow-sm"
-                        />
-                      ) : businessLogoUrl ? (
-                        <img
-                          src={businessLogoUrl}
-                          alt="Business logo preview"
-                          className="w-24 h-24 rounded-lg object-cover border shadow-sm"
-                        />
-                      ) : (
-                        <div className="w-24 h-24 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center bg-gray-50">
-                          <FaImage className="w-8 h-8 text-gray-400" />
-                        </div>
-                      )}
-                    </div>
-                    {/* Upload Controls */}
-                    <div className="flex-1">
-                      <p className="text-sm text-gray-600 mb-2">
-                        Upload a photo or logo for this location. If not provided, your business logo will be used as default.
-                      </p>
-                      <input
-                        type="file"
-                        accept="image/png, image/jpeg, image/jpg, image/webp"
-                        onChange={handleLocationPhotoChange}
-                        className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-slate-blue file:text-white hover:file:bg-slate-blue/90"
+              {/* Location Photo/Logo Upload */}
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-3">
+                  Location Photo/Logo
+                </label>
+                <div className="flex items-center gap-6">
+                  {/* Photo Preview */}
+                  <div className="flex-shrink-0">
+                    {locationPhotoUrl ? (
+                      <img
+                        src={locationPhotoUrl}
+                        alt="Location preview"
+                        className="w-24 h-24 rounded-lg object-cover border shadow-sm"
                       />
-                      {locationPhotoError && (
-                        <p className="text-sm text-red-600 mt-1">{locationPhotoError}</p>
-                      )}
-                    </div>
+                    ) : businessLogoUrl ? (
+                      <img
+                        src={businessLogoUrl}
+                        alt="Business logo preview"
+                        className="w-24 h-24 rounded-lg object-cover border shadow-sm"
+                      />
+                    ) : (
+                      <div className="w-24 h-24 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center bg-gray-50">
+                        <FaImage className="w-8 h-8 text-gray-400" />
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Upload Controls */}
+                  <div className="flex-1">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handlePhotoUpload}
+                      className="hidden"
+                      id="location-photo-upload"
+                    />
+                    <label
+                      htmlFor="location-photo-upload"
+                      className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-blue cursor-pointer"
+                    >
+                      <FaImage className="w-4 h-4 mr-2" />
+                      Upload Photo
+                    </label>
+                    {locationPhotoError && (
+                      <p className="mt-2 text-sm text-red-600">{locationPhotoError}</p>
+                    )}
                   </div>
                 </div>
-                {/* Cropping Modal */}
-                {showCropper && (locationPhotoUrl || businessLogoUrl) && (
-                  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 overflow-y-auto">
-                    <div className="bg-white p-6 rounded shadow-lg relative max-w-2xl w-full">
-                      <div className="w-full h-96 relative mb-8">
-                        <Cropper
-                          image={locationPhotoUrl || businessLogoUrl || ''}
-                          crop={crop}
-                          zoom={zoom}
-                          aspect={1}
-                          onCropChange={setCrop}
-                          onZoomChange={setZoom}
-                          onCropComplete={onCropComplete}
-                        />
-                      </div>
-                      <div className="flex justify-end gap-2">
-                        <button
-                          type="button"
-                          className="px-4 py-2 bg-gray-200 rounded"
-                          onClick={handleCropCancel}
-                        >
-                          Cancel
-                        </button>
-                        <button
-                          type="button"
-                          className="px-4 py-2 bg-slate-blue text-white rounded"
-                          onClick={handleCropConfirm}
-                        >
-                          Crop
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                )}
-                {/* Location Name */}
+              </div>
+
+              {/* Basic Information */}
+              <div className="grid grid-cols-1 gap-4">
                 <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1">
-                    Business Location Name <span className="text-red-500">*</span>
-                    <RobotTooltip text="This field is passed to AI for prompt generation." />
+                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+                    Location Name *
                   </label>
                   <input
                     id="name"
                     type="text"
                     value={formData.name || ''}
                     onChange={(e) => handleInputChange('name', e.target.value)}
-                    placeholder="e.g., Acme Dental - Downtown Seattle"
+                    placeholder="Downtown Seattle Location"
                     className={`w-full px-3 py-2 border rounded-md shadow-sm focus:ring-slate-blue focus:border-slate-blue ${
                       errors.name ? 'border-red-300' : 'border-gray-300'
                     }`}
                   />
-                  <p className="mt-1 text-sm text-gray-500">
-                    Enter the full business name as it appears at this location
-                  </p>
                   {errors.name && (
                     <p className="mt-1 text-sm text-red-600">{errors.name}</p>
                   )}
                 </div>
 
-                {/* Address Fields */}
                 <div className="grid grid-cols-1 gap-4">
                   <div>
                     <label htmlFor="address_street" className="block text-sm font-medium text-gray-700 mb-1">
@@ -504,11 +523,9 @@ export default function BusinessLocationModal({
                         className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-slate-blue focus:border-slate-blue"
                       />
                     </div>
-
                     <div>
-                      <label htmlFor="address_state" className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1">
+                      <label htmlFor="address_state" className="block text-sm font-medium text-gray-700 mb-1">
                         State
-                        <RobotTooltip text="This field is passed to AI for prompt generation." />
                       </label>
                       <input
                         id="address_state"
@@ -523,9 +540,8 @@ export default function BusinessLocationModal({
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label htmlFor="address_zip" className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1">
+                      <label htmlFor="address_zip" className="block text-sm font-medium text-gray-700 mb-1">
                         ZIP Code
-                        <RobotTooltip text="This field is passed to AI for prompt generation." />
                       </label>
                       <input
                         id="address_zip"
@@ -536,7 +552,6 @@ export default function BusinessLocationModal({
                         className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-slate-blue focus:border-slate-blue"
                       />
                     </div>
-
                     <div>
                       <label htmlFor="address_country" className="block text-sm font-medium text-gray-700 mb-1">
                         Country
@@ -544,7 +559,7 @@ export default function BusinessLocationModal({
                       <input
                         id="address_country"
                         type="text"
-                        value={formData.address_country || ''}
+                        value={formData.address_country || 'USA'}
                         onChange={(e) => handleInputChange('address_country', e.target.value)}
                         placeholder="USA"
                         className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-slate-blue focus:border-slate-blue"
@@ -552,129 +567,159 @@ export default function BusinessLocationModal({
                     </div>
                   </div>
                 </div>
-
-                {/* Review Platforms Section */}
-                <div className="mt-8">
-                  <ReviewPlatformsSection
-                    value={reviewPlatforms}
-                    onChange={setReviewPlatforms}
-                    hideReviewTemplateFields={true}
-                  />
-                  {errors.reviewPlatforms && (
-                    <p className="mt-2 text-sm text-red-600">{errors.reviewPlatforms}</p>
-                  )}
-                </div>
               </div>
-                {/* Business Description */}
+
+              {/* AI Training Fields */}
+              <div className="space-y-4">
                 <div>
                   <label htmlFor="business_description" className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1">
                     Business Description
-                    <RobotTooltip text="Give a quick overview of your business and what you offer at this location. Mention the industry, services/products, and type of customer experience you aim to provide." />
+                    <RobotTooltip text="This helps AI generate better prompts for your location." />
                   </label>
                   <textarea
                     id="business_description"
                     value={formData.business_description || ''}
                     onChange={(e) => handleInputChange('business_description', e.target.value)}
-                    rows={4}
-                    placeholder="We're a locally owned coffee shop focused on small-batch roasting and personalized service. Our team is passionate about high-quality beans, creative seasonal drinks, and creating a welcoming space for remote workers, students, and neighbors."
+                    placeholder="Describe what your business does at this location..."
+                    rows={3}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-slate-blue focus:border-slate-blue"
                   />
                 </div>
 
-                {/* Unique Aspects */}
                 <div>
                   <label htmlFor="unique_aspects" className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1">
-                    What's Unique About This Location
-                    <RobotTooltip text="What sets this location apart from others (if applicable)? Think about neighborhood vibe, staff personality, special services, design touches, or even local partnerships." />
+                    Unique Aspects
+                    <RobotTooltip text="What makes this location special? This helps AI generate more personalized prompts." />
                   </label>
                   <textarea
                     id="unique_aspects"
                     value={formData.unique_aspects || ''}
                     onChange={(e) => handleInputChange('unique_aspects', e.target.value)}
-                    rows={4}
-                    placeholder="This location has a cozy back patio with string lights and a rotating local artist gallery. It's our only shop with a walk-up window for quick morning orders, and we're the only one open until 10 p.m. for late-night study sessions."
+                    placeholder="What makes this location unique? Special services, atmosphere, staff, etc..."
+                    rows={3}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-slate-blue focus:border-slate-blue"
                   />
                 </div>
 
-                {/* AI Training */}
-                <div>
-                  <label htmlFor="ai_dos" className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1">
-                    AI Do's (What AI should emphasize)
-                    <RobotTooltip text="What should the AI focus on when writing about this location? Add phrases, qualities, or topics that are essential for reviews." />
-                  </label>
-                  <textarea
-                    id="ai_dos"
-                    value={formData.ai_dos || ''}
-                    onChange={(e) => handleInputChange('ai_dos', e.target.value)}
-                    rows={4}
-                    placeholder="• Mention our barista Sarah if possible—she's a customer favorite
-• Talk about the signature lavender matcha and friendly vibe
-• Emphasize fast Wi-Fi and comfy seating for remote work"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-slate-blue focus:border-slate-blue"
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="ai_donts" className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1">
-                    AI Don'ts (What AI should avoid)
-                    <RobotTooltip text="What should the AI avoid when writing about this location? Add phrases, qualities, or topics that are off-limits for reviews." />
-                  </label>
-                  <textarea
-                    id="ai_donts"
-                    value={formData.ai_donts || ''}
-                    onChange={(e) => handleInputChange('ai_donts', e.target.value)}
-                    rows={4}
-                    placeholder="• Don't say we have food (we only serve drinks and pastries)
-• Don't refer to us as a chain or franchise
-• Avoid making up staff names or saying we take reservations (we don't)"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-slate-blue focus:border-slate-blue"
-                  />
-                </div>
-
-                {/* Module Sections */}
-                <div className="space-y-6 mt-8">
-                  {/* Special Offer Section */}
-                  <OfferSection
-                    enabled={offerEnabled}
-                    onToggle={() => setOfferEnabled((v) => !v)}
-                    title={offerTitle}
-                    onTitleChange={setOfferTitle}
-                    description={offerBody}
-                    onDescriptionChange={setOfferBody}
-                    url={offerUrl}
-                    onUrlChange={setOfferUrl}
-                  />
-
-                  {/* Emoji Sentiment Section */}
-                  <EmojiSentimentSection
-                    enabled={emojiSentimentEnabled}
-                    onToggle={() => setEmojiSentimentEnabled((v) => !v)}
-                    question={emojiSentimentQuestion}
-                    onQuestionChange={setEmojiSentimentQuestion}
-                    feedbackMessage={emojiFeedbackMessage}
-                    onFeedbackMessageChange={setEmojiFeedbackMessage}
-                    thankYouMessage={emojiThankYouMessage}
-                    onThankYouMessageChange={setEmojiThankYouMessage}
-                  />
-
-                  {/* AI Review Generation Toggle */}
-                  <DisableAIGenerationSection
-                    aiGenerationEnabled={aiReviewEnabled}
-                    fixGrammarEnabled={false}
-                    onToggleAI={() => setAiReviewEnabled((v) => !v)}
-                    onToggleGrammar={() => {}}
-                  />
-
-                  {/* Falling Stars Section */}
-                  <FallingStarsSection
-                    enabled={fallingEnabled}
-                    onToggle={() => setFallingEnabled((v) => !v)}
-                    icon={fallingIcon}
-                    onIconChange={setFallingIcon}
-                  />
+                <div className="grid grid-cols-1 gap-4">
+                  <div>
+                    <label htmlFor="ai_dos" className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1">
+                      AI Dos
+                      <RobotTooltip text="What should AI emphasize when generating prompts for this location?" />
+                    </label>
+                    <textarea
+                      id="ai_dos"
+                      value={formData.ai_dos || ''}
+                      onChange={(e) => handleInputChange('ai_dos', e.target.value)}
+                      placeholder="What should AI emphasize? (e.g., 'emphasize our friendly staff', 'mention our convenient location')"
+                      rows={2}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-slate-blue focus:border-slate-blue"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="ai_donts" className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1">
+                      AI Don'ts
+                      <RobotTooltip text="What should AI avoid when generating prompts for this location?" />
+                    </label>
+                    <textarea
+                      id="ai_donts"
+                      value={formData.ai_donts || ''}
+                      onChange={(e) => handleInputChange('ai_donts', e.target.value)}
+                      placeholder="What should AI avoid? (e.g., 'don\'t mention parking issues', 'avoid discussing wait times')"
+                      rows={2}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-slate-blue focus:border-slate-blue"
+                    />
+                  </div>
                 </div>
               </div>
+
+              {/* Review Platforms Section */}
+              <ReviewPlatformsSection
+                value={reviewPlatforms}
+                onChange={setReviewPlatforms}
+                errors={errors.reviewPlatforms ? [errors.reviewPlatforms] : []}
+              />
+
+              {/* Personalized Note Section */}
+              <div className="rounded-lg p-4 bg-slate-50 border border-slate-200 flex flex-col gap-2 shadow relative">
+                <div className="flex items-center justify-between mb-2 px-2 py-2">
+                  <div className="flex items-center gap-3">
+                    <FaStickyNote className="w-7 h-7 text-slate-blue" />
+                    <span className="text-2xl font-bold text-slate-blue">
+                      Personalized note pop-up
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (emojiSentimentEnabled) {
+                        // Show conflict modal would go here
+                        return;
+                      }
+                      setNotePopupEnabled(!notePopupEnabled);
+                    }}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${notePopupEnabled ? "bg-slate-blue" : "bg-gray-200"}`}
+                    aria-pressed={!!notePopupEnabled}
+                    disabled={emojiSentimentEnabled}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${notePopupEnabled ? "translate-x-5" : "translate-x-1"}`}
+                    />
+                  </button>
+                </div>
+                <div className="text-sm text-gray-700 mb-3 max-w-[85ch] px-2">
+                  Add a friendly, personal message to make this location review request feel special.
+                </div>
+                {notePopupEnabled && (
+                  <div className="px-2">
+                    <textarea
+                      placeholder="Write a personal note to make this location review request feel special..."
+                      value={friendlyNote}
+                      onChange={(e) => setFriendlyNote(e.target.value)}
+                      rows={3}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-slate-blue focus:border-slate-blue bg-white"
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Modules */}
+              <FallingStarsSection
+                enabled={fallingEnabled}
+                onToggle={() => setFallingEnabled(!fallingEnabled)}
+                icon={fallingIcon}
+                onIconChange={setFallingIcon}
+              />
+
+              <EmojiSentimentSection
+                enabled={emojiSentimentEnabled}
+                onToggle={() => setEmojiSentimentEnabled(!emojiSentimentEnabled)}
+                question={emojiSentimentQuestion}
+                onQuestionChange={setEmojiSentimentQuestion}
+                feedbackMessage={emojiFeedbackMessage}
+                onFeedbackMessageChange={setEmojiFeedbackMessage}
+                thankYouMessage={emojiThankYouMessage}
+                onThankYouMessageChange={setEmojiThankYouMessage}
+              />
+
+              <OfferSection
+                enabled={offerEnabled}
+                onToggle={() => setOfferEnabled(!offerEnabled)}
+                title={offerTitle}
+                onTitleChange={setOfferTitle}
+                description={offerBody}
+                onDescriptionChange={setOfferBody}
+                url={offerUrl}
+                onUrlChange={setOfferUrl}
+              />
+
+              <DisableAIGenerationSection
+                aiGenerationEnabled={aiReviewEnabled}
+                fixGrammarEnabled={true} // TODO: Add fix_grammar_enabled column
+                onToggleAI={() => setAiReviewEnabled(!aiReviewEnabled)}
+                onToggleGrammar={() => {}} // TODO: Implement when column is added
+              />
+            </div>
           </div>
 
           {/* Footer */}
@@ -689,7 +734,7 @@ export default function BusinessLocationModal({
               </button>
             </div>
           </div>
-        </Dialog.Panel>
+        </div>
       </div>
       
       {/* Location Limit Modal */}
@@ -731,6 +776,51 @@ export default function BusinessLocationModal({
           </div>
         </div>
       )}
-    </Dialog>
+
+      {/* Cropping Modal */}
+      {showCropper && (locationPhotoUrl || businessLogoUrl) && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 overflow-y-auto">
+          <div className="bg-white p-6 rounded shadow-lg relative max-w-2xl w-full">
+            <div className="w-full h-96 relative mb-8">
+              <Cropper
+                image={locationPhotoUrl || businessLogoUrl || ''}
+                crop={crop}
+                zoom={zoom}
+                aspect={1}
+                onCropChange={setCrop}
+                onZoomChange={setZoom}
+                onCropComplete={onCropComplete}
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <button
+                type="button"
+                className="px-4 py-2 bg-gray-200 rounded"
+                onClick={handleCropCancel}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="px-4 py-2 bg-slate-blue text-white rounded"
+                onClick={handleCropConfirm}
+              >
+                Crop
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* QR Code Modal */}
+      <QRCodeModal
+        isOpen={qrModal?.open || false}
+        onClose={() => setQrModal(null)}
+        url={qrModal?.url || ""}
+        clientName={qrModal?.clientName || ""}
+        logoUrl={qrModal?.logoUrl}
+        showNfcText={qrModal?.showNfcText}
+      />
+    </div>
   );
 } 

@@ -69,20 +69,23 @@ const ReviewPlatformsSection: React.FC<ReviewPlatformsSectionProps> = ({
   const [showInfo, setShowInfo] = React.useState(false);
   const [showGoogleHelpModal, setShowGoogleHelpModal] = React.useState(false);
 
+  // Safety check for undefined value
+  const safeValue = value || [];
+
   const handlePlatformChange = (
     idx: number,
     field: keyof ReviewPlatformLink,
     val: string | number,
   ) => {
-    const newPlatforms = value.map((p, i) =>
+    const newPlatforms = safeValue.map((p, i) =>
       i === idx ? { ...p, [field]: val } : p,
     );
     onChange(newPlatforms);
   };
   const addPlatform = () =>
-    onChange([...value, { name: "", url: "", wordCount: 200 }]);
+    onChange([...safeValue, { name: "", url: "", wordCount: 200 }]);
   const removePlatform = (idx: number) =>
-    onChange(value.filter((_, i) => i !== idx));
+    onChange(safeValue.filter((_, i) => i !== idx));
 
   return (
     <div className="mb-16">
@@ -93,7 +96,7 @@ const ReviewPlatformsSection: React.FC<ReviewPlatformsSectionProps> = ({
         </h2>
       </div>
       <div className="space-y-10">
-        {value.map((platform, idx) => (
+        {safeValue.map((platform, idx) => (
           <div
             key={idx}
             className="flex flex-col gap-3 p-6 pt-10 border border-blue-200 rounded-lg bg-blue-50 shadow-sm relative"

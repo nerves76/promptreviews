@@ -164,6 +164,8 @@ export function createLocationPromptPageData(location: {
   offer_body?: string;
   offer_url?: string;
   ai_review_enabled?: boolean;
+  show_friendly_note?: boolean;
+  friendly_note?: string;
 }) {
   return {
     account_id: location.account_id,
@@ -190,6 +192,9 @@ export function createLocationPromptPageData(location: {
     offer_body: location.offer_body || '',
     offer_url: location.offer_url || '',
     ai_review_enabled: location.ai_review_enabled !== false,
+    // Personalized note fields
+    show_friendly_note: location.show_friendly_note ?? false,
+    friendly_note: location.friendly_note || '',
   };
 } 
 
