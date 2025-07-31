@@ -105,31 +105,34 @@ export default function IndividualOutreach() {
           .single();
         setAccount(accountData);
 
-        const { data: businessProfile } = await supabase
+        const { data: businessProfiles } = await supabase
           .from("businesses")
           .select("*")
           .eq("account_id", accountId)
-          .single();
+          .order("created_at", { ascending: false })
+          .limit(1);
         
-        // Check if business profile exists and has been updated (indicating they've been to "Your business" page)
+        const businessProfile = businessProfiles?.[0];
+        
+        // Check if business profile exists and has a valid name
         if (!businessProfile || 
             !businessProfile.name || 
-            businessProfile.name.trim() === '' ||
-            businessProfile.created_at === businessProfile.updated_at) {
+            businessProfile.name.trim() === '') {
           router.push('/dashboard?message=complete-business-first');
           return;
         }
         
         setBusiness(businessProfile);
         
-        const { data: universalPage } = await supabase
+        const { data: universalPages } = await supabase
           .from("prompt_pages")
           .select("*")
           .eq("account_id", accountId)
           .eq("is_universal", true)
           .order("created_at", { ascending: false })
-          .limit(1)
-          .single();
+          .limit(1);
+        
+        const universalPage = universalPages?.[0];
         setUniversalPromptPage(universalPage);
         if (universalPage?.slug) {
           setUniversalUrl(`${window.location.origin}/r/${universalPage.slug}`);
@@ -440,7 +443,10 @@ export default function IndividualOutreach() {
           <div className="flex flex-col gap-2">
             <div className="flex items-start justify-between mt-2 mb-4">
               <div className="flex flex-col mt-0 md:mt-[3px]">
-                <h1 className="text-4xl font-bold text-slate-blue mt-0 mb-2">Individual outreach</h1>
+                <div className="flex items-center gap-3 mb-2">
+                  <h1 className="text-4xl font-bold text-slate-blue mt-0">Individual outreach</h1>
+                  <FaUserCircle className="w-8 h-8 text-slate-blue" />
+                </div>
                 <p className="text-gray-600 text-base max-w-md mt-0 mb-10">Create personalized prompt pages for specific customers and clients.</p>
               </div>
               <div className="flex items-start" style={{ alignSelf: "flex-start" }}>
@@ -449,7 +455,7 @@ export default function IndividualOutreach() {
                   className="bg-blue-100 text-slate-blue rounded font-semibold px-4 py-2 hover:bg-blue-200 transition whitespace-nowrap flex items-center gap-2"
                   onClick={() => setShowStyleModal(true)}
                 >
-                  <FaPalette className="w-4 h-4" />
+                  <FaPalette className="w-5 h-5" />
                   Style
                 </button>
               </div>
@@ -460,7 +466,7 @@ export default function IndividualOutreach() {
               <div className="flex items-center justify-between mb-[75px]">
                 <div>
                   <h2 className="text-2xl font-bold text-slate-blue mb-2 flex items-center gap-3">
-                    <FaStar className="w-7 h-7 text-slate-blue" />
+                    <FaStar className="w-8 h-8 text-slate-blue" />
                     Individual Prompt Pages
                   </h2>
                   <p className="text-sm text-gray-600">
@@ -599,7 +605,7 @@ export default function IndividualOutreach() {
               style={{ width: 48, height: 48 }}
               aria-label="Close modal"
             >
-              <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>

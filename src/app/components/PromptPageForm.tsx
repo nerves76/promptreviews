@@ -42,12 +42,14 @@ import dynamic from "next/dynamic";
 import { slugify } from "@/utils/slugify";
 import { useRouter } from "next/navigation";
 import ReviewWriteSection from "../dashboard/edit-prompt-page/components/ReviewWriteSection";
-import OfferSection from "../dashboard/edit-prompt-page/components/OfferSection";
-import EmojiSentimentSection from "../dashboard/edit-prompt-page/components/EmojiSentimentSection";
-import DisableAIGenerationSection from "./DisableAIGenerationSection";
+import { 
+  OfferFeature,
+  EmojiSentimentFeature,
+  FallingStarsFeature,
+  AISettingsFeature
+} from "./prompt-features";
 import { Input } from "@/app/components/ui/input";
 import { Textarea } from "@/app/components/ui/textarea";
-import FallingStarsSection from "@/app/components/FallingStarsSection";
 import { useFallingStars } from "@/hooks/useFallingStars";
 import { getFallingIcon } from "@/app/components/prompt-modules/fallingStarsConfig";
 import RobotTooltip from "./RobotTooltip";
@@ -245,7 +247,7 @@ export default function PromptPageForm({
       : true,
   );
   const [fallingEnabled, setFallingEnabled] = useState(
-    !!initialData.falling_icon
+    initialData.falling_enabled ?? (!!initialData.falling_icon) ?? true
   );
   const [iconUpdating, setIconUpdating] = useState(false);
   // Use shared falling stars hook

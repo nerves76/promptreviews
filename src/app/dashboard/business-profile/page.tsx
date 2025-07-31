@@ -134,6 +134,8 @@ export default function BusinessProfilePage() {
     business_email: "",
     ai_dos: "",
     ai_donts: "",
+    kickstarters_enabled: false,
+    selected_kickstarters: [],
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -195,62 +197,65 @@ export default function BusinessProfilePage() {
         setAccountId(currentAccountId);
 
         // Load business profile for the selected account
-        const { data: businessData, error: businessError } = await supabase
+        const { data: businessProfiles, error: businessError } = await supabase
           .from("businesses")
           .select("*")
           .eq("account_id", currentAccountId)
-          .single();
+          .order("created_at", { ascending: false })
+          .limit(1);
+        
+        const businessData = businessProfiles?.[0];
 
         if (businessError) {
-          if (businessError.code === 'PGRST116') {
-            // No business profile found for this account
-            console.log('📝 No business profile found for account:', currentAccountId);
-            // Reset form to empty state
-            setForm({
-              name: "",
-              company_values: "",
-              differentiators: "",
-              years_in_business: "",
-              industries_served: "",
-              taglines: "",
-              keywords: "",
-              team_info: "",
-              about_us: "",
-              review_platforms: [],
-              platform_word_counts: "",
-              facebook_url: "",
-              instagram_url: "",
-              bluesky_url: "",
-              tiktok_url: "",
-              youtube_url: "",
-              linkedin_url: "",
-              pinterest_url: "",
-              default_offer_enabled: false,
-              default_offer_title: "Special offer",
-              default_offer_body: "",
-              default_offer_url: "",
-              address_street: "",
-              address_city: "",
-              address_state: "",
-              address_zip: "",
-              address_country: "",
-              phone: "",
-              business_website: "",
-              offer_learn_more_url: "",
-              business_email: "",
-              ai_dos: "",
-              ai_donts: "",
-            });
-            setServices([""]);
-            setPlatforms([{ name: "", url: "", wordCount: 200 }]);
-            setPlatformErrors([""]);
-            setLogoUrl(null);
-            setNoProfile(true);
-          } else {
-            console.error("Error loading business profile:", businessError);
-            setError("Failed to load business profile");
-            setNoProfile(true);
-          }
+          console.error("Error loading business profile:", businessError);
+          setError("Failed to load business profile");
+          setNoProfile(true);
+        } else if (!businessData) {
+          // No business profile found for this account
+          console.log('📝 No business profile found for account:', currentAccountId);
+          // Reset form to empty state
+          setForm({
+            name: "",
+            company_values: "",
+            differentiators: "",
+            years_in_business: "",
+            industries_served: "",
+            taglines: "",
+            keywords: "",
+            team_info: "",
+            about_us: "",
+            review_platforms: [],
+            platform_word_counts: "",
+            facebook_url: "",
+            instagram_url: "",
+            bluesky_url: "",
+            tiktok_url: "",
+            youtube_url: "",
+            linkedin_url: "",
+            pinterest_url: "",
+            default_offer_enabled: false,
+            default_offer_title: "Special offer",
+            default_offer_body: "",
+            default_offer_url: "",
+            address_street: "",
+            address_city: "",
+            address_state: "",
+            address_zip: "",
+            address_country: "",
+            phone: "",
+            business_website: "",
+            offer_learn_more_url: "",
+            business_email: "",
+            ai_dos: "",
+            ai_donts: "",
+            kickstarters_enabled: false,
+            selected_kickstarters: [],
+          });
+          setServices([""]);
+          setPlatforms([{ name: "", url: "", wordCount: 200 }]);
+          setPlatformErrors([""]);
+          setLogoUrl(null);
+          setNoProfile(true);
         } else if (businessData) {
           console.log('✅ Business profile loaded for account:', currentAccountId, 'Business name:', businessData.name);
           setForm({
@@ -266,6 +271,8 @@ export default function BusinessProfilePage() {
             business_email: businessData.business_email || "",
             ai_dos: businessData.ai_dos || "",
             ai_donts: businessData.ai_donts || "",
+            kickstarters_enabled: businessData.kickstarters_enabled || false,
+            selected_kickstarters: businessData.selected_kickstarters || [],
           });
           setServices(
             Array.isArray(businessData.services_offered)
@@ -638,6 +645,8 @@ export default function BusinessProfilePage() {
         business_email: form.business_email,
         ai_dos: form.ai_dos,
         ai_donts: form.ai_donts,
+        kickstarters_enabled: form.kickstarters_enabled,
+        selected_kickstarters: form.selected_kickstarters,
         services_offered: services,
       });
       
@@ -843,6 +852,13 @@ export default function BusinessProfilePage() {
           {isSubmitting ? "Saving..." : "Save"}
         </button>
       </div>
+
+      {/* Bottom success message */}
+      {success && (
+        <div className="mt-6 p-4 bg-green-50 text-green-700 rounded-md text-base font-medium border border-green-200">
+          {success}
+        </div>
+      )}
 
       {/* Welcome Popup for first-time visitors */}
       <WelcomePopup

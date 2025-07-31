@@ -8,7 +8,7 @@ import Link from "next/link";
 import { FaGlobe, FaLink, FaTimes, FaPalette, FaPlus, FaCheck, FaMapMarkerAlt, FaEdit, FaTrash, FaStar, FaUsers, FaUser, FaBuilding, FaStore, FaUserCircle } from "react-icons/fa";
 import { MdDownload } from "react-icons/md";
 import PageCard from "@/app/components/PageCard";
-import UniversalPromptPageForm from "../dashboard/edit-prompt-page/universal/UniversalPromptPageForm";
+
 import AppLoader from "@/app/components/AppLoader";
 import QRCodeGenerator, { QR_FRAME_SIZES } from "../dashboard/components/QRCodeGenerator";
 import dynamic from "next/dynamic";
@@ -145,17 +145,19 @@ export default function PromptPages() {
           .single();
         setAccount(accountData);
 
-        const { data: businessProfile } = await supabase
+        const { data: businessProfiles } = await supabase
           .from("businesses")
           .select("*")
           .eq("account_id", accountId)
-          .single();
+          .order("created_at", { ascending: false })
+          .limit(1);
         
-        // Check if business profile exists and has been updated (indicating they've been to "Your business" page)
+        const businessProfile = businessProfiles?.[0];
+        
+        // Check if business profile exists and has a valid name
         if (!businessProfile || 
             !businessProfile.name || 
-            businessProfile.name.trim() === '' ||
-            businessProfile.created_at === businessProfile.updated_at) {
+            businessProfile.name.trim() === '') {
           setShowBusinessRequiredModal(true);
           setLoading(false);
           return;
@@ -163,14 +165,15 @@ export default function PromptPages() {
         
         setBusiness(businessProfile);
         
-        const { data: universalPage } = await supabase
+        const { data: universalPages } = await supabase
           .from("prompt_pages")
           .select("*")
           .eq("account_id", accountId)
           .eq("is_universal", true)
           .order("created_at", { ascending: false })
-          .limit(1)
-          .single();
+          .limit(1);
+        
+        const universalPage = universalPages?.[0];
         setUniversalPromptPage(universalPage);
         if (universalPage?.slug) {
           setUniversalUrl(`${window.location.origin}/r/${universalPage.slug}`);
@@ -372,20 +375,38 @@ export default function PromptPages() {
             }
           }
           
-                  console.log('🔍 Setting post save data:', data);
-        setPostSaveData(data);
-        setShowPostSaveModal(true);
-        // Trigger starfall celebration automatically when modal appears
-        setShowStars(true);
-        // Also trigger global starfall celebration
-        setShowStarfallCelebration(true);
-        localStorage.removeItem("showPostSaveModal");
-        } catch {}
+          console.log('🔍 Setting post save data:', data);
+          setPostSaveData(data);
+          setShowPostSaveModal(true);
+          // Trigger starfall celebration automatically when modal appears
+          setShowStars(true);
+          // Also trigger global starfall celebration
+          setShowStarfallCelebration(true);
+          localStorage.removeItem("showPostSaveModal");
+        } catch (error) {
+          console.error('Error handling post save modal:', error);
+        }
       }
     };
 
     handlePostSaveModal();
-  }, [locationPromptPages]);
+  }, []); // Remove locationPromptPages dependency to prevent re-running
+
+  // Update URL for location creation if modal is already shown and locationPromptPages updates
+  useEffect(() => {
+    if (showPostSaveModal && postSaveData?.isLocationCreation && locationPromptPages.length > 0) {
+      const latestLocationPage = locationPromptPages
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0];
+      
+      if (latestLocationPage && !postSaveData.url) {
+        const updatedData = {
+          ...postSaveData,
+          url: `${window.location.origin}/r/${latestLocationPage.slug}`
+        };
+        setPostSaveData(updatedData);
+      }
+    }
+  }, [locationPromptPages, showPostSaveModal, postSaveData]);
 
   const handleSort = (field: "first_name" | "last_name" | "review_type") => {
     if (sortField === field) {
@@ -537,7 +558,7 @@ export default function PromptPages() {
       
             {/* Title above navigation */}
       <div className="flex justify-center w-full mt-8 mb-6 z-20">
-        <h2 className="text-white text-base font-medium">Prompt Page campaign type</h2>
+        <h2 className="text-white text-xl font-semibold">Prompt Page campaign type</h2>
       </div>
        
        {/* Pill navigation at the top of the PageCard */}
@@ -552,7 +573,7 @@ export default function PromptPages() {
                 : 'bg-transparent text-white'}
             `}
           >
-            <FaUsers className="w-4 h-4" />
+            <FaUsers className="w-5 h-5" />
             Public
           </button>
           <button
@@ -564,7 +585,7 @@ export default function PromptPages() {
                 : 'bg-transparent text-white'}
             `}
           >
-            <FaUserCircle className="w-4 h-4" />
+            <FaUserCircle className="w-5 h-5" />
             Individual
           </button>
           <button
@@ -576,7 +597,7 @@ export default function PromptPages() {
                 : 'bg-transparent text-white'}
             `}
           >
-            <FaMapMarkerAlt className="w-4 h-4" />
+            <FaMapMarkerAlt className="w-5 h-5" />
             Locations
           </button>
         </div>
@@ -586,11 +607,16 @@ export default function PromptPages() {
         <div className="p-6 pt-2">
             <div className="flex items-start justify-between mt-2 mb-4">
               <div className="flex flex-col mt-0 md:mt-[3px]">
-                <h1 className="text-4xl font-bold text-slate-blue mt-0 mb-2">
-                  {promptPagesTab === 'public' && 'Public Prompt Pages'}
-                  {promptPagesTab === 'individual' && 'Individual Prompt Pages'}
-                  {promptPagesTab === 'locations' && 'Location Prompt Pages'}
-                </h1>
+                <div className="flex items-center gap-3 mb-2">
+                  <h1 className="text-4xl font-bold text-slate-blue mt-0">
+                    {promptPagesTab === 'public' && 'Public Prompt Pages'}
+                    {promptPagesTab === 'individual' && 'Individual Prompt Pages'}
+                    {promptPagesTab === 'locations' && 'Location Prompt Pages'}
+                  </h1>
+                  {promptPagesTab === 'public' && <FaUsers className="w-8 h-8 text-slate-blue" />}
+                  {promptPagesTab === 'individual' && <FaUserCircle className="w-8 h-8 text-slate-blue" />}
+                  {promptPagesTab === 'locations' && <FaMapMarkerAlt className="w-8 h-8 text-slate-blue" />}
+                </div>
                 <p className="text-gray-600 text-base max-w-md mt-0 mb-10">
                   {promptPagesTab === 'public' && 'Capture reviews in person, at your place of business, through your website, or embed in your newsletter. These prompt pages are open to the public.'}
                   {promptPagesTab === 'individual' && 'Create personalized prompt pages for individuals and make them feel special. Pre-populated contact information, write your own review templates, and add custom messaging.'}
@@ -613,12 +639,21 @@ export default function PromptPages() {
                     + Prompt Page
                   </button>
                 )}
+                {promptPagesTab === 'locations' && (
+                  <button
+                    type="button"
+                    onClick={() => setShowLocationModal(true)}
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-slate-blue text-white rounded hover:bg-slate-blue/90 font-medium transition"
+                  >
+                    + Location
+                  </button>
+                )}
                 <button
                   type="button"
                   className="bg-blue-100 text-slate-blue rounded font-semibold px-4 py-2 hover:bg-blue-200 transition whitespace-nowrap flex items-center gap-2"
                   onClick={() => setShowStyleModal(true)}
                 >
-                  <FaPalette className="w-4 h-4" />
+                  <FaPalette className="w-5 h-5" />
                   Style
                 </button>
               </div>
@@ -631,7 +666,7 @@ export default function PromptPages() {
                   <div className="flex items-center justify-between mb-1">
                     <div className="flex items-center gap-2">
                       <h2 className="text-2xl font-bold text-slate-blue flex items-center gap-3">
-                        <FaGlobe className="w-7 h-7 text-slate-blue" />
+                        <FaGlobe className="w-8 h-8 text-slate-blue" />
                         Universal Prompt Page
                       </h2>
                       <UniversalTooltip />
@@ -663,7 +698,7 @@ export default function PromptPages() {
                         onClick={() => handleCopyLink()}
                         className="inline-flex items-center gap-1 px-3 py-1.5 bg-purple-100 text-purple-800 rounded hover:bg-purple-200 text-sm font-medium shadow h-9 align-middle whitespace-nowrap"
                       >
-                        <FaLink className="w-4 h-4" />
+                        <FaLink className="w-5 h-5" />
                         Copy link
                       </button>
                       <button
@@ -764,7 +799,7 @@ export default function PromptPages() {
               <div className="my-12">
                 {(!account || !hasIndividualAccess(account.plan)) ? (
                   <div className="text-center py-12">
-                    <FaUser className="w-16 h-16 mx-auto mb-6 text-gray-300" />
+                    <FaUser className="w-16 h-16 mx-auto mb-6 text-slate-blue" />
                     <h2 className="text-2xl font-bold text-slate-blue mb-4">Individual Prompt Pages</h2>
                     <p className="text-lg text-gray-600 mb-6 max-w-md mx-auto">
                       Create personalized prompt pages for individuals and make them feel special. Pre-populated contact information, write your own review templates, and add custom messaging.
@@ -812,7 +847,7 @@ export default function PromptPages() {
               <div className="my-12">
                 {(!account || !hasLocationAccess(account.plan)) ? (
                   <div className="text-center py-12">
-                    <FaMapMarkerAlt className="w-16 h-16 mx-auto mb-6 text-gray-300" />
+                    <FaMapMarkerAlt className="w-16 h-16 mx-auto mb-6 text-slate-blue" />
                     <h2 className="text-2xl font-bold text-slate-blue mb-4">Location Prompt Pages</h2>
                     <p className="text-lg text-gray-600 mb-6 max-w-md mx-auto">
                       Create prompt pages for each of your business locations. Perfect for multi-location businesses.
@@ -833,24 +868,6 @@ export default function PromptPages() {
                   </div>
                 ) : (
                   <>
-                    <div className="flex items-center justify-between mb-[75px]">
-                      <div>
-                        <h2 className="text-2xl font-bold text-slate-blue mb-2 flex items-center gap-3">
-                          <FaMapMarkerAlt className="w-7 h-7 text-slate-blue" />
-                          Location Prompt Pages
-                        </h2>
-                        <p className="text-sm text-gray-600">
-                          Create prompt pages for each of your business locations. Perfect for multi-location businesses.
-                        </p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => setShowLocationModal(true)}
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-slate-blue text-white rounded hover:bg-slate-blue/90 font-medium transition"
-                      >
-                        + Location
-                      </button>
-                    </div>
                 
                 {/* Location Limits Info */}
                 {account && (
@@ -889,7 +906,7 @@ export default function PromptPages() {
                   
                   {locations.length === 0 && (
                     <div className="text-center py-8 text-gray-500">
-                      <FaMapMarkerAlt className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                      <FaMapMarkerAlt className="w-12 h-12 mx-auto mb-4 text-slate-blue" />
                       <p>No locations added yet.</p>
                       <p className="text-sm">Add your first location to get started.</p>
                     </div>
@@ -958,7 +975,7 @@ export default function PromptPages() {
               style={{ width: 48, height: 48 }}
               aria-label="Close modal"
             >
-              <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
@@ -1056,8 +1073,8 @@ export default function PromptPages() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-8 max-w-md mx-4 text-center">
             <div className="mb-6">
-              <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-yellow-100 mb-4">
-                <FaStore className="h-6 w-6 text-yellow-600" />
+                              <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-slate-blue/10 mb-4">
+                <FaStore className="h-6 w-6 text-slate-blue" />
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
                 Business Profile Required
@@ -1104,7 +1121,7 @@ function UniversalTooltip() {
         style={{ lineHeight: 1 }}
       >
         <FaQuestionCircle
-          className="inline-block w-4 h-4 align-middle cursor-pointer"
+          className="inline-block w-5 h-5 align-middle cursor-pointer"
           title="Universal Prompt Page info"
         />
       </button>

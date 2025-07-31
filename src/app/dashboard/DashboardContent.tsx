@@ -469,21 +469,30 @@ const DashboardContent = React.memo(function DashboardContent({
     }
   };
 
-  // Soft lock for Grower plan: only allow access to first 4 prompt pages
+  // Soft lock for plan-based limits
   const isGrower = account?.plan === "grower";
   const isBuilder = account?.plan === "builder";
+  const isMaven = account?.plan === "maven";
+  
+  // Use proper plan limits from accountLimits.ts
   const maxGrowerPages = 4;
   const maxBuilderPages = 100;
+  const maxMavenPages = 500;
+  
   const accessiblePromptPages = isGrower
     ? sortedPromptPages.slice(0, maxGrowerPages)
     : isBuilder
       ? sortedPromptPages.slice(0, maxBuilderPages)
-      : sortedPromptPages;
+      : isMaven
+        ? sortedPromptPages.slice(0, maxMavenPages)
+        : sortedPromptPages; // No limit for other plans or unlimited access
   const lockedPromptPages = isGrower
     ? sortedPromptPages.slice(maxGrowerPages)
     : isBuilder
       ? sortedPromptPages.slice(maxBuilderPages)
-      : [];
+      : isMaven
+        ? sortedPromptPages.slice(maxMavenPages)
+        : [];
 
   if (isLoading && !parentLoading) {
     return <AppLoader variant="compact" />;
@@ -587,6 +596,45 @@ const DashboardContent = React.memo(function DashboardContent({
           </div>
         </div>
       </div>
+      
+      {/* Game Card */}
+      <div className="mb-8">
+        <div className="rounded-lg p-6 bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 shadow">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-blue-600 rounded-lg flex items-center justify-center">
+                <span className="text-2xl">🎮</span>
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-slate-900">Prompty Power</h3>
+                <p className="text-sm text-slate-600">Take a break and play!</p>
+              </div>
+            </div>
+            <Link
+              href="/game"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500 to-blue-600 text-white rounded-lg hover:from-purple-600 hover:to-blue-700 transition-all duration-200 font-medium"
+            >
+              <span>Play Prompty Power</span>
+              <span>→</span>
+            </Link>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+              <span className="text-slate-700">Convert angry customers</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+              <span className="text-slate-700">Collect power-ups</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+              <span className="text-slate-700">Defeat Boss Karen</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
       <div className="flex justify-center items-start w-full">
         <div className="relative w-full">
           {/* Main dashboard content, remove pt-12 so title is at the top */}

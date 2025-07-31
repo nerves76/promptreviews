@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prompty Power Game</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Reset button outside game area -->
+    <div class="externalControls">
+        <button id="resetGame">Reset Game</button>
+    </div>
+    
+    <div class="gameContainer">
+        <canvas id="gameCanvas" class="gameCanvas" width="800" height="550"></canvas>
+        
+        <div class="ui">
+            <div class="score">Authority Score: <span id="score">0</span></div>
+            <div class="level">Level: <span id="level">1</span></div>
+            <div class="timer">Time: <span id="timer">60</span></div>
+            <div class="lives">Lives: <span id="lives">3</span></div>
+            <div class="combo">Combo: <span id="combo">x1</span></div>
+        </div>
+        
+        <div class="powerUpStatus" id="powerUpStatus"></div>
+        
+        <div class="scoringKey">
+            <h3>Scoring:</h3>
+            <p>✅ Convert Customer: +10 Authority Score</p>
+            <p>💥 Defeat Boss: +100 Authority Score</p>
+            <p>⭐ Combo Bonus: +2 Authority Score per combo</p>
+            <p>🔑 Key Power-up: +5 Authority Score per cleared emoji</p>
+            <p>☕ Coffee Power-up: +3 Authority Score per hit</p>
+        </div>
+        
+        <div id="startMenu" class="startMenu">
+            <div class="titleSection">
+                <div class="promptyCharacter"></div>
+                <div class="titleContent">
+                    <div class="goldStars">⭐⭐⭐⭐⭐</div>
+                    <h1>Prompty Power</h1>
+                    <p>Help Prompty get found online by getting reviews and increasing his Authority Score!</p>
+                </div>
+            </div>
+            
+            <div class="bossShowcase">
+                <h3>Meet Your Adversaries</h3>
+                <div class="bossCircle">
+                    <div class="bossItem">
+                        <div class="bossImage karenBoss" onclick="showBossPopup('karen')"></div>
+                        <div class="bossName">Evil Karen</div>
+                    </div>
+                    <div class="bossItem">
+                        <div class="bossImage evilGoogleBoss" onclick="showBossPopup('evilGoogleExec')"></div>
+                        <div class="bossName">Evil Google Exec</div>
+                    </div>
+                    <div class="bossItem">
+                        <div class="bossImage linkedinBoss" onclick="showBossPopup('linkedInSpammer')"></div>
+                        <div class="bossName">Evil LinkedIn Spammer</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="compactInstructions">
+                <div class="instructionGrid">
+                    <div class="instructionItem">
+                        <div class="instructionIcon">🖱️</div>
+                        <div>Move mouse to aim, click to shoot</div>
+                    </div>
+                    <div class="instructionItem">
+                        <div class="instructionIcon">❤️</div>
+                        <div>Hit customers 5 times with hearts to get a 5-Star Review!</div>
+                    </div>
+                    <div class="instructionItem">
+                        <div class="instructionIcon">⚡</div>
+                        <div>Collect power-ups</div>
+                    </div>
+                    <div class="instructionItem">
+                        <div class="instructionIcon">⬅️➡️</div>
+                        <div>Arrow keys to move</div>
+                    </div>
+                </div>
+            </div>
+            
+            <button id="startButton" onclick="startGame()">Start Game</button>
+        </div>
+        
+        <!-- Boss Popups -->
+        <div id="bossPopup" class="bossPopup">
+            <div class="bossPopupContent">
+                <button class="bossPopupClose" onclick="hideBossPopup()">×</button>
+                <div id="bossPopupImage" class="bossPopupImage"></div>
+                <div id="bossPopupTitle" class="bossPopupTitle"></div>
+                <div id="bossPopupDescription" class="bossPopupDescription"></div>
+                <div id="bossPopupAbilities" class="bossPopupAbilities">
+                    <h4>Special Abilities:</h4>
+                    <ul id="bossPopupAbilitiesList"></ul>
+                </div>
+            </div>
+        </div>
+        
+        <div id="levelComplete" class="levelComplete">
+            <h1>Level <span id="completedLevel">1</span> Complete!</h1>
+            <p>Your rankings are improving!</p>
+            <p>Authority Score: <span id="levelScore">0</span></p>
+            <button class="button" onclick="startNextLevel()">Start Next Level</button>
+        </div>
+        
+        <div id="gameOver" class="gameOver">
+            <h1>Game Over!</h1>
+            <div id="gameOverMessage" class="gameOverMessage">
+                <p>You failed to get enough reviews to get found online. :(</p>
+            </div>
+            <p>Final Authority Score: <span id="finalScore">0</span></p>
+            <p>Level Reached: <span id="finalLevel">1</span></p>
+            
+            <!-- Name Input Section -->
+            <div id="nameInputSection" class="nameInputSection">
+                <h3>Enter your name for the leaderboard:</h3>
+                <input type="text" id="playerName" placeholder="Your name" maxlength="50" class="nameInput">
+                <button id="saveScoreBtn" class="button">Save Score</button>
+            </div>
+            
+            <!-- Leaderboard Section -->
+            <div id="leaderboardSection" class="leaderboardSection" style="display: none;">
+                <h3>🏆 Top Scores</h3>
+                <div id="leaderboard" class="leaderboard"></div>
+                <button id="viewAllScoresBtn" class="button secondary">View All Scores</button>
+            </div>
+            
+            <button class="button" onclick="startGame()">Play Again</button>
+        </div>
+        
+        <!-- Full Leaderboard Modal -->
+        <div id="fullLeaderboardModal" class="fullLeaderboardModal">
+            <div class="modalContent">
+                <h2>🏆 All-Time Leaderboard</h2>
+                <div id="fullLeaderboard" class="fullLeaderboard"></div>
+                <button class="button" onclick="closeFullLeaderboard()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Performance monitoring panel -->
+    <div id="performancePanel"></div>
+    
+    <!-- Load modules in order -->
+    <script src="audio.js"></script>
+    <script src="physics.js"></script>
+    <script src="spawning.js"></script>
+    <script src="drawing.js"></script>
+    <script src="ui-drawing.js"></script>
+    <script src="ui.js"></script>
+    <script src="leaderboard.js"></script>
+    <script src="game.js"></script>
+</body>
+</html> 

@@ -114,6 +114,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       title: templateMetadata.title,
       description: templateMetadata.description,
       keywords: templateMetadata.keywords,
+      robots: templateMetadata.robots, // Add noindex directive
       openGraph: {
         title: templateMetadata.openGraph.title,
         description: templateMetadata.openGraph.description,
@@ -131,6 +132,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     return {
       title: 'Prompt Reviews',
       description: 'Share your experience and help others discover great businesses.',
+      robots: 'noindex, nofollow', // Prevent search engine indexing
     };
   }
 }

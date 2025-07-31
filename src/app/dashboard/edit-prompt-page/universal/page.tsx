@@ -120,7 +120,6 @@ export default function UniversalEditPromptPage() {
         const universalPlatforms = normalizePlatforms(universalPage?.review_platforms);
         const businessPlatforms = normalizePlatforms(businessProfile?.review_platforms);
         const merged: UniversalPromptFormState = {
-          fixGrammarEnabled: false,
           offerEnabled:
             universalPage?.offer_enabled ??
             businessProfile?.default_offer_enabled ??
@@ -149,8 +148,11 @@ export default function UniversalEditPromptPage() {
           fallingIcon: universalPage?.falling_icon || "star",
           fallingIconColor: universalPage?.falling_icon_color || "#fbbf24",
           aiButtonEnabled: universalPage?.ai_button_enabled !== false,
+          fixGrammarEnabled: universalPage?.fix_grammar_enabled !== false,
           notePopupEnabled: universalPage?.note_popup_enabled ?? false,
           friendlyNote: universalPage?.friendly_note || "",
+          kickstartersEnabled: universalPage?.kickstarters_enabled ?? false,
+          selectedKickstarters: universalPage?.selected_kickstarters ?? [],
         };
         
         console.log("Merged form data:", merged);
@@ -243,8 +245,11 @@ export default function UniversalEditPromptPage() {
       falling_icon: formState.fallingEnabled ? formState.fallingIcon : null,
       falling_icon_color: formState.fallingEnabled ? formState.fallingIconColor : null,
       ai_button_enabled: formState.aiButtonEnabled,
+      fix_grammar_enabled: formState.fixGrammarEnabled,
       note_popup_enabled: formState.notePopupEnabled,
       friendly_note: formState.friendlyNote,
+      kickstarters_enabled: formState.kickstartersEnabled,
+      selected_kickstarters: formState.selectedKickstarters,
     }).eq("id", universalPage.id);
     if (error) {
       alert("Failed to save: " + error.message);

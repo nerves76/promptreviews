@@ -33,9 +33,12 @@ import PhotoPromptPageForm from "@/app/components/PhotoPromptPageForm";
 import EmployeePromptPageForm from "@/app/components/EmployeePromptPageForm";
 import EventPromptPageForm from "@/app/components/EventPromptPageForm";
 import PageCard from "@/app/components/PageCard";
-import EmojiSentimentSection from "../components/EmojiSentimentSection";
-import FallingStarsSection from "@/app/components/FallingStarsSection";
-import DisableAIGenerationSection from "@/app/components/DisableAIGenerationSection";
+import { 
+  OfferFeature,
+  EmojiSentimentFeature,
+  FallingStarsFeature,
+  AISettingsFeature
+} from "@/app/components/prompt-features";
 import ReviewWriteSection, { ReviewWritePlatform } from "../components/ReviewWriteSection";
 import ServicePromptPageForm, {
   ServicePromptFormState,
@@ -868,12 +871,7 @@ export default function EditPromptPage() {
         );
       }
       
-      // Add a brief delay to ensure user sees the "Saving..." state before navigation
-      console.log('⏱️ DELAY START: Waiting 1 second for user to see "Saving..." state...');
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Give user 1s to see "Saving..."
-      console.log('⏱️ DELAY END: 1 second elapsed, proceeding with navigation'); 
-      
-      // Navigate to prompt-pages to show the modal
+      // Navigate immediately to prompt-pages to show the modal
       console.log('🔍 Navigating to prompt-pages to show success modal');
       router.push("/prompt-pages");
       
@@ -920,11 +918,14 @@ export default function EditPromptPage() {
         emoji_sentiment_enabled: formState.emoji_sentiment_enabled || false,
         emoji_sentiment_question: formState.emoji_sentiment_question || "How was your experience?",
         emoji_feedback_message: formState.emoji_feedback_message || "We value your feedback! Let us know how we can do better.",
-        emoji_thank_you_message: formState.emoji_thank_you_message || "",
+        emoji_feedback_popup_header: formState.emoji_feedback_popup_header || "How can we improve?",
+        emoji_feedback_page_header: formState.emoji_feedback_page_header || "Please share your feedback",
+        emoji_thank_you_message: formState.emoji_thank_you_message || "Thank you for your feedback! We appreciate you taking the time to help us improve.",
         review_platforms: formState.review_platforms || [],
         falling_icon: formState.falling_icon || null,
         ai_button_enabled: formState.ai_button_enabled !== false, // Default to true
         show_friendly_note: formState.show_friendly_note || false,
+        friendly_note: formState.friendly_note || "",
       };
       
       // Only include valid columns in the payload
@@ -936,11 +937,14 @@ export default function EditPromptPage() {
         "emoji_sentiment_enabled",
         "emoji_sentiment_question",
         "emoji_feedback_message",
+        "emoji_feedback_popup_header",
+        "emoji_feedback_page_header",
         "emoji_thank_you_message",
         "review_platforms",
         "falling_icon",
         "ai_button_enabled",
         "show_friendly_note",
+        "friendly_note",
       ];
       const payload = Object.fromEntries(
         Object.entries(updateData).filter(([key]) =>
@@ -977,15 +981,15 @@ export default function EditPromptPage() {
           JSON.stringify(modalData),
         );
       }
-      // Add a longer delay to ensure user sees the "Saving..." state before navigation
+      // Navigate immediately to prompt-pages to show the modal
       console.log('✅ SAVE COMPLETED: Data saved successfully to database');
-      console.log('⏱️ DELAY START: Waiting 1.5 seconds for user to see "Saving..." state...');
-      await new Promise(resolve => setTimeout(resolve, 1500)); // Give user 1.5s to see "Saving..."
-      console.log('⏱️ DELAY END: 1.5 seconds elapsed, proceeding with navigation'); 
+      console.log('🔍 Navigating to prompt-pages to show success modal');
       
-      // Smooth navigation to prompt-pages to show the modal
-      console.log('🔍 Navigating smoothly to prompt-pages');
       router.push("/prompt-pages");
+      
+      // Return the result object for proper callback handling
+      return { slug: promptPage.slug };
+      
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Failed to update prompt page",

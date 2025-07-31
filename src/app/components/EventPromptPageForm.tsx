@@ -14,10 +14,14 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import CustomerDetailsSection from "./sections/CustomerDetailsSection";
 import ReviewWriteSection from "../dashboard/edit-prompt-page/components/ReviewWriteSection";
-import OfferSection from "../dashboard/edit-prompt-page/components/OfferSection";
-import EmojiSentimentSection from "../dashboard/edit-prompt-page/components/EmojiSentimentSection";
-import DisableAIGenerationSection from "./DisableAIGenerationSection";
-import FallingStarsSection from "@/app/components/FallingStarsSection";
+import { 
+  OfferFeature,
+  EmojiSentimentFeature,
+  FallingStarsFeature,
+  AISettingsFeature,
+  PersonalizedNoteFeature,
+  KickstartersFeature
+} from "./prompt-features";
 import { useFallingStars } from "@/hooks/useFallingStars";
 import { Input } from "@/app/components/ui/input";
 import { Textarea } from "@/app/components/ui/textarea";
@@ -111,6 +115,7 @@ export default function EventPromptPageForm({
   }, [initialData]);
   const [isSaving, setIsSaving] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  const [aiGeneratingIndex, setAiGeneratingIndex] = useState<number | null>(null);
   
   // AI settings state
   const [aiGenerationEnabled, setAiGenerationEnabled] = useState(
@@ -156,14 +161,18 @@ export default function EventPromptPageForm({
 
   // Generate AI review with event context
   const handleGenerateAIReview = async (idx: number) => {
+    setAiGeneratingIndex(idx);
+    
     if (!businessProfile) {
       console.error("Business profile not loaded");
+      setAiGeneratingIndex(null);
       return;
     }
 
     const platforms = formData.review_platforms || [];
     if (!platforms[idx]) {
       console.error("Platform not found at index", idx);
+      setAiGeneratingIndex(null);
       return;
     }
 
@@ -203,6 +212,8 @@ export default function EventPromptPageForm({
     } catch (error) {
       console.error("Error generating AI review:", error);
       alert("Failed to generate AI review. Please try again.");
+    } finally {
+      setAiGeneratingIndex(null);
     }
   };
 
@@ -583,102 +594,97 @@ export default function EventPromptPageForm({
           onChange={(platforms) => updateFormData('review_platforms', platforms)}
           onGenerateReview={handleGenerateAIReview}
           hideReviewTemplateFields={campaignType === 'public'}
+          aiGeneratingIndex={aiGeneratingIndex}
         />
 
-        {/* Offers Section */}
-        <OfferSection
-          enabled={formData.offer_enabled || false}
-          onToggle={() => updateFormData('offer_enabled', true)}
-          title={formData.offer_title || ''}
-          onTitleChange={(title) => updateFormData('offer_title', title)}
-          description={formData.offer_body || ''}
-          onDescriptionChange={(description) => updateFormData('offer_body', description)}
-          url={formData.offer_url || ''}
-          onUrlChange={(url) => updateFormData('offer_url', url)}
-        />
+        {/* Shared Feature Components */}
+        <div className="space-y-8">
+          {/* Offer Feature */}
+          <OfferFeature
+            enabled={formData.offer_enabled || false}
+            onToggle={() => updateFormData('offer_enabled', true)}
+            title={formData.offer_title || ''}
+            onTitleChange={(title) => updateFormData('offer_title', title)}
+            description={formData.offer_body || ''}
+            onDescriptionChange={(description) => updateFormData('offer_body', description)}
+            url={formData.offer_url || ''}
+            onUrlChange={(url) => updateFormData('offer_url', url)}
+          />
 
-        {/* Personalized Note Popup Section */}
-        <div className="rounded-lg p-4 bg-slate-50 border border-slate-200 flex flex-col gap-2 shadow relative">
-          <div className="flex items-center justify-between mb-2 px-2 py-2">
-            <div className="flex items-center gap-3">
-              <FaStickyNote className="w-7 h-7 text-slate-blue" />
-              <span className="text-2xl font-bold text-slate-blue">
-                Personalized note pop-up
-              </span>
-            </div>
-            <button
-              type="button"
-              onClick={() => {
-                if (formData.emojiSentimentEnabled) {
-                  // Show conflict modal would go here
-                  return;
-                }
-                updateFormData('show_friendly_note', !formData.show_friendly_note);
-              }}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${formData.show_friendly_note ? "bg-slate-blue" : "bg-gray-200"}`}
-              aria-pressed={!!formData.show_friendly_note}
-              disabled={formData.emojiSentimentEnabled}
-            >
-              <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${formData.show_friendly_note ? "translate-x-5" : "translate-x-1"}`}
-              />
-            </button>
-          </div>
-          <div className="text-sm text-gray-700 mb-3 max-w-[85ch] px-2">
-            Add a friendly, personal message to thank attendees for participating.
-          </div>
-          {formData.show_friendly_note && (
-            <div className="px-2">
-              <Textarea
-                placeholder="Thank you for attending our event! We'd love to hear your feedback..."
-                value={formData.friendly_note || ''}
-                onChange={(e) => updateFormData('friendly_note', e.target.value)}
-                rows={3}
-                className="bg-white border border-yellow-300"
-              />
-            </div>
-          )}
+          {/* Personalized Note Feature */}
+          <PersonalizedNoteFeature
+            enabled={formData.show_friendly_note || false}
+            onToggle={() => {
+              if (formData.emojiSentimentEnabled) {
+                // Show conflict modal would go here
+                return;
+              }
+              updateFormData('show_friendly_note', !formData.show_friendly_note);
+            }}
+            note={formData.friendly_note || ''}
+            onNoteChange={(note) => updateFormData('friendly_note', note)}
+            disabled={formData.emojiSentimentEnabled}
+            editMode={true}
+          />
+
+          {/* Emoji Sentiment Feature */}
+          <EmojiSentimentFeature
+            enabled={formData.emojiSentimentEnabled || false}
+            onToggle={() => {
+              if (formData.show_friendly_note) {
+                // Show conflict modal would go here
+                return;
+              }
+              updateFormData('emojiSentimentEnabled', true);
+            }}
+            question={formData.emojiSentimentQuestion || ''}
+            onQuestionChange={(question) => updateFormData('emojiSentimentQuestion', question)}
+            feedbackMessage={formData.emojiFeedbackMessage || ''}
+            onFeedbackMessageChange={(message) => updateFormData('emojiFeedbackMessage', message)}
+            feedbackPageHeader={formData.emojiFeedbackPageHeader || ''}
+            onFeedbackPageHeaderChange={(header) => updateFormData('emojiFeedbackPageHeader', header)}
+            thankYouMessage={formData.emojiThankYouMessage || ''}
+            onThankYouMessageChange={(message) => updateFormData('emojiThankYouMessage', message)}
+            disabled={!!formData.show_friendly_note}
+            slug={formData.slug}
+            editMode={true}
+          />
+
+          {/* Falling Stars Feature */}
+          <FallingStarsFeature
+            enabled={formData.fallingEnabled || false}
+            onToggle={() => updateFormData('fallingEnabled', true)}
+            icon={formData.fallingIcon || formData.falling_icon || 'star'}
+            onIconChange={(icon) => updateFormData('fallingIcon', icon)}
+            color={formData.falling_icon_color || '#facc15'}
+            onColorChange={(color) => updateFormData('falling_icon_color', color)}
+            editMode={true}
+          />
+
+          {/* AI Settings Feature */}
+          <AISettingsFeature
+            aiGenerationEnabled={formData.ai_generation_enabled !== false}
+            fixGrammarEnabled={formData.fix_grammar_enabled || false}
+            onAIEnabledChange={(enabled) => updateFormData('ai_generation_enabled', enabled)}
+            onGrammarEnabledChange={(enabled) => updateFormData('fix_grammar_enabled', enabled)}
+          />
+
+          {/* Kickstarters Feature */}
+          <KickstartersFeature
+            enabled={formData.kickstarters_enabled || false}
+            selectedKickstarters={formData.selected_kickstarters || []}
+            businessName={businessProfile?.name || businessProfile?.business_name || "Business Name"}
+            onEnabledChange={(enabled) => updateFormData('kickstarters_enabled', enabled)}
+            onKickstartersChange={(kickstarters) => updateFormData('selected_kickstarters', kickstarters)}
+            initialData={{
+              kickstarters_enabled: formData.kickstarters_enabled,
+              selected_kickstarters: formData.selected_kickstarters,
+            }}
+            editMode={true}
+          />
         </div>
 
-        {/* Emoji Sentiment Section */}
-        <EmojiSentimentSection
-          enabled={formData.emojiSentimentEnabled || false}
-          onToggle={() => {
-            if (formData.show_friendly_note) {
-              // Show conflict modal would go here
-              return;
-            }
-            updateFormData('emojiSentimentEnabled', true);
-          }}
-          question={formData.emojiSentimentQuestion || ''}
-          onQuestionChange={(question) => updateFormData('emojiSentimentQuestion', question)}
-          feedbackMessage={formData.emojiFeedbackMessage || ''}
-          onFeedbackMessageChange={(message) => updateFormData('emojiFeedbackMessage', message)}
-          feedbackPageHeader={formData.emojiFeedbackPageHeader || ''}
-          onFeedbackPageHeaderChange={(header) => updateFormData('emojiFeedbackPageHeader', header)}
-          thankYouMessage={formData.emojiThankYouMessage || ''}
-          onThankYouMessageChange={(message) => updateFormData('emojiThankYouMessage', message)}
-          disabled={!!formData.show_friendly_note}
-          slug={formData.slug}
-        />
 
-        {/* Falling Stars Section */}
-        <FallingStarsSection
-          enabled={formData.fallingEnabled || false}
-          onToggle={() => updateFormData('fallingEnabled', true)}
-          icon={formData.fallingIcon || formData.falling_icon || 'star'}
-          onIconChange={(icon) => updateFormData('fallingIcon', icon)}
-          color={formData.falling_icon_color || '#facc15'}
-          onColorChange={(color) => updateFormData('falling_icon_color', color)}
-        />
-
-        {/* Disable AI Generation Section */}
-        <DisableAIGenerationSection
-          aiGenerationEnabled={aiGenerationEnabled}
-          onToggleAI={() => setAiGenerationEnabled(!aiGenerationEnabled)}
-          fixGrammarEnabled={fixGrammarEnabled}
-          onToggleGrammar={() => setFixGrammarEnabled(!fixGrammarEnabled)}
-        />
 
         {/* Error Display */}
         {formError && (

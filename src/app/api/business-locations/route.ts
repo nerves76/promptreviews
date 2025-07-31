@@ -189,6 +189,7 @@ export async function POST(request: NextRequest) {
       // Other module fields
       falling_enabled,
       falling_icon,
+      falling_icon_color,
       offer_enabled,
       offer_title,
       offer_body,
@@ -267,6 +268,7 @@ export async function POST(request: NextRequest) {
         // Other module fields
         falling_enabled,
         falling_icon,
+        falling_icon_color,
         offer_enabled,
         offer_title,
         offer_body,

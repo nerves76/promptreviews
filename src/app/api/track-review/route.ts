@@ -1,12 +1,20 @@
 import { NextResponse } from "next/server";
 import { createClient, createServiceRoleClient } from "@/utils/supabaseClient";
 import { sendTemplatedEmail } from "@/utils/emailTemplates";
+import { standardReviewRateLimit } from "@/utils/reviewRateLimit";
 
 // Use service role client to bypass RLS for anonymous review submissions
 const supabase = createServiceRoleClient();
 
 export async function POST(request: Request) {
   try {
+    // Apply rate limiting first
+    const rateLimitResult = standardReviewRateLimit(request);
+    if (rateLimitResult) {
+      console.log("[track-review] Rate limit exceeded for IP");
+      return rateLimitResult;
+    }
+    
     const body = await request.json();
     // Log Supabase config and payload
     console.log("[track-review] Using service role client for anonymous review submission");

@@ -41,7 +41,7 @@ export const QR_FRAME_SIZES = [
   { label: '3.5x2" (business card)', width: 1050, height: 600 },
   { label: '2x3" (lanyard badge)', width: 600, height: 900 },
   { label: '3x3" (square sticker)', width: 900, height: 900 },
-  { label: '4x4" (table tent)', width: 1200, height: 1200 },
+  { label: '8.5x11" (Table tent template)', width: 2550, height: 3300 },
   { label: '2.5x1.5" (small sticker)', width: 750, height: 450 },
   { label: '6x2" (window cling)', width: 1800, height: 600 },
 ];
@@ -124,25 +124,25 @@ function drawSimpleHeart(ctx: CanvasRenderingContext2D, x: number, y: number, ra
 }
 
 function drawSimpleSmile(ctx: CanvasRenderingContext2D, x: number, y: number, radius: number, color: string) {
+  ctx.fillStyle = color;
   ctx.strokeStyle = color;
-  ctx.lineWidth = Math.max(1, radius / 8);
-  ctx.fillStyle = 'none';
+  ctx.lineWidth = Math.max(2, radius / 6);
   
   // Face circle
   ctx.beginPath();
   ctx.arc(x, y, radius * 0.8, 0, 2 * Math.PI);
-  ctx.stroke();
-  
-  // Eyes
-  ctx.beginPath();
-  ctx.arc(x - radius * 0.3, y - radius * 0.3, radius * 0.1, 0, 2 * Math.PI);
-  ctx.arc(x + radius * 0.3, y - radius * 0.3, radius * 0.1, 0, 2 * Math.PI);
   ctx.fill();
   
-  // Smile
+  // Eyes (filled circles)
   ctx.beginPath();
-  ctx.arc(x, y + radius * 0.2, radius * 0.4, 0, Math.PI);
-  ctx.stroke();
+  ctx.arc(x - radius * 0.3, y - radius * 0.3, radius * 0.15, 0, 2 * Math.PI);
+  ctx.arc(x + radius * 0.3, y - radius * 0.3, radius * 0.15, 0, 2 * Math.PI);
+  ctx.fill();
+  
+  // Smile (filled arc)
+  ctx.beginPath();
+  ctx.arc(x, y + radius * 0.1, radius * 0.4, 0, Math.PI);
+  ctx.fill();
 }
 
 function drawSimpleBolt(ctx: CanvasRenderingContext2D, x: number, y: number, radius: number, color: string) {
@@ -162,14 +162,14 @@ function drawSimpleBolt(ctx: CanvasRenderingContext2D, x: number, y: number, rad
 function drawSimpleSun(ctx: CanvasRenderingContext2D, x: number, y: number, radius: number, color: string) {
   ctx.fillStyle = color;
   ctx.strokeStyle = color;
-  ctx.lineWidth = Math.max(1, radius / 10);
+  ctx.lineWidth = Math.max(2, radius / 8);
   
   // Center circle
   ctx.beginPath();
   ctx.arc(x, y, radius * 0.4, 0, 2 * Math.PI);
   ctx.fill();
   
-  // Rays
+  // Rays (thicker for better visibility)
   const rays = 8;
   for (let i = 0; i < rays; i++) {
     const angle = (i * 2 * Math.PI) / rays;
@@ -187,6 +187,8 @@ function drawSimpleSun(ctx: CanvasRenderingContext2D, x: number, y: number, radi
 
 function drawSimpleMoon(ctx: CanvasRenderingContext2D, x: number, y: number, radius: number, color: string) {
   ctx.fillStyle = color;
+  
+  // Draw full circle
   ctx.beginPath();
   ctx.arc(x, y, radius * 0.8, 0, 2 * Math.PI);
   ctx.fill();
@@ -212,84 +214,299 @@ function drawSimpleGem(ctx: CanvasRenderingContext2D, x: number, y: number, radi
 }
 
 function drawSimpleCoffee(ctx: CanvasRenderingContext2D, x: number, y: number, radius: number, color: string) {
+  ctx.fillStyle = color;
   ctx.strokeStyle = color;
-  ctx.lineWidth = Math.max(1, radius / 8);
-  ctx.fillStyle = 'none';
+  ctx.lineWidth = Math.max(2, radius / 8);
   
-  // Cup
+  // Cup body
   ctx.beginPath();
-  ctx.roundRect(x - radius * 0.4, y - radius * 0.3, radius * 0.8, radius * 1.1, radius * 0.1);
+  ctx.arc(x, y, radius * 0.6, 0, Math.PI);
   ctx.stroke();
   
-  // Handle
+  // Cup handle
   ctx.beginPath();
-  ctx.arc(x + radius * 0.6, y + radius * 0.2, radius * 0.3, -Math.PI / 2, Math.PI / 2);
+  ctx.arc(x + radius * 0.6, y, radius * 0.2, Math.PI / 2, -Math.PI / 2);
   ctx.stroke();
   
-  // Steam
-  for (let i = 0; i < 3; i++) {
-    ctx.beginPath();
-    ctx.moveTo(x - radius * 0.2 + i * radius * 0.2, y - radius * 0.7);
-    ctx.quadraticCurveTo(x - radius * 0.1 + i * radius * 0.2, y - radius * 0.9, x + i * radius * 0.2, y - radius * 0.8);
-    ctx.stroke();
-  }
+  // Steam lines
+  ctx.beginPath();
+  ctx.moveTo(x - radius * 0.3, y - radius * 0.6);
+  ctx.lineTo(x - radius * 0.4, y - radius * 0.9);
+  ctx.moveTo(x, y - radius * 0.6);
+  ctx.lineTo(x, y - radius * 0.9);
+  ctx.moveTo(x + radius * 0.3, y - radius * 0.6);
+  ctx.lineTo(x + radius * 0.4, y - radius * 0.9);
+  ctx.stroke();
 }
 
 function drawSimpleUtensils(ctx: CanvasRenderingContext2D, x: number, y: number, radius: number, color: string) {
+  ctx.fillStyle = color;
   ctx.strokeStyle = color;
-  ctx.lineWidth = Math.max(1, radius / 10);
+  ctx.lineWidth = Math.max(2, radius / 8);
   
   // Fork
   ctx.beginPath();
-  ctx.moveTo(x - radius * 0.3, y - radius * 0.8);
-  ctx.lineTo(x - radius * 0.3, y + radius * 0.8);
   ctx.moveTo(x - radius * 0.4, y - radius * 0.8);
-  ctx.lineTo(x - radius * 0.4, y - radius * 0.3);
-  ctx.moveTo(x - radius * 0.2, y - radius * 0.8);
-  ctx.lineTo(x - radius * 0.2, y - radius * 0.3);
+  ctx.lineTo(x - radius * 0.4, y + radius * 0.8);
+  ctx.moveTo(x - radius * 0.5, y - radius * 0.6);
+  ctx.lineTo(x - radius * 0.3, y - radius * 0.6);
+  ctx.moveTo(x - radius * 0.5, y - radius * 0.4);
+  ctx.lineTo(x - radius * 0.3, y - radius * 0.4);
+  ctx.moveTo(x - radius * 0.5, y - radius * 0.2);
+  ctx.lineTo(x - radius * 0.3, y - radius * 0.2);
   ctx.stroke();
   
   // Knife
   ctx.beginPath();
-  ctx.moveTo(x + radius * 0.3, y - radius * 0.8);
-  ctx.lineTo(x + radius * 0.3, y + radius * 0.8);
-  ctx.moveTo(x + radius * 0.2, y - radius * 0.8);
-  ctx.lineTo(x + radius * 0.4, y - radius * 0.5);
-  ctx.lineTo(x + radius * 0.3, y - radius * 0.3);
+  ctx.moveTo(x + radius * 0.4, y - radius * 0.8);
+  ctx.lineTo(x + radius * 0.4, y + radius * 0.8);
+  ctx.moveTo(x + radius * 0.2, y - radius * 0.6);
+  ctx.lineTo(x + radius * 0.6, y - radius * 0.6);
   ctx.stroke();
 }
 
-// Add more simple drawing functions for other icons...
 function drawSimpleKey(ctx: CanvasRenderingContext2D, x: number, y: number, radius: number, color: string) {
+  ctx.fillStyle = color;
   ctx.strokeStyle = color;
-  ctx.lineWidth = Math.max(1, radius / 8);
-  ctx.fillStyle = 'none';
+  ctx.lineWidth = Math.max(2, radius / 8);
   
   // Key head (circle)
   ctx.beginPath();
-  ctx.arc(x - radius * 0.3, y - radius * 0.3, radius * 0.4, 0, 2 * Math.PI);
-  ctx.stroke();
+  ctx.arc(x - radius * 0.3, y, radius * 0.3, 0, 2 * Math.PI);
+  ctx.fill();
   
   // Key shaft
   ctx.beginPath();
-  ctx.moveTo(x + radius * 0.1, y - radius * 0.3);
-  ctx.lineTo(x + radius * 0.8, y - radius * 0.3);
+  ctx.moveTo(x, y);
+  ctx.lineTo(x + radius * 0.6, y);
   ctx.stroke();
   
   // Key teeth
   ctx.beginPath();
-  ctx.moveTo(x + radius * 0.5, y - radius * 0.3);
-  ctx.lineTo(x + radius * 0.5, y - radius * 0.1);
-  ctx.moveTo(x + radius * 0.7, y - radius * 0.3);
-  ctx.lineTo(x + radius * 0.7, y);
+  ctx.moveTo(x + radius * 0.2, y);
+  ctx.lineTo(x + radius * 0.2, y - radius * 0.2);
+  ctx.moveTo(x + radius * 0.4, y);
+  ctx.lineTo(x + radius * 0.4, y + radius * 0.2);
+  ctx.moveTo(x + radius * 0.6, y);
+  ctx.lineTo(x + radius * 0.6, y - radius * 0.1);
   ctx.stroke();
 }
 
 function drawDefaultIcon(ctx: CanvasRenderingContext2D, x: number, y: number, radius: number, color: string) {
-  // Default to a simple circle
+  // Fallback to a simple circle
   ctx.fillStyle = color;
   ctx.beginPath();
-  ctx.arc(x, y, radius * 0.7, 0, 2 * Math.PI);
+  ctx.arc(x, y, radius * 0.6, 0, 2 * Math.PI);
+  ctx.fill();
+}
+
+// Additional icon drawing functions
+function drawSimpleThumbsUp(ctx: CanvasRenderingContext2D, x: number, y: number, radius: number, color: string) {
+  ctx.fillStyle = color;
+  ctx.strokeStyle = color;
+  ctx.lineWidth = Math.max(2, radius / 8);
+  
+  // Thumb
+  ctx.beginPath();
+  ctx.moveTo(x - radius * 0.2, y - radius * 0.6);
+  ctx.lineTo(x - radius * 0.4, y - radius * 0.4);
+  ctx.lineTo(x - radius * 0.3, y - radius * 0.2);
+  ctx.lineTo(x - radius * 0.1, y - radius * 0.3);
+  ctx.lineTo(x, y - radius * 0.1);
+  ctx.lineTo(x + radius * 0.1, y - radius * 0.2);
+  ctx.lineTo(x + radius * 0.2, y - radius * 0.4);
+  ctx.lineTo(x + radius * 0.1, y - radius * 0.6);
+  ctx.closePath();
+  ctx.fill();
+  
+  // Hand
+  ctx.beginPath();
+  ctx.moveTo(x - radius * 0.3, y - radius * 0.4);
+  ctx.lineTo(x - radius * 0.4, y + radius * 0.2);
+  ctx.lineTo(x - radius * 0.2, y + radius * 0.4);
+  ctx.lineTo(x + radius * 0.1, y + radius * 0.3);
+  ctx.lineTo(x + radius * 0.2, y + radius * 0.1);
+  ctx.lineTo(x + radius * 0.1, y - radius * 0.1);
+  ctx.closePath();
+  ctx.fill();
+}
+
+function drawSimpleRainbow(ctx: CanvasRenderingContext2D, x: number, y: number, radius: number, color: string) {
+  ctx.strokeStyle = color;
+  ctx.lineWidth = Math.max(3, radius / 6);
+  
+  // Rainbow arc
+  ctx.beginPath();
+  ctx.arc(x, y + radius * 0.5, radius * 0.8, 0, Math.PI);
+  ctx.stroke();
+}
+
+function drawSimpleCloud(ctx: CanvasRenderingContext2D, x: number, y: number, radius: number, color: string) {
+  ctx.fillStyle = color;
+  
+  // Cloud shape
+  ctx.beginPath();
+  ctx.arc(x - radius * 0.3, y, radius * 0.4, 0, 2 * Math.PI);
+  ctx.arc(x + radius * 0.3, y, radius * 0.4, 0, 2 * Math.PI);
+  ctx.arc(x, y - radius * 0.2, radius * 0.3, 0, 2 * Math.PI);
+  ctx.arc(x, y + radius * 0.2, radius * 0.3, 0, 2 * Math.PI);
+  ctx.fill();
+}
+
+function drawSimpleFire(ctx: CanvasRenderingContext2D, x: number, y: number, radius: number, color: string) {
+  ctx.fillStyle = color;
+  
+  // Fire shape
+  ctx.beginPath();
+  ctx.moveTo(x, y - radius * 0.8);
+  ctx.lineTo(x - radius * 0.3, y - radius * 0.4);
+  ctx.lineTo(x - radius * 0.2, y);
+  ctx.lineTo(x - radius * 0.4, y + radius * 0.2);
+  ctx.lineTo(x, y + radius * 0.6);
+  ctx.lineTo(x + radius * 0.4, y + radius * 0.2);
+  ctx.lineTo(x + radius * 0.2, y);
+  ctx.lineTo(x + radius * 0.3, y - radius * 0.4);
+  ctx.closePath();
+  ctx.fill();
+}
+
+function drawSimpleTree(ctx: CanvasRenderingContext2D, x: number, y: number, radius: number, color: string) {
+  ctx.fillStyle = color;
+  
+  // Tree trunk
+  ctx.fillRect(x - radius * 0.1, y + radius * 0.2, radius * 0.2, radius * 0.6);
+  
+  // Tree top (triangle)
+  ctx.beginPath();
+  ctx.moveTo(x, y - radius * 0.8);
+  ctx.lineTo(x - radius * 0.5, y + radius * 0.2);
+  ctx.lineTo(x + radius * 0.5, y + radius * 0.2);
+  ctx.closePath();
+  ctx.fill();
+}
+
+function drawSimpleLeaf(ctx: CanvasRenderingContext2D, x: number, y: number, radius: number, color: string) {
+  ctx.fillStyle = color;
+  
+  // Leaf shape
+  ctx.beginPath();
+  ctx.moveTo(x, y - radius * 0.8);
+  ctx.quadraticCurveTo(x - radius * 0.4, y - radius * 0.4, x - radius * 0.2, y);
+  ctx.quadraticCurveTo(x - radius * 0.4, y + radius * 0.4, x, y + radius * 0.8);
+  ctx.quadraticCurveTo(x + radius * 0.4, y + radius * 0.4, x + radius * 0.2, y);
+  ctx.quadraticCurveTo(x + radius * 0.4, y - radius * 0.4, x, y - radius * 0.8);
+  ctx.fill();
+}
+
+function drawSimpleGift(ctx: CanvasRenderingContext2D, x: number, y: number, radius: number, color: string) {
+  ctx.fillStyle = color;
+  ctx.strokeStyle = color;
+  ctx.lineWidth = Math.max(2, radius / 8);
+  
+  // Gift box
+  ctx.fillRect(x - radius * 0.4, y - radius * 0.3, radius * 0.8, radius * 0.6);
+  
+  // Ribbon
+  ctx.fillRect(x - radius * 0.4, y - radius * 0.1, radius * 0.8, radius * 0.2);
+  ctx.fillRect(x - radius * 0.1, y - radius * 0.3, radius * 0.2, radius * 0.6);
+  
+  // Bow
+  ctx.beginPath();
+  ctx.arc(x - radius * 0.2, y - radius * 0.3, radius * 0.1, 0, 2 * Math.PI);
+  ctx.arc(x + radius * 0.2, y - radius * 0.3, radius * 0.1, 0, 2 * Math.PI);
+  ctx.fill();
+}
+
+function drawSimpleTrophy(ctx: CanvasRenderingContext2D, x: number, y: number, radius: number, color: string) {
+  ctx.fillStyle = color;
+  ctx.strokeStyle = color;
+  ctx.lineWidth = Math.max(2, radius / 8);
+  
+  // Trophy base
+  ctx.fillRect(x - radius * 0.3, y + radius * 0.2, radius * 0.6, radius * 0.2);
+  
+  // Trophy cup
+  ctx.beginPath();
+  ctx.arc(x, y, radius * 0.4, 0, Math.PI);
+  ctx.fill();
+  
+  // Trophy handles
+  ctx.beginPath();
+  ctx.arc(x - radius * 0.4, y, radius * 0.15, Math.PI / 2, -Math.PI / 2);
+  ctx.arc(x + radius * 0.4, y, radius * 0.15, -Math.PI / 2, Math.PI / 2);
+  ctx.stroke();
+}
+
+function drawSimpleCrown(ctx: CanvasRenderingContext2D, x: number, y: number, radius: number, color: string) {
+  ctx.fillStyle = color;
+  
+  // Crown base
+  ctx.fillRect(x - radius * 0.5, y + radius * 0.2, radius, radius * 0.2);
+  
+  // Crown points
+  ctx.beginPath();
+  ctx.moveTo(x - radius * 0.5, y + radius * 0.2);
+  ctx.lineTo(x - radius * 0.4, y - radius * 0.3);
+  ctx.lineTo(x - radius * 0.2, y + radius * 0.1);
+  ctx.lineTo(x, y - radius * 0.4);
+  ctx.lineTo(x + radius * 0.2, y + radius * 0.1);
+  ctx.lineTo(x + radius * 0.4, y - radius * 0.3);
+  ctx.lineTo(x + radius * 0.5, y + radius * 0.2);
+  ctx.closePath();
+  ctx.fill();
+}
+
+function drawSimpleLightbulb(ctx: CanvasRenderingContext2D, x: number, y: number, radius: number, color: string) {
+  ctx.fillStyle = color;
+  ctx.strokeStyle = color;
+  ctx.lineWidth = Math.max(2, radius / 8);
+  
+  // Bulb
+  ctx.beginPath();
+  ctx.arc(x, y, radius * 0.5, 0, 2 * Math.PI);
+  ctx.fill();
+  
+  // Base
+  ctx.fillRect(x - radius * 0.2, y + radius * 0.5, radius * 0.4, radius * 0.2);
+  
+  // Filament
+  ctx.beginPath();
+  ctx.moveTo(x - radius * 0.2, y - radius * 0.2);
+  ctx.lineTo(x + radius * 0.2, y + radius * 0.2);
+  ctx.moveTo(x + radius * 0.2, y - radius * 0.2);
+  ctx.lineTo(x - radius * 0.2, y + radius * 0.2);
+  ctx.stroke();
+}
+
+function drawSimpleRocket(ctx: CanvasRenderingContext2D, x: number, y: number, radius: number, color: string) {
+  ctx.fillStyle = color;
+  ctx.strokeStyle = color;
+  ctx.lineWidth = Math.max(2, radius / 8);
+  
+  // Rocket body
+  ctx.fillRect(x - radius * 0.2, y - radius * 0.6, radius * 0.4, radius * 0.8);
+  
+  // Rocket nose
+  ctx.beginPath();
+  ctx.moveTo(x, y - radius * 0.8);
+  ctx.lineTo(x - radius * 0.2, y - radius * 0.6);
+  ctx.lineTo(x + radius * 0.2, y - radius * 0.6);
+  ctx.closePath();
+  ctx.fill();
+  
+  // Fins
+  ctx.beginPath();
+  ctx.moveTo(x - radius * 0.2, y + radius * 0.2);
+  ctx.lineTo(x - radius * 0.4, y + radius * 0.4);
+  ctx.lineTo(x - radius * 0.2, y + radius * 0.6);
+  ctx.closePath();
+  ctx.fill();
+  
+  ctx.beginPath();
+  ctx.moveTo(x + radius * 0.2, y + radius * 0.2);
+  ctx.lineTo(x + radius * 0.4, y + radius * 0.4);
+  ctx.lineTo(x + radius * 0.2, y + radius * 0.6);
+  ctx.closePath();
   ctx.fill();
 }
 
@@ -330,6 +547,39 @@ function drawDecorativeIcon(ctx: CanvasRenderingContext2D, iconKey: string, x: n
       break;
     case 'key':
       drawSimpleKey(ctx, x, y, radius, color);
+      break;
+    case 'thumbsup':
+      drawSimpleThumbsUp(ctx, x, y, radius, color);
+      break;
+    case 'rainbow':
+      drawSimpleRainbow(ctx, x, y, radius, color);
+      break;
+    case 'cloud':
+      drawSimpleCloud(ctx, x, y, radius, color);
+      break;
+    case 'fire':
+      drawSimpleFire(ctx, x, y, radius, color);
+      break;
+    case 'tree':
+      drawSimpleTree(ctx, x, y, radius, color);
+      break;
+    case 'leaf':
+      drawSimpleLeaf(ctx, x, y, radius, color);
+      break;
+    case 'gift':
+      drawSimpleGift(ctx, x, y, radius, color);
+      break;
+    case 'trophy':
+      drawSimpleTrophy(ctx, x, y, radius, color);
+      break;
+    case 'crown':
+      drawSimpleCrown(ctx, x, y, radius, color);
+      break;
+    case 'lightbulb':
+      drawSimpleLightbulb(ctx, x, y, radius, color);
+      break;
+    case 'rocket':
+      drawSimpleRocket(ctx, x, y, radius, color);
       break;
     default:
       drawDefaultIcon(ctx, x, y, radius, color);
@@ -445,6 +695,10 @@ export default function QRCodeGenerator({
 
       // Detect small sizes for better spacing
       const isBusinessCard = frameSize.label.includes('business card');
+      const isPostcard = frameSize.label.includes('postcard');
+      const isTableTent = frameSize.label.includes('Table Tent');
+      const isSmallCard = frameSize.width <= 1200 || frameSize.height <= 1800; // Postcard and smaller
+      const isLargeCard = frameSize.width >= 2400 || frameSize.height >= 3000; // Letter size and larger
       const isSmallSize = frameSize.width <= 1050 || frameSize.height <= 600; // Business card and smaller
 
       // Calculate proportional sizing based on frame dimensions
@@ -454,7 +708,26 @@ export default function QRCodeGenerator({
       const padding = Math.floor(baseSize * 0.08); // 8% of base size
       const logoHeight = Math.floor(frameSize.height * 0.06); // 6% of height
       const websiteFontSize = Math.floor(baseSize * 0.022); // 2.2% of base size (was fixed 16-20px)
-      const headlineFontSize = Math.floor((fontSize / 48) * baseSize * 0.08); // Scale user's font size proportionally (8% of base size when fontSize is 48)
+      
+      // Calculate headline font size with better scaling for different card sizes
+      let headlineFontSize;
+      if (isBusinessCard) {
+        // Business cards need very small text
+        headlineFontSize = Math.min(fontSize, Math.floor(baseSize * 0.06)); // Cap at 6% of base size
+      } else if (isPostcard || isSmallCard) {
+        // Postcards and small cards need moderate text
+        headlineFontSize = Math.min(fontSize, Math.floor(baseSize * 0.08)); // Cap at 8% of base size
+      } else if (isTableTent) {
+        // Table tents need larger text for visibility
+        headlineFontSize = Math.min(fontSize, Math.floor(baseSize * 0.12)); // Cap at 12% of base size
+      } else if (isLargeCard) {
+        // Large cards can handle bigger text
+        headlineFontSize = Math.min(fontSize, Math.floor(baseSize * 0.12)); // Cap at 12% of base size
+      } else {
+        // Medium cards (default)
+        headlineFontSize = Math.min(fontSize, Math.floor(baseSize * 0.1)); // Cap at 10% of base size
+      }
+      
       const starSpacing = Math.floor(starSize * 0.7);
       const clientLogoHeight = Math.floor((logoSize / 60) * baseSize * 0.08); // Scale user's logo size proportionally 
       const qrSize = baseSize * (isSmallSize ? 0.35 : 0.38); // QR size as percentage of base size
@@ -661,13 +934,34 @@ export default function QRCodeGenerator({
       ctx.textBaseline = 'top';
       const lines = headline.split('\n');
       const lineSpacing = Math.floor(headlineFontSize * 0.2); // 20% of font size for line spacing
-      lines.forEach((line, index) => {
-        ctx.fillText(line, frameSize.width / 2, centerY + index * (headlineFontSize + lineSpacing));
-      });
       
       // Proportional spacing between headline and QR code
       const headlineToQRSpacing = Math.floor(baseSize * 0.04);
-      let qrY = centerY + lines.length * (headlineFontSize + lineSpacing) + headlineToQRSpacing;
+      
+      // Calculate total text height to ensure it fits
+      const totalTextHeight = lines.length * headlineFontSize + (lines.length - 1) * lineSpacing;
+      const availableHeight = frameSize.height - padding * 2 - qrSize - headlineToQRSpacing;
+      
+      // If text is too tall, reduce font size proportionally
+      let adjustedFontSize = headlineFontSize;
+      let adjustedLineSpacing = lineSpacing;
+      if (totalTextHeight > availableHeight * 0.4) { // Text shouldn't take more than 40% of available height
+        const scaleFactor = (availableHeight * 0.4) / totalTextHeight;
+        adjustedFontSize = Math.floor(headlineFontSize * scaleFactor);
+        adjustedLineSpacing = Math.floor(lineSpacing * scaleFactor);
+      }
+      
+      // Use adjusted font size
+      ctx.font = `bold ${adjustedFontSize}px Arial, sans-serif`;
+      
+      // Draw headline text (skip for table tents as they have their own layout)
+      if (!isTableTent) {
+        lines.forEach((line, index) => {
+          ctx.fillText(line, frameSize.width / 2, centerY + index * (adjustedFontSize + adjustedLineSpacing));
+        });
+      }
+      
+      let qrY = centerY + lines.length * (adjustedFontSize + adjustedLineSpacing) + headlineToQRSpacing;
 
       // Generate QR code
       const qrDataUrl = await QRCode.toDataURL(url, {
@@ -685,6 +979,106 @@ export default function QRCodeGenerator({
         qrImg.onload = () => resolve();
       });
       
+      if (isTableTent) {
+        // Table tent layout: Show just one side of the design for simplicity
+        // This will be printed on both sides when downloaded
+        
+        // Draw the single panel structure
+        ctx.strokeStyle = '#CCCCCC';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([8, 4]);
+        
+        // Draw panel border
+        ctx.strokeRect(0, 0, frameSize.width, frameSize.height * 0.6);
+        
+        // Reset line style
+        ctx.setLineDash([]);
+        
+        // Position QR code and headline in the single panel
+        const panelWidth = frameSize.width;
+        const panelHeight = frameSize.height * 0.6;
+        const qrX = panelWidth / 2;
+        const qrY = panelHeight * 0.7; // Lower in panel
+        const headlineY = panelHeight * 0.3; // Upper in panel
+        
+        // Draw headline
+        ctx.font = `bold ${adjustedFontSize}px Arial, sans-serif`;
+        ctx.fillStyle = mainColor;
+        ctx.textAlign = 'center';
+        lines.forEach((line, index) => {
+          ctx.fillText(line, qrX, headlineY + index * (adjustedFontSize + adjustedLineSpacing));
+        });
+        
+        // Draw QR code
+        const qrSize = Math.min(panelWidth * 0.4, panelHeight * 0.3);
+        const qrLeft = qrX - qrSize / 2;
+        const qrTop = qrY - qrSize / 2;
+        
+        // Create QR code using the same approach as the rest of the file
+        const qrDataUrl = await QRCode.toDataURL(url, {
+          width: qrSize,
+          margin: 1,
+          color: {
+            dark: mainColor,
+            light: '#FFFFFF'
+          }
+        });
+        
+        // Draw QR code
+        const qrImage = new Image();
+        qrImage.onload = () => {
+          ctx.drawImage(qrImage, qrLeft, qrTop, qrSize, qrSize);
+        };
+        qrImage.src = qrDataUrl;
+        
+        // Add note that this will be printed on both sides
+        ctx.font = '14px Arial, sans-serif';
+        ctx.fillStyle = '#666666';
+        ctx.textAlign = 'center';
+        ctx.fillText('(This design will be printed on both sides)', frameSize.width / 2, frameSize.height - 40);
+        
+        // Add visual example below the main preview
+        const exampleY = frameSize.height + 20;
+        const exampleWidth = 300;
+        const exampleHeight = 120;
+        const exampleX = (frameSize.width - exampleWidth) / 2;
+        
+        // Draw example rectangle
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(exampleX, exampleY, exampleWidth, exampleHeight);
+        
+        // Draw cut lines on example
+        ctx.strokeStyle = '#FF0000';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(exampleX - 2, exampleY - 2, exampleWidth + 4, exampleHeight + 4);
+        
+        // Draw fold lines on example (3 panels)
+        ctx.strokeStyle = '#CCCCCC';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([4, 2]);
+        ctx.beginPath();
+        ctx.moveTo(exampleX + exampleWidth / 3, exampleY);
+        ctx.lineTo(exampleX + exampleWidth / 3, exampleY + exampleHeight);
+        ctx.moveTo(exampleX + (exampleWidth / 3) * 2, exampleY);
+        ctx.lineTo(exampleX + (exampleWidth / 3) * 2, exampleY + exampleHeight);
+        ctx.stroke();
+        
+        // Reset line style
+        ctx.setLineDash([]);
+        
+        // Add labels to example
+        ctx.font = '12px Arial, sans-serif';
+        ctx.fillStyle = '#000000';
+        ctx.textAlign = 'center';
+        ctx.fillText('Cut along red lines', exampleX + exampleWidth / 2, exampleY + exampleHeight + 20);
+        ctx.fillText('Fold along dashed lines', exampleX + exampleWidth / 2, exampleY + exampleHeight + 35);
+        ctx.fillText('Glue tab to back panel', exampleX + exampleWidth / 2, exampleY + exampleHeight + 50);
+        
+        return; // Skip the rest of the drawing for table tents
+      }
+
+      // Standard layout for other sizes
       // Ensure QR code is always perfectly centered
       const qrCenterY = (frameSize.height - qrSize) / 2;
       ctx.drawImage(qrImg, qrX, qrCenterY, qrSize, qrSize);
@@ -793,6 +1187,9 @@ export default function QRCodeGenerator({
       const widthInches = frameSize.width / dpi;
       const heightInches = frameSize.height / dpi;
       
+      // Detect card types for PDF generation (redefined for this scope)
+      const isTableTentPDF = frameSize.label.includes('Table Tent');
+      
       // Create PDF with standard letter size (8.5" x 11") for proper printing
       const pdf = new jsPDF({
         orientation: 'portrait',
@@ -834,57 +1231,6 @@ export default function QRCodeGenerator({
         frameSize.height <= 1800
       );
       
-      // Add cut-out lines if needed
-      if (needsCutLines) {
-        pdfCtx.save();
-        pdfCtx.strokeStyle = '#CCCCCC';
-        pdfCtx.lineWidth = 2; // Slightly thicker for PDF
-        pdfCtx.setLineDash([8, 8]); // Longer dashes for better visibility in PDF
-        
-        // Add cut lines with proper margin (1/8 inch = 37.5 pixels at 300 DPI)
-        const margin = 37.5;
-        pdfCtx.strokeRect(margin, margin, frameSize.width - (margin * 2), frameSize.height - (margin * 2));
-        
-        // Add corner marks for precise cutting
-        const cornerLength = 20;
-        pdfCtx.setLineDash([]); // Solid lines for corner marks
-        pdfCtx.lineWidth = 1;
-        
-        // Top-left corner
-        pdfCtx.beginPath();
-        pdfCtx.moveTo(margin - cornerLength, margin);
-        pdfCtx.lineTo(margin + cornerLength, margin);
-        pdfCtx.moveTo(margin, margin - cornerLength);
-        pdfCtx.lineTo(margin, margin + cornerLength);
-        pdfCtx.stroke();
-        
-        // Top-right corner
-        pdfCtx.beginPath();
-        pdfCtx.moveTo(frameSize.width - margin - cornerLength, margin);
-        pdfCtx.lineTo(frameSize.width - margin + cornerLength, margin);
-        pdfCtx.moveTo(frameSize.width - margin, margin - cornerLength);
-        pdfCtx.lineTo(frameSize.width - margin, margin + cornerLength);
-        pdfCtx.stroke();
-        
-        // Bottom-left corner
-        pdfCtx.beginPath();
-        pdfCtx.moveTo(margin - cornerLength, frameSize.height - margin);
-        pdfCtx.lineTo(margin + cornerLength, frameSize.height - margin);
-        pdfCtx.moveTo(margin, frameSize.height - margin - cornerLength);
-        pdfCtx.lineTo(margin, frameSize.height - margin + cornerLength);
-        pdfCtx.stroke();
-        
-        // Bottom-right corner
-        pdfCtx.beginPath();
-        pdfCtx.moveTo(frameSize.width - margin - cornerLength, frameSize.height - margin);
-        pdfCtx.lineTo(frameSize.width - margin + cornerLength, frameSize.height - margin);
-        pdfCtx.moveTo(frameSize.width - margin, frameSize.height - margin - cornerLength);
-        pdfCtx.lineTo(frameSize.width - margin, frameSize.height - margin + cornerLength);
-        pdfCtx.stroke();
-        
-        pdfCtx.restore();
-      }
-      
       // Convert canvas to image and add to PDF at centered position
       const imgData = pdfCanvas.toDataURL('image/jpeg', 0.95);
       pdf.addImage(imgData, 'JPEG', centerX, centerY, widthInches, heightInches);
@@ -919,12 +1265,82 @@ export default function QRCodeGenerator({
         });
       }
       
-      // Add size indicator text at bottom of page
-      pdf.setFontSize(8);
-      pdf.setTextColor(128, 128, 128); // Gray color
-      const sizeText = `Actual size: ${frameSize.label} | Cut along dotted lines if shown | Print at 100% scale`;
-      const textWidth = pdf.getTextWidth(sizeText);
-      pdf.text(sizeText, (letterWidth - textWidth / 72) / 2, letterHeight - 0.3); // 0.3" from bottom
+      // Special handling for table tents - create proper 3-panel layout
+      if (isTableTentPDF) {
+        // Create new PDF for table tent
+        pdf = new jsPDF({
+          orientation: 'portrait',
+          unit: 'in',
+          format: 'letter'
+        });
+        
+        // Define table tent layout - 3 panels side by side with tab
+        const panelWidth = 2.5;
+        const panelHeight = 3.5;
+        const tabHeight = 0.5;
+        const startX = 0.25; // Start near left edge
+        const startY = 1.5; // Center vertically
+        
+        // Panel positions: Left (back), Middle (bottom), Right (front)
+        const leftPanelX = startX;
+        const middlePanelX = startX + panelWidth;
+        const rightPanelX = startX + (panelWidth * 2);
+        
+        // Get the original QR design
+        const originalImgData = pdfCanvas.toDataURL('image/jpeg', 0.95);
+        
+        // Right panel (front face) - normal orientation
+        pdf.addImage(originalImgData, 'JPEG', rightPanelX, startY, panelWidth, panelHeight);
+        
+        // Left panel (back face) - horizontally flipped
+        // jsPDF doesn't support transformations, so we'll create a flipped version manually
+        // For now, just add the same image (we'll enhance this later)
+        pdf.addImage(originalImgData, 'JPEG', leftPanelX, startY, panelWidth, panelHeight);
+        
+        // Middle panel stays blank for folding (bottom of tent)
+        pdf.setDrawColor(200, 200, 200);
+        pdf.setLineWidth(0.005);
+        pdf.rect(middlePanelX, startY, panelWidth, panelHeight);
+        
+        // Tab for gluing
+        pdf.setFillColor(240, 240, 240);
+        pdf.rect(leftPanelX, startY + panelHeight, panelWidth * 3, tabHeight, 'F');
+        
+        // Cut lines (red)
+        pdf.setDrawColor(255, 0, 0);
+        pdf.setLineWidth(0.01);
+        pdf.rect(leftPanelX, startY, panelWidth * 3, panelHeight + tabHeight);
+        
+        // Fold lines (dashed gray)
+        pdf.setDrawColor(100, 100, 100);
+        pdf.setLineDashPattern([0.03, 0.03]);
+        
+        // Vertical fold lines
+        pdf.line(middlePanelX, startY, middlePanelX, startY + panelHeight);
+        pdf.line(rightPanelX, startY, rightPanelX, startY + panelHeight);
+        
+        // Horizontal fold line for tab
+        pdf.line(leftPanelX, startY + panelHeight, leftPanelX + (panelWidth * 3), startY + panelHeight);
+        
+        pdf.setLineDashPattern([]);
+        
+        // Instructions
+        pdf.setFontSize(12);
+        pdf.setTextColor(0, 0, 0);
+        pdf.text('Table Tent Assembly Instructions:', leftPanelX, startY - 0.8);
+        pdf.setFontSize(9);
+        pdf.text('1. Cut along red outline', leftPanelX, startY - 0.5);
+        pdf.text('2. Fold along gray dashed lines', leftPanelX, startY - 0.3);
+        pdf.text('3. Apply glue to gray tab area', leftPanelX, startY - 0.1);
+        pdf.text('4. Attach tab to back of left panel to form tent', leftPanelX, startY + 0.1);
+      } else {
+        // Add size indicator text at bottom of page
+        pdf.setFontSize(8);
+        pdf.setTextColor(128, 128, 128); // Gray color
+        const sizeText = `Actual size: ${frameSize.label} | Cut along dotted lines if shown | Print at 100% scale`;
+        const textWidth = pdf.getTextWidth(sizeText);
+        pdf.text(sizeText, (letterWidth - textWidth / 72) / 2, letterHeight - 0.3); // 0.3" from bottom
+      }
       
       // Generate PDF blob
       const pdfBlob = pdf.output('blob');

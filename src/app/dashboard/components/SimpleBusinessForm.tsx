@@ -236,7 +236,7 @@ const SimpleBusinessForm = forwardRef<HTMLFormElement, SimpleBusinessFormProps>(
     }
 
     // Check if all required fields are filled
-    const requiredFields = ['name', 'business_email', 'address_city', 'address_state', 'address_zip', 'address_country'];
+    const requiredFields = ['name', 'business_email', 'address_city', 'address_state', 'address_zip'];
     const missingFields = requiredFields.filter(field => !form[field as keyof typeof form]);
     
     if (missingFields.length > 0) {
@@ -455,8 +455,8 @@ const SimpleBusinessForm = forwardRef<HTMLFormElement, SimpleBusinessFormProps>(
                 className="w-full border px-3 py-2 rounded mb-4"
                 value={form.address_city || ""}
                 onChange={handleChange}
-                required
                 placeholder="City"
+                required
               />
             </div>
             <div className="flex flex-col flex-1">
@@ -474,8 +474,8 @@ const SimpleBusinessForm = forwardRef<HTMLFormElement, SimpleBusinessFormProps>(
                 className="w-full border px-3 py-2 rounded mb-4"
                 value={form.address_state || ""}
                 onChange={handleChange}
-                required
                 placeholder="State/Province"
+                required
               />
             </div>
             <div className="flex flex-col flex-1">
@@ -493,8 +493,8 @@ const SimpleBusinessForm = forwardRef<HTMLFormElement, SimpleBusinessFormProps>(
                 className="w-full border px-3 py-2 rounded mb-4"
                 value={form.address_zip || ""}
                 onChange={handleChange}
-                required
                 placeholder="ZIP/Postal Code"
+                required
               />
             </div>
           </div>
