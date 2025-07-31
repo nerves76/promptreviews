@@ -6,11 +6,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { BusinessLocation } from '@/types/business';
 import { FaMapMarkerAlt, FaImage, FaStickyNote } from 'react-icons/fa';
-import FallingStarsSection from './FallingStarsSection';
-import EmojiSentimentSection from '../dashboard/edit-prompt-page/components/EmojiSentimentSection';
-import OfferSection from '../dashboard/edit-prompt-page/components/OfferSection';
+import { 
+  OfferFeature,
+  EmojiSentimentFeature,
+  FallingStarsFeature,
+  AISettingsFeature
+} from "./prompt-features";
 import ReviewPlatformsSection, { ReviewPlatformLink } from '../dashboard/edit-prompt-page/components/ReviewPlatformsSection';
-import DisableAIGenerationSection from './DisableAIGenerationSection';
 import QRCodeModal from './QRCodeModal';
 import Cropper from 'react-easy-crop';
 import type { Area } from 'react-easy-crop';
@@ -70,6 +72,7 @@ export default function BusinessLocationModal({
   // Module states
   const [fallingEnabled, setFallingEnabled] = useState(false);
   const [fallingIcon, setFallingIcon] = useState('star');
+  const [fallingIconColor, setFallingIconColor] = useState('#fbbf24');
   const [emojiSentimentEnabled, setEmojiSentimentEnabled] = useState(false);
   const [emojiSentimentQuestion, setEmojiSentimentQuestion] = useState('How was your experience?');
   const [emojiFeedbackMessage, setEmojiFeedbackMessage] = useState('How can we improve?');
@@ -107,6 +110,7 @@ export default function BusinessLocationModal({
       // Load module data
       setFallingEnabled(location.falling_enabled || false);
       setFallingIcon(location.falling_icon || 'star');
+      setFallingIconColor(location.falling_icon_color || '#fbbf24');
       setEmojiSentimentEnabled(location.emoji_sentiment_enabled || false);
       setEmojiSentimentQuestion(location.emoji_sentiment_question || 'How was your experience?');
       setEmojiFeedbackMessage(location.emoji_feedback_message || 'How can we improve?');
@@ -142,6 +146,7 @@ export default function BusinessLocationModal({
       // Reset module data
       setFallingEnabled(false);
       setFallingIcon('star');
+      setFallingIconColor('#fbbf24');
       setEmojiSentimentEnabled(false);
       setEmojiSentimentQuestion('How was your experience?');
       setEmojiFeedbackMessage('How can we improve?');
@@ -166,6 +171,10 @@ export default function BusinessLocationModal({
     // Clear error for this field
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }));
+    }
+    // Clear submit error when user starts typing
+    if (errors.submit) {
+      setErrors(prev => ({ ...prev, submit: '' }));
     }
   };
 
@@ -202,6 +211,7 @@ export default function BusinessLocationModal({
         // Module data
         falling_enabled: fallingEnabled,
         falling_icon: fallingIcon,
+        falling_icon_color: fallingIconColor,
         emoji_sentiment_enabled: emojiSentimentEnabled,
         emoji_sentiment_question: emojiSentimentQuestion,
         emoji_feedback_message: emojiFeedbackMessage,
@@ -241,17 +251,27 @@ export default function BusinessLocationModal({
         console.log('🔍 Closing modal and redirecting to prompt-pages for success modal');
         onClose();
         
-        // Use setTimeout to ensure the modal closes before redirecting
-        setTimeout(() => {
-          window.location.href = "/prompt-pages?tab=locations";
-        }, 100);
+        // Navigate immediately to prompt-pages
+        window.location.href = "/prompt-pages?tab=locations";
         return;
       }
       
       onClose();
     } catch (error) {
       console.error('Error saving location:', error);
-      setErrors({ submit: 'Failed to save location. Please try again.' });
+      
+      // Extract the specific error message from the API response
+      let errorMessage = 'Failed to save location. Please try again.';
+      
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+      } else if (error && typeof error === 'object' && 'message' in error) {
+        errorMessage = (error as any).message;
+      }
+      
+      setErrors({ submit: errorMessage });
     } finally {
       setIsSubmitting(false);
     }
@@ -684,14 +704,17 @@ export default function BusinessLocationModal({
               </div>
 
               {/* Modules */}
-              <FallingStarsSection
+              <FallingStarsFeature
                 enabled={fallingEnabled}
                 onToggle={() => setFallingEnabled(!fallingEnabled)}
                 icon={fallingIcon}
                 onIconChange={setFallingIcon}
+                color={fallingIconColor}
+                onColorChange={setFallingIconColor}
+                editMode={true}
               />
 
-              <EmojiSentimentSection
+              <EmojiSentimentFeature
                 enabled={emojiSentimentEnabled}
                 onToggle={() => setEmojiSentimentEnabled(!emojiSentimentEnabled)}
                 question={emojiSentimentQuestion}
@@ -700,9 +723,10 @@ export default function BusinessLocationModal({
                 onFeedbackMessageChange={setEmojiFeedbackMessage}
                 thankYouMessage={emojiThankYouMessage}
                 onThankYouMessageChange={setEmojiThankYouMessage}
+                editMode={true}
               />
 
-              <OfferSection
+              <OfferFeature
                 enabled={offerEnabled}
                 onToggle={() => setOfferEnabled(!offerEnabled)}
                 title={offerTitle}
@@ -713,11 +737,11 @@ export default function BusinessLocationModal({
                 onUrlChange={setOfferUrl}
               />
 
-              <DisableAIGenerationSection
+              <AISettingsFeature
                 aiGenerationEnabled={aiReviewEnabled}
                 fixGrammarEnabled={true} // TODO: Add fix_grammar_enabled column
-                onToggleAI={() => setAiReviewEnabled(!aiReviewEnabled)}
-                onToggleGrammar={() => {}} // TODO: Implement when column is added
+                onAIEnabledChange={(enabled) => setAiReviewEnabled(enabled)}
+                onGrammarEnabledChange={() => {}} // TODO: Implement when column is added
               />
             </div>
           </div>

@@ -26,6 +26,7 @@ export interface FormData {
   nfcTextEnabled?: boolean;
   notePopupEnabled?: boolean;
   showFriendlyNote?: boolean;
+  kickstartersEnabled?: boolean;
   
   // Content fields
   emojiSentimentQuestion?: string;
@@ -50,6 +51,9 @@ export interface FormData {
   
   // Platforms
   review_platforms?: any[];
+  
+  // Kickstarters
+  selectedKickstarters?: string[];
   
   // Other
   slug?: string;
@@ -94,6 +98,8 @@ export interface DatabaseRow {
   nfc_text_enabled?: boolean;
   note_popup_enabled?: boolean;
   show_friendly_note?: boolean;
+  kickstarters_enabled?: boolean;
+  selected_kickstarters?: string[];
   facebook_url?: string;
   instagram_url?: string;
   bluesky_url?: string;
@@ -120,6 +126,7 @@ export function mapFormDataToDatabase(formData: FormData): DatabaseRow {
     'offer_title', 'offer_body', 'offer_url', 'friendly_note', 'emoji_labels',
     'emoji_sentiment_question', 'emoji_feedback_message', 
     'emoji_feedback_popup_header', 'emoji_feedback_page_header', 'emoji_thank_you_message',
+    'selected_kickstarters',
     'facebook_url', 'instagram_url', 'bluesky_url', 'tiktok_url', 'youtube_url', 'linkedin_url', 'pinterest_url'
   ];
   
@@ -138,7 +145,9 @@ export function mapFormDataToDatabase(formData: FormData): DatabaseRow {
     offerEnabled: 'offer_enabled',
     nfcTextEnabled: 'nfc_text_enabled',
     notePopupEnabled: 'note_popup_enabled',
-    showFriendlyNote: 'show_friendly_note'
+    showFriendlyNote: 'show_friendly_note',
+    kickstartersEnabled: 'kickstarters_enabled',
+    selectedKickstarters: 'selected_kickstarters'
   };
   
   Object.entries(camelToSnakeMap).forEach(([camelKey, snakeKey]) => {
@@ -188,7 +197,8 @@ export function mapFormDataToDatabase(formData: FormData): DatabaseRow {
     offer_enabled: false,
     nfc_text_enabled: false,
     note_popup_enabled: false,
-    show_friendly_note: false
+    show_friendly_note: false,
+    kickstarters_enabled: false
   };
   
   Object.entries(booleanDefaults).forEach(([key, defaultValue]) => {
@@ -215,6 +225,7 @@ export function filterToAllowedColumns(data: DatabaseRow): DatabaseRow {
     "emoji_labels", "falling_enabled", "falling_icon", "falling_icon_color",
     "offer_enabled", "offer_title", "offer_body", "offer_url", "friendly_note",
     "nfc_text_enabled", "note_popup_enabled", "show_friendly_note",
+    "kickstarters_enabled", "selected_kickstarters",
     "facebook_url", "instagram_url", "bluesky_url", "tiktok_url", "youtube_url", "linkedin_url", "pinterest_url"
   ];
   

@@ -27,8 +27,15 @@ import {
 
 import SectionHeader from "./SectionHeader";
 import CustomerDetailsSection from "./sections/CustomerDetailsSection";
-import FallingStarsSection from "@/app/components/FallingStarsSection";
-import OfferSection from "../dashboard/edit-prompt-page/components/OfferSection";
+import ReviewWriteSection from "../dashboard/edit-prompt-page/components/ReviewWriteSection";
+import { 
+  PersonalizedNoteFeature,
+  EmojiSentimentFeature,
+  FallingStarsFeature,
+  OfferFeature,
+  KickstartersFeature,
+  AISettingsFeature
+} from "./prompt-features";
 
 // Helper function to get falling icon
 const getFallingIcon = (iconKey: string) => {
@@ -91,6 +98,9 @@ export default function PhotoPromptPageForm({
   // Form submission state
   const [formError, setFormError] = useState("");
 
+  // AI Generation loading state
+  const [aiGeneratingIndex, setAiGeneratingIndex] = useState<number | null>(null);
+
   // Falling Stars states
   const [fallingEnabled, setFallingEnabled] = useState(
     initialData.falling_enabled ?? initialData.fallingEnabled ?? true,
@@ -121,6 +131,34 @@ export default function PhotoPromptPageForm({
     initialData.show_friendly_note ?? initialData.notePopupEnabled ?? false,
   );
 
+  // Emoji Sentiment states
+  const [emojiSentimentEnabled, setEmojiSentimentEnabled] = useState(
+    initialData.emoji_sentiment_enabled ?? false,
+  );
+  const [emojiSentimentQuestion, setEmojiSentimentQuestion] = useState(
+    initialData.emoji_sentiment_question || "How was Your Experience?",
+  );
+  const [emojiFeedbackMessage, setEmojiFeedbackMessage] = useState(
+    initialData.emoji_feedback_message || "We value your feedback! Let us know how we can do better.",
+  );
+  const [emojiThankYouMessage, setEmojiThankYouMessage] = useState(
+    initialData.emoji_thank_you_message || "Thank you for your feedback. It's important to us.",
+  );
+  const [emojiFeedbackPopupHeader, setEmojiFeedbackPopupHeader] = useState(
+    initialData.emoji_feedback_popup_header || "How can we improve?",
+  );
+  const [emojiFeedbackPageHeader, setEmojiFeedbackPageHeader] = useState(
+    initialData.emoji_feedback_page_header || "Your feedback helps us grow",
+  );
+
+  // AI Settings states
+  const [aiButtonEnabled, setAiButtonEnabled] = useState(
+    initialData.ai_button_enabled ?? true,
+  );
+  const [fixGrammarEnabled, setFixGrammarEnabled] = useState(
+    initialData.fix_grammar_enabled ?? false,
+  );
+
 
 
   // Form validation
@@ -146,6 +184,21 @@ export default function PhotoPromptPageForm({
     }
 
     return true;
+  };
+
+  // Handle AI review generation with loading state
+  const handleGenerateAIReview = async (idx: number) => {
+    setAiGeneratingIndex(idx);
+    try {
+      // TODO: Implement AI review generation logic
+      console.log('Generating AI review for index:', idx);
+      // Simulate AI generation delay
+      await new Promise(resolve => setTimeout(resolve, 2000));
+    } catch (error) {
+      console.error("Failed to generate AI review:", error);
+    } finally {
+      setAiGeneratingIndex(null);
+    }
   };
 
   // Handle toggle functions
@@ -185,6 +238,16 @@ export default function PhotoPromptPageForm({
         offer_title: offerTitle,
         offer_body: offerBody,
         offer_url: offerUrl,
+        // Emoji sentiment fields
+        emoji_sentiment_enabled: emojiSentimentEnabled,
+        emoji_sentiment_question: emojiSentimentQuestion,
+        emoji_feedback_message: emojiFeedbackMessage,
+        emoji_thank_you_message: emojiThankYouMessage,
+        emoji_feedback_popup_header: emojiFeedbackPopupHeader,
+        emoji_feedback_page_header: emojiFeedbackPageHeader,
+        // AI settings fields
+        ai_button_enabled: aiButtonEnabled,
+        fix_grammar_enabled: fixGrammarEnabled,
       };
       
       console.log('🔥 PhotoPromptPageForm calling onSave with:', saveData);
@@ -225,10 +288,10 @@ export default function PhotoPromptPageForm({
           </h1>
           <button
             type="submit"
-            className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
+            className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={isLoading}
           >
-            {isLoading ? "Publishing..." : "Save & Publish"}
+            {isLoading ? "Saving..." : "Save & Publish"}
           </button>
         </div>
         
@@ -306,50 +369,37 @@ export default function PhotoPromptPageForm({
           </div>
         </div>
 
-        {/* Review Template Section */}
+        {/* Review Platforms Section */}
         <div className="space-y-6">
           <SectionHeader
             icon={<FaStar className="w-7 h-7 text-slate-blue" />}
-            title="Testimonial template"
-            subCopy="Provide a template to help customers write their photo testimonials more easily"
+            title="Review platforms"
+            subCopy="Configure which platforms customers can leave reviews on"
           />
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Testimonial Template <span className="text-gray-500">(optional)</span>
-            </label>
-            <textarea
-              value={formData.no_platform_review_template || ""}
-              onChange={(e) => setFormData((prev: any) => ({ ...prev, no_platform_review_template: e.target.value.slice(0, 600) }))}
-              rows={4}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent"
-              placeholder="e.g., I'm thrilled with the results! The service exceeded my expectations and I would definitely recommend it to others..."
-              maxLength={600}
-            />
-            <div className="flex justify-between items-center mt-1">
-              <div className="text-sm text-gray-500">
-                This template helps customers get started with their testimonial. They can still edit or write their own.
-              </div>
-              <div className="text-sm text-gray-400">
-                {(formData.no_platform_review_template || "").length}/600 characters
-              </div>
-            </div>
-          </div>
+          <ReviewWriteSection
+            value={formData.review_platforms || []}
+            onChange={(platforms) => setFormData((prev: any) => ({ ...prev, review_platforms: platforms }))}
+            onGenerateReview={handleGenerateAIReview}
+            hideReviewTemplateFields={campaignType === 'public'}
+            aiGeneratingIndex={aiGeneratingIndex}
+          />
         </div>
 
         {/* Photo-specific features */}
         <div className="space-y-8">
-          {/* Falling Stars Section */}
-          <FallingStarsSection
+          {/* Falling Stars Feature */}
+          <FallingStarsFeature
             enabled={fallingEnabled}
             onToggle={handleToggleFalling}
             icon={fallingIcon}
             onIconChange={handleIconChange}
             color={fallingIconColor}
             onColorChange={handleColorChange}
+            editMode={true}
           />
 
-          {/* Offer Section */}
-          <OfferSection
+          {/* Offer Feature */}
+          <OfferFeature
             enabled={offerEnabled}
             onToggle={() => setOfferEnabled(!offerEnabled)}
             title={offerTitle}
@@ -360,46 +410,55 @@ export default function PhotoPromptPageForm({
             onUrlChange={setOfferUrl}
           />
 
-          {/* Personalized Note Popup Section */}
-          <div className="rounded-lg p-4 bg-slate-50 border border-slate-200 flex flex-col gap-2 shadow relative">
-            <div className="flex items-center justify-between mb-2 px-2 py-2">
-              <div className="flex items-center gap-3">
-                <FaStickyNote className="w-7 h-7 text-slate-blue" />
-                <span className="text-2xl font-bold text-slate-blue">
-                  Personalized note pop-up
-                </span>
-              </div>
-              <button
-                type="button"
-                onClick={() => setNotePopupEnabled(!notePopupEnabled)}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${notePopupEnabled ? "bg-slate-blue" : "bg-gray-200"}`}
-                aria-pressed={!!notePopupEnabled}
-              >
-                <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${notePopupEnabled ? "translate-x-5" : "translate-x-1"}`}
-                />
-              </button>
-            </div>
-            <div className="text-sm text-gray-700 mb-3 max-w-[85ch] px-2">
-              This note appears as a pop-up at the top of the review page. Use
-              it to set the context and tone for your customer.
-            </div>
-            {notePopupEnabled && (
-              <textarea
-                id="friendly_note"
-                value={formData.friendly_note || ""}
-                onChange={(e) =>
-                  setFormData((prev: any) => ({
-                    ...prev,
-                    friendly_note: e.target.value,
-                  }))
-                }
-                rows={4}
-                className="block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring shadow-inner"
-                placeholder="Enter your personalized note that will appear after your client submits their photo testimonial..."
-              />
-            )}
-          </div>
+          {/* Personalized Note Feature */}
+          <PersonalizedNoteFeature
+            enabled={notePopupEnabled}
+            onToggle={() => setNotePopupEnabled(!notePopupEnabled)}
+            content={formData.friendly_note}
+            onContentChange={(content) => setFormData((prev: any) => ({ ...prev, friendly_note: content }))}
+            disabled={emojiSentimentEnabled}
+            editMode={true}
+          />
+
+          {/* Emoji Sentiment Feature */}
+          <EmojiSentimentFeature
+            enabled={emojiSentimentEnabled}
+            onToggle={() => setEmojiSentimentEnabled(!emojiSentimentEnabled)}
+            question={emojiSentimentQuestion}
+            onQuestionChange={setEmojiSentimentQuestion}
+            feedbackMessage={emojiFeedbackMessage}
+            onFeedbackMessageChange={setEmojiFeedbackMessage}
+            thankYouMessage={emojiThankYouMessage}
+            onThankYouMessageChange={setEmojiThankYouMessage}
+            feedbackPopupHeader={emojiFeedbackPopupHeader}
+            onFeedbackPopupHeaderChange={setEmojiFeedbackPopupHeader}
+            feedbackPageHeader={emojiFeedbackPageHeader}
+            onFeedbackPageHeaderChange={setEmojiFeedbackPageHeader}
+            disabled={notePopupEnabled}
+            editMode={true}
+          />
+
+          {/* AI Settings Feature */}
+          <AISettingsFeature
+            aiGenerationEnabled={aiButtonEnabled}
+            fixGrammarEnabled={fixGrammarEnabled}
+            onAIEnabledChange={setAiButtonEnabled}
+            onGrammarEnabledChange={setFixGrammarEnabled}
+          />
+
+          {/* Kickstarters Feature */}
+          <KickstartersFeature
+            enabled={formData.kickstarters_enabled || false}
+            selectedKickstarters={formData.selected_kickstarters || []}
+            businessName={businessProfile?.name || businessProfile?.business_name || "Business Name"}
+            onEnabledChange={(enabled) => setFormData((prev: any) => ({ ...prev, kickstarters_enabled: enabled }))}
+            onKickstartersChange={(kickstarters) => setFormData((prev: any) => ({ ...prev, selected_kickstarters: kickstarters }))}
+            initialData={{
+              kickstarters_enabled: formData.kickstarters_enabled,
+              selected_kickstarters: formData.selected_kickstarters,
+            }}
+            editMode={true}
+          />
 
 
         </div>

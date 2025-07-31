@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { FaImage, FaBuilding, FaList, FaStar, FaGift, FaShareAlt, FaInfoCircle, FaTrash } from "react-icons/fa";
+import { FaImage, FaBuilding, FaList, FaStar, FaGift, FaShareAlt, FaInfo, FaTrash, FaLightbulb } from "react-icons/fa";
 import Cropper from "react-easy-crop";
 import IndustrySelector from "../../components/IndustrySelector";
 import RobotTooltip from "../../components/RobotTooltip";
+import { KickstartersFeature } from "../../components/prompt-features";
 
 function Tooltip({ text }: { text: string }) {
   const [show, setShow] = useState(false);
@@ -277,7 +278,7 @@ export default function BusinessProfileForm({
       {/* Business Info Section */}
       <div className="mb-8">
         <h2 className="mt-4 mb-8 text-2xl font-bold text-slate-blue flex items-center gap-3">
-          <FaInfoCircle className="w-7 h-7 text-slate-blue" />
+          <FaInfo className="w-7 h-7 text-slate-blue" />
           Business info
         </h2>
         <div className="mb-4">
@@ -828,6 +829,26 @@ export default function BusinessProfileForm({
             reward for "x" number of reviews, etc.
           </div>
         </div>
+      </div>
+
+      {/* Kickstarters Section */}
+      <div className="mb-16">
+        <KickstartersFeature
+          enabled={form.kickstarters_enabled}
+          selectedKickstarters={form.selected_kickstarters}
+          businessName={form.name || "Business Name"}
+          onEnabledChange={(enabled) => 
+            setForm((f: any) => ({ ...f, kickstarters_enabled: enabled }))
+          }
+          onKickstartersChange={(kickstarters) => 
+            setForm((f: any) => ({ ...f, selected_kickstarters: kickstarters }))
+          }
+          initialData={{
+            kickstarters_enabled: form.kickstarters_enabled,
+            selected_kickstarters: form.selected_kickstarters,
+          }}
+          editMode={true}
+        />
       </div>
 
       {/* Social Media Section */}

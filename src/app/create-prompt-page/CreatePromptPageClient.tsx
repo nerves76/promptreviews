@@ -255,6 +255,7 @@ export default function CreatePromptPageClient({
   );
   const [showTypeModal, setShowTypeModal] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [isLoadingBusinessProfile, setIsLoadingBusinessProfile] = useState(true);
 
   // Mark create prompt page task as completed when accessed from dashboard
   useEffect(() => {
@@ -276,6 +277,7 @@ export default function CreatePromptPageClient({
   useEffect(() => {
     console.log("🎯 loadBusinessProfile useEffect triggered");
     const loadBusinessProfile = async () => {
+      setIsLoadingBusinessProfile(true);
       try {
         const {
           data: { user },
@@ -285,49 +287,135 @@ export default function CreatePromptPageClient({
         }
         setCurrentUser(user);
         console.log("🎯 Fetching business data for user:", user.id);
-        const { data: businessData } = await supabase
+        
+        // Optimize: Only fetch essential fields initially
+        const { data: businessData, error: businessError } = await supabase
           .from("businesses")
-          .select("*")
+          .select("name, business_name, services_offered, features_or_benefits, default_offer_enabled, default_offer_title, default_offer_body, review_platforms, facebook_url, instagram_url, bluesky_url, tiktok_url, youtube_url, linkedin_url, pinterest_url, created_at, updated_at")
           .eq("account_id", user.id)
           .single();
+          
+        if (businessError) {
+          console.error("🎯 Error fetching business data:", businessError);
+          // Use default business profile on error
+          setBusinessProfile({
+            business_name: "Your Business",
+            services_offered: [],
+            features_or_benefits: [],
+            company_values: "",
+            differentiators: "",
+            years_in_business: 0,
+            industries_served: "",
+            taglines: "",
+            team_founder_info: "",
+            keywords: "",
+            default_offer_enabled: false,
+            default_offer_title: "",
+            default_offer_body: "",
+            gradient_start: "",
+            gradient_middle: "",
+            gradient_end: "",
+            background_type: "",
+            background_color: "",
+            text_color: "",
+            header_color: "",
+          });
+          setIsLoadingBusinessProfile(false);
+          return;
+        }
+        
         console.log("🎯 Business data result:", businessData);
-        if (!businessData || 
-            !businessData.name || 
-            businessData.name.trim() === '' ||
-            businessData.created_at === businessData.updated_at) {
-          console.log("🎯 Business profile not updated, redirecting to dashboard");
-          router.push('/dashboard?message=complete-business-first');
+        if (!businessData) {
+          console.log("🎯 No business profile found, using default values");
+          setBusinessProfile({
+            business_name: "Your Business",
+            services_offered: [],
+            features_or_benefits: [],
+            company_values: "",
+            differentiators: "",
+            years_in_business: 0,
+            industries_served: "",
+            taglines: "",
+            team_founder_info: "",
+            keywords: "",
+            default_offer_enabled: false,
+            default_offer_title: "",
+            default_offer_body: "",
+            gradient_start: "",
+            gradient_middle: "",
+            gradient_end: "",
+            background_type: "",
+            background_color: "",
+            text_color: "",
+            header_color: "",
+          });
+          setIsLoadingBusinessProfile(false);
+          return;
+        }
+        
+        // Check if business profile has a name (basic requirement)
+        const hasBusinessName = businessData.name && businessData.name.trim() !== '';
+        
+        if (!hasBusinessName) {
+          console.log("🎯 Business profile missing name, using default values");
+          setBusinessProfile({
+            business_name: businessData.name || businessData.business_name || "Your Business",
+            services_offered: [],
+            features_or_benefits: [],
+            company_values: "",
+            differentiators: "",
+            years_in_business: 0,
+            industries_served: "",
+            taglines: "",
+            team_founder_info: "",
+            keywords: "",
+            default_offer_enabled: false,
+            default_offer_title: "",
+            default_offer_body: "",
+            gradient_start: "",
+            gradient_middle: "",
+            gradient_end: "",
+            background_type: "",
+            background_color: "",
+            text_color: "",
+            header_color: "",
+          });
+          setIsLoadingBusinessProfile(false);
           return;
         }
         if (businessData) {
           console.log("🎯 Business profile loaded:", businessData);
-          console.log("🎯 Business review_platforms:", businessData.review_platforms);
-          setBusinessProfile({
-            ...businessData,
-            business_name: businessData.name || businessData.business_name,
-            services_offered: Array.isArray(businessData.services_offered)
-              ? businessData.services_offered
-              : typeof businessData.services_offered === "string"
-                ? [businessData.services_offered]
-                : [],
-            features_or_benefits: Array.isArray(
-              businessData.features_or_benefits,
-            )
-              ? businessData.features_or_benefits
-              : typeof businessData.features_or_benefits === "string"
-                ? [businessData.features_or_benefits]
-                : [],
-          });
+          
+          // Batch state updates to reduce re-renders
+          const updates = {
+            businessProfile: {
+              ...businessData,
+              business_name: businessData.name || businessData.business_name,
+              services_offered: Array.isArray(businessData.services_offered)
+                ? businessData.services_offered
+                : typeof businessData.services_offered === "string"
+                  ? [businessData.services_offered]
+                  : [],
+              features_or_benefits: Array.isArray(
+                businessData.features_or_benefits,
+              )
+                ? businessData.features_or_benefits
+                : typeof businessData.features_or_benefits === "string"
+                  ? [businessData.features_or_benefits]
+                  : [],
+            },
+            formDataUpdates: {} as any,
+            services: [] as string[]
+          };
+          
+          // Process offer data
           if (businessData.default_offer_enabled) {
-            setFormData((prev) => ({
-              ...prev,
-              offer_enabled: true,
-              offer_title: businessData.default_offer_title || "Special Offer",
-              offer_body:
-                businessData.default_offer_body ||
-                'Use this code "1234" to get a discount on your next purchase.',
-            }));
+            updates.formDataUpdates.offer_enabled = true;
+            updates.formDataUpdates.offer_title = businessData.default_offer_title || "Special Offer";
+            updates.formDataUpdates.offer_body = businessData.default_offer_body || 'Use this code "1234" to get a discount on your next purchase.';
           }
+          
+          // Process review platforms
           if (businessData.review_platforms) {
             console.log("🎯 Inheriting review platforms from business profile:", businessData.review_platforms);
             let platforms = businessData.review_platforms;
@@ -340,24 +428,17 @@ export default function CreatePromptPageClient({
             }
             if (!Array.isArray(platforms)) platforms = [];
             console.log("🎯 Processed platforms:", platforms);
-            setFormData((prev) => {
-              const newData = {
-                ...prev,
-                review_platforms: platforms.map((p: any) => ({
-                  name: p.name || p.platform || "",
-                  url: p.url || "",
-                  wordCount: p.wordCount || 200,
-                  customInstructions: p.customInstructions || "",
-                  reviewText: p.reviewText || "",
-                  customPlatform: p.customPlatform || "",
-                })),
-              };
-              console.log("🎯 Updated formData with review platforms:", newData.review_platforms);
-              return newData;
-            });
-          } else {
-            console.log("🎯 No review platforms found in business profile");
+            updates.formDataUpdates.review_platforms = platforms.map((p: any) => ({
+              name: p.name || p.platform || "",
+              url: p.url || "",
+              wordCount: p.wordCount || 200,
+              customInstructions: p.customInstructions || "",
+              reviewText: p.reviewText || "",
+              customPlatform: p.customPlatform || "",
+            }));
           }
+          
+          // Process services
           if (businessData.services_offered) {
             let arr = businessData.services_offered;
             if (typeof arr === "string") {
@@ -370,33 +451,36 @@ export default function CreatePromptPageClient({
             if (!Array.isArray(arr)) arr = [];
             const filteredServices = arr.filter(Boolean);
             console.log("🎯 Inheriting services from business profile:", filteredServices);
-            setServices(filteredServices);
-            setFormData((prev) => ({
-              ...prev,
-              services_offered: filteredServices,
-              // Also set features_or_benefits for ServicePromptPageForm compatibility
-              features_or_benefits: filteredServices,
-            }));
+            updates.services = filteredServices;
+            updates.formDataUpdates.services_offered = filteredServices;
+            updates.formDataUpdates.features_or_benefits = filteredServices;
           }
           
-          // Inherit social media URLs from business profile
+          // Process social media URLs
           if (businessData.facebook_url || businessData.instagram_url || businessData.bluesky_url || 
               businessData.tiktok_url || businessData.youtube_url || businessData.linkedin_url || 
               businessData.pinterest_url) {
-            setFormData((prev) => ({
-              ...prev,
-              facebook_url: businessData.facebook_url || "",
-              instagram_url: businessData.instagram_url || "",
-              bluesky_url: businessData.bluesky_url || "",
-              tiktok_url: businessData.tiktok_url || "",
-              youtube_url: businessData.youtube_url || "",
-              linkedin_url: businessData.linkedin_url || "",
-              pinterest_url: businessData.pinterest_url || "",
-            }));
+            updates.formDataUpdates.facebook_url = businessData.facebook_url || "";
+            updates.formDataUpdates.instagram_url = businessData.instagram_url || "";
+            updates.formDataUpdates.bluesky_url = businessData.bluesky_url || "";
+            updates.formDataUpdates.tiktok_url = businessData.tiktok_url || "";
+            updates.formDataUpdates.youtube_url = businessData.youtube_url || "";
+            updates.formDataUpdates.linkedin_url = businessData.linkedin_url || "";
+            updates.formDataUpdates.pinterest_url = businessData.pinterest_url || "";
           }
+          
+          // Apply all updates in batch
+          setBusinessProfile(updates.businessProfile);
+          setServices(updates.services);
+          setFormData((prev) => ({
+            ...prev,
+            ...updates.formDataUpdates
+          }));
         }
       } catch (err) {
         console.error("Error loading business profile:", err);
+      } finally {
+        setIsLoadingBusinessProfile(false);
       }
     };
     loadBusinessProfile();
@@ -825,10 +909,8 @@ export default function CreatePromptPageClient({
           };
           localStorage.setItem("showPostSaveModal", JSON.stringify(modalData));
           
-          // Small delay to ensure form completion before navigation
-          setTimeout(() => {
-            router.push("/prompt-pages");
-          }, 100);
+          // Navigate immediately to prompt-pages
+          router.push("/prompt-pages");
           return;
         }
 
@@ -1456,7 +1538,16 @@ export default function CreatePromptPageClient({
 
       <div className="min-h-screen flex justify-center items-start px-4 sm:px-0">
         <PageCard icon={getPageIcon(formData.review_type)}>
-          {getFormComponent()}
+          {isLoadingBusinessProfile ? (
+            <div className="flex items-center justify-center min-h-[400px]">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-slate-blue"></div>
+                <p className="mt-4 text-gray-600">Loading business profile...</p>
+              </div>
+            </div>
+          ) : (
+            getFormComponent()
+          )}
         </PageCard>
       </div>
     </>

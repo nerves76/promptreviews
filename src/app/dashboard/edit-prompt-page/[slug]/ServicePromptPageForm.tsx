@@ -1,6 +1,11 @@
 import React, { useState, useEffect, forwardRef } from "react";
 import OfferToggle from "../components/OfferToggle";
-import EmojiSentimentSection from "../components/EmojiSentimentSection";
+import { 
+  OfferFeature,
+  EmojiSentimentFeature,
+  FallingStarsFeature,
+  AISettingsFeature
+} from "@/app/components/prompt-features";
 import ReviewWriteSection, {
   ReviewWritePlatform,
 } from "../components/ReviewWriteSection";
@@ -21,9 +26,6 @@ import {
   FaPeace,
   FaCommentDots,
 } from "react-icons/fa";
-import OfferSection from "../components/OfferSection";
-import DisableAIGenerationSection from "@/app/components/DisableAIGenerationSection";
-import FallingStarsSection from "@/app/components/FallingStarsSection";
 import { useFallingStars } from "@/hooks/useFallingStars";
 import RobotTooltip from "@/app/components/RobotTooltip";
 
@@ -91,7 +93,7 @@ const ServicePromptPageForm = forwardRef<any, ServicePromptPageFormProps>(
       ReviewWritePlatform[]
     >(initialData?.reviewPlatforms ?? []);
     const [fallingEnabled, setFallingEnabled] = useState(
-      initialData?.fallingEnabled ?? false,
+      initialData?.fallingEnabled ?? true,
     );
     
     // Use shared falling stars hook instead of hardcoded state
@@ -236,7 +238,7 @@ const ServicePromptPageForm = forwardRef<any, ServicePromptPageFormProps>(
             />
           </div>
           {/* Special Offer Section (shared design) */}
-          <OfferSection
+          <OfferFeature
             enabled={offerEnabled}
             onToggle={() => setOfferEnabled((v) => !v)}
             title={offerTitle}
@@ -247,49 +249,7 @@ const ServicePromptPageForm = forwardRef<any, ServicePromptPageFormProps>(
             onUrlChange={setOfferUrl}
           />
           {/* Personalized Note Pop-up Section */}
-          <div className="rounded-lg p-4 bg-blue-50 border border-blue-200 flex flex-col gap-2 shadow relative mb-8">
-            <div className="flex items-center justify-between mb-2 px-2 py-2">
-              <div className="flex items-center gap-3">
-                <FaCommentDots className="w-7 h-7 text-slate-blue" />
-                <span className="text-2xl font-bold text-[#1A237E]">
-                  Personalized note pop-up
-                </span>
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  if (emojiSentimentEnabled) {
-                    setShowPopupConflictModal("note");
-                    return;
-                  }
-                  setNotePopupEnabled((v) => !v);
-                }}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${notePopupEnabled ? "bg-slate-blue" : "bg-gray-200"}`}
-                aria-pressed={!!notePopupEnabled}
-                disabled={emojiSentimentEnabled}
-              >
-                <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${notePopupEnabled ? "translate-x-5" : "translate-x-1"}`}
-                />
-              </button>
-            </div>
-            <div className="text-sm text-gray-700 mb-3 max-w-[85ch] px-2">
-              This note appears as a pop-up at the top of the review page. Use
-              it to set the context and tone for your customer.
-            </div>
-            {notePopupEnabled && (
-              <textarea
-                id="friendly_note"
-                value={friendlyNote}
-                onChange={(e) => setFriendlyNote(e.target.value)}
-                rows={4}
-                className="block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring shadow-inner"
-                placeholder="Jonas, it was so good to catch up yesterday. I'm excited about the project. Would you mind dropping us a review? I have a review template you can use or you can write your own. Thanks!"
-              />
-            )}
-          </div>
-          {/* Emoji Sentiment Section (shared design) */}
-          <EmojiSentimentSection
+          <EmojiSentimentFeature
             enabled={emojiSentimentEnabled}
             onToggle={() => {
               if (notePopupEnabled) {
@@ -308,14 +268,14 @@ const ServicePromptPageForm = forwardRef<any, ServicePromptPageFormProps>(
             disabled={!!notePopupEnabled}
           />
           {/* AI Review Generation Toggle */}
-                      <DisableAIGenerationSection
+          <AISettingsFeature
               aiGenerationEnabled={aiButtonEnabled}
               fixGrammarEnabled={fixGrammarEnabled}
-              onToggleAI={() => setAiButtonEnabled((v) => !v)}
-              onToggleGrammar={() => setFixGrammarEnabled((v) => !v)}
+              onAIEnabledChange={(enabled) => setAiButtonEnabled(enabled)}
+              onGrammarEnabledChange={(enabled) => setFixGrammarEnabled(enabled)}
             />
           {/* Falling Stars Section (full module) */}
-          <FallingStarsSection
+          <FallingStarsFeature
             enabled={fallingEnabled}
             onToggle={() => setFallingEnabled((v) => !v)}
             icon={fallingIcon}
@@ -390,7 +350,7 @@ const ServicePromptPageForm = forwardRef<any, ServicePromptPageFormProps>(
               <p className="mb-6 text-gray-700">
                 You cannot have 2 popups enabled at the same time. You must disable{" "}
                 <strong>
-                  {showPopupConflictModal === "note" ? "Emoji Sentiment Flow" : "Personalized Note Pop-up"}
+                  {showPopupConflictModal === "note" ? "Emoji Sentiment Flow" : "Friendly Note Pop-up"}
                 </strong>{" "}
                 first.
               </p>

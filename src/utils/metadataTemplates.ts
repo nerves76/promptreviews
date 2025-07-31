@@ -140,6 +140,7 @@ export async function generatePromptPageMetadata(
   };
   keywords: string;
   canonical?: string;
+  robots?: string;
 }> {
   console.log(`[METADATA] Generating metadata for page type: ${pageType}`);
   console.log(`[METADATA] Context:`, context);
@@ -192,6 +193,7 @@ export async function generatePromptPageMetadata(
         images: context.logo ? [context.logo] : undefined,
       },
       keywords: `${businessName}, reviews, feedback, ${formattedPageType.toLowerCase()}`,
+      robots: 'noindex, nofollow', // Prevent search engine indexing of prompt pages
     };
   }
   
@@ -232,6 +234,7 @@ export async function generatePromptPageMetadata(
     canonical: template.canonical_url_template 
       ? substituteVariables(template.canonical_url_template, context)
       : undefined,
+    robots: 'noindex, nofollow', // Prevent search engine indexing of prompt pages
   };
 }
 

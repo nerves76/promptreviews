@@ -15,10 +15,13 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import CustomerDetailsSection from "./sections/CustomerDetailsSection";
 import ReviewWriteSection from "../dashboard/edit-prompt-page/components/ReviewWriteSection";
-import OfferSection from "../dashboard/edit-prompt-page/components/OfferSection";
-import EmojiSentimentSection from "../dashboard/edit-prompt-page/components/EmojiSentimentSection";
-import DisableAIGenerationSection from "./DisableAIGenerationSection";
-import FallingStarsSection from "@/app/components/FallingStarsSection";
+import { 
+  OfferFeature,
+  EmojiSentimentFeature,
+  FallingStarsFeature,
+  AISettingsFeature,
+  KickstartersFeature
+} from "./prompt-features";
 import { useFallingStars } from "@/hooks/useFallingStars";
 import { Input } from "@/app/components/ui/input";
 import { Textarea } from "@/app/components/ui/textarea";
@@ -55,7 +58,7 @@ interface ServicePromptPageFormProps {
   businessProfile: any;
   isUniversal?: boolean;
   onPublishSuccess?: (slug: string) => void;
-  campaignType: string;
+  campaignType?: string;
   onGenerateReview?: (index: number) => void;
 }
 
@@ -69,80 +72,223 @@ export default function ServicePromptPageForm({
   businessProfile,
   isUniversal = false,
   onPublishSuccess,
-  campaignType,
+  campaignType = 'individual',
   onGenerateReview,
 }: ServicePromptPageFormProps) {
   const router = useRouter();
   
-  // Debug logging for review_platforms and services
-  console.log('🔍 ServicePromptPageForm - initialData.review_platforms:', initialData.review_platforms);
-  console.log('🔍 ServicePromptPageForm - typeof review_platforms:', typeof initialData.review_platforms);
-  console.log('🔍 ServicePromptPageForm - initialData.features_or_benefits:', initialData.features_or_benefits);
-  console.log('🔍 ServicePromptPageForm - initialData.services_offered:', initialData.services_offered);
+  // Initialize all state hooks first (before any early returns)
+  const [formData, setFormData] = useState({
+    first_name: initialData?.first_name || "",
+    last_name: initialData?.last_name || "",
+    email: initialData?.email || "",
+    phone: initialData?.phone || "",
+    role: initialData?.role || "",
+    review_platforms: initialData?.review_platforms || [],
+    friendly_note: initialData?.friendly_note || "",
+    name: initialData?.name || "",
+    features_or_benefits: initialData?.features_or_benefits || [""],
+    services_offered: initialData?.services_offered || [""],
+    outcomes: initialData?.outcomes || [""],
+    offer_enabled: initialData?.offer_enabled ?? false,
+    offer_title: initialData?.offer_title || "",
+    offer_body: initialData?.offer_body || "",
+    offer_url: initialData?.offer_url || "",
+    aiButtonEnabled: initialData?.aiButtonEnabled ?? true,
+    falling_enabled: initialData?.falling_enabled ?? true,
+    falling_icon: initialData?.falling_icon || "star",
+    falling_icon_color: initialData?.falling_icon_color || "#fbbf24",
+    kickstarters_enabled: initialData?.kickstarters_enabled ?? false,
+    selected_kickstarters: initialData?.selected_kickstarters || [],
+  });
   
-  // Initialize form data state from initialData with review_platforms safety check
-  const safeInitialData = {
-    ...initialData,
-    // Ensure review_platforms is always an array
-    review_platforms: Array.isArray(initialData.review_platforms) ? initialData.review_platforms : [],
-    // Default falling stars to enabled if not specified
-    fallingEnabled: initialData.fallingEnabled ?? initialData.falling_enabled ?? true,
-  };
-  
-  const [formData, setFormData] = useState(safeInitialData);
   const [fixGrammarEnabled, setFixGrammarEnabled] = useState(initialData?.fix_grammar_enabled ?? true);
-
-  // Update form data when initialData changes (for inheritance)
-  useEffect(() => {
-    if (initialData && Object.keys(initialData).length > 0) {
-      console.log('🔄 ServicePromptPageForm: initialData changed, updating form data:', initialData);
-      setFormData((prev: any) => {
-        const newData = { ...prev, ...initialData };
-        console.log('🔄 ServicePromptPageForm: Updated form data:', newData);
-        return newData;
-      });
-      // Also update fixGrammarEnabled if it's in initialData
-      if (initialData.fix_grammar_enabled !== undefined) {
-        setFixGrammarEnabled(initialData.fix_grammar_enabled);
-      }
-    }
-  }, [initialData]);
   const [isSaving, setIsSaving] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
-
-  // Initialize form data only once on mount or when initialData changes significantly
-  useEffect(() => {
-    // Only update form data if this looks like a genuinely new/different record
-    const isInitialLoad = !formData || Object.keys(formData).length === 0;
-    const isDifferentRecord = initialData?.id && formData?.id && initialData.id !== formData.id;
+  const [emojiSentimentEnabled, setEmojiSentimentEnabled] = useState(
+    initialData?.emoji_sentiment_enabled ?? false
+  );
+  const [emojiSentimentQuestion, setEmojiSentimentQuestion] = useState(
+    initialData?.emoji_sentiment_question || "How was your experience?"
+  );
+  const [emojiFeedbackMessage, setEmojiFeedbackMessage] = useState(
+    initialData?.emoji_feedback_message || "We value your feedback! Let us know how we can do better."
+  );
+  const [emojiFeedbackPopupHeader, setEmojiFeedbackPopupHeader] = useState(
+    initialData?.emoji_feedback_popup_header || "How can we improve?"
+  );
+  const [emojiFeedbackPageHeader, setEmojiFeedbackPageHeader] = useState(
+    initialData?.emoji_feedback_page_header || "Please share your feedback"
+  );
+  const [emojiThankYouMessage, setEmojiThankYouMessage] = useState(
+    initialData?.emoji_thank_you_message || "Thank you for your feedback! We appreciate you taking the time to help us improve."
+  );
+  const [showPopupConflictModal, setShowPopupConflictModal] = useState<string | null>(null);
+  const [conflictAcknowledged, setConflictAcknowledged] = useState(false);
+  const [aiGeneratingIndex, setAiGeneratingIndex] = useState<number | null>(null);
+  
+  // Helper function to process services from business profile
+  const processBusinessServices = (services: any): string[] => {
+    if (!services) return [""];
     
-    if (!isSaving && initialData && (isInitialLoad || isDifferentRecord)) {
-      // Create safe initial data with proper review_platforms
-      const safeData = {
-        ...initialData,
-        review_platforms: Array.isArray(initialData.review_platforms) ? initialData.review_platforms : [],
-      };
-      
-      console.log('🔄 ServicePromptPageForm setting form data:', { isInitialLoad, isDifferentRecord, safeData });
-      setFormData(safeData);
+    if (Array.isArray(services)) {
+      const filtered = services.filter(Boolean);
+      return filtered.length > 0 ? filtered : [""];
     }
-  }, [initialData?.id, isSaving]); // Only depend on initialData.id, not the whole object
+    
+    if (typeof services === "string") {
+      // Try to parse as JSON first
+      try {
+        const parsed = JSON.parse(services);
+        if (Array.isArray(parsed)) {
+          const filtered = parsed.filter(Boolean);
+          return filtered.length > 0 ? filtered : [""];
+        }
+      } catch {
+        // If not JSON, split by newlines or commas
+        const splitServices = services.split(/[\n,]/).map((s: string) => s.trim()).filter(Boolean);
+        return splitServices.length > 0 ? splitServices : [""];
+      }
+    }
+    
+    return [""];
+  };
 
   // Update form data helper (no auto-save)
   const updateFormData = (field: string, value: any) => {
-    console.log(`🔧 ServicePromptPageForm updating field "${field}" with value:`, value);
     setFormData((prev: any) => ({
       ...prev,
       [field]: value,
     }));
   };
 
+  // Synchronize emoji sentiment state with form data
+  useEffect(() => {
+    if (formData.emoji_sentiment_enabled !== undefined && formData.emoji_sentiment_enabled !== emojiSentimentEnabled) {
+      setEmojiSentimentEnabled(formData.emoji_sentiment_enabled);
+    }
+  }, [formData.emoji_sentiment_enabled, emojiSentimentEnabled]);
+
+  // Check for conflicts on initial load
+  useEffect(() => {
+    // Check if both features are enabled on initial load
+    if (formData.show_friendly_note && emojiSentimentEnabled && !conflictAcknowledged) {
+      // Show conflict modal immediately - disable emoji sentiment first
+      setShowPopupConflictModal("emoji");
+    }
+  }, [formData.show_friendly_note, emojiSentimentEnabled, conflictAcknowledged]);
+
+  // Pre-populate services from business profile when available
+  useEffect(() => {
+    if (mode === "create" && businessProfile?.services_offered && 
+        (!formData.features_or_benefits || formData.features_or_benefits.length === 0 || 
+         (formData.features_or_benefits.length === 1 && formData.features_or_benefits[0] === ""))) {
+      const processedServices = processBusinessServices(businessProfile.services_offered);
+      if (processedServices.length > 0 && processedServices[0] !== "") {
+        updateFormData('features_or_benefits', processedServices);
+        updateFormData('services_offered', processedServices);
+      }
+    }
+  }, [businessProfile?.services_offered, mode]);
+
+  // Update form data when initialData changes (for inheritance)
+  useEffect(() => {
+    if (initialData && Object.keys(initialData).length > 0) {
+      setFormData((prev: any) => {
+        // Only update if formData is empty or if we're dealing with a different record
+        if (!prev || Object.keys(prev).length === 0 || prev.id !== initialData.id) {
+          const newData = { ...prev, ...initialData };
+          return newData;
+        }
+        // Don't overwrite existing form data
+        return prev;
+      });
+      // Also update fixGrammarEnabled if it's in initialData
+      if (initialData.fix_grammar_enabled !== undefined) {
+        setFixGrammarEnabled(initialData.fix_grammar_enabled);
+      }
+      // Update emoji sentiment state if in initialData
+      if (initialData.emoji_sentiment_enabled !== undefined) {
+        setEmojiSentimentEnabled(initialData.emoji_sentiment_enabled);
+      }
+      if (initialData.emoji_sentiment_question !== undefined) {
+        setEmojiSentimentQuestion(initialData.emoji_sentiment_question);
+      }
+      if (initialData.emoji_feedback_message !== undefined) {
+        setEmojiFeedbackMessage(initialData.emoji_feedback_message);
+      }
+      if (initialData.emoji_feedback_popup_header !== undefined) {
+        setEmojiFeedbackPopupHeader(initialData.emoji_feedback_popup_header);
+      }
+      if (initialData.emoji_feedback_page_header !== undefined) {
+        setEmojiFeedbackPageHeader(initialData.emoji_feedback_page_header);
+      }
+      if (initialData.emoji_thank_you_message !== undefined) {
+        setEmojiThankYouMessage(initialData.emoji_thank_you_message);
+      }
+    }
+  }, [initialData?.id]); // Only depend on initialData.id, not the whole object
+
+  // Add safety check for required props
+  if (!supabase) {
+    console.error('ServicePromptPageForm: supabase is required but not provided');
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <p className="text-red-600">Error: Database connection not available</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!businessProfile) {
+    console.error('ServicePromptPageForm: businessProfile is required but not provided');
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-slate-blue"></div>
+          <p className="mt-4 text-gray-600">Loading business profile...</p>
+        </div>
+      </div>
+    );
+  }
+
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
+    setFormError(null); // Clear any previous errors
     
     try {
+      // Validate personalized note if enabled
+      if (formData.show_friendly_note && (!formData.friendly_note || formData.friendly_note.trim() === '')) {
+        setFormError('Please enter a personalized note when the feature is enabled.');
+        setIsSaving(false);
+        return;
+      }
+      
+      // Validate emoji sentiment fields if enabled
+      if (emojiSentimentEnabled) {
+        const requiredFields = [
+          { field: 'emojiSentimentQuestion', name: 'Popup header', value: emojiSentimentQuestion },
+          { field: 'emojiFeedbackPopupHeader', name: 'Feedback header in popup', value: emojiFeedbackPopupHeader },
+          { field: 'emojiFeedbackPageHeader', name: 'Feedback page header', value: emojiFeedbackPageHeader },
+          { field: 'emojiFeedbackMessage', name: 'Feedback prompt message', value: emojiFeedbackMessage },
+          { field: 'emojiThankYouMessage', name: 'Thank you message', value: emojiThankYouMessage },
+        ];
+        
+        const emptyFields = requiredFields.filter(({ value }) => {
+          return !value || value.trim() === '';
+        });
+        
+        if (emptyFields.length > 0) {
+          const fieldNames = emptyFields.map(f => f.name).join(', ');
+          setFormError(`Please fill in the following emoji sentiment fields: ${fieldNames}`);
+          setIsSaving(false);
+          return;
+        }
+      }
+      
       // Use onSave to save the form data (like ProductPromptPageForm does)
       if (onSave) {
         const saveData = {
@@ -150,26 +296,34 @@ export default function ServicePromptPageForm({
           review_type: "service",
           formComplete: true,
           fix_grammar_enabled: fixGrammarEnabled,
+          // Explicitly include personalized note fields
+          show_friendly_note: formData.show_friendly_note,
+          friendly_note: formData.friendly_note,
+          // Include emoji sentiment fields with correct field names
+          emoji_sentiment_enabled: emojiSentimentEnabled,
+          emoji_sentiment_question: emojiSentimentQuestion,
+          emoji_feedback_message: emojiFeedbackMessage,
+          emoji_feedback_popup_header: emojiFeedbackPopupHeader,
+          emoji_feedback_page_header: emojiFeedbackPageHeader,
+          emoji_thank_you_message: emojiThankYouMessage,
         };
         
-        console.log('🔥 ServicePromptPageForm calling onSave with:', saveData);
         const result = await onSave(saveData);
-        console.log('🔥 ServicePromptPageForm onSave result:', result);
         
         // Call success callback if provided
         if (onPublishSuccess && result && typeof result === 'object' && 'slug' in result) {
           const typedResult = result as { slug: string };
-          console.log('🔥 ServicePromptPageForm calling onPublishSuccess with slug:', typedResult.slug);
           onPublishSuccess(typedResult.slug);
-        } else {
-          console.log('🔥 ServicePromptPageForm - no onPublishSuccess callback or slug');
         }
       }
     } catch (error) {
       console.error('Error saving service prompt page:', error);
       setFormError('Failed to save prompt page. Please try again.');
     } finally {
-      setIsSaving(false);
+      // Keep loading state for a moment to prevent flash
+      setTimeout(() => {
+        setIsSaving(false);
+      }, 100);
     }
   };
 
@@ -186,31 +340,33 @@ export default function ServicePromptPageForm({
       return;
     }
     
-    const platform = platforms[idx];
-    
-    // Create comprehensive service page context
-    const servicePageData = {
-      review_type: 'service',
-      service_name: formData.service_name || (formData.features_or_benefits && formData.features_or_benefits[0]) || 'service',
-      services_provided: formData.features_or_benefits || [],
-      project_type: formData.features_or_benefits?.join(", ") || 'service',
-      product_description: formData.product_description,
-      outcomes: formData.product_description,
-      client_name: formData.client_name,
-      location: formData.location,
-      friendly_note: formData.friendly_note,
-      date_completed: formData.date_completed,
-      team_member: formData.team_member,
-      assigned_team_members: formData.assigned_team_members,
-    };
-    
-    const reviewerData = {
-      firstName: formData.first_name || "",
-      lastName: formData.last_name || "",
-      role: formData.role || "",
-    };
+    setAiGeneratingIndex(idx);
     
     try {
+      const platform = platforms[idx];
+      
+      // Create comprehensive service page context
+      const servicePageData = {
+        review_type: 'service',
+        service_name: formData.service_name || (formData.features_or_benefits && formData.features_or_benefits[0]) || 'service',
+        services_provided: formData.features_or_benefits || [],
+        project_type: formData.features_or_benefits?.join(", ") || 'service',
+        product_description: formData.product_description,
+        outcomes: formData.product_description,
+        client_name: formData.client_name,
+        location: formData.location,
+        friendly_note: formData.friendly_note,
+        date_completed: formData.date_completed,
+        team_member: formData.team_member,
+        assigned_team_members: formData.assigned_team_members,
+      };
+      
+      const reviewerData = {
+        firstName: formData.first_name || "",
+        lastName: formData.last_name || "",
+        role: formData.role || "",
+      };
+      
       const review = await generateContextualReview(
         businessProfile,
         servicePageData,
@@ -235,7 +391,21 @@ export default function ServicePromptPageForm({
       
     } catch (error) {
       console.error("Failed to generate AI review:", error);
+    } finally {
+      setAiGeneratingIndex(null);
     }
+  }
+
+  // Add safety check to prevent rendering if formData is not ready
+  if (!formData) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-slate-blue"></div>
+          <p className="mt-4 text-gray-600">Loading form...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -249,10 +419,10 @@ export default function ServicePromptPageForm({
           </h1>
           <button
             type="submit"
-            className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
+            className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={isSaving}
           >
-            {isSaving ? "Publishing..." : "Save & publish"}
+            {isSaving ? "Saving..." : "Save & Publish"}
           </button>
         </div>
         
@@ -313,13 +483,14 @@ export default function ServicePromptPageForm({
         <div>
           <div className="mb-4 flex items-center gap-2">
             <FaStar className="w-5 h-5 text-[#1A237E]" />
-            <h2 className="text-xl font-semibold text-slate-blue flex items-center gap-1">
-              Services{" "}
-              <span className="text-red-600">(required)</span>
+            <h2 className="text-2xl font-bold text-slate-blue">
+              Services
             </h2>
           </div>
           <div className="mb-4">
-            <h3 className="text-lg font-medium text-gray-700 mb-2">List Services</h3>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Service list <span className="text-red-600">(required)</span>
+            </label>
           </div>
           <div className="space-y-2">
             {(formData.features_or_benefits || [""]).map((service: string, idx: number) => (
@@ -335,18 +506,16 @@ export default function ServicePromptPageForm({
                   className="flex-1"
                   placeholder="e.g., Web Design"
                 />
-                {(formData.features_or_benefits || []).length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const newServices = (formData.features_or_benefits || []).filter((_: any, i: number) => i !== idx);
-                      updateFormData('features_or_benefits', newServices);
-                    }}
-                    className="p-2 text-red-600 hover:text-red-800"
-                  >
-                    <FaTrash className="w-4 h-4" />
-                  </button>
-                )}
+                <button
+                  type="button"
+                  onClick={() => {
+                    const newServices = (formData.features_or_benefits || []).filter((_: any, i: number) => i !== idx);
+                    updateFormData('features_or_benefits', newServices);
+                  }}
+                  className="text-red-600 hover:text-red-800"
+                >
+                  <FaTrash className="w-4 h-4" />
+                </button>
               </div>
             ))}
             <button
@@ -355,10 +524,10 @@ export default function ServicePromptPageForm({
                 const newServices = [...(formData.features_or_benefits || []), ""];
                 updateFormData('features_or_benefits', newServices);
               }}
-              className="flex items-center gap-2 text-slate-blue hover:text-slate-blue/80"
+              className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-slate-blue bg-slate-blue/10 hover:bg-slate-blue/20 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-blue"
             >
-              <FaPlus className="w-4 h-4" />
-              Add another service
+              <FaPlus className="-ml-1 mr-2 h-4 w-4" />
+              Add Service
             </button>
           </div>
         </div>
@@ -367,7 +536,7 @@ export default function ServicePromptPageForm({
         <div>
           <div className="mb-4 flex items-center gap-2">
             <FaGift className="w-5 h-5 text-[#1A237E]" />
-            <h2 className="text-xl font-semibold text-slate-blue flex items-center gap-1">
+            <h2 className="text-2xl font-bold text-slate-blue">
               Outcome
             </h2>
           </div>
@@ -386,14 +555,15 @@ export default function ServicePromptPageForm({
 
         {/* Review Platforms Section */}
         <ReviewWriteSection
-          value={Array.isArray(formData.review_platforms) ? formData.review_platforms : []}
+          value={formData.review_platforms || []}
           onChange={(platforms) => updateFormData('review_platforms', platforms)}
           onGenerateReview={handleGenerateAIReview}
           hideReviewTemplateFields={campaignType === 'public'}
+          aiGeneratingIndex={aiGeneratingIndex}
         />
         
         {/* Offer Section */}
-        <OfferSection
+        <OfferFeature
           enabled={formData.offer_enabled}
           onToggle={() => updateFormData('offer_enabled', !formData.offer_enabled)}
           title={formData.offer_title}
@@ -410,21 +580,25 @@ export default function ServicePromptPageForm({
             <div className="flex items-center gap-3">
               <FaStickyNote className="w-7 h-7 text-slate-blue" />
               <span className="text-2xl font-bold text-slate-blue">
-                Personalized note pop-up
+                Friendly note pop-up
               </span>
             </div>
             <button
               type="button"
               onClick={() => {
-                if (formData.emojiSentimentEnabled) {
-                  // Show conflict modal would go here
+                if (emojiSentimentEnabled) {
+                  // Show conflict modal
+                  setShowPopupConflictModal("emoji");
                   return;
                 }
-                updateFormData('show_friendly_note', !formData.show_friendly_note);
+                const newValue = !formData.show_friendly_note;
+                updateFormData('show_friendly_note', newValue);
+                // Reset conflict acknowledgment when state changes
+                setConflictAcknowledged(false);
               }}
               className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${formData.show_friendly_note ? "bg-slate-blue" : "bg-gray-200"}`}
               aria-pressed={!!formData.show_friendly_note}
-              disabled={formData.emojiSentimentEnabled}
+              disabled={emojiSentimentEnabled}
             >
               <span
                 className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${formData.show_friendly_note ? "translate-x-5" : "translate-x-1"}`}
@@ -432,15 +606,16 @@ export default function ServicePromptPageForm({
             </button>
           </div>
           <div className="text-sm text-gray-700 mb-3 max-w-[85ch] px-2">
-            Add a personalized note that appears as a pop-up when customers visit your review page. Use 
-            it to set the context and tone for your customer.
+            Add a note that pops up when a customer or client visits your review page.
           </div>
           {formData.show_friendly_note && (
             <div className="px-2">
               <Textarea
                 id="friendly_note"
                 value={formData.friendly_note || ""}
-                onChange={(e) => updateFormData('friendly_note', e.target.value)}
+                onChange={(e) => {
+                  updateFormData('friendly_note', e.target.value);
+                }}
                 rows={4}
                 className="block w-full"
                 placeholder="e.g., Hi John! Thanks for using your service today. We'd love to hear about your experience."
@@ -450,45 +625,73 @@ export default function ServicePromptPageForm({
         </div>
 
         {/* Emoji Sentiment Section */}
-        <EmojiSentimentSection
-          enabled={formData.emojiSentimentEnabled}
+        <EmojiSentimentFeature
+          enabled={emojiSentimentEnabled}
           onToggle={() => {
             if (formData.show_friendly_note) {
-              // Show conflict modal would go here
+              // Show conflict modal
+              setShowPopupConflictModal("note");
               return;
             }
-            updateFormData('emojiSentimentEnabled', !formData.emojiSentimentEnabled);
+            const newValue = !emojiSentimentEnabled;
+            setEmojiSentimentEnabled(newValue);
+            // Also update form data to keep them in sync
+            updateFormData('emoji_sentiment_enabled', newValue);
+            // Clear any previous errors when enabling
+            if (newValue) {
+              setFormError(null);
+            }
+            // Reset conflict acknowledgment when state changes
+            setConflictAcknowledged(false);
           }}
-          question={formData.emojiSentimentQuestion}
-          onQuestionChange={(question) => updateFormData('emojiSentimentQuestion', question)}
-          feedbackMessage={formData.emojiFeedbackMessage}
-          onFeedbackMessageChange={(message) => updateFormData('emojiFeedbackMessage', message)}
-          thankYouMessage={formData.emojiThankYouMessage}
-          onThankYouMessageChange={(val: string) => updateFormData('emojiThankYouMessage', val)}
-          feedbackPopupHeader={formData.emojiFeedbackPopupHeader}
-          onFeedbackPopupHeaderChange={(header) => updateFormData('emojiFeedbackPopupHeader', header)}
-          feedbackPageHeader={formData.emojiFeedbackPageHeader}
-          onFeedbackPageHeaderChange={(header) => updateFormData('emojiFeedbackPageHeader', header)}
+          question={emojiSentimentQuestion}
+          onQuestionChange={(question) => setEmojiSentimentQuestion(question)}
+          feedbackMessage={emojiFeedbackMessage}
+          onFeedbackMessageChange={(message) => setEmojiFeedbackMessage(message)}
+          thankYouMessage={emojiThankYouMessage}
+          onThankYouMessageChange={(val: string) => setEmojiThankYouMessage(val)}
+          feedbackPopupHeader={emojiFeedbackPopupHeader}
+          onFeedbackPopupHeaderChange={(header) => setEmojiFeedbackPopupHeader(header)}
+          feedbackPageHeader={emojiFeedbackPageHeader}
+          onFeedbackPageHeaderChange={(header) => setEmojiFeedbackPageHeader(header)}
           slug={formData.slug}
           disabled={!!formData.show_friendly_note}
+          editMode={true}
         />
         
         {/* AI Generation Toggle */}
-        <DisableAIGenerationSection
+        <AISettingsFeature
           aiGenerationEnabled={formData.aiButtonEnabled}
           fixGrammarEnabled={fixGrammarEnabled}
-          onToggleAI={() => updateFormData('aiButtonEnabled', !formData.aiButtonEnabled)}
-          onToggleGrammar={() => setFixGrammarEnabled((v: boolean) => !v)}
+          onAIEnabledChange={(enabled) => updateFormData('aiButtonEnabled', enabled)}
+          onGrammarEnabledChange={(enabled) => setFixGrammarEnabled(enabled)}
         />
         
         {/* Falling Stars Section */}
-        <FallingStarsSection
+        <FallingStarsFeature
           enabled={formData.fallingEnabled}
           onToggle={() => updateFormData('fallingEnabled', !formData.fallingEnabled)}
           icon={formData.falling_icon}
           onIconChange={(icon) => updateFormData('falling_icon', icon)}
           color={formData.falling_icon_color}
-          onColorChange={(color) => updateFormData('falling_icon_color', color)}
+          onColorChange={(color) => {
+            updateFormData('falling_icon_color', color);
+          }}
+          editMode={true}
+        />
+
+        {/* Kickstarters Section */}
+        <KickstartersFeature
+          enabled={formData.kickstarters_enabled}
+          selectedKickstarters={formData.selected_kickstarters}
+          businessName={businessProfile?.name || businessProfile?.business_name || "Business Name"}
+          onEnabledChange={(enabled) => updateFormData('kickstarters_enabled', enabled)}
+          onKickstartersChange={(kickstarters) => updateFormData('selected_kickstarters', kickstarters)}
+          initialData={{
+            kickstarters_enabled: initialData?.kickstarters_enabled,
+            selected_kickstarters: initialData?.selected_kickstarters,
+          }}
+          editMode={true}
         />
 
         {/* Bottom Buttons */}
@@ -502,13 +705,50 @@ export default function ServicePromptPageForm({
           </button>
           <button
             type="submit"
-            className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
+            className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={isSaving}
           >
-            {isSaving ? "Publishing..." : "Save & Publish"}
+            {isSaving ? "Saving..." : "Save & Publish"}
           </button>
         </div>
       </div>
+
+      {/* Popup conflict modal */}
+      {showPopupConflictModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+          <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full text-center relative">
+            <button
+              className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-xl"
+              onClick={() => {
+                setShowPopupConflictModal(null);
+                setConflictAcknowledged(true); // Acknowledge the conflict
+              }}
+              aria-label="Close"
+            >
+              &times;
+            </button>
+            <h2 className="text-2xl font-bold text-red-700 mb-4">
+              Cannot Enable Multiple Popups
+            </h2>
+            <p className="mb-6 text-gray-700">
+              You cannot have 2 popups enabled at the same time. You must disable{" "}
+              <strong>
+                {showPopupConflictModal === "note" ? "Emoji Sentiment Flow" : "Friendly Note Pop-up"}
+              </strong>{" "}
+              first.
+            </p>
+            <button
+              onClick={() => {
+                setShowPopupConflictModal(null);
+                setConflictAcknowledged(true); // Acknowledge the conflict
+              }}
+              className="bg-slate-blue text-white px-6 py-2 rounded hover:bg-slate-blue/90 font-semibold mt-2"
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      )}
     </form>
   );
 } 

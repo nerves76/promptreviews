@@ -96,6 +96,7 @@
     "dotenv": "^16.6.1",
     "esbuild": "^0.25.5",
     "eslint": "^8.57.0",
+    "memory-leak-detector": "^0.2.0",
     "nodemon": "^3.1.10",
     "postcss": "^8.4.31",
     "supabase": "^2.22.12",

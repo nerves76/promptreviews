@@ -68,7 +68,7 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl,
   }, [logoUrl]);
   const [circularLogo, setCircularLogo] = useState(true);
   const [logoSize, setLogoSize] = useState(200);
-  const [fontSize, setFontSize] = useState(112);
+  const [fontSize, setFontSize] = useState(40);
   const [qrPreviewUrl, setQrPreviewUrl] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
@@ -111,6 +111,32 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl,
     const selected = QR_FRAME_SIZES.find(size => size.label === e.target.value);
     if (selected) {
       setSelectedFrameSize(selected);
+      
+      // Auto-adjust font size based on card size
+      const isBusinessCard = selected.label.includes('business card');
+      const isPostcard = selected.label.includes('postcard');
+      const isSmallCard = selected.width <= 1200 || selected.height <= 1800;
+      const isLargeCard = selected.width >= 2400 || selected.height >= 3000;
+      
+      let suggestedFontSize = fontSize; // Keep current size as default
+      
+      if (isBusinessCard) {
+        suggestedFontSize = Math.min(fontSize, 60); // Cap at 60px for business cards
+      } else if (isPostcard) {
+        suggestedFontSize = 40; // Set to 40px for postcards
+      } else if (isSmallCard) {
+        suggestedFontSize = Math.min(fontSize, 120); // Cap at 120px for other small cards
+      } else if (isLargeCard) {
+        suggestedFontSize = Math.max(fontSize, 120); // At least 120px for large cards
+      }
+      
+      // Set the font size immediately for postcards, otherwise only adjust if significantly different
+      if (isPostcard) {
+        setFontSize(suggestedFontSize);
+      } else if (Math.abs(suggestedFontSize - fontSize) > 20) {
+        setFontSize(suggestedFontSize);
+      }
+      
       // Regenerate preview when frame size changes
       if (showPreview) {
         setIsGenerating(true);
@@ -145,32 +171,22 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl,
 
   const handleDownloadClick = () => {
     setIsDownloading(true);
-    // Add a small delay to ensure QR code is fully generated
+    console.log('Download button clicked');
+    
+    // Trigger the download function directly on the QRCodeGenerator component
     setTimeout(() => {
-      // Try to find the QR generator canvas and trigger download
       const qrGenerator = document.querySelector('[data-qr-generator]') as HTMLCanvasElement;
+      console.log('Found QR generator element:', qrGenerator);
+      
       if (qrGenerator && (qrGenerator as any).downloadQRCode) {
+        console.log('Calling downloadQRCode function');
         try {
           (qrGenerator as any).downloadQRCode();
         } catch (error) {
           console.error('Error downloading QR code:', error);
-          // Fallback: try to download the preview image
-          if (qrPreviewUrl) {
-            const link = document.createElement("a");
-            link.download = `review-qr-${clientName.toLowerCase().replace(/\s+/g, "-")}-${selectedFrameSize.label.replace(/[^a-z0-9]/gi, "-")}.png`;
-            link.href = qrPreviewUrl;
-            link.click();
-          }
         }
       } else {
-        console.error('QR Generator not found or download function not available');
-        // Fallback: try to download the preview image
-        if (qrPreviewUrl) {
-          const link = document.createElement("a");
-          link.download = `review-qr-${clientName.toLowerCase().replace(/\s+/g, "-")}-${selectedFrameSize.label.replace(/[^a-z0-9]/gi, "-")}.png`;
-          link.href = qrPreviewUrl;
-          link.click();
-        }
+        console.error('downloadQRCode function not found on element');
       }
       setIsDownloading(false);
     }, 100);
@@ -334,9 +350,62 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl,
                   />
                   <div className="flex justify-between text-xs text-gray-500 mt-1">
                     <span>24px</span>
+                    <span>150px</span>
                     <span>300px</span>
+                    <span>450px</span>
                     <span>600px</span>
                   </div>
+                  
+                  {/* Card size recommendations */}
+                  <div className="mt-2 text-xs text-gray-600">
+                    {selectedFrameSize.label.includes('business card') && (
+                      <p>💡 <strong>Business card:</strong> Try 24-60px for best fit</p>
+                    )}
+                    {selectedFrameSize.label.includes('postcard') && (
+                      <p>💡 <strong>Postcard:</strong> Try 60-120px for best fit</p>
+                    )}
+                    {selectedFrameSize.label.includes('greeting card') && (
+                      <p>💡 <strong>Greeting card:</strong> Try 80-150px for best fit</p>
+                    )}
+                    {selectedFrameSize.label.includes('US Letter') && (
+                      <p>💡 <strong>Letter size:</strong> Try 120-250px for best fit</p>
+                    )}
+                    {selectedFrameSize.label.includes('poster') && (
+                      <p>💡 <strong>Poster:</strong> Try 200-400px for best fit</p>
+                    )}
+                  </div>
+                  
+                  {/* Font size warning */}
+                  {(() => {
+                    const isBusinessCard = selectedFrameSize.label.includes('business card');
+                    const isPostcard = selectedFrameSize.label.includes('postcard');
+                    const isSmallCard = selectedFrameSize.width <= 1200 || selectedFrameSize.height <= 1800;
+                    
+                    let maxRecommended = 600;
+                    if (isBusinessCard) maxRecommended = 60;
+                    else if (isPostcard || isSmallCard) maxRecommended = 120;
+                    
+                    if (fontSize > maxRecommended) {
+                      return (
+                        <div className="mt-2 p-2 bg-amber-50 border border-amber-200 rounded-lg">
+                          <div className="flex items-start gap-2">
+                            <div className="text-amber-600 mt-0.5">
+                              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                              </svg>
+                            </div>
+                            <div className="text-sm">
+                              <p className="font-medium text-amber-800 mb-1">Text may be too large</p>
+                              <p className="text-amber-700">
+                                {fontSize}px might not fit well on {selectedFrameSize.label}. Consider reducing to {maxRecommended}px or less for better results.
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    }
+                    return null;
+                  })()}
                 </div>
 
                 {/* Toggle Controls */}
@@ -385,7 +454,9 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl,
                           />
                           <div className="flex justify-between text-xs text-gray-500 mt-1">
                             <span>20px</span>
+                            <span>50px</span>
                             <span>85px</span>
+                            <span>120px</span>
                             <span>150px</span>
                           </div>
                         </div>
@@ -427,7 +498,9 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl,
                           />
                           <div className="flex justify-between text-xs text-gray-500 mt-1">
                             <span>12px</span>
+                            <span>18px</span>
                             <span>22px</span>
+                            <span>28px</span>
                             <span>32px</span>
                           </div>
                         </div>
@@ -550,7 +623,9 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl,
                       />
                       <div className="flex justify-between text-xs text-gray-500 mt-1">
                         <span>12px</span>
+                        <span>150px</span>
                         <span>300px</span>
+                        <span>450px</span>
                         <span>600px</span>
                       </div>
                     </div>
@@ -648,7 +723,9 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl,
                       />
                       <div className="flex justify-between text-xs text-gray-500 mt-1">
                         <span>30px</span>
+                        <span>200px</span>
                         <span>400px</span>
+                        <span>600px</span>
                         <span>800px</span>
                       </div>
                     </div>
@@ -711,25 +788,14 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl,
             </div>
           )}
           
-                    {/* Bottom buttons - both on same line */}
-          <div className="absolute bottom-4 left-8 right-8 flex justify-between items-center">
+                    {/* Bottom buttons - only branding removal */}
+          <div className="absolute bottom-4 left-8 right-8 flex justify-start items-center">
             <button
               onClick={() => setShowBrandingPopup(true)}
               className="text-blue-600 hover:text-blue-800 text-xs underline"
             >
               Remove Prompt Reviews logo?
             </button>
-            
-            {/* Download button - only show when preview is available */}
-            {showPreview && (
-              <button
-                onClick={handleDownloadClick}
-                disabled={isDownloading}
-                className="bg-slate-blue text-white px-4 py-2 rounded-md hover:bg-slate-blue/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
-              >
-                {isDownloading ? 'Downloading...' : 'Download PDF'}
-              </button>
-            )}
           </div>
         </div>
 

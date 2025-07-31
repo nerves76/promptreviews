@@ -90,6 +90,7 @@ export async function POST(request: NextRequest) {
       differentiators: businessData.differentiators || null,
       years_in_business: businessData.years_in_business || null,
       industries_served: businessData.industries_served || null,
+      updated_at: new Date().toISOString(), // 🔧 FIX: Set updated_at to current time to prevent validation loop
     };
 
     const { data: business, error } = await supabase

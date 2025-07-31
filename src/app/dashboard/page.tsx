@@ -275,8 +275,21 @@ const Dashboard = React.memo(function Dashboard() {
     if (!isAuthenticated || !user || !account) return;
     // Prevent double load if businessCreated was just handled
     if (businessCreatedHandled.current) return;
-    loadDashboardSpecificData();
-    loadBusinessesData();
+    
+    // For new users who just created a business, prioritize plan selection over data loading
+    const urlParams = new URLSearchParams(window.location.search);
+    const justCreatedBusiness = urlParams.get("businessCreated") === "1";
+    
+    if (justCreatedBusiness) {
+      // For new users, just load businesses data (needed for plan selection)
+      // Skip loading widgets, prompt pages, reviews until after plan selection
+      console.log('🚀 Dashboard: New user detected, prioritizing plan selection');
+      loadBusinessesData();
+    } else {
+      // For existing users, load all data
+      loadDashboardSpecificData();
+      loadBusinessesData();
+    }
   }, [authLoading, accountLoading, isAuthenticated, user?.id, account?.id]);
 
   // Handle post-save modal flag
@@ -503,6 +516,14 @@ const Dashboard = React.memo(function Dashboard() {
     }
   }, [user?.email, account?.plan, businessData?.businessCount, account?.stripe_customer_id]);
 
+  // Load remaining dashboard data when pricing modal is closed and data hasn't been loaded
+  useEffect(() => {
+    if (!showPricingModal && !dashboardData && businessData && !isDashboardLoading) {
+      console.log('📊 Loading remaining dashboard data after plan selection');
+      loadDashboardSpecificData();
+    }
+  }, [showPricingModal, dashboardData, businessData, isDashboardLoading]);
+
   // Loading state
   const isLoading = authLoading || accountLoading || isDashboardLoading;
 
@@ -722,6 +743,12 @@ const Dashboard = React.memo(function Dashboard() {
     if (typeof window !== "undefined") {
       sessionStorage.setItem('pricingModalDismissed', 'true');
       sessionStorage.removeItem('businessCreatedHandled');
+    }
+    
+    // Load remaining dashboard data if it hasn't been loaded yet
+    if (!dashboardData) {
+      console.log('📊 Loading remaining dashboard data after modal close');
+      loadDashboardSpecificData();
     }
   };
 

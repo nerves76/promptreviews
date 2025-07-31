@@ -71,6 +71,7 @@ const StyleModalPage = dynamic(() => import("../../dashboard/style/StyleModalPag
 import BusinessInfoCard from "./components/BusinessInfoCard";
 import ProductModule from "./components/ProductModule";
 import ReviewPlatformCard from "./components/ReviewPlatformCard";
+import KickstartersCarousel from "./components/KickstartersCarousel";
 import SaveMenu from "./components/SaveMenu";
 import FallingAnimation from "./components/FallingAnimation";
 import TopActionButtons from "./components/TopActionButtons";
@@ -262,6 +263,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
   const [photoReviewerLastName, setPhotoReviewerLastName] = useState("");
   const [photoReviewerRole, setPhotoReviewerRole] = useState("");
   const [showSentimentModal, setShowSentimentModal] = useState(false);
+  const [kickstarterQuestions, setKickstarterQuestions] = useState<any[]>([]);
   const [sentiment, setSentiment] = useState<string | null>(null);
   const [feedback, setFeedback] = useState("");
   const [sentimentComplete, setSentimentComplete] = useState(false);
@@ -300,6 +302,57 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
   // Add state for tracking font loading status
   const [fontsLoaded, setFontsLoaded] = useState(false);
   const [styleInitialized, setStyleInitialized] = useState(false);
+
+  // Fetch kickstarters based on prompt page and business settings
+  const fetchKickstarters = async (promptPage: any, businessProfile: any) => {
+    try {
+      // Check if kickstarters are enabled (prompt page setting overrides business setting)
+      const kickstartersEnabled = promptPage?.kickstarters_enabled !== null 
+        ? promptPage.kickstarters_enabled 
+        : businessProfile?.kickstarters_enabled || false;
+
+      if (!kickstartersEnabled) {
+        setKickstarterQuestions([]);
+        return;
+      }
+
+      // Get selected kickstarters (prompt page setting overrides business setting)
+      const selectedKickstarters = promptPage?.selected_kickstarters?.length > 0
+        ? promptPage.selected_kickstarters
+        : businessProfile?.selected_kickstarters || [];
+
+      let kickstartersQuery;
+      
+      if (selectedKickstarters.length === 0) {
+        // If no specific kickstarters selected, show all default ones
+        kickstartersQuery = supabase
+          .from('kickstarters')
+          .select('id, question, category')
+          .eq('is_default', true)
+          .order('category', { ascending: true });
+      } else {
+        // Fetch the specifically selected kickstarter questions
+        kickstartersQuery = supabase
+          .from('kickstarters')
+          .select('id, question, category')
+          .in('id', selectedKickstarters)
+          .order('category', { ascending: true });
+      }
+
+      const { data: kickstarters, error } = await kickstartersQuery;
+
+      if (error) {
+        console.error('Error fetching kickstarters:', error);
+        setKickstarterQuestions([]);
+        return;
+      }
+
+      setKickstarterQuestions(kickstarters || []);
+    } catch (error) {
+      console.error('Error in fetchKickstarters:', error);
+      setKickstarterQuestions([]);
+    }
+  };
 
   useEffect(() => {
     const savedCounts = sessionStorage.getItem('aiRewriteCounts');
@@ -358,6 +411,9 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
         
         // Set prompt page data
         setPromptPage(promptPage);
+        
+        // Fetch kickstarters if enabled
+        await fetchKickstarters(promptPage, businessProfile);
         
         // Set business profile data
         if (businessProfile) {
@@ -1638,6 +1694,8 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
               {/* Business Info Card (always visible) */}
               <BusinessInfoCard
                 businessProfile={businessProfile}
+                reviewType={promptPage?.review_type}
+                promptPage={promptPage}
               />
               {/* Product Module for Product Pages */}
               <ProductModule
@@ -2128,6 +2186,19 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                 </div>
               )}
 
+              {/* Kickstarters Carousel - only when sentiment is complete and we have questions */}
+              {sentimentComplete && !showFeedbackForm && kickstarterQuestions.length > 0 && (
+                <KickstartersCarousel
+                  questions={kickstarterQuestions}
+                  businessName={businessProfile?.name || businessProfile?.business_name || "Business Name"}
+                  businessProfile={businessProfile}
+                  onQuestionClick={(question) => {
+                    // Optional: handle question click (could copy to clipboard or fill textarea)
+                    console.log('Kickstarter question clicked:', question);
+                  }}
+                />
+              )}
+
               {/* Review Platforms Section - only for non-photo review types */}
               {sentimentComplete && !showFeedbackForm && promptPage?.review_type !== "photo" &&
                 mergedReviewPlatforms?.map((platform: any, idx: number) => (
@@ -2613,7 +2684,8 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
       {/* Personalized Note Popup */}
       {promptPage?.show_friendly_note &&
         promptPage?.friendly_note &&
-        showPersonalNote && (
+        showPersonalNote &&
+        canShowPersonalNote && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-fadein">
             <div className="bg-slate-50 border border-slate-200 rounded-lg p-6 max-w-lg mx-4 relative animate-slideup shadow-lg">
               {/* Standardized red X close button */}
@@ -2633,6 +2705,8 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
             </div>
           </div>
         )}
+      
+
 
       {/* Style Modal */}
       {showStyleModal && (

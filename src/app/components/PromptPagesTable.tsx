@@ -124,18 +124,27 @@ export default function PromptPagesTable({
   // Plan lock logic
   const isGrower = account?.plan === "grower";
   const isBuilder = account?.plan === "builder";
+  const isMaven = account?.plan === "maven";
+  
+  // Use proper plan limits from accountLimits.ts
   const maxGrowerPages = 4;
   const maxBuilderPages = 100;
+  const maxMavenPages = 500;
+  
   const accessiblePromptPages = isGrower
     ? sortedPromptPages.slice(0, maxGrowerPages)
     : isBuilder
-    ? sortedPromptPages.slice(0, maxBuilderPages)
-    : sortedPromptPages;
+      ? sortedPromptPages.slice(0, maxBuilderPages)
+      : isMaven
+        ? sortedPromptPages.slice(0, maxMavenPages)
+        : sortedPromptPages; // No limit for other plans or unlimited access
   const lockedPromptPages = isGrower
     ? sortedPromptPages.slice(maxGrowerPages)
     : isBuilder
-    ? sortedPromptPages.slice(maxBuilderPages)
-    : [];
+      ? sortedPromptPages.slice(maxBuilderPages)
+      : isMaven
+        ? sortedPromptPages.slice(maxMavenPages)
+        : [];
 
   return (
     <div className="space-y-4">

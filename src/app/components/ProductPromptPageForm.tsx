@@ -20,10 +20,13 @@ import { TopNavigation, BottomNavigation } from "./sections/StepNavigation";
 
 // Import step 2 components (already existing)
 import ReviewWriteSection from "../dashboard/edit-prompt-page/components/ReviewWriteSection";
-import OfferSection from "../dashboard/edit-prompt-page/components/OfferSection";
-import EmojiSentimentSection from "../dashboard/edit-prompt-page/components/EmojiSentimentSection";
-import DisableAIGenerationSection from "./DisableAIGenerationSection";
-import FallingStarsSection from "@/app/components/FallingStarsSection";
+import { 
+  OfferFeature,
+  EmojiSentimentFeature,
+  FallingStarsFeature,
+  AISettingsFeature,
+  KickstartersFeature
+} from "./prompt-features";
 import { FaCommentDots, FaMobile, FaSpinner, FaSave, FaBoxOpen, FaStickyNote } from "react-icons/fa";
 import SectionHeader from "./SectionHeader";
 import { BusinessProfile } from "@/types/business";
@@ -81,6 +84,8 @@ export default function ProductPromptPageForm({
   const [productPhotoFile, setProductPhotoFile] = useState<File | null>(null);
   const [nfcTextEnabled, setNfcTextEnabled] = useState(initialData?.nfc_text_enabled ?? false);
   const [formError, setFormError] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [aiGeneratingIndex, setAiGeneratingIndex] = useState<number | null>(null);
 
   // Step 2 state (when step === 2 or mode === "edit")
   const [offerEnabled, setOfferEnabled] = useState(initialData?.offer_enabled ?? false);
@@ -112,6 +117,8 @@ export default function ProductPromptPageForm({
   );
   const [showPopupConflictModal, setShowPopupConflictModal] = useState<string | null>(null);
   const [fallingEnabled, setFallingEnabled] = useState(initialData?.falling_enabled ?? true);
+  const [kickstartersEnabled, setKickstartersEnabled] = useState(initialData?.kickstarters_enabled ?? false);
+  const [selectedKickstarters, setSelectedKickstarters] = useState<string[]>(initialData?.selected_kickstarters ?? []);
 
 
   // Helper function to update form data
@@ -224,33 +231,35 @@ export default function ProductPromptPageForm({
       return;
     }
     
-    const platform = platforms[idx];
-    
-    // Create comprehensive product page context
-    const productPageData = {
-      review_type: 'product',
-      product_name: formData.product_name,
-      product_description: formData.product_description,
-      product_subcopy: formData.product_subcopy,
-      features_or_benefits: formData.features_or_benefits || [],
-      category: formData.category,
-      project_type: formData.product_name || 'product',
-      outcomes: formData.product_description,
-      client_name: formData.client_name,
-      location: formData.location,
-      friendly_note: formData.friendly_note,
-      date_completed: formData.date_completed,
-      team_member: formData.team_member,
-      assigned_team_members: formData.assigned_team_members,
-    };
-    
-    const reviewerData = {
-      firstName: formData.first_name || "",
-      lastName: formData.last_name || "",
-      role: formData.role || "",
-    };
+    setAiGeneratingIndex(idx);
     
     try {
+      const platform = platforms[idx];
+      
+      // Create comprehensive product page context
+      const productPageData = {
+        review_type: 'product',
+        product_name: formData.product_name,
+        product_description: formData.product_description,
+        product_subcopy: formData.product_subcopy,
+        features_or_benefits: formData.features_or_benefits || [],
+        category: formData.category,
+        project_type: formData.product_name || 'product',
+        outcomes: formData.product_description,
+        client_name: formData.client_name,
+        location: formData.location,
+        friendly_note: formData.friendly_note,
+        date_completed: formData.date_completed,
+        team_member: formData.team_member,
+        assigned_team_members: formData.assigned_team_members,
+      };
+      
+      const reviewerData = {
+        firstName: formData.first_name || "",
+        lastName: formData.last_name || "",
+        role: formData.role || "",
+      };
+      
       const review = await generateContextualReview(
         businessProfile,
         productPageData,
@@ -275,6 +284,8 @@ export default function ProductPromptPageForm({
       
     } catch (error) {
       console.error("Failed to generate AI review:", error);
+    } finally {
+      setAiGeneratingIndex(null);
     }
   };
 
@@ -529,10 +540,11 @@ export default function ProductPromptPageForm({
               }
               onGenerateReview={handleGenerateAIReview}
               hideReviewTemplateFields={campaignType === 'public'}
+              aiGeneratingIndex={aiGeneratingIndex}
             />
 
         {/* Offer Section */}
-            <OfferSection
+            <OfferFeature
               enabled={offerEnabled}
               onToggle={() => setOfferEnabled((v: boolean) => !v)}
               title={offerTitle}
@@ -592,7 +604,7 @@ export default function ProductPromptPageForm({
             </div>
 
         {/* Emoji Sentiment Section */}
-            <EmojiSentimentSection
+            <EmojiSentimentFeature
               enabled={emojiSentimentEnabled}
               onToggle={() => {
                 if (notePopupEnabled) {
@@ -618,24 +630,40 @@ export default function ProductPromptPageForm({
               onFeedbackPageHeaderChange={setEmojiFeedbackPageHeader}
               slug={formData.slug}
               disabled={!!notePopupEnabled}
+              editMode={true}
             />
 
         {/* AI Generation Settings Section */}
-            <DisableAIGenerationSection
+            <AISettingsFeature
               aiGenerationEnabled={aiReviewEnabled}
-          fixGrammarEnabled={fixGrammarEnabled}
-              onToggleAI={() => setAiReviewEnabled((v: boolean) => !v)}
-          onToggleGrammar={() => setFixGrammarEnabled((v: boolean) => !v)}
-        />
+              fixGrammarEnabled={fixGrammarEnabled}
+              onAIEnabledChange={(enabled) => setAiReviewEnabled(enabled)}
+              onGrammarEnabledChange={(enabled) => setFixGrammarEnabled(enabled)}
+            />
 
         {/* Falling Stars Section */}
-        <FallingStarsSection
+        <FallingStarsFeature
           enabled={fallingEnabled}
           onToggle={handleToggleFalling}
           icon={fallingIcon}
           onIconChange={handleIconChange}
           color={fallingIconColor}
           onColorChange={handleColorChange}
+          editMode={true}
+        />
+
+        {/* Kickstarters Feature */}
+        <KickstartersFeature
+          enabled={kickstartersEnabled || false}
+          selectedKickstarters={selectedKickstarters || []}
+          businessName={businessProfile?.name || businessProfile?.business_name || "Business Name"}
+          onEnabledChange={setKickstartersEnabled}
+          onKickstartersChange={setSelectedKickstarters}
+          initialData={{
+            kickstarters_enabled: kickstartersEnabled,
+            selected_kickstarters: selectedKickstarters,
+          }}
+          editMode={true}
         />
         
 

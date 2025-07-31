@@ -12,8 +12,8 @@ import SimpleBusinessForm from "../components/SimpleBusinessForm";
 import AppLoader from "@/app/components/AppLoader";
 import PageCard from "@/app/components/PageCard";
 import WelcomePopup from "@/app/components/WelcomePopup";
-
 import { ensureAccountExists, getAccountIdForUser } from "@/utils/accountUtils";
+
 
 export default function CreateBusinessClient() {
   console.log('🔍 CreateBusinessClient: Component rendered');
@@ -30,6 +30,7 @@ export default function CreateBusinessClient() {
 
   const [user, setUser] = useState<any>(null);
   const [accountId, setAccountId] = useState<string | null>(null);
+  const [accountData, setAccountData] = useState<any>(null);
   
   // Ref to trigger form submission from top button
   const formRef = useRef<HTMLFormElement>(null);
@@ -37,19 +38,17 @@ export default function CreateBusinessClient() {
   // Memoize router functions to prevent infinite loops
   const redirectToDashboard = useCallback(() => {
     console.log("🔄 CreateBusinessClient: redirectToDashboard called");
-    router.push("/dashboard");
-    console.log("🔄 CreateBusinessClient: router.push called");
+    router.replace("/dashboard?businessCreated=1");
+    console.log("🔄 CreateBusinessClient: router.replace called with businessCreated=1");
   }, [router]);
 
   // Handler for closing the welcome popup
   const handleWelcomeClose = () => {
+    console.log('🎉 CreateBusinessClient: Welcome popup closed');
     setShowWelcomePopup(false);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('hasSeenCreateBusinessWelcome', 'true');
-    }
+    localStorage.setItem('hasSeenCreateBusinessWelcome', 'true');
   };
 
-  // 🔧 SIMPLIFIED: Since DashboardLayout already handles authentication, just get user and do business logic
   useEffect(() => {
     const setupBusinessCreation = async () => {
       try {
@@ -79,6 +78,21 @@ export default function CreateBusinessClient() {
 
         console.log('✅ CreateBusinessClient: Account ID:', accountId);
         setAccountId(accountId);
+
+        // Fetch account data including first_name and last_name
+        const { data: account, error: accountError } = await supabase
+          .from('accounts')
+          .select('id, first_name, last_name, email')
+          .eq('id', accountId)
+          .single();
+
+        if (accountError) {
+          console.error('❌ CreateBusinessClient: Error fetching account data:', accountError);
+        } else {
+          console.log('✅ CreateBusinessClient: Account data fetched:', account);
+          setAccountData(account);
+        }
+
         setLoading(false);
 
         // Check if user has seen the welcome popup before
@@ -126,6 +140,39 @@ export default function CreateBusinessClient() {
     }
   }, [isSubmitting]);
 
+  // Helper function to get a proper user name for the welcome popup
+  const getUserDisplayName = () => {
+    // Priority 1: Use account first_name if available
+    if (accountData?.first_name?.trim()) {
+      return accountData.first_name.trim();
+    }
+    
+    // Priority 2: Use user metadata first_name if available
+    if (user?.user_metadata?.first_name?.trim()) {
+      return user.user_metadata.first_name.trim();
+    }
+    
+    // Priority 3: Use user metadata full_name (first part) if available
+    if (user?.user_metadata?.full_name?.trim()) {
+      return user.user_metadata.full_name.trim().split(' ')[0];
+    }
+    
+    // Priority 4: Extract a reasonable name from email
+    const email = user?.email || accountData?.email || '';
+    if (email) {
+      const emailPart = email.split('@')[0];
+      // If email part contains numbers at the end (like nerves76), remove them for a cleaner name
+      const cleanName = emailPart.replace(/\d+$/, '');
+      // Capitalize first letter
+      if (cleanName.length > 0) {
+        return cleanName.charAt(0).toUpperCase() + cleanName.slice(1).toLowerCase();
+      }
+    }
+    
+    // Final fallback
+    return 'there';
+  };
+
   console.log('🔍 CreateBusinessClient: Render state - loading:', loading);
 
   if (loading) {
@@ -134,20 +181,17 @@ export default function CreateBusinessClient() {
 
   if (error) {
     return (
-      <div className="min-h-screen flex justify-center items-start px-4 sm:px-0">
-        <PageCard 
-          icon={<FaStore className="w-9 h-9 text-slate-blue" />}
-        >
-          <div className="text-center py-8">
-            <p className="text-red-600 mb-4">{error}</p>
-            <button 
-              onClick={() => window.location.reload()} 
-              className="bg-slate-blue text-white px-6 py-2 rounded-lg hover:bg-slate-blue/90"
-            >
-              Try Again
-            </button>
-          </div>
-        </PageCard>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-red-600 mb-4">Setup Error</h1>
+          <p className="text-gray-600 mb-6">{error}</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="bg-slate-blue text-white px-6 py-2 rounded-lg hover:bg-slate-blue/90"
+          >
+            Try Again
+          </button>
+        </div>
       </div>
     );
   }
@@ -155,16 +199,29 @@ export default function CreateBusinessClient() {
   return (
     <>
       <div className="min-h-screen flex justify-center items-start px-4 sm:px-0">
-        <PageCard 
-          icon={<FaStore className="w-9 h-9 text-slate-blue" />}
-          topRightAction={
+        <PageCard
+          title=""
+          headerAction={
             <button
               onClick={handleTopSaveClick}
               disabled={isSubmitting}
-              className="bg-slate-blue text-white px-6 py-2 rounded-lg hover:bg-slate-blue/90 transition-colors flex items-center gap-2 disabled:opacity-50"
+              className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                isSubmitting
+                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                  : "bg-slate-blue text-white hover:bg-slate-blue/90"
+              }`}
             >
-              <FaPlus className="w-4 h-4" />
-              {isSubmitting ? "Creating..." : "Create Business"}
+              {isSubmitting ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Creating...
+                </>
+              ) : (
+                <>
+                  <FaPlus className="w-4 h-4" />
+                  Create Business
+                </>
+              )}
             </button>
           }
         >
@@ -199,11 +256,11 @@ export default function CreateBusinessClient() {
       </div>
 
       {/* Welcome Popup with Carl Sagan quote */}
-      {console.log('🎉 CreateBusinessClient: Rendering popup - showWelcomePopup:', showWelcomePopup, 'user:', user?.email)}
+      {console.log('🎉 CreateBusinessClient: Rendering popup - showWelcomePopup:', showWelcomePopup, 'userName will be:', getUserDisplayName())}
       <WelcomePopup
         isOpen={showWelcomePopup}
         onClose={handleWelcomeClose}
-        userName={user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'there'}
+        userName={getUserDisplayName()}
         imageUrl="https://ltneloufqjktdplodvao.supabase.co/storage/v1/object/public/logos/prompt-assets/prompty-telescope-capturing-reviews.png"
         imageAlt="Prompty with telescope capturing reviews"
         buttonText="Let's wrangle some stars!"

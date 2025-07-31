@@ -19,6 +19,7 @@ interface BusinessProfile {
   card_bg?: string;
   card_text?: string;
   card_transparency?: number;
+  address_street?: string;
   address_city?: string;
   address_state?: string;
   card_inner_shadow?: boolean;
@@ -28,9 +29,34 @@ interface BusinessProfile {
 
 interface BusinessInfoCardProps {
   businessProfile: BusinessProfile;
+  reviewType?: string;
+  promptPage?: any; // Add prompt page data for employee-specific logic
 }
 
-export default function BusinessInfoCard({ businessProfile }: BusinessInfoCardProps) {
+export default function BusinessInfoCard({ businessProfile, reviewType, promptPage }: BusinessInfoCardProps) {
+  // For service pages, only show City, State. For location pages, show full address
+  const shouldShowFullAddress = reviewType === 'location' || reviewType === 'universal';
+  
+  const getAddressDisplay = () => {
+    if (shouldShowFullAddress) {
+      // Show full address for location pages
+      return [
+        businessProfile.address_street,
+        businessProfile.address_city,
+        businessProfile.address_state,
+      ]
+        .filter(Boolean)
+        .join(", ");
+    } else {
+      // Show only City, State for service pages
+      return [
+        businessProfile.address_city,
+        businessProfile.address_state,
+      ]
+        .filter(Boolean)
+        .join(", ");
+    }
+  };
   return (
     <div 
       className={`rounded-2xl shadow p-6 mb-8 flex flex-col items-center max-w-xl mx-auto animate-slideup relative mt-32 ${getFontClass(businessProfile?.primary_font || "")}`} 
@@ -82,25 +108,29 @@ export default function BusinessInfoCard({ businessProfile }: BusinessInfoCardPr
         </div>
       </div>
       
-      {/* Business Name - Added more space above */}
+      {/* Employee Name or Business Name */}
       <h1
         className={`text-3xl font-bold text-center mb-1 mt-24 ${getFontClass(businessProfile?.primary_font || "")}`}
         style={{ color: businessProfile?.primary_color || "#4F46E5" }}
       >
-        {businessProfile?.business_name || "Business Name"}
+        {reviewType === 'employee' && promptPage?.emp_first_name && promptPage?.emp_last_name ? (
+          `${promptPage.emp_first_name} ${promptPage.emp_last_name}`
+        ) : (
+          businessProfile?.business_name || "Business Name"
+        )}
       </h1>
       
-      {/* Address under business name */}
-      {(businessProfile?.address_street || businessProfile?.address_city || businessProfile?.address_state) && (
+      {/* Employee Role or Address under name */}
+      {reviewType === 'employee' && promptPage?.emp_position && businessProfile?.business_name ? (
         <div className={`text-center text-base text-gray-600 font-medium ${getFontClass(businessProfile?.secondary_font || "")}`}>
-          {[
-            businessProfile.address_street,
-            businessProfile.address_city,
-            businessProfile.address_state,
-          ]
-            .filter(Boolean)
-            .join(", ")}
+          {promptPage.emp_position} at {businessProfile.business_name}
         </div>
+      ) : (
+        (businessProfile?.address_street || businessProfile?.address_city || businessProfile?.address_state) && (
+          <div className={`text-center text-base text-gray-600 font-medium ${getFontClass(businessProfile?.secondary_font || "")}`}>
+            {getAddressDisplay()}
+          </div>
+        )
       )}
     </div>
   );

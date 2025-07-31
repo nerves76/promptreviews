@@ -94,13 +94,16 @@ export async function checkAccountLimits(
   const now = new Date();
   const inTrial = account.trial_end && new Date(account.trial_end) > now;
   const plan = account.plan || 'grower';
-  const limits = PLAN_LIMITS[plan as keyof typeof PLAN_LIMITS];
   
-  if (!limits) {
-    return { allowed: false, reason: "Invalid plan" };
+  // Use actual account limits from database instead of hardcoded limits
+  let limit: number;
+  if (type === "prompt_page") {
+    limit = account.max_prompt_pages || PLAN_LIMITS[plan as keyof typeof PLAN_LIMITS]?.prompt_page || 3;
+  } else if (type === "contact") {
+    limit = account.max_contacts || PLAN_LIMITS[plan as keyof typeof PLAN_LIMITS]?.contact || 0;
+  } else {
+    return { allowed: false, reason: "Invalid type" };
   }
-
-  const limit = limits[type];
   
   // Check if trial ended for grower accounts without payment
   if (plan === "grower" && !inTrial && !account.stripe_customer_id) {

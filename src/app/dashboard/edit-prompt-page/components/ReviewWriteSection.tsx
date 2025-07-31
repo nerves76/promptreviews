@@ -29,6 +29,7 @@ interface ReviewWriteSectionProps {
   onGenerateReview: (idx: number) => void;
   errors?: string[];
   hideReviewTemplateFields?: boolean;
+  aiGeneratingIndex?: number | null;
 }
 
 const platformOptions = [
@@ -81,8 +82,8 @@ const ReviewWriteSection: React.FC<ReviewWriteSectionProps> = ({
   onGenerateReview,
   errors = [],
   hideReviewTemplateFields = false,
+  aiGeneratingIndex = null,
 }) => {
-  console.log('🎯 ReviewWriteSection: Received value prop:', value);
   const handlePlatformChange = (
     idx: number,
     field: keyof ReviewWritePlatform,
@@ -315,12 +316,22 @@ const ReviewWriteSection: React.FC<ReviewWriteSectionProps> = ({
                   </div>
                   <button
                     type="button"
-                    className="inline-flex items-center px-4 py-2 border rounded font-semibold shadow text-slate-blue border-slate-blue bg-white hover:bg-slate-blue/10 transition text-sm whitespace-nowrap mt-1 w-auto min-w-[180px] self-start"
+                    className="inline-flex items-center px-4 py-2 border rounded font-semibold shadow text-slate-blue border-slate-blue bg-white hover:bg-slate-blue/10 transition text-sm whitespace-nowrap mt-1 w-auto min-w-[180px] self-start disabled:opacity-50 disabled:cursor-not-allowed"
                     onClick={() => onGenerateReview(idx)}
                     title="Generate with AI"
+                    disabled={aiGeneratingIndex === idx}
                   >
-                    <FaMagic className="w-4 h-4 mr-2" />
-                    Generate with AI
+                    {aiGeneratingIndex === idx ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-slate-blue mr-2"></div>
+                        Generating...
+                      </>
+                    ) : (
+                      <>
+                        <FaMagic className="w-4 h-4 mr-2" />
+                        Generate with AI
+                      </>
+                    )}
                   </button>
                 </div>
               )}

@@ -1,14 +1,17 @@
 import React, { useState, useEffect, forwardRef, useCallback } from "react";
 
-import OfferToggle from "../components/OfferToggle";
-import EmojiSentimentSection from "../components/EmojiSentimentSection";
 import ReviewPlatformsSection, {
   ReviewPlatformLink,
 } from "../components/ReviewPlatformsSection";
 import { Input } from "@/app/components/ui/input";
-import OfferSection from "../components/OfferSection";
-import DisableAIGenerationSection from "@/app/components/DisableAIGenerationSection";
-import FallingStarsSection from "@/app/components/FallingStarsSection";
+import { 
+  OfferFeature,
+  EmojiSentimentFeature,
+  FallingStarsFeature,
+  AISettingsFeature,
+  PersonalizedNoteFeature,
+  KickstartersFeature
+} from "@/app/components/prompt-features";
 import { useFallingStars } from "@/hooks/useFallingStars";
 import SectionHeader from "@/app/components/SectionHeader";
 import { FaCommentDots } from "react-icons/fa";
@@ -32,6 +35,8 @@ export interface UniversalPromptFormState {
   fixGrammarEnabled: boolean;
   notePopupEnabled: boolean;
   friendlyNote: string;
+  kickstartersEnabled: boolean;
+  selectedKickstarters: string[];
 }
 
 interface UniversalPromptPageFormProps {
@@ -86,7 +91,7 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
       ReviewPlatformLink[]
     >(initialData?.reviewPlatforms ?? []);
     const [fallingEnabled, setFallingEnabled] = useState(
-      initialData?.fallingEnabled ?? false,
+      initialData?.fallingEnabled ?? true,
     );
     
     // Use shared falling stars hook
@@ -106,6 +111,15 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
     const [friendlyNote, setFriendlyNote] = useState(
       initialData?.friendlyNote ?? "",
     );
+    const [kickstartersEnabled, setKickstartersEnabled] = useState(
+      initialData?.kickstartersEnabled ?? false,
+    );
+    const [selectedKickstarters, setSelectedKickstarters] = useState<string[]>(
+      initialData?.selectedKickstarters ?? [],
+    );
+
+    // AI Generation loading state
+    const [aiGeneratingIndex, setAiGeneratingIndex] = useState<number | null>(null);
 
     // Add state for warning modal
     const [showPopupConflictModal, setShowPopupConflictModal] = useState<
@@ -127,6 +141,21 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
         setShowPopupConflictModal("emoji");
       } else {
         setEmojiSentimentEnabled(prev => !prev);
+      }
+    };
+
+    // Handle AI review generation with loading state
+    const handleGenerateAIReview = async (idx: number) => {
+      setAiGeneratingIndex(idx);
+      try {
+        // TODO: Implement AI review generation logic
+        console.log('Generating AI review for index:', idx);
+        // Simulate AI generation delay
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      } catch (error) {
+        console.error("Failed to generate AI review:", error);
+      } finally {
+        setAiGeneratingIndex(null);
       }
     };
 
@@ -159,6 +188,8 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
             fixGrammarEnabled,
             notePopupEnabled: notePopupEnabled,
             friendlyNote,
+            kickstartersEnabled,
+            selectedKickstarters,
           });
         },
         getCurrentState: () => ({
@@ -180,6 +211,8 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
             fixGrammarEnabled,
             notePopupEnabled: notePopupEnabled,
             friendlyNote,
+            kickstartersEnabled,
+            selectedKickstarters,
         }),
       }),
       [
@@ -201,6 +234,8 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
         fixGrammarEnabled,
         notePopupEnabled,
         friendlyNote,
+        kickstartersEnabled,
+        selectedKickstarters,
         onSave,
       ],
     );
@@ -239,15 +274,15 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
             fallingIcon,
             fallingIconColor,
             aiButtonEnabled,
+            fixGrammarEnabled,
             notePopupEnabled,
             friendlyNote,
+            kickstartersEnabled,
+            selectedKickstarters,
           };
           
           console.log('🔍 Calling onSave with data:', formData);
-          onSave({
-            ...formData,
-            fixGrammarEnabled: false
-          });
+          onSave(formData);
         }}
       >
         {/* Review Platforms Section (shared design, no review templates) */}
@@ -263,92 +298,84 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
             }
           />
         </div>
-        {/* Special Offer Section (shared design) */}
-        <OfferSection
-          enabled={offerEnabled}
-          onToggle={() => setOfferEnabled((v) => !v)}
-          title={offerTitle}
-          onTitleChange={setOfferTitle}
-          description={offerBody}
-          onDescriptionChange={setOfferBody}
-          url={offerUrl}
-          onUrlChange={setOfferUrl}
-        />
+        {/* Shared Feature Components */}
+        <div className="space-y-8">
+          {/* Offer Feature */}
+          <OfferFeature
+            enabled={offerEnabled}
+            onToggle={() => setOfferEnabled((v) => !v)}
+            title={offerTitle}
+            onTitleChange={setOfferTitle}
+            description={offerBody}
+            onDescriptionChange={setOfferBody}
+            url={offerUrl}
+            onUrlChange={setOfferUrl}
+          />
 
-        {/* Personalized Note Pop-up Section */}
-        <div className="rounded-lg p-4 bg-blue-50 border border-blue-200 flex flex-col gap-2 shadow relative mb-8">
-          <div className="flex items-center justify-between mb-2 px-2 py-2">
-            <div className="flex items-center gap-3">
-              <FaCommentDots className="w-7 h-7 text-slate-blue" />
-              <span className="text-2xl font-bold text-[#1A237E]">
-                Personalized note pop-up
-              </span>
-            </div>
-            <button
-              type="button"
-              onClick={handleNotePopupClick}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
-                notePopupEnabled 
-                  ? "bg-slate-blue" 
-                  : emojiSentimentEnabled 
-                    ? "bg-gray-300 cursor-not-allowed opacity-50" 
-                    : "bg-gray-200"
-              }`}
-              aria-pressed={!!notePopupEnabled}
-            >
-              <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${notePopupEnabled ? "translate-x-5" : "translate-x-1"}`}
-              />
-            </button>
-          </div>
-          <div className="text-sm text-gray-700 mb-3 max-w-[85ch] px-2">
-            This note appears as a pop-up at the top of the review page. Use
-            it to set the context and tone for your customer.
-          </div>
-          {notePopupEnabled && (
-            <textarea
-              id="friendly_note"
-              value={friendlyNote}
-              onChange={(e) => setFriendlyNote(e.target.value)}
-              rows={4}
-              className="block w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring shadow-inner"
-              placeholder="Jonas, it was so good to catch up yesterday. I'm excited about the project. Would you mind dropping us a review? I have a review template you can use or you can write your own. Thanks!"
-            />
-          )}
+          {/* Personalized Note Feature */}
+          <PersonalizedNoteFeature
+            enabled={notePopupEnabled}
+            onToggle={handleNotePopupClick}
+            note={friendlyNote}
+            onNoteChange={setFriendlyNote}
+            disabled={emojiSentimentEnabled}
+            editMode={true}
+          />
+
+          {/* Emoji Sentiment Feature */}
+          <EmojiSentimentFeature
+            enabled={emojiSentimentEnabled}
+            onToggle={handleEmojiSentimentClick}
+            question={emojiSentimentQuestion}
+            onQuestionChange={setEmojiSentimentQuestion}
+            feedbackMessage={emojiFeedbackMessage}
+            onFeedbackMessageChange={setEmojiFeedbackMessage}
+            feedbackPageHeader={emojiFeedbackPageHeader}
+            onFeedbackPageHeaderChange={setEmojiFeedbackPageHeader}
+            thankYouMessage={emojiThankYouMessage}
+            onThankYouMessageChange={setEmojiThankYouMessage}
+            disabled={!!notePopupEnabled}
+            slug={slug}
+            editMode={true}
+          />
+
+          {/* Falling Stars Feature */}
+          <FallingStarsFeature
+            enabled={fallingEnabled}
+            onToggle={() => setFallingEnabled((v) => !v)}
+            icon={fallingIcon}
+            onIconChange={handleIconChange}
+            color={fallingIconColor}
+            onColorChange={handleColorChange}
+            editMode={true}
+          />
+
+          {/* AI Settings Feature */}
+          <AISettingsFeature
+            aiGenerationEnabled={aiButtonEnabled}
+            fixGrammarEnabled={fixGrammarEnabled}
+            onAIEnabledChange={setAiButtonEnabled}
+            onGrammarEnabledChange={setFixGrammarEnabled}
+            initialData={{
+              ai_button_enabled: aiButtonEnabled,
+              fix_grammar_enabled: fixGrammarEnabled,
+            }}
+          />
+
+          {/* Kickstarters Feature */}
+          <KickstartersFeature
+            enabled={kickstartersEnabled}
+            selectedKickstarters={selectedKickstarters}
+            businessName="Your Business"
+            onEnabledChange={setKickstartersEnabled}
+            onKickstartersChange={setSelectedKickstarters}
+            initialData={{
+              kickstarters_enabled: kickstartersEnabled,
+              selected_kickstarters: selectedKickstarters,
+            }}
+            editMode={true}
+          />
         </div>
-        {/* Emoji Sentiment Section (shared design) */}
-        <EmojiSentimentSection
-          enabled={emojiSentimentEnabled}
-          onToggle={handleEmojiSentimentClick}
-          question={emojiSentimentQuestion}
-          onQuestionChange={setEmojiSentimentQuestion}
-          feedbackMessage={emojiFeedbackMessage}
-          onFeedbackMessageChange={setEmojiFeedbackMessage}
-          thankYouMessage={emojiThankYouMessage}
-          onThankYouMessageChange={setEmojiThankYouMessage}
-          feedbackPopupHeader={emojiFeedbackPopupHeader}
-          onFeedbackPopupHeaderChange={setEmojiFeedbackPopupHeader}
-          feedbackPageHeader={emojiFeedbackPageHeader}
-          onFeedbackPageHeaderChange={setEmojiFeedbackPageHeader}
-          slug={slug}
-          disabled={!!notePopupEnabled}
-        />
-        {/* AI Review Generation Toggle */}
-                    <DisableAIGenerationSection
-              aiGenerationEnabled={aiButtonEnabled}
-              fixGrammarEnabled={fixGrammarEnabled}
-              onToggleAI={() => setAiButtonEnabled((v) => !v)}
-              onToggleGrammar={() => setFixGrammarEnabled((v) => !v)}
-            />
-        {/* Falling Stars Section (using new component) */}
-        <FallingStarsSection
-          enabled={fallingEnabled}
-          onToggle={() => setFallingEnabled((v) => !v)}
-          icon={fallingIcon}
-          onIconChange={handleIconChange}
-          color={fallingIconColor}
-          onColorChange={handleColorChange}
-        />
         {/* No Save button here; Save is handled by parent */}
       </form>
       
