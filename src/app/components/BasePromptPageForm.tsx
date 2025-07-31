@@ -187,6 +187,11 @@ export default function BasePromptPageForm({
 
   const [isSaving, setIsSaving] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
+  
+  // Local state for kickstarters background design to provide immediate UI feedback
+  const [localBackgroundDesign, setLocalBackgroundDesign] = useState<boolean>(
+    businessProfile?.kickstarters_background_design ?? false
+  );
 
   // Update form data when initialData changes
   useEffect(() => {
@@ -194,6 +199,11 @@ export default function BasePromptPageForm({
       setFormData(prev => ({ ...prev, ...initialData }));
     }
   }, [initialData]);
+
+  // Update local background design when businessProfile changes
+  useEffect(() => {
+    setLocalBackgroundDesign(businessProfile?.kickstarters_background_design ?? false);
+  }, [businessProfile?.kickstarters_background_design]);
 
   // Generic update function
   const updateFormData = (field: keyof BaseFormState, value: any) => {
@@ -290,6 +300,36 @@ export default function BasePromptPageForm({
   const handleKickstartersChange = (enabled: boolean, selectedKickstarters: string[]) => {
     updateFormData('kickstarters_enabled', enabled);
     updateFormData('selected_kickstarters', selectedKickstarters);
+  };
+
+  // Handle kickstarters background design changes (updates global business setting)
+  const handleKickstartersBackgroundDesignChange = async (backgroundDesign: boolean) => {
+    // Update local state immediately for UI feedback
+    setLocalBackgroundDesign(backgroundDesign);
+    
+    try {
+      // Update the global business setting
+      const { error } = await supabase
+        .from('businesses')
+        .update({ kickstarters_background_design: backgroundDesign })
+        .eq('account_id', businessProfile?.account_id);
+
+      if (error) {
+        console.error('Error updating kickstarters background design:', error);
+        // Revert local state if database update failed
+        setLocalBackgroundDesign(businessProfile?.kickstarters_background_design ?? false);
+      } else {
+        console.log('Kickstarters background design updated globally:', backgroundDesign);
+        // Update the business profile object for immediate sync with live page
+        if (businessProfile) {
+          businessProfile.kickstarters_background_design = backgroundDesign;
+        }
+      }
+    } catch (error) {
+      console.error('Error updating kickstarters background design:', error);
+      // Revert local state if database update failed
+      setLocalBackgroundDesign(businessProfile?.kickstarters_background_design ?? false);
+    }
   };
 
   return (
@@ -452,15 +492,28 @@ export default function BasePromptPageForm({
         <KickstartersFeature
           enabled={formData.kickstarters_enabled}
           selectedKickstarters={formData.selected_kickstarters}
+          backgroundDesign={localBackgroundDesign}
           businessName={businessProfile?.name || businessProfile?.business_name || "Business Name"}
           onEnabledChange={(enabled) => handleKickstartersChange(enabled, formData.selected_kickstarters)}
           onKickstartersChange={(kickstarters) => handleKickstartersChange(formData.kickstarters_enabled, kickstarters)}
+          onBackgroundDesignChange={handleKickstartersBackgroundDesignChange}
           initialData={{
             kickstarters_enabled: initialData?.kickstarters_enabled,
             selected_kickstarters: initialData?.selected_kickstarters,
+            kickstarters_background_design: localBackgroundDesign,
           }}
           disabled={disabled}
-          editMode={true}
+
+          businessProfile={{
+            primary_color: businessProfile?.primary_color,
+            card_bg: businessProfile?.card_bg,
+            card_text: businessProfile?.card_text,
+            card_transparency: businessProfile?.card_transparency,
+            background_type: businessProfile?.background_type,
+            gradient_start: businessProfile?.gradient_start,
+            gradient_end: businessProfile?.gradient_end,
+            background_color: businessProfile?.background_color,
+          }}
         />
       )}
 

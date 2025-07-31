@@ -24,7 +24,9 @@ export interface PersonalizedNoteFeatureProps {
   /** Whether emoji sentiment is enabled (conflicts with personalized note) */
   emojiSentimentEnabled?: boolean;
   /** Callback when the enabled state changes */
-  onEnabledChange: (enabled: boolean) => void;
+  onEnabledChange?: (enabled: boolean) => void;
+  /** Alternative callback for toggle (same as onEnabledChange) */
+  onToggle?: (enabled: boolean) => void;
   /** Callback when the note content changes */
   onNoteChange: (note: string) => void;
   /** Initial values for the component */
@@ -43,6 +45,7 @@ export default function PersonalizedNoteFeature({
   note,
   emojiSentimentEnabled = false,
   onEnabledChange,
+  onToggle,
   onNoteChange,
   initialData,
   disabled = false,
@@ -82,7 +85,8 @@ export default function PersonalizedNoteFeature({
     
     const newEnabled = !isEnabled;
     setIsEnabled(newEnabled);
-    onEnabledChange(newEnabled);
+    onEnabledChange?.(newEnabled);
+    onToggle?.(newEnabled);
   };
 
   const handleNoteChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {

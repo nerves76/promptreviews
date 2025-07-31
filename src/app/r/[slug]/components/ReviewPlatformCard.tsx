@@ -77,7 +77,7 @@ export default function ReviewPlatformCard({
 
   return (
     <div
-      className="bg-white rounded-xl shadow-md p-6 border border-gray-200 relative mb-8"
+      className="bg-white rounded-xl shadow p-6 border border-gray-200 relative mb-8"
       style={{
         background: applyCardTransparency(businessProfile.card_bg || "#F9FAFB", businessProfile.card_transparency ?? 1.0),
         color: businessProfile.card_text || "#1A1A1A",

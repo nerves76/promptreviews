@@ -27,11 +27,16 @@ interface KickstartersCarouselProps {
   questions: KickstarterQuestion[];
   /** Business name for dynamic replacement */
   businessName: string;
+  /** Background design option: true for background, false for no background */
+  backgroundDesign?: boolean;
   /** Business profile for styling */
   businessProfile?: {
     primary_color?: string;
     secondary_color?: string;
     primary_font?: string;
+    card_bg?: string;
+    card_transparency?: number;
+    kickstarters_background_design?: boolean;
   };
   /** Optional callback when a question is clicked */
   onQuestionClick?: (question: KickstarterQuestion) => void;
@@ -40,9 +45,12 @@ interface KickstartersCarouselProps {
 export default function KickstartersCarousel({
   questions,
   businessName,
+  backgroundDesign = false,
   businessProfile,
   onQuestionClick
 }: KickstartersCarouselProps) {
+  // Use global business setting for background design, fallback to prop for backward compatibility
+  const actualBackgroundDesign = businessProfile?.kickstarters_background_design ?? backgroundDesign;
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showViewAll, setShowViewAll] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
@@ -99,6 +107,20 @@ export default function KickstartersCarousel({
     }
   };
 
+  // Helper function to apply card background transparency
+  const applyCardTransparency = (color: string, transparency: number) => {
+    if (!color) return '#F9FAFB';
+    if (transparency === 1) return color;
+    
+    // Convert hex to rgba
+    const hex = color.replace('#', '');
+    const r = parseInt(hex.substr(0, 2), 16);
+    const g = parseInt(hex.substr(2, 2), 16);
+    const b = parseInt(hex.substr(4, 2), 16);
+    
+    return `rgba(${r}, ${g}, ${b}, ${transparency})`;
+  };
+
   const getCategoryBg = (category: string) => {
     switch (category) {
       case 'PROCESS': return 'bg-green-50';
@@ -118,12 +140,24 @@ export default function KickstartersCarousel({
   return (
     <>
       {/* Main Carousel with Side Arrows */}
-      <div className="mb-6 relative">
+      <div className="mb-8 relative">
         {/* Left Arrow */}
         {questions.length > 1 && (
           <button
             onClick={handlePrevious}
-            className="absolute left-0 top-1/2 -translate-y-1/2 z-10 p-2 text-gray-50 hover:text-gray-300 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-300 rounded"
+            className={`absolute left-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full transition-all focus:outline-none focus:ring-2 focus:ring-blue-300 flex items-center justify-center ${
+              actualBackgroundDesign 
+                ? 'bg-white shadow-sm hover:shadow-md' 
+                : 'border-2 hover:opacity-80'
+            }`}
+            style={{ 
+              color: actualBackgroundDesign 
+                ? (businessProfile?.primary_color || '#2563EB')
+                : applyCardTransparency(businessProfile?.card_bg || "#F9FAFB", businessProfile?.card_transparency ?? 1.0),
+              borderColor: !actualBackgroundDesign 
+                ? applyCardTransparency(businessProfile?.card_bg || "#F9FAFB", businessProfile?.card_transparency ?? 1.0)
+                : undefined
+            }}
             aria-label="Previous question"
           >
             <FaChevronLeft className="w-4 h-4" />
@@ -134,7 +168,19 @@ export default function KickstartersCarousel({
         {questions.length > 1 && (
           <button
             onClick={handleNext}
-            className="absolute right-0 top-1/2 -translate-y-1/2 z-10 p-2 text-gray-50 hover:text-gray-300 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-300 rounded"
+            className={`absolute right-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full transition-all focus:outline-none focus:ring-2 focus:ring-blue-300 flex items-center justify-center ${
+              actualBackgroundDesign 
+                ? 'bg-white shadow-sm hover:shadow-md' 
+                : 'border-2 hover:opacity-80'
+            }`}
+            style={{ 
+              color: actualBackgroundDesign 
+                ? (businessProfile?.primary_color || '#2563EB')
+                : applyCardTransparency(businessProfile?.card_bg || "#F9FAFB", businessProfile?.card_transparency ?? 1.0),
+              borderColor: !actualBackgroundDesign 
+                ? applyCardTransparency(businessProfile?.card_bg || "#F9FAFB", businessProfile?.card_transparency ?? 1.0)
+                : undefined
+            }}
             aria-label="Next question"
           >
             <FaChevronRight className="w-4 h-4" />
@@ -143,35 +189,64 @@ export default function KickstartersCarousel({
 
         {/* Carousel Card - Compact vertical design */}
         <div 
-          className="bg-gray-50 border border-gray-200 rounded-lg p-2 mx-16 relative"
-          style={{ fontFamily: businessProfile?.primary_font || 'Inter' }}
+          className={`rounded-lg p-2 mx-16 relative ${
+            actualBackgroundDesign 
+              ? 'border border-gray-200 shadow' 
+              : ''
+          }`}
+          style={{ 
+            fontFamily: businessProfile?.primary_font || 'Inter',
+            background: actualBackgroundDesign 
+              ? applyCardTransparency(businessProfile?.card_bg || "#F9FAFB", businessProfile?.card_transparency ?? 1.0)
+              : 'transparent'
+          }}
         >
-          {/* Header with Inspiration centered and View All on right */}
-          <div className="relative flex items-center justify-center mb-1">
+          {/* Header with Inspiration centered */}
+          <div className="flex items-center justify-center mb-1">
             <span 
               className="text-xs tracking-wide font-medium"
-              style={{ color: businessProfile?.primary_color || '#2563EB' }}
+              style={{ 
+                color: actualBackgroundDesign 
+                  ? (businessProfile?.primary_color || '#2563EB')
+                  : applyCardTransparency(businessProfile?.card_bg || "#F9FAFB", businessProfile?.card_transparency ?? 1.0)
+              }}
             >
               Inspiration
             </span>
-            <button
-              onClick={() => setShowViewAll(true)}
-              className="absolute text-[10px] font-medium hover:underline transition-colors focus:outline-none focus:ring-2 focus:ring-blue-300 rounded px-1"
-              style={{ 
-                color: businessProfile?.primary_color || '#2563EB',
-                right: '10px'
-              }}
-            >
-              View All
-            </button>
           </div>
 
           {/* Question - Compact, no quotes */}
           <div 
-            className="text-sm text-gray-700 cursor-pointer hover:text-gray-900 transition-colors leading-tight text-center mb-2"
+            className={`cursor-pointer transition-colors text-center mb-2 ${
+              actualBackgroundDesign 
+                ? 'text-gray-700 hover:text-gray-900' 
+                : 'hover:opacity-80'
+            }`}
+            style={{
+              fontSize: '1rem',
+              lineHeight: '1.5rem',
+              color: actualBackgroundDesign 
+                ? undefined 
+                : applyCardTransparency(businessProfile?.card_bg || "#F9FAFB", businessProfile?.card_transparency ?? 1.0)
+            }}
             onClick={() => handleQuestionClick(currentQuestion)}
           >
             {replaceBusinessName(currentQuestion.question)}
+          </div>
+
+          {/* View All centered below */}
+          <div className="flex items-center justify-center">
+            <button
+              onClick={() => setShowViewAll(true)}
+              className="text-[10px] font-medium hover:underline transition-colors focus:outline-none focus:ring-2 focus:ring-blue-300 rounded px-1"
+              style={{ 
+                color: actualBackgroundDesign 
+                  ? (businessProfile?.primary_color || '#2563EB')
+                  : applyCardTransparency(businessProfile?.card_bg || "#F9FAFB", businessProfile?.card_transparency ?? 1.0)
+              }}
+            >
+              View All
+            </button>
           </div>
         </div>
       </div>

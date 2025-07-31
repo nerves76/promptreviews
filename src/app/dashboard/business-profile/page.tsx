@@ -136,6 +136,7 @@ export default function BusinessProfilePage() {
     ai_donts: "",
     kickstarters_enabled: false,
     selected_kickstarters: [],
+    kickstarters_background_design: false,
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -250,6 +251,7 @@ export default function BusinessProfilePage() {
             ai_donts: "",
             kickstarters_enabled: false,
             selected_kickstarters: [],
+            kickstarters_background_design: false,
           });
           setServices([""]);
           setPlatforms([{ name: "", url: "", wordCount: 200 }]);
@@ -273,6 +275,7 @@ export default function BusinessProfilePage() {
             ai_donts: businessData.ai_donts || "",
             kickstarters_enabled: businessData.kickstarters_enabled || false,
             selected_kickstarters: businessData.selected_kickstarters || [],
+            kickstarters_background_design: businessData.kickstarters_background_design ?? false,
           });
           setServices(
             Array.isArray(businessData.services_offered)
@@ -647,6 +650,7 @@ export default function BusinessProfilePage() {
         ai_donts: form.ai_donts,
         kickstarters_enabled: form.kickstarters_enabled,
         selected_kickstarters: form.selected_kickstarters,
+        kickstarters_background_design: form.kickstarters_background_design,
         services_offered: services,
       });
       
@@ -688,6 +692,9 @@ export default function BusinessProfilePage() {
           business_email: form.business_email,
           ai_dos: form.ai_dos,
           ai_donts: form.ai_donts,
+          kickstarters_enabled: form.kickstarters_enabled,
+          selected_kickstarters: form.selected_kickstarters,
+          kickstarters_background_design: form.kickstarters_background_design,
           services_offered: services,
         })
         .eq("account_id", selectedAccount?.account_id);

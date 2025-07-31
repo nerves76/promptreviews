@@ -124,7 +124,7 @@ This project is currently focused on developing a standalone widget for collecti
 - **Critical API Fix**: Fixed Google Business Profile API failures by implementing strict 300-character limit enforcement for AI-generated service descriptions
 - **AI Prompt Optimization**: Updated AI prompts to target character counts (80-150, 150-250, 250-300) instead of word counts for precise length control
 - **Smart Truncation**: Enhanced content validation with intelligent sentence-boundary truncation to preserve meaning while staying under limits
-- **Fallback Description Updates**: Rewrote all fallback service description templates to ensure they stay well under 300 characters
+- **Fallback Description Updates**: Rewritten all fallback service description templates to ensure they stay well under 300 characters
 - **Token Optimization**: Reduced OpenAI max_tokens (50, 80, 100) to align with character targets and prevent over-length responses
 - **Character Limit Enforcement**: Added explicit 300-character maximum instructions to all AI prompts with emphasis on concise, impactful content
 - **API Reliability**: Eliminated "Provided `description` for service items may not exceed 300 characters" errors that were blocking Google Business Profile updates
@@ -1786,3 +1786,41 @@ This modernization resolves all remaining authentication issues and establishes 
 - Removed problematic API route causing session cookie issues
 - Authentication now properly establishes session cookies for persistent login
 - Users can now successfully log in and access the application
+
+# 📝 Prompt Reviews - Development Notes
+
+*Last updated: 2025-01-27*
+
+## 🎯 Current Status
+- **Kickstarters (AKA Prompts) Feature Complete** ✅
+- All major features implemented and tested
+- Database migrations applied (local)
+- Global style system integrated
+
+## 🔄 Recent Updates
+
+### **Kickstarters Global Background Design Setting** (2025-01-27)
+**What Changed:**
+- Moved the kickstarters background design control from per-page setting to global business setting
+- Any prompt page can control the background design, and it affects all prompt pages globally
+- Setting is stored in `businesses.kickstarters_background_design` column
+- Also available in `prompt_pages.kickstarters_background_design` and `business_locations.kickstarters_background_design` for inheritance support
+
+**Where to Find It:**
+- Business Profile page: Business-level default setting
+- Any Prompt Page form: Global setting control (appears in Kickstarters feature section)
+- Style Modal: Also available in the main Style settings for global control
+
+**How It Works:**
+- Change "With Background" vs "Without Background" on any prompt page → affects ALL prompt pages
+- Business Profile setting serves as the default for new prompt pages
+- Individual prompt pages can override but it becomes a global change
+- "With Background" = traditional card appearance with shadow and background
+- "Without Background" = transparent appearance using card colors, bordered arrows
+
+**Technical Implementation:**
+- `kickstarters_background_design` column in businesses, prompt_pages, and business_locations tables
+- KickstartersCarousel component reads from `businessProfile.kickstarters_background_design`
+- StyleModalPage includes the setting in global style controls
+- BasePromptPageForm updates global business setting when changed
+- Migration 0167 adds the necessary database columns

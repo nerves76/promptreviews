@@ -29,6 +29,8 @@ export interface KickstartersFeatureProps {
   enabled: boolean;
   /** Array of selected kickstarter IDs */
   selectedKickstarters: string[];
+  /** Background design option: true for background, false for no background */
+  backgroundDesign?: boolean;
   /** Business name for dynamic replacement */
   businessName?: string;
   /** Whether this is inherited from business level */
@@ -37,39 +39,89 @@ export interface KickstartersFeatureProps {
   businessSettings?: {
     enabled: boolean;
     selectedKickstarters: string[];
+    backgroundDesign?: boolean;
   };
   /** Callback when the enabled state changes */
   onEnabledChange: (enabled: boolean) => void;
   /** Callback when selected kickstarters change */
   onKickstartersChange: (kickstarters: string[]) => void;
+  /** Callback when background design changes (updates global business setting) */
+  onBackgroundDesignChange?: (backgroundDesign: boolean) => void;
   /** Initial values for the component */
   initialData?: {
     kickstarters_enabled?: boolean;
     selected_kickstarters?: string[];
+    kickstarters_background_design?: boolean;
   };
   /** Whether the component is disabled */
   disabled?: boolean;
   /** Whether to use edit interface styling */
   editMode?: boolean;
+  /** Business profile for styling the example */
+  businessProfile?: {
+    primary_color?: string;
+    card_bg?: string;
+    card_text?: string;
+    card_transparency?: number;
+    background_type?: string;
+    gradient_start?: string;
+    gradient_end?: string;
+    background_color?: string;
+  };
 }
 
 export default function KickstartersFeature({
   enabled,
   selectedKickstarters = [],
+  backgroundDesign = false,
   businessName = "Business Name",
   isInherited = false,
   businessSettings,
   onEnabledChange,
   onKickstartersChange,
+  onBackgroundDesignChange,
   initialData,
   disabled = false,
   editMode = false,
+  businessProfile,
 }: KickstartersFeatureProps) {
   const supabase = createClient();
+  
+  // Helper function to apply card background transparency
+  const applyCardTransparency = (color: string, transparency: number = 1.0) => {
+    if (!color) return '#F9FAFB';
+    if (transparency === 1) return color;
+    
+    // Convert hex to rgba
+    const hex = color.replace('#', '');
+    const r = parseInt(hex.substr(0, 2), 16);
+    const g = parseInt(hex.substr(2, 2), 16);
+    const b = parseInt(hex.substr(4, 2), 16);
+    
+    return `rgba(${r}, ${g}, ${b}, ${transparency})`;
+  };
+
+  // Compute background style like the actual prompt page
+  const getExampleBackgroundStyle = () => {
+    // Default to gradient if no businessProfile or background_type is undefined
+    const backgroundType = businessProfile?.background_type || 'gradient';
+    
+    if (backgroundType === "gradient") {
+      return {
+        background: `linear-gradient(to bottom, ${businessProfile?.gradient_start || '#4F46E5'} 0%, ${businessProfile?.gradient_start || '#4F46E5'} 60%, ${businessProfile?.gradient_end || '#C7D2FE'} 100%)`,
+        backgroundSize: '100% 100%',
+      };
+    } else {
+      return {
+        background: businessProfile?.background_color || "#dbeafe", // Light blue fallback
+      };
+    }
+  };
   
   // Initialize state from props and initialData
   const [isEnabled, setIsEnabled] = useState(enabled);
   const [selected, setSelected] = useState<string[]>(selectedKickstarters);
+  const [localBackgroundDesign, setLocalBackgroundDesign] = useState(backgroundDesign);
   const [showModal, setShowModal] = useState(false);
 
   const [allKickstarters, setAllKickstarters] = useState<Kickstarter[]>([]);
@@ -83,6 +135,10 @@ export default function KickstartersFeature({
   useEffect(() => {
     setSelected(selectedKickstarters);
   }, [selectedKickstarters]);
+
+  useEffect(() => {
+    setLocalBackgroundDesign(backgroundDesign);
+  }, [backgroundDesign]);
 
   // Initialize from initialData if provided
   useEffect(() => {
@@ -186,8 +242,9 @@ export default function KickstartersFeature({
             </span>
           </div>
           <div className={`${editMode ? 'text-sm text-gray-700 mt-[3px] ml-10' : 'text-sm text-gray-600'}`}>
+            Add a selection of questions that will inspire your client or customer to write an amazing review.
             {isInherited && getInheritanceText() && (
-              <div className="text-xs text-blue-600 italic mb-1">
+              <div className="text-xs text-blue-600 italic mt-1">
                 {getInheritanceText()}
               </div>
             )}
@@ -209,77 +266,185 @@ export default function KickstartersFeature({
           />
         </button>
       </div>
-      
-      <div className="text-sm text-gray-700 mb-3 max-w-[85ch] px-2">
-        Add a selection of questions that will inspire your client or customer to write an amazing review.
-      </div>
+
       
       {isEnabled && (
         <div className="px-2 space-y-4">
-          {/* Management Controls */}
-          <div className="flex items-center gap-3 mb-4">
+
+
+          {/* Controls Row - Manage button and Background options */}
+          <div className="mb-4 flex items-center justify-between">
             <button
               type="button"
               onClick={handleManageKickstarters}
-              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-slate-blue rounded-lg hover:bg-slate-blue-dark focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2 transition-colors"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 shadow-sm transition-colors"
               disabled={disabled}
             >
               <FaCog className="w-4 h-4" />
-              Manage Kickstarters
+              Manage
             </button>
+            
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-medium text-gray-700">Background:</span>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLocalBackgroundDesign(true);
+                    onBackgroundDesignChange?.(true);
+                  }}
+                  className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${
+                    localBackgroundDesign 
+                      ? 'bg-slate-blue text-white' 
+                      : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
+                  }`}
+                  disabled={disabled}
+                >
+                  With
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLocalBackgroundDesign(false);
+                    onBackgroundDesignChange?.(false);
+                  }}
+                  className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${
+                    !localBackgroundDesign 
+                      ? 'bg-slate-blue text-white' 
+                      : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
+                  }`}
+                  disabled={disabled}
+                >
+                  Without
+                </button>
+              </div>
+            </div>
           </div>
+          
+          <p className="text-xs text-gray-500 mb-4 text-right">
+            Background setting affects all instances
+          </p>
 
           {/* Example Implementation - Always Show */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <div className="flex items-center justify-between mb-3">
-                <div className="text-sm font-medium text-blue-900">
-                  Example
-                </div>
-              </div>
-              {/* Match current carousel design */}
-              <div className="relative">
+          <div className="mb-2">
+            <div className="text-sm font-medium text-blue-900 mb-3">
+              Example
+            </div>
+            <div 
+              className="rounded-lg p-4 flex items-center justify-center"
+              style={{
+                minHeight: '120px', // Ensure gradient is visible
+                border: '2px solid rgba(59, 130, 246, 0.3)', // Semi-transparent border to not interfere with gradient
+                position: 'relative',
+                ...getExampleBackgroundStyle(), // Apply background last to ensure it takes precedence
+              }}
+            >
+              {/* Match current carousel design - Centered vertically */}
+              <div className="relative w-full">
                 {/* Left Arrow */}
-                <button className="absolute left-0 top-1/2 -translate-y-1/2 z-10 p-2 text-gray-50 hover:text-gray-300 transition-colors focus:outline-none">
+                <button 
+                  className={`absolute left-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full flex items-center justify-center transition-all focus:outline-none ${
+                    localBackgroundDesign 
+                      ? 'bg-white hover:bg-gray-50' 
+                      : 'border-2 hover:opacity-80'
+                  }`}
+                  style={{ 
+                    color: localBackgroundDesign 
+                      ? (businessProfile?.primary_color || '#2563EB')
+                      : applyCardTransparency(businessProfile?.card_bg || "#F9FAFB", businessProfile?.card_transparency ?? 1.0),
+                    borderColor: !localBackgroundDesign 
+                      ? applyCardTransparency(businessProfile?.card_bg || "#F9FAFB", businessProfile?.card_transparency ?? 1.0)
+                      : undefined
+                  }}
+                >
                   <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
                   </svg>
                 </button>
 
                 {/* Right Arrow */}
-                <button className="absolute right-0 top-1/2 -translate-y-1/2 z-10 p-2 text-gray-50 hover:text-gray-300 transition-colors focus:outline-none">
+                <button 
+                  className={`absolute right-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full flex items-center justify-center transition-all focus:outline-none ${
+                    localBackgroundDesign 
+                      ? 'bg-white hover:bg-gray-50' 
+                      : 'border-2 hover:opacity-80'
+                  }`}
+                  style={{ 
+                    color: localBackgroundDesign 
+                      ? (businessProfile?.primary_color || '#2563EB')
+                      : applyCardTransparency(businessProfile?.card_bg || "#F9FAFB", businessProfile?.card_transparency ?? 1.0),
+                    borderColor: !localBackgroundDesign 
+                      ? applyCardTransparency(businessProfile?.card_bg || "#F9FAFB", businessProfile?.card_transparency ?? 1.0)
+                      : undefined
+                  }}
+                >
                   <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
                   </svg>
                 </button>
 
                 {/* Carousel Card - Narrower design to match */}
-                <div className="bg-gray-50 border border-gray-200 rounded-lg p-2 mx-16 relative">
-                  {/* Header with Inspiration centered and View All on right */}
-                  <div className="relative flex items-center justify-center mb-1">
+                <div 
+                  className={`rounded-lg p-2 mx-16 relative ${
+                    localBackgroundDesign 
+                      ? 'border border-gray-200' 
+                      : ''
+                  }`}
+                  style={{ 
+                    background: localBackgroundDesign 
+                      ? applyCardTransparency(businessProfile?.card_bg || "#F9FAFB", businessProfile?.card_transparency ?? 1.0)
+                      : 'transparent'
+                  }}
+                >
+                  {/* Header with Inspiration centered */}
+                  <div className="flex items-center justify-center mb-1">
                     <span 
                       className="text-xs tracking-wide font-medium"
-                      style={{ color: '#2563EB' }}
+                      style={{ 
+                        color: localBackgroundDesign 
+                          ? (businessProfile?.primary_color || '#2563EB')
+                          : applyCardTransparency(businessProfile?.card_bg || "#F9FAFB", businessProfile?.card_transparency ?? 1.0)
+                      }}
                     >
                       Inspiration
                     </span>
+                  </div>
+
+                  {/* Question - Compact, no quotes, no italics */}
+                  <div 
+                    className={`cursor-pointer transition-colors text-center mb-2 ${
+                      localBackgroundDesign 
+                        ? 'text-gray-700 hover:text-gray-900' 
+                        : 'hover:opacity-80'
+                    }`}
+                    style={{
+                      fontSize: '1rem',
+                      lineHeight: '1.5rem',
+                      color: localBackgroundDesign 
+                        ? undefined
+                        : applyCardTransparency(businessProfile?.card_bg || "#F9FAFB", businessProfile?.card_transparency ?? 1.0)
+                    }}
+                  >
+                    {replaceBusinessName(getExampleKickstarter())}
+                  </div>
+
+                  {/* View All centered below */}
+                  <div className="flex items-center justify-center">
                     <button
-                      className="absolute text-[10px] font-medium hover:underline transition-colors focus:outline-none rounded px-1"
+                      className="text-[10px] font-medium hover:underline transition-colors focus:outline-none rounded px-1"
                       style={{ 
-                        color: '#2563EB',
-                        right: '10px'
+                        color: localBackgroundDesign 
+                          ? (businessProfile?.primary_color || '#2563EB')
+                          : applyCardTransparency(businessProfile?.card_bg || "#F9FAFB", businessProfile?.card_transparency ?? 1.0)
                       }}
                     >
                       View All
                     </button>
                   </div>
-
-                  {/* Question - Compact, no quotes, no italics */}
-                  <div className="text-sm text-gray-700 cursor-pointer hover:text-gray-900 transition-colors leading-tight text-center mb-2">
-                    {replaceBusinessName(getExampleKickstarter())}
-                  </div>
                 </div>
               </div>
             </div>
+          </div>
         </div>
       )}
 

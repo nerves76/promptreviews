@@ -105,6 +105,7 @@ export default function StylePage({ onClose, onStyleUpdate }: StylePageProps) {
     card_shadow_color: "#222222",
     card_shadow_intensity: 0.20,
     card_transparency: 1.00,
+    kickstarters_background_design: false,
   });
 
   // Update parent component whenever settings change (but not on initial load)
@@ -184,7 +185,7 @@ export default function StylePage({ onClose, onStyleUpdate }: StylePageProps) {
 
       const { data: business } = await supabase
         .from("businesses")
-        .select("primary_font,secondary_font,primary_color,secondary_color,background_type,background_color,gradient_start,gradient_end,card_bg,card_text,card_inner_shadow,card_shadow_color,card_shadow_intensity,card_transparency")
+        .select("primary_font,secondary_font,primary_color,secondary_color,background_type,background_color,gradient_start,gradient_end,card_bg,card_text,card_inner_shadow,card_shadow_color,card_shadow_intensity,card_transparency,kickstarters_background_design")
         .eq("account_id", accountId)
         .single();
       
@@ -198,7 +199,8 @@ export default function StylePage({ onClose, onStyleUpdate }: StylePageProps) {
           card_inner_shadow: business.card_inner_shadow || false,
           card_shadow_color: business.card_shadow_color || "#222222",
           card_shadow_intensity: business.card_shadow_intensity || 0.20,
-          card_transparency: business.card_transparency || 1.00
+          card_transparency: business.card_transparency || 1.00,
+          kickstarters_background_design: business.kickstarters_background_design ?? false
         }));
       }
     } catch (error) {
@@ -281,6 +283,7 @@ export default function StylePage({ onClose, onStyleUpdate }: StylePageProps) {
           card_shadow_color: settings.card_shadow_color,
           card_shadow_intensity: settings.card_shadow_intensity,
           card_transparency: settings.card_transparency,
+          kickstarters_background_design: settings.kickstarters_background_design,
         })
         .eq("account_id", accountId);
       
@@ -315,8 +318,9 @@ export default function StylePage({ onClose, onStyleUpdate }: StylePageProps) {
         card_inner_shadow: false,
         card_shadow_color: "#222222",
         card_shadow_intensity: 0.20,
-        card_transparency: 1.00,
-      });
+              card_transparency: 1.00,
+      kickstarters_background_design: false,
+    });
     }
   }
 
@@ -607,6 +611,22 @@ export default function StylePage({ onClose, onStyleUpdate }: StylePageProps) {
                 </div>
               </>
             )}
+
+            {/* Kickstarters Background Design */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-3">Kickstarters Design Style</label>
+              <select
+                value={settings.kickstarters_background_design ? 'true' : 'false'}
+                onChange={(e) => setSettings(s => ({ ...s, kickstarters_background_design: e.target.value === 'true' }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              >
+                <option value="true">With Background</option>
+                <option value="false">Without Background</option>
+              </select>
+              <p className="text-xs text-gray-500 mt-1">
+                Choose how the inspiration questions appear: with a card background or transparent using card colors.
+              </p>
+            </div>
           </div>
         </div>
         {/* Bottom action buttons row */}

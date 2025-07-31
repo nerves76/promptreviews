@@ -70,6 +70,7 @@ export interface BusinessLocation {
   // Module fields
   falling_enabled?: boolean;
   falling_icon?: string;
+  falling_icon_color?: string;
   emoji_sentiment_enabled?: boolean;
   emoji_sentiment_question?: string;
   emoji_feedback_message?: string;
@@ -84,6 +85,10 @@ export interface BusinessLocation {
   // Personalized note fields
   show_friendly_note?: boolean;
   friendly_note?: string;
+  
+  // Additional fields
+  prompt_page_slug?: string;
+  nfc_text_enabled?: boolean;
   
   // Metadata
   is_active: boolean;
