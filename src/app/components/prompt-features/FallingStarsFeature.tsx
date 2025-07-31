@@ -64,7 +64,9 @@ export interface FallingStarsFeatureProps {
   /** Description text for the feature */
   description?: string;
   /** Callback when the enabled state changes */
-  onEnabledChange: (enabled: boolean) => void;
+  onEnabledChange?: (enabled: boolean) => void;
+  /** Alternative callback for toggle (same as onEnabledChange) */
+  onToggle?: (enabled: boolean) => void;
   /** Callback when the icon changes */
   onIconChange: (icon: string) => void;
   /** Callback when the color changes */
@@ -87,6 +89,7 @@ export default function FallingStarsFeature({
   color = "#fbbf24",
   description,
   onEnabledChange,
+  onToggle,
   onIconChange,
   onColorChange,
   initialData,
@@ -151,7 +154,8 @@ export default function FallingStarsFeature({
   const handleToggle = () => {
     const newEnabled = !isEnabled;
     setIsEnabled(newEnabled);
-    onEnabledChange(newEnabled);
+    onEnabledChange?.(newEnabled);
+    onToggle?.(newEnabled);
   };
 
   const handleIconSelect = (selectedIcon: string) => {

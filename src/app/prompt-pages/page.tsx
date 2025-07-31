@@ -557,7 +557,7 @@ export default function PromptPages() {
       )}
       
             {/* Title above navigation */}
-      <div className="flex justify-center w-full mt-8 mb-6 z-20">
+      <div className="flex justify-center w-full mt-16 mb-6 z-20">
         <h2 className="text-white text-xl font-semibold">Prompt Page campaign type</h2>
       </div>
        

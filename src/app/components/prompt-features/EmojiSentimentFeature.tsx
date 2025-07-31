@@ -42,7 +42,9 @@ export interface EmojiSentimentFeatureProps {
   /** The slug for embed functionality */
   slug?: string;
   /** Callback when the enabled state changes */
-  onEnabledChange: (enabled: boolean) => void;
+  onEnabledChange?: (enabled: boolean) => void;
+  /** Alternative callback for toggle (same as onEnabledChange) */
+  onToggle?: (enabled: boolean) => void;
   /** Callback when the question changes */
   onQuestionChange: (question: string) => void;
   /** Callback when the feedback message changes */
@@ -64,6 +66,8 @@ export interface EmojiSentimentFeatureProps {
   };
   /** Whether the component is disabled */
   disabled?: boolean;
+  /** Whether the component is in edit mode */
+  editMode?: boolean;
 }
 
 export default function EmojiSentimentFeature({
@@ -76,6 +80,7 @@ export default function EmojiSentimentFeature({
   personalizedNoteEnabled = false,
   slug,
   onEnabledChange,
+  onToggle,
   onQuestionChange,
   onFeedbackMessageChange,
   onThankYouMessageChange,
@@ -152,7 +157,8 @@ export default function EmojiSentimentFeature({
     
     const newEnabled = !isEnabled;
     setIsEnabled(newEnabled);
-    onEnabledChange(newEnabled);
+    onEnabledChange?.(newEnabled);
+    onToggle?.(newEnabled);
   };
 
   const handleQuestionChange = (e: React.ChangeEvent<HTMLInputElement>) => {

@@ -836,6 +836,7 @@ export default function BusinessProfileForm({
         <KickstartersFeature
           enabled={form.kickstarters_enabled}
           selectedKickstarters={form.selected_kickstarters}
+          backgroundDesign={form.kickstarters_background_design}
           businessName={form.name || "Business Name"}
           onEnabledChange={(enabled) => 
             setForm((f: any) => ({ ...f, kickstarters_enabled: enabled }))
@@ -843,11 +844,25 @@ export default function BusinessProfileForm({
           onKickstartersChange={(kickstarters) => 
             setForm((f: any) => ({ ...f, selected_kickstarters: kickstarters }))
           }
+          onBackgroundDesignChange={(backgroundDesign) => 
+            setForm((f: any) => ({ ...f, kickstarters_background_design: backgroundDesign }))
+          }
           initialData={{
             kickstarters_enabled: form.kickstarters_enabled,
             selected_kickstarters: form.selected_kickstarters,
+            kickstarters_background_design: form.kickstarters_background_design,
           }}
           editMode={true}
+          businessProfile={{
+            primary_color: form.primary_color,
+            card_bg: form.card_bg,
+            card_text: form.card_text,
+            card_transparency: form.card_transparency,
+            background_type: form.background_type,
+            gradient_start: form.gradient_start,
+            gradient_end: form.gradient_end,
+            background_color: form.background_color,
+          }}
         />
       </div>
 

@@ -150,6 +150,8 @@ interface BusinessProfile {
   card_inner_shadow?: boolean;
   card_shadow_color?: string;
   card_shadow_intensity?: number;
+  card_transparency?: number;
+  kickstarters_background_design?: boolean;
   // Additional fields for AI generation
   services_offered?: string;
   company_values?: string;
@@ -1888,7 +1890,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
               {sentimentComplete && !showFeedbackForm && promptPage?.review_type === "photo" && (
                 <div className="mb-8">
                   <div 
-                    className="bg-white rounded-xl shadow-md p-6 border border-gray-200 relative"
+                    className="bg-white rounded-xl shadow p-6 border border-gray-200 relative"
                     style={{
                       background: applyCardTransparency(businessProfile?.card_bg || "#F9FAFB", 1.0),
                       color: businessProfile?.card_text || "#1A1A1A",

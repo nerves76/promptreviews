@@ -53,23 +53,35 @@ interface BusinessProfile {
   business_name: string;
   services_offered: string[];
   features_or_benefits: string[];
-  company_values: string;
-  differentiators: string;
-  years_in_business: number;
-  industries_served: string;
-  taglines: string;
-  team_founder_info: string;
-  keywords: string;
-  default_offer_enabled: boolean;
-  default_offer_title: string;
-  default_offer_body: string;
-  gradient_start: string;
-  gradient_middle: string;
-  gradient_end: string;
-  background_type: string;
-  background_color: string;
-  text_color: string;
-  header_color: string;
+  company_values?: string;
+  differentiators?: string;
+  years_in_business?: number;
+  industries_served?: string;
+  taglines?: string;
+  team_founder_info?: string;
+  keywords?: string;
+  default_offer_enabled?: boolean;
+  default_offer_title?: string;
+  default_offer_body?: string;
+  gradient_start?: string;
+  gradient_middle?: string;
+  gradient_end?: string;
+  background_type?: string;
+  background_color?: string;
+  text_color?: string;
+  header_color?: string;
+  // Additional properties from database
+  name?: string;
+  review_platforms?: any;
+  facebook_url?: string;
+  instagram_url?: string;
+  bluesky_url?: string;
+  tiktok_url?: string;
+  youtube_url?: string;
+  linkedin_url?: string;
+  pinterest_url?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 const initialFormData = {

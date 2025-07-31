@@ -27,7 +27,9 @@ export interface OfferFeatureProps {
   /** The offer URL */
   url: string;
   /** Callback when the enabled state changes */
-  onEnabledChange: (enabled: boolean) => void;
+  onEnabledChange?: (enabled: boolean) => void;
+  /** Alternative callback for toggle (same as onEnabledChange) */
+  onToggle?: (enabled: boolean) => void;
   /** Callback when the title changes */
   onTitleChange: (title: string) => void;
   /** Callback when the description changes */
@@ -55,6 +57,7 @@ export default function OfferFeature({
   description,
   url,
   onEnabledChange,
+  onToggle,
   onTitleChange,
   onDescriptionChange,
   onUrlChange,
@@ -105,7 +108,8 @@ export default function OfferFeature({
   const handleToggle = () => {
     const newEnabled = !isEnabled;
     setIsEnabled(newEnabled);
-    onEnabledChange(newEnabled);
+    onEnabledChange?.(newEnabled);
+    onToggle?.(newEnabled);
   };
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
