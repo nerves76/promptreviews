@@ -5,8 +5,7 @@
 // -----------------------------------------------------------------------------
 
 import React, { useState } from 'react';
-import { FaMapMarkerAlt, FaLink, FaGlobe } from 'react-icons/fa';
-import { MdDownload } from 'react-icons/md';
+import Icon from '@/components/Icon';
 import { BusinessLocation } from '@/types/business';
 import QRCodeModal from './QRCodeModal';
 
@@ -97,7 +96,7 @@ export default function LocationCard({
           <div className="flex items-center justify-between mb-1">
             <div className="flex items-center gap-2">
               <h2 className="text-2xl font-bold text-slate-blue flex items-center gap-3">
-                <FaMapMarkerAlt className="w-7 h-7 text-slate-blue" />
+                <Icon name="FaMapMarkerAlt" className="w-7 h-7 text-slate-blue" size={28} />
                 {location.name}
               </h2>
             </div>
@@ -142,7 +141,7 @@ export default function LocationCard({
                     onClick={handleCopyLink}
                     className="inline-flex items-center gap-1 px-3 py-1.5 bg-purple-100 text-purple-800 rounded hover:bg-purple-200 text-sm font-medium shadow h-9 align-middle whitespace-nowrap"
                   >
-                    <FaLink className="w-4 h-4" />
+                    <Icon name="FaLink" className="w-4 h-4" size={16} />
                     Copy link
                   </button>
                   
@@ -151,7 +150,7 @@ export default function LocationCard({
                     onClick={handleQRCode}
                     className="inline-flex items-center gap-1 px-3 py-1.5 bg-amber-100 text-amber-800 rounded hover:bg-amber-200 text-sm font-medium shadow h-9 align-middle whitespace-nowrap"
                   >
-                    <MdDownload size={22} color="#b45309" />
+                    <Icon name="MdDownload" size={22} style={{ color: "#b45309" }} />
                     QR code
                   </button>
                   

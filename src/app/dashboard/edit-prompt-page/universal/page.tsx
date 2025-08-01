@@ -10,7 +10,7 @@ import React, { useRef, useState } from "react";
 import UniversalPromptPageForm, {
   UniversalPromptFormState,
 } from "./UniversalPromptPageForm";
-import { FaGlobe } from "react-icons/fa";
+import Icon from "@/components/Icon";
 import PageCard from "@/app/components/PageCard";
 import offerConfig from "@/app/components/prompt-modules/offerConfig";
 import { createClient } from "@/utils/supabaseClient";
@@ -318,7 +318,7 @@ export default function UniversalEditPromptPage() {
 
   return (
     <PageCard
-      icon={<FaGlobe className="w-9 h-9 text-slate-blue" />}
+      icon={<Icon name="FaHome" className="w-9 h-9 text-slate-blue" size={36} />}
       topRightAction={actionButtons}
     >
       <div className="flex flex-col mt-0 md:mt-[3px] mb-4">

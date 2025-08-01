@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { FaImage, FaBuilding, FaList, FaStar, FaGift, FaShareAlt, FaInfo, FaTrash, FaLightbulb, FaCog } from "react-icons/fa";
+import Icon from "@/components/Icon";
 import Cropper from "react-easy-crop";
 import IndustrySelector from "../../components/IndustrySelector";
 import RobotTooltip from "../../components/RobotTooltip";
@@ -151,7 +151,7 @@ export default function BusinessProfileForm({
       {/* Logo Upload Section */}
       <div className="mb-16">
         <h2 className="mt-4 mb-8 text-2xl font-bold text-slate-blue flex items-center gap-3">
-          <FaImage className="w-7 h-7 text-slate-blue" />
+          <Icon name="FaImage" className="w-7 h-7 text-slate-blue" size={28} />
           Logo
         </h2>
         <div className="mb-10 flex flex-col md:flex-row items-center gap-10">
@@ -163,7 +163,7 @@ export default function BusinessProfileForm({
             />
           ) : (
             <div className="rounded-full max-h-32 max-w-32 w-32 h-32 flex items-center justify-center border shadow bg-gray-50 text-slate-blue text-5xl">
-              <FaImage />
+              <Icon name="FaImage" size={48} />
             </div>
           )}
           <div className="flex-1 w-full max-w-[700px]">
@@ -278,7 +278,7 @@ export default function BusinessProfileForm({
       {/* Business Info Section */}
       <div className="mb-8">
         <h2 className="mt-4 mb-8 text-2xl font-bold text-slate-blue flex items-center gap-3">
-          <FaInfo className="w-7 h-7 text-slate-blue" />
+          <Icon name="FaInfoCircle" className="w-7 h-7 text-slate-blue" size={28} />
           Business info
         </h2>
         <div className="mb-4">
@@ -480,7 +480,7 @@ export default function BusinessProfileForm({
       {/* Services Section */}
       <div className="mb-8">
         <h2 className="mt-4 mb-8 text-2xl font-bold text-slate-blue flex items-center gap-3">
-          <FaList className="w-7 h-7 text-slate-blue" />
+          <Icon name="FaHandsHelping" className="w-7 h-7 text-slate-blue" size={28} />
           Services or Offerings
           <RobotTooltip text="Made available for AI prompt generation." />
         </h2>
@@ -510,7 +510,7 @@ export default function BusinessProfileForm({
                   onClick={() => removeService(idx)}
                   aria-label="Remove service"
                 >
-                  <FaTrash />
+                  <Icon name="FaTrash" size={16} />
                 </button>
               </div>
             ))}
@@ -528,7 +528,7 @@ export default function BusinessProfileForm({
       {/* What Makes Your Business Unique Section */}
       <div className="mb-8">
         <h2 className="mt-4 mb-8 text-2xl font-bold text-slate-blue flex items-center gap-3">
-          <FaStar className="w-7 h-7 text-slate-blue" />
+          <Icon name="FaStar" className="w-7 h-7 text-slate-blue" size={28} />
           What makes your business unique?
         </h2>
         <div className="mb-4">
@@ -636,7 +636,7 @@ export default function BusinessProfileForm({
       {/* Social Media Section */}
       <div className="mb-16">
         <h2 className="mt-4 mb-2 text-2xl font-bold text-slate-blue flex items-center gap-3">
-          <FaShareAlt className="w-7 h-7 text-slate-blue" />
+          <Icon name="FaShare" className="w-7 h-7 text-slate-blue" size={28} />
           Social media
         </h2>
         <div className="text-sm text-gray-600 mb-4">
@@ -740,7 +740,7 @@ export default function BusinessProfileForm({
       {/* Default Settings Section */}
       <div className="mb-16">
         <h2 className="mt-4 mb-2 text-3xl font-bold text-slate-blue flex items-center gap-3">
-          <FaCog className="w-8 h-8 text-slate-blue" />
+          <Icon name="FaCog" className="w-8 h-8 text-slate-blue" size={32} />
           Default Settings
         </h2>
         <div className="text-sm text-gray-600 mb-4">
@@ -758,7 +758,7 @@ export default function BusinessProfileForm({
       {/* Review Platforms Section */}
       <div className="mb-16">
         <h2 className="mt-4 mb-2 text-2xl font-bold text-slate-blue flex items-center gap-3">
-          <FaStar className="w-7 h-7 text-slate-blue" />
+          <Icon name="FaStar" className="w-7 h-7 text-slate-blue" size={28} />
           Review platforms
         </h2>
         <div className="text-sm text-gray-600 mb-4">
@@ -869,7 +869,7 @@ export default function BusinessProfileForm({
       {/* Special Offer Section */}
       <div className="mb-16">
         <h2 className="mt-4 mb-2 text-2xl font-bold text-slate-blue flex items-center gap-3">
-          <FaGift className="w-7 h-7 text-slate-blue" />
+          <Icon name="FaGift" className="w-7 h-7 text-slate-blue" size={28} />
           Special offer
         </h2>
         <div className="text-sm text-gray-600 mt-0 mb-4">

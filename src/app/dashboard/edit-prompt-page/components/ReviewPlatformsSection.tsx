@@ -1,16 +1,5 @@
 import React from "react";
-import {
-  FaStar,
-  FaInfoCircle,
-  FaGoogle,
-  FaFacebook,
-  FaYelp,
-  FaTripadvisor,
-  FaRegStar,
-  FaQuestionCircle,
-  FaTimes,
-} from "react-icons/fa";
-import { IconType } from "react-icons";
+import Icon, { IconName } from "@/components/Icon";
 
 export interface ReviewPlatformLink {
   name: string;
@@ -47,16 +36,16 @@ const platformOptions = [
 ];
 
 // Helper to get platform icon based on name
-function getPlatformIcon(platform: string): { icon: IconType; label: string } {
+function getPlatformIcon(platform: string): { icon: IconName; label: string } {
   const lowerPlatform = (platform || "").toLowerCase();
   if (lowerPlatform.includes("google"))
-    return { icon: FaGoogle, label: "Google" };
+    return { icon: "FaGoogle", label: "Google" };
   if (lowerPlatform.includes("facebook"))
-    return { icon: FaFacebook, label: "Facebook" };
-  if (lowerPlatform.includes("yelp")) return { icon: FaYelp, label: "Yelp" };
+    return { icon: "FaFacebook", label: "Facebook" };
+  if (lowerPlatform.includes("yelp")) return { icon: "FaYelp", label: "Yelp" };
   if (lowerPlatform.includes("tripadvisor"))
-    return { icon: FaTripadvisor, label: "TripAdvisor" };
-  return { icon: FaStar, label: "Other" };
+    return { icon: "FaTripadvisor", label: "TripAdvisor" };
+  return { icon: "FaStar", label: "Other" };
 }
 
 const ReviewPlatformsSection: React.FC<ReviewPlatformsSectionProps> = ({
@@ -106,9 +95,11 @@ const ReviewPlatformsSection: React.FC<ReviewPlatformsSectionProps> = ({
               className="absolute -top-4 -left-4 bg-white rounded-full shadow p-2 flex items-center justify-center"
               title={getPlatformIcon(platform.name).label}
             >
-              {React.createElement(getPlatformIcon(platform.name).icon, {
-                className: "w-7 h-7 text-slate-blue",
-              })}
+              <Icon
+                name={getPlatformIcon(platform.name).icon}
+                className="w-7 h-7 text-slate-blue"
+                size={28}
+              />
             </div>
             {/* Labels row above inputs */}
             <div className="flex gap-2 items-end mb-1">
@@ -168,7 +159,7 @@ const ReviewPlatformsSection: React.FC<ReviewPlatformsSectionProps> = ({
                     onClick={() => setShowGoogleHelpModal(true)}
                     className="mt-2 text-blue-600 hover:text-blue-800 text-xs flex items-center gap-1 underline"
                   >
-                    <FaQuestionCircle className="w-3 h-3" />
+                    <Icon name="FaQuestionCircle" className="w-3 h-3" size={12} />
                     How to find your review link
                   </button>
                 )}
@@ -241,7 +232,7 @@ const ReviewPlatformsSection: React.FC<ReviewPlatformsSectionProps> = ({
               onClick={() => setShowGoogleHelpModal(false)}
               className="absolute -top-3 -right-3 w-8 h-8 bg-slate-600 hover:bg-slate-700 text-white rounded-full flex items-center justify-center transition-colors z-10 shadow-lg"
             >
-              <FaTimes className="w-4 h-4" />
+              <Icon name="FaTimes" className="w-4 h-4" size={16} />
             </button>
             
             <div className="p-6">

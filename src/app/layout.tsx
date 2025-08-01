@@ -37,6 +37,9 @@ export default function RootLayout({
         
         {/* ⚡ PERFORMANCE: Resource preloading and optimization hints */}
         
+        {/* Preload SVG icon sprite for immediate availability */}
+        <link rel="preload" href="/icons-sprite.svg" as="image" type="image/svg+xml" />
+        
         {/* Preconnect to external domains for faster loading */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />

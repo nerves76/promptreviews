@@ -28,19 +28,7 @@ import { Textarea } from "@/app/components/ui/textarea";
 import SectionHeader from "./SectionHeader";
 import { TopNavigation, BottomNavigation } from "./sections/StepNavigation";
 import { generateContextualReview } from "../../utils/aiReviewGeneration";
-import {
-  FaInfoCircle,
-  FaStar,
-  FaGift,
-  FaSmile,
-  FaUser,
-  FaPlus,
-  FaTrash,
-  FaStickyNote,
-  FaCamera,
-  FaMapMarkerAlt,
-  FaRobot,
-} from "react-icons/fa";
+import Icon from "@/components/Icon";
 
 
 /**

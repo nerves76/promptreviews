@@ -19,7 +19,7 @@
 import React, { useState, useEffect } from "react";
 import { Input } from "@/app/components/ui/input";
 import { Textarea } from "@/app/components/ui/textarea";
-import { FaSmile, FaPlay, FaCode } from "react-icons/fa";
+import Icon from "@/components/Icon";
 import EmojiSentimentDemoModal from "../EmojiSentimentDemoModal";
 import EmojiEmbedButton from "../EmojiEmbedButton";
 import { EMOJI_SENTIMENT_LABELS, EMOJI_SENTIMENT_ICONS } from "../prompt-modules/emojiSentimentConfig";
@@ -196,7 +196,7 @@ export default function EmojiSentimentFeature({
       <div className={`${editMode ? 'flex flex-row justify-between items-start px-2 py-2' : 'flex items-center justify-between mb-4'}`}>
         <div className="flex flex-col">
           <div className="flex items-center gap-3">
-            <FaSmile className={`${editMode ? 'w-7 h-7 text-slate-blue' : 'text-slate-blue text-lg'}`} />
+            <Icon name="FaSmile" className={`${editMode ? 'w-7 h-7 text-slate-blue' : 'text-slate-blue text-lg'}`} size={editMode ? 28 : 18} />
             <h3 className={`${editMode ? 'text-2xl font-bold text-[#1A237E]' : 'text-lg font-semibold text-gray-900'}`}>
               Emoji Sentiment Flow
             </h3>
@@ -213,7 +213,7 @@ export default function EmojiSentimentFeature({
             className="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-100 text-blue-800 rounded hover:bg-blue-200 text-sm font-medium shadow h-9 align-middle whitespace-nowrap"
             title="View emoji sentiment demo"
           >
-            <FaPlay className="w-3 h-3" />
+            <Icon name="FaArrowRight" className="w-3 h-3" size={12} />
             View demo
           </button>
           
@@ -231,7 +231,7 @@ export default function EmojiSentimentFeature({
               className="inline-flex items-center gap-1 px-3 py-1.5 bg-gray-100 text-gray-400 rounded cursor-not-allowed text-sm font-medium shadow h-9 align-middle whitespace-nowrap"
               title="Save your page to enable embed functionality"
             >
-              <FaCode className="w-4 h-4" />
+              <Icon name="FaCodeBranch" className="w-4 h-4" size={16} />
               Embed
             </button>
           ) : null}

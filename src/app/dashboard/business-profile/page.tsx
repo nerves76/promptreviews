@@ -7,29 +7,7 @@ import Cropper from "react-easy-crop";
 import type { Area } from "react-easy-crop";
 import { useAuthGuard } from "@/utils/authGuard";
 import { useAccountSelection } from "@/utils/accountSelectionHooks";
-import {
-  FaRegStar,
-  FaPhone,
-  FaMapMarkerAlt,
-  FaImage,
-  FaListAlt,
-  FaInfoCircle,
-  FaStar,
-  FaShareAlt,
-  FaClipboardList,
-  FaCheckCircle,
-  FaTimesCircle,
-  FaStore,
-  FaAddressBook,
-  FaClock,
-  FaList,
-  FaQuestionCircle,
-  FaGift,
-  FaRegLightbulb,
-  FaEdit,
-  FaSave,
-  FaTimes,
-} from "react-icons/fa";
+import Icon from "@/components/Icon";
 import { getAccountIdForUser } from "@/utils/accountUtils";
 import { isAdmin } from "@/utils/admin";
 import BusinessProfileForm from "../components/BusinessProfileForm";
@@ -741,7 +719,7 @@ export default function BusinessProfilePage() {
       <div className="w-full mx-auto px-4 sm:px-6 md:px-8 lg:px-12 mt-12 md:mt-16 lg:mt-20 mb-16 flex justify-center items-start">
         <div className="page relative w-full max-w-[1000px] rounded-2xl bg-white shadow-lg pt-4 px-8 md:px-12 pb-8">
           <div className="icon absolute -top-4 -left-4 sm:-top-6 sm:-left-6 z-10 bg-white rounded-full shadow-lg p-3 sm:p-4 flex items-center justify-center">
-            <FaStore className="w-9 h-9 text-slate-blue" />
+            <Icon name="FaStore" className="w-9 h-9 text-slate-blue" size={36} />
           </div>
           <div className="min-h-[400px] flex flex-col items-center justify-center">
             <AppLoader />
@@ -769,12 +747,7 @@ export default function BusinessProfilePage() {
   }
 
   return (
-    <PageCard icon={<FaStore className="w-9 h-9 text-slate-blue" />}>
-      {success && (
-        <div className="mb-6 p-4 bg-green-50 text-green-700 rounded-md text-base font-medium border border-green-200">
-          {success}
-        </div>
-      )}
+    <PageCard icon={<Icon name="FaStore" className="w-9 h-9 text-slate-blue" size={36} />}>
       <div className="flex items-start justify-between mt-2 mb-4">
         <div className="flex flex-col mt-0 md:mt-[3px]">
           <h1 className="text-4xl font-bold text-slate-blue mt-0 mb-2">
@@ -832,7 +805,7 @@ export default function BusinessProfilePage() {
         setRawLogoPrintFile={setRawLogoPrintFile}
         loading={isSubmitting}
         error={error}
-        success={success}
+        success=""
         onSubmit={handleSubmit}
         handleChange={handleChange}
         handleServiceChange={handleServiceChange}

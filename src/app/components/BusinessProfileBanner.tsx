@@ -8,7 +8,7 @@
 "use client";
 
 import Link from "next/link";
-import { FaExclamationTriangle, FaArrowRight } from "react-icons/fa";
+import Icon from "@/components/Icon";
 import { useState, useEffect } from "react";
 import { fetchOnboardingTasks } from "@/utils/onboardingTasks";
 import { createClient } from "@/utils/supabaseClient";
@@ -78,7 +78,7 @@ export default function BusinessProfileBanner({
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-3">
           <div className="flex-shrink-0">
-            <FaExclamationTriangle className="h-6 w-6 text-blue-600 animate-pulse" />
+            <Icon name="FaExclamationTriangle" className="h-6 w-6 text-blue-600 animate-pulse" size={24} />
           </div>
           <div className="flex-1">
             <h3 className="text-lg font-bold text-blue-900">
@@ -96,7 +96,7 @@ export default function BusinessProfileBanner({
             className="inline-flex items-center gap-2 bg-slate-blue text-white hover:bg-slate-blue/90 font-semibold py-2 px-4 rounded-lg transition-colors shadow-md"
           >
             Complete Profile
-            <FaArrowRight className="h-4 w-4" />
+                          <Icon name="FaArrowRight" className="h-4 w-4" size={16} />
           </Link>
         </div>
       </div>

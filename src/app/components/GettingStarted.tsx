@@ -7,7 +7,7 @@
  */
 
 import React, { useState, useEffect } from "react";
-import { FaCheck, FaBusinessTime, FaPalette, FaCog, FaPlus, FaShare } from "react-icons/fa";
+import Icon from "@/components/Icon";
 import Link from "next/link";
 import { fetchOnboardingTasks, markTaskAsCompleted, markTaskAsIncomplete } from "@/utils/onboardingTasks";
 import { createClient } from '@/utils/supabaseClient';
@@ -100,7 +100,12 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
                 continue;
               }
               
-              console.error('Error initializing default tasks:', lastError);
+              console.error('Error initializing default tasks:', {
+                error: lastError,
+                status: response.status,
+                statusText: response.statusText,
+                attempt: attempt + 1
+              });
             } else {
               const result = await response.json();
               console.log('Default tasks initialized:', result);
@@ -151,7 +156,7 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
             title: "Fill out your business profile",
             description: "Complete your business information",
             link: "/dashboard/business-profile",
-            icon: <FaBusinessTime className="w-5 h-5" />,
+            icon: <Icon name="FaBuilding" className="w-5 h-5" size={20} />,
             completed: taskStatus["business-profile"] || false
           },
           {
@@ -159,7 +164,7 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
             title: "Style your prompt pages",
             description: "Match your brand with custom styling",
             link: "/dashboard/style",
-            icon: <FaPalette className="w-5 h-5" />,
+            icon: <Icon name="FaCog" className="w-5 h-5" size={20} />,
             completed: taskStatus["style-prompt-pages"] || false
           },
           {
@@ -167,7 +172,7 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
             title: "Customize your universal prompt options",
             description: "Configure your universal prompt page settings",
             link: "/dashboard/edit-prompt-page/universal",
-            icon: <FaCog className="w-5 h-5" />,
+            icon: <Icon name="FaCog" className="w-5 h-5" size={20} />,
             completed: taskStatus["customize-universal"] || false
           },
           {
@@ -175,14 +180,14 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
             title: "Create a new prompt page",
             description: "Build your first custom prompt page",
             link: "/dashboard/create-prompt-page",
-            icon: <FaPlus className="w-5 h-5" />,
+            icon: <Icon name="FaPlus" className="w-5 h-5" size={20} />,
             completed: taskStatus["create-prompt-page"] || false
           },
           {
             id: "share",
             title: "Share with customers and clients!",
             description: "Start collecting reviews from your customers",
-            icon: <FaShare className="w-5 h-5" />,
+            icon: <Icon name="FaShare" className="w-5 h-5" size={20} />,
             completed: taskStatus["share"] || false
           }
         ];
@@ -197,7 +202,7 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
             title: "Fill out your business profile",
             description: "Complete your business information",
             link: "/dashboard/business-profile",
-            icon: <FaBusinessTime className="w-5 h-5" />,
+            icon: <Icon name="FaBusinessTime" className="w-5 h-5" size={20} />,
             completed: false
           },
           {
@@ -205,7 +210,7 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
             title: "Style your prompt pages",
             description: "Match your brand with custom styling",
             link: "/dashboard/style",
-            icon: <FaPalette className="w-5 h-5" />,
+            icon: <Icon name="FaPalette" className="w-5 h-5" size={20} />,
             completed: false
           },
           {
@@ -213,7 +218,7 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
             title: "Customize your universal prompt options",
             description: "Configure your universal prompt page settings",
             link: "/dashboard/edit-prompt-page/universal",
-            icon: <FaCog className="w-5 h-5" />,
+            icon: <Icon name="FaCog" className="w-5 h-5" size={20} />,
             completed: false
           },
           {
@@ -221,14 +226,14 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
             title: "Create a new prompt page",
             description: "Build your first custom prompt page",
             link: "/dashboard/create-prompt-page",
-            icon: <FaPlus className="w-5 h-5" />,
+            icon: <Icon name="FaPlus" className="w-5 h-5" size={20} />,
             completed: false
           },
           {
             id: "share",
             title: "Share with customers and clients!",
             description: "Start collecting reviews from your customers",
-            icon: <FaShare className="w-5 h-5" />,
+            icon: <Icon name="FaShare" className="w-5 h-5" size={20} />,
             completed: false
           }
         ];
@@ -325,14 +330,14 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
               task.completed 
                 ? 'bg-white bg-opacity-20' 
                 : task.id === 'business-profile' && !task.completed
-                  ? 'bg-white bg-opacity-15 hover:bg-opacity-20 cursor-pointer border-2 border-blue-300 border-dashed animate-pulse'
+                  ? 'bg-white bg-opacity-15 hover:bg-opacity-20 cursor-pointer border-2 border-yellow-300 border-dashed animate-pulse'
                   : 'bg-white bg-opacity-10 hover:bg-opacity-15 cursor-pointer'
             }`}
             onClick={() => !task.completed && handleTaskClick(task.id)}
           >
             <div className="flex items-center justify-center w-8 h-8 rounded-full bg-white bg-opacity-20 mr-3">
               {task.completed ? (
-                <FaCheck className="w-4 h-4 text-green-300" />
+                <Icon name="FaCheck" className="w-4 h-4 text-green-300" size={16} />
               ) : (
                 <div className="text-white">
                   {task.icon}
@@ -347,7 +352,7 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
                     {task.title}
                   </h3>
                   {task.id === 'business-profile' && !task.completed && (
-                    <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full font-bold animate-bounce border border-blue-300">
+                    <span className="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full font-bold animate-bounce border border-yellow-300">
                       Start Here!
                     </span>
                   )}
@@ -361,7 +366,7 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
                     }}
                     className={`text-sm rounded px-2 py-1 transition-colors ${
                       task.id === 'business-profile' 
-                        ? 'bg-blue-500 text-white hover:bg-blue-600 font-bold' 
+                        ? 'bg-yellow-400 text-yellow-900 hover:bg-yellow-300 font-bold' 
                         : 'bg-white bg-opacity-20 hover:bg-opacity-30'
                     }`}
                   >

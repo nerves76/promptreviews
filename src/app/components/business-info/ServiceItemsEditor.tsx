@@ -11,7 +11,7 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { FaStore, FaTimes, FaRobot } from 'react-icons/fa';
+import Icon from '@/components/Icon';
 
 interface ServiceItem {
   name: string;

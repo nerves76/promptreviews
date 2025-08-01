@@ -8,7 +8,7 @@
 'use client';
 
 import { useState } from 'react';
-import { FaRobot, FaSpinner, FaStar, FaCopy, FaCheck } from 'react-icons/fa';
+import Icon from '@/components/Icon';
 
 interface ReviewResponseGeneratorProps {
   onResponseGenerated?: (response: string) => void;
@@ -84,7 +84,7 @@ export default function ReviewResponseGenerator({ onResponseGenerated }: ReviewR
     <div className="bg-white rounded-lg border border-gray-200 p-6">
       <div className="flex items-center space-x-3 mb-6">
         <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-          <FaRobot className="w-5 h-5 text-purple-600" />
+          <Icon name="FaRobot" className="w-5 h-5 text-purple-600" size={20} />
         </div>
         <div>
           <h3 className="text-lg font-semibold">AI Review Response Generator</h3>
@@ -107,10 +107,12 @@ export default function ReviewResponseGenerator({ onResponseGenerated }: ReviewR
                 onClick={() => setReviewRating(rating)}
                 className="focus:outline-none"
               >
-                <FaStar
+                <Icon
+                  name="FaStar"
                   className={`w-6 h-6 ${
                     rating <= reviewRating ? 'text-yellow-400' : 'text-gray-300'
                   }`}
+                  size={24}
                 />
               </button>
             ))}
@@ -164,12 +166,12 @@ export default function ReviewResponseGenerator({ onResponseGenerated }: ReviewR
           >
             {isGenerating ? (
               <>
-                <FaSpinner className="w-4 h-4 animate-spin" />
+                <Icon name="FaSpinner" className="w-4 h-4 animate-spin" size={16} />
                 <span>Generating...</span>
               </>
             ) : (
               <>
-                <FaRobot className="w-4 h-4" />
+                <Icon name="FaRobot" className="w-4 h-4" size={16} />
                 <span>Generate Response</span>
               </>
             )}
@@ -206,12 +208,12 @@ export default function ReviewResponseGenerator({ onResponseGenerated }: ReviewR
                 >
                   {copied ? (
                     <>
-                      <FaCheck className="w-3 h-3 text-green-600" />
+                      <Icon name="FaCheck" className="w-3 h-3 text-green-600" size={12} />
                       <span className="text-green-600">Copied!</span>
                     </>
                   ) : (
                     <>
-                      <FaCopy className="w-3 h-3" />
+                      <Icon name="FaCopy" className="w-3 h-3" size={12} />
                       <span>Copy</span>
                     </>
                   )}

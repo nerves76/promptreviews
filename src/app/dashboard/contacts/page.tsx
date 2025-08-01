@@ -3,25 +3,14 @@
 import { useState, useEffect } from "react";
 import { useAuthGuard } from "@/utils/authGuard";
 import { createClient, getSessionOrMock } from "@/utils/supabaseClient";
-import {
-  FaDownload,
-  FaUpload,
-  FaInfoCircle,
-  FaQuestionCircle,
-  FaList,
-  FaEye,
-  FaUsers,
-  FaTimesCircle,
-  FaTimes,
-} from "react-icons/fa";
+import Icon from "@/components/Icon";
 import AppLoader from "@/app/components/AppLoader";
 import PageCard from "@/app/components/PageCard";
 import TopLoaderOverlay from "@/app/components/TopLoaderOverlay";
 import { Dialog } from "@headlessui/react";
 import PromptPageForm from "@/app/components/PromptPageForm";
 import { useRouter } from "next/navigation";
-import { FaHandsHelping, FaBoxOpen } from "react-icons/fa";
-import { FaCamera, FaVideo, FaCalendarAlt } from "react-icons/fa";
+
 import PromptTypeSelectModal from "@/app/components/PromptTypeSelectModal";
 import BulkPromptTypeSelectModal from "@/app/components/BulkPromptTypeSelectModal";
 

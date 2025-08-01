@@ -1,7 +1,6 @@
 import React from 'react';
 import { Dialog } from '@headlessui/react';
-import { FaTimes, FaHandsHelping, FaBoxOpen, FaCamera, FaCalendarAlt } from 'react-icons/fa';
-import { MdPhotoCamera as MdPhotoCameraIcon, MdEvent as MdEventIcon } from 'react-icons/md';
+import Icon from '@/components/Icon';
 
 interface BulkPromptTypeSelectModalProps {
   open: boolean;
@@ -15,28 +14,28 @@ const promptTypes = [
     key: 'service',
     name: 'Service',
     description: 'Create prompt pages for services you provide',
-    icon: <FaHandsHelping className="w-6 h-6" />,
+    icon: <Icon name="FaHeart" className="w-6 h-6" size={24} />,
     color: 'bg-blue-500'
   },
   {
     key: 'product',
     name: 'Product',
     description: 'Create prompt pages for products you sell',
-    icon: <FaBoxOpen className="w-6 h-6" />,
+    icon: <Icon name="FaBoxOpen" className="w-6 h-6" size={24} />,
     color: 'bg-green-500'
   },
   {
     key: 'photo',
     name: 'Photo',
     description: 'Create prompt pages for photo services',
-    icon: <MdPhotoCameraIcon className="w-6 h-6" />,
+    icon: <Icon name="FaCamera" className="w-6 h-6" size={24} />,
     color: 'bg-purple-500'
   },
   {
     key: 'event',
     name: 'Event',
     description: 'Create prompt pages for events you host',
-    icon: <MdEventIcon className="w-6 h-6" />,
+    icon: <Icon name="MdEvent" className="w-6 h-6" size={24} />,
     color: 'bg-orange-500'
   }
 ];
@@ -62,7 +61,7 @@ export default function BulkPromptTypeSelectModal({
               onClick={onClose}
               className="text-gray-400 hover:text-gray-600 transition-colors"
             >
-              <FaTimes className="w-5 h-5" />
+              <Icon name="FaTimes" className="w-5 h-5" size={20} />
             </button>
           </div>
 

@@ -1,14 +1,5 @@
 import React, { useState } from "react";
-import {
-  FaStar,
-  FaMagic,
-  FaGoogle,
-  FaYelp,
-  FaFacebook,
-  FaTripadvisor,
-  FaRegStar,
-  FaQuestionCircle,
-} from "react-icons/fa";
+import Icon from "@/components/Icon";
 import { Input } from "@/app/components/ui/input";
 import { Textarea } from "@/app/components/ui/textarea";
 
@@ -56,14 +47,14 @@ const getPlatformIcon = (name: string, url: string) => {
   const lowerName = (name || "").toLowerCase();
   const lowerUrl = (url || "").toLowerCase();
   if (lowerName.includes("google") || lowerUrl.includes("google"))
-    return { icon: FaGoogle, color: "text-slate-blue" };
+    return { icon: "FaGoogle", color: "text-slate-blue" };
   if (lowerName.includes("yelp") || lowerUrl.includes("yelp"))
-    return { icon: FaYelp, color: "text-red-500" };
+    return { icon: "FaYelp", color: "text-red-500" };
   if (lowerName.includes("facebook") || lowerUrl.includes("facebook"))
-    return { icon: FaFacebook, color: "text-blue-700" };
+    return { icon: "FaFacebook", color: "text-blue-700" };
   if (lowerName.includes("tripadvisor") || lowerUrl.includes("tripadvisor"))
-    return { icon: FaTripadvisor, color: "text-green-600" };
-  return { icon: FaRegStar, color: "text-slate-blue" };
+    return { icon: "FaTripadvisor", color: "text-green-600" };
+  return { icon: "FaRegStar", color: "text-slate-blue" };
 };
 
 /**
@@ -112,7 +103,7 @@ const ReviewWriteSection: React.FC<ReviewWriteSectionProps> = ({
   return (
     <div className="mb-16">
       <h2 className="mt-4 mb-8 text-2xl font-bold text-slate-blue flex items-center gap-3">
-        <FaStar className="w-7 h-7 text-slate-blue" />
+        <Icon name="FaStar" className="w-7 h-7 text-slate-blue" size={28} />
         Review Platforms
       </h2>
       <div>
@@ -167,7 +158,7 @@ const ReviewWriteSection: React.FC<ReviewWriteSectionProps> = ({
                     </span>
                   )}
                   <HoverTooltip text="Check if the review was published and mark as 'verified' if it is.">
-                    <FaQuestionCircle className="w-4 h-4 text-gray-400 cursor-pointer" />
+                    <Icon name="FaInfoCircle" className="w-4 h-4 text-gray-400 cursor-pointer" size={16} />
                   </HoverTooltip>
                 </div>
               </div>
@@ -294,7 +285,7 @@ const ReviewWriteSection: React.FC<ReviewWriteSectionProps> = ({
                       Review Template
                     </label>
                     <HoverTooltip text="By filling this out, you give your client or customer a template that will make posting a review much easier and quicker. They will still be able to use the AI button to generate a new review if they are not sure about the one you provide, or they can choose to write a custom review on their own.">
-                      <FaQuestionCircle className="w-3 h-3 text-gray-400 cursor-pointer" />
+                      <Icon name="FaInfoCircle" className="w-3 h-3 text-gray-400 cursor-pointer" size={12} />
                     </HoverTooltip>
                   </div>
                   <Textarea
@@ -328,7 +319,7 @@ const ReviewWriteSection: React.FC<ReviewWriteSectionProps> = ({
                       </>
                     ) : (
                       <>
-                        <FaMagic className="w-4 h-4 mr-2" />
+                        <Icon name="FaStar" className="w-4 h-4 mr-2" size={16} />
                         Generate with AI
                       </>
                     )}

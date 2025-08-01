@@ -7,7 +7,7 @@
 
 "use client";
 import React from "react";
-import { FaInfoCircle } from "react-icons/fa";
+import Icon from "@/components/Icon";
 import RobotTooltip from "../RobotTooltip";
 
 interface CustomerDetailsSectionProps {
@@ -52,7 +52,7 @@ export default function CustomerDetailsSection({ formData, onFormDataChange, cam
   return (
     <div className="custom-space-y">
       <div className="mb-6 flex items-center gap-3">
-        <FaInfoCircle className="w-7 h-7 text-slate-blue" />
+        <Icon name="FaInfoCircle" className="w-7 h-7 text-slate-blue" size={28} />
         <h2 className="text-2xl font-bold text-slate-blue">
           Customer/client details
         </h2>

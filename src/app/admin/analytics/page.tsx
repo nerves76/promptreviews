@@ -11,7 +11,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/utils/supabaseClient';
 import { isAdmin } from '../../../utils/admin';
-import { FaUsers, FaBuilding, FaStar, FaChartLine, FaCalendarAlt, FaGlobe } from 'react-icons/fa';
+import Icon from '@/components/Icon';
 
 // Using singleton Supabase client from supabaseClient.ts
 

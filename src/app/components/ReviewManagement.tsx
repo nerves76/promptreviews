@@ -10,7 +10,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { FaStar, FaReply, FaChevronDown, FaSpinner, FaCalendarAlt, FaUser, FaExclamationTriangle, FaRobot } from 'react-icons/fa';
+import Icon from '@/components/Icon';
 import ReviewResponseGenerator from './ReviewResponseGenerator';
 
 interface GoogleBusinessLocation {
@@ -163,9 +163,11 @@ export default function ReviewManagement({ locations, isConnected }: ReviewManag
     return (
       <div className="flex text-yellow-400">
         {[...Array(5)].map((_, i) => (
-          <FaStar 
+          <Icon 
             key={i} 
+            name="FaStar"
             className={`w-4 h-4 ${i < rating ? 'text-yellow-400' : 'text-gray-300'}`} 
+            size={16}
           />
         ))}
       </div>
@@ -188,7 +190,7 @@ export default function ReviewManagement({ locations, isConnected }: ReviewManag
             <span className="truncate">
               {selectedLocationData ? selectedLocationData.name : 'Select a location...'}
             </span>
-            <FaChevronDown className={`w-4 h-4 transition-transform ${isLocationDropdownOpen ? 'rotate-180' : ''}`} />
+            <Icon name="FaChevronDown" className={`w-4 h-4 transition-transform ${isLocationDropdownOpen ? 'rotate-180' : ''}`} size={16} />
           </button>
 
           {isLocationDropdownOpen && (
@@ -215,7 +217,7 @@ export default function ReviewManagement({ locations, isConnected }: ReviewManag
       {error && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
           <div className="flex items-center">
-            <FaExclamationTriangle className="w-5 h-5 text-red-600 mr-3" />
+            <Icon name="FaExclamationTriangle" className="w-5 h-5 text-red-600 mr-3" size={20} />
             <span className="text-red-800">{error}</span>
           </div>
         </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { FaEdit, FaTrash, FaPlus, FaInfo, FaCheck, FaTimes } from 'react-icons/fa';
+import Icon from '@/components/Icon';
 import PageCard from '@/app/components/PageCard';
 import AppLoader from '@/app/components/AppLoader';
 

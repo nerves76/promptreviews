@@ -1,5 +1,5 @@
 import React from 'react';
-import { FaPlus, FaPalette, FaList, FaCode } from 'react-icons/fa';
+import Icon from '@/components/Icon';
 
 interface WidgetActionsProps {
   onEditStyle: () => void;

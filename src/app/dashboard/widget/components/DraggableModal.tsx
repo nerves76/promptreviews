@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FaArrowsAlt } from 'react-icons/fa';
+import Icon from '@/components/Icon';
 
 interface DraggableModalProps {
   isOpen: boolean;

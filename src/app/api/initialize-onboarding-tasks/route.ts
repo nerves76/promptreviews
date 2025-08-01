@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
       const { data, error } = await serviceClient
         .from('accounts')
         .select('id')
-        .eq('user_id', user.id)
+        .eq('id', user.id)
         .single();
       
       if (error) {

@@ -6,7 +6,7 @@
  */
 
 import React, { useEffect, useState } from "react";
-import { FaStar } from "react-icons/fa";
+import Icon from "@/components/Icon";
 
 interface StarfallCelebrationProps {
   isVisible: boolean;
@@ -97,7 +97,7 @@ const StarfallCelebration: React.FC<StarfallCelebrationProps> = ({
               animationTimingFunction: 'ease-in'
             }}
           >
-            <FaStar className="w-full h-full text-yellow-400 drop-shadow-lg animate-spin" style={{ animationDuration: `${star.speed * 2}s` }} />
+                          <Icon name="FaStar" className="w-full h-full text-yellow-400 drop-shadow-lg animate-spin" size={star.size} style={{ animationDuration: `${star.speed * 2}s` }} />
           </div>
         ))}
       </div>

@@ -6,7 +6,7 @@
 'use client';
 
 import { useState } from 'react';
-import { FaTimes, FaBug, FaLightbulb, FaComment } from 'react-icons/fa';
+import Icon from '@/components/Icon';
 import { createClient, getSessionOrMock } from '@/utils/supabaseClient';
 import { trackEvent } from '../../utils/analytics';
 
@@ -21,19 +21,19 @@ const categoryOptions = [
   {
     value: 'bug_report' as FeedbackCategory,
     label: 'Bug Report',
-    icon: FaBug,
+    icon: 'FaExclamationTriangle',
     description: 'Something isn\'t working as expected'
   },
   {
     value: 'feature_request' as FeedbackCategory,
     label: 'Feature Request',
-    icon: FaLightbulb,
+    icon: 'FaHeart',
     description: 'I\'d like to see a new feature'
   },
   {
     value: 'general_feedback' as FeedbackCategory,
     label: 'General Feedback',
-    icon: FaComment,
+    icon: 'FaCommentAlt',
     description: 'General thoughts or suggestions'
   }
 ];
@@ -145,7 +145,7 @@ export default function FeedbackModal({
           disabled={isSubmitting}
           aria-label="Close"
         >
-          <FaTimes className="w-5 h-5 text-red-600" />
+          <Icon name="FaTimes" className="w-5 h-5 text-red-600" size={20} />
         </button>
 
         {/* Header */}
@@ -162,7 +162,6 @@ export default function FeedbackModal({
             </label>
             <div className="space-y-2">
               {categoryOptions.map((option) => {
-                const Icon = option.icon;
                 return (
                   <label
                     key={option.value}
@@ -180,9 +179,9 @@ export default function FeedbackModal({
                       onChange={(e) => setCategory(e.target.value as FeedbackCategory)}
                       className="sr-only"
                     />
-                    <Icon className={`w-5 h-5 mr-3 ${
+                    <Icon name={option.icon as any} className={`w-5 h-5 mr-3 ${
                       category === option.value ? 'text-slate-blue' : 'text-gray-400'
-                    }`} />
+                    }`} size={20} />
                     <div>
                       <div className={`font-medium ${
                         category === option.value ? 'text-slate-blue' : 'text-gray-900'

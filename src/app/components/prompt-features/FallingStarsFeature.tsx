@@ -23,7 +23,7 @@ import {
   loadAllFallingIcons,
   getFallingIcon,
 } from "@/app/components/prompt-modules/fallingStarsConfig";
-import { FaStar } from "react-icons/fa";
+import Icon from "@/components/Icon";
 
 // Mapping of Tailwind color classes to hex values for the color picker
 const TAILWIND_TO_HEX: { [key: string]: string } = {
@@ -194,7 +194,7 @@ export default function FallingStarsFeature({
 
   // Get the current selected icon configuration
   const currentIconConfig = getFallingIcon(selectedIcon);
-  const IconComponent = currentIconConfig?.icon || FaStar;
+  const IconComponent = currentIconConfig?.icon || 'FaStar';
 
   return (
     <div className={`${editMode ? 'rounded-lg p-6 bg-blue-50 border border-blue-200 flex flex-col gap-6 shadow relative mb-4 min-h-[180px]' : 'bg-white rounded-lg border border-gray-200 p-6'}`}>
@@ -212,7 +212,7 @@ export default function FallingStarsFeature({
         <div className="flex flex-col" style={{ maxWidth: '70%' }}>
           <div className="flex items-center gap-3">
             <div className="flex-shrink-0">
-              <FaStar className={`${editMode ? 'w-7 h-7 text-slate-blue' : 'h-6 w-6 text-yellow-500'}`} />
+              <Icon name="FaStar" className={`${editMode ? 'w-7 h-7 text-slate-blue' : 'h-6 w-6 text-yellow-500'}`} size={editMode ? 28 : 24} />
             </div>
             <h3 className={`${editMode ? 'text-2xl font-bold text-[#1A237E]' : 'text-lg font-semibold text-gray-900'}`}>
               Falling Star Animation

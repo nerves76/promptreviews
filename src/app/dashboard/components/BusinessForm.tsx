@@ -1,18 +1,7 @@
 import React, { useState } from "react";
 import Cropper from "react-easy-crop";
 import type { Area } from "react-easy-crop";
-import {
-  FaImage,
-  FaShareAlt,
-  FaGift,
-  FaStar,
-  FaList,
-  FaMapMarkerAlt,
-  FaClock,
-  FaBuilding,
-  FaInfoCircle,
-  FaRobot,
-} from "react-icons/fa";
+import Icon from "@/components/Icon";
 import IndustrySelector from "@/app/components/IndustrySelector";
 
 interface Platform {
@@ -122,10 +111,7 @@ function RobotTooltip({ text }: { text: string }) {
         onBlur={() => setShow(false)}
         style={{ lineHeight: 1 }}
       >
-        <FaRobot
-          className="inline-block w-4 h-4 align-middle cursor-pointer"
-          title={text}
-        />
+        <Icon name="FaRobot" className="inline-block w-4 h-4 align-middle cursor-pointer" title={text} />
       </button>
       {show && (
         <div className="absolute z-20 left-1/2 -translate-x-1/2 mt-2 w-56 p-2 bg-white border border-gray-200 rounded shadow text-xs text-gray-700">
@@ -187,7 +173,7 @@ export default function BusinessForm({
       {/* Logo Upload Section */}
       <div className="mb-16">
         <h2 className="mt-4 mb-8 text-2xl font-bold text-slate-blue flex items-center gap-3">
-          <FaImage className="w-7 h-7 text-slate-blue" />
+          <Icon name="FaImage" className="w-7 h-7 text-slate-blue" />
           Logo (Optional)
         </h2>
         <div className="mb-10 flex flex-col md:flex-row items-center gap-10">
@@ -211,7 +197,7 @@ export default function BusinessForm({
               onClick={() => fileInputRef.current?.click()}
               className="px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors flex items-center gap-2"
             >
-              <FaImage className="w-5 h-5" />
+              <Icon name="FaImage" className="w-5 h-5" />
               {logoUrl ? "Change Logo" : "Upload Logo"}
             </button>
             {logoError && (
@@ -224,7 +210,7 @@ export default function BusinessForm({
       {/* Business Information Section */}
       <div className="mb-16">
         <h2 className="mt-4 mb-8 text-2xl font-bold text-slate-blue flex items-center gap-3">
-          <FaBuilding className="w-7 h-7 text-slate-blue" />
+          <Icon name="FaBuilding" className="w-7 h-7 text-slate-blue" />
           Business Information
         </h2>
         

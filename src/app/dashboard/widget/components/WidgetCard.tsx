@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import { FaCopy } from "react-icons/fa";
+import Icon from "@/components/Icon";
 import { ChatBubbleLeftIcon } from "@heroicons/react/24/outline";
 import { CheckIcon, DocumentDuplicateIcon } from "@heroicons/react/24/outline";
 

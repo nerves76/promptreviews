@@ -5,25 +5,24 @@
  * for better organization and reusability.
  */
 
-import { IconType } from "react-icons";
-import { FaGoogle, FaFacebook, FaYelp, FaTripadvisor, FaRegStar } from "react-icons/fa";
+import { IconName } from "@/components/Icon";
 
 // Helper to get platform icon based on URL or platform name
 export function getPlatformIcon(
   url: string,
   platform: string,
-): { icon: IconType; label: string } {
+): { icon: IconName; label: string } {
   const lowerUrl = url?.toLowerCase() || "";
   const lowerPlatform = (platform || "").toLowerCase();
   if (lowerUrl.includes("google") || lowerPlatform.includes("google"))
-    return { icon: FaGoogle, label: "Google" };
+    return { icon: "FaGoogle", label: "Google" };
   if (lowerUrl.includes("facebook") || lowerPlatform.includes("facebook"))
-    return { icon: FaFacebook, label: "Facebook" };
+    return { icon: "FaFacebook", label: "Facebook" };
   if (lowerUrl.includes("yelp") || lowerPlatform.includes("yelp"))
-    return { icon: FaYelp, label: "Yelp" };
+    return { icon: "FaYelp", label: "Yelp" };
   if (lowerUrl.includes("tripadvisor") || lowerPlatform.includes("tripadvisor"))
-    return { icon: FaTripadvisor, label: "TripAdvisor" };
-  return { icon: FaRegStar, label: "Other" };
+    return { icon: "FaTripadvisor", label: "TripAdvisor" };
+  return { icon: "FaRegStar", label: "Other" };
 }
 
 // Helper to split full name into first and last

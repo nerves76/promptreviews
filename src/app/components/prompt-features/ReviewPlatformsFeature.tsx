@@ -14,18 +14,7 @@
 
 "use client";
 import React, { useState, useEffect } from "react";
-import {
-  FaStar,
-  FaMagic,
-  FaGoogle,
-  FaYelp,
-  FaFacebook,
-  FaTripadvisor,
-  FaRegStar,
-  FaQuestionCircle,
-  FaPlus,
-  FaTrash,
-} from "react-icons/fa";
+import Icon from "@/components/Icon";
 import { Input } from "@/app/components/ui/input";
 import { Textarea } from "@/app/components/ui/textarea";
 
@@ -79,14 +68,14 @@ const getPlatformIcon = (name: string, url: string) => {
   const lowerName = (name || "").toLowerCase();
   const lowerUrl = (url || "").toLowerCase();
   if (lowerName.includes("google") || lowerUrl.includes("google"))
-    return { icon: FaGoogle, color: "text-slate-blue" };
+    return { icon: "FaGoogle", color: "text-slate-blue" };
   if (lowerName.includes("yelp") || lowerUrl.includes("yelp"))
-    return { icon: FaYelp, color: "text-red-500" };
+    return { icon: "FaYelp", color: "text-red-500" };
   if (lowerName.includes("facebook") || lowerUrl.includes("facebook"))
-    return { icon: FaFacebook, color: "text-blue-700" };
+    return { icon: "FaFacebook", color: "text-blue-700" };
   if (lowerName.includes("tripadvisor") || lowerUrl.includes("tripadvisor"))
-    return { icon: FaTripadvisor, color: "text-green-600" };
-  return { icon: FaRegStar, color: "text-slate-blue" };
+    return { icon: "FaTripadvisor", color: "text-green-600" };
+  return { icon: "FaRegStar", color: "text-slate-blue" };
 };
 
 export default function ReviewPlatformsFeature({
@@ -148,7 +137,7 @@ export default function ReviewPlatformsFeature({
     <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center space-x-3">
-          <FaStar className="text-slate-blue text-lg" />
+          <Icon name="FaStar" className="text-slate-blue text-lg" size={18} />
           <div>
             <h3 className="text-lg font-semibold text-gray-900">
               Review Platforms
@@ -164,7 +153,7 @@ export default function ReviewPlatformsFeature({
           disabled={disabled}
           className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-slate-blue hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-blue disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          <FaPlus className="mr-2 h-4 w-4" />
+          <Icon name="FaPlus" className="mr-2 h-4 w-4" size={16} />
           Add Platform
         </button>
       </div>
@@ -177,7 +166,7 @@ export default function ReviewPlatformsFeature({
             <div key={idx} className="border border-gray-200 rounded-lg p-4">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center space-x-3">
-                  <PlatformIcon className={`w-5 h-5 ${color}`} />
+                  <Icon name={PlatformIcon as any} className={`w-5 h-5 ${color}`} size={20} />
                   <h4 className="font-medium text-gray-900">
                     Platform {idx + 1}
                   </h4>
@@ -188,7 +177,7 @@ export default function ReviewPlatformsFeature({
                   disabled={disabled}
                   className="text-red-600 hover:text-red-800 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <FaTrash className="w-4 h-4" />
+                  <Icon name="FaTrash" className="w-4 h-4" size={16} />
                 </button>
               </div>
 
@@ -262,7 +251,7 @@ export default function ReviewPlatformsFeature({
                     disabled={disabled}
                     className="inline-flex items-center px-3 py-2 border border-slate-blue text-sm leading-4 font-medium rounded-md text-slate-blue bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-blue disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <FaMagic className="mr-2 h-4 w-4" />
+                    <Icon name="FaStar" className="mr-2 h-4 w-4" size={16} />
                     Generate with AI
                   </button>
                 </div>
@@ -274,7 +263,7 @@ export default function ReviewPlatformsFeature({
 
       {platformList.length === 0 && (
         <div className="text-center py-8 text-gray-500">
-          <FaQuestionCircle className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+          <Icon name="FaInfoCircle" className="mx-auto h-12 w-12 text-gray-400 mb-4" size={48} />
           <p>No review platforms configured yet.</p>
           <p className="text-sm">Add a platform to get started.</p>
         </div>

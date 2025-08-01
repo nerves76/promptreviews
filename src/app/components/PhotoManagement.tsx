@@ -6,7 +6,7 @@
 'use client';
 
 import { useState, useRef, useCallback } from 'react';
-import { FaImage, FaUpload, FaSpinner, FaTrash, FaCheck, FaExclamationTriangle, FaMapMarkerAlt, FaChevronDown, FaChevronUp } from 'react-icons/fa';
+import Icon from '@/components/Icon';
 import { createClient } from '@/utils/supabaseClient';
 
 interface GoogleBusinessLocation {
@@ -327,7 +327,7 @@ export default function PhotoManagement({ locations, isConnected }: PhotoManagem
       {/* Location Selection */}
       <div className="space-y-4">
         <h3 className="text-lg font-semibold text-slate-blue flex items-center space-x-2">
-          <FaMapMarkerAlt className="w-4 h-4 text-slate-blue" />
+                      <Icon name="FaMapMarkerAlt" className="w-4 h-4 text-slate-blue" size={16} />
           <span>Select Locations to Upload To</span>
         </h3>
         
@@ -337,7 +337,7 @@ export default function PhotoManagement({ locations, isConnected }: PhotoManagem
             className="w-full flex items-center justify-between p-3 border border-gray-300 rounded-lg bg-white hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent"
           >
             <div className="flex items-center space-x-2">
-              <FaMapMarkerAlt className="w-4 h-4 text-gray-500" />
+                              <Icon name="FaMapMarkerAlt" className="w-4 h-4 text-gray-500" size={16} />
               <span className="text-gray-700">
                 {selectedLocations.length === 0 
                   ? 'Select locations to upload to...'
@@ -347,11 +347,11 @@ export default function PhotoManagement({ locations, isConnected }: PhotoManagem
                 }
               </span>
             </div>
-            {isLocationDropdownOpen ? (
-              <FaChevronUp className="w-4 h-4 text-gray-500" />
-            ) : (
-              <FaChevronDown className="w-4 h-4 text-gray-500" />
-            )}
+                          {isLocationDropdownOpen ? (
+                <Icon name="FaChevronUp" className="w-4 h-4 text-gray-500" size={16} />
+              ) : (
+                <Icon name="FaChevronDown" className="w-4 h-4 text-gray-500" size={16} />
+              )}
           </button>
 
           {isLocationDropdownOpen && (
@@ -465,7 +465,7 @@ export default function PhotoManagement({ locations, isConnected }: PhotoManagem
           onDragOver={handleDragOver}
           className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-gray-400 transition-colors"
         >
-          <FaUpload className="w-8 h-8 text-gray-400 mx-auto mb-4" />
+                            <Icon name="FaUpload" className="w-8 h-8 text-gray-400 mx-auto mb-4" size={32} />
           <p className="text-lg font-medium text-gray-900 mb-2">
             Drag and drop images here
           </p>

@@ -6,7 +6,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { FaSearch, FaSpinner, FaTimes, FaCheck } from 'react-icons/fa';
+import Icon from '@/components/Icon';
 
 interface BusinessCategory {
   categoryId: string;

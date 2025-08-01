@@ -5,8 +5,7 @@ import { useRef } from "react";
 // 🔧 CONSOLIDATED: Single import from supabaseClient module
 import { createClient, getUserOrMock } from "@/utils/supabaseClient";
 import Link from "next/link";
-import { FaGlobe, FaLink, FaTimes, FaPalette, FaPlus, FaCheck, FaMapMarkerAlt, FaEdit, FaTrash, FaStar, FaUsers, FaUser, FaBuilding, FaStore, FaUserCircle } from "react-icons/fa";
-import { MdDownload } from "react-icons/md";
+import Icon from "@/components/Icon";
 import PageCard from "@/app/components/PageCard";
 
 import AppLoader from "@/app/components/AppLoader";
@@ -15,8 +14,7 @@ import dynamic from "next/dynamic";
 import PromptPagesTable from "@/app/components/PromptPagesTable";
 import PublicPromptPagesTable from "@/app/components/PublicPromptPagesTable";
 import PromptTypeSelectModal from "@/app/components/PromptTypeSelectModal";
-import { FaHandsHelping, FaBoxOpen } from "react-icons/fa";
-import { FaCamera, FaVideo, FaCalendarAlt } from "react-icons/fa";
+
 import { useRouter, useSearchParams } from "next/navigation";
 import QRCodeModal from "../components/QRCodeModal";
 import StarfallCelebration from "@/app/components/StarfallCelebration";
@@ -25,7 +23,7 @@ import BusinessLocationModal from "@/app/components/BusinessLocationModal";
 import LocationCard from "@/app/components/LocationCard";
 import { BusinessLocation, LocationWithPromptPage } from "@/types/business";
 import { hasLocationAccess, formatLocationAddress, getLocationDisplayName } from "@/utils/locationUtils";
-import { FaQuestionCircle } from "react-icons/fa";
+
 import EmojiEmbedButton from "@/app/components/EmojiEmbedButton";
 import FiveStarSpinner from "@/app/components/FiveStarSpinner";
 import BusinessProfileBanner from "@/app/components/BusinessProfileBanner";
@@ -458,37 +456,37 @@ export default function PromptPages() {
     {
       key: "service",
       label: "Service review",
-      icon: <FaHandsHelping className="w-7 h-7 text-slate-blue" />,
+      icon: <Icon name="FaHandsHelping" className="w-7 h-7 text-slate-blue" size={28} />,
       description: "Capture a review from a customer or client who loves what you do",
     },
     {
       key: "photo",
       label: "Photo + testimonial",
-      icon: <FaCamera className="w-7 h-7 text-slate-blue" />,
+      icon: <Icon name="FaCamera" className="w-7 h-7 text-slate-blue" size={28} />,
       description: "Capture a headshot and testimonial to display on your website or in marketing materials.",
     },
     {
       key: "product",
       label: "Product review",
-      icon: <FaBoxOpen className="w-7 h-7 text-slate-blue" />,
+      icon: <Icon name="FaBoxOpen" className="w-7 h-7 text-slate-blue" size={28} />,
       description: "Get a review from a customer who fancies your products",
     },
     {
       key: "employee",
       label: "Employee spotlight",
-      icon: <FaUser className="w-7 h-7 text-slate-blue" />,
+      icon: <Icon name="FaUser" className="w-7 h-7 text-slate-blue" size={28} />,
       description: "Create a review page to showcase individual team members and inspire competition",
     },
     {
       key: "event",
       label: "Events & spaces",
-      icon: <FaCalendarAlt className="w-7 h-7 text-slate-blue" />,
+      icon: <Icon name="FaCalendarAlt" className="w-7 h-7 text-slate-blue" size={28} />,
       description: "For events, rentals, tours, and more.",
     },
     {
       key: "video",
       label: "Video testimonial",
-      icon: <FaVideo className="w-7 h-7 text-slate-blue" />,
+      icon: <Icon name="FaVideo" className="w-7 h-7 text-slate-blue" size={28} />,
       description: "Request a video testimonial from your client.",
       comingSoon: true,
     },
@@ -579,7 +577,7 @@ export default function PromptPages() {
                 : 'bg-transparent text-white'}
             `}
           >
-            <FaUsers className="w-5 h-5" />
+            <Icon name="FaUsers" className="w-5 h-5" size={20} />
             Public
           </button>
           <button
@@ -591,7 +589,7 @@ export default function PromptPages() {
                 : 'bg-transparent text-white'}
             `}
           >
-            <FaUserCircle className="w-5 h-5" />
+            <Icon name="FaUserCircle" className="w-5 h-5" size={20} />
             Individual
           </button>
           <button
@@ -603,7 +601,7 @@ export default function PromptPages() {
                 : 'bg-transparent text-white'}
             `}
           >
-            <FaMapMarkerAlt className="w-5 h-5" />
+            <Icon name="FaMapMarker" className="w-5 h-5" size={20} />
             Locations
           </button>
         </div>
@@ -662,7 +660,7 @@ export default function PromptPages() {
                   className="bg-blue-100 text-slate-blue rounded font-semibold px-4 py-2 hover:bg-blue-200 transition whitespace-nowrap flex items-center gap-2 flex-shrink-0"
                   onClick={() => setShowStyleModal(true)}
                 >
-                  <FaPalette className="w-5 h-5" />
+                  <Icon name="FaPalette" className="w-5 h-5" size={20} />
                   Style
                 </button>
               </div>
@@ -675,7 +673,7 @@ export default function PromptPages() {
                   <div className="flex items-center justify-between mb-1">
                     <div className="flex items-center gap-2">
                       <h2 className="text-2xl font-bold text-slate-blue flex items-center gap-3">
-                        <FaGlobe className="w-8 h-8 text-slate-blue" />
+                        <Icon name="FaGlobe" className="w-8 h-8 text-slate-blue" size={32} />
                         Universal Prompt Page
                       </h2>
                       <UniversalTooltip />
@@ -707,7 +705,7 @@ export default function PromptPages() {
                         onClick={() => handleCopyLink()}
                         className="inline-flex items-center gap-1 px-3 py-1.5 bg-purple-100 text-purple-800 rounded hover:bg-purple-200 text-sm font-medium shadow h-9 align-middle whitespace-nowrap"
                       >
-                        <FaLink className="w-5 h-5" />
+                        <Icon name="FaLink" className="w-5 h-5" size={20} />
                         Copy link
                       </button>
                       <button
@@ -723,7 +721,7 @@ export default function PromptPages() {
                         }}
                         className="inline-flex items-center gap-1 px-3 py-1.5 bg-amber-100 text-amber-800 rounded hover:bg-amber-200 text-sm font-medium shadow h-9 align-middle whitespace-nowrap"
                       >
-                        <MdDownload size={22} color="#b45309" />
+                        <Icon name="MdDownload" className="w-5 h-5" size={20} />
                         QR code
                       </button>
                         
@@ -808,7 +806,7 @@ export default function PromptPages() {
               <div className="my-12">
                 {(!account || !hasIndividualAccess(account.plan)) ? (
                   <div className="text-center py-12">
-                    <FaUser className="w-16 h-16 mx-auto mb-6 text-slate-blue" />
+                    <Icon name="FaUser" className="w-16 h-16 mx-auto mb-6 text-slate-blue" size={64} />
                     <h2 className="text-2xl font-bold text-slate-blue mb-4">Individual Prompt Pages</h2>
                     <p className="text-lg text-gray-600 mb-6 max-w-md mx-auto">
                       Create personalized prompt pages for individuals and make them feel special. Pre-populated contact information, write your own review templates, and add custom messaging.
@@ -856,7 +854,7 @@ export default function PromptPages() {
               <div className="my-12">
                 {(!account || !hasLocationAccess(account.plan)) ? (
                   <div className="text-center py-12">
-                    <FaMapMarkerAlt className="w-16 h-16 mx-auto mb-6 text-slate-blue" />
+                    <Icon name="FaMapMarker" className="w-16 h-16 mx-auto mb-6 text-slate-blue" size={64} />
                     <h2 className="text-2xl font-bold text-slate-blue mb-4">Location Prompt Pages</h2>
                     <p className="text-lg text-gray-600 mb-6 max-w-md mx-auto">
                       Create prompt pages for each of your business locations. Perfect for multi-location businesses.
@@ -915,7 +913,7 @@ export default function PromptPages() {
                   
                   {locations.length === 0 && (
                     <div className="text-center py-8 text-gray-500">
-                      <FaMapMarkerAlt className="w-12 h-12 mx-auto mb-4 text-slate-blue" />
+                      <Icon name="FaMapMarker" className="w-12 h-12 mx-auto mb-4 text-slate-blue" size={48} />
                       <p>No locations added yet.</p>
                       <p className="text-sm">Add your first location to get started.</p>
                     </div>
@@ -1083,7 +1081,7 @@ export default function PromptPages() {
           <div className="bg-white rounded-lg p-8 max-w-md mx-4 text-center">
             <div className="mb-6">
                               <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-slate-blue/10 mb-4">
-                <FaStore className="h-6 w-6 text-slate-blue" />
+                <Icon name="FaStore" className="h-6 w-6 text-slate-blue" size={24} />
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
                 Business Profile Required
@@ -1129,10 +1127,7 @@ function UniversalTooltip() {
         onBlur={() => setShow(false)}
         style={{ lineHeight: 1 }}
       >
-        <FaQuestionCircle
-          className="inline-block w-5 h-5 align-middle cursor-pointer"
-          title="Universal Prompt Page info"
-        />
+        <Icon name="FaInfoCircle" className="inline-block w-5 h-5 align-middle cursor-pointer" size={20} title="Universal Prompt Page info" />
       </button>
       {show && (
         <div className="absolute z-20 left-1/2 -translate-x-1/2 mt-2 w-80 p-3 bg-white border border-gray-200 rounded shadow text-sm text-gray-700">

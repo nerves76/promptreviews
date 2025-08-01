@@ -5,7 +5,7 @@ import { createClient, getUserOrMock } from "@/utils/supabaseClient";
 
 const supabase = createClient();
 import { getAccountIdForUser } from "@/utils/accountUtils";
-import { FaArrowsAlt } from "react-icons/fa";
+import Icon from "@/components/Icon";
 
 // Only include fonts that are actually loaded and used in the project
 const fontOptions = [

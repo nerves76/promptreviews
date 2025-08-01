@@ -18,7 +18,7 @@ import { useRouter } from "next/navigation";
 import BasePromptPageForm from "./BasePromptPageForm";
 import { Input } from "@/app/components/ui/input";
 import { Textarea } from "@/app/components/ui/textarea";
-import { FaWrench, FaCheckCircle } from "react-icons/fa";
+import Icon from "@/components/Icon";
 
 interface ServicePromptPageFormRefactoredProps {
   mode: "create" | "edit";
@@ -194,7 +194,7 @@ export default function ServicePromptPageFormRefactored({
         {campaignType === "individual" && (
           <div className="bg-white rounded-lg border border-gray-200 p-6">
             <div className="flex items-center space-x-3 mb-4">
-              <FaCheckCircle className="text-slate-blue text-lg" />
+              <Icon name="FaCheckCircle" className="text-slate-blue text-lg" size={18} />
               <h3 className="text-lg font-semibold text-gray-900">
                 Customer Details
               </h3>
@@ -234,7 +234,7 @@ export default function ServicePromptPageFormRefactored({
         {campaignType === "public" && (
           <div className="bg-white rounded-lg border border-gray-200 p-6">
             <div className="flex items-center space-x-3 mb-4">
-              <FaWrench className="text-slate-blue text-lg" />
+              <Icon name="FaCog" className="text-slate-blue text-lg" size={18} />
               <h3 className="text-lg font-semibold text-gray-900">
                 Campaign Name
               </h3>
@@ -258,7 +258,7 @@ export default function ServicePromptPageFormRefactored({
         {/* Services Provided Section */}
         <div className="bg-white rounded-lg border border-gray-200 p-6">
           <div className="flex items-center space-x-3 mb-4">
-            <FaWrench className="text-slate-blue text-lg" />
+            <Icon name="FaCog" className="text-slate-blue text-lg" size={18} />
             <h3 className="text-lg font-semibold text-gray-900">
               Services Provided
             </h3>
@@ -295,7 +295,7 @@ export default function ServicePromptPageFormRefactored({
         {/* Features or Benefits Section */}
         <div className="bg-white rounded-lg border border-gray-200 p-6">
           <div className="flex items-center space-x-3 mb-4">
-            <FaCheckCircle className="text-slate-blue text-lg" />
+            <Icon name="FaCheckCircle" className="text-slate-blue text-lg" size={18} />
             <h3 className="text-lg font-semibold text-gray-900">
               Features or Benefits
             </h3>

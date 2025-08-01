@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { FaSmile } from "react-icons/fa";
+import Icon from "@/components/Icon";
 import EmojiEmbedModal from "./EmojiEmbedModal";
 
 interface EmojiEmbedButtonProps {
@@ -40,7 +40,7 @@ const EmojiEmbedButton: React.FC<EmojiEmbedButtonProps> = ({
         className="inline-flex items-center gap-1 px-3 py-1.5 bg-red-100 text-red-800 rounded hover:bg-red-200 text-sm font-medium shadow h-9 align-middle whitespace-nowrap"
         title="Get embed code for emoji sentiment widget"
       >
-        <FaSmile className="w-4 h-4" />
+        <Icon name="FaSmile" className="w-4 h-4" size={16} />
         Embed
       </button>
 

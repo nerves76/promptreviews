@@ -8,7 +8,7 @@
 'use client';
 
 import { useState } from 'react';
-import { FaRobot, FaSpinner, FaCopy, FaCheck, FaWrench } from 'react-icons/fa';
+import Icon from '@/components/Icon';
 
 interface ServiceDescriptionGeneratorProps {
   onDescriptionsGenerated?: (descriptions: { short: string; medium: string; long: string }) => void;
@@ -80,7 +80,7 @@ export default function ServiceDescriptionGenerator({ onDescriptionsGenerated }:
     <div className="bg-white rounded-lg border border-gray-200 p-6">
       <div className="flex items-center space-x-3 mb-6">
         <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-          <FaWrench className="w-5 h-5 text-blue-600" />
+          <Icon name="FaCog" className="w-5 h-5 text-blue-600" size={20} />
         </div>
         <div>
           <h3 className="text-lg font-semibold">AI Service Description Generator</h3>
@@ -125,12 +125,12 @@ export default function ServiceDescriptionGenerator({ onDescriptionsGenerated }:
           >
             {isGenerating ? (
               <>
-                <FaSpinner className="w-4 h-4 animate-spin" />
+                <Icon name="FaSpinner" className="w-4 h-4 animate-spin" size={16} />
                 <span>Generating...</span>
               </>
             ) : (
               <>
-                <FaRobot className="w-4 h-4" />
+                <Icon name="FaRobot" className="w-4 h-4" size={16} />
                 <span>Generate Descriptions</span>
               </>
             )}
@@ -164,12 +164,12 @@ export default function ServiceDescriptionGenerator({ onDescriptionsGenerated }:
                 >
                   {copiedField === 'short' ? (
                     <>
-                      <FaCheck className="w-3 h-3 text-green-600" />
+                      <Icon name="FaCheck" className="w-3 h-3 text-green-600" size={12} />
                       <span className="text-green-600">Copied!</span>
                     </>
                   ) : (
                     <>
-                      <FaCopy className="w-3 h-3" />
+                      <Icon name="FaCopy" className="w-3 h-3" size={12} />
                       <span>Copy</span>
                     </>
                   )}
@@ -198,12 +198,12 @@ export default function ServiceDescriptionGenerator({ onDescriptionsGenerated }:
                 >
                   {copiedField === 'medium' ? (
                     <>
-                      <FaCheck className="w-3 h-3 text-green-600" />
+                      <Icon name="FaCheck" className="w-3 h-3 text-green-600" size={12} />
                       <span className="text-green-600">Copied!</span>
                     </>
                   ) : (
                     <>
-                      <FaCopy className="w-3 h-3" />
+                      <Icon name="FaCopy" className="w-3 h-3" size={12} />
                       <span>Copy</span>
                     </>
                   )}
@@ -232,12 +232,12 @@ export default function ServiceDescriptionGenerator({ onDescriptionsGenerated }:
                 >
                   {copiedField === 'long' ? (
                     <>
-                      <FaCheck className="w-3 h-3 text-green-600" />
+                      <Icon name="FaCheck" className="w-3 h-3 text-green-600" size={12} />
                       <span className="text-green-600">Copied!</span>
                     </>
                   ) : (
                     <>
-                      <FaCopy className="w-3 h-3" />
+                      <Icon name="FaCopy" className="w-3 h-3" size={12} />
                       <span>Copy</span>
                     </>
                   )}

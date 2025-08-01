@@ -6,15 +6,7 @@
  */
 
 import React, { useRef, useEffect, useState } from 'react';
-import { 
-  FaHeart, 
-  FaCalendarAlt, 
-  FaEnvelope, 
-  FaHome, 
-  FaLink, 
-  FaBookmark, 
-  FaStar as FaFavorites 
-} from 'react-icons/fa';
+import Icon from '@/components/Icon';
 import { getAccessibleColor } from '@/utils/colorUtils';
 
 interface BusinessProfile {

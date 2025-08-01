@@ -1,9 +1,8 @@
 // Config for the Special Offer module
-import { FaGift } from "react-icons/fa";
-import { IconType } from "react-icons";
+import Icon from "@/components/Icon";
 
 export interface OfferConfig {
-  icon: IconType;
+  icon: string;
   iconColor: string;
   title: string;
   sectionHeader: string;
@@ -14,7 +13,7 @@ export interface OfferConfig {
 }
 
 const offerConfig: OfferConfig = {
-  icon: FaGift,
+  icon: "FaGift",
   iconColor: "#facc15", // gold/yellow
   title: "Get 10% off your next visit",
   sectionHeader: "Special Offer",

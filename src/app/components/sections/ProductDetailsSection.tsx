@@ -7,7 +7,7 @@
 
 "use client";
 import React from "react";
-import { FaWrench } from "react-icons/fa";
+import Icon from "@/components/Icon";
 import RobotTooltip from "../RobotTooltip";
 
 interface ProductDetailsSectionProps {
@@ -55,7 +55,7 @@ export default function ProductDetailsSection({
     <div className="custom-space-y">
       {/* Product Details Header */}
       <div className="flex items-center gap-3 mt-12 mb-6">
-        <FaWrench className="w-7 h-7 text-slate-blue" />
+        <Icon name="FaWrench" className="w-7 h-7 text-slate-blue" size={28} />
         <h2 className="text-2xl font-bold text-slate-blue">
           Product details
         </h2>

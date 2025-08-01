@@ -11,21 +11,7 @@ import ReviewWriteSection, {
 } from "../components/ReviewWriteSection";
 import { Input } from "@/app/components/ui/input";
 import { Textarea } from "@/app/components/ui/textarea";
-import {
-  FaStar,
-  FaHeart,
-  FaSmile,
-  FaThumbsUp,
-  FaBolt,
-  FaCoffee,
-  FaWrench,
-  FaRainbow,
-  FaGlassCheers,
-  FaDumbbell,
-  FaPagelines,
-  FaPeace,
-  FaCommentDots,
-} from "react-icons/fa";
+import Icon from "@/components/Icon";
 import { useFallingStars } from "@/hooks/useFallingStars";
 import RobotTooltip from "@/app/components/RobotTooltip";
 

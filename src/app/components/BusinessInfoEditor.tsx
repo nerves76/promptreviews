@@ -7,7 +7,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { FaStore, FaSave, FaRedo, FaSpinner, FaCheck, FaTimes, FaChevronDown, FaChevronUp, FaRobot } from 'react-icons/fa';
+import Icon from '@/components/Icon';
 import { createClient } from '@/utils/supabaseClient';
 
 // Import our modular components
@@ -330,7 +330,7 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
   if (!isConnected) {
     return (
       <div className="text-center py-12">
-        <FaStore className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+        <Icon name="FaStore" className="w-12 h-12 text-gray-400 mx-auto mb-4" size={48} />
         <h3 className="text-lg font-medium text-gray-900 mb-2">
           Connect Google Business Profile First
         </h3>
@@ -344,7 +344,7 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
   if (locations.length === 0) {
     return (
       <div className="text-center py-12">
-        <FaStore className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+        <Icon name="FaStore" className="w-12 h-12 text-gray-400 mx-auto mb-4" size={48} />
         <h3 className="text-lg font-medium text-gray-900 mb-2">
           No Business Locations Found
         </h3>
@@ -385,9 +385,9 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
           }`}
         >
           {isSaving ? (
-            <FaSpinner className="w-4 h-4 animate-spin" />
+            <Icon name="FaSpinner" className="w-4 h-4 animate-spin" size={16} />
           ) : (
-            <FaSave className="w-4 h-4" />
+            <Icon name="FaSave" className="w-4 h-4" size={16} />
           )}
           <span>
             {isSaving 
@@ -411,7 +411,7 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
             className="w-full flex items-center justify-between p-3 border border-gray-300 rounded-lg bg-white hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent"
           >
             <div className="flex items-center space-x-2">
-              <FaStore className="w-4 h-4 text-gray-500" />
+              <Icon name="FaStore" className="w-4 h-4 text-gray-500" size={16} />
               <span className="text-gray-700">
                 {selectedLocationIds.length === 0 
                   ? 'Select locations to update...'
@@ -422,9 +422,9 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
               </span>
             </div>
             {isLocationDropdownOpen ? (
-              <FaChevronUp className="w-4 h-4 text-gray-500" />
+              <Icon name="FaChevronUp" className="w-4 h-4 text-gray-500" size={16} />
             ) : (
-              <FaChevronDown className="w-4 h-4 text-gray-500" />
+              <Icon name="FaChevronDown" className="w-4 h-4 text-gray-500" size={16} />
             )}
           </button>
 
@@ -512,7 +512,7 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
               <div className="flex items-start space-x-3">
                 <div className="flex-shrink-0">
                   <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center">
-                    <FaStore className="w-3 h-3 text-green-600" />
+                    <Icon name="FaStore" className="w-3 h-3 text-green-600" size={12} />
                   </div>
                 </div>
                 <div className="flex-1">
@@ -532,7 +532,7 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
               <div className="flex items-start space-x-3">
                 <div className="flex-shrink-0">
                   <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-red-500 rounded-full flex items-center justify-center">
-                    <FaStore className="w-4 h-4 text-white" />
+                    <Icon name="FaStore" className="w-4 h-4 text-white" size={16} />
                   </div>
                 </div>
                 <div className="flex-1">
@@ -555,7 +555,7 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
           {isLoadingDetails && (
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <div className="flex items-center space-x-3">
-                <FaSpinner className="w-5 h-5 animate-spin text-blue-600" />
+                <Icon name="FaSpinner" className="w-5 h-5 animate-spin text-blue-600" size={20} />
                 <div>
                   <p className="text-sm font-medium text-blue-900">Loading current business information...</p>
                   <p className="text-xs text-blue-700">Fetching description, hours, categories, and services from Google Business Profile</p>
@@ -568,7 +568,7 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
           {detailsError && (
             <div className="bg-red-50 border border-red-200 rounded-lg p-4">
               <div className="flex items-center space-x-3">
-                <FaTimes className="w-5 h-5 text-red-600" />
+                <Icon name="FaTimes" className="w-5 h-5 text-red-600" size={20} />
                 <div>
                   <p className="text-sm font-medium text-red-900">Unable to load business information</p>
                   <p className="text-xs text-red-700">{detailsError}</p>
@@ -587,9 +587,9 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
                 : 'bg-red-50 text-red-800 border border-red-200'
             }`}>
               {saveResult.success ? (
-                <FaCheck className="w-4 h-4" />
+                <Icon name="FaCheck" className="w-4 h-4" size={16} />
               ) : (
-                <FaTimes className="w-4 h-4" />
+                <Icon name="FaTimes" className="w-4 h-4" size={16} />
               )}
               <span className="text-sm">{saveResult.message}</span>
             </div>
@@ -641,7 +641,7 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
                           onClick={() => setShowServiceGenerator(true)}
                           className="flex items-center space-x-2 text-sm text-purple-600 hover:text-purple-800 border border-purple-300 rounded px-3 py-1 hover:bg-purple-50"
                         >
-                          <FaRobot className="w-3 h-3" />
+                          <Icon name="FaRobot" className="w-3 h-3" size={12} />
                           <span>Generate Description</span>
                         </button>
                         {businessInfo.description.trim() && (
@@ -649,7 +649,7 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
                             onClick={() => setShowDescriptionAnalyzer(true)}
                             className="flex items-center space-x-2 text-sm text-blue-600 hover:text-blue-800 border border-blue-300 rounded px-3 py-1 hover:bg-blue-50"
                           >
-                            <FaRobot className="w-3 h-3" />
+                            <Icon name="FaRobot" className="w-3 h-3" size={12} />
                             <span>AI Search Optimize</span>
                           </button>
                         )}
@@ -710,7 +710,7 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
               {/* Business Categories Section */}
               <div className="space-y-4">
                 <div className="flex items-center space-x-2">
-                  <FaStore className="w-5 h-5 text-slate-blue" />
+                  <Icon name="FaStore" className="w-5 h-5 text-slate-blue" size={20} />
                   <h4 className="text-md font-medium text-gray-900">Business categories</h4>
                 </div>
 
@@ -812,7 +812,7 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
                                 className="text-red-600 hover:text-red-800 p-1"
                                 title="Remove category"
                               >
-                                <FaTimes className="w-4 h-4" />
+                                <Icon name="FaTimes" className="w-4 h-4" size={16} />
                               </button>
                             </div>
                           ))}
@@ -869,9 +869,9 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
                   : 'bg-red-50 text-red-800 border border-red-200'
               }`}>
                 {saveResult.success ? (
-                  <FaCheck className="w-4 h-4 text-green-600" />
+                  <Icon name="FaCheck" className="w-4 h-4 text-green-600" size={16} />
                 ) : (
-                  <FaTimes className="w-4 h-4 text-red-600" />
+                  <Icon name="FaTimes" className="w-4 h-4 text-red-600" size={16} />
                 )}
                 <span>{saveResult.message}</span>
               </div>
@@ -887,9 +887,9 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
               }`}
             >
               {isSaving ? (
-                <FaSpinner className="w-4 h-4 animate-spin" />
+                <Icon name="FaSpinner" className="w-4 h-4 animate-spin" size={16} />
               ) : (
-                <FaSave className="w-4 h-4" />
+                <Icon name="FaSave" className="w-4 h-4" size={16} />
               )}
               <span>
                 {isSaving 
@@ -908,7 +908,7 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
                   : 'border-gray-200 text-gray-400 cursor-not-allowed'
               }`}
             >
-              <FaRedo className="w-4 h-4" />
+              <Icon name="FaRedo" className="w-4 h-4" size={16} />
               <span>Reset</span>
             </button>
           </div>
