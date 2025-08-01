@@ -108,8 +108,7 @@ export default function KickstartersFeature({
     
     if (backgroundType === "gradient") {
       return {
-        background: `linear-gradient(to bottom, ${businessProfile?.gradient_start || '#4F46E5'} 0%, ${businessProfile?.gradient_start || '#4F46E5'} 60%, ${businessProfile?.gradient_end || '#C7D2FE'} 100%)`,
-        backgroundSize: '100% 100%',
+        background: businessProfile?.gradient_start || '#4F46E5', // Use only the first gradient color
       };
     } else {
       return {
@@ -118,41 +117,46 @@ export default function KickstartersFeature({
     }
   };
   
-  // Initialize state from props and initialData
-  const [isEnabled, setIsEnabled] = useState(enabled);
-  const [selected, setSelected] = useState<string[]>(selectedKickstarters);
-  const [localBackgroundDesign, setLocalBackgroundDesign] = useState(backgroundDesign);
+  // Local state management
+  const [allKickstarters, setAllKickstarters] = useState<KickstarterOption[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selected, setSelected] = useState<string[]>(selectedKickstarters || []);
   const [showModal, setShowModal] = useState(false);
+  const [localBackgroundDesign, setLocalBackgroundDesign] = useState(backgroundDesign);
+  const [currentPreviewIndex, setCurrentPreviewIndex] = useState(0);
+  const [showViewAll, setShowViewAll] = useState(false);
 
-  const [allKickstarters, setAllKickstarters] = useState<Kickstarter[]>([]);
-  const [loading, setLoading] = useState(false);
-
-  // Update state when props change
+  // Initialize from prop only once, then use internal state
   useEffect(() => {
-    setIsEnabled(enabled);
-  }, [enabled]);
-
-  useEffect(() => {
-    setSelected(selectedKickstarters);
-  }, [selectedKickstarters]);
+    if (selectedKickstarters && selectedKickstarters.length > 0) {
+      setSelected(selectedKickstarters);
+    }
+  }, []); // Only run once on mount
 
   useEffect(() => {
     setLocalBackgroundDesign(backgroundDesign);
   }, [backgroundDesign]);
 
-  // Initialize from initialData if provided
+  // Reset preview index when selection changes
+  useEffect(() => {
+    setCurrentPreviewIndex(0);
+  }, [selected]);
+
+  // Initialize from initialData if provided (only once on mount)
   useEffect(() => {
     if (initialData) {
-      if (initialData.kickstarters_enabled !== undefined) {
-        setIsEnabled(initialData.kickstarters_enabled);
-      }
       if (initialData.selected_kickstarters !== undefined) {
-        setSelected(initialData.selected_kickstarters);
+        setSelected(initialData.selected_kickstarters || []);
       }
     }
-  }, [initialData]);
+  }, []); // Only run once on mount, don't sync with initialData changes
 
   // Fetch all kickstarters when modal opens
+  // Fetch kickstarters on component mount
+  useEffect(() => {
+    fetchKickstarters();
+  }, []);
+
   useEffect(() => {
     if (showModal) {
       fetchKickstarters();
@@ -178,8 +182,8 @@ export default function KickstartersFeature({
   };
 
   const handleToggle = () => {
-    const newEnabled = !isEnabled;
-    setIsEnabled(newEnabled);
+    const currentEnabled = enabled ?? false;
+    const newEnabled = !currentEnabled;
     onEnabledChange(newEnabled);
   };
 
@@ -193,23 +197,49 @@ export default function KickstartersFeature({
     setShowModal(false);
   };
 
+  // Preview navigation handlers
+  const handlePreviousPreview = () => {
+    if (!allKickstarters || allKickstarters.length === 0) return;
+    setCurrentPreviewIndex(prev => 
+      prev === 0 ? allKickstarters.length - 1 : prev - 1
+    );
+  };
+
+  const handleNextPreview = () => {
+    if (!allKickstarters || allKickstarters.length === 0) return;
+    setCurrentPreviewIndex(prev => 
+      (prev + 1) % allKickstarters.length
+    );
+  };
+
   // Get example kickstarter for preview
   const getExampleKickstarter = () => {
-    if (selected.length === 0) {
-      // When no kickstarters selected, show a sample from our defaults
-      const sampleQuestions = [
-        "What made the experience with [Business Name] feel simple or stress-free?",
-        "What's one word you'd use to describe [Business Name]—and why?",
-        "How did [Business Name] meet—or exceed—your expectations?",
-        "Is there someone at [Business Name] you'd like to thank by name?"
-      ];
-      // Rotate through examples based on current time for variety
-      const index = Math.floor(Date.now() / 10000) % sampleQuestions.length;
-      return sampleQuestions[index];
+    // If no specific kickstarters are selected, use all available kickstarters
+    if (!selected || selected.length === 0) {
+      if (!allKickstarters || allKickstarters.length === 0) {
+        return "What made the experience with [Business Name] feel simple or stress-free?";
+      }
+      // Use currentPreviewIndex for manual navigation (with bounds checking)
+      const index = currentPreviewIndex % allKickstarters.length;
+      const question = allKickstarters[index]?.question || "What made the experience with [Business Name] feel simple or stress-free?";
+      return question;
     }
     
-    const selectedKickstarter = allKickstarters.find(k => k.id === selected[0]);
-    return selectedKickstarter?.question || "What made the experience with [Business Name] feel simple or stress-free?";
+    if (!allKickstarters || allKickstarters.length === 0) {
+      return "What made the experience with [Business Name] feel simple or stress-free?";
+    }
+    
+    // Get the selected kickstarters from allKickstarters
+    const selectedKickstarters = allKickstarters.filter(k => selected.includes(k.id));
+    
+    if (selectedKickstarters.length === 0) {
+      return "What made the experience with [Business Name] feel simple or stress-free?";
+    }
+    
+    // Use currentPreviewIndex to cycle through selected kickstarters
+    const index = currentPreviewIndex % selectedKickstarters.length;
+    const question = selectedKickstarters[index]?.question || "What made the experience with [Business Name] feel simple or stress-free?";
+    return question;
   };
 
   const replaceBusinessName = (question: string) => {
@@ -219,7 +249,7 @@ export default function KickstartersFeature({
   const getInheritanceText = () => {
     if (!isInherited || !businessSettings) return null;
     
-    if (businessSettings.enabled && businessSettings.selectedKickstarters.length > 0) {
+    if (businessSettings.enabled && businessSettings.selectedKickstarters && businessSettings.selectedKickstarters.length > 0) {
       return `Inheriting ${businessSettings.selectedKickstarters.length} kickstarters from business settings`;
     } else if (businessSettings.enabled) {
       return "Inheriting kickstarters from business settings (no specific selection)";
@@ -227,6 +257,8 @@ export default function KickstartersFeature({
       return "Business-level kickstarters are disabled";
     }
   };
+
+  const currentEnabled = enabled ?? false;
 
   return (
     <div className={`${editMode ? 'rounded-lg p-4 bg-blue-50 border border-blue-200 flex flex-col gap-4 shadow relative mb-4' : 'bg-white rounded-lg border border-gray-200 p-6 mb-6'}`}>
@@ -242,7 +274,7 @@ export default function KickstartersFeature({
             </span>
           </div>
           <div className={`${editMode ? 'text-sm text-gray-700 mt-[3px] ml-10' : 'text-sm text-gray-600'}`}>
-            Add a selection of questions that will inspire your client or customer to write an amazing review.
+            Kickstarter questions inspire your clients to write amazing reviews. All 40+ questions are included by default, or you can select specific ones using the Manage button below.
             {isInherited && getInheritanceText() && (
               <div className="text-xs text-blue-600 italic mt-1">
                 {getInheritanceText()}
@@ -250,39 +282,51 @@ export default function KickstartersFeature({
             )}
           </div>
         </div>
-        <button
-          type="button"
-          onClick={handleToggle}
-          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
-            isEnabled ? "bg-slate-blue" : "bg-gray-200"
-          } ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
-          aria-pressed={isEnabled}
-          disabled={disabled}
-        >
-          <span
-            className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
-              isEnabled ? "translate-x-5" : "translate-x-1"
-            }`}
-          />
-        </button>
+        
+
+        <div className="flex items-center space-x-2">
+          <button
+            type="button"
+            onClick={handleToggle}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
+              currentEnabled ? "bg-slate-blue" : "bg-gray-200"
+            } ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
+            aria-pressed={currentEnabled}
+            disabled={disabled}
+          >
+            <span
+              className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+                currentEnabled ? "translate-x-5" : "translate-x-1"
+              }`}
+            />
+          </button>
+        </div>
       </div>
 
       
-      {isEnabled && (
+              {currentEnabled && (
         <div className="px-2 space-y-4">
 
 
           {/* Controls Row - Manage button and Background options */}
           <div className="mb-4 flex items-center justify-between">
-            <button
-              type="button"
-              onClick={handleManageKickstarters}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 shadow-sm transition-colors"
-              disabled={disabled}
-            >
-              <FaCog className="w-4 h-4" />
-              Manage
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={handleManageKickstarters}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 shadow-sm transition-colors"
+                disabled={disabled}
+              >
+                <FaCog className="w-4 h-4" />
+                Manage
+              </button>
+              <span className="text-xs text-gray-500">
+                {selected && selected.length > 0 
+                  ? `${selected.length} selected` 
+                  : 'All 40+ questions included'
+                }
+              </span>
+            </div>
             
             <div className="flex items-center gap-3">
               <span className="text-sm font-medium text-gray-700">Background:</span>
@@ -343,6 +387,12 @@ export default function KickstartersFeature({
               <div className="relative w-full">
                 {/* Left Arrow */}
                 <button 
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handlePreviousPreview();
+                  }}
                   className={`absolute left-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full flex items-center justify-center transition-all focus:outline-none ${
                     localBackgroundDesign 
                       ? 'bg-white hover:bg-gray-50' 
@@ -364,6 +414,12 @@ export default function KickstartersFeature({
 
                 {/* Right Arrow */}
                 <button 
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleNextPreview();
+                  }}
                   className={`absolute right-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full flex items-center justify-center transition-all focus:outline-none ${
                     localBackgroundDesign 
                       ? 'bg-white hover:bg-gray-50' 
@@ -428,9 +484,13 @@ export default function KickstartersFeature({
                     {replaceBusinessName(getExampleKickstarter())}
                   </div>
 
+
+
                   {/* View All centered below */}
                   <div className="flex items-center justify-center">
                     <button
+                      type="button"
+                      onClick={() => setShowViewAll(true)}
                       className="text-[10px] font-medium hover:underline transition-colors focus:outline-none rounded px-1"
                       style={{ 
                         color: localBackgroundDesign 
@@ -460,6 +520,58 @@ export default function KickstartersFeature({
           loading={loading}
           onRefreshKickstarters={fetchKickstarters}
         />
+      )}
+
+      {/* View All Modal */}
+      {showViewAll && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">All Kickstarter Questions</h3>
+              <button
+                onClick={() => setShowViewAll(false)}
+                className="text-gray-400 hover:text-gray-600 text-xl"
+                aria-label="Close"
+              >
+                ×
+              </button>
+            </div>
+            
+            <div className="space-y-3">
+              {(selected && selected.length > 0 
+                ? allKickstarters.filter(k => selected.includes(k.id))
+                : allKickstarters
+              ).map((kickstarter, index) => (
+                <div key={kickstarter.id} className="border rounded-lg p-3 bg-gray-50">
+                  <div className="flex items-start gap-3">
+                    <span className="text-sm font-medium text-gray-500 min-w-[2rem]">
+                      {index + 1}.
+                    </span>
+                    <p className="text-sm text-gray-800">
+                      {replaceBusinessName(kickstarter.question)}
+                    </p>
+                  </div>
+                  {kickstarter.category && (
+                    <div className="mt-2 ml-8">
+                      <span className="inline-block px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded">
+                        {kickstarter.category}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+            
+            <div className="mt-6 flex justify-end">
+              <button
+                onClick={() => setShowViewAll(false)}
+                className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

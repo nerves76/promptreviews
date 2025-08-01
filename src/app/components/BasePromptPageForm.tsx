@@ -187,6 +187,7 @@ export default function BasePromptPageForm({
 
   const [isSaving, setIsSaving] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
+  const [showPopupConflictModal, setShowPopupConflictModal] = useState<string | null>(null);
   
   // Local state for kickstarters background design to provide immediate UI feedback
   const [localBackgroundDesign, setLocalBackgroundDesign] = useState<boolean>(
@@ -247,13 +248,18 @@ export default function BasePromptPageForm({
     }
   };
 
-  // Handle personalized note changes
+  // Handle personalized note changes with conflict checking
   const handlePersonalizedNoteChange = (enabled: boolean, note: string) => {
+    // Check for conflicts when enabling friendly note
+    if (enabled && formData.emoji_sentiment_enabled) {
+      setShowPopupConflictModal("emoji");
+      return;
+    }
     updateFormData('show_friendly_note', enabled);
     updateFormData('friendly_note', note);
   };
 
-  // Handle emoji sentiment changes
+  // Handle emoji sentiment changes with conflict checking
   const handleEmojiSentimentChange = (
     enabled: boolean,
     question: string,
@@ -262,6 +268,11 @@ export default function BasePromptPageForm({
     popupHeader?: string,
     pageHeader?: string
   ) => {
+    // Check for conflicts when enabling emoji sentiment
+    if (enabled && formData.show_friendly_note) {
+      setShowPopupConflictModal("note");
+      return;
+    }
     updateFormData('emoji_sentiment_enabled', enabled);
     updateFormData('emoji_sentiment_question', question);
     updateFormData('emoji_feedback_message', feedbackMessage);
@@ -276,6 +287,8 @@ export default function BasePromptPageForm({
     updateFormData('falling_icon', icon);
     updateFormData('falling_icon_color', color);
   };
+
+
 
   // Handle AI settings changes
   const handleAISettingsChange = (aiEnabled: boolean, grammarEnabled: boolean) => {
@@ -319,7 +332,7 @@ export default function BasePromptPageForm({
         // Revert local state if database update failed
         setLocalBackgroundDesign(businessProfile?.kickstarters_background_design ?? false);
       } else {
-        console.log('Kickstarters background design updated globally:', backgroundDesign);
+  
         // Update the business profile object for immediate sync with live page
         if (businessProfile) {
           businessProfile.kickstarters_background_design = backgroundDesign;
@@ -338,6 +351,35 @@ export default function BasePromptPageForm({
       {children}
 
       {/* Shared Features */}
+      {enabledFeatures.kickstarters && (
+        <KickstartersFeature
+          enabled={formData.kickstarters_enabled}
+          selectedKickstarters={formData.selected_kickstarters}
+          backgroundDesign={localBackgroundDesign}
+          businessName={businessProfile?.name || businessProfile?.business_name || "Business Name"}
+          onEnabledChange={(enabled) => handleKickstartersChange(enabled, formData.selected_kickstarters)}
+          onKickstartersChange={(kickstarters) => handleKickstartersChange(formData.kickstarters_enabled, kickstarters)}
+          onBackgroundDesignChange={handleKickstartersBackgroundDesignChange}
+          initialData={{
+            kickstarters_enabled: initialData?.kickstarters_enabled,
+            selected_kickstarters: initialData?.selected_kickstarters,
+            kickstarters_background_design: localBackgroundDesign,
+          }}
+          disabled={disabled}
+
+          businessProfile={{
+            primary_color: businessProfile?.primary_color,
+            card_bg: businessProfile?.card_bg,
+            card_text: businessProfile?.card_text,
+            card_transparency: businessProfile?.card_transparency,
+            background_type: businessProfile?.background_type,
+            gradient_start: businessProfile?.gradient_start,
+            gradient_end: businessProfile?.gradient_end,
+            background_color: businessProfile?.background_color,
+          }}
+        />
+      )}
+
       {enabledFeatures.personalizedNote && (
         <PersonalizedNoteFeature
           enabled={formData.show_friendly_note}
@@ -488,35 +530,6 @@ export default function BasePromptPageForm({
         />
       )}
 
-      {enabledFeatures.kickstarters && (
-        <KickstartersFeature
-          enabled={formData.kickstarters_enabled}
-          selectedKickstarters={formData.selected_kickstarters}
-          backgroundDesign={localBackgroundDesign}
-          businessName={businessProfile?.name || businessProfile?.business_name || "Business Name"}
-          onEnabledChange={(enabled) => handleKickstartersChange(enabled, formData.selected_kickstarters)}
-          onKickstartersChange={(kickstarters) => handleKickstartersChange(formData.kickstarters_enabled, kickstarters)}
-          onBackgroundDesignChange={handleKickstartersBackgroundDesignChange}
-          initialData={{
-            kickstarters_enabled: initialData?.kickstarters_enabled,
-            selected_kickstarters: initialData?.selected_kickstarters,
-            kickstarters_background_design: localBackgroundDesign,
-          }}
-          disabled={disabled}
-
-          businessProfile={{
-            primary_color: businessProfile?.primary_color,
-            card_bg: businessProfile?.card_bg,
-            card_text: businessProfile?.card_text,
-            card_transparency: businessProfile?.card_transparency,
-            background_type: businessProfile?.background_type,
-            gradient_start: businessProfile?.gradient_start,
-            gradient_end: businessProfile?.gradient_end,
-            background_color: businessProfile?.background_color,
-          }}
-        />
-      )}
-
       {/* Error Display */}
       {errors.length > 0 && (
         <div className="bg-red-50 border border-red-200 rounded-md p-4">
@@ -555,6 +568,39 @@ export default function BasePromptPageForm({
           {isSaving ? "Saving..." : "Save & Publish"}
         </button>
       </div>
+
+      {/* Popup Conflict Modal */}
+      {showPopupConflictModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+          <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full text-center relative">
+            <button
+              className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-xl"
+              onClick={() => setShowPopupConflictModal(null)}
+              aria-label="Close"
+            >
+              &times;
+            </button>
+            <h2 className="text-2xl font-bold text-red-700 mb-4">
+              Cannot Enable Multiple Popups
+            </h2>
+            <p className="mb-6 text-gray-700">
+              You cannot have 2 popups enabled at the same time. You must disable{" "}
+              <strong>
+                {showPopupConflictModal === "note" 
+                  ? "Emoji Sentiment Flow" 
+                  : "Personalized Note Pop-up"}
+              </strong>{" "}
+              first.
+            </p>
+            <button
+              onClick={() => setShowPopupConflictModal(null)}
+              className="bg-slate-blue text-white px-6 py-2 rounded hover:bg-slate-blue/90 font-semibold mt-2"
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      )}
     </form>
   );
 } 

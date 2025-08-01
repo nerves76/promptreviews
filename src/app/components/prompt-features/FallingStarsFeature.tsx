@@ -197,19 +197,19 @@ export default function FallingStarsFeature({
   const IconComponent = currentIconConfig?.icon || FaStar;
 
   return (
-    <div className={`${editMode ? 'rounded-lg p-4 bg-blue-50 border border-blue-200 flex flex-col gap-4 shadow relative mb-4' : 'bg-white rounded-lg border border-gray-200 p-6'}`}>
-      {/* Prompty Image - positioned flush right, top, and bottom */}
+    <div className={`${editMode ? 'rounded-lg p-6 bg-blue-50 border border-blue-200 flex flex-col gap-6 shadow relative mb-4 min-h-[180px]' : 'bg-white rounded-lg border border-gray-200 p-6'}`}>
+      {/* Prompty Image - positioned flush right, top, and bottom, 40% bigger */}
       {editMode && (
         <img 
           src="https://ltneloufqjktdplodvao.supabase.co/storage/v1/object/public/logos/prompt-assets/prompty-catching-review-stars.png"
           alt="Prompty catching stars"
-          className="absolute right-0 top-0 bottom-0 h-full w-auto object-contain pointer-events-none"
-          style={{ maxWidth: '120px' }}
+          className="absolute right-0 top-0 bottom-0 h-full w-auto object-contain pointer-events-none m-0 p-0 z-10"
+          style={{ maxWidth: '168px', margin: '0', padding: '0' }}
         />
       )}
       
-      <div className={`${editMode ? 'flex flex-row justify-between items-start px-2 py-2' : 'flex items-center justify-between mb-4'}`}>
-        <div className="flex flex-col">
+      <div className={`${editMode ? 'flex flex-row justify-between items-start px-2 py-3' : 'flex items-center justify-between mb-4'}`}>
+        <div className="flex flex-col" style={{ maxWidth: '70%' }}>
           <div className="flex items-center gap-3">
             <div className="flex-shrink-0">
               <FaStar className={`${editMode ? 'w-7 h-7 text-slate-blue' : 'h-6 w-6 text-yellow-500'}`} />
@@ -240,7 +240,7 @@ export default function FallingStarsFeature({
       </div>
       
       {isEnabled && (
-        <div className="space-y-4">
+        <div className="space-y-4" style={{ maxWidth: '70%' }}>
           {/* Icon Selection */}
           <div className="flex items-center space-x-4">
             <label className="text-sm font-medium text-gray-700">Icon:</label>

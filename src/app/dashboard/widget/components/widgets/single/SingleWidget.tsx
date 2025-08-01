@@ -32,13 +32,6 @@ const SingleWidget: React.FC<SingleWidgetProps> = ({ data, design }) => {
   const maxRetries = 5;
 
   useEffect(() => {
-    console.log('🎯 SingleWidget: Component mounted with data:', { 
-      widgetId: data.id,
-      widgetType: data.type,
-      reviewsCount: reviews?.length, 
-      design: currentDesign, 
-      slug: slug 
-    });
     
     // Add a cleanup flag to prevent initialization after unmount
     let isMounted = true;
@@ -46,7 +39,7 @@ const SingleWidget: React.FC<SingleWidgetProps> = ({ data, design }) => {
     // Load the CSS if not already loaded
     const loadWidgetCSS = (): Promise<void> => {
       if (document.querySelector('link[href="/widgets/single/single-widget.css"]')) {
-        console.log('✅ SingleWidget: CSS already loaded');
+
         return Promise.resolve();
       }
 
@@ -56,7 +49,7 @@ const SingleWidget: React.FC<SingleWidgetProps> = ({ data, design }) => {
         link.rel = 'stylesheet';
         link.href = `/widgets/single/single-widget.css?v=${new Date().getTime()}`;
         link.onload = () => {
-          console.log('✅ SingleWidget: CSS loaded successfully');
+
           resolve();
         };
         link.onerror = (error) => {
@@ -70,7 +63,7 @@ const SingleWidget: React.FC<SingleWidgetProps> = ({ data, design }) => {
     // Load the widget script if not already loaded
     const loadWidgetScript = (): Promise<void> => {
       if (window.PromptReviewsSingle?.initializeWidget) {
-        console.log('✅ SingleWidget: Widget script already loaded');
+
         return Promise.resolve();
       }
 
@@ -79,11 +72,11 @@ const SingleWidget: React.FC<SingleWidgetProps> = ({ data, design }) => {
         const script = document.createElement('script');
         script.src = `/widgets/single/widget-embed.js?v=${new Date().getTime()}`;
         script.onload = () => {
-          console.log('✅ SingleWidget: Widget script loaded successfully');
+
           // Wait for the script to fully initialize and expose the function
           const checkFunction = () => {
             if (window.PromptReviewsSingle?.initializeWidget) {
-              console.log('🔧 SingleWidget: initializeWidget function is available');
+              
               resolve();
             } else {
               console.log('⏳ SingleWidget: Waiting for initializeWidget function...');
@@ -144,7 +137,7 @@ const SingleWidget: React.FC<SingleWidgetProps> = ({ data, design }) => {
             currentDesign,
             slug || 'example-business'
           );
-          console.log('✅ SingleWidget: Widget initialization completed');
+
         } else {
           console.error('❌ SingleWidget: Missing dependencies for initialization.');
           console.log('🔍 SingleWidget: Debug info:', {

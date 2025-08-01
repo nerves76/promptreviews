@@ -323,6 +323,8 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
         ? promptPage.selected_kickstarters
         : businessProfile?.selected_kickstarters || [];
 
+
+
       let kickstartersQuery;
       
       if (selectedKickstarters.length === 0) {
@@ -411,6 +413,8 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
         const { promptPage, businessProfile } = await response.json();
         console.log("Successfully fetched data:", { promptPage: promptPage.id, business: businessProfile?.id });
         
+
+        
         // Set prompt page data
         setPromptPage(promptPage);
         
@@ -470,6 +474,8 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
     const platforms = promptPage?.review_platforms && promptPage.review_platforms.length
       ? promptPage.review_platforms
       : businessProfile?.review_platforms || [];
+    
+
       
     if (promptPage && Array.isArray(platforms)) {
       setPlatformReviewTexts(
@@ -2196,7 +2202,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                   businessProfile={businessProfile}
                   onQuestionClick={(question) => {
                     // Optional: handle question click (could copy to clipboard or fill textarea)
-                    console.log('Kickstarter question clicked:', question);
+                    
                   }}
                 />
               )}

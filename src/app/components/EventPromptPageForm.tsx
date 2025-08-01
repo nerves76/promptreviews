@@ -261,6 +261,9 @@ export default function EventPromptPageForm({
         ...formData,
         aiButtonEnabled: aiGenerationEnabled,
         fix_grammar_enabled: fixGrammarEnabled,
+        // Explicitly include kickstarters fields to ensure they're saved
+        kickstarters_enabled: formData.kickstarters_enabled,
+        selected_kickstarters: formData.selected_kickstarters,
       };
       const result = await onSave(saveData);
       if (onPublishSuccess && (result as any)?.slug) {
@@ -599,6 +602,20 @@ export default function EventPromptPageForm({
 
         {/* Shared Feature Components */}
         <div className="space-y-8">
+          {/* Kickstarters Feature */}
+          <KickstartersFeature
+            enabled={formData.kickstarters_enabled || false}
+            selectedKickstarters={formData.selected_kickstarters || []}
+            businessName={businessProfile?.name || businessProfile?.business_name || "Business Name"}
+            onEnabledChange={(enabled) => updateFormData('kickstarters_enabled', enabled)}
+            onKickstartersChange={(kickstarters) => updateFormData('selected_kickstarters', kickstarters)}
+            initialData={{
+              kickstarters_enabled: formData.kickstarters_enabled,
+              selected_kickstarters: formData.selected_kickstarters,
+            }}
+            editMode={true}
+          />
+
           {/* Offer Feature */}
           <OfferFeature
             enabled={formData.offer_enabled || false}
@@ -667,20 +684,6 @@ export default function EventPromptPageForm({
             fixGrammarEnabled={formData.fix_grammar_enabled || false}
             onAIEnabledChange={(enabled) => updateFormData('ai_generation_enabled', enabled)}
             onGrammarEnabledChange={(enabled) => updateFormData('fix_grammar_enabled', enabled)}
-          />
-
-          {/* Kickstarters Feature */}
-          <KickstartersFeature
-            enabled={formData.kickstarters_enabled || false}
-            selectedKickstarters={formData.selected_kickstarters || []}
-            businessName={businessProfile?.name || businessProfile?.business_name || "Business Name"}
-            onEnabledChange={(enabled) => updateFormData('kickstarters_enabled', enabled)}
-            onKickstartersChange={(kickstarters) => updateFormData('selected_kickstarters', kickstarters)}
-            initialData={{
-              kickstarters_enabled: formData.kickstarters_enabled,
-              selected_kickstarters: formData.selected_kickstarters,
-            }}
-            editMode={true}
           />
         </div>
 

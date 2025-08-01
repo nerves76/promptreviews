@@ -48,15 +48,6 @@ const MultiWidget: React.FC<MultiWidgetProps> = ({ data, design }) => {
   const isDevelopment = process.env.NODE_ENV === 'development';
 
   useEffect(() => {
-    if (isDevelopment) {
-      console.log('🎯 MultiWidget: Component mounted with data:', { 
-        widgetId: data.id,
-        widgetType: data.type,
-        reviewsCount: reviews?.length, 
-        design: currentDesign, 
-        slug: slug 
-      });
-    }
     
     // Add a cleanup flag to prevent initialization after unmount
     let isMounted = true;
@@ -64,7 +55,7 @@ const MultiWidget: React.FC<MultiWidgetProps> = ({ data, design }) => {
     // Load the CSS if not already loaded
     const loadWidgetCSS = (): Promise<void> => {
       if (document.querySelector('link[href="/widgets/multi/multi-widget.css"]')) {
-        if (isDevelopment) console.log('✅ MultiWidget: CSS already loaded');
+
         return Promise.resolve();
       }
 
@@ -74,7 +65,7 @@ const MultiWidget: React.FC<MultiWidgetProps> = ({ data, design }) => {
         link.rel = 'stylesheet';
         link.href = `/widgets/multi/multi-widget.css?v=${new Date().getTime()}`;
         link.onload = () => {
-          if (isDevelopment) console.log('✅ MultiWidget: CSS loaded successfully');
+
           resolve();
         };
         link.onerror = (error) => {
@@ -88,7 +79,7 @@ const MultiWidget: React.FC<MultiWidgetProps> = ({ data, design }) => {
     // Load the widget script if not already loaded
     const loadWidgetScript = (): Promise<void> => {
       if (window.PromptReviews?.initializeWidget) {
-        if (isDevelopment) console.log('✅ MultiWidget: Widget script already loaded');
+
         return Promise.resolve();
       }
 
@@ -97,12 +88,12 @@ const MultiWidget: React.FC<MultiWidgetProps> = ({ data, design }) => {
         const script = document.createElement('script');
         script.src = `/widgets/multi/widget-embed.js?v=${new Date().getTime()}`;
         script.onload = () => {
-          if (isDevelopment) console.log('✅ MultiWidget: Widget script loaded successfully');
+
           // Wait longer for the script to fully initialize and set up window.PromptReviews
           setTimeout(() => {
             // Check if PromptReviews was properly initialized
             if (window.PromptReviews && typeof window.PromptReviews.initializeWidget === 'function') {
-              if (isDevelopment) console.log('🔧 MultiWidget: initializeWidget function available');
+
               resolve();
             } else {
               console.error('❌ MultiWidget: PromptReviews not properly initialized');
@@ -166,7 +157,7 @@ const MultiWidget: React.FC<MultiWidgetProps> = ({ data, design }) => {
             currentDesign,
             slug || 'example-business'
           );
-          console.log('✅ MultiWidget: Widget initialization completed');
+
           initializedRef.current = true;
         } else {
           console.error('❌ MultiWidget: Missing dependencies for initialization.');

@@ -99,7 +99,7 @@ export default function ServicePromptPageForm({
     falling_icon: initialData?.falling_icon || "star",
     falling_icon_color: initialData?.falling_icon_color || "#fbbf24",
     kickstarters_enabled: initialData?.kickstarters_enabled ?? false,
-    selected_kickstarters: initialData?.selected_kickstarters || [],
+    selected_kickstarters: Array.isArray(initialData?.selected_kickstarters) ? initialData.selected_kickstarters : [],
   });
   
   const [fixGrammarEnabled, setFixGrammarEnabled] = useState(initialData?.fix_grammar_enabled ?? true);
@@ -306,7 +306,13 @@ export default function ServicePromptPageForm({
           emoji_feedback_popup_header: emojiFeedbackPopupHeader,
           emoji_feedback_page_header: emojiFeedbackPageHeader,
           emoji_thank_you_message: emojiThankYouMessage,
+          // Explicitly include kickstarters fields to ensure they're saved
+          kickstarters_enabled: formData.kickstarters_enabled,
+          selected_kickstarters: formData.selected_kickstarters,
         };
+        
+
+
         
         const result = await onSave(saveData);
         
@@ -561,6 +567,20 @@ export default function ServicePromptPageForm({
           hideReviewTemplateFields={campaignType === 'public'}
           aiGeneratingIndex={aiGeneratingIndex}
         />
+
+        {/* Kickstarters Section */}
+        <KickstartersFeature
+          enabled={formData.kickstarters_enabled}
+          selectedKickstarters={formData.selected_kickstarters}
+          businessName={businessProfile?.name || businessProfile?.business_name || "Business Name"}
+          onEnabledChange={(enabled) => updateFormData('kickstarters_enabled', enabled)}
+          onKickstartersChange={(kickstarters) => updateFormData('selected_kickstarters', kickstarters)}
+          initialData={{
+            kickstarters_enabled: initialData?.kickstarters_enabled,
+            selected_kickstarters: initialData?.selected_kickstarters,
+          }}
+          editMode={true}
+        />
         
         {/* Offer Section */}
         <OfferFeature
@@ -587,7 +607,6 @@ export default function ServicePromptPageForm({
               type="button"
               onClick={() => {
                 if (emojiSentimentEnabled) {
-                  // Show conflict modal
                   setShowPopupConflictModal("emoji");
                   return;
                 }
@@ -629,7 +648,6 @@ export default function ServicePromptPageForm({
           enabled={emojiSentimentEnabled}
           onToggle={() => {
             if (formData.show_friendly_note) {
-              // Show conflict modal
               setShowPopupConflictModal("note");
               return;
             }
@@ -680,20 +698,6 @@ export default function ServicePromptPageForm({
           editMode={true}
         />
 
-        {/* Kickstarters Section */}
-        <KickstartersFeature
-          enabled={formData.kickstarters_enabled}
-          selectedKickstarters={formData.selected_kickstarters}
-          businessName={businessProfile?.name || businessProfile?.business_name || "Business Name"}
-          onEnabledChange={(enabled) => updateFormData('kickstarters_enabled', enabled)}
-          onKickstartersChange={(kickstarters) => updateFormData('selected_kickstarters', kickstarters)}
-          initialData={{
-            kickstarters_enabled: initialData?.kickstarters_enabled,
-            selected_kickstarters: initialData?.selected_kickstarters,
-          }}
-          editMode={true}
-        />
-
         {/* Bottom Buttons */}
         <div className="flex justify-between pt-8 border-t border-gray-200">
           <button
@@ -721,7 +725,7 @@ export default function ServicePromptPageForm({
               className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-xl"
               onClick={() => {
                 setShowPopupConflictModal(null);
-                setConflictAcknowledged(true); // Acknowledge the conflict
+                setConflictAcknowledged(true);
               }}
               aria-label="Close"
             >
@@ -733,14 +737,16 @@ export default function ServicePromptPageForm({
             <p className="mb-6 text-gray-700">
               You cannot have 2 popups enabled at the same time. You must disable{" "}
               <strong>
-                {showPopupConflictModal === "note" ? "Emoji Sentiment Flow" : "Friendly Note Pop-up"}
+                {showPopupConflictModal === "note" 
+                  ? "Emoji Sentiment Flow" 
+                  : "Friendly Note Pop-up"}
               </strong>{" "}
               first.
             </p>
             <button
               onClick={() => {
                 setShowPopupConflictModal(null);
-                setConflictAcknowledged(true); // Acknowledge the conflict
+                setConflictAcknowledged(true);
               }}
               className="bg-slate-blue text-white px-6 py-2 rounded hover:bg-slate-blue/90 font-semibold mt-2"
             >

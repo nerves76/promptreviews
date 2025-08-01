@@ -18,9 +18,7 @@ export async function isAdmin(userId?: string, supabaseClient?: any): Promise<bo
     
     if (!userToCheck) {
       const { data: { user }, error: authError } = await client.auth.getUser();
-      if (process.env.NODE_ENV === 'development') {
-        console.log('isAdmin: Auth check result:', { user: user?.id, error: authError?.message });
-      }
+
       if (authError) {
         if (process.env.NODE_ENV === 'development') {
           console.log('isAdmin: Auth error, returning false:', authError.message);
@@ -47,9 +45,7 @@ export async function isAdmin(userId?: string, supabaseClient?: any): Promise<bo
       .eq('id', userToCheck)
       .maybeSingle();
 
-    if (process.env.NODE_ENV === 'development') {
-      console.log('isAdmin: Query result:', { isAdmin: account?.is_admin, error: error?.message });
-    }
+
     
     if (error) {
       console.error('isAdmin: Database error:', {
@@ -63,9 +59,7 @@ export async function isAdmin(userId?: string, supabaseClient?: any): Promise<bo
     }
     
     const isAdminUser = !!(account?.is_admin);
-    if (process.env.NODE_ENV === 'development') {
-      console.log('isAdmin: Final result:', isAdminUser);
-    }
+
     return isAdminUser;
     
   } catch (error) {
@@ -116,7 +110,6 @@ export async function setAdminStatus(
       };
     }
 
-    console.log('setAdminStatus: Success:', data[0]);
     return {
       success: true,
       message: `Successfully ${isAdminStatus ? 'granted' : 'revoked'} admin status for ${email}`

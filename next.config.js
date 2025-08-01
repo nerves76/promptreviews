@@ -7,12 +7,14 @@ const nextConfig = {
   // Performance optimizations
   experimental: {
     optimizePackageImports: ['react-icons', 'lucide-react'],
-    turbo: {
-      rules: {
-        '*.svg': {
-          loaders: ['@svgr/webpack'],
-          as: '*.js',
-        },
+  },
+  
+  // Turbopack configuration (moved from experimental.turbo)
+  turbopack: {
+    rules: {
+      '*.svg': {
+        loaders: ['@svgr/webpack'],
+        as: '*.js',
       },
     },
   },
@@ -84,9 +86,6 @@ const nextConfig = {
   
   // Compression
   compress: true,
-  
-  // Static optimization
-  swcMinify: true,
   
   // Output optimization
   output: 'standalone',

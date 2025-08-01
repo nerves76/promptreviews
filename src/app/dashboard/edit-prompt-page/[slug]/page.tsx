@@ -702,6 +702,8 @@ export default function EditPromptPage() {
         "emoji_sentiment_enabled",
         "emoji_sentiment_question",
         "emoji_feedback_message",
+        "kickstarters_enabled",
+        "selected_kickstarters",
         "emoji_thank_you_message",
         "falling_icon",
         "is_universal",
@@ -817,6 +819,8 @@ export default function EditPromptPage() {
         "product_description",
         "product_photo",
         "features_or_benefits",
+        "kickstarters_enabled",
+        "selected_kickstarters",
         "status"
       ];
       const payload = Object.fromEntries(
@@ -926,6 +930,9 @@ export default function EditPromptPage() {
         ai_button_enabled: formState.ai_button_enabled !== false, // Default to true
         show_friendly_note: formState.show_friendly_note || false,
         friendly_note: formState.friendly_note || "",
+        // Kickstarters fields - CRITICAL FIX
+        kickstarters_enabled: formState.kickstarters_enabled || false,
+        selected_kickstarters: formState.selected_kickstarters || null,
       };
       
       // Only include valid columns in the payload
@@ -945,6 +952,8 @@ export default function EditPromptPage() {
         "ai_button_enabled",
         "show_friendly_note",
         "friendly_note",
+        "kickstarters_enabled",
+        "selected_kickstarters",
       ];
       const payload = Object.fromEntries(
         Object.entries(updateData).filter(([key]) =>
@@ -953,7 +962,7 @@ export default function EditPromptPage() {
       );
       // Debug logs for troubleshooting
       console.log("[DEBUG] Service Save formState:", formState);
-      console.log("[DEBUG] Service Save updateData:", updateData);
+
       console.log("[DEBUG] Service Save payload:", payload);
       // Update the prompt page
       const { error: updateError } = await supabase

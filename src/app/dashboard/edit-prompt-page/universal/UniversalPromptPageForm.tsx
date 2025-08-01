@@ -46,6 +46,10 @@ interface UniversalPromptPageFormProps {
   showResetButton?: boolean;
   businessReviewPlatforms?: ReviewPlatformLink[];
   slug?: string;
+  businessProfile?: {
+    name?: string;
+    business_name?: string;
+  } | null;
 }
 
 const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
@@ -57,6 +61,7 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
       showResetButton,
       businessReviewPlatforms = [],
       slug,
+      businessProfile,
     },
     ref,
   ) => {
@@ -300,6 +305,24 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
         </div>
         {/* Shared Feature Components */}
         <div className="space-y-8">
+          {/* Kickstarters Feature */}
+          <KickstartersFeature
+            enabled={kickstartersEnabled}
+            selectedKickstarters={selectedKickstarters}
+            businessName={(() => {
+              const name = businessProfile?.name || businessProfile?.business_name || "Business Name";
+          
+              return name;
+            })()}
+            onEnabledChange={setKickstartersEnabled}
+            onKickstartersChange={setSelectedKickstarters}
+            initialData={{
+              kickstarters_enabled: kickstartersEnabled,
+              selected_kickstarters: selectedKickstarters,
+            }}
+            editMode={true}
+          />
+
           {/* Offer Feature */}
           <OfferFeature
             enabled={offerEnabled}
@@ -361,20 +384,6 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
               fix_grammar_enabled: fixGrammarEnabled,
             }}
           />
-
-          {/* Kickstarters Feature */}
-          <KickstartersFeature
-            enabled={kickstartersEnabled}
-            selectedKickstarters={selectedKickstarters}
-            businessName="Your Business"
-            onEnabledChange={setKickstartersEnabled}
-            onKickstartersChange={setSelectedKickstarters}
-            initialData={{
-              kickstarters_enabled: kickstartersEnabled,
-              selected_kickstarters: selectedKickstarters,
-            }}
-            editMode={true}
-          />
         </div>
         {/* No Save button here; Save is handled by parent */}
       </form>
@@ -396,7 +405,9 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
             <p className="mb-6 text-gray-700">
               You cannot have 2 popups enabled at the same time. You must disable{" "}
               <strong>
-                {showPopupConflictModal === "note" ? "Emoji Sentiment Flow" : "Personalized Note Pop-up"}
+                {showPopupConflictModal === "note" 
+                  ? "Emoji Sentiment Flow" 
+                  : "Personalized Note Pop-up"}
               </strong>{" "}
               first.
             </p>

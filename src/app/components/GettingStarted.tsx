@@ -301,7 +301,7 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
     }
   };
 
-  if (!isVisible || loading) {
+  if (!isVisible || loading || !hasBusiness) {
     return null;
   }
 
@@ -318,13 +318,15 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
       </div>
       
       <div className="space-y-3">
-        {tasks.map((task) => (
+        {tasks.map((task, index) => (
           <div
             key={task.id}
-            className={`flex items-center p-3 rounded-lg transition-all duration-200 ${
+            className={`flex items-center p-3 rounded-lg transition-all duration-200 relative ${
               task.completed 
                 ? 'bg-white bg-opacity-20' 
-                : 'bg-white bg-opacity-10 hover:bg-opacity-15 cursor-pointer'
+                : task.id === 'business-profile' && !task.completed
+                  ? 'bg-white bg-opacity-15 hover:bg-opacity-20 cursor-pointer border-2 border-blue-300 border-dashed animate-pulse'
+                  : 'bg-white bg-opacity-10 hover:bg-opacity-15 cursor-pointer'
             }`}
             onClick={() => !task.completed && handleTaskClick(task.id)}
           >
@@ -340,9 +342,16 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
             
             <div className="flex-1">
               <div className="flex items-center justify-between">
-                <h3 className={`font-medium ${task.completed ? 'line-through opacity-75' : ''}`}>
-                  {task.title}
-                </h3>
+                <div className="flex items-center gap-2">
+                  <h3 className={`font-medium ${task.completed ? 'line-through opacity-75' : ''}`}>
+                    {task.title}
+                  </h3>
+                  {task.id === 'business-profile' && !task.completed && (
+                    <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full font-bold animate-bounce border border-blue-300">
+                      Start Here!
+                    </span>
+                  )}
+                </div>
                 {task.link && !task.completed && (
                   <Link
                     href={task.link}
@@ -350,7 +359,11 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
                       e.stopPropagation();
                       handleTaskLinkClick(task.id);
                     }}
-                    className="text-sm bg-white bg-opacity-20 hover:bg-opacity-30 rounded px-2 py-1 transition-colors"
+                    className={`text-sm rounded px-2 py-1 transition-colors ${
+                      task.id === 'business-profile' 
+                        ? 'bg-blue-500 text-white hover:bg-blue-600 font-bold' 
+                        : 'bg-white bg-opacity-20 hover:bg-opacity-30'
+                    }`}
                   >
                     Go →
                   </Link>

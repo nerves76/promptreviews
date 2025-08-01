@@ -90,14 +90,7 @@ export default function BusinessProfilePage() {
   const supabase = createClient();
   const { selectedAccount, loading: accountLoading, availableAccounts } = useAccountSelection();
   
-  // Debug logging for account selection
-  console.log('🏢 Business Profile Page - Account Selection State:', {
-    selectedAccount,
-    accountLoading,
-    availableAccounts,
-    selectedAccountId: selectedAccount?.account_id,
-    selectedAccountName: selectedAccount?.account_name
-  });
+
 
   useAuthGuard();
   const [form, setForm] = useState({
@@ -719,6 +712,11 @@ export default function BusinessProfilePage() {
       try {
         await markTaskAsCompleted(user.id, "business-profile");
         console.log("Business profile task marked as completed");
+        
+        // Dispatch custom event to notify other components
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('business-profile-completed'));
+        }
       } catch (taskError) {
         console.error("Error marking business profile task as complete:", taskError);
         // Don't fail the entire operation if task marking fails

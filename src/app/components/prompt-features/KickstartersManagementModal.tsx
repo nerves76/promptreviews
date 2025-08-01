@@ -29,7 +29,7 @@ interface KickstartersManagementModalProps {
   onRefreshKickstarters?: () => void;
 }
 
-const MAX_SELECTED_KICKSTARTERS = 10;
+const MAX_SELECTED_KICKSTARTERS = 50; // Increased from 10 to allow more selections
 const MAX_KICKSTARTER_LENGTH = 89; // Based on longest default question
 
 export default function KickstartersManagementModal({
@@ -198,7 +198,7 @@ export default function KickstartersManagementModal({
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div 
         ref={modalRef}
-        className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] flex flex-col"
+        className="bg-white rounded-lg shadow-xl max-w-4xl w-full h-[90vh] flex flex-col overflow-hidden"
       >
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
@@ -214,7 +214,7 @@ export default function KickstartersManagementModal({
               onClick={handleSave}
               className="px-4 py-2 bg-slate-blue text-white rounded-lg hover:bg-slate-blue-dark focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2 transition-colors"
             >
-              Save
+              Save Selection
             </button>
             <button
               onClick={onClose}
@@ -261,9 +261,9 @@ export default function KickstartersManagementModal({
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-hidden">
+        <div className="flex-1 overflow-hidden" style={{ height: 'calc(90vh - 200px)' }}>
           {activeTab === 'browse' && (
-            <div className="p-6 h-full flex flex-col">
+            <div className="p-6 h-full flex flex-col min-h-0">
               {/* Controls */}
               <div className="flex items-center gap-4 mb-4">
                 <div className="flex-1 relative">
@@ -353,7 +353,7 @@ export default function KickstartersManagementModal({
               )}
 
               {/* Questions List */}
-              <div className="flex-1 overflow-y-auto">
+              <div className="flex-1 overflow-y-auto pr-2" style={{ maxHeight: 'calc(90vh - 350px)' }}>
                 {loading ? (
                   <div className="flex items-center justify-center h-32">
                     <div className="text-gray-500">Loading questions...</div>
@@ -416,7 +416,7 @@ export default function KickstartersManagementModal({
           )}
 
           {activeTab === 'selected' && (
-            <div className="p-6 h-full flex flex-col">
+            <div className="p-6 h-full flex flex-col min-h-0">
               {/* Category Stats */}
               <div className="mb-4">
                 <h3 className="text-sm font-medium text-gray-900 mb-2">Selection by Category</h3>
@@ -442,7 +442,7 @@ export default function KickstartersManagementModal({
               </div>
 
               {/* Selected Questions */}
-              <div className="flex-1 overflow-y-auto">
+              <div className="flex-1 overflow-y-auto pr-2" style={{ maxHeight: 'calc(90vh - 350px)' }}>
                 {selected.length === 0 ? (
                   <div className="text-center py-8 text-gray-500">
                     No kickstarters selected yet. Switch to the "Browse Questions" tab to select some.

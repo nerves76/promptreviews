@@ -32,13 +32,6 @@ const PhotoWidget: React.FC<PhotoWidgetProps> = ({ data, design }) => {
   const maxRetries = 5;
 
   useEffect(() => {
-    console.log('🎯 PhotoWidget: Component mounted with data:', { 
-      widgetId: data.id,
-      widgetType: data.type,
-      reviewsCount: reviews?.length, 
-      design: currentDesign, 
-      slug: slug 
-    });
     
     // Add a cleanup flag to prevent initialization after unmount
     let isMounted = true;

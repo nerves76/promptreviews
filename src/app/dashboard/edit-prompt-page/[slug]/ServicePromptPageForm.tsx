@@ -102,7 +102,7 @@ const ServicePromptPageForm = forwardRef<any, ServicePromptPageFormProps>(
       initialColor: initialData?.fallingIconColor ?? "#fbbf24",
       onFormDataChange: (data) => {
         // Update form data when falling stars change
-        console.log('Falling stars data changed:', data);
+    
       }
     });
     
