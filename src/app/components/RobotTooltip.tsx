@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FaRobot } from "react-icons/fa";
+import Icon from "@/components/Icon";
 
 export default function RobotTooltip({ text }: { text: string }) {
   const [show, setShow] = useState(false);
@@ -14,9 +14,10 @@ export default function RobotTooltip({ text }: { text: string }) {
         onBlur={() => setShow(false)}
         style={{ lineHeight: 1 }}
       >
-        <FaRobot
+        <Icon
+          name="FaRobot"
           className="inline-block w-4 h-4 align-middle cursor-pointer"
-          title={text}
+          size={16}
         />
       </button>
       {show && (

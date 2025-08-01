@@ -11,7 +11,7 @@ import { useEffect, useState, useRef, useMemo, useCallback } from "react";
 import { createClient } from "@/utils/supabaseClient";
 import { useRouter, useSearchParams } from "next/navigation";
 import { QRCodeSVG } from "qrcode.react";
-import { FaHome, FaStore, FaChartLine, FaUser, FaCog, FaSignOutAlt, FaPlus } from "react-icons/fa";
+import Icon from "@/components/Icon";
 import DashboardContent from "./DashboardContent";
 import PricingModal, { tiers } from "../components/PricingModal";
 import FiveStarSpinner from "../components/FiveStarSpinner";
@@ -821,7 +821,7 @@ const Dashboard = React.memo(function Dashboard() {
       {/* PageCard with consistent spacing */}
       <div className="flex justify-center items-start pt-0 pb-8 -mt-10">
         <PageCard
-          icon={<FaHome className="w-8 h-8 text-slate-blue" />}
+          icon={<Icon name="FaHome" className="w-8 h-8 text-slate-blue" size={32} />}
           topMargin="mt-0"
           bottomLeftImage={{
             src: "https://ltneloufqjktdplodvao.supabase.co/storage/v1/object/public/logos/prompt-assets/prompty-fishing-for-stars.png",
@@ -883,19 +883,6 @@ const Dashboard = React.memo(function Dashboard() {
         {showTopLoader && (
           <div className="fixed top-0 left-0 w-full h-1 bg-slate-blue z-50">
             <div className="h-full bg-white animate-pulse"></div>
-          </div>
-        )}
-        
-        {/* Development Only: Force Refresh Button */}
-        {process.env.NODE_ENV === 'development' && (
-          <div className="fixed bottom-4 right-4 z-50">
-            <button
-              onClick={handleForceRefresh}
-              className="px-4 py-2 bg-red-600 text-white text-sm rounded-lg shadow-lg hover:bg-red-700 transition-colors"
-              title="Development: Force refresh session and account data"
-            >
-              🔄 Force Refresh
-            </button>
           </div>
         )}
     </div>

@@ -19,7 +19,7 @@ import QRCodeGenerator, { QR_FRAME_SIZES } from '../dashboard/components/QRCodeG
 import { FALLING_STARS_ICONS, getFallingIcon } from './prompt-modules/fallingStarsConfig';
 import { Dialog } from "@headlessui/react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
-import { FaStar } from "react-icons/fa";
+import Icon from "@/components/Icon";
 
 interface QRCodeModalProps {
   isOpen: boolean;
@@ -573,7 +573,7 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl,
                               const IconComponent = iconConfig.icon;
                               return <IconComponent className={`w-6 h-6 ${iconConfig.color}`} />;
                             }
-                            return <FaStar className="w-6 h-6 text-yellow-500" />;
+                            return <Icon name="FaStar" className="w-6 h-6 text-yellow-500" size={24} />;
                           })()}
                         </div>
                         <button

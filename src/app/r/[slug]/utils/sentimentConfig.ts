@@ -6,7 +6,7 @@
  */
 
 import React from 'react';
-import { FaGrinHearts, FaSmile, FaMeh, FaFrown, FaAngry } from 'react-icons/fa';
+import Icon from '@/components/Icon';
 
 export const sentimentOptions = [
   {

@@ -2,28 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { createClient } from "@/utils/supabaseClient";
-import {
-  FaChevronDown,
-  FaChevronRight,
-  FaDownload,
-  FaStar,
-  FaTrash,
-  FaGoogle,
-  FaFacebook,
-  FaYelp,
-  FaTripadvisor,
-  FaRegStar,
-  FaRegComment,
-  FaThumbtack,
-  FaRegCopyright,
-} from "react-icons/fa";
-import {
-  SiHouzz,
-  SiThumbtack,
-  SiHomeadvisor,
-  SiTrustpilot,
-} from "react-icons/si";
-import { IconType } from "react-icons";
+import Icon, { IconName } from "@/components/Icon";
 import PageCard from "@/app/components/PageCard";
 import AppLoader from "@/app/components/AppLoader";
 import TopLoaderOverlay from "@/app/components/TopLoaderOverlay";
@@ -193,28 +172,28 @@ const AngiIcon: IconType = () => (
 );
 
 // Helper to get platform icon based on platform name
-function getPlatformIcon(platform: string): { icon: IconType; label: string } {
+function getPlatformIcon(platform: string): { icon: any; label: string } {
   const lower = (platform || "").toLowerCase();
   if (lower.includes("google"))
-    return { icon: FaGoogle, label: "Google Business Profile" };
-  if (lower.includes("yelp")) return { icon: FaYelp, label: "Yelp" };
+    return { icon: "FaGoogle", label: "Google Business Profile" };
+  if (lower.includes("yelp")) return { icon: "FaYelp", label: "Yelp" };
   if (lower.includes("facebook"))
-    return { icon: FaFacebook, label: "Facebook" };
+    return { icon: "FaFacebook", label: "Facebook" };
   if (lower.includes("tripadvisor"))
-    return { icon: FaTripadvisor, label: "TripAdvisor" };
+    return { icon: "FaTripadvisor", label: "TripAdvisor" };
   if (lower.includes("clutch"))
-    return { icon: FaRegCopyright, label: "Clutch" };
-  if (lower.includes("g2")) return { icon: FaRegStar, label: "G2" };
+    return { icon: "FaRegCopyright", label: "Clutch" };
+  if (lower.includes("g2")) return { icon: "FaRegStar", label: "G2" };
   if (lower.includes("angi")) return { icon: AngiIcon, label: "Angi" };
-  if (lower.includes("houzz")) return { icon: SiHouzz, label: "Houzz" };
+  if (lower.includes("houzz")) return { icon: "SiHouzz", label: "Houzz" };
   if (lower.includes("bbb")) return { icon: BBBIcon, label: "BBB" };
   if (lower.includes("thumbtack"))
-    return { icon: FaThumbtack, label: "Thumbtack" };
+    return { icon: "FaThumbtack", label: "Thumbtack" };
   if (lower.includes("homeadvisor"))
-    return { icon: SiHomeadvisor, label: "HomeAdvisor" };
+    return { icon: "SiHomeadvisor", label: "HomeAdvisor" };
   if (lower.includes("trustpilot"))
-    return { icon: SiTrustpilot, label: "Trustpilot" };
-  return { icon: FaRegStar, label: platform || "Other" };
+    return { icon: "SiTrustpilot", label: "Trustpilot" };
+  return { icon: "FaRegStar", label: platform || "Other" };
 }
 
 // Helper to check if a review is new (within 7 days)

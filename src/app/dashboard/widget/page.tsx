@@ -3,7 +3,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { createClient } from "@/utils/supabaseClient";
 import WidgetList from "./WidgetList";
 import PageCard from "@/app/components/PageCard";
-import { FaPlus, FaEdit, FaRegComment, FaCode, FaCheck } from "react-icons/fa";
+import Icon from "@/components/Icon";
 import { WidgetPreview } from "./components/WidgetPreview";
 import { StyleModal } from "./components/StyleModal";
 import { ReviewManagementModal } from "./components/ReviewManagementModal";
@@ -235,7 +235,7 @@ export default function WidgetPage() {
                   className="p-2 bg-white/40 backdrop-blur-sm rounded-full shadow-lg hover:bg-white/50 transition-all duration-200 group"
                   title="Edit Style"
                 >
-                  <FaEdit className="w-4 h-4 text-slate-blue group-hover:text-slate-blue/80 transition-colors" />
+                  <Icon name="FaEdit" className="w-4 h-4 text-slate-blue group-hover:text-slate-blue/80 transition-colors" size={16} />
                 </button>
                 
                 <button
@@ -243,7 +243,7 @@ export default function WidgetPage() {
                   className="p-2 bg-white/40 backdrop-blur-sm rounded-full shadow-lg hover:bg-white/50 transition-all duration-200 group"
                   title="Manage Reviews"
                 >
-                  <FaRegComment className="w-4 h-4 text-slate-blue group-hover:text-slate-blue/80 transition-colors" />
+                  <Icon name="FaRegComment" className="w-4 h-4 text-slate-blue group-hover:text-slate-blue/80 transition-colors" size={16} />
                 </button>
                 
                 <button
@@ -256,9 +256,9 @@ export default function WidgetPage() {
                   title={isCopied ? "Copied!" : "Copy Embed Code"}
                 >
                   {isCopied ? (
-                    <FaCheck className="w-4 h-4 text-green-500" />
+                    <Icon name="FaCheck" className="w-4 h-4 text-green-500" size={16} />
                   ) : (
-                    <FaCode className="w-4 h-4 text-slate-blue group-hover:text-slate-blue/80 transition-colors" />
+                    <Icon name="FaCode" className="w-4 h-4 text-slate-blue group-hover:text-slate-blue/80 transition-colors" size={16} />
                   )}
                 </button>
               </div>
@@ -274,13 +274,13 @@ export default function WidgetPage() {
       {/* Bottom Section: Header and Widget List */}
       <div className="w-full max-w-6xl mx-auto">
         <PageCard
-          icon={<FaCode className="w-9 h-9 text-slate-blue" />}
+          icon={<Icon name="FaCode" className="w-9 h-9 text-slate-blue" size={36} />}
           topRightAction={
             <button
               onClick={() => window.dispatchEvent(new CustomEvent('openNewWidgetForm'))}
               className="px-4 py-2 text-sm font-medium text-white bg-slate-blue rounded-md hover:bg-slate-blue/90 flex items-center"
             >
-              <FaPlus className="mr-2" />
+                              <Icon name="FaPlus" className="mr-2" size={16} />
               Create widget
             </button>
           }

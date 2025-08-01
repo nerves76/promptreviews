@@ -14,7 +14,7 @@
 
 "use client";
 import React, { useState, useEffect } from "react";
-import { FaChevronLeft, FaChevronRight, FaTimes } from "react-icons/fa";
+import Icon from '@/components/Icon';
 
 export interface KickstarterQuestion {
   id: string;

@@ -6,7 +6,7 @@
 'use client';
 
 import { useState } from 'react';
-import { FaStore, FaSpinner, FaCheck } from 'react-icons/fa';
+import Icon from '@/components/Icon';
 
 interface BusinessLocation {
   id: string;

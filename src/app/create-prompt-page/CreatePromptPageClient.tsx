@@ -2,27 +2,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect, useRef, Suspense } from "react";
 import { generateContextualReview, generateContextualTestimonial } from "@/utils/aiReviewGeneration";
-import {
-  FaFileAlt,
-  FaInfoCircle,
-  FaStar,
-  FaGift,
-  FaVideo,
-  FaImage,
-  FaQuoteRight,
-  FaCamera,
-  FaHeart,
-  FaGoogle,
-  FaYelp,
-  FaFacebook,
-  FaTripadvisor,
-  FaRegStar,
-  FaSmile,
-  FaHandsHelping,
-  FaBoxOpen,
-  FaUser,
-} from "react-icons/fa";
-import { MdEvent } from "react-icons/md";
+import Icon from "@/components/Icon";
 import { checkAccountLimits } from "@/utils/accountLimits";
 import { getAccountIdForUser } from "@/utils/accountUtils";
 import { Dialog } from "@headlessui/react";

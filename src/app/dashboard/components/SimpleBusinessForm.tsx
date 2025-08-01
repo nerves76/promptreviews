@@ -8,7 +8,7 @@
  */
 
 import React, { useState, forwardRef } from "react";
-import { FaBuilding, FaRobot, FaTags } from "react-icons/fa";
+import Icon from "@/components/Icon";
 import IndustrySelector from "@/app/components/IndustrySelector";
 import { createClient } from "@/utils/supabaseClient";
 import { useRouter } from "next/navigation";

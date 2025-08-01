@@ -14,7 +14,7 @@ import {
 } from "@/app/components/prompt-features";
 import { useFallingStars } from "@/hooks/useFallingStars";
 import SectionHeader from "@/app/components/SectionHeader";
-import { FaCommentDots } from "react-icons/fa";
+import Icon from "@/components/Icon";
 
 export interface UniversalPromptFormState {
   offerEnabled: boolean;

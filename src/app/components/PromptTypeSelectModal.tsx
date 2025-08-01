@@ -1,5 +1,5 @@
 import React from "react";
-import { FaTimes } from "react-icons/fa";
+import Icon from "@/components/Icon";
 
 interface PromptType {
   key: string;
@@ -32,7 +32,7 @@ const PromptTypeSelectModal: React.FC<PromptTypeSelectModalProps> = ({
           onClick={onClose}
           aria-label="Close modal"
         >
-          <FaTimes className="w-5 h-5 text-red-600" />
+          <Icon name="FaTimes" className="w-5 h-5 text-red-600" size={20} />
         </button>
         <h2 className="text-2xl font-bold text-slate-blue mb-6 sticky top-0 bg-white z-10 pt-2 pb-4">
           Select prompt page type

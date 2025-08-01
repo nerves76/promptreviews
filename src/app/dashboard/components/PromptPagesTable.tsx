@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import Link from "next/link";
-import { FaLink, FaGlobe } from "react-icons/fa";
-import { MdDownload } from "react-icons/md";
+import Icon from "@/components/Icon";
 import QRCodeModal from "../../components/QRCodeModal";
 
 export interface PromptPage {

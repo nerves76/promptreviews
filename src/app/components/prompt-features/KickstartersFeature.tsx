@@ -13,7 +13,7 @@
 
 "use client";
 import React, { useState, useEffect } from "react";
-import { FaLightbulb, FaCog } from "react-icons/fa";
+import Icon from "@/components/Icon";
 import { createClient } from "@/utils/supabaseClient";
 import KickstartersManagementModal from "./KickstartersManagementModal";
 
@@ -265,7 +265,7 @@ export default function KickstartersFeature({
       <div className={`${editMode ? 'flex flex-row justify-between items-start px-2 py-2' : 'flex items-center justify-between mb-4'}`}>
         <div className="flex flex-col">
           <div className="flex items-center gap-3">
-            <FaLightbulb className={`${editMode ? 'w-7 h-7 text-slate-blue' : 'text-slate-blue text-lg'}`} />
+            <Icon name="FaLightbulb" className={`${editMode ? 'w-7 h-7 text-slate-blue' : 'text-slate-blue text-lg'}`} size={editMode ? 28 : 18} />
             <h3 className={`${editMode ? 'text-2xl font-bold text-[#1A237E]' : 'text-lg font-semibold text-gray-900'}`}>
               Kickstarters
             </h3>
@@ -317,7 +317,7 @@ export default function KickstartersFeature({
                 className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 shadow-sm transition-colors"
                 disabled={disabled}
               >
-                <FaCog className="w-4 h-4" />
+                <Icon name="FaCog" className="w-4 h-4" size={16} />
                 Manage
               </button>
               <span className="text-xs text-gray-500">

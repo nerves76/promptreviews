@@ -8,7 +8,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { FaRobot, FaSpinner, FaCopy, FaCheck, FaChartLine, FaLightbulb, FaExclamationTriangle } from 'react-icons/fa';
+import Icon from '@/components/Icon';
 
 interface AnalysisResult {
   seoScore: number;
@@ -158,12 +158,12 @@ export default function BusinessDescriptionAnalyzer({
           >
             {isAnalyzing ? (
               <>
-                <FaSpinner className="w-4 h-4 animate-spin" />
+                <Icon name="FaSpinner" className="w-4 h-4 animate-spin" size={16} />
                 <span>Analyzing...</span>
               </>
             ) : (
               <>
-                <FaChartLine className="w-4 h-4" />
+                <Icon name="FaChartLine" className="w-4 h-4" size={16} />
                 <span>Optimize Description</span>
               </>
             )}
@@ -183,7 +183,7 @@ export default function BusinessDescriptionAnalyzer({
       {/* Auto-analyze status */}
       {autoAnalyze && isAnalyzing && (
         <div className="flex items-center space-x-2 text-blue-600">
-          <FaSpinner className="w-4 h-4 animate-spin" />
+          <Icon name="FaSpinner" className="w-4 h-4 animate-spin" size={16} />
                       <span className="text-sm">Analyzing your description...</span>
         </div>
       )}
@@ -236,13 +236,13 @@ export default function BusinessDescriptionAnalyzer({
           {/* Improvements */}
           <div className="border border-orange-200 rounded-lg p-4">
             <div className="flex items-center space-x-2 mb-3">
-              <FaLightbulb className="w-4 h-4 text-orange-600" />
+              <Icon name="FaInfoCircle" className="w-4 h-4 text-orange-600" size={16} />
               <h4 className="font-medium text-gray-900">Recommendations</h4>
             </div>
             <ul className="space-y-2">
               {analysis.improvements.map((improvement, index) => (
                 <li key={index} className="flex items-start space-x-2 text-sm">
-                  <FaExclamationTriangle className="w-3 h-3 text-orange-500 mt-0.5 flex-shrink-0" />
+                  <Icon name="FaExclamationTriangle" className="w-3 h-3 text-orange-500 mt-0.5 flex-shrink-0" size={12} />
                   <span className="text-gray-700">{improvement}</span>
                 </li>
               ))}

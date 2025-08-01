@@ -2,29 +2,7 @@
 import { useRouter, useParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import { generateContextualReview } from "@/utils/aiReviewGeneration";
-import {
-  FaGoogle,
-  FaFacebook,
-  FaYelp,
-  FaTripadvisor,
-  FaRegStar,
-  FaGift,
-  FaStar,
-  FaHeart,
-  FaThumbsUp,
-  FaStore,
-  FaSmile,
-  FaGlobe,
-  FaHandsHelping,
-  FaUser,
-  FaWrench,
-  FaBoxOpen,
-  FaTrophy,
-  FaCommentDots,
-  FaCamera,
-} from "react-icons/fa";
-import { MdEvent } from "react-icons/md";
-import { IconType } from "react-icons";
+import Icon from "@/components/Icon";
 import Link from "next/link";
 import { getAccountIdForUser } from "@/utils/accountUtils";
 import IndustrySelector from "@/app/components/IndustrySelector";
@@ -115,18 +93,18 @@ function Tooltip({ text }: { text: string }) {
 function getPlatformIcon(
   url: string,
   platform: string,
-): { icon: IconType; label: string } {
+): { icon: any; label: string } {
   const lowerUrl = url.toLowerCase();
   const lowerPlatform = (platform || "").toLowerCase();
   if (lowerUrl.includes("google") || lowerPlatform.includes("google"))
-    return { icon: FaGoogle, label: "Google" };
+    return { icon: "FaGoogle", label: "Google" };
   if (lowerUrl.includes("facebook") || lowerPlatform.includes("facebook"))
-    return { icon: FaFacebook, label: "Facebook" };
+    return { icon: "FaFacebook", label: "Facebook" };
   if (lowerUrl.includes("yelp") || lowerPlatform.includes("yelp"))
-    return { icon: FaYelp, label: "Yelp" };
+    return { icon: "FaYelp", label: "Yelp" };
   if (lowerUrl.includes("tripadvisor") || lowerPlatform.includes("tripadvisor"))
-    return { icon: FaTripadvisor, label: "TripAdvisor" };
-  return { icon: FaRegStar, label: "Other" };
+    return { icon: "FaTripadvisor", label: "TripAdvisor" };
+  return { icon: "FaRegStar", label: "Other" };
 }
 
 // Utility function to map camelCase form data to snake_case DB columns
@@ -1021,12 +999,12 @@ export default function EditPromptPage() {
     {
       key: "star",
       label: "Stars",
-      icon: <FaStar className="w-6 h-6 text-yellow-400" />,
+      icon: <Icon name="FaStar" className="w-6 h-6 text-yellow-400" />,
     },
     {
       key: "heart",
       label: "Hearts",
-      icon: <FaHeart className="w-6 h-6 text-red-500" />,
+      icon: <Icon name="FaHeart" className="w-6 h-6 text-red-500" />,
     },
     {
       key: "rainbow",
@@ -1175,25 +1153,25 @@ export default function EditPromptPage() {
   // Determine the appropriate icon based on page type
   const getPageIcon = () => {
     if (formData.type === "product" || (formData as any).review_type === "product") {
-      return <FaBoxOpen className="w-9 h-9 text-slate-blue" />;
+      return <Icon name="FaBoxOpen" className="w-9 h-9 text-slate-blue" />;
     }
     if (formData.type === "service" || (formData as any).review_type === "service") {
-      return <FaHandsHelping className="w-9 h-9 text-slate-blue" />;
+      return <Icon name="FaHandsHelping" className="w-9 h-9 text-slate-blue" />;
     }
     if ((formData as any).review_type === "photo") {
-      return <FaCamera className="w-9 h-9 text-slate-blue" />;
+      return <Icon name="FaCamera" className="w-9 h-9 text-slate-blue" />;
     }
     if ((formData as any).review_type === "employee") {
-      return <FaUser className="w-9 h-9 text-slate-blue" />;
+      return <Icon name="FaUser" className="w-9 h-9 text-slate-blue" />;
     }
     if ((formData as any).review_type === "event") {
-      return <MdEvent className="w-9 h-9 text-slate-blue" />;
+      return <Icon name="MdEvent" className="w-9 h-9 text-slate-blue" />;
     }
     if (formData.type === "universal") {
-      return <FaGlobe className="w-9 h-9 text-slate-blue" />;
+      return <Icon name="FaGlobe" className="w-9 h-9 text-slate-blue" size={36} />;
     }
     // Default icon
-    return <FaHandsHelping className="w-9 h-9 text-slate-blue" />;
+    return <Icon name="FaHandsHelping" className="w-9 h-9 text-slate-blue" />;
   };
 
   // Determine the page title based on type

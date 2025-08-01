@@ -5,15 +5,7 @@ import { useAuthGuard } from "@/utils/authGuard";
 // 🔧 CONSOLIDATED: Single import from supabaseClient module
 import { createClient, getUserOrMock, getSessionOrMock } from "@/utils/supabaseClient";
 import { useAccountSelection } from "@/utils/accountSelectionHooks";
-import {
-  FaDownload,
-  FaUpload,
-  FaInfoCircle,
-  FaQuestionCircle,
-  FaList,
-  FaEye,
-  FaUsers,
-} from "react-icons/fa";
+import Icon from "@/components/Icon";
 import { Dialog } from "@headlessui/react";
 import { useRouter } from "next/navigation";
 import AppLoader from "@/app/components/AppLoader";

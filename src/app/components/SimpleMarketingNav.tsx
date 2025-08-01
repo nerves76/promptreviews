@@ -1,6 +1,6 @@
 import React from "react";
 import Link from "next/link";
-import { FaArrowLeft } from "react-icons/fa";
+import Icon from "@/components/Icon";
 import PromptReviewsLogo from "@/app/dashboard/components/PromptReviewsLogo";
 import { usePathname } from "next/navigation";
 
@@ -28,7 +28,7 @@ export default function SimpleMarketingNav() {
                 : 'text-slate-blue hover:text-slate-blue/80'
             }`}
           >
-            <FaArrowLeft className="w-4 h-4" />
+            <Icon name="FaArrowLeft" className="w-4 h-4" size={16} />
             Back to main site
           </a>
         </div>

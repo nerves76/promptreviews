@@ -14,7 +14,7 @@
 
 "use client";
 import React, { useState, useEffect, useRef } from "react";
-import { FaTimes, FaPlus, FaSearch, FaLightbulb } from "react-icons/fa";
+import Icon from "@/components/Icon";
 import { createClient } from "@/utils/supabaseClient";
 import { Kickstarter } from "./KickstartersFeature";
 
@@ -203,7 +203,7 @@ export default function KickstartersManagementModal({
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <div className="flex items-center gap-3">
-            <FaLightbulb className="text-slate-blue text-xl" />
+            <Icon name="FaLightbulb" className="text-slate-blue text-xl" size={20} />
             <h2 className="text-xl font-bold text-gray-900">Manage Kickstarters</h2>
             <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
               AKA Prompts
@@ -220,7 +220,7 @@ export default function KickstartersManagementModal({
               onClick={onClose}
               className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-gray-300"
             >
-              <FaTimes className="w-4 h-4 text-gray-600" />
+              <Icon name="FaTimes" className="w-4 h-4 text-gray-600" size={16} />
             </button>
           </div>
         </div>
@@ -267,7 +267,7 @@ export default function KickstartersManagementModal({
               {/* Controls */}
               <div className="flex items-center gap-4 mb-4">
                 <div className="flex-1 relative">
-                  <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <Icon name="FaSearch" className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
                   <input
                     type="text"
                     placeholder="Search questions..."
@@ -292,7 +292,7 @@ export default function KickstartersManagementModal({
               {showAddCustom && (
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
                   <div className="flex items-center gap-2 mb-3">
-                    <FaPlus className="text-blue-600" />
+                    <Icon name="FaPlus" className="text-blue-600" size={16} />
                     <h3 className="font-medium text-blue-900">Add Custom Kickstarter</h3>
                   </div>
                   <div className="space-y-3">
@@ -436,7 +436,7 @@ export default function KickstartersManagementModal({
                   onClick={() => setShowAddCustom(true)}
                   className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
                 >
-                  <FaPlus className="w-4 h-4" />
+                  <Icon name="FaPlus" className="w-4 h-4" size={16} />
                   Add Custom Question
                 </button>
               </div>

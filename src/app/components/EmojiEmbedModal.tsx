@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { EMOJI_SENTIMENT_LABELS } from "./prompt-modules/emojiSentimentConfig";
 import EmojiSentimentEmbed from "./EmojiSentimentEmbed";
-import { FaSmile, FaEnvelope, FaGlobe } from "react-icons/fa";
+import Icon from "@/components/Icon";
 
 interface EmojiEmbedModalProps {
   isOpen: boolean;
@@ -130,7 +130,7 @@ const EmojiEmbedModal: React.FC<EmojiEmbedModalProps> = ({
           {/* Header section */}
           <div className="mb-6">
             <h2 className="text-2xl font-semibold text-slate-700 flex items-center gap-3">
-              <FaSmile className="text-slate-600" />
+                                <Icon name="FaSmile" className="text-slate-600" size={16} />
               Emoji Sentiment Embed
             </h2>
             <p className="text-gray-600 mt-2 text-base">
@@ -217,7 +217,7 @@ const EmojiEmbedModal: React.FC<EmojiEmbedModalProps> = ({
                         : 'text-gray-600 hover:text-gray-800'
                     }`}
                   >
-                    <FaEnvelope className="text-slate-600" size={14} />
+                    <Icon name="FaEnvelope" className="text-slate-600" size={14} />
                     Email (PNG)
                   </button>
                   <button
@@ -229,7 +229,7 @@ const EmojiEmbedModal: React.FC<EmojiEmbedModalProps> = ({
                         : 'text-gray-600 hover:text-gray-800'
                     }`}
                   >
-                    <FaGlobe className="text-slate-600" size={14} />
+                    <Icon name="FaGlobe" className="text-slate-600" size={14} />
                     Website (SVG)
                   </button>
                 </div>

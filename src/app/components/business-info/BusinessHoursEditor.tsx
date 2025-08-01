@@ -5,7 +5,7 @@
 
 'use client';
 
-import { FaClock } from 'react-icons/fa';
+import Icon from '@/components/Icon';
 
 interface BusinessHours {
   [key: string]: {

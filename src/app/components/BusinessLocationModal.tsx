@@ -5,7 +5,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { BusinessLocation } from '@/types/business';
-import { FaMapMarkerAlt, FaImage, FaStickyNote } from 'react-icons/fa';
+import Icon from '@/components/Icon';
 import { 
   OfferFeature,
   EmojiSentimentFeature,
@@ -395,7 +395,7 @@ export default function BusinessLocationModal({
           {/* Header */}
           <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4 relative">
             <div className="flex items-center gap-3">
-              <FaMapMarkerAlt className="w-6 h-6 text-slate-blue" />
+              <Icon name="FaMapMarkerAlt" className="w-6 h-6 text-slate-blue" size={24} />
               <h2 className="text-xl font-bold text-slate-blue">
                 {location ? 'Edit Location' : 'Add New Location'}
               </h2>
@@ -464,7 +464,7 @@ export default function BusinessLocationModal({
                       />
                     ) : (
                       <div className="w-24 h-24 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center bg-gray-50">
-                        <FaImage className="w-8 h-8 text-gray-400" />
+                        <Icon name="FaImage" className="w-8 h-8 text-gray-400" size={32} />
                       </div>
                     )}
                   </div>
@@ -482,7 +482,7 @@ export default function BusinessLocationModal({
                       htmlFor="location-photo-upload"
                       className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-blue cursor-pointer"
                     >
-                      <FaImage className="w-4 h-4 mr-2" />
+                      <Icon name="FaImage" className="w-4 h-4 mr-2" size={16} />
                       Upload Photo
                     </label>
                     {locationPhotoError && (
@@ -664,7 +664,7 @@ export default function BusinessLocationModal({
               <div className="rounded-lg p-4 bg-slate-50 border border-slate-200 flex flex-col gap-2 shadow relative">
                 <div className="flex items-center justify-between mb-2 px-2 py-2">
                   <div className="flex items-center gap-3">
-                    <FaStickyNote className="w-7 h-7 text-slate-blue" />
+                    <Icon name="FaFileAlt" className="w-7 h-7 text-slate-blue" size={28} />
                     <span className="text-2xl font-bold text-slate-blue">
                       Personalized note pop-up
                     </span>

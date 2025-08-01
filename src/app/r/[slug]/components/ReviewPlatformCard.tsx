@@ -1,5 +1,5 @@
 import React from 'react';
-import { IconType } from 'react-icons';
+import Icon, { IconName } from '@/components/Icon';
 import { applyCardTransparency } from '@/utils/colorUtils';
 
 interface ReviewPlatformCardProps {
@@ -31,7 +31,7 @@ interface ReviewPlatformCardProps {
   onFixGrammar: (idx: number) => void;
   onCopyAndSubmit: (idx: number, url: string) => void;
   onToggleInstructions: (idx: number | null) => void;
-  getPlatformIcon: (url: string, platform: string) => { icon: IconType; label: string };
+  getPlatformIcon: (url: string, platform: string) => { icon: IconName; label: string };
   getFontClass: (fontName: string) => string;
 }
 
@@ -67,7 +67,7 @@ export default function ReviewPlatformCard({
   getPlatformIcon,
   getFontClass,
 }: ReviewPlatformCardProps) {
-  const { icon: Icon, label } = getPlatformIcon(
+  const { icon: iconName, label } = getPlatformIcon(
     platform.url,
     platform.platform || platform.name,
   );
@@ -104,7 +104,9 @@ export default function ReviewPlatformCard({
         }}
       >
         <Icon
+          name={iconName}
           className="w-7 h-7"
+          size={28}
           style={{ color: businessProfile?.primary_color || "#4F46E5" }}
         />
       </div>

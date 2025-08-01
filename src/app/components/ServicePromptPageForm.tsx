@@ -28,16 +28,7 @@ import { Textarea } from "@/app/components/ui/textarea";
 import SectionHeader from "./SectionHeader";
 import { TopNavigation, BottomNavigation } from "./sections/StepNavigation";
 import { generateContextualReview } from "../../utils/aiReviewGeneration";
-import {
-  FaInfoCircle,
-  FaStar,
-  FaGift,
-  FaSmile,
-  FaBoxOpen,
-  FaPlus,
-  FaTrash,
-  FaStickyNote,
-} from "react-icons/fa";
+import Icon from "@/components/Icon";
 
 /**
  * ServicePromptPageForm component
@@ -458,7 +449,7 @@ export default function ServicePromptPageForm({
         {(isUniversal || campaignType === 'public') && (
           <div className="mb-6">
             <div className="mb-6 flex items-center gap-3">
-              <FaInfoCircle className="w-7 h-7 text-slate-blue" />
+              <Icon name="FaInfoCircle" className="w-7 h-7 text-slate-blue" size={28} />
               <h2 className="text-2xl font-bold text-slate-blue">
                 Campaign name
               </h2>
@@ -488,7 +479,7 @@ export default function ServicePromptPageForm({
         {/* Services */}
         <div>
           <div className="mb-4 flex items-center gap-2">
-            <FaStar className="w-5 h-5 text-[#1A237E]" />
+                            <Icon name="FaStar" className="w-5 h-5 text-[#1A237E]" size={20} />
             <h2 className="text-2xl font-bold text-slate-blue">
               Services
             </h2>
@@ -520,7 +511,7 @@ export default function ServicePromptPageForm({
                   }}
                   className="text-red-600 hover:text-red-800"
                 >
-                  <FaTrash className="w-4 h-4" />
+                                      <Icon name="FaTrash" className="w-4 h-4" size={16} />
                 </button>
               </div>
             ))}
@@ -532,7 +523,7 @@ export default function ServicePromptPageForm({
               }}
               className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-slate-blue bg-slate-blue/10 hover:bg-slate-blue/20 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-blue"
             >
-              <FaPlus className="-ml-1 mr-2 h-4 w-4" />
+                              <Icon name="FaPlus" className="-ml-1 mr-2 h-4 w-4" size={16} />
               Add Service
             </button>
           </div>
@@ -541,7 +532,7 @@ export default function ServicePromptPageForm({
         {/* Outcome */}
         <div>
           <div className="mb-4 flex items-center gap-2">
-            <FaGift className="w-5 h-5 text-[#1A237E]" />
+                          <Icon name="FaGift" className="w-5 h-5 text-[#1A237E]" size={20} />
             <h2 className="text-2xl font-bold text-slate-blue">
               Outcome
             </h2>
@@ -598,7 +589,7 @@ export default function ServicePromptPageForm({
         <div className="rounded-lg p-4 bg-slate-50 border border-slate-200 flex flex-col gap-2 shadow relative">
           <div className="flex items-center justify-between mb-2 px-2 py-2">
             <div className="flex items-center gap-3">
-              <FaStickyNote className="w-7 h-7 text-slate-blue" />
+              <Icon name="FaFileAlt" className="w-7 h-7 text-slate-blue" size={28} />
               <span className="text-2xl font-bold text-slate-blue">
                 Friendly note pop-up
               </span>

@@ -4,8 +4,7 @@ import * as React from "react";
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
-import { FiMenu, FiX } from "react-icons/fi";
-import { FaUserCircle, FaBell } from "react-icons/fa";
+import Icon from "@/components/Icon";
 import { createPortal } from "react-dom";
 import { createClient, getUserOrMock } from "@/utils/supabaseClient";
 import { useAuth } from "@/contexts/AuthContext";
@@ -21,7 +20,7 @@ const CowboyUserIcon = () => {
     console.log('🐴 Cowboy icon failed to load, showing fallback');
     return (
       <div className="w-8 h-8 border-2 border-white rounded-full flex items-center justify-center hover:opacity-80 transition-opacity">
-        <FaUserCircle className="w-5 h-5 text-white" />
+                        <Icon name="FaUserCircle" className="w-5 h-5 text-white" size={20} />
       </div>
     );
   }
@@ -358,7 +357,7 @@ export default function Header() {
                     {hasBusiness && !businessProfileCompleted && (
                       <>
                         {/* Start Here Badge */}
-                        <span className="absolute -top-3 -right-2 bg-blue-500 text-white text-xs px-2 py-1 rounded-full font-bold animate-pulse shadow-lg">
+                        <span className="absolute -top-3 -right-2 bg-yellow-400 text-yellow-900 text-xs px-2 py-1 rounded-full font-bold animate-pulse shadow-lg">
                           Start Here!
                         </span>
                         {/* Tooltip */}
@@ -488,7 +487,7 @@ export default function Header() {
                   onClick={() => setShowNotifications((v) => !v)}
                   aria-label="Show notifications"
                 >
-                  <FaBell className="w-6 h-6 text-white hover:text-white/80 transition-colors" />
+                  <Icon name="FaBell" className="w-6 h-6 text-white hover:text-white/80 transition-colors" size={24} />
                   {notifications.filter((n) => !n.read).length > 0 && (
                     <span className="absolute -top-1 -right-1 bg-pink-300 text-slate-blue text-[10px] rounded-full w-4 h-4 flex items-center justify-center font-bold border border-white">
                       {notifications.filter((n) => !n.read).length}
@@ -509,7 +508,7 @@ export default function Header() {
                       <h3 className="text-lg font-semibold text-gray-900 mb-3">Recent activity</h3>
                       {recentNotifications.length === 0 ? (
                         <div className="text-center py-8 text-gray-500">
-                          <FaBell className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                          <Icon name="FaBell" className="w-8 h-8 mx-auto mb-2 opacity-50" size={32} />
                           <p>No recent activity</p>
                           <p className="text-sm mt-1">Check back later for new reviews and feedback.</p>
                         </div>
@@ -624,7 +623,7 @@ export default function Header() {
                 className="inline-flex items-center justify-center p-2 rounded-md text-white hover:text-white/80 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white/30"
                 aria-label="Open main menu"
               >
-                {menuOpen ? <FiX className="h-6 w-6" /> : <FiMenu className="h-6 w-6" />}
+                {menuOpen ? <Icon name="FiX" className="h-6 w-6" size={24} /> : <Icon name="FiMenu" className="h-6 w-6" size={24} />}
               </button>
             </div>
           </div>
@@ -707,7 +706,7 @@ export default function Header() {
                       Your business
                       {hasBusiness && !businessProfileCompleted && (
                         <>
-                          <span className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs px-2 py-1 rounded-full font-bold animate-pulse">
+                          <span className="absolute -top-1 -right-1 bg-yellow-400 text-yellow-900 text-xs px-2 py-1 rounded-full font-bold animate-pulse">
                             Start Here!
                           </span>
                           <span className="text-xs text-blue-600 block mt-1">Complete your business profile</span>

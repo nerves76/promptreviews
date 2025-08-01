@@ -6,7 +6,7 @@
  */
 
 import React from 'react';
-import { FaPalette, FaHeart } from 'react-icons/fa';
+import Icon from '@/components/Icon';
 import { getAccessibleColor } from '@/utils/colorUtils';
 import { isOffWhiteOrCream } from '../utils/helperFunctions';
 
@@ -55,7 +55,7 @@ export default function TopActionButtons({
             style={buttonStyle}
             title="Style your prompt pages"
           >
-            <FaPalette className="w-5 h-5 transition-colors group-hover:text-slate-blue" />
+            <Icon name="FaPalette" className="w-5 h-5 transition-colors group-hover:text-slate-blue" size={20} />
             <span className="hidden sm:inline">Style</span>
           </button>
         </div>
@@ -70,7 +70,7 @@ export default function TopActionButtons({
           className="flex items-center gap-2 px-4 py-2 rounded-lg shadow-md hover:bg-gray-50 transition-colors group"
           style={buttonStyle}
         >
-          <FaHeart className="w-5 h-5 transition-colors group-hover:text-red-500" />
+          <Icon name="FaHeart" className="w-5 h-5 transition-colors group-hover:text-red-500" size={20} />
           <span className={`hidden sm:inline${showOnlyHeart ? " sm:hidden" : ""}`}>
             {showOnlyHeart ? "" : "Save for Later"}
           </span>

@@ -12,7 +12,7 @@
 
 "use client";
 import React, { useState, useEffect } from "react";
-import { FaRobot, FaSpellCheck } from "react-icons/fa";
+import Icon from "@/components/Icon";
 
 export interface AISettingsFeatureProps {
   /** Whether AI generation is enabled */
@@ -83,7 +83,7 @@ export default function AISettingsFeature({
       <div className="flex flex-row justify-between items-start px-2 py-2">
         <div className="flex flex-col">
           <div className="flex items-center gap-3">
-            <FaRobot className="w-7 h-7 text-slate-blue" />
+            <Icon name="FaRobot" className="w-7 h-7 text-slate-blue" size={28} />
             <span className="text-2xl font-bold text-[#1A237E]">
               Generate with AI
             </span>
@@ -118,7 +118,7 @@ export default function AISettingsFeature({
       <div className="flex flex-row justify-between items-start px-2 py-2 border-t border-blue-200 pt-4">
         <div className="flex flex-col">
           <div className="flex items-center gap-3">
-            <FaSpellCheck className="w-7 h-7 text-slate-blue" />
+            <Icon name="FaCheck" className="w-7 h-7 text-slate-blue" size={28} />
             <span className="text-2xl font-bold text-[#1A237E]">
               Fix My Grammar
             </span>

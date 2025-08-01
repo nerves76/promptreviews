@@ -10,20 +10,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { 
-  FaCamera, 
-  FaStar, 
-  FaCommentDots,
-  FaGift,
-  FaHeart,
-  FaSmile,
-  FaThumbsUp,
-  FaLeaf,
-  FaPeace,
-  FaSun,
-  FaBoxOpen,
-  FaStickyNote
-} from "react-icons/fa";
+import Icon from "@/components/Icon";
 
 import SectionHeader from "./SectionHeader";
 import CustomerDetailsSection from "./sections/CustomerDetailsSection";
@@ -40,13 +27,13 @@ import {
 // Helper function to get falling icon
 const getFallingIcon = (iconKey: string) => {
   const icons = {
-    star: { icon: FaStar, key: "star" },
-    heart: { icon: FaHeart, key: "heart" },
-    smile: { icon: FaSmile, key: "smile" },
-    thumbsup: { icon: FaThumbsUp, key: "thumbsup" },
-    flower: { icon: FaLeaf, key: "flower" },
-    peace: { icon: FaPeace, key: "peace" },
-    sun: { icon: FaSun, key: "sun" },
+    star: { icon: "FaStar", key: "star" },
+    heart: { icon: "FaHeart", key: "heart" },
+    smile: { icon: "FaSmile", key: "smile" },
+    thumbsup: { icon: "FaHeart", key: "thumbsup" },
+    flower: { icon: "FaHeart", key: "flower" },
+    peace: { icon: "FaCircle", key: "peace" },
+    sun: { icon: "FaCircle", key: "sun" },
   };
   return icons[iconKey as keyof typeof icons] || icons.star;
 };
@@ -307,7 +294,7 @@ export default function PhotoPromptPageForm({
         {/* Photo Prompt Page Header - only for public campaigns */}
         {campaignType === 'public' && (
           <SectionHeader
-            icon={<FaCamera className="w-7 h-7 text-slate-blue" />}
+            icon={<Icon name="FaCamera" className="w-7 h-7 text-slate-blue" size={28} />}
             title="Prompt page name"
             subCopy="Give your photo prompt page a clear, descriptive name"
           />
@@ -350,7 +337,7 @@ export default function PhotoPromptPageForm({
         {/* Product/Service Description - always visible */}
         <div className="space-y-6">
           <SectionHeader
-            icon={<FaBoxOpen className="w-7 h-7 text-slate-blue" />}
+            icon={<Icon name="FaBoxOpen" className="w-7 h-7 text-slate-blue" size={28} />}
             title="What are they reviewing?"
             subCopy="Describe the product, service, or experience your customer will be providing a photo testimonial about"
           />
@@ -375,7 +362,7 @@ export default function PhotoPromptPageForm({
         {/* Review Platforms Section */}
         <div className="space-y-6">
           <SectionHeader
-            icon={<FaStar className="w-7 h-7 text-slate-blue" />}
+            icon={<Icon name="FaStar" className="w-7 h-7 text-slate-blue" size={28} />}
             title="Review platforms"
             subCopy="Configure which platforms customers can leave reviews on"
           />

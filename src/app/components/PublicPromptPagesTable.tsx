@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import Link from "next/link";
-import { FaLink, FaGlobe } from "react-icons/fa";
-import { MdDownload } from "react-icons/md";
+import Icon from "@/components/Icon";
 import QRCodeModal from "./QRCodeModal";
 
 export interface PromptPage {
@@ -194,7 +193,7 @@ export default function PublicPromptPagesTable({
                           }
                         }}
                       >
-                        <FaLink className="w-4 h-4" />
+                        <Icon name="FaLink" className="w-4 h-4" size={16} />
                       </button>
                       <button
                         type="button"
@@ -209,7 +208,7 @@ export default function PublicPromptPagesTable({
                         }}
                         className="inline-flex items-center gap-1 px-3 py-1.5 bg-amber-100 text-amber-800 rounded hover:bg-amber-200 text-sm font-medium shadow h-9 align-middle whitespace-nowrap"
                       >
-                        <MdDownload size={22} color="#b45309" />
+                        <Icon name="FaLink" size={22} style={{ color: "#b45309" }} />
                         QR code
                       </button>
                     </div>

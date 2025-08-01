@@ -6,7 +6,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { FaGoogle, FaMapMarkerAlt, FaImage, FaClock, FaExclamationTriangle, FaCheck, FaTimes, FaPlus, FaSpinner, FaRedo, FaChevronDown, FaChevronUp, FaTrash, FaUpload, FaStore, FaStar, FaBolt, FaRobot } from 'react-icons/fa';
+import Icon from '@/components/Icon';
 import PageCard from '@/app/components/PageCard';
 import FiveStarSpinner from '@/app/components/FiveStarSpinner';
 import PhotoManagement from '@/app/components/PhotoManagement';
@@ -729,7 +729,7 @@ export default function SocialPostingDashboard() {
     return (
       <div className="w-full mx-auto px-4 sm:px-6 md:px-8 lg:px-12 mt-12 md:mt-16 lg:mt-20 mb-16 flex justify-center items-start">
         <PageCard
-          icon={<FaGoogle className="w-8 h-8 text-slate-blue" />}
+          icon={<Icon name="FaGoogle" className="w-8 h-8 text-slate-blue" size={32} />}
           topMargin="mt-0"
         >
           <div className="min-h-[400px] flex flex-col items-center justify-center">
@@ -746,7 +746,7 @@ export default function SocialPostingDashboard() {
   return (
     <div className="w-full mx-auto px-4 sm:px-6 md:px-8 lg:px-12 mt-12 md:mt-16 lg:mt-20 mb-16">
       <PageCard
-        icon={<FaGoogle className="w-8 h-8 text-slate-blue" />}
+        icon={<Icon name="FaGoogle" className="w-8 h-8 text-slate-blue" size={32} />}
         topMargin="mt-0"
       >
         <div className="space-y-8">
@@ -767,7 +767,7 @@ export default function SocialPostingDashboard() {
               rel="noopener noreferrer"
               className="flex items-center space-x-2 px-4 py-2 text-sm text-slate-blue border border-slate-blue rounded-md hover:bg-slate-blue hover:text-white transition-colors"
             >
-              <FaGoogle className="w-4 h-4" />
+              <Icon name="FaGoogle" className="w-4 h-4" size={16} />
               <span>Full Editor</span>
             </a>
           </div>
@@ -784,7 +784,7 @@ export default function SocialPostingDashboard() {
                 }`}
               >
                 <div className="flex items-center space-x-2">
-                  <FaGoogle className="w-4 h-4" />
+                  <Icon name="FaGoogle" className="w-4 h-4" />
                   <span>Connect Platforms</span>
                 </div>
               </button>
@@ -798,7 +798,7 @@ export default function SocialPostingDashboard() {
                 } ${!isConnected ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
                 <div className="flex items-center space-x-2">
-                  <FaPlus className="w-4 h-4" />
+                  <Icon name="FaPlus" className="w-4 h-4" size={16} />
                   <span>Create Posts</span>
                 </div>
               </button>
@@ -812,7 +812,7 @@ export default function SocialPostingDashboard() {
                 } ${!isConnected ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
                 <div className="flex items-center space-x-2">
-                  <FaImage className="w-4 h-4" />
+                  <Icon name="FaImage" className="w-4 h-4" size={16} />
                   <span>Photos</span>
                 </div>
               </button>
@@ -826,7 +826,7 @@ export default function SocialPostingDashboard() {
                 } ${!isConnected ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
                 <div className="flex items-center space-x-2">
-                  <FaStore className="w-4 h-4" />
+                  <Icon name="FaStore" className="w-4 h-4" size={16} />
                   <span>Business Info</span>
                 </div>
               </button>
@@ -840,7 +840,7 @@ export default function SocialPostingDashboard() {
                 } ${!isConnected ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
                 <div className="flex items-center space-x-2">
-                  <FaStar className="w-4 h-4" />
+                  <Icon name="FaStar" className="w-4 h-4" size={16} />
                   <span>Reviews Management</span>
                 </div>
               </button>
@@ -855,7 +855,7 @@ export default function SocialPostingDashboard() {
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center space-x-3">
                     <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                      <FaGoogle className="w-6 h-6 text-blue-600" />
+                      <Icon name="FaGoogle" className="w-6 h-6 text-blue-600" />
                     </div>
                     <div>
                       <h3 className="text-lg font-semibold">Google Business Profile</h3>
@@ -868,7 +868,7 @@ export default function SocialPostingDashboard() {
                     {isConnected ? (
                       <>
                         <div className="flex items-center space-x-2 text-green-600">
-                          <FaCheck className="w-4 h-4" />
+                          <Icon name="FaCheck" className="w-4 h-4" />
                           <span className="text-sm font-medium">Connected</span>
                         </div>
                         <button
@@ -886,12 +886,12 @@ export default function SocialPostingDashboard() {
                       >
                         {isLoading ? (
                           <>
-                            <FaSpinner className="w-4 h-4 animate-spin" />
+                            <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />
                             <span>Connecting...</span>
                           </>
                         ) : (
                           <>
-                            <FaGoogle className="w-4 h-4" />
+                            <Icon name="FaGoogle" className="w-4 h-4" />
                             <span>Connect Google Business</span>
                           </>
                         )}
@@ -905,7 +905,7 @@ export default function SocialPostingDashboard() {
                 {/* {isConnected && locations.length === 0 && ( // This state was removed
                   <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4">
                     <div className="flex items-start space-x-3">
-                      <FaExclamationTriangle className="w-5 h-5 text-yellow-600 mt-0.5" />
+                      <Icon name="FaExclamationTriangle" className="w-5 h-5 text-yellow-600 mt-0.5" />
                       <div>
                         <h4 className="text-sm font-medium text-yellow-800 mb-1">
                           Fetch Your Business Locations
@@ -944,7 +944,7 @@ export default function SocialPostingDashboard() {
                 {/* {isConnected && locations.length > 0 && ( // This state was removed
                   <div className="bg-green-50 border border-green-200 rounded-md p-4">
                     <div className="flex items-start space-x-3">
-                      <FaCheck className="w-5 h-5 text-green-600 mt-0.5" />
+                      <Icon name="FaCheck" className="w-5 h-5 text-green-600 mt-0.5" />
                       <div>
                         <h4 className="text-sm font-medium text-green-800 mb-1">
                           Successfully Connected!
@@ -968,13 +968,13 @@ export default function SocialPostingDashboard() {
               {postResult && !postResult.success && (
                 <div className="bg-red-50 border border-red-200 rounded-md p-4">
                   <div className="flex items-center space-x-2 text-red-800 mb-2">
-                    <FaExclamationTriangle className="w-4 h-4" />
+                    <Icon name="FaExclamationTriangle" className="w-4 h-4" />
                     <span className="text-sm font-medium">Error</span>
                   </div>
                   <p className="text-sm text-red-700">{postResult.message}</p>
                   {rateLimitCountdown > 0 && (
                     <div className="mt-2 flex items-center space-x-2 text-sm text-red-600">
-                      <FaClock className="w-3 h-3" />
+                      <Icon name="FaClock" className="w-3 h-3" />
                       <span>You can retry in {rateLimitCountdown} seconds</span>
                     </div>
                   )}
@@ -987,7 +987,7 @@ export default function SocialPostingDashboard() {
             <div className="space-y-6">
               {!isConnected ? (
                 <div className="text-center py-12">
-                  <FaGoogle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <Icon name="FaGoogle" className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">Connect Google Business Profile</h3>
                   <p className="text-gray-600 mb-4">
                     Connect your Google Business Profile to start posting updates to your business locations.
@@ -999,12 +999,12 @@ export default function SocialPostingDashboard() {
                   >
                     {isLoading ? (
                       <>
-                        <FaSpinner className="w-4 h-4 animate-spin" />
+                        <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />
                         <span>Connecting...</span>
                       </>
                     ) : (
                       <>
-                        <FaGoogle className="w-4 h-4" />
+                        <Icon name="FaGoogle" className="w-4 h-4" />
                         <span>Connect Google Business</span>
                       </>
                     )}
@@ -1018,7 +1018,7 @@ export default function SocialPostingDashboard() {
                     
                     {locations.length === 0 ? (
                       <div className="text-center py-8">
-                        <FaMapMarkerAlt className="w-8 h-8 text-gray-400 mx-auto mb-3" />
+                        <Icon name="FaMapMarkerAlt" className="w-8 h-8 text-gray-400 mx-auto mb-3" />
                         <p className="text-gray-600 mb-4">No business locations found</p>
                         <button
                           onClick={() => handleFetchLocations('google-business-profile')}
@@ -1027,7 +1027,7 @@ export default function SocialPostingDashboard() {
                         >
                           {fetchingLocations ? (
                             <>
-                              <FaSpinner className="w-4 h-4 animate-spin mr-2" />
+                              <Icon name="FaSpinner" className="w-4 h-4 animate-spin mr-2" />
                               Fetching Locations...
                             </>
                           ) : rateLimitedUntil && Date.now() < rateLimitedUntil ? (
@@ -1044,7 +1044,7 @@ export default function SocialPostingDashboard() {
                           className="w-full flex items-center justify-between px-4 py-3 border border-gray-300 rounded-md bg-white hover:bg-gray-50 focus:ring-2 focus:ring-slate-blue focus:border-slate-blue"
                         >
                           <div className="flex items-center space-x-2">
-                            <FaMapMarkerAlt className="w-4 h-4 text-gray-500" />
+                            <Icon name="FaMapMarkerAlt" className="w-4 h-4 text-gray-500" />
                             <span className="text-gray-700">
                               {selectedLocations.length === 0 
                                 ? 'Select business locations' 
@@ -1055,9 +1055,9 @@ export default function SocialPostingDashboard() {
                             </span>
                           </div>
                           {isLocationDropdownOpen ? (
-                            <FaChevronUp className="w-4 h-4 text-gray-500" />
+                            <Icon name="FaChevronUp" className="w-4 h-4 text-gray-500" />
                           ) : (
-                            <FaChevronDown className="w-4 h-4 text-gray-500" />
+                            <Icon name="FaChevronDown" className="w-4 h-4 text-gray-500" />
                           )}
                         </button>
                         
@@ -1144,12 +1144,12 @@ export default function SocialPostingDashboard() {
                           >
                             {improvingWithAI ? (
                               <>
-                                <FaSpinner className="w-3 h-3 animate-spin" />
+                                <Icon name="FaSpinner" className="w-3 h-3 animate-spin" />
                                 <span>Improving...</span>
                               </>
                             ) : (
                               <>
-                                <FaBolt className="w-3 h-3" />
+                                <Icon name="FaBolt" className="w-3 h-3" />
                                 <span>AI Improve</span>
                               </>
                             )}
@@ -1171,7 +1171,7 @@ export default function SocialPostingDashboard() {
                             disabled={uploadingImages}
                           />
                           <label htmlFor="image-upload" className="cursor-pointer">
-                            <FaImage className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                            <Icon name="FaImage" className="w-8 h-8 text-gray-400 mx-auto mb-2" />
                             <p className="text-sm text-gray-600">
                               {uploadingImages ? 'Processing images...' : 'Click to upload photos or drag and drop'}
                             </p>
@@ -1195,7 +1195,7 @@ export default function SocialPostingDashboard() {
                                   onClick={() => removeImage(index)}
                                   className="absolute top-1 right-1 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                                 >
-                                  <FaTimes className="w-3 h-3" />
+                                  <Icon name="FaTimes" className="w-3 h-3" />
                                 </button>
                               </div>
                             ))}
@@ -1266,12 +1266,12 @@ export default function SocialPostingDashboard() {
                         >
                           {isPosting ? (
                             <>
-                              <FaSpinner className="w-4 h-4 animate-spin" />
+                              <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />
                               <span>Publishing...</span>
                             </>
                           ) : (
                             <>
-                              <FaPlus className="w-4 h-4" />
+                              <Icon name="FaPlus" className="w-4 h-4" />
                               <span>Publish Post</span>
                             </>
                           )}
@@ -1288,7 +1288,7 @@ export default function SocialPostingDashboard() {
             <div className="space-y-6">
               {!isConnected ? (
                 <div className="text-center py-12">
-                  <FaImage className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <Icon name="FaImage" className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">Connect Google Business Profile</h3>
                   <p className="text-gray-600 mb-4">
                     Connect your Google Business Profile to manage photos for your business locations.
@@ -1300,12 +1300,12 @@ export default function SocialPostingDashboard() {
                   >
                     {isLoading ? (
                       <>
-                        <FaSpinner className="w-4 h-4 animate-spin" />
+                        <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />
                         <span>Connecting...</span>
                       </>
                     ) : (
                       <>
-                        <FaGoogle className="w-4 h-4" />
+                        <Icon name="FaGoogle" className="w-4 h-4" />
                         <span>Connect Google Business</span>
                       </>
                     )}
@@ -1335,7 +1335,7 @@ export default function SocialPostingDashboard() {
             <div className="space-y-6">
               {!isConnected ? (
                 <div className="text-center py-12">
-                  <FaStar className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <Icon name="FaStar" className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">Connect Google Business Profile</h3>
                   <p className="text-gray-600 mb-4">
                     Connect your Google Business Profile to manage reviews for your business locations.
@@ -1347,12 +1347,12 @@ export default function SocialPostingDashboard() {
                   >
                     {isLoading ? (
                       <>
-                        <FaSpinner className="w-4 h-4 animate-spin" />
+                        <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />
                         <span>Connecting...</span>
                       </>
                     ) : (
                       <>
-                        <FaGoogle className="w-4 h-4" />
+                        <Icon name="FaGoogle" className="w-4 h-4" />
                         <span>Connect Google Business</span>
                       </>
                     )}

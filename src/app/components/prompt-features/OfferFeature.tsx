@@ -15,7 +15,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { Input } from "@/app/components/ui/input";
-import { FaGift } from "react-icons/fa";
+import Icon from "@/components/Icon";
 
 export interface OfferFeatureProps {
   /** Whether the special offer is enabled */
@@ -135,7 +135,7 @@ export default function OfferFeature({
       <div className="flex flex-row justify-between items-start mb-2 px-4 py-2">
         <div className="flex flex-col">
           <div className="flex items-center gap-3">
-            <FaGift className="w-7 h-7 text-slate-blue" />
+            <Icon name="FaGift" className="w-7 h-7 text-slate-blue" />
             <span className="text-2xl font-bold text-slate-blue">
               Special Offer
             </span>

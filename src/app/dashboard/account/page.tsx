@@ -3,15 +3,7 @@
 import { useEffect, useState } from "react";
 import { createClient, getUserOrMock } from "@/utils/supabaseClient";
 import { useRouter } from "next/navigation";
-import {
-  FaUser,
-  FaIdCard,
-  FaSignOutAlt,
-  FaChartLine,
-  FaEnvelope,
-  FaBell,
-  FaUniversity,
-} from "react-icons/fa";
+import Icon from "@/components/Icon";
 import Link from "next/link";
 import PageCard from "@/app/components/PageCard";
 import AppLoader from "@/app/components/AppLoader";
@@ -241,7 +233,7 @@ export default function AccountPage() {
       <div className="w-full mx-auto px-4 sm:px-6 md:px-8 lg:px-12 mt-12 md:mt-16 lg:mt-20 mb-16 flex justify-center items-start">
         <div className="page relative w-full max-w-[1000px] rounded-2xl bg-white shadow-lg pt-4 px-8 md:px-12 pb-8">
           <div className="icon absolute -top-4 -left-4 sm:-top-6 sm:-left-6 z-10 bg-white rounded-full shadow-lg p-3 sm:p-4 flex items-center justify-center">
-            <FaUser className="w-9 h-9 text-slate-blue" />
+            <Icon name="FaUser" className="w-9 h-9 text-slate-blue" size={36} />
           </div>
           <div className="min-h-[400px] flex flex-col items-center justify-center">
             <AppLoader />
@@ -266,7 +258,7 @@ export default function AccountPage() {
   }
 
   return (
-    <PageCard icon={<FaUser className="w-9 h-9 text-slate-blue" />}>
+          <PageCard icon={<Icon name="FaUser" className="w-9 h-9 text-slate-blue" size={36} />}>
       <div className="max-w-4xl mx-auto">
         <div className="flex items-start justify-between mt-2 mb-4">
           <div className="flex flex-col mt-0 md:mt-[3px]">

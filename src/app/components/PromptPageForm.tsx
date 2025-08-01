@@ -3,41 +3,7 @@ import React from "react";
 import { useState, useEffect } from "react";
 import CustomerDetailsSection from "./sections/CustomerDetailsSection";
 import { generateContextualReview, generateContextualTestimonial } from "@/utils/aiReviewGeneration";
-import {
-  FaRobot,
-  FaInfoCircle,
-  FaStar,
-  FaGift,
-  FaVideo,
-  FaImage,
-  FaQuoteRight,
-  FaCamera,
-  FaHeart,
-  FaGoogle,
-  FaYelp,
-  FaFacebook,
-  FaTripadvisor,
-  FaRegStar,
-  FaSmile,
-  FaGlobe,
-  FaBoxOpen,
-  FaThumbsUp,
-  FaBolt,
-  FaRainbow,
-  FaCoffee,
-  FaWrench,
-  FaGlassCheers,
-  FaDumbbell,
-  FaPagelines,
-  FaPeace,
-  FaQuestionCircle,
-  FaHandsHelping,
-  FaBullseye,
-  FaTrophy,
-  FaCommentDots,
-  FaMagic,
-  FaMobile,
-} from "react-icons/fa";
+import Icon from "@/components/Icon";
 import dynamic from "next/dynamic";
 import { slugify } from "@/utils/slugify";
 import { useRouter } from "next/navigation";
@@ -76,18 +42,18 @@ import EmployeePromptPageForm from "./EmployeePromptPageForm";
 function getPlatformIcon(
   url: string,
   platform: string,
-): { icon: any; label: string } {
+): { icon: string; label: string } {
   const lowerUrl = url?.toLowerCase?.() || "";
   const lowerPlatform = (platform || "").toLowerCase();
   if (lowerUrl.includes("google") || lowerPlatform.includes("google"))
-    return { icon: FaGoogle, label: "Google" };
+    return { icon: "FaGoogle", label: "Google" };
   if (lowerUrl.includes("facebook") || lowerPlatform.includes("facebook"))
-    return { icon: FaFacebook, label: "Facebook" };
+    return { icon: "FaFacebook", label: "Facebook" };
   if (lowerUrl.includes("yelp") || lowerPlatform.includes("yelp"))
-    return { icon: FaYelp, label: "Yelp" };
+    return { icon: "FaYelp", label: "Yelp" };
   if (lowerUrl.includes("tripadvisor") || lowerPlatform.includes("tripadvisor"))
-    return { icon: FaTripadvisor, label: "TripAdvisor" };
-  return { icon: FaRegStar, label: "Other" };
+    return { icon: "FaTripadvisor", label: "TripAdvisor" };
+  return { icon: "FaRegStar", label: "Other" };
 }
 
 export default function PromptPageForm({

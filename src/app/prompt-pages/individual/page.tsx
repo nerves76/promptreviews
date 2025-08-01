@@ -5,8 +5,7 @@ import { useRef } from "react";
 // 🔧 CONSOLIDATED: Single import from supabaseClient module
 import { createClient, getUserOrMock } from "@/utils/supabaseClient";
 import Link from "next/link";
-import { FaGlobe, FaLink, FaTimes, FaPalette, FaPlus, FaCheck, FaMapMarkerAlt, FaEdit, FaTrash, FaStar } from "react-icons/fa";
-import { MdDownload } from "react-icons/md";
+import Icon from "@/components/Icon";
 import PageCard from "@/app/components/PageCard";
 import UniversalPromptPageForm from "../../dashboard/edit-prompt-page/universal/UniversalPromptPageForm";
 import AppLoader from "@/app/components/AppLoader";
@@ -14,8 +13,7 @@ import QRCodeGenerator, { QR_FRAME_SIZES } from "../../dashboard/components/QRCo
 import dynamic from "next/dynamic";
 import PromptPagesTable from "@/app/components/PromptPagesTable";
 import PromptTypeSelectModal from "@/app/components/PromptTypeSelectModal";
-import { FaHandsHelping, FaBoxOpen, FaUserCircle } from "react-icons/fa";
-import { MdPhotoCamera, MdVideoLibrary, MdEvent } from "react-icons/md";
+
 import { useRouter } from "next/navigation";
 import QRCodeModal from "../../components/QRCodeModal";
 import StarfallCelebration from "@/app/components/StarfallCelebration";
@@ -23,7 +21,7 @@ import { getAccountIdForUser } from "@/utils/accountUtils";
 import BusinessLocationModal from "@/app/components/BusinessLocationModal";
 import { BusinessLocation } from "@/types/business";
 import { hasLocationAccess, formatLocationAddress, getLocationDisplayName } from "@/utils/locationUtils";
-import { FaQuestionCircle } from "react-icons/fa";
+
 import EmojiEmbedButton from "@/app/components/EmojiEmbedButton";
 
 const StylePage = dynamic(() => import("../../dashboard/style/StyleModalPage"), { ssr: false });

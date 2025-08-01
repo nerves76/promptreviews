@@ -9,7 +9,7 @@
 
 import { useState, useEffect } from 'react';
 import { createClient } from "@/utils/supabaseClient";
-import { FaUser, FaCheck, FaTimes, FaSpinner } from 'react-icons/fa';
+import Icon from '@/components/Icon';
 
 interface FreeAccount {
   id: string;

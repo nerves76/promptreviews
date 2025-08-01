@@ -6,26 +6,7 @@ import React from "react";
 
 const supabase = createClient();
 import { useAuthGuard } from "@/utils/authGuard";
-import {
-  FaGlobe,
-  FaHome,
-  FaBuilding,
-  FaHistory,
-  FaBolt,
-  FaRegComment,
-  FaLink,
-  FaHandsHelping,
-  FaBoxOpen,
-  FaChartBar,
-  FaQuestionCircle,
-  FaPalette,
-} from "react-icons/fa";
-import {
-  MdDownload,
-  MdEvent,
-  MdVideoLibrary,
-  MdPhotoCamera,
-} from "react-icons/md";
+import Icon from "@/components/Icon";
 import QRCodeModal from "../components/QRCodeModal";
 import QuoteDisplay from "../components/QuoteDisplay";
 import GettingStarted from "../components/GettingStarted";
@@ -171,34 +152,34 @@ const DashboardContent = React.memo(function DashboardContent({
     {
       key: "service",
       label: "Service review",
-      icon: <FaHandsHelping size={28} color="#1A237E" />,
+      icon: <Icon name="FaHandsHelping" size={28} color="#1A237E" />,
       description:
         "Capture a review from a customer or client who loves what you do",
     },
     {
       key: "photo",
       label: "Photo + testimonial",
-      icon: <MdPhotoCamera size={28} color="#1A237E" />,
+      icon: <Icon name="MdPhotoCamera" size={28} color="#1A237E" />,
       description:
         "Capture a headshot and testimonial to display on your website or in marketing materials.",
     },
     {
       key: "product",
       label: "Product review",
-      icon: <FaBoxOpen size={28} color="#1A237E" />,
+      icon: <Icon name="FaBoxOpen" size={28} color="#1A237E" />,
       description: "Get a review from a customer who fancies your products",
     },
     {
       key: "video",
       label: "Video testimonial",
-      icon: <MdVideoLibrary size={28} color="#1A237E" />,
+      icon: <Icon name="MdVideoLibrary" size={28} color="#1A237E" />,
       description: "Request a video testimonial from your client.",
       comingSoon: true,
     },
     {
       key: "event",
       label: "Events & spaces",
-      icon: <MdEvent size={28} color="#1A237E" />,
+      icon: <Icon name="MdEvent" size={28} color="#1A237E" />,
       description: "For events, rentals, tours, and more.",
       comingSoon: true,
     },
@@ -535,7 +516,7 @@ const DashboardContent = React.memo(function DashboardContent({
         <div className="rounded-lg p-6 bg-blue-50 border border-blue-200 flex flex-col md:flex-row items-center gap-8 shadow">
           <div className="flex-1 w-full">
             <div className="flex items-center gap-2 mb-4">
-              <FaChartBar className="w-6 h-6 text-slate-blue" />
+              <Icon name="FaChartBar" className="w-6 h-6 text-slate-blue" size={24} />
               <h3 className="text-xl font-bold text-slate-blue mr-4">Review stats</h3>
               <Link href="/dashboard/analytics" className="text-slate-blue underline text-base font-medium hover:text-indigo-800 transition ml-auto">
                 View more stats
@@ -546,7 +527,7 @@ const DashboardContent = React.memo(function DashboardContent({
                 <p className="text-lg font-semibold text-indigo-700 mb-2 flex items-center gap-1">
                   Total reviews
                   <span className="relative group">
-                    <FaQuestionCircle className="w-4 h-4 text-slate-blue cursor-pointer" />
+                    <Icon name="FaQuestionCircle" className="w-4 h-4 text-slate-blue cursor-pointer" size={16} />
                     <span className="absolute left-1/2 -translate-x-1/2 mt-2 w-48 p-2 bg-white border border-gray-200 rounded shadow text-xs text-gray-700 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-20">
                       Total number of reviews submitted for your prompt pages. Week/month/year are based on the review submission date.
                     </span>
@@ -571,7 +552,7 @@ const DashboardContent = React.memo(function DashboardContent({
                 <p className="text-lg font-semibold text-green-700 mb-2 flex items-center gap-1">
                   Reviews verified
                   <span className="relative group">
-                    <FaQuestionCircle className="w-4 h-4 text-green-700 cursor-pointer" />
+                    <Icon name="FaQuestionCircle" className="w-4 h-4 text-green-700 cursor-pointer" size={16} />
                     <span className="absolute left-1/2 -translate-x-1/2 mt-2 w-48 p-2 bg-white border border-gray-200 rounded shadow text-xs text-gray-700 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-20">
                       Number of reviews you have marked as verified. Week/month/year are based on the review verification date.
                     </span>
@@ -647,7 +628,7 @@ const DashboardContent = React.memo(function DashboardContent({
                     <div className="flex items-center justify-between mb-1">
                       <div className="flex items-center gap-2">
                         <h2 className="text-2xl font-bold text-slate-blue flex items-center gap-3">
-                          <FaGlobe className="w-7 h-7 text-slate-blue" />
+                          <Icon name="FaGlobe" className="w-7 h-7 text-slate-blue" size={28} />
                           Universal prompt page
                         </h2>
                         <UniversalTooltip />
@@ -679,7 +660,7 @@ const DashboardContent = React.memo(function DashboardContent({
                           onClick={handleCopyLink}
                           className="inline-flex items-center gap-1 px-3 py-1.5 bg-purple-100 text-purple-800 rounded hover:bg-purple-200 text-sm font-medium shadow h-9 align-middle whitespace-nowrap"
                         >
-                          <FaLink className="w-4 h-4" />
+                          <Icon name="FaLink" className="w-4 h-4" size={16} />
                           Copy link
                         </button>
                         <button
@@ -695,7 +676,7 @@ const DashboardContent = React.memo(function DashboardContent({
                           }}
                           className="inline-flex items-center gap-1 px-3 py-1.5 bg-amber-100 text-amber-800 rounded hover:bg-amber-200 text-sm font-medium shadow h-9 align-middle whitespace-nowrap"
                         >
-                          <MdDownload size={22} color="#b45309" />
+                          <Icon name="MdDownload" size={22} color="#b45309" />
                           QR code
                         </button>
                         
@@ -1069,8 +1050,10 @@ function UniversalTooltip() {
         onBlur={() => setShow(false)}
         style={{ lineHeight: 1 }}
       >
-        <FaQuestionCircle
+        <Icon 
+          name="FaQuestionCircle"
           className="inline-block w-4 h-4 align-middle cursor-pointer"
+          size={16}
           title="Universal Prompt Page info"
         />
       </button>

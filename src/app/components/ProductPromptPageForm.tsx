@@ -27,7 +27,7 @@ import {
   AISettingsFeature,
   KickstartersFeature
 } from "./prompt-features";
-import { FaCommentDots, FaMobile, FaSpinner, FaSave, FaBoxOpen, FaStickyNote } from "react-icons/fa";
+import Icon from "@/components/Icon";
 import SectionHeader from "./SectionHeader";
 import { BusinessProfile } from "@/types/business";
 import {
@@ -466,7 +466,7 @@ export default function ProductPromptPageForm({
         {(formData.campaign_type || 'individual') === 'public' && (
           <div className="space-y-6">
                          <div className="mb-6 flex items-center gap-3">
-               <FaCommentDots className="w-7 h-7 text-slate-blue" />
+               <Icon name="FaCommentAlt" className="w-7 h-7 text-slate-blue" size={28} />
                <div>
                  <h2 className="text-xl font-semibold text-slate-blue">Prompt page name</h2>
                  <p className="text-gray-600 text-sm">Give your product prompt page a clear, descriptive name</p>
@@ -572,7 +572,7 @@ export default function ProductPromptPageForm({
         <div className="rounded-lg p-4 bg-slate-50 border border-slate-200 flex flex-col gap-2 shadow relative">
               <div className="flex items-center justify-between mb-2 px-2 py-2">
                 <div className="flex items-center gap-3">
-                  <FaStickyNote className="w-7 h-7 text-slate-blue" />
+                  <Icon name="FaFileAlt" className="w-7 h-7 text-slate-blue" size={28} />
                   <span className="text-2xl font-bold text-slate-blue">
                     Personalized note pop-up
                   </span>

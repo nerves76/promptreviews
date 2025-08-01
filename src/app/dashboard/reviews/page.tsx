@@ -2,31 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { createClient } from "@/utils/supabaseClient";
-import {
-  FaChevronDown,
-  FaChevronLeft,
-  FaDownload,
-  FaStar,
-  FaTrash,
-  FaGoogle,
-  FaFacebook,
-  FaYelp,
-  FaTripadvisor,
-  FaRegStar,
-  FaRegComment,
-  FaThumbtack,
-  FaRegCopyright,
-  FaSearch,
-  FaSmile,
-  FaQuestionCircle,
-} from "react-icons/fa";
-import {
-  SiHouzz,
-  SiThumbtack,
-  SiHomeadvisor,
-  SiTrustpilot,
-} from "react-icons/si";
-import { IconType } from "react-icons";
+import Icon, { IconName } from "@/components/Icon";
 import PageCard from "@/app/components/PageCard";
 import AppLoader from "@/app/components/AppLoader";
 import TopLoaderOverlay from "@/app/components/TopLoaderOverlay";
@@ -200,14 +176,14 @@ const SAMPLE_REVIEWS = [
 ];
 
 // Custom BBB and Angi icons as React components
-const BBBIcon: IconType = () => (
+const BBBIcon = () => (
   <span
     style={{ fontWeight: "bold", fontSize: "1.2em", letterSpacing: "0.05em" }}
   >
     BBB
   </span>
 );
-const AngiIcon: IconType = () => (
+const AngiIcon = () => (
   <span
     style={{ fontWeight: "bold", fontSize: "1.2em", letterSpacing: "0.05em" }}
   >
@@ -216,28 +192,28 @@ const AngiIcon: IconType = () => (
 );
 
 // Helper to get platform icon based on platform name
-function getPlatformIcon(platform: string): { icon: IconType; label: string } {
+function getPlatformIcon(platform: string): { icon: any; label: string } {
   const lower = (platform || "").toLowerCase();
   if (lower.includes("google"))
-    return { icon: FaGoogle, label: "Google Business Profile" };
-  if (lower.includes("yelp")) return { icon: FaYelp, label: "Yelp" };
+    return { icon: "FaGoogle", label: "Google Business Profile" };
+  if (lower.includes("yelp")) return { icon: "FaYelp", label: "Yelp" };
   if (lower.includes("facebook"))
-    return { icon: FaFacebook, label: "Facebook" };
+    return { icon: "FaFacebook", label: "Facebook" };
   if (lower.includes("tripadvisor"))
-    return { icon: FaTripadvisor, label: "TripAdvisor" };
+    return { icon: "FaTripadvisor", label: "TripAdvisor" };
   if (lower.includes("clutch"))
-    return { icon: FaRegCopyright, label: "Clutch" };
-  if (lower.includes("g2")) return { icon: FaRegStar, label: "G2" };
+    return { icon: "FaRegCopyright", label: "Clutch" };
+  if (lower.includes("g2")) return { icon: "FaRegStar", label: "G2" };
   if (lower.includes("angi")) return { icon: AngiIcon, label: "Angi" };
-  if (lower.includes("houzz")) return { icon: SiHouzz, label: "Houzz" };
+  if (lower.includes("houzz")) return { icon: "SiHouzz", label: "Houzz" };
   if (lower.includes("bbb")) return { icon: BBBIcon, label: "BBB" };
   if (lower.includes("thumbtack"))
-    return { icon: FaThumbtack, label: "Thumbtack" };
+    return { icon: "FaThumbtack", label: "Thumbtack" };
   if (lower.includes("homeadvisor"))
-    return { icon: SiHomeadvisor, label: "HomeAdvisor" };
+    return { icon: "SiHomeadvisor", label: "HomeAdvisor" };
   if (lower.includes("trustpilot"))
-    return { icon: SiTrustpilot, label: "Trustpilot" };
-  return { icon: FaRegStar, label: platform || "Other" };
+    return { icon: "SiTrustpilot", label: "Trustpilot" };
+  return { icon: "FaRegStar", label: platform || "Other" };
 }
 
 // Helper to check if a review is new (within 7 days)
@@ -508,7 +484,7 @@ export default function ReviewsPage() {
       <div className="w-full mx-auto px-4 sm:px-6 md:px-8 lg:px-12 mt-12 md:mt-16 lg:mt-20 mb-16 flex justify-center items-start">
         <div className="page relative w-full max-w-[1000px] rounded-2xl bg-white shadow-lg pt-4 px-8 md:px-12 pb-8">
           <div className="icon absolute -top-4 -left-4 sm:-top-6 sm:-left-6 z-10 bg-white rounded-full shadow-lg p-3 sm:p-4 flex items-center justify-center">
-            <FaStar className="w-9 h-9 text-slate-blue" />
+            <Icon name="FaStar" className="w-9 h-9 text-slate-blue" size={36} />
           </div>
           <div className="min-h-[400px] flex flex-col items-center justify-center">
             <AppLoader />
@@ -524,7 +500,7 @@ export default function ReviewsPage() {
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-16 w-full gap-2 relative">
         <div className="absolute z-10" style={{ left: "-69px", top: "-37px" }}>
           <div className="rounded-full bg-white w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center shadow-lg">
-            <FaStar className="w-6 h-6 sm:w-7 sm:h-7 text-slate-blue" />
+            <Icon name="FaStar" className="w-6 h-6 sm:w-7 sm:h-7 text-slate-blue" size={28} />
           </div>
         </div>
         <div className="flex flex-col mt-0 md:mt-[3px]">
@@ -538,7 +514,7 @@ export default function ReviewsPage() {
         <div className="flex justify-end w-full sm:w-auto">
           <div className="relative w-full max-w-xs">
             <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400 pointer-events-none">
-              <FaSearch className="w-4 h-4" />
+                                <Icon name="FaSearch" className="w-4 h-4" size={16} />
             </span>
             <input
               type="text"
@@ -591,7 +567,7 @@ export default function ReviewsPage() {
           <div>
             <label className="block text-xs font-semibold text-gray-500 mb-1 flex items-center gap-1">
               Sentiment
-              <FaQuestionCircle
+              <Icon name="FaQuestionCircle"
                 className="w-3.5 h-3.5 text-gray-400 cursor-pointer"
                 title="You must be using the sentiment gating feature to collect reviews tagged with sentiment."
               />
@@ -622,11 +598,11 @@ export default function ReviewsPage() {
                     </>
                   ) : (
                     <>
-                      <FaSmile className="w-6 h-6 text-slate-blue" />
+                      <Icon name="FaSmile" className="w-6 h-6 text-slate-blue" size={24} />
                       <span>All</span>
                     </>
                   )}
-                  <FaChevronDown className="w-4 h-4 text-gray-400 ml-1" />
+                  <Icon name="FaChevronDown" className="w-4 h-4 text-gray-400 ml-1" size={16} />
                 </button>
                 {showEmojiDropdown && (
                   <div
@@ -674,7 +650,7 @@ export default function ReviewsPage() {
           className="flex items-center gap-2 px-3 py-2 bg-slate-blue text-white rounded hover:bg-indigo-900 text-sm font-semibold ml-auto"
           onClick={handleExport}
         >
-          <FaDownload /> Download CSV
+          <Icon name="MdDownload" className="w-4 h-4" size={16} /> Download CSV
         </button>
       </div>
 
@@ -740,9 +716,9 @@ export default function ReviewsPage() {
                   </div>
                   <span className="ml-4 text-gray-400">
                     {isExpanded ? (
-                      <FaChevronDown className="w-4 h-4" />
+                      <Icon name="FaChevronDown" className="w-4 h-4" size={16} />
                     ) : (
-                      <FaChevronLeft className="w-4 h-4" />
+                      <Icon name="FaChevronLeft" className="w-4 h-4" size={16} />
                     )}
                   </span>
                 </button>
@@ -752,7 +728,7 @@ export default function ReviewsPage() {
                     className="px-4 pb-4 pt-2 border-t border-gray-100 animate-fade-in bg-gray-50 rounded-b-lg shadow-inner"
                   >
                     <div className="flex items-center gap-2 mb-2">
-                      <FaRegComment className="w-5 h-5 text-slate-500" />
+                      <Icon name="FaRegComment" className="w-5 h-5 text-slate-500" size={20} />
                       <span
                         className="text-gray-800 text-sm"
                         style={{ whiteSpace: "pre-line" }}
