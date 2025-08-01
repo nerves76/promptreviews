@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(`${requestUrl.origin}/auth/sign-in?error=${encodeURIComponent(error.message)}`);
     }
 
-    console.log('✅ Code exchange successful');
+
 
     // Get the user after successful code exchange
     const { data: { user }, error: userError } = await supabase.auth.getUser();
@@ -65,19 +65,11 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(`${requestUrl.origin}/auth/sign-in?error=user_not_found`);
     }
 
-    console.log('✅ Session exchange successful for user:', user.email);
-    console.log('📧 Email confirmed at:', user.email_confirmed_at);
+
     
     // Debug: Check what cookies are being set
     const { data: { session: debugSession } } = await supabase.auth.getSession();
-    if (debugSession) {
-      console.log('🍪 Session debug - Access token present:', !!debugSession.access_token);
-      console.log('🍪 Session debug - Refresh token present:', !!debugSession.refresh_token);
-      console.log('🍪 Session debug - Expires at:', debugSession.expires_at);
-      console.log('🍪 Session debug - User ID in session:', debugSession.user?.id);
-    } else {
-      console.log('🍪 Session debug - No session found immediately after exchange');
-    }
+
 
     // If there's a next parameter, redirect there (e.g., for password reset)
     // Handle this IMMEDIATELY to avoid running through account creation logic
@@ -101,7 +93,7 @@ export async function GET(request: NextRequest) {
     if (email) {
       try {
         await ensureAdminForEmail({ id: userId, email }, supabase);
-        console.log('✅ Admin check completed for user:', email);
+
       } catch (adminError) {
         console.error('❌ Error checking admin privileges:', adminError);
         // Don't fail the flow for admin errors, just log them
@@ -151,12 +143,11 @@ export async function GET(request: NextRequest) {
               .update({ accepted_at: new Date().toISOString() })
               .eq('token', invitation.token);
 
-            console.log('✅ Team invitation accepted - user added to team account only');
+
             hasAcceptedInvitation = true;
             
             // Skip individual account creation - team members use team account
             // Redirect directly to dashboard
-            console.log("✅ Redirecting team member to dashboard");
             return NextResponse.redirect(`${requestUrl.origin}/dashboard`);
           } else {
             console.error('❌ Error accepting invitation:', {
@@ -193,7 +184,6 @@ export async function GET(request: NextRequest) {
               hasAcceptedInvitation = true;
               
               // Redirect to dashboard
-              console.log("✅ Redirecting team member to dashboard after fallback");
               return NextResponse.redirect(`${requestUrl.origin}/dashboard`);
             } else {
               console.error('❌ Fallback also failed in callback:', {
@@ -396,7 +386,6 @@ export async function GET(request: NextRequest) {
       ? `${requestUrl.origin}/dashboard/create-business`
       : `${requestUrl.origin}/dashboard`;
     
-    console.log("✅ Redirecting to:", redirectUrl);
     
     // The cookies are automatically set by the createServerClient
     // Just redirect - the session will be available on the next request

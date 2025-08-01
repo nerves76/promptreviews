@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { FaImage, FaBuilding, FaList, FaStar, FaGift, FaShareAlt, FaInfo, FaTrash, FaLightbulb } from "react-icons/fa";
+import { FaImage, FaBuilding, FaList, FaStar, FaGift, FaShareAlt, FaInfo, FaTrash, FaLightbulb, FaCog } from "react-icons/fa";
 import Cropper from "react-easy-crop";
 import IndustrySelector from "../../components/IndustrySelector";
 import RobotTooltip from "../../components/RobotTooltip";
@@ -633,7 +633,127 @@ export default function BusinessProfileForm({
         </div>
       </div>
 
+      {/* Social Media Section */}
+      <div className="mb-16">
+        <h2 className="mt-4 mb-2 text-2xl font-bold text-slate-blue flex items-center gap-3">
+          <FaShareAlt className="w-7 h-7 text-slate-blue" />
+          Social media
+        </h2>
+        <div className="text-sm text-gray-600 mb-4">
+          Add social media links to your prompt pages.
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label className="block font-semibold text-sm text-gray-500 mb-1">
+              Facebook URL
+            </label>
+            <input
+              type="url"
+              name="facebook_url"
+              className="w-full border px-3 py-2 rounded-lg bg-white focus:ring-2 focus:ring-indigo-300"
+              value={form.facebook_url || ""}
+              onChange={handleChange}
+              placeholder="https://facebook.com/yourbusiness"
+            />
+          </div>
+          <div>
+            <label className="block font-semibold text-sm text-gray-500 mb-1">
+              Instagram URL
+            </label>
+            <input
+              type="url"
+              name="instagram_url"
+              className="w-full border px-3 py-2 rounded-lg bg-white focus:ring-2 focus:ring-indigo-300"
+              value={form.instagram_url || ""}
+              onChange={handleChange}
+              placeholder="https://instagram.com/yourbusiness"
+            />
+          </div>
+          <div>
+            <label className="block font-semibold text-sm text-gray-500 mb-1">
+              Bluesky URL
+            </label>
+            <input
+              type="url"
+              name="bluesky_url"
+              className="w-full border px-3 py-2 rounded-lg bg-white focus:ring-2 focus:ring-indigo-300"
+              value={form.bluesky_url || ""}
+              onChange={handleChange}
+              placeholder="https://bsky.app/profile/yourbusiness"
+            />
+          </div>
+          <div>
+            <label className="block font-semibold text-sm text-gray-500 mb-1">
+              TikTok URL
+            </label>
+            <input
+              type="url"
+              name="tiktok_url"
+              className="w-full border px-3 py-2 rounded-lg bg-white focus:ring-2 focus:ring-indigo-300"
+              value={form.tiktok_url || ""}
+              onChange={handleChange}
+              placeholder="https://tiktok.com/@yourbusiness"
+            />
+          </div>
+          <div>
+            <label className="block font-semibold text-sm text-gray-500 mb-1">
+              YouTube URL
+            </label>
+            <input
+              type="url"
+              name="youtube_url"
+              className="w-full border px-3 py-2 rounded-lg bg-white focus:ring-2 focus:ring-indigo-300"
+              value={form.youtube_url || ""}
+              onChange={handleChange}
+              placeholder="https://youtube.com/@yourbusiness"
+            />
+          </div>
+          <div>
+            <label className="block font-semibold text-sm text-gray-500 mb-1">
+              LinkedIn URL
+            </label>
+            <input
+              type="url"
+              name="linkedin_url"
+              className="w-full border px-3 py-2 rounded-lg bg-white focus:ring-2 focus:ring-indigo-300"
+              value={form.linkedin_url || ""}
+              onChange={handleChange}
+              placeholder="https://linkedin.com/company/yourbusiness"
+            />
+          </div>
+          <div>
+            <label className="block font-semibold text-sm text-gray-500 mb-1">
+              Pinterest URL
+            </label>
+            <input
+              type="url"
+              name="pinterest_url"
+              className="w-full border px-3 py-2 rounded-lg bg-white focus:ring-2 focus:ring-indigo-300"
+              value={form.pinterest_url || ""}
+              onChange={handleChange}
+              placeholder="https://pinterest.com/yourbusiness"
+            />
+          </div>
+        </div>
+      </div>
 
+      {/* Default Settings Section */}
+      <div className="mb-16">
+        <h2 className="mt-4 mb-2 text-3xl font-bold text-slate-blue flex items-center gap-3">
+          <FaCog className="w-8 h-8 text-slate-blue" />
+          Default Settings
+        </h2>
+        <div className="text-sm text-gray-600 mb-4">
+          These settings will make creating new prompt pages easier by allowing you to use (or override) these presets. (If you plan on 3-or-less Prompt Pages you can probably skip.)
+        </div>
+        
+        {/* Placeholder for future default settings */}
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center">
+          <p className="text-gray-600 text-sm">
+            Default settings configuration will be available soon. This will include default templates, messaging preferences, and other presets for new prompt pages.
+          </p>
+        </div>
+      </div>
 
       {/* Review Platforms Section */}
       <div className="mb-16">
@@ -864,110 +984,6 @@ export default function BusinessProfileForm({
             background_color: form.background_color,
           }}
         />
-      </div>
-
-      {/* Social Media Section */}
-      <div className="mb-16">
-        <h2 className="mt-4 mb-2 text-2xl font-bold text-slate-blue flex items-center gap-3">
-          <FaShareAlt className="w-7 h-7 text-slate-blue" />
-          Social media
-        </h2>
-        <div className="text-sm text-gray-600 mb-4">
-          Add social media links to your prompt pages.
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className="block font-semibold text-sm text-gray-500 mb-1">
-              Facebook URL
-            </label>
-            <input
-              type="url"
-              name="facebook_url"
-              className="w-full border px-3 py-2 rounded-lg bg-white focus:ring-2 focus:ring-indigo-300"
-              value={form.facebook_url || ""}
-              onChange={handleChange}
-              placeholder="https://facebook.com/yourbusiness"
-            />
-          </div>
-          <div>
-            <label className="block font-semibold text-sm text-gray-500 mb-1">
-              Instagram URL
-            </label>
-            <input
-              type="url"
-              name="instagram_url"
-              className="w-full border px-3 py-2 rounded-lg bg-white focus:ring-2 focus:ring-indigo-300"
-              value={form.instagram_url || ""}
-              onChange={handleChange}
-              placeholder="https://instagram.com/yourbusiness"
-            />
-          </div>
-          <div>
-            <label className="block font-semibold text-sm text-gray-500 mb-1">
-              Bluesky URL
-            </label>
-            <input
-              type="url"
-              name="bluesky_url"
-              className="w-full border px-3 py-2 rounded-lg bg-white focus:ring-2 focus:ring-indigo-300"
-              value={form.bluesky_url || ""}
-              onChange={handleChange}
-              placeholder="https://bsky.app/profile/yourbusiness"
-            />
-          </div>
-          <div>
-            <label className="block font-semibold text-sm text-gray-500 mb-1">
-              TikTok URL
-            </label>
-            <input
-              type="url"
-              name="tiktok_url"
-              className="w-full border px-3 py-2 rounded-lg bg-white focus:ring-2 focus:ring-indigo-300"
-              value={form.tiktok_url || ""}
-              onChange={handleChange}
-              placeholder="https://tiktok.com/@yourbusiness"
-            />
-          </div>
-          <div>
-            <label className="block font-semibold text-sm text-gray-500 mb-1">
-              YouTube URL
-            </label>
-            <input
-              type="url"
-              name="youtube_url"
-              className="w-full border px-3 py-2 rounded-lg bg-white focus:ring-2 focus:ring-indigo-300"
-              value={form.youtube_url || ""}
-              onChange={handleChange}
-              placeholder="https://youtube.com/@yourbusiness"
-            />
-          </div>
-          <div>
-            <label className="block font-semibold text-sm text-gray-500 mb-1">
-              LinkedIn URL
-            </label>
-            <input
-              type="url"
-              name="linkedin_url"
-              className="w-full border px-3 py-2 rounded-lg bg-white focus:ring-2 focus:ring-indigo-300"
-              value={form.linkedin_url || ""}
-              onChange={handleChange}
-              placeholder="https://linkedin.com/company/yourbusiness"
-            />
-          </div>
-          <div>
-            <label className="block font-semibold text-sm text-gray-500 mb-1">
-              Pinterest URL
-            </label>
-            <input
-              type="url"
-              name="pinterest_url"
-              className="w-full border px-3 py-2 rounded-lg bg-white focus:ring-2 focus:ring-indigo-300"
-              value={form.pinterest_url || ""}
-              onChange={handleChange}
-              placeholder="https://pinterest.com/yourbusiness"
-            />
-          </div>
-        </div>
       </div>
 
       {/* Error/Success Messages */}

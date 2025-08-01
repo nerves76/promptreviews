@@ -254,18 +254,21 @@ export default function KickstartersCarousel({
       {/* View All Modal */}
       {showViewAll && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[80vh] flex flex-col">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[80vh] flex flex-col relative">
+            {/* Standard close button - white circle breaching top right */}
+            <button
+              onClick={() => setShowViewAll(false)}
+              className="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-white border border-gray-200 hover:bg-gray-50 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-gray-300 z-10 shadow-sm"
+              aria-label="Close"
+            >
+              <FaTimes className="w-4 h-4 text-gray-600" />
+            </button>
+
             {/* Modal Header */}
-            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+            <div className="p-6 border-b border-gray-200">
               <h2 className="text-lg font-semibold text-gray-900">
                 All Questions
               </h2>
-              <button
-                onClick={() => setShowViewAll(false)}
-                className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-gray-300"
-              >
-                <FaTimes className="w-4 h-4 text-gray-600" />
-              </button>
             </div>
 
             {/* Modal Content */}
@@ -274,14 +277,7 @@ export default function KickstartersCarousel({
                 {questions.map((question, index) => (
                   <div 
                     key={question.id} 
-                    className={`p-4 rounded-lg border cursor-pointer transition-colors hover:bg-gray-50 ${
-                      index === currentIndex ? 'bg-blue-50 border-blue-200' : 'border-gray-200'
-                    }`}
-                    onClick={() => {
-                      setCurrentIndex(index);
-                      setShowViewAll(false);
-                      handleQuestionClick(question);
-                    }}
+                    className="p-4 rounded-lg border border-gray-200 transition-colors hover:bg-gray-50"
                   >
                     <div className="flex items-start justify-between mb-2">
                       <span 
@@ -296,21 +292,6 @@ export default function KickstartersCarousel({
                     </p>
                   </div>
                 ))}
-              </div>
-            </div>
-
-            {/* Modal Footer */}
-            <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
-              <div className="flex justify-between items-center">
-                <p className="text-sm text-gray-600">
-                  Click any question to select it and close this dialog.
-                </p>
-                <button
-                  onClick={() => setShowViewAll(false)}
-                  className="px-4 py-2 text-gray-600 hover:text-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-300 rounded"
-                >
-                  Close
-                </button>
               </div>
             </div>
           </div>

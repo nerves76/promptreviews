@@ -180,7 +180,6 @@ interface CreatePromptPageClientProps {
 export default function CreatePromptPageClient({ 
   markOnboardingComplete = false 
 }: CreatePromptPageClientProps = {}) {
-  console.log("🎯 CreatePromptPageClient component mounted");
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
@@ -227,7 +226,6 @@ export default function CreatePromptPageClient({
       review_type: initialReviewType,
       campaign_type: campaignType
     };
-    console.log("🎯 Initial formData created:", initialData);
     return initialData;
   });
   const [businessProfile, setBusinessProfile] =
@@ -287,7 +285,6 @@ export default function CreatePromptPageClient({
   }, [markOnboardingComplete]);
 
   useEffect(() => {
-    console.log("🎯 loadBusinessProfile useEffect triggered");
     const loadBusinessProfile = async () => {
       setIsLoadingBusinessProfile(true);
       try {
@@ -298,7 +295,6 @@ export default function CreatePromptPageClient({
           return;
         }
         setCurrentUser(user);
-        console.log("🎯 Fetching business data for user:", user.id);
         
         // Optimize: Only fetch essential fields initially
         const { data: businessData, error: businessError } = await supabase
@@ -336,9 +332,7 @@ export default function CreatePromptPageClient({
           return;
         }
         
-        console.log("🎯 Business data result:", businessData);
         if (!businessData) {
-          console.log("🎯 No business profile found, using default values");
           setBusinessProfile({
             business_name: "Your Business",
             services_offered: [],
@@ -369,7 +363,6 @@ export default function CreatePromptPageClient({
         const hasBusinessName = businessData.name && businessData.name.trim() !== '';
         
         if (!hasBusinessName) {
-          console.log("🎯 Business profile missing name, using default values");
           setBusinessProfile({
             business_name: businessData.name || businessData.business_name || "Your Business",
             services_offered: [],
@@ -396,7 +389,6 @@ export default function CreatePromptPageClient({
           return;
         }
         if (businessData) {
-          console.log("🎯 Business profile loaded:", businessData);
           
           // Batch state updates to reduce re-renders
           const updates = {
@@ -429,7 +421,6 @@ export default function CreatePromptPageClient({
           
           // Process review platforms
           if (businessData.review_platforms) {
-            console.log("🎯 Inheriting review platforms from business profile:", businessData.review_platforms);
             let platforms = businessData.review_platforms;
             if (typeof platforms === "string") {
               try {
@@ -439,7 +430,6 @@ export default function CreatePromptPageClient({
               }
             }
             if (!Array.isArray(platforms)) platforms = [];
-            console.log("🎯 Processed platforms:", platforms);
             updates.formDataUpdates.review_platforms = platforms.map((p: any) => ({
               name: p.name || p.platform || "",
               url: p.url || "",
@@ -462,7 +452,6 @@ export default function CreatePromptPageClient({
             }
             if (!Array.isArray(arr)) arr = [];
             const filteredServices = arr.filter(Boolean);
-            console.log("🎯 Inheriting services from business profile:", filteredServices);
             updates.services = filteredServices;
             updates.formDataUpdates.services_offered = filteredServices;
             updates.formDataUpdates.features_or_benefits = filteredServices;
@@ -731,7 +720,6 @@ export default function CreatePromptPageClient({
       setSaveError(null);
       setSaveSuccess(null);
       try {
-      console.log("[DEBUG] handleStep1Submit - Received formData:", formData);
       
       const {
         data: { user },
@@ -772,9 +760,6 @@ export default function CreatePromptPageClient({
         ? localStorage.getItem('campaign_type') || 'individual'
         : 'individual';
 
-      console.log("[DEBUG] handleStep1Submit - Campaign type:", campaignType);
-      console.log("[DEBUG] handleStep1Submit - User ID:", user.id);
-      console.log("[DEBUG] handleStep1Submit - Business data:", businessData);
 
       // Prepare the data for insertion
       let insertData = {
@@ -812,7 +797,6 @@ export default function CreatePromptPageClient({
         pinterest_url: formData.pinterest_url || ""
       };
 
-      console.log("[DEBUG] handleStep1Submit - insertData after initial setup:", insertData);
 
       // Generate slug based on form data or business name
       insertData.slug = slugify(
@@ -828,7 +812,6 @@ export default function CreatePromptPageClient({
           : "temp-id",
       );
 
-      console.log("[DEBUG] handleStep1Submit - Generated slug:", insertData.slug);
 
       // Handle review platforms
       if (formData.review_type === "photo") {
@@ -868,18 +851,14 @@ export default function CreatePromptPageClient({
       // Use centralized data mapping utility
       const mappedData = preparePromptPageData(insertData);
       
-      console.log("[DEBUG] Product Save - Raw insertData before mapping:", insertData);
-      console.log("[DEBUG] Product Save - Mapped data after preparePromptPageData:", mappedData);
       
       // Validate the prepared data
       const validation = validatePromptPageData(mappedData);
-      console.log("[DEBUG] Product Save - Validation result:", validation);
       if (!validation.isValid) {
         console.error("[DEBUG] Product Save - Validation failed with errors:", validation.errors);
         throw new Error(`Validation failed: ${validation.errors.join(', ')}`);
       }
 
-      console.log("[DEBUG] Product Save - About to insert to database with data:", mappedData);
 
       // Insert the prompt page
       const { data, error } = await supabase
@@ -888,7 +867,6 @@ export default function CreatePromptPageClient({
         .select()
         .single();
 
-      console.log("[DEBUG] Product Save - Database insert result:", { data, error });
 
       if (error) {
         console.error("[DEBUG] Product Save - Database error details:", {
@@ -908,7 +886,6 @@ export default function CreatePromptPageClient({
         
         // For product pages, set success message and then redirect
         if (formData.review_type === "product") {
-          console.log("[DEBUG] Product Save - Success! Setting localStorage and redirecting");
           // Set success message for the form
           setSaveSuccess("Product page created successfully!");
           
@@ -1260,7 +1237,6 @@ export default function CreatePromptPageClient({
   };
 
   useEffect(() => {
-    console.log("🎯 CreatePromptPageClient - setMounted useEffect triggered");
     setMounted(true);
   }, []);
 
@@ -1371,7 +1347,6 @@ export default function CreatePromptPageClient({
           businessProfile={businessProfile}
           isLoading={isSaving}
           onPublishSuccess={(slug) => {
-            console.log('🔥 Photo page - onPublishSuccess called with slug:', slug);
             setSavedPromptPageUrl(`/r/${slug}`);
             localStorage.setItem(
               "showPostSaveModal",
@@ -1400,7 +1375,6 @@ export default function CreatePromptPageClient({
           supabase={supabase}
           businessProfile={businessProfile}
           onPublishSuccess={(slug) => {
-            console.log('🔥 Employee page - onPublishSuccess called with slug:', slug);
             setSavedPromptPageUrl(`/r/${slug}`);
             localStorage.setItem(
               "showPostSaveModal",
@@ -1429,7 +1403,6 @@ export default function CreatePromptPageClient({
           supabase={supabase}
           businessProfile={businessProfile}
           onPublishSuccess={(slug) => {
-            console.log('🔥 Event page - onPublishSuccess called with slug:', slug);
             setSavedPromptPageUrl(`/r/${slug}`);
             localStorage.setItem(
               "showPostSaveModal",

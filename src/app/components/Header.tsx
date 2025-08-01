@@ -10,6 +10,7 @@ import { createPortal } from "react-dom";
 import { createClient, getUserOrMock } from "@/utils/supabaseClient";
 import { useAuth } from "@/contexts/AuthContext";
 import { trackEvent, GA_EVENTS } from '../../utils/analytics';
+import { fetchOnboardingTasks } from "@/utils/onboardingTasks";
 import PromptReviewsLogo from "@/app/dashboard/components/PromptReviewsLogo";
 import { AccountSwitcher } from './AccountSwitcher';
 
@@ -61,6 +62,9 @@ export default function Header() {
   const { isAdminUser, adminLoading } = useAuth();
   // 🔧 FIXED: Use actual hasBusiness state from AuthContext instead of hardcoded true
   const { hasBusiness, businessLoading, currentPlan } = useAuth();
+  
+  // Track business profile task completion
+  const [businessProfileCompleted, setBusinessProfileCompleted] = useState(false);
 
   // Check if user has Builder or Maven plan for GBP access
   const hasGBPAccess = currentPlan === 'builder' || currentPlan === 'maven';
@@ -77,6 +81,14 @@ export default function Header() {
         if (user) {
           if (process.env.NODE_ENV === 'development') {
             console.log('Header: User found:', user.id);
+          }
+          
+          // Check if business profile task is completed
+          try {
+            const taskStatus = await fetchOnboardingTasks(user.id);
+            setBusinessProfileCompleted(taskStatus["business-profile"] || false);
+          } catch (error) {
+            console.error('Header: Error fetching onboarding tasks:', error);
           }
           setUser(user);
         } else {
@@ -104,6 +116,18 @@ export default function Header() {
 
     return () => subscription.unsubscribe();
   }, [supabase]);
+
+  // Listen for business profile completion events
+  useEffect(() => {
+    const handleBusinessProfileCompleted = () => {
+      setBusinessProfileCompleted(true);
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('business-profile-completed', handleBusinessProfileCompleted);
+      return () => window.removeEventListener('business-profile-completed', handleBusinessProfileCompleted);
+    }
+  }, []);
 
   useEffect(() => {
     const fetchNotifications = async () => {
@@ -331,10 +355,17 @@ export default function Header() {
                     title={!hasBusiness ? "Create your business profile first" : ""}
                   >
                     Your business
-                    {!hasBusiness && (
-                      <span className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap" style={{ zIndex: 2147483647 }}>
-                        Create business profile first
-                      </span>
+                    {hasBusiness && !businessProfileCompleted && (
+                      <>
+                        {/* Start Here Badge */}
+                        <span className="absolute -top-3 -right-2 bg-blue-500 text-white text-xs px-2 py-1 rounded-full font-bold animate-pulse shadow-lg">
+                          Start Here!
+                        </span>
+                        {/* Tooltip */}
+                        <span className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap" style={{ zIndex: 2147483647 }}>
+                          Complete your business profile
+                        </span>
+                      </>
                     )}
                   </Link>
                   <Link
@@ -671,11 +702,16 @@ export default function Header() {
                           : hasBusiness 
                             ? "text-blue-900 hover:bg-slate-blue/10 hover:text-slate-blue"
                             : "text-blue-400 cursor-not-allowed"
-                      } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
+                      } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200 relative`}
                     >
                       Your business
-                      {!hasBusiness && (
-                        <span className="text-xs text-blue-600 block mt-1">Create business profile first</span>
+                      {hasBusiness && !businessProfileCompleted && (
+                        <>
+                          <span className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs px-2 py-1 rounded-full font-bold animate-pulse">
+                            Start Here!
+                          </span>
+                          <span className="text-xs text-blue-600 block mt-1">Complete your business profile</span>
+                        </>
                       )}
                     </Link>
                     <Link

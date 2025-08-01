@@ -52,14 +52,7 @@ export class GoogleBusinessProfileClient {
       };
     }
 
-    console.log('🔍 GoogleBusinessProfileClient created - Real API calls only');
-    console.log('🔑 Token info at creation:', {
-      hasAccessToken: !!this.accessToken,
-      hasRefreshToken: !!this.refreshToken,
-      expiresAt: new Date(this.expiresAt).toISOString(),
-      timeUntilExpiry: Math.round((this.expiresAt - Date.now()) / 1000 / 60) + ' minutes',
-      isExpiredAtCreation: Date.now() >= this.expiresAt
-    });
+
   }
 
   /**
@@ -93,7 +86,7 @@ export class GoogleBusinessProfileClient {
         throw refreshError;
       }
     } else {
-      console.log('✅ Token is still valid, no refresh needed');
+
     }
   }
 
@@ -110,7 +103,7 @@ export class GoogleBusinessProfileClient {
         : process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3002';
       
       const refreshUrl = `${baseUrl}/api/auth/google/refresh-tokens`;
-      console.log('🔧 Token refresh URL:', refreshUrl);
+  
 
       // Call the server-side refresh endpoint
       const response = await fetch(refreshUrl, {
@@ -119,7 +112,7 @@ export class GoogleBusinessProfileClient {
         body: JSON.stringify({ refreshToken: this.refreshToken }),
       });
       
-      console.log('📊 Token refresh response status:', response.status);
+
       
       if (!response.ok) {
         const errorText = await response.text();
@@ -128,7 +121,7 @@ export class GoogleBusinessProfileClient {
       }
       
       const data = await response.json();
-      console.log('📄 Token refresh response data keys:', Object.keys(data));
+
 
       if (!data.success) {
         if (data.error?.includes('REFRESH_TOKEN_EXPIRED') || data.requiresReauth) {
@@ -140,7 +133,7 @@ export class GoogleBusinessProfileClient {
       this.accessToken = data.accessToken;
       this.expiresAt = Date.now() + data.expiresIn * 1000; // expiresIn is in seconds
       this.refreshToken = data.refreshToken || this.refreshToken; // Refresh token might also be updated
-      console.log('✅ Access token refreshed successfully via server-side endpoint.');
+
     } catch (refreshError: any) {
       if (refreshError.message?.includes('GOOGLE_REAUTH_REQUIRED')) {
         throw refreshError; // Re-throw specific re-auth error
@@ -206,14 +199,6 @@ export class GoogleBusinessProfileClient {
 
       const url = `${apiBaseUrl}${endpoint}`;
       
-      console.log('🔧 API Request Debug:', {
-        endpoint,
-        baseUrl: apiBaseUrl,
-        finalUrl: url,
-        endpointType: typeof endpoint,
-        endpointLength: endpoint.length
-      });
-
       const headers = {
         'Authorization': `Bearer ${this.accessToken}`,
         'Content-Type': 'application/json',
@@ -221,21 +206,14 @@ export class GoogleBusinessProfileClient {
         ...options.headers,
       };
 
-      console.log(`🌐 Making API request to: ${url}`);
-      console.log(`🔑 Using access token: ${this.accessToken.substring(0, 20)}...`);
-
       const response = await fetch(url, {
         ...options,
         headers,
         signal: AbortSignal.timeout(this.config.timeout || 30000)
       });
 
-      console.log(`📊 Response status: ${response.status}`);
-      console.log(`📋 Response headers:`, Object.fromEntries(response.headers.entries()));
-
       // Get response text first to handle both JSON and error responses
       const responseText = await response.text();
-      console.log(`📄 Response text (first 500 chars):`, responseText.substring(0, 500));
 
       // Try to parse as JSON
       let responseData;
@@ -292,7 +270,7 @@ export class GoogleBusinessProfileClient {
    */
   async listAccounts(): Promise<BusinessAccount[]> {
     try {
-      console.log('📋 Fetching business accounts...');
+  
       
       const response = await this.makeRequest(
         GOOGLE_BUSINESS_PROFILE.ENDPOINTS.ACCOUNTS,
@@ -302,11 +280,8 @@ export class GoogleBusinessProfileClient {
       ) as ListAccountsResponse;
       
       if (!response.accounts) {
-        console.log('⚠️ No accounts found in response');
         return [];
       }
-
-      console.log(`✅ Found ${response.accounts.length} accounts`);
       return response.accounts;
 
     } catch (error) {
@@ -366,7 +341,6 @@ export class GoogleBusinessProfileClient {
       console.log(`📍 Response data.locations:`, response.locations);
       
       if (!response.locations) {
-        console.log('⚠️ No locations found in response');
         return [];
       }
 
@@ -411,7 +385,6 @@ export class GoogleBusinessProfileClient {
       const response = await this.makeRequest(endpoint, {}, 0, GOOGLE_BUSINESS_PROFILE.LEGACY_BASE_URL) as ListLocalPostsResponse;
       
       if (!response.localPosts) {
-        console.log('⚠️ No local posts found in response');
         return [];
       }
 
@@ -491,7 +464,7 @@ export class GoogleBusinessProfileClient {
       }
 
       const accountId = accounts[0].name.replace('accounts/', '');
-      console.log(`📋 Using account ID: ${accountId}`);
+
 
       // Construct the location details endpoint using Business Information API v1
       const endpoint = `/v1/accounts/${accountId}/locations/${cleanLocationId}`;
@@ -526,7 +499,6 @@ export class GoogleBusinessProfileClient {
   async updateLocation(accountId: string, locationId: string, updates: any): Promise<any> {
     try {
       console.log(`🔄 Updating location: ${locationId}`);
-      console.log('🚨 CACHE-BUSTING-V5: UPDATE LOCATION WITH ENHANCED DEBUGGING! TIMESTAMP: ' + Date.now() + ' 🚨');
       console.log(`📝 Updates:`, JSON.stringify(updates, null, 2));
 
       // Extract just the location ID if it's in full format
@@ -725,7 +697,6 @@ export class GoogleBusinessProfileClient {
   async listCategories(): Promise<Array<{ categoryId: string; displayName: string }>> {
     try {
       console.log('📋 Fetching Google Business categories...');
-      console.log('🚨 CACHE-BUSTING-V4: FIXED QUERY PARAMS! TIMESTAMP: ' + Date.now() + ' 🚨');
       
       // Add required parameters for Google Business Information API v1
       const queryParams = new URLSearchParams({

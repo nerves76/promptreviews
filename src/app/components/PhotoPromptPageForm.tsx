@@ -248,6 +248,9 @@ export default function PhotoPromptPageForm({
         // AI settings fields
         ai_button_enabled: aiButtonEnabled,
         fix_grammar_enabled: fixGrammarEnabled,
+        // Explicitly include kickstarters fields to ensure they're saved
+        kickstarters_enabled: formData.kickstarters_enabled,
+        selected_kickstarters: formData.selected_kickstarters,
       };
       
       console.log('🔥 PhotoPromptPageForm calling onSave with:', saveData);
@@ -387,6 +390,20 @@ export default function PhotoPromptPageForm({
 
         {/* Photo-specific features */}
         <div className="space-y-8">
+          {/* Kickstarters Feature */}
+          <KickstartersFeature
+            enabled={formData.kickstarters_enabled || false}
+            selectedKickstarters={formData.selected_kickstarters || []}
+            businessName={businessProfile?.name || businessProfile?.business_name || "Business Name"}
+            onEnabledChange={(enabled) => setFormData((prev: any) => ({ ...prev, kickstarters_enabled: enabled }))}
+            onKickstartersChange={(kickstarters) => setFormData((prev: any) => ({ ...prev, selected_kickstarters: kickstarters }))}
+            initialData={{
+              kickstarters_enabled: formData.kickstarters_enabled,
+              selected_kickstarters: formData.selected_kickstarters,
+            }}
+            editMode={true}
+          />
+
           {/* Falling Stars Feature */}
           <FallingStarsFeature
             enabled={fallingEnabled}
@@ -445,21 +462,6 @@ export default function PhotoPromptPageForm({
             onAIEnabledChange={setAiButtonEnabled}
             onGrammarEnabledChange={setFixGrammarEnabled}
           />
-
-          {/* Kickstarters Feature */}
-          <KickstartersFeature
-            enabled={formData.kickstarters_enabled || false}
-            selectedKickstarters={formData.selected_kickstarters || []}
-            businessName={businessProfile?.name || businessProfile?.business_name || "Business Name"}
-            onEnabledChange={(enabled) => setFormData((prev: any) => ({ ...prev, kickstarters_enabled: enabled }))}
-            onKickstartersChange={(kickstarters) => setFormData((prev: any) => ({ ...prev, selected_kickstarters: kickstarters }))}
-            initialData={{
-              kickstarters_enabled: formData.kickstarters_enabled,
-              selected_kickstarters: formData.selected_kickstarters,
-            }}
-            editMode={true}
-          />
-
 
         </div>
 

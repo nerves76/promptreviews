@@ -50,6 +50,7 @@ export default function UniversalEditPromptPage() {
     [],
   );
   const [slug, setSlug] = useState<string | null>(null);
+  const [businessProfile, setBusinessProfile] = useState<any>(null);
 
   // Fetch universal prompt page and business profile, then merge
   React.useEffect(() => {
@@ -161,8 +162,12 @@ export default function UniversalEditPromptPage() {
         setShowResetButton(
           universalPlatforms.length > 0 || merged.reviewPlatforms.length === 0,
         );
+        console.log('🏢 Universal page - Business profile data:', businessProfile);
+        console.log('🏢 Universal page - Business name:', businessProfile?.name, businessProfile?.business_name);
+        
         setInitialData(merged);
         setBusinessReviewPlatforms(businessPlatforms);
+        setBusinessProfile(businessProfile);
         setIsLoading(false);
       } catch (err) {
         console.error("Error fetching data:", err);
@@ -345,6 +350,7 @@ export default function UniversalEditPromptPage() {
             showResetButton={showResetButton}
             businessReviewPlatforms={businessReviewPlatforms}
             slug={slug || undefined}
+            businessProfile={businessProfile}
           />
         )}
         {!isLoading && !error && !initialData && (

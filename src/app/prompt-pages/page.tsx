@@ -28,6 +28,8 @@ import { hasLocationAccess, formatLocationAddress, getLocationDisplayName } from
 import { FaQuestionCircle } from "react-icons/fa";
 import EmojiEmbedButton from "@/app/components/EmojiEmbedButton";
 import FiveStarSpinner from "@/app/components/FiveStarSpinner";
+import BusinessProfileBanner from "@/app/components/BusinessProfileBanner";
+import { useAuth } from "@/contexts/AuthContext";
 
 const StylePage = dynamic(() => import("../dashboard/style/StyleModalPage"), { ssr: false });
 
@@ -35,6 +37,7 @@ export default function PromptPages() {
   const supabase = createClient();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { hasBusiness } = useAuth();
 
   const [loading, setLoading] = useState(true);
   const [promptPages, setPromptPages] = useState<any[]>([]);
@@ -42,6 +45,7 @@ export default function PromptPages() {
   const [universalPromptPage, setUniversalPromptPage] = useState<any>(null);
   const [business, setBusiness] = useState<any>(null);
   const [account, setAccount] = useState<any>(null);
+  const [user, setUser] = useState<any>(null);
   const [universalUrl, setUniversalUrl] = useState("");
   const [copySuccess, setCopySuccess] = useState("");
   const [qrModal, setQrModal] = useState<{
@@ -129,6 +133,8 @@ export default function PromptPages() {
           data: { user },
         } = await supabase.auth.getUser();
         if (!user) throw new Error("Not signed in");
+        
+        setUser(user);
         
         // Get the account ID for the user
         const accountId = await getAccountIdForUser(user.id, supabase);
@@ -605,17 +611,20 @@ export default function PromptPages() {
       <PageCard icon={<span className="text-3xl font-bold align-middle text-slate-blue" style={{ fontFamily: 'Inter, sans-serif' }}>[P]</span>}>
         {/* Card content below tabs */}
         <div className="p-6 pt-2">
+            {/* Business Profile Banner */}
+            <BusinessProfileBanner 
+              userId={user?.id}
+              hasBusiness={hasBusiness}
+            />
+            
             <div className="flex items-start justify-between mt-2 mb-4">
               <div className="flex flex-col mt-0 md:mt-[3px]">
-                <div className="flex items-center gap-3 mb-2">
+                <div className="mb-2">
                   <h1 className="text-4xl font-bold text-slate-blue mt-0">
                     {promptPagesTab === 'public' && 'Public Prompt Pages'}
                     {promptPagesTab === 'individual' && 'Individual Prompt Pages'}
                     {promptPagesTab === 'locations' && 'Location Prompt Pages'}
                   </h1>
-                  {promptPagesTab === 'public' && <FaUsers className="w-8 h-8 text-slate-blue" />}
-                  {promptPagesTab === 'individual' && <FaUserCircle className="w-8 h-8 text-slate-blue" />}
-                  {promptPagesTab === 'locations' && <FaMapMarkerAlt className="w-8 h-8 text-slate-blue" />}
                 </div>
                 <p className="text-gray-600 text-base max-w-md mt-0 mb-10">
                   {promptPagesTab === 'public' && 'Capture reviews in person, at your place of business, through your website, or embed in your newsletter. These prompt pages are open to the public.'}
@@ -623,7 +632,7 @@ export default function PromptPages() {
                   {promptPagesTab === 'locations' && 'Create location-specific prompt pages for each of your business locations. (Available for Maven subscribers)'}
                 </p>
               </div>
-              <div className="flex items-start gap-2" style={{ alignSelf: "flex-start" }}>
+              <div className="flex items-start gap-3 flex-shrink-0" style={{ alignSelf: "flex-start" }}>
                 {(promptPagesTab === 'individual' || promptPagesTab === 'public') && (
                   <button
                     type="button"
@@ -634,7 +643,7 @@ export default function PromptPages() {
                       console.log('🎯 PROMPT PAGES - localStorage after setting:', localStorage.getItem('campaign_type'));
                       setShowTypeModal(true);
                     }}
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-slate-blue text-white rounded hover:bg-slate-blue/90 font-medium transition"
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-slate-blue text-white rounded hover:bg-slate-blue/90 font-medium transition whitespace-nowrap"
                   >
                     + Prompt Page
                   </button>
@@ -643,14 +652,14 @@ export default function PromptPages() {
                   <button
                     type="button"
                     onClick={() => setShowLocationModal(true)}
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-slate-blue text-white rounded hover:bg-slate-blue/90 font-medium transition"
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-slate-blue text-white rounded hover:bg-slate-blue/90 font-medium transition whitespace-nowrap"
                   >
                     + Location
                   </button>
                 )}
                 <button
                   type="button"
-                  className="bg-blue-100 text-slate-blue rounded font-semibold px-4 py-2 hover:bg-blue-200 transition whitespace-nowrap flex items-center gap-2"
+                  className="bg-blue-100 text-slate-blue rounded font-semibold px-4 py-2 hover:bg-blue-200 transition whitespace-nowrap flex items-center gap-2 flex-shrink-0"
                   onClick={() => setShowStyleModal(true)}
                 >
                   <FaPalette className="w-5 h-5" />

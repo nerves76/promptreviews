@@ -74,7 +74,6 @@ export default function ProductPromptPageForm({
   campaignType?: string;
   [key: string]: any;
 }) {
-  console.log('🔥 FIXED VERSION - ProductPromptPageForm loaded at', new Date().toISOString());
   const router = useRouter();
   
   // Form state
@@ -543,6 +542,20 @@ export default function ProductPromptPageForm({
               aiGeneratingIndex={aiGeneratingIndex}
             />
 
+        {/* Kickstarters Feature */}
+        <KickstartersFeature
+          enabled={kickstartersEnabled || false}
+          selectedKickstarters={selectedKickstarters || []}
+          businessName={businessProfile?.name || businessProfile?.business_name || "Business Name"}
+          onEnabledChange={setKickstartersEnabled}
+          onKickstartersChange={setSelectedKickstarters}
+          initialData={{
+            kickstarters_enabled: kickstartersEnabled,
+            selected_kickstarters: selectedKickstarters,
+          }}
+          editMode={true}
+        />
+
         {/* Offer Section */}
             <OfferFeature
               enabled={offerEnabled}
@@ -649,20 +662,6 @@ export default function ProductPromptPageForm({
           onIconChange={handleIconChange}
           color={fallingIconColor}
           onColorChange={handleColorChange}
-          editMode={true}
-        />
-
-        {/* Kickstarters Feature */}
-        <KickstartersFeature
-          enabled={kickstartersEnabled || false}
-          selectedKickstarters={selectedKickstarters || []}
-          businessName={businessProfile?.name || businessProfile?.business_name || "Business Name"}
-          onEnabledChange={setKickstartersEnabled}
-          onKickstartersChange={setSelectedKickstarters}
-          initialData={{
-            kickstarters_enabled: kickstartersEnabled,
-            selected_kickstarters: selectedKickstarters,
-          }}
           editMode={true}
         />
         
