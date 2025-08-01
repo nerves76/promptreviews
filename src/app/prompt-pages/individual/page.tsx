@@ -347,37 +347,37 @@ export default function IndividualOutreach() {
     {
       key: "service",
       label: "Service review",
-      icon: <FaHandsHelping className="w-7 h-7 text-slate-blue" />,
+      icon: <Icon name="FaHandsHelping" className="w-7 h-7 text-slate-blue" size={28} />,
       description: "Capture a review from a customer or client who loves what you do",
     },
     {
       key: "photo",
       label: "Photo + testimonial",
-      icon: <MdPhotoCamera className="w-7 h-7 text-[#1A237E]" />,
+      icon: <Icon name="FaCamera" className="w-7 h-7 text-[#1A237E]" size={28} />,
       description: "Capture a headshot and testimonial to display on your website or in marketing materials.",
     },
     {
       key: "product",
       label: "Product review",
-      icon: <FaBoxOpen className="w-7 h-7 text-slate-blue" />,
+      icon: <Icon name="FaBoxOpen" className="w-7 h-7 text-slate-blue" size={28} />,
       description: "Get a review from a customer who fancies your products",
     },
     {
       key: "employee",
       label: "Employee spotlight",
-      icon: <FaUserCircle className="w-7 h-7 text-slate-blue" />,
+      icon: <Icon name="FaUserCircle" className="w-7 h-7 text-slate-blue" size={28} />,
       description: "Create a review page to showcase individual team members and inspire competition",
     },
     {
       key: "event",
       label: "Events & spaces",
-      icon: <MdEvent className="w-7 h-7 text-[#1A237E]" />,
+      icon: <Icon name="MdEvent" className="w-7 h-7 text-[#1A237E]" size={28} />,
       description: "For events, rentals, tours, and more.",
     },
     {
       key: "video",
       label: "Video testimonial",
-      icon: <MdVideoLibrary className="w-7 h-7 text-[#1A237E]" />,
+      icon: <Icon name="FaVideo" className="w-7 h-7 text-[#1A237E]" size={28} />,
       description: "Request a video testimonial from your client.",
       comingSoon: true,
     },
@@ -443,7 +443,7 @@ export default function IndividualOutreach() {
               <div className="flex flex-col mt-0 md:mt-[3px]">
                 <div className="flex items-center gap-3 mb-2">
                   <h1 className="text-4xl font-bold text-slate-blue mt-0">Individual outreach</h1>
-                  <FaUserCircle className="w-8 h-8 text-slate-blue" />
+                  <Icon name="FaUserCircle" className="w-8 h-8 text-slate-blue" size={32} />
                 </div>
                 <p className="text-gray-600 text-base max-w-md mt-0 mb-10">Create personalized prompt pages for specific customers and clients.</p>
               </div>
@@ -453,7 +453,7 @@ export default function IndividualOutreach() {
                   className="bg-blue-100 text-slate-blue rounded font-semibold px-4 py-2 hover:bg-blue-200 transition whitespace-nowrap flex items-center gap-2"
                   onClick={() => setShowStyleModal(true)}
                 >
-                  <FaPalette className="w-5 h-5" />
+                  <Icon name="FaPalette" className="w-5 h-5" size={20} />
                   Style
                 </button>
               </div>
@@ -464,7 +464,7 @@ export default function IndividualOutreach() {
               <div className="flex items-center justify-between mb-[75px]">
                 <div>
                   <h2 className="text-2xl font-bold text-slate-blue mb-2 flex items-center gap-3">
-                    <FaStar className="w-8 h-8 text-slate-blue" />
+                    <Icon name="FaStar" className="w-8 h-8 text-slate-blue" size={32} />
                     Individual Prompt Pages
                   </h2>
                   <p className="text-sm text-gray-600">
