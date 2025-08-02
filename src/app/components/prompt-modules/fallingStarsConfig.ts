@@ -142,11 +142,7 @@ export const loadAllFallingIcons = async (): Promise<{
     FaHatWizard,
     FaSocks,
     FaRing,
-    FaAnkh,
     FaYinYang,
-    FaOm,
-    FaCross,
-    FaStarOfDavid,
     FaHeartbeat,
     FaHandsHelping,
     FaHandPeace,
@@ -154,22 +150,62 @@ export const loadAllFallingIcons = async (): Promise<{
     FaHandRock,
     FaHandPaper,
     FaHandScissors,
-    FaPray,
     FaGlassCheers,
     FaPagelines,
     FaBone,
     FaSkull,
     FaFistRaised,
+    // New diversity, inclusion, small business & nature icons
+    FaStore,
+    FaShoppingBag,
+    FaHandshake,
+    FaUsers,
+    FaUserFriends,
+    FaBalanceScale,
+    FaHammer,
+    FaStethoscope,
+    FaCut,
+    FaBroom,
+    FaShieldAlt,
+    FaChild,
+    FaFemale,
+    FaMale,
+    FaWheelchair,
+    FaEye,
+    FaHands,
+    FaHandHoldingHeart,
   } = await import("react-icons/fa");
 
   return [
     // Popular icons (already loaded)
     ...POPULAR_FALLING_ICONS,
     
-    // Lazy loaded icons
+    // Nature & Plants (Enhanced)
     { key: "snowflake", label: "Snowflake", icon: FaSnowflake, color: "text-blue-100", category: "Nature & Weather" },
     { key: "seedling", label: "Seedling", icon: FaSeedling, color: "text-green-400", category: "Nature & Weather" },
     { key: "flower", label: "Flower", icon: FaPagelines, color: "text-green-500", category: "Nature & Weather" },
+    
+    // Small Business & Commerce
+    { key: "store", label: "Store", icon: FaStore, color: "text-blue-600", category: "Small Business" },
+    { key: "shoppingbag", label: "Shopping Bag", icon: FaShoppingBag, color: "text-green-600", category: "Small Business" },
+    { key: "handshake", label: "Handshake", icon: FaHandshake, color: "text-blue-500", category: "Small Business" },
+    { key: "hammer", label: "Hammer", icon: FaHammer, color: "text-gray-600", category: "Small Business" },
+    { key: "stethoscope", label: "Stethoscope", icon: FaStethoscope, color: "text-red-500", category: "Small Business" },
+    { key: "cut", label: "Scissors", icon: FaCut, color: "text-gray-600", category: "Small Business" },
+    { key: "broom", label: "Broom", icon: FaBroom, color: "text-brown-500", category: "Small Business" },
+    { key: "shield", label: "Shield", icon: FaShieldAlt, color: "text-blue-600", category: "Small Business" },
+    
+    // Diversity, Equity & Inclusion
+    { key: "users", label: "Users", icon: FaUsers, color: "text-blue-500", category: "Diversity & Inclusion" },
+    { key: "userfriends", label: "Friends", icon: FaUserFriends, color: "text-green-500", category: "Diversity & Inclusion" },
+    { key: "balancescale", label: "Balance Scale", icon: FaBalanceScale, color: "text-purple-600", category: "Diversity & Inclusion" },
+    { key: "child", label: "Child", icon: FaChild, color: "text-blue-400", category: "Diversity & Inclusion" },
+    { key: "female", label: "Female", icon: FaFemale, color: "text-pink-500", category: "Diversity & Inclusion" },
+    { key: "male", label: "Male", icon: FaMale, color: "text-blue-500", category: "Diversity & Inclusion" },
+    { key: "wheelchair", label: "Wheelchair", icon: FaWheelchair, color: "text-blue-600", category: "Diversity & Inclusion" },
+    { key: "eye", label: "Eye", icon: FaEye, color: "text-gray-600", category: "Diversity & Inclusion" },
+    { key: "hands", label: "Hands", icon: FaHands, color: "text-brown-400", category: "Diversity & Inclusion" },
+    { key: "handheart", label: "Hand Heart", icon: FaHandHoldingHeart, color: "text-red-500", category: "Diversity & Inclusion" },
     
     // Food & Beverages
     { key: "wine", label: "Wine", icon: FaWineGlass, color: "text-purple-600", category: "Food & Beverages" },
@@ -212,15 +248,11 @@ export const loadAllFallingIcons = async (): Promise<{
     { key: "car", label: "Car", icon: FaCar, color: "text-red-600", category: "Transportation" },
     { key: "ship", label: "Ship", icon: FaShip, color: "text-blue-600", category: "Transportation" },
     
-    // Symbols & Peace
-    { key: "peace", label: "Peace", icon: FaPeace, color: "text-purple-500", category: "Symbols & Peace" },
-    { key: "globe", label: "Globe", icon: FaGlobe, color: "text-blue-500", category: "Symbols & Peace" },
-    { key: "flag", label: "Flag", icon: FaFlag, color: "text-red-500", category: "Symbols & Peace" },
-    { key: "ankh", label: "Ankh", icon: FaAnkh, color: "text-amber-600", category: "Symbols & Peace" },
-    { key: "yinyang", label: "Yin Yang", icon: FaYinYang, color: "text-gray-700", category: "Symbols & Peace" },
-    { key: "om", label: "Om", icon: FaOm, color: "text-orange-500", category: "Symbols & Peace" },
-    { key: "cross", label: "Cross", icon: FaCross, color: "text-amber-700", category: "Symbols & Peace" },
-    { key: "starofdavid", label: "Star of David", icon: FaStarOfDavid, color: "text-blue-600", category: "Symbols & Peace" },
+    // Universal Symbols & Peace
+    { key: "peace", label: "Peace", icon: FaPeace, color: "text-purple-500", category: "Universal Symbols" },
+    { key: "globe", label: "Globe", icon: FaGlobe, color: "text-blue-500", category: "Universal Symbols" },
+    { key: "flag", label: "Flag", icon: FaFlag, color: "text-red-500", category: "Universal Symbols" },
+    { key: "yinyang", label: "Yin Yang", icon: FaYinYang, color: "text-gray-700", category: "Universal Symbols" },
     
     // Entertainment & Media
     { key: "music", label: "Music", icon: FaMusic, color: "text-purple-500", category: "Entertainment & Media" },
@@ -267,15 +299,14 @@ export const loadAllFallingIcons = async (): Promise<{
     { key: "bell", label: "Bell", icon: FaBell, color: "text-yellow-500", category: "Time & Communication" },
     { key: "mapmarkeralt", label: "Location", icon: FaMapMarkerAlt, color: "text-red-500", category: "Time & Communication" },
     
-    // Spiritual & Cultural
-    { key: "pray", label: "Pray", icon: FaPray, color: "text-purple-600", category: "Spiritual & Cultural" },
-    { key: "heartbeat", label: "Heartbeat", icon: FaHeartbeat, color: "text-red-500", category: "Spiritual & Cultural" },
-    { key: "handshelping", label: "Helping Hands", icon: FaHandsHelping, color: "text-green-600", category: "Spiritual & Cultural" },
-    { key: "handpeace", label: "Peace Hand", icon: FaHandPeace, color: "text-blue-500", category: "Spiritual & Cultural" },
-    { key: "thumbsdown", label: "Thumbs Down", icon: FaThumbsDown, color: "text-red-600", category: "Spiritual & Cultural" },
-    { key: "handrock", label: "Rock Hand", icon: FaHandRock, color: "text-gray-600", category: "Spiritual & Cultural" },
-    { key: "handpaper", label: "Paper Hand", icon: FaHandPaper, color: "text-gray-500", category: "Spiritual & Cultural" },
-    { key: "handscissors", label: "Scissors Hand", icon: FaHandScissors, color: "text-gray-600", category: "Spiritual & Cultural" },
+    // Community & Support
+    { key: "heartbeat", label: "Heartbeat", icon: FaHeartbeat, color: "text-red-500", category: "Community & Support" },
+    { key: "handshelping", label: "Helping Hands", icon: FaHandsHelping, color: "text-green-600", category: "Community & Support" },
+    { key: "handpeace", label: "Peace Hand", icon: FaHandPeace, color: "text-blue-500", category: "Community & Support" },
+    { key: "thumbsdown", label: "Thumbs Down", icon: FaThumbsDown, color: "text-red-600", category: "Community & Support" },
+    { key: "handrock", label: "Rock Hand", icon: FaHandRock, color: "text-gray-600", category: "Community & Support" },
+    { key: "handpaper", label: "Paper Hand", icon: FaHandPaper, color: "text-gray-500", category: "Community & Support" },
+    { key: "handscissors", label: "Scissors Hand", icon: FaHandScissors, color: "text-gray-600", category: "Community & Support" },
     
     // Additional Icons
     { key: "bone", label: "Bone", icon: FaBone, color: "text-gray-400", category: "Additional" },
