@@ -1153,25 +1153,25 @@ export default function EditPromptPage() {
   // Determine the appropriate icon based on page type
   const getPageIcon = () => {
     if (formData.type === "product" || (formData as any).review_type === "product") {
-      return <svg className="w-9 h-9 text-slate-blue"><use href="/icons-sprite.svg#FaBox" /></svg>;
+      return <svg className="w-9 h-9" style={{ color: "#1A237E" }}><use href="/icons-sprite.svg#FaBox" /></svg>;
     }
     if (formData.type === "service" || (formData as any).review_type === "service") {
-      return <svg className="w-9 h-9 text-slate-blue"><use href="/icons-sprite.svg#FaHandshake" /></svg>;
+      return <svg className="w-9 h-9" style={{ color: "#1A237E" }}><use href="/icons-sprite.svg#FaHandshake" /></svg>;
     }
     if ((formData as any).review_type === "photo") {
-      return <Icon name="FaCamera" className="w-9 h-9 text-slate-blue" />;
+      return <Icon name="FaCamera" className="w-9 h-9" style={{ color: "#1A237E" }} />;
     }
     if ((formData as any).review_type === "employee") {
-      return <Icon name="FaUser" className="w-9 h-9 text-slate-blue" />;
+      return <Icon name="FaUser" className="w-9 h-9" style={{ color: "#1A237E" }} />;
     }
     if ((formData as any).review_type === "event") {
-      return <Icon name="MdEvent" className="w-9 h-9 text-slate-blue" />;
+      return <Icon name="MdEvent" className="w-9 h-9" style={{ color: "#1A237E" }} />;
     }
     if (formData.type === "universal") {
-      return <Icon name="FaGlobe" className="w-9 h-9 text-slate-blue" size={36} />;
+      return <Icon name="FaGlobe" className="w-9 h-9" style={{ color: "#1A237E" }} size={36} />;
     }
     // Default icon
-    return <svg className="w-9 h-9 text-slate-blue"><use href="/icons-sprite.svg#FaHandshake" /></svg>;
+    return <svg className="w-9 h-9" style={{ color: "#1A237E" }}><use href="/icons-sprite.svg#FaHandshake" /></svg>;
   };
 
   // Determine the page title based on type
