@@ -660,7 +660,7 @@ const DashboardContent = React.memo(function DashboardContent({
                           onClick={handleCopyLink}
                           className="inline-flex items-center gap-1 px-3 py-1.5 bg-purple-100 text-purple-800 rounded hover:bg-purple-200 text-sm font-medium shadow h-9 align-middle whitespace-nowrap"
                         >
-                          <Icon name="FaLink" className="w-4 h-4" size={16} />
+                          <Icon name="FaLink" className="w-4 h-4" style={{ color: "#1A237E" }} size={16} />
                           Copy link
                         </button>
                         <button

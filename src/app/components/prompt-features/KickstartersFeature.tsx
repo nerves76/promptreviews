@@ -317,7 +317,7 @@ export default function KickstartersFeature({
                 className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 shadow-sm transition-colors"
                 disabled={disabled}
               >
-                <Icon name="FaCog" className="w-4 h-4" size={16} />
+                <Icon name="FaCog" className="w-4 h-4" style={{ color: "#1A237E" }} size={16} />
                 Manage
               </button>
               <span className="text-xs text-gray-500">
