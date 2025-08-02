@@ -300,17 +300,17 @@ export default function LoadBusinessInfoButton({
     >
       {isLoading ? (
         <>
-          <FaSpinner className="w-4 h-4 animate-spin" />
+          <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />
           <span>Loading...</span>
         </>
       ) : detailsLoaded ? (
         <>
-          <FaCheck className="w-4 h-4" />
+          <Icon name="FaCheck" className="w-4 h-4" />
           <span>Loaded</span>
         </>
       ) : (
         <>
-          <FaStore className="w-4 h-4" />
+          <Icon name="FaStore" className="w-4 h-4" size={16} />
           <span>Load business info</span>
         </>
       )}
