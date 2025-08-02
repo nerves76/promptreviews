@@ -6,32 +6,32 @@
  */
 
 import React from 'react';
-import Icon from '@/components/Icon';
+import { FaGrinHearts, FaSmile, FaMeh, FaFrown, FaAngry } from 'react-icons/fa';
 
 export const sentimentOptions = [
   {
     value: "love",
-    icon: <Icon name="FaGrinHearts" className="text-pink-400" />,
+    icon: React.createElement(FaGrinHearts, { className: "text-pink-400" }),
     label: "Excellent",
   },
   {
     value: "satisfied",
-    icon: <Icon name="FaSmile" className="text-green-500" />,
+    icon: React.createElement(FaSmile, { className: "text-green-500" }),
     label: "Satisfied",
   },
   {
     value: "neutral",
-    icon: <Icon name="FaMeh" className="text-gray-400" />,
+    icon: React.createElement(FaMeh, { className: "text-gray-400" }),
     label: "Neutral",
   },
   {
     value: "unsatisfied",
-    icon: <Icon name="FaFrown" className="text-orange-400" />,
+    icon: React.createElement(FaFrown, { className: "text-orange-400" }),
     label: "Unsatisfied",
   },
   {
     value: "angry",
-    icon: <Icon name="FaAngry" className="text-red-500" />,
+    icon: React.createElement(FaAngry, { className: "text-red-500" }),
     label: "Angry",
   },
 ]; 
