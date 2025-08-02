@@ -35,10 +35,12 @@ function RobotTooltip({ text }: { text: string }) {
         onBlur={() => setShow(false)}
         style={{ lineHeight: 1 }}
       >
-        <FaRobot
+        <svg
           className="inline-block w-4 h-4 align-middle cursor-pointer"
           title={text}
-        />
+        >
+          <use href="/icons-sprite.svg#FaRobot" />
+        </svg>
       </button>
       {show && (
         <div className="absolute z-20 left-1/2 -translate-x-1/2 mt-2 w-56 p-2 bg-white border border-gray-200 rounded shadow text-xs text-gray-700">
