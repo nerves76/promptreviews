@@ -174,7 +174,7 @@ export default function MetadataTemplatesPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex justify-center items-start px-4 sm:px-0">
-        <PageCard icon={<FaEdit className="w-9 h-9 text-slate-blue" />}>
+        <PageCard icon={<Icon name="FaEdit" className="w-9 h-9 text-slate-blue" />}>
           <AppLoader />
         </PageCard>
       </div>
@@ -185,7 +185,7 @@ export default function MetadataTemplatesPage() {
 
   return (
     <div className="min-h-screen flex justify-center items-start px-4 sm:px-0">
-      <PageCard icon={<FaEdit className="w-9 h-9 text-slate-blue" />}>
+      <PageCard icon={<Icon name="FaEdit" className="w-9 h-9 text-slate-blue" />}>
         <div className="space-y-6">
           <div className="flex justify-between items-center">
             <div>
@@ -214,7 +214,7 @@ export default function MetadataTemplatesPage() {
           {/* Variable Guide */}
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
             <div className="flex items-start gap-2">
-              <FaInfo className="w-5 h-5 text-blue-600 mt-0.5" />
+              <Icon name="FaInfo" className="w-5 h-5 text-blue-600 mt-0.5" />
               <div>
                 <h3 className="font-semibold text-blue-900">Available Variables</h3>
                 <p className="text-blue-700 text-sm mt-1">
@@ -295,7 +295,7 @@ export default function MetadataTemplatesPage() {
                               <div className="flex-1">
                                 <div className="flex items-center gap-2 mb-2">
                                   {template.is_active && (
-                                    <FaCheck className="w-4 h-4 text-green-600" />
+                                    <Icon name="FaCheck" className="w-4 h-4 text-green-600" />
                                   )}
                                   <h3 className="font-medium">
                                     {template.title_template || 'Untitled Template'}
@@ -320,14 +320,14 @@ export default function MetadataTemplatesPage() {
                                   className="p-2 text-blue-600 hover:bg-blue-100 rounded"
                                   title="Edit template"
                                 >
-                                  <FaEdit className="w-4 h-4" />
+                                  <Icon name="FaEdit" className="w-4 h-4" />
                                 </button>
                                 <button
                                   onClick={() => handleDelete(template.id)}
                                   className="p-2 text-red-600 hover:bg-red-100 rounded"
                                   title="Delete template"
                                 >
-                                  <FaTrash className="w-4 h-4" />
+                                  <Icon name="FaTrash" className="w-4 h-4" />
                                 </button>
                               </div>
                             </div>
@@ -355,7 +355,7 @@ export default function MetadataTemplatesPage() {
                     onClick={resetForm}
                     className="text-gray-500 hover:text-gray-700"
                   >
-                    <FaTimes className="w-6 h-6" />
+                    <Icon name="FaTimes" className="w-6 h-6" />
                   </button>
                 </div>
               </div>
