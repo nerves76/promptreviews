@@ -481,7 +481,7 @@ export default function ProductPromptPageForm({
                  value={formData.name || ""}
                  onChange={(e) => setFormData((prev: any) => ({ ...prev, name: e.target.value }))}
                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-slate-blue focus:border-slate-blue sm:text-sm"
-                 placeholder="e.g., iPhone 15 Pro Review Campaign"
+                 placeholder="e.g., Eight-Nozzled Elephant-Toted Boom Blitz 2.0"
                  required
                />
             </div>
