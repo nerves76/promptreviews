@@ -13,6 +13,7 @@ import { useRouter } from "next/navigation";
 
 import PromptTypeSelectModal from "@/app/components/PromptTypeSelectModal";
 import BulkPromptTypeSelectModal from "@/app/components/BulkPromptTypeSelectModal";
+import { promptTypes } from "@/config/promptTypes";
 
 export default function UploadContactsPage() {
   const supabase = createClient();
@@ -369,42 +370,7 @@ export default function UploadContactsPage() {
     }
   };
 
-  const promptTypes = [
-    {
-      key: "service",
-      label: "Service review",
-      icon: <FaHandsHelping className="w-7 h-7 text-slate-blue" />,
-      description:
-        "Capture a review from a customer or client who loves what you do",
-    },
-    {
-      key: "photo",
-      label: "Photo + testimonial",
-      icon: <FaCamera className="w-7 h-7 text-slate-blue" />,
-      description:
-        "Capture a headshot and testimonial to display on your website or in marketing materials.",
-    },
-    {
-      key: "product",
-      label: "Product review",
-      icon: <FaBoxOpen className="w-7 h-7 text-slate-blue" />,
-      description: "Get a review from a customer who fancies your products",
-    },
-    {
-      key: "video",
-      label: "Video testimonial",
-      icon: <FaVideo className="w-7 h-7 text-slate-blue" />,
-      description: "Request a video testimonial from your client.",
-      comingSoon: true,
-    },
-    {
-      key: "event",
-      label: "Events & spaces",
-      icon: <FaCalendarAlt className="w-7 h-7 text-slate-blue" />,
-      description: "For events, rentals, tours, and more.",
-      comingSoon: true,
-    },
-  ];
+
 
   function handlePromptTypeSelect(typeKey: string) {
     setShowTypeModal(false);
@@ -494,7 +460,7 @@ export default function UploadContactsPage() {
   fieldKeys = ["Name", ...fieldKeys, "role", "category"];
 
   return (
-    <PageCard icon={<FaUsers className="w-9 h-9 text-[#1A237E]" />}>
+    <PageCard icon={<Icon name="FaUsers" className="w-9 h-9 text-[#1A237E]" />}>
       <div className="w-full mx-auto relative" style={{ maxWidth: 1000 }}>
         <div className="flex items-center justify-between mb-8">
           <div className="flex flex-col">
@@ -532,14 +498,14 @@ export default function UploadContactsPage() {
               }}
               className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-semibold shadow flex items-center gap-2"
             >
-              <FaDownload className="w-4 h-4" />
+              <Icon name="FaDownload" className="w-4 h-4" />
               Export CSV
             </button>
             <button
               onClick={() => setShowUploadModal(true)}
               className="px-4 py-2 bg-slate-blue text-white rounded-lg hover:bg-slate-blue/90 font-semibold shadow flex items-center gap-2"
             >
-              <FaUpload className="w-4 h-4" />
+              <Icon name="FaUpload" className="w-4 h-4" />
               Upload contacts
             </button>
           </div>
@@ -563,7 +529,7 @@ export default function UploadContactsPage() {
                 onClick={() => setShowBulkTypeModal(true)}
                 disabled={bulkCreating}
               >
-                <FaHandsHelping className="w-4 h-4" />
+                <Icon name="FaHandshake" className="w-4 h-4" size={16} />
                 {bulkCreating ? 'Creating...' : `Bulk Create Prompt Pages (${selectedContactIds.length})`}
               </button>
               <span className="text-sm text-gray-600">
@@ -794,18 +760,18 @@ export default function UploadContactsPage() {
                 onClick={() => setShowUploadModal(false)}
                 aria-label="Close"
               >
-                <FaTimes className="w-5 h-5 text-red-600" />
+                <Icon name="FaTimes" className="w-5 h-5 text-red-600" />
               </button>
               {/* Upload Section with Preview */}
               <div className="mb-16 bg-blue-50 rounded-lg p-6 border border-blue-100">
                 <h2 className="text-2xl font-bold text-slate-blue flex items-center gap-3 mb-12">
-                  <FaUsers className="w-7 h-7 text-slate-blue" />
+                  <Icon name="FaUsers" className="w-7 h-7 text-slate-blue" />
                   Add your contacts
                 </h2>
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-4">
                     <label className="flex items-center gap-2 px-4 py-2 bg-white border border-blue-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
-                      <FaUpload className="text-slate-blue" />
+                      <Icon name="FaUpload" className="text-slate-blue" />
                       <span className="text-blue-700">Choose CSV file</span>
                       <input
                         type="file"
@@ -824,7 +790,7 @@ export default function UploadContactsPage() {
                     onClick={handleDownloadTemplate}
                     className="flex items-center gap-2 px-4 py-2 bg-white border border-blue-200 rounded-lg hover:bg-gray-50 transition-colors"
                   >
-                    <FaDownload className="text-slate-blue" />
+                    <Icon name="FaDownload" className="text-slate-blue" />
                     Download CSV template
                   </button>
                 </div>
@@ -843,7 +809,7 @@ export default function UploadContactsPage() {
                 {preview.length > 0 && (
                   <div className="mt-8">
                     <h2 className="text-2xl font-bold text-slate-blue flex items-center gap-3 mb-12">
-                      <FaEye className="w-7 h-7 text-slate-blue" />
+                      <Icon name="FaEye" className="w-7 h-7 text-slate-blue" />
                       Preview
                     </h2>
                     <div className="overflow-x-auto rounded-lg border border-blue-200 bg-white">
@@ -922,7 +888,7 @@ export default function UploadContactsPage() {
                 onClick={() => setShowEditModal(false)}
                 aria-label="Close"
               >
-                <FaTimes className="w-5 h-5 text-red-600" />
+                <Icon name="FaTimes" className="w-5 h-5 text-red-600" />
               </button>
               <Dialog.Title className="text-lg font-bold mb-4">
                 Edit Contact
