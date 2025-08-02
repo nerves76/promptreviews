@@ -167,15 +167,11 @@ export const loadAllFallingIcons = async (): Promise<{
     FaBroom,
     FaShieldAlt,
     FaChild,
-    FaFemale,
-    FaMale,
     FaWheelchair,
     FaEye,
     FaHands,
     FaHandHoldingHeart,
     FaInfinity,
-    FaVenus,
-    FaMars,
   } = await import("react-icons/fa");
 
   return [
@@ -206,10 +202,6 @@ export const loadAllFallingIcons = async (): Promise<{
     { key: "userfriends", label: "Friends", icon: FaUserFriends, color: "text-green-500", category: "Diversity & Inclusion" },
     { key: "balancescale", label: "Balance Scale", icon: FaBalanceScale, color: "text-purple-600", category: "Diversity & Inclusion" },
     { key: "child", label: "Child", icon: FaChild, color: "text-blue-400", category: "Diversity & Inclusion" },
-    { key: "female", label: "Female", icon: FaFemale, color: "text-pink-500", category: "Diversity & Inclusion" },
-    { key: "male", label: "Male", icon: FaMale, color: "text-blue-500", category: "Diversity & Inclusion" },
-    { key: "venus", label: "Venus", icon: FaVenus, color: "text-pink-400", category: "Diversity & Inclusion" },
-    { key: "mars", label: "Mars", icon: FaMars, color: "text-blue-400", category: "Diversity & Inclusion" },
     { key: "wheelchair", label: "Wheelchair", icon: FaWheelchair, color: "text-blue-600", category: "Diversity & Inclusion" },
     { key: "eye", label: "Eye", icon: FaEye, color: "text-gray-600", category: "Diversity & Inclusion" },
     { key: "hands", label: "Hands", icon: FaHands, color: "text-brown-400", category: "Diversity & Inclusion" },
