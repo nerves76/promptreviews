@@ -130,7 +130,7 @@ export default function ServiceItemsEditor({
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2">
-          <FaStore className="w-5 h-5 text-slate-blue" />
+          <Icon name="FaStore" className="w-5 h-5 text-slate-blue" size={20} />
           <h4 className="text-md font-medium text-gray-900">Services & products</h4>
         </div>
         {/* Only show add button when details are loaded or for multi-location */}
@@ -197,7 +197,7 @@ export default function ServiceItemsEditor({
                     className="ml-2 text-red-600 hover:text-red-800 p-1"
                     title="Remove service"
                   >
-                    <FaTimes className="w-4 h-4" />
+                    <Icon name="FaTimes" className="w-4 h-4" size={16} />
                   </button>
                 </div>
                 <div className="space-y-2">

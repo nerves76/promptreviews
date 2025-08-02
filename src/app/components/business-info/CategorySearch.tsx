@@ -146,24 +146,24 @@ export default function CategorySearch({
         />
         
         {/* Search Icon */}
-        <FaSearch className={`absolute left-3 top-3 w-4 h-4 ${
+        <Icon name="FaSearch" className={`absolute left-3 top-3 w-4 h-4 ${
           disabled ? 'text-gray-400' : 'text-gray-500'
         }`} />
         
         {/* Loading/Clear/Success Icon */}
         <div className="absolute right-3 top-3 flex items-center space-x-1">
           {isLoading ? (
-            <FaSpinner className="w-4 h-4 animate-spin text-slate-blue" />
+            <Icon name="FaSpinner" className="w-4 h-4 animate-spin text-slate-blue" />
           ) : selectedCategory ? (
             <>
-              <FaCheck className="w-4 h-4 text-green-600" title="Selected" />
+              <Icon name="FaCheck" className="w-4 h-4 text-green-600" title="Selected" />
               <button
                 onClick={handleClearSelection}
                 disabled={disabled}
                 className="text-gray-400 hover:text-red-600 disabled:cursor-not-allowed ml-1"
                 title="Clear selection"
               >
-                <FaTimes className="w-3 h-3" />
+                <Icon name="FaTimes" className="w-3 h-3" />
               </button>
             </>
           ) : searchTerm ? (
@@ -173,7 +173,7 @@ export default function CategorySearch({
               className="text-gray-400 hover:text-gray-600 disabled:cursor-not-allowed"
               title="Clear search"
             >
-              <FaTimes className="w-4 h-4" />
+              <Icon name="FaTimes" className="w-4 h-4" />
             </button>
           ) : null}
         </div>
@@ -190,7 +190,7 @@ export default function CategorySearch({
           
           {isLoading && searchTerm && (
             <div className="p-3 text-sm text-gray-600 flex items-center space-x-2">
-              <FaSpinner className="w-4 h-4 animate-spin" />
+              <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />
               <span>Searching categories...</span>
             </div>
           )}

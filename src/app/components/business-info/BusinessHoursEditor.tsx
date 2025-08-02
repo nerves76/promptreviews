@@ -5,6 +5,7 @@
 
 'use client';
 
+import React from 'react';
 import Icon from '@/components/Icon';
 
 interface BusinessHours {
@@ -53,7 +54,7 @@ export default function BusinessHoursEditor({
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-6">
       <h4 className="text-lg font-medium text-gray-900 mb-4 flex items-center space-x-2">
-        <FaClock className="w-5 h-5 text-slate-blue" />
+        <Icon name="FaClock" className="w-5 h-5 text-slate-blue" size={20} />
         <span>Business hours</span>
       </h4>
       
