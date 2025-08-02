@@ -183,7 +183,7 @@ function getPlatformIcon(platform: string): { icon: any; label: string } {
     return { icon: "FaTripadvisor", label: "TripAdvisor" };
   if (lower.includes("clutch"))
     return { icon: "FaRegCopyright", label: "Clutch" };
-  if (lower.includes("g2")) return { icon: "FaRegStar", label: "G2" };
+  if (lower.includes("g2")) return { icon: "SiG2", label: "G2" };
   if (lower.includes("angi")) return { icon: AngiIcon, label: "Angi" };
   if (lower.includes("houzz")) return { icon: "SiHouzz", label: "Houzz" };
   if (lower.includes("bbb")) return { icon: BBBIcon, label: "BBB" };
@@ -369,7 +369,7 @@ export default function ReviewsPage() {
   return (
     <PageCard>
               <h1 className="text-4xl font-bold mt-0 mb-2 flex items-center gap-3 text-slate-blue">
-        <FaStar className="w-7 h-7 text-slate-blue" />
+        <Icon name="FaStar" className="w-7 h-7 text-slate-blue" />
         Reviews
       </h1>
 
@@ -420,9 +420,9 @@ export default function ReviewsPage() {
                     onClick={() => toggleExpand(group.reviewerKey)}
                   >
                     {expanded[group.reviewerKey] ? (
-                      <FaChevronDown className="text-[#1A237E]" />
+                      <Icon name="FaChevronDown" className="text-[#1A237E]" />
                     ) : (
-                      <FaChevronRight className="text-[#1A237E]" />
+                                              <Icon name="FaChevronRight" className="text-[#1A237E]" />
                     )}
                     <span className="font-semibold text-lg text-gray-800">
                       {group.first_name || "[No Name]"}{" "}
