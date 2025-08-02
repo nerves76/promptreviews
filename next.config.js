@@ -128,6 +128,15 @@ const nextConfig = {
           },
         ],
       },
+      {
+        source: '/emoji-sentiment-embed.html',
+        headers: [
+          {
+            key: 'X-Frame-Options',
+            value: 'SAMEORIGIN',
+          },
+        ],
+      },
     ];
   },
 };
