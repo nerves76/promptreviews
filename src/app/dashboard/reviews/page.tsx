@@ -203,10 +203,10 @@ function getPlatformIcon(platform: string): { icon: any; label: string } {
     return { icon: "FaTripadvisor", label: "TripAdvisor" };
   if (lower.includes("clutch"))
     return { icon: "FaRegCopyright", label: "Clutch" };
-  if (lower.includes("g2")) return { icon: "FaRegStar", label: "G2" };
+  if (lower.includes("g2")) return { icon: "SiG2", label: "G2" };
   if (lower.includes("angi")) return { icon: AngiIcon, label: "Angi" };
   if (lower.includes("houzz")) return { icon: "SiHouzz", label: "Houzz" };
-  if (lower.includes("bbb")) return { icon: BBBIcon, label: "BBB" };
+  if (lower.includes("bbb")) return { icon: "FaBbb", label: "BBB" };
   if (lower.includes("thumbtack"))
     return { icon: "FaThumbtack", label: "Thumbtack" };
   if (lower.includes("homeadvisor"))
@@ -589,9 +589,9 @@ export default function ReviewsPage() {
                           (l) => l === emojiFilter,
                         );
                         if (idx !== -1) {
-                          const { icon: iconName, color } =
+                          const { icon: IconComponent, color } =
                             EMOJI_SENTIMENT_ICONS[idx];
-                          return <Icon name={iconName} className={`w-6 h-6 ${color}`} size={24} />;
+                          return <IconComponent className={`w-6 h-6 ${color}`} />;
                         }
                         return null;
                       })()}
@@ -611,7 +611,7 @@ export default function ReviewsPage() {
                     role="listbox"
                   >
                     {EMOJI_SENTIMENT_LABELS.map((label, i) => {
-                      const { icon: Icon, color } = EMOJI_SENTIMENT_ICONS[i];
+                      const { icon: IconComponent, color } = EMOJI_SENTIMENT_ICONS[i];
                       return (
                         <button
                           key={label}
@@ -624,7 +624,7 @@ export default function ReviewsPage() {
                           aria-selected={emojiFilter === label}
                           type="button"
                         >
-                          <Icon className={`w-6 h-6 ${color}`} />
+                          <IconComponent className={`w-6 h-6 ${color}`} />
                           <span>{label}</span>
                         </button>
                       );
@@ -729,7 +729,7 @@ export default function ReviewsPage() {
                     className="px-4 pb-4 pt-2 border-t border-gray-100 animate-fade-in bg-gray-50 rounded-b-lg shadow-inner"
                   >
                     <div className="flex items-center gap-2 mb-2">
-                      <Icon name="FaRegComment" className="w-5 h-5 text-slate-500" size={20} />
+                      <Icon name="FaComments" className="w-5 h-5 text-slate-500" size={20} />
                       <span
                         className="text-gray-800 text-sm"
                         style={{ whiteSpace: "pre-line" }}
