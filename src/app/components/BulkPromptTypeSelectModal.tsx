@@ -33,6 +33,12 @@ const promptTypes = [
     name: 'Event',
     description: 'Create prompt pages for events you host',
     icon: 'FaCalendarAlt'
+  },
+  {
+    key: 'employee',
+    name: 'Employee',
+    description: 'Create prompt pages for employee reviews',
+    icon: 'FaUser'
   }
 ];
 

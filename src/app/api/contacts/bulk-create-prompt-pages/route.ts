@@ -1,20 +1,50 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSessionOrMock, createClient } from '@/utils/supabaseClient';
+import { getSessionOrMock, createClient, createServiceRoleClient } from '@/utils/supabaseClient';
 import { getAccountIdForUser } from '@/utils/accountUtils';
 
 export async function POST(request: NextRequest) {
   try {
     const supabase = createClient();
+    const supabaseAdmin = createServiceRoleClient();
     
-    // Get authenticated user
-    const { data: { session }, error: sessionError } = await getSessionOrMock(supabase);
-    
-    if (sessionError || !session?.user) {
+    // Get authenticated user - try both cookie and header auth
+    let user = null;
+    let userError = null;
+
+    // First try cookie-based auth
+    const cookieResult = await getSessionOrMock(supabase);
+    if (!cookieResult.error && cookieResult.data?.session?.user) {
+      user = cookieResult.data.session.user;
+    } else {
+      // If cookie auth fails, try Authorization header
+      const authHeader = request.headers.get('authorization');
+      if (authHeader?.startsWith('Bearer ')) {
+        const token = authHeader.substring(7);
+        console.log('🔑 Bulk API - Trying Authorization header auth with token length:', token.length);
+        const headerResult = await supabaseAdmin.auth.getUser(token);
+        if (!headerResult.error && headerResult.data.user) {
+          user = headerResult.data.user;
+          console.log('✅ Bulk API - Header auth successful for user:', user.id);
+        } else {
+          console.log('❌ Bulk API - Header auth failed:', headerResult.error?.message);
+          userError = headerResult.error;
+        }
+      } else {
+        userError = cookieResult.error;
+      }
+    }
+
+    if (!user) {
+      console.error('🔒 Bulk API - Authentication failed:', {
+        cookieError: cookieResult.error?.message || 'No cookie session',
+        headerError: userError?.message || 'No valid token',
+        hasAuthHeader: !!request.headers.get('authorization')
+      });
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     // Get the correct account ID for this user
-    const accountId = await getAccountIdForUser(session.user.id, supabase);
+    const accountId = await getAccountIdForUser(user.id, supabaseAdmin);
     if (!accountId) {
       return NextResponse.json({ error: 'No account found' }, { status: 404 });
     }
@@ -26,12 +56,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No contacts selected' }, { status: 400 });
     }
 
-    if (!promptType || !['service', 'product', 'photo', 'event'].includes(promptType)) {
+    if (!promptType || !['service', 'product', 'photo', 'event', 'employee'].includes(promptType)) {
       return NextResponse.json({ error: 'Invalid prompt type' }, { status: 400 });
     }
 
     // Validate business profile
-    const { data: businessData } = await supabase
+    const { data: businessData } = await supabaseAdmin
       .from("businesses")
       .select("name")
       .eq("account_id", accountId)
@@ -50,7 +80,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Fetch selected contacts
-    const { data: contacts, error: contactsError } = await supabase
+    const { data: contacts, error: contactsError } = await supabaseAdmin
       .from("contacts")
       .select("*")
       .in("id", contactIds)
@@ -76,7 +106,7 @@ export async function POST(request: NextRequest) {
         const slug = `${contact.first_name?.toLowerCase() || 'contact'}-${contact.last_name?.toLowerCase() || 'prompt'}-${timestamp}-${randomId}`;
 
         // Create prompt page
-        const { data: promptPage, error: promptError } = await supabase
+        const { data: promptPage, error: promptError } = await supabaseAdmin
           .from("prompt_pages")
           .insert({
             account_id: accountId,
@@ -87,7 +117,7 @@ export async function POST(request: NextRequest) {
             title: `${contact.first_name || 'Contact'} ${promptType} review`,
             description: `Share your experience with ${contact.first_name || 'our'} ${promptType}. Your review helps others make informed decisions.`,
             status: 'draft',
-            created_by: session.user.id
+            created_by: user.id
           })
           .select()
           .single();
