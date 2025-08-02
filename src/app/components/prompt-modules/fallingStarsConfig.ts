@@ -180,6 +180,9 @@ export const loadAllFallingIcons = async (): Promise<{
     // Popular icons (already loaded)
     ...POPULAR_FALLING_ICONS,
     
+    // General (Additional)
+    { key: "skull", label: "Skull", icon: FaSkull, color: "text-gray-600", category: "General" },
+    
     // Nature & Plants (Enhanced)
     { key: "snowflake", label: "Snowflake", icon: FaSnowflake, color: "text-blue-100", category: "Nature & Weather" },
     { key: "seedling", label: "Seedling", icon: FaSeedling, color: "text-green-400", category: "Nature & Weather" },
@@ -293,6 +296,7 @@ export const loadAllFallingIcons = async (): Promise<{
     { key: "dragon", label: "Dragon", icon: FaDragon, color: "text-red-600", category: "Animals & Nature" },
     { key: "ghost", label: "Ghost", icon: FaGhost, color: "text-gray-400", category: "Animals & Nature" },
     { key: "robot", label: "Robot", icon: FaRobot, color: "text-blue-600", category: "Animals & Nature" },
+    { key: "bone", label: "Bone", icon: FaBone, color: "text-gray-400", category: "Animals & Nature" },
     
     // Time & Communication
     { key: "clock", label: "Clock", icon: FaClock, color: "text-gray-600", category: "Time & Communication" },
@@ -307,11 +311,7 @@ export const loadAllFallingIcons = async (): Promise<{
     { key: "handrock", label: "Rock Hand", icon: FaHandRock, color: "text-gray-600", category: "Community & Support" },
     { key: "handpaper", label: "Paper Hand", icon: FaHandPaper, color: "text-gray-500", category: "Community & Support" },
     { key: "handscissors", label: "Scissors Hand", icon: FaHandScissors, color: "text-gray-600", category: "Community & Support" },
-    
-    // Additional Icons
-    { key: "bone", label: "Bone", icon: FaBone, color: "text-gray-400", category: "Additional" },
-    { key: "skull", label: "Skull", icon: FaSkull, color: "text-gray-600", category: "Additional" },
-    { key: "fistraised", label: "Fist Raised", icon: FaFistRaised, color: "text-red-500", category: "Additional" },
+    { key: "fistraised", label: "Fist Raised", icon: FaFistRaised, color: "text-red-500", category: "Community & Support" },
   ];
 };
 
