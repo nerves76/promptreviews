@@ -507,7 +507,7 @@ export default function PhotoManagement({ locations, isConnected }: PhotoManagem
                   className="absolute top-1 right-1 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                   title="Remove photo"
                 >
-                  <FaTrash className="w-3 h-3" />
+                  <Icon name="FaTrash" className="w-3 h-3" />
                 </button>
                 <div className="absolute bottom-1 left-1 right-1 bg-black bg-opacity-50 text-white text-xs p-1 rounded truncate">
                   {photo.file.name}
@@ -535,12 +535,12 @@ export default function PhotoManagement({ locations, isConnected }: PhotoManagem
               >
                 {isUploading ? (
                   <>
-                    <FaSpinner className="w-4 h-4 animate-spin" />
+                    <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />
                     <span>Uploading...</span>
                   </>
                 ) : (
                   <>
-                    <FaUpload className="w-4 h-4" />
+                    <Icon name="FaUpload" className="w-4 h-4" />
                     <span>Upload Photos</span>
                   </>
                 )}
@@ -565,19 +565,19 @@ export default function PhotoManagement({ locations, isConnected }: PhotoManagem
                     )}
                     {item.status === 'uploading' && (
                       <>
-                        <FaSpinner className="w-3 h-3 animate-spin text-blue-600" />
+                        <Icon name="FaSpinner" className="w-3 h-3 animate-spin text-blue-600" />
                         <span className="text-blue-600">Uploading</span>
                       </>
                     )}
                     {item.status === 'completed' && (
                       <>
-                        <FaCheck className="w-3 h-3 text-green-600" />
+                        <Icon name="FaCheck" className="w-3 h-3 text-green-600" />
                         <span className="text-green-600">Complete</span>
                       </>
                     )}
                     {item.status === 'failed' && (
                       <>
-                        <FaExclamationTriangle className="w-3 h-3 text-red-600" />
+                        <Icon name="FaExclamationTriangle" className="w-3 h-3 text-red-600" />
                         <span className="text-red-600" title={item.error}>Failed</span>
                       </>
                     )}
@@ -595,9 +595,9 @@ export default function PhotoManagement({ locations, isConnected }: PhotoManagem
           }`}>
             <div className="flex items-start space-x-3">
               {uploadResults.failed === 0 ? (
-                <FaCheck className="w-5 h-5 text-green-600 mt-0.5" />
+                <Icon name="FaCheck" className="w-5 h-5 text-green-600 mt-0.5" />
               ) : (
-                <FaExclamationTriangle className="w-5 h-5 text-yellow-600 mt-0.5" />
+                <Icon name="FaExclamationTriangle" className="w-5 h-5 text-yellow-600 mt-0.5" />
               )}
               <div>
                 <h4 className={`text-sm font-medium ${
