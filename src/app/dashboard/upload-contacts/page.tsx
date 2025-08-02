@@ -366,7 +366,7 @@ export default function UploadContactsPage() {
         style={{ maxWidth: 1000 }}
       >
         <div className="absolute left-0 md:left-[-24px] top-0 md:top-[30px] z-10 bg-white rounded-full shadow p-3 flex items-center justify-center">
-          <FaUpload className="w-9 h-9 text-[#1A237E]" />
+          <Icon name="FaUpload" className="w-9 h-9 text-[#1A237E]" />
         </div>
         <div className="flex items-center justify-between mb-8">
           <div className="flex flex-col">
@@ -380,7 +380,7 @@ export default function UploadContactsPage() {
         {/* Upload Instructions Section */}
         <div className="mb-16">
           <h2 className="mt-20 text-2xl font-bold text-[#1A237E] flex items-center gap-3 mb-12">
-            <FaInfoCircle className="w-7 h-7 text-[#1A237E]" />
+            <Icon name="FaInfoCircle" className="w-7 h-7 text-[#1A237E]" />
             How to upload contacts
           </h2>
           <ol className="list-decimal list-inside space-y-2 text-indigo-800">
@@ -403,7 +403,7 @@ export default function UploadContactsPage() {
         {/* Upload Section with Preview */}
         <div className="mb-16 bg-blue-50 rounded-lg p-6 border border-blue-100">
           <h2 className="text-2xl font-bold text-[#1A237E] flex items-center gap-3 mb-12">
-            <FaUsers className="w-7 h-7 text-[#1A237E]" />
+            <Icon name="FaUsers" className="w-7 h-7 text-[#1A237E]" />
             Add your contacts
           </h2>
 
@@ -435,7 +435,7 @@ export default function UploadContactsPage() {
               onClick={handleDownloadTemplate}
               className="flex items-center gap-2 px-4 py-2 bg-white border border-blue-200 rounded-lg hover:bg-gray-50 transition-colors"
             >
-              <FaDownload className="text-[#1A237E]" />
+                                  <Icon name="FaDownload" className="text-[#1A237E]" />
               Download CSV template
             </button>
           </div>
@@ -456,7 +456,7 @@ export default function UploadContactsPage() {
           {preview.length > 0 && (
             <div className="mt-8">
               <h2 className="text-2xl font-bold text-[#1A237E] flex items-center gap-3 mb-12">
-                <FaEye className="w-7 h-7 text-[#1A237E]" />
+                <Icon name="FaEye" className="w-7 h-7 text-[#1A237E]" />
                 Preview
               </h2>
               <div className="overflow-x-auto rounded-lg border border-blue-200 bg-white">
@@ -509,7 +509,7 @@ export default function UploadContactsPage() {
         {/* CSV Column Descriptions Section */}
         <div className="mb-16">
           <h2 className="text-2xl font-bold text-[#1A237E] flex items-center gap-3 mb-12">
-            <FaList className="w-7 h-7 text-[#1A237E]" />
+                          <Icon name="FaList" className="w-7 h-7 text-[#1A237E]" />
             CSV column descriptions
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
