@@ -1,27 +1,54 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSessionOrMock, createClient } from '@/utils/supabaseClient';
+import { getSessionOrMock, createClient, createServiceRoleClient } from '@/utils/supabaseClient';
 import { getAccountIdForUser } from '@/utils/accountUtils';
 import { checkAccountLimits } from '@/utils/accountLimits';
 
 export async function POST(request: NextRequest) {
   try {
     const supabase = createClient();
+    const supabaseAdmin = createServiceRoleClient();
     
-    // Get authenticated user
-    const { data: { session }, error: sessionError } = await getSessionOrMock(supabase);
+    // Get authenticated user - try both cookie and header auth
+    let user = null;
+    let userError = null;
+
+    // First try cookie-based auth
+    const cookieResult = await getSessionOrMock(supabase);
+    if (!cookieResult.error && cookieResult.data?.session?.user) {
+      user = cookieResult.data.session.user;
+    } else {
+      // If cookie auth fails, try Authorization header
+      const authHeader = request.headers.get('authorization');
+      if (authHeader?.startsWith('Bearer ')) {
+        const token = authHeader.substring(7);
+        const headerResult = await supabaseAdmin.auth.getUser(token);
+        if (!headerResult.error && headerResult.data.user) {
+          user = headerResult.data.user;
+        } else {
+          userError = headerResult.error;
+        }
+      } else {
+        userError = cookieResult.error;
+      }
+    }
     
-    if (sessionError || !session?.user) {
+    if (!user) {
+      console.error('🔒 Contacts API - Authentication failed:', {
+        cookieError: cookieResult.error?.message || 'No cookie session',
+        headerError: userError?.message || 'No valid token',
+        hasAuthHeader: !!request.headers.get('authorization')
+      });
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     // Get the correct account ID for this user
-    const accountId = await getAccountIdForUser(session.user.id, supabase);
+    const accountId = await getAccountIdForUser(user.id, supabase);
     if (!accountId) {
       return NextResponse.json({ error: 'No account found' }, { status: 404 });
     }
 
     // Check account limits for contact creation
-    const limitCheck = await checkAccountLimits(supabase, session.user.id, 'contact');
+    const limitCheck = await checkAccountLimits(supabase, user.id, 'contact');
     if (!limitCheck.allowed) {
       return NextResponse.json({ 
         error: limitCheck.reason || 'Contact creation not allowed for your account plan',

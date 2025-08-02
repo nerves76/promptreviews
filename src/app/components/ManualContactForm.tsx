@@ -10,6 +10,7 @@
 import { useState } from "react";
 import { Dialog } from "@headlessui/react";
 import Icon from "@/components/Icon";
+import { createClient } from "@/utils/supabaseClient";
 
 interface ManualContactFormProps {
   isOpen: boolean;
@@ -39,6 +40,7 @@ export default function ManualContactForm({
   onClose,
   onContactCreated,
 }: ManualContactFormProps) {
+  const supabase = createClient();
   const [formData, setFormData] = useState<ContactFormData>({
     first_name: "",
     last_name: "",
@@ -77,11 +79,22 @@ export default function ManualContactForm({
     setSuccess("");
 
     try {
+      // Get the current session for authentication
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      // Prepare headers
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+      
+      // Add authorization header if we have a session
+      if (session && !sessionError) {
+        headers['Authorization'] = `Bearer ${session.access_token}`;
+      }
+
       const response = await fetch("/api/contacts/create", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers,
         body: JSON.stringify(formData),
       });
 
@@ -129,52 +142,24 @@ export default function ManualContactForm({
     }
   };
 
-  const handleReset = () => {
-    setFormData({
-      first_name: "",
-      last_name: "",
-      email: "",
-      phone: "",
-      business_name: "",
-      role: "",
-      address_line1: "",
-      address_line2: "",
-      city: "",
-      state: "",
-      postal_code: "",
-      country: "",
-      category: "",
-      notes: "",
-    });
-    setError("");
-    setSuccess("");
-  };
-
   return (
     <Dialog open={isOpen} onClose={onClose} className="relative z-50">
       <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
       
       <div className="fixed inset-0 flex items-center justify-center p-4">
-        <Dialog.Panel className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-          <div className="flex justify-between items-center mb-6">
+        <Dialog.Panel className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto relative">
+          {/* Close button positioned at top right corner, breaching the modal border */}
+          <button
+            onClick={onClose}
+            className="absolute -top-3 -right-3 w-8 h-8 bg-white border border-gray-300 rounded-full flex items-center justify-center hover:bg-gray-50 shadow-md z-10"
+          >
+            <Icon name="FaTimes" className="w-4 h-4 text-red-500" />
+          </button>
+          
+          <div className="mb-6">
             <Dialog.Title className="text-2xl font-bold text-slate-blue">
               Add New Contact
             </Dialog.Title>
-            <div className="flex gap-2">
-              <button
-                onClick={handleReset}
-                className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 font-semibold shadow flex items-center gap-2"
-              >
-                <Icon name="FaUndo" className="w-4 h-4" />
-                Reset
-              </button>
-              <button
-                onClick={onClose}
-                className="w-8 h-8 bg-white border border-gray-300 rounded-full flex items-center justify-center hover:bg-gray-50"
-              >
-                <Icon name="FaTimes" className="w-4 h-4 text-red-500" />
-              </button>
-            </div>
           </div>
 
           {error && (
@@ -404,16 +389,8 @@ export default function ManualContactForm({
               </div>
             </div>
 
-            {/* Action Buttons */}
-            <div className="flex justify-end gap-3 pt-6 border-t">
-              <button
-                type="button"
-                onClick={onClose}
-                className="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 font-semibold shadow"
-                disabled={isSubmitting}
-              >
-                Cancel
-              </button>
+            {/* Submit Button */}
+            <div className="flex justify-end pt-6 border-t">
               <button
                 type="submit"
                 disabled={isSubmitting || !formData.first_name.trim()}
