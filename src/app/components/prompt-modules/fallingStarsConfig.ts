@@ -174,14 +174,9 @@ export const loadAllFallingIcons = async (): Promise<{
     FaInfinity,
     FaMarsDouble,
     FaVenusDouble,
-    FaBird,
-    FaStrawberry,
     FaQuestionCircle,
     FaBed,
     FaCannabis,
-    FaOtter,
-    FaAcorn,
-    FaBagel,
     FaBeer,
   } = await import("react-icons/fa");
 
@@ -233,8 +228,6 @@ export const loadAllFallingIcons = async (): Promise<{
     { key: "carrot", label: "Carrot", icon: FaCarrot, color: "text-orange-600", category: "Food & Beverages" },
     { key: "cake", label: "Birthday Cake", icon: FaBirthdayCake, color: "text-pink-500", category: "Food & Beverages" },
     { key: "cheers", label: "Cheers", icon: FaGlassCheers, color: "text-amber-500", category: "Food & Beverages" },
-    { key: "strawberry", label: "Strawberry", icon: FaStrawberry, color: "text-red-400", category: "Food & Beverages" },
-    { key: "bagel", label: "Bagel", icon: FaBagel, color: "text-amber-700", category: "Food & Beverages" },
     { key: "beer", label: "Beer", icon: FaBeer, color: "text-amber-600", category: "Food & Beverages" },
     
     // Activities & Sports
@@ -313,9 +306,6 @@ export const loadAllFallingIcons = async (): Promise<{
     { key: "ghost", label: "Ghost", icon: FaGhost, color: "text-gray-400", category: "Animals & Nature" },
     { key: "robot", label: "Robot", icon: FaRobot, color: "text-blue-600", category: "Animals & Nature" },
     { key: "bone", label: "Bone", icon: FaBone, color: "text-gray-400", category: "Animals & Nature" },
-    { key: "bird", label: "Bird", icon: FaBird, color: "text-blue-500", category: "Animals & Nature" },
-    { key: "otter", label: "Otter", icon: FaOtter, color: "text-brown-600", category: "Animals & Nature" },
-    { key: "acorn", label: "Acorn", icon: FaAcorn, color: "text-amber-800", category: "Animals & Nature" },
     { key: "cannabis", label: "Cannabis Leaf", icon: FaCannabis, color: "text-green-600", category: "Animals & Nature" },
     
     // Time & Communication
