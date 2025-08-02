@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSessionOrMock, createClient, createServiceRoleClient } from '@/utils/supabaseClient';
 import { getAccountIdForUser } from '@/utils/accountUtils';
+import { slugify } from '@/utils/slugify';
+import { preparePromptPageData } from '@/utils/promptPageDataMapping';
 
 export async function POST(request: NextRequest) {
   try {
@@ -107,20 +109,31 @@ export async function POST(request: NextRequest) {
         email: contact.email
       });
       try {
-        // Create prompt page using existing schema (no contact_id column)
+        // Generate unique slug
+        const contactName = `${contact.first_name || ''} ${contact.last_name || ''}`.trim() || 'Contact';
+        const slug = slugify(contactName, Date.now().toString(36));
+        
+        // Prepare form data using the same structure as individual creation
+        const formData = {
+          account_id: accountId,
+          first_name: contact.first_name || '',
+          last_name: contact.last_name || '',
+          email: contact.email || '',
+          phone: contact.phone || '',
+          name: contactName,
+          review_type: promptType, // Use review_type instead of category
+          campaign_type: 'individual', // Always individual for contacts
+          slug: slug,
+          title: `${contact.first_name || 'Contact'} ${promptType} review`,
+          status: 'draft'
+        };
+
+        // Use the same data mapping as individual creation
+        const insertData = preparePromptPageData(formData);
+        
         const { data: promptPage, error: promptError } = await supabaseAdmin
           .from("prompt_pages")
-          .insert({
-            account_id: accountId,
-            first_name: contact.first_name || '',
-            last_name: contact.last_name || '',
-            email: contact.email || '',
-            phone: contact.phone || '',
-            client_name: `${contact.first_name || ''} ${contact.last_name || ''}`.trim() || 'Contact',
-            category: promptType, // Use category field for prompt type
-            title: `${contact.first_name || 'Contact'} ${promptType} review`,
-            status: 'draft'
-          })
+          .insert(insertData)
           .select()
           .single();
 
@@ -139,14 +152,16 @@ export async function POST(request: NextRequest) {
         } else {
           console.log('✅ Bulk API - Successfully created prompt page:', {
             contactId: contact.id,
-            contactName: `${contact.first_name || ''} ${contact.last_name || ''}`.trim(),
+            contactName: contactName,
             promptPageId: promptPage.id,
+            slug: promptPage.slug,
             title: promptPage.title
           });
           results.push({
             contactId: contact.id,
-            contactName: `${contact.first_name || ''} ${contact.last_name || ''}`.trim(),
+            contactName: contactName,
             promptPageId: promptPage.id,
+            slug: promptPage.slug,
             title: promptPage.title
           });
         }
