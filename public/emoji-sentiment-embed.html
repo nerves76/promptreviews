@@ -1125,6 +1125,9 @@
 
         // Initialize the demo
         document.addEventListener('DOMContentLoaded', function() {
+            // Attach listeners to any existing static emojis first
+            attachEmojiListeners();
+            // Then show step 1 (which will replace content and reattach listeners)
             showStep1();
         });
     </script>
