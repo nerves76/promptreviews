@@ -18,6 +18,7 @@ import PromptTypeSelectModal from "@/app/components/PromptTypeSelectModal";
 import { useRouter, useSearchParams } from "next/navigation";
 import QRCodeModal from "../components/QRCodeModal";
 import StarfallCelebration from "@/app/components/StarfallCelebration";
+import { promptTypesWithDarkIcons as promptTypes } from "@/config/promptTypes";
 import { getAccountIdForUser } from "@/utils/accountUtils";
 import BusinessLocationModal from "@/app/components/BusinessLocationModal";
 import LocationCard from "@/app/components/LocationCard";
@@ -452,45 +453,7 @@ export default function PromptPages() {
     }
   };
 
-  const promptTypes = [
-    {
-      key: "service",
-      label: "Service review",
-      icon: <svg className="w-7 h-7" style={{ color: "#1A237E" }}><use href="/icons-sprite.svg#FaHandshake" /></svg>,
-      description: "Capture a review from a customer or client who loves what you do",
-    },
-    {
-      key: "photo",
-      label: "Photo + testimonial",
-      icon: <Icon name="FaCamera" className="w-7 h-7 text-slate-blue" size={28} />,
-      description: "Capture a headshot and testimonial to display on your website or in marketing materials.",
-    },
-    {
-      key: "product",
-      label: "Product review",
-      icon: <svg className="w-7 h-7" style={{ color: "#1A237E" }}><use href="/icons-sprite.svg#FaBox" /></svg>,
-      description: "Get a review from a customer who fancies your products",
-    },
-    {
-      key: "employee",
-      label: "Employee spotlight",
-      icon: <Icon name="FaUser" className="w-7 h-7 text-slate-blue" size={28} />,
-      description: "Create a review page to showcase individual team members and inspire competition",
-    },
-    {
-      key: "event",
-      label: "Events & spaces",
-      icon: <svg className="w-7 h-7" style={{ color: "#1A237E" }}><use href="/icons-sprite.svg#FaCalendarAlt" /></svg>,
-      description: "For events, rentals, tours, and more.",
-    },
-    {
-      key: "video",
-      label: "Video testimonial",
-      icon: <svg className="w-7 h-7" style={{ color: "#1A237E" }}><use href="/icons-sprite.svg#FaVideo" /></svg>,
-      description: "Request a video testimonial from your client.",
-      comingSoon: true,
-    },
-  ];
+
 
   function handlePromptTypeSelect(typeKey: string) {
     console.log('[DEBUG] handlePromptTypeSelect called with:', typeKey);
@@ -1012,7 +975,7 @@ export default function PromptPages() {
 
               {/* Sharing Options */}
               <div className="space-y-3">
-                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center justify-between p-3 bg-lavender-haze/30 rounded-lg">
                   <span className="text-sm font-medium text-gray-700">Share Link</span>
                   <button
                     onClick={() => {
@@ -1025,7 +988,7 @@ export default function PromptPages() {
                 </div>
 
                 {/* SMS link */}
-                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center justify-between p-3 bg-green-100 rounded-lg">
                   <span className="text-sm font-medium text-gray-700">Send SMS</span>
                   <a
                     href={`sms:${postSaveData.phone || ''}?body=Hi ${postSaveData.first_name || 'there'}, I'd love to get your feedback! Please leave a review here: ${postSaveData.url}`}
@@ -1036,7 +999,7 @@ export default function PromptPages() {
                 </div>
 
                 {/* Email link */}
-                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center justify-between p-3 bg-sky-glass/30 rounded-lg">
                   <span className="text-sm font-medium text-gray-700">Send Email</span>
                   <a
                     href={`mailto:${postSaveData.email || ''}?subject=Please leave a review&body=Hi ${postSaveData.first_name || 'there'},%0D%0A%0D%0AI'd love to get your feedback! Please leave a review here: ${postSaveData.url}%0D%0A%0D%0AThank you!`}
@@ -1046,7 +1009,7 @@ export default function PromptPages() {
                   </a>
                 </div>
 
-                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center justify-between p-3 bg-pale-gold/30 rounded-lg">
                   <span className="text-sm font-medium text-gray-700">View Prompt Page</span>
                   <a
                     href={postSaveData.url}
