@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, Suspense } from "react";
 import { useRef } from "react";
 // 🔧 CONSOLIDATED: Single import from supabaseClient module
 import { createClient, getUserOrMock } from "@/utils/supabaseClient";
@@ -32,7 +32,7 @@ import { useAuth } from "@/contexts/AuthContext";
 
 const StylePage = dynamic(() => import("../dashboard/style/StyleModalPage"), { ssr: false });
 
-export default function PromptPages() {
+function PromptPagesContent() {
   const supabase = createClient();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -1102,5 +1102,14 @@ function UniversalTooltip() {
         </div>
       )}
     </span>
+  );
+}
+
+// Wrapper component with Suspense boundary
+export default function PromptPages() {
+  return (
+    <Suspense fallback={<FiveStarSpinner />}>
+      <PromptPagesContent />
+    </Suspense>
   );
 } 
