@@ -245,7 +245,7 @@ export default function AdminAnalyticsPage() {
               <div className="bg-white rounded-lg shadow p-6">
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
-                    <FaUsers className="h-8 w-8 text-slate-blue" />
+                    <Icon name="FaUsers" className="h-8 w-8 text-slate-blue" />
                   </div>
                   <div className="ml-5 w-0 flex-1">
                     <dl>
@@ -264,7 +264,7 @@ export default function AdminAnalyticsPage() {
               <div className="bg-white rounded-lg shadow p-6">
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
-                    <FaBuilding className="h-8 w-8 text-slate-blue" />
+                    <Icon name="FaBuilding" className="h-8 w-8 text-slate-blue" />
                   </div>
                   <div className="ml-5 w-0 flex-1">
                     <dl>
@@ -283,7 +283,7 @@ export default function AdminAnalyticsPage() {
               <div className="bg-white rounded-lg shadow p-6">
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
-                    <FaStar className="h-8 w-8 text-slate-blue" />
+                    <Icon name="FaStar" className="h-8 w-8 text-slate-blue" />
                   </div>
                   <div className="ml-5 w-0 flex-1">
                     <dl>
@@ -302,7 +302,7 @@ export default function AdminAnalyticsPage() {
               <div className="bg-white rounded-lg shadow p-6">
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
-                    <FaGlobe className="h-8 w-8 text-slate-blue" />
+                    <Icon name="FaGlobe" className="h-8 w-8 text-slate-blue" />
                   </div>
                   <div className="ml-5 w-0 flex-1">
                     <dl>
