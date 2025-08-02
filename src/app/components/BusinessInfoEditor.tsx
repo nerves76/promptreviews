@@ -910,7 +910,6 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
                   : 'border-gray-200 text-gray-400 cursor-not-allowed'
               }`}
             >
-              <Icon name="FaRedo" className="w-4 h-4" size={16} />
               <span>Reset</span>
             </button>
           </div>
