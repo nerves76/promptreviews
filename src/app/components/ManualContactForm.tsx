@@ -82,6 +82,13 @@ export default function ManualContactForm({
       // Get the current session for authentication
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       
+      console.log('ManualContactForm: Session debug:', {
+        hasSession: !!session,
+        sessionError: sessionError?.message,
+        hasAccessToken: !!session?.access_token,
+        userId: session?.user?.id
+      });
+      
       // Prepare headers
       const headers: Record<string, string> = {
         'Content-Type': 'application/json',
@@ -90,15 +97,23 @@ export default function ManualContactForm({
       // Add authorization header if we have a session
       if (session && !sessionError) {
         headers['Authorization'] = `Bearer ${session.access_token}`;
+        console.log('ManualContactForm: Added Authorization header');
+      } else {
+        console.log('ManualContactForm: No session available for Authorization header');
       }
 
+      console.log('ManualContactForm: Making API request with headers:', headers);
+      
       const response = await fetch("/api/contacts/create", {
         method: "POST",
         headers,
         body: JSON.stringify(formData),
       });
 
+      console.log('ManualContactForm: API response status:', response.status, response.statusText);
+      
       const result = await response.json();
+      console.log('ManualContactForm: API response data:', result);
 
       if (!response.ok) {
         if (result.upgrade_required) {
@@ -156,10 +171,21 @@ export default function ManualContactForm({
             <Icon name="FaTimes" className="w-4 h-4 text-red-500" />
           </button>
           
-          <div className="mb-6">
+          <div className="mb-6 flex justify-between items-start">
             <Dialog.Title className="text-2xl font-bold text-slate-blue">
               Add New Contact
             </Dialog.Title>
+            
+            {/* Top right save button */}
+            <button
+              type="submit"
+              form="contact-form"
+              disabled={isSubmitting || !formData.first_name.trim()}
+              className="px-6 py-2 bg-slate-blue text-white rounded-lg hover:bg-slate-blue/90 font-semibold shadow flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isSubmitting && <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />}
+              {isSubmitting ? "Creating..." : "Save Contact"}
+            </button>
           </div>
 
           {error && (
@@ -174,7 +200,7 @@ export default function ManualContactForm({
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form id="contact-form" onSubmit={handleSubmit} className="space-y-4">
             {/* Basic Information */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>

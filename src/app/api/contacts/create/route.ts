@@ -12,22 +12,36 @@ export async function POST(request: NextRequest) {
     let user = null;
     let userError = null;
 
+    // Debug: Log all headers
+    console.log('🔍 Contacts API - Request headers:', {
+      authorization: request.headers.get('authorization'),
+      'content-type': request.headers.get('content-type'),
+      hasAuthHeader: !!request.headers.get('authorization'),
+      allHeaders: Array.from(request.headers.entries())
+    });
+
     // First try cookie-based auth
     const cookieResult = await getSessionOrMock(supabase);
     if (!cookieResult.error && cookieResult.data?.session?.user) {
       user = cookieResult.data.session.user;
+      console.log('✅ Contacts API - Cookie auth successful for user:', user.id);
     } else {
+      console.log('❌ Contacts API - Cookie auth failed:', cookieResult.error?.message);
       // If cookie auth fails, try Authorization header
       const authHeader = request.headers.get('authorization');
       if (authHeader?.startsWith('Bearer ')) {
         const token = authHeader.substring(7);
+        console.log('🔑 Contacts API - Trying Authorization header auth with token length:', token.length);
         const headerResult = await supabaseAdmin.auth.getUser(token);
         if (!headerResult.error && headerResult.data.user) {
           user = headerResult.data.user;
+          console.log('✅ Contacts API - Header auth successful for user:', user.id);
         } else {
+          console.log('❌ Contacts API - Header auth failed:', headerResult.error?.message);
           userError = headerResult.error;
         }
       } else {
+        console.log('❌ Contacts API - No valid Authorization header found');
         userError = cookieResult.error;
       }
     }
@@ -42,14 +56,20 @@ export async function POST(request: NextRequest) {
     }
 
     // Get the correct account ID for this user
-    const accountId = await getAccountIdForUser(user.id, supabase);
+    console.log('🔍 Contacts API - Looking up account for user:', user.id);
+    const accountId = await getAccountIdForUser(user.id, supabaseAdmin);
+    console.log('🔍 Contacts API - Account lookup result:', accountId);
     if (!accountId) {
+      console.error('❌ Contacts API - No account found for user:', user.id);
       return NextResponse.json({ error: 'No account found' }, { status: 404 });
     }
 
     // Check account limits for contact creation
-    const limitCheck = await checkAccountLimits(supabase, user.id, 'contact');
+    console.log('🔍 Contacts API - Checking account limits for user:', user.id);
+    const limitCheck = await checkAccountLimits(supabaseAdmin, user.id, 'contact');
+    console.log('🔍 Contacts API - Limit check result:', limitCheck);
     if (!limitCheck.allowed) {
+      console.error('❌ Contacts API - Limit check failed:', limitCheck);
       return NextResponse.json({ 
         error: limitCheck.reason || 'Contact creation not allowed for your account plan',
         upgrade_required: true
@@ -84,8 +104,9 @@ export async function POST(request: NextRequest) {
       status: "in_queue",
     };
 
-    // Insert contact into the database
-    const { data: insertedContact, error: insertError } = await supabase
+    // Insert contact into the database using service role client to bypass RLS
+    console.log('🔍 Contacts API - Creating contact with account_id:', accountId);
+    const { data: insertedContact, error: insertError } = await supabaseAdmin
       .from("contacts")
       .insert(contact)
       .select()
