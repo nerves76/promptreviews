@@ -55,6 +55,8 @@ export default function UploadContactsPage() {
   const [showBulkTypeModal, setShowBulkTypeModal] = useState(false);
   const [bulkCreating, setBulkCreating] = useState(false);
   const [bulkProgress, setBulkProgress] = useState({ created: 0, failed: 0, total: 0 });
+  const [showBulkSuccessModal, setShowBulkSuccessModal] = useState(false);
+  const [bulkSuccessData, setBulkSuccessData] = useState<{ created: number; promptType: string } | null>(null);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -458,9 +460,10 @@ export default function UploadContactsPage() {
         total: selectedContactIds.length
       });
 
-      // Show success message
+      // Show success modal
       if (result.created > 0) {
-        setSuccess(`Successfully created ${result.created} prompt pages!`);
+        setBulkSuccessData({ created: result.created, promptType: promptType });
+        setShowBulkSuccessModal(true);
         // Clear selection
         setSelectedContactIds([]);
       }
@@ -873,7 +876,17 @@ export default function UploadContactsPage() {
                 )}
                 {success && (
                   <div className="mt-4 p-4 bg-green-50 text-green-700 rounded-lg">
-                    {success}
+                    <div className="flex items-center justify-between">
+                      <span>{success}</span>
+                      {success.includes('Prompt Page') && (
+                        <button
+                          onClick={() => router.push('/dashboard')}
+                          className="ml-4 px-4 py-2 bg-slate-blue text-white rounded-lg hover:bg-slate-blue/90 font-semibold transition-colors"
+                        >
+                          Click here to see them, edit and share
+                        </button>
+                      )}
+                    </div>
                   </div>
                 )}
                 {/* Preview Section */}
@@ -1242,6 +1255,48 @@ export default function UploadContactsPage() {
           onSelectType={handleBulkPromptTypeSelect}
           selectedCount={selectedContactIds.length}
         />
+
+        {/* Bulk Success Modal */}
+        {showBulkSuccessModal && bulkSuccessData && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-8 max-w-md w-full mx-4 shadow-xl">
+              <div className="text-center">
+                {/* Success Icon */}
+                <div className="w-16 h-16 mx-auto mb-4 bg-green-100 rounded-full flex items-center justify-center">
+                  <Icon name="FaCheck" className="w-8 h-8 text-green-600" />
+                </div>
+                
+                {/* Success Message */}
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                  Success!
+                </h3>
+                <p className="text-gray-600 mb-6">
+                  {bulkSuccessData.created} Prompt Page{bulkSuccessData.created > 1 ? 's' : ''} created successfully.
+                </p>
+                
+                {/* Action Buttons */}
+                <div className="flex flex-col gap-3">
+                  <button
+                    onClick={() => {
+                      setShowBulkSuccessModal(false);
+                      router.push('/dashboard');
+                    }}
+                    className="px-6 py-3 bg-slate-blue text-white rounded-lg hover:bg-slate-blue/90 font-semibold transition-colors"
+                  >
+                    View, Edit & Share Pages
+                  </button>
+                  
+                  <button
+                    onClick={() => setShowBulkSuccessModal(false)}
+                    className="px-6 py-2 text-gray-600 hover:text-gray-800 font-medium transition-colors"
+                  >
+                    Continue Managing Contacts
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </PageCard>
   );
