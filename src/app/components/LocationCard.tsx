@@ -96,7 +96,7 @@ export default function LocationCard({
           <div className="flex items-center justify-between mb-1">
             <div className="flex items-center gap-2">
               <h2 className="text-2xl font-bold text-slate-blue flex items-center gap-3">
-                <Icon name="FaMapMarkerAlt" className="w-7 h-7 text-slate-blue" size={28} />
+                <Icon name="FaMapMarker" className="w-7 h-7 text-slate-blue" size={28} />
                 {location.name}
               </h2>
             </div>
