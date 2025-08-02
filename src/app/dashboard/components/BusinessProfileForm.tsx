@@ -737,23 +737,7 @@ export default function BusinessProfileForm({
         </div>
       </div>
 
-      {/* Default Settings Section */}
-      <div className="mb-16">
-        <h2 className="mt-4 mb-2 text-3xl font-bold text-slate-blue flex items-center gap-3">
-          <Icon name="FaCog" className="w-8 h-8 text-slate-blue" size={32} />
-          Default Settings
-        </h2>
-        <div className="text-sm text-gray-600 mb-4">
-          These settings will make creating new prompt pages easier by allowing you to use (or override) these presets. (If you plan on 3-or-less Prompt Pages you can probably skip.)
-        </div>
-        
-        {/* Placeholder for future default settings */}
-        <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center">
-          <p className="text-gray-600 text-sm">
-            Default settings configuration will be available soon. This will include default templates, messaging preferences, and other presets for new prompt pages.
-          </p>
-        </div>
-      </div>
+
 
       {/* Review Platforms Section */}
       <div className="mb-16">
