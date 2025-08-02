@@ -95,12 +95,21 @@ export async function checkAccountLimits(
   const inTrial = account.trial_end && new Date(account.trial_end) > now;
   const plan = account.plan || 'grower';
   
-  // Use actual account limits from database instead of hardcoded limits
+  // Use plan limits for grower accounts, database limits for paid accounts
   let limit: number;
+  const planLimits = PLAN_LIMITS[plan as keyof typeof PLAN_LIMITS];
+  
   if (type === "prompt_page") {
-    limit = account.max_prompt_pages || PLAN_LIMITS[plan as keyof typeof PLAN_LIMITS]?.prompt_page || 3;
+    // For prompt pages, use database limit if available, otherwise fall back to plan limit
+    limit = account.max_prompt_pages || planLimits?.prompt_page || 3;
   } else if (type === "contact") {
-    limit = account.max_contacts || PLAN_LIMITS[plan as keyof typeof PLAN_LIMITS]?.contact || 0;
+    // For grower accounts, always enforce plan limit (0 contacts)
+    if (plan === "grower") {
+      limit = planLimits?.contact || 0;
+    } else {
+      // For paid accounts, use database limit if available, otherwise fall back to plan limit
+      limit = account.max_contacts || planLimits?.contact || 0;
+    }
   } else {
     return { allowed: false, reason: "Invalid type" };
   }

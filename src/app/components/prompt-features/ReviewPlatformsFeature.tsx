@@ -50,6 +50,7 @@ const platformOptions = [
   "Yelp",
   "Facebook",
   "TripAdvisor",
+  "Amazon",
   "G2",
   "BBB",
   "Thumbtack",
@@ -70,11 +71,17 @@ const getPlatformIcon = (name: string, url: string) => {
   if (lowerName.includes("google") || lowerUrl.includes("google"))
     return { icon: "FaGoogle", color: "text-slate-blue" };
   if (lowerName.includes("yelp") || lowerUrl.includes("yelp"))
-    return { icon: "FaYelp", color: "text-red-500" };
+    return { icon: "FaYelp", color: "text-slate-blue" };
   if (lowerName.includes("facebook") || lowerUrl.includes("facebook"))
-    return { icon: "FaFacebook", color: "text-blue-700" };
+    return { icon: "FaFacebook", color: "text-slate-blue" };
   if (lowerName.includes("tripadvisor") || lowerUrl.includes("tripadvisor"))
-    return { icon: "FaTripadvisor", color: "text-green-600" };
+    return { icon: "FaTripadvisor", color: "text-slate-blue" };
+  if (lowerName.includes("amazon") || lowerUrl.includes("amazon"))
+    return { icon: "FaAmazon", color: "text-slate-blue" };
+  if (lowerName.includes("bbb") || lowerName.includes("better business") || lowerUrl.includes("bbb"))
+    return { icon: "FaBbb", color: "text-slate-blue" };
+  if (lowerName.includes("g2") || lowerUrl.includes("g2"))
+    return { icon: "SiG2", color: "text-slate-blue" };
   return { icon: "FaRegStar", color: "text-slate-blue" };
 };
 

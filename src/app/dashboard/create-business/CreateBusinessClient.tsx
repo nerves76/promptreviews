@@ -11,6 +11,7 @@ import SimpleBusinessForm from "../components/SimpleBusinessForm";
 import AppLoader from "@/app/components/AppLoader";
 import PageCard from "@/app/components/PageCard";
 import WelcomePopup from "@/app/components/WelcomePopup";
+import Icon from "@/components/Icon";
 import { ensureAccountExists, getAccountIdForUser } from "@/utils/accountUtils";
 
 
@@ -123,7 +124,10 @@ export default function CreateBusinessClient() {
   const handleBusinessCreated = useCallback(() => {
     console.log("✅ CreateBusinessClient: Business created successfully, redirecting...");
     setIsSubmitting(false);
-    redirectToDashboard();
+    // Add a small delay to ensure state has time to propagate
+    setTimeout(() => {
+      redirectToDashboard();
+    }, 250);
   }, [redirectToDashboard]);
 
   // Handle top save button click
@@ -230,6 +234,7 @@ export default function CreateBusinessClient() {
             {/* Welcome Message */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 w-full gap-2 relative">
               <h1 className="text-4xl font-bold flex items-center gap-3 text-slate-blue pt-2">
+                <Icon name="FaStore" size={32} className="text-slate-blue" />
                 Create your business profile
               </h1>
             </div>

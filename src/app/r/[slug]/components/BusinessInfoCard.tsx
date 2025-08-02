@@ -8,6 +8,7 @@
 import React from 'react';
 import Image from 'next/image';
 import { getFontClass } from '../utils/fontUtils';
+import RecentReviewsButton from '../../../components/RecentReviewsButton';
 import { applyCardTransparency } from '@/utils/colorUtils';
 
 interface BusinessProfile {
@@ -31,9 +32,10 @@ interface BusinessInfoCardProps {
   businessProfile: BusinessProfile;
   reviewType?: string;
   promptPage?: any; // Add prompt page data for employee-specific logic
+  onOpenRecentReviews?: () => void; // Callback to open recent reviews modal
 }
 
-export default function BusinessInfoCard({ businessProfile, reviewType, promptPage }: BusinessInfoCardProps) {
+export default function BusinessInfoCard({ businessProfile, reviewType, promptPage, onOpenRecentReviews }: BusinessInfoCardProps) {
   // For service pages, only show City, State. For location pages, show full address
   const shouldShowFullAddress = reviewType === 'location' || reviewType === 'universal';
   
@@ -131,6 +133,16 @@ export default function BusinessInfoCard({ businessProfile, reviewType, promptPa
             {getAddressDisplay()}
           </div>
         )
+      )}
+
+      {/* Recent Reviews Button */}
+      {promptPage?.id && promptPage?.recent_reviews_enabled && onOpenRecentReviews && (
+        <RecentReviewsButton
+          promptPageId={promptPage.id}
+          enabled={promptPage.recent_reviews_enabled}
+          businessProfile={businessProfile}
+          onOpenModal={onOpenRecentReviews}
+        />
       )}
     </div>
   );

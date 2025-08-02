@@ -22,6 +22,12 @@ export function getPlatformIcon(
     return { icon: "FaYelp", label: "Yelp" };
   if (lowerUrl.includes("tripadvisor") || lowerPlatform.includes("tripadvisor"))
     return { icon: "FaTripadvisor", label: "TripAdvisor" };
+  if (lowerUrl.includes("amazon") || lowerPlatform.includes("amazon"))
+    return { icon: "FaAmazon", label: "Amazon" };
+  if (lowerUrl.includes("bbb") || lowerPlatform.includes("bbb") || lowerPlatform.includes("better business"))
+    return { icon: "FaBbb", label: "Better Business Bureau" };
+  if (lowerUrl.includes("g2") || lowerPlatform.includes("g2"))
+    return { icon: "SiG2", label: "G2" };
   return { icon: "FaRegStar", label: "Other" };
 }
 

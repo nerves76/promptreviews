@@ -23,6 +23,7 @@ const platformOptions = [
   "Yelp",
   "Facebook",
   "TripAdvisor",
+  "Amazon",
   "G2",
   "BBB",
   "Thumbtack",
@@ -45,6 +46,12 @@ function getPlatformIcon(platform: string): { icon: IconName; label: string } {
   if (lowerPlatform.includes("yelp")) return { icon: "FaYelp", label: "Yelp" };
   if (lowerPlatform.includes("tripadvisor"))
     return { icon: "FaTripadvisor", label: "TripAdvisor" };
+  if (lowerPlatform.includes("amazon"))
+    return { icon: "FaAmazon", label: "Amazon" };
+  if (lowerPlatform.includes("bbb") || lowerPlatform.includes("better business"))
+    return { icon: "FaBbb", label: "Better Business Bureau" };
+  if (lowerPlatform.includes("g2"))
+    return { icon: "SiG2", label: "G2" };
   return { icon: "FaStar", label: "Other" };
 }
 

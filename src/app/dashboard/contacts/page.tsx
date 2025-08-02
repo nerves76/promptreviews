@@ -13,6 +13,8 @@ import { useRouter } from "next/navigation";
 
 import PromptTypeSelectModal from "@/app/components/PromptTypeSelectModal";
 import BulkPromptTypeSelectModal from "@/app/components/BulkPromptTypeSelectModal";
+import ManualContactForm from "@/app/components/ManualContactForm";
+import { checkAccountLimits } from "@/utils/accountLimits";
 import { promptTypes } from "@/config/promptTypes";
 
 export default function UploadContactsPage() {
@@ -59,6 +61,39 @@ export default function UploadContactsPage() {
   const [totalCount, setTotalCount] = useState(0);
   const itemsPerPage = 50;
 
+  // Manual contact form state
+  const [showManualContactForm, setShowManualContactForm] = useState(false);
+
+  // Account limits state
+  const [canAddContacts, setCanAddContacts] = useState(true);
+  const [contactLimitMessage, setContactLimitMessage] = useState("");
+
+  // Function to check contact limits
+  const checkContactLimits = async () => {
+    try {
+      const { data: { session } } = await getSessionOrMock(supabase);
+      if (session?.user) {
+        const limitCheck = await checkAccountLimits(supabase, session.user.id, 'contact');
+        setCanAddContacts(limitCheck.allowed);
+        if (!limitCheck.allowed) {
+          const message = limitCheck.reason || 'Contact creation not allowed for your account plan';
+          setContactLimitMessage(message);
+        }
+              }
+    } catch (error) {
+      console.error('Error checking contact limits:', error);
+    }
+  };
+
+  // Function to handle new contact creation
+  const handleContactCreated = () => {
+    // Trigger a refresh of contacts by updating the success state
+    setSuccess("Contact created successfully!");
+    setTimeout(() => setSuccess(""), 3000);
+    // Re-check limits after adding a contact
+    checkContactLimits();
+  };
+
   // Using singleton Supabase client from supabaseClient.ts
 
   useEffect(() => {
@@ -69,6 +104,9 @@ export default function UploadContactsPage() {
       } = await getSessionOrMock(supabase);
       if (error || !session) {
         setError("Please sign in to upload contacts");
+      } else {
+        // Check contact limits when authenticated
+        checkContactLimits();
       }
     };
     checkAuth();
@@ -460,7 +498,7 @@ export default function UploadContactsPage() {
   fieldKeys = ["Name", ...fieldKeys, "role", "category"];
 
   return (
-    <PageCard icon={<Icon name="FaUsers" className="w-9 h-9 text-[#1A237E]" />}>
+    <PageCard icon={<Icon name="FaUsers" className="w-12 h-12 text-[#1A237E]" />}>
       <div className="w-full mx-auto relative" style={{ maxWidth: 1000 }}>
         <div className="flex items-center justify-between mb-8">
           <div className="flex flex-col">
@@ -502,14 +540,47 @@ export default function UploadContactsPage() {
               Export CSV
             </button>
             <button
-              onClick={() => setShowUploadModal(true)}
-              className="px-4 py-2 bg-slate-blue text-white rounded-lg hover:bg-slate-blue/90 font-semibold shadow flex items-center gap-2"
+              onClick={() => canAddContacts ? setShowManualContactForm(true) : router.push('/dashboard/plan')}
+              disabled={!canAddContacts}
+              className={`px-4 py-2 rounded-lg font-semibold shadow flex items-center gap-2 ${
+                canAddContacts
+                  ? 'bg-blue-600 text-white hover:bg-blue-700'
+                  : 'bg-gray-400 text-gray-200 cursor-not-allowed'
+              }`}
+            >
+              <Icon name="FaPlus" className="w-4 h-4" />
+              Add contact
+            </button>
+            <button
+              onClick={() => canAddContacts ? setShowUploadModal(true) : router.push('/dashboard/plan')}
+              disabled={!canAddContacts}
+              className={`px-4 py-2 rounded-lg font-semibold shadow flex items-center gap-2 ${
+                canAddContacts
+                  ? 'bg-slate-blue text-white hover:bg-slate-blue/90'
+                  : 'bg-gray-400 text-gray-200 cursor-not-allowed'
+              }`}
             >
               <Icon name="FaUpload" className="w-4 h-4" />
               Upload contacts
             </button>
           </div>
         </div>
+
+        {/* Contact Limits Message */}
+        {!canAddContacts && contactLimitMessage && (
+          <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <p className="text-yellow-800">
+              {contactLimitMessage}
+              <button 
+                onClick={() => router.push('/dashboard/plan')}
+                className="ml-2 text-yellow-900 underline hover:no-underline"
+              >
+                Upgrade your plan
+              </button>
+              {' '}to add contacts.
+            </p>
+          </div>
+        )}
 
         {/* Contacts Table */}
         <div className="mb-16">
@@ -1159,6 +1230,12 @@ export default function UploadContactsPage() {
         )}
 
         {/* Bulk Prompt Type Select Modal */}
+        <ManualContactForm
+          isOpen={showManualContactForm}
+          onClose={() => setShowManualContactForm(false)}
+          onContactCreated={handleContactCreated}
+        />
+
         <BulkPromptTypeSelectModal
           open={showBulkTypeModal}
           onClose={() => setShowBulkTypeModal(false)}

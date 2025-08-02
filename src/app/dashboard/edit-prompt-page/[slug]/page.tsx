@@ -104,6 +104,8 @@ function getPlatformIcon(
     return { icon: "FaYelp", label: "Yelp" };
   if (lowerUrl.includes("tripadvisor") || lowerPlatform.includes("tripadvisor"))
     return { icon: "FaTripadvisor", label: "TripAdvisor" };
+  if (lowerUrl.includes("g2") || lowerPlatform.includes("g2"))
+    return { icon: "SiG2", label: "G2" };
   return { icon: "FaRegStar", label: "Other" };
 }
 
@@ -799,6 +801,7 @@ export default function EditPromptPage() {
         "features_or_benefits",
         "kickstarters_enabled",
         "selected_kickstarters",
+        "recent_reviews_enabled",
         "status"
       ];
       const payload = Object.fromEntries(

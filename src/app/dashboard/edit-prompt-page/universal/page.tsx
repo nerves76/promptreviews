@@ -154,6 +154,7 @@ export default function UniversalEditPromptPage() {
           friendlyNote: universalPage?.friendly_note || "",
           kickstartersEnabled: universalPage?.kickstarters_enabled ?? false,
           selectedKickstarters: universalPage?.selected_kickstarters ?? [],
+          recentReviewsEnabled: universalPage?.recent_reviews_enabled ?? false,
         };
         
         console.log("Merged form data:", merged);
@@ -255,6 +256,7 @@ export default function UniversalEditPromptPage() {
       friendly_note: formState.friendlyNote,
       kickstarters_enabled: formState.kickstartersEnabled,
       selected_kickstarters: formState.selectedKickstarters,
+      recent_reviews_enabled: formState.recentReviewsEnabled,
     }).eq("id", universalPage.id);
     if (error) {
       alert("Failed to save: " + error.message);

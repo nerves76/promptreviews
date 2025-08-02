@@ -131,7 +131,7 @@ export default function OfferFeature({
   };
 
   return (
-    <div className="rounded-lg p-4 bg-slate-50 border border-slate-200 flex flex-col gap-4 shadow relative">
+    <div className="rounded-lg p-4 bg-blue-50 border border-blue-200 flex flex-col gap-4 shadow relative">
       <div className="flex flex-row justify-between items-start mb-2 px-4 py-2">
         <div className="flex flex-col">
           <div className="flex items-center gap-3">

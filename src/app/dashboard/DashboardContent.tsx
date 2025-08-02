@@ -18,6 +18,7 @@ import BusinessLocationModal from "@/app/components/BusinessLocationModal";
 import { BusinessLocation } from "@/types/business";
 import { hasLocationAccess, formatLocationAddress, getLocationDisplayName } from "@/utils/locationUtils";
 import EmojiEmbedButton from "@/app/components/EmojiEmbedButton";
+import { promptTypes } from "@/config/promptTypes";
 
 interface DashboardContentProps {
   userName: string;
@@ -148,42 +149,7 @@ const DashboardContent = React.memo(function DashboardContent({
 
   // Using singleton Supabase client from supabaseClient.ts
 
-  const promptTypes = [
-    {
-      key: "service",
-      label: "Service review",
-      icon: <svg className="w-7 h-7" style={{ color: "#1A237E" }}><use href="/icons-sprite.svg#FaHandshake" /></svg>,
-      description:
-        "Capture a review from a customer or client who loves what you do",
-    },
-    {
-      key: "photo",
-      label: "Photo + testimonial",
-      icon: <Icon name="MdPhotoCamera" size={28} color="#1A237E" />,
-      description:
-        "Capture a headshot and testimonial to display on your website or in marketing materials.",
-    },
-    {
-      key: "product",
-      label: "Product review",
-      icon: <svg className="w-7 h-7" style={{ color: "#1A237E" }}><use href="/icons-sprite.svg#FaBox" /></svg>,
-      description: "Get a review from a customer who fancies your products",
-    },
-    {
-      key: "video",
-      label: "Video testimonial",
-      icon: <svg className="w-7 h-7" style={{ color: "#1A237E" }}><use href="/icons-sprite.svg#FaVideo" /></svg>,
-      description: "Request a video testimonial from your client.",
-      comingSoon: true,
-    },
-    {
-      key: "event",
-      label: "Events & spaces",
-      icon: <svg className="w-7 h-7" style={{ color: "#1A237E" }}><use href="/icons-sprite.svg#FaCalendarAlt" /></svg>,
-      description: "For events, rentals, tours, and more.",
-      comingSoon: true,
-    },
-  ];
+
 
   function handlePromptTypeSelect(typeKey: string) {
     if (

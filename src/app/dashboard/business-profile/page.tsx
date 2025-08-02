@@ -754,8 +754,7 @@ export default function BusinessProfilePage() {
             Your business
           </h1>
           <p className="text-gray-600 text-base max-w-md mt-0 mb-10">
-            Fill out your business profile thoroughly and consistently. This is
-            rule #1 in local search engine optimization.
+            Fill out your business info to help Prompty AI generate authentic reviews. Refine your answers over time to get even better reviews.
           </p>
         </div>
         <div
@@ -773,6 +772,14 @@ export default function BusinessProfilePage() {
           </button>
         </div>
       </div>
+
+      {/* Top success message */}
+      {success && (
+        <div className="mb-6 p-4 bg-green-50 text-green-700 rounded-md text-base font-medium border border-green-200">
+          {success}
+        </div>
+      )}
+
       <BusinessProfileForm
         form={form}
         setForm={setForm}

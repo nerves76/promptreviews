@@ -27,6 +27,7 @@ export interface FormData {
   notePopupEnabled?: boolean;
   showFriendlyNote?: boolean;
   kickstartersEnabled?: boolean;
+  recentReviewsEnabled?: boolean;
   
   // Content fields
   emojiSentimentQuestion?: string;
@@ -100,6 +101,7 @@ export interface DatabaseRow {
   show_friendly_note?: boolean;
   kickstarters_enabled?: boolean;
   selected_kickstarters?: string[];
+  recent_reviews_enabled?: boolean;
   facebook_url?: string;
   instagram_url?: string;
   bluesky_url?: string;
@@ -147,7 +149,8 @@ export function mapFormDataToDatabase(formData: FormData): DatabaseRow {
     notePopupEnabled: 'note_popup_enabled',
     showFriendlyNote: 'show_friendly_note',
     kickstartersEnabled: 'kickstarters_enabled',
-    selectedKickstarters: 'selected_kickstarters'
+    selectedKickstarters: 'selected_kickstarters',
+    recentReviewsEnabled: 'recent_reviews_enabled'
   };
   
   Object.entries(camelToSnakeMap).forEach(([camelKey, snakeKey]) => {

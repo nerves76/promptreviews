@@ -20,7 +20,8 @@ import {
   FallingStarsFeature,
   AISettingsFeature,
   PersonalizedNoteFeature,
-  KickstartersFeature
+  KickstartersFeature,
+  RecentReviewsFeature
 } from "./prompt-features";
 import { useFallingStars } from "@/hooks/useFallingStars";
 import { Input } from "@/app/components/ui/input";
@@ -28,7 +29,7 @@ import { Textarea } from "@/app/components/ui/textarea";
 import SectionHeader from "./SectionHeader";
 import { TopNavigation, BottomNavigation } from "./sections/StepNavigation";
 import { generateContextualReview } from "../../utils/aiReviewGeneration";
-import { Icon } from "@/components/Icon";
+import Icon from "@/components/Icon";
 
 
 /**
@@ -74,6 +75,7 @@ export default function EmployeePromptPageForm({
     review_platforms: Array.isArray(initialData.review_platforms) ? initialData.review_platforms : [],
     fallingEnabled: initialData.fallingEnabled ?? initialData.falling_enabled ?? true,
     show_friendly_note: initialData.show_friendly_note ?? false,
+    recent_reviews_enabled: initialData.recent_reviews_enabled ?? false,
     // Offer fields
     offer_enabled: initialData.offer_enabled ?? false,
     offer_title: initialData.offer_title || '',
@@ -789,6 +791,16 @@ export default function EmployeePromptPageForm({
             fixGrammarEnabled={formData.fix_grammar_enabled ?? true}
             onAIEnabledChange={(enabled) => updateFormData('ai_generation_enabled', enabled)}
             onGrammarEnabledChange={(enabled) => updateFormData('fix_grammar_enabled', enabled)}
+          />
+
+          {/* Recent Reviews Feature */}
+          <RecentReviewsFeature
+            enabled={formData.recent_reviews_enabled}
+            onEnabledChange={(enabled) => updateFormData('recent_reviews_enabled', enabled)}
+            initialData={{
+              recent_reviews_enabled: formData.recent_reviews_enabled,
+            }}
+            editMode={true}
           />
         </div>
 

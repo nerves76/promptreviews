@@ -210,9 +210,9 @@ const ServicePromptPageForm = forwardRef<any, ServicePromptPageFormProps>(
               fallingIcon,
               fallingIconColor,
               aiButtonEnabled,
-              notePopupEnabled,
-              friendlyNote,
-            });
+                              notePopupEnabled,
+                friendlyNote,
+              });
           }}
         >
           {/* Review Platforms Section with review and AI (Service only) */}

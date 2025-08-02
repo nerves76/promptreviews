@@ -356,9 +356,7 @@ const SimpleBusinessForm = forwardRef<HTMLFormElement, SimpleBusinessFormProps>(
       {/* Business Information Section */}
       <div className="mb-16">
         <h2 className="mt-4 mb-8 text-2xl font-bold text-slate-blue flex items-center gap-3">
-          <svg className="w-7 h-7 text-slate-blue">
-            <use href="/icons-sprite.svg#FaBuilding" />
-          </svg>
+          <Icon name="FaInfoCircle" size={28} className="text-slate-blue" />
           Business information
         </h2>
         
@@ -572,9 +570,7 @@ const SimpleBusinessForm = forwardRef<HTMLFormElement, SimpleBusinessFormProps>(
       {/* Promotion Code Section */}
       <div className="mb-16">
         <h2 className="mt-4 mb-8 text-2xl font-bold text-slate-blue flex items-center gap-3">
-          <svg className="w-7 h-7 text-slate-blue">
-            <use href="/icons-sprite.svg#FaTags" />
-          </svg>
+          <Icon name="FaTags" size={28} className="text-slate-blue" />
           Promotion code
         </h2>
         <div className="mb-4">
@@ -627,5 +623,7 @@ const SimpleBusinessForm = forwardRef<HTMLFormElement, SimpleBusinessFormProps>(
     </form>
   );
 });
+
+SimpleBusinessForm.displayName = 'SimpleBusinessForm';
 
 export default SimpleBusinessForm; 

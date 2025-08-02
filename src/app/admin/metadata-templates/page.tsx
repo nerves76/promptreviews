@@ -214,7 +214,7 @@ export default function MetadataTemplatesPage() {
           {/* Variable Guide */}
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
             <div className="flex items-start gap-2">
-              <Icon name="FaInfo" className="w-5 h-5 text-blue-600 mt-0.5" />
+              <Icon name="FaInfoCircle" className="w-5 h-5 text-blue-600 mt-0.5" />
               <div>
                 <h3 className="font-semibold text-blue-900">Available Variables</h3>
                 <p className="text-blue-700 text-sm mt-1">

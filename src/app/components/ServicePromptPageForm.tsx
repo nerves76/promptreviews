@@ -20,7 +20,8 @@ import {
   EmojiSentimentFeature,
   FallingStarsFeature,
   AISettingsFeature,
-  KickstartersFeature
+  KickstartersFeature,
+  RecentReviewsFeature
 } from "./prompt-features";
 import { useFallingStars } from "@/hooks/useFallingStars";
 import { Input } from "@/app/components/ui/input";
@@ -91,6 +92,7 @@ export default function ServicePromptPageForm({
     falling_icon_color: initialData?.falling_icon_color || "#fbbf24",
     kickstarters_enabled: initialData?.kickstarters_enabled ?? false,
     selected_kickstarters: Array.isArray(initialData?.selected_kickstarters) ? initialData.selected_kickstarters : [],
+    recent_reviews_enabled: initialData?.recent_reviews_enabled ?? false,
   });
   
   const [fixGrammarEnabled, setFixGrammarEnabled] = useState(initialData?.fix_grammar_enabled ?? true);
@@ -572,6 +574,16 @@ export default function ServicePromptPageForm({
           }}
           editMode={true}
         />
+
+        {/* Recent Reviews Section */}
+        <RecentReviewsFeature
+          enabled={formData.recent_reviews_enabled}
+          onEnabledChange={(enabled) => updateFormData('recent_reviews_enabled', enabled)}
+          initialData={{
+            recent_reviews_enabled: initialData?.recent_reviews_enabled,
+          }}
+          editMode={true}
+        />
         
         {/* Offer Section */}
         <OfferFeature
@@ -589,7 +601,7 @@ export default function ServicePromptPageForm({
         <div className="rounded-lg p-4 bg-slate-50 border border-slate-200 flex flex-col gap-2 shadow relative">
           <div className="flex items-center justify-between mb-2 px-2 py-2">
             <div className="flex items-center gap-3">
-              <Icon name="FaFileAlt" className="w-7 h-7 text-slate-blue" size={28} />
+              <Icon name="FaStickyNote" className="w-7 h-7 text-slate-blue" size={28} />
               <span className="text-2xl font-bold text-slate-blue">
                 Friendly note pop-up
               </span>

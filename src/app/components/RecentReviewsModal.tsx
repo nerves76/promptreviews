@@ -1,0 +1,216 @@
+/**
+ * RecentReviewsModal Component
+ * 
+ * Displays recent reviews in a modal with privacy protection (initials only).
+ * Uses business branding and follows app modal standards with red X close button.
+ * Only shows when 3+ reviews are available and feature is enabled.
+ */
+
+"use client";
+import React, { useState, useEffect } from "react";
+import Icon from "@/components/Icon";
+
+interface Review {
+  initials: string;
+  content: string;
+  platform: string;
+  date: string;
+}
+
+interface RecentReviewsModalProps {
+  /** Whether the modal is open */
+  isOpen: boolean;
+  /** Function to close the modal */
+  onClose: () => void;
+  /** Prompt page ID to fetch reviews for */
+  promptPageId: string;
+  /** Business profile for branding */
+  businessProfile?: {
+    primary_color?: string;
+    secondary_color?: string;
+    primary_font?: string;
+    business_name?: string;
+  };
+}
+
+export default function RecentReviewsModal({
+  isOpen,
+  onClose,
+  promptPageId,
+  businessProfile,
+}: RecentReviewsModalProps) {
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch reviews when modal opens
+  useEffect(() => {
+    if (isOpen && promptPageId) {
+      fetchReviews();
+    }
+  }, [isOpen, promptPageId]);
+
+  const fetchReviews = async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch(`/api/recent-reviews/${promptPageId}`);
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to fetch reviews');
+      }
+
+      if (data.hasEnoughReviews) {
+        setReviews(data.reviews || []);
+      } else {
+        setReviews([]);
+        setError(data.message || 'Not enough reviews available');
+      }
+    } catch (err) {
+      console.error('Error fetching recent reviews:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load reviews');
+      setReviews([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Get platform icon
+  const getPlatformIcon = (platform: string) => {
+    switch (platform.toLowerCase()) {
+      case 'google':
+        return 'FaGoogle';
+      case 'yelp':
+        return 'FaYelp';
+      case 'facebook':
+        return 'FaFacebook';
+      case 'tripadvisor':
+        return 'FaTripadvisor';
+      default:
+        return 'FaGlobe';
+    }
+  };
+
+  // Don't render if not open
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-fadein">
+      <div className="bg-white rounded-lg max-w-2xl w-full mx-4 max-h-[90vh] overflow-hidden relative animate-slideup shadow-xl">
+        {/* Standardized red X close button */}
+        <button
+          className="absolute top-3 right-3 bg-white border border-gray-200 rounded-full shadow-lg hover:shadow-xl transition-shadow duration-200 flex items-center justify-center hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 z-50"
+          style={{ width: 48, height: 48 }}
+          onClick={onClose}
+          aria-label="Close modal"
+        >
+          <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+
+        {/* Modal Header */}
+        <div className="p-6 pb-4 border-b border-gray-200">
+          <div className="flex items-center space-x-3">
+            <Icon 
+              name="FaComments" 
+              className="w-6 h-6"
+              style={{ color: businessProfile?.primary_color || "#4F46E5" }}
+              size={24}
+            />
+            <h2 
+              className="text-xl font-bold"
+              style={{ 
+                color: businessProfile?.primary_color || "#4F46E5",
+                fontFamily: businessProfile?.primary_font || "Inter"
+              }}
+            >
+              Recent Reviews
+            </h2>
+          </div>
+          <p className="text-gray-600 text-sm mt-2">
+            Recent reviews for {businessProfile?.business_name || "customers"}
+          </p>
+        </div>
+
+        {/* Modal Content */}
+        <div className="p-6 overflow-y-auto max-h-[60vh]">
+          {loading && (
+            <div className="flex items-center justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2" 
+                   style={{ borderColor: businessProfile?.primary_color || "#4F46E5" }}>
+              </div>
+              <span className="ml-3 text-gray-600">Loading reviews...</span>
+            </div>
+          )}
+
+          {error && (
+            <div className="text-center py-8">
+              <Icon name="FaExclamationTriangle" className="w-8 h-8 text-gray-400 mx-auto mb-3" size={32} />
+              <p className="text-gray-600">{error}</p>
+            </div>
+          )}
+
+          {!loading && !error && reviews.length === 0 && (
+            <div className="text-center py-8">
+              <Icon name="FaComments" className="w-8 h-8 text-gray-400 mx-auto mb-3" size={32} />
+              <p className="text-gray-600">No recent reviews available</p>
+            </div>
+          )}
+
+          {!loading && !error && reviews.length > 0 && (
+            <div className="space-y-4">
+              {reviews.map((review, index) => (
+                <div 
+                  key={index}
+                  className="bg-gray-50 rounded-lg p-4 border border-gray-200"
+                >
+                  {/* Review Header */}
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center space-x-3">
+                      {/* Initials Circle */}
+                      <div 
+                        className="w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold text-sm"
+                        style={{ backgroundColor: businessProfile?.primary_color || "#4F46E5" }}
+                      >
+                        {review.initials}
+                      </div>
+                      
+                      {/* Platform and Date */}
+                      <div className="flex items-center space-x-2">
+                        <Icon 
+                          name={getPlatformIcon(review.platform)}
+                          className="w-4 h-4 text-gray-600"
+                          size={16}
+                        />
+                        <span className="text-sm text-gray-600 capitalize">
+                          {review.platform}
+                        </span>
+                        <span className="text-sm text-gray-400">•</span>
+                        <span className="text-sm text-gray-600">
+                          {review.date}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Review Content */}
+                  <p 
+                    className="text-gray-800 leading-relaxed"
+                    style={{ fontFamily: businessProfile?.primary_font || "Inter" }}
+                  >
+                    "{review.content}"
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+
+      </div>
+    </div>
+  );
+} 

@@ -590,7 +590,7 @@ export default function PromptPages() {
                 <p className="text-gray-600 text-base max-w-md mt-0 mb-6 lg:mb-10">
                   {promptPagesTab === 'public' && 'Capture reviews in person, at your place of business, through your website, or embed in your newsletter. These prompt pages are open to the public.'}
                   {promptPagesTab === 'individual' && 'Create personalized prompt pages for individuals and make them feel special. Pre-populated contact information, write your own review templates, and add custom messaging.'}
-                  {promptPagesTab === 'locations' && 'Create location-specific prompt pages for each of your business locations. (Available for Maven subscribers)'}
+                  {promptPagesTab === 'locations' && 'Create location-specific prompt pages for each of your business locations.'}
                 </p>
               </div>
               <div className="flex flex-row lg:items-start gap-3 flex-shrink-0">
@@ -604,7 +604,12 @@ export default function PromptPages() {
                       console.log('🎯 PROMPT PAGES - localStorage after setting:', localStorage.getItem('campaign_type'));
                       setShowTypeModal(true);
                     }}
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-slate-blue text-white rounded hover:bg-slate-blue/90 font-medium transition whitespace-nowrap"
+                    disabled={promptPagesTab === 'individual' && account?.plan === 'grower'}
+                    className={`inline-flex items-center gap-2 px-4 py-2 rounded font-medium transition whitespace-nowrap ${
+                      promptPagesTab === 'individual' && account?.plan === 'grower'
+                        ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
+                        : 'bg-slate-blue text-white hover:bg-slate-blue/90'
+                    }`}
                   >
                     + Prompt Page
                   </button>
@@ -613,7 +618,12 @@ export default function PromptPages() {
                   <button
                     type="button"
                     onClick={() => setShowLocationModal(true)}
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-slate-blue text-white rounded hover:bg-slate-blue/90 font-medium transition whitespace-nowrap"
+                    disabled={account?.plan === 'grower' || account?.plan === 'builder'}
+                    className={`inline-flex items-center gap-2 px-4 py-2 rounded font-medium transition whitespace-nowrap ${
+                      account?.plan === 'grower' || account?.plan === 'builder'
+                        ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
+                        : 'bg-slate-blue text-white hover:bg-slate-blue/90'
+                    }`}
                   >
                     + Location
                   </button>
@@ -771,12 +781,8 @@ export default function PromptPages() {
               <div className="my-12">
                 {(!account || !hasIndividualAccess(account.plan)) ? (
                   <div className="text-center py-12">
-                    <Icon name="FaUser" className="w-16 h-16 mx-auto mb-6 text-slate-blue" size={64} />
-                    <h2 className="text-2xl font-bold text-slate-blue mb-4">Individual Prompt Pages</h2>
-                    <p className="text-lg text-gray-600 mb-6 max-w-md mx-auto">
-                      Create personalized prompt pages for individuals and make them feel special. Pre-populated contact information, write your own review templates, and add custom messaging.
-                    </p>
                     <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 max-w-md mx-auto">
+                      <Icon name="FaUser" className="w-16 h-16 mx-auto mb-4 text-slate-blue" size={64} />
                       <h3 className="font-semibold text-blue-900 mb-2">Upgrade to Builder</h3>
                       <p className="text-sm text-blue-700 mb-4">
                         Individual prompt pages are available with the Builder tier and above. Upgrade your plan to unlock this feature.
@@ -819,12 +825,8 @@ export default function PromptPages() {
               <div className="my-12">
                 {(!account || !hasLocationAccess(account.plan)) ? (
                   <div className="text-center py-12">
-                    <Icon name="FaMapMarker" className="w-16 h-16 mx-auto mb-6 text-slate-blue" size={64} />
-                    <h2 className="text-2xl font-bold text-slate-blue mb-4">Location Prompt Pages</h2>
-                    <p className="text-lg text-gray-600 mb-6 max-w-md mx-auto">
-                      Create prompt pages for each of your business locations. Perfect for multi-location businesses.
-                    </p>
                     <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 max-w-md mx-auto">
+                      <Icon name="FaMapMarker" className="w-16 h-16 mx-auto mb-4 text-slate-blue" size={64} />
                       <h3 className="font-semibold text-blue-900 mb-2">Upgrade to Maven</h3>
                       <p className="text-sm text-blue-700 mb-4">
                         Location prompt pages are available with the Maven tier. Upgrade your plan to unlock this feature.

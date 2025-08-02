@@ -76,8 +76,9 @@ body {
     text-align: center;
     color: white;
     z-index: 1000;
-    padding: 40px 20px;
+    padding: 20px;
     box-sizing: border-box;
+    overflow: hidden;
 }
 
 .startMenu h1 {
@@ -526,11 +527,15 @@ body {
 
 .titleSection {
     position: relative;
-    margin-bottom: 30px;
+    margin-bottom: 20px;
     width: 100%;
     text-align: center;
-    padding-top: 20px;
-    margin-top: -20px;
+    padding-top: 10px;
+    margin-top: 0;
+    min-height: 160px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .titleContent {
@@ -541,6 +546,9 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
+    margin-left: 60px;
+    z-index: 3;
+    position: relative;
 }
 
 .titleContent h1 {
@@ -550,7 +558,7 @@ body {
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
     text-align: center;
     position: relative;
-    top: -10px;
+    top: 0;
 }
 
 .titleContent p {
@@ -561,21 +569,21 @@ body {
     text-align: center;
     max-width: 500px;
     position: relative;
-    top: -10px;
+    top: 0;
 }
 
 .promptyCharacter {
     position: absolute;
-    left: 0px;
-    top: -5px;
-    width: 144px;
-    height: 144px;
+    left: 20px;
+    top: 10px;
+    width: 120px;
+    height: 120px;
     background-image: url('https://ltneloufqjktdplodvao.supabase.co/storage/v1/object/public/logos/prompt-assets/prompty-slingshot-for-reviews.png');
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
     background-color: transparent;
-    z-index: 1;
+    z-index: 2;
 }
 
 #startButton {

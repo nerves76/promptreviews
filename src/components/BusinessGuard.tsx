@@ -87,13 +87,28 @@ export default function BusinessGuard({ children }: BusinessGuardProps) {
       return;
     }
 
-    // Check if user is coming from a successful plan change
+    // Get URL parameters once
     const urlParams = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
     const isComingFromPlanChange = urlParams?.get("success") === "1" && 
       (urlParams?.get("change") === "upgrade" || urlParams?.get("change") === "downgrade");
+    const businessJustCreated = urlParams?.get("businessCreated") === "1";
 
     // Skip business requirements if user is coming from plan change
     if (isComingFromPlanChange) {
+      return;
+    }
+    
+    // If business was just created, give the state time to update before checking
+    if (businessJustCreated) {
+      console.log('🎉 BusinessGuard: Business just created, allowing state to update');
+      // Clean up the URL parameter after a short delay
+      setTimeout(() => {
+        if (typeof window !== 'undefined') {
+          const url = new URL(window.location.href);
+          url.searchParams.delete('businessCreated');
+          window.history.replaceState({}, '', url.toString());
+        }
+      }, 1000);
       return;
     }
 

@@ -38,6 +38,9 @@ const OfferCard = dynamic(() => import("../../components/OfferCard"), {
 const EmojiSentimentModal = dynamic(() => import("@/app/components/EmojiSentimentModal"), { 
   ssr: false 
 });
+const RecentReviewsModal = dynamic(() => import("@/app/components/RecentReviewsModal"), { 
+  ssr: false 
+});
 const StyleModalPage = dynamic(() => import("../../dashboard/style/StyleModalPage"), { 
   ssr: false 
 });
@@ -240,6 +243,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
   const [photoReviewerLastName, setPhotoReviewerLastName] = useState("");
   const [photoReviewerRole, setPhotoReviewerRole] = useState("");
   const [showSentimentModal, setShowSentimentModal] = useState(false);
+  const [showRecentReviewsModal, setShowRecentReviewsModal] = useState(false);
   const [kickstarterQuestions, setKickstarterQuestions] = useState<any[]>([]);
   const [sentiment, setSentiment] = useState<string | null>(null);
   const [feedback, setFeedback] = useState("");
@@ -1679,6 +1683,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                 businessProfile={businessProfile}
                 reviewType={promptPage?.review_type}
                 promptPage={promptPage}
+                onOpenRecentReviews={() => setShowRecentReviewsModal(true)}
               />
               {/* Product Module for Product Pages */}
               <ProductModule
@@ -2714,6 +2719,16 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
         <StyleModalPage 
           onClose={() => setShowStyleModal(false)} 
           onStyleUpdate={handleStyleUpdate}
+        />
+      )}
+
+      {/* Recent Reviews Modal */}
+      {showRecentReviewsModal && promptPage?.id && (
+        <RecentReviewsModal 
+          isOpen={showRecentReviewsModal}
+          onClose={() => setShowRecentReviewsModal(false)} 
+          promptPageId={promptPage.id}
+          businessProfile={businessProfile}
         />
       )}
     </div>
