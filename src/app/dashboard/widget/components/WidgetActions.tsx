@@ -22,19 +22,19 @@ export const WidgetActions: React.FC<WidgetActionsProps> = ({
             onClick={onEditStyle}
             className="p-2 text-white bg-gray-700/50 rounded-md hover:bg-gray-700"
           >
-            <FaPalette size={18} />
+            <Icon name="FaPalette" size={18} />
           </button>
           <button
             onClick={onManageReviews}
             className="p-2 text-white bg-gray-700/50 rounded-md hover:bg-gray-700"
           >
-            <FaList size={18} />
+            <Icon name="FaList" size={18} />
           </button>
           <button
             onClick={onGetEmbedCode}
             className="p-2 text-white bg-gray-700/50 rounded-md hover:bg-gray-700"
           >
-            <FaCode size={18} />
+            <Icon name="FaCode" size={18} />
           </button>
         </>
       )}
