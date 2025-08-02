@@ -29,6 +29,7 @@ const platformOptions = [
   "Yelp",
   "Facebook",
   "TripAdvisor",
+  "Amazon",
   "G2",
   "BBB",
   "Thumbtack",
@@ -49,11 +50,17 @@ const getPlatformIcon = (name: string, url: string) => {
   if (lowerName.includes("google") || lowerUrl.includes("google"))
     return { icon: "FaGoogle", color: "text-slate-blue" };
   if (lowerName.includes("yelp") || lowerUrl.includes("yelp"))
-    return { icon: "FaYelp", color: "text-red-500" };
+    return { icon: "FaYelp", color: "text-slate-blue" };
   if (lowerName.includes("facebook") || lowerUrl.includes("facebook"))
-    return { icon: "FaFacebook", color: "text-blue-700" };
+    return { icon: "FaFacebook", color: "text-slate-blue" };
   if (lowerName.includes("tripadvisor") || lowerUrl.includes("tripadvisor"))
-    return { icon: "FaTripadvisor", color: "text-green-600" };
+    return { icon: "FaTripadvisor", color: "text-slate-blue" };
+  if (lowerName.includes("amazon") || lowerUrl.includes("amazon"))
+    return { icon: "FaAmazon", color: "text-slate-blue" };
+  if (lowerName.includes("bbb") || lowerName.includes("better business") || lowerUrl.includes("bbb"))
+    return { icon: "FaBbb", color: "text-slate-blue" };
+  if (lowerName.includes("g2") || lowerUrl.includes("g2"))
+    return { icon: "SiG2", color: "text-slate-blue" };
   return { icon: "FaRegStar", color: "text-slate-blue" };
 };
 
@@ -121,46 +128,16 @@ const ReviewWriteSection: React.FC<ReviewWriteSectionProps> = ({
                     ? `: ${platform.customPlatform}`
                     : ""}
                 </span>
-                <div className="flex items-center gap-2">
-                  {platform.url && (
-                    <a
-                      href={platform.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs text-blue-700 underline"
-                    >
-                      Check if Published
-                    </a>
-                  )}
-                  <button
-                    type="button"
-                    onClick={async () => {
-                      // Simulate verification (replace with API call as needed)
-                      const newPlatforms = value.map((p, i) =>
-                        i === idx
-                          ? {
-                              ...p,
-                              verified: true,
-                              verified_at: new Date().toISOString(),
-                            }
-                          : p,
-                      );
-                      onChange(newPlatforms);
-                    }}
-                    disabled={platform.verified}
-                    className={`px-2 py-1 rounded text-xs ${platform.verified ? "bg-green-200 text-green-700" : "bg-slate-blue text-white hover:bg-slate-blue/90"}`}
+                {platform.url && (
+                  <a
+                    href={platform.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-blue-700 underline"
                   >
-                    {platform.verified ? "Verified" : "Mark as Verified"}
-                  </button>
-                  {platform.verified && platform.verified_at && (
-                    <span className="text-xs text-green-700">
-                      ({new Date(platform.verified_at).toLocaleDateString()})
-                    </span>
-                  )}
-                  <HoverTooltip text="Check if the review was published and mark as 'verified' if it is.">
-                    <Icon name="FaInfoCircle" className="w-4 h-4 text-gray-400 cursor-pointer" size={16} />
-                  </HoverTooltip>
-                </div>
+                    Check if Published
+                  </a>
+                )}
               </div>
               {/* Platform icon in top left, breaching */}
               <div
@@ -168,11 +145,11 @@ const ReviewWriteSection: React.FC<ReviewWriteSectionProps> = ({
                 title={platform.name}
               >
                 {(() => {
-                  const { icon: Icon, color } = getPlatformIcon(
+                  const { icon: iconName, color } = getPlatformIcon(
                     platform.name,
                     platform.url,
                   );
-                  return <Icon className={`w-6 h-6 ${color}`} />;
+                  return <Icon name={iconName as any} className={`w-6 h-6 ${color}`} size={24} />;
                 })()}
               </div>
               {value.length > 1 && (

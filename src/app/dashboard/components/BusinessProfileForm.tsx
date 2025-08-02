@@ -480,7 +480,7 @@ export default function BusinessProfileForm({
       {/* Services Section */}
       <div className="mb-8">
         <h2 className="mt-4 mb-8 text-2xl font-bold text-slate-blue flex items-center gap-3">
-          <Icon name="FaHandsHelping" className="w-7 h-7 text-slate-blue" size={28} />
+          <Icon name="FaHandshake" className="w-7 h-7 text-slate-blue" size={28} />
           Services or Offerings
           <RobotTooltip text="Made available for AI prompt generation." />
         </h2>

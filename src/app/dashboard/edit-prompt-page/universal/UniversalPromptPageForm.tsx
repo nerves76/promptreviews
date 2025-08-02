@@ -10,7 +10,8 @@ import {
   FallingStarsFeature,
   AISettingsFeature,
   PersonalizedNoteFeature,
-  KickstartersFeature
+  KickstartersFeature,
+  RecentReviewsFeature
 } from "@/app/components/prompt-features";
 import { useFallingStars } from "@/hooks/useFallingStars";
 import SectionHeader from "@/app/components/SectionHeader";
@@ -37,6 +38,7 @@ export interface UniversalPromptFormState {
   friendlyNote: string;
   kickstartersEnabled: boolean;
   selectedKickstarters: string[];
+  recentReviewsEnabled: boolean;
 }
 
 interface UniversalPromptPageFormProps {
@@ -122,6 +124,9 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
     const [selectedKickstarters, setSelectedKickstarters] = useState<string[]>(
       initialData?.selectedKickstarters ?? [],
     );
+    const [recentReviewsEnabled, setRecentReviewsEnabled] = useState(
+      initialData?.recentReviewsEnabled ?? false,
+    );
 
     // AI Generation loading state
     const [aiGeneratingIndex, setAiGeneratingIndex] = useState<number | null>(null);
@@ -195,6 +200,7 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
             friendlyNote,
             kickstartersEnabled,
             selectedKickstarters,
+            recentReviewsEnabled,
           });
         },
         getCurrentState: () => ({
@@ -218,6 +224,7 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
             friendlyNote,
             kickstartersEnabled,
             selectedKickstarters,
+            recentReviewsEnabled,
         }),
       }),
       [
@@ -241,6 +248,7 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
         friendlyNote,
         kickstartersEnabled,
         selectedKickstarters,
+        recentReviewsEnabled,
         onSave,
       ],
     );
@@ -284,6 +292,7 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
             friendlyNote,
             kickstartersEnabled,
             selectedKickstarters,
+            recentReviewsEnabled,
           };
           
           console.log('🔍 Calling onSave with data:', formData);
@@ -383,6 +392,16 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
               ai_button_enabled: aiButtonEnabled,
               fix_grammar_enabled: fixGrammarEnabled,
             }}
+          />
+
+          {/* Recent Reviews Feature */}
+          <RecentReviewsFeature
+            enabled={recentReviewsEnabled}
+            onEnabledChange={(enabled) => setRecentReviewsEnabled(enabled)}
+            initialData={{
+              recent_reviews_enabled: recentReviewsEnabled,
+            }}
+            editMode={true}
           />
         </div>
         {/* No Save button here; Save is handled by parent */}

@@ -7,7 +7,7 @@
  * Usage:
  * <PageTitle 
  *   title="Your Business"
- *   subCopy="Fill out your business profile thoroughly and consistently."
+ *   subCopy="Fill out your business info to help Prompty AI generate authentic reviews."
  *   rightAction={<button>Save</button>}
  * />
  */

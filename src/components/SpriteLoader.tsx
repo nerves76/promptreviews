@@ -24,9 +24,8 @@ export default function SpriteLoader() {
       }
 
       try {
-        // Add cache busting parameter to force fresh load
-        const cacheBuster = Date.now();
-        const response = await fetch(`/icons-sprite.svg?v=${cacheBuster}`);
+        // Use version-based caching instead of cache busting for better performance
+        const response = await fetch(`/icons-sprite.svg?v=1.0.0`);
         const spriteContent = await response.text();
         
         // Create container for the sprite

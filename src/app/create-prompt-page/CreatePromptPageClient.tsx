@@ -2,7 +2,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect, useRef, Suspense } from "react";
 import { generateContextualReview, generateContextualTestimonial } from "@/utils/aiReviewGeneration";
-import { Icon } from "@/components/Icon";
+import Icon from "@/components/Icon";
 import { checkAccountLimits } from "@/utils/accountLimits";
 import { getAccountIdForUser } from "@/utils/accountUtils";
 import { Dialog } from "@headlessui/react";
@@ -13,6 +13,7 @@ import { slugify } from "@/utils/slugify";
 import { preparePromptPageData, validatePromptPageData } from "@/utils/promptPageDataMapping";
 import PromptPageForm from "../components/PromptPageForm";
 import PageCard from "../components/PageCard";
+import { promptTypes } from "@/config/promptTypes";
 import ProductPromptPageForm from "../components/ProductPromptPageForm";
 import PhotoPromptPageForm from "../components/PhotoPromptPageForm";
 import EmployeePromptPageForm from "../components/EmployeePromptPageForm";
@@ -32,7 +33,6 @@ interface ReviewPlatformLink {
 interface BusinessProfile {
   business_name: string;
   services_offered: string[];
-  features_or_benefits: string[];
   company_values?: string;
   differentiators?: string;
   years_in_business?: number;
@@ -72,7 +72,6 @@ const initialFormData = {
   product_description: "",
   review_platforms: [] as ReviewPlatformLink[],
   services_offered: [],
-  features_or_benefits: [],
   friendly_note: "",
   status: "draft",
   role: "",
@@ -111,47 +110,7 @@ const initialFormData = {
 
 // Note: mapToDbColumns function replaced with centralized preparePromptPageData utility
 
-const promptTypes = [
-  {
-    key: "service",
-    label: "Service review",
-    icon: <svg className="w-7 h-7" style={{ color: "#1A237E" }}><use href="/icons-sprite.svg#FaHandshake" /></svg>,
-    description:
-      "Capture a review from a customer or client who loves what you do",
-  },
-  {
-    key: "photo",
-    label: "Photo + testimonial",
-    icon: <Icon name="FaCamera" className="w-7 h-7 text-[#1A237E]" size={28} />,
-    description:
-      "Capture a headshot and testimonial to display on your website or in marketing materials.",
-  },
-  {
-    key: "product",
-    label: "Product review",
-    icon: <svg className="w-7 h-7" style={{ color: "#1A237E" }}><use href="/icons-sprite.svg#FaBox" /></svg>,
-    description: "Get a review from a customer who fancies your products",
-  },
-  {
-    key: "employee",
-    label: "Employee spotlight",
-    icon: <Icon name="FaUser" className="w-7 h-7" style={{ color: "#1A237E" }} size={28} />,
-    description: "Create a review page to showcase individual team members and inspire competition",
-  },
-  {
-    key: "event",
-    label: "Events & spaces",
-    icon: <svg className="w-7 h-7 text-[#1A237E]"><use href="/icons-sprite.svg#FaCalendarAlt" /></svg>,
-    description: "For events, rentals, tours, and more.",
-  },
-  {
-    key: "video",
-    label: "Video testimonial",
-    icon: <svg className="w-7 h-7 text-[#1A237E]"><use href="/icons-sprite.svg#FaVideo" /></svg>,
-    description: "Request a video testimonial from your client.",
-    comingSoon: true,
-  },
-];
+
 
 interface CreatePromptPageClientProps {
   markOnboardingComplete?: boolean;
@@ -276,20 +235,80 @@ export default function CreatePromptPageClient({
         }
         setCurrentUser(user);
         
-        // Optimize: Only fetch essential fields initially
-        const { data: businessData, error: businessError } = await supabase
-          .from("businesses")
-          .select("name, business_name, services_offered, features_or_benefits, default_offer_enabled, default_offer_title, default_offer_body, review_platforms, facebook_url, instagram_url, bluesky_url, tiktok_url, youtube_url, linkedin_url, pinterest_url, created_at, updated_at")
-          .eq("account_id", user.id)
+        // Check if we're in a post-business-creation flow
+        const isPostBusinessCreation = typeof window !== 'undefined' && 
+          (window.location.search.includes('businessCreated') || 
+           sessionStorage.getItem('businessCreatedHandled') === 'true');
+        
+        // Add retry logic for business fetching (in case of timing issues)
+        let businessData = null;
+        let businessError = null;
+        let retryCount = 0;
+        const maxRetries = isPostBusinessCreation ? 5 : 3; // More retries after business creation
+        
+        // First, get the user's account_id from account_users table
+        const { data: accountUser, error: accountError } = await supabase
+          .from("account_users")
+          .select("account_id")
+          .eq("user_id", user.id)
           .single();
           
+        if (accountError) {
+          console.error("🎯 Error fetching account_id:", accountError);
+          throw new Error(`Failed to get account for user: ${accountError.message}`);
+        }
+        
+        if (!accountUser?.account_id) {
+          console.error("🎯 No account found for user:", user.id);
+          throw new Error("No account found for user");
+        }
+        
+        console.log("🔑 Using account_id:", accountUser.account_id, "for user:", user.id);
+        
+        while (retryCount < maxRetries && !businessData && !businessError) {
+          console.log(`🔄 Fetching business profile (attempt ${retryCount + 1}/${maxRetries}) for account:`, accountUser.account_id);
+          if (isPostBusinessCreation) {
+            console.log("🆕 Post-business-creation flow detected, using extended retry logic");
+          }
+          
+                  const result = await supabase
+          .from("businesses")
+          .select("name, services_offered, default_offer_enabled, default_offer_title, default_offer_body, review_platforms, facebook_url, instagram_url, bluesky_url, tiktok_url, youtube_url, linkedin_url, pinterest_url, created_at, updated_at")
+          .eq("account_id", accountUser.account_id)
+          .maybeSingle();
+            
+          businessData = result.data;
+          businessError = result.error;
+          
+          if (!businessData && !businessError && retryCount < maxRetries - 1) {
+            const delay = isPostBusinessCreation ? (retryCount + 1) * 1000 : (retryCount + 1) * 500;
+            console.log(`🔄 No business found, retrying in ${delay}ms...`);
+            await new Promise(resolve => setTimeout(resolve, delay));
+          }
+          
+          retryCount++;
+        }
+          
         if (businessError) {
-          console.error("🎯 Error fetching business data:", businessError);
+          console.error("🎯 Business query failed!");
+          console.error("🎯 Account ID used:", accountUser.account_id);
+          console.error("🎯 User ID:", user.id);
+          console.error("🎯 Raw error:", businessError);
+          console.error("🎯 Error toString:", String(businessError));
+          
+          // Let's also check if account_users query worked
+          console.log("🔍 Account user data:", accountUser);
+          
           // Use default business profile on error
+        }
+        
+        if (!businessData) {
+          console.warn("🎯 No business found for account ID:", accountUser.account_id);
+          console.log("🔍 This is normal if the user hasn't created a business yet");
+          // Use default business profile when no business exists
           setBusinessProfile({
             business_name: "Your Business",
             services_offered: [],
-            features_or_benefits: [],
             company_values: "",
             differentiators: "",
             years_in_business: 0,
@@ -316,7 +335,6 @@ export default function CreatePromptPageClient({
           setBusinessProfile({
             business_name: "Your Business",
             services_offered: [],
-            features_or_benefits: [],
             company_values: "",
             differentiators: "",
             years_in_business: 0,
@@ -344,9 +362,8 @@ export default function CreatePromptPageClient({
         
         if (!hasBusinessName) {
           setBusinessProfile({
-            business_name: businessData.name || businessData.business_name || "Your Business",
+            business_name: businessData.name || "Your Business",
             services_offered: [],
-            features_or_benefits: [],
             company_values: "",
             differentiators: "",
             years_in_business: 0,
@@ -374,19 +391,13 @@ export default function CreatePromptPageClient({
           const updates = {
             businessProfile: {
               ...businessData,
-              business_name: businessData.name || businessData.business_name,
+              business_name: businessData.name || "Your Business",
               services_offered: Array.isArray(businessData.services_offered)
                 ? businessData.services_offered
                 : typeof businessData.services_offered === "string"
                   ? [businessData.services_offered]
                   : [],
-              features_or_benefits: Array.isArray(
-                businessData.features_or_benefits,
-              )
-                ? businessData.features_or_benefits
-                : typeof businessData.features_or_benefits === "string"
-                  ? [businessData.features_or_benefits]
-                  : [],
+                        // features_or_benefits column doesn't exist in database - using services_offered instead
             },
             formDataUpdates: {} as any,
             services: [] as string[]
@@ -434,7 +445,7 @@ export default function CreatePromptPageClient({
             const filteredServices = arr.filter(Boolean);
             updates.services = filteredServices;
             updates.formDataUpdates.services_offered = filteredServices;
-            updates.formDataUpdates.features_or_benefits = filteredServices;
+            // features_or_benefits column doesn't exist - using services_offered instead
           }
           
           // Process social media URLs
@@ -560,7 +571,7 @@ export default function CreatePromptPageClient({
         team_member: "",
         assigned_team_members: "",
         // Service-specific fields
-        service_name: (formData as any).service_name || (formData.features_or_benefits && formData.features_or_benefits[0]) || (formData.services_offered && formData.services_offered[0]) || "",
+        service_name: (formData as any).service_name || (formData.services_offered && formData.services_offered[0]) || "",
         service_description: "",
         // Universal page fields
         is_universal: false,
@@ -837,7 +848,7 @@ export default function CreatePromptPageClient({
       // Handle type-specific fields
       if (formData.review_type === "product") {
         insertData.product_description = formData.product_description || "";
-        insertData.features_or_benefits = formData.features_or_benefits || [];
+        // features_or_benefits column doesn't exist in database
         insertData.services_offered = undefined;
         insertData.product_name = formData.product_name || "";
         insertData.product_photo = formData.product_photo || null;
@@ -850,7 +861,7 @@ export default function CreatePromptPageClient({
           insertData.services_offered = arr.length > 0 ? arr : null;
         }
         insertData.product_description = undefined;
-        insertData.features_or_benefits = undefined;
+        // features_or_benefits column doesn't exist in database
         insertData.product_name = undefined;
         insertData.product_photo = undefined;
       }
@@ -1042,7 +1053,7 @@ export default function CreatePromptPageClient({
         name: formData.name || '',
         notes: formData.description || '', // Using 'notes' instead of 'description'
         services_offered: formData.services_offered || [],
-        features_or_benefits: formData.features_or_benefits || [],
+        // features_or_benefits column doesn't exist in database
         product_description: formData.product_description || '',
         review_platforms: formData.review_platforms || [],
         falling_enabled: formData.fallingEnabled ?? false,
@@ -1092,7 +1103,7 @@ export default function CreatePromptPageClient({
 
       // Add Service-specific fields for service pages
       if (formData.review_type === 'service') {
-        (insertData as any).service_name = (formData as any).service_name || (formData.features_or_benefits && formData.features_or_benefits[0]) || (formData.services_offered && formData.services_offered[0]) || '';
+        (insertData as any).service_name = (formData as any).service_name || (formData.services_offered && formData.services_offered[0]) || '';
         (insertData as any).service_description = (formData as any).service_description || '';
       }
 
@@ -1111,7 +1122,7 @@ export default function CreatePromptPageClient({
       }
 
       // Generate slug
-      const businessName = businessData.business_name || businessData.name || "business";
+              const businessName = businessData.name || "business";
       (insertData as any).slug = slugify(
         businessName +
           "-" +
@@ -1287,7 +1298,7 @@ export default function CreatePromptPageClient({
   const getPageIcon = (reviewType: string) => {
     switch (reviewType) {
       case "service":
-        return <Icon name="FaHandsHelping" className="w-9 h-9 text-slate-blue" size={36} />;
+        return <Icon name="FaHandshake" className="w-9 h-9 text-slate-blue" size={36} />;
       case "product":
         return <Icon name="FaBoxOpen" className="w-9 h-9 text-slate-blue" size={36} />;
       case "photo":

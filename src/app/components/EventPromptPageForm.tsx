@@ -20,7 +20,8 @@ import {
   FallingStarsFeature,
   AISettingsFeature,
   PersonalizedNoteFeature,
-  KickstartersFeature
+  KickstartersFeature,
+  RecentReviewsFeature
 } from "./prompt-features";
 import { useFallingStars } from "@/hooks/useFallingStars";
 import { Input } from "@/app/components/ui/input";
@@ -74,6 +75,7 @@ export default function EventPromptPageForm({
     review_platforms: Array.isArray(initialData.review_platforms) ? initialData.review_platforms : [],
     fallingEnabled: initialData.fallingEnabled ?? initialData.falling_enabled ?? true,
     show_friendly_note: initialData.show_friendly_note ?? false,
+    recent_reviews_enabled: initialData.recent_reviews_enabled ?? false,
     // Event-specific fields (using eve_ prefix)
     eve_name: initialData.eve_name || '',
     eve_date: initialData.eve_date || '',
@@ -673,6 +675,16 @@ export default function EventPromptPageForm({
             fixGrammarEnabled={formData.fix_grammar_enabled ?? true}
             onAIEnabledChange={(enabled) => updateFormData('ai_generation_enabled', enabled)}
             onGrammarEnabledChange={(enabled) => updateFormData('fix_grammar_enabled', enabled)}
+          />
+
+          {/* Recent Reviews Feature */}
+          <RecentReviewsFeature
+            enabled={formData.recent_reviews_enabled}
+            onEnabledChange={(enabled) => updateFormData('recent_reviews_enabled', enabled)}
+            initialData={{
+              recent_reviews_enabled: formData.recent_reviews_enabled,
+            }}
+            editMode={true}
           />
         </div>
 

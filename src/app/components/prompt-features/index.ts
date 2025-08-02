@@ -5,13 +5,14 @@
  * These components can be reused across all prompt page types to reduce code duplication.
  */
 
-export { default as PersonalizedNoteFeature } from './PersonalizedNoteFeature';
+export { default as OfferFeature } from './OfferFeature';
 export { default as EmojiSentimentFeature } from './EmojiSentimentFeature';
 export { default as FallingStarsFeature } from './FallingStarsFeature';
 export { default as AISettingsFeature } from './AISettingsFeature';
-export { default as OfferFeature } from './OfferFeature';
-export { default as ReviewPlatformsFeature } from './ReviewPlatformsFeature';
+export { default as PersonalizedNoteFeature } from './PersonalizedNoteFeature';
 export { default as KickstartersFeature } from './KickstartersFeature';
+export { default as ReviewPlatformsFeature } from './ReviewPlatformsFeature';
+export { default as RecentReviewsFeature } from './RecentReviewsFeature';
 
 // Export types
 export type { PersonalizedNoteFeatureProps } from './PersonalizedNoteFeature';

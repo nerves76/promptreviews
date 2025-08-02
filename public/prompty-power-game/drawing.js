@@ -358,7 +358,7 @@ function drawStars() {
 // Draw lasers
 function drawLasers() {
     // Only draw lasers if Karen exists and is not defeated
-    if (!karen || karen.health <= 0) {
+    if (!window.karen || window.karen.health <= 0) {
         return;
     }
     
@@ -858,22 +858,22 @@ window.teresaImage.src = 'https://ltneloufqjktdplodvao.supabase.co/storage/v1/ob
 
 // Draw Karen's speech bubble
 function drawKarenSpeechBubble() {
-    if (karen && karen.speechBubbleVisible && !karen.isDefeated && karen.health > 0) {
+    if (window.karen && window.karen.speechBubbleVisible && !window.karen.isDefeated && window.karen.health > 0) {
         window.ctx.fillStyle = '#FFFFFF';
         window.ctx.strokeStyle = '#000000';
         window.ctx.lineWidth = 2;
         
         // Speech bubble - made bigger for better text positioning
         window.ctx.beginPath();
-        window.ctx.roundRect(karen.x - 100, karen.y - 60, 200, 50, 10);
+        window.ctx.roundRect(window.karen.x - 100, window.karen.y - 60, 200, 50, 10);
         window.ctx.fill();
         window.ctx.stroke();
         
         // Speech bubble tail
         window.ctx.beginPath();
-        window.ctx.moveTo(karen.x + karen.width / 2, karen.y - 10);
-        window.ctx.lineTo(karen.x + karen.width / 2 - 10, karen.y);
-        window.ctx.lineTo(karen.x + karen.width / 2 + 10, karen.y);
+        window.ctx.moveTo(window.karen.x + window.karen.width / 2, window.karen.y - 10);
+        window.ctx.lineTo(window.karen.x + window.karen.width / 2 - 10, window.karen.y);
+        window.ctx.lineTo(window.karen.x + window.karen.width / 2 + 10, window.karen.y);
         window.ctx.closePath();
         window.ctx.fill();
         window.ctx.stroke();
@@ -885,12 +885,12 @@ function drawKarenSpeechBubble() {
         window.ctx.textBaseline = 'middle';
         
         // Split quote into lines if it's long
-        const quote = karen.currentQuote;
+        const quote = window.karen.currentQuote;
         const maxLength = 20; // Characters per line
         
         if (quote.length <= maxLength) {
             // Single line quote
-            window.ctx.fillText(quote, karen.x, karen.y - 37);
+            window.ctx.fillText(quote, window.karen.x, window.karen.y - 37);
         } else {
             // Multi-line quote - split at spaces
             const words = quote.split(' ');
@@ -905,8 +905,8 @@ function drawKarenSpeechBubble() {
                 }
             }
             
-            window.ctx.fillText(line1, karen.x, karen.y - 45);
-            window.ctx.fillText(line2, karen.x, karen.y - 30);
+            window.ctx.fillText(line1, window.karen.x, window.karen.y - 45);
+            window.ctx.fillText(line2, window.karen.x, window.karen.y - 30);
         }
     }
 }
@@ -975,7 +975,7 @@ function drawEvilGoogleExecSpeechBubble() {
 
 // Draw LinkedIn Spammer's speech bubble
 function drawLinkedInSpammerSpeechBubble() {
-    if (window.linkedInSpammer && window.linkedInSpammer.speechBubbleVisible && window.linkedInSpammer.health > 0) {
+    if (window.linkedInSpammer && window.linkedInSpammer.speechBubbleVisible && !window.linkedInSpammer.isDefeated && window.linkedInSpammer.health > 0) {
         const spammer = window.linkedInSpammer;
         window.ctx.fillStyle = '#FFFFFF';
         window.ctx.strokeStyle = '#000000';
@@ -1030,6 +1030,11 @@ function drawLinkedInSpammerSpeechBubble() {
 // Main draw function
 function draw() {
     try {
+        // Don't draw during state transitions to prevent crashes
+        if (!window.gameState || window.gameState !== 'playing') {
+            return;
+        }
+        
         // Apply screen shake
         window.ctx.save();
         window.ctx.translate(screenShakeX, screenShakeY);
@@ -1047,22 +1052,22 @@ function draw() {
         drawStars();
         
         // Draw Karen (ULTRA SIMPLIFIED TO PREVENT FREEZING)
-        if (karen && karen.health > 0) {
+        if (window.karen && !window.karen.isDefeated && window.karen.health > 0) {
             // Draw Karen normally - no complex effects
-            window.ctx.drawImage(window.karenImage, karen.x, karen.y, karen.width, karen.height);
+            window.ctx.drawImage(window.karenImage, window.karen.x, window.karen.y, window.karen.width, window.karen.height);
             
             // Draw health bar
             const barWidth = 100;
             const barHeight = 8;
-            const barX = karen.x + (karen.width - barWidth) / 2;
-            const barY = karen.y - 20;
+            const barX = window.karen.x + (window.karen.width - barWidth) / 2;
+            const barY = window.karen.y - 20;
             
             // Health bar background
             window.ctx.fillStyle = '#333';
             window.ctx.fillRect(barX, barY, barWidth, barHeight);
             
             // Health bar fill
-            const healthPercent = karen.health / karen.maxHealth;
+            const healthPercent = window.karen.health / window.karen.maxHealth;
             window.ctx.fillStyle = healthPercent > 0.5 ? '#00ff00' : healthPercent > 0.25 ? '#ffff00' : '#ff0000';
             window.ctx.fillRect(barX, barY, barWidth * healthPercent, barHeight);
             
@@ -1076,7 +1081,7 @@ function draw() {
         }
         
         // Draw Evil Google Exec (ULTRA SIMPLIFIED TO PREVENT FREEZING)
-        if (window.evilGoogleExec && window.evilGoogleExec.health > 0) {
+        if (window.evilGoogleExec && !window.evilGoogleExec.isDefeated && window.evilGoogleExec.health > 0) {
             window.ctx.drawImage(window.evilGoogleExecImage, window.evilGoogleExec.x, window.evilGoogleExec.y, window.evilGoogleExec.width, window.evilGoogleExec.height);
             
             // Draw health bar
@@ -1104,7 +1109,7 @@ function draw() {
         }
         
         // Draw LinkedIn Spammer (ULTRA SIMPLIFIED TO PREVENT FREEZING)
-        if (window.linkedInSpammer && window.linkedInSpammer.health > 0) {
+        if (window.linkedInSpammer && !window.linkedInSpammer.isDefeated && window.linkedInSpammer.health > 0) {
             window.ctx.drawImage(window.linkedInSpammerImage, window.linkedInSpammer.x, window.linkedInSpammer.y, window.linkedInSpammer.width, window.linkedInSpammer.height);
             
             // Draw health bar

@@ -448,7 +448,7 @@ function update() {
             screenShakeY = 0;
         }
         
-        console.log('Update: Starting, Karen exists:', !!karen, 'Karen health:', karen ? karen.health : 'N/A');
+        console.log('Update: Starting, Karen exists:', !!window.karen, 'Karen health:', window.karen ? window.karen.health : 'N/A');
         
         // Decay power-ups
         if (typeof activePowerUps !== 'undefined') {
@@ -462,11 +462,11 @@ function update() {
             }
         }
         
-        console.log('Update: After power-ups, Karen exists:', !!karen);
+        console.log('Update: After power-ups, Karen exists:', !!window.karen);
         
-        // Update Karen lasers (only if Karen exists)
-        if (karen) {
-            console.log('Update: Updating Karen lasers');
+            // Update Karen lasers (only if Karen exists)
+    if (window.karen) {
+        console.log('Update: Updating Karen lasers');
             const lasersToRemove = [];
             for (let i = 0; i < karenLasers.length; i++) {
                 const laser = karenLasers[i];
@@ -560,7 +560,7 @@ function update() {
             }
         }
         
-        console.log('Update: After Karen laser updates, Karen exists:', !!karen);
+        console.log('Update: After Karen laser updates, Karen exists:', !!window.karen);
         
         // Simple movement
         if (window.keys['ArrowLeft'] && window.prompty.x > 0) {
@@ -589,9 +589,9 @@ function update() {
         // TEMPORARILY DISABLED BOSS SPAWNING CONDITION
         /*
         // Don't spawn new customers if a boss should appear
-        const shouldSpawnBoss = (window.level >= 1 && !karen) || 
-                               (window.level >= 2 && !karen && !window.evilGoogleExec) || 
-                               (window.level >= 1 && !karen && !window.evilGoogleExec && !window.teresa);
+            const shouldSpawnBoss = (window.level >= 1 && !window.karen) ||
+        (window.level >= 2 && !window.karen && !window.evilGoogleExec) ||
+        (window.level >= 1 && !window.karen && !window.evilGoogleExec && !window.teresa);
         
         if (!shouldSpawnBoss) {
             spawnCustomers();
@@ -607,7 +607,7 @@ function update() {
         const shouldSpawnBoss = remainingCustomers <= 2; // Changed from 1 to 2 to be more lenient
         
         // FIXED BOSS SPAWNING LOGIC - ONLY ONE BOSS AT A TIME
-        if (window.level >= 1 && shouldSpawnBoss && !karen && !window.evilGoogleExec && !window.linkedInSpammer && !window.teresa && !window.karenDefeated) {
+        if (window.level >= 1 && shouldSpawnBoss && !window.karen && !window.evilGoogleExec && !window.linkedInSpammer && !window.teresa && !window.karenDefeated) {
             // Add a delay before spawning Karen (3 seconds)
             if (!window.karenSpawnTimer) {
                 window.karenSpawnTimer = 180; // 3 seconds at 60fps
@@ -625,7 +625,7 @@ function update() {
         }
         
         // Spawn Evil Google Exec on level 2+ (only if no other boss exists)
-        if (window.level >= 2 && shouldSpawnBoss && !karen && !window.evilGoogleExec && !window.linkedInSpammer && !window.teresa) {
+        if (window.level >= 2 && shouldSpawnBoss && !window.karen && !window.evilGoogleExec && !window.linkedInSpammer && !window.teresa) {
             // Add a delay before spawning Evil Google Exec (4 seconds)
             if (!window.evilGoogleExecSpawnTimer) {
                 window.evilGoogleExecSpawnTimer = 240; // 4 seconds at 60fps
@@ -643,7 +643,7 @@ function update() {
         }
         
         // Spawn LinkedIn Spammer on level 3+ (only if no other boss exists)
-        if (window.level >= 3 && shouldSpawnBoss && !karen && !window.evilGoogleExec && !window.linkedInSpammer && !window.teresa) {
+        if (window.level >= 3 && shouldSpawnBoss && !window.karen && !window.evilGoogleExec && !window.linkedInSpammer && !window.teresa) {
             // Add a delay before spawning LinkedIn Spammer (2 seconds)
             if (!window.linkedInSpammerSpawnTimer) {
                 window.linkedInSpammerSpawnTimer = 120; // 2 seconds at 60fps
@@ -704,7 +704,7 @@ function update() {
     }
     
     // Update Karen lasers (only if Karen exists)
-    if (karen) {
+    if (window.karen) {
         const lasersToRemove = [];
         for (let i = 0; i < karenLasers.length; i++) {
             const laser = karenLasers[i];
@@ -956,49 +956,60 @@ function update() {
     }
     
     // Check Karen collisions (RE-ENABLED WITH SIMPLE LOGIC)
-    if (karen) {
+    if (window.karen) {
         for (let i = hearts.length - 1; i >= 0; i--) {
             const heart = hearts[i];
             
-            if (heart.x < karen.x + karen.width &&
-                heart.x + heart.width > karen.x &&
-                heart.y < karen.y + karen.height &&
-                heart.y + heart.height > karen.y) {
+            if (heart.x < window.karen.x + window.karen.width &&
+                heart.x + heart.width > window.karen.x &&
+                heart.y < window.karen.y + window.karen.height &&
+                heart.y + heart.height > window.karen.y) {
                 
                 // Hit Karen - fire hearts do more damage
                 const damage = heart.isPowerful ? 2 : 1;
-                karen.health -= damage;
+                window.karen.health -= damage;
                 
                 // Simple ricochet
                 heart.vx *= -0.8;
                 heart.vy *= -0.8;
                 heart.bounces++;
                 
-                if (karen.health <= 0) {
-                    // Boss defeated - with simple animation
+                if (window.karen.health <= 0) {
+                    // Boss defeated - with reduced animation to prevent crashes
                     window.score += 100;
                     window.customersConverted++;
                     
-                    // Create star explosion (same as emojis)
-                    createStarExplosion(karen.x + karen.width / 2, karen.y + karen.height / 2);
-                    createFiveStarRow(karen.x + karen.width / 2, karen.y + karen.height / 2);
+                    // Store boss position before nullifying
+                    const bossX = window.karen.x + window.karen.width / 2;
+                    const bossY = window.karen.y + window.karen.height / 2;
+                    
+                    // Create reduced star effects (4 explosion + 3 row = 7 total instead of 13)
+                    createStarExplosion(bossX, bossY);
+                    createThreeStarRow(bossX, bossY);
                     
                     // Create floating points text
-                    createFloatingText('+100', karen.x + karen.width / 2, karen.y + karen.height / 2, '#FFD700');
+                    createFloatingText('+100', bossX, bossY, '#FFD700');
                     
-                    // IMMEDIATE defeat - no timers, just clear and complete
-                    karen = null;
-                    window.karenDefeated = true;
+                    // Mark boss as defeated but don't null immediately
+                    window.karen.isDefeated = true;
+                    window.karen.health = 0;
                     
                     // Clear arrays after animation starts
-                    hearts = [];
-                    powerUps = [];
+                    window.hearts = [];
+                    window.powerUps = [];
                     window.karenLasers = [];
                     
-                    // Complete level immediately
-                    window.level++;
-                    window.gameState = 'levelComplete';
-                    showLevelComplete();
+                    // Delay level completion to allow animations to stabilize
+                    setTimeout(() => {
+                        if (window.gameState === 'playing') { // Only proceed if still in playing state
+                            window.karen = null;
+                            window.karenDefeated = true;
+                            window.level++;
+                            window.gameState = 'levelComplete';
+                            showLevelComplete();
+                        }
+                    }, 500); // 500ms delay to allow animations to render
+                    
                     return;
                 }
                 
@@ -1027,29 +1038,40 @@ function update() {
                 heart.bounces++;
                 
                 if (window.evilGoogleExec.health <= 0) {
-                    // Boss defeated - with simple animation
+                    // Boss defeated - with reduced animation to prevent crashes
                     window.score += 100;
                     window.customersConverted++;
                     
-                    // Create star explosion (same as emojis)
-                    createStarExplosion(window.evilGoogleExec.x + window.evilGoogleExec.width / 2, window.evilGoogleExec.y + window.evilGoogleExec.height / 2);
-                    createFiveStarRow(window.evilGoogleExec.x + window.evilGoogleExec.width / 2, window.evilGoogleExec.y + window.evilGoogleExec.height / 2);
+                    // Store boss position before nullifying
+                    const bossX = window.evilGoogleExec.x + window.evilGoogleExec.width / 2;
+                    const bossY = window.evilGoogleExec.y + window.evilGoogleExec.height / 2;
+                    
+                    // Create reduced star effects (4 explosion + 3 row = 7 total instead of 13)
+                    createStarExplosion(bossX, bossY);
+                    createThreeStarRow(bossX, bossY);
                     
                     // Create floating points text
-                    createFloatingText('+100', window.evilGoogleExec.x + window.evilGoogleExec.width / 2, window.evilGoogleExec.y + window.evilGoogleExec.height / 2, '#FFD700');
+                    createFloatingText('+100', bossX, bossY, '#FFD700');
                     
-                    // IMMEDIATE defeat - no timers, just clear and complete
-                    window.evilGoogleExec = null;
+                    // Mark boss as defeated but don't null immediately
+                    window.evilGoogleExec.isDefeated = true;
+                    window.evilGoogleExec.health = 0;
                     
                     // Clear arrays after animation starts
-                    hearts = [];
-                    powerUps = [];
+                    window.hearts = [];
+                    window.powerUps = [];
                     window.evilGoogleArrows = [];
                     
-                    // Complete level immediately
-                    window.level++;
-                    window.gameState = 'levelComplete';
-                    showLevelComplete();
+                    // Delay level completion to allow animations to stabilize
+                    setTimeout(() => {
+                        if (window.gameState === 'playing') { // Only proceed if still in playing state
+                            window.evilGoogleExec = null;
+                            window.level++;
+                            window.gameState = 'levelComplete';
+                            showLevelComplete();
+                        }
+                    }, 500); // 500ms delay to allow animations to render
+                    
                     return;
                 }
                 
@@ -1134,29 +1156,40 @@ function update() {
             playSound('karenHit'); // Use same sound as Karen for now
             
             if (window.linkedInSpammer.health <= 0) {
-                // Boss defeated - with simple animation
+                // Boss defeated - with reduced animation to prevent crashes
                 window.score += 100;
                 window.customersConverted++;
                 
-                // Create star explosion (same as emojis)
-                createStarExplosion(window.linkedInSpammer.x + window.linkedInSpammer.width / 2, window.linkedInSpammer.y + window.linkedInSpammer.height / 2);
-                createFiveStarRow(window.linkedInSpammer.x + window.linkedInSpammer.width / 2, window.linkedInSpammer.y + window.linkedInSpammer.height / 2);
+                // Store boss position before nullifying
+                const bossX = window.linkedInSpammer.x + window.linkedInSpammer.width / 2;
+                const bossY = window.linkedInSpammer.y + window.linkedInSpammer.height / 2;
+                
+                // Create reduced star effects (4 explosion + 3 row = 7 total instead of 13)
+                createStarExplosion(bossX, bossY);
+                createThreeStarRow(bossX, bossY);
                 
                 // Create floating points text
-                createFloatingText('+100', window.linkedInSpammer.x + window.linkedInSpammer.width / 2, window.linkedInSpammer.y + window.linkedInSpammer.height / 2, '#FFD700');
+                createFloatingText('+100', bossX, bossY, '#FFD700');
                 
-                // IMMEDIATE defeat - no timers, just clear and complete
-                window.linkedInSpammer = null;
+                // Mark boss as defeated but don't null immediately
+                window.linkedInSpammer.isDefeated = true;
+                window.linkedInSpammer.health = 0;
                 
                 // Clear arrays after animation starts
-                hearts = [];
-                powerUps = [];
+                window.hearts = [];
+                window.powerUps = [];
                 window.emailIcons = [];
                 
-                // Complete level immediately
-                window.level++;
-                window.gameState = 'levelComplete';
-                showLevelComplete();
+                // Delay level completion to allow animations to stabilize
+                setTimeout(() => {
+                    if (window.gameState === 'playing') { // Only proceed if still in playing state
+                        window.linkedInSpammer = null;
+                        window.level++;
+                        window.gameState = 'levelComplete';
+                        showLevelComplete();
+                    }
+                }, 500); // 500ms delay to allow animations to render
+                
                 return;
             }
             
@@ -1299,37 +1332,37 @@ function update() {
     */
     
     // Update Karen boss (RE-ENABLED WITH SIMPLE LOGIC)
-    if (karen) {
+    if (window.karen) {
         // Move Karen side to side
         const karenSpeed = 2 + (window.level * 0.5);
-        karen.x += karenSpeed * karen.direction;
+        window.karen.x += karenSpeed * window.karen.direction;
         
         // Bounce off walls
-        if (karen.x <= 50 || karen.x >= window.canvas.width - 150) {
-            karen.direction *= -1;
+        if (window.karen.x <= 50 || window.karen.x >= window.canvas.width - 150) {
+            window.karen.direction *= -1;
         }
         
         // Simple speech bubble timing
-        if (!karen.speechBubbleTimer) karen.speechBubbleTimer = 0;
-        karen.speechBubbleTimer++;
+        if (!window.karen.speechBubbleTimer) window.karen.speechBubbleTimer = 0;
+        window.karen.speechBubbleTimer++;
         
-        if (karen.speechBubbleTimer > 120) { // Show speech bubble every 2 seconds
-            karen.speechBubbleVisible = !karen.speechBubbleVisible;
-            karen.speechBubbleTimer = 0;
+        if (window.karen.speechBubbleTimer > 120) { // Show speech bubble every 2 seconds
+            window.karen.speechBubbleVisible = !window.karen.speechBubbleVisible;
+            window.karen.speechBubbleTimer = 0;
         }
         
         // Change quote every 8 seconds
-        if (!karen.quoteChangeTimer) karen.quoteChangeTimer = 0;
-        karen.quoteChangeTimer++;
-        if (karen.quoteChangeTimer > 480) { // 8 seconds
+        if (!window.karen.quoteChangeTimer) window.karen.quoteChangeTimer = 0;
+        window.karen.quoteChangeTimer++;
+        if (window.karen.quoteChangeTimer > 480) { // 8 seconds
             const karenQuotes = [
                 "You just lost a star, sweetie.",
                 "Your tone is very aggressive.",
                 "This is unacceptable — I demand a refund.",
                 "You think I'm racist?"
             ];
-            karen.currentQuote = karenQuotes[Math.floor(Math.random() * karenQuotes.length)];
-            karen.quoteChangeTimer = 0;
+            window.karen.currentQuote = karenQuotes[Math.floor(Math.random() * karenQuotes.length)];
+            window.karen.quoteChangeTimer = 0;
         }
         
         // Simple laser shooting
@@ -1439,11 +1472,11 @@ function update() {
                 window.score += 25; // Additional Authority Score for defeating LinkedIn Spammer
                 
                 // Clear everything
-                hearts = [];
-                powerUps = [];
-                stars = [];
-                karenLasers = [];
-                doorSign = null;
+                window.hearts = [];
+                window.powerUps = [];
+                window.stars = [];
+                window.karenLasers = [];
+                window.doorSign = null;
                 if (window.emailIcons) {
                     window.emailIcons = [];
                 }
@@ -1577,17 +1610,19 @@ function update() {
         console.log('Game loop stopped - gameState:', window.gameState);
     }
 } catch (error) {
-    console.error('CRASH in update function at:', error.stack);
-    console.error('Error details:', error.message);
-    console.error('Karen state at crash:', karen);
-    console.error('Karen lasers count:', karenLasers ? karenLasers.length : 'undefined');
+    console.error('💥 CRASH in update function at:', error.stack);
+    console.error('💥 Error details:', error.message);
+    console.error('💥 Karen state at crash:', window.karen);
+    console.error('💥 Karen lasers count:', window.karenLasers ? window.karenLasers.length : 'undefined');
+    console.error('💥 Game state at crash:', window.gameState);
+    console.error('💥 Error name:', error.name);
     
     // Try to recover by going to start menu
     try {
-        console.log('Attempting to recover to start menu...');
+        console.log('💥 Attempting to recover to start menu...');
         showStartMenu();
     } catch (recoveryError) {
-        console.error('Recovery failed:', recoveryError);
+        console.error('💥 Recovery failed:', recoveryError);
     }
     return;
 }
@@ -1652,7 +1687,10 @@ function gameLoop() {
         // Continue the loop
         window.gameLoop = requestAnimationFrame(gameLoop);
     } catch (error) {
-        console.error('Error in game loop:', error);
+        console.error('💥 Error in game loop:', error);
+        console.error('💥 Game loop error details:', error.message);
+        console.error('💥 Game loop error stack:', error.stack);
+        console.error('💥 Game state at game loop error:', window.gameState);
         // Fallback: restart the game
         window.gameState = 'start';
         showStartMenu();
@@ -1725,4 +1763,4 @@ document.addEventListener('DOMContentLoaded', function() {
     } else {
         console.log('Reset button not found');
     }
-}); 
+});

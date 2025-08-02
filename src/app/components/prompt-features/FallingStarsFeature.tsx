@@ -194,17 +194,19 @@ export default function FallingStarsFeature({
 
   // Get the current selected icon configuration
   const currentIconConfig = getFallingIcon(selectedIcon);
-  const IconComponent = currentIconConfig?.icon || 'FaStar';
 
   return (
     <div className={`${editMode ? 'rounded-lg p-6 bg-blue-50 border border-blue-200 flex flex-col gap-6 shadow relative mb-4 min-h-[180px]' : 'bg-white rounded-lg border border-gray-200 p-6'}`}>
-      {/* Prompty Image - positioned flush right, top, and bottom, 40% bigger */}
+      {/* Prompty Image - positioned flush right, top, and bottom, grows with card */}
       {editMode && (
         <img 
           src="https://ltneloufqjktdplodvao.supabase.co/storage/v1/object/public/logos/prompt-assets/prompty-catching-review-stars.png"
           alt="Prompty catching stars"
-          className="absolute right-0 top-0 bottom-0 h-full w-auto object-contain pointer-events-none m-0 p-0 z-10"
-          style={{ maxWidth: '168px', margin: '0', padding: '0' }}
+          className="absolute right-0 inset-y-0 w-auto object-cover pointer-events-none z-10"
+          style={{ 
+            maxWidth: '168px',
+            height: '100%'
+          }}
         />
       )}
       
@@ -225,7 +227,7 @@ export default function FallingStarsFeature({
         <button
           type="button"
           onClick={handleToggle}
-          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
+          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none z-20 ${
             isEnabled ? "bg-slate-blue" : "bg-gray-200"
           } ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
           aria-pressed={isEnabled}
@@ -241,34 +243,40 @@ export default function FallingStarsFeature({
       
       {isEnabled && (
         <div className="space-y-4" style={{ maxWidth: '70%' }}>
-          {/* Icon Selection */}
-          <div className="flex items-center space-x-4">
-            <label className="text-sm font-medium text-gray-700">Icon:</label>
-            <div className="flex items-center space-x-2">
-              <div className="flex items-center justify-center w-12 h-12 rounded-lg border-2 border-slate-blue bg-slate-50">
-                <IconComponent className="w-6 h-6" style={{ color: selectedColor }} />
+          {/* Icon Selection and Color Picker - Same Row */}
+          <div className="flex items-center space-x-6">
+            {/* Icon Selection */}
+            <div className="flex items-center space-x-4">
+              <label className="text-sm font-medium text-gray-700">Icon:</label>
+              <div className="flex items-center space-x-2">
+                <div className="flex items-center justify-center w-12 h-12 rounded-lg border-2 border-slate-blue bg-slate-50">
+                  {React.createElement(currentIconConfig.icon, {
+                    className: "w-6 h-6",
+                    style: { color: selectedColor }
+                  })}
+                </div>
+                <button
+                  type="button"
+                  onClick={handleModalOpen}
+                  className="px-3 py-1.5 bg-slate-blue text-white rounded hover:bg-slate-blue/90 text-sm font-medium"
+                >
+                  Choose Icon
+                </button>
               </div>
-              <button
-                type="button"
-                onClick={handleModalOpen}
-                className="px-3 py-1.5 bg-slate-blue text-white rounded hover:bg-slate-blue/90 text-sm font-medium"
-              >
-                Choose Icon
-              </button>
             </div>
-          </div>
 
-          {/* Color Picker */}
-          <div className="flex items-center space-x-4">
-            <label className="text-sm font-medium text-gray-700">Color:</label>
-            <div className="flex items-center space-x-2">
-              <input
-                type="color"
-                value={selectedColor}
-                onChange={handleColorChange}
-                className="w-8 h-8 rounded border border-gray-300 cursor-pointer"
-              />
-              <span className="text-sm text-gray-500">{selectedColor}</span>
+            {/* Color Picker */}
+            <div className="flex items-center space-x-4">
+              <label className="text-sm font-medium text-gray-700">Color:</label>
+              <div className="flex items-center space-x-2">
+                <input
+                  type="color"
+                  value={selectedColor}
+                  onChange={handleColorChange}
+                  className="w-8 h-8 rounded border border-gray-300 cursor-pointer"
+                />
+                <span className="text-sm text-gray-500">{selectedColor}</span>
+              </div>
             </div>
           </div>
         </div>

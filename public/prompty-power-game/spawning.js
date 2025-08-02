@@ -102,7 +102,7 @@ function spawnEvilGoogleExec() {
 
 // Spawn Karen
 function spawnKaren() {
-    karen = {
+    window.karen = {
         x: window.canvas.width / 2 - 50, // Adjusted for bigger size
         y: 100,
         width: 100, // Bigger width (was 80)
@@ -192,8 +192,8 @@ function shootHeart() {
 
 // Create star explosion
 function createStarExplosion(x, y) {
-    for (let i = 0; i < 8; i++) {
-        const angle = (i / 8) * Math.PI * 2;
+    for (let i = 0; i < 4; i++) { // Reduced from 8 to 4 stars
+        const angle = (i / 4) * Math.PI * 2; // Adjusted angle calculation
         const speed = 3 + Math.random() * 2;
         stars.push({
             x: x,
@@ -202,6 +202,24 @@ function createStarExplosion(x, y) {
             vy: Math.sin(angle) * speed,
             life: 60,
             maxLife: 60
+        });
+    }
+}
+
+// Create 3 gold stars in a row for boss defeat (reduced from 5 to prevent crashes)
+function createThreeStarRow(x, y) {
+    const starSpacing = 50; // More space between stars for better visibility
+    const startX = x - starSpacing; // Center the row of 3 stars
+    
+    for (let i = 0; i < 3; i++) {
+        stars.push({
+            x: startX + (i * starSpacing),
+            y: y,
+            vx: 0,
+            vy: -1.5, // Move upward slower for better visibility
+            life: 180, // Longer life for special effect (3 seconds)
+            maxLife: 180,
+            isSpecial: true // Mark as special star row
         });
     }
 }
@@ -407,7 +425,7 @@ function createComboEffect(x, y, multiplier) {
            if (karen) {
                createStarExplosion(karen.x + karen.width / 2, karen.y + karen.height / 2);
                pointsEarned += 50; // 50 points for Karen
-               karen = null;
+               window.karen = null;
            }
            
            // Add points to score

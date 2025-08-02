@@ -10,7 +10,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Icon } from "@/components/Icon";
+import Icon from "@/components/Icon";
 
 import SectionHeader from "./SectionHeader";
 import CustomerDetailsSection from "./sections/CustomerDetailsSection";
@@ -21,7 +21,8 @@ import {
   FallingStarsFeature,
   OfferFeature,
   KickstartersFeature,
-  AISettingsFeature
+  AISettingsFeature,
+  RecentReviewsFeature
 } from "./prompt-features";
 
 // Helper function to get falling icon
@@ -79,6 +80,7 @@ export default function PhotoPromptPageForm({
     review_platforms: initialData.review_platforms || [],
     friendly_note: initialData.friendly_note || "",
     name: initialData.name || "", // For public campaigns
+    recent_reviews_enabled: initialData.recent_reviews_enabled ?? false,
     ...initialData,
   });
 
@@ -441,6 +443,18 @@ export default function PhotoPromptPageForm({
             fixGrammarEnabled={fixGrammarEnabled}
             onAIEnabledChange={setAiButtonEnabled}
             onGrammarEnabledChange={setFixGrammarEnabled}
+          />
+
+          {/* Recent Reviews Feature */}
+          <RecentReviewsFeature
+            enabled={formData.recent_reviews_enabled}
+            onEnabledChange={(enabled) => 
+              setFormData(prev => ({ ...prev, recent_reviews_enabled: enabled }))
+            }
+            initialData={{
+              recent_reviews_enabled: formData.recent_reviews_enabled,
+            }}
+            editMode={true}
           />
 
         </div>

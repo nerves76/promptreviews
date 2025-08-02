@@ -279,13 +279,12 @@ function showBossPopup(bossType) {
         linkedInSpammer: {
             title: 'Evil LinkedIn Spammer',
             image: 'https://ltneloufqjktdplodvao.supabase.co/storage/v1/object/public/logos/prompt-assets/linkedin-spammer.png',
-            description: 'Wants to know if you saw his last message',
+            description: 'Relentless in his pursuit to deliver "8–10 new leads a month," Evil LinkedIn Spammer weaponizes automation and marketing acronyms to lure unsuspecting victims into his sales funnel of doom.',
             abilities: [
                 'Throws bouncing email icons',
                 'Moves back and forth across the screen',
                 'Has a health bar that must be depleted',
-                'Creates ricochet combos when hit',
-                'Drops power-ups when defeated'
+                'Creates ricochet combos when hit'
             ]
         }
     };

@@ -25,7 +25,8 @@ import {
   EmojiSentimentFeature,
   FallingStarsFeature,
   AISettingsFeature,
-  KickstartersFeature
+  KickstartersFeature,
+  RecentReviewsFeature
 } from "./prompt-features";
 import Icon from "@/components/Icon";
 import SectionHeader from "./SectionHeader";
@@ -117,6 +118,7 @@ export default function ProductPromptPageForm({
   const [showPopupConflictModal, setShowPopupConflictModal] = useState<string | null>(null);
   const [fallingEnabled, setFallingEnabled] = useState(initialData?.falling_enabled ?? true);
   const [kickstartersEnabled, setKickstartersEnabled] = useState(initialData?.kickstarters_enabled ?? false);
+  const [recentReviewsEnabled, setRecentReviewsEnabled] = useState(initialData?.recent_reviews_enabled ?? false);
   const [selectedKickstarters, setSelectedKickstarters] = useState<string[]>(initialData?.selected_kickstarters ?? []);
 
 
@@ -384,7 +386,8 @@ export default function ProductPromptPageForm({
         fixGrammarEnabled,
         notePopupEnabled,
         nfcTextEnabled,
-        friendlyNote: formData.friendly_note || ""
+        friendlyNote: formData.friendly_note || "",
+        recentReviewsEnabled
       };
       
       console.log(`🔥 Save data being sent:`, saveData);
@@ -420,6 +423,7 @@ export default function ProductPromptPageForm({
     fixGrammarEnabled,
     notePopupEnabled,
     nfcTextEnabled,
+    recentReviewsEnabled,
     handleProductPhotoUpload,
     validateForm // Add validateForm to dependencies
   ]);
@@ -653,6 +657,16 @@ export default function ProductPromptPageForm({
               onAIEnabledChange={(enabled) => setAiReviewEnabled(enabled)}
               onGrammarEnabledChange={(enabled) => setFixGrammarEnabled(enabled)}
             />
+
+        {/* Recent Reviews Feature */}
+        <RecentReviewsFeature
+          enabled={recentReviewsEnabled}
+          onEnabledChange={(enabled) => setRecentReviewsEnabled(enabled)}
+          initialData={{
+            recent_reviews_enabled: recentReviewsEnabled,
+          }}
+          editMode={true}
+        />
 
         {/* Falling Stars Section */}
         <FallingStarsFeature
