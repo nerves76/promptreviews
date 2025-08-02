@@ -173,7 +173,6 @@ export const loadAllFallingIcons = async (): Promise<{
     FaEye,
     FaHands,
     FaHandHoldingHeart,
-    FaHeart as FaHeartSolid,
     FaInfinity,
     FaVenus,
     FaMars,
@@ -215,7 +214,6 @@ export const loadAllFallingIcons = async (): Promise<{
     { key: "eye", label: "Eye", icon: FaEye, color: "text-gray-600", category: "Diversity & Inclusion" },
     { key: "hands", label: "Hands", icon: FaHands, color: "text-brown-400", category: "Diversity & Inclusion" },
     { key: "handheart", label: "Hand Heart", icon: FaHandHoldingHeart, color: "text-red-500", category: "Diversity & Inclusion" },
-    { key: "heartsolid", label: "Love", icon: FaHeartSolid, color: "text-red-400", category: "Diversity & Inclusion" },
     { key: "infinity", label: "Infinity", icon: FaInfinity, color: "text-purple-500", category: "Diversity & Inclusion" },
     
     // Food & Beverages
