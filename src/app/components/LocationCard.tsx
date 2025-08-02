@@ -159,6 +159,7 @@ export default function LocationCard({
                     onClick={handleSendSMS}
                     className="inline-flex items-center gap-1 px-3 py-1.5 bg-green-100 text-green-800 rounded hover:bg-green-200 text-sm font-medium shadow h-9 align-middle whitespace-nowrap"
                   >
+                    <Icon name="FaMobile" className="w-5 h-5" size={20} />
                     Send SMS
                   </button>
                   
@@ -167,6 +168,7 @@ export default function LocationCard({
                     onClick={handleSendEmail}
                     className="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-100 text-blue-800 rounded hover:bg-blue-200 text-sm font-medium shadow h-9 align-middle whitespace-nowrap"
                   >
+                    <Icon name="FaEnvelope" className="w-5 h-5" size={20} />
                     Send Email
                   </button>
                 </>

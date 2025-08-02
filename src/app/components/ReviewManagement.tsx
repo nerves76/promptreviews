@@ -275,7 +275,7 @@ export default function ReviewManagement({ locations, isConnected }: ReviewManag
                       <div className="flex items-center space-x-2 text-sm text-gray-600">
                         {renderStars(STAR_RATINGS[review.starRating])}
                         <span>•</span>
-                        <FaCalendarAlt className="w-3 h-3" />
+                        <FaCalendarAlt className="w-3 h-3 text-slate-blue" />
                         <span>{formatDate(review.createTime)}</span>
                       </div>
                     </div>
@@ -335,7 +335,7 @@ export default function ReviewManagement({ locations, isConnected }: ReviewManag
                           onClick={() => setShowingAiFor(review.reviewId)}
                           className="flex items-center space-x-2 text-sm text-purple-600 hover:text-purple-800 border border-purple-300 rounded px-3 py-1 hover:bg-purple-50"
                         >
-                          <FaRobot className="w-3 h-3" />
+                          <Icon name="FaRobot" className="w-3 h-3 text-slate-blue" size={12} />
                           <span>Generate with AI</span>
                         </button>
                       </div>
@@ -375,7 +375,7 @@ export default function ReviewManagement({ locations, isConnected }: ReviewManag
                         onClick={() => setReplyingTo(review.reviewId)}
                         className="flex items-center space-x-2 text-sm text-slate-blue hover:text-slate-blue/80"
                       >
-                        <FaReply className="w-3 h-3" />
+                        <FaReply className="w-3 h-3 text-slate-blue" />
                         <span>Reply to this review</span>
                       </button>
                       <button
@@ -385,7 +385,7 @@ export default function ReviewManagement({ locations, isConnected }: ReviewManag
                         }}
                         className="flex items-center space-x-2 text-sm text-purple-600 hover:text-purple-800"
                       >
-                        <FaRobot className="w-3 h-3" />
+                        <Icon name="FaRobot" className="w-3 h-3 text-slate-blue" size={12} />
                         <span>Generate AI Response</span>
                       </button>
                     </div>

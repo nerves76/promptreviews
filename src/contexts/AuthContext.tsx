@@ -371,8 +371,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const handleBusinessCreated = (event: Event) => {
       const customEvent = event as CustomEvent;
-      console.log('🔄 AuthContext: Business created event received, refreshing state...');
-      console.log('🔄 AuthContext: Event detail:', customEvent?.detail);
+      if (process.env.NODE_ENV === 'development') {
+        console.log('🔄 AuthContext: Business created event received, refreshing state...');
+      }
       // Force refresh business state by calling the functions directly
       const currentUser = supabase.auth.getUser().then(({ data: { user } }) => {
         if (user) {
@@ -385,12 +386,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }, 100);
         }
       });
-      console.log('🔄 AuthContext: Business refresh trigger dispatched');
     };
 
     if (typeof window !== 'undefined') {
       window.addEventListener('businessCreated', handleBusinessCreated);
-      console.log('🔄 AuthContext: Event listener registered for businessCreated');
+      // Only log during initial setup
+      if (process.env.NODE_ENV === 'development') {
+        console.log('🔄 AuthContext: Event listener registered for businessCreated');
+      }
       
       return () => {
         window.removeEventListener('businessCreated', handleBusinessCreated);
@@ -487,12 +490,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     
     try {
       const userAccountId = await getAccountIdForUser(currentUser.id, supabase);
-      console.log('🔍 AuthContext: User account ID:', userAccountId);
+      // Only log if account ID has changed
+      if (accountId !== userAccountId && process.env.NODE_ENV === 'development') {
+        console.log('🔍 AuthContext: User account ID:', userAccountId);
+      }
       setAccountId(userAccountId);
       
       // 🔧 FIXED: Check for actual businesses, not just account existence
       if (userAccountId) {
-        console.log('🔍 AuthContext: Checking businesses for account:', userAccountId);
         const { data: businesses, error: businessError } = await supabase
           .from('businesses')
           .select('id')
@@ -504,15 +509,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } else {
           // Only set hasBusiness to true if user has actual businesses
           const hasBusinesses = businesses && businesses.length > 0;
-          console.log('🔍 AuthContext: Business check result:', {
-            userAccountId,
-            businessesCount: businesses?.length || 0,
-            hasBusinesses,
-            businesses,
-            timestamp: new Date().toISOString(),
-            isForceRefresh: forceRefresh
-          });
-          console.log('🔍 AuthContext: Setting hasBusiness to:', hasBusinesses);
+          
+          // Only log if business status has changed or it's a force refresh
+          if ((hasBusiness !== hasBusinesses || forceRefresh) && process.env.NODE_ENV === 'development') {
+            console.log('🔍 AuthContext: Business check result:', {
+              userAccountId,
+              businessesCount: businesses?.length || 0,
+              hasBusinesses,
+              statusChanged: hasBusiness !== hasBusinesses,
+              timestamp: new Date().toISOString(),
+              isForceRefresh: forceRefresh
+            });
+            console.log('🔍 AuthContext: Setting hasBusiness to:', hasBusinesses);
+          }
           setHasBusiness(hasBusinesses);
         }
       } else {
@@ -528,7 +537,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setBusinessLoading(false);
       setIsCheckingBusiness(false);
     }
-  }, [isCheckingBusiness, lastBusinessCheck]);
+  }, [isCheckingBusiness, lastBusinessCheck, accountId, hasBusiness]);
 
   const checkAccountDetails = useCallback(async (currentUser: User, forceRefresh = false) => {
     if (isCheckingAccount && !forceRefresh) return;
@@ -646,7 +655,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Listen for force refresh events (after functions are initialized)
   useEffect(() => {
     const handleForceRefresh = () => {
-      console.log('🔄 AuthContext: Force refresh event received');
+      if (process.env.NODE_ENV === 'development') {
+        console.log('🔄 AuthContext: Force refresh event received');
+      }
       // Get current user state from supabase instead of relying on hook dependency
       supabase.auth.getUser().then(({ data: { user: currentUser } }) => {
         if (currentUser) {
@@ -661,7 +672,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     if (typeof window !== 'undefined') {
       window.addEventListener('forceRefreshBusiness', handleForceRefresh);
-      console.log('🔄 AuthContext: Force refresh event listener registered');
+      // Only log during initial setup
+      if (process.env.NODE_ENV === 'development') {
+        console.log('🔄 AuthContext: Force refresh event listener registered');
+      }
       
       return () => {
         window.removeEventListener('forceRefreshBusiness', handleForceRefresh);

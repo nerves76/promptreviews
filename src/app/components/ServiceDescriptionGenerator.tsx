@@ -130,7 +130,7 @@ export default function ServiceDescriptionGenerator({ onDescriptionsGenerated }:
               </>
             ) : (
               <>
-                <Icon name="FaRobot" className="w-4 h-4" size={16} />
+                <Icon name="FaRobot" className="w-4 h-4 text-slate-blue" size={16} />
                 <span>Generate Descriptions</span>
               </>
             )}

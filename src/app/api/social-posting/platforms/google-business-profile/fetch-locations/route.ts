@@ -153,10 +153,13 @@ export async function POST(request: NextRequest) {
           
           // Store locations in database
           for (const location of locations) {
+            // Log the location fields for debugging
+            console.log(`📍 Processing location - ID: ${location.name}, title: "${location.title}", locationName: "${location.locationName}"`);
+            
             const locationData = {
               user_id: user.id,
               location_id: location.name,
-              location_name: location.locationName || location.name, // Use locationName for display name, fallback to ID
+              location_name: location.title || location.locationName || location.name, // Use title (business name) first, fallback to locationName, then ID
               account_name: account.name, // Store the full account name (accounts/{id})
               address: location.address?.addressLines?.join(', ') || '',
               status: 'UNKNOWN',
@@ -164,6 +167,8 @@ export async function POST(request: NextRequest) {
               website_uri: location.websiteUri || '',
               created_at: new Date().toISOString()
             };
+            
+            console.log(`📍 Storing location with name: "${locationData.location_name}"`);
             
             // Upsert location to avoid duplicates using service role
             const { error: insertError } = await serviceSupabase

@@ -198,7 +198,9 @@ export default function MetadataTemplatesPage() {
               onClick={() => setShowCreateForm(true)}
               className="bg-slate-blue text-white px-4 py-2 rounded-lg hover:bg-slate-700 flex items-center gap-2"
             >
-              <FaPlus className="w-4 h-4" />
+              <svg className="w-4 h-4">
+                <use href="/icons-sprite.svg#FaPlus" />
+              </svg>
               New Template
             </button>
           </div>

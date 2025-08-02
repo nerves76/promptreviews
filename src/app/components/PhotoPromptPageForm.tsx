@@ -10,7 +10,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Icon from "@/components/Icon";
+import { Icon } from "@/components/Icon";
 
 import SectionHeader from "./SectionHeader";
 import CustomerDetailsSection from "./sections/CustomerDetailsSection";
@@ -143,7 +143,7 @@ export default function PhotoPromptPageForm({
     initialData.ai_button_enabled ?? true,
   );
   const [fixGrammarEnabled, setFixGrammarEnabled] = useState(
-    initialData.fix_grammar_enabled ?? false,
+    initialData.fix_grammar_enabled ?? true,
   );
 
 
@@ -272,13 +272,13 @@ export default function PhotoPromptPageForm({
       className="max-w-4xl mx-auto bg-white px-6 py-8"
     >
       <div className="space-y-8">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold leading-6 text-slate-blue">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold leading-6 text-slate-blue">
             {pageTitle}
           </h1>
           <button
             type="submit"
-            className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
             disabled={isLoading}
           >
             {isLoading ? "Saving..." : "Save & Publish"}
@@ -337,7 +337,7 @@ export default function PhotoPromptPageForm({
         {/* Product/Service Description - always visible */}
         <div className="space-y-6">
           <SectionHeader
-            icon={<Icon name="FaBoxOpen" className="w-7 h-7 text-slate-blue" size={28} />}
+            icon={<Icon name="FaCamera" className="w-7 h-7 text-slate-blue" size={28} />}
             title="What are they reviewing?"
             subCopy="Describe the product, service, or experience your customer will be providing a photo testimonial about"
           />
@@ -360,20 +360,13 @@ export default function PhotoPromptPageForm({
         </div>
 
         {/* Review Platforms Section */}
-        <div className="space-y-6">
-          <SectionHeader
-            icon={<Icon name="FaStar" className="w-7 h-7 text-slate-blue" size={28} />}
-            title="Review platforms"
-            subCopy="Configure which platforms customers can leave reviews on"
-          />
-          <ReviewWriteSection
-            value={formData.review_platforms || []}
-            onChange={(platforms) => setFormData((prev: any) => ({ ...prev, review_platforms: platforms }))}
-            onGenerateReview={handleGenerateAIReview}
-            hideReviewTemplateFields={campaignType === 'public'}
-            aiGeneratingIndex={aiGeneratingIndex}
-          />
-        </div>
+        <ReviewWriteSection
+          value={formData.review_platforms || []}
+          onChange={(platforms) => setFormData((prev: any) => ({ ...prev, review_platforms: platforms }))}
+          onGenerateReview={handleGenerateAIReview}
+          hideReviewTemplateFields={campaignType === 'public'}
+          aiGeneratingIndex={aiGeneratingIndex}
+        />
 
         {/* Photo-specific features */}
         <div className="space-y-8">

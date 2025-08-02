@@ -80,7 +80,7 @@ const ReviewPlatformsSection: React.FC<ReviewPlatformsSectionProps> = ({
     <div className="mb-16">
       <div className="flex items-center justify-between mb-12">
         <h2 className="text-2xl font-bold text-slate-blue flex items-center gap-3 m-0">
-          <FaStar className="w-7 h-7 text-slate-blue" />
+          <Icon name="FaStar" className="w-7 h-7 text-slate-blue" size={28} />
           Review platforms
         </h2>
       </div>
@@ -239,7 +239,7 @@ const ReviewPlatformsSection: React.FC<ReviewPlatformsSectionProps> = ({
               {/* Modal Header */}
               <div className="mb-4">
                 <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                  <FaGoogle className="w-5 h-5 text-blue-600" />
+                  <Icon name="FaGoogle" className="w-5 h-5 text-blue-600" size={20} />
                   How to Find Your Google Review Link
                 </h3>
               </div>

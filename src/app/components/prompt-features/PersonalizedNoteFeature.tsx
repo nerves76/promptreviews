@@ -100,7 +100,7 @@ export default function PersonalizedNoteFeature({
       <div className={`${editMode ? 'flex flex-row justify-between items-start px-2 py-2' : 'flex items-center justify-between mb-4'}`}>
         <div className="flex flex-col">
           <div className="flex items-center gap-3">
-            <FaStickyNote className={`${editMode ? 'w-7 h-7 text-slate-blue' : 'text-slate-blue text-lg'}`} />
+            <Icon name="FaStickyNote" className={`${editMode ? 'w-7 h-7 text-slate-blue' : 'text-slate-blue text-lg'}`} size={editMode ? 28 : 18} />
             <h3 className={`${editMode ? 'text-2xl font-bold text-[#1A237E]' : 'text-lg font-semibold text-gray-900'}`}>
               Friendly note pop-up
             </h3>

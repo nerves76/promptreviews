@@ -319,7 +319,7 @@ const ReviewWriteSection: React.FC<ReviewWriteSectionProps> = ({
                       </>
                     ) : (
                       <>
-                        <Icon name="FaStar" className="w-4 h-4 mr-2" size={16} />
+                        <Icon name="FaRobot" className="w-4 h-4 mr-2 text-slate-blue" size={16} />
                         Generate with AI
                       </>
                     )}
