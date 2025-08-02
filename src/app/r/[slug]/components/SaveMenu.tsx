@@ -73,7 +73,7 @@ export default function SaveMenu({
           border: "1px solid #E5E7EB"
         }}
       >
-        <FaHeart className="w-5 h-5 transition-colors group-hover:text-red-500" />
+        <Icon name="FaHeart" className="w-5 h-5 transition-colors group-hover:text-red-500" />
         <span className={`hidden sm:inline${showOnlyHeart ? " sm:hidden" : ""}`}>
           {showOnlyHeart ? "" : "Save for Later"}
         </span>
@@ -89,7 +89,7 @@ export default function SaveMenu({
             className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2"
             style={{ color: businessProfile?.primary_color || "#4F46E5" }}
           >
-            <FaCalendarAlt className="w-4 h-4" />
+            <Icon name="FaCalendarAlt" className="w-4 h-4" />
             Add to Calendar
           </button>
           
@@ -98,7 +98,7 @@ export default function SaveMenu({
             className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2"
             style={{ color: businessProfile?.primary_color || "#4F46E5" }}
           >
-            <FaEnvelope className="w-4 h-4" />
+            <Icon name="FaEnvelope" className="w-4 h-4" />
             Email to Self
           </button>
           
@@ -107,7 +107,7 @@ export default function SaveMenu({
             className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2"
             style={{ color: businessProfile?.primary_color || "#4F46E5" }}
           >
-            <FaHome className="w-4 h-4" />
+            <Icon name="FaHome" className="w-4 h-4" />
             Add to Home Screen
           </button>
           
@@ -117,7 +117,7 @@ export default function SaveMenu({
               className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2"
               style={{ color: businessProfile?.primary_color || "#4F46E5" }}
             >
-              <FaLink className="w-4 h-4" />
+              <Icon name="FaLink" className="w-4 h-4" />
               Copy Link
             </button>
           )}
@@ -128,7 +128,7 @@ export default function SaveMenu({
               className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2"
               style={{ color: businessProfile?.primary_color || "#4F46E5" }}
             >
-              <FaBookmark className="w-4 h-4" />
+              <Icon name="FaBookmark" className="w-4 h-4" />
               Add to Reading List
             </button>
           )}
@@ -169,7 +169,7 @@ export default function SaveMenu({
               className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2"
               style={{ color: businessProfile?.primary_color || "#4F46E5" }}
             >
-              <FaFavorites className="w-4 h-4" />
+              <Icon name="FaFavorites" className="w-4 h-4" />
               Bookmark in Browser
             </button>
           )}
