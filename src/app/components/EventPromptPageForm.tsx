@@ -682,7 +682,7 @@ export default function EventPromptPageForm({
         {formError && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-4">
             <div className="flex items-center gap-2 text-red-800">
-              <FaInfoCircle className="w-5 h-5" />
+              <Icon name="FaInfoCircle" className="w-5 h-5" />
               <span>{formError}</span>
             </div>
           </div>

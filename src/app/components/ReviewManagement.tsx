@@ -236,7 +236,7 @@ export default function ReviewManagement({ locations, isConnected }: ReviewManag
               >
                 {isLoadingReviews ? (
                   <>
-                    <FaSpinner className="w-3 h-3 animate-spin" />
+                    <Icon name="FaSpinner" className="w-3 h-3 animate-spin" />
                     <span>Loading...</span>
                   </>
                 ) : (
@@ -250,7 +250,7 @@ export default function ReviewManagement({ locations, isConnected }: ReviewManag
         <div className="divide-y divide-gray-200">
           {isLoadingReviews ? (
             <div className="p-8 text-center">
-              <FaSpinner className="w-8 h-8 text-gray-400 mx-auto mb-4 animate-spin" />
+              <Icon name="FaSpinner" className="w-8 h-8 text-gray-400 mx-auto mb-4 animate-spin" />
               <p className="text-gray-600">Loading reviews...</p>
             </div>
           ) : reviews.length > 0 ? (
@@ -267,7 +267,7 @@ export default function ReviewManagement({ locations, isConnected }: ReviewManag
                           className="w-10 h-10 rounded-full"
                         />
                       ) : (
-                        <FaUser className="w-5 h-5 text-gray-500" />
+                        <Icon name="FaUser" className="w-5 h-5 text-gray-500" />
                       )}
                     </div>
                     <div>
@@ -275,7 +275,7 @@ export default function ReviewManagement({ locations, isConnected }: ReviewManag
                       <div className="flex items-center space-x-2 text-sm text-gray-600">
                         {renderStars(STAR_RATINGS[review.starRating])}
                         <span>•</span>
-                        <FaCalendarAlt className="w-3 h-3 text-slate-blue" />
+                        <Icon name="FaCalendarAlt" className="w-3 h-3 text-slate-blue" />
                         <span>{formatDate(review.createTime)}</span>
                       </div>
                     </div>
@@ -359,7 +359,7 @@ export default function ReviewManagement({ locations, isConnected }: ReviewManag
                       >
                         {isSubmittingReply ? (
                           <>
-                            <FaSpinner className="w-3 h-3 animate-spin" />
+                            <Icon name="FaSpinner" className="w-3 h-3 animate-spin" />
                             <span>Submitting...</span>
                           </>
                         ) : (
@@ -375,7 +375,7 @@ export default function ReviewManagement({ locations, isConnected }: ReviewManag
                         onClick={() => setReplyingTo(review.reviewId)}
                         className="flex items-center space-x-2 text-sm text-slate-blue hover:text-slate-blue/80"
                       >
-                        <FaReply className="w-3 h-3 text-slate-blue" />
+                        <Icon name="FaReply" className="w-3 h-3 text-slate-blue" />
                         <span>Reply to this review</span>
                       </button>
                       <button
@@ -395,7 +395,7 @@ export default function ReviewManagement({ locations, isConnected }: ReviewManag
             ))
           ) : selectedLocation ? (
             <div className="p-8 text-center">
-              <FaStar className="w-8 h-8 text-gray-400 mx-auto mb-4" />
+              <Icon name="FaStar" className="w-8 h-8 text-gray-400 mx-auto mb-4" />
               <p className="text-gray-600">No reviews found for this location</p>
             </div>
           ) : (
