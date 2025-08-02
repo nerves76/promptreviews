@@ -152,7 +152,7 @@ const DashboardContent = React.memo(function DashboardContent({
     {
       key: "service",
       label: "Service review",
-      icon: <Icon name="FaHandsHelping" size={28} color="#1A237E" />,
+      icon: <svg className="w-7 h-7" style={{ color: "#1A237E" }}><use href="/icons-sprite.svg#FaHandshake" /></svg>,
       description:
         "Capture a review from a customer or client who loves what you do",
     },
@@ -166,20 +166,20 @@ const DashboardContent = React.memo(function DashboardContent({
     {
       key: "product",
       label: "Product review",
-      icon: <Icon name="FaBoxOpen" size={28} color="#1A237E" />,
+      icon: <svg className="w-7 h-7" style={{ color: "#1A237E" }}><use href="/icons-sprite.svg#FaBox" /></svg>,
       description: "Get a review from a customer who fancies your products",
     },
     {
       key: "video",
       label: "Video testimonial",
-      icon: <Icon name="MdVideoLibrary" size={28} color="#1A237E" />,
+      icon: <svg className="w-7 h-7" style={{ color: "#1A237E" }}><use href="/icons-sprite.svg#FaVideo" /></svg>,
       description: "Request a video testimonial from your client.",
       comingSoon: true,
     },
     {
       key: "event",
       label: "Events & spaces",
-      icon: <Icon name="MdEvent" size={28} color="#1A237E" />,
+      icon: <svg className="w-7 h-7" style={{ color: "#1A237E" }}><use href="/icons-sprite.svg#FaCalendarAlt" /></svg>,
       description: "For events, rentals, tours, and more.",
       comingSoon: true,
     },
