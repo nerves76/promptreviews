@@ -496,7 +496,7 @@ export default function ReviewsPage() {
                                 {isDeleting === review.id ? (
                                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-500"></div>
                                 ) : (
-                                  <FaTrash className="w-4 h-4" />
+                                  <Icon name="FaTrash" className="w-4 h-4" />
                                 )}
                               </button>
                             </div>
@@ -557,9 +557,9 @@ export default function ReviewsPage() {
                   onClick={() => toggleExpand(group.platform)}
                 >
                   {expanded[group.platform] ? (
-                    <FaChevronDown className="text-[#1A237E]" />
+                    <Icon name="FaChevronDown" className="text-[#1A237E]" />
                   ) : (
-                    <FaChevronRight className="text-[#1A237E]" />
+                    <Icon name="FaChevronRight" className="text-[#1A237E]" />
                   )}
                   <span className="font-semibold text-lg text-gray-800">
                     {group.platform}
@@ -626,7 +626,7 @@ export default function ReviewsPage() {
                               {isDeleting === review.id ? (
                                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-500"></div>
                               ) : (
-                                <FaTrash className="w-4 h-4" />
+                                <Icon name="FaTrash" className="w-4 h-4" />
                               )}
                             </button>
                           </div>
