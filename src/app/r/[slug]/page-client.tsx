@@ -2340,105 +2340,120 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                   </div>
                 </div>
               )}
-              {/* Website and Social Media Card */}
-              <div className="mb-8 rounded-2xl shadow p-8 animate-slideup relative" style={{
-                background: businessProfile?.card_bg || "#F9FAFB",
-                color: businessProfile?.card_text || "#1A1A1A"
-              }}>
-                {businessProfile?.card_inner_shadow && (
-                  <div
-                    className="pointer-events-none absolute inset-0 rounded-2xl"
-                    style={{
-                      boxShadow: `inset 0 0 32px 0 ${businessProfile.card_shadow_color || '#222222'}${Math.round((businessProfile.card_shadow_intensity || 0.2) * 255).toString(16).padStart(2, '0')}`,
-                      borderRadius: '1rem',
-                      zIndex: 0,
-                    }}
-                  />
-                )}
-                <div className="flex flex-col md:flex-row gap-8 w-full">
-                  {/* Website Section (left column) */}
-                  {businessProfile?.business_website && (
-                    <div className="flex-1 flex flex-col justify-start text-center md:text-left md:max-w-[320px] md:pr-4 border-b md:border-b-0 md:border-r border-gray-200 mb-8 md:mb-0">
-                      <h2
-                        className={`text-2xl font-bold mt-0 mb-6 ${businessProfile?.primary_font || "font-inter"}`}
+              {/* Website and Social Media Card - only show if website or social links exist */}
+              {(() => {
+                const hasSocialLinks = businessProfile?.facebook_url || 
+                                     businessProfile?.instagram_url || 
+                                     businessProfile?.bluesky_url || 
+                                     businessProfile?.tiktok_url || 
+                                     businessProfile?.youtube_url || 
+                                     businessProfile?.linkedin_url || 
+                                     businessProfile?.pinterest_url;
+                const hasWebsite = businessProfile?.business_website;
+                
+                return (hasWebsite || hasSocialLinks) && (
+                  <div className="mb-8 rounded-2xl shadow p-8 animate-slideup relative" style={{
+                    background: businessProfile?.card_bg || "#F9FAFB",
+                    color: businessProfile?.card_text || "#1A1A1A"
+                  }}>
+                    {businessProfile?.card_inner_shadow && (
+                      <div
+                        className="pointer-events-none absolute inset-0 rounded-2xl"
                         style={{
-                          color: businessProfile?.primary_color || "#4F46E5",
-                        }}
-                      >
-                        <span className={`font-bold ${getFontClass(businessProfile?.primary_font || "Inter")}`}>Visit our website</span>
-                      </h2>
-                      <a
-                        href={businessProfile.business_website}
-                        target="_blank"
-                        rel="noopener"
-                        className="inline-block text-xl font-medium hover:opacity-80 transition-opacity"
-                        style={{
-                          color:
-                            businessProfile?.primary_color || "#4F46E5",
-                        }}
-                        onClick={async () => {
-                          if (!promptPage?.id) return;
-                          await sendAnalyticsEvent({
-                            promptPageId: promptPage.id,
-                            eventType: "website_click",
-                            platform: "website",
-                          });
-                        }}
-                      >
-                        {businessProfile.business_website.replace(
-                          /^https?:\/\//,
-                          "",
-                        )}
-                      </a>
-                    </div>
-                  )}
-                  {/* Social Media Section (right column, wider) */}
-                  <div className="flex-[1.5] flex flex-col justify-start text-center md:text-left w-full md:pl-8">
-                    <h2
-                      className={`text-2xl font-bold mt-0 mb-6 text-center md:text-left ${businessProfile?.primary_font || "font-inter"}`}
-                      style={{
-                        color: businessProfile?.primary_color || "#4F46E5",
-                      }}
-                    >
-                      <span className={`font-bold ${getFontClass(businessProfile?.primary_font || "Inter")}`}>Follow on social</span>
-                    </h2>
-                    <div className="flex flex-wrap justify-center md:justify-start gap-6 p-2 w-full">
-                      <SocialMediaIcons
-                        facebook_url={
-                          businessProfile.facebook_url || undefined
-                        }
-                        instagram_url={
-                          businessProfile.instagram_url || undefined
-                        }
-                        bluesky_url={
-                          businessProfile.bluesky_url || undefined
-                        }
-                        tiktok_url={
-                          businessProfile.tiktok_url || undefined
-                        }
-                        youtube_url={
-                          businessProfile.youtube_url || undefined
-                        }
-                        linkedin_url={
-                          businessProfile.linkedin_url || undefined
-                        }
-                        pinterest_url={
-                          businessProfile.pinterest_url || undefined
-                        }
-                        color={businessProfile.primary_color || "#4F46E5"}
-                        onIconClick={async (platform) => {
-                          if (!promptPage?.id) return;
-                          await sendAnalyticsEvent({
-                            promptPageId: promptPage.id,
-                            eventType: "social_click",
-                            platform,
-                          });
+                          boxShadow: `inset 0 0 32px 0 ${businessProfile.card_shadow_color || '#222222'}${Math.round((businessProfile.card_shadow_intensity || 0.2) * 255).toString(16).padStart(2, '0')}`,
+                          borderRadius: '1rem',
+                          zIndex: 0,
                         }}
                       />
+                    )}
+                    <div className="flex flex-col md:flex-row gap-8 w-full">
+                      {/* Website Section (left column) */}
+                      {hasWebsite && (
+                        <div className="flex-1 flex flex-col justify-start text-center md:text-left md:max-w-[320px] md:pr-4 border-b md:border-b-0 md:border-r border-gray-200 mb-8 md:mb-0">
+                          <h2
+                            className={`text-2xl font-bold mt-0 mb-6 ${businessProfile?.primary_font || "font-inter"}`}
+                            style={{
+                              color: businessProfile?.primary_color || "#4F46E5",
+                            }}
+                          >
+                            <span className={`font-bold ${getFontClass(businessProfile?.primary_font || "Inter")}`}>Visit our website</span>
+                          </h2>
+                                                     <a
+                             href={businessProfile?.business_website}
+                             target="_blank"
+                             rel="noopener"
+                             className="inline-block text-xl font-medium hover:opacity-80 transition-opacity"
+                             style={{
+                               color:
+                                 businessProfile?.primary_color || "#4F46E5",
+                             }}
+                             onClick={async () => {
+                               if (!promptPage?.id) return;
+                               await sendAnalyticsEvent({
+                                 promptPageId: promptPage.id,
+                                 eventType: "website_click",
+                                 platform: "website",
+                               });
+                             }}
+                           >
+                             {businessProfile?.business_website?.replace(
+                               /^https?:\/\//,
+                               "",
+                             )}
+                           </a>
+                        </div>
+                      )}
+                      {/* Social Media Section (right column, wider) */}
+                      {hasSocialLinks && (
+                        <div className="flex-[1.5] flex flex-col justify-start text-center md:text-left w-full md:pl-8">
+                          <h2
+                            className={`text-2xl font-bold mt-0 mb-6 text-center md:text-left ${businessProfile?.primary_font || "font-inter"}`}
+                            style={{
+                              color: businessProfile?.primary_color || "#4F46E5",
+                            }}
+                          >
+                            <span className={`font-bold ${getFontClass(businessProfile?.primary_font || "Inter")}`}>Follow on social</span>
+                          </h2>
+                          <div className="flex flex-wrap justify-center md:justify-start gap-6 p-2 w-full">
+                            <SocialMediaIcons
+                              facebook_url={
+                                businessProfile.facebook_url || undefined
+                              }
+                              instagram_url={
+                                businessProfile.instagram_url || undefined
+                              }
+                              bluesky_url={
+                                businessProfile.bluesky_url || undefined
+                              }
+                              tiktok_url={
+                                businessProfile.tiktok_url || undefined
+                              }
+                              youtube_url={
+                                businessProfile.youtube_url || undefined
+                              }
+                              linkedin_url={
+                                businessProfile.linkedin_url || undefined
+                              }
+                              pinterest_url={
+                                businessProfile.pinterest_url || undefined
+                              }
+                              color={businessProfile.primary_color || "#4F46E5"}
+                              onIconClick={async (platform) => {
+                                if (!promptPage?.id) return;
+                                await sendAnalyticsEvent({
+                                  promptPageId: promptPage.id,
+                                  eventType: "social_click",
+                                  platform,
+                                });
+                              }}
+                            />
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
-                </div>
-              </div>
+                );
+              })()}
               {/* PromptReviews Advertisement (always visible) */}
               <div
                 className="mt-12 mb-12 rounded-2xl shadow p-4 md:p-8 animate-slideup"

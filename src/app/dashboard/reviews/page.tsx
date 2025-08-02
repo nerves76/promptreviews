@@ -230,11 +230,12 @@ function getSentimentIcon(sentiment: string) {
     (l) => l.toLowerCase() === (sentiment || "").toLowerCase(),
   );
   if (idx !== -1) {
-    const { icon: Icon, color } = EMOJI_SENTIMENT_ICONS[idx];
+    const { icon: iconName, color } = EMOJI_SENTIMENT_ICONS[idx];
     return (
       <Icon
+        name={iconName}
         className={`w-7 h-7 ${color}`}
-        title={EMOJI_SENTIMENT_LABELS[idx]}
+        size={28}
       />
     );
   }
@@ -588,9 +589,9 @@ export default function ReviewsPage() {
                           (l) => l === emojiFilter,
                         );
                         if (idx !== -1) {
-                          const { icon: Icon, color } =
+                          const { icon: iconName, color } =
                             EMOJI_SENTIMENT_ICONS[idx];
-                          return <Icon className={`w-6 h-6 ${color}`} />;
+                          return <Icon name={iconName} className={`w-6 h-6 ${color}`} size={24} />;
                         }
                         return null;
                       })()}

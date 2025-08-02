@@ -130,7 +130,7 @@ const EmojiEmbedModal: React.FC<EmojiEmbedModalProps> = ({
           {/* Header section */}
           <div className="mb-6">
             <h2 className="text-2xl font-semibold text-slate-700 flex items-center gap-3">
-                                <Icon name="FaSmile" className="text-slate-600" size={16} />
+                                <Icon name="FaCode" className="text-slate-600" size={16} />
               Emoji Sentiment Embed
             </h2>
             <p className="text-gray-600 mt-2 text-base">

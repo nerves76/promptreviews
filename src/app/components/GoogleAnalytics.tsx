@@ -1,6 +1,7 @@
 /**
  * Google Analytics component for GA4 tracking
  * This component loads the Google Analytics script and initializes tracking
+ * Disabled in development to prevent failed fetch errors
  */
 
 'use client';
@@ -18,7 +19,8 @@ export default function GoogleAnalytics() {
     setIsClient(true);
   }, []);
 
-  if (!isClient) {
+  // Disable Google Analytics in development to prevent failed requests
+  if (!isClient || process.env.NODE_ENV === 'development') {
     return null;
   }
 

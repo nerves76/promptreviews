@@ -34,7 +34,8 @@ export async function isAdmin(userId?: string, supabaseClient?: any): Promise<bo
       userToCheck = user.id;
     }
 
-    if (process.env.NODE_ENV === 'development') {
+    // Only log occasionally to reduce noise (20% of the time)
+    if (process.env.NODE_ENV === 'development' && Math.random() < 0.2) {
       console.log('isAdmin: Checking admin status for user ID:', userToCheck);
     }
     

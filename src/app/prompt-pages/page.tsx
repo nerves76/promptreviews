@@ -566,43 +566,43 @@ export default function PromptPages() {
       </div>
        
        {/* Pill navigation at the top of the PageCard */}
-       <div className="flex justify-center w-full mt-0 mb-0 z-20">
-        <div className="flex bg-white/10 backdrop-blur-sm border-2 border-white rounded-full p-1 shadow-lg">
+       <div className="flex justify-center w-full mt-0 mb-0 z-20 px-4">
+        <div className="flex bg-white/10 backdrop-blur-sm border-2 border-white rounded-full p-1 shadow-lg w-full max-w-md">
           <button
             type="button"
             onClick={() => handleTabChange('public')}
-            className={`px-6 py-2 font-semibold text-sm focus:outline-none transition-all duration-200 rounded-full flex items-center gap-2
+            className={`flex-1 px-3 sm:px-6 py-2 font-semibold text-xs sm:text-sm focus:outline-none transition-all duration-200 rounded-full flex items-center justify-center gap-1 sm:gap-2
               ${promptPagesTab === 'public'
                 ? 'bg-slate-blue text-white'
                 : 'bg-transparent text-white'}
             `}
           >
-            <Icon name="FaUsers" className="w-5 h-5" size={20} />
-            Public
+            <Icon name="FaUsers" className="hidden sm:block w-5 h-5" size={20} />
+            <span>Public</span>
           </button>
           <button
             type="button"
             onClick={() => handleTabChange('individual')}
-            className={`px-6 py-2 font-semibold text-sm focus:outline-none transition-all duration-200 rounded-full flex items-center gap-2
+            className={`flex-1 px-3 sm:px-6 py-2 font-semibold text-xs sm:text-sm focus:outline-none transition-all duration-200 rounded-full flex items-center justify-center gap-1 sm:gap-2
               ${promptPagesTab === 'individual'
                 ? 'bg-slate-blue text-white'
                 : 'bg-transparent text-white'}
             `}
           >
-            <Icon name="FaUserCircle" className="w-5 h-5" size={20} />
-            Individual
+            <Icon name="FaUserCircle" className="hidden sm:block w-5 h-5" size={20} />
+            <span>Individual</span>
           </button>
           <button
             type="button"
             onClick={() => handleTabChange('locations')}
-            className={`px-6 py-2 font-semibold text-sm focus:outline-none transition-all duration-200 rounded-full flex items-center gap-2
+            className={`flex-1 px-3 sm:px-6 py-2 font-semibold text-xs sm:text-sm focus:outline-none transition-all duration-200 rounded-full flex items-center justify-center gap-1 sm:gap-2
               ${promptPagesTab === 'locations'
                 ? 'bg-slate-blue text-white'
                 : 'bg-transparent text-white'}
             `}
           >
-            <Icon name="FaMapMarker" className="w-5 h-5" size={20} />
-            Locations
+            <Icon name="FaMapMarker" className="hidden sm:block w-5 h-5" size={20} />
+            <span>Locations</span>
           </button>
         </div>
       </div>
@@ -615,22 +615,22 @@ export default function PromptPages() {
               hasBusiness={hasBusiness}
             />
             
-            <div className="flex items-start justify-between mt-2 mb-4">
-              <div className="flex flex-col mt-0 md:mt-[3px]">
+            <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 mt-2 mb-4">
+              <div className="flex flex-col mt-0 md:mt-[3px] flex-1 min-w-0">
                 <div className="mb-2">
-                  <h1 className="text-4xl font-bold text-slate-blue mt-0">
+                  <h1 className="text-3xl lg:text-4xl font-bold text-slate-blue mt-0">
                     {promptPagesTab === 'public' && 'Public Prompt Pages'}
                     {promptPagesTab === 'individual' && 'Individual Prompt Pages'}
                     {promptPagesTab === 'locations' && 'Location Prompt Pages'}
                   </h1>
                 </div>
-                <p className="text-gray-600 text-base max-w-md mt-0 mb-10">
+                <p className="text-gray-600 text-base max-w-md mt-0 mb-6 lg:mb-10">
                   {promptPagesTab === 'public' && 'Capture reviews in person, at your place of business, through your website, or embed in your newsletter. These prompt pages are open to the public.'}
                   {promptPagesTab === 'individual' && 'Create personalized prompt pages for individuals and make them feel special. Pre-populated contact information, write your own review templates, and add custom messaging.'}
                   {promptPagesTab === 'locations' && 'Create location-specific prompt pages for each of your business locations. (Available for Maven subscribers)'}
                 </p>
               </div>
-              <div className="flex items-start gap-3 flex-shrink-0" style={{ alignSelf: "flex-start" }}>
+              <div className="flex flex-row lg:items-start gap-3 flex-shrink-0">
                 {(promptPagesTab === 'individual' || promptPagesTab === 'public') && (
                   <button
                     type="button"

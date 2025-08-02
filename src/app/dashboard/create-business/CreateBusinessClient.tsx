@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
-import Icon from "@/components/Icon";
 import { createClient, getUserOrMock } from "@/utils/supabaseClient";
 
 const supabase = createClient();
@@ -218,7 +217,9 @@ export default function CreateBusinessClient() {
                 </>
               ) : (
                 <>
-                  <FaPlus className="w-4 h-4" />
+                  <svg className="w-4 h-4">
+                    <use href="/icons-sprite.svg#FaPlus" />
+                  </svg>
                   Create Business
                 </>
               )}

@@ -393,7 +393,7 @@ export default function EventPromptPageForm({
                 <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
                   Event Name <span className="text-red-600">(required)</span>
                   <div className="group relative">
-                    <FaRobot className="w-4 h-4 text-blue-500 cursor-help" />
+                    <Icon name="FaRobot" className="w-4 h-4 text-slate-blue cursor-help" size={16} />
                     <div className="absolute left-0 bottom-6 bg-gray-800 text-white text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10">
                       AI uses this for event-specific review suggestions
                     </div>
@@ -410,7 +410,7 @@ export default function EventPromptPageForm({
                 <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
                   Event Type
                   <div className="group relative">
-                    <FaRobot className="w-4 h-4 text-blue-500 cursor-help" />
+                    <Icon name="FaRobot" className="w-4 h-4 text-slate-blue cursor-help" size={16} />
                     <div className="absolute left-0 bottom-6 bg-gray-800 text-white text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10">
                       AI creates type-specific review content
                     </div>
@@ -454,7 +454,7 @@ export default function EventPromptPageForm({
                 <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
                   Event Location
                   <div className="group relative">
-                    <FaRobot className="w-4 h-4 text-blue-500 cursor-help" />
+                    <Icon name="FaRobot" className="w-4 h-4 text-slate-blue cursor-help" size={16} />
                     <div className="absolute left-0 bottom-6 bg-gray-800 text-white text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10">
                       AI uses location for venue-specific review context
                     </div>
@@ -484,7 +484,7 @@ export default function EventPromptPageForm({
               <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
                 Event Description
                 <div className="group relative">
-                  <FaRobot className="w-4 h-4 text-blue-500 cursor-help" />
+                  <Icon name="FaRobot" className="w-4 h-4 text-slate-blue cursor-help" size={16} />
                   <div className="absolute left-0 bottom-6 bg-gray-800 text-white text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10">
                     AI uses this to create detailed, contextual reviews
                   </div>
@@ -503,7 +503,7 @@ export default function EventPromptPageForm({
               <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
                 Event Organizer
                 <div className="group relative">
-                  <FaRobot className="w-4 h-4 text-blue-500 cursor-help" />
+                  <Icon name="FaRobot" className="w-4 h-4 text-slate-blue cursor-help" size={16} />
                   <div className="absolute left-0 bottom-6 bg-gray-800 text-white text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10">
                     AI mentions organizer in review content
                   </div>
@@ -521,7 +521,7 @@ export default function EventPromptPageForm({
               <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
                 Special Features
                 <div className="group relative">
-                  <FaRobot className="w-4 h-4 text-blue-500 cursor-help" />
+                  <Icon name="FaRobot" className="w-4 h-4 text-slate-blue cursor-help" size={16} />
                   <div className="absolute left-0 bottom-6 bg-gray-800 text-white text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10">
                     AI highlights these features in review suggestions
                   </div>
@@ -552,7 +552,9 @@ export default function EventPromptPageForm({
                 onClick={() => addArrayItem('eve_special_features')}
                 className="inline-flex items-center gap-2 text-slate-blue hover:text-slate-blue/80"
               >
-                <FaPlus className="w-4 h-4" />
+                <svg className="w-4 h-4">
+                  <use href="/icons-sprite.svg#FaPlus" />
+                </svg>
                 Add special feature
               </button>
             </div>
@@ -562,7 +564,7 @@ export default function EventPromptPageForm({
               <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
                 What should attendees mention in reviews?
                 <div className="group relative">
-                  <FaRobot className="w-4 h-4 text-blue-500 cursor-help" />
+                  <Icon name="FaRobot" className="w-4 h-4 text-slate-blue cursor-help" size={16} />
                   <div className="absolute left-0 bottom-6 bg-gray-800 text-white text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10">
                     AI uses this to guide review content and suggestions
                   </div>
@@ -668,7 +670,7 @@ export default function EventPromptPageForm({
           {/* AI Settings Feature */}
           <AISettingsFeature
             aiGenerationEnabled={formData.ai_generation_enabled !== false}
-            fixGrammarEnabled={formData.fix_grammar_enabled || false}
+            fixGrammarEnabled={formData.fix_grammar_enabled ?? true}
             onAIEnabledChange={(enabled) => updateFormData('ai_generation_enabled', enabled)}
             onGrammarEnabledChange={(enabled) => updateFormData('fix_grammar_enabled', enabled)}
           />

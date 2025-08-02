@@ -2,7 +2,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect, useRef, Suspense } from "react";
 import { generateContextualReview, generateContextualTestimonial } from "@/utils/aiReviewGeneration";
-import Icon from "@/components/Icon";
+import { Icon } from "@/components/Icon";
 import { checkAccountLimits } from "@/utils/accountLimits";
 import { getAccountIdForUser } from "@/utils/accountUtils";
 import { Dialog } from "@headlessui/react";
@@ -115,39 +115,39 @@ const promptTypes = [
   {
     key: "service",
     label: "Service review",
-    icon: <FaHandsHelping className="w-7 h-7 text-slate-blue" />,
+    icon: <Icon name="FaHandsHelping" className="w-7 h-7 text-slate-blue" size={28} />,
     description:
       "Capture a review from a customer or client who loves what you do",
   },
   {
     key: "photo",
     label: "Photo + testimonial",
-    icon: <FaCamera className="w-7 h-7 text-[#1A237E]" />,
+    icon: <Icon name="FaCamera" className="w-7 h-7 text-[#1A237E]" size={28} />,
     description:
       "Capture a headshot and testimonial to display on your website or in marketing materials.",
   },
   {
     key: "product",
     label: "Product review",
-    icon: <FaBoxOpen className="w-7 h-7 text-slate-blue" />,
+    icon: <Icon name="FaBoxOpen" className="w-7 h-7 text-slate-blue" size={28} />,
     description: "Get a review from a customer who fancies your products",
   },
   {
     key: "employee",
     label: "Employee spotlight",
-    icon: <FaUser className="w-7 h-7 text-slate-blue" />,
+    icon: <Icon name="FaUser" className="w-7 h-7 text-slate-blue" size={28} />,
     description: "Create a review page to showcase individual team members and inspire competition",
   },
   {
     key: "event",
     label: "Events & spaces",
-    icon: <FaGift className="w-7 h-7 text-[#1A237E]" />,
+    icon: <Icon name="FaGift" className="w-7 h-7 text-[#1A237E]" size={28} />,
     description: "For events, rentals, tours, and more.",
   },
   {
     key: "video",
     label: "Video testimonial",
-    icon: <FaVideo className="w-7 h-7 text-[#1A237E]" />,
+    icon: <Icon name="FaVideo" className="w-7 h-7 text-[#1A237E]" size={28} />,
     description: "Request a video testimonial from your client.",
     comingSoon: true,
   },
@@ -700,13 +700,40 @@ export default function CreatePromptPageClient({
       setSaveError(null);
       setSaveSuccess(null);
       try {
-      
-      const {
-        data: { user },
-      } = await getUserOrMock(supabase);
-      if (!user) {
-        throw new Error("No user found");
-      }
+        // First, try to refresh the session to prevent session expiration issues
+        try {
+          await supabase.auth.refreshSession();
+        } catch (refreshError) {
+          console.warn("Session refresh failed, proceeding anyway:", refreshError);
+        }
+        
+        let user = null;
+        let userError = null;
+        
+        // Try to get user with retry mechanism
+        for (let attempt = 1; attempt <= 3; attempt++) {
+          const userResult = await getUserOrMock(supabase);
+          const { data, error } = userResult;
+          
+          if (data.user && !error) {
+            user = data.user;
+            userError = null;
+            break;
+          }
+          
+          userError = error;
+          console.warn(`User fetch attempt ${attempt} failed:`, error);
+          
+          if (attempt < 3) {
+            // Wait a bit before retrying
+            await new Promise(resolve => setTimeout(resolve, 200 * attempt));
+          }
+        }
+        
+        if (!user) {
+          console.error("Failed to get user after 3 attempts");
+          throw new Error(`No user found. Please sign in again and try saving. Last error: ${userError?.message || 'Unknown error'}`);
+        }
 
       const { allowed, reason } = await checkAccountLimits(
         supabase,
@@ -928,12 +955,40 @@ export default function CreatePromptPageClient({
     setIsSaving(true);
     
     try {
-      const userResult = await getUserOrMock(supabase);
+      // First, try to refresh the session to prevent session expiration issues
+      try {
+        await supabase.auth.refreshSession();
+      } catch (refreshError) {
+        console.warn("Session refresh failed, proceeding anyway:", refreshError);
+      }
       
-      const {
-        data: { user },
-      } = userResult;
-      if (!user) throw new Error("No user found");
+      let user = null;
+      let userError = null;
+      
+      // Try to get user with retry mechanism
+      for (let attempt = 1; attempt <= 3; attempt++) {
+        const userResult = await getUserOrMock(supabase);
+        const { data, error } = userResult;
+        
+        if (data.user && !error) {
+          user = data.user;
+          userError = null;
+          break;
+        }
+        
+        userError = error;
+        console.warn(`User fetch attempt ${attempt} failed:`, error);
+        
+        if (attempt < 3) {
+          // Wait a bit before retrying
+          await new Promise(resolve => setTimeout(resolve, 200 * attempt));
+        }
+      }
+      
+      if (!user) {
+        console.error("Failed to get user after 3 attempts");
+        throw new Error(`No user found. Please sign in again and try saving. Last error: ${userError?.message || 'Unknown error'}`);
+      }
 
       const limitResult = await checkAccountLimits(
         supabase,
@@ -1232,15 +1287,15 @@ export default function CreatePromptPageClient({
   const getPageIcon = (reviewType: string) => {
     switch (reviewType) {
       case "service":
-        return <FaHandsHelping className="w-9 h-9 text-slate-blue" />;
+        return <Icon name="FaHandsHelping" className="w-9 h-9 text-slate-blue" size={36} />;
       case "product":
-        return <FaBoxOpen className="w-9 h-9 text-slate-blue" />;
+        return <Icon name="FaBoxOpen" className="w-9 h-9 text-slate-blue" size={36} />;
       case "photo":
-        return <FaCamera className="w-9 h-9 text-slate-blue" />;
+        return <Icon name="FaCamera" className="w-9 h-9 text-slate-blue" size={36} />;
       case "employee":
-        return <FaUser className="w-9 h-9 text-slate-blue" />;
+        return <Icon name="FaUser" className="w-9 h-9 text-slate-blue" size={36} />;
       case "event":
-        return <MdEvent className="w-9 h-9 text-slate-blue" />;
+        return <Icon name="MdEvent" className="w-9 h-9 text-slate-blue" size={36} />;
       default:
         return undefined; // No icon for fallback
     }

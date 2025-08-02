@@ -112,7 +112,7 @@ Here's your first tip: [icon] <— click here`;
                       tabIndex={0}
                       type="button"
                     >
-                      <Icon name="FaRobot" className="inline w-5 h-5 align-middle cursor-pointer" size={20} />
+                      <Icon name="FaRobot" className="inline w-5 h-5 align-middle cursor-pointer text-slate-blue" size={20} />
                     </button>
                     {showTooltip && (
                       <div 

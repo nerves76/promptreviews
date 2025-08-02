@@ -358,11 +358,11 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
   return (
     <div className="space-y-6">
       {/* Header with Save & Publish button */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-                          <h3 className="text-lg font-medium text-gray-900">
-                  {selectedLocationIds.length === 1 ? 'Business info editor' : 'Multi-location business info editor'}
-                </h3>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+        <div className="flex-1 min-w-0">
+          <h3 className="text-lg font-medium text-gray-900">
+            {selectedLocationIds.length === 1 ? 'Business info editor' : 'Multi-location business info editor'}
+          </h3>
           <p className="text-sm text-gray-600 mt-1">
             {selectedLocationIds.length === 1 
               ? (detailsLoaded 
@@ -374,28 +374,30 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
           </p>
         </div>
         
-        {/* Save & Publish button - Parallel with title */}
-        <button
-          onClick={handleSave}
-          disabled={selectedLocationIds.length === 0 || isSaving}
-          className={`flex items-center space-x-2 px-4 py-2 rounded-md font-medium ${
-            selectedLocationIds.length > 0 && !isSaving
-              ? 'bg-slate-blue text-white hover:bg-slate-blue/90'
-              : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-          }`}
-        >
-          {isSaving ? (
-            <Icon name="FaSpinner" className="w-4 h-4 animate-spin" size={16} />
-          ) : (
-            <Icon name="FaSave" className="w-4 h-4" size={16} />
-          )}
-          <span>
-            {isSaving 
-              ? (selectedLocationIds.length === 1 ? 'Publishing...' : `Publishing ${selectedLocationIds.length} locations...`)
-              : 'Save & publish'
-            }
-          </span>
-        </button>
+        {/* Save & Publish button - Stacked on mobile, parallel on desktop */}
+        <div className="flex-shrink-0">
+          <button
+            onClick={handleSave}
+            disabled={selectedLocationIds.length === 0 || isSaving}
+            className={`flex items-center space-x-2 px-4 py-2 rounded-md font-medium w-full sm:w-auto ${
+              selectedLocationIds.length > 0 && !isSaving
+                ? 'bg-slate-blue text-white hover:bg-slate-blue/90'
+                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+            }`}
+          >
+            {isSaving ? (
+              <Icon name="FaSpinner" className="w-4 h-4 animate-spin" size={16} />
+            ) : (
+              <Icon name="FaSave" className="w-4 h-4" size={16} />
+            )}
+            <span>
+              {isSaving 
+                ? (selectedLocationIds.length === 1 ? 'Publishing...' : `Publishing ${selectedLocationIds.length} locations...`)
+                : 'Save & publish'
+              }
+            </span>
+          </button>
+        </div>
       </div>
 
       {/* Location Selector */}
@@ -641,7 +643,7 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
                           onClick={() => setShowServiceGenerator(true)}
                           className="flex items-center space-x-2 text-sm text-purple-600 hover:text-purple-800 border border-purple-300 rounded px-3 py-1 hover:bg-purple-50"
                         >
-                          <Icon name="FaRobot" className="w-3 h-3" size={12} />
+                          <Icon name="FaRobot" className="w-3 h-3 text-slate-blue" size={12} />
                           <span>Generate Description</span>
                         </button>
                         {businessInfo.description.trim() && (
@@ -649,7 +651,7 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
                             onClick={() => setShowDescriptionAnalyzer(true)}
                             className="flex items-center space-x-2 text-sm text-blue-600 hover:text-blue-800 border border-blue-300 rounded px-3 py-1 hover:bg-blue-50"
                           >
-                            <Icon name="FaRobot" className="w-3 h-3" size={12} />
+                            <Icon name="FaRobot" className="w-3 h-3 text-slate-blue" size={12} />
                             <span>AI Search Optimize</span>
                           </button>
                         )}

@@ -623,7 +623,7 @@ export default function Header() {
                 className="inline-flex items-center justify-center p-2 rounded-md text-white hover:text-white/80 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white/30"
                 aria-label="Open main menu"
               >
-                {menuOpen ? <Icon name="FiX" className="h-6 w-6" size={24} /> : <Icon name="FiMenu" className="h-6 w-6" size={24} />}
+                {menuOpen ? <Icon name="FaTimes" className="h-6 w-6" size={24} /> : <Icon name="FaBars" className="h-6 w-6" size={24} />}
               </button>
             </div>
           </div>

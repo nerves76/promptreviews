@@ -382,7 +382,10 @@ export async function getAccountIdForUser(userId: string, supabaseClient?: any):
     // PRIORITY 0: Check if the user has manually selected an account
     const selectedAccountId = await getUserSelectedAccountId(userId, client);
     if (selectedAccountId) {
-      console.log('🎯 User has manually selected account:', selectedAccountId);
+      // Only log when in debug mode or first time
+      if (process.env.NODE_ENV === 'development' && Math.random() < 0.1) {
+        console.log('🎯 User has manually selected account:', selectedAccountId);
+      }
       // Validate that this account still exists and user has access
       const { data: accountValidation, error: validationError } = await client
         .from("account_users")
@@ -392,10 +395,8 @@ export async function getAccountIdForUser(userId: string, supabaseClient?: any):
         .single();
       
       if (!validationError && accountValidation) {
-        console.log('✅ Manual selection validated, using account:', selectedAccountId);
         return selectedAccountId;
       } else {
-        console.log('❌ Manual selection invalid, falling back to automatic selection');
         // Clear invalid selection and continue with automatic selection
         if (typeof window !== 'undefined') {
           const { clearStoredAccountSelection } = await import('./accountSelection');
@@ -420,14 +421,17 @@ export async function getAccountIdForUser(userId: string, supabaseClient?: any):
       .order("role", { ascending: true });
 
     if (accountUsers && accountUsers.length > 0) {
-      console.log('🔍 Account selection debug for user:', userId);
-      console.log('🔍 Found accounts:', accountUsers.map((au: any) => ({
-        account_id: au.account_id,
-        role: au.role,
-        plan: au.accounts?.plan,
-        first_name: au.accounts?.first_name,
-        last_name: au.accounts?.last_name
-      })));
+      // Only log occasionally to reduce noise (10% of the time)
+      if (process.env.NODE_ENV === 'development' && Math.random() < 0.1) {
+        console.log('🔍 Account selection debug for user:', userId);
+        console.log('🔍 Found accounts:', accountUsers.map((au: any) => ({
+          account_id: au.account_id,
+          role: au.role,
+          plan: au.accounts?.plan,
+          first_name: au.accounts?.first_name,
+          last_name: au.accounts?.last_name
+        })));
+      }
       
       // PRIORITY 1: Team accounts (always use team account if available)
       const teamAccount = accountUsers.find((au: any) => 
@@ -438,8 +442,10 @@ export async function getAccountIdForUser(userId: string, supabaseClient?: any):
       );
       
       if (teamAccount) {
-        console.log('🎯 Using team account (highest priority)');
-        console.log('🎯 Team account plan:', teamAccount.accounts.plan);
+        if (process.env.NODE_ENV === 'development' && Math.random() < 0.1) {
+          console.log('🎯 Using team account (highest priority)');
+          console.log('🎯 Team account plan:', teamAccount.accounts.plan);
+        }
         return teamAccount.account_id;
       }
       
@@ -452,14 +458,15 @@ export async function getAccountIdForUser(userId: string, supabaseClient?: any):
       );
       
       if (ownedAccount) {
-        console.log('🎯 Using owned account with plan:', ownedAccount.accounts.plan);
+        if (process.env.NODE_ENV === 'development' && Math.random() < 0.2) {
+          console.log('🎯 Using owned account with plan:', ownedAccount.accounts.plan);
+        }
         return ownedAccount.account_id;
       }
       
       // PRIORITY 3: Any team account (even if no plan info)
       const anyTeamAccount = accountUsers.find((au: any) => au.role === 'member');
       if (anyTeamAccount) {
-        console.log('🎯 Using any team account (fallback)');
         return anyTeamAccount.account_id;
       }
       

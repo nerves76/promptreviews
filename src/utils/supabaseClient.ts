@@ -31,8 +31,12 @@ function logClientCreation(instanceId: number, creationLocation: string) {
   if (!isDevelopment) return;
   
   _instanceCount++;
-  console.log(`🔧 Creating Supabase client instance #${instanceId} (Total: ${_instanceCount})`);
-  console.log(`📍 Creation location: ${creationLocation}`);
+  
+  // Only log the first instance creation and any problematic ones
+  if (_instanceCount === 1) {
+    console.log(`🔧 Creating Supabase client instance #${instanceId} (Total: ${_instanceCount})`);
+    console.log(`📍 Creation location: ${creationLocation}`);
+  }
   
   if (_instanceCount > 1) {
     console.warn(`⚠️  WARNING: Multiple Supabase client instances detected! This may cause auth issues.`);
@@ -72,7 +76,7 @@ export function createClient(): SupabaseClient {
       }
     );
     
-    if (isDevelopment) {
+    if (isDevelopment && _instanceCount === 1) {
       console.log('✅ Supabase browser client created successfully');
     }
   }

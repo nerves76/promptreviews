@@ -354,7 +354,9 @@ const SimpleBusinessForm = forwardRef<HTMLFormElement, SimpleBusinessFormProps>(
       {/* Business Information Section */}
       <div className="mb-16">
         <h2 className="mt-4 mb-8 text-2xl font-bold text-slate-blue flex items-center gap-3">
-          <FaBuilding className="w-7 h-7 text-slate-blue" />
+          <svg className="w-7 h-7 text-slate-blue">
+            <use href="/icons-sprite.svg#FaBuilding" />
+          </svg>
           Business information
         </h2>
         
@@ -568,7 +570,9 @@ const SimpleBusinessForm = forwardRef<HTMLFormElement, SimpleBusinessFormProps>(
       {/* Promotion Code Section */}
       <div className="mb-16">
         <h2 className="mt-4 mb-8 text-2xl font-bold text-slate-blue flex items-center gap-3">
-          <FaTags className="w-7 h-7 text-slate-blue" />
+          <svg className="w-7 h-7 text-slate-blue">
+            <use href="/icons-sprite.svg#FaTags" />
+          </svg>
           Promotion code
         </h2>
         <div className="mb-4">
