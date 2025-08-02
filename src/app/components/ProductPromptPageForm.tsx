@@ -572,7 +572,7 @@ export default function ProductPromptPageForm({
         <div className="rounded-lg p-4 bg-slate-50 border border-slate-200 flex flex-col gap-2 shadow relative">
               <div className="flex items-center justify-between mb-2 px-2 py-2">
                 <div className="flex items-center gap-3">
-                  <Icon name="FaFileAlt" className="w-7 h-7 text-slate-blue" size={28} />
+                  <Icon name="FaStickyNote" className="w-7 h-7" style={{ color: "#1A237E" }} size={28} />
                   <span className="text-2xl font-bold text-slate-blue">
                     Personalized note pop-up
                   </span>
