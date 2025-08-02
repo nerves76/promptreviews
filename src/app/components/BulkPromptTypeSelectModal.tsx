@@ -14,29 +14,25 @@ const promptTypes = [
     key: 'service',
     name: 'Service',
     description: 'Create prompt pages for services you provide',
-    icon: 'FaHeart',
-    color: 'bg-blue-500'
+    icon: 'FaHandshake'
   },
   {
     key: 'product',
     name: 'Product',
     description: 'Create prompt pages for products you sell',
-    icon: 'FaBoxOpen',
-    color: 'bg-green-500'
+    icon: 'FaBoxOpen'
   },
   {
     key: 'photo',
     name: 'Photo',
     description: 'Create prompt pages for photo services',
-    icon: 'FaCamera',
-    color: 'bg-purple-500'
+    icon: 'FaCamera'
   },
   {
     key: 'event',
     name: 'Event',
     description: 'Create prompt pages for events you host',
-    icon: 'MdEvent',
-    color: 'bg-orange-500'
+    icon: 'FaCalendarAlt'
   }
 ];
 
@@ -80,7 +76,7 @@ export default function BulkPromptTypeSelectModal({
                   className="w-full p-4 border border-gray-200 rounded-lg hover:border-gray-300 hover:bg-gray-50 transition-colors text-left group"
                 >
                   <div className="flex items-center space-x-3">
-                    <div className={`p-2 rounded-lg ${type.color} text-white`}>
+                    <div className="text-slate-blue">
                       <Icon name={type.icon as any} className="w-6 h-6" size={24} />
                     </div>
                     <div className="flex-1">
