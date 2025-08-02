@@ -1153,10 +1153,10 @@ export default function EditPromptPage() {
   // Determine the appropriate icon based on page type
   const getPageIcon = () => {
     if (formData.type === "product" || (formData as any).review_type === "product") {
-      return <Icon name="FaBoxOpen" className="w-9 h-9 text-slate-blue" />;
+      return <svg className="w-9 h-9 text-slate-blue"><use href="/icons-sprite.svg#FaBox" /></svg>;
     }
     if (formData.type === "service" || (formData as any).review_type === "service") {
-      return <Icon name="FaHandsHelping" className="w-9 h-9 text-slate-blue" />;
+      return <svg className="w-9 h-9 text-slate-blue"><use href="/icons-sprite.svg#FaHandshake" /></svg>;
     }
     if ((formData as any).review_type === "photo") {
       return <Icon name="FaCamera" className="w-9 h-9 text-slate-blue" />;
@@ -1171,7 +1171,7 @@ export default function EditPromptPage() {
       return <Icon name="FaGlobe" className="w-9 h-9 text-slate-blue" size={36} />;
     }
     // Default icon
-    return <Icon name="FaHandsHelping" className="w-9 h-9 text-slate-blue" />;
+    return <svg className="w-9 h-9 text-slate-blue"><use href="/icons-sprite.svg#FaHandshake" /></svg>;
   };
 
   // Determine the page title based on type

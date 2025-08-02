@@ -456,7 +456,7 @@ export default function PromptPages() {
     {
       key: "service",
       label: "Service review",
-      icon: <Icon name="FaHandsHelping" className="w-7 h-7 text-slate-blue" size={28} />,
+      icon: <svg className="w-7 h-7 text-slate-blue"><use href="/icons-sprite.svg#FaHandshake" /></svg>,
       description: "Capture a review from a customer or client who loves what you do",
     },
     {
@@ -468,7 +468,7 @@ export default function PromptPages() {
     {
       key: "product",
       label: "Product review",
-      icon: <Icon name="FaBoxOpen" className="w-7 h-7 text-slate-blue" size={28} />,
+      icon: <svg className="w-7 h-7 text-slate-blue"><use href="/icons-sprite.svg#FaBox" /></svg>,
       description: "Get a review from a customer who fancies your products",
     },
     {
@@ -480,13 +480,13 @@ export default function PromptPages() {
     {
       key: "event",
       label: "Events & spaces",
-      icon: <Icon name="FaCalendarAlt" className="w-7 h-7 text-slate-blue" size={28} />,
+      icon: <svg className="w-7 h-7 text-slate-blue"><use href="/icons-sprite.svg#FaCalendarAlt" /></svg>,
       description: "For events, rentals, tours, and more.",
     },
     {
       key: "video",
       label: "Video testimonial",
-      icon: <Icon name="FaVideo" className="w-7 h-7 text-slate-blue" size={28} />,
+      icon: <svg className="w-7 h-7 text-slate-blue"><use href="/icons-sprite.svg#FaVideo" /></svg>,
       description: "Request a video testimonial from your client.",
       comingSoon: true,
     },
