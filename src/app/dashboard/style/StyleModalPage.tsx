@@ -354,7 +354,7 @@ export default function StylePage({ onClose, onStyleUpdate }: StylePageProps) {
             <h2 className="text-xl font-semibold text-slate-blue">Prompt Page Style</h2>
           </div>
           <div className="w-1/3 flex justify-center text-gray-400">
-            <FaArrowsAlt />
+            <Icon name="FaArrowsAlt" />
           </div>
           <div className="w-1/3 flex justify-end items-center gap-2 pr-8">
             <button

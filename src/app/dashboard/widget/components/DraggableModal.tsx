@@ -105,7 +105,7 @@ export const DraggableModal: React.FC<DraggableModalProps> = ({
             <h2 className="text-xl font-semibold">{title}</h2>
           </div>
           <div className="w-1/3 flex justify-center text-gray-400">
-             <FaArrowsAlt />
+             <Icon name="FaArrowsAlt" />
           </div>
           <div className="w-1/3 flex justify-end items-center gap-2 pr-8">
              {onReset && (
