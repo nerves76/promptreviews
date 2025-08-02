@@ -975,7 +975,7 @@ export default function PromptPages() {
 
               {/* Sharing Options */}
               <div className="space-y-3">
-                <div className="flex items-center justify-between p-3 bg-lavender-haze/30 rounded-lg">
+                <div className="flex items-center justify-between p-3 bg-purple-100 rounded-lg">
                   <span className="text-sm font-medium text-gray-700">Share Link</span>
                   <button
                     onClick={() => {
@@ -999,7 +999,7 @@ export default function PromptPages() {
                 </div>
 
                 {/* Email link */}
-                <div className="flex items-center justify-between p-3 bg-sky-glass/30 rounded-lg">
+                <div className="flex items-center justify-between p-3 bg-blue-100 rounded-lg">
                   <span className="text-sm font-medium text-gray-700">Send Email</span>
                   <a
                     href={`mailto:${postSaveData.email || ''}?subject=Please leave a review&body=Hi ${postSaveData.first_name || 'there'},%0D%0A%0D%0AI'd love to get your feedback! Please leave a review here: ${postSaveData.url}%0D%0A%0D%0AThank you!`}
@@ -1009,7 +1009,7 @@ export default function PromptPages() {
                   </a>
                 </div>
 
-                <div className="flex items-center justify-between p-3 bg-pale-gold/30 rounded-lg">
+                <div className="flex items-center justify-between p-3 bg-amber-100 rounded-lg">
                   <span className="text-sm font-medium text-gray-700">View Prompt Page</span>
                   <a
                     href={postSaveData.url}
