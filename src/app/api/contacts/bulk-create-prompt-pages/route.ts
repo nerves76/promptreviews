@@ -98,42 +98,56 @@ export async function POST(request: NextRequest) {
     const results = [];
     const errors = [];
 
-    for (const contact of contacts) {
-      try {
-        // Generate unique slug
-        const timestamp = Date.now();
-        const randomId = Math.random().toString(36).substring(2, 8);
-        const slug = `${contact.first_name?.toLowerCase() || 'contact'}-${contact.last_name?.toLowerCase() || 'prompt'}-${timestamp}-${randomId}`;
+    console.log(`🔄 Bulk API - Processing ${contacts.length} contacts for prompt type: ${promptType}`);
 
-        // Create prompt page
+    for (const contact of contacts) {
+      console.log(`🔄 Bulk API - Processing contact:`, {
+        id: contact.id,
+        name: `${contact.first_name || ''} ${contact.last_name || ''}`.trim(),
+        email: contact.email
+      });
+      try {
+        // Create prompt page using existing schema (no contact_id column)
         const { data: promptPage, error: promptError } = await supabaseAdmin
           .from("prompt_pages")
           .insert({
             account_id: accountId,
-            contact_id: contact.id,
-            type: promptType,
-            campaign_type: 'individual', // Always individual for contacts
-            slug: slug,
+            first_name: contact.first_name || '',
+            last_name: contact.last_name || '',
+            email: contact.email || '',
+            phone: contact.phone || '',
+            client_name: `${contact.first_name || ''} ${contact.last_name || ''}`.trim() || 'Contact',
+            category: promptType, // Use category field for prompt type
             title: `${contact.first_name || 'Contact'} ${promptType} review`,
-            description: `Share your experience with ${contact.first_name || 'our'} ${promptType}. Your review helps others make informed decisions.`,
-            status: 'draft',
-            created_by: user.id
+            status: 'draft'
           })
           .select()
           .single();
 
         if (promptError) {
+          console.error('❌ Bulk API - Failed to create prompt page:', {
+            contactId: contact.id,
+            contactName: `${contact.first_name || ''} ${contact.last_name || ''}`.trim(),
+            error: promptError.message,
+            details: promptError
+          });
           errors.push({
             contactId: contact.id,
             contactName: `${contact.first_name || ''} ${contact.last_name || ''}`.trim(),
             error: promptError.message
           });
         } else {
+          console.log('✅ Bulk API - Successfully created prompt page:', {
+            contactId: contact.id,
+            contactName: `${contact.first_name || ''} ${contact.last_name || ''}`.trim(),
+            promptPageId: promptPage.id,
+            title: promptPage.title
+          });
           results.push({
             contactId: contact.id,
             contactName: `${contact.first_name || ''} ${contact.last_name || ''}`.trim(),
             promptPageId: promptPage.id,
-            slug: promptPage.slug
+            title: promptPage.title
           });
         }
       } catch (error) {
@@ -144,6 +158,13 @@ export async function POST(request: NextRequest) {
         });
       }
     }
+
+    console.log(`📊 Bulk API - Final results:`, {
+      totalContacts: contacts.length,
+      created: results.length,
+      failed: errors.length,
+      errors: errors.map(e => ({ contactName: e.contactName, error: e.error }))
+    });
 
     return NextResponse.json({
       success: true,
