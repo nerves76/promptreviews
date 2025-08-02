@@ -617,7 +617,7 @@ export default function UploadContactsPage() {
           ) : (
             <div>
               <div className="overflow-x-auto rounded-lg border border-blue-200 bg-white">
-                <table className="min-w-full divide-y divide-gray-200">
+                <table className="min-w-full divide-y divide-gray-200 table-auto">
                   <thead className="bg-gray-50">
                     <tr>
                       <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -646,7 +646,7 @@ export default function UploadContactsPage() {
                       <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Category
                       </th>
-                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
                         Actions
                       </th>
                     </tr>
@@ -680,7 +680,7 @@ export default function UploadContactsPage() {
                       <td className="px-3 py-2 text-sm text-gray-900">
                         {contact.category || ""}
                       </td>
-                      <td className="px-3 py-2 text-sm">
+                      <td className="px-3 py-2 text-sm whitespace-nowrap">
                         <button
                           className="text-slate-blue underline hover:text-slate-800 text-xs mr-4 bg-transparent border-none p-0 shadow-none"
                           style={{ background: "none", border: "none" }}
@@ -730,7 +730,7 @@ export default function UploadContactsPage() {
                             }
                           }}
                         >
-                          Create prompt page
+                          +
                         </button>
                       </td>
                     </tr>
