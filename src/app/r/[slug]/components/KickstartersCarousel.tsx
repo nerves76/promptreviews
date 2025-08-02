@@ -160,7 +160,7 @@ export default function KickstartersCarousel({
             }}
             aria-label="Previous question"
           >
-            <FaChevronLeft className="w-4 h-4" />
+            <Icon name="FaChevronLeft" className="w-4 h-4" />
           </button>
         )}
 
@@ -183,7 +183,7 @@ export default function KickstartersCarousel({
             }}
             aria-label="Next question"
           >
-            <FaChevronRight className="w-4 h-4" />
+            <Icon name="FaChevronRight" className="w-4 h-4" />
           </button>
         )}
 
@@ -261,7 +261,7 @@ export default function KickstartersCarousel({
               className="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-white border border-gray-200 hover:bg-gray-50 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-gray-300 z-10 shadow-sm"
               aria-label="Close"
             >
-              <FaTimes className="w-4 h-4 text-gray-600" />
+              <Icon name="FaTimes" className="w-4 h-4 text-gray-600" />
             </button>
 
             {/* Modal Header */}
