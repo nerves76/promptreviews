@@ -140,7 +140,7 @@ export default function FreeAccountsPage() {
           <div className="flex justify-between items-center">
             <span>{error}</span>
             <button onClick={clearMessages} className="text-red-500 hover:text-red-700">
-              <FaTimes />
+              <Icon name="FaTimes" />
             </button>
           </div>
         </div>
@@ -151,7 +151,7 @@ export default function FreeAccountsPage() {
           <div className="flex justify-between items-center">
             <span>{success}</span>
             <button onClick={clearMessages} className="text-green-500 hover:text-green-700">
-              <FaTimes />
+              <Icon name="FaTimes" />
             </button>
           </div>
         </div>
@@ -203,12 +203,12 @@ export default function FreeAccountsPage() {
           >
             {isSubmitting ? (
               <>
-                <FaSpinner className="animate-spin mr-2" />
+                <Icon name="FaSpinner" className="animate-spin mr-2" />
                 Creating Free Account...
               </>
             ) : (
               <>
-                <FaUser className="mr-2" />
+                <Icon name="FaUser" className="mr-2" />
                 Create Free Account
               </>
             )}
@@ -227,12 +227,12 @@ export default function FreeAccountsPage() {
 
         {loading ? (
           <div className="p-8 text-center">
-            <FaSpinner className="animate-spin mx-auto mb-4 text-slate-blue" size={24} />
+            <Icon name="FaSpinner" className="animate-spin mx-auto mb-4 text-slate-blue" size={24} />
             <p className="text-gray-600">Loading free accounts...</p>
           </div>
         ) : freeAccounts.length === 0 ? (
           <div className="p-8 text-center text-gray-500">
-            <FaUser className="mx-auto mb-4 text-gray-400" size={48} />
+            <Icon name="FaUser" className="mx-auto mb-4 text-gray-400" size={48} />
             <p>No free accounts found</p>
           </div>
         ) : (
@@ -284,7 +284,7 @@ export default function FreeAccountsPage() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                          <FaCheck className="mr-1" size={10} />
+                          <Icon name="FaCheck" className="mr-1" size={10} />
                           Free Account
                         </span>
                       </td>
