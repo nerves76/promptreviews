@@ -17,13 +17,16 @@ import { useEffect } from 'react';
 export default function SpriteLoader() {
   useEffect(() => {
     const loadSprite = async () => {
-      // Check if sprite is already loaded
-      if (document.querySelector('svg[data-sprite="icons"]')) {
-        return;
+      // Remove any existing sprite to force fresh load
+      const existing = document.querySelector('[data-sprite="icons"]');
+      if (existing) {
+        existing.remove();
       }
 
       try {
-        const response = await fetch('/icons-sprite.svg');
+        // Add cache busting parameter to force fresh load
+        const cacheBuster = Date.now();
+        const response = await fetch(`/icons-sprite.svg?v=${cacheBuster}`);
         const spriteContent = await response.text();
         
         // Create container for the sprite
