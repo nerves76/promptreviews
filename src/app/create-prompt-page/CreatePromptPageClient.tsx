@@ -115,7 +115,7 @@ const promptTypes = [
   {
     key: "service",
     label: "Service review",
-    icon: <svg className="w-7 h-7 text-slate-blue"><use href="/icons-sprite.svg#FaHandshake" /></svg>,
+    icon: <svg className="w-7 h-7" style={{ color: "#1A237E" }}><use href="/icons-sprite.svg#FaHandshake" /></svg>,
     description:
       "Capture a review from a customer or client who loves what you do",
   },
@@ -129,13 +129,13 @@ const promptTypes = [
   {
     key: "product",
     label: "Product review",
-    icon: <svg className="w-7 h-7 text-slate-blue"><use href="/icons-sprite.svg#FaBox" /></svg>,
+    icon: <svg className="w-7 h-7" style={{ color: "#1A237E" }}><use href="/icons-sprite.svg#FaBox" /></svg>,
     description: "Get a review from a customer who fancies your products",
   },
   {
     key: "employee",
     label: "Employee spotlight",
-    icon: <Icon name="FaUser" className="w-7 h-7 text-slate-blue" size={28} />,
+    icon: <Icon name="FaUser" className="w-7 h-7" style={{ color: "#1A237E" }} size={28} />,
     description: "Create a review page to showcase individual team members and inspire competition",
   },
   {

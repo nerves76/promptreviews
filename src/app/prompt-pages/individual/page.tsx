@@ -347,7 +347,7 @@ export default function IndividualOutreach() {
     {
       key: "service",
       label: "Service review",
-      icon: <svg className="w-7 h-7 text-slate-blue"><use href="/icons-sprite.svg#FaHandshake" /></svg>,
+      icon: <svg className="w-7 h-7" style={{ color: "#1A237E" }}><use href="/icons-sprite.svg#FaHandshake" /></svg>,
       description: "Capture a review from a customer or client who loves what you do",
     },
     {
@@ -359,7 +359,7 @@ export default function IndividualOutreach() {
     {
       key: "product",
       label: "Product review",
-      icon: <svg className="w-7 h-7 text-slate-blue"><use href="/icons-sprite.svg#FaBox" /></svg>,
+      icon: <svg className="w-7 h-7" style={{ color: "#1A237E" }}><use href="/icons-sprite.svg#FaBox" /></svg>,
       description: "Get a review from a customer who fancies your products",
     },
     {
