@@ -172,6 +172,23 @@ export const loadAllFallingIcons = async (): Promise<{
     FaHands,
     FaHandHoldingHeart,
     FaInfinity,
+    FaMarsDouble,
+    FaVenusDouble,
+    FaBird,
+    FaStrawberry,
+    FaQuestionCircle,
+    FaBicycle,
+    FaBed,
+    FaGamepad,
+    FaMusic,
+    FaHeadphones,
+    FaAnchor,
+    FaCrown,
+    FaCannabis,
+    FaOtter,
+    FaAcorn,
+    FaBagel,
+    FaBeer,
   } = await import("react-icons/fa");
 
   return [
@@ -207,6 +224,8 @@ export const loadAllFallingIcons = async (): Promise<{
     { key: "hands", label: "Hands", icon: FaHands, color: "text-brown-400", category: "Diversity & Inclusion" },
     { key: "handheart", label: "Hand Heart", icon: FaHandHoldingHeart, color: "text-red-500", category: "Diversity & Inclusion" },
     { key: "infinity", label: "Infinity", icon: FaInfinity, color: "text-purple-500", category: "Diversity & Inclusion" },
+    { key: "marsdouble", label: "Mars Double", icon: FaMarsDouble, color: "text-blue-500", category: "Diversity & Inclusion" },
+    { key: "venusdouble", label: "Venus Double", icon: FaVenusDouble, color: "text-pink-500", category: "Diversity & Inclusion" },
     
     // Food & Beverages
     { key: "wine", label: "Wine", icon: FaWineGlass, color: "text-purple-600", category: "Food & Beverages" },
@@ -220,6 +239,9 @@ export const loadAllFallingIcons = async (): Promise<{
     { key: "carrot", label: "Carrot", icon: FaCarrot, color: "text-orange-600", category: "Food & Beverages" },
     { key: "cake", label: "Birthday Cake", icon: FaBirthdayCake, color: "text-pink-500", category: "Food & Beverages" },
     { key: "cheers", label: "Cheers", icon: FaGlassCheers, color: "text-amber-500", category: "Food & Beverages" },
+    { key: "strawberry", label: "Strawberry", icon: FaStrawberry, color: "text-red-400", category: "Food & Beverages" },
+    { key: "bagel", label: "Bagel", icon: FaBagel, color: "text-amber-700", category: "Food & Beverages" },
+    { key: "beer", label: "Beer", icon: FaBeer, color: "text-amber-600", category: "Food & Beverages" },
     
     // Activities & Sports
     { key: "bicycle", label: "Bicycle", icon: FaBicycle, color: "text-blue-600", category: "Activities & Sports" },
@@ -232,6 +254,7 @@ export const loadAllFallingIcons = async (): Promise<{
     { key: "volleyball", label: "Volleyball", icon: FaVolleyballBall, color: "text-blue-400", category: "Activities & Sports" },
     { key: "tabletennis", label: "Table Tennis", icon: FaTableTennis, color: "text-orange-500", category: "Activities & Sports" },
     { key: "bowling", label: "Bowling", icon: FaBowlingBall, color: "text-gray-800", category: "Activities & Sports" },
+    { key: "gamepad", label: "Gamepad", icon: FaGamepad, color: "text-indigo-500", category: "Activities & Sports" },
     
     // Tools & Objects
     { key: "wrench", label: "Wrench", icon: FaWrench, color: "text-gray-600", category: "Tools & Objects" },
@@ -284,6 +307,7 @@ export const loadAllFallingIcons = async (): Promise<{
     { key: "hatwizard", label: "Wizard Hat", icon: FaHatWizard, color: "text-purple-600", category: "Fashion & Accessories" },
     { key: "socks", label: "Socks", icon: FaSocks, color: "text-gray-500", category: "Fashion & Accessories" },
     { key: "ring", label: "Ring", icon: FaRing, color: "text-yellow-500", category: "Fashion & Accessories" },
+    { key: "bed", label: "Bed", icon: FaBed, color: "text-blue-600", category: "Fashion & Accessories" },
     
     // Animals & Nature
     { key: "cat", label: "Cat", icon: FaCat, color: "text-orange-500", category: "Animals & Nature" },
@@ -295,11 +319,16 @@ export const loadAllFallingIcons = async (): Promise<{
     { key: "ghost", label: "Ghost", icon: FaGhost, color: "text-gray-400", category: "Animals & Nature" },
     { key: "robot", label: "Robot", icon: FaRobot, color: "text-blue-600", category: "Animals & Nature" },
     { key: "bone", label: "Bone", icon: FaBone, color: "text-gray-400", category: "Animals & Nature" },
+    { key: "bird", label: "Bird", icon: FaBird, color: "text-blue-500", category: "Animals & Nature" },
+    { key: "otter", label: "Otter", icon: FaOtter, color: "text-brown-600", category: "Animals & Nature" },
+    { key: "acorn", label: "Acorn", icon: FaAcorn, color: "text-amber-800", category: "Animals & Nature" },
+    { key: "cannabis", label: "Cannabis Leaf", icon: FaCannabis, color: "text-green-600", category: "Animals & Nature" },
     
     // Time & Communication
     { key: "clock", label: "Clock", icon: FaClock, color: "text-gray-600", category: "Time & Communication" },
     { key: "bell", label: "Bell", icon: FaBell, color: "text-yellow-500", category: "Time & Communication" },
     { key: "mapmarkeralt", label: "Location", icon: FaMapMarkerAlt, color: "text-red-500", category: "Time & Communication" },
+    { key: "questioncircle", label: "Question", icon: FaQuestionCircle, color: "text-blue-500", category: "Time & Communication" },
     
     // Community & Support
     { key: "heartbeat", label: "Heartbeat", icon: FaHeartbeat, color: "text-red-500", category: "Community & Support" },
