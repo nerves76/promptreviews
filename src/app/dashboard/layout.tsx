@@ -67,6 +67,25 @@ export default function DashboardLayout({
   useEffect(() => {
     const checkAuthAndOnboarding = async () => {
       try {
+        // DEVELOPMENT MODE BYPASS - Check for dev bypass flag  
+        if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined') {
+          const devBypass = localStorage.getItem('dev_auth_bypass');
+          if (devBypass === 'true') {
+            console.log('🔧 DEV MODE: DashboardLayout using authentication bypass');
+            const mockUser = {
+              id: 'dev-user-12345',
+              email: 'dev@example.com',
+              user_metadata: {
+                first_name: 'Dev',
+                last_name: 'User'
+              }
+            };
+            setUser(mockUser);
+            setLoading(false);
+            return;
+          }
+        }
+        
         const { data: { user }, error } = await supabase.auth.getUser();
 
         if (error || !user) {
