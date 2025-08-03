@@ -90,7 +90,7 @@ export default function RecentReviewsButton({
           e.currentTarget.style.backgroundColor = "transparent";
           e.currentTarget.style.color = businessProfile?.secondary_color || "#4F46E5";
         }}
-        aria-label={`View recent reviews (${reviewCount} available)`}
+        aria-label="View recent reviews"
       >
         <Icon 
           name="FaComments" 
@@ -98,11 +98,6 @@ export default function RecentReviewsButton({
           size={16}
         />
         <span>Recent reviews</span>
-        {reviewCount > 0 && (
-          <span className="text-xs opacity-75">
-            ({reviewCount})
-          </span>
-        )}
       </button>
     </div>
   );

@@ -76,7 +76,7 @@ export default function RecentReviewsFeature({
             </span>
           </div>
           <div className="text-sm text-gray-700 mt-[3px] ml-9">
-            Show a "Recent reviews" button below your business name. Displays the latest reviews with initials for privacy. Only appears when you have 3+ reviews.
+            Show a "Recent reviews" button below on your Prompt Page to inspire visitors or help them come up with ideas for their own review. Displays the latest 5 reviews with only the reviewer's initials for privacy. Note: Button only appears when you have 3+ reviews.
           </div>
         </div>
         <div className="flex flex-col justify-start pt-1">
@@ -110,10 +110,10 @@ export default function RecentReviewsFeature({
             <div className="text-sm text-blue-800">
               <p className="font-medium mb-1">How it works:</p>
               <ul className="space-y-1 text-blue-700">
-                <li>• Activates "Recent reviews" button below business name</li>
+                <li>• Activates "Recent reviews" button on your Prompt Page</li>
                 <li>• Only appears when you have 3+ reviews</li>
-                <li>• On click, displays 3-4 most recent reviews in your account</li>
-                <li>• Shows visitor initials only (e.g., "J.D.") for privacy</li>
+                <li>• On click, displays the latest 5 reviews to inspire visitors</li>
+                <li>• Shows reviewer initials only (e.g., "J.D.") for privacy</li>
                 <li>• Excludes private feedback and incomplete submissions</li>
                 <li>• Automatically filters out duplicate reviews</li>
               </ul>
