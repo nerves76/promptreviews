@@ -52,16 +52,16 @@ interface AnalyticsData {
   verifiedReviewsYear: number;
 }
 
-// Map sentiment keys to FontAwesome icons and labels
+// Map sentiment keys to FontAwesome icons and labels - matches emojiSentimentConfig.ts
 const emojiSentimentMap = [
   {
     key: "excellent",
-    icon: <Icon name="FaGrinStars" className="w-8 h-8 text-yellow-400" size={32} />,
+    icon: <Icon name="FaGrinHearts" className="w-8 h-8 text-pink-400" size={32} />,
     label: "Excellent",
   },
   {
     key: "satisfied",
-    icon: <Icon name="FaSmile" className="w-8 h-8 text-green-400" size={32} />,
+    icon: <Icon name="FaSmile" className="w-8 h-8 text-green-500" size={32} />,
     label: "Satisfied",
   },
   {
@@ -70,14 +70,14 @@ const emojiSentimentMap = [
     label: "Neutral",
   },
   {
-    key: "dissatisfied",
+    key: "unsatisfied",
     icon: <Icon name="FaFrown" className="w-8 h-8 text-orange-400" size={32} />,
-    label: "Dissatisfied",
+    label: "Unsatisfied",
   },
   {
-    key: "angry",
-    icon: <Icon name="FaAngry" className="w-8 h-8 text-red-400" size={32} />,
-    label: "Angry",
+    key: "frustrated",
+    icon: <Icon name="FaAngry" className="w-8 h-8 text-red-500" size={32} />,
+    label: "Frustrated",
   },
 ];
 
