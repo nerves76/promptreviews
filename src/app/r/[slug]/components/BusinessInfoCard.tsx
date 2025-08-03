@@ -126,7 +126,9 @@ export default function BusinessInfoCard({ businessProfile, reviewType, promptPa
         
         {/* Employee Name or Business Name */}
         <h1
-          className={`text-3xl font-bold text-center mb-1 pr-32 ${getFontClass(businessProfile?.primary_font || "")}`}
+          className={`text-3xl font-bold text-center mb-1 ${
+            promptPage?.id && promptPage?.recent_reviews_enabled && onOpenRecentReviews ? 'pr-32' : ''
+          } ${getFontClass(businessProfile?.primary_font || "")}`}
           style={{ color: businessProfile?.primary_color || "#4F46E5" }}
         >
           {reviewType === 'employee' && promptPage?.emp_first_name && promptPage?.emp_last_name ? (
@@ -138,12 +140,16 @@ export default function BusinessInfoCard({ businessProfile, reviewType, promptPa
         
         {/* Employee Role or Address under name */}
         {reviewType === 'employee' && promptPage?.emp_position && businessProfile?.business_name ? (
-          <div className={`text-center text-base text-gray-600 font-medium pr-32 ${getFontClass(businessProfile?.secondary_font || "")}`}>
+          <div className={`text-center text-base text-gray-600 font-medium ${
+            promptPage?.id && promptPage?.recent_reviews_enabled && onOpenRecentReviews ? 'pr-32' : ''
+          } ${getFontClass(businessProfile?.secondary_font || "")}`}>
             {promptPage.emp_position} at {businessProfile.business_name}
           </div>
         ) : (
           (businessProfile?.address_street || businessProfile?.address_city || businessProfile?.address_state) && (
-            <div className={`text-center text-base text-gray-600 font-medium pr-32 ${getFontClass(businessProfile?.secondary_font || "")}`}>
+            <div className={`text-center text-base text-gray-600 font-medium ${
+              promptPage?.id && promptPage?.recent_reviews_enabled && onOpenRecentReviews ? 'pr-32' : ''
+            } ${getFontClass(businessProfile?.secondary_font || "")}`}>
               {getAddressDisplay()}
             </div>
           )
