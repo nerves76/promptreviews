@@ -60,6 +60,42 @@ export async function POST(request: NextRequest) {
     console.log(`[BUSINESSES] Creating business: ${name} for account: ${account_id}`);
 
     const supabase = createServiceRoleClient();
+    
+    // DEVELOPMENT MODE BYPASS - Create mock account if it doesn't exist
+    if (process.env.NODE_ENV === 'development' && account_id === '87654321-4321-4321-4321-210987654321') {
+      console.log('🔧 DEV MODE: Ensuring mock account exists for business creation');
+      
+      // Check if mock account exists
+      const { data: existingAccount } = await supabase
+        .from('accounts')
+        .select('id')
+        .eq('id', account_id)
+        .single();
+      
+      if (!existingAccount) {
+        console.log('🔧 DEV MODE: Creating mock account for development');
+        const { error: accountError } = await supabase
+          .from('accounts')
+          .insert([{
+            id: account_id,
+            user_id: '12345678-1234-1234-1234-123456789012',
+            email: 'dev@example.com',
+            first_name: 'Dev',
+            last_name: 'User',
+            plan: 'free',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          }]);
+        
+        if (accountError) {
+          console.error('🔧 DEV MODE: Failed to create mock account:', accountError);
+        } else {
+          console.log('🔧 DEV MODE: Mock account created successfully');
+        }
+      } else {
+        console.log('🔧 DEV MODE: Mock account already exists');
+      }
+    }
 
     // Convert industry string to array if it's a string
     let industryData = businessData.industry || null;
