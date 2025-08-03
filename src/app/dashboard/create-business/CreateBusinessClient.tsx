@@ -55,7 +55,7 @@ export default function CreateBusinessClient() {
         console.log('🔍 CreateBusinessClient: Setting up business creation...');
         
         // Get current user (should already be authenticated by layout)
-        const { data: { user }, error } = await supabase.auth.getUser();
+        const { data: { user }, error } = await getUserOrMock(supabase);
 
         if (error || !user) {
           console.error('❌ CreateBusinessClient: User not authenticated:', error);
