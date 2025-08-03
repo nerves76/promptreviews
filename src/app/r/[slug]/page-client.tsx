@@ -1245,9 +1245,9 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
         
         // Track the emoji selection for analytics
         sendAnalyticsEvent({
-          event: 'emoji_sentiment_selected',
-          sentiment: emojiSentiment,
           promptPageId: promptPage?.id,
+          eventType: 'emoji_sentiment',
+          emoji_sentiment: emojiSentiment,
           source: source || 'url_parameter'
         });
       } else {
