@@ -328,10 +328,11 @@ export default function AnalyticsPage() {
               });
               break;
             case "emoji_sentiment":
-              if (event.emoji_sentiment) {
-                analyticsData.emojiSentiments[event.emoji_sentiment] =
-                  (analyticsData.emojiSentiments[event.emoji_sentiment] || 0) +
-                  1;
+              // Handle both direct event fields and metadata
+              const sentiment = event.emoji_sentiment || event.metadata?.emoji_sentiment;
+              if (sentiment) {
+                analyticsData.emojiSentiments[sentiment] =
+                  (analyticsData.emojiSentiments[sentiment] || 0) + 1;
               }
               break;
             case "emoji_sentiment_choice":
@@ -345,6 +346,32 @@ export default function AnalyticsPage() {
                   analyticsData.emojiSentimentChoices[event.emoji_sentiment].public += 1;
                 } else if (event.choice === 'private') {
                   analyticsData.emojiSentimentChoices[event.emoji_sentiment].private += 1;
+                }
+              }
+              break;
+            case "feature_used":
+              // Handle emoji sentiment events stored as feature_used
+              if (event.metadata?.feature === 'emoji_sentiment' && event.metadata?.emoji_sentiment) {
+                const sentiment = event.metadata.emoji_sentiment;
+                analyticsData.emojiSentiments[sentiment] =
+                  (analyticsData.emojiSentiments[sentiment] || 0) + 1;
+              }
+              // Handle emoji sentiment choices stored as feature_used events
+              else if (event.metadata?.feature === 'emoji_sentiment_choice' && 
+                  event.metadata?.emoji_sentiment && 
+                  event.metadata?.choice) {
+                const sentiment = event.metadata.emoji_sentiment;
+                const choice = event.metadata.choice;
+                
+                // Initialize sentiment choice tracking if not exists
+                if (!analyticsData.emojiSentimentChoices[sentiment]) {
+                  analyticsData.emojiSentimentChoices[sentiment] = { public: 0, private: 0 };
+                }
+                // Increment the appropriate choice counter
+                if (choice === 'public') {
+                  analyticsData.emojiSentimentChoices[sentiment].public += 1;
+                } else if (choice === 'private') {
+                  analyticsData.emojiSentimentChoices[sentiment].private += 1;
                 }
               }
               break;
