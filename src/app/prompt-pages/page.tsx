@@ -36,7 +36,7 @@ function PromptPagesContent() {
   const supabase = createClient();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { hasBusiness } = useAuth();
+  const { hasBusiness, user: authUser, accountId: authAccountId, isLoading: authLoading } = useAuth();
 
   const [loading, setLoading] = useState(true);
   const [promptPages, setPromptPages] = useState<any[]>([]);
@@ -125,22 +125,18 @@ function PromptPagesContent() {
 
   useEffect(() => {
     async function fetchData() {
+      // Don't fetch if auth is still loading
+      if (authLoading) return;
+      
       setLoading(true);
       setError(null);
       try {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-        if (!user) throw new Error("Not signed in");
+        // Use auth context user and accountId instead of direct Supabase call
+        if (!authUser) throw new Error("Not signed in");
+        if (!authAccountId) throw new Error("No account found for user");
         
-        setUser(user);
-        
-        // Get the account ID for the user
-        const accountId = await getAccountIdForUser(user.id, supabase);
-        
-        if (!accountId) {
-          throw new Error("No account found for user");
-        }
+        setUser(authUser);
+        const accountId = authAccountId;
 
         // Fetch account data for plan info
         const { data: accountData } = await supabase
@@ -227,7 +223,7 @@ function PromptPagesContent() {
       }
     }
     fetchData();
-  }, [supabase]);
+  }, [supabase, authLoading, authUser, authAccountId]);
 
   const fetchLocations = async (accountId: string) => {
     try {
