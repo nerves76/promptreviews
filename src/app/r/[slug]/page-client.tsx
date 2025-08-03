@@ -2764,8 +2764,8 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
       
 
 
-      {/* Style Modal */}
-      {showStyleModal && (
+      {/* Style Modal - Only for authenticated users who own this prompt page */}
+      {showStyleModal && user && canUserEdit && (
         <StyleModalPage 
           onClose={() => setShowStyleModal(false)} 
           onStyleUpdate={handleStyleUpdate}
