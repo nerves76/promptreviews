@@ -57,7 +57,6 @@ export async function POST(request: NextRequest) {
       first_name: first_name || email.split('@')[0], // Use provided first_name or email prefix as fallback
       last_name: last_name || '', // Use provided last_name or empty string as fallback
       email: email,
-      has_seen_welcome: false,
       review_notifications_enabled: true
     };
 
