@@ -1385,6 +1385,9 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
     }
   }, [promptPage, businessProfile]);
 
+  // List of system fonts that don't need to be loaded from Google Fonts
+  const SYSTEM_FONTS = ['Arial', 'Helvetica', 'Times New Roman', 'Times', 'Courier New', 'Courier', 'Verdana', 'Georgia', 'Palatino', 'Garamond', 'Bookman', 'Comic Sans MS', 'Trebuchet MS', 'Arial Black', 'Impact'];
+
   // SIMPLIFIED font loading that doesn't block the page
   useEffect(() => {
     if (!businessProfile) return;
@@ -1416,9 +1419,6 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
     // Load fonts in background after setting styles
     loadCustomFonts();
   }, [businessProfile]);
-
-  // List of system fonts that don't need to be loaded from Google Fonts
-  const SYSTEM_FONTS = ['Arial', 'Helvetica', 'Times New Roman', 'Times', 'Courier New', 'Courier', 'Verdana', 'Georgia', 'Palatino', 'Garamond', 'Bookman', 'Comic Sans MS', 'Trebuchet MS', 'Arial Black', 'Impact'];
 
   // Import the font loading function
   const loadGoogleFont = async (fontName: string): Promise<void> => {
