@@ -1334,6 +1334,19 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
     }
   }, [promptPage, mergedFallingEnabled, sentimentComplete, sentiment]);
 
+  // Trigger falling animation immediately when page loads if emoji sentiment is disabled
+  useEffect(() => {
+    if (
+      promptPage?.falling_icon &&
+      mergedFallingEnabled &&
+      !mergedEmojiSentimentEnabled &&
+      promptPage // Ensure promptPage is loaded
+    ) {
+      setShowStarRain(false);
+      setTimeout(() => setShowStarRain(true), 100);
+    }
+  }, [promptPage, mergedFallingEnabled, mergedEmojiSentimentEnabled]);
+
   // Function to generate direct links to emoji sentiment step 2
   const generateEmojiStep2Link = (sentiment: string) => {
     const currentUrl = new URL(window.location.href);
