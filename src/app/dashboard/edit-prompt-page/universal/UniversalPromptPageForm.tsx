@@ -258,6 +258,7 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
         aiButtonEnabled,
         fixGrammarEnabled,
         notePopupEnabled,
+        showFriendlyNote,
         friendlyNote,
         kickstartersEnabled,
         selectedKickstarters,
