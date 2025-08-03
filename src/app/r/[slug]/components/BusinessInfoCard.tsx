@@ -110,20 +110,8 @@ export default function BusinessInfoCard({ businessProfile, reviewType, promptPa
         </div>
       </div>
       
-      {/* Content Area with Title/Location and Recent Reviews Button */}
-      <div className="mt-24 relative">
-        {/* Recent Reviews Button - Positioned at bottom-right */}
-        {promptPage?.id && promptPage?.recent_reviews_enabled && onOpenRecentReviews && (
-          <div className="absolute bottom-0 right-0">
-            <RecentReviewsButton
-              promptPageId={promptPage.id}
-              enabled={promptPage.recent_reviews_enabled}
-              businessProfile={businessProfile}
-              onOpenModal={onOpenRecentReviews}
-            />
-          </div>
-        )}
-        
+      {/* Content Area with Title/Location */}
+      <div className="mt-24">
         {/* Employee Name or Business Name */}
         <h1
           className={`text-3xl font-bold text-center mb-1 ${getFontClass(businessProfile?.primary_font || "")}`}
@@ -149,6 +137,18 @@ export default function BusinessInfoCard({ businessProfile, reviewType, promptPa
           )
         )}
       </div>
+      
+      {/* Recent Reviews Button - Positioned separately at bottom-right */}
+      {promptPage?.id && promptPage?.recent_reviews_enabled && onOpenRecentReviews && (
+        <div className="absolute bottom-4 right-4">
+          <RecentReviewsButton
+            promptPageId={promptPage.id}
+            enabled={promptPage.recent_reviews_enabled}
+            businessProfile={businessProfile}
+            onOpenModal={onOpenRecentReviews}
+          />
+        </div>
+      )}
     </div>
   );
 } 
