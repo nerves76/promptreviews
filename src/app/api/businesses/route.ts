@@ -61,9 +61,38 @@ export async function POST(request: NextRequest) {
 
     const supabase = createServiceRoleClient();
     
-    // DEVELOPMENT MODE BYPASS - Create mock account if it doesn't exist
+    // DEVELOPMENT MODE BYPASS - Create mock user and account if they don't exist
     if (process.env.NODE_ENV === 'development' && account_id === '87654321-4321-4321-4321-210987654321') {
-      console.log('🔧 DEV MODE: Ensuring mock account exists for business creation');
+      console.log('🔧 DEV MODE: Ensuring mock user and account exist for business creation');
+      
+      const mockUserId = '12345678-1234-1234-1234-123456789012';
+      
+      // Check if mock user exists
+      const { data: existingUser } = await supabase
+        .from('users')
+        .select('id')
+        .eq('id', mockUserId)
+        .single();
+      
+      if (!existingUser) {
+        console.log('🔧 DEV MODE: Creating mock user for development');
+        const { error: userError } = await supabase
+          .from('users')
+          .insert([{
+            id: mockUserId,
+            email: 'dev@example.com',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          }]);
+        
+        if (userError) {
+          console.error('🔧 DEV MODE: Failed to create mock user:', userError);
+        } else {
+          console.log('🔧 DEV MODE: Mock user created successfully');
+        }
+      } else {
+        console.log('🔧 DEV MODE: Mock user already exists');
+      }
       
       // Check if mock account exists
       const { data: existingAccount } = await supabase
@@ -78,7 +107,7 @@ export async function POST(request: NextRequest) {
           .from('accounts')
           .insert([{
             id: account_id,
-            user_id: '12345678-1234-1234-1234-123456789012',
+            user_id: mockUserId,
             email: 'dev@example.com',
             first_name: 'Dev',
             last_name: 'User',
