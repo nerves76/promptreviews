@@ -23,9 +23,14 @@ export interface RecentReviewsFeatureProps {
   onEnabledChange?: (enabled: boolean) => void;
   /** Alternative callback for toggle (same as onEnabledChange) */
   onToggle?: (enabled: boolean) => void;
+  /** Scope for recent reviews: 'current_page' or 'all_pages' */
+  scope?: 'current_page' | 'all_pages';
+  /** Callback when the scope changes */
+  onScopeChange?: (scope: 'current_page' | 'all_pages') => void;
   /** Initial values for the component */
   initialData?: {
     recent_reviews_enabled?: boolean;
+    recent_reviews_scope?: 'current_page' | 'all_pages';
   };
   /** Whether the component is disabled */
   disabled?: boolean;
@@ -37,23 +42,33 @@ export default function RecentReviewsFeature({
   enabled,
   onEnabledChange,
   onToggle,
+  scope = 'current_page',
+  onScopeChange,
   initialData,
   disabled = false,
   editMode = false,
 }: RecentReviewsFeatureProps) {
   // Initialize state from props and initialData
   const [isEnabled, setIsEnabled] = useState(enabled);
+  const [reviewScope, setReviewScope] = useState<'current_page' | 'all_pages'>(scope);
 
   // Update state when props change
   useEffect(() => {
     setIsEnabled(enabled);
   }, [enabled]);
 
+  useEffect(() => {
+    setReviewScope(scope);
+  }, [scope]);
+
   // Initialize from initialData if provided
   useEffect(() => {
     if (initialData) {
       if (initialData.recent_reviews_enabled !== undefined) {
         setIsEnabled(initialData.recent_reviews_enabled);
+      }
+      if (initialData.recent_reviews_scope !== undefined) {
+        setReviewScope(initialData.recent_reviews_scope);
       }
     }
   }, [initialData]);
@@ -63,6 +78,11 @@ export default function RecentReviewsFeature({
     setIsEnabled(newEnabled);
     onEnabledChange?.(newEnabled);
     onToggle?.(newEnabled);
+  };
+
+  const handleScopeChange = (newScope: 'current_page' | 'all_pages') => {
+    setReviewScope(newScope);
+    onScopeChange?.(newScope);
   };
 
   return (
@@ -100,8 +120,48 @@ export default function RecentReviewsFeature({
 
       {/* Feature Details when enabled */}
       {isEnabled && (
-        <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
-          <div className="flex items-start space-x-3">
+        <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200 space-y-4">
+          {/* Scope Selection */}
+          <div>
+            <label className="block text-sm font-medium text-blue-800 mb-2">
+              Review Source
+            </label>
+            <div className="space-y-2">
+              <label className="flex items-center">
+                <input
+                  type="radio"
+                  name="reviewScope"
+                  value="current_page"
+                  checked={reviewScope === 'current_page'}
+                  onChange={(e) => handleScopeChange(e.target.value as 'current_page' | 'all_pages')}
+                  disabled={disabled}
+                  className="mr-3 text-blue-600"
+                />
+                <div>
+                  <div className="text-sm text-blue-800 font-medium">This prompt page only</div>
+                  <div className="text-xs text-blue-600">Show reviews submitted specifically for this prompt page</div>
+                </div>
+              </label>
+              <label className="flex items-center">
+                <input
+                  type="radio"
+                  name="reviewScope"
+                  value="all_pages"
+                  checked={reviewScope === 'all_pages'}
+                  onChange={(e) => handleScopeChange(e.target.value as 'current_page' | 'all_pages')}
+                  disabled={disabled}
+                  className="mr-3 text-blue-600"
+                />
+                <div>
+                  <div className="text-sm text-blue-800 font-medium">All my prompt pages</div>
+                  <div className="text-xs text-blue-600">Show reviews from all your prompt pages (great for multi-location businesses)</div>
+                </div>
+              </label>
+            </div>
+          </div>
+          
+          {/* How it works info */}
+          <div className="flex items-start space-x-3 pt-2 border-t border-blue-200">
             <Icon 
               name="FaInfoCircle" 
               className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" 
