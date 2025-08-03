@@ -55,6 +55,7 @@ export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const notificationsButtonRef = useRef<HTMLButtonElement>(null);
   const accountButtonRef = useRef<HTMLButtonElement>(null);
   const accountMenuRef = useRef<HTMLDivElement>(null);
   
@@ -483,6 +484,7 @@ export default function Header() {
             <div className="hidden md:flex items-center">
               <div className="relative top-1">
                 <button
+                  ref={notificationsButtonRef}
                   className="relative focus:outline-none"
                   onClick={() => setShowNotifications((v) => !v)}
                   aria-label="Show notifications"
@@ -494,14 +496,17 @@ export default function Header() {
                     </span>
                   )}
                 </button>
-                {showNotifications && (
+                {/* Notifications Dropdown - Rendered in Portal */}
+                {showNotifications && typeof window !== 'undefined' && createPortal(
                   <div
                     ref={menuRef}
-                    className="absolute right-0 mt-8 w-80 bg-white/95 backdrop-blur-sm rounded-lg shadow-lg border border-white/20"
+                    className="fixed w-80 bg-white/95 backdrop-blur-sm rounded-lg shadow-lg border border-white/20"
                     style={{
                       maxHeight: '400px',
                       overflowY: 'auto',
-                      zIndex: 2147483647
+                      zIndex: 2147483649, // Higher than account switcher to ensure it's on top
+                      top: notificationsButtonRef.current ? notificationsButtonRef.current.getBoundingClientRect().bottom + 8 : 0,
+                      right: window.innerWidth - (notificationsButtonRef.current ? notificationsButtonRef.current.getBoundingClientRect().right : 0)
                     }}
                   >
                     <div className="p-4">
@@ -528,7 +533,8 @@ export default function Header() {
                         </div>
                       )}
                     </div>
-                  </div>
+                  </div>,
+                  document.body
                 )}
               </div>
             </div>
