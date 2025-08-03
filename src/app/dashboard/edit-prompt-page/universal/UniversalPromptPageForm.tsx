@@ -35,6 +35,7 @@ export interface UniversalPromptFormState {
   aiButtonEnabled: boolean;
   fixGrammarEnabled: boolean;
   notePopupEnabled: boolean;
+  showFriendlyNote: boolean;
   friendlyNote: string;
   kickstartersEnabled: boolean;
   selectedKickstarters: string[];
@@ -114,6 +115,9 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
     );
     const [notePopupEnabled, setNotePopupEnabled] = useState(
       initialData?.notePopupEnabled ?? false,
+    );
+    const [showFriendlyNote, setShowFriendlyNote] = useState(
+      initialData?.showFriendlyNote ?? false,
     );
     const [friendlyNote, setFriendlyNote] = useState(
       initialData?.friendlyNote ?? "",
@@ -197,6 +201,7 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
             aiButtonEnabled,
             fixGrammarEnabled,
             notePopupEnabled: notePopupEnabled,
+            showFriendlyNote: showFriendlyNote,
             friendlyNote,
             kickstartersEnabled,
             selectedKickstarters,
@@ -221,6 +226,7 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
                       aiButtonEnabled,
             fixGrammarEnabled,
             notePopupEnabled: notePopupEnabled,
+            showFriendlyNote: showFriendlyNote,
             friendlyNote,
             kickstartersEnabled,
             selectedKickstarters,
@@ -356,8 +362,8 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
 
           {/* Personalized Note Feature */}
           <PersonalizedNoteFeature
-            enabled={notePopupEnabled}
-            onToggle={handleNotePopupClick}
+            enabled={showFriendlyNote}
+            onToggle={setShowFriendlyNote}
             note={friendlyNote}
             onNoteChange={setFriendlyNote}
             disabled={emojiSentimentEnabled}
