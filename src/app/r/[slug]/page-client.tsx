@@ -2311,6 +2311,16 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                           setSentiment(selectedNegativeSentiment);
                           setSentimentComplete(true);
                           setShowChoiceModal(false);
+                          
+                          // Track the private feedback choice for analytics
+                          sendAnalyticsEvent({
+                            promptPageId: promptPage?.id,
+                            eventType: 'emoji_sentiment_choice',
+                            emoji_sentiment: selectedNegativeSentiment,
+                            choice: 'private',
+                            source: 'negative_sentiment_flow'
+                          });
+                          
                           setSelectedNegativeSentiment(null);
                           setShowFeedbackForm(true);
                         }}
@@ -2331,6 +2341,16 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                           setSentiment(selectedNegativeSentiment);
                           setSentimentComplete(true);
                           setShowChoiceModal(false);
+                          
+                          // Track the public review choice for analytics
+                          sendAnalyticsEvent({
+                            promptPageId: promptPage?.id,
+                            eventType: 'emoji_sentiment_choice',
+                            emoji_sentiment: selectedNegativeSentiment,
+                            choice: 'public',
+                            source: 'negative_sentiment_flow'
+                          });
+                          
                           setSelectedNegativeSentiment(null);
                           
                           // Force the review form to show instead of feedback form
@@ -2650,6 +2670,16 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                   setSentiment(selectedNegativeSentiment);
                   setSentimentComplete(true);
                   setShowChoiceModal(false);
+                  
+                  // Track the private feedback choice for analytics
+                  sendAnalyticsEvent({
+                    promptPageId: promptPage?.id,
+                    eventType: 'emoji_sentiment_choice',
+                    emoji_sentiment: selectedNegativeSentiment,
+                    choice: 'private',
+                    source: 'negative_sentiment_flow'
+                  });
+                  
                   setSelectedNegativeSentiment(null);
                   setShowFeedbackForm(true);
                 }}
@@ -2670,6 +2700,16 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                   setSentiment(selectedNegativeSentiment);
                   setSentimentComplete(true);
                   setShowChoiceModal(false);
+                  
+                  // Track the public review choice for analytics
+                  sendAnalyticsEvent({
+                    promptPageId: promptPage?.id,
+                    eventType: 'emoji_sentiment_choice',
+                    emoji_sentiment: selectedNegativeSentiment,
+                    choice: 'public',
+                    source: 'negative_sentiment_flow'
+                  });
+                  
                   setSelectedNegativeSentiment(null);
                   
                   // Force the review form to show instead of feedback form

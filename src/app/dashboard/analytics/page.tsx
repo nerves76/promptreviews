@@ -38,6 +38,7 @@ interface AnalyticsData {
   copySubmits: number;
   views: number;
   emojiSentiments: Record<string, number>;
+  emojiSentimentChoices: Record<string, { public: number; private: number }>;
   feedbacks: { sentiment: string; feedback: string; date: string }[];
   websiteClicks: number;
   socialClicks: Record<string, number>;
@@ -270,6 +271,7 @@ export default function AnalyticsPage() {
           copySubmits: 0,
           views: 0,
           emojiSentiments: {},
+          emojiSentimentChoices: {},
           feedbacks: [],
           websiteClicks: 0,
           socialClicks: {},
@@ -330,6 +332,20 @@ export default function AnalyticsPage() {
                 analyticsData.emojiSentiments[event.emoji_sentiment] =
                   (analyticsData.emojiSentiments[event.emoji_sentiment] || 0) +
                   1;
+              }
+              break;
+            case "emoji_sentiment_choice":
+              if (event.emoji_sentiment && event.choice) {
+                // Initialize sentiment choice tracking if not exists
+                if (!analyticsData.emojiSentimentChoices[event.emoji_sentiment]) {
+                  analyticsData.emojiSentimentChoices[event.emoji_sentiment] = { public: 0, private: 0 };
+                }
+                // Increment the appropriate choice counter
+                if (event.choice === 'public') {
+                  analyticsData.emojiSentimentChoices[event.emoji_sentiment].public += 1;
+                } else if (event.choice === 'private') {
+                  analyticsData.emojiSentimentChoices[event.emoji_sentiment].private += 1;
+                }
               }
               break;
             case "constructive_feedback":
@@ -547,6 +563,52 @@ export default function AnalyticsPage() {
                 </span>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* Negative Emoji Sentiment Choices */}
+      {analytics && Object.keys(analytics.emojiSentimentChoices).length > 0 && (
+        <div className="mb-12 bg-white rounded-lg shadow p-6">
+          <h3 className="text-lg font-semibold mb-4">Negative Sentiment: Public vs Private Choice</h3>
+          <p className="text-sm text-gray-600 mb-6">
+            When users select negative emojis (neutral, unsatisfied, frustrated), they choose to either post publicly or send private feedback.
+          </p>
+          <div className="space-y-6">
+            {Object.entries(analytics.emojiSentimentChoices).map(([sentiment, choices]) => {
+              const sentimentData = emojiSentimentMap.find(s => s.key === sentiment);
+              const total = choices.public + choices.private;
+              const publicPercentage = total > 0 ? Math.round((choices.public / total) * 100) : 0;
+              const privatePercentage = total > 0 ? Math.round((choices.private / total) * 100) : 0;
+              
+              return (
+                <div key={sentiment} className="border border-gray-200 rounded-lg p-4">
+                  <div className="flex items-center gap-3 mb-3">
+                    {sentimentData && sentimentData.icon}
+                    <span className="font-medium capitalize">{sentiment}</span>
+                    <span className="text-sm text-gray-500">({total} total choices)</span>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-slate-50 p-3 rounded">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium text-slate-700">Public Reviews</span>
+                        <span className="text-lg font-bold text-slate-blue">{choices.public}</span>
+                      </div>
+                      <div className="mt-1 text-xs text-slate-600">{publicPercentage}% chose to post publicly</div>
+                    </div>
+                    
+                    <div className="bg-blue-50 p-3 rounded">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium text-blue-700">Private Feedback</span>
+                        <span className="text-lg font-bold text-blue-600">{choices.private}</span>
+                      </div>
+                      <div className="mt-1 text-xs text-blue-600">{privatePercentage}% chose private feedback</div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}
