@@ -78,18 +78,20 @@ export async function POST(request: NextRequest) {
         console.log('🔧 DEV MODE: Creating mock account for development (will create auth.users record via raw SQL)');
         
         // First, create the auth.users record using raw SQL to bypass normal auth flow
-        const { error: authUserError } = await supabase.sql`
-          INSERT INTO auth.users (id, email, created_at, updated_at, email_confirmed_at, raw_user_meta_data)
-          VALUES (
-            ${mockUserId}::uuid, 
-            'dev@example.com', 
-            NOW(), 
-            NOW(), 
-            NOW(),
-            '{"first_name": "Dev", "last_name": "User"}'::jsonb
-          )
-          ON CONFLICT (id) DO NOTHING;
-        `;
+        const { error: authUserError } = await supabase.rpc('exec_sql', {
+          sql: `
+            INSERT INTO auth.users (id, email, created_at, updated_at, email_confirmed_at, raw_user_meta_data)
+            VALUES (
+              '${mockUserId}'::uuid, 
+              'dev@example.com', 
+              NOW(), 
+              NOW(), 
+              NOW(),
+              '{"first_name": "Dev", "last_name": "User"}'::jsonb
+            )
+            ON CONFLICT (id) DO NOTHING;
+          `
+        });
         
         if (authUserError) {
           console.error('🔧 DEV MODE: Failed to create auth.users record:', authUserError);
