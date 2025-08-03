@@ -110,40 +110,45 @@ export default function BusinessInfoCard({ businessProfile, reviewType, promptPa
         </div>
       </div>
       
-      {/* Employee Name or Business Name */}
-      <h1
-        className={`text-3xl font-bold text-center mb-1 mt-24 ${getFontClass(businessProfile?.primary_font || "")}`}
-        style={{ color: businessProfile?.primary_color || "#4F46E5" }}
-      >
-        {reviewType === 'employee' && promptPage?.emp_first_name && promptPage?.emp_last_name ? (
-          `${promptPage.emp_first_name} ${promptPage.emp_last_name}`
-        ) : (
-          businessProfile?.business_name || "Business Name"
-        )}
-      </h1>
-      
-      {/* Employee Role or Address under name */}
-      {reviewType === 'employee' && promptPage?.emp_position && businessProfile?.business_name ? (
-        <div className={`text-center text-base text-gray-600 font-medium ${getFontClass(businessProfile?.secondary_font || "")}`}>
-          {promptPage.emp_position} at {businessProfile.business_name}
-        </div>
-      ) : (
-        (businessProfile?.address_street || businessProfile?.address_city || businessProfile?.address_state) && (
-          <div className={`text-center text-base text-gray-600 font-medium ${getFontClass(businessProfile?.secondary_font || "")}`}>
-            {getAddressDisplay()}
+      {/* Content Area with Title/Location and Recent Reviews Button */}
+      <div className="mt-16 relative">
+        {/* Recent Reviews Button - Positioned on the right */}
+        {promptPage?.id && promptPage?.recent_reviews_enabled && onOpenRecentReviews && (
+          <div className="absolute top-4 right-0">
+            <RecentReviewsButton
+              promptPageId={promptPage.id}
+              enabled={promptPage.recent_reviews_enabled}
+              businessProfile={businessProfile}
+              onOpenModal={onOpenRecentReviews}
+            />
           </div>
-        )
-      )}
-
-      {/* Recent Reviews Button */}
-      {promptPage?.id && promptPage?.recent_reviews_enabled && onOpenRecentReviews && (
-        <RecentReviewsButton
-          promptPageId={promptPage.id}
-          enabled={promptPage.recent_reviews_enabled}
-          businessProfile={businessProfile}
-          onOpenModal={onOpenRecentReviews}
-        />
-      )}
+        )}
+        
+        {/* Employee Name or Business Name */}
+        <h1
+          className={`text-3xl font-bold text-center mb-1 pr-32 ${getFontClass(businessProfile?.primary_font || "")}`}
+          style={{ color: businessProfile?.primary_color || "#4F46E5" }}
+        >
+          {reviewType === 'employee' && promptPage?.emp_first_name && promptPage?.emp_last_name ? (
+            `${promptPage.emp_first_name} ${promptPage.emp_last_name}`
+          ) : (
+            businessProfile?.business_name || "Business Name"
+          )}
+        </h1>
+        
+        {/* Employee Role or Address under name */}
+        {reviewType === 'employee' && promptPage?.emp_position && businessProfile?.business_name ? (
+          <div className={`text-center text-base text-gray-600 font-medium pr-32 ${getFontClass(businessProfile?.secondary_font || "")}`}>
+            {promptPage.emp_position} at {businessProfile.business_name}
+          </div>
+        ) : (
+          (businessProfile?.address_street || businessProfile?.address_city || businessProfile?.address_state) && (
+            <div className={`text-center text-base text-gray-600 font-medium pr-32 ${getFontClass(businessProfile?.secondary_font || "")}`}>
+              {getAddressDisplay()}
+            </div>
+          )
+        )}
+      </div>
     </div>
   );
 } 
