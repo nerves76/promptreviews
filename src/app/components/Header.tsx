@@ -66,6 +66,7 @@ export default function Header() {
   
   // Track business profile task completion
   const [businessProfileCompleted, setBusinessProfileCompleted] = useState(false);
+  const [businessProfileLoaded, setBusinessProfileLoaded] = useState(false);
 
   // Check if user has Builder or Maven plan for GBP access
   const hasGBPAccess = currentPlan === 'builder' || currentPlan === 'maven';
@@ -88,8 +89,10 @@ export default function Header() {
           try {
             const taskStatus = await fetchOnboardingTasks(user.id);
             setBusinessProfileCompleted(taskStatus["business-profile"] || false);
+            setBusinessProfileLoaded(true);
           } catch (error) {
             console.error('Header: Error fetching onboarding tasks:', error);
+            setBusinessProfileLoaded(true); // Still mark as loaded even if there was an error
           }
           setUser(user);
         } else {
@@ -97,10 +100,12 @@ export default function Header() {
             console.log('Header: No user found');
           }
           setUser(null);
+          setBusinessProfileLoaded(true); // No user means no badge should show
         }
       } catch (error) {
         console.error('Header: Error getting user:', error);
         setUser(null);
+        setBusinessProfileLoaded(true); // Error means no badge should show
       }
     };
 
@@ -112,6 +117,8 @@ export default function Header() {
           console.log('Header: Auth state changed:', event, session?.user?.id);
         }
         setUser(session?.user || null);
+        // Reset business profile loaded state when auth changes
+        setBusinessProfileLoaded(false);
       }
     );
 
@@ -352,7 +359,7 @@ export default function Header() {
                     title={!hasBusiness ? "Create your business profile first" : ""}
                   >
                     Your business
-                    {hasBusiness && !businessProfileCompleted && (
+                    {hasBusiness && businessProfileLoaded && !businessProfileCompleted && (
                       <>
                         {/* Start Here Badge */}
                         <span className="absolute -top-3 -right-2 bg-yellow-400 text-yellow-900 text-xs px-2 py-1 rounded-full font-bold animate-pulse shadow-lg">
@@ -707,7 +714,7 @@ export default function Header() {
                       } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200 relative`}
                     >
                       Your business
-                      {hasBusiness && !businessProfileCompleted && (
+                      {hasBusiness && businessProfileLoaded && !businessProfileCompleted && (
                         <>
                           <span className="absolute -top-1 -right-1 bg-yellow-400 text-yellow-900 text-xs px-2 py-1 rounded-full font-bold animate-pulse">
                             Start Here!
