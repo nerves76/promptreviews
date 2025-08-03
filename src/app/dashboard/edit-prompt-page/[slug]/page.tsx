@@ -138,15 +138,16 @@ function mapToDbColumns(formData: any): any {
     delete insertData.reviewPlatforms;
   }
   
-  // Remove camelCase keys
+  // Remove camelCase keys (but keep the snake_case database columns we set above)
   delete insertData.emojiSentimentEnabled;
   delete insertData.emojiSentimentQuestion;
   delete insertData.emojiFeedbackMessage;
   delete insertData.emojiThankYouMessage;
   delete insertData.aiButtonEnabled;
   delete insertData.fallingEnabled;
-  delete insertData.fallingIcon;
-  delete insertData.fallingIconColor;
+  // Remove the camelCase versions, but keep falling_icon and falling_icon_color (snake_case)
+  delete insertData.fallingIcon;      // Remove camelCase version
+  delete insertData.fallingIconColor; // Remove camelCase version
   delete insertData.offerEnabled;
   delete insertData.offerTitle;
   delete insertData.offerBody;
