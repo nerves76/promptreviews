@@ -159,41 +159,44 @@ const Dashboard = React.memo(function Dashboard() {
           .eq("account_id", account.id)
           .order("created_at", { ascending: false }),
         
-        // Use a more defensive approach for widget_reviews
+        // Fetch review submissions for this account (properly filtered)
         (async () => {
           try {
-            console.log('🔍 Dashboard: Attempting to fetch widget_reviews...');
-            // First get the widget IDs for this account
-            const widgetIdsResult = await supabase
-              .from("widgets")
+            console.log('🔍 Dashboard: Attempting to fetch review_submissions...');
+            
+            // First get the prompt page IDs for this account
+            const promptPageIdsResult = await supabase
+              .from("prompt_pages")
               .select("id")
               .eq("account_id", account.id);
             
-            if (widgetIdsResult.error) {
-              console.error("Error fetching widget IDs:", widgetIdsResult.error);
-              return;
-            }
-            
-            const widgetIds = widgetIdsResult.data?.map(w => w.id) || [];
-            
-            if (widgetIds.length === 0) {
-              return; // No widgets, no reviews to check
-            }
-            
-            const result = await supabase
-              .from("widget_reviews")
-              .select("id, verified")
-              .in("widget_id", widgetIds);
-            
-            if (result.error) {
-              console.error('❌ Dashboard: widget_reviews query failed:', result.error);
-              // Return empty data instead of throwing
+            if (promptPageIdsResult.error) {
+              console.error("Error fetching prompt page IDs:", promptPageIdsResult.error);
               return { data: [], error: null };
             }
+            
+            const promptPageIds = promptPageIdsResult.data?.map(p => p.id) || [];
+            
+            if (promptPageIds.length === 0) {
+              console.log('🔍 Dashboard: No prompt pages found for account, returning empty reviews');
+              return { data: [], error: null };
+            }
+            
+            // Fetch review submissions for these prompt pages
+            const result = await supabase
+              .from("review_submissions")
+              .select("id, created_at, verified")
+              .in("prompt_page_id", promptPageIds);
+            
+            if (result.error) {
+              console.error('❌ Dashboard: review_submissions query failed:', result.error);
+              return { data: [], error: null };
+            }
+            
+            console.log('✅ Dashboard: Found', result.data?.length || 0, 'review submissions for account');
             return result;
           } catch (error) {
-            console.error('❌ Dashboard: widget_reviews query exception:', error);
-            // Return empty data instead of throwing
+            console.error('❌ Dashboard: review_submissions query exception:', error);
             return { data: [], error: null };
           }
         })(),
@@ -215,7 +218,7 @@ const Dashboard = React.memo(function Dashboard() {
         console.error('❌ Dashboard: widgets query failed:', widgetsResult.reason);
       }
       if (reviewsResult.status === 'rejected') {
-        console.error('❌ Dashboard: widget_reviews query failed:', reviewsResult.reason);
+        console.error('❌ Dashboard: review_submissions query failed:', reviewsResult.reason);
       }
       if (limitsResult.status === 'rejected') {
         console.error('❌ Dashboard: account limits check failed:', limitsResult.reason);
@@ -226,21 +229,42 @@ const Dashboard = React.memo(function Dashboard() {
       const customPromptPages = promptPages.filter(pp => !pp.is_universal);
       const universalUrl = universalPromptPage ? `${window.location.origin}/r/${universalPromptPage.slug}` : "";
 
-      // Calculate review statistics
+      // Calculate review statistics with proper date filtering
+      const now = new Date();
+      const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      const yearAgo = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
+
       const stats = {
         total: { week: 0, month: 0, year: 0 },
         verified: { week: 0, month: 0, year: 0 },
       };
 
       reviews.forEach((review) => {
-        // For now, count all reviews as recent since we don't have created_at
-        stats.total.week++;
-        stats.total.month++;
-        stats.total.year++;
+        const reviewDate = new Date(review.created_at);
+        
+        // Count total reviews by time period
+        if (reviewDate >= yearAgo) {
+          stats.total.year++;
+        }
+        if (reviewDate >= monthAgo) {
+          stats.total.month++;
+        }
+        if (reviewDate >= weekAgo) {
+          stats.total.week++;
+        }
+        
+        // Count verified reviews by time period
         if (review.verified) {
-          stats.verified.week++;
-          stats.verified.month++;
-          stats.verified.year++;
+          if (reviewDate >= yearAgo) {
+            stats.verified.year++;
+          }
+          if (reviewDate >= monthAgo) {
+            stats.verified.month++;
+          }
+          if (reviewDate >= weekAgo) {
+            stats.verified.week++;
+          }
         }
       });
 
