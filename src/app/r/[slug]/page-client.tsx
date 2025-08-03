@@ -41,7 +41,7 @@ const EmojiSentimentModal = dynamic(() => import("@/app/components/EmojiSentimen
 const RecentReviewsModal = dynamic(() => import("@/app/components/RecentReviewsModal"), { 
   ssr: false 
 });
-const StyleModalPage = dynamic(() => import("../../dashboard/style/StyleModalPage").then(mod => ({ default: mod.default })), { 
+const StyleModalPage = dynamic(() => import("../../dashboard/style/StyleModalPage"), { 
   ssr: false 
 });
 
