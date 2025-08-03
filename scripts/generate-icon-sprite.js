@@ -570,13 +570,11 @@ function generateIconSVG(iconName, library) {
     </symbol>`;
     }
   } else {
-    // Generate a better placeholder for missing icons
-    const initials = iconName.replace(/^(Fa|Md|Fi|Si)/, '').replace(/([A-Z])/g, '$1').trim().split(' ').map(word => word[0]).join('').substring(0, 2).toUpperCase();
-    
+    // Generate a simple placeholder for missing icons (no text to avoid font-weight issues)
     return `    <symbol id="${iconName}" viewBox="0 0 24 24">
-      <circle cx="12" cy="12" r="10" fill="currentColor" opacity="0.1" />
-      <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="1" />
-      <text x="12" y="16" text-anchor="middle" font-family="system-ui, sans-serif" font-size="8" font-weight="bold" fill="currentColor">${initials}</text>
+      <circle cx="12" cy="12" r="10" fill="currentColor" opacity="0.2" />
+      <circle cx="12" cy="12" r="6" fill="currentColor" opacity="0.4" />
+      <circle cx="12" cy="12" r="2" fill="currentColor" />
     </symbol>`;
   }
 }
