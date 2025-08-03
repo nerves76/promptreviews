@@ -61,38 +61,11 @@ export async function POST(request: NextRequest) {
 
     const supabase = createServiceRoleClient();
     
-    // DEVELOPMENT MODE BYPASS - Create mock user and account if they don't exist
+    // DEVELOPMENT MODE BYPASS - Create mock account if it doesn't exist
     if (process.env.NODE_ENV === 'development' && account_id === '87654321-4321-4321-4321-210987654321') {
-      console.log('🔧 DEV MODE: Ensuring mock user and account exist for business creation');
+      console.log('🔧 DEV MODE: Ensuring mock account exists for business creation');
       
       const mockUserId = '12345678-1234-1234-1234-123456789012';
-      
-      // Check if mock user exists
-      const { data: existingUser } = await supabase
-        .from('users')
-        .select('id')
-        .eq('id', mockUserId)
-        .single();
-      
-      if (!existingUser) {
-        console.log('🔧 DEV MODE: Creating mock user for development');
-        const { error: userError } = await supabase
-          .from('users')
-          .insert([{
-            id: mockUserId,
-            email: 'dev@example.com',
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          }]);
-        
-        if (userError) {
-          console.error('🔧 DEV MODE: Failed to create mock user:', userError);
-        } else {
-          console.log('🔧 DEV MODE: Mock user created successfully');
-        }
-      } else {
-        console.log('🔧 DEV MODE: Mock user already exists');
-      }
       
       // Check if mock account exists
       const { data: existingAccount } = await supabase
@@ -102,7 +75,29 @@ export async function POST(request: NextRequest) {
         .single();
       
       if (!existingAccount) {
-        console.log('🔧 DEV MODE: Creating mock account for development');
+        console.log('🔧 DEV MODE: Creating mock account for development (will create auth.users record via raw SQL)');
+        
+        // First, create the auth.users record using raw SQL to bypass normal auth flow
+        const { error: authUserError } = await supabase.sql`
+          INSERT INTO auth.users (id, email, created_at, updated_at, email_confirmed_at, raw_user_meta_data)
+          VALUES (
+            ${mockUserId}::uuid, 
+            'dev@example.com', 
+            NOW(), 
+            NOW(), 
+            NOW(),
+            '{"first_name": "Dev", "last_name": "User"}'::jsonb
+          )
+          ON CONFLICT (id) DO NOTHING;
+        `;
+        
+        if (authUserError) {
+          console.error('🔧 DEV MODE: Failed to create auth.users record:', authUserError);
+        } else {
+          console.log('🔧 DEV MODE: Auth user record created/exists');
+        }
+        
+        // Now create the accounts record
         const { error: accountError } = await supabase
           .from('accounts')
           .insert([{
