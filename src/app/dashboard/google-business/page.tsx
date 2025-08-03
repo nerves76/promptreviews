@@ -329,7 +329,17 @@ export default function SocialPostingDashboard() {
       
       // Get Google OAuth credentials from environment
       const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '984479581786-8h619lvt0jvhakg7riaom9bs7mlo1lku.apps.googleusercontent.com';
-      const redirectUri = encodeURIComponent('http://localhost:3002/api/auth/google/callback');
+      const redirectUriRaw = process.env.NEXT_PUBLIC_GOOGLE_REDIRECT_URI;
+      
+      // Validate required environment variables
+      if (!redirectUriRaw) {
+        console.error('❌ Missing environment variable: NEXT_PUBLIC_GOOGLE_REDIRECT_URI');
+        setPostResult({ success: false, message: 'Missing Google OAuth configuration. Please check environment variables.' });
+        setIsLoading(false);
+        return;
+      }
+      
+      const redirectUri = encodeURIComponent(redirectUriRaw);
       const scope = encodeURIComponent('https://www.googleapis.com/auth/plus.business.manage openid email profile');
       const responseType = 'code';
       const state = encodeURIComponent(JSON.stringify({ 
