@@ -61,7 +61,7 @@ export default function BusinessInfoCard({ businessProfile, reviewType, promptPa
   };
   return (
     <div 
-      className={`rounded-2xl shadow p-6 mb-8 flex flex-col items-center max-w-xl mx-auto animate-slideup relative mt-32 ${getFontClass(businessProfile?.primary_font || "")}`} 
+      className={`rounded-2xl shadow px-6 pt-6 pb-12 mb-8 flex flex-col items-center max-w-xl mx-auto animate-slideup relative mt-32 ${getFontClass(businessProfile?.primary_font || "")}`} 
       style={{
         background: applyCardTransparency(businessProfile?.card_bg || "#F9FAFB", businessProfile?.card_transparency ?? 1.0),
         color: businessProfile?.card_text || "#1A1A1A"
@@ -110,8 +110,8 @@ export default function BusinessInfoCard({ businessProfile, reviewType, promptPa
         </div>
       </div>
       
-      {/* Content Area with Title/Location - Reserve space for button */}
-      <div className="mt-24 pr-36">
+      {/* Content Area with Title/Location */}
+      <div className="mt-24">
         {/* Employee Name or Business Name */}
         <h1
           className={`text-3xl font-bold text-center mb-1 ${getFontClass(businessProfile?.primary_font || "")}`}
