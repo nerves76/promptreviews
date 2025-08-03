@@ -156,8 +156,8 @@ export async function GET(
         seenReviews.set(duplicateKey, true);
         deduplicatedReviews.push(review);
         
-        // Stop when we have 4 unique reviews
-        if (deduplicatedReviews.length >= 4) {
+        // Stop when we have 5 unique reviews
+        if (deduplicatedReviews.length >= 5) {
           break;
         }
       }

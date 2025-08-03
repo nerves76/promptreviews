@@ -332,6 +332,16 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
             editMode={true}
           />
 
+          {/* Recent Reviews Feature */}
+          <RecentReviewsFeature
+            enabled={recentReviewsEnabled}
+            onEnabledChange={(enabled) => setRecentReviewsEnabled(enabled)}
+            initialData={{
+              recent_reviews_enabled: recentReviewsEnabled,
+            }}
+            editMode={true}
+          />
+
           {/* Offer Feature */}
           <OfferFeature
             enabled={offerEnabled}
@@ -392,16 +402,6 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
               ai_button_enabled: aiButtonEnabled,
               fix_grammar_enabled: fixGrammarEnabled,
             }}
-          />
-
-          {/* Recent Reviews Feature */}
-          <RecentReviewsFeature
-            enabled={recentReviewsEnabled}
-            onEnabledChange={(enabled) => setRecentReviewsEnabled(enabled)}
-            initialData={{
-              recent_reviews_enabled: recentReviewsEnabled,
-            }}
-            editMode={true}
           />
         </div>
         {/* No Save button here; Save is handled by parent */}
