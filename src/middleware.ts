@@ -143,5 +143,6 @@ export const config = {
     '/api/upload-widget-photo',
     '/api/widgets/:path*',
     '/api/cron/:path*',
+    // NOTE: /r/:path* (prompt pages) are intentionally EXCLUDED to remain public
   ],
 };
