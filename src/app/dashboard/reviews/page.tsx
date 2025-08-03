@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { createClient } from "@/utils/supabaseClient";
+import { getAccountIdForUser } from "@/utils/accountUtils";
 import Icon, { IconName } from "@/components/Icon";
 import PageCard from "@/app/components/PageCard";
 import AppLoader from "@/app/components/AppLoader";
@@ -269,6 +270,7 @@ export default function ReviewsPage() {
   const [emojiFilter, setEmojiFilter] = useState<string>("");
   const [showEmojiDropdown, setShowEmojiDropdown] = useState(false);
   const [sampleNotice, setSampleNotice] = useState<string | null>(null);
+  const [accountId, setAccountId] = useState<string | null>(null);
 
   // Add a ref map to store review refs
   const reviewRefs = useRef<{ [id: string]: HTMLDivElement | null }>({});
@@ -276,15 +278,62 @@ export default function ReviewsPage() {
 
   // Using singleton Supabase client from supabaseClient.ts
 
+  // Get current account ID first
+  useEffect(() => {
+    const getCurrentAccount = async () => {
+      try {
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        if (userError || !user) {
+          setError("Authentication required");
+          return;
+        }
+
+        const currentAccountId = await getAccountIdForUser(user.id, supabase);
+        if (!currentAccountId) {
+          setError("No account found");
+          return;
+        }
+
+        setAccountId(currentAccountId);
+      } catch (err) {
+        console.error("Error getting account:", err);
+        setError("Failed to get account information");
+      }
+    };
+
+    getCurrentAccount();
+  }, [supabase]);
+
   useEffect(() => {
     const fetchReviews = async () => {
+      if (!accountId) return; // Wait for account ID to be available
+      
       setLoading(true);
       setError(null);
       try {
-        // First, get total count
+        // Get all prompt page IDs for this account first
+        const { data: promptPages, error: promptPagesError } = await supabase
+          .from('prompt_pages')
+          .select('id')
+          .eq('account_id', accountId);
+
+        if (promptPagesError) throw promptPagesError;
+
+        const promptPageIds = promptPages?.map(p => p.id) || [];
+
+        if (promptPageIds.length === 0) {
+          // No prompt pages = no reviews
+          setReviews([]);
+          setTotalPages(1);
+          setLoading(false);
+          return;
+        }
+
+        // First, get total count with account filtering
         const { count, error: countError } = await supabase
           .from("review_submissions")
-          .select("*", { count: "exact", head: true });
+          .select("id", { count: "exact", head: true })
+          .in('prompt_page_id', promptPageIds);
 
         if (countError) throw countError;
 
@@ -292,12 +341,13 @@ export default function ReviewsPage() {
         const total = Math.ceil((count || 0) / ITEMS_PER_PAGE);
         setTotalPages(total);
 
-        // Fetch paginated reviews
+        // Fetch paginated reviews with account filtering
         const { data: existingReviews, error: fetchError } = await supabase
           .from("review_submissions")
           .select(
-            "id, prompt_page_id, first_name, last_name, reviewer_role, platform, review_content, created_at, status, emoji_sentiment_selection, verified, verified_at, platform_url",
+            "id, prompt_page_id, first_name, last_name, reviewer_role, platform, review_content, created_at, status, emoji_sentiment_selection, verified, verified_at, platform_url"
           )
+          .in('prompt_page_id', promptPageIds)
           .order("created_at", { ascending: false })
           .range(
             (currentPage - 1) * ITEMS_PER_PAGE,
@@ -328,7 +378,7 @@ export default function ReviewsPage() {
       }
     };
     fetchReviews();
-  }, [supabase, currentPage]);
+  }, [supabase, currentPage, accountId]);
 
   useEffect(() => {
     // Group reviews by reviewer (name+role)
