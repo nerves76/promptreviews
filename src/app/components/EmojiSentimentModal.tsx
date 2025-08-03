@@ -87,9 +87,9 @@ const EmojiSentimentModal: React.FC<EmojiSentimentModalProps> = ({
                       method: "POST",
                       headers: { "Content-Type": "application/json" },
                       body: JSON.stringify({
-                        event: 'emoji_sentiment_selected',
-                        sentiment: sentiment,
                         promptPageId: promptPageId,
+                        eventType: 'emoji_sentiment',
+                        emoji_sentiment: sentiment,
                         source: 'modal_interaction'
                       }),
                     }).catch(() => {
