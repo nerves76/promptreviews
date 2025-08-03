@@ -1384,33 +1384,36 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
 
   // Enhanced font loading effect that ensures styles are properly applied
   useEffect(() => {
-    if (!businessProfile?.primary_font && !businessProfile?.secondary_font) return;
-
     const ensureFontsAndStyles = async () => {
       try {
-        // Load fonts with timeout
-        const fontPromises = [];
-        if (businessProfile.primary_font) {
-          fontPromises.push(loadGoogleFont(businessProfile.primary_font));
-        }
-        if (businessProfile.secondary_font) {
-          fontPromises.push(loadGoogleFont(businessProfile.secondary_font));
-        }
+        // Check if we need to load custom fonts
+        const needsCustomFonts = businessProfile?.primary_font || businessProfile?.secondary_font;
+        
+        if (needsCustomFonts) {
+          // Load fonts with timeout
+          const fontPromises = [];
+          if (businessProfile.primary_font) {
+            fontPromises.push(loadGoogleFont(businessProfile.primary_font));
+          }
+          if (businessProfile.secondary_font) {
+            fontPromises.push(loadGoogleFont(businessProfile.secondary_font));
+          }
 
-        // Wait for fonts with timeout
-        await Promise.race([
-          Promise.all(fontPromises),
-          new Promise((_, reject) => setTimeout(() => reject(new Error('Font loading timeout')), 3000))
-        ]);
+          // Wait for fonts with timeout
+          await Promise.race([
+            Promise.all(fontPromises),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('Font loading timeout')), 3000))
+          ]);
+        }
 
         // Force a style refresh to ensure everything is applied
         setFontsLoaded(true);
         
         // Apply critical styles directly to ensure they stick
-        document.documentElement.style.setProperty('--primary-font', businessProfile.primary_font || 'Inter');
-        document.documentElement.style.setProperty('--secondary-font', businessProfile.secondary_font || 'Inter');
-        document.documentElement.style.setProperty('--primary-color', businessProfile.primary_color || '#4F46E5');
-        document.documentElement.style.setProperty('--background-color', businessProfile.background_color || '#FFFFFF');
+        document.documentElement.style.setProperty('--primary-font', businessProfile?.primary_font || 'Inter');
+        document.documentElement.style.setProperty('--secondary-font', businessProfile?.secondary_font || 'Inter');
+        document.documentElement.style.setProperty('--primary-color', businessProfile?.primary_color || '#4F46E5');
+        document.documentElement.style.setProperty('--background-color', businessProfile?.background_color || '#FFFFFF');
         
         setStyleInitialized(true);
       } catch (error) {
