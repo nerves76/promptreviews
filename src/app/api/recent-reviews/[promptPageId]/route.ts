@@ -102,6 +102,13 @@ export async function GET(
     }
 
     const promptPageIds = accountPromptPages.map(page => page.id);
+    
+    console.log('DEBUG Recent Reviews:', {
+      promptPageId,
+      accountId,
+      promptPageIds,
+      accountPromptPagesCount: accountPromptPages.length
+    });
 
     // Count total eligible reviews for this account
     const { count, error: countError } = await supabase
@@ -109,9 +116,10 @@ export async function GET(
       .select('*', { count: 'exact', head: true })
       .in('prompt_page_id', promptPageIds)
       .eq('status', 'submitted')
-      .neq('review_type', 'feedback')
       .not('review_content', 'is', null)
       .not('review_content', 'eq', '');
+
+    console.log('DEBUG Count Result:', { count, countError });
 
     if (countError) {
       console.error('Error counting reviews:', countError);
@@ -120,6 +128,7 @@ export async function GET(
 
     // Only proceed if we have 3+ reviews
     if (!count || count < 3) {
+      console.log('DEBUG Not enough reviews:', { count, hasEnoughReviews: false });
       return NextResponse.json({
         hasEnoughReviews: false,
         reviews: [],
@@ -133,7 +142,6 @@ export async function GET(
       .select('first_name, last_name, review_content, platform, created_at')
       .in('prompt_page_id', promptPageIds)
       .eq('status', 'submitted')
-      .neq('review_type', 'feedback')
       .not('review_content', 'is', null)
       .not('review_content', 'eq', '')
       .order('created_at', { ascending: false })
