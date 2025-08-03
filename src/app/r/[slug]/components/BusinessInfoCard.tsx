@@ -112,9 +112,9 @@ export default function BusinessInfoCard({ businessProfile, reviewType, promptPa
       
       {/* Content Area with Title/Location and Recent Reviews Button */}
       <div className="mt-24 relative">
-        {/* Recent Reviews Button - Positioned on the right */}
+        {/* Recent Reviews Button - Positioned at bottom-right */}
         {promptPage?.id && promptPage?.recent_reviews_enabled && onOpenRecentReviews && (
-          <div className="absolute top-4 right-0">
+          <div className="absolute bottom-0 right-0">
             <RecentReviewsButton
               promptPageId={promptPage.id}
               enabled={promptPage.recent_reviews_enabled}
