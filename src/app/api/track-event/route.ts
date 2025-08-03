@@ -53,6 +53,7 @@ export async function POST(req: NextRequest) {
       "ai_generate",
       "copy_submit",
       "emoji_sentiment",
+      "emoji_sentiment_choice",
       "constructive_feedback",
       "login",
       "prompt_page_created",
