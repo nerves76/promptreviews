@@ -145,7 +145,7 @@ export default function UniversalEditPromptPage() {
           reviewPlatforms: universalPlatforms.length
             ? universalPlatforms
             : businessPlatforms,
-          fallingEnabled: !!universalPage?.falling_icon,
+          fallingEnabled: true, // Always default to enabled for new pages
           fallingIcon: universalPage?.falling_icon || "star",
           fallingIconColor: universalPage?.falling_icon_color || "#fbbf24",
           aiButtonEnabled: universalPage?.ai_button_enabled !== false,
