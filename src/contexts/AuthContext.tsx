@@ -409,6 +409,51 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setIsRefreshing(true);
       setError(null);
       
+      // DEVELOPMENT MODE BYPASS - Check for dev bypass flag
+      if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined') {
+        const devBypass = localStorage.getItem('dev_auth_bypass');
+        if (devBypass === 'true') {
+          console.log('🔧 DEV MODE: Using authentication bypass');
+          const mockUser = {
+            id: 'dev-user-12345',
+            email: 'dev@example.com',
+            user_metadata: {
+              first_name: 'Dev',
+              last_name: 'User'
+            },
+            email_confirmed_at: new Date().toISOString()
+          } as User;
+          
+          const mockSession = {
+            access_token: 'dev-token',
+            refresh_token: 'dev-refresh',
+            expires_in: 3600,
+            expires_at: Date.now() + 3600000,
+            token_type: 'bearer',
+            user: mockUser
+          } as Session;
+          
+          setSession(mockSession);
+          setUser(mockUser);
+          setAccountId('dev-account-67890');
+          setHasBusiness(true);
+          setAccount({
+            id: 'dev-account-67890',
+            user_id: 'dev-user-12345',
+            email: 'dev@example.com',
+            first_name: 'Dev',
+            last_name: 'User',
+            business_name: 'Dev Business',
+            plan: 'free'
+          });
+          setIsAdminUser(true);
+          setIsInitialized(true);
+          setIsLoading(false);
+          setIsRefreshing(false);
+          return;
+        }
+      }
+      
       const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession();
       
       if (sessionError) {
