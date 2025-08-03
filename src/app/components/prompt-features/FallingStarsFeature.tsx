@@ -192,8 +192,20 @@ export default function FallingStarsFeature({
 
   const categories = Array.from(new Set(allIcons.map(icon => icon.category)));
 
-  // Get the current selected icon configuration
-  const currentIconConfig = getFallingIcon(selectedIcon);
+  // Get the current selected icon configuration with error handling
+  const currentIconConfig = React.useMemo(() => {
+    try {
+      const iconConfig = getFallingIcon(selectedIcon);
+      if (!iconConfig || !iconConfig.icon) {
+        console.warn(`Invalid icon config for: ${selectedIcon}, falling back to star`);
+        return getFallingIcon("star");
+      }
+      return iconConfig;
+    } catch (error) {
+      console.error('Error getting falling icon config:', error);
+      return getFallingIcon("star");
+    }
+  }, [selectedIcon]);
 
   return (
     <div className={`${editMode ? 'rounded-lg p-6 bg-blue-50 border border-blue-200 flex flex-col gap-6 shadow relative mb-4 min-h-[180px]' : 'bg-white rounded-lg border border-gray-200 p-6'}`}>
@@ -250,10 +262,20 @@ export default function FallingStarsFeature({
               <label className="text-sm font-medium text-gray-700">Icon:</label>
               <div className="flex items-center space-x-2">
                 <div className="flex items-center justify-center w-12 h-12 rounded-lg border-2 border-slate-blue bg-slate-50">
-                  {React.createElement(currentIconConfig.icon, {
-                    className: "w-6 h-6",
-                    style: { color: selectedColor }
-                  })}
+                  {(() => {
+                    try {
+                      if (!currentIconConfig?.icon) {
+                        return <Icon name="FaStar" className="w-6 h-6" style={{ color: selectedColor }} />;
+                      }
+                      return React.createElement(currentIconConfig.icon, {
+                        className: "w-6 h-6",
+                        style: { color: selectedColor }
+                      });
+                    } catch (error) {
+                      console.error('Error rendering falling icon:', error);
+                      return <Icon name="FaStar" className="w-6 h-6" style={{ color: selectedColor }} />;
+                    }
+                  })()}
                 </div>
                 <button
                   type="button"
