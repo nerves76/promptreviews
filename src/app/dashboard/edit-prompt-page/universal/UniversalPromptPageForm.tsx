@@ -105,7 +105,16 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
     // Use shared falling stars hook
     const { fallingIcon, fallingIconColor, handleIconChange, handleColorChange, initializeValues } = useFallingStars({
       initialIcon: initialData?.fallingIcon ?? "star",
-      initialColor: initialData?.fallingIconColor ?? "#fbbf24"
+      initialColor: initialData?.fallingIconColor ?? "#fbbf24",
+      onFormDataChange: (data) => {
+        // Update the local state when falling stars hook changes values
+        if (data.falling_icon !== undefined) {
+          // fallingIcon state is already managed by the hook
+        }
+        if (data.falling_icon_color !== undefined) {
+          // fallingIconColor state is already managed by the hook
+        }
+      }
     });
     const [aiButtonEnabled, setAiButtonEnabled] = useState(
       initialData?.aiButtonEnabled ?? true,
