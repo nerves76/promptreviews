@@ -195,7 +195,14 @@ export default function FallingStarsFeature({
   // Get the current selected icon configuration with error handling
   const currentIconConfig = React.useMemo(() => {
     try {
-      const iconConfig = getFallingIcon(selectedIcon);
+      // First try to find in allIcons (includes both popular and loaded icons)
+      let iconConfig = allIcons.find(icon => icon.key === selectedIcon);
+      
+      // If not found in allIcons, fallback to getFallingIcon (popular icons only)
+      if (!iconConfig) {
+        iconConfig = getFallingIcon(selectedIcon);
+      }
+      
       if (!iconConfig || !iconConfig.icon) {
         console.warn(`Invalid icon config for: ${selectedIcon}, falling back to star`);
         return getFallingIcon("star");
@@ -205,7 +212,7 @@ export default function FallingStarsFeature({
       console.error('Error getting falling icon config:', error);
       return getFallingIcon("star");
     }
-  }, [selectedIcon]);
+  }, [selectedIcon, allIcons]);
 
   return (
     <div className={`${editMode ? 'rounded-lg p-6 bg-blue-50 border border-blue-200 flex flex-col gap-6 shadow relative mb-4 min-h-[180px]' : 'bg-white rounded-lg border border-gray-200 p-6'}`}>
