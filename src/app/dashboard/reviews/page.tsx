@@ -571,7 +571,7 @@ export default function ReviewsPage() {
 
   return (
     <PageCard>
-      {/* Title and Search Row */}
+      {/* Title Row */}
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-16 w-full gap-2 relative">
         <div className="absolute z-10" style={{ left: "-69px", top: "-37px" }}>
           <div className="rounded-full bg-white w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center shadow-lg">
@@ -586,23 +586,27 @@ export default function ReviewsPage() {
             Manage and track all your customer reviews in one place.
           </p>
         </div>
-        <div className="flex justify-end w-full sm:w-auto">
-          <div className="relative w-full max-w-xs">
-            <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400 pointer-events-none">
-                                <Icon name="FaSearch" className="w-4 h-4" size={16} />
-            </span>
-            <input
-              type="text"
-              placeholder="Search by reviewer, platform, or text..."
-              className="pl-9 pr-3 w-full rounded-lg border border-gray-200 px-2 py-2 shadow-sm focus:ring-2 focus:ring-[#1A237E] focus:outline-none h-[44px]"
-            />
-          </div>
-        </div>
       </div>
 
-      {/* Filters and Export */}
+      {/* Search and Filters */}
       <div className="flex flex-wrap gap-4 mb-4 items-end justify-between">
         <div className="flex flex-wrap gap-4 items-end">
+          {/* Search Bar */}
+          <div>
+            <label className="block text-xs font-semibold text-gray-500 mb-1">
+              Search
+            </label>
+            <div className="relative">
+              <span className="absolute inset-y-0 left-0 flex items-center pl-2 text-gray-400 pointer-events-none">
+                <Icon name="FaSearch" className="w-3.5 h-3.5" size={14} />
+              </span>
+              <input
+                type="text"
+                placeholder="Search by reviewer, platform, or text..."
+                className="pl-8 pr-3 w-60 rounded border border-gray-200 px-2 py-1 shadow-sm focus:ring-2 focus:ring-[#1A237E] focus:outline-none text-sm"
+              />
+            </div>
+          </div>
           <div>
             <label className="block text-xs font-semibold text-gray-500 mb-1">
               Platform
