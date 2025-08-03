@@ -72,7 +72,7 @@ export default function RecentReviewsButton({
   }
 
   return (
-    <div className="mt-3 flex justify-end">
+    <div className="flex justify-end">
       <button
         onClick={onOpenModal}
         className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border-2 font-medium text-sm transition-all duration-200 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-opacity-50"
