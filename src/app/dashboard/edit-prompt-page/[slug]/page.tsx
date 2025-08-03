@@ -125,10 +125,11 @@ function mapToDbColumns(formData: any): any {
   insertData["offer_url"] = formData.offerUrl;
   
   // Handle falling stars properly
-  if (formData.fallingEnabled && formData.fallingIcon) {
+  if (formData.fallingIcon) {
     insertData["falling_icon"] = formData.fallingIcon;
-  } else if (formData.fallingIcon) {
-    insertData["falling_icon"] = formData.fallingIcon;
+  }
+  if (formData.falling_icon_color || formData.fallingIconColor) {
+    insertData["falling_icon_color"] = formData.falling_icon_color || formData.fallingIconColor;
   }
   
   // Handle reviewPlatforms -> review_platforms mapping
@@ -145,6 +146,7 @@ function mapToDbColumns(formData: any): any {
   delete insertData.aiButtonEnabled;
   delete insertData.fallingEnabled;
   delete insertData.fallingIcon;
+  delete insertData.fallingIconColor;
   delete insertData.offerEnabled;
   delete insertData.offerTitle;
   delete insertData.offerBody;
