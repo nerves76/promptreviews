@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { IconType } from 'react-icons';
 
 interface FallingAnimationProps {
@@ -8,13 +8,55 @@ interface FallingAnimationProps {
   getFallingIcon: (icon: string) => { key: string; label: string; icon: IconType; color: string; category: string } | undefined;
 }
 
+interface IconConfig {
+  key: string;
+  label: string;
+  icon: IconType;
+  color: string;
+  category: string;
+}
+
 export default function FallingAnimation({ 
   fallingIcon, 
   showStarRain, 
   falling_icon_color,
   getFallingIcon 
 }: FallingAnimationProps) {
-  if (!fallingIcon || !showStarRain) {
+  const [iconConfig, setIconConfig] = useState<IconConfig | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  
+  // Load icon configuration when fallingIcon changes
+  useEffect(() => {
+    const loadIconConfig = async () => {
+      if (!fallingIcon) return;
+      
+      setIsLoading(true);
+      try {
+        // First try the provided getFallingIcon function
+        let config = getFallingIcon(fallingIcon);
+        
+        // If not found and not a popular icon, try loading full icon list
+        if (!config && fallingIcon !== 'star') {
+          // Dynamic import to get the enhanced function
+          const { getFallingIconAsync } = await import('@/app/components/prompt-modules/fallingStarsConfig');
+          config = await getFallingIconAsync(fallingIcon);
+        }
+        
+        setIconConfig(config || null);
+      } catch (error) {
+        console.error('Error loading icon config:', error);
+        // Fallback to star icon
+        const starConfig = getFallingIcon('star');
+        setIconConfig(starConfig || null);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    loadIconConfig();
+  }, [fallingIcon, getFallingIcon]);
+  
+  if (!fallingIcon || !showStarRain || isLoading || !iconConfig) {
     return null;
   }
 
@@ -70,14 +112,7 @@ export default function FallingAnimation({
         const delay = Math.random() * 0.5;
         const size = 32 + Math.random() * 8;
         
-        // Get icon from configuration
-        const iconConfig = getFallingIcon(fallingIcon);
-        
-        // Guard clause to ensure iconConfig is defined
-        if (!iconConfig) {
-          return null;
-        }
-        
+        // Use the loaded iconConfig
         const IconComponent = iconConfig.icon;
         // Use custom color if provided, otherwise fall back to icon's default color
         const iconColor = falling_icon_color || getColorFromClass(iconConfig.color);
