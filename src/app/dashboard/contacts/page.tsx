@@ -118,6 +118,71 @@ export default function UploadContactsPage() {
     console.log("State updated:", { selectedFile, preview, error, success });
   }, [selectedFile, preview, error, success]);
 
+  // Helper function to render review status
+  const renderReviewStatus = (contact: any) => {
+    const platforms = ['google', 'yelp', 'facebook'];
+    const verifiedPlatforms = platforms.filter(platform => 
+      contact[`${platform}_review_verified_at`]
+    );
+
+    if (contact.review_verification_status === 'verified' && verifiedPlatforms.length > 0) {
+      return (
+        <div className="flex items-center gap-1">
+          <Icon name="FaCheckCircle" className="w-3 h-3 text-green-600" />
+          <span className="text-xs text-green-700 font-medium">
+            {verifiedPlatforms.length} review{verifiedPlatforms.length > 1 ? 's' : ''}
+          </span>
+          <div className="flex gap-1 ml-1">
+            {verifiedPlatforms.map(platform => (
+              <span 
+                key={platform}
+                className="inline-block w-3 h-3 rounded-full text-xs text-white text-center leading-3"
+                style={{ backgroundColor: platform === 'google' ? '#4285f4' : platform === 'yelp' ? '#ff1744' : '#1877f2' }}
+                title={`Verified ${platform} review`}
+              >
+                {platform[0].toUpperCase()}
+              </span>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    if (contact.review_verification_status === 'potential_match') {
+      return (
+        <div className="flex items-center gap-1">
+          <Icon name="FaSearch" className="w-3 h-3 text-amber-600" />
+          <span className="text-xs text-amber-700 font-medium">Potential match</span>
+        </div>
+      );
+    }
+
+    if (contact.review_verification_status === 'no_review') {
+      return (
+        <div className="flex items-center gap-1">
+          <Icon name="FaTimes" className="w-3 h-3 text-gray-400" />
+          <span className="text-xs text-gray-600">No review</span>
+        </div>
+      );
+    }
+
+    if (contact.source === 'review_submission') {
+      return (
+        <div className="flex items-center gap-1">
+          <Icon name="FaStar" className="w-3 h-3 text-purple-600" />
+          <span className="text-xs text-purple-700 font-medium">From review</span>
+        </div>
+      );
+    }
+
+    return (
+      <div className="flex items-center gap-1">
+        <Icon name="FaQuestionCircle" className="w-3 h-3 text-gray-400" />
+        <span className="text-xs text-gray-600">Unknown</span>
+      </div>
+    );
+  };
+
   // Fetch contacts with pagination
   useEffect(() => {
     const fetchContacts = async () => {
@@ -539,7 +604,7 @@ export default function UploadContactsPage() {
               }}
               className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-semibold shadow flex items-center gap-2"
             >
-              <Icon name="FaDownload" className="w-4 h-4" />
+              <Icon name="MdDownload" className="w-4 h-4" />
               Export CSV
             </button>
             <button
@@ -644,6 +709,9 @@ export default function UploadContactsPage() {
                         Role
                       </th>
                       <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Review Status
+                      </th>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Status
                       </th>
                       <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -676,6 +744,9 @@ export default function UploadContactsPage() {
                       </td>
                       <td className="px-3 py-2 text-sm text-gray-900">
                         {contact.role || ""}
+                      </td>
+                      <td className="px-3 py-2 text-sm">
+                        {renderReviewStatus(contact)}
                       </td>
                       <td className="px-3 py-2 text-sm text-gray-900">
                         {contact.status}
@@ -864,7 +935,7 @@ export default function UploadContactsPage() {
                     onClick={handleDownloadTemplate}
                     className="flex items-center gap-2 px-4 py-2 bg-white border border-blue-200 rounded-lg hover:bg-gray-50 transition-colors"
                   >
-                    <Icon name="FaDownload" className="text-slate-blue" />
+                    <Icon name="MdDownload" className="text-slate-blue" />
                     Download CSV template
                   </button>
                 </div>
