@@ -415,7 +415,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (devBypass === 'true') {
           console.log('🔧 DEV MODE: Using authentication bypass');
           const mockUser = {
-            id: 'dev-user-12345',
+            id: '12345678-1234-1234-1234-123456789012',
             email: 'dev@example.com',
             user_metadata: {
               first_name: 'Dev',
@@ -435,11 +435,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           
           setSession(mockSession);
           setUser(mockUser);
-          setAccountId('dev-account-67890');
+          setAccountId('87654321-4321-4321-4321-210987654321');
           setHasBusiness(true);
           setAccount({
-            id: 'dev-account-67890',
-            user_id: 'dev-user-12345',
+            id: '87654321-4321-4321-4321-210987654321',
+            user_id: '12345678-1234-1234-1234-123456789012',
             email: 'dev@example.com',
             first_name: 'Dev',
             last_name: 'User',

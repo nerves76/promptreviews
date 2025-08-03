@@ -73,7 +73,7 @@ export default function DashboardLayout({
           if (devBypass === 'true') {
             console.log('🔧 DEV MODE: DashboardLayout using authentication bypass');
             const mockUser = {
-              id: 'dev-user-12345',
+              id: '12345678-1234-1234-1234-123456789012',
               email: 'dev@example.com',
               user_metadata: {
                 first_name: 'Dev',
