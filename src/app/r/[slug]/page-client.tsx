@@ -1423,9 +1423,12 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
     ensureFontsAndStyles();
   }, [businessProfile?.primary_font, businessProfile?.secondary_font, businessProfile?.primary_color, businessProfile?.background_color]);
 
+  // List of system fonts that don't need to be loaded from Google Fonts
+  const SYSTEM_FONTS = ['Arial', 'Helvetica', 'Times New Roman', 'Times', 'Courier New', 'Courier', 'Verdana', 'Georgia', 'Palatino', 'Garamond', 'Bookman', 'Comic Sans MS', 'Trebuchet MS', 'Arial Black', 'Impact'];
+
   // Import the font loading function
   const loadGoogleFont = async (fontName: string): Promise<void> => {
-    if (!fontName || fontName === 'Inter') return;
+    if (!fontName || fontName === 'Inter' || SYSTEM_FONTS.includes(fontName)) return;
     
     const fontId = `google-font-${fontName.replace(/\s+/g, '-')}`;
     if (document.getElementById(fontId)) return;
