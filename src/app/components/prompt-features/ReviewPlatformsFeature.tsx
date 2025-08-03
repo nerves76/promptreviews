@@ -44,7 +44,7 @@ export interface ReviewPlatformsFeatureProps {
   disabled?: boolean;
 }
 
-const platformOptions = [
+export const platformOptions = [
   "",
   "Google Business Profile",
   "Yelp",

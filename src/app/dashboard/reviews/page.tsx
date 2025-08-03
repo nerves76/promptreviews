@@ -11,6 +11,7 @@ import {
   EMOJI_SENTIMENT_LABELS,
   EMOJI_SENTIMENT_ICONS,
 } from "@/app/components/prompt-modules/emojiSentimentConfig";
+import { platformOptions } from "@/app/components/prompt-features/ReviewPlatformsFeature";
 
 interface Review {
   id: string;
@@ -226,6 +227,29 @@ function isNewReview(created_at: string) {
 }
 
 // Add this helper to map sentiment label to icon
+/**
+ * Combines predefined platform options with custom platforms actually used in reviews
+ */
+function getCombinedPlatformOptions(reviews: Review[]): string[] {
+  // Get predefined platforms (exclude empty string and "Other")
+  const predefinedPlatforms = platformOptions.filter(p => p && p !== "Other");
+  
+  // Get custom platforms from reviews (platforms not in predefined list)
+  const customPlatforms = Array.from(
+    new Set(
+      reviews
+        .map(r => r.platform)
+        .filter(Boolean) // Remove empty/null values
+        .filter(platform => !platformOptions.includes(platform)) // Only custom platforms
+    )
+  );
+  
+  // Combine and sort alphabetically
+  const allPlatforms = [...predefinedPlatforms, ...customPlatforms].sort();
+  
+  return allPlatforms;
+}
+
 function getSentimentIcon(sentiment: string) {
   const idx = EMOJI_SENTIMENT_LABELS.findIndex(
     (l) => l.toLowerCase() === (sentiment || "").toLowerCase(),
@@ -589,13 +613,9 @@ export default function ReviewsPage() {
               onChange={(e) => setPlatformFilter(e.target.value)}
             >
               <option value="">All</option>
-              {[
-                ...Array.from(
-                  new Set(reviews.map((r) => r.platform).filter(Boolean)),
-                ),
-              ]?.map((p) => (
-                <option key={p} value={p}>
-                  {p}
+              {getCombinedPlatformOptions(reviews).map((platform) => (
+                <option key={platform} value={platform}>
+                  {platform}
                 </option>
               ))}
             </select>
