@@ -367,6 +367,12 @@ export async function ensureAccountExists(
  */
 export async function getAccountIdForUser(userId: string, supabaseClient?: any): Promise<string | null> {
   try {
+    // DEVELOPMENT MODE BYPASS - Check for dev bypass user ID
+    if (process.env.NODE_ENV === 'development' && userId === '12345678-1234-1234-1234-123456789012') {
+      console.log('🔧 DEV MODE: getAccountIdForUser using authentication bypass');
+      return '87654321-4321-4321-4321-210987654321';
+    }
+    
     const client = supabaseClient || createSupabaseClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
