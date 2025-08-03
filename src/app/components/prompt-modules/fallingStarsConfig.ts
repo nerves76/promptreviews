@@ -358,6 +358,37 @@ export const getFallingIcon = (key: string) => {
 };
 
 /**
+ * Enhanced helper function that can load non-popular icons dynamically
+ * Use this for runtime scenarios where the full icon list might be needed
+ */
+export const getFallingIconAsync = async (key: string) => {
+  try {
+    // First check popular icons (immediate)
+    const popularIcon = POPULAR_FALLING_ICONS.find((icon) => icon.key === key);
+    if (popularIcon && popularIcon.icon) {
+      return popularIcon;
+    }
+    
+    // For non-popular icons, load the full list
+    try {
+      const allIcons = await loadAllFallingIcons();
+      const foundIcon = allIcons.find((icon) => icon.key === key);
+      if (foundIcon && foundIcon.icon) {
+        return foundIcon;
+      }
+    } catch (loadError) {
+      console.warn('Failed to load full icon list, falling back to star:', loadError);
+    }
+    
+    // Final fallback to star
+    return POPULAR_FALLING_ICONS[0];
+  } catch (error) {
+    console.error('Error in getFallingIconAsync:', error);
+    return POPULAR_FALLING_ICONS[0];
+  }
+};
+
+/**
  * Helper function to get the falling icon color by key
  */
 export const getFallingIconColor = (key: string) => {
