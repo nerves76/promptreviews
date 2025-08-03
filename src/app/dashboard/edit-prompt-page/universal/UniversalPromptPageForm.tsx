@@ -251,7 +251,7 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
         emojiThankYouMessage,
         emojiFeedbackPopupHeader,
         emojiFeedbackPageHeader,
-        reviewPlatforms,
+        // reviewPlatforms, // REMOVED: Array causes infinite re-renders
         fallingEnabled,
         fallingIcon,
         fallingIconColor,
@@ -261,7 +261,7 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
         showFriendlyNote,
         friendlyNote,
         kickstartersEnabled,
-        selectedKickstarters,
+        // selectedKickstarters, // REMOVED: Array causes infinite re-renders
         recentReviewsEnabled,
         recentReviewsScope,
         onSave,
