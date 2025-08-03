@@ -158,6 +158,7 @@ interface PromptPageProps {
 }
 
 export default function PromptPage({ initialData }: PromptPageProps = {}) {
+  // Force re-deployment to clear cached React error #130 - 2025-01-30
   const supabase = createClient();
 
   const router = useRouter();
@@ -379,6 +380,8 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
         
         // ⚡ PERFORMANCE: Single API call to get both prompt page and business data
         const response = await fetch(`/api/prompt-pages/${slug}`);
+        
+        console.log("API response status:", response.status, response.statusText);
         
         if (!response.ok) {
           if (response.status === 404) {
