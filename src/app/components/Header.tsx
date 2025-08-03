@@ -12,6 +12,7 @@ import { trackEvent, GA_EVENTS } from '../../utils/analytics';
 import { fetchOnboardingTasks } from "@/utils/onboardingTasks";
 import PromptReviewsLogo from "@/app/dashboard/components/PromptReviewsLogo";
 import { AccountSwitcher } from './AccountSwitcher';
+import { getAccountIdForUser } from "@/utils/accountUtils";
 
 const CowboyUserIcon = () => {
   const [imageError, setImageError] = useState(false);
@@ -160,21 +161,17 @@ export default function Header() {
         console.log('🔔 Header: Fetching notifications since:', since);
         
         // Get user's account info first to filter notifications properly
-        const { data: accountUser, error: accountError } = await supabase
-          .from('account_users')
-          .select('account_id')
-          .eq('user_id', session.user.id)
-          .single();
+        const accountId = await getAccountIdForUser(session.user.id, supabase);
           
-        if (accountError) {
-          console.error('🚨 Header: Could not get user account:', accountError);
+        if (!accountId) {
+          console.error('🚨 Header: Could not get user account ID');
           return;
         }
         
         const { data, error } = await supabase
           .from("review_submissions")
           .select("id, first_name, last_name, platform, review_content, created_at, emoji_sentiment_selection, review_type")
-          .eq("business_id", accountUser.account_id)
+          .eq("business_id", accountId)
           .gte("created_at", since)
           .order("created_at", { ascending: false })
           .limit(7);
