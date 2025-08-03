@@ -41,7 +41,7 @@ const EmojiSentimentModal = dynamic(() => import("@/app/components/EmojiSentimen
 const RecentReviewsModal = dynamic(() => import("@/app/components/RecentReviewsModal"), { 
   ssr: false 
 });
-const StyleModalPage = dynamic(() => import("../../dashboard/style/StyleModalPage"), { 
+const StyleModalPage = dynamic(() => import("../../dashboard/style/StyleModalPage").then(mod => ({ default: mod.default })), { 
   ssr: false 
 });
 
@@ -1382,49 +1382,37 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
     }
   }, [promptPage, businessProfile]);
 
-  // Enhanced font loading effect that ensures styles are properly applied
+  // SIMPLIFIED font loading that doesn't block the page
   useEffect(() => {
-    const ensureFontsAndStyles = async () => {
+    if (!businessProfile) return;
+    
+    // Load custom fonts in background (non-blocking)
+    const loadCustomFonts = async () => {
       try {
-        // Check if we need to load custom fonts
-        const needsCustomFonts = businessProfile?.primary_font || businessProfile?.secondary_font;
-        
-        if (needsCustomFonts) {
-          // Load fonts with timeout
-          const fontPromises = [];
-          if (businessProfile.primary_font) {
-            fontPromises.push(loadGoogleFont(businessProfile.primary_font));
-          }
-          if (businessProfile.secondary_font) {
-            fontPromises.push(loadGoogleFont(businessProfile.secondary_font));
-          }
-
-          // Wait for fonts with timeout
-          await Promise.race([
-            Promise.all(fontPromises),
-            new Promise((_, reject) => setTimeout(() => reject(new Error('Font loading timeout')), 3000))
-          ]);
+        if (businessProfile.primary_font && !SYSTEM_FONTS.includes(businessProfile.primary_font)) {
+          loadGoogleFont(businessProfile.primary_font);
         }
-
-        // Force a style refresh to ensure everything is applied
-        setFontsLoaded(true);
-        
-        // Apply critical styles directly to ensure they stick
-        document.documentElement.style.setProperty('--primary-font', businessProfile?.primary_font || 'Inter');
-        document.documentElement.style.setProperty('--secondary-font', businessProfile?.secondary_font || 'Inter');
-        document.documentElement.style.setProperty('--primary-color', businessProfile?.primary_color || '#4F46E5');
-        document.documentElement.style.setProperty('--background-color', businessProfile?.background_color || '#FFFFFF');
-        
-        setStyleInitialized(true);
+        if (businessProfile.secondary_font && !SYSTEM_FONTS.includes(businessProfile.secondary_font)) {
+          loadGoogleFont(businessProfile.secondary_font);
+        }
       } catch (error) {
-        console.warn('Font loading failed, using fallbacks:', error);
-        setFontsLoaded(true);
-        setStyleInitialized(true);
+        console.warn('Background font loading failed:', error);
       }
     };
-
-    ensureFontsAndStyles();
-  }, [businessProfile?.primary_font, businessProfile?.secondary_font, businessProfile?.primary_color, businessProfile?.background_color]);
+    
+    // Apply styles immediately (don't wait for fonts)
+    document.documentElement.style.setProperty('--primary-font', businessProfile.primary_font || 'Inter');
+    document.documentElement.style.setProperty('--secondary-font', businessProfile.secondary_font || 'Inter');
+    document.documentElement.style.setProperty('--primary-color', businessProfile.primary_color || '#4F46E5');
+    document.documentElement.style.setProperty('--background-color', businessProfile.background_color || '#FFFFFF');
+    
+    // Set state immediately - don't wait for fonts
+    setFontsLoaded(true);
+    setStyleInitialized(true);
+    
+    // Load fonts in background after setting styles
+    loadCustomFonts();
+  }, [businessProfile]);
 
   // List of system fonts that don't need to be loaded from Google Fonts
   const SYSTEM_FONTS = ['Arial', 'Helvetica', 'Times New Roman', 'Times', 'Courier New', 'Courier', 'Verdana', 'Georgia', 'Palatino', 'Garamond', 'Bookman', 'Comic Sans MS', 'Trebuchet MS', 'Arial Black', 'Impact'];
