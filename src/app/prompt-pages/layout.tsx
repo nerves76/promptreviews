@@ -20,7 +20,7 @@ export default function PublicPromptLayout({
 }) {
   return (
     <div
-        className={`${inter.className} min-h-screen bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600`}
+        className={`${inter.className} min-h-screen bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600 pb-16 md:pb-24 lg:pb-32`}
       >
         {children}
     </div>
