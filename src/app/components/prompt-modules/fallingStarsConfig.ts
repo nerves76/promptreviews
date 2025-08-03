@@ -336,14 +336,25 @@ export const EXTENDED_FALLING_ICONS = POPULAR_FALLING_ICONS;
  * Now supports both popular icons (immediate) and full icons (lazy loaded)
  */
 export const getFallingIcon = (key: string) => {
-  // First check popular icons (immediate)
-  const popularIcon = POPULAR_FALLING_ICONS.find((icon) => icon.key === key);
-  if (popularIcon) {
-    return popularIcon;
+  try {
+    // Validate input
+    if (!key || typeof key !== 'string') {
+      console.warn('Invalid icon key provided to getFallingIcon:', key);
+      return POPULAR_FALLING_ICONS[0]; // Default to star
+    }
+    
+    // First check popular icons (immediate)
+    const popularIcon = POPULAR_FALLING_ICONS.find((icon) => icon.key === key);
+    if (popularIcon && popularIcon.icon) {
+      return popularIcon;
+    }
+    
+    // For non-popular icons, return a default (will be loaded when modal opens)
+    return POPULAR_FALLING_ICONS[0]; // Default to star
+  } catch (error) {
+    console.error('Error in getFallingIcon:', error);
+    return POPULAR_FALLING_ICONS[0]; // Default to star
   }
-  
-  // For non-popular icons, return a default (will be loaded when modal opens)
-  return POPULAR_FALLING_ICONS[0]; // Default to star
 };
 
 /**
