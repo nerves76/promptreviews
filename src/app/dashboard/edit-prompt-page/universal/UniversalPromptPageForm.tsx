@@ -151,17 +151,21 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
     };
 
     const handleEmojiSentimentClick = () => {
-      if (showFriendlyNote) {
+      // If trying to turn ON emoji sentiment while friendly note is enabled, show conflict
+      if (!emojiSentimentEnabled && showFriendlyNote) {
         setShowPopupConflictModal("emoji");
       } else {
+        // Always allow turning OFF emoji sentiment, or turning ON when no conflict
         setEmojiSentimentEnabled(prev => !prev);
       }
     };
 
     const handleFriendlyNoteClick = () => {
-      if (emojiSentimentEnabled) {
+      // If trying to turn ON friendly note while emoji sentiment is enabled, show conflict
+      if (!showFriendlyNote && emojiSentimentEnabled) {
         setShowPopupConflictModal("note");
       } else {
+        // Always allow turning OFF friendly note, or turning ON when no conflict
         setShowFriendlyNote(prev => !prev);
       }
     };
