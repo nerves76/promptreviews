@@ -40,6 +40,7 @@ export interface UniversalPromptFormState {
   kickstartersEnabled: boolean;
   selectedKickstarters: string[];
   recentReviewsEnabled: boolean;
+  recentReviewsScope: 'current_page' | 'all_pages';
 }
 
 interface UniversalPromptPageFormProps {
@@ -139,6 +140,9 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
     );
     const [recentReviewsEnabled, setRecentReviewsEnabled] = useState(
       initialData?.recentReviewsEnabled ?? false,
+    );
+    const [recentReviewsScope, setRecentReviewsScope] = useState<'current_page' | 'all_pages'>(
+      initialData?.recentReviewsScope ?? 'current_page',
     );
 
     // AI Generation loading state
@@ -252,6 +256,7 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
             kickstartersEnabled,
             selectedKickstarters,
             recentReviewsEnabled,
+            recentReviewsScope,
         }),
       }),
       [
@@ -276,6 +281,7 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
         kickstartersEnabled,
         selectedKickstarters,
         recentReviewsEnabled,
+        recentReviewsScope,
         onSave,
       ],
     );
@@ -321,6 +327,7 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
             kickstartersEnabled,
             selectedKickstarters,
             recentReviewsEnabled,
+            recentReviewsScope,
           };
           
           console.log('🔍 Calling onSave with data:', formData);
@@ -364,8 +371,11 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
           <RecentReviewsFeature
             enabled={recentReviewsEnabled}
             onEnabledChange={(enabled) => setRecentReviewsEnabled(enabled)}
+            scope={recentReviewsScope}
+            onScopeChange={(scope) => setRecentReviewsScope(scope)}
             initialData={{
               recent_reviews_enabled: recentReviewsEnabled,
+              recent_reviews_scope: recentReviewsScope,
             }}
             editMode={true}
           />
