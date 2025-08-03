@@ -7,6 +7,7 @@ import { useAccountSelection } from "@/utils/accountSelectionHooks";
 import Icon from "@/components/Icon";
 import { getAccountIdForUser } from "@/utils/accountUtils";
 import { isAdmin } from "@/utils/admin";
+import { EMOJI_SENTIMENT_LABELS, EMOJI_SENTIMENT_ICONS } from "@/app/components/prompt-modules/emojiSentimentConfig";
 import PageCard from "@/app/components/PageCard";
 import AppLoader from "@/app/components/AppLoader";
 import {
@@ -52,34 +53,17 @@ interface AnalyticsData {
   verifiedReviewsYear: number;
 }
 
-// Map sentiment keys to FontAwesome icons and labels - matches emojiSentimentConfig.ts
-const emojiSentimentMap = [
-  {
-    key: "excellent",
-    icon: <Icon name="FaGrinHearts" className="w-8 h-8 text-pink-400" size={32} />,
-    label: "Excellent",
-  },
-  {
-    key: "satisfied",
-    icon: <Icon name="FaSmile" className="w-8 h-8 text-green-500" size={32} />,
-    label: "Satisfied",
-  },
-  {
-    key: "neutral",
-    icon: <Icon name="FaMeh" className="w-8 h-8 text-gray-400" size={32} />,
-    label: "Neutral",
-  },
-  {
-    key: "unsatisfied",
-    icon: <Icon name="FaFrown" className="w-8 h-8 text-orange-400" size={32} />,
-    label: "Unsatisfied",
-  },
-  {
-    key: "frustrated",
-    icon: <Icon name="FaAngry" className="w-8 h-8 text-red-500" size={32} />,
-    label: "Frustrated",
-  },
-];
+// Map sentiment keys to FontAwesome icons and labels - uses actual config from emojiSentimentConfig.ts
+const emojiSentimentMap = EMOJI_SENTIMENT_LABELS.map((label, index) => {
+  const iconConfig = EMOJI_SENTIMENT_ICONS[index];
+  const IconComponent = iconConfig.icon;
+  
+  return {
+    key: label.toLowerCase(),
+    icon: <IconComponent className={`w-8 h-8 ${iconConfig.color}`} size={32} />,
+    label: label,
+  };
+});
 
 export default function AnalyticsPage() {
   const supabase = createClient();
