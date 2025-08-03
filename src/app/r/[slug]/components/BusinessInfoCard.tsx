@@ -110,8 +110,8 @@ export default function BusinessInfoCard({ businessProfile, reviewType, promptPa
         </div>
       </div>
       
-      {/* Content Area with Title/Location */}
-      <div className="mt-24">
+      {/* Content Area with Title/Location - Reserve space for button */}
+      <div className="mt-24 pr-36">
         {/* Employee Name or Business Name */}
         <h1
           className={`text-3xl font-bold text-center mb-1 ${getFontClass(businessProfile?.primary_font || "")}`}
