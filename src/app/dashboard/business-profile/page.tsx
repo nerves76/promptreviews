@@ -854,10 +854,10 @@ export default function BusinessProfilePage() {
 
 Here are two key sections to pay attention to:
 
-1. Keywords
+**1. Keywords**
 Keywords help boost your web presence. For example, if you sell widgets in Seattle, you might want to include phrases like "best widget shop in Seattle." When those keywords show up in reviews, it can improve your visibility in search engines and AI tools like ChatGPT.
 
-2. AI Dos and Don'ts
+**2. AI Dos and Don'ts**
 	•	AI Dos are preferences: e.g., "Always use ALL CAPS for our brand name."
 	•	AI Don'ts are things to avoid: e.g., "Don't say we offer free consults—we don't."
 
