@@ -660,6 +660,21 @@ export default function ReviewsPage() {
                     className="absolute z-20 mt-1 w-48 bg-white border border-gray-200 rounded shadow-lg max-h-60 overflow-auto"
                     role="listbox"
                   >
+                    {/* ALL option */}
+                    <button
+                      className={`flex items-center gap-2 w-full px-3 py-2 text-left text-sm hover:bg-indigo-50 ${!emojiFilter ? "bg-indigo-100" : ""}`}
+                      onClick={() => {
+                        setEmojiFilter("");
+                        setShowEmojiDropdown(false);
+                      }}
+                      role="option"
+                      aria-selected={!emojiFilter}
+                      type="button"
+                    >
+                      <Icon name="FaSmile" className="w-6 h-6 text-slate-blue" size={24} />
+                      <span>ALL</span>
+                    </button>
+                    {/* Individual sentiment options */}
                     {EMOJI_SENTIMENT_LABELS.map((label, i) => {
                       const { icon: IconComponent, color } = EMOJI_SENTIMENT_ICONS[i];
                       return (
@@ -679,18 +694,6 @@ export default function ReviewsPage() {
                         </button>
                       );
                     })}
-                    {emojiFilter && (
-                      <button
-                        className="w-full px-3 py-2 text-left text-xs text-gray-500 hover:bg-gray-100 border-t border-gray-100"
-                        onClick={() => {
-                          setEmojiFilter("");
-                          setShowEmojiDropdown(false);
-                        }}
-                        type="button"
-                      >
-                        Clear filter
-                      </button>
-                    )}
                   </div>
                 )}
               </div>
