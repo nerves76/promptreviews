@@ -151,10 +151,18 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
     };
 
     const handleEmojiSentimentClick = () => {
-      if (notePopupEnabled) {
+      if (showFriendlyNote) {
         setShowPopupConflictModal("emoji");
       } else {
         setEmojiSentimentEnabled(prev => !prev);
+      }
+    };
+
+    const handleFriendlyNoteClick = () => {
+      if (emojiSentimentEnabled) {
+        setShowPopupConflictModal("note");
+      } else {
+        setShowFriendlyNote(prev => !prev);
       }
     };
 
@@ -363,7 +371,7 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
           {/* Personalized Note Feature */}
           <PersonalizedNoteFeature
             enabled={showFriendlyNote}
-            onToggle={setShowFriendlyNote}
+            onToggle={handleFriendlyNoteClick}
             note={friendlyNote}
             onNoteChange={setFriendlyNote}
             disabled={emojiSentimentEnabled}
@@ -382,7 +390,7 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
             onFeedbackPageHeaderChange={setEmojiFeedbackPageHeader}
             thankYouMessage={emojiThankYouMessage}
             onThankYouMessageChange={setEmojiThankYouMessage}
-            disabled={!!notePopupEnabled}
+            disabled={!!showFriendlyNote}
             slug={slug}
             editMode={true}
           />
