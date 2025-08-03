@@ -494,8 +494,10 @@ const DashboardContent = React.memo(function DashboardContent({
                   Total reviews
                   <span className="relative group">
                     <Icon name="FaQuestionCircle" className="w-4 h-4 text-slate-blue cursor-pointer" size={16} />
-                    <span className="absolute left-1/2 -translate-x-1/2 mt-2 w-48 p-2 bg-white border border-gray-200 rounded shadow text-xs text-gray-700 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-20">
-                      Total number of reviews submitted for your prompt pages. Week/month/year are based on the review submission date.
+                    <span className="absolute left-1/2 -translate-x-1/2 mt-2 w-80 p-3 bg-white border border-gray-200 rounded shadow text-xs text-gray-700 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-20">
+                      These numbers reflect how many users clicked "copy & submit" on your prompt pages and, presumably, submitted a review.
+                      <br /><br />
+                      Note: It may take anywhere from a few hours to a week or more for a review site to approve and publish a review. Google usually publishes within 48 hours if the review is not flagged. Some reviews may get denied. Users with low review histories are usually more susceptible to this.
                     </span>
                   </span>
                 </p>
