@@ -234,7 +234,7 @@ const ServicePromptPageForm = forwardRef<any, ServicePromptPageFormProps>(
             url={offerUrl}
             onUrlChange={setOfferUrl}
           />
-          {/* Personalized Note Pop-up Section */}
+          {/* Friendly Note Pop-up Section */}
           <EmojiSentimentFeature
             enabled={emojiSentimentEnabled}
             onToggle={() => {

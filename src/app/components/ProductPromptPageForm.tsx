@@ -578,7 +578,7 @@ export default function ProductPromptPageForm({
                 <div className="flex items-center gap-3">
                   <Icon name="FaStickyNote" className="w-7 h-7" style={{ color: "#1A237E" }} size={28} />
                   <span className="text-2xl font-bold text-slate-blue">
-                    Personalized note pop-up
+                    Friendly note pop-up
                   </span>
                 </div>
                 <button
@@ -724,7 +724,7 @@ export default function ProductPromptPageForm({
             <p className="mb-6 text-gray-700">
               You cannot have 2 popups enabled at the same time. You must disable{" "}
               <strong>
-                {showPopupConflictModal === "note" ? "Emoji Sentiment Flow" : "Personalized Note Pop-up"}
+                {showPopupConflictModal === "note" ? "Emoji Sentiment Flow" : "Friendly Note Pop-up"}
               </strong>{" "}
               first.
             </p>

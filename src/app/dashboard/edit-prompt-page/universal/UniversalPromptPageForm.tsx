@@ -368,7 +368,7 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
             onUrlChange={setOfferUrl}
           />
 
-          {/* Personalized Note Feature */}
+          {/* Friendly Note Feature */}
           <PersonalizedNoteFeature
             enabled={showFriendlyNote}
             onToggle={handleFriendlyNoteClick}
@@ -440,7 +440,7 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
               <strong>
                 {showPopupConflictModal === "note" 
                   ? "Emoji Sentiment Flow" 
-                  : "Personalized Note Pop-up"}
+                  : "Friendly Note Pop-up"}
               </strong>{" "}
               first.
             </p>

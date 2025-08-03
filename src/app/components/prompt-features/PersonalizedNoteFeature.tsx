@@ -1,11 +1,11 @@
 /**
  * PersonalizedNoteFeature Component
  * 
- * A reusable component for the personalized note feature that appears across all prompt page types.
- * This component handles the toggle for showing/hiding the personalized note and the textarea for the note content.
+ * A reusable component for the friendly note feature that appears across all prompt page types.
+ * This component handles the toggle for showing/hiding the friendly note and the textarea for the note content.
  * 
  * Features:
- * - Toggle to enable/disable the personalized note
+ * - Toggle to enable/disable the friendly note
  * - Textarea for entering the note content
  * - Conflict handling with emoji sentiment
  * - Proper state management and callbacks
@@ -17,11 +17,11 @@ import { Textarea } from "@/app/components/ui/textarea";
 import Icon from "@/components/Icon";
 
 export interface PersonalizedNoteFeatureProps {
-  /** Whether the personalized note is enabled */
+  /** Whether the friendly note is enabled */
   enabled: boolean;
   /** The note content */
   note: string;
-  /** Whether emoji sentiment is enabled (conflicts with personalized note) */
+  /** Whether emoji sentiment is enabled (conflicts with friendly note) */
   emojiSentimentEnabled?: boolean;
   /** Callback when the enabled state changes */
   onEnabledChange?: (enabled: boolean) => void;
@@ -79,7 +79,7 @@ export default function PersonalizedNoteFeature({
   const handleToggle = () => {
     if (emojiSentimentEnabled) {
       // Show conflict modal would go here
-      console.warn("Cannot enable personalized note when emoji sentiment is enabled");
+      console.warn("Cannot enable friendly note when emoji sentiment is enabled");
       return;
     }
     

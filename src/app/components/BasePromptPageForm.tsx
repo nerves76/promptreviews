@@ -588,7 +588,7 @@ export default function BasePromptPageForm({
               <strong>
                 {showPopupConflictModal === "note" 
                   ? "Emoji Sentiment Flow" 
-                  : "Personalized Note Pop-up"}
+                  : "Friendly Note Pop-up"}
               </strong>{" "}
               first.
             </p>

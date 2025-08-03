@@ -8,7 +8,7 @@
  * - Toggle to enable/disable emoji sentiment
  * - Question configuration
  * - Feedback and thank you message configuration
- * - Conflict handling with personalized note
+ * - Conflict handling with friendly note
  * - Demo button to preview functionality
  * - Embed functionality for website integration
  * - Emoji preview/example
@@ -37,7 +37,7 @@ export interface EmojiSentimentFeatureProps {
   feedbackPopupHeader?: string;
   /** The feedback page header */
   feedbackPageHeader?: string;
-  /** Whether personalized note is enabled (conflicts with emoji sentiment) */
+  /** Whether friendly note is enabled (conflicts with emoji sentiment) */
   personalizedNoteEnabled?: boolean;
   /** The slug for embed functionality */
   slug?: string;
@@ -151,7 +151,7 @@ export default function EmojiSentimentFeature({
   const handleToggle = () => {
     if (personalizedNoteEnabled) {
       // Show conflict modal would go here
-      console.warn("Cannot enable emoji sentiment when personalized note is enabled");
+      console.warn("Cannot enable emoji sentiment when friendly note is enabled");
       return;
     }
     

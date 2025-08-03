@@ -2727,7 +2727,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
         </div>
       )}
       
-      {/* Personalized Note Popup */}
+      {/* Friendly Note Popup */}
       {promptPage?.show_friendly_note &&
         promptPage?.friendly_note &&
         showPersonalNote &&
