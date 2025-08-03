@@ -228,7 +228,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
     () => promptPage?.review_platforms?.map(() => "") || [],
   );
   const [canShowPersonalNote, setCanShowPersonalNote] = useState(false);
-  const [showStarRain, setShowStarRain] = useState(true);
+  const [showStarRain, setShowStarRain] = useState(false);
   const [fallingIcon, setFallingIcon] = useState("star");
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
