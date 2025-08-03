@@ -72,7 +72,7 @@ export async function GET(
     // Get prompt page and verify it exists
     const { data: promptPage, error: promptPageError } = await supabase
       .from('prompt_pages')
-      .select('id, account_id, recent_reviews_enabled')
+      .select('id, account_id, recent_reviews_enabled, recent_reviews_scope')
       .eq('id', promptPageId)
       .single();
 
@@ -90,24 +90,34 @@ export async function GET(
     }
 
     const accountId = promptPage.account_id;
+    const reviewScope = promptPage.recent_reviews_scope || 'current_page';
 
-    // First, get all prompt pages for this account
-    const { data: accountPromptPages, error: pagesError } = await supabase
-      .from('prompt_pages')
-      .select('id')
-      .eq('account_id', accountId);
+    // Determine which prompt pages to include based on scope
+    let promptPageIds: string[];
+    
+    if (reviewScope === 'all_pages') {
+      // Get all prompt pages for this account
+      const { data: accountPromptPages, error: pagesError } = await supabase
+        .from('prompt_pages')
+        .select('id')
+        .eq('account_id', accountId);
 
-    if (pagesError || !accountPromptPages) {
-      return NextResponse.json({ error: 'Failed to fetch account prompt pages' }, { status: 500 });
+      if (pagesError || !accountPromptPages) {
+        return NextResponse.json({ error: 'Failed to fetch account prompt pages' }, { status: 500 });
+      }
+
+      promptPageIds = accountPromptPages.map(page => page.id);
+    } else {
+      // Only use the current prompt page
+      promptPageIds = [promptPageId];
     }
-
-    const promptPageIds = accountPromptPages.map(page => page.id);
     
     console.log('DEBUG Recent Reviews:', {
       promptPageId,
       accountId,
+      reviewScope,
       promptPageIds,
-      accountPromptPagesCount: accountPromptPages.length
+      promptPageIdsCount: promptPageIds.length
     });
 
     // Count total eligible reviews for this account
