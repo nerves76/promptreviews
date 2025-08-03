@@ -125,6 +125,101 @@ export async function POST(request: Request) {
 
     console.log("[track-review] Step 5: Review submission inserted successfully:", data?.id);
 
+    // Step 6: Create or update contact from review submission
+    if (data?.id && (first_name || last_name) && (email || phone)) {
+      console.log("[track-review] Step 6: Creating/updating contact from review submission...");
+      
+      try {
+        // Check if contact already exists (by email or phone)
+        let existingContactQuery = supabase
+          .from("contacts")
+          .select("id, review_verification_status, source")
+          .eq("account_id", business_id);
+
+        if (email) {
+          existingContactQuery = existingContactQuery.eq("email", email);
+        } else if (phone) {
+          existingContactQuery = existingContactQuery.eq("phone", phone);
+        }
+
+        const { data: existingContact } = await existingContactQuery.maybeSingle();
+
+        if (existingContact) {
+          // Update existing contact with review info
+          console.log("[track-review] Updating existing contact:", existingContact.id);
+          
+          const updateData: any = {
+            review_submission_id: data.id,
+            review_verification_status: 'verified',
+            [`${platform}_review_verified_at`]: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          };
+
+          // Update review content field if platform exists
+          if (reviewContent && platform) {
+            updateData[`${platform}_review`] = reviewContent;
+          }
+
+          // Only update source if it was manual (don't override if already from review)
+          if (existingContact.source === 'manual') {
+            updateData.source = 'review_submission';
+          }
+
+          const { error: updateError } = await supabase
+            .from("contacts")
+            .update(updateData)
+            .eq("id", existingContact.id);
+
+          if (updateError) {
+            console.error("[track-review] Error updating existing contact:", updateError);
+          } else {
+            console.log("[track-review] Successfully updated existing contact");
+          }
+        } else {
+          // Create new contact from review submission
+          console.log("[track-review] Creating new contact from review submission");
+          
+          const contactData: any = {
+            account_id: business_id,
+            first_name: first_name || '',
+            last_name: last_name || '',
+            email: email || null,
+            phone: phone || null,
+            review_submission_id: data.id,
+            review_verification_status: 'verified',
+            source: 'review_submission',
+            status: 'completed', // They already left a review
+            category: 'auto-generated-from-review',
+            [`${platform}_review_verified_at`]: new Date().toISOString(),
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          };
+
+          // Add review content if available
+          if (reviewContent && platform) {
+            contactData[`${platform}_review`] = reviewContent;
+          }
+
+          const { data: newContact, error: insertError } = await supabase
+            .from("contacts")
+            .insert(contactData)
+            .select("id")
+            .single();
+
+          if (insertError) {
+            console.error("[track-review] Error creating new contact:", insertError);
+          } else {
+            console.log("[track-review] Successfully created new contact:", newContact?.id);
+          }
+        }
+      } catch (contactError) {
+        console.error("[track-review] Error in contact creation/update:", contactError);
+        // Don't fail the whole request if contact creation fails
+      }
+    } else {
+      console.log("[track-review] Skipping contact creation - insufficient data (need name and email/phone)");
+    }
+
     // Log review submission to analytics_events
     const { error: analyticsError } = await supabase
       .from("analytics_events")
