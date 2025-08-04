@@ -25,6 +25,16 @@ A modern, customizable review widget system built with Next.js, TypeScript, and 
 4. Run the development server: `npm run dev`
 5. Open [http://localhost:3002](http://localhost:3002)
 
+### 🚀 Quick Development Login
+
+For rapid development without authentication setup:
+```javascript
+// In browser console:
+localStorage.setItem("dev_auth_bypass", "true");
+window.location.reload();
+```
+[Full documentation](#development-authentication-bypass-system)
+
 ## Recent Development Improvements (January 2025)
 
 ### Development Server Stability
@@ -196,6 +206,97 @@ For local development testing:
 1. Create a new account using the sign-up form
 2. Sign in immediately (no email confirmation required)
 3. Test all features with the created account
+
+### Development Authentication Bypass System
+
+For rapid development and debugging, we've implemented a comprehensive authentication bypass system that allows you to skip the normal authentication flow while maintaining full access to all features.
+
+#### Enabling the Bypass
+
+To enable the development authentication bypass:
+
+1. **Open your browser's developer console**
+2. **Run the enable script:**
+   ```javascript
+   localStorage.setItem("dev_auth_bypass", "true");
+   window.location.reload();
+   ```
+
+3. **Or use the convenience script:**
+   ```bash
+   node enable-dev-login.js
+   ```
+
+#### What the Bypass Does
+
+When enabled, the system:
+- **Bypasses all authentication checks** in development mode
+- **Uses a pre-existing test account** (`test@example.com` / ID: `12345678-1234-5678-9abc-123456789012`)
+- **Provides full dashboard access** without requiring sign-in
+- **Enables business creation and management** using the test account
+- **Allows prompt page access** without business profile validation errors
+
+#### Architecture Overview
+
+The bypass system works by intercepting authentication calls at multiple levels:
+
+##### Frontend Authentication Bypass
+- **AuthContext** (`src/contexts/AuthContext.tsx`): Mock user session creation
+- **DashboardLayout** (`src/app/dashboard/layout.tsx`): Skip sign-in redirects
+- **AuthGuard** (`src/utils/authGuard.ts`): Mock authentication state
+- **Account Selection** (`src/utils/accountSelectionHooks.ts`): Mock account data
+
+##### Database Access Bypass
+Due to Row Level Security (RLS) policies requiring `auth.uid()`, the frontend client cannot access certain tables in development mode. The bypass system routes these operations through API endpoints that use the service role client:
+
+- **Business Operations**: `/api/businesses` (GET/POST) - Bypasses RLS for business CRUD
+- **Onboarding Tasks**: `/api/onboarding-tasks` (GET/POST) - Bypasses RLS for task management
+
+##### Files Modified for Bypass Support
+
+**Core Authentication:**
+- `src/contexts/AuthContext.tsx` - Mock user session
+- `src/app/dashboard/layout.tsx` - Skip auth redirects
+- `src/utils/authGuard.ts` - Mock auth state
+- `src/utils/accountSelectionHooks.ts` - Mock account selection
+- `src/utils/supabaseClient.ts` - `getUserOrMock()` helper
+- `src/utils/accountUtils.ts` - Mock account lookups
+
+**API Endpoints (Service Role):**
+- `src/app/api/businesses/route.ts` - Business CRUD with RLS bypass
+- `src/app/api/onboarding-tasks/route.ts` - Task management with RLS bypass
+
+**Frontend Components:**
+- `src/app/prompt-pages/page.tsx` - API-based business fetching
+- `src/app/dashboard/business-profile/page.tsx` - API-based business fetching
+- `src/app/dashboard/create-business/CreateBusinessClient.tsx` - Use mock user
+- `src/utils/onboardingTasks.ts` - API-based task operations
+
+#### Development Account Details
+
+The bypass uses an existing account in the database:
+- **User ID**: `12345678-1234-5678-9abc-123456789012`
+- **Email**: `test@example.com`
+- **Account ID**: `12345678-1234-5678-9abc-123456789012` (same as user ID)
+- **Name**: Dev User
+- **Business**: Can create/manage businesses under this account
+
+#### Disabling the Bypass
+
+To return to normal authentication:
+```javascript
+localStorage.removeItem("dev_auth_bypass");
+window.location.reload();
+```
+
+#### Security Notes
+
+- **Development Only**: The bypass only works when `NODE_ENV === 'development'`
+- **Local Storage Gated**: Requires explicit localStorage flag to activate
+- **No Production Impact**: All bypass code is development-mode conditional
+- **Service Role Separation**: API bypasses use separate service role client, not user client
+
+This system allows for rapid development and testing without the overhead of managing authentication flows, while maintaining the security and integrity of the production authentication system.
 
 ### Development Server Troubleshooting
 
