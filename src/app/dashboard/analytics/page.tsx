@@ -677,26 +677,37 @@ export default function AnalyticsPage() {
             </p>
           </div>
 
-          <div className="bg-indigo-50 rounded-lg p-4 md:col-span-2 lg:col-span-3">
-            <p className="text-sm font-medium text-indigo-600 mb-4">
-              Platform Distribution
+          <div className="bg-blue-50 rounded-lg p-4">
+            <p className="text-sm font-medium text-blue-600">
+              Prompt Page Visits
             </p>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {Object.entries(analytics.clicksByPlatform).map(
-                ([platform, count]) => (
-                  <div
-                    key={platform}
-                    className="bg-white rounded p-3 shadow-sm"
-                  >
-                    <p className="text-sm text-gray-500">{platform}</p>
-                    <p className="text-lg font-semibold text-indigo-900">
-                      {count}
-                    </p>
-                  </div>
-                ),
-              )}
-            </div>
+            <p className="mt-2 text-3xl font-semibold text-blue-900">
+              {analytics.clicksByPlatform.web || 0}
+            </p>
           </div>
+
+          {Object.keys(analytics.clicksByPlatform).filter(platform => platform !== 'web').length > 0 && (
+            <div className="bg-indigo-50 rounded-lg p-4 md:col-span-2 lg:col-span-3">
+              <p className="text-sm font-medium text-indigo-600 mb-4">
+                Platform Distribution
+              </p>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {Object.entries(analytics.clicksByPlatform)
+                  .filter(([platform]) => platform !== 'web')
+                  .map(([platform, count]) => (
+                    <div
+                      key={platform}
+                      className="bg-white rounded p-3 shadow-sm"
+                    >
+                      <p className="text-sm text-gray-500">{platform}</p>
+                      <p className="text-lg font-semibold text-indigo-900">
+                        {count}
+                      </p>
+                    </div>
+                  ))}
+              </div>
+            </div>
+          )}
 
           <div className="bg-indigo-50 rounded-lg p-4 md:col-span-2 lg:col-span-3">
             <p className="text-sm font-medium text-indigo-600 mb-4">
