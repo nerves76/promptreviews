@@ -424,17 +424,17 @@ export default function PhotoPromptPageForm({
           {/* Personalized Note Feature */}
           <PersonalizedNoteFeature
             enabled={notePopupEnabled}
-            onToggle={() => setNotePopupEnabled(!notePopupEnabled)}
-            content={formData.friendly_note}
-            onContentChange={(content) => setFormData((prev: any) => ({ ...prev, friendly_note: content }))}
-            disabled={emojiSentimentEnabled}
+            onEnabledChange={setNotePopupEnabled}
+            note={formData.friendly_note}
+            onNoteChange={(note) => setFormData((prev: any) => ({ ...prev, friendly_note: note }))}
+            emojiSentimentEnabled={emojiSentimentEnabled}
             editMode={true}
           />
 
           {/* Emoji Sentiment Feature */}
           <EmojiSentimentFeature
             enabled={emojiSentimentEnabled}
-            onToggle={() => setEmojiSentimentEnabled(!emojiSentimentEnabled)}
+            onEnabledChange={setEmojiSentimentEnabled}
             question={emojiSentimentQuestion}
             onQuestionChange={setEmojiSentimentQuestion}
             feedbackMessage={emojiFeedbackMessage}
@@ -445,7 +445,7 @@ export default function PhotoPromptPageForm({
             onFeedbackPopupHeaderChange={setEmojiFeedbackPopupHeader}
             feedbackPageHeader={emojiFeedbackPageHeader}
             onFeedbackPageHeaderChange={setEmojiFeedbackPageHeader}
-            disabled={notePopupEnabled}
+            personalizedNoteEnabled={notePopupEnabled}
             editMode={true}
           />
 

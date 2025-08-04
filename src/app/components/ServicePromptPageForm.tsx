@@ -78,6 +78,13 @@ export default function ServicePromptPageForm({
     role: initialData?.role || "",
     review_platforms: initialData?.review_platforms || [],
     friendly_note: initialData?.friendly_note || "",
+    show_friendly_note: initialData?.show_friendly_note ?? false,
+    emoji_sentiment_enabled: initialData?.emoji_sentiment_enabled ?? false,
+    emoji_sentiment_question: initialData?.emoji_sentiment_question || "",
+    emoji_feedback_message: initialData?.emoji_feedback_message || "",
+    emoji_thank_you_message: initialData?.emoji_thank_you_message || "",
+    emoji_feedback_popup_header: initialData?.emoji_feedback_popup_header || "",
+    emoji_feedback_page_header: initialData?.emoji_feedback_page_header || "",
     name: initialData?.name || "",
     features_or_benefits: initialData?.features_or_benefits || [""],
     services_offered: initialData?.services_offered || [""],
@@ -93,6 +100,14 @@ export default function ServicePromptPageForm({
     kickstarters_enabled: initialData?.kickstarters_enabled ?? false,
     selected_kickstarters: Array.isArray(initialData?.selected_kickstarters) ? initialData.selected_kickstarters : [],
     recent_reviews_enabled: initialData?.recent_reviews_enabled ?? false,
+    slug: initialData?.slug || "",
+    service_name: initialData?.service_name || "",
+    product_description: initialData?.product_description || "",
+    client_name: initialData?.client_name || "",
+    location: initialData?.location || "",
+    date_completed: initialData?.date_completed || "",
+    team_member: initialData?.team_member || "",
+    assigned_team_members: initialData?.assigned_team_members || [],
   });
   
   const [fixGrammarEnabled, setFixGrammarEnabled] = useState(initialData?.fix_grammar_enabled ?? true);
@@ -690,8 +705,8 @@ export default function ServicePromptPageForm({
         
         {/* Falling Stars Section */}
         <FallingStarsFeature
-          enabled={formData.fallingEnabled}
-          onToggle={() => updateFormData('fallingEnabled', !formData.fallingEnabled)}
+          enabled={formData.falling_enabled}
+          onToggle={() => updateFormData('falling_enabled', !formData.falling_enabled)}
           icon={formData.falling_icon}
           onIconChange={(icon) => updateFormData('falling_icon', icon)}
           color={formData.falling_icon_color}
