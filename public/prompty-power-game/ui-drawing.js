@@ -26,10 +26,10 @@ function drawPowerUps() {
             ctx.strokeStyle = '#FFFFFF';
             ctx.lineWidth = 2;
             ctx.strokeRect(boxX, boxY, boxSize, boxSize);
-        } else if (powerUp.type === 'coffeeCup') {
-            icon = '☕'; // Coffee cup
-        } else if (powerUp.type === 'oneUp') {
-            icon = '💚'; // Green heart for 1up
+        } else if (powerUp.type === 'speechBubble') {
+            icon = '💬'; // Speech bubble
+        } else if (powerUp.type === 'mapPin') {
+            icon = '📍'; // Map pin
         }
         
         // Draw hit counter

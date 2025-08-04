@@ -314,7 +314,7 @@ export default function AdminAnalyticsPage() {
               </div>
             </div>
 
-            {/* Platform Distribution */}
+                          {/* Prompt Page Visits */}
             <div className="bg-white rounded-lg shadow p-6 mb-8">
               <h3 className="text-lg font-medium text-gray-900 mb-4">Top Review Platforms</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

@@ -8,22 +8,12 @@
  */
 
 import {
-  // ⚡ IMMEDIATE LOAD: Most popular icons for fast display
+  // ⚡ IMMEDIATE LOAD: Print-optimized icons for fast display
   FaStar,
   FaHeart,
-  FaSmile,
   FaBolt,
-  FaGem,
-  FaThumbsUp,
-  FaRainbow,
   FaSun,
   FaMoon,
-  FaCloud,
-  FaFire,
-  FaTree,
-  FaLeaf,
-  FaCoffee,
-  FaGift,
 } from "react-icons/fa";
 import { IconType } from "react-icons";
 
@@ -40,23 +30,14 @@ export const POPULAR_FALLING_ICONS: {
   color: string;
   category: string;
 }[] = [
-  // General & Popular (immediate load)
+  // General & Popular (immediate load) - print-optimized icons only
   { key: "star", label: "Stars", icon: FaStar, color: "text-yellow-500", category: "General" },
   { key: "heart", label: "Hearts", icon: FaHeart, color: "text-red-500", category: "General" },
-  { key: "smile", label: "Smiles", icon: FaSmile, color: "text-green-500", category: "General" },
   { key: "bolt", label: "Lightning", icon: FaBolt, color: "text-blue-500", category: "General" },
-  { key: "gem", label: "Diamond/Gem", icon: FaGem, color: "text-purple-500", category: "General" },
-  { key: "thumbsup", label: "Thumbs Up", icon: FaThumbsUp, color: "text-green-600", category: "General" },
   
-  // Nature & Weather (immediate load)
+  // Nature & Weather (immediate load) - print-optimized icons only
   { key: "sun", label: "Sun", icon: FaSun, color: "text-yellow-400", category: "Nature & Weather" },
   { key: "moon", label: "Moon", icon: FaMoon, color: "text-blue-300", category: "Nature & Weather" },
-  { key: "cloud", label: "Cloud", icon: FaCloud, color: "text-blue-200", category: "Nature & Weather" },
-  { key: "fire", label: "Fire", icon: FaFire, color: "text-orange-500", category: "Nature & Weather" },
-  { key: "tree", label: "Tree", icon: FaTree, color: "text-green-600", category: "Nature & Weather" },
-  { key: "leaf", label: "Leaf", icon: FaLeaf, color: "text-green-500", category: "Nature & Weather" },
-  { key: "coffee", label: "Coffee", icon: FaCoffee, color: "text-amber-600", category: "Food & Beverages" },
-  { key: "gift", label: "Gift", icon: FaGift, color: "text-red-500", category: "Food & Beverages" },
 ];
 
 // 🚀 LAZY LOAD: Function to load all icons only when needed

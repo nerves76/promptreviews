@@ -1,71 +1,71 @@
-/**
- * Get Game Leaderboard API
- * 
- * Retrieves the top scores from the game leaderboard.
- * This endpoint is public and doesn't require authentication.
- */
-
-import { createClient } from '@/utils/supabaseClient';
 import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
+
+// Create Supabase client with service role for database access
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const limit = parseInt(searchParams.get('limit') || '100');
-    const offset = parseInt(searchParams.get('offset') || '0');
+    const limit = Math.min(parseInt(searchParams.get('limit') || '10'), 100); // Max 100, default 10
 
-    // Validate parameters
-    if (limit > 1000 || limit < 1) {
-      return NextResponse.json(
-        { error: 'Limit must be between 1 and 1000.' },
-        { status: 400 }
-      );
-    }
-
-    if (offset < 0) {
-      return NextResponse.json(
-        { error: 'Offset must be non-negative.' },
-        { status: 400 }
-      );
-    }
-
-    const supabase = createClient();
-
-    // Get top scores ordered by score descending, then by created_at for ties
-    const { data, error } = await supabase
-      .from('game_leaderboard')
-      .select('*')
-      .order('score', { ascending: false })
-      .order('created_at', { ascending: true })
-      .range(offset, offset + limit - 1);
+    // Get top scores from public view
+    const { data: scores, error } = await supabase
+      .from('public_leaderboard')
+      .select('player_handle, score, level_reached, created_at, email_domain, website')
+      .limit(limit);
 
     if (error) {
-      console.error('Error fetching leaderboard:', error);
+      console.error('Leaderboard fetch error:', error);
       return NextResponse.json(
-        { error: 'Failed to fetch leaderboard.' },
+        { error: 'Failed to fetch leaderboard' },
         { status: 500 }
       );
     }
 
-    // Add rank to each score
-    const leaderboard = data.map((score, index) => ({
-      ...score,
-      rank: offset + index + 1
-    }));
+    // Format the response
+    const leaderboard = scores?.map((score, index) => ({
+      rank: index + 1,
+      player_handle: score.player_handle,
+      score: score.score,
+      level_reached: score.level_reached,
+      website: score.website,
+      email_domain: score.email_domain,
+      created_at: score.created_at,
+      // Add some fun rank titles
+      title: getRankTitle(index + 1)
+    })) || [];
 
     return NextResponse.json({
       success: true,
       leaderboard,
-      total: leaderboard.length,
-      limit,
-      offset
+      total_count: scores?.length || 0
     });
 
   } catch (error) {
-    console.error('Error in leaderboard API:', error);
+    console.error('Leaderboard API error:', error);
     return NextResponse.json(
-      { error: 'Internal server error.' },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }
-} 
+}
+
+function getRankTitle(rank: number): string {
+  switch (rank) {
+    case 1: return '👑 Authority King/Queen';
+    case 2: return '🥈 Review Master';
+    case 3: return '🥉 Customer Whisperer';
+    case 4:
+    case 5: return '⭐ Rising Star';
+    case 6:
+    case 7:
+    case 8:
+    case 9:
+    case 10: return '🚀 Power Player';
+    default: return '💪 Challenger';
+  }
+}
