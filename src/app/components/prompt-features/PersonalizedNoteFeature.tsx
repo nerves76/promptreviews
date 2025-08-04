@@ -80,12 +80,15 @@ export default function PersonalizedNoteFeature({
   }, [initialData]);
 
   const handleToggle = () => {
-    if (emojiSentimentEnabled) {
+    const newEnabled = !isEnabled;
+    
+    // Only prevent turning ON when the other feature is enabled
+    // Always allow turning OFF
+    if (newEnabled && emojiSentimentEnabled) {
       setShowConflictModal(true);
       return;
     }
     
-    const newEnabled = !isEnabled;
     setIsEnabled(newEnabled);
     onEnabledChange?.(newEnabled);
     onToggle?.(newEnabled);
