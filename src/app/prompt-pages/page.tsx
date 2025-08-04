@@ -38,7 +38,7 @@ function PromptPagesContent() {
   const searchParams = useSearchParams();
   const { hasBusiness, user: authUser, accountId: authAccountId, isLoading: authLoading } = useAuth();
 
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [promptPages, setPromptPages] = useState<any[]>([]);
   const [individualPromptPages, setIndividualPromptPages] = useState<any[]>([]);
   const [universalPromptPage, setUniversalPromptPage] = useState<any>(null);
