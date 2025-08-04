@@ -18,29 +18,29 @@ import SectionHeader from "@/app/components/SectionHeader";
 import Icon from "@/components/Icon";
 
 export interface UniversalPromptFormState {
-  offerEnabled: boolean;
-  offerTitle: string;
-  offerBody: string;
-  offerUrl: string;
-  emojiSentimentEnabled: boolean;
-  emojiSentimentQuestion: string;
-  emojiFeedbackMessage: string;
-  emojiThankYouMessage: string;
-  emojiFeedbackPopupHeader: string;
-  emojiFeedbackPageHeader: string;
-  reviewPlatforms: ReviewPlatformLink[];
-  fallingEnabled: boolean;
-  fallingIcon: string;
-  fallingIconColor: string;
-  aiButtonEnabled: boolean;
-  fixGrammarEnabled: boolean;
-  notePopupEnabled: boolean;
-  showFriendlyNote: boolean;
-  friendlyNote: string;
-  kickstartersEnabled: boolean;
-  selectedKickstarters: string[];
-  recentReviewsEnabled: boolean;
-  recentReviewsScope: 'current_page' | 'all_pages';
+  offer_enabled: boolean;
+  offer_title: string;
+  offer_body: string;
+  offer_url: string;
+  emoji_sentiment_enabled: boolean;
+  emoji_sentiment_question: string;
+  emoji_feedback_message: string;
+  emoji_thank_you_message: string;
+  emoji_feedback_popup_header: string;
+  emoji_feedback_page_header: string;
+  review_platforms: ReviewPlatformLink[];
+  falling_enabled: boolean;
+  falling_icon: string;
+  falling_icon_color: string;
+  ai_button_enabled: boolean;
+  fix_grammar_enabled: boolean;
+  note_popup_enabled: boolean;
+  show_friendly_note: boolean;
+  friendly_note: string;
+  kickstarters_enabled: boolean;
+  selected_kickstarters: string[];
+  recent_reviews_enabled: boolean;
+  recent_reviews_scope: 'current_page' | 'all_pages';
 }
 
 interface UniversalPromptPageFormProps {
@@ -69,44 +69,44 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
     },
     ref,
   ) => {
-    const [offerEnabled, setOfferEnabled] = useState(
-      initialData?.offerEnabled ?? false,
-    );
-    const [offerTitle, setOfferTitle] = useState(initialData?.offerTitle ?? "");
-    const [offerBody, setOfferBody] = useState(initialData?.offerBody ?? "");
-    const [offerUrl, setOfferUrl] = useState(initialData?.offerUrl ?? "");
-    const [emojiSentimentEnabled, setEmojiSentimentEnabled] = useState(
-      initialData?.emojiSentimentEnabled ?? false,
-    );
+      const [offerEnabled, setOfferEnabled] = useState(
+    initialData?.offer_enabled ?? false,
+  );
+    const [offerTitle, setOfferTitle] = useState(initialData?.offer_title ?? "");
+    const [offerBody, setOfferBody] = useState(initialData?.offer_body ?? "");
+    const [offerUrl, setOfferUrl] = useState(initialData?.offer_url ?? "");
+      const [emojiSentimentEnabled, setEmojiSentimentEnabled] = useState(
+    initialData?.emoji_sentiment_enabled ?? false,
+  );
     const [emojiSentimentQuestion, setEmojiSentimentQuestion] = useState(
-      initialData?.emojiSentimentQuestion || "How was Your Experience?",
+      initialData?.emoji_sentiment_question || "How was Your Experience?",
     );
     const [emojiFeedbackMessage, setEmojiFeedbackMessage] = useState(
-      initialData?.emojiFeedbackMessage || "We value your feedback! Let us know how we can do better.",
+      initialData?.emoji_feedback_message || "We value your feedback! Let us know how we can do better.",
     );
     const [emojiThankYouMessage, setEmojiThankYouMessage] = useState(
-      initialData?.emojiThankYouMessage &&
-        initialData?.emojiThankYouMessage.trim() !== ""
-        ? initialData.emojiThankYouMessage
+      initialData?.emoji_thank_you_message &&
+        initialData?.emoji_thank_you_message.trim() !== ""
+        ? initialData.emoji_thank_you_message
         : "Thank you for your feedback. It's important to us.",
     );
     const [emojiFeedbackPopupHeader, setEmojiFeedbackPopupHeader] = useState(
-      initialData?.emojiFeedbackPopupHeader || "How can we improve?",
+      initialData?.emoji_feedback_popup_header || "How can we improve?",
     );
     const [emojiFeedbackPageHeader, setEmojiFeedbackPageHeader] = useState(
-      initialData?.emojiFeedbackPageHeader || "Your feedback helps us grow",
+      initialData?.emoji_feedback_page_header || "Your feedback helps us grow",
     );
     const [reviewPlatforms, setReviewPlatforms] = useState<
       ReviewPlatformLink[]
-    >(initialData?.reviewPlatforms ?? []);
-    const [fallingEnabled, setFallingEnabled] = useState(
-      initialData?.fallingEnabled ?? true,
-    );
+    >(initialData?.review_platforms ?? []);
+      const [fallingEnabled, setFallingEnabled] = useState(
+    initialData?.falling_enabled ?? true,
+  );
     
     // Use shared falling stars hook
     const { fallingIcon, fallingIconColor, handleIconChange, handleColorChange, initializeValues } = useFallingStars({
-      initialIcon: initialData?.fallingIcon ?? "star",
-      initialColor: initialData?.fallingIconColor ?? "#fbbf24",
+      initialIcon: initialData?.falling_icon ?? "star",
+      initialColor: initialData?.falling_icon_color ?? "#fbbf24",
       onFormDataChange: (data) => {
         // Update the local state when falling stars hook changes values
         if (data.falling_icon !== undefined) {
@@ -117,32 +117,32 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
         }
       }
     });
-    const [aiButtonEnabled, setAiButtonEnabled] = useState(
-      initialData?.aiButtonEnabled ?? true,
-    );
+      const [aiButtonEnabled, setAiButtonEnabled] = useState(
+    initialData?.ai_button_enabled ?? true,
+  );
     const [fixGrammarEnabled, setFixGrammarEnabled] = useState(
-      initialData?.fixGrammarEnabled ?? true,
+      initialData?.fix_grammar_enabled ?? true,
     );
     const [notePopupEnabled, setNotePopupEnabled] = useState(
-      initialData?.notePopupEnabled ?? false,
+      initialData?.note_popup_enabled ?? false,
     );
     const [showFriendlyNote, setShowFriendlyNote] = useState(
-      initialData?.showFriendlyNote ?? false,
+      initialData?.show_friendly_note ?? false,
     );
     const [friendlyNote, setFriendlyNote] = useState(
-      initialData?.friendlyNote ?? "",
+      initialData?.friendly_note ?? "",
     );
-    const [kickstartersEnabled, setKickstartersEnabled] = useState(
-      initialData?.kickstartersEnabled ?? false,
-    );
+      const [kickstartersEnabled, setKickstartersEnabled] = useState(
+    initialData?.kickstarters_enabled ?? false,
+  );
     const [selectedKickstarters, setSelectedKickstarters] = useState<string[]>(
-      initialData?.selectedKickstarters ?? [],
+      initialData?.selected_kickstarters ?? [],
     );
-    const [recentReviewsEnabled, setRecentReviewsEnabled] = useState(
-      initialData?.recentReviewsEnabled ?? false,
-    );
+      const [recentReviewsEnabled, setRecentReviewsEnabled] = useState(
+    initialData?.recent_reviews_enabled ?? false,
+  );
     const [recentReviewsScope, setRecentReviewsScope] = useState<'current_page' | 'all_pages'>(
-      initialData?.recentReviewsScope ?? 'current_page',
+      initialData?.recent_reviews_scope ?? 'current_page',
     );
 
     // AI Generation loading state
@@ -161,27 +161,25 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
       if (emojiSentimentEnabled) {
         setShowPopupConflictModal("note");
       } else {
-        setNotePopupEnabled(prev => !prev);
+        setNotePopupEnabled((prev: boolean) => !prev);
       }
     };
 
+    // Note: These handlers are no longer used since we switched to onEnabledChange
+    // Keeping them for reference in case we need to revert
     const handleEmojiSentimentClick = () => {
-      // If trying to turn ON emoji sentiment while friendly note is enabled, show conflict
       if (!emojiSentimentEnabled && showFriendlyNote) {
         setShowPopupConflictModal("emoji");
       } else {
-        // Always allow turning OFF emoji sentiment, or turning ON when no conflict
         setEmojiSentimentEnabled(prev => !prev);
       }
     };
 
     const handleFriendlyNoteClick = () => {
-      // If trying to turn ON friendly note while emoji sentiment is enabled, show conflict
       if (!showFriendlyNote && emojiSentimentEnabled) {
         setShowPopupConflictModal("note");
       } else {
-        // Always allow turning OFF friendly note, or turning ON when no conflict
-        setShowFriendlyNote(prev => !prev);
+        setShowFriendlyNote((prev: boolean) => !prev);
       }
     };
 
@@ -211,55 +209,55 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
       () => ({
         submit: () => {
           onSave({
-            offerEnabled,
-            offerTitle,
-            offerBody,
-            offerUrl,
-            emojiSentimentEnabled: emojiSentimentEnabled,
-            emojiSentimentQuestion,
-            emojiFeedbackMessage,
-            emojiThankYouMessage,
-            emojiFeedbackPopupHeader,
-            emojiFeedbackPageHeader,
-            reviewPlatforms,
-            fallingEnabled,
-            fallingIcon,
-            fallingIconColor,
-            aiButtonEnabled,
-            fixGrammarEnabled,
-            notePopupEnabled: notePopupEnabled,
-            showFriendlyNote: showFriendlyNote,
-            friendlyNote,
-            kickstartersEnabled,
-            selectedKickstarters,
-            recentReviewsEnabled,
-            recentReviewsScope,
+            offer_enabled: offerEnabled,
+            offer_title: offerTitle,
+            offer_body: offerBody,
+            offer_url: offerUrl,
+            emoji_sentiment_enabled: emojiSentimentEnabled,
+            emoji_sentiment_question: emojiSentimentQuestion,
+            emoji_feedback_message: emojiFeedbackMessage,
+            emoji_thank_you_message: emojiThankYouMessage,
+            emoji_feedback_popup_header: emojiFeedbackPopupHeader,
+            emoji_feedback_page_header: emojiFeedbackPageHeader,
+            review_platforms: reviewPlatforms,
+            falling_enabled: fallingEnabled,
+            falling_icon: fallingIcon,
+            falling_icon_color: fallingIconColor,
+            ai_button_enabled: aiButtonEnabled,
+            fix_grammar_enabled: fixGrammarEnabled,
+            note_popup_enabled: notePopupEnabled,
+            show_friendly_note: showFriendlyNote,
+            friendly_note: friendlyNote,
+            kickstarters_enabled: kickstartersEnabled,
+            selected_kickstarters: selectedKickstarters,
+            recent_reviews_enabled: recentReviewsEnabled,
+            recent_reviews_scope: recentReviewsScope,
           });
         },
         getCurrentState: () => ({
-          offerEnabled,
-          offerTitle,
-          offerBody,
-          offerUrl,
-          emojiSentimentEnabled: emojiSentimentEnabled,
-          emojiSentimentQuestion,
-          emojiFeedbackMessage,
-          emojiThankYouMessage,
-          emojiFeedbackPopupHeader,
-          emojiFeedbackPageHeader,
-          reviewPlatforms,
-          fallingEnabled,
-          fallingIcon,
-          fallingIconColor,
-                      aiButtonEnabled,
-            fixGrammarEnabled,
-            notePopupEnabled: notePopupEnabled,
-            showFriendlyNote: showFriendlyNote,
-            friendlyNote,
-            kickstartersEnabled,
-            selectedKickstarters,
-            recentReviewsEnabled,
-            recentReviewsScope,
+          offer_enabled: offerEnabled,
+          offer_title: offerTitle,
+          offer_body: offerBody,
+          offer_url: offerUrl,
+          emoji_sentiment_enabled: emojiSentimentEnabled,
+          emoji_sentiment_question: emojiSentimentQuestion,
+          emoji_feedback_message: emojiFeedbackMessage,
+          emoji_thank_you_message: emojiThankYouMessage,
+          emoji_feedback_popup_header: emojiFeedbackPopupHeader,
+          emoji_feedback_page_header: emojiFeedbackPageHeader,
+          review_platforms: reviewPlatforms,
+          falling_enabled: fallingEnabled,
+          falling_icon: fallingIcon,
+          falling_icon_color: fallingIconColor,
+          ai_button_enabled: aiButtonEnabled,
+          fix_grammar_enabled: fixGrammarEnabled,
+          note_popup_enabled: notePopupEnabled,
+          show_friendly_note: showFriendlyNote,
+          friendly_note: friendlyNote,
+          kickstarters_enabled: kickstartersEnabled,
+          selected_kickstarters: selectedKickstarters,
+          recent_reviews_enabled: recentReviewsEnabled,
+          recent_reviews_scope: recentReviewsScope,
         }),
       }),
       [
@@ -308,30 +306,30 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
           }
           
           const formData = {
-            offerEnabled,
-            offerTitle,
-            offerBody,
-            offerUrl,
-            emojiSentimentEnabled,
-            emojiSentimentQuestion,
-            emojiFeedbackMessage,
-            emojiThankYouMessage:
+            offer_enabled: offerEnabled,
+            offer_title: offerTitle,
+            offer_body: offerBody,
+            offer_url: offerUrl,
+            emoji_sentiment_enabled: emojiSentimentEnabled,
+            emoji_sentiment_question: emojiSentimentQuestion,
+            emoji_feedback_message: emojiFeedbackMessage,
+            emoji_thank_you_message:
               emojiThankYouMessage || "Thank you for your feedback!",
-            emojiFeedbackPopupHeader,
-            emojiFeedbackPageHeader,
-            reviewPlatforms,
-            fallingEnabled,
-            fallingIcon,
-            fallingIconColor,
-            aiButtonEnabled,
-            fixGrammarEnabled,
-            notePopupEnabled,
-            showFriendlyNote,
-            friendlyNote,
-            kickstartersEnabled,
-            selectedKickstarters,
-            recentReviewsEnabled,
-            recentReviewsScope,
+            emoji_feedback_popup_header: emojiFeedbackPopupHeader,
+            emoji_feedback_page_header: emojiFeedbackPageHeader,
+            review_platforms: reviewPlatforms,
+            falling_enabled: fallingEnabled,
+            falling_icon: fallingIcon,
+            falling_icon_color: fallingIconColor,
+            ai_button_enabled: aiButtonEnabled,
+            fix_grammar_enabled: fixGrammarEnabled,
+            note_popup_enabled: notePopupEnabled,
+            show_friendly_note: showFriendlyNote,
+            friendly_note: friendlyNote,
+            kickstarters_enabled: kickstartersEnabled,
+            selected_kickstarters: selectedKickstarters,
+            recent_reviews_enabled: recentReviewsEnabled,
+            recent_reviews_scope: recentReviewsScope,
           };
           
           console.log('🔍 Calling onSave with data:', formData);
@@ -387,7 +385,7 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
           {/* Offer Feature */}
           <OfferFeature
             enabled={offerEnabled}
-            onToggle={() => setOfferEnabled((v) => !v)}
+            onToggle={() => setOfferEnabled((v: boolean) => !v)}
             title={offerTitle}
             onTitleChange={setOfferTitle}
             description={offerBody}
@@ -399,17 +397,17 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
           {/* Friendly Note Feature */}
           <PersonalizedNoteFeature
             enabled={showFriendlyNote}
-            onToggle={handleFriendlyNoteClick}
+            onEnabledChange={setShowFriendlyNote}
             note={friendlyNote}
             onNoteChange={setFriendlyNote}
-            disabled={emojiSentimentEnabled}
+            emojiSentimentEnabled={emojiSentimentEnabled}
             editMode={true}
           />
 
           {/* Emoji Sentiment Feature */}
           <EmojiSentimentFeature
             enabled={emojiSentimentEnabled}
-            onToggle={handleEmojiSentimentClick}
+            onEnabledChange={setEmojiSentimentEnabled}
             question={emojiSentimentQuestion}
             onQuestionChange={setEmojiSentimentQuestion}
             feedbackMessage={emojiFeedbackMessage}
@@ -418,7 +416,7 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
             onFeedbackPageHeaderChange={setEmojiFeedbackPageHeader}
             thankYouMessage={emojiThankYouMessage}
             onThankYouMessageChange={setEmojiThankYouMessage}
-            disabled={!!showFriendlyNote}
+            personalizedNoteEnabled={showFriendlyNote}
             slug={slug}
             editMode={true}
           />

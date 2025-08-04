@@ -31,9 +31,9 @@ export default function RecentReviewsButton({
   businessProfile,
   onOpenModal,
 }: RecentReviewsButtonProps) {
-  const [hasEnoughReviews, setHasEnoughReviews] = useState(false);
   const [loading, setLoading] = useState(true);
   const [reviewCount, setReviewCount] = useState(0);
+  const [hasEnoughReviews, setHasEnoughReviews] = useState(false);
 
   // Check if there are enough reviews when component mounts
   useEffect(() => {

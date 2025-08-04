@@ -192,15 +192,35 @@ function PromptPagesContent() {
         
         setBusiness(businessProfile);
         
-        const { data: universalPages } = await supabase
-          .from("prompt_pages")
-          .select("*")
-          .eq("account_id", accountId)
-          .eq("is_universal", true)
-          .order("created_at", { ascending: false })
-          .limit(1);
-        
-        const universalPage = universalPages?.[0];
+        // DEVELOPMENT MODE BYPASS - Use mock universal prompt page
+        let universalPage = null;
+        if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined' && localStorage.getItem('dev_auth_bypass') === 'true' && accountId === '12345678-1234-5678-9abc-123456789012') {
+          console.log('🔧 DEV MODE: Using mock universal prompt page');
+          universalPage = {
+            id: '0f1ba885-07d6-4698-9e94-a63d990c65e0',
+            account_id: '12345678-1234-5678-9abc-123456789012',
+            slug: 'universal-mdwd0peh',
+            is_universal: true,
+            campaign_type: 'public',
+            type: 'service',
+            status: 'complete',
+            recent_reviews_enabled: true,
+            recent_reviews_scope: 'current_page',
+            review_platforms: [],
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          };
+        } else {
+          const { data: universalPages } = await supabase
+            .from("prompt_pages")
+            .select("*")
+            .eq("account_id", accountId)
+            .eq("is_universal", true)
+            .order("created_at", { ascending: false })
+            .limit(1);
+          
+          universalPage = universalPages?.[0];
+        }
         setUniversalPromptPage(universalPage);
         if (universalPage?.slug) {
           setUniversalUrl(`${window.location.origin}/r/${universalPage.slug}`);

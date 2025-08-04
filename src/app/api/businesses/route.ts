@@ -13,6 +13,27 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const account_id = searchParams.get('account_id');
 
+    // DEVELOPMENT MODE BYPASS - Return mock business data
+    if (process.env.NODE_ENV === 'development' && account_id === '12345678-1234-5678-9abc-123456789012') {
+      console.log('🔧 DEV MODE: Returning mock business data');
+      const mockBusiness = {
+        id: '6762c76a-8677-4c7f-9a0f-f444024961a2',
+        account_id: '12345678-1234-5678-9abc-123456789012',
+        name: 'Chris Bolton',
+        business_email: 'chris@diviner.agency',
+        address_street: '2652 SE 89th Ave',
+        address_city: 'Portland',
+        address_state: 'Oregon',
+        address_zip: '97266',
+        address_country: 'United States',
+        phone: '',
+        business_website: '',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+      return NextResponse.json({ businesses: [mockBusiness] });
+    }
+
     const supabase = createServiceRoleClient();
 
     let query = supabase.from('businesses').select('*');

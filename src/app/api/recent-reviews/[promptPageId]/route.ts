@@ -55,6 +55,49 @@ export async function GET(
       return NextResponse.json({ error: 'Missing prompt page ID' }, { status: 400 });
     }
 
+    // DEVELOPMENT MODE BYPASS - Return mock review data
+    if (process.env.NODE_ENV === 'development' && promptPageId === '0f1ba885-07d6-4698-9e94-a63d990c65e0') {
+      console.log('🔧 DEV MODE: Returning mock recent reviews data');
+      const mockReviews = [
+        {
+          initials: 'S.J.',
+          content: 'Exceptional service! The team went above and beyond our expectations. Highly professional and delivered exactly what was promised.',
+          platform: 'Google',
+          date: '2 days ago'
+        },
+        {
+          initials: 'M.C.',
+          content: 'Professional, reliable, and delivered exactly what was promised. Great communication throughout the entire process.',
+          platform: 'Website',
+          date: '5 days ago'
+        },
+        {
+          initials: 'E.R.',
+          content: 'Amazing attention to detail and customer service. Would definitely recommend to anyone looking for quality work.',
+          platform: 'Yelp',
+          date: '1 week ago'
+        },
+        {
+          initials: 'D.T.',
+          content: 'Fast turnaround and excellent quality. Exceeded all expectations and delivered on time.',
+          platform: 'Facebook',
+          date: '2 weeks ago'
+        },
+        {
+          initials: 'J.W.',
+          content: 'Outstanding work! They understood our vision perfectly and brought it to life beautifully.',
+          platform: 'Google',
+          date: '3 weeks ago'
+        }
+      ];
+
+      return NextResponse.json({
+        hasEnoughReviews: true,
+        reviews: mockReviews,
+        totalCount: 6
+      });
+    }
+
     // Create server-side Supabase client
     const cookieStore = await cookies();
     const supabase = createServerClient(
