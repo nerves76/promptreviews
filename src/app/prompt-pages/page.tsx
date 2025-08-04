@@ -125,8 +125,8 @@ function PromptPagesContent() {
 
   useEffect(() => {
     async function fetchData() {
-      // Don't fetch if auth is still loading
-      if (authLoading) return;
+      // Don't fetch if auth is still loading or if we're already loading/have data
+      if (authLoading || loading || business) return;
       
       setLoading(true);
       setError(null);
@@ -272,7 +272,7 @@ function PromptPagesContent() {
       }
     }
     fetchData();
-  }, [supabase, authLoading, authUser, authAccountId]);
+  }, [supabase, authLoading, authAccountId, loading, business]);
 
   const fetchLocations = async (accountId: string) => {
     try {
