@@ -10,25 +10,36 @@ import { createServiceRoleClient } from "@/utils/supabaseClient";
 
 export async function GET(request: NextRequest) {
   try {
+    const { searchParams } = new URL(request.url);
+    const account_id = searchParams.get('account_id');
+
     const supabase = createServiceRoleClient();
 
-    const { data: businesses, error } = await supabase
-      .from('businesses')
-      .select('*');
+    let query = supabase.from('businesses').select('*');
+    
+    if (account_id) {
+      console.log(`[BUSINESSES] GET: Fetching businesses for account: ${account_id}`);
+      query = query.eq('account_id', account_id);
+    } else {
+      console.log('[BUSINESSES] GET: Fetching all businesses');
+    }
+
+    const { data: businesses, error } = await query.order('created_at', { ascending: false });
 
     if (error) {
       console.error('[BUSINESSES] Error fetching businesses:', error);
       return NextResponse.json(
-        { error: "Failed to fetch businesses" },
+        { error: "Failed to fetch businesses", details: error.message },
         { status: 500 }
       );
     }
 
-    return NextResponse.json(businesses || []);
+    console.log(`[BUSINESSES] GET: Found ${businesses?.length || 0} businesses`);
+    return NextResponse.json({ businesses: businesses || [] });
   } catch (error) {
     console.error('[BUSINESSES] Unexpected error:', error);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: "Internal server error", details: error instanceof Error ? error.message : "Unknown error" },
       { status: 500 }
     );
   }

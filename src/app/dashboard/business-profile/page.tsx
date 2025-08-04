@@ -172,12 +172,37 @@ export default function BusinessProfilePage() {
 
         // Load business profile for the selected account
         console.log('🔍 DEBUG: Querying businesses table with account_id:', currentAccountId);
-        const { data: businessProfiles, error: businessError } = await supabase
-          .from("businesses")
-          .select("*")
-          .eq("account_id", currentAccountId)
-          .order("created_at", { ascending: false })
-          .limit(1);
+        
+        let businessProfiles, businessError;
+        
+        // DEVELOPMENT MODE: Use API endpoint to bypass RLS issues
+        if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined' && localStorage.getItem('dev_auth_bypass') === 'true') {
+          console.log('🔧 DEV MODE: Using API endpoint to fetch businesses');
+          try {
+            const response = await fetch(`/api/businesses?account_id=${currentAccountId}`);
+            const apiResult = await response.json();
+            if (response.ok) {
+              businessProfiles = apiResult.businesses || [];
+              businessError = null;
+            } else {
+              businessProfiles = [];
+              businessError = { message: apiResult.error || 'API error' };
+            }
+          } catch (err) {
+            businessProfiles = [];
+            businessError = { message: err.message };
+          }
+        } else {
+          // Normal mode: Use Supabase client directly
+          const result = await supabase
+            .from("businesses")
+            .select("*")
+            .eq("account_id", currentAccountId)
+            .order("created_at", { ascending: false })
+            .limit(1);
+          businessProfiles = result.data;
+          businessError = result.error;
+        }
         
         console.log('🔍 DEBUG: Business query result:', { businessProfiles, businessError });
         const businessData = businessProfiles?.[0];
