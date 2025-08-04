@@ -61,66 +61,11 @@ export async function POST(request: NextRequest) {
 
     const supabase = createServiceRoleClient();
     
-    // DEVELOPMENT MODE BYPASS - Create mock account if it doesn't exist
+    // DEVELOPMENT MODE BYPASS - Skip foreign key validation entirely
+    let bypassAccountValidation = false;
     if (process.env.NODE_ENV === 'development' && account_id === '87654321-4321-4321-4321-210987654321') {
-      console.log('🔧 DEV MODE: Ensuring mock account exists for business creation');
-      
-      const mockUserId = '12345678-1234-1234-1234-123456789012';
-      
-      // Check if mock account exists
-      const { data: existingAccount } = await supabase
-        .from('accounts')
-        .select('id')
-        .eq('id', account_id)
-        .single();
-      
-      if (!existingAccount) {
-        console.log('🔧 DEV MODE: Creating mock account for development (will create auth.users record via raw SQL)');
-        
-        // First, create the auth.users record using raw SQL to bypass normal auth flow
-        const { error: authUserError } = await supabase.rpc('exec_sql', {
-          sql: `
-            INSERT INTO auth.users (id, email, created_at, updated_at, email_confirmed_at, raw_user_meta_data)
-            VALUES (
-              '${mockUserId}'::uuid, 
-              'dev@example.com', 
-              NOW(), 
-              NOW(), 
-              NOW(),
-              '{"first_name": "Dev", "last_name": "User"}'::jsonb
-            )
-            ON CONFLICT (id) DO NOTHING;
-          `
-        });
-        
-        if (authUserError) {
-          console.error('🔧 DEV MODE: Failed to create auth.users record:', authUserError);
-        } else {
-          console.log('🔧 DEV MODE: Auth user record created/exists');
-        }
-        
-        // Now create the accounts record
-        const { error: accountError } = await supabase
-          .from('accounts')
-          .insert([{
-            id: account_id,
-            user_id: mockUserId,
-            email: 'dev@example.com',
-            first_name: 'Dev',
-            last_name: 'User',
-            plan: 'free',
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          }]);
-        
-        if (accountError) {
-          console.error('🔧 DEV MODE: Failed to create mock account:', accountError);
-        } else {
-          console.log('🔧 DEV MODE: Mock account created successfully');
-        }
-      } else {
-        console.log('🔧 DEV MODE: Mock account already exists');
-      }
+      console.log('🔧 DEV MODE: Using development bypass for business creation');
+      bypassAccountValidation = true;
     }
 
     // Convert industry string to array if it's a string
@@ -163,6 +108,74 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       console.error('[BUSINESSES] Error creating business:', error);
+      
+      // In development mode, if it's a foreign key constraint error for our mock account,
+      // try to continue anyway by creating with minimal data
+      if (bypassAccountValidation && error.code === '23503' && error.message.includes('fk_businesses_account_id')) {
+        console.log('🔧 DEV MODE: Foreign key constraint failed as expected, trying alternative approach...');
+        
+        // Try creating the business without the account_id constraint by using a different approach
+        // Since we're using service role, let's try to create the account first in a minimal way
+        try {
+          // Create a minimal account record that satisfies the constraint
+          const { error: minimalAccountError } = await supabase
+            .from('accounts')
+            .upsert([{
+              id: account_id,
+              plan: 'free',
+              is_free_account: false,
+              custom_prompt_page_count: 0,
+              contact_count: 0,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            }], { onConflict: 'id' });
+          
+          if (minimalAccountError) {
+            console.error('🔧 DEV MODE: Still cannot create account:', minimalAccountError);
+            return NextResponse.json(
+              { 
+                error: "Failed to create business",
+                details: `Development mode: Cannot bypass foreign key constraints. ${error.message}` 
+              },
+              { status: 500 }
+            );
+          }
+          
+          console.log('🔧 DEV MODE: Minimal account created, retrying business creation...');
+          
+          // Try business creation again
+          const { data: retryBusiness, error: retryError } = await supabase
+            .from('businesses')
+            .insert([insertData])
+            .select()
+            .single();
+          
+          if (retryError) {
+            console.error('🔧 DEV MODE: Business creation still failed:', retryError);
+            return NextResponse.json(
+              { 
+                error: "Failed to create business",
+                details: retryError.message 
+              },
+              { status: 500 }
+            );
+          }
+          
+          console.log('🔧 DEV MODE: Business created successfully on retry');
+          return NextResponse.json({ business: retryBusiness }, { status: 201 });
+          
+        } catch (devError) {
+          console.error('🔧 DEV MODE: Alternative approach failed:', devError);
+          return NextResponse.json(
+            { 
+              error: "Failed to create business",
+              details: `Development bypass failed: ${error.message}` 
+            },
+            { status: 500 }
+          );
+        }
+      }
+      
       return NextResponse.json(
         { 
           error: "Failed to create business",
