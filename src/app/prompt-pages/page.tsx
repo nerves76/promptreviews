@@ -185,7 +185,10 @@ function PromptPagesContent() {
         if (!businessProfile || 
             !businessProfile.name || 
             businessProfile.name.trim() === '') {
-          setShowBusinessRequiredModal(true);
+          console.log('❌ Business profile check failed:', { businessProfile });
+          if (!showBusinessRequiredModal) {
+            setShowBusinessRequiredModal(true);
+          }
           setLoading(false);
           return;
         }
@@ -1073,7 +1076,14 @@ function PromptPagesContent() {
       {/* Business Required Modal */}
       {showBusinessRequiredModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-8 max-w-md mx-4 text-center">
+          <div className="bg-white rounded-lg p-8 max-w-md mx-4 text-center relative">
+            <button
+              onClick={() => setShowBusinessRequiredModal(false)}
+              className="absolute top-4 right-4 w-8 h-8 bg-white text-gray-400 hover:text-gray-600 rounded-full flex items-center justify-center border border-gray-200 hover:border-gray-300 transition-colors"
+              aria-label="Close"
+            >
+              ×
+            </button>
             <div className="mb-6">
                               <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-slate-blue/10 mb-4">
                 <Icon name="FaStore" className="h-6 w-6 text-slate-blue" size={24} />
