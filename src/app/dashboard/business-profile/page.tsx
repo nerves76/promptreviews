@@ -153,6 +153,8 @@ export default function BusinessProfilePage() {
         }
 
         console.log('🔄 Loading business profile for account:', selectedAccount.account_id);
+        console.log('🔍 DEBUG: Full selectedAccount object:', selectedAccount);
+        console.log('🔍 DEBUG: Account loading state:', accountLoading);
         setLoading(true);
         setError("");
         setSuccess("");
@@ -169,6 +171,7 @@ export default function BusinessProfilePage() {
         setAccountId(currentAccountId);
 
         // Load business profile for the selected account
+        console.log('🔍 DEBUG: Querying businesses table with account_id:', currentAccountId);
         const { data: businessProfiles, error: businessError } = await supabase
           .from("businesses")
           .select("*")
@@ -176,7 +179,9 @@ export default function BusinessProfilePage() {
           .order("created_at", { ascending: false })
           .limit(1);
         
+        console.log('🔍 DEBUG: Business query result:', { businessProfiles, businessError });
         const businessData = businessProfiles?.[0];
+        console.log('🔍 DEBUG: Selected business data:', businessData);
 
         if (businessError) {
           console.error("Error loading business profile:", businessError);
