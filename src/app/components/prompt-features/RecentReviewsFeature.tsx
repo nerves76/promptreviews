@@ -154,7 +154,7 @@ export default function RecentReviewsFeature({
                 />
                 <div>
                   <div className="text-sm text-blue-800 font-medium">All my prompt pages</div>
-                  <div className="text-xs text-blue-600">Show reviews from all your prompt pages (great for multi-location businesses)</div>
+                  <div className="text-xs text-blue-600">Show reviews from all your prompt pages</div>
                 </div>
               </label>
             </div>
