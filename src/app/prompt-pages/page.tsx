@@ -33,6 +33,7 @@ import { useAuth } from "@/contexts/AuthContext";
 const StylePage = dynamic(() => import("../dashboard/style/StyleModalPage"), { ssr: false });
 
 function PromptPagesContent() {
+  console.log('🔄 PromptPagesContent component mounting/re-rendering');
   const supabase = useMemo(() => createClient(), []);
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -124,16 +125,20 @@ function PromptPagesContent() {
   }, [searchParams]);
 
   useEffect(() => {
+    console.log('🔥 useEffect triggered - deps changed:', { authLoading, authAccountId });
     async function fetchData() {
       // Don't fetch if auth is still loading or if we're already loading
       if (authLoading || loading) {
+        console.log('⏸️ Skipping fetch - authLoading:', authLoading, 'loading:', loading);
         return;
       }
       
       // Don't refetch if we already have data for this account
       if (business && authAccountId && business.account_id === authAccountId) {
+        console.log('⏸️ Skipping fetch - already have data for account');
         return;
       }
+      console.log('🚀 Starting data fetch for account:', authAccountId);
       setLoading(true);
       setError(null);
       try {
@@ -272,8 +277,10 @@ function PromptPagesContent() {
           await fetchLocations(accountId);
         }
       } catch (err) {
+        console.error('❌ Data fetch error:', err);
         setError(err instanceof Error ? err.message : "Failed to load");
       } finally {
+        console.log('✅ Data fetch completed');
         setLoading(false);
       }
     }
