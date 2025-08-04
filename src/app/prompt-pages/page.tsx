@@ -286,7 +286,7 @@ function PromptPagesContent() {
       }
     }
     fetchData();
-  }, [supabase, authLoading, authAccountId, loading]);
+  }, [supabase, authLoading, authAccountId]);
 
   const fetchLocations = async (accountId: string) => {
     try {
