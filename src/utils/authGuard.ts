@@ -114,8 +114,8 @@ export function useBusinessProfile() {
         const devBypass = localStorage.getItem('dev_auth_bypass');
         if (devBypass === 'true') {
           console.log('🔧 DEV MODE: useBusinessProfile using authentication bypass');
-          setHasBusiness(true);
-          setBusinessId('87654321-4321-4321-4321-210987654321'); // Same mock account ID
+                  setHasBusiness(true);
+        setBusinessId('12345678-1234-5678-9abc-123456789012'); // Same mock account ID
           setLoading(false);
           return;
         }
