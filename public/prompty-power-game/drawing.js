@@ -408,21 +408,43 @@ function drawPrompty() {
     window.ctx.save();
     
     // Apply hurt visual effect if active
-    if (promptyHurtTimer > 0) {
-        promptyHurtTimer--;
+    if (window.promptyHurtTimer > 0) {
+        window.promptyHurtTimer--;
         // Apply red tint to the entire drawing context
         window.ctx.globalCompositeOperation = 'multiply';
         window.ctx.fillStyle = '#FF0000';
         window.ctx.globalAlpha = 0.3; // 30% red tint
     }
     
+    // Safety check: ensure prompty object exists
+    if (!window.prompty) {
+        console.error('🚨 PROMPTY MISSING! Level:', window.level, 'GameState:', window.gameState);
+        console.error('🚨 Recreating Prompty object...');
+        window.prompty = {
+            x: 330,
+            y: 400,
+            width: 60,
+            height: 80
+        };
+    }
+    
+    // Check for invalid Prompty position
+    if (window.prompty.x < -100 || window.prompty.x > window.canvas.width + 100 || 
+        window.prompty.y < -100 || window.prompty.y > window.canvas.height + 100) {
+        console.error('🚨 PROMPTY OUT OF BOUNDS! Position:', window.prompty.x, window.prompty.y, 'Level:', window.level);
+        // Reset to safe position
+        window.prompty.x = 330;
+        window.prompty.y = 400;
+    }
+    
     // Draw Prompty image if loaded, otherwise fallback
-    if (promptyImage.complete) {
-        window.ctx.drawImage(promptyImage, prompty.x, prompty.y, prompty.width, prompty.height);
+    if (window.promptyImage && window.promptyImage.complete) {
+        window.ctx.drawImage(window.promptyImage, window.prompty.x, window.prompty.y, window.prompty.width, window.prompty.height);
     } else {
         // Fallback: simple blue rectangle
+        console.warn('Prompty image not loaded, using fallback');
         window.ctx.fillStyle = '#4A90E2';
-        window.ctx.fillRect(prompty.x, prompty.y, prompty.width, prompty.height);
+        window.ctx.fillRect(window.prompty.x, window.prompty.y, window.prompty.width, window.prompty.height);
     }
     
     // Restore the context state (this resets all globalCompositeOperation and globalAlpha)
@@ -570,7 +592,7 @@ function drawEvilGoogleExec() {
         
         // Apply fade-out effect if defeated
         if (exec.isDefeated) {
-            window.ctx.globalAlpha = 1 - (exec.fadeTimer / 120); // Fade over 2 seconds
+            window.ctx.globalAlpha = 1 - (exec.fadeTimer / 30); // Fade over 0.5 second (30 frames)
         }
         
         // Draw Evil Google Exec
@@ -649,7 +671,7 @@ function drawEvilGoogleExec() {
         }
         
         // Draw "Fine." text if defeated (first second)
-        if (exec.isDefeated && exec.fadeTimer < 60) {
+        if (exec.isDefeated && exec.fadeTimer < 30) {
             window.ctx.fillStyle = '#fff';
             window.ctx.font = 'bold 20px Arial';
             window.ctx.textAlign = 'center';
@@ -713,15 +735,27 @@ function drawFloatingTexts() {
         window.ctx.save();
         window.ctx.globalAlpha = text.alpha;
         
-        // Draw shadow
-        window.ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+        // Handle multi-line text
+        const lines = text.text.split('\n');
+        const lineHeight = text.fontSize + 4; // Small spacing between lines
+        const totalHeight = (lines.length - 1) * lineHeight;
+        const startY = text.y - totalHeight / 2; // Center the multi-line text
+        
         window.ctx.font = `bold ${text.fontSize}px Arial`;
         window.ctx.textAlign = 'center';
-        window.ctx.fillText(text.text, text.x + 2, text.y + 2);
         
-        // Draw main text
-        window.ctx.fillStyle = text.color;
-        window.ctx.fillText(text.text, text.x, text.y);
+        // Draw each line with shadow and main text
+        lines.forEach((line, index) => {
+            const lineY = startY + (index * lineHeight);
+            
+            // Draw shadow
+            window.ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+            window.ctx.fillText(line, text.x + 2, lineY + 2);
+            
+            // Draw main text
+            window.ctx.fillStyle = text.color;
+            window.ctx.fillText(line, text.x, lineY);
+        });
         
         window.ctx.restore();
         
@@ -732,129 +766,7 @@ function drawFloatingTexts() {
     }
 }
 
-// Draw Teresa the Reporter
-function drawTeresa() {
-    try {
-        if (!window.teresa) return;
-        const teresa = window.teresa;
-        
-        // Apply fade-out effect if defeated
-        if (teresa.isDefeated) {
-            window.ctx.globalAlpha = 1 - (teresa.fadeTimer / 120);
-        }
-        
-        // Draw Teresa image or fallback rectangle
-        if (window.teresaImage && window.teresaImage.complete && window.teresaImage.naturalHeight !== 0) {
-            window.ctx.drawImage(window.teresaImage, teresa.x, teresa.y, teresa.width, teresa.height);
-        } else {
-            // Fallback: draw a simple rectangle if image failed to load
-            window.ctx.fillStyle = '#4A90E2';
-            window.ctx.fillRect(teresa.x, teresa.y, teresa.width, teresa.height);
-            window.ctx.fillStyle = '#ffffff';
-            window.ctx.font = '12px Arial';
-            window.ctx.textAlign = 'center';
-            window.ctx.fillText('Teresa', teresa.x + teresa.width / 2, teresa.y + teresa.height / 2);
-        }
-        
-        // Teresa doesn't have a health bar - she's defeated in one hit
-        
-        // Draw health bar for Teresa (now that she has a health system)
-        const healthBarWidth = 100;
-        const healthBarHeight = 8;
-        const healthBarX = teresa.x + (teresa.width - healthBarWidth) / 2;
-        const healthBarY = teresa.y - 15;
-        
-        // Background
-        window.ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-        window.ctx.fillRect(healthBarX, healthBarY, healthBarWidth, healthBarHeight);
-        
-        // Health bar fill (green for positive character)
-        const healthPercent = teresa.health / teresa.maxHealth;
-        window.ctx.fillStyle = '#00ff00';
-        window.ctx.fillRect(healthBarX, healthBarY, healthBarWidth * healthPercent, healthBarHeight);
-        
-        // Border
-        window.ctx.strokeStyle = '#ffffff';
-        window.ctx.lineWidth = 1;
-        window.ctx.strokeRect(healthBarX, healthBarY, healthBarWidth, healthBarHeight);
-        
-        // Draw speech bubble
-        if (teresa.speechBubbleVisible && !teresa.isDefeated) {
-            const bubbleX = teresa.x + teresa.width / 2;
-            const bubbleY = Math.max(teresa.y - 40, 60); // Ensure bubble doesn't go above y=60
-            const bubbleWidth = 200;
-            const bubbleHeight = 60;
-            
-            // Bubble background
-            window.ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-            window.ctx.strokeStyle = '#000000';
-            window.ctx.lineWidth = 2;
-            
-            // Draw bubble with simple rectangle (more compatible than roundRect)
-            window.ctx.fillRect(bubbleX - bubbleWidth / 2, bubbleY - bubbleHeight, bubbleWidth, bubbleHeight);
-            window.ctx.strokeRect(bubbleX - bubbleWidth / 2, bubbleY - bubbleHeight, bubbleWidth, bubbleHeight);
-            
-            // Draw speech bubble tail
-            window.ctx.beginPath();
-            window.ctx.moveTo(bubbleX, bubbleY);
-            window.ctx.lineTo(bubbleX - 10, bubbleY + 10);
-            window.ctx.lineTo(bubbleX + 10, bubbleY + 10);
-            window.ctx.closePath();
-            window.ctx.fill();
-            window.ctx.stroke();
-            
-            // Text
-            window.ctx.fillStyle = '#000000';
-            window.ctx.font = '14px Arial';
-            window.ctx.textAlign = 'center';
-            
-            // Split quote into multiple lines if needed
-            const words = teresa.currentQuote.split(' ');
-            const lines = [];
-            let currentLine = '';
-            
-            for (let word of words) {
-                if (currentLine.length + word.length > 25) {
-                    lines.push(currentLine);
-                    currentLine = word;
-                } else {
-                    currentLine += (currentLine ? ' ' : '') + word;
-                }
-            }
-            if (currentLine) lines.push(currentLine);
-            
-            // Draw text lines
-            for (let i = 0; i < lines.length; i++) {
-                window.ctx.fillText(lines[i], bubbleX, bubbleY - bubbleHeight / 2 + (i - lines.length / 2 + 0.5) * 16);
-            }
-        }
-        
-        // Draw "Fine." text when defeated (first second)
-        if (teresa.isDefeated && teresa.fadeTimer < 60) {
-            window.ctx.globalAlpha = 1;
-            window.ctx.fillStyle = '#ffffff';
-            window.ctx.font = 'bold 20px Arial';
-            window.ctx.textAlign = 'center';
-            window.ctx.fillText('Fine.', teresa.x + teresa.width / 2, teresa.y + teresa.height / 2);
-        }
-        
-        window.ctx.globalAlpha = 1;
-    } catch (error) {
-        console.error('Error drawing Teresa:', error);
-        window.teresa = null;
-    }
-}
 
-// Load Teresa the Reporter image
-window.teresaImage = new Image();
-window.teresaImage.onload = function() {
-    console.log('Teresa image loaded successfully');
-};
-window.teresaImage.onerror = function() {
-    console.error('Failed to load Teresa image');
-    window.teresaImage = null;
-};
-window.teresaImage.src = 'https://ltneloufqjktdplodvao.supabase.co/storage/v1/object/public/logos/prompt-assets/reporter.png';
 
 // Draw Karen's speech bubble
 function drawKarenSpeechBubble() {
@@ -1002,12 +914,12 @@ function drawLinkedInSpammerSpeechBubble() {
         window.ctx.textAlign = 'center';
         window.ctx.textBaseline = 'middle';
         
-        const quote = spammer.currentQuote;
+        const quote = spammer.quotes[spammer.currentQuote];
         const maxLength = 20;
         
-        if (quote.length <= maxLength) {
+        if (quote && quote.length <= maxLength) {
             window.ctx.fillText(quote, spammer.x, spammer.y - 37);
-        } else {
+        } else if (quote) {
             // Split into multiple lines
             const words = quote.split(' ');
             let line1 = '';
@@ -1027,13 +939,73 @@ function drawLinkedInSpammerSpeechBubble() {
     }
 }
 
+// Draw level complete overlay
+function drawLevelCompleteOverlay() {
+    if (!window.levelCompleteOverlay || !window.levelCompleteOverlay.visible) {
+        return;
+    }
+    
+    // Overlay drawing successfully
+    
+    try {
+        const overlay = window.levelCompleteOverlay;
+        if (!overlay || !window.ctx || !window.canvas) {
+            console.error('Missing overlay, context, or canvas');
+            return;
+        }
+        
+        // Update timer for fade effects
+        overlay.timer++;
+        
+        // Calculate fade-in and fade-out alpha
+        let alpha = overlay.alpha || 0.9;
+        if (overlay.timer < 30) {
+            // Fade in over 0.5 seconds
+            alpha = (overlay.timer / 30) * alpha;
+        } else if (overlay.timer > overlay.duration - 30) {
+            // Fade out over last 0.5 seconds
+            const fadeOutProgress = (overlay.duration - overlay.timer) / 30;
+            alpha = fadeOutProgress * alpha;
+        }
+        
+        // Ensure alpha is valid
+        alpha = Math.max(0, Math.min(1, alpha));
+        
+        // Draw semi-transparent background
+        window.ctx.save();
+        window.ctx.globalAlpha = alpha * 0.6;
+        window.ctx.fillStyle = 'black';
+        window.ctx.fillRect(0, 0, window.canvas.width, window.canvas.height);
+        
+        // Draw level complete text
+        window.ctx.globalAlpha = alpha;
+        window.ctx.fillStyle = 'white';
+        window.ctx.font = 'bold 48px Arial';
+        window.ctx.textAlign = 'center';
+        window.ctx.textBaseline = 'middle';
+        
+        const centerX = window.canvas.width / 2;
+        const centerY = window.canvas.height / 2;
+        
+        // Main level text
+        window.ctx.fillText(`Level ${window.level || '?'} Complete!`, centerX, centerY - 40);
+        
+        // Rankings improving text
+        window.ctx.font = 'bold 32px Arial';
+        window.ctx.fillStyle = 'gold';
+        window.ctx.fillText('Your rankings are improving!', centerX, centerY + 20);
+        
+        window.ctx.restore();
+        
+    } catch (error) {
+        console.error('Error drawing level complete overlay:', error);
+    }
+}
+
 // Main draw function
 function draw() {
     try {
-        // Don't draw during state transitions to prevent crashes
-        if (!window.gameState || window.gameState !== 'playing') {
-            return;
-        }
+
         
         // Apply screen shake
         window.ctx.save();
@@ -1052,32 +1024,60 @@ function draw() {
         drawStars();
         
         // Draw Karen (ULTRA SIMPLIFIED TO PREVENT FREEZING)
-        if (window.karen && !window.karen.isDefeated && window.karen.health > 0) {
-            // Draw Karen normally - no complex effects
-            window.ctx.drawImage(window.karenImage, window.karen.x, window.karen.y, window.karen.width, window.karen.height);
-            
-            // Draw health bar
-            const barWidth = 100;
-            const barHeight = 8;
-            const barX = window.karen.x + (window.karen.width - barWidth) / 2;
-            const barY = window.karen.y - 20;
-            
-            // Health bar background
-            window.ctx.fillStyle = '#333';
-            window.ctx.fillRect(barX, barY, barWidth, barHeight);
-            
-            // Health bar fill
-            const healthPercent = window.karen.health / window.karen.maxHealth;
-            window.ctx.fillStyle = healthPercent > 0.5 ? '#00ff00' : healthPercent > 0.25 ? '#ffff00' : '#ff0000';
-            window.ctx.fillRect(barX, barY, barWidth * healthPercent, barHeight);
-            
-            // Health bar border
-            window.ctx.strokeStyle = '#fff';
-            window.ctx.lineWidth = 1;
-            window.ctx.strokeRect(barX, barY, barWidth, barHeight);
-            
-            // Draw Karen's speech bubble
-            drawKarenSpeechBubble();
+        if (window.karen && typeof window.karen === 'object') {
+            try {
+                // Safety check - make sure karen object has required properties
+                if (!window.karen.hasOwnProperty('x') || !window.karen.hasOwnProperty('y')) {
+                    console.warn('Karen object missing position properties, skipping draw');
+                    return;
+                }
+                
+                // Apply fade-out effect if defeated
+                if (window.karen.isDefeated) {
+                    const fadeProgress = window.karen.fadeTimer / 30; // Fade over 0.5 second (30 frames)
+                    window.ctx.globalAlpha = Math.max(0, 1 - fadeProgress);
+                }
+                
+                // Draw Karen normally - no complex effects
+                if (window.karenImage && window.karenImage.complete) {
+                    window.ctx.drawImage(window.karenImage, window.karen.x, window.karen.y, window.karen.width, window.karen.height);
+                } else {
+                    console.warn('Karen image not loaded, skipping draw');
+                }
+                // Draw health bar (inside try-catch)
+                if (window.karen && !window.karen.isDefeated) {
+                    const barWidth = 100;
+                    const barHeight = 8;
+                    const barX = window.karen.x + (window.karen.width - barWidth) / 2;
+                    const barY = window.karen.y - 20;
+                    
+                    // Health bar background
+                    window.ctx.fillStyle = '#333';
+                    window.ctx.fillRect(barX, barY, barWidth, barHeight);
+                    
+                    // Health bar fill
+                    const healthPercent = window.karen.health / window.karen.maxHealth;
+                    window.ctx.fillStyle = healthPercent > 0.5 ? '#00ff00' : healthPercent > 0.25 ? '#ffff00' : '#ff0000';
+                    window.ctx.fillRect(barX, barY, barWidth * healthPercent, barHeight);
+                    
+                    // Health bar border
+                    window.ctx.strokeStyle = '#fff';
+                    window.ctx.lineWidth = 1;
+                    window.ctx.strokeRect(barX, barY, barWidth, barHeight);
+                    
+                    // Draw Karen's speech bubble (only if not defeated)
+                    drawKarenSpeechBubble();
+                }
+                
+                // Reset alpha after drawing
+                window.ctx.globalAlpha = 1.0;
+            } catch (error) {
+                console.error('Error drawing Karen:', error);
+                // Set karen to null to prevent repeated errors
+                window.karen = null;
+                // Reset alpha in case error happened after setting it
+                window.ctx.globalAlpha = 1.0;
+            }
         }
         
         // Draw Evil Google Exec (ULTRA SIMPLIFIED TO PREVENT FREEZING)
@@ -1109,8 +1109,24 @@ function draw() {
         }
         
         // Draw LinkedIn Spammer (ULTRA SIMPLIFIED TO PREVENT FREEZING)
-        if (window.linkedInSpammer && !window.linkedInSpammer.isDefeated && window.linkedInSpammer.health > 0) {
-            window.ctx.drawImage(window.linkedInSpammerImage, window.linkedInSpammer.x, window.linkedInSpammer.y, window.linkedInSpammer.width, window.linkedInSpammer.height);
+        if (window.linkedInSpammer) {
+            // Apply fade-out effect if defeated
+            if (window.linkedInSpammer.isDefeated) {
+                window.ctx.globalAlpha = 1 - (window.linkedInSpammer.fadeTimer / 30); // Fade over 0.5 second (30 frames)
+            }
+            
+            // Safety check: ensure image is loaded before drawing
+            if (window.linkedInSpammerImage && window.linkedInSpammerImage.complete) {
+                window.ctx.drawImage(window.linkedInSpammerImage, window.linkedInSpammer.x, window.linkedInSpammer.y, window.linkedInSpammer.width, window.linkedInSpammer.height);
+            } else {
+                // Fallback: draw a red rectangle
+                window.ctx.fillStyle = '#FF4444';
+                window.ctx.fillRect(window.linkedInSpammer.x, window.linkedInSpammer.y, window.linkedInSpammer.width, window.linkedInSpammer.height);
+                window.ctx.fillStyle = '#FFFFFF';
+                window.ctx.font = '12px Arial';
+                window.ctx.textAlign = 'center';
+                window.ctx.fillText('📧', window.linkedInSpammer.x + window.linkedInSpammer.width/2, window.linkedInSpammer.y + window.linkedInSpammer.height/2);
+            }
             
             // Draw health bar
             const barWidth = 100;
@@ -1132,8 +1148,13 @@ function draw() {
             window.ctx.lineWidth = 1;
             window.ctx.strokeRect(barX, barY, barWidth, barHeight);
             
-            // Draw LinkedIn Spammer's speech bubble
-            drawLinkedInSpammerSpeechBubble();
+            // Draw LinkedIn Spammer's speech bubble (only if not defeated)
+            if (!window.linkedInSpammer.isDefeated) {
+                drawLinkedInSpammerSpeechBubble();
+            }
+            
+            // Reset alpha after drawing
+            window.ctx.globalAlpha = 1.0;
         }
         
         // Draw Karen lasers (RE-ENABLED)
@@ -1153,6 +1174,9 @@ function draw() {
         
         // Draw aiming line
         drawAimingLine();
+        
+        // Draw level complete overlay (if visible)
+        drawLevelCompleteOverlay();
         
         // Restore screen shake
         window.ctx.restore();

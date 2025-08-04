@@ -15,17 +15,7 @@ const karenQuotes = [
     "You think I'm racist?"
 ];
 
-// Teresa the Reporter quotes
-const teresaQuotes = [
-    "When politicians attack the press, your freedom is in danger.",
-    "But is it newsworthy?",
-    "Site your sources!",
-    "I'm on deadline!",
-    "I'm late for an interview!"
-];
 
-// Make teresaQuotes globally accessible
-window.teresaQuotes = teresaQuotes;
 
 // Spawn customers
 function spawnCustomers() {
@@ -47,7 +37,7 @@ function spawnCustomers() {
         y: doorY + doorHeight - 5, // Just below the door (adjusted for new door position)
         width: 40,
         height: 40,
-        vx: goLeft ? (-1.0 - (window.level * 0.1)) : (1.0 + (window.level * 0.1)), // Level-based speed
+        vx: goLeft ? (-0.8 - (Math.min(window.level, 10) * 0.05)) : (0.8 + (Math.min(window.level, 10) * 0.05)), // Slower base speed, capped at level 10
         vy: 0,
         emojiIndex: 0,
         hits: 0,
@@ -287,7 +277,7 @@ function karenShootLaser() {
 
        // Spawn power-up
        function spawnPowerUp() {
-           const powerUpTypes = ['key', 'package', 'coffeeCup'];
+           const powerUpTypes = ['key', 'package', 'speechBubble', 'mapPin'];
            const randomType = powerUpTypes[Math.floor(Math.random() * powerUpTypes.length)];
            
            // More positions for power-ups across the board
@@ -335,21 +325,7 @@ function karenShootLaser() {
            powerUps.push(powerUp);
        }
 
-// Spawn 1up (extra life)
-function spawnOneUp() {
-    // Fixed position for 1up (center top)
-    const oneUp = {
-        x: window.canvas.width / 2 - 25,
-        y: 120,
-        width: 50,
-        height: 50,
-        type: 'oneUp',
-        hits: 0
-    };
-    
-    powerUps.push(oneUp);
-    console.log('1up spawned at center top');
-}
+// SpawnOneUp function removed - map pin now gives extra life
 
 // Activate power-up
 function activatePowerUp(type) {
@@ -368,17 +344,17 @@ function activatePowerUp(type) {
                playSound('levelUp'); // Use level up sound for effect
                console.log('Package activated - triple shot!');
         
-    } else if (type === 'coffeeCup') {
+    } else if (type === 'speechBubble') {
         // Powerful hearts power-up
         activePowerUps.powerfulHearts.active = true;
         activePowerUps.powerfulHearts.timer = activePowerUps.powerfulHearts.duration;
         playSound('levelUp'); // Use level up sound for effect
-        console.log('Coffee cup activated - powerful hearts!');
-    } else if (type === 'oneUp') {
-        // Extra life power-up
+        console.log('Speech bubble activated - powerful hearts!');
+    } else if (type === 'mapPin') {
+        // Extra life power-up (replaces oneUp)
         lives++;
         playSound('levelUp'); // Use level up sound for effect
-        console.log('1up collected - extra life!');
+        console.log('Map pin activated - extra life!');
     }
 }
 
@@ -507,27 +483,43 @@ function createPressMentionText(x, y, scoreIncrease) {
     window.floatingTexts.push(floatingText);
 }
 
-function spawnTeresa() {
-    window.teresa = {
-        x: Math.random() * (window.canvas.width - 80), // Random position (adjusted for smaller size)
-        y: 80,
-        width: 60, // Smaller width (was 100)
-        height: 80, // Smaller height (was 120)
-        health: 25, // Health system - takes 5 hits (5 hearts = 25 damage)
-        maxHealth: 25,
-        speechBubbleTimer: 0,
-        speechBubbleVisible: false,
-        currentQuote: teresaQuotes[0], // Always start with first quote
-        quoteChangeTimer: 0,
-        isDefeated: false,
-        fadeTimer: 0,
-        vx: 2, // Fast movement
-        direction: 1,
-        escapeTimer: 0, // Timer for when she leaves if not defeated
-        maxEscapeTime: 600, // 10 seconds before she leaves
-        hitCooldown: 0 // Prevent multiple hits per frame
+// Create floating text for boss defeats and general scoring
+function createFloatingText(text, x, y, color = '#FFD700') {
+    if (!window.floatingTexts) window.floatingTexts = [];
+    
+    // Check for overlapping messages and stack them vertically
+    let adjustedY = y;
+    const messageHeight = 40; // Approximate height of a message
+    const stackOffset = 50; // Vertical spacing between stacked messages
+    
+    // Find existing messages in the same area
+    const nearbyMessages = window.floatingTexts.filter(existing => {
+        const horizontalOverlap = Math.abs(existing.x - x) < 150; // 150px horizontal range
+        const verticalRange = Math.abs(existing.y - y) < 100; // 100px vertical range
+        return horizontalOverlap && verticalRange && existing.life > 60; // Only recent messages
+    });
+    
+    // Stack new message above existing ones
+    if (nearbyMessages.length > 0) {
+        adjustedY = y - (nearbyMessages.length * stackOffset);
+    }
+    
+    const floatingText = {
+        x: x,
+        y: adjustedY,
+        text: text,
+        life: 120, // 2 seconds
+        maxLife: 120,
+        vy: -2, // Float upward
+        alpha: 1,
+        fontSize: 28, // Slightly larger for boss defeats
+        color: color // Gold color by default
     };
-} 
+    
+    window.floatingTexts.push(floatingText);
+}
+
+ 
 
 // Spawn LinkedIn Spammer boss
 function spawnLinkedInSpammer() {

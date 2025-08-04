@@ -297,6 +297,7 @@ function updateCustomers() {
         if (customer.y > window.canvas.height) {
             // Customer escaped - Prompty loses a life
             window.lives--;
+                playSound('oof');
             customers.splice(i, 1);
             
             // Play hurt sound (triple ouch)

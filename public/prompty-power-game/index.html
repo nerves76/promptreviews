@@ -3,10 +3,282 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Prompty Power Game</title>
+    <title>Get Found Online: The Game</title>
     <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Score submission form styles */
+        .score-form {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border: 1px solid #e9ecef;
+        }
+        
+        .score-form h3 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 6px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+        
+        .form-group small {
+            color: #6c757d;
+            font-size: 12px;
+            margin-top: 5px;
+            display: block;
+        }
+        
+        .form-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        
+        .form-buttons button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        
+        .form-buttons button:first-child {
+            background: #27ae60;
+            color: white;
+        }
+        
+        .form-buttons button:first-child:hover {
+            background: #219a52;
+        }
+        
+        .form-buttons button:first-child:disabled {
+            background: #95a5a6;
+            cursor: not-allowed;
+        }
+        
+        .form-buttons button:last-child {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .form-buttons button:last-child:hover {
+            background: #5a6268;
+        }
+        
+        .submission-status {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 6px;
+            text-align: center;
+            font-size: 14px;
+        }
+        
+        .submission-status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .submission-status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .score-submitted, .score-skipped {
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .score-submitted h3 {
+            color: #27ae60;
+            margin-bottom: 15px;
+        }
+        
+        .score-submitted button, .score-skipped button {
+            background: #3498db;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+        
+        .score-submitted button:hover, .score-skipped button:hover {
+            background: #2980b9;
+        }
+
+        /* Layout fixes */
+        body {
+            display: block !important;
+            overflow: auto !important;
+            min-height: auto !important;
+            align-items: unset !important;
+            justify-content: unset !important;
+        }
+        
+        .main-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px 0;
+        }
+        
+        /* Leaderboard styles */
+        .leaderboard-section {
+            display: block !important;
+            visibility: visible !important;
+            background: #F5DEB3;
+            margin: 20px 0 0 0;
+            padding: 20px;
+            border: 3px solid red !important;
+            border-top: 2px solid #8B4513;
+            width: 100%;
+            min-height: 200px !important;
+        }
+        
+        .leaderboard-section h3 {
+            text-align: center;
+            color: #8B4513;
+            margin-bottom: 20px;
+            font-size: 20px;
+            font-weight: bold;
+        }
+        
+        .leaderboard-table {
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .leaderboard-table th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 10px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .leaderboard-table td {
+            padding: 12px 10px;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .leaderboard-table tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .rank-cell {
+            text-align: center;
+            font-weight: bold;
+            width: 60px;
+        }
+        
+        .rank-1 { color: #ffd700; }
+        .rank-2 { color: #c0c0c0; }
+        .rank-3 { color: #cd7f32; }
+        
+        .handle-cell {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .score-cell {
+            text-align: right;
+            font-weight: bold;
+            color: #27ae60;
+        }
+        
+        .level-cell {
+            text-align: center;
+            color: #8e44ad;
+        }
+        
+        .title-cell {
+            font-size: 12px;
+            color: #7f8c8d;
+            font-style: italic;
+        }
+        
+        .website-cell {
+            font-size: 12px;
+            color: #3498db;
+            max-width: 150px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .website-cell a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        
+        .website-cell a:hover {
+            text-decoration: underline;
+        }
+        
+        .loading, .error {
+            text-align: center;
+            padding: 20px;
+            color: #8B4513;
+            font-style: italic;
+        }
+        
+        .error {
+            color: #cc0000;
+        }
+        
+        .refresh-btn {
+            display: block;
+            margin: 15px auto 0;
+            padding: 8px 16px;
+            background: #8B4513;
+            color: white;
+            border: 2px solid #5D2E08;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: background 0.3s ease;
+        }
+        
+        .refresh-btn:hover {
+            background: #5D2E08;
+        }
+    </style>
 </head>
 <body>
+    <div class="main-container">
     <!-- Reset button outside game area -->
     <div class="externalControls">
         <button id="resetGame">Reset Game</button>
@@ -18,7 +290,7 @@
         <div class="ui">
             <div class="score">Authority Score: <span id="score">0</span></div>
             <div class="level">Level: <span id="level">1</span></div>
-            <div class="timer">Time: <span id="timer">60</span></div>
+            <div class="timer"><span id="timer">60</span></div>
             <div class="lives">Lives: <span id="lives">3</span></div>
             <div class="combo">Combo: <span id="combo">x1</span></div>
         </div>
@@ -31,7 +303,7 @@
             <p>💥 Defeat Boss: +100 Authority Score</p>
             <p>⭐ Combo Bonus: +2 Authority Score per combo</p>
             <p>🔑 Key Power-up: +5 Authority Score per cleared emoji</p>
-            <p>☕ Coffee Power-up: +3 Authority Score per hit</p>
+            <p>💬 Speech Bubble Power-up: +3 Authority Score per hit</p>
         </div>
         
         <div id="startMenu" class="startMenu">
@@ -39,8 +311,9 @@
                 <div class="promptyCharacter"></div>
                 <div class="titleContent">
                     <div class="goldStars">⭐⭐⭐⭐⭐</div>
-                    <h1>Prompty Power</h1>
-                    <p>Help Prompty get found online by getting reviews and increasing his Authority Score!</p>
+                    <h1>Get Found Online</h1>
+                    <h2 style="margin: -2px 0 0 0; font-size: 22px; font-weight: normal; color: white; opacity: 0.95;">"The Game"</h2>
+                    <p style="margin-top: 20px;">Help Prompty get found online by getting reviews and increasing his Authority Score!</p>
                 </div>
             </div>
             
@@ -86,6 +359,22 @@
             <button id="startButton" onclick="startGame()">Start Game</button>
         </div>
         
+        <!-- Leaderboard Section - Always Visible -->
+        <div class="leaderboard-section">
+            <h3>🏆 Authority Champions Leaderboard</h3>
+            <div id="leaderboardContainer">
+                <div id="leaderboardLoading" class="loading">Loading top players...</div>
+                <div id="leaderboardContent" style="display: none;"></div>
+                <div id="leaderboardError" class="error" style="display: none;">
+                    Unable to load leaderboard. Please try again later.
+                </div>
+                <div id="leaderboardTest" style="display: block; color: black; font-size: 18px; margin: 10px;">
+                    🧪 TEST: If you can see this text, the red box is working!
+                </div>
+            </div>
+            <button onclick="refreshLeaderboard()" class="refresh-btn">🔄 Refresh</button>
+        </div>
+        
         <!-- Boss Popups -->
         <div id="bossPopup" class="bossPopup">
             <div class="bossPopupContent">
@@ -115,21 +404,40 @@
             <p>Final Authority Score: <span id="finalScore">0</span></p>
             <p>Level Reached: <span id="finalLevel">1</span></p>
             
-            <!-- Name Input Section -->
-            <div id="nameInputSection" class="nameInputSection">
-                <h3>Enter your name for the leaderboard:</h3>
-                <input type="text" id="playerName" placeholder="Your name" maxlength="50" class="nameInput">
-                <button id="saveScoreBtn" class="button">Save Score</button>
+            <!-- Score Submission Form -->
+            <div id="scoreSubmissionForm" class="score-form">
+                <h3>🏆 Save Your Score to the Leaderboard!</h3>
+                <div class="form-group">
+                    <input type="text" id="playerHandle" placeholder="Enter your handle (2-20 chars)" maxlength="20" required>
+                </div>
+                <div class="form-group">
+                    <input type="email" id="playerEmail" placeholder="Email (optional - for score updates)" autocomplete="email">
+                    <small>📧 Get notified when someone beats your score!</small>
+                </div>
+                <div class="form-group">
+                    <input type="url" id="playerWebsite" placeholder="Your website (optional - for promotion)" autocomplete="url">
+                    <small>🌐 Showcase your business to other players!</small>
+                </div>
+                <div class="form-buttons">
+                    <button id="submitScore" onclick="submitScore()">🚀 Submit Score</button>
+                    <button onclick="skipScoreSubmission()">Skip</button>
+                </div>
+                <div id="scoreSubmissionStatus" class="submission-status"></div>
             </div>
             
-            <!-- Leaderboard Section -->
-            <div id="leaderboardSection" class="leaderboardSection" style="display: none;">
-                <h3>🏆 Top Scores</h3>
-                <div id="leaderboard" class="leaderboard"></div>
-                <button id="viewAllScoresBtn" class="button secondary">View All Scores</button>
+            <!-- Score Submitted Success -->
+            <div id="scoreSubmitted" class="score-submitted" style="display: none;">
+                <h3>✅ Score Saved!</h3>
+                <p id="rankMessage"></p>
+                <button onclick="startGame()">PLAY AGAIN</button>
             </div>
             
-            <button class="button" onclick="startGame()">Play Again</button>
+            <!-- Skip Submission -->
+            <div id="scoreSkipped" class="score-skipped" style="display: none;">
+                <button onclick="startGame()">PLAY AGAIN</button>
+            </div>
+            
+
         </div>
         
         <!-- Full Leaderboard Modal -->
@@ -140,10 +448,11 @@
                 <button class="button" onclick="closeFullLeaderboard()">Close</button>
             </div>
         </div>
+
     </div>
 
     <!-- Performance monitoring panel -->
-    <div id="performancePanel"></div>
+
     
     <!-- Load modules in order -->
     <script src="audio.js"></script>
@@ -152,7 +461,288 @@
     <script src="drawing.js"></script>
     <script src="ui-drawing.js"></script>
     <script src="ui.js"></script>
-    <script src="leaderboard.js"></script>
+    <script>
+        // Game start time tracking
+        let gameStartTime = null;
+        
+        // Initialize game start time when starting
+        window.originalStartGame = window.startGame;
+        window.startGame = function() {
+            gameStartTime = Date.now();
+            if (window.originalStartGame) {
+                window.originalStartGame();
+            }
+        };
+        
+        // Score submission functions
+        async function submitScore() {
+            const handleInput = document.getElementById('playerHandle');
+            const emailInput = document.getElementById('playerEmail');
+            const websiteInput = document.getElementById('playerWebsite');
+            const submitButton = document.getElementById('submitScore');
+            const statusDiv = document.getElementById('scoreSubmissionStatus');
+            
+            const handle = handleInput.value.trim();
+            const email = emailInput.value.trim();
+            const website = websiteInput.value.trim();
+            
+            // Validation
+            if (!handle || handle.length < 2) {
+                showStatus('Please enter a handle with at least 2 characters', 'error');
+                return;
+            }
+            
+            if (handle.length > 20) {
+                showStatus('Handle must be 20 characters or less', 'error');
+                return;
+            }
+            
+            // Validate website if provided
+            if (website && !/^https?:\/\/.+\..+/.test(website)) {
+                showStatus('Website must be a valid URL starting with http:// or https://', 'error');
+                return;
+            }
+            
+            // Disable button and show loading
+            submitButton.disabled = true;
+            submitButton.textContent = '⏳ Submitting...';
+            statusDiv.textContent = '';
+            
+            try {
+                const gameData = {
+                    customers_converted: window.customersConverted || 0,
+                    bosses_defeated: (window.karenDefeated ? 1 : 0) + 
+                                  (window.evilGoogleExecDefeated ? 1 : 0) + 
+                                  (window.linkedInSpammerDefeated ? 1 : 0),
+                    power_ups_collected: window.powerUpsCollected || 0
+                };
+                
+                const playTimeSeconds = gameStartTime ? Math.floor((Date.now() - gameStartTime) / 1000) : 0;
+                
+                const response = await fetch('/api/game/submit-score', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        player_handle: handle,
+                        email: email || null,
+                        website: website || null,
+                        score: window.score || 0,
+                        level_reached: window.level || 1,
+                        play_time_seconds: playTimeSeconds,
+                        game_data: gameData
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Show success message
+                    document.getElementById('rankMessage').textContent = result.message;
+                    document.getElementById('scoreSubmissionForm').style.display = 'none';
+                    document.getElementById('scoreSubmitted').style.display = 'block';
+                    
+                    // Refresh leaderboard
+                    refreshLeaderboard();
+                    
+                    // Track analytics if available
+                    if (typeof gtag !== 'undefined') {
+                        gtag('event', 'score_submitted', {
+                            event_category: 'game',
+                            value: window.score
+                        });
+                    }
+                } else {
+                    showStatus(result.error || 'Failed to submit score', 'error');
+                }
+            } catch (error) {
+                console.error('Score submission error:', error);
+                showStatus('Network error. Please try again.', 'error');
+            }
+            
+            // Re-enable button
+            submitButton.disabled = false;
+            submitButton.textContent = '🚀 Submit Score';
+        }
+        
+        function skipScoreSubmission() {
+            document.getElementById('scoreSubmissionForm').style.display = 'none';
+            document.getElementById('scoreSkipped').style.display = 'block';
+            
+            // Track analytics if available
+            if (typeof gtag !== 'undefined') {
+                gtag('event', 'score_skipped', {
+                    event_category: 'game'
+                });
+            }
+        }
+        
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('scoreSubmissionStatus');
+            statusDiv.textContent = message;
+            statusDiv.className = `submission-status ${type}`;
+        }
+        
+        // Leaderboard functions
+        async function loadLeaderboard() {
+            console.log('🏆 loadLeaderboard() called');
+            const loadingDiv = document.getElementById('leaderboardLoading');
+            const contentDiv = document.getElementById('leaderboardContent');
+            const errorDiv = document.getElementById('leaderboardError');
+            
+            console.log('🏆 Elements found:', { loadingDiv, contentDiv, errorDiv });
+            
+            // Show loading state
+            loadingDiv.style.display = 'block';
+            contentDiv.style.display = 'none';
+            errorDiv.style.display = 'none';
+            
+            try {
+                console.log('🏆 Fetching leaderboard data...');
+                const response = await fetch('/api/game/leaderboard?limit=10');
+                const result = await response.json();
+                console.log('🏆 API response:', result);
+                
+                if (result.success && result.leaderboard) {
+                    console.log('🏆 Displaying leaderboard with', result.leaderboard.length, 'scores');
+                    console.log('🏆 Before display - contentDiv style:', contentDiv.style.display);
+                    displayLeaderboard(result.leaderboard);
+                    console.log('🏆 After displayLeaderboard call');
+                    loadingDiv.style.display = 'none';
+                    contentDiv.style.display = 'block';
+                    console.log('🏆 After showing contentDiv - style:', contentDiv.style.display);
+                    console.log('🏆 contentDiv innerHTML length:', contentDiv.innerHTML.length);
+                } else {
+                    throw new Error('Failed to load leaderboard');
+                }
+            } catch (error) {
+                console.error('Leaderboard error:', error);
+                loadingDiv.style.display = 'none';
+                errorDiv.style.display = 'block';
+            }
+        }
+        
+        function displayLeaderboard(scores) {
+            console.log('🎯 displayLeaderboard() called with scores:', scores);
+            const contentDiv = document.getElementById('leaderboardContent');
+            console.log('🎯 contentDiv found:', contentDiv);
+            
+            if (!contentDiv) {
+                console.error('🚨 leaderboardContent element not found!');
+                return;
+            }
+            
+            if (!scores || scores.length === 0) {
+                console.log('🎯 No scores, showing empty message');
+                contentDiv.innerHTML = '<p class="loading">No scores yet. Be the first!</p>';
+                return;
+            }
+            
+            console.log('🎯 Building HTML for', scores.length, 'scores');
+            
+            let html = `
+                <table class="leaderboard-table">
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>Player</th>
+                            <th>Score</th>
+                            <th>Level</th>
+                            <th>Website</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            scores.forEach((score, index) => {
+                console.log('🎯 Processing score', index + 1, ':', score);
+                const rankClass = index < 3 ? `rank-${index + 1}` : '';
+                const rankIcon = index === 0 ? '👑' : index === 1 ? '🥈' : index === 2 ? '🥉' : '';
+                
+                const websiteDisplay = score.website ? 
+                    `<a href="${escapeHtml(score.website)}" target="_blank" rel="noopener">${escapeHtml(score.website.replace(/^https?:\/\//, '').substring(0, 25))}${score.website.length > 30 ? '...' : ''}</a>` : 
+                    '<span style="color: #999;">-</span>';
+                
+                html += `
+                    <tr>
+                        <td class="rank-cell ${rankClass}">${rankIcon}${score.rank}</td>
+                        <td class="handle-cell">${escapeHtml(score.player_handle)}</td>
+                        <td class="score-cell">${score.score.toLocaleString()}</td>
+                        <td class="level-cell">${score.level_reached}</td>
+                        <td class="website-cell">${websiteDisplay}</td>
+                    </tr>
+                `;
+            });
+            
+            html += '</tbody></table>';
+            console.log('🎯 Final HTML length:', html.length);
+            console.log('🎯 Setting innerHTML...');
+            contentDiv.innerHTML = html;
+            console.log('🎯 innerHTML set. contentDiv.innerHTML length:', contentDiv.innerHTML.length);
+            console.log('🎯 contentDiv display style:', getComputedStyle(contentDiv).display);
+            console.log('🎯 contentDiv visibility:', getComputedStyle(contentDiv).visibility);
+        }
+        
+        function refreshLeaderboard() {
+            console.log('🔄 Manual refresh triggered');
+            loadLeaderboard();
+        }
+        
+        // Manual fallback - try loading leaderboard every few seconds until it works
+        let leaderboardLoadAttempts = 0;
+        function attemptLeaderboardLoad() {
+            leaderboardLoadAttempts++;
+            console.log('🏆 Attempt', leaderboardLoadAttempts, 'to load leaderboard');
+            
+            const contentDiv = document.getElementById('leaderboardContent');
+            const loadingDiv = document.getElementById('leaderboardLoading');
+            
+            if (contentDiv && loadingDiv) {
+                // Elements exist, try loading
+                if (loadingDiv.style.display !== 'none' && leaderboardLoadAttempts < 10) {
+                    console.log('🏆 Still loading, attempting to fetch data...');
+                    loadLeaderboard();
+                }
+            } else {
+                console.log('🏆 Leaderboard elements not found yet');
+                if (leaderboardLoadAttempts < 20) {
+                    setTimeout(attemptLeaderboardLoad, 1000);
+                }
+            }
+        }
+        
+        // Start attempting to load leaderboard
+        setTimeout(attemptLeaderboardLoad, 500);
+        
+        function closeFullLeaderboard() {
+            document.getElementById('fullLeaderboardModal').style.display = 'none';
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        // Load leaderboard when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🏆 DOM Content Loaded - Loading leaderboard...');
+            setTimeout(() => {
+                console.log('🏆 Attempting to load leaderboard after short delay...');
+                loadLeaderboard();
+            }, 1000);
+        });
+        
+        // Also try loading after window load as backup
+        window.addEventListener('load', function() {
+            console.log('🏆 Window loaded - Loading leaderboard as backup...');
+            setTimeout(() => {
+                loadLeaderboard();
+            }, 2000);
+        });
+    </script>
     <script src="game.js"></script>
+    </div> <!-- end main-container -->
 </body>
 </html> 

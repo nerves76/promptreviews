@@ -42,7 +42,6 @@ export const QR_FRAME_SIZES = [
   { label: '2x3" (lanyard badge)', width: 600, height: 900 },
   { label: '3x3" (square sticker)', width: 900, height: 900 },
   { label: '8.5x11" (Table tent template)', width: 2550, height: 3300 },
-  { label: '2.5x1.5" (small sticker)', width: 750, height: 450 },
   { label: '6x2" (window cling)', width: 1800, height: 600 },
 ];
 
@@ -123,27 +122,7 @@ function drawSimpleHeart(ctx: CanvasRenderingContext2D, x: number, y: number, ra
   ctx.fill();
 }
 
-function drawSimpleSmile(ctx: CanvasRenderingContext2D, x: number, y: number, radius: number, color: string) {
-  ctx.fillStyle = color;
-  ctx.strokeStyle = color;
-  ctx.lineWidth = Math.max(2, radius / 6);
-  
-  // Face circle
-  ctx.beginPath();
-  ctx.arc(x, y, radius * 0.8, 0, 2 * Math.PI);
-  ctx.fill();
-  
-  // Eyes (filled circles)
-  ctx.beginPath();
-  ctx.arc(x - radius * 0.3, y - radius * 0.3, radius * 0.15, 0, 2 * Math.PI);
-  ctx.arc(x + radius * 0.3, y - radius * 0.3, radius * 0.15, 0, 2 * Math.PI);
-  ctx.fill();
-  
-  // Smile (filled arc)
-  ctx.beginPath();
-  ctx.arc(x, y + radius * 0.1, radius * 0.4, 0, Math.PI);
-  ctx.fill();
-}
+
 
 function drawSimpleBolt(ctx: CanvasRenderingContext2D, x: number, y: number, radius: number, color: string) {
   ctx.fillStyle = color;
@@ -201,96 +180,11 @@ function drawSimpleMoon(ctx: CanvasRenderingContext2D, x: number, y: number, rad
   ctx.globalCompositeOperation = 'source-over';
 }
 
-function drawSimpleGem(ctx: CanvasRenderingContext2D, x: number, y: number, radius: number, color: string) {
-  ctx.fillStyle = color;
-  ctx.beginPath();
-  ctx.moveTo(x, y - radius * 0.8);
-  ctx.lineTo(x + radius * 0.6, y - radius * 0.3);
-  ctx.lineTo(x + radius * 0.4, y + radius * 0.8);
-  ctx.lineTo(x - radius * 0.4, y + radius * 0.8);
-  ctx.lineTo(x - radius * 0.6, y - radius * 0.3);
-  ctx.closePath();
-  ctx.fill();
-}
 
-function drawSimpleCoffee(ctx: CanvasRenderingContext2D, x: number, y: number, radius: number, color: string) {
-  ctx.fillStyle = color;
-  ctx.strokeStyle = color;
-  ctx.lineWidth = Math.max(2, radius / 8);
-  
-  // Cup body
-  ctx.beginPath();
-  ctx.arc(x, y, radius * 0.6, 0, Math.PI);
-  ctx.stroke();
-  
-  // Cup handle
-  ctx.beginPath();
-  ctx.arc(x + radius * 0.6, y, radius * 0.2, Math.PI / 2, -Math.PI / 2);
-  ctx.stroke();
-  
-  // Steam lines
-  ctx.beginPath();
-  ctx.moveTo(x - radius * 0.3, y - radius * 0.6);
-  ctx.lineTo(x - radius * 0.4, y - radius * 0.9);
-  ctx.moveTo(x, y - radius * 0.6);
-  ctx.lineTo(x, y - radius * 0.9);
-  ctx.moveTo(x + radius * 0.3, y - radius * 0.6);
-  ctx.lineTo(x + radius * 0.4, y - radius * 0.9);
-  ctx.stroke();
-}
 
-function drawSimpleUtensils(ctx: CanvasRenderingContext2D, x: number, y: number, radius: number, color: string) {
-  ctx.fillStyle = color;
-  ctx.strokeStyle = color;
-  ctx.lineWidth = Math.max(2, radius / 8);
-  
-  // Fork
-  ctx.beginPath();
-  ctx.moveTo(x - radius * 0.4, y - radius * 0.8);
-  ctx.lineTo(x - radius * 0.4, y + radius * 0.8);
-  ctx.moveTo(x - radius * 0.5, y - radius * 0.6);
-  ctx.lineTo(x - radius * 0.3, y - radius * 0.6);
-  ctx.moveTo(x - radius * 0.5, y - radius * 0.4);
-  ctx.lineTo(x - radius * 0.3, y - radius * 0.4);
-  ctx.moveTo(x - radius * 0.5, y - radius * 0.2);
-  ctx.lineTo(x - radius * 0.3, y - radius * 0.2);
-  ctx.stroke();
-  
-  // Knife
-  ctx.beginPath();
-  ctx.moveTo(x + radius * 0.4, y - radius * 0.8);
-  ctx.lineTo(x + radius * 0.4, y + radius * 0.8);
-  ctx.moveTo(x + radius * 0.2, y - radius * 0.6);
-  ctx.lineTo(x + radius * 0.6, y - radius * 0.6);
-  ctx.stroke();
-}
 
-function drawSimpleKey(ctx: CanvasRenderingContext2D, x: number, y: number, radius: number, color: string) {
-  ctx.fillStyle = color;
-  ctx.strokeStyle = color;
-  ctx.lineWidth = Math.max(2, radius / 8);
-  
-  // Key head (circle)
-  ctx.beginPath();
-  ctx.arc(x - radius * 0.3, y, radius * 0.3, 0, 2 * Math.PI);
-  ctx.fill();
-  
-  // Key shaft
-  ctx.beginPath();
-  ctx.moveTo(x, y);
-  ctx.lineTo(x + radius * 0.6, y);
-  ctx.stroke();
-  
-  // Key teeth
-  ctx.beginPath();
-  ctx.moveTo(x + radius * 0.2, y);
-  ctx.lineTo(x + radius * 0.2, y - radius * 0.2);
-  ctx.moveTo(x + radius * 0.4, y);
-  ctx.lineTo(x + radius * 0.4, y + radius * 0.2);
-  ctx.moveTo(x + radius * 0.6, y);
-  ctx.lineTo(x + radius * 0.6, y - radius * 0.1);
-  ctx.stroke();
-}
+
+
 
 function drawDefaultIcon(ctx: CanvasRenderingContext2D, x: number, y: number, radius: number, color: string) {
   // Fallback to a simple circle
@@ -300,215 +194,9 @@ function drawDefaultIcon(ctx: CanvasRenderingContext2D, x: number, y: number, ra
   ctx.fill();
 }
 
-// Additional icon drawing functions
-function drawSimpleThumbsUp(ctx: CanvasRenderingContext2D, x: number, y: number, radius: number, color: string) {
-  ctx.fillStyle = color;
-  ctx.strokeStyle = color;
-  ctx.lineWidth = Math.max(2, radius / 8);
-  
-  // Thumb
-  ctx.beginPath();
-  ctx.moveTo(x - radius * 0.2, y - radius * 0.6);
-  ctx.lineTo(x - radius * 0.4, y - radius * 0.4);
-  ctx.lineTo(x - radius * 0.3, y - radius * 0.2);
-  ctx.lineTo(x - radius * 0.1, y - radius * 0.3);
-  ctx.lineTo(x, y - radius * 0.1);
-  ctx.lineTo(x + radius * 0.1, y - radius * 0.2);
-  ctx.lineTo(x + radius * 0.2, y - radius * 0.4);
-  ctx.lineTo(x + radius * 0.1, y - radius * 0.6);
-  ctx.closePath();
-  ctx.fill();
-  
-  // Hand
-  ctx.beginPath();
-  ctx.moveTo(x - radius * 0.3, y - radius * 0.4);
-  ctx.lineTo(x - radius * 0.4, y + radius * 0.2);
-  ctx.lineTo(x - radius * 0.2, y + radius * 0.4);
-  ctx.lineTo(x + radius * 0.1, y + radius * 0.3);
-  ctx.lineTo(x + radius * 0.2, y + radius * 0.1);
-  ctx.lineTo(x + radius * 0.1, y - radius * 0.1);
-  ctx.closePath();
-  ctx.fill();
-}
+// Print-optimized decorative icon functions
 
-function drawSimpleRainbow(ctx: CanvasRenderingContext2D, x: number, y: number, radius: number, color: string) {
-  ctx.strokeStyle = color;
-  ctx.lineWidth = Math.max(3, radius / 6);
-  
-  // Rainbow arc
-  ctx.beginPath();
-  ctx.arc(x, y + radius * 0.5, radius * 0.8, 0, Math.PI);
-  ctx.stroke();
-}
 
-function drawSimpleCloud(ctx: CanvasRenderingContext2D, x: number, y: number, radius: number, color: string) {
-  ctx.fillStyle = color;
-  
-  // Cloud shape
-  ctx.beginPath();
-  ctx.arc(x - radius * 0.3, y, radius * 0.4, 0, 2 * Math.PI);
-  ctx.arc(x + radius * 0.3, y, radius * 0.4, 0, 2 * Math.PI);
-  ctx.arc(x, y - radius * 0.2, radius * 0.3, 0, 2 * Math.PI);
-  ctx.arc(x, y + radius * 0.2, radius * 0.3, 0, 2 * Math.PI);
-  ctx.fill();
-}
-
-function drawSimpleFire(ctx: CanvasRenderingContext2D, x: number, y: number, radius: number, color: string) {
-  ctx.fillStyle = color;
-  
-  // Fire shape
-  ctx.beginPath();
-  ctx.moveTo(x, y - radius * 0.8);
-  ctx.lineTo(x - radius * 0.3, y - radius * 0.4);
-  ctx.lineTo(x - radius * 0.2, y);
-  ctx.lineTo(x - radius * 0.4, y + radius * 0.2);
-  ctx.lineTo(x, y + radius * 0.6);
-  ctx.lineTo(x + radius * 0.4, y + radius * 0.2);
-  ctx.lineTo(x + radius * 0.2, y);
-  ctx.lineTo(x + radius * 0.3, y - radius * 0.4);
-  ctx.closePath();
-  ctx.fill();
-}
-
-function drawSimpleTree(ctx: CanvasRenderingContext2D, x: number, y: number, radius: number, color: string) {
-  ctx.fillStyle = color;
-  
-  // Tree trunk
-  ctx.fillRect(x - radius * 0.1, y + radius * 0.2, radius * 0.2, radius * 0.6);
-  
-  // Tree top (triangle)
-  ctx.beginPath();
-  ctx.moveTo(x, y - radius * 0.8);
-  ctx.lineTo(x - radius * 0.5, y + radius * 0.2);
-  ctx.lineTo(x + radius * 0.5, y + radius * 0.2);
-  ctx.closePath();
-  ctx.fill();
-}
-
-function drawSimpleLeaf(ctx: CanvasRenderingContext2D, x: number, y: number, radius: number, color: string) {
-  ctx.fillStyle = color;
-  
-  // Leaf shape
-  ctx.beginPath();
-  ctx.moveTo(x, y - radius * 0.8);
-  ctx.quadraticCurveTo(x - radius * 0.4, y - radius * 0.4, x - radius * 0.2, y);
-  ctx.quadraticCurveTo(x - radius * 0.4, y + radius * 0.4, x, y + radius * 0.8);
-  ctx.quadraticCurveTo(x + radius * 0.4, y + radius * 0.4, x + radius * 0.2, y);
-  ctx.quadraticCurveTo(x + radius * 0.4, y - radius * 0.4, x, y - radius * 0.8);
-  ctx.fill();
-}
-
-function drawSimpleGift(ctx: CanvasRenderingContext2D, x: number, y: number, radius: number, color: string) {
-  ctx.fillStyle = color;
-  ctx.strokeStyle = color;
-  ctx.lineWidth = Math.max(2, radius / 8);
-  
-  // Gift box
-  ctx.fillRect(x - radius * 0.4, y - radius * 0.3, radius * 0.8, radius * 0.6);
-  
-  // Ribbon
-  ctx.fillRect(x - radius * 0.4, y - radius * 0.1, radius * 0.8, radius * 0.2);
-  ctx.fillRect(x - radius * 0.1, y - radius * 0.3, radius * 0.2, radius * 0.6);
-  
-  // Bow
-  ctx.beginPath();
-  ctx.arc(x - radius * 0.2, y - radius * 0.3, radius * 0.1, 0, 2 * Math.PI);
-  ctx.arc(x + radius * 0.2, y - radius * 0.3, radius * 0.1, 0, 2 * Math.PI);
-  ctx.fill();
-}
-
-function drawSimpleTrophy(ctx: CanvasRenderingContext2D, x: number, y: number, radius: number, color: string) {
-  ctx.fillStyle = color;
-  ctx.strokeStyle = color;
-  ctx.lineWidth = Math.max(2, radius / 8);
-  
-  // Trophy base
-  ctx.fillRect(x - radius * 0.3, y + radius * 0.2, radius * 0.6, radius * 0.2);
-  
-  // Trophy cup
-  ctx.beginPath();
-  ctx.arc(x, y, radius * 0.4, 0, Math.PI);
-  ctx.fill();
-  
-  // Trophy handles
-  ctx.beginPath();
-  ctx.arc(x - radius * 0.4, y, radius * 0.15, Math.PI / 2, -Math.PI / 2);
-  ctx.arc(x + radius * 0.4, y, radius * 0.15, -Math.PI / 2, Math.PI / 2);
-  ctx.stroke();
-}
-
-function drawSimpleCrown(ctx: CanvasRenderingContext2D, x: number, y: number, radius: number, color: string) {
-  ctx.fillStyle = color;
-  
-  // Crown base
-  ctx.fillRect(x - radius * 0.5, y + radius * 0.2, radius, radius * 0.2);
-  
-  // Crown points
-  ctx.beginPath();
-  ctx.moveTo(x - radius * 0.5, y + radius * 0.2);
-  ctx.lineTo(x - radius * 0.4, y - radius * 0.3);
-  ctx.lineTo(x - radius * 0.2, y + radius * 0.1);
-  ctx.lineTo(x, y - radius * 0.4);
-  ctx.lineTo(x + radius * 0.2, y + radius * 0.1);
-  ctx.lineTo(x + radius * 0.4, y - radius * 0.3);
-  ctx.lineTo(x + radius * 0.5, y + radius * 0.2);
-  ctx.closePath();
-  ctx.fill();
-}
-
-function drawSimpleLightbulb(ctx: CanvasRenderingContext2D, x: number, y: number, radius: number, color: string) {
-  ctx.fillStyle = color;
-  ctx.strokeStyle = color;
-  ctx.lineWidth = Math.max(2, radius / 8);
-  
-  // Bulb
-  ctx.beginPath();
-  ctx.arc(x, y, radius * 0.5, 0, 2 * Math.PI);
-  ctx.fill();
-  
-  // Base
-  ctx.fillRect(x - radius * 0.2, y + radius * 0.5, radius * 0.4, radius * 0.2);
-  
-  // Filament
-  ctx.beginPath();
-  ctx.moveTo(x - radius * 0.2, y - radius * 0.2);
-  ctx.lineTo(x + radius * 0.2, y + radius * 0.2);
-  ctx.moveTo(x + radius * 0.2, y - radius * 0.2);
-  ctx.lineTo(x - radius * 0.2, y + radius * 0.2);
-  ctx.stroke();
-}
-
-function drawSimpleRocket(ctx: CanvasRenderingContext2D, x: number, y: number, radius: number, color: string) {
-  ctx.fillStyle = color;
-  ctx.strokeStyle = color;
-  ctx.lineWidth = Math.max(2, radius / 8);
-  
-  // Rocket body
-  ctx.fillRect(x - radius * 0.2, y - radius * 0.6, radius * 0.4, radius * 0.8);
-  
-  // Rocket nose
-  ctx.beginPath();
-  ctx.moveTo(x, y - radius * 0.8);
-  ctx.lineTo(x - radius * 0.2, y - radius * 0.6);
-  ctx.lineTo(x + radius * 0.2, y - radius * 0.6);
-  ctx.closePath();
-  ctx.fill();
-  
-  // Fins
-  ctx.beginPath();
-  ctx.moveTo(x - radius * 0.2, y + radius * 0.2);
-  ctx.lineTo(x - radius * 0.4, y + radius * 0.4);
-  ctx.lineTo(x - radius * 0.2, y + radius * 0.6);
-  ctx.closePath();
-  ctx.fill();
-  
-  ctx.beginPath();
-  ctx.moveTo(x + radius * 0.2, y + radius * 0.2);
-  ctx.lineTo(x + radius * 0.4, y + radius * 0.4);
-  ctx.lineTo(x + radius * 0.2, y + radius * 0.6);
-  ctx.closePath();
-  ctx.fill();
-}
 
 function drawDecorativeIcon(ctx: CanvasRenderingContext2D, iconKey: string, x: number, y: number, size: number, color: string) {
   const iconConfig = getFallingIcon(iconKey);
@@ -524,9 +212,6 @@ function drawDecorativeIcon(ctx: CanvasRenderingContext2D, iconKey: string, x: n
     case 'heart':
       drawSimpleHeart(ctx, x, y, radius, color);
       break;
-    case 'smile':
-      drawSimpleSmile(ctx, x, y, radius, color);
-      break;
     case 'bolt':
       drawSimpleBolt(ctx, x, y, radius, color);
       break;
@@ -535,51 +220,6 @@ function drawDecorativeIcon(ctx: CanvasRenderingContext2D, iconKey: string, x: n
       break;
     case 'moon':
       drawSimpleMoon(ctx, x, y, radius, color);
-      break;
-    case 'gem':
-      drawSimpleGem(ctx, x, y, radius, color);
-      break;
-    case 'coffee':
-      drawSimpleCoffee(ctx, x, y, radius, color);
-      break;
-    case 'utensils':
-      drawSimpleUtensils(ctx, x, y, radius, color);
-      break;
-    case 'key':
-      drawSimpleKey(ctx, x, y, radius, color);
-      break;
-    case 'thumbsup':
-      drawSimpleThumbsUp(ctx, x, y, radius, color);
-      break;
-    case 'rainbow':
-      drawSimpleRainbow(ctx, x, y, radius, color);
-      break;
-    case 'cloud':
-      drawSimpleCloud(ctx, x, y, radius, color);
-      break;
-    case 'fire':
-      drawSimpleFire(ctx, x, y, radius, color);
-      break;
-    case 'tree':
-      drawSimpleTree(ctx, x, y, radius, color);
-      break;
-    case 'leaf':
-      drawSimpleLeaf(ctx, x, y, radius, color);
-      break;
-    case 'gift':
-      drawSimpleGift(ctx, x, y, radius, color);
-      break;
-    case 'trophy':
-      drawSimpleTrophy(ctx, x, y, radius, color);
-      break;
-    case 'crown':
-      drawSimpleCrown(ctx, x, y, radius, color);
-      break;
-    case 'lightbulb':
-      drawSimpleLightbulb(ctx, x, y, radius, color);
-      break;
-    case 'rocket':
-      drawSimpleRocket(ctx, x, y, radius, color);
       break;
     default:
       drawDefaultIcon(ctx, x, y, radius, color);
@@ -693,10 +333,17 @@ export default function QRCodeGenerator({
       ctx.fillStyle = '#FFFFFF';
       ctx.fillRect(0, 0, frameSize.width, frameSize.height);
 
-      // Detect small sizes for better spacing
+      // Detect specific frame sizes for custom layouts
       const isBusinessCard = frameSize.label.includes('business card');
       const isPostcard = frameSize.label.includes('postcard');
       const isTableTent = frameSize.label.includes('Table Tent');
+      const is5x7 = frameSize.label.includes('5x7');
+      const is8x10 = frameSize.label.includes('8x10');
+      const is8p5x11 = frameSize.label.includes('8.5x11') && !frameSize.label.includes('Table Tent');
+      const is11x14 = frameSize.label.includes('11x14');
+      const is2x3 = frameSize.label.includes('2x3');
+      const is3x3 = frameSize.label.includes('3x3');
+      const is6x2 = frameSize.label.includes('6x2');
       const isSmallCard = frameSize.width <= 1200 || frameSize.height <= 1800; // Postcard and smaller
       const isLargeCard = frameSize.width >= 2400 || frameSize.height >= 3000; // Letter size and larger
       const isSmallSize = frameSize.width <= 1050 || frameSize.height <= 600; // Business card and smaller
@@ -709,9 +356,18 @@ export default function QRCodeGenerator({
       const logoHeight = Math.floor(frameSize.height * 0.06); // 6% of height
       const websiteFontSize = Math.floor(baseSize * 0.022); // 2.2% of base size (was fixed 16-20px)
       
-      // Calculate headline font size with better scaling for different card sizes
+      // Calculate headline font size with custom sizing for specific frame sizes
       let headlineFontSize;
-      if (isBusinessCard) {
+      if (is5x7) {
+        // 5x7: Default headline size of 88px
+        headlineFontSize = Math.min(fontSize, 88);
+      } else if (is8p5x11) {
+        // 8.5x11: Header 170px
+        headlineFontSize = Math.min(fontSize, 170);
+      } else if (is11x14) {
+        // 11x14: Header 180px
+        headlineFontSize = Math.min(fontSize, 180);
+      } else if (isBusinessCard) {
         // Business cards need very small text
         headlineFontSize = Math.min(fontSize, Math.floor(baseSize * 0.06)); // Cap at 6% of base size
       } else if (isPostcard || isSmallCard) {
@@ -730,7 +386,22 @@ export default function QRCodeGenerator({
       
       const starSpacing = Math.floor(starSize * 0.7);
       const clientLogoHeight = Math.floor((logoSize / 60) * baseSize * 0.08); // Scale user's logo size proportionally 
-      const qrSize = baseSize * (isSmallSize ? 0.35 : 0.38); // QR size as percentage of base size
+      
+      // Calculate QR size with custom sizing for specific frame sizes
+      let qrSize;
+      if (is8x10 || is8p5x11 || is11x14) {
+        // 8x10, 8.5x11, 11x14: Make QR code smaller
+        qrSize = baseSize * 0.28;
+      } else if (is3x3) {
+        // 3x3: Make QR code smaller
+        qrSize = baseSize * 0.30;
+      } else if (isTableTent) {
+        // Table tent: Make QR code smaller
+        qrSize = baseSize * 0.25;
+      } else {
+        // Default sizing
+        qrSize = baseSize * (isSmallSize ? 0.35 : 0.38);
+      }
       const qrX = (frameSize.width - qrSize) / 2;
       
       // Pre-calculate proportional star size for use in exclusion areas
@@ -782,21 +453,51 @@ export default function QRCodeGenerator({
                 )
               ]);
               
+              // Custom positioning for specific frame sizes
+              let logoPositionX, logoPositionY;
+              const clientLogoAspectRatio = clientLogoImg.width / clientLogoImg.height;
+              let actualClientLogoWidth = clientLogoHeight * clientLogoAspectRatio;
+              let actualClientLogoHeight = clientLogoHeight;
+              
+              // Special positioning for specific sizes
+              if (isBusinessCard || is6x2) {
+                // 3.5x2" and 6x2": Put logo in top left corner
+                logoPositionX = padding;
+                logoPositionY = padding;
+                // Don't advance y for horizontal layouts
+              } else if (is3x3) {
+                // 3x3": Make logo smaller and keep centered  
+                actualClientLogoHeight = clientLogoHeight * 0.7; // Make 30% smaller
+                actualClientLogoWidth = actualClientLogoHeight * clientLogoAspectRatio;
+                logoPositionX = (frameSize.width - actualClientLogoWidth) / 2;
+                logoPositionY = y;
+              } else if (isTableTent) {
+                // Table tent: Make logo smaller
+                actualClientLogoHeight = clientLogoHeight * 0.7; // Make 30% smaller
+                actualClientLogoWidth = actualClientLogoHeight * clientLogoAspectRatio;
+                logoPositionX = (frameSize.width - actualClientLogoWidth) / 2;
+                logoPositionY = y;
+              } else {
+                // Default centered positioning
+                logoPositionX = (frameSize.width - actualClientLogoWidth) / 2;
+                logoPositionY = y;
+              }
+              
               if (circularLogo) {
                 // Save the current state
                 ctx.save();
                 
-                // Create circular clipping path - centered on the frame
-                const radius = clientLogoHeight / 2;
-                const centerX = frameSize.width / 2;
-                const centerY = y + clientLogoHeight / 2;
+                // Create circular clipping path
+                const radius = actualClientLogoHeight / 2;
+                const centerX = logoPositionX + actualClientLogoWidth / 2;
+                const centerY = logoPositionY + actualClientLogoHeight / 2;
                 
                 ctx.beginPath();
                 ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
                 ctx.clip();
                 
                 // Calculate dimensions for object-fit: contain behavior (like prompt page)
-                const containerSize = clientLogoHeight; // Circular container size
+                const containerSize = actualClientLogoHeight; // Circular container size
                 const imgAspectRatio = clientLogoImg.width / clientLogoImg.height;
                 
                 let drawWidth, drawHeight;
@@ -820,15 +521,17 @@ export default function QRCodeGenerator({
                 // Restore the state to remove the clipping path
                 ctx.restore();
               } else {
-                // Draw logo normally (rectangular) with proper centering
-                const clientLogoAspectRatio = clientLogoImg.width / clientLogoImg.height;
-                const clientLogoWidth = clientLogoHeight * clientLogoAspectRatio;
-                const clientLogoX = (frameSize.width - clientLogoWidth) / 2;
-                ctx.drawImage(clientLogoImg, clientLogoX, y, clientLogoWidth, clientLogoHeight);
+                // Draw logo normally (rectangular)
+                ctx.drawImage(clientLogoImg, logoPositionX, logoPositionY, actualClientLogoWidth, actualClientLogoHeight);
               }
               
-              // Proportional spacing after client logo
-              y += clientLogoHeight + Math.floor(baseSize * 0.05);
+              // Proportional spacing after client logo (adjust for horizontal layouts)
+              if (isBusinessCard || is6x2) {
+                // For horizontal layouts, don't advance Y since logo is in corner
+                // Keep original Y for the rest of the content
+              } else {
+                y += actualClientLogoHeight + Math.floor(baseSize * 0.05);
+              }
             }
           } else {
             // Non-blob URL processing
@@ -853,21 +556,51 @@ export default function QRCodeGenerator({
               )
             ]);
             
+            // Custom positioning for specific frame sizes
+            let logoPositionX, logoPositionY;
+            const clientLogoAspectRatio = clientLogoImg.width / clientLogoImg.height;
+            let actualClientLogoWidth = clientLogoHeight * clientLogoAspectRatio;
+            let actualClientLogoHeight = clientLogoHeight;
+            
+            // Special positioning for specific sizes
+            if (isBusinessCard || is6x2) {
+              // 3.5x2" and 6x2": Put logo in top left corner
+              logoPositionX = padding;
+              logoPositionY = padding;
+              // Don't advance y for horizontal layouts
+            } else if (is3x3) {
+              // 3x3": Make logo smaller and keep centered  
+              actualClientLogoHeight = clientLogoHeight * 0.7; // Make 30% smaller
+              actualClientLogoWidth = actualClientLogoHeight * clientLogoAspectRatio;
+              logoPositionX = (frameSize.width - actualClientLogoWidth) / 2;
+              logoPositionY = y;
+            } else if (isTableTent) {
+              // Table tent: Make logo smaller
+              actualClientLogoHeight = clientLogoHeight * 0.7; // Make 30% smaller
+              actualClientLogoWidth = actualClientLogoHeight * clientLogoAspectRatio;
+              logoPositionX = (frameSize.width - actualClientLogoWidth) / 2;
+              logoPositionY = y;
+            } else {
+              // Default centered positioning
+              logoPositionX = (frameSize.width - actualClientLogoWidth) / 2;
+              logoPositionY = y;
+            }
+            
             if (circularLogo) {
               // Save the current state
               ctx.save();
               
-              // Create circular clipping path - centered on the frame
-              const radius = clientLogoHeight / 2;
-              const centerX = frameSize.width / 2;
-              const centerY = y + clientLogoHeight / 2;
+              // Create circular clipping path
+              const radius = actualClientLogoHeight / 2;
+              const centerX = logoPositionX + actualClientLogoWidth / 2;
+              const centerY = logoPositionY + actualClientLogoHeight / 2;
               
               ctx.beginPath();
               ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
               ctx.clip();
               
               // Calculate dimensions for object-fit: contain behavior (like prompt page)
-              const containerSize = clientLogoHeight; // Circular container size
+              const containerSize = actualClientLogoHeight; // Circular container size
               const imgAspectRatio = clientLogoImg.width / clientLogoImg.height;
               
               let drawWidth, drawHeight;
@@ -891,15 +624,17 @@ export default function QRCodeGenerator({
               // Restore the state to remove the clipping path
               ctx.restore();
             } else {
-              // Draw logo normally (rectangular) with proper centering
-              const clientLogoAspectRatio = clientLogoImg.width / clientLogoImg.height;
-              const clientLogoWidth = clientLogoHeight * clientLogoAspectRatio;
-              const clientLogoX = (frameSize.width - clientLogoWidth) / 2;
-              ctx.drawImage(clientLogoImg, clientLogoX, y, clientLogoWidth, clientLogoHeight);
+              // Draw logo normally (rectangular)
+              ctx.drawImage(clientLogoImg, logoPositionX, logoPositionY, actualClientLogoWidth, actualClientLogoHeight);
             }
             
-            // Proportional spacing after client logo
-            y += clientLogoHeight + Math.floor(baseSize * 0.05);
+            // Proportional spacing after client logo (adjust for horizontal layouts)
+            if (isBusinessCard || is6x2) {
+              // For horizontal layouts, don't advance Y since logo is in corner
+              // Keep original Y for the rest of the content
+            } else {
+              y += actualClientLogoHeight + Math.floor(baseSize * 0.05);
+            }
           }
         } catch (error) {
           console.error('Error loading client logo:', {
@@ -925,7 +660,13 @@ export default function QRCodeGenerator({
       }
 
       // Calculate center area for QR and headline with proportional spacing
-      const centerY = y + Math.floor(baseSize * 0.025);
+      let centerY;
+      if (is5x7) {
+        // 5x7: Move headline up a little bit
+        centerY = y + Math.floor(baseSize * 0.015);
+      } else {
+        centerY = y + Math.floor(baseSize * 0.025);
+      }
       
       // Draw headline text
       ctx.fillStyle = mainColor;
@@ -1009,10 +750,10 @@ export default function QRCodeGenerator({
           ctx.fillText(line, qrX, headlineY + index * (adjustedFontSize + adjustedLineSpacing));
         });
         
-        // Draw QR code
-        const qrSize = Math.min(panelWidth * 0.4, panelHeight * 0.3);
+        // Draw QR code (make smaller for table tent)
+        const qrSize = Math.min(panelWidth * 0.3, panelHeight * 0.25); // Reduced from 0.4/0.3 to 0.3/0.25
         const qrLeft = qrX - qrSize / 2;
-        const qrTop = qrY - qrSize / 2;
+        const qrTop = qrY - qrSize / 2 + Math.floor(baseSize * 0.05); // Move down a little
         
         // Create QR code using the same approach as the rest of the file
         const qrDataUrl = await QRCode.toDataURL(url, {
@@ -1078,9 +819,26 @@ export default function QRCodeGenerator({
         return; // Skip the rest of the drawing for table tents
       }
 
-      // Standard layout for other sizes
-      // Ensure QR code is always perfectly centered
-      const qrCenterY = (frameSize.height - qrSize) / 2;
+      // Standard layout for other sizes with custom positioning
+      let qrCenterY;
+      
+      if (is5x7) {
+        // 5x7: Move headline up a little, move QR code down so 5 stars fit when turned on
+        qrCenterY = (frameSize.height - qrSize) / 2 + Math.floor(baseSize * 0.08);
+      } else if (is8x10 || is8p5x11 || is11x14) {
+        // 8x10, 8.5x11, 11x14: Move QR code down so there is more room for header and stars
+        qrCenterY = (frameSize.height - qrSize) / 2 + Math.floor(baseSize * 0.12);
+      } else if (is2x3) {
+        // 2x3: Move QR code down so there is more room for header and 5 stars
+        qrCenterY = (frameSize.height - qrSize) / 2 + Math.floor(baseSize * 0.10);
+      } else if (is3x3) {
+        // 3x3: Move QR code down
+        qrCenterY = (frameSize.height - qrSize) / 2 + Math.floor(baseSize * 0.08);
+      } else {
+        // Default centered positioning
+        qrCenterY = (frameSize.height - qrSize) / 2;
+      }
+      
       ctx.drawImage(qrImg, qrX, qrCenterY, qrSize, qrSize);
 
       // Pre-calculate logo dimensions for exclusion areas

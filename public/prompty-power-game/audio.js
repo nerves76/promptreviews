@@ -30,12 +30,13 @@ const melodies = {
     levelUp: [523, 659, 784, 1047, 1175, 1319, 1047, 784, 659, 523], // Full C major scale up and down
     spawn: [784, 1047, 1175, 1319], // G, C, D, E (ascending)
     hurt: [220, 196, 175, 147], // A, G, F, D (low descending)
-    oof: [147, 131, 117, 98], // D, C, B, G (very low descending)
+    oof: [98, 87, 78, 65], // G, F, D#, C (much deeper descending)
     emojiHit: [440, 494, 523, 587], // A, B, C, D (medium ascending)
     talking: [349, 392, 440, 392, 349], // F, G, A, G, F (conversational)
     doorCreak: [196, 175, 147, 131], // G, F, D, C (low descending)
     karenAppear: [98, 147, 196, 147, 98, 87], // G, D, G, D, G, F (ominous)
-    ouch: [196, 175, 147, 131] // G, F, D, C (low descending)
+    ouch: [196, 175, 147, 131], // G, F, D, C (low descending)
+    victory: [523, 659, 784, 1047, 1319, 1568, 1319, 1047, 784, 659, 523, 659, 784, 1047] // Celebratory fanfare
 };
 
 // Initialize audio context on first user interaction

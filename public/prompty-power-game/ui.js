@@ -79,8 +79,40 @@ function showLevelComplete() {
     }
 }
 
+// Show level complete overlay without stopping gameplay
+window.showLevelCompleteOverlay = function showLevelCompleteOverlay() {
+    try {
+        // Initialize overlay variables if they don't exist
+        if (!window.levelCompleteOverlay) {
+            window.levelCompleteOverlay = {
+                visible: false,
+                timer: 0,
+                duration: 180, // 3 seconds at 60fps
+                alpha: 0
+            };
+        }
+        
+        // Show the overlay
+        window.levelCompleteOverlay.visible = true;
+        window.levelCompleteOverlay.timer = 0;
+        window.levelCompleteOverlay.alpha = 0.9; // Semi-transparent
+        
+        // Auto-hide after duration
+        setTimeout(() => {
+            if (window.levelCompleteOverlay) {
+                window.levelCompleteOverlay.visible = false;
+            }
+        }, 3000); // Hide after 3 seconds
+        
+        // Level complete overlay setup completed
+    } catch (error) {
+        console.error('Error in showLevelCompleteOverlay:', error);
+    }
+};
+
 function startNextLevel() {
-    console.log('startNextLevel called - Starting level:', window.level);
+    console.log('🚨 UNEXPECTED: startNextLevel called - Starting level:', window.level);
+    console.trace('startNextLevel call stack:');
     
     // Hide level complete screen
     const levelCompleteElement = document.getElementById('levelComplete');
@@ -90,11 +122,7 @@ function startNextLevel() {
         console.error('Level complete element not found!');
     }
     
-    // Cancel any existing game loop to prevent multiple loops
-    if (window.gameLoop) {
-        cancelAnimationFrame(window.gameLoop);
-        window.gameLoop = null;
-    }
+    // Note: Using simplified game loop that doesn't need cancellation
     
     // Reset game state for next level
     window.gameState = 'playing';
@@ -115,8 +143,7 @@ function startNextLevel() {
     // Reset Evil Google Exec spawn timer
     window.evilGoogleExecSpawnTimer = 0;
     
-    // Reset Teresa spawn timer
-    window.teresaSpawnTimer = 0;
+
     
     // Reset floating texts
     window.floatingTexts = [];
@@ -157,8 +184,7 @@ function startNextLevel() {
         setTimeout(() => spawnCustomers(), k * 600); // Faster spawning
     }
     
-    // Start game loop
-    window.gameLoop = requestAnimationFrame(update);
+    // Game loop already running - no need to restart it
     console.log('Next level started - Level:', window.level, 'Game state:', window.gameState);
 }
 
@@ -199,7 +225,7 @@ function gameOver() {
 // Update UI elements
 function updateUI() {
     // Update performance panel
-    updatePerformancePanel();
+
     
     // Update score display
     const scoreElement = document.getElementById('score');
@@ -273,7 +299,7 @@ function showBossPopup(bossType) {
                 'Moves back and forth across the screen',
                 'Has a health bar that must be depleted',
                 'Creates ricochet combos when hit',
-                'Is Terrified of OpenAI'
+                'Is terrified of OpenAI'
             ]
         },
         linkedInSpammer: {
@@ -281,10 +307,10 @@ function showBossPopup(bossType) {
             image: 'https://ltneloufqjktdplodvao.supabase.co/storage/v1/object/public/logos/prompt-assets/linkedin-spammer.png',
             description: 'Relentless in his pursuit to deliver "8–10 new leads a month," Evil LinkedIn Spammer weaponizes automation and marketing acronyms to lure unsuspecting victims into his sales funnel of doom.',
             abilities: [
-                'Throws bouncing email icons',
+                'Launches bouncing emails at Prompty',
                 'Moves back and forth across the screen',
                 'Has a health bar that must be depleted',
-                'Creates ricochet combos when hit'
+                'Bumps messages to the top of your inbox'
             ]
         }
     };
@@ -323,20 +349,4 @@ document.addEventListener('click', function(event) {
     }
 }); 
 
-// Performance debug panel
-function updatePerformancePanel() {
-    if (window.performanceMetrics) {
-        const panel = document.getElementById('performancePanel');
-        if (panel) {
-            panel.innerHTML = `
-                <div style="position: fixed; top: 10px; right: 10px; background: rgba(0,0,0,0.8); color: white; padding: 10px; border-radius: 5px; font-family: monospace; font-size: 12px; z-index: 1000;">
-                    <div>FPS: ${window.performanceMetrics.averageFPS}</div>
-                    <div>Objects: ${window.performanceMetrics.objectCount}</div>
-                    <div>Hearts: ${window.hearts ? window.hearts.length : 0}</div>
-                    <div>Stars: ${window.stars ? window.stars.length : 0}</div>
-                    <div>Customers: ${window.customers ? window.customers.length : 0}</div>
-                </div>
-            `;
-        }
-    }
-} 
+ 
