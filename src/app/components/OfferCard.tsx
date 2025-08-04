@@ -29,17 +29,6 @@ const OfferCard: React.FC<OfferCardProps> = ({
   offerTitle,
   offerDescription,
 }) => {
-  const Icon = icon || (
-    <offerConfig.icon
-      style={{
-        color: iconColor,
-        fontSize: 32,
-        marginRight: 12,
-        verticalAlign: "middle",
-      }}
-    />
-  );
-
   const getFontClass = (font: string) => {
     // Implement your logic to determine the appropriate font class based on the font name
     // For example, you can use a switch statement or a mapping function
@@ -60,8 +49,8 @@ const OfferCard: React.FC<OfferCardProps> = ({
       <div className="flex flex-col sm:flex-row items-center justify-center w-full text-center">
         <Icon 
           name="FaGift"
-          className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-700 mb-1 sm:mb-0 sm:mr-2 flex-shrink-0" 
-          size={20}
+          className="w-8 h-8 sm:w-10 sm:h-10 text-yellow-700 mb-1 sm:mb-0 sm:mr-2 flex-shrink-0" 
+          size={32}
         />
         <span className="text-yellow-900 mx-0 sm:mx-2 text-center text-sm sm:text-base mb-0 font-semibold">
           <strong>{offerTitle || "Special Offer"}</strong>

@@ -144,6 +144,82 @@ interface PromptPageData {
 
 async function getPromptPageData(slug: string): Promise<PromptPageData | null> {
   try {
+    // DEVELOPMENT MODE BYPASS - Return mock Universal prompt page data
+    if (process.env.NODE_ENV === 'development' && slug === 'universal-mdwd0peh') {
+      console.log('🔧 DEV MODE: Server component returning mock Universal prompt page data');
+      
+      // Default mock data for server-side rendering
+      const mockPromptPage = {
+        id: '0f1ba885-07d6-4698-9e94-a63d990c65e0',
+        account_id: '12345678-1234-5678-9abc-123456789012',
+        slug: 'universal-mdwd0peh',
+        is_universal: true,
+        campaign_type: 'public',
+        type: 'service',
+        status: 'complete',
+        offer_enabled: false,
+        offer_title: 'Review Rewards',
+        offer_body: '',
+        offer_url: '',
+        emoji_sentiment_enabled: false,
+        emoji_sentiment_question: '',
+        emoji_feedback_message: '',
+        emoji_thank_you_message: '',
+        emoji_feedback_popup_header: '',
+        emoji_feedback_page_header: '',
+        review_platforms: [],
+        falling_icon: 'star',
+        falling_icon_color: '#fbbf24',
+        falling_enabled: false, // Don't auto-fall when emoji sentiment is enabled
+        ai_button_enabled: true,
+        fix_grammar_enabled: true,
+        note_popup_enabled: false,
+        show_friendly_note: false,
+        friendly_note: '',
+        kickstarters_enabled: false,
+        selected_kickstarters: [],
+        recent_reviews_enabled: true,
+        recent_reviews_scope: 'current_page',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+      
+      return {
+        promptPage: mockPromptPage,
+        businessProfile: {
+          id: '6762c76a-8677-4c7f-9a0f-f444024961a2',
+          account_id: '12345678-1234-5678-9abc-123456789012',
+          name: 'Chris Bolton',
+          business_name: 'Chris Bolton',
+          business_email: 'chris@diviner.agency',
+          address_street: '2652 SE 89th Ave',
+          address_city: 'Portland',
+          address_state: 'Oregon',
+          address_zip: '97266',
+          address_country: 'United States',
+          phone: '',
+          business_website: '',
+          review_platforms: [],
+          default_offer_enabled: false,
+          default_offer_title: 'Review Rewards',
+          default_offer_body: '',
+          default_offer_url: '',
+          primary_font: 'Inter',
+          secondary_font: 'Inter',
+          primary_color: '#4F46E5',
+          secondary_color: '#818CF8',
+          background_color: '#FFFFFF',
+          text_color: '#1F2937',
+          background_type: 'gradient',
+          gradient_start: '#4F46E5',
+          gradient_middle: '#818CF8',
+          gradient_end: '#C7D2FE',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }
+      };
+    }
+
     const supabase = createServiceRoleClient();
     
     // First, get the prompt page data

@@ -386,6 +386,18 @@ export default function PhotoPromptPageForm({
             editMode={true}
           />
 
+          {/* Recent Reviews Feature */}
+          <RecentReviewsFeature
+            enabled={formData.recent_reviews_enabled}
+            onEnabledChange={(enabled) => 
+              setFormData(prev => ({ ...prev, recent_reviews_enabled: enabled }))
+            }
+            initialData={{
+              recent_reviews_enabled: formData.recent_reviews_enabled,
+            }}
+            editMode={true}
+          />
+
           {/* Falling Stars Feature */}
           <FallingStarsFeature
             enabled={fallingEnabled}
@@ -443,18 +455,6 @@ export default function PhotoPromptPageForm({
             fixGrammarEnabled={fixGrammarEnabled}
             onAIEnabledChange={setAiButtonEnabled}
             onGrammarEnabledChange={setFixGrammarEnabled}
-          />
-
-          {/* Recent Reviews Feature */}
-          <RecentReviewsFeature
-            enabled={formData.recent_reviews_enabled}
-            onEnabledChange={(enabled) => 
-              setFormData(prev => ({ ...prev, recent_reviews_enabled: enabled }))
-            }
-            initialData={{
-              recent_reviews_enabled: formData.recent_reviews_enabled,
-            }}
-            editMode={true}
           />
 
         </div>

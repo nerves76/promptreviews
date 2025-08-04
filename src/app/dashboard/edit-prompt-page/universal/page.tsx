@@ -10,6 +10,7 @@ import React, { useRef, useState } from "react";
 import UniversalPromptPageForm, {
   UniversalPromptFormState,
 } from "./UniversalPromptPageForm";
+import PromptPageForm from "@/app/components/PromptPageForm";
 import Icon from "@/components/Icon";
 import PageCard from "@/app/components/PageCard";
 import offerConfig from "@/app/components/prompt-modules/offerConfig";
@@ -39,6 +40,9 @@ const normalizePlatforms = (platforms: any[] | null | undefined = []) =>
 export default function UniversalEditPromptPage() {
   const supabase = createClient();
 
+  // Feature flag for testing new standardized form
+  const useStandardizedForm = false; // Set to true to use new form, false for old form
+
   const formRef = useRef<any>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -59,10 +63,31 @@ export default function UniversalEditPromptPage() {
         setIsLoading(true);
         setError(null);
         
-        // Get current user
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
+        // DEVELOPMENT MODE BYPASS - Check for dev bypass flag
+        let user = null;
+        if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined') {
+          const devBypass = localStorage.getItem('dev_auth_bypass');
+          if (devBypass === 'true') {
+            console.log('🔧 DEV MODE: Universal page using authentication bypass');
+            user = {
+              id: '12345678-1234-5678-9abc-123456789012',
+              email: 'test@example.com',
+              user_metadata: {
+                first_name: 'Dev',
+                last_name: 'User'
+              }
+            };
+          }
+        }
+        
+        // Get current user (if not using dev bypass)
+        if (!user) {
+          const {
+            data: { user: realUser },
+          } = await supabase.auth.getUser();
+          user = realUser;
+        }
+        
         if (!user) {
           setError("You must be signed in to access this page.");
           setIsLoading(false);
@@ -85,11 +110,42 @@ export default function UniversalEditPromptPage() {
         console.log("Fetching data for account:", accountId);
         
         // Fetch business profile
-        const { data: businessProfile, error: businessError } = await supabase
-          .from("businesses")
-          .select("*")
-          .eq("account_id", accountId)
-          .single();
+        let businessProfile = null;
+        let businessError = null;
+        
+        // DEVELOPMENT MODE BYPASS - Use mock business data
+        if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined' && localStorage.getItem('dev_auth_bypass') === 'true' && accountId === '12345678-1234-5678-9abc-123456789012') {
+          console.log('🔧 DEV MODE: Using mock business profile data');
+          businessProfile = {
+            id: '6762c76a-8677-4c7f-9a0f-f444024961a2',
+            account_id: '12345678-1234-5678-9abc-123456789012',
+            name: 'Chris Bolton',
+            business_email: 'chris@diviner.agency',
+            address_street: '2652 SE 89th Ave',
+            address_city: 'Portland',
+            address_state: 'Oregon',
+            address_zip: '97266',
+            address_country: 'United States',
+            phone: '',
+            business_website: '',
+            review_platforms: [],
+            default_offer_enabled: false,
+            default_offer_title: 'Review Rewards',
+            default_offer_body: '',
+            default_offer_url: '',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          };
+        } else {
+          const { data: dbBusinessProfile, error: dbBusinessError } = await supabase
+            .from("businesses")
+            .select("*")
+            .eq("account_id", accountId)
+            .single();
+          
+          businessProfile = dbBusinessProfile;
+          businessError = dbBusinessError;
+        }
           
         if (businessError) {
           console.error("Business fetch error:", businessError);
@@ -98,14 +154,59 @@ export default function UniversalEditPromptPage() {
         console.log("Business profile:", businessProfile);
         
         // Fetch universal prompt page
-        const { data: universalPage, error: universalError } = await supabase
-          .from("prompt_pages")
-          .select("*")
-          .eq("account_id", accountId)
-          .eq("is_universal", true)
-          .order("created_at", { ascending: false })
-          .limit(1)
-          .single();
+        let universalPage = null;
+        let universalError = null;
+        
+        // DEVELOPMENT MODE BYPASS - Use mock universal prompt page data
+        if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined' && localStorage.getItem('dev_auth_bypass') === 'true' && accountId === '12345678-1234-5678-9abc-123456789012') {
+          console.log('🔧 DEV MODE: Using mock universal prompt page data');
+          universalPage = {
+            id: '0f1ba885-07d6-4698-9e94-a63d990c65e0',
+            account_id: '12345678-1234-5678-9abc-123456789012',
+            slug: 'universal-mdwd0peh',
+            is_universal: true,
+            campaign_type: 'public',
+            type: 'service',
+            status: 'complete',
+            recent_reviews_enabled: true,
+            recent_reviews_scope: 'current_page',
+            review_platforms: [],
+            offer_enabled: false,
+            offer_title: '',
+            offer_body: '',
+            offer_url: '',
+            emoji_sentiment_enabled: false,
+            emoji_sentiment_question: 'How was your experience?',
+            emoji_feedback_message: 'We value your feedback! Let us know how we can do better.',
+            emoji_thank_you_message: 'Thank you for your feedback!',
+            emoji_feedback_popup_header: 'How can we improve?',
+            emoji_feedback_page_header: 'How was your experience?',
+            falling_enabled: true,
+            falling_icon: 'star',
+            falling_icon_color: '#fbbf24',
+            ai_button_enabled: true,
+            fix_grammar_enabled: true,
+            note_popup_enabled: false,
+            show_friendly_note: false,
+            friendly_note: '',
+            kickstarters_enabled: false,
+            selected_kickstarters: [],
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          };
+        } else {
+          const { data: dbUniversalPage, error: dbUniversalError } = await supabase
+            .from("prompt_pages")
+            .select("*")
+            .eq("account_id", accountId)
+            .eq("is_universal", true)
+            .order("created_at", { ascending: false })
+            .limit(1)
+            .single();
+          
+          universalPage = dbUniversalPage;
+          universalError = dbUniversalError;
+        }
           
         if (universalError) {
           console.error("Universal page fetch error:", universalError);
@@ -121,49 +222,49 @@ export default function UniversalEditPromptPage() {
         const universalPlatforms = normalizePlatforms(universalPage?.review_platforms);
         const businessPlatforms = normalizePlatforms(businessProfile?.review_platforms);
         const merged: UniversalPromptFormState = {
-          offerEnabled:
+          offer_enabled:
             universalPage?.offer_enabled ??
             businessProfile?.default_offer_enabled ??
             false,
-          offerTitle:
+          offer_title:
             universalPage?.offer_title ||
             businessProfile?.default_offer_title ||
             "",
-          offerBody:
+          offer_body:
             universalPage?.offer_body ||
             businessProfile?.default_offer_body ||
             "",
-          offerUrl:
+          offer_url:
             universalPage?.offer_url || businessProfile?.default_offer_url || "",
-          emojiSentimentEnabled: universalPage?.emoji_sentiment_enabled ?? false,
-          emojiSentimentQuestion: universalPage?.emoji_sentiment_question || "How was Your Experience?",
-          emojiFeedbackMessage: universalPage?.emoji_feedback_message || "We value your feedback! Let us know how we can do better.",
-          emojiThankYouMessage: universalPage?.emoji_thank_you_message || "Thank you for your feedback. It's important to us.",
-          emojiFeedbackPopupHeader: universalPage?.emoji_feedback_popup_header || "How can we improve?",
-          emojiFeedbackPageHeader: universalPage?.emoji_feedback_page_header || "Your feedback helps us grow",
+          emoji_sentiment_enabled: universalPage?.emoji_sentiment_enabled ?? false,
+          emoji_sentiment_question: universalPage?.emoji_sentiment_question || "How was Your Experience?",
+          emoji_feedback_message: universalPage?.emoji_feedback_message || "We value your feedback! Let us know how we can do better.",
+          emoji_thank_you_message: universalPage?.emoji_thank_you_message || "Thank you for your feedback. It's important to us.",
+          emoji_feedback_popup_header: universalPage?.emoji_feedback_popup_header || "How can we improve?",
+          emoji_feedback_page_header: universalPage?.emoji_feedback_page_header || "Your feedback helps us grow",
 
-          reviewPlatforms: universalPlatforms.length
+          review_platforms: universalPlatforms.length
             ? universalPlatforms
             : businessPlatforms,
-          fallingEnabled: true, // Always default to enabled for new pages
-          fallingIcon: universalPage?.falling_icon || "star",
-          fallingIconColor: universalPage?.falling_icon_color || "#fbbf24",
-          aiButtonEnabled: universalPage?.ai_button_enabled !== false,
-          fixGrammarEnabled: universalPage?.fix_grammar_enabled !== false,
-          notePopupEnabled: universalPage?.note_popup_enabled ?? false,
-          showFriendlyNote: universalPage?.show_friendly_note ?? false,
-          friendlyNote: universalPage?.friendly_note || "",
-          kickstartersEnabled: universalPage?.kickstarters_enabled ?? false,
-          selectedKickstarters: universalPage?.selected_kickstarters ?? [],
-          recentReviewsEnabled: universalPage?.recent_reviews_enabled ?? false,
-          recentReviewsScope: universalPage?.recent_reviews_scope ?? 'current_page',
+          falling_enabled: true, // Always default to enabled for new pages
+          falling_icon: universalPage?.falling_icon || "star",
+          falling_icon_color: universalPage?.falling_icon_color || "#fbbf24",
+          ai_button_enabled: universalPage?.ai_button_enabled !== false,
+          fix_grammar_enabled: universalPage?.fix_grammar_enabled !== false,
+          note_popup_enabled: universalPage?.note_popup_enabled ?? false,
+          show_friendly_note: universalPage?.show_friendly_note ?? false,
+          friendly_note: universalPage?.friendly_note || "",
+          kickstarters_enabled: universalPage?.kickstarters_enabled ?? false,
+          selected_kickstarters: universalPage?.selected_kickstarters ?? [],
+          recent_reviews_enabled: universalPage?.recent_reviews_enabled ?? false,
+          recent_reviews_scope: universalPage?.recent_reviews_scope ?? 'current_page',
         };
         
         console.log("Merged form data:", merged);
         
         // Show the button if there is a universal override, or if the merged list is empty
         setShowResetButton(
-          universalPlatforms.length > 0 || merged.reviewPlatforms.length === 0,
+          universalPlatforms.length > 0 || merged.review_platforms.length === 0,
         );
         console.log('🏢 Universal page - Business profile data:', businessProfile);
         console.log('🏢 Universal page - Business name:', businessProfile?.name, businessProfile?.business_name);
@@ -188,7 +289,7 @@ export default function UniversalEditPromptPage() {
     if (formRef.current && typeof formRef.current.getCurrentState === "function") {
       const currentFormState = formRef.current.getCurrentState();
       console.log('🔍 Current form state:', currentFormState);
-      if (currentFormState && currentFormState.reviewPlatforms.length === 0) {
+      if (currentFormState && currentFormState.review_platforms.length === 0) {
         if (!window.confirm("You didn't add a review platform. Are you sure you want to save?")) {
           return;
         }
@@ -207,10 +308,32 @@ export default function UniversalEditPromptPage() {
   const handleFormSave = async (formState: UniversalPromptFormState) => {
     console.log('🔍 handleFormSave called with:', formState);
     setIsSaving(true);
-    // Get current user
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    
+    // DEVELOPMENT MODE BYPASS - Check for dev bypass flag
+    let user = null;
+    if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined') {
+      const devBypass = localStorage.getItem('dev_auth_bypass');
+      if (devBypass === 'true') {
+        console.log('🔧 DEV MODE: Save function using authentication bypass');
+        user = {
+          id: '12345678-1234-5678-9abc-123456789012',
+          email: 'test@example.com',
+          user_metadata: {
+            first_name: 'Dev',
+            last_name: 'User'
+          }
+        };
+      }
+    }
+    
+    // Get current user (if not using dev bypass)
+    if (!user) {
+      const {
+        data: { user: realUser },
+      } = await supabase.auth.getUser();
+      user = realUser;
+    }
+    
     if (!user) {
       alert("You must be signed in to save.");
       setIsSaving(false);
@@ -224,44 +347,116 @@ export default function UniversalEditPromptPage() {
       return;
     }
     // Fetch the universal prompt page to get its id
-    const { data: universalPage, error: fetchError } = await supabase
-      .from("prompt_pages")
-      .select("id")
-      .eq("account_id", accountId)
-      .eq("is_universal", true)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .single();
+    let universalPage = null;
+    let fetchError = null;
+    
+    // DEVELOPMENT MODE BYPASS - Use mock universal prompt page ID
+    if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined' && localStorage.getItem('dev_auth_bypass') === 'true' && accountId === '12345678-1234-5678-9abc-123456789012') {
+      console.log('🔧 DEV MODE: Using mock universal prompt page ID for save');
+      universalPage = {
+        id: '0f1ba885-07d6-4698-9e94-a63d990c65e0'
+      };
+    } else {
+      const { data: dbUniversalPage, error: dbFetchError } = await supabase
+        .from("prompt_pages")
+        .select("id")
+        .eq("account_id", accountId)
+        .eq("is_universal", true)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .single();
+      
+      universalPage = dbUniversalPage;
+      fetchError = dbFetchError;
+    }
+    
     if (fetchError || !universalPage) {
       alert("Failed to find universal prompt page: " + (fetchError?.message || "Not found"));
       setIsSaving(false);
       return;
     }
+    // Debug: Log form state being saved
+    console.log('🔍 SAVE DEBUG: Form state being saved:', {
+      offer_enabled: formState.offer_enabled,
+      offer_title: formState.offer_title,
+      offer_body: formState.offer_body,
+      offer_url: formState.offer_url,
+    });
+    
     // Update universal prompt page
-    const { error } = await supabase.from("prompt_pages").update({
-      offer_enabled: formState.offerEnabled,
-      offer_title: formState.offerTitle,
-      offer_body: formState.offerBody,
-      offer_url: formState.offerUrl,
-      emoji_sentiment_enabled: formState.emojiSentimentEnabled,
-      emoji_sentiment_question: formState.emojiSentimentQuestion,
-      emoji_feedback_message: formState.emojiFeedbackMessage,
-      emoji_thank_you_message: formState.emojiThankYouMessage,
-      emoji_feedback_popup_header: formState.emojiFeedbackPopupHeader,
-      emoji_feedback_page_header: formState.emojiFeedbackPageHeader,
-      review_platforms: formState.reviewPlatforms,
-      falling_icon: formState.fallingEnabled ? formState.fallingIcon : null,
-      falling_icon_color: formState.fallingEnabled ? formState.fallingIconColor : null,
-      ai_button_enabled: formState.aiButtonEnabled,
-      fix_grammar_enabled: formState.fixGrammarEnabled,
-      note_popup_enabled: formState.notePopupEnabled,
-      show_friendly_note: formState.showFriendlyNote,
-      friendly_note: formState.friendlyNote,
-      kickstarters_enabled: formState.kickstartersEnabled,
-      selected_kickstarters: formState.selectedKickstarters,
-      recent_reviews_enabled: formState.recentReviewsEnabled,
-      recent_reviews_scope: formState.recentReviewsScope,
-    }).eq("id", universalPage.id);
+    let error = null;
+    
+    // DEVELOPMENT MODE BYPASS - Skip database update in dev mode
+    if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined' && localStorage.getItem('dev_auth_bypass') === 'true' && accountId === '12345678-1234-5678-9abc-123456789012') {
+      console.log('🔧 DEV MODE: Skipping database update for universal prompt page');
+      
+      // Store the current form state in localStorage so the public page can use it
+      // When emoji sentiment is enabled, disable falling on page load (they should only fall on emoji selection)
+      const devUniversalPageData = {
+        offer_enabled: formState.offer_enabled,
+        offer_title: formState.offer_title,
+        offer_body: formState.offer_body,
+        offer_url: formState.offer_url,
+        emoji_sentiment_enabled: formState.emoji_sentiment_enabled,
+        emoji_sentiment_question: formState.emoji_sentiment_question,
+        emoji_feedback_message: formState.emoji_feedback_message,
+        emoji_thank_you_message: formState.emoji_thank_you_message,
+        emoji_feedback_popup_header: formState.emoji_feedback_popup_header,
+        emoji_feedback_page_header: formState.emoji_feedback_page_header,
+        review_platforms: formState.review_platforms,
+        falling_enabled: formState.emoji_sentiment_enabled ? false : formState.falling_enabled, // Disable auto-falling when emoji sentiment is enabled
+        falling_icon: formState.falling_icon,
+        falling_icon_color: formState.falling_icon_color,
+        ai_button_enabled: formState.ai_button_enabled,
+        fix_grammar_enabled: formState.fix_grammar_enabled,
+        note_popup_enabled: formState.note_popup_enabled,
+        show_friendly_note: formState.show_friendly_note,
+        friendly_note: formState.friendly_note,
+        kickstarters_enabled: formState.kickstarters_enabled,
+        selected_kickstarters: formState.selected_kickstarters,
+        recent_reviews_enabled: formState.recent_reviews_enabled,
+        recent_reviews_scope: formState.recent_reviews_scope,
+        updated_at: new Date().toISOString()
+      };
+      
+      localStorage.setItem('dev_universal_page_data', JSON.stringify(devUniversalPageData));
+      console.log('🔧 DEV MODE: Stored Universal page data in localStorage:', devUniversalPageData);
+      
+      // Verify it was saved
+      const saved = localStorage.getItem('dev_universal_page_data');
+      console.log('🔧 DEV MODE: Verified saved data:', saved ? JSON.parse(saved) : null);
+      
+      // Simulate successful save
+      error = null;
+    } else {
+      const { error: dbError } = await supabase.from("prompt_pages").update({
+        offer_enabled: formState.offer_enabled,
+        offer_title: formState.offer_title,
+        offer_body: formState.offer_body,
+        offer_url: formState.offer_url,
+        emoji_sentiment_enabled: formState.emoji_sentiment_enabled,
+        emoji_sentiment_question: formState.emoji_sentiment_question,
+        emoji_feedback_message: formState.emoji_feedback_message,
+        emoji_thank_you_message: formState.emoji_thank_you_message,
+        emoji_feedback_popup_header: formState.emoji_feedback_popup_header,
+        emoji_feedback_page_header: formState.emoji_feedback_page_header,
+        review_platforms: formState.review_platforms,
+        falling_icon: formState.falling_enabled ? formState.falling_icon : null,
+        falling_icon_color: formState.falling_enabled ? formState.falling_icon_color : null,
+        ai_button_enabled: formState.ai_button_enabled,
+        fix_grammar_enabled: formState.fix_grammar_enabled,
+        note_popup_enabled: formState.note_popup_enabled,
+        show_friendly_note: formState.show_friendly_note,
+        friendly_note: formState.friendly_note,
+        kickstarters_enabled: formState.kickstarters_enabled,
+        selected_kickstarters: formState.selected_kickstarters,
+        recent_reviews_enabled: formState.recent_reviews_enabled,
+        recent_reviews_scope: formState.recent_reviews_scope,
+      }).eq("id", universalPage.id);
+      
+      error = dbError;
+    }
+    
     if (error) {
       alert("Failed to save: " + error.message);
       setIsSaving(false);
@@ -277,14 +472,27 @@ export default function UniversalEditPromptPage() {
     }
     
     // Fetch the updated universal prompt page to get the slug
-    const { data: updatedPage } = await supabase
-      .from("prompt_pages")
-      .select("slug")
-      .eq("account_id", accountId)
-      .eq("is_universal", true)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .single();
+    let updatedPage = null;
+    
+    // DEVELOPMENT MODE BYPASS - Use mock slug
+    if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined' && localStorage.getItem('dev_auth_bypass') === 'true' && accountId === '12345678-1234-5678-9abc-123456789012') {
+      console.log('🔧 DEV MODE: Using mock slug for save success');
+      updatedPage = {
+        slug: 'universal-mdwd0peh'
+      };
+    } else {
+      const { data: dbUpdatedPage } = await supabase
+        .from("prompt_pages")
+        .select("slug")
+        .eq("account_id", accountId)
+        .eq("is_universal", true)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .single();
+      
+      updatedPage = dbUpdatedPage;
+    }
+    
     if (updatedPage?.slug) setSlug(updatedPage.slug);
     if (updatedPage?.slug) {
       const modalData = { 
@@ -316,100 +524,115 @@ export default function UniversalEditPromptPage() {
     </button>
   );
 
-  const actionButtons = (
+  const actionButtons = !useStandardizedForm ? (
     <div className="flex gap-3">
       {saveButton}
     </div>
-  );
+  ) : null;
 
   return (
-    <PageCard
-      icon={<Icon name="FaHome" className="w-9 h-9 text-slate-blue" size={36} />}
-      topRightAction={actionButtons}
-    >
-      <div className="flex flex-col mt-0 md:mt-[3px] mb-4">
-        <h1 className="text-4xl font-bold text-slate-blue mt-0 mb-2">
-          Universal prompt page
-        </h1>
-        <p className="text-gray-600 text-base max-w-md mt-0 mb-6">
-          The universal prompt page is designed to be shared with many.
-        </p>
-      </div>
-      <div className="pb-16">
-        {isLoading && (
-          <div className="flex items-center justify-center py-8">
-            <div className="text-lg text-gray-600">Loading...</div>
+    <>
+      {!useStandardizedForm && (
+        <PageCard
+          icon={<Icon name="FaHome" className="w-9 h-9 text-slate-blue" size={36} />}
+          topRightAction={actionButtons}
+        >
+          <div className="flex flex-col mt-0 md:mt-[3px] mb-4">
+            <h1 className="text-4xl font-bold text-slate-blue mt-0 mb-2">
+              Universal prompt page
+            </h1>
+            <p className="text-gray-600 text-base max-w-md mt-0 mb-6">
+              The universal prompt page is designed to be shared with many.
+            </p>
           </div>
-        )}
-        {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
-            <div className="text-red-800 font-medium">Error</div>
-            <div className="text-red-600">{error}</div>
+
+          {/* Content inside PageCard */}
+          <div className="pb-16">
+            {isLoading && (
+              <div className="flex items-center justify-center py-8">
+                <div className="text-lg text-gray-600">Loading...</div>
+              </div>
+            )}
+            {error && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+                <div className="text-red-800 font-medium">Error</div>
+                <div className="text-red-600">{error}</div>
+              </div>
+            )}
+            {!isLoading && !error && initialData && (
+              <UniversalPromptPageForm
+                ref={formRef}
+                onSave={handleFormSave}
+                isLoading={isSaving}
+                initialData={initialData}
+                showResetButton={showResetButton}
+                businessReviewPlatforms={businessReviewPlatforms}
+                slug={slug || undefined}
+                businessProfile={businessProfile}
+              />
+            )}
+            {!isLoading && !error && !initialData && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <div className="text-yellow-800 font-medium">No Data Available</div>
+                <div className="text-yellow-600">
+                  The universal prompt page data could not be loaded. Please try refreshing the page.
+                </div>
+              </div>
+            )}
           </div>
-        )}
-        {!isLoading && !error && initialData && (
-          <UniversalPromptPageForm
-            ref={formRef}
-            onSave={handleFormSave}
-            isLoading={isSaving}
-            initialData={initialData}
-            showResetButton={showResetButton}
-            businessReviewPlatforms={businessReviewPlatforms}
-            slug={slug || undefined}
-            businessProfile={businessProfile}
-          />
-        )}
-        {!isLoading && !error && !initialData && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-            <div className="text-yellow-800 font-medium">No Data Available</div>
-            <div className="text-yellow-600">
-              The universal prompt page data could not be loaded. Please try refreshing the page.
-            </div>
-          </div>
-        )}
-      </div>
+        </PageCard>
+      )}
       
-      {/* Bottom Action Buttons */}
-      <div className={`border-t border-gray-200 pt-6 mt-8 flex items-center ${showResetButton ? 'justify-between' : 'justify-end'}`}>
-        {/* Reset Button - Bottom Left */}
-        {showResetButton && (
-          <button
-            type="button"
-            className="px-4 py-2 text-sm rounded border-2 border-red-500 text-red-600 bg-white hover:bg-red-50 transition-colors"
-            onClick={() => {
-              if (window.confirm("Are you sure you want to reset to business defaults? Any customizations will be lost.")) {
-                if (formRef.current && typeof formRef.current.getCurrentState === "function") {
-                  const currentState = formRef.current.getCurrentState();
-                  if (currentState) {
-                    // Reset review platforms to business defaults
-                    const updatedState = {
-                      ...currentState,
-                      reviewPlatforms: businessReviewPlatforms
-                    };
-                    // Update the form with reset data
-                    setInitialData(updatedState);
-                  }
-                }
-              }
-            }}
-            title="Reset to Business Defaults"
-          >
-            Reset to Defaults
-          </button>
-        )}
-        
-        {/* Save Button - Bottom Right */}
-        <div className="flex gap-3">
-          <button
-            type="button"
-            className="px-4 py-2 text-sm rounded bg-slate-blue text-white hover:bg-slate-blue/90 transition-colors"
-            onClick={handleSave}
-            disabled={isSaving}
-          >
-            {isSaving ? "Saving..." : "Save & publish"}
-          </button>
+      {useStandardizedForm && (
+        <div className="w-full bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600 pb-16 md:pb-24 lg:pb-32">
+          <div className="flex flex-col mt-0 md:mt-[3px] mb-4 px-6 pt-8">
+            <h1 className="text-4xl font-bold text-white mt-0 mb-2">
+              Universal prompt page
+            </h1>
+            <p className="text-indigo-100 text-base max-w-md mt-0 mb-6">
+              The universal prompt page is designed to be shared with many.
+            </p>
+          </div>
         </div>
-      </div>
-    </PageCard>
+      )}
+
+      
+      {/* Standardized Form - rendered outside PageCard */}
+      {useStandardizedForm && !isLoading && !error && initialData && (
+        <PromptPageForm
+          mode="edit"
+          initialData={{
+            ...initialData,
+            review_type: "universal",
+            is_universal: true,
+            campaign_type: "public",
+            slug: slug
+          }}
+          onSave={handleFormSave}
+          pageTitle="Universal Prompt Page"
+          supabase={supabase}
+          businessProfile={businessProfile}
+          isUniversal={true}
+          onPublishSuccess={(newSlug) => {
+            setSlug(newSlug);
+            window.location.href = "/prompt-pages";
+          }}
+        />
+      )}
+      
+      {/* Loading and Error States for Standardized Form */}
+      {useStandardizedForm && isLoading && (
+        <div className="flex items-center justify-center py-8">
+          <div className="text-lg text-gray-600">Loading...</div>
+        </div>
+      )}
+      
+      {useStandardizedForm && error && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 m-6">
+          <div className="text-red-800 font-medium">Error</div>
+          <div className="text-red-600">{error}</div>
+        </div>
+      )}
+    </>
   );
 }

@@ -560,6 +560,16 @@ export default function ProductPromptPageForm({
           editMode={true}
         />
 
+        {/* Recent Reviews Feature */}
+        <RecentReviewsFeature
+          enabled={recentReviewsEnabled}
+          onEnabledChange={(enabled) => setRecentReviewsEnabled(enabled)}
+          initialData={{
+            recent_reviews_enabled: recentReviewsEnabled,
+          }}
+          editMode={true}
+        />
+
         {/* Offer Section */}
             <OfferFeature
               enabled={offerEnabled}
@@ -657,16 +667,6 @@ export default function ProductPromptPageForm({
               onAIEnabledChange={(enabled) => setAiReviewEnabled(enabled)}
               onGrammarEnabledChange={(enabled) => setFixGrammarEnabled(enabled)}
             />
-
-        {/* Recent Reviews Feature */}
-        <RecentReviewsFeature
-          enabled={recentReviewsEnabled}
-          onEnabledChange={(enabled) => setRecentReviewsEnabled(enabled)}
-          initialData={{
-            recent_reviews_enabled: recentReviewsEnabled,
-          }}
-          editMode={true}
-        />
 
         {/* Falling Stars Section */}
         <FallingStarsFeature

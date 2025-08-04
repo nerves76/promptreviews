@@ -607,6 +607,16 @@ export default function EventPromptPageForm({
             editMode={true}
           />
 
+          {/* Recent Reviews Feature */}
+          <RecentReviewsFeature
+            enabled={formData.recent_reviews_enabled}
+            onEnabledChange={(enabled) => updateFormData('recent_reviews_enabled', enabled)}
+            initialData={{
+              recent_reviews_enabled: formData.recent_reviews_enabled,
+            }}
+            editMode={true}
+          />
+
           {/* Offer Feature */}
           <OfferFeature
             enabled={formData.offer_enabled || false}
@@ -622,29 +632,17 @@ export default function EventPromptPageForm({
           {/* Personalized Note Feature */}
           <PersonalizedNoteFeature
             enabled={formData.show_friendly_note || false}
-            onToggle={() => {
-              if (formData.emojiSentimentEnabled) {
-                // Show conflict modal would go here
-                return;
-              }
-              updateFormData('show_friendly_note', !formData.show_friendly_note);
-            }}
+            onEnabledChange={(enabled) => updateFormData('show_friendly_note', enabled)}
             note={formData.friendly_note || ''}
             onNoteChange={(note) => updateFormData('friendly_note', note)}
-            disabled={formData.emojiSentimentEnabled}
+            emojiSentimentEnabled={formData.emojiSentimentEnabled}
             editMode={true}
           />
 
           {/* Emoji Sentiment Feature */}
           <EmojiSentimentFeature
             enabled={formData.emojiSentimentEnabled || false}
-            onToggle={() => {
-              if (formData.show_friendly_note) {
-                // Show conflict modal would go here
-                return;
-              }
-              updateFormData('emojiSentimentEnabled', true);
-            }}
+            onEnabledChange={(enabled) => updateFormData('emojiSentimentEnabled', enabled)}
             question={formData.emojiSentimentQuestion || ''}
             onQuestionChange={(question) => updateFormData('emojiSentimentQuestion', question)}
             feedbackMessage={formData.emojiFeedbackMessage || ''}
@@ -653,7 +651,7 @@ export default function EventPromptPageForm({
             onFeedbackPageHeaderChange={(header) => updateFormData('emojiFeedbackPageHeader', header)}
             thankYouMessage={formData.emojiThankYouMessage || ''}
             onThankYouMessageChange={(message) => updateFormData('emojiThankYouMessage', message)}
-            disabled={!!formData.show_friendly_note}
+            personalizedNoteEnabled={formData.show_friendly_note}
             slug={formData.slug}
             editMode={true}
           />
@@ -677,15 +675,6 @@ export default function EventPromptPageForm({
             onGrammarEnabledChange={(enabled) => updateFormData('fix_grammar_enabled', enabled)}
           />
 
-          {/* Recent Reviews Feature */}
-          <RecentReviewsFeature
-            enabled={formData.recent_reviews_enabled}
-            onEnabledChange={(enabled) => updateFormData('recent_reviews_enabled', enabled)}
-            initialData={{
-              recent_reviews_enabled: formData.recent_reviews_enabled,
-            }}
-            editMode={true}
-          />
         </div>
 
 

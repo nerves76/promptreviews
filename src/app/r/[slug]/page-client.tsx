@@ -379,7 +379,36 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
         console.log("Fetching prompt page and business data for slug:", slug);
         
         // ⚡ PERFORMANCE: Single API call to get both prompt page and business data
-        const response = await fetch(`/api/prompt-pages/${slug}`);
+        const headers: any = {};
+        
+        // DEVELOPMENT MODE BYPASS - Include saved Universal page data in headers
+        if (process.env.NODE_ENV === 'development' && slug === 'universal-mdwd0peh' && typeof window !== 'undefined') {
+          const savedData = localStorage.getItem('dev_universal_page_data');
+          console.log('🔧 DEV MODE: Checking for saved Universal page data in localStorage');
+          console.log('🔧 DEV MODE: Found saved data:', savedData ? 'YES' : 'NO');
+          if (savedData) {
+            try {
+              const parsedData = JSON.parse(savedData);
+              console.log('🔧 DEV MODE: Parsed saved data emoji_sentiment_enabled:', parsedData.emoji_sentiment_enabled);
+              headers['x-dev-universal-data'] = savedData;
+              console.log('🔧 DEV MODE: Including saved Universal page data in API request');
+            } catch (e) {
+              console.error('🔧 DEV MODE: Error parsing saved data:', e);
+            }
+          } else {
+            console.log('🔧 DEV MODE: No saved Universal page data found in localStorage');
+          }
+        }
+        
+        // Add cache busting for dev mode to ensure fresh data
+        const url = process.env.NODE_ENV === 'development' 
+          ? `/api/prompt-pages/${slug}?_t=${Date.now()}`
+          : `/api/prompt-pages/${slug}`;
+          
+        const response = await fetch(url, {
+          headers,
+          cache: 'no-store' // Disable caching in dev mode
+        });
         
         console.log("API response status:", response.status, response.statusText);
         
