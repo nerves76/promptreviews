@@ -340,7 +340,7 @@ export default function UniversalPromptPageForm({
           setFormData((prev: any) => ({ ...prev, kickstarters_enabled: enabled }));
         }}
         selectedKickstarters={formData.selected_kickstarters}
-        onSelectedKickstartersChange={(kickstarters) => {
+        onKickstartersChange={(kickstarters) => {
           setFormData((prev: any) => ({ ...prev, selected_kickstarters: kickstarters }));
         }}
         businessProfile={businessProfile}
