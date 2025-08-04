@@ -146,14 +146,40 @@ function PromptPagesContent() {
           .single();
         setAccount(accountData);
 
-        const { data: businessProfiles } = await supabase
-          .from("businesses")
-          .select("*")
-          .eq("account_id", accountId)
-          .order("created_at", { ascending: false })
-          .limit(1);
+        let businessProfiles, businessError;
         
+        // DEVELOPMENT MODE: Use API endpoint to bypass RLS issues
+        if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined' && localStorage.getItem('dev_auth_bypass') === 'true') {
+          console.log('🔧 DEV MODE: Using API endpoint to fetch businesses for prompt pages');
+          try {
+            const response = await fetch(`/api/businesses?account_id=${accountId}`);
+            const apiResult = await response.json();
+            if (response.ok) {
+              businessProfiles = apiResult.businesses || [];
+              businessError = null;
+            } else {
+              businessProfiles = [];
+              businessError = { message: apiResult.error || 'API error' };
+            }
+          } catch (err) {
+            businessProfiles = [];
+            businessError = { message: err instanceof Error ? err.message : 'Unknown error' };
+          }
+        } else {
+          // Normal mode: Use Supabase client directly
+          const result = await supabase
+            .from("businesses")
+            .select("*")
+            .eq("account_id", accountId)
+            .order("created_at", { ascending: false })
+            .limit(1);
+          businessProfiles = result.data;
+          businessError = result.error;
+        }
+        
+        console.log('🔍 DEBUG: Prompt pages business query result:', { businessProfiles, businessError });
         const businessProfile = businessProfiles?.[0];
+        console.log('🔍 DEBUG: Selected business for prompt pages:', businessProfile);
         
         // Check if business profile exists and has a valid name
         if (!businessProfile || 
