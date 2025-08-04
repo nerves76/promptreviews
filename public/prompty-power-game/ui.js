@@ -31,7 +31,7 @@ function showScreen(screenName) {
             }
         } else if (screenName === 'gameOver') {
             if (gameOver) {
-                gameOver.style.display = 'block';
+                gameOver.style.display = 'flex';
                 console.log('Game over screen shown');
             }
         } else if (screenName === 'levelComplete') {
@@ -150,7 +150,7 @@ function startNextLevel() {
     
     // Reset Prompty position
     window.prompty.x = 330;
-    window.prompty.y = 420; // Match the new position
+            window.prompty.y = window.canvas.height - 170; // Lower position with wheels visible
     
     // Reset combo system
     window.comboCount = 0;

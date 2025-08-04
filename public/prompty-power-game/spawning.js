@@ -527,8 +527,8 @@ function spawnLinkedInSpammer() {
         window.linkedInSpammer = {
             x: 400,
             y: 100,
-            width: 80,
-            height: 80,
+            width: 110, // Increased from 80 to match other bosses
+            height: 130, // Increased from 80 to match other bosses
             health: 15, // More health than Karen
             maxHealth: 15,
             vx: 2,

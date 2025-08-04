@@ -123,7 +123,7 @@ window.linkedInSpammerImage.src = 'https://ltneloufqjktdplodvao.supabase.co/stor
 // Game objects
 window.prompty = {
     x: 340, // Adjusted position for smaller size
-    y: 400, // Moved down 20px to match new counter position
+    y: 480, // Lower position with more room for wheels
     width: 120, // Smaller (was 140)
     height: 120, // Smaller (was 140)
     speed: 5
@@ -308,9 +308,9 @@ function startGame() {
         
         console.log('Game state reset, window.gameState:', window.gameState);
         
-        // Reset Prompty position
+        // Reset Prompty position - standing behind counter
         window.prompty.x = 330; // Adjusted for smaller size
-        window.prompty.y = 400; // Match the new counter position (moved down 20px)
+        window.prompty.y = window.canvas.height - 170; // Behind counter with wheels visible
         
         console.log('Prompty position reset');
         
@@ -429,7 +429,7 @@ function resetGame() {
     
     // Reset Prompty position
     window.prompty.x = 330; // Adjusted for smaller size
-    window.prompty.y = 420; // Match the new position
+            window.prompty.y = window.canvas.height - 170; // Behind counter with wheels visible
     
     // Start game immediately
     startGame();
@@ -627,62 +627,58 @@ function update() {
         spawnCustomers();
         emojiSpawnTimer = 0;
     } else {
-        // Spawn bosses when most customers are converted
+        // Spawn bosses when 70% of customers are defeated (appears towards end of level)
         const remainingCustomers = window.customers.length;
-        const shouldSpawnBoss = remainingCustomers <= 2; // Changed from 1 to 2 to be more lenient
+        const maxCustomers = 8; // Maximum customers that can be on screen at once
+        const defeatedThreshold = Math.ceil(maxCustomers * 0.7); // 70% of max customers (6 customers)
+        const shouldSpawnBoss = remainingCustomers <= (maxCustomers - defeatedThreshold); // 2 or fewer remaining
         
-        // FIXED BOSS SPAWNING LOGIC - ONLY ONE BOSS AT A TIME
-        if (window.level >= 1 && shouldSpawnBoss && !window.karen && !window.evilGoogleExec && !window.linkedInSpammer && !window.karenDefeated) {
-            // Add a delay before spawning Karen (3 seconds)
-            if (!window.karenSpawnTimer) {
-                window.karenSpawnTimer = 180; // 3 seconds at 60fps
-            } else {
-                window.karenSpawnTimer--;
-
-                if (window.karenSpawnTimer <= 0) {
-                    spawnKaren();
-                    window.karenSpawnTimer = 0; // Reset timer
+        // BOSS CYCLING LOGIC - Cycle through bosses every level
+        // Calculate which boss should spawn based on level (cycles: Karen -> Google -> LinkedIn -> Karen...)
+        const bossType = ((window.level - 1) % 3) + 1; // 1=Karen, 2=Google, 3=LinkedIn
+        
+        // Only spawn boss if no other boss exists
+        if (window.level >= 1 && shouldSpawnBoss && !window.karen && !window.evilGoogleExec && !window.linkedInSpammer) {
+            
+            if (bossType === 1) {
+                // Spawn Karen (levels 1, 4, 7, 10...)
+                if (!window.karenSpawnTimer) {
+                    window.karenSpawnTimer = 180; // 3 seconds at 60fps
+                } else {
+                    window.karenSpawnTimer--;
+                    if (window.karenSpawnTimer <= 0) {
+                        spawnKaren();
+                        window.karenSpawnTimer = 0;
+                    }
+                }
+            } else if (bossType === 2) {
+                // Spawn Evil Google Exec (levels 2, 5, 8, 11...)
+                if (!window.evilGoogleExecSpawnTimer) {
+                    window.evilGoogleExecSpawnTimer = 240; // 4 seconds at 60fps
+                } else {
+                    window.evilGoogleExecSpawnTimer--;
+                    if (window.evilGoogleExecSpawnTimer <= 0) {
+                        spawnEvilGoogleExec();
+                        window.evilGoogleExecSpawnTimer = 0;
+                    }
+                }
+            } else if (bossType === 3) {
+                // Spawn LinkedIn Spammer (levels 3, 6, 9, 12...)
+                if (!window.linkedInSpammerSpawnTimer) {
+                    window.linkedInSpammerSpawnTimer = 120; // 2 seconds at 60fps
+                } else {
+                    window.linkedInSpammerSpawnTimer--;
+                    if (window.linkedInSpammerSpawnTimer <= 0) {
+                        spawnLinkedInSpammer();
+                        window.linkedInSpammerSpawnTimer = 0;
+                    }
                 }
             }
-        } else if (window.karenSpawnTimer > 0) {
-            // Reset timer if conditions are no longer met
-            window.karenSpawnTimer = 0;
-        }
-        
-        // Spawn Evil Google Exec on level 2+ (only if no other boss exists)
-        if (window.level >= 2 && shouldSpawnBoss && !window.karen && !window.evilGoogleExec && !window.linkedInSpammer) {
-            // Add a delay before spawning Evil Google Exec (4 seconds)
-            if (!window.evilGoogleExecSpawnTimer) {
-                window.evilGoogleExecSpawnTimer = 240; // 4 seconds at 60fps
-            } else {
-                window.evilGoogleExecSpawnTimer--;
-
-                if (window.evilGoogleExecSpawnTimer <= 0) {
-                    spawnEvilGoogleExec();
-                    window.evilGoogleExecSpawnTimer = 0; // Reset timer
-                }
-            }
-        } else if (window.evilGoogleExecSpawnTimer > 0) {
-            // Reset timer if conditions are no longer met
-            window.evilGoogleExecSpawnTimer = 0;
-        }
-        
-        // Spawn LinkedIn Spammer on level 3+ (only if no other boss exists)
-        if (window.level >= 3 && shouldSpawnBoss && !window.karen && !window.evilGoogleExec && !window.linkedInSpammer) {
-            // Add a delay before spawning LinkedIn Spammer (2 seconds)
-            if (!window.linkedInSpammerSpawnTimer) {
-                window.linkedInSpammerSpawnTimer = 120; // 2 seconds at 60fps
-            } else {
-                window.linkedInSpammerSpawnTimer--;
-
-                if (window.linkedInSpammerSpawnTimer <= 0) {
-                    spawnLinkedInSpammer();
-                    window.linkedInSpammerSpawnTimer = 0; // Reset timer
-                }
-            }
-        } else if (window.linkedInSpammerSpawnTimer > 0) {
-            // Reset timer if conditions are no longer met
-            window.linkedInSpammerSpawnTimer = 0;
+        } else {
+            // Reset all timers if conditions are no longer met
+            if (window.karenSpawnTimer > 0) window.karenSpawnTimer = 0;
+            if (window.evilGoogleExecSpawnTimer > 0) window.evilGoogleExecSpawnTimer = 0;
+            if (window.linkedInSpammerSpawnTimer > 0) window.linkedInSpammerSpawnTimer = 0;
         }
     }
     
@@ -886,7 +882,7 @@ function update() {
                 heart.y + heart.height > customer.y) {
                 
                 // Hit customer - fire hearts do more damage
-                const damage = heart.isPowerful ? 2 : 1; // Fire hearts do 2 damage, normal hearts do 1
+                const damage = heart.isPowerful ? 3 : 1; // Fire hearts do 3 damage, normal hearts do 1
                 customer.hits += damage;
                 customer.emojiIndex = Math.min(customer.hits, customerEmojis.length - 1);
                 
@@ -1005,7 +1001,7 @@ function update() {
                 heart.y + heart.height > window.karen.y) {
                 
                 // Hit Karen - fire hearts do more damage
-                const damage = heart.isPowerful ? 2 : 1;
+                const damage = heart.isPowerful ? 3 : 1;
                 window.karen.health -= damage;
                 
                 // Simple ricochet
@@ -1098,7 +1094,7 @@ function update() {
                 heart.y + heart.height > window.evilGoogleExec.y) {
                 
                 // Hit Evil Google Exec - fire hearts do more damage
-                const damage = heart.isPowerful ? 2 : 1;
+                const damage = heart.isPowerful ? 3 : 1;
                 window.evilGoogleExec.health -= damage;
                 
                 // Simple ricochet
@@ -1181,7 +1177,7 @@ function update() {
             heart.y + heart.height > window.linkedInSpammer.y) {
             
             // Hit LinkedIn Spammer - fire hearts do more damage
-            const damage = heart.isPowerful ? 2 : 1; // Fire hearts do 2 damage, normal hearts do 1
+            const damage = heart.isPowerful ? 3 : 1; // Fire hearts do 3 damage, normal hearts do 1
             window.linkedInSpammer.health -= damage;
             
             // Ricochet heart off LinkedIn Spammer
@@ -1551,9 +1547,9 @@ function update() {
             }
             
             // Bounce off floor
-            if (emailIcon.y + emailIcon.height >= window.canvas.height - 120) { // Above counter
+            if (emailIcon.y + emailIcon.height >= window.canvas.height - 110) { // Above counter
                 emailIcon.vy *= -0.8;
-                emailIcon.y = window.canvas.height - 120 - emailIcon.height;
+                emailIcon.y = window.canvas.height - 110 - emailIcon.height;
                 emailIcon.bounces++;
             }
             

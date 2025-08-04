@@ -71,20 +71,13 @@ function drawStar(ctx, centerX, centerY, radius, spikes, outerRadius, innerRadiu
 
 // Draw background
 function drawBackground() {
-    // Back wall - make it shorter
-    window.ctx.fillStyle = '#5F9EA0'; // Slate blue
+    // Fill entire canvas with single cream color first
+    window.ctx.fillStyle = '#DEB887'; // Single consistent cream color
+    window.ctx.fillRect(0, 0, window.canvas.width, window.canvas.height);
+    
+    // Back wall - purple to match start screen
+    window.ctx.fillStyle = '#667eea'; // Purple like start screen
     window.ctx.fillRect(0, 0, window.canvas.width, 65); // Wall lowered by 15px (was 80, now 65)
-    
-    // Cafe background - start from lower position
-    const gradient = window.ctx.createLinearGradient(0, 65, 0, window.canvas.height); // Start from 65 (was 80)
-    gradient.addColorStop(0, '#DEB887'); // Light brown
-    gradient.addColorStop(1, '#F5DEB3'); // Wheat
-    window.ctx.fillStyle = gradient;
-    window.ctx.fillRect(0, 65, window.canvas.width, window.canvas.height - 65); // Adjusted Y and height
-    
-    // Main cafe wall - adjusted for new wall height
-    window.ctx.fillStyle = '#DEB887'; // Light brown
-    window.ctx.fillRect(0, 65, window.canvas.width, window.canvas.height - 145); // Adjusted Y and height
     
     // Door - positioned on the shorter wall
     if (doorIsOpen) {
@@ -94,61 +87,35 @@ function drawBackground() {
     }
     window.ctx.fillRect(window.canvas.width / 2 - 30, 0, 60, 65); // Door now starts at y=0 and matches wall height
     
-    // Windows - positioned on the shorter wall
+    // Windows - positioned higher on wall
     window.ctx.fillStyle = '#87CEEB'; // Sky blue
-    window.ctx.fillRect(100, 10, 40, 50); // Adjusted for shorter wall
-    window.ctx.fillRect(window.canvas.width - 140, 10, 40, 50); // Adjusted for shorter wall
+    window.ctx.fillRect(100, 5, 40, 50); // Moved up 5px
+    window.ctx.fillRect(window.canvas.width - 140, 5, 40, 50); // Moved up 5px
     
     // Window frames
     window.ctx.strokeStyle = '#8B4513';
     window.ctx.lineWidth = 3;
-    window.ctx.strokeRect(100, 10, 40, 50);
-    window.ctx.strokeRect(window.canvas.width - 140, 10, 40, 50);
+    window.ctx.strokeRect(100, 5, 40, 50);
+    window.ctx.strokeRect(window.canvas.width - 140, 5, 40, 50);
     
     // Window panes
     window.ctx.strokeStyle = '#FFFFFF';
     window.ctx.lineWidth = 1;
     window.ctx.beginPath();
-    window.ctx.moveTo(120, 10);
-    window.ctx.lineTo(120, 60);
-    window.ctx.moveTo(100, 35);
-    window.ctx.lineTo(140, 35);
+    window.ctx.moveTo(120, 5);
+    window.ctx.lineTo(120, 55);
+    window.ctx.moveTo(100, 30);
+    window.ctx.lineTo(140, 30);
     window.ctx.stroke();
     
     window.ctx.beginPath();
-    window.ctx.moveTo(window.canvas.width - 120, 10);
-    window.ctx.lineTo(window.canvas.width - 120, 60);
-    window.ctx.moveTo(window.canvas.width - 140, 35);
-    window.ctx.lineTo(window.canvas.width - 100, 35);
+    window.ctx.moveTo(window.canvas.width - 120, 5);
+    window.ctx.lineTo(window.canvas.width - 120, 55);
+    window.ctx.moveTo(window.canvas.width - 140, 30);
+    window.ctx.lineTo(window.canvas.width - 100, 30);
     window.ctx.stroke();
     
-    // Counter where Prompty stands
-    window.ctx.fillStyle = '#8B4513';
-    window.ctx.fillRect(0, window.canvas.height - 100, window.canvas.width, 20); // Moved down 20px
-    
-    // Counter top
-    window.ctx.fillStyle = '#DEB887';
-    window.ctx.fillRect(0, window.canvas.height - 100, window.canvas.width, 5); // Moved down 20px
-    
-    // Cafe decorations
-    // Coffee cups on counter - proper brown cups
-    window.ctx.fillStyle = '#8B4513'; // Brown cup color
-    window.ctx.fillRect(50, window.canvas.height - 110, 15, 20); // Moved down 20px
-    window.ctx.fillRect(100, window.canvas.height - 110, 15, 20); // Moved down 20px
-    window.ctx.fillRect(150, window.canvas.height - 110, 15, 20); // Moved down 20px
-    
-    // Coffee cup handles
-    window.ctx.strokeStyle = '#654321';
-    window.ctx.lineWidth = 2;
-    window.ctx.beginPath();
-    window.ctx.arc(65, window.canvas.height - 100, 5, 0, Math.PI, true); // Moved down 20px
-    window.ctx.stroke();
-    window.ctx.beginPath();
-    window.ctx.arc(115, window.canvas.height - 100, 5, 0, Math.PI, true); // Moved down 20px
-    window.ctx.stroke();
-    window.ctx.beginPath();
-    window.ctx.arc(165, window.canvas.height - 100, 5, 0, Math.PI, true); // Moved down 20px
-    window.ctx.stroke();
+    // Counter and decorations will be drawn separately after Prompty
     
     // Tables for hearts to bounce off - moved farther from Prompty
     window.ctx.fillStyle = '#8B4513';
@@ -156,8 +123,8 @@ function drawBackground() {
     window.ctx.fillRect(550, window.canvas.height - 280, 80, 60); // Table 2 - right side (moved down 20px)
     window.ctx.fillRect(350, window.canvas.height - 330, 80, 60); // Table 3 - center back (moved down 20px)
     
-    // Table tops
-    window.ctx.fillStyle = '#DEB887';
+    // Table tops - using different color to avoid cream background conflicts
+    window.ctx.fillStyle = '#D2B48C'; // Slightly different tan color for tables
     window.ctx.fillRect(145, window.canvas.height - 285, 90, 10);
     window.ctx.fillRect(545, window.canvas.height - 285, 90, 10);
     window.ctx.fillRect(345, window.canvas.height - 335, 90, 10);
@@ -355,6 +322,34 @@ function drawStars() {
     }
 }
 
+// Draw email icons (LinkedIn Spammer projectiles)
+function drawEmailIcons() {
+    if (!window.emailIcons || window.emailIcons.length === 0) {
+        return;
+    }
+    
+    for (let emailIcon of window.emailIcons) {
+        try {
+            // Draw email icon
+            if (emailIcon.icon && emailIcon.icon.complete) {
+                window.ctx.drawImage(emailIcon.icon, emailIcon.x, emailIcon.y, emailIcon.width, emailIcon.height);
+            } else {
+                // Fallback to drawing text emoji if image not loaded
+                window.ctx.fillStyle = '#007CC7'; // LinkedIn blue
+                window.ctx.fillRect(emailIcon.x, emailIcon.y, emailIcon.width, emailIcon.height);
+                
+                // Draw envelope emoji as fallback
+                window.ctx.font = '16px Arial';
+                window.ctx.fillStyle = 'white';
+                window.ctx.textAlign = 'center';
+                window.ctx.fillText('📧', emailIcon.x + emailIcon.width / 2, emailIcon.y + emailIcon.height / 2 + 6);
+            }
+        } catch (error) {
+            console.error('Error drawing email icon:', error);
+        }
+    }
+}
+
 // Draw lasers
 function drawLasers() {
     // Only draw lasers if Karen exists and is not defeated
@@ -402,6 +397,36 @@ function drawKaren() {
     return;
 }
 
+// Draw counter and decorations (drawn before Prompty so Prompty appears in front)
+function drawCounter() {
+    // Counter where Prompty stands
+    window.ctx.fillStyle = '#8B4513';
+    window.ctx.fillRect(0, window.canvas.height - 110, window.canvas.width, 20);
+    
+    // Counter top - using slightly different color to avoid background conflicts
+    window.ctx.fillStyle = '#D2B48C'; // Slightly different tan for counter top
+    window.ctx.fillRect(0, window.canvas.height - 110, window.canvas.width, 5);
+    
+    // Coffee cups on counter - proper brown cups
+    window.ctx.fillStyle = '#8B4513'; // Brown cup color
+    window.ctx.fillRect(50, window.canvas.height - 120, 15, 20);
+    window.ctx.fillRect(100, window.canvas.height - 120, 15, 20);
+    window.ctx.fillRect(150, window.canvas.height - 120, 15, 20);
+    
+    // Coffee cup handles
+    window.ctx.strokeStyle = '#654321';
+    window.ctx.lineWidth = 2;
+    window.ctx.beginPath();
+    window.ctx.arc(65, window.canvas.height - 110, 5, 0, Math.PI, true);
+    window.ctx.stroke();
+    window.ctx.beginPath();
+    window.ctx.arc(115, window.canvas.height - 110, 5, 0, Math.PI, true);
+    window.ctx.stroke();
+    window.ctx.beginPath();
+    window.ctx.arc(165, window.canvas.height - 110, 5, 0, Math.PI, true);
+    window.ctx.stroke();
+}
+
 // Draw Prompty
 function drawPrompty() {
     // Save the current context state
@@ -422,7 +447,7 @@ function drawPrompty() {
         console.error('🚨 Recreating Prompty object...');
         window.prompty = {
             x: 330,
-            y: 400,
+            y: window.canvas.height - 100,
             width: 60,
             height: 80
         };
@@ -434,7 +459,7 @@ function drawPrompty() {
         console.error('🚨 PROMPTY OUT OF BOUNDS! Position:', window.prompty.x, window.prompty.y, 'Level:', window.level);
         // Reset to safe position
         window.prompty.x = 330;
-        window.prompty.y = 400;
+        window.prompty.y = window.canvas.height - 170;
     }
     
     // Draw Prompty image if loaded, otherwise fallback
@@ -893,9 +918,11 @@ function drawLinkedInSpammerSpeechBubble() {
         window.ctx.strokeStyle = '#000000';
         window.ctx.lineWidth = 2;
         
-        // Speech bubble
+        // Speech bubble - wider for longer quotes
+        const bubbleWidth = 280;
+        const bubbleHeight = 70;
         window.ctx.beginPath();
-        window.ctx.roundRect(spammer.x - 100, spammer.y - 60, 200, 50, 10);
+        window.ctx.roundRect(spammer.x + spammer.width/2 - bubbleWidth/2, spammer.y - 80, bubbleWidth, bubbleHeight, 10);
         window.ctx.fill();
         window.ctx.stroke();
         
@@ -910,31 +937,47 @@ function drawLinkedInSpammerSpeechBubble() {
         
         // Speech bubble text
         window.ctx.fillStyle = '#000000';
-        window.ctx.font = 'bold 14px Arial';
+        window.ctx.font = 'bold 12px Arial';
         window.ctx.textAlign = 'center';
         window.ctx.textBaseline = 'middle';
         
         const quote = spammer.quotes[spammer.currentQuote];
-        const maxLength = 20;
+        const maxLength = 35; // Increased for wider bubble
         
         if (quote && quote.length <= maxLength) {
-            window.ctx.fillText(quote, spammer.x, spammer.y - 37);
+            window.ctx.fillText(quote, spammer.x + spammer.width/2, spammer.y - 45);
         } else if (quote) {
-            // Split into multiple lines
+            // Split into multiple lines with better word wrapping
             const words = quote.split(' ');
             let line1 = '';
             let line2 = '';
+            let line3 = '';
             
             for (let word of words) {
-                if (line1.length + word.length <= maxLength) {
-                    line1 += (line1 ? ' ' : '') + word;
+                if ((line1 + ' ' + word).length <= maxLength && line1.length > 0) {
+                    line1 += ' ' + word;
+                } else if (line1.length === 0) {
+                    line1 = word;
+                } else if ((line2 + ' ' + word).length <= maxLength && line2.length > 0) {
+                    line2 += ' ' + word;
+                } else if (line2.length === 0) {
+                    line2 = word;
                 } else {
-                    line2 += (line2 ? ' ' : '') + word;
+                    line3 += (line3 ? ' ' : '') + word;
                 }
             }
             
-            window.ctx.fillText(line1, spammer.x, spammer.y - 45);
-            window.ctx.fillText(line2, spammer.x, spammer.y - 30);
+            const centerX = spammer.x + spammer.width/2;
+            if (line3) {
+                window.ctx.fillText(line1, centerX, spammer.y - 60);
+                window.ctx.fillText(line2, centerX, spammer.y - 45);
+                window.ctx.fillText(line3, centerX, spammer.y - 30);
+            } else if (line2) {
+                window.ctx.fillText(line1, centerX, spammer.y - 52);
+                window.ctx.fillText(line2, centerX, spammer.y - 37);
+            } else {
+                window.ctx.fillText(line1, centerX, spammer.y - 45);
+            }
         }
     }
 }
@@ -1011,7 +1054,7 @@ function draw() {
         window.ctx.save();
         window.ctx.translate(screenShakeX, screenShakeY);
         
-        // Clear canvas with cafe background
+        // Draw complete background in one go
         drawBackground();
         
         // Draw customers
@@ -1022,6 +1065,9 @@ function draw() {
         
         // Draw stars
         drawStars();
+        
+        // Draw email icons (LinkedIn Spammer projectiles)
+        drawEmailIcons();
         
         // Draw Karen (ULTRA SIMPLIFIED TO PREVENT FREEZING)
         if (window.karen && typeof window.karen === 'object') {
@@ -1162,6 +1208,9 @@ function draw() {
         
         // Draw Evil Google Exec arrows
         drawEvilGoogleArrows();
+        
+        // Draw counter (before Prompty so Prompty appears in front)
+        drawCounter();
         
         // Draw Prompty
         drawPrompty();

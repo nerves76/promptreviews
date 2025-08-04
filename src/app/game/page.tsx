@@ -50,7 +50,7 @@ export default function GamePage() {
             
             <div className="bg-white rounded-lg shadow-lg overflow-hidden">
               {/* Direct game content */}
-              <div className="w-full h-[1200px] border-0 relative overflow-hidden">
+              <div className="w-full h-[1600px] border-0 relative overflow-auto">
                 <iframe
                   src="/prompty-power-game/index.html"
                   className="w-full h-full border-0"
@@ -71,7 +71,7 @@ export default function GamePage() {
                     width: '100%',
                     height: '100%',
                     display: 'block',
-                    overflow: 'hidden'
+                    overflow: 'auto'
                   }}
                   scrolling="yes"
                 />
