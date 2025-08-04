@@ -94,21 +94,15 @@ graph TD
 ## Major Issues Identified
 
 ### 1. 🚨 **Copy & Submit Tracking Broken**
-**Problem**: `copy_submit` events only tracked for anonymous users, but customers may have auth sessions
+**Problem**: `copy_submit` events are not matching `review_submitted` events
 **Impact**: Sou Wester shows 1 copy_submit event but 11 reviews
-**Root Cause**: 
-```typescript
-// In page-client.tsx line 771
-if (!currentUser && promptPage?.id && promptPage.review_platforms?.[idx]) {
-  sendAnalyticsEvent({ eventType: "copy_submit", ... });
-}
-```
+**Root Cause**: There's a disconnect between when `copy_submit` events are triggered vs when reviews are actually recorded
 
-**Scenarios causing this**:
-- Session persistence from previous logins
-- Shared devices where business owner tested
-- Development mode auth states
-- Automatic authentication from browser cookies
+**Possible causes**:
+- `copy_submit` event not firing reliably
+- JavaScript errors preventing event tracking
+- Network issues when sending to `/api/track-event`
+- Timing issues between button click and event send
 
 ### 2. 📊 **Inconsistent Metrics**
 **Problem**: "Copy & Submit Events" ≠ "Review Submissions"
@@ -116,12 +110,12 @@ if (!currentUser && promptPage?.id && promptPage.review_platforms?.[idx]) {
 - Review Submissions: From `review_submissions` table (all users)
 - These should be the same number but aren't
 
-### 3. 🔄 **Duplicate Event Types**
+### 2. 🔄 **Duplicate Event Types**
 **Problem**: Same events tracked differently
 - `copy_submit` (analytics_events) vs review submission (review_submissions)
 - Both should represent the same user action
 
-### 4. 🎯 **Analytics Dashboard Logic Issues**
+### 3. 🎯 **Analytics Dashboard Logic Issues**
 **Current calculations**:
 ```typescript
 // Copy & Submit count
@@ -131,7 +125,7 @@ analyticsData.copySubmits = filteredEvents.filter(e => e.event_type === "copy_su
 analyticsData.reviewSubmitsAll = filteredEvents.filter(e => e.event_type === "review_submitted").length;
 ```
 
-**Issue**: These are tracking different user populations (anonymous vs all)
+**Issue**: These should be the same number but `copy_submit` events aren't firing consistently
 
 ## Event Types Reference
 
@@ -152,32 +146,45 @@ These are sent to GA4 and don't affect dashboard analytics:
 
 ## Recommendations
 
-### Priority 1: Fix Copy & Submit Tracking
+### Priority 1: Debug Copy & Submit Tracking
 
-#### Option A: Always Track (Recommended)
+#### Option A: Add Debugging (Recommended)
 ```typescript
-// Remove authentication check
-if (promptPage?.id && promptPage.review_platforms?.[idx]) {
+// Add logging to understand why events aren't firing
+if (!currentUser && promptPage?.id && promptPage.review_platforms?.[idx]) {
+  console.log("🔍 Sending copy_submit event for", promptPage.id);
   sendAnalyticsEvent({
     promptPageId: promptPage.id,
     eventType: "copy_submit",
     platform: promptPage.review_platforms[idx].platform || promptPage.review_platforms[idx].name,
   });
+} else {
+  console.log("❌ Copy submit not tracked:", { 
+    currentUser: !!currentUser, 
+    promptPageId: promptPage?.id,
+    platform: promptPage.review_platforms?.[idx]
+  });
 }
 ```
 
-#### Option B: Track User Type
+#### Option B: Error Handling
 ```typescript
-// Add user type to metadata
-sendAnalyticsEvent({
-  promptPageId: promptPage.id,
-  eventType: "copy_submit",
-  platform: platform,
-  metadata: {
-    user_type: currentUser ? "authenticated" : "anonymous",
-    user_id: currentUser?.id || null
+// Add error handling to sendAnalyticsEvent
+export async function sendAnalyticsEvent(event: Record<string, any>) {
+  try {
+    console.log("📊 Sending analytics event:", event);
+    const response = await fetch("/api/track-event", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(event),
+    });
+    if (!response.ok) {
+      console.error("Analytics event failed:", response.status);
+    }
+  } catch (e) {
+    console.error("Analytics error:", e);
   }
-});
+}
 ```
 
 ### Priority 2: Simplify Dashboard Metrics
@@ -191,27 +198,22 @@ sendAnalyticsEvent({
 - Make `copy_submit` and `review_submitted` represent the same action
 - Ensure both are tracked consistently for all users
 
-### Priority 3: Fix Analytics API Authentication Logic
+### Priority 3: Investigate Event Timing Issues
 
-Current logic in `/api/track-event`:
-```typescript
-if (user) {
-  // Do not record event for logged-in users to avoid duplicate tracking
-  return NextResponse.json({ message: "Event not tracked for authenticated users" });
-}
-```
+**Potential Issues**:
+- `copy_submit` event fires before review is fully processed
+- Race conditions between button click and API calls
+- Browser navigation interrupting event sending
 
-**Issues**:
-- Customers shouldn't be authenticated
-- If they are, events are lost
-- "Duplicate tracking" concern is unclear
-
-**Recommendation**: Track all users but add user type metadata
+**Recommendations**:
+- Ensure `copy_submit` event is sent AFTER successful review submission
+- Add retry logic for failed analytics requests
+- Use `navigator.sendBeacon()` for events that might be interrupted
 
 ### Priority 4: Add Debugging & Monitoring
 
-1. **Add logging** to understand when customers are authenticated
-2. **Dashboard metrics** showing authenticated vs anonymous breakdown
+1. **Add logging** to track event success/failure rates
+2. **Dashboard metrics** showing event tracking health
 3. **Alerts** when tracking discrepancies occur
 
 ### Priority 5: Schema Improvements
@@ -235,10 +237,10 @@ ALTER TABLE analytics_events ADD COLUMN user_type TEXT CHECK (user_type IN ('ano
 
 ## Implementation Plan
 
-### Phase 1: Critical Fixes (Immediate)
-1. Remove `!currentUser` check from copy_submit tracking
+### Phase 1: Critical Debugging (Immediate)
+1. Add debugging logs to copy_submit tracking
 2. Test with Sou Wester's prompt page
-3. Verify metrics match review counts
+3. Identify why events aren't firing consistently
 
 ### Phase 2: Dashboard Improvements (1-2 weeks)
 1. Update analytics dashboard to use unified metrics
@@ -263,10 +265,10 @@ ALTER TABLE analytics_events ADD COLUMN user_type TEXT CHECK (user_type IN ('ano
 - Click Copy & Submit (should track `copy_submit`)
 - Submit review (should track `review_submitted`)
 
-### 2. Authenticated User Testing
-- Login to PromptReviews
-- Visit same prompt page
-- Verify events are tracked consistently
+### 2. Event Reliability Testing
+- Test multiple copy & submit actions
+- Check browser console for errors
+- Verify events reach `/api/track-event`
 
 ### 3. Production Validation
 - Compare copy_submit counts to review_submissions counts
@@ -276,22 +278,22 @@ ALTER TABLE analytics_events ADD COLUMN user_type TEXT CHECK (user_type IN ('ano
 
 ### Key Metrics to Monitor
 1. **Event tracking ratio**: copy_submit vs review_submitted should be ~1:1
-2. **Authentication rate**: % of prompt page visitors who are authenticated
+2. **Event success rate**: % of analytics requests that succeed
 3. **Event drop-off**: Users who view but don't submit
 4. **Platform distribution**: Web vs other platforms
 
 ### Recommended Alerts
 - Alert if copy_submit events < 80% of review submissions
-- Alert if >20% of prompt page visitors are authenticated (unusual)
+- Alert if analytics API error rate > 5%
 - Alert if analytics events fail to insert
 
 ---
 
 ## Files Requiring Changes
 
-### Immediate Fixes
-- `src/app/r/[slug]/page-client.tsx` - Remove !currentUser check
-- `src/app/dashboard/analytics/page.tsx` - Update metric calculations
+### Immediate Investigation
+- `src/app/r/[slug]/page-client.tsx` - Add debugging to copy_submit tracking
+- `src/app/r/[slug]/utils/helperFunctions.ts` - Add error handling to sendAnalyticsEvent
 
 ### Future Enhancements
 - `src/app/api/track-event/route.ts` - Add user type tracking
