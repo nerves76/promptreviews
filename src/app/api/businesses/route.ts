@@ -61,10 +61,10 @@ export async function POST(request: NextRequest) {
 
     const supabase = createServiceRoleClient();
     
-    // DEVELOPMENT MODE BYPASS - Skip foreign key validation entirely
+    // DEVELOPMENT MODE BYPASS - Use existing account
     let bypassAccountValidation = false;
-    if (process.env.NODE_ENV === 'development' && account_id === '87654321-4321-4321-4321-210987654321') {
-      console.log('🔧 DEV MODE: Using development bypass for business creation');
+    if (process.env.NODE_ENV === 'development' && account_id === '12345678-1234-5678-9abc-123456789012') {
+      console.log('🔧 DEV MODE: Using existing development account for business creation');
       bypassAccountValidation = true;
     }
 

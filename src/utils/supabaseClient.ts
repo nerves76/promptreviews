@@ -240,8 +240,8 @@ export async function getUserOrMock(client: SupabaseClient) {
       if (devBypass === 'true') {
         console.log('🔧 DEV MODE: getUserOrMock using authentication bypass');
         const mockUser = {
-          id: '12345678-1234-1234-1234-123456789012',
-          email: 'dev@example.com',
+          id: '12345678-1234-5678-9abc-123456789012',
+          email: 'test@example.com',
           user_metadata: {
             first_name: 'Dev',
             last_name: 'User'

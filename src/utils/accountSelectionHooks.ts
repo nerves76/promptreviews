@@ -46,19 +46,19 @@ export function useAccountSelection() {
           const devBypass = localStorage.getItem('dev_auth_bypass');
           if (devBypass === 'true') {
             console.log('🔧 DEV MODE: useAccountSelection using authentication bypass');
-            const mockUser = { id: '12345678-1234-1234-1234-123456789012' };
+            const mockUser = { id: '12345678-1234-5678-9abc-123456789012' };
             setCurrentUserId(mockUser.id);
             
             // Create mock account data
             const mockAccounts = [{
-              account_id: '87654321-4321-4321-4321-210987654321',
+              account_id: '12345678-1234-5678-9abc-123456789012',
               role: 'owner',
               plan: 'free',
               is_primary: true
             }];
             
             setState({
-              selectedAccountId: '87654321-4321-4321-4321-210987654321',
+              selectedAccountId: '12345678-1234-5678-9abc-123456789012',
               availableAccounts: mockAccounts,
               loading: false,
               error: null
