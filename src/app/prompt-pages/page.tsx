@@ -33,7 +33,7 @@ import { useAuth } from "@/contexts/AuthContext";
 const StylePage = dynamic(() => import("../dashboard/style/StyleModalPage"), { ssr: false });
 
 function PromptPagesContent() {
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
   const router = useRouter();
   const searchParams = useSearchParams();
   const { hasBusiness, user: authUser, accountId: authAccountId, isLoading: authLoading } = useAuth();
@@ -125,21 +125,15 @@ function PromptPagesContent() {
 
   useEffect(() => {
     async function fetchData() {
-      console.log('🔍 PROMPT PAGES: fetchData called', { authLoading, loading, authUser: !!authUser, authAccountId, businessExists: !!business });
-      
       // Don't fetch if auth is still loading or if we're already loading
       if (authLoading || loading) {
-        console.log('🔍 PROMPT PAGES: Skipping - auth loading or already loading');
         return;
       }
       
       // Don't refetch if we already have data for this account
       if (business && authAccountId && business.account_id === authAccountId) {
-        console.log('🔍 PROMPT PAGES: Skipping - already have data for this account');
         return;
       }
-      
-      console.log('🔍 PROMPT PAGES: Starting data fetch');
       setLoading(true);
       setError(null);
       try {
@@ -278,10 +272,8 @@ function PromptPagesContent() {
           await fetchLocations(accountId);
         }
       } catch (err) {
-        console.error('🚨 PROMPT PAGES: Error during fetch:', err);
         setError(err instanceof Error ? err.message : "Failed to load");
       } finally {
-        console.log('🔍 PROMPT PAGES: Data fetch completed');
         setLoading(false);
       }
     }
