@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
     // Get top scores from public view
     const { data: scores, error } = await supabase
       .from('public_leaderboard')
-      .select('player_handle, score, level_reached, created_at, email_domain, website')
+      .select('player_handle, business_name, score, level_reached, created_at, email_domain, website')
       .limit(limit);
 
     if (error) {
@@ -30,6 +30,7 @@ export async function GET(request: NextRequest) {
     const leaderboard = scores?.map((score, index) => ({
       rank: index + 1,
       player_handle: score.player_handle,
+      business_name: score.business_name,
       score: score.score,
       level_reached: score.level_reached,
       website: score.website,

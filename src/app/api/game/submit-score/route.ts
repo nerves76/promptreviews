@@ -18,6 +18,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { 
       player_handle, 
+      business_name,
       email, 
       website,
       score, 
@@ -75,6 +76,16 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Validate business_name if provided
+    if (business_name && typeof business_name === 'string') {
+      if (business_name.length > 50) {
+        return NextResponse.json(
+          { error: 'Business name must be 50 characters or less' },
+          { status: 400 }
+        );
+      }
+    }
+
     // Validate website URL format if provided
     if (website && typeof website === 'string') {
       const urlRegex = /^https?:\/\/.+\..+/;
@@ -92,6 +103,7 @@ export async function POST(request: NextRequest) {
       .insert([
         {
           player_handle: player_handle.trim(),
+          business_name: business_name ? business_name.trim() : null,
           email: email ? email.trim().toLowerCase() : null,
           website: website ? website.trim() : null,
           score,

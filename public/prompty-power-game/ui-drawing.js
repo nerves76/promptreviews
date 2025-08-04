@@ -16,16 +16,7 @@ function drawPowerUps() {
             icon = '🔑'; // Key icon
         } else if (powerUp.type === 'package') {
             icon = '[P]'; // Package with P label
-            // Draw smaller dark blue square background for package
-            ctx.fillStyle = '#003366'; // Darker blue background
-            const boxSize = 30; // Smaller box
-            const boxX = powerUp.x + (powerUp.width - boxSize) / 2;
-            const boxY = powerUp.y + (powerUp.height - boxSize) / 2;
-            ctx.fillRect(boxX, boxY, boxSize, boxSize);
-            // Draw white border
-            ctx.strokeStyle = '#FFFFFF';
-            ctx.lineWidth = 2;
-            ctx.strokeRect(boxX, boxY, boxSize, boxSize);
+            // No background or border - just the text
         } else if (powerUp.type === 'speechBubble') {
             icon = '💬'; // Speech bubble
         } else if (powerUp.type === 'mapPin') {
@@ -42,13 +33,9 @@ function drawPowerUps() {
         // Draw main icon
         ctx.fillStyle = '#000000';
         if (powerUp.type === 'package') {
-            ctx.font = '16px Arial'; // Much smaller font for package
-            ctx.fillStyle = '#FFFFFF'; // White text on dark blue background
-            // Center text in the smaller box
-            const boxSize = 30;
-            const boxX = powerUp.x + (powerUp.width - boxSize) / 2;
-            const boxY = powerUp.y + (powerUp.height - boxSize) / 2;
-            ctx.fillText(icon, boxX + boxSize / 2, boxY + boxSize / 2);
+            ctx.font = '24px Arial'; // Increased font size since no background box
+            ctx.fillStyle = '#000000'; // Black text
+            ctx.fillText(icon, powerUp.x + powerUp.width / 2, powerUp.y + powerUp.height / 2);
         } else {
             ctx.font = '40px Arial'; // Normal size for other power-ups
             ctx.fillText(icon, powerUp.x + powerUp.width / 2, powerUp.y + powerUp.height / 2);
