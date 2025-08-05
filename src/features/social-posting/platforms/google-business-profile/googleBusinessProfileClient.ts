@@ -622,6 +622,39 @@ export class GoogleBusinessProfileClient {
   }
 
   /**
+   * Fetches media (photos) for a specific location
+   */
+  async getMedia(locationId: string): Promise<any[]> {
+    console.log('🔄 Fetching media for location:', locationId);
+    
+    try {
+      // First get the account ID if we don't have it
+      const accounts = await this.listAccounts();
+      if (accounts.length === 0) {
+        throw new Error('No Google Business Profile accounts found');
+      }
+      
+      // Use the first account ID
+      const accountId = accounts[0].name.replace('accounts/', '');
+      const cleanLocationId = locationId.replace('locations/', '');
+      
+      // Use the v4 API for media
+      const endpoint = `/v4/accounts/${accountId}/locations/${cleanLocationId}/media`;
+      
+      const response = await this.makeRequest(endpoint, {
+        method: 'GET'
+      }, 0, GOOGLE_BUSINESS_PROFILE.LEGACY_BASE_URL) as { mediaItems?: any[] };
+
+      console.log('✅ Successfully fetched media items');
+      return response?.mediaItems || [];
+
+    } catch (error) {
+      console.error('❌ Failed to fetch media:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Fetches reviews for a specific location
    */
   async getReviews(locationId: string): Promise<any[]> {
