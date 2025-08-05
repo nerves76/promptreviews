@@ -169,7 +169,9 @@ export async function GET(request: NextRequest) {
       redirectUri,
       hasCode: !!code,
       environment: process.env.NODE_ENV,
-      fullRedirectUri: redirectUri
+      fullRedirectUri: redirectUri,
+      codeLength: code?.length,
+      clientSecretPresent: !!clientSecret
     });
 
     const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
@@ -193,10 +195,11 @@ export async function GET(request: NextRequest) {
       console.log('❌ Failed to exchange code for tokens:', {
         status: tokenResponse.status,
         statusText: tokenResponse.statusText,
-        errorText: errorText.substring(0, 500)
+        errorText: errorText.substring(0, 500),
+        requestBody: `code=${code}&client_id=${clientId}&client_secret=${clientSecret?.substring(0, 10)}...&redirect_uri=${redirectUri}&grant_type=authorization_code`
       });
       return NextResponse.redirect(
-        new URL(`${returnUrl}?error=callback_failed&message=Failed to exchange code for tokens: ${tokenResponse.statusText}`, request.url)
+        new URL(`${returnUrl}?error=callback_failed&message=Failed to exchange code for tokens: ${tokenResponse.statusText} - ${errorText.substring(0, 200)}`, request.url)
       );
     }
 
