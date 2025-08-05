@@ -444,7 +444,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             first_name: 'Dev',
             last_name: 'User',
             business_name: 'Dev Business',
-            plan: 'free'
+            plan: 'maven'
           });
           setIsAdminUser(true);
           setIsInitialized(true);
@@ -840,6 +840,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     return () => subscription.unsubscribe();
   }, [checkAdminStatus, checkBusinessProfile, checkAccountDetails]);
+
+  // Set up automatic session refresh to prevent expiration
+  useEffect(() => {
+    const refreshInterval = setInterval(async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          // Refresh token if it expires within the next 10 minutes
+          const expiresAt = session.expires_at;
+          const now = Math.floor(Date.now() / 1000);
+          const tenMinutes = 10 * 60;
+          
+          if (expiresAt && (expiresAt - now) < tenMinutes) {
+            console.log('AuthContext: Session expiring soon, refreshing...');
+            await supabase.auth.refreshSession();
+          }
+        }
+      } catch (error) {
+        console.error('AuthContext: Error during automatic session refresh:', error);
+      }
+    }, 5 * 60 * 1000); // Check every 5 minutes
+
+    return () => clearInterval(refreshInterval);
+  }, []);
 
   // Context value
   const value: AuthContextType = useMemo(() => ({
