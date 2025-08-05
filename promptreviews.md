@@ -10,6 +10,26 @@ This project is currently focused on developing a standalone widget for collecti
 
 ## Recent Updates (Latest)
 
+### ✨ 3-Step Process Indicator for Live Review Pages (February 2025)
+- **User Experience Enhancement**: Added thin 3-step process indicator to live prompt review pages
+- **Mobile-Optimized Design**: Horizontal layout with responsive adaptations for small screens
+- **Strategic Placement**: Positioned directly below "Leave a review on [platform]" header
+- **Visual Flow**: Clear progression showing "Create review" → "Click 'Copy & submit'" → "Paste review & Submit"
+- **Brand Integration**: Uses business's primary color for consistent theming
+- **Responsive Design**: Abbreviated text, smaller circles, and clean layout without lines on mobile
+- **Progressive Animation**: Multi-phase animation sequence with step highlighting, line drawing, and fade-out
+- **Load-Safe Timing**: 2-second initial delay → 2-second highlight → 1-second line draw → immediate fade-out → 30-second wait
+- **Visual Line Drawing**: Connecting lines animate from 0% to 100% width to show progression
+- **State Management**: Tracks completed steps with persistent visual feedback
+- **Smooth Reset**: Circles fade back to unfilled state before restarting the cycle
+- **Accessibility Compliant**: Respects `prefers-reduced-motion` for users who prefer minimal animations
+
+#### **Implementation Details**
+- **ProcessIndicator Component**: New reusable component at `src/app/r/[slug]/components/ProcessIndicator.tsx`
+- **Integration Point**: Added to `ReviewPlatformCard.tsx` within accordion content area
+- **Design Elements**: Numbered circles connected by thin lines, truncated text for mobile compatibility
+- **Conditional Display**: Only shows when review platform accordion is expanded
+
 ### 🔧 Development Authentication Bypass System (February 2025)
 - **Comprehensive Development Workflow**: Implemented full authentication bypass for rapid development and testing
 - **Zero-Setup Authentication**: Enable development mode with single localStorage command
