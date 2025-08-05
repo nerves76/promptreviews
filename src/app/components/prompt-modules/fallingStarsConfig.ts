@@ -159,6 +159,8 @@ export const loadAllFallingIcons = async (): Promise<{
     FaBed,
     FaCannabis,
     FaBeer,
+    FaRainbow,
+    FaSearch,
   } = await import("react-icons/fa");
 
   return [
@@ -234,6 +236,7 @@ export const loadAllFallingIcons = async (): Promise<{
     { key: "cube", label: "Cube", icon: FaCube, color: "text-blue-500", category: "Tools & Objects" },
     { key: "atom", label: "Atom", icon: FaAtom, color: "text-purple-600", category: "Tools & Objects" },
     { key: "flask", label: "Flask", icon: FaFlask, color: "text-green-500", category: "Tools & Objects" },
+    { key: "search", label: "Magnifying Glass", icon: FaSearch, color: "text-slate-blue", category: "Tools & Objects" },
     
     // Transportation
     { key: "plane", label: "Plane", icon: FaPlane, color: "text-blue-500", category: "Transportation" },
