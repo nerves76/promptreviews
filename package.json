@@ -12,6 +12,8 @@
     "cleanup": "rm -rf .next && rm -rf node_modules/.cache",
     "safety:full-audit": "npm audit && npm audit fix",
     "build": "next build",
+    "build:analyze": "cross-env ANALYZE=true next build -f next.config.analyzer.js",
+    "analyze": "npm run build:analyze",
     "lint": "next lint",
     "supabase:start": "npx supabase start",
     "supabase:stop": "npx supabase stop",
@@ -86,6 +88,7 @@
     "ziggeo-client-sdk": "^2.43.3"
   },
   "devDependencies": {
+    "@next/bundle-analyzer": "^15.4.5",
     "@playwright/test": "^1.53.2",
     "@rushstack/eslint-patch": "^1.11.0",
     "@types/jspdf": "^1.3.3",
@@ -93,6 +96,7 @@
     "@types/react-dom": "^19.1.5",
     "autoprefixer": "^10.4.14",
     "clean-css": "^5.3.3",
+    "cross-env": "^10.0.0",
     "dotenv": "^16.6.1",
     "esbuild": "^0.25.5",
     "eslint": "^8.57.0",

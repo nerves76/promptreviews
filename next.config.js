@@ -11,6 +11,12 @@ const nextConfig = {
   // Performance optimizations
   experimental: {
     optimizePackageImports: ['react-icons', 'lucide-react'],
+    // Enable aggressive minification
+    swcMinify: true,
+    // Modern JavaScript compilation
+    esmExternals: true,
+    // Optimize font loading
+    optimizeFonts: true,
   },
   
   // Turbopack configuration (moved from experimental.turbo)
@@ -94,7 +100,7 @@ const nextConfig = {
   // Output optimization
   output: 'standalone',
   
-  // Headers for performance
+  // Headers for performance and caching
   async headers() {
     return [
       {
@@ -111,6 +117,26 @@ const nextConfig = {
           {
             key: 'X-XSS-Protection',
             value: '1; mode=block',
+          },
+        ],
+      },
+      // Cache static assets aggressively
+      {
+        source: '/(_next/static|favicon.ico)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+      // Cache API responses briefly
+      {
+        source: '/api/(.*)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=60, s-maxage=300',
           },
         ],
       },
