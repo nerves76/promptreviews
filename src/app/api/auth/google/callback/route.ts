@@ -154,7 +154,8 @@ export async function GET(request: NextRequest) {
       console.log('❌ Missing environment variables:', {
         hasClientId: !!clientId,
         hasClientSecret: !!clientSecret,
-        hasRedirectUri: !!redirectUri
+        hasRedirectUri: !!redirectUri,
+        actualRedirectUri: redirectUri
       });
       return NextResponse.redirect(
         new URL(`${returnUrl}?error=callback_failed&message=Missing environment variables`, request.url)
@@ -166,7 +167,9 @@ export async function GET(request: NextRequest) {
     console.log('📝 Token exchange parameters:', {
       clientId: clientId.substring(0, 10) + '...',
       redirectUri,
-      hasCode: !!code
+      hasCode: !!code,
+      environment: process.env.NODE_ENV,
+      fullRedirectUri: redirectUri
     });
 
     const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
