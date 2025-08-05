@@ -1,6 +1,7 @@
 import React from 'react';
 import Icon, { IconName } from '@/components/Icon';
 import { applyCardTransparency } from '@/utils/colorUtils';
+import ProcessIndicator from './ProcessIndicator';
 
 interface ReviewPlatformCardProps {
   platform: any;
@@ -146,6 +147,9 @@ export default function ReviewPlatformCard({
       {/* Only render the rest if open */}
       {isOpen && (
         <>
+          {/* Process Indicator */}
+          <ProcessIndicator primaryColor={businessProfile?.primary_color} />
+          
           {/* Custom instructions popup */}
           {openInstructionsIdx === idx &&
             platform.customInstructions &&
