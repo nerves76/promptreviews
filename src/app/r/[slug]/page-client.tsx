@@ -45,13 +45,24 @@ const StyleModalPage = dynamic(() => import("../../dashboard/style/StyleModalPag
   ssr: false 
 });
 
-// Import our extracted components
+// ⚡ PERFORMANCE: Convert heavy components to dynamic imports
+const KickstartersCarousel = dynamic(() => import("./components/KickstartersCarousel"), {
+  ssr: false,
+  loading: () => <div className="h-24 bg-gray-50 animate-pulse rounded" />
+});
+const FallingAnimation = dynamic(() => import("./components/FallingAnimation"), {
+  ssr: false,
+  loading: () => null
+});
+const ProductModule = dynamic(() => import("./components/ProductModule"), {
+  ssr: false,
+  loading: () => <div className="h-32 bg-gray-50 animate-pulse rounded-lg" />
+});
+
+// Import critical components normally (needed for LCP)
 import BusinessInfoCard from "./components/BusinessInfoCard";
-import ProductModule from "./components/ProductModule";
 import ReviewPlatformCard from "./components/ReviewPlatformCard";
-import KickstartersCarousel from "./components/KickstartersCarousel";
 import SaveMenu from "./components/SaveMenu";
-import FallingAnimation from "./components/FallingAnimation";
 import TopActionButtons from "./components/TopActionButtons";
 import FontLoader from "../../components/FontLoader";
 import { getFontClass } from "./utils/fontUtils";

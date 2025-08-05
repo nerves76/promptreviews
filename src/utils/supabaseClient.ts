@@ -25,25 +25,17 @@ let _creationStack: string[] = [];
 const isDevelopment = process.env.NODE_ENV === 'development';
 
 /**
- * Enhanced debug logging for client creation
+ * Minimal debug logging for client creation (performance optimized)
  */
 function logClientCreation(instanceId: number, creationLocation: string) {
   if (!isDevelopment) return;
   
   _instanceCount++;
   
-  // Only log the first instance creation and any problematic ones
-  if (_instanceCount === 1) {
-    console.log(`🔧 Creating Supabase client instance #${instanceId} (Total: ${_instanceCount})`);
-    console.log(`📍 Creation location: ${creationLocation}`);
+  // Only log on truly problematic multiple instances (not hot reloads)
+  if (_instanceCount > 3) {
+    console.warn(`⚠️  Multiple Supabase clients: ${_instanceCount} instances`);
   }
-  
-  if (_instanceCount > 1) {
-    console.warn(`⚠️  WARNING: Multiple Supabase client instances detected! This may cause auth issues.`);
-    console.warn(`📚 Previous creation locations:`, _creationStack);
-  }
-  
-  _creationStack.push(creationLocation);
 }
 
 /**
@@ -55,9 +47,8 @@ function logClientCreation(instanceId: number, creationLocation: string) {
 export function createClient(): SupabaseClient {
   if (!_browserClient) {
     const instanceId = Math.floor(Math.random() * 1000);
-    const creationLocation = new Error().stack?.split('\n')[2]?.trim() || 'Unknown location';
     
-    logClientCreation(instanceId, creationLocation);
+    logClientCreation(instanceId, 'createClient');
     
     _browserClient = createBrowserClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -87,7 +78,6 @@ export function createClient(): SupabaseClient {
       console.log('✅ Supabase browser client created successfully');
     }
   }
-  // Removed excessive logging - the singleton is working correctly
   
   return _browserClient;
 }
