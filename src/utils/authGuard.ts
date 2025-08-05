@@ -129,22 +129,26 @@ export function useBusinessProfile() {
         return;
       }
 
-      // Check for business account
-      const { data: accounts, error: accountError } = await supabase
-        .from('accounts')
-        .select('id')
-        .eq('user_id', user.id)
-        .limit(1);
+      // Get the currently selected account (respects account switching)
+      const { getAccountIdForUser } = await import('./accountUtils');
+      const accountId = await getAccountIdForUser(user.id);
 
-      if (accountError) {
-        console.error('BusinessProfile: Error checking accounts:', accountError);
-        setLoading(false);
-        return;
-      }
+      if (accountId) {
+        // Check if this account has a business profile
+        const { data: businesses, error: businessError } = await supabase
+          .from('businesses')
+          .select('id')
+          .eq('account_id', accountId)
+          .limit(1);
 
-      if (accounts && accounts.length > 0) {
-        setHasBusiness(true);
-        setBusinessId(accounts[0].id);
+        if (businessError) {
+          console.error('BusinessProfile: Error checking businesses:', businessError);
+          setLoading(false);
+          return;
+        }
+
+        setHasBusiness(businesses && businesses.length > 0);
+        setBusinessId(accountId);
       } else {
         setHasBusiness(false);
         setBusinessId(null);
