@@ -387,7 +387,7 @@ export default function SocialPostingDashboard() {
     
     if (!confirmed) return;
 
-    // setFetchingLocations(platformId); // This state was removed
+    setFetchingLocations(platformId);
     
     try {
       // Increase timeout to 5 minutes to account for rate limiting delays
@@ -424,7 +424,7 @@ export default function SocialPostingDashboard() {
       alert(`Successfully fetched ${result.locations?.length || 0} business locations!${demoNote}`);
       
       // Refresh platforms to show new locations
-      // await loadPlatforms(); // This function was removed
+      await loadPlatforms();
     } catch (error) {
       console.error('Error fetching locations:', error);
       if (error instanceof Error && error.name === 'AbortError') {
@@ -438,7 +438,7 @@ export default function SocialPostingDashboard() {
         alert('Failed to fetch business locations. Please try again.');
       }
     } finally {
-      // setFetchingLocations(null); // This state was removed
+      setFetchingLocations(null);
     }
   };
 
@@ -912,7 +912,7 @@ export default function SocialPostingDashboard() {
 
 
 
-                {/* {isConnected && locations.length === 0 && ( // This state was removed
+                {isConnected && locations.length === 0 && (
                   <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4">
                     <div className="flex items-start space-x-3">
                       <Icon name="FaExclamationTriangle" className="w-5 h-5 text-yellow-600 mt-0.5" />
@@ -948,30 +948,38 @@ export default function SocialPostingDashboard() {
                       </div>
                     </div>
                   </div>
-                )} */}
+                )}
 
                 {/* Connection Success & Locations */}
-                {/* {isConnected && locations.length > 0 && ( // This state was removed
+                {isConnected && locations.length > 0 && (
                   <div className="bg-green-50 border border-green-200 rounded-md p-4">
                     <div className="flex items-start space-x-3">
                       <Icon name="FaCheck" className="w-5 h-5 text-green-600 mt-0.5" />
                       <div>
                         <h4 className="text-sm font-medium text-green-800 mb-1">
-                          Successfully Connected!
+                          Setup Complete!
                         </h4>
                         <p className="text-sm text-green-700 mb-3">
-                          Found {locations.length} business location{locations.length !== 1 ? 's' : ''}. You can now create and publish posts.
+                          Found {locations.length} business location{locations.length !== 1 ? 's' : ''}. Your Google Business Profile is ready! You can now create posts, manage photos, business info, and reviews.
                         </p>
-                        <button
-                          onClick={() => changeTab('post')}
-                          className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm font-medium"
-                        >
-                          Start Creating Posts →
-                        </button>
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={() => changeTab('post')}
+                            className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm font-medium"
+                          >
+                            Create Posts →
+                          </button>
+                          <button
+                            onClick={() => changeTab('photos')}
+                            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm font-medium"
+                          >
+                            Manage Photos →
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
-                )} */}
+                )}
               </div>
 
               {/* Error Messages */}
@@ -1030,21 +1038,14 @@ export default function SocialPostingDashboard() {
                       <div className="text-center py-8">
                         <Icon name="FaMapMarkerAlt" className="w-8 h-8 text-gray-400 mx-auto mb-3" />
                         <p className="text-gray-600 mb-4">No business locations found</p>
+                        <p className="text-sm text-gray-500 mb-4">
+                          You need to fetch your business locations first.
+                        </p>
                         <button
-                          onClick={() => handleFetchLocations('google-business-profile')}
-                          disabled={!!fetchingLocations || (rateLimitedUntil ? Date.now() < rateLimitedUntil : false)}
-                          className="px-4 py-2 bg-slate-blue text-white rounded-md hover:bg-slate-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors text-sm"
+                          onClick={() => changeTab('connect')}
+                          className="px-4 py-2 bg-slate-blue text-white rounded-md hover:bg-slate-700 transition-colors text-sm"
                         >
-                          {fetchingLocations ? (
-                            <>
-                              <Icon name="FaSpinner" className="w-4 h-4 animate-spin mr-2" />
-                              Fetching Locations...
-                            </>
-                          ) : rateLimitedUntil && Date.now() < rateLimitedUntil ? (
-                            `Rate Limited (${Math.ceil((rateLimitedUntil - Date.now()) / 1000)}s)`
-                          ) : (
-                            'Fetch Business Locations'
-                          )}
+                          Go to Connect Tab →
                         </button>
                       </div>
                     ) : (
