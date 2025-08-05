@@ -148,7 +148,10 @@ export default function ReviewPlatformCard({
       {isOpen && (
         <>
           {/* Process Indicator */}
-          <ProcessIndicator primaryColor={businessProfile?.primary_color} />
+          <ProcessIndicator 
+            primaryColor={businessProfile?.primary_color} 
+            cardBackgroundColor={businessProfile?.card_bg}
+          />
           
           {/* Custom instructions popup */}
           {openInstructionsIdx === idx &&

@@ -2,9 +2,10 @@ import React, { useEffect, useState } from 'react';
 
 interface ProcessIndicatorProps {
   primaryColor?: string;
+  cardBackgroundColor?: string;
 }
 
-export default function ProcessIndicator({ primaryColor = "#4F46E5" }: ProcessIndicatorProps) {
+export default function ProcessIndicator({ primaryColor = "#4F46E5", cardBackgroundColor = "#FFFFFF" }: ProcessIndicatorProps) {
   const [activeStep, setActiveStep] = useState(0);
   const [animationPhase, setAnimationPhase] = useState<'waiting' | 'highlight' | 'drawLine' | 'pause' | 'fadeOut'>('waiting');
   const [drawnLines, setDrawnLines] = useState<number[]>([]);
@@ -83,8 +84,8 @@ export default function ProcessIndicator({ primaryColor = "#4F46E5" }: ProcessIn
                   }`}
                   style={{ 
                     borderColor: primaryColor,
-                    backgroundColor: isWaiting || isFadingOut ? 'white' : (isActive || isCompleted) ? primaryColor : 'white',
-                    color: isWaiting || isFadingOut ? primaryColor : (isActive || isCompleted) ? 'white' : primaryColor,
+                    backgroundColor: isWaiting || isFadingOut ? cardBackgroundColor : (isActive || isCompleted) ? primaryColor : cardBackgroundColor,
+                    color: isWaiting || isFadingOut ? primaryColor : (isActive || isCompleted) ? cardBackgroundColor : primaryColor,
                     boxShadow: isWaiting || isFadingOut ? 'none' : isActive ? `0 0 12px ${primaryColor}40` : isCompleted ? `0 0 8px ${primaryColor}20` : 'none'
                   }}
                 >
