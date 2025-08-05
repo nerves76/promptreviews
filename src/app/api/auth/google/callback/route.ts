@@ -171,7 +171,12 @@ export async function GET(request: NextRequest) {
       environment: process.env.NODE_ENV,
       fullRedirectUri: redirectUri,
       codeLength: code?.length,
-      clientSecretPresent: !!clientSecret
+      clientSecretPresent: !!clientSecret,
+      allEnvVars: {
+        GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID?.substring(0, 20) + '...',
+        GOOGLE_REDIRECT_URI: process.env.GOOGLE_REDIRECT_URI,
+        NEXT_PUBLIC_GOOGLE_REDIRECT_URI: process.env.NEXT_PUBLIC_GOOGLE_REDIRECT_URI
+      }
     });
 
     const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
