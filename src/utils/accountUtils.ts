@@ -482,35 +482,8 @@ export async function getAccountIdForUser(userId: string, supabaseClient?: any):
       return accountUsers[0].account_id;
     }
 
-    // If no account_user record found, check if there are legacy account records
-    const { data: legacyAccounts, error: legacyError } = await client
-      .from("accounts")
-      .select("id")
-      .eq("user_id", userId)
-      .limit(5); // Get up to 5 legacy accounts
-
-    if (legacyAccounts && legacyAccounts.length > 0) {
-      console.log(`🔄 Found ${legacyAccounts.length} legacy accounts, migrating to account_users table`);
-      
-      // Create account_user relationships for all legacy accounts
-      for (const legacyAccount of legacyAccounts) {
-        const { error: insertError } = await client
-          .from("account_users")
-          .insert({
-            account_id: legacyAccount.id,
-            user_id: userId,
-            role: 'owner'
-          })
-          .select(); // Just to suppress the no-return warning
-
-        if (insertError) {
-          console.error('Error migrating legacy account:', insertError);
-        }
-      }
-
-      // Return the first account (could be improved with better logic)
-      return legacyAccounts[0].id;
-    }
+    // If no account_user record found, user doesn't have access to any accounts
+    console.log('🔍 No accounts found for user - this may be a new user or access issue');
 
     // No account found - this is expected for new users
     return null;
