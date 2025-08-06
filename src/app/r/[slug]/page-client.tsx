@@ -739,6 +739,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
       let copied = false;
       if (platformReviewTexts[idx]) {
         try {
+          const startTime = Date.now();
           const { monitorClipboardOperation } = await import('@/utils/criticalFunctionMonitoring');
           copied = await monitorClipboardOperation(
             platformReviewTexts[idx],
@@ -749,20 +750,22 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
             }
           );
           
-          // Show "Copied" state
+          // Ensure "Copying review..." shows for at least 600ms
+          const elapsed = Date.now() - startTime;
+          const minDisplayTime = 600;
+          if (elapsed < minDisplayTime) {
+            await new Promise(resolve => setTimeout(resolve, minDisplayTime - elapsed));
+          }
+          
+          // Show "Redirecting" state
           setIsSubmitting(null);
-          setIsCopied(idx);
+          setIsRedirecting(idx);
           setCopySuccess(
             "Copied to clipboard! Now paste it on the review site.",
           );
           
-          // Wait briefly to show "Copied" state, then show "Redirecting"
-          await new Promise(resolve => setTimeout(resolve, 800));
-          setIsCopied(null);
-          setIsRedirecting(idx);
-          
           // Wait briefly to show "Redirecting" state, then open URL
-          await new Promise(resolve => setTimeout(resolve, 600));
+          await new Promise(resolve => setTimeout(resolve, 800));
           if (url) {
             window.open(url, "_blank", "noopener,noreferrer");
           }
