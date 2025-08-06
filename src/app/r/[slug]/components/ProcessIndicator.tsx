@@ -14,7 +14,7 @@ export default function ProcessIndicator({ primaryColor = "#4F46E5", cardBackgro
   const steps = [
     "Create review",
     "Click \"Copy & submit\"", 
-    "Paste review & submit"
+    "Paste & post"
   ];
 
   useEffect(() => {
@@ -102,7 +102,7 @@ export default function ProcessIndicator({ primaryColor = "#4F46E5", cardBackgro
                   <span className="block sm:hidden">
                     {index === 0 && "Create review"}
                     {index === 1 && "Copy & submit"}
-                    {index === 2 && "Paste & submit"}
+                    {index === 2 && "Paste & post"}
                   </span>
                   {/* Desktop: Show full text */}
                   <span className="hidden sm:block truncate">
