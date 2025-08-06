@@ -140,7 +140,10 @@ export default function BusinessInfoCard({ businessProfile, reviewType, promptPa
       
       {/* Recent Reviews Button - Positioned separately at bottom-right */}
       {promptPage?.id && promptPage?.recent_reviews_enabled && onOpenRecentReviews && (
-        <div className="absolute bottom-4 right-4">
+        <div className="absolute bottom-4 right-4 sm:bottom-4 sm:right-4" style={{
+          bottom: 'calc(1rem - 6px)',
+          right: 'calc(1rem - 6px)',
+        }}>
           <RecentReviewsButton
             promptPageId={promptPage.id}
             enabled={promptPage.recent_reviews_enabled}
