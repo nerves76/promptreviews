@@ -104,15 +104,15 @@ export default function ProcessIndicator({ primaryColor = "#4F46E5", cardBackgro
                     {index === 0 && "Create"}
                     {index === 1 && (
                       <>
-                        <Icon name="FaLink" size={10} className="mr-1" />
-                        Copy &\u00A0submit
+                        <Icon name="FaExternalLink" size={10} className="mr-1" />
+                        Copy & submit
                       </>
                     )}
-                    {index === 2 && "Paste &\u00A0post"}
+                    {index === 2 && "Paste & post"}
                   </span>
                   {/* Desktop: Show full text */}
                   <span className="hidden sm:block truncate flex items-center">
-                    {index === 1 && <Icon name="FaLink" size={12} className="mr-1 flex-shrink-0" />}
+                    {index === 1 && <Icon name="FaExternalLink" size={12} className="mr-1 flex-shrink-0" />}
                     {step}
                   </span>
                 </div>
