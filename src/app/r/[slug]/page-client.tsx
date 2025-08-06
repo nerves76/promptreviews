@@ -2576,32 +2576,36 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
         </div>
       </div>
       {showFallbackModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-xl w-full relative animate-fadein border-2 border-indigo-500">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+          <div className="rounded-2xl shadow-2xl p-8 max-w-xl w-full relative animate-fadein border-2" style={{
+            background: businessProfile?.card_bg || "#F9FAFB",
+            borderColor: businessProfile?.primary_color || "#4F46E5"
+          }}>
             <button
-              className="absolute top-3 right-3 text-gray-400 hover:text-gray-700 text-2xl font-bold focus:outline-none"
+              className="absolute top-3 right-3 hover:opacity-70 text-2xl font-bold focus:outline-none"
+              style={{ color: businessProfile?.card_text || "#1A1A1A" }}
               onClick={() => setShowFallbackModal(false)}
               aria-label="Close"
             >
               ×
             </button>
-            <h2 className="text-2xl font-bold mb-3 text-indigo-700 text-center">
+            <h2 className="text-2xl font-bold mb-6 text-center" style={{
+              color: businessProfile?.primary_color || "#4F46E5"
+            }}>
               Copy Your Review
             </h2>
-            <p className="text-gray-700 mb-4 text-center">
-              Copy the review below, then click{" "}
-              <span className="font-semibold">Go to Review Site</span> to paste
-              it.
-            </p>
             <textarea
-              className="w-full rounded-lg border border-gray-300 p-3 mb-4 text-base focus:ring-2 focus:ring-indigo-400 focus:outline-none"
+              className="w-full rounded-lg border p-3 mb-4 text-base focus:outline-none"
               value={fallbackModalText}
               readOnly
               rows={5}
               onFocus={(e) => e.target.select()}
+              onClick={(e) => e.target.select()}
               style={{
                 background: businessProfile?.card_bg || "#F9FAFB",
-                color: businessProfile?.card_text || "#1A1A1A"
+                color: businessProfile?.card_text || "#1A1A1A",
+                borderColor: businessProfile?.primary_color || "#4F46E5",
+                boxShadow: `0 0 0 2px ${businessProfile?.primary_color || "#4F46E5"}33`
               }}
             />
             {copySuccess && (
@@ -2613,12 +2617,10 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
             )}
             <div className="flex flex-col gap-3 justify-end mt-2">
               <button
-                className="w-full px-6 py-3 rounded-lg font-bold text-lg shadow-lg hover:opacity-90 focus:outline-none transition border-2"
+                className="w-full px-6 py-3 rounded-lg font-bold text-lg shadow-lg hover:opacity-90 focus:outline-none transition"
                 style={{
-                  backgroundColor:
-                    businessProfile?.secondary_color || "#4F46E5",
+                  backgroundColor: businessProfile?.secondary_color || "#4F46E5",
                   color: "#fff",
-                  borderColor: businessProfile?.secondary_color || "#4F46E5",
                   letterSpacing: "0.03em",
                 }}
                 onClick={async () => {
@@ -2631,12 +2633,18 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                 Copy Review
               </button>
               <div className="flex items-center justify-center my-1">
-                <span className="text-gray-500 text-base font-medium px-2">
+                <span className="text-base font-medium px-2" style={{
+                  color: businessProfile?.card_text || "#1A1A1A"
+                }}>
                   and then
                 </span>
               </div>
               <button
-                className="w-full px-6 py-3 bg-slate-blue text-white rounded-lg font-semibold shadow hover:bg-indigo-900 focus:outline-none transition"
+                className="w-full px-6 py-3 rounded-lg font-semibold shadow hover:opacity-90 focus:outline-none transition"
+                style={{
+                  backgroundColor: businessProfile?.primary_color || "#4F46E5",
+                  color: "#fff"
+                }}
                 onClick={() => {
                   if (fallbackModalUrl) {
                     window.open(

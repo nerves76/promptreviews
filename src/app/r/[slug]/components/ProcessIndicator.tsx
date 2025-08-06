@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import Icon from '@/components/Icon';
 
 interface ProcessIndicatorProps {
   primaryColor?: string;
@@ -98,14 +99,20 @@ export default function ProcessIndicator({ primaryColor = "#4F46E5", cardBackgro
                 } ${
                   isWaiting || isFadingOut ? 'text-gray-600' : isActive ? 'text-gray-800' : isCompleted ? 'text-gray-700' : 'text-gray-600'
                 }`}>
-                  {/* Mobile: Show abbreviated text */}
-                  <span className="block sm:hidden">
-                    {index === 0 && "Create review"}
-                    {index === 1 && "Copy & submit"}
-                    {index === 2 && "Paste & post"}
+                  {/* Mobile: Show very compact format */}
+                  <span className="block sm:hidden text-xs leading-tight flex items-center">
+                    {index === 0 && "Create"}
+                    {index === 1 && (
+                      <>
+                        <Icon name="FaLink" size={10} className="mr-1" />
+                        Copy &\u00A0submit
+                      </>
+                    )}
+                    {index === 2 && "Paste &\u00A0post"}
                   </span>
                   {/* Desktop: Show full text */}
-                  <span className="hidden sm:block truncate">
+                  <span className="hidden sm:block truncate flex items-center">
+                    {index === 1 && <Icon name="FaLink" size={12} className="mr-1 flex-shrink-0" />}
                     {step}
                   </span>
                 </div>
