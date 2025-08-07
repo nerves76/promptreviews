@@ -22,6 +22,10 @@ export async function middleware(req: NextRequest) {
       cookies: {
         get: (name) => {
           const value = cookieStore.get(name)?.value;
+          // Debug cookie reading
+          if (name.startsWith('sb-')) {
+            console.log(`Middleware: Reading cookie ${name} = ${value ? 'present' : 'missing'}`);
+          }
           return value;
         },
         set: (name, value, options) => {
@@ -44,25 +48,34 @@ export async function middleware(req: NextRequest) {
     const maxRetries = 3;
     
     while (retryCount < maxRetries) {
-      const { data: { user: userResult }, error: userError } = await supabase.auth.getUser();
+      // First try to get the session
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       
-      if (userResult && !userError) {
-        user = userResult;
-        error = null;
-        break;
+      if (session && !sessionError) {
+        // Session exists, get the user
+        const { data: { user: userResult }, error: userError } = await supabase.auth.getUser();
+        
+        if (userResult && !userError) {
+          user = userResult;
+          error = null;
+          break;
+        }
+        error = userError;
+      } else {
+        error = sessionError;
       }
       
       // If it's a session timing error, retry after a short delay
-      const isTimingError = userError && (
-        userError.message.includes('User from sub claim in JWT does not exist') ||
-        userError.message.includes('Unexpected failure') ||
-        userError.message.includes('JWT') ||
-        userError.message.includes('sub claim') ||
-        userError.code === 'PGRST301' // PostgREST JWT error
+      const isTimingError = error && (
+        error.message.includes('User from sub claim in JWT does not exist') ||
+        error.message.includes('Unexpected failure') ||
+        error.message.includes('JWT') ||
+        error.message.includes('sub claim') ||
+        error.code === 'PGRST301' // PostgREST JWT error
       );
       
       if (isTimingError) {
-        console.log(`Middleware: Retry ${retryCount + 1}/${maxRetries} - Session timing error (${userError.message}), retrying...`);
+        console.log(`Middleware: Retry ${retryCount + 1}/${maxRetries} - Session timing error (${error.message}), retrying...`);
         retryCount++;
         if (retryCount < maxRetries) {
           await new Promise(resolve => setTimeout(resolve, 200 + (retryCount * 100))); // Exponential backoff: 200ms, 300ms, 400ms
@@ -98,14 +111,16 @@ export async function middleware(req: NextRequest) {
       return res;
     }
 
-    // TEMPORARY: Log but don't redirect to debug the issue
+    // In production, redirect if no session
     if (!hasSession) {
-      console.log('Middleware: Would redirect to sign-in but temporarily disabled for debugging', {
+      console.log('Middleware: No session found, redirecting to sign-in', {
         pathname: req.nextUrl.pathname,
         hasSession,
-        error: error?.message
+        error: error?.message,
+        cookies: req.headers.get('cookie')?.includes('sb-') ? 'has supabase cookies' : 'no supabase cookies'
       });
-      // TEMPORARILY DISABLED: return NextResponse.redirect(signInUrl);
+      const signInUrl = new URL('/auth/sign-in', req.url);
+      return NextResponse.redirect(signInUrl);
     }
 
     return res;
