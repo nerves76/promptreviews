@@ -912,15 +912,15 @@ function drawEvilGoogleExecSpeechBubble() {
         window.ctx.fill();
         window.ctx.stroke();
         
-        // Speech bubble text
-        window.ctx.fillStyle = '#000000';
-        window.ctx.font = 'bold 12px Arial';
-        window.ctx.textAlign = 'center';
-        window.ctx.textBaseline = 'middle';
-        
         // Handle long quotes with multiple lines
         const quote = exec.currentQuote;
         const maxLength = 25;
+        
+        // Speech bubble text (bigger to match other bosses)
+        window.ctx.fillStyle = '#000000';
+        window.ctx.font = 'bold 18px Arial';
+        window.ctx.textAlign = 'center';
+        window.ctx.textBaseline = 'middle';
         
         if (quote.length <= maxLength) {
             window.ctx.fillText(quote, exec.x, exec.y - 37);
