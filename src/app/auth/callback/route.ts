@@ -255,7 +255,8 @@ export async function GET(request: NextRequest) {
         console.log("🆕 Creating new individual account for user:", userId);
         
         // Create account with proper fields
-        const { data: newAccount, error: createAccountError } = await supabase
+        let newAccount;
+        const { data: accountData, error: createAccountError } = await supabase
           .from("accounts")
           .insert({
             id: userId,
@@ -275,6 +276,8 @@ export async function GET(request: NextRequest) {
           .select()
           .single();
 
+        newAccount = accountData;
+        
         if (createAccountError) {
           console.error("❌ Error creating account:", createAccountError);
           
@@ -283,8 +286,38 @@ export async function GET(request: NextRequest) {
             console.log("✅ Account already exists (duplicate key detected)");
             isNewUser = false;
           } else {
-            // For other errors, redirect to sign-in
-            return NextResponse.redirect(`${requestUrl.origin}/auth/sign-in?error=account_creation_failed`);
+            // Try with service role client as fallback
+            console.log('🔄 Attempting account creation with service role client...');
+            const supabaseAdmin = createServiceRoleClient();
+            
+            const { data: adminAccount, error: adminError } = await supabaseAdmin
+              .from("accounts")
+              .insert({
+                id: userId,
+                user_id: userId,
+                email: email,
+                trial_start: new Date().toISOString(),
+                trial_end: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
+                is_free_account: false,
+                custom_prompt_page_count: 0,
+                contact_count: 0,
+                first_name: user.user_metadata?.first_name || '',
+                last_name: user.user_metadata?.last_name || '',
+                plan: 'no_plan',
+                has_had_paid_plan: false,
+                review_notifications_enabled: true
+              })
+              .select()
+              .single();
+              
+            if (adminError) {
+              console.error("❌ Service role account creation also failed:", adminError);
+              // For other errors, redirect to sign-in
+              return NextResponse.redirect(`${requestUrl.origin}/auth/sign-in?error=account_creation_failed`);
+            } else {
+              console.log("✅ Account created successfully with service role");
+              newAccount = adminAccount;
+            }
           }
         } else if (newAccount) {
           console.log("✅ Individual account created successfully");
@@ -304,7 +337,29 @@ export async function GET(request: NextRequest) {
             
           if (linkError) {
             console.error("❌ Error creating account_user link:", linkError);
-            // Don't fail the whole flow for this error
+            
+            // Try with service role client as fallback
+            console.log('🔄 Attempting account_user link with service role client...');
+            const supabaseAdmin = createServiceRoleClient();
+            
+            const { error: adminLinkError } = await supabaseAdmin
+              .from("account_users")
+              .upsert([
+                {
+                  account_id: userId,
+                  user_id: userId,
+                  role: "owner",
+                },
+              ], {
+                onConflict: 'account_id,user_id'
+              });
+              
+            if (adminLinkError) {
+              console.error("❌ Service role link creation also failed:", adminLinkError);
+              // Don't fail the whole flow for this error
+            } else {
+              console.log("✅ User linked to account as owner (via service role)");
+            }
           } else {
             console.log("✅ User linked to account as owner");
           }
