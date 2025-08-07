@@ -326,6 +326,13 @@ function startGame() {
         window.score = 0;
         window.lives = 3;
         window.level = 1;
+        
+        // Play intro melody when game starts
+        if (window.playSound) {
+            setTimeout(() => {
+                window.playSound('introMelody');
+            }, 500); // Small delay to let game initialize first
+        }
         window.hearts = [];
         window.customers = [];
         window.customersConverted = 0; // Initialize customer death counter
