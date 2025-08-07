@@ -724,6 +724,42 @@ export class GoogleBusinessProfileClient {
   }
 
   /**
+   * Updates an existing reply to a specific review
+   */
+  async updateReviewReply(locationId: string, reviewId: string, updatedReplyText: string): Promise<any> {
+    console.log('🔄 Updating review reply:', reviewId);
+    
+    try {
+      // First get the account ID if we don't have it
+      const accounts = await this.listAccounts();
+      if (accounts.length === 0) {
+        throw new Error('No Google Business Profile accounts found');
+      }
+      
+      // Use the first account ID
+      const accountId = accounts[0].name.replace('accounts/', '');
+      const cleanLocationId = locationId.replace('locations/', '');
+      
+      // Use the v4 API for updating review replies
+      const endpoint = `/v4/accounts/${accountId}/locations/${cleanLocationId}/reviews/${reviewId}/reply`;
+      
+      const response = await this.makeRequest(endpoint, {
+        method: 'PUT',
+        body: JSON.stringify({
+          comment: updatedReplyText
+        }),
+      }, 0, GOOGLE_BUSINESS_PROFILE.LEGACY_BASE_URL);
+
+      console.log('✅ Successfully updated review reply');
+      return response;
+
+    } catch (error) {
+      console.error('❌ Failed to update review reply:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Lists all available Google Business Categories
    * Uses Business Information API v1
    */
