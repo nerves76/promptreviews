@@ -598,6 +598,8 @@ function update() {
         // Update physics
         updateHearts();
         updateCustomers();
+        updateSickEmojis();
+        updateVirusProjectiles();
         
         // Update shooting cooldown
         if (window.shootCooldown > 0) {
@@ -685,6 +687,25 @@ function update() {
     // Spawn power-ups less frequently
     if (Math.random() < 0.001 && powerUps.length < 3) { // 0.1% chance per frame, max 3 power-ups
         spawnPowerUp();
+    }
+    
+    // Spawn sick emojis starting at level 3
+    if (window.level >= 3) {
+        if (!window.sickEmojiSpawnTimer) {
+            window.sickEmojiSpawnTimer = 0;
+        }
+        
+        window.sickEmojiSpawnTimer++;
+        
+        // Spawn a sick emoji every 10-15 seconds (600-900 frames at 60fps)
+        const spawnInterval = 600 + Math.random() * 300;
+        const maxSickEmojis = Math.min(Math.floor(window.level / 3), 3); // Max 3 sick emojis
+        
+        if (window.sickEmojiSpawnTimer >= spawnInterval && 
+            (!window.sickEmojis || window.sickEmojis.length < maxSickEmojis)) {
+            spawnSickEmoji();
+            window.sickEmojiSpawnTimer = 0;
+        }
     }
     
     // OneUp removed - map pin now gives extra life

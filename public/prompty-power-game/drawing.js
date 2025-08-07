@@ -1069,6 +1069,12 @@ function draw() {
         // Draw email icons (LinkedIn Spammer projectiles)
         drawEmailIcons();
         
+        // Draw sick emojis
+        drawSickEmojis();
+        
+        // Draw virus projectiles
+        drawVirusProjectiles();
+        
         // Draw Karen (ULTRA SIMPLIFIED TO PREVENT FREEZING)
         if (window.karen && typeof window.karen === 'object') {
             try {
@@ -1238,5 +1244,87 @@ function draw() {
         } catch (restoreError) {
             console.error('Error restoring context:', restoreError);
         }
+    }
+}
+
+// Draw sick emojis
+function drawSickEmojis() {
+    if (!window.sickEmojis) return;
+    
+    for (const sickEmoji of window.sickEmojis) {
+        window.ctx.font = `${sickEmoji.height}px Arial`;
+        window.ctx.textAlign = 'center';
+        window.ctx.textBaseline = 'middle';
+        
+        // Draw sick emoji
+        window.ctx.fillText(
+            sickEmoji.emoji,
+            sickEmoji.x + sickEmoji.width / 2,
+            sickEmoji.y + sickEmoji.height / 2
+        );
+        
+        // Draw health bar
+        const barWidth = sickEmoji.width;
+        const barHeight = 6;
+        const barX = sickEmoji.x;
+        const barY = sickEmoji.y - 12;
+        
+        // Background bar
+        window.ctx.fillStyle = '#ff0000';
+        window.ctx.fillRect(barX, barY, barWidth, barHeight);
+        
+        // Health bar
+        const healthPercent = (sickEmoji.maxHits - sickEmoji.hits) / sickEmoji.maxHits;
+        window.ctx.fillStyle = '#00ff00';
+        window.ctx.fillRect(barX, barY, barWidth * healthPercent, barHeight);
+        
+        // Border
+        window.ctx.strokeStyle = '#000000';
+        window.ctx.lineWidth = 1;
+        window.ctx.strokeRect(barX, barY, barWidth, barHeight);
+    }
+}
+
+// Draw virus projectiles
+function drawVirusProjectiles() {
+    if (!window.virusProjectiles) return;
+    
+    for (const virus of window.virusProjectiles) {
+        window.ctx.save();
+        
+        // Move to virus center
+        window.ctx.translate(virus.x + virus.width / 2, virus.y + virus.height / 2);
+        
+        // Draw virus molecule (spiky circle)
+        window.ctx.fillStyle = '#00ff00';
+        window.ctx.strokeStyle = '#008800';
+        window.ctx.lineWidth = 2;
+        
+        // Main circle
+        window.ctx.beginPath();
+        window.ctx.arc(0, 0, virus.width / 2 - 2, 0, Math.PI * 2);
+        window.ctx.fill();
+        window.ctx.stroke();
+        
+        // Draw spikes around the circle
+        const spikes = 8;
+        const spikeLength = 4;
+        window.ctx.strokeStyle = '#00aa00';
+        window.ctx.lineWidth = 1;
+        
+        for (let i = 0; i < spikes; i++) {
+            const angle = (i / spikes) * Math.PI * 2;
+            const x1 = Math.cos(angle) * (virus.width / 2 - 2);
+            const y1 = Math.sin(angle) * (virus.width / 2 - 2);
+            const x2 = Math.cos(angle) * (virus.width / 2 + spikeLength);
+            const y2 = Math.sin(angle) * (virus.width / 2 + spikeLength);
+            
+            window.ctx.beginPath();
+            window.ctx.moveTo(x1, y1);
+            window.ctx.lineTo(x2, y2);
+            window.ctx.stroke();
+        }
+        
+        window.ctx.restore();
     }
 }
