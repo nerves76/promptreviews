@@ -676,9 +676,10 @@ function createVirusSneezeAt(x, y, targetX, targetY) {
         }
         window.virusProjectiles.push(virusSneezeProjectile);
         
-        // Play virus warning sound effect
-        if (window.playSound) {
+        // Play virus warning sound effect (with cooldown to prevent spam)
+        if (window.playSound && (!window.lastVirusWarningTime || Date.now() - window.lastVirusWarningTime > 3000)) {
             window.playSound('virusWarning'); // Static warning sound for virus attacks
+            window.lastVirusWarningTime = Date.now(); // 3 second cooldown
         }
         
         console.log('Virus sneeze created towards Prompty');

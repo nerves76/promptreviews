@@ -419,6 +419,11 @@ function updateSickEmojis() {
                     }
                     
                     window.sickEmojis.splice(i, 1);
+                    
+                    // Trigger cooldown after virus defeat (5 seconds = 300 frames at 60fps)
+                    if (window.sickEmojiCooldown !== undefined) {
+                        window.sickEmojiCooldown = 300;
+                    }
                 }
                 break;
             }

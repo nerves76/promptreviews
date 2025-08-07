@@ -786,17 +786,25 @@ function update() {
         if (!window.sickEmojiSpawnTimer) {
             window.sickEmojiSpawnTimer = 0;
         }
+        if (!window.sickEmojiCooldown) {
+            window.sickEmojiCooldown = 0;
+        }
         
-        window.sickEmojiSpawnTimer++;
-        
-        // Spawn a sick emoji every 10-15 seconds (600-900 frames at 60fps)
-        const spawnInterval = 600 + Math.random() * 300;
-        const maxSickEmojis = Math.min(Math.floor(window.level / 4), 3); // Max 3 sick emojis
-        
-        if (window.sickEmojiSpawnTimer >= spawnInterval && 
-            (!window.sickEmojis || window.sickEmojis.length < maxSickEmojis)) {
-            spawnSickEmoji();
-            window.sickEmojiSpawnTimer = 0;
+        // Cooldown after virus defeat (5 seconds)
+        if (window.sickEmojiCooldown > 0) {
+            window.sickEmojiCooldown--;
+        } else {
+            window.sickEmojiSpawnTimer++;
+            
+            // Spawn a sick emoji every 15-20 seconds (900-1200 frames at 60fps) - increased interval
+            const spawnInterval = 900 + Math.random() * 300;
+            const maxSickEmojis = Math.min(Math.floor(window.level / 4), 2); // Reduced max from 3 to 2
+            
+            if (window.sickEmojiSpawnTimer >= spawnInterval && 
+                (!window.sickEmojis || window.sickEmojis.length < maxSickEmojis)) {
+                spawnSickEmoji();
+                window.sickEmojiSpawnTimer = 0;
+            }
         }
     }
     
