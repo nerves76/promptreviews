@@ -191,8 +191,18 @@ function startNextLevel() {
 function gameOver() {
     window.gameState = 'gameOver';
     
-    // Play game over sound
-    playSound('gameOver');
+    // Stop all ongoing sounds and play sad game over melody
+    if (window.stopAllSounds) {
+        window.stopAllSounds();
+    }
+    
+    // Wait a moment then play sad melody
+    setTimeout(() => {
+        if (window.resumeAudio) {
+            window.resumeAudio();
+        }
+        playSound('sadGameOver');
+    }, 500);
     
     // Update leaderboard variables
     currentScore = window.score;

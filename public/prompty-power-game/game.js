@@ -449,10 +449,37 @@ function resetGame() {
     window.hearts = [];
     window.customers = [];
     window.stars = [];
+    
+    // Reset all bosses
     window.karen = null;
+    window.evilGoogleExec = null;
+    window.linkedInSpammer = null;
+    
+    // Reset all boss-related arrays and timers
     window.karenLasers = [];
     window.karenSpawnTimer = 0;
+    window.evilGoogleExecSpawnTimer = 0;
+    window.linkedInSpammerSpawnTimer = 0;
+    window.evilGoogleArrows = [];
+    window.emailIcons = [];
+    
+    // Reset new enemies and projectiles
+    window.sickEmojis = [];
+    window.virusProjectiles = [];
+    window.sickEmojiSpawnTimer = 0;
+    
+    // Reset spawn timers
     window.emojiSpawnTimer = 0;
+    window.customersConverted = 0;
+    
+    // Reset UI timers
+    window.promptyHurtTimer = 0;
+    window.screenShakeTimer = 0;
+    
+    // Resume audio if it was stopped
+    if (window.resumeAudio) {
+        window.resumeAudio();
+    }
     
     // Reset Prompty position
     window.prompty.x = 330; // Adjusted for smaller size
