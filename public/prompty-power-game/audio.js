@@ -39,7 +39,8 @@ const melodies = {
     victory: [523, 659, 784, 1047, 1319, 1568, 1319, 1047, 784, 659, 523, 659, 784, 1047], // Celebratory fanfare
     bossHit: [220, 175, 131, 98], // Short staccato crash (quick descending)
     virusWarning: [220, 196, 175, 165, 147, 131, 117, 110, 98], // Longer static warning (rapid descending)
-    sadGameOver: [440, 392, 350, 294, 262, 234, 196, 174, 156, 130] // Slow sad descending melody (one octave higher)
+    sadGameOver: [440, 392, 350, 294, 262, 234, 196, 174, 156, 130], // Slow sad descending melody (one octave higher)
+    introMelody: [262, 262, 349, 349, 262, 262, 349, 349, 262, 440, 466, 392, 370, 415, 415, 349, 392, 440, 392, 262, 262, 349, 349, 262, 262, 349, 349, 262, 440, 466, 392, 370, 415, 415, 349, 392, 440, 392] // User's intro melody: qqttqqtt qopiyu utioi qqttqqtt qopiyu utioi
 };
 
 // Initialize audio context on first user interaction
@@ -104,6 +105,9 @@ function playMelody(melodyName) {
     } else if (melodyName === 'sadGameOver') {
         noteDuration = 0.8; // Much longer, slower sad notes (doubled from 0.4)
         noteGap = 0.3; // Longer pauses between notes for more dramatic effect
+    } else if (melodyName === 'introMelody') {
+        noteDuration = 0.4; // Medium tempo as requested
+        noteGap = 0.1; // Slight gap between notes for clear separation
     }
     
     // Choose wave type based on melody
@@ -116,6 +120,8 @@ function playMelody(melodyName) {
         waveType = 'square'; // More percussive for impact sounds
     } else if (melodyName === 'bossHit' || melodyName === 'virusWarning') {
         waveType = 'sawtooth'; // Harsh sawtooth for static crash/warning effects
+    } else if (melodyName === 'introMelody') {
+        waveType = 'triangle'; // Musical triangle wave for pleasant intro melody
     }
     
     frequencies.forEach((frequency, index) => {
