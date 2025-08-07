@@ -457,7 +457,7 @@ function createSeoBoostText(x, y, scoreIncrease) {
         maxLife: 120,
         vy: -2, // Float upward
         alpha: 1,
-        fontSize: 24,
+        fontSize: 18,
         color: '#00ff00' // Green color for SEO boost
     };
     
@@ -476,7 +476,7 @@ function createPressMentionText(x, y, scoreIncrease) {
         maxLife: 120,
         vy: -2, // Float upward
         alpha: 1,
-        fontSize: 24,
+        fontSize: 18,
         color: '#ff6b35' // Orange color for press mention
     };
     
@@ -512,7 +512,7 @@ function createFloatingText(text, x, y, color = '#FFD700') {
         maxLife: 120,
         vy: -2, // Float upward
         alpha: 1,
-        fontSize: 28, // Slightly larger for boss defeats
+        fontSize: 18, // Smaller, less intrusive text
         color: color // Gold color by default
     };
     
