@@ -23,7 +23,7 @@ import Link from "next/link";
 import QuoteDisplay from "../components/QuoteDisplay";
 import StarfallCelebration from "../components/StarfallCelebration";
 import { trackEvent, GA_EVENTS } from "../../utils/analytics";
-import { useAuth, useAuthGuard } from "@/contexts/AuthContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { checkAccountLimits } from "@/utils/accountLimits";
 import React from "react";
 
