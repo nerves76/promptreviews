@@ -116,11 +116,34 @@ export default function SignIn() {
         console.warn("Analytics tracking failed:", trackError);
       }
 
-      console.log("🔄 Authentication successful, redirecting immediately...");
+      console.log("🔄 Authentication successful, attempting redirect...");
       
-      // Since AuthContext uses onAuthStateChange listener, the session should be available
-      // Let's redirect immediately and let dashboard handle any loading states
-      router.replace("/dashboard");
+      // Debug router state
+      console.log("🔍 Router state:", {
+        pathname: window.location.pathname,
+        href: window.location.href,
+        router: !!router,
+        routerType: typeof router.replace
+      });
+      
+      // Try different navigation methods
+      try {
+        console.log("🚀 Calling router.replace('/dashboard')...");
+        router.replace("/dashboard");
+        console.log("✅ router.replace called successfully");
+        
+        // Also try window.location as fallback after a delay
+        setTimeout(() => {
+          if (window.location.pathname === "/auth/sign-in") {
+            console.log("⚠️ Still on sign-in page after 2s, trying window.location redirect");
+            window.location.href = "/dashboard";
+          }
+        }, 2000);
+      } catch (routerError) {
+        console.error("❌ Router navigation failed:", routerError);
+        // Fallback to window.location
+        window.location.href = "/dashboard";
+      }
     } catch (error: any) {
       console.error("💥 Sign in process failed:", error);
       setError(error.message || "An unexpected error occurred. Please try again.");
