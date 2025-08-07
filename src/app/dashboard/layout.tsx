@@ -57,8 +57,8 @@ export default function DashboardLayout({
     }
   }, [isInitialized, isLoading, user, accountLoading, account]);
 
-  // Show loading while AuthContext initializes or is still loading
-  if (!isInitialized || isLoading) {
+  // Show loading while AuthContext initializes
+  if (!isInitialized) {
     if (process.env.NODE_ENV === 'development') {
       console.log('🔄 Dashboard: Waiting for AuthContext initialization...');
     }
@@ -69,13 +69,25 @@ export default function DashboardLayout({
     );
   }
 
-  // If no user after initialization, redirect to sign-in
-  if (!user) {
+  // After initialization, if no user, redirect to sign-in  
+  if (isInitialized && !user) {
     if (process.env.NODE_ENV === 'development') {
       console.log('❌ Dashboard: No user found after initialization, redirecting to sign-in');
     }
     router.push('/auth/sign-in');
     return null;
+  }
+
+  // Show loading while user data or account data is still loading
+  if (isLoading || accountLoading) {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🔄 Dashboard: Loading user or account data...');
+    }
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center">
+        <AppLoader variant="compact" />
+      </div>
+    );
   }
 
 
