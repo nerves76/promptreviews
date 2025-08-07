@@ -56,7 +56,7 @@ function initAudio() {
 }
 
 // Create a single note with envelope
-function createNote(frequency, startTime, duration = 0.1, waveType = 'sine') {
+function createNote(frequency, startTime, duration = 0.1, waveType = 'sine', volume = 0.3) {
     if (!audioContext) return;
     
     const oscillator = audioContext.createOscillator();
@@ -70,7 +70,7 @@ function createNote(frequency, startTime, duration = 0.1, waveType = 'sine') {
     
     // Create envelope for natural sound
     gainNode.gain.setValueAtTime(0, startTime);
-    gainNode.gain.linearRampToValueAtTime(0.3, startTime + 0.01);
+    gainNode.gain.linearRampToValueAtTime(volume, startTime + 0.01);
     gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + duration);
     
     oscillator.start(startTime);
@@ -132,7 +132,9 @@ function playMelody(melodyName) {
     
     frequencies.forEach((frequency, index) => {
         const noteStartTime = startTime + (index * (noteDuration + noteGap));
-        createNote(frequency, noteStartTime, noteDuration, waveType);
+        // Use lower volume for boss hit sound
+        const volume = melodyName === 'bossHit' ? 0.1 : 0.3;
+        createNote(frequency, noteStartTime, noteDuration, waveType, volume);
     });
 }
 
