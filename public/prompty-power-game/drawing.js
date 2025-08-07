@@ -897,9 +897,11 @@ function drawEvilGoogleExecSpeechBubble() {
         window.ctx.strokeStyle = '#000000';
         window.ctx.lineWidth = 2;
         
-        // Speech bubble
+        // Speech bubble (wider for longer text)
+        const bubbleWidth = 280;
+        const bubbleHeight = 70;
         window.ctx.beginPath();
-        window.ctx.roundRect(exec.x - 100, exec.y - 60, 200, 50, 10);
+        window.ctx.roundRect(exec.x + exec.width/2 - bubbleWidth/2, exec.y - 80, bubbleWidth, bubbleHeight, 10);
         window.ctx.fill();
         window.ctx.stroke();
         
@@ -914,7 +916,7 @@ function drawEvilGoogleExecSpeechBubble() {
         
         // Handle long quotes with multiple lines
         const quote = exec.currentQuote;
-        const maxLength = 25;
+        const maxLength = 35; // Increased for wider bubble
         
         // Speech bubble text (bigger to match other bosses)
         window.ctx.fillStyle = '#000000';
@@ -922,30 +924,40 @@ function drawEvilGoogleExecSpeechBubble() {
         window.ctx.textAlign = 'center';
         window.ctx.textBaseline = 'middle';
         
+        const centerX = exec.x + exec.width/2;
+        
         if (quote.length <= maxLength) {
-            window.ctx.fillText(quote, exec.x, exec.y - 37);
+            window.ctx.fillText(quote, centerX, exec.y - 45);
         } else {
-            // Split into multiple lines
+            // Split into multiple lines with better word wrapping
             const words = quote.split(' ');
-            let lines = ['', '', ''];
-            let currentLine = 0;
+            let line1 = '';
+            let line2 = '';
+            let line3 = '';
             
             for (let word of words) {
-                if (lines[currentLine].length + word.length <= maxLength) {
-                    lines[currentLine] += (lines[currentLine] ? ' ' : '') + word;
+                if ((line1 + ' ' + word).length <= maxLength && line1.length > 0) {
+                    line1 += ' ' + word;
+                } else if (line1.length === 0) {
+                    line1 = word;
+                } else if ((line2 + ' ' + word).length <= maxLength && line2.length > 0) {
+                    line2 += ' ' + word;
+                } else if (line2.length === 0) {
+                    line2 = word;
                 } else {
-                    currentLine++;
-                    if (currentLine < 3) {
-                        lines[currentLine] = word;
-                    }
+                    line3 += (line3 ? ' ' : '') + word;
                 }
             }
             
-            // Draw up to 3 lines
-            for (let i = 0; i < 3; i++) {
-                if (lines[i]) {
-                    window.ctx.fillText(lines[i], exec.x, exec.y - 45 + (i * 12));
-                }
+            if (line3) {
+                window.ctx.fillText(line1, centerX, exec.y - 60);
+                window.ctx.fillText(line2, centerX, exec.y - 45);
+                window.ctx.fillText(line3, centerX, exec.y - 30);
+            } else if (line2) {
+                window.ctx.fillText(line1, centerX, exec.y - 52);
+                window.ctx.fillText(line2, centerX, exec.y - 37);
+            } else {
+                window.ctx.fillText(line1, centerX, exec.y - 45);
             }
         }
     }
