@@ -1025,6 +1025,9 @@ function update() {
                 const damage = heart.isPowerful ? 3 : 1;
                 window.karen.health -= damage;
                 
+                // Play boss hit sound
+                playSound('bossHit');
+                
                 // Simple ricochet
                 heart.vx *= -0.8;
                 heart.vy *= -0.8;
@@ -1118,6 +1121,9 @@ function update() {
                 const damage = heart.isPowerful ? 3 : 1;
                 window.evilGoogleExec.health -= damage;
                 
+                // Play boss hit sound
+                playSound('bossHit');
+                
                 // Simple ricochet
                 heart.vx *= -0.8;
                 heart.vy *= -0.8;
@@ -1200,6 +1206,9 @@ function update() {
             // Hit LinkedIn Spammer - fire hearts do more damage
             const damage = heart.isPowerful ? 3 : 1; // Fire hearts do 3 damage, normal hearts do 1
             window.linkedInSpammer.health -= damage;
+            
+            // Play boss hit sound
+            playSound('bossHit');
             
             // Ricochet heart off LinkedIn Spammer
             const heartCenterX = heart.x + heart.width / 2;

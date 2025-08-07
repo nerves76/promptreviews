@@ -36,7 +36,8 @@ const melodies = {
     doorCreak: [196, 175, 147, 131], // G, F, D, C (low descending)
     karenAppear: [98, 147, 196, 147, 98, 87], // G, D, G, D, G, F (ominous)
     ouch: [196, 175, 147, 131], // G, F, D, C (low descending)
-    victory: [523, 659, 784, 1047, 1319, 1568, 1319, 1047, 784, 659, 523, 659, 784, 1047] // Celebratory fanfare
+    victory: [523, 659, 784, 1047, 1319, 1568, 1319, 1047, 784, 659, 523, 659, 784, 1047], // Celebratory fanfare
+    bossHit: [220, 196, 175, 165, 147, 131, 117, 110, 98] // Static-like crash (rapid descending)
 };
 
 // Initialize audio context on first user interaction
@@ -88,8 +89,14 @@ function playMelody(melodyName) {
     }
     
     const startTime = audioContext.currentTime;
-    const noteDuration = 0.12; // Longer notes for more musical sound
-    const noteGap = 0.03; // Slightly longer gap between notes
+    let noteDuration = 0.12; // Longer notes for more musical sound
+    let noteGap = 0.03; // Slightly longer gap between notes
+    
+    // Special timing for boss hit crash effect
+    if (melodyName === 'bossHit') {
+        noteDuration = 0.05; // Much shorter, rapid notes
+        noteGap = 0.01; // Tiny gaps for static-like effect
+    }
     
     // Choose wave type based on melody
     let waveType = 'sine';
@@ -99,6 +106,8 @@ function playMelody(melodyName) {
         waveType = 'triangle'; // More musical for positive events
     } else if (melodyName === 'hit' || melodyName === 'hurt' || melodyName === 'ouch') {
         waveType = 'square'; // More percussive for impact sounds
+    } else if (melodyName === 'bossHit') {
+        waveType = 'sawtooth'; // Harsh sawtooth for static crash effect
     }
     
     frequencies.forEach((frequency, index) => {
