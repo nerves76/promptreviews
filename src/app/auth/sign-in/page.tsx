@@ -76,6 +76,11 @@ export default function SignIn() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     console.log("🚀 Starting sign in process...");
+    console.log("📋 Form data:", { email: formData.email, hasPassword: !!formData.password });
+    
+    // Add immediate visual feedback
+    window.alert("Form submitted! Check console for logs.");
+    
     setIsLoading(true);
     setError("");
 
