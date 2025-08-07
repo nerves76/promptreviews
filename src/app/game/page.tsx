@@ -1,7 +1,7 @@
 /**
  * Game Page
  * 
- * Embeds the Prompty Power game with proper styling and app integration.
+ * Embeds Get Found Online: The Game with proper styling and app integration.
  * Provides a fun break for users while maintaining the app's design language.
  */
 
@@ -43,7 +43,7 @@ export default function GamePage() {
               <div className="absolute inset-0 bg-slate-100 rounded-lg flex items-center justify-center z-10">
                 <div className="text-center">
                   <FiveStarSpinner />
-                  <p className="mt-4 text-slate-600">Loading Prompty Power...</p>
+                  <p className="mt-4 text-slate-600">Loading Get Found Online: The Game...</p>
                 </div>
               </div>
             )}
@@ -54,7 +54,7 @@ export default function GamePage() {
                 <iframe
                   src="/prompty-power-game/index.html"
                   className="w-full h-full border-0"
-                  title="Prompty Power Game"
+                  title="Get Found Online: The Game"
                   onLoad={() => {
                     console.log('Game iframe loaded successfully');
                     setGameLoaded(true);

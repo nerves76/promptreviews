@@ -100,19 +100,13 @@ export default function ProcessIndicator({ primaryColor = "#4F46E5", cardBackgro
                   isWaiting || isFadingOut ? 'text-gray-600' : isActive ? 'text-gray-800' : isCompleted ? 'text-gray-700' : 'text-gray-600'
                 }`}>
                   {/* Mobile: Show very compact format */}
-                  <span className="block sm:hidden text-xs leading-tight flex items-center">
+                  <span className="block sm:hidden text-xs leading-tight">
                     {index === 0 && "Create"}
-                    {index === 1 && (
-                      <>
-                        <Icon name="FaExternalLink" size={10} className="mr-1" />
-                        Copy & submit
-                      </>
-                    )}
+                    {index === 1 && "Copy & submit"}
                     {index === 2 && "Paste & post"}
                   </span>
                   {/* Desktop: Show full text */}
-                  <span className="hidden sm:block truncate flex items-center">
-                    {index === 1 && <Icon name="FaExternalLink" size={12} className="mr-1 flex-shrink-0" />}
+                  <span className="hidden sm:block truncate">
                     {step}
                   </span>
                 </div>

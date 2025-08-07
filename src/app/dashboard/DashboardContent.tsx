@@ -663,7 +663,7 @@ const DashboardContent = React.memo(function DashboardContent({
                 <span className="text-2xl">🎮</span>
               </div>
               <div>
-                <h3 className="text-xl font-bold text-slate-900">Prompty Power</h3>
+                <h3 className="text-xl font-bold text-slate-900">Get Found Online: The Game</h3>
                 <p className="text-sm text-slate-600">Take a break and play!</p>
               </div>
             </div>
@@ -671,7 +671,7 @@ const DashboardContent = React.memo(function DashboardContent({
               href="/game"
               className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500 to-blue-600 text-white rounded-lg hover:from-purple-600 hover:to-blue-700 transition-all duration-200 font-medium"
             >
-              <span>Play Prompty Power</span>
+              <span>Play Game</span>
               <span>→</span>
             </Link>
           </div>

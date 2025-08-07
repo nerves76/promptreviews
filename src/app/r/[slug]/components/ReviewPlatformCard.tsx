@@ -429,7 +429,6 @@ export default function ReviewPlatformCard({
                 </>
               ) : (
                 <>
-                  <Icon name="FaExternalLink" className="w-4 h-4" size={16} />
                   Copy & Submit
                 </>
               )}

@@ -6,9 +6,18 @@
 (function() {
     'use strict';
     
-    // Configuration
+    // Configuration - Auto-detect domain or use fallback
     const GAME_CONFIG = {
-        baseUrl: 'https://promptreviews.app', // Change to your domain
+        baseUrl: (function() {
+            // Auto-detect if we're being loaded from the same domain
+            const script = document.currentScript;
+            if (script && script.src) {
+                const url = new URL(script.src);
+                return `${url.protocol}//${url.host}`;
+            }
+            // Fallback to your production domain
+            return 'https://app.promptreviews.app';
+        })(),
         width: 900,
         height: 750, // Increased to accommodate marketing content
         buttonText: '🎮 Play Get Found Online: The Game',

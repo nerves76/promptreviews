@@ -599,7 +599,7 @@ export default function Header() {
                         )}
                         <Link href="/game" className="block px-4 py-2 text-sm text-gray-700 hover:bg-slate-blue/10 hover:text-slate-blue" onClick={() => setAccountMenuOpen(false)}>
                           <span className="mr-2">🎮</span>
-                          Prompty Power
+                          Get Found Online: The Game
                         </Link>
                         <div className="border-t border-gray-100 my-1" />
                         <button
