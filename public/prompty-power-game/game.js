@@ -1259,7 +1259,11 @@ function update() {
                             window.evilGoogleExec = null;
                             window.level++;
                             // Show transparent level complete message without stopping game
-                            showLevelCompleteOverlay();
+                            if (typeof window.showLevelCompleteOverlay === 'function') {
+                                window.showLevelCompleteOverlay();
+                            } else {
+                                console.error('showLevelCompleteOverlay is not a function:', typeof window.showLevelCompleteOverlay);
+                            }
                         }
                         
                         // Safety check: ensure game loop continues after boss defeat
@@ -1401,7 +1405,11 @@ function update() {
                         window.linkedInSpammer = null;
                         window.level++;
                         // Show transparent level complete message without stopping game
-                        showLevelCompleteOverlay();
+                        if (typeof window.showLevelCompleteOverlay === 'function') {
+                            window.showLevelCompleteOverlay();
+                        } else {
+                            console.error('showLevelCompleteOverlay is not a function:', typeof window.showLevelCompleteOverlay);
+                        }
                     }
                     
                     // Safety check: ensure game loop continues after boss defeat
