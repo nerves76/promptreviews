@@ -949,7 +949,7 @@ function update() {
                     if (powerUp.type === 'speechBubble') {
                         createFloatingText('You got mentioned\nonline!', powerUp.x + powerUp.width/2, powerUp.y, '#ff6b35');
                     } else if (powerUp.type === 'mapPin') {
-                        createFloatingText('You submitted a new\ndirectory listing. +1up', powerUp.x + powerUp.width/2, powerUp.y, '#ff6b35');
+                        createFloatingText('New directory listing! +1up', powerUp.x + powerUp.width/2, powerUp.y, '#ff6b35');
                     } else if (powerUp.type === 'package') {
                         createFloatingText('Prompt Reviews\ncampaign launched!', powerUp.x + powerUp.width/2, powerUp.y, '#ff6b35');
                     } else if (powerUp.type === 'key') {
