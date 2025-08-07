@@ -1099,10 +1099,8 @@ function update() {
     if (window.gameState === 'playing' && window.levelStartTime > 0) {
         const timerElement = document.getElementById('timer');
         if (timerElement) {
-            // Calculate customers for this level (same as spawning logic)
-            const baseCustomerCount = 10;
-            const customersForThisLevel = Math.min(Math.floor(baseCustomerCount * Math.pow(1.3, window.level - 1)), 50);
-            timerElement.textContent = `${window.customersConverted}/${customersForThisLevel} customers`;
+                    // Show customers defeated (no fixed total since customers spawn continuously)
+        timerElement.textContent = `${window.customersConverted} customers defeated`;
         }
     }
     
