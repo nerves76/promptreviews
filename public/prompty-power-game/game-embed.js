@@ -19,7 +19,7 @@
             return 'https://app.promptreviews.app';
         })(),
         width: 1120,
-        height: 760, // Updated to accommodate full game layout (800+250+gaps+padding)
+        height: 1180, // Updated to accommodate full game layout + leaderboard section
         buttonText: '🎮 Play Get Found Online: The Game',
         modalTitle: 'Experience Review Management in Action!'
     };
@@ -292,6 +292,6 @@
 
 // Method 6: Simple iframe (no script needed)
 <iframe src="https://app.promptreviews.app/prompty-power-game/index.html" 
-    width="1120" height="760" frameborder="0"></iframe>
+    width="1120" height="1180" frameborder="0"></iframe>
 
 */
