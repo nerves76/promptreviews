@@ -16,7 +16,7 @@
                 return `${url.protocol}//${url.host}`;
             }
             // Fallback to your production domain
-            return 'https://promptreviews.app';
+            return 'https://app.promptreviews.app';
         })(),
         width: 900,
         height: 750, // Increased to accommodate marketing content
