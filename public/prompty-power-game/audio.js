@@ -96,8 +96,8 @@ function playMelody(melodyName) {
     
     // Special timing for crash effects
     if (melodyName === 'bossHit') {
-        noteDuration = 0.02; // Ultra-short staccato notes
-        noteGap = 0.005; // Minimal gaps for sharp impact
+        noteDuration = 0.015; // Extremely short staccato notes
+        noteGap = 0.003; // Near-zero gaps for machine-gun effect
     } else if (melodyName === 'virusWarning') {
         noteDuration = 0.05; // Slightly longer for warning effect
         noteGap = 0.01; // Tiny gaps for static-like effect
