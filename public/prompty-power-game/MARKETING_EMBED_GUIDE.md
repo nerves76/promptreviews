@@ -4,9 +4,21 @@
 
 "Get Found Online: The Game" is ready to embed on any marketing website! Here are the easiest ways to add it:
 
-## 🚀 Option 1: One-Line Auto Embed (Easiest)
+## 🚀 Option 1: Direct Game Embed (Recommended)
 
-Add this to any webpage:
+Add this to any webpage to embed the game directly:
+
+```html
+<!-- Add this to your <head> -->
+<script src="https://app.promptreviews.app/prompty-power-game/game-embed.js"></script>
+
+<!-- Add this wherever you want the game to appear -->
+<div data-prompty-game data-prompty-direct></div>
+```
+
+That's it! The game will appear directly on your page.
+
+## 🎯 Option 2: Game Button (Opens Modal)
 
 ```html
 <!-- Add this to your <head> -->
@@ -16,9 +28,9 @@ Add this to any webpage:
 <div data-prompty-game></div>
 ```
 
-That's it! A beautiful game button will appear and open the game in a modal.
+This creates a beautiful button that opens the game in a modal.
 
-## 🎯 Option 2: Custom Button
+## 🎮 Option 3: Custom Button
 
 ```html
 <script src="https://app.promptreviews.app/prompty-power-game/game-embed.js"></script>
@@ -28,7 +40,7 @@ That's it! A beautiful game button will appear and open the game in a modal.
 </button>
 ```
 
-## 📦 Option 3: Direct iframe Embed
+## 📦 Option 4: Simple iframe (No Script Needed)
 
 ```html
 <iframe 
