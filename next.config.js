@@ -103,8 +103,37 @@ const nextConfig = {
   // Headers for performance and caching
   async headers() {
     return [
+      // Game files should allow iframe embedding (no X-Frame-Options = allows all)
       {
-        source: '/(.*)',
+        source: '/prompty-power-game/(.*)',
+        headers: [
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'X-XSS-Protection',
+            value: '1; mode=block',
+          },
+        ],
+      },
+      // Emoji widget should allow iframe embedding (no X-Frame-Options = allows all)
+      {
+        source: '/emoji-sentiment-embed.html',
+        headers: [
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'X-XSS-Protection',
+            value: '1; mode=block',
+          },
+        ],
+      },
+      // All other routes should deny iframe embedding
+      {
+        source: '/((?!prompty-power-game|emoji-sentiment-embed).*)',
         headers: [
           {
             key: 'X-Content-Type-Options',
@@ -140,33 +169,7 @@ const nextConfig = {
           },
         ],
       },
-      {
-        source: '/game',
-        headers: [
-          {
-            key: 'X-Frame-Options',
-            value: 'SAMEORIGIN',
-          },
-        ],
-      },
-      {
-        source: '/prompty-power-game/(.*)',
-        headers: [
-          {
-            key: 'X-Frame-Options',
-            value: 'SAMEORIGIN',
-          },
-        ],
-      },
-      {
-        source: '/emoji-sentiment-embed.html',
-        headers: [
-          {
-            key: 'X-Frame-Options',
-            value: 'SAMEORIGIN',
-          },
-        ],
-      },
+
     ];
   },
 };
