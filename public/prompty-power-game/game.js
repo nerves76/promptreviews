@@ -614,9 +614,11 @@ function update() {
         
 
         
-        // Movement - mouse takes priority over keyboard
-        if (window.mouseControl && window.mouseControl.enabled()) {
-            // Mouse movement - move Prompty towards mouse X position
+        // Movement - Shift key toggles between mouse movement and aiming
+        const isShiftPressed = window.keys['Shift'] || window.keys['ShiftLeft'] || window.keys['ShiftRight'];
+        
+        if (window.mouseControl && window.mouseControl.enabled() && isShiftPressed) {
+            // Mouse movement mode (when Shift is held)
             const targetX = window.mouseControl.x() - window.prompty.width / 2;
             const currentX = window.prompty.x;
             const distance = targetX - currentX;
@@ -630,7 +632,7 @@ function update() {
             // Keep Prompty within canvas bounds
             window.prompty.x = Math.max(0, Math.min(window.canvas.width - window.prompty.width, window.prompty.x));
         } else {
-            // Keyboard movement (arrow keys)
+            // Keyboard movement (arrow keys) - works when Shift not pressed or mouse not over canvas
             if (window.keys['ArrowLeft'] && window.prompty.x > 0) {
                 window.prompty.x -= 5;
             }

@@ -95,4 +95,35 @@ function drawDoorSign() {
         ctx.fillText('Sorry,', doorX + doorWidth / 2, doorY + 30);
         ctx.fillText('We\'re Closed', doorX + doorWidth / 2, doorY + 45);
     }
+}
+
+// Draw shift mode indicator
+function drawShiftModeIndicator() {
+    if (!window.ctx || !window.keys) return;
+    
+    const isShiftPressed = window.keys['Shift'] || window.keys['ShiftLeft'] || window.keys['ShiftRight'];
+    const mouseInCanvas = window.mouseControl && window.mouseControl.enabled();
+    
+    if (isShiftPressed && mouseInCanvas) {
+        // Draw indicator in top-left corner
+        window.ctx.save();
+        
+        // Background
+        window.ctx.fillStyle = 'rgba(100, 255, 100, 0.8)';
+        window.ctx.fillRect(10, 10, 150, 30);
+        
+        // Border
+        window.ctx.strokeStyle = '#00ff00';
+        window.ctx.lineWidth = 2;
+        window.ctx.strokeRect(10, 10, 150, 30);
+        
+        // Text
+        window.ctx.fillStyle = '#000000';
+        window.ctx.font = 'bold 12px Arial';
+        window.ctx.textAlign = 'center';
+        window.ctx.textBaseline = 'middle';
+        window.ctx.fillText('⇧ MOUSE MOVE MODE', 85, 25);
+        
+        window.ctx.restore();
+    }
 } 

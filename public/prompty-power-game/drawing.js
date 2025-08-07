@@ -1233,8 +1233,9 @@ function draw() {
         // Draw level complete overlay (if visible)
         drawLevelCompleteOverlay();
         
-        // Restore screen shake
+        // Draw shift mode indicator (after restoring screen shake)
         window.ctx.restore();
+        drawShiftModeIndicator();
         
     } catch (error) {
         console.error('Error in draw function:', error);
