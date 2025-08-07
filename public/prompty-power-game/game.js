@@ -767,8 +767,8 @@ function update() {
         spawnPowerUp();
     }
     
-    // Spawn sick emojis starting at level 3
-    if (window.level >= 3) {
+    // Spawn sick emojis starting at level 4
+    if (window.level >= 4) {
         if (!window.sickEmojiSpawnTimer) {
             window.sickEmojiSpawnTimer = 0;
         }
@@ -777,7 +777,7 @@ function update() {
         
         // Spawn a sick emoji every 10-15 seconds (600-900 frames at 60fps)
         const spawnInterval = 600 + Math.random() * 300;
-        const maxSickEmojis = Math.min(Math.floor(window.level / 3), 3); // Max 3 sick emojis
+        const maxSickEmojis = Math.min(Math.floor(window.level / 4), 3); // Max 3 sick emojis
         
         if (window.sickEmojiSpawnTimer >= spawnInterval && 
             (!window.sickEmojis || window.sickEmojis.length < maxSickEmojis)) {
