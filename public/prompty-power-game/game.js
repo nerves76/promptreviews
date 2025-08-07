@@ -1281,10 +1281,12 @@ function update() {
                             window.evilGoogleExec = null;
                             window.level++;
                             // Show transparent level complete message without stopping game
+                            console.log('🎯 Level 3 complete! Level:', window.level);
                             if (typeof window.showLevelCompleteOverlay === 'function') {
+                                console.log('✅ Calling showLevelCompleteOverlay');
                                 window.showLevelCompleteOverlay();
                             } else {
-                                console.error('showLevelCompleteOverlay is not a function:', typeof window.showLevelCompleteOverlay);
+                                console.error('❌ showLevelCompleteOverlay is not a function:', typeof window.showLevelCompleteOverlay);
                             }
                         }
                         
