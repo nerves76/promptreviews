@@ -529,8 +529,8 @@ function spawnLinkedInSpammer() {
             y: 100,
             width: 110, // Increased from 80 to match other bosses
             height: 130, // Increased from 80 to match other bosses
-            health: 15, // More health than Karen
-            maxHealth: 15,
+            health: 30, // Same health as Karen (easier to dodge projectiles)
+            maxHealth: 30,
             vx: 2,
             vy: 0,
             isDefeated: false,
