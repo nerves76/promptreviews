@@ -5,7 +5,7 @@ import { createClient, getUserOrMock } from "@/utils/supabaseClient";
 import React from "react";
 
 const supabase = createClient();
-import { useAuthGuard } from "@/utils/authGuard";
+// Removed useAuthGuard - authentication is handled by dashboard layout with AuthContext
 import Icon from "@/components/Icon";
 import QRCodeModal from "../components/QRCodeModal";
 import QuoteDisplay from "../components/QuoteDisplay";
