@@ -1513,9 +1513,40 @@ function update() {
                 arrow.y += arrow.vy;
                 arrow.life--;
                 
+                // Check collision with tables
+                const tables = [
+                    {x: 150, y: window.canvas.height - 280, width: 80, height: 60},
+                    {x: 550, y: window.canvas.height - 280, width: 80, height: 60},
+                    {x: 350, y: window.canvas.height - 330, width: 80, height: 60}
+                ];
+                
+                let hitTable = false;
+                for (let table of tables) {
+                    if (arrow.x < table.x + table.width &&
+                        arrow.x + arrow.width > table.x &&
+                        arrow.y < table.y + table.height &&
+                        arrow.y + arrow.height > table.y) {
+                        
+                        // Arrow hits table - remove it
+                        window.evilGoogleArrows.splice(i, 1);
+                        hitTable = true;
+                        
+                        // Play impact sound
+                        playSound('bounce');
+                        
+                        // Create visual feedback
+                        createFloatingText(arrow.x, arrow.y, 'BLOCKED!', '#ffaa00');
+                        
+                        break;
+                    }
+                }
+                
+                if (hitTable) continue; // Skip to next arrow if this one hit a table
+                
                 // Remove arrows that are off screen or expired
                 if (arrow.y > window.canvas.height || arrow.life <= 0) {
                     window.evilGoogleArrows.splice(i, 1);
+                    continue;
                 }
                 
                 // Check collision with Prompty
