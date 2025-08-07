@@ -98,14 +98,15 @@ export async function middleware(req: NextRequest) {
       return res;
     }
 
-    // TEMPORARY: Log but don't redirect to debug the issue
+    // Redirect to sign-in if no session (API routes only now)
     if (!hasSession) {
-      console.log('Middleware: Would redirect to sign-in but temporarily disabled for debugging', {
+      console.log('Middleware: No session found for API route, redirecting to sign-in', {
         pathname: req.nextUrl.pathname,
         hasSession,
         error: error?.message
       });
-      // TEMPORARILY DISABLED: return NextResponse.redirect(signInUrl);
+      const signInUrl = new URL('/auth/sign-in', req.url);
+      return NextResponse.redirect(signInUrl);
     }
 
     return res;
@@ -126,7 +127,7 @@ export async function middleware(req: NextRequest) {
 // Configure which routes to run middleware on
 export const config = {
   matcher: [
-    '/dashboard/:path*',
+    // REMOVED: '/dashboard/:path*' - Now handled by client-side AuthContext
     // Only run on specific API routes that need authentication
     '/api/admin/:path*',
     '/api/cancel-account',
