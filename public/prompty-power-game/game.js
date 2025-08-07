@@ -242,6 +242,33 @@ function init() {
             window.keys[e.key] = false;
         });
         
+        // Mouse movement support
+        let mouseX = 0;
+        let mouseY = 0;
+        let isMouseControlEnabled = false;
+        
+        // Track mouse position on canvas
+        window.canvas.addEventListener('mousemove', (e) => {
+            const rect = window.canvas.getBoundingClientRect();
+            mouseX = e.clientX - rect.left;
+            mouseY = e.clientY - rect.top;
+            
+            // Enable mouse control when mouse moves over canvas
+            isMouseControlEnabled = true;
+        });
+        
+        // Disable mouse control when mouse leaves canvas
+        window.canvas.addEventListener('mouseleave', () => {
+            isMouseControlEnabled = false;
+        });
+        
+        // Store mouse control state globally
+        window.mouseControl = {
+            enabled: () => isMouseControlEnabled,
+            x: () => mouseX,
+            y: () => mouseY
+        };
+        
         console.log('Game initialized successfully');
         
     } catch (error) {
@@ -587,12 +614,29 @@ function update() {
         
 
         
-        // Simple movement
-        if (window.keys['ArrowLeft'] && window.prompty.x > 0) {
-            window.prompty.x -= 5;
-        }
-        if (window.keys['ArrowRight'] && window.prompty.x < window.canvas.width - window.prompty.width) {
-            window.prompty.x += 5;
+        // Movement - mouse takes priority over keyboard
+        if (window.mouseControl && window.mouseControl.enabled()) {
+            // Mouse movement - move Prompty towards mouse X position
+            const targetX = window.mouseControl.x() - window.prompty.width / 2;
+            const currentX = window.prompty.x;
+            const distance = targetX - currentX;
+            
+            // Smooth movement towards mouse position
+            if (Math.abs(distance) > 3) { // Dead zone to prevent jittering
+                const moveSpeed = Math.min(Math.abs(distance) * 0.1, 8); // Proportional speed, max 8
+                window.prompty.x += distance > 0 ? moveSpeed : -moveSpeed;
+            }
+            
+            // Keep Prompty within canvas bounds
+            window.prompty.x = Math.max(0, Math.min(window.canvas.width - window.prompty.width, window.prompty.x));
+        } else {
+            // Keyboard movement (arrow keys)
+            if (window.keys['ArrowLeft'] && window.prompty.x > 0) {
+                window.prompty.x -= 5;
+            }
+            if (window.keys['ArrowRight'] && window.prompty.x < window.canvas.width - window.prompty.width) {
+                window.prompty.x += 5;
+            }
         }
         
         // Update physics
