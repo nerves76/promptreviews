@@ -590,4 +590,99 @@ function spawnEmailIcon(x, y, vx, vy) {
     } catch (error) {
         console.error('Error spawning email icon:', error);
     }
+}
+
+// Spawn sick emoji that shoots virus sneezes
+function spawnSickEmoji() {
+    try {
+        // Random spawn position along the top or sides
+        let x, y, vx, vy;
+        const spawnSide = Math.random();
+        
+        if (spawnSide < 0.33) {
+            // Top
+            x = Math.random() * (window.canvas.width - 60);
+            y = -60;
+            vx = (Math.random() - 0.5) * 0.5;
+            vy = 0.3 + Math.random() * 0.2;
+        } else if (spawnSide < 0.66) {
+            // Left side
+            x = -60;
+            y = Math.random() * (window.canvas.height - 200);
+            vx = 0.3 + Math.random() * 0.2;
+            vy = (Math.random() - 0.5) * 0.5;
+        } else {
+            // Right side
+            x = window.canvas.width + 60;
+            y = Math.random() * (window.canvas.height - 200);
+            vx = -(0.3 + Math.random() * 0.2);
+            vy = (Math.random() - 0.5) * 0.5;
+        }
+
+        const sickEmoji = {
+            x: x,
+            y: y,
+            width: 50,
+            height: 50,
+            vx: vx,
+            vy: vy,
+            hits: 0,
+            maxHits: 10, // Requires 10 hits to defeat
+            emoji: '🤢', // Sick green emoji
+            lastSneezeTime: 0,
+            sneezeInterval: 120, // Sneeze every 2 seconds (120 frames at 60fps)
+            isAlive: true,
+            type: 'sick'
+        };
+
+        if (!window.sickEmojis) {
+            window.sickEmojis = [];
+        }
+        window.sickEmojis.push(sickEmoji);
+        
+        console.log('Sick emoji spawned at level:', window.level);
+    } catch (error) {
+        console.error('Error spawning sick emoji:', error);
+    }
+}
+
+// Create virus sneeze projectile
+function createVirusSneezeAt(x, y, targetX, targetY) {
+    try {
+        // Calculate direction vector
+        const dx = targetX - x;
+        const dy = targetY - y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        // Normalize and set speed
+        const speed = 2.5;
+        const vx = (dx / distance) * speed;
+        const vy = (dy / distance) * speed;
+
+        const virusSneezeProjectile = {
+            x: x,
+            y: y,
+            width: 20,
+            height: 20,
+            vx: vx,
+            vy: vy,
+            type: 'virus',
+            lifeTime: 300, // Lives for 5 seconds (300 frames at 60fps)
+            currentLife: 0
+        };
+
+        if (!window.virusProjectiles) {
+            window.virusProjectiles = [];
+        }
+        window.virusProjectiles.push(virusSneezeProjectile);
+        
+        // Play sneeze sound effect
+        if (window.playSound) {
+            window.playSound('bounce'); // Using bounce sound for now, can create specific sneeze sound later
+        }
+        
+        console.log('Virus sneeze created towards Prompty');
+    } catch (error) {
+        console.error('Error creating virus sneeze:', error);
+    }
 } 

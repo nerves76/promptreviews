@@ -306,4 +306,127 @@ function updateCustomers() {
             }
         }
     }
+}
+
+// Update sick emojis
+function updateSickEmojis() {
+    if (!window.sickEmojis) return;
+    
+    for (let i = window.sickEmojis.length - 1; i >= 0; i--) {
+        const sickEmoji = window.sickEmojis[i];
+        
+        // Update position
+        sickEmoji.x += sickEmoji.vx;
+        sickEmoji.y += sickEmoji.vy;
+        
+        // Bounce off walls
+        if (sickEmoji.x <= 0 || sickEmoji.x >= window.canvas.width - sickEmoji.width) {
+            sickEmoji.vx = -sickEmoji.vx;
+            sickEmoji.x = Math.max(0, Math.min(window.canvas.width - sickEmoji.width, sickEmoji.x));
+        }
+        if (sickEmoji.y <= 0 || sickEmoji.y >= window.canvas.height - sickEmoji.height) {
+            sickEmoji.vy = -sickEmoji.vy;
+            sickEmoji.y = Math.max(0, Math.min(window.canvas.height - sickEmoji.height, sickEmoji.y));
+        }
+        
+        // Sneeze at Prompty
+        sickEmoji.lastSneezeTime++;
+        if (sickEmoji.lastSneezeTime >= sickEmoji.sneezeInterval) {
+            // Create virus sneeze towards Prompty's current position
+            createVirusSneezeAt(
+                sickEmoji.x + sickEmoji.width / 2,
+                sickEmoji.y + sickEmoji.height / 2,
+                window.prompty.x + window.prompty.width / 2,
+                window.prompty.y + window.prompty.height / 2
+            );
+            sickEmoji.lastSneezeTime = 0;
+        }
+        
+        // Check collision with Prompty's hearts
+        for (let j = window.hearts.length - 1; j >= 0; j--) {
+            const heart = window.hearts[j];
+            if (heart.x < sickEmoji.x + sickEmoji.width &&
+                heart.x + heart.width > sickEmoji.x &&
+                heart.y < sickEmoji.y + sickEmoji.height &&
+                heart.y + heart.height > sickEmoji.y) {
+                
+                // Hit the sick emoji
+                sickEmoji.hits++;
+                window.hearts.splice(j, 1);
+                
+                // Create floating text showing hits remaining
+                const hitsRemaining = sickEmoji.maxHits - sickEmoji.hits;
+                createFloatingText(sickEmoji.x, sickEmoji.y, `${hitsRemaining} hits left!`, '#ff6b6b');
+                
+                // Play hit sound
+                if (window.playSound) {
+                    window.playSound('hit');
+                }
+                
+                // Remove if defeated
+                if (sickEmoji.hits >= sickEmoji.maxHits) {
+                    // Award points for defeating sick emoji
+                    window.score += 500;
+                    createFloatingText(sickEmoji.x, sickEmoji.y, '+500 VIRUS DEFEATED!', '#00ff00');
+                    
+                    // Play defeat sound
+                    if (window.playSound) {
+                        window.playSound('powerUp');
+                    }
+                    
+                    window.sickEmojis.splice(i, 1);
+                }
+                break;
+            }
+        }
+    }
+}
+
+// Update virus projectiles
+function updateVirusProjectiles() {
+    if (!window.virusProjectiles) return;
+    
+    for (let i = window.virusProjectiles.length - 1; i >= 0; i--) {
+        const virus = window.virusProjectiles[i];
+        
+        // Update position
+        virus.x += virus.vx;
+        virus.y += virus.vy;
+        virus.currentLife++;
+        
+        // Remove if off screen or expired
+        if (virus.x < -virus.width || virus.x > window.canvas.width ||
+            virus.y < -virus.height || virus.y > window.canvas.height ||
+            virus.currentLife >= virus.lifeTime) {
+            window.virusProjectiles.splice(i, 1);
+            continue;
+        }
+        
+        // Check collision with Prompty
+        if (virus.x < window.prompty.x + window.prompty.width &&
+            virus.x + virus.width > window.prompty.x &&
+            virus.y < window.prompty.y + window.prompty.height &&
+            virus.y + virus.height > window.prompty.y) {
+            
+            // Hit Prompty with virus
+            window.lives--;
+            window.virusProjectiles.splice(i, 1);
+            
+            // Create floating text
+            createFloatingText(window.prompty.x, window.prompty.y, 'INFECTED!', '#ff0000');
+            
+            // Visual hurt effect
+            window.promptyHurtTimer = 30;
+            
+            // Play hurt sound
+            if (window.playSound) {
+                window.playSound('hurt');
+            }
+            
+            if (window.lives <= 0) {
+                gameOver();
+                return;
+            }
+        }
+    }
 } 
