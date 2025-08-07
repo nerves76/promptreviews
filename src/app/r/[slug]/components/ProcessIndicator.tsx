@@ -14,7 +14,7 @@ export default function ProcessIndicator({ primaryColor = "#4F46E5", cardBackgro
   
   const steps = [
     "Create review",
-    "Click \"Copy & submit\"", 
+    "Copy & submit", 
     "Paste & post"
   ];
 
