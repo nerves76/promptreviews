@@ -82,8 +82,11 @@ function showLevelComplete() {
 // Show level complete overlay without stopping gameplay
 window.showLevelCompleteOverlay = function showLevelCompleteOverlay() {
     try {
+        console.log('🎯 showLevelCompleteOverlay called! Level:', window.level);
+        
         // Initialize overlay variables if they don't exist
         if (!window.levelCompleteOverlay) {
+            console.log('🎯 Creating levelCompleteOverlay object');
             window.levelCompleteOverlay = {
                 visible: false,
                 timer: 0,
@@ -97,16 +100,19 @@ window.showLevelCompleteOverlay = function showLevelCompleteOverlay() {
         window.levelCompleteOverlay.timer = 0;
         window.levelCompleteOverlay.alpha = 0.9; // Semi-transparent
         
+        console.log('🎯 Level complete overlay set to visible');
+        
         // Auto-hide after duration
         setTimeout(() => {
             if (window.levelCompleteOverlay) {
                 window.levelCompleteOverlay.visible = false;
+                console.log('🎯 Level complete overlay hidden');
             }
         }, 3000); // Hide after 3 seconds
         
         // Level complete overlay setup completed
     } catch (error) {
-        console.error('Error in showLevelCompleteOverlay:', error);
+        console.error('❌ Error in showLevelCompleteOverlay:', error);
     }
 };
 
