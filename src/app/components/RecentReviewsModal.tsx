@@ -30,6 +30,7 @@ interface RecentReviewsModalProps {
     secondary_color?: string;
     primary_font?: string;
     business_name?: string;
+    card_bg?: string;
   };
 }
 
@@ -98,7 +99,10 @@ export default function RecentReviewsModal({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-fadein">
-      <div className="bg-white rounded-lg max-w-2xl w-full mx-4 max-h-[90vh] overflow-hidden relative animate-slideup shadow-xl">
+      <div 
+        className="rounded-lg max-w-2xl w-full mx-4 max-h-[90vh] overflow-hidden relative animate-slideup shadow-xl"
+        style={{ backgroundColor: businessProfile?.card_bg || "#FFFFFF" }}
+      >
         {/* Standardized red X close button */}
         <button
           className="absolute top-3 right-3 bg-white border border-gray-200 rounded-full shadow-lg hover:shadow-xl transition-shadow duration-200 flex items-center justify-center hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 z-50"
@@ -167,42 +171,21 @@ export default function RecentReviewsModal({
                   key={index}
                   className="bg-gray-50 rounded-lg p-4 border border-gray-200"
                 >
-                  {/* Review Header */}
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center space-x-3">
-                      {/* Initials Circle */}
-                      <div 
-                        className="w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold text-sm"
-                        style={{ backgroundColor: businessProfile?.primary_color || "#4F46E5" }}
-                      >
-                        {review.initials}
-                      </div>
-                      
-                      {/* Platform and Date */}
-                      <div className="flex items-center space-x-2">
-                        <Icon 
-                          name={getPlatformIcon(review.platform)}
-                          className="w-4 h-4 text-gray-600"
-                          size={16}
-                        />
-                        <span className="text-sm text-gray-600 capitalize">
-                          {review.platform}
-                        </span>
-                        <span className="text-sm text-gray-400">•</span>
-                        <span className="text-sm text-gray-600">
-                          {review.date}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
                   {/* Review Content */}
                   <p 
-                    className="text-gray-800 leading-relaxed"
+                    className="text-gray-800 leading-relaxed mb-3"
                     style={{ fontFamily: businessProfile?.primary_font || "Inter" }}
                   >
                     "{review.content}"
                   </p>
+
+                  {/* Attribution at bottom */}
+                  <div className="flex items-center justify-between text-sm text-gray-600">
+                    <div className="flex items-center space-x-2">
+                      <span className="font-medium">{review.initials} via {review.platform}</span>
+                    </div>
+                    <span className="text-gray-400">{review.date}</span>
+                  </div>
                 </div>
               ))}
             </div>
