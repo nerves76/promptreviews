@@ -200,21 +200,46 @@
         // Merge options with defaults
         const config = Object.assign({}, GAME_CONFIG, options);
         
-        // Create button
-        const button = document.createElement('button');
-        button.className = 'prompty-game-embed-btn';
-        button.textContent = config.buttonText;
-        button.onclick = window.openPromptyGame;
-        
-        // Add to target element
-        if (typeof targetElement === 'string') {
-            targetElement = document.querySelector(targetElement);
-        }
-        
-        if (targetElement) {
-            targetElement.appendChild(button);
+        // Check if direct embed is requested
+        if (options.direct === true) {
+            // Create direct iframe embed
+            const iframe = document.createElement('iframe');
+            iframe.src = `${config.baseUrl}/prompty-power-game/index.html`;
+            iframe.width = config.width;
+            iframe.height = config.height;
+            iframe.frameBorder = '0';
+            iframe.style.border = 'none';
+            iframe.style.borderRadius = '8px';
+            iframe.style.boxShadow = '0 4px 20px rgba(0,0,0,0.1)';
+            iframe.title = 'Get Found Online: The Game';
+            
+            // Add to target element
+            if (typeof targetElement === 'string') {
+                targetElement = document.querySelector(targetElement);
+            }
+            
+            if (targetElement) {
+                targetElement.appendChild(iframe);
+            } else {
+                console.error('Prompty Game Embed: Target element not found');
+            }
         } else {
-            console.error('Prompty Game Embed: Target element not found');
+            // Create button (existing behavior)
+            const button = document.createElement('button');
+            button.className = 'prompty-game-embed-btn';
+            button.textContent = config.buttonText;
+            button.onclick = window.openPromptyGame;
+            
+            // Add to target element
+            if (typeof targetElement === 'string') {
+                targetElement = document.querySelector(targetElement);
+            }
+            
+            if (targetElement) {
+                targetElement.appendChild(button);
+            } else {
+                console.error('Prompty Game Embed: Target element not found');
+            }
         }
     };
     
@@ -226,7 +251,9 @@
         // Auto-embed if there's a target element with data attribute
         const autoTarget = document.querySelector('[data-prompty-game]');
         if (autoTarget) {
-            embedPromptyGame(autoTarget);
+            // Check if direct embed is requested via data attribute
+            const isDirect = autoTarget.hasAttribute('data-prompty-direct');
+            embedPromptyGame(autoTarget, { direct: isDirect });
         }
     }
     
@@ -242,20 +269,29 @@
 // Usage Examples:
 /*
 
-// Method 1: Auto-embed (just add data attribute to any element)
+// Method 1: Auto-embed button (opens modal)
 <div data-prompty-game></div>
 
-// Method 2: Manual embed
+// Method 2: Auto-embed direct iframe
+<div data-prompty-game data-prompty-direct></div>
+
+// Method 3: Manual embed button
 <div id="game-container"></div>
 <script>
     embedPromptyGame('#game-container');
 </script>
 
-// Method 3: Custom button
+// Method 4: Manual embed direct iframe
+<div id="game-container"></div>
+<script>
+    embedPromptyGame('#game-container', { direct: true });
+</script>
+
+// Method 5: Custom button
 <button onclick="openPromptyGame()">Play Our Game!</button>
 
-// Method 4: Inline iframe (always visible)
-    <iframe src="https://promptreviews.app/prompty-power-game/index.html" 
-        width="900" height="750" frameborder="0"></iframe>
+// Method 6: Simple iframe (no script needed)
+<iframe src="https://app.promptreviews.app/prompty-power-game/index.html" 
+    width="900" height="750" frameborder="0"></iframe>
 
 */
