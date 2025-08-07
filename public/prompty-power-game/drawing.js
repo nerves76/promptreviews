@@ -848,9 +848,9 @@ function drawKarenSpeechBubble() {
         window.ctx.fill();
         window.ctx.stroke();
         
-        // Speech bubble text - centered in the bubble
+        // Speech bubble text - centered in the bubble (bigger)
         window.ctx.fillStyle = '#000000';
-        window.ctx.font = 'bold 14px Arial';
+        window.ctx.font = 'bold 18px Arial';
         window.ctx.textAlign = 'center';
         window.ctx.textBaseline = 'middle';
         
@@ -977,6 +977,12 @@ function drawLinkedInSpammerSpeechBubble() {
         const quote = spammer.quotes[spammer.currentQuote];
         const maxLength = 35; // Increased for wider bubble
         
+        // Speech bubble text (bigger)
+        window.ctx.fillStyle = '#000000';
+        window.ctx.font = 'bold 16px Arial';
+        window.ctx.textAlign = 'center';
+        window.ctx.textBaseline = 'middle';
+        
         if (quote && quote.length <= maxLength) {
             window.ctx.fillText(quote, spammer.x + spammer.width/2, spammer.y - 45);
         } else if (quote) {
@@ -1063,11 +1069,11 @@ function drawLevelCompleteOverlay() {
         const centerX = window.canvas.width / 2;
         const centerY = window.canvas.height / 2;
         
-        // Main level text
+        // Main level text (bigger and bolder)
         window.ctx.fillText(`Level ${window.level || '?'} Complete!`, centerX, centerY - 40);
         
-        // Rankings improving text
-        window.ctx.font = 'bold 32px Arial';
+        // Rankings improving text (bigger)
+        window.ctx.font = 'bold 40px Arial';
         window.ctx.fillStyle = 'gold';
         window.ctx.fillText('Your rankings are improving!', centerX, centerY + 20);
         
