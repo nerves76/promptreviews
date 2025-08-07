@@ -330,55 +330,47 @@ function drawEmailIcons() {
     
     for (let emailIcon of window.emailIcons) {
         try {
-            // Draw email icon
-            if (emailIcon.icon && emailIcon.icon.complete) {
-                window.ctx.drawImage(emailIcon.icon, emailIcon.x, emailIcon.y, emailIcon.width, emailIcon.height);
-            } else {
-                // Draw a better email envelope
-                const centerX = emailIcon.x + emailIcon.width / 2;
-                const centerY = emailIcon.y + emailIcon.height / 2;
-                const envelopeWidth = emailIcon.width * 0.9;
-                const envelopeHeight = emailIcon.height * 0.7;
-                
-                // Main envelope body (white with border)
-                window.ctx.fillStyle = '#ffffff'; // White envelope
-                window.ctx.strokeStyle = '#666666';
-                window.ctx.lineWidth = 2;
-                window.ctx.fillRect(centerX - envelopeWidth/2, centerY - envelopeHeight/2, envelopeWidth, envelopeHeight);
-                window.ctx.strokeRect(centerX - envelopeWidth/2, centerY - envelopeHeight/2, envelopeWidth, envelopeHeight);
-                
-                // Envelope flap (folded triangle at top)
-                window.ctx.fillStyle = '#f0f0f0'; // Light gray flap
-                window.ctx.strokeStyle = '#666666';
-                window.ctx.lineWidth = 2;
-                window.ctx.beginPath();
-                window.ctx.moveTo(centerX - envelopeWidth/2, centerY - envelopeHeight/2); // Top left
-                window.ctx.lineTo(centerX + envelopeWidth/2, centerY - envelopeHeight/2); // Top right
-                window.ctx.lineTo(centerX, centerY - envelopeHeight/2 + envelopeHeight * 0.35); // Fold point
-                window.ctx.closePath();
-                window.ctx.fill();
-                window.ctx.stroke();
-                
-                // Envelope lines (content lines)
-                window.ctx.strokeStyle = '#cccccc';
-                window.ctx.lineWidth = 1.5;
-                const lineY1 = centerY - envelopeHeight/2 + envelopeHeight * 0.55;
-                const lineY2 = centerY - envelopeHeight/2 + envelopeHeight * 0.7;
-                const lineMargin = envelopeWidth * 0.2;
-                
-                window.ctx.beginPath();
-                window.ctx.moveTo(centerX - envelopeWidth/2 + lineMargin, lineY1);
-                window.ctx.lineTo(centerX + envelopeWidth/2 - lineMargin, lineY1);
-                window.ctx.moveTo(centerX - envelopeWidth/2 + lineMargin, lineY2);
-                window.ctx.lineTo(centerX + envelopeWidth/2 - lineMargin * 1.5, lineY2);
-                window.ctx.stroke();
-                
-                // "SPAM" text (larger and more visible)
-                window.ctx.font = 'bold 10px Arial';
-                window.ctx.fillStyle = '#ff0000'; // Bright red spam indicator
-                window.ctx.textAlign = 'center';
-                window.ctx.fillText('SPAM', centerX, centerY + envelopeHeight/2 - 2);
-            }
+            // Draw email icon using FontAwesome SVG path
+            const centerX = emailIcon.x + emailIcon.width / 2;
+            const centerY = emailIcon.y + emailIcon.height / 2;
+            const scale = Math.min(emailIcon.width, emailIcon.height) / 640; // Scale to fit
+            const offsetX = centerX - (640 * scale) / 2;
+            const offsetY = centerY - (640 * scale) / 2;
+            
+            // Set white color for the email icon
+            window.ctx.fillStyle = '#ffffff';
+            window.ctx.strokeStyle = '#ffffff';
+            window.ctx.lineWidth = 1;
+            
+            // Draw the email SVG path
+            window.ctx.save();
+            window.ctx.translate(offsetX, offsetY);
+            window.ctx.scale(scale, scale);
+            
+            // FontAwesome email icon path
+            window.ctx.beginPath();
+            // Main envelope body
+            window.ctx.moveTo(112, 128);
+            window.ctx.lineTo(528, 128);
+            window.ctx.lineTo(528, 176);
+            window.ctx.lineTo(576, 176);
+            window.ctx.lineTo(576, 448);
+            window.ctx.lineTo(128, 448);
+            window.ctx.lineTo(64, 448);
+            window.ctx.lineTo(64, 176);
+            window.ctx.lineTo(112, 176);
+            window.ctx.closePath();
+            
+            // Envelope flap
+            window.ctx.moveTo(64, 260);
+            window.ctx.lineTo(262.4, 408.8);
+            window.ctx.lineTo(377.6, 408.8);
+            window.ctx.lineTo(576, 260);
+            window.ctx.closePath();
+            
+            window.ctx.fill();
+            window.ctx.restore();
+            
         } catch (error) {
             console.error('Error drawing email icon:', error);
         }
