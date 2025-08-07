@@ -39,7 +39,7 @@ const melodies = {
     victory: [523, 659, 784, 1047, 1319, 1568, 1319, 1047, 784, 659, 523, 659, 784, 1047], // Celebratory fanfare
     bossHit: [110, 87, 65, 49, 220, 175, 131, 98], // Bass + treble staccato crash (less static, more bass)
     virusWarning: [220, 196, 175, 165, 147, 131, 117, 110, 98], // Longer static warning (rapid descending)
-    sadGameOver: [440, 440, 392, 350, 350, 294, 262, 262, 234, 196, 174, 156, 130, 130] // Enhanced sad descending with repeats and character
+    sadGameOver: [440, 440, 392, 350, 350, 294, 262, 262, 234, 196, 174, 156] // Enhanced sad descending with repeats and character
 };
 
 // Initialize audio context on first user interaction
@@ -102,9 +102,9 @@ function playMelody(melodyName) {
         noteDuration = 0.05; // Slightly longer for warning effect
         noteGap = 0.01; // Tiny gaps for static-like effect
     } else if (melodyName === 'sadGameOver') {
-        // Custom timing for enhanced game over melody (much faster)
-        const customTiming = [0.5, 0.15, 0.3, 0.25, 0.2, 0.3, 0.25, 0.15, 0.3, 0.25, 0.2, 0.3, 0.4, 0.2]; // Much faster timing variation
-        const customGaps = [0.1, 0.03, 0.06, 0.03, 0.08, 0.06, 0.03, 0.1, 0.06, 0.03, 0.08, 0.06, 0.03, 0.2]; // Much shorter gaps for snappy rhythm
+        // Custom timing for enhanced game over melody (much faster, shorter)
+        const customTiming = [0.5, 0.15, 0.3, 0.25, 0.2, 0.3, 0.25, 0.15, 0.3, 0.25, 0.2, 0.3]; // Much faster timing variation
+        const customGaps = [0.1, 0.03, 0.06, 0.03, 0.08, 0.06, 0.03, 0.1, 0.06, 0.03, 0.08, 0.06]; // Much shorter gaps for snappy rhythm
         
         // Play with custom timing instead of uniform timing
         frequencies.forEach((frequency, index) => {

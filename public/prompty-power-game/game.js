@@ -796,9 +796,9 @@ function update() {
         } else {
             window.sickEmojiSpawnTimer++;
             
-            // Spawn a sick emoji every 15-20 seconds (900-1200 frames at 60fps) - increased interval
-            const spawnInterval = 900 + Math.random() * 300;
-            const maxSickEmojis = Math.min(Math.floor(window.level / 4), 2); // Reduced max from 3 to 2
+            // Spawn a sick emoji every 25-35 seconds (1500-2100 frames at 60fps) - much longer interval
+            const spawnInterval = 1500 + Math.random() * 600;
+            const maxSickEmojis = Math.min(Math.floor(window.level / 4), 1); // Reduced max to 1
             
             if (window.sickEmojiSpawnTimer >= spawnInterval && 
                 (!window.sickEmojis || window.sickEmojis.length < maxSickEmojis)) {
