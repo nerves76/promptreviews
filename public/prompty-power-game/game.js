@@ -1099,8 +1099,8 @@ function update() {
     if (window.gameState === 'playing' && window.levelStartTime > 0) {
         const timerElement = document.getElementById('timer');
         if (timerElement) {
-                    // Show customers happyed (no fixed total since customers spawn continuously)
-        timerElement.textContent = `${window.customersConverted} customers happyed`;
+                    // Show customer reviews (no fixed total since customers spawn continuously)
+        timerElement.textContent = `${window.customersConverted} customer reviews`;
         }
     }
     
