@@ -1719,6 +1719,54 @@ function update() {
                 emailIcon.bounces++;
             }
             
+            // Check collision with tables
+            const tables = [
+                {x: 150, y: window.canvas.height - 280, width: 80, height: 60},
+                {x: 550, y: window.canvas.height - 280, width: 80, height: 60},
+                {x: 350, y: window.canvas.height - 330, width: 80, height: 60}
+            ];
+            
+            for (let table of tables) {
+                if (emailIcon.x < table.x + table.width &&
+                    emailIcon.x + emailIcon.width > table.x &&
+                    emailIcon.y < table.y + table.height &&
+                    emailIcon.y + emailIcon.height > table.y) {
+                    
+                    // Calculate overlap distances for accurate collision response
+                    const overlapLeft = (emailIcon.x + emailIcon.width) - table.x;
+                    const overlapRight = (table.x + table.width) - emailIcon.x;
+                    const overlapTop = (emailIcon.y + emailIcon.height) - table.y;
+                    const overlapBottom = (table.y + table.height) - emailIcon.y;
+                    
+                    // Find the smallest overlap to determine collision side
+                    const minOverlap = Math.min(overlapLeft, overlapRight, overlapTop, overlapBottom);
+                    
+                    // Bounce based on the smallest overlap
+                    if (minOverlap === overlapLeft && emailIcon.vx > 0) {
+                        emailIcon.vx = -Math.abs(emailIcon.vx) * 0.8;
+                        emailIcon.x = table.x - emailIcon.width - 1;
+                        emailIcon.bounces++;
+                        playSound('bounce');
+                    } else if (minOverlap === overlapRight && emailIcon.vx < 0) {
+                        emailIcon.vx = Math.abs(emailIcon.vx) * 0.8;
+                        emailIcon.x = table.x + table.width + 1;
+                        emailIcon.bounces++;
+                        playSound('bounce');
+                    } else if (minOverlap === overlapTop && emailIcon.vy > 0) {
+                        emailIcon.vy = -Math.abs(emailIcon.vy) * 0.8;
+                        emailIcon.y = table.y - emailIcon.height - 1;
+                        emailIcon.bounces++;
+                        playSound('bounce');
+                    } else if (minOverlap === overlapBottom && emailIcon.vy < 0) {
+                        emailIcon.vy = Math.abs(emailIcon.vy) * 0.8;
+                        emailIcon.y = table.y + table.height + 1;
+                        emailIcon.bounces++;
+                        playSound('bounce');
+                    }
+                    break;
+                }
+            }
+            
             // Remove email icon if too many bounces or off screen
             if (emailIcon.bounces >= emailIcon.maxBounces || emailIcon.y > window.canvas.height) {
                 window.emailIcons.splice(i, 1);

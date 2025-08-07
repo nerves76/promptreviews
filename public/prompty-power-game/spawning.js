@@ -216,7 +216,7 @@ function createThreeStarRow(x, y) {
 
 // Create 5 gold stars in a row for Karen defeat
 function createFiveStarRow(x, y) {
-    const starSpacing = 50; // More space between stars for better visibility
+    const starSpacing = 25; // Closer spacing for tighter star formation
     const startX = x - (starSpacing * 2); // Center the row
     
     for (let i = 0; i < 5; i++) {

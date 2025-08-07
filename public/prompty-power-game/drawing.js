@@ -334,15 +334,48 @@ function drawEmailIcons() {
             if (emailIcon.icon && emailIcon.icon.complete) {
                 window.ctx.drawImage(emailIcon.icon, emailIcon.x, emailIcon.y, emailIcon.width, emailIcon.height);
             } else {
-                // Fallback to drawing text emoji if image not loaded
-                window.ctx.fillStyle = '#007CC7'; // LinkedIn blue
-                window.ctx.fillRect(emailIcon.x, emailIcon.y, emailIcon.width, emailIcon.height);
+                // Draw a proper email envelope
+                const centerX = emailIcon.x + emailIcon.width / 2;
+                const centerY = emailIcon.y + emailIcon.height / 2;
+                const envelopeWidth = emailIcon.width * 0.8;
+                const envelopeHeight = emailIcon.height * 0.6;
                 
-                // Draw envelope emoji as fallback
-                window.ctx.font = '16px Arial';
-                window.ctx.fillStyle = 'white';
+                // Main envelope body
+                window.ctx.fillStyle = '#f8f8f8'; // Light gray envelope
+                window.ctx.strokeStyle = '#333';
+                window.ctx.lineWidth = 1;
+                window.ctx.fillRect(centerX - envelopeWidth/2, centerY - envelopeHeight/2, envelopeWidth, envelopeHeight);
+                window.ctx.strokeRect(centerX - envelopeWidth/2, centerY - envelopeHeight/2, envelopeWidth, envelopeHeight);
+                
+                // Envelope flap (triangle at top)
+                window.ctx.fillStyle = '#e0e0e0'; // Slightly darker gray for flap
+                window.ctx.beginPath();
+                window.ctx.moveTo(centerX - envelopeWidth/2, centerY - envelopeHeight/2); // Top left
+                window.ctx.lineTo(centerX + envelopeWidth/2, centerY - envelopeHeight/2); // Top right
+                window.ctx.lineTo(centerX, centerY - envelopeHeight/2 + envelopeHeight * 0.4); // Center point down
+                window.ctx.closePath();
+                window.ctx.fill();
+                window.ctx.stroke();
+                
+                // Envelope lines (content lines)
+                window.ctx.strokeStyle = '#ccc';
+                window.ctx.lineWidth = 0.5;
+                const lineY1 = centerY - envelopeHeight/2 + envelopeHeight * 0.6;
+                const lineY2 = centerY - envelopeHeight/2 + envelopeHeight * 0.75;
+                const lineMargin = envelopeWidth * 0.15;
+                
+                window.ctx.beginPath();
+                window.ctx.moveTo(centerX - envelopeWidth/2 + lineMargin, lineY1);
+                window.ctx.lineTo(centerX + envelopeWidth/2 - lineMargin, lineY1);
+                window.ctx.moveTo(centerX - envelopeWidth/2 + lineMargin, lineY2);
+                window.ctx.lineTo(centerX + envelopeWidth/2 - lineMargin * 2, lineY2);
+                window.ctx.stroke();
+                
+                // Small "SPAM" text
+                window.ctx.font = 'bold 8px Arial';
+                window.ctx.fillStyle = '#d32f2f'; // Red spam indicator
                 window.ctx.textAlign = 'center';
-                window.ctx.fillText('📧', emailIcon.x + emailIcon.width / 2, emailIcon.y + emailIcon.height / 2 + 6);
+                window.ctx.fillText('SPAM', centerX, centerY + envelopeHeight/2 - 3);
             }
         } catch (error) {
             console.error('Error drawing email icon:', error);
