@@ -676,9 +676,9 @@ function createVirusSneezeAt(x, y, targetX, targetY) {
         }
         window.virusProjectiles.push(virusSneezeProjectile);
         
-        // Play sneeze sound effect
+        // Play virus warning sound effect
         if (window.playSound) {
-            window.playSound('bounce'); // Using bounce sound for now, can create specific sneeze sound later
+            window.playSound('virusWarning'); // Static warning sound for virus attacks
         }
         
         console.log('Virus sneeze created towards Prompty');

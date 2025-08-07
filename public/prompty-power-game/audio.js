@@ -37,7 +37,8 @@ const melodies = {
     karenAppear: [98, 147, 196, 147, 98, 87], // G, D, G, D, G, F (ominous)
     ouch: [196, 175, 147, 131], // G, F, D, C (low descending)
     victory: [523, 659, 784, 1047, 1319, 1568, 1319, 1047, 784, 659, 523, 659, 784, 1047], // Celebratory fanfare
-    bossHit: [220, 196, 175, 165, 147, 131, 117, 110, 98] // Static-like crash (rapid descending)
+    bossHit: [220, 175, 131, 98], // Short staccato crash (quick descending)
+    virusWarning: [220, 196, 175, 165, 147, 131, 117, 110, 98] // Longer static warning (rapid descending)
 };
 
 // Initialize audio context on first user interaction
@@ -92,9 +93,12 @@ function playMelody(melodyName) {
     let noteDuration = 0.12; // Longer notes for more musical sound
     let noteGap = 0.03; // Slightly longer gap between notes
     
-    // Special timing for boss hit crash effect
+    // Special timing for crash effects
     if (melodyName === 'bossHit') {
-        noteDuration = 0.05; // Much shorter, rapid notes
+        noteDuration = 0.03; // Very short staccato notes
+        noteGap = 0.01; // Tiny gaps for quick impact
+    } else if (melodyName === 'virusWarning') {
+        noteDuration = 0.05; // Slightly longer for warning effect
         noteGap = 0.01; // Tiny gaps for static-like effect
     }
     
@@ -106,8 +110,8 @@ function playMelody(melodyName) {
         waveType = 'triangle'; // More musical for positive events
     } else if (melodyName === 'hit' || melodyName === 'hurt' || melodyName === 'ouch') {
         waveType = 'square'; // More percussive for impact sounds
-    } else if (melodyName === 'bossHit') {
-        waveType = 'sawtooth'; // Harsh sawtooth for static crash effect
+    } else if (melodyName === 'bossHit' || melodyName === 'virusWarning') {
+        waveType = 'sawtooth'; // Harsh sawtooth for static crash/warning effects
     }
     
     frequencies.forEach((frequency, index) => {
