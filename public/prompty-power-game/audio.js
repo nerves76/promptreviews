@@ -37,7 +37,7 @@ const melodies = {
     karenAppear: [98, 147, 196, 147, 98, 87], // G, D, G, D, G, F (ominous)
     ouch: [196, 175, 147, 131], // G, F, D, C (low descending)
     victory: [523, 659, 784, 1047, 1319, 1568, 1319, 1047, 784, 659, 523, 659, 784, 1047], // Celebratory fanfare
-    bossHit: [220, 175, 131, 98], // Short staccato crash (quick descending)
+    bossHit: [110, 87, 65, 49, 220, 175, 131, 98], // Bass + treble staccato crash (less static, more bass)
     virusWarning: [220, 196, 175, 165, 147, 131, 117, 110, 98], // Longer static warning (rapid descending)
     sadGameOver: [440, 440, 392, 350, 350, 294, 262, 262, 234, 196, 174, 156, 130, 130] // Enhanced sad descending with repeats and character
 };
@@ -123,8 +123,11 @@ function playMelody(melodyName) {
         waveType = 'triangle'; // More musical for positive events
     } else if (melodyName === 'hit' || melodyName === 'hurt' || melodyName === 'ouch') {
         waveType = 'square'; // More percussive for impact sounds
-    } else if (melodyName === 'bossHit' || melodyName === 'virusWarning') {
-        waveType = 'sawtooth'; // Harsh sawtooth for static crash/warning effects
+    } else if (melodyName === 'virusWarning') {
+        waveType = 'sawtooth'; // Harsh sawtooth for static warning effects
+    } else if (melodyName === 'bossHit') {
+        waveType = 'square'; // Bass-heavy square wave for impact (less static)
+    }
 
     
     frequencies.forEach((frequency, index) => {
