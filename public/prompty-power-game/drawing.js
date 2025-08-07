@@ -511,6 +511,11 @@ function drawPrompty() {
 
 // Draw aiming line
 function drawAimingLine() {
+    // Only show aiming line during gameplay
+    if (window.gameState !== 'playing') {
+        return;
+    }
+    
     // Save the current context state
     window.ctx.save();
     

@@ -1923,7 +1923,7 @@ function gameLoop() {
             window.gameLoopPending = true;
             window.gameLoop = requestAnimationFrame(() => {
                 window.gameLoopPending = false;
-                update();
+                gameLoop(); // Call gameLoop, not update
             });
         }
     } catch (error) {
