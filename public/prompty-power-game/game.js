@@ -162,6 +162,23 @@ window.activePowerUps = {
 function init() {
     console.log('init function called!');
     
+    // Check for mobile device and show notice
+    function checkMobileDevice() {
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+                        window.innerWidth <= 768 || 
+                        window.innerHeight <= 768;
+        
+        if (isMobile) {
+            const mobileNotice = document.getElementById('mobileNotice');
+            if (mobileNotice) {
+                mobileNotice.style.display = 'block';
+            }
+        }
+    }
+    
+    // Check mobile device on load
+    checkMobileDevice();
+    
     try {
         console.log('Game initializing...');
         

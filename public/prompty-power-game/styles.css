@@ -873,4 +873,32 @@ body {
         .control-info strong {
             color: white;
             font-size: 14px;
-        } 
+        }
+
+/* Mobile Notice Styles */
+.mobile-notice {
+    margin-top: 20px;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid #ff6b6b;
+    border-radius: 10px;
+    backdrop-filter: blur(10px);
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.mobile-notice-content h3 {
+    color: #ff6b6b;
+    margin: 0 0 10px 0;
+    font-size: 1.2rem;
+    text-align: center;
+}
+
+.mobile-notice-content p {
+    color: white;
+    margin: 0;
+    font-size: 0.9rem;
+    text-align: center;
+    line-height: 1.4;
+} 
