@@ -57,8 +57,8 @@ const Dashboard = React.memo(function Dashboard() {
     refreshAccountDetails
   } = useAuth();
   
-  // Apply auth guard
-  useAuthGuard();
+  // Remove auth guard - authentication is handled by dashboard layout
+  // useAuthGuard(); // This was causing premature redirects
   
   // Create supabase client instance (memoized to prevent re-creation)
   const supabase = useMemo(() => createClient(), []);
