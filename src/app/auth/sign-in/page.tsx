@@ -118,6 +118,9 @@ export default function SignIn() {
 
       console.log("🔄 Redirecting to dashboard...");
       
+      // Ensure session is persisted before redirect
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
       // Use replace instead of push to prevent back button issues
       router.replace("/dashboard");
     } catch (error: any) {
