@@ -76,50 +76,44 @@ function updateHearts() {
         ];
         
         for (let table of tables) {
-            // Simple collision detection
+            // Check collision detection
             if (heart.x < table.x + table.width &&
                 heart.x + heart.width > table.x &&
                 heart.y < table.y + table.height &&
                 heart.y + heart.height > table.y) {
                 
-                // Calculate which side of the table was hit for better bounce
-                const heartCenterX = heart.x + heart.width / 2;
-                const heartCenterY = heart.y + heart.height / 2;
-                const tableCenterX = table.x + table.width / 2;
-                const tableCenterY = table.y + table.height / 2;
+                // Calculate overlap distances for more accurate collision response
+                const overlapLeft = (heart.x + heart.width) - table.x;
+                const overlapRight = (table.x + table.width) - heart.x;
+                const overlapTop = (heart.y + heart.height) - table.y;
+                const overlapBottom = (table.y + table.height) - heart.y;
                 
-                // Calculate distances to each edge
-                const distToLeft = Math.abs(heartCenterX - table.x);
-                const distToRight = Math.abs(heartCenterX - (table.x + table.width));
-                const distToTop = Math.abs(heartCenterY - table.y);
-                const distToBottom = Math.abs(heartCenterY - (table.y + table.height));
+                // Find the smallest overlap to determine collision side
+                const minOverlap = Math.min(overlapLeft, overlapRight, overlapTop, overlapBottom);
                 
-                // Find the closest edge
-                const minDist = Math.min(distToLeft, distToRight, distToTop, distToBottom);
-                
-                // Bounce based on the closest edge with improved positioning
-                if (minDist === distToLeft) {
+                // Bounce based on the smallest overlap with proper positioning
+                if (minOverlap === overlapLeft && heart.vx > 0) {
                     // Hit left edge - bounce right
-                    heart.vx = Math.abs(heart.vx) * 0.85;
-                    heart.x = table.x - heart.width;
-                    heart.bounces++;
-                    playSound('bounce');
-                } else if (minDist === distToRight) {
-                    // Hit right edge - bounce left
                     heart.vx = -Math.abs(heart.vx) * 0.85;
-                    heart.x = table.x + table.width;
+                    heart.x = table.x - heart.width - 1; // Small buffer to prevent re-collision
                     heart.bounces++;
                     playSound('bounce');
-                } else if (minDist === distToTop) {
+                } else if (minOverlap === overlapRight && heart.vx < 0) {
+                    // Hit right edge - bounce left
+                    heart.vx = Math.abs(heart.vx) * 0.85;
+                    heart.x = table.x + table.width + 1; // Small buffer to prevent re-collision
+                    heart.bounces++;
+                    playSound('bounce');
+                } else if (minOverlap === overlapTop && heart.vy > 0) {
                     // Hit top edge - bounce down
-                    heart.vy = Math.abs(heart.vy) * 0.85;
-                    heart.y = table.y - heart.height;
+                    heart.vy = -Math.abs(heart.vy) * 0.85;
+                    heart.y = table.y - heart.height - 1; // Small buffer to prevent re-collision
                     heart.bounces++;
                     playSound('bounce');
-                } else {
+                } else if (minOverlap === overlapBottom && heart.vy < 0) {
                     // Hit bottom edge - bounce up
-                    heart.vy = -Math.abs(heart.vy) * 0.85;
-                    heart.y = table.y + table.height;
+                    heart.vy = Math.abs(heart.vy) * 0.85;
+                    heart.y = table.y + table.height + 1; // Small buffer to prevent re-collision
                     heart.bounces++;
                     playSound('bounce');
                 }
@@ -129,7 +123,7 @@ function updateHearts() {
                 heart.vy += (Math.random() - 0.5) * 0.3;
                 
                 // Ensure minimum velocity to prevent hearts from getting stuck
-                const minVelocity = 0.5;
+                const minVelocity = 0.8;
                 if (Math.abs(heart.vx) < minVelocity) heart.vx = heart.vx > 0 ? minVelocity : -minVelocity;
                 if (Math.abs(heart.vy) < minVelocity) heart.vy = heart.vy > 0 ? minVelocity : -minVelocity;
                 
