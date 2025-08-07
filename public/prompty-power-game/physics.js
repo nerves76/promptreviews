@@ -25,6 +25,8 @@ function isPathClear(customer, targetX, targetY, tables) {
 
 // Update heart physics
 function updateHearts() {
+    if (window.gameState === 'gameOver') return;
+    
     // Memory management: limit hearts array size
     if (hearts.length > 50) {
         hearts.splice(0, 10); // Remove oldest 10 hearts
@@ -140,6 +142,8 @@ function updateHearts() {
 
 // Update customer movement with track-based physics
 function updateCustomers() {
+    if (window.gameState === 'gameOver') return;
+    
     for (let i = customers.length - 1; i >= 0; i--) {
         const customer = customers[i];
         
@@ -310,7 +314,7 @@ function updateCustomers() {
 
 // Update sick emojis
 function updateSickEmojis() {
-    if (!window.sickEmojis) return;
+    if (!window.sickEmojis || window.gameState === 'gameOver') return;
     
     for (let i = window.sickEmojis.length - 1; i >= 0; i--) {
         const sickEmoji = window.sickEmojis[i];
@@ -327,6 +331,46 @@ function updateSickEmojis() {
         if (sickEmoji.y <= 0 || sickEmoji.y >= window.canvas.height - sickEmoji.height) {
             sickEmoji.vy = -sickEmoji.vy;
             sickEmoji.y = Math.max(0, Math.min(window.canvas.height - sickEmoji.height, sickEmoji.y));
+        }
+        
+        // Check collision with tables (keep virus above tables)
+        const tables = [
+            {x: 150, y: window.canvas.height - 280, width: 80, height: 60},
+            {x: 550, y: window.canvas.height - 280, width: 80, height: 60},
+            {x: 350, y: window.canvas.height - 330, width: 80, height: 60}
+        ];
+        
+        for (let table of tables) {
+            if (sickEmoji.x < table.x + table.width &&
+                sickEmoji.x + sickEmoji.width > table.x &&
+                sickEmoji.y < table.y + table.height &&
+                sickEmoji.y + sickEmoji.height > table.y) {
+                
+                // Calculate overlap distances for accurate collision response
+                const overlapLeft = (sickEmoji.x + sickEmoji.width) - table.x;
+                const overlapRight = (table.x + table.width) - sickEmoji.x;
+                const overlapTop = (sickEmoji.y + sickEmoji.height) - table.y;
+                const overlapBottom = (table.y + table.height) - sickEmoji.y;
+                
+                // Find the smallest overlap to determine collision side
+                const minOverlap = Math.min(overlapLeft, overlapRight, overlapTop, overlapBottom);
+                
+                // Bounce based on the smallest overlap
+                if (minOverlap === overlapLeft && sickEmoji.vx > 0) {
+                    sickEmoji.vx = -Math.abs(sickEmoji.vx) * 0.8;
+                    sickEmoji.x = table.x - sickEmoji.width - 1;
+                } else if (minOverlap === overlapRight && sickEmoji.vx < 0) {
+                    sickEmoji.vx = Math.abs(sickEmoji.vx) * 0.8;
+                    sickEmoji.x = table.x + table.width + 1;
+                } else if (minOverlap === overlapTop && sickEmoji.vy > 0) {
+                    sickEmoji.vy = -Math.abs(sickEmoji.vy) * 0.8;
+                    sickEmoji.y = table.y - sickEmoji.height - 1;
+                } else if (minOverlap === overlapBottom && sickEmoji.vy < 0) {
+                    sickEmoji.vy = Math.abs(sickEmoji.vy) * 0.8;
+                    sickEmoji.y = table.y + table.height + 1;
+                }
+                break;
+            }
         }
         
         // Sneeze at Prompty
@@ -384,7 +428,7 @@ function updateSickEmojis() {
 
 // Update virus projectiles
 function updateVirusProjectiles() {
-    if (!window.virusProjectiles) return;
+    if (!window.virusProjectiles || window.gameState === 'gameOver') return;
     
     for (let i = window.virusProjectiles.length - 1; i >= 0; i--) {
         const virus = window.virusProjectiles[i];
@@ -401,6 +445,40 @@ function updateVirusProjectiles() {
             window.virusProjectiles.splice(i, 1);
             continue;
         }
+        
+        // Check collision with tables (virus projectiles blocked by tables)
+        const tables = [
+            {x: 150, y: window.canvas.height - 280, width: 80, height: 60},
+            {x: 550, y: window.canvas.height - 280, width: 80, height: 60},
+            {x: 350, y: window.canvas.height - 330, width: 80, height: 60}
+        ];
+        
+        let hitTable = false;
+        for (let table of tables) {
+            if (virus.x < table.x + table.width &&
+                virus.x + virus.width > table.x &&
+                virus.y < table.y + table.height &&
+                virus.y + virus.height > table.y) {
+                
+                // Virus projectile hits table - remove it
+                window.virusProjectiles.splice(i, 1);
+                hitTable = true;
+                
+                // Play impact sound
+                if (window.playSound) {
+                    window.playSound('bounce');
+                }
+                
+                // Create visual feedback
+                if (window.createFloatingText) {
+                    window.createFloatingText(virus.x, virus.y, 'BLOCKED!', '#ffaa00');
+                }
+                
+                break;
+            }
+        }
+        
+        if (hitTable) continue; // Skip to next virus if this one hit a table
         
         // Check collision with Prompty
         if (virus.x < window.prompty.x + window.prompty.width &&
