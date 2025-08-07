@@ -132,8 +132,8 @@ function playMelody(melodyName) {
     
     frequencies.forEach((frequency, index) => {
         const noteStartTime = startTime + (index * (noteDuration + noteGap));
-        // Use lower volume for boss hit sound
-        const volume = melodyName === 'bossHit' ? 0.1 : 0.3;
+        // Use much lower volume for boss hit sound
+        const volume = melodyName === 'bossHit' ? 0.05 : 0.3;
         createNote(frequency, noteStartTime, noteDuration, waveType, volume);
     });
 }
