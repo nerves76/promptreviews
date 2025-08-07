@@ -10,7 +10,7 @@ Add this to any webpage:
 
 ```html
 <!-- Add this to your <head> -->
-<script src="https://promptreviews.app/prompty-power-game/game-embed.js"></script>
+<script src="https://app.promptreviews.app/prompty-power-game/game-embed.js"></script>
 
 <!-- Add this wherever you want the game button -->
 <div data-prompty-game></div>
@@ -21,7 +21,7 @@ That's it! A beautiful game button will appear and open the game in a modal.
 ## 🎯 Option 2: Custom Button
 
 ```html
-<script src="https://promptreviews.app/prompty-power-game/game-embed.js"></script>
+<script src="https://app.promptreviews.app/prompty-power-game/game-embed.js"></script>
 
 <button onclick="openPromptyGame()" class="your-custom-style">
     🎮 Play Get Found Online: The Game!
@@ -32,7 +32,7 @@ That's it! A beautiful game button will appear and open the game in a modal.
 
 ```html
 <iframe 
-    src="https://promptreviews.app/prompty-power-game/index.html" 
+    src="https://app.promptreviews.app/prompty-power-game/index.html" 
     width="900" 
     height="750" 
     frameborder="0"

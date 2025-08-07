@@ -297,22 +297,48 @@
             color: #cc0000;
         }
         
-        .refresh-btn {
-            display: block;
+        .leaderboard-controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
             margin: 15px auto 0;
+            flex-wrap: wrap;
+        }
+        
+        .refresh-btn, .show-all-btn {
             padding: 8px 16px;
-            background: #8B4513;
             color: white;
-            border: 2px solid #5D2E08;
+            border: 2px solid;
             border-radius: 6px;
             cursor: pointer;
             font-size: 14px;
             font-weight: bold;
-            transition: background 0.3s ease;
+            transition: all 0.3s ease;
+        }
+        
+        .refresh-btn {
+            background: #8B4513;
+            border-color: #5D2E08;
         }
         
         .refresh-btn:hover {
             background: #5D2E08;
+        }
+        
+        .show-all-btn {
+            background: #4F46E5;
+            border-color: #3B37CC;
+        }
+        
+        .show-all-btn:hover {
+            background: #3B37CC;
+        }
+        
+        .show-all-btn:disabled {
+            background: #6B7280;
+            border-color: #4B5563;
+            cursor: not-allowed;
+            opacity: 0.7;
         }
 
         /* Power-ups Guide Styles */
@@ -641,7 +667,10 @@
                 Unable to load leaderboard. Please try again later.
             </div>
         </div>
-        <button onclick="refreshLeaderboard()" class="refresh-btn">🔄 Refresh</button>
+        <div class="leaderboard-controls">
+            <button onclick="refreshLeaderboard()" class="refresh-btn">🔄 Refresh</button>
+            <button id="showAllBtn" onclick="showAllScores()" class="show-all-btn" style="display: none;">📊 Show All (100)</button>
+        </div>
     </div>
 
 
@@ -798,7 +827,7 @@
             
             try {
                 console.log('🏆 Fetching leaderboard data...');
-                const response = await fetch('/api/game/leaderboard?limit=10');
+                const response = await fetch('/api/game/leaderboard?limit=20');
                 const result = await response.json();
                 console.log('🏆 API response:', result);
                 
@@ -809,6 +838,13 @@
                     console.log('🏆 After displayLeaderboard call');
                     loadingDiv.style.display = 'none';
                     contentDiv.style.setProperty('display', 'block', 'important');
+                    
+                    // Show "Show All" button if we have exactly 20 scores (meaning there might be more)
+                    const showAllBtn = document.getElementById('showAllBtn');
+                    if (result.leaderboard.length === 20 && showAllBtn) {
+                        showAllBtn.style.display = 'inline-block';
+                    }
+                    
                     console.log('🏆 After showing contentDiv - style:', contentDiv.style.display);
                     console.log('🏆 contentDiv innerHTML length:', contentDiv.innerHTML.length);
                     console.log('🏆 FORCED contentDiv computed style:', getComputedStyle(contentDiv).display);
@@ -889,8 +925,51 @@
             console.log('🎯 contentDiv visibility:', getComputedStyle(contentDiv).visibility);
         }
         
+        async function showAllScores() {
+            console.log('📊 Show All button clicked - loading full leaderboard');
+            const showAllBtn = document.getElementById('showAllBtn');
+            const contentDiv = document.getElementById('leaderboardContent');
+            const loadingDiv = document.getElementById('leaderboardLoading');
+            const errorDiv = document.getElementById('leaderboardError');
+            
+            if (showAllBtn) {
+                showAllBtn.disabled = true;
+                showAllBtn.textContent = '⏳ Loading...';
+            }
+            
+            try {
+                const response = await fetch('/api/game/leaderboard?limit=100');
+                const result = await response.json();
+                
+                if (result.success && result.leaderboard) {
+                    console.log('📊 Loaded full leaderboard:', result.leaderboard.length, 'scores');
+                    displayLeaderboard(result.leaderboard);
+                    
+                    // Hide the show all button since we now have everything
+                    if (showAllBtn) {
+                        showAllBtn.style.display = 'none';
+                    }
+                } else {
+                    throw new Error('Failed to load full leaderboard');
+                }
+            } catch (error) {
+                console.error('Show all scores error:', error);
+                if (showAllBtn) {
+                    showAllBtn.disabled = false;
+                    showAllBtn.textContent = '📊 Show All (100)';
+                }
+            }
+        }
+        
         function refreshLeaderboard() {
             console.log('🔄 Manual refresh triggered');
+            // Reset show all button when refreshing
+            const showAllBtn = document.getElementById('showAllBtn');
+            if (showAllBtn) {
+                showAllBtn.style.display = 'none';
+                showAllBtn.disabled = false;
+                showAllBtn.textContent = '📊 Show All (100)';
+            }
             loadLeaderboard();
         }
         
