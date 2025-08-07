@@ -219,6 +219,33 @@ body {
     border: 2px solid rgba(255, 255, 255, 0.1);
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
     margin: 0 auto; /* Center horizontally only, start from top */
+    position: relative; /* For positioning the close button */
+}
+
+.close-button {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: white;
+    color: #333;
+    border: none;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    z-index: 10;
+}
+
+.close-button:hover {
+    background: #f44336;
+    color: white;
+    transform: scale(1.1);
 }
 
 .button {

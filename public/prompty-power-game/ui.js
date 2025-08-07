@@ -359,4 +359,26 @@ document.addEventListener('click', function(event) {
     }
 }); 
 
+// Back to start screen function (for X button on game over)
+function backToStartScreen() {
+    // Reset game state
+    window.gameState = 'menu';
+    
+    // Stop any ongoing sounds
+    if (window.stopAllSounds) {
+        window.stopAllSounds();
+    }
+    
+    // Hide game over screen and show start menu
+    showScreen('start');
+    
+    // Reset all game variables to initial state
+    if (typeof resetGame === 'function') {
+        resetGame();
+    }
+}
+
+// Make function available globally
+window.backToStartScreen = backToStartScreen;
+
  
