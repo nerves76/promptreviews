@@ -39,7 +39,7 @@ const melodies = {
     victory: [523, 659, 784, 1047, 1319, 1568, 1319, 1047, 784, 659, 523, 659, 784, 1047], // Celebratory fanfare
     bossHit: [220, 175, 131, 98], // Short staccato crash (quick descending)
     virusWarning: [220, 196, 175, 165, 147, 131, 117, 110, 98], // Longer static warning (rapid descending)
-    sadGameOver: [440, 392, 350, 294, 262, 234, 196, 174, 156, 130] // Slow sad descending melody (one octave higher)
+    sadGameOver: [440, 440, 392, 350, 350, 294, 262, 262, 234, 196, 174, 156, 130, 130] // Enhanced sad descending with repeats and character
 };
 
 // Initialize audio context on first user interaction
@@ -102,9 +102,18 @@ function playMelody(melodyName) {
         noteDuration = 0.05; // Slightly longer for warning effect
         noteGap = 0.01; // Tiny gaps for static-like effect
     } else if (melodyName === 'sadGameOver') {
-        noteDuration = 0.8; // Much longer, slower sad notes (doubled from 0.4)
-        noteGap = 0.3; // Longer pauses between notes for more dramatic effect
-
+        // Custom timing for enhanced game over melody
+        const customTiming = [1.2, 0.3, 0.8, 0.6, 0.4, 0.8, 0.6, 0.3, 0.8, 0.6, 0.5, 0.7, 1.0, 0.5]; // Creative timing variation
+        const customGaps = [0.4, 0.1, 0.2, 0.1, 0.3, 0.2, 0.1, 0.4, 0.2, 0.1, 0.3, 0.2, 0.1, 0.8]; // Varied gaps for rhythm
+        
+        // Play with custom timing instead of uniform timing
+        frequencies.forEach((frequency, index) => {
+            const noteStartTime = startTime + customTiming.slice(0, index).reduce((sum, time) => sum + time + customGaps[index-1] || 0, 0);
+            const noteDuration = customTiming[index];
+            createNote(frequency, noteStartTime, noteDuration, 'sine');
+        });
+        return; // Skip the standard uniform timing below
+    }
     
     // Choose wave type based on melody
     let waveType = 'sine';
