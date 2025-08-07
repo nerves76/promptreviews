@@ -702,7 +702,7 @@ function update() {
     // Controlled emoji spawning
     emojiSpawnTimer++;
     // Spawn new customers periodically
-    if (emojiSpawnTimer > 240 && window.customers.length < 8) { // Spawn every 4 seconds (was 3 seconds)
+    if (emojiSpawnTimer > 240 && window.customers.length < 12) { // Spawn every 4 seconds, max 12 customers (was 8)
         // TEMPORARILY DISABLED BOSS SPAWNING CONDITION
         /*
         // Don't spawn new customers if a boss should appear
@@ -719,11 +719,11 @@ function update() {
         spawnCustomers();
         emojiSpawnTimer = 0;
     } else {
-        // Spawn bosses when 70% of customers are defeated (appears towards end of level)
+        // Spawn bosses when 90% of customers are defeated (appears towards end of level)
         const remainingCustomers = window.customers.length;
-        const maxCustomers = 8; // Maximum customers that can be on screen at once
-        const defeatedThreshold = Math.ceil(maxCustomers * 0.7); // 70% of max customers (6 customers)
-        const shouldSpawnBoss = remainingCustomers <= (maxCustomers - defeatedThreshold); // 2 or fewer remaining
+        const maxCustomers = 12; // Maximum customers that can be on screen at once (increased from 8)
+        const defeatedThreshold = Math.ceil(maxCustomers * 0.9); // 90% of max customers (11 customers)
+        const shouldSpawnBoss = remainingCustomers <= (maxCustomers - defeatedThreshold); // 1 or fewer remaining
         
         // BOSS CYCLING LOGIC - Cycle through bosses every level
         // Calculate which boss should spawn based on level (cycles: Karen -> Google -> LinkedIn -> Karen...)
