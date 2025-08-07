@@ -102,9 +102,9 @@ function playMelody(melodyName) {
         noteDuration = 0.05; // Slightly longer for warning effect
         noteGap = 0.01; // Tiny gaps for static-like effect
     } else if (melodyName === 'sadGameOver') {
-        // Custom timing for enhanced game over melody
-        const customTiming = [1.2, 0.3, 0.8, 0.6, 0.4, 0.8, 0.6, 0.3, 0.8, 0.6, 0.5, 0.7, 1.0, 0.5]; // Creative timing variation
-        const customGaps = [0.4, 0.1, 0.2, 0.1, 0.3, 0.2, 0.1, 0.4, 0.2, 0.1, 0.3, 0.2, 0.1, 0.8]; // Varied gaps for rhythm
+        // Custom timing for enhanced game over melody (sped up)
+        const customTiming = [0.8, 0.2, 0.5, 0.4, 0.3, 0.5, 0.4, 0.2, 0.5, 0.4, 0.3, 0.5, 0.7, 0.3]; // Faster timing variation
+        const customGaps = [0.2, 0.05, 0.1, 0.05, 0.15, 0.1, 0.05, 0.2, 0.1, 0.05, 0.15, 0.1, 0.05, 0.4]; // Shorter gaps for faster rhythm
         
         // Play with custom timing instead of uniform timing
         frequencies.forEach((frequency, index) => {
