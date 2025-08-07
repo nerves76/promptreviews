@@ -116,11 +116,13 @@ export default function SignIn() {
         console.warn("Analytics tracking failed:", trackError);
       }
 
+      console.log("🔄 Waiting for AuthContext to process authentication...");
+      
+      // Wait for AuthContext to process the SIGNED_IN event
+      // This prevents race condition with dashboard layout
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       console.log("🔄 Redirecting to dashboard...");
-      
-      // Ensure session is persisted before redirect
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
       // Use replace instead of push to prevent back button issues
       router.replace("/dashboard");
     } catch (error: any) {
