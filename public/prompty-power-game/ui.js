@@ -367,48 +367,9 @@ document.addEventListener('click', function(event) {
 
 // Back to start screen function (for X button on game over)
 function backToStartScreen() {
-    // Reset game state to menu (don't start game)
-    window.gameState = 'menu';
-    
-    // Stop any ongoing sounds
-    if (window.stopAllSounds) {
-        window.stopAllSounds();
-    }
-    
-    // Hide game over screen and show start menu
-    showScreen('start');
-    
-    // Reset only essential variables without starting game
-    window.score = 0;
-    window.lives = 3;
-    window.level = 1;
-    
-    // Clear all game entities
-    window.hearts = [];
-    window.customers = [];
-    window.stars = [];
-    window.powerUps = [];
-    window.floatingTexts = [];
-    window.karen = null;
-    window.evilGoogleExec = null;
-    window.linkedInSpammer = null;
-    window.karenLasers = [];
-    window.evilGoogleArrows = [];
-    window.emailIcons = [];
-    window.sickEmojis = [];
-    window.virusProjectiles = [];
-    
-    // Reset boss defeat flags
-    window.karenDefeated = false;
-    
-    // Reset level complete overlay
-    if (window.levelCompleteOverlay) {
-        window.levelCompleteOverlay.visible = false;
-        window.levelCompleteOverlay.timer = 0;
-        window.levelCompleteOverlay.alpha = 0;
-    }
-    
-    console.log('Returned to start screen without starting game');
+    // Reload the page to completely reset the game
+    console.log('Reloading page to reset game completely');
+    window.location.reload();
 }
 
 // Make function available globally
