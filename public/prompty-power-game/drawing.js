@@ -1090,6 +1090,14 @@ function draw() {
                     window.ctx.globalAlpha = Math.max(0, 1 - fadeProgress);
                 }
                 
+                // Apply red flash effect if hit
+                if (window.karen.hitFlashTimer > 0) {
+                    window.ctx.globalCompositeOperation = 'multiply';
+                    window.ctx.fillStyle = '#ff4444';
+                    window.ctx.fillRect(window.karen.x, window.karen.y, window.karen.width, window.karen.height);
+                    window.ctx.globalCompositeOperation = 'source-over';
+                }
+                
                 // Draw Karen normally - no complex effects
                 if (window.karenImage && window.karenImage.complete) {
                     window.ctx.drawImage(window.karenImage, window.karen.x, window.karen.y, window.karen.width, window.karen.height);
@@ -1134,6 +1142,16 @@ function draw() {
         
         // Draw Evil Google Exec (ULTRA SIMPLIFIED TO PREVENT FREEZING)
         if (window.evilGoogleExec && !window.evilGoogleExec.isDefeated && window.evilGoogleExec.health > 0) {
+            // Apply red flash effect if hit
+            if (window.evilGoogleExec.hitFlashTimer > 0) {
+                window.ctx.save();
+                window.ctx.globalCompositeOperation = 'multiply';
+                window.ctx.fillStyle = '#ff4444';
+                window.ctx.fillRect(window.evilGoogleExec.x, window.evilGoogleExec.y, window.evilGoogleExec.width, window.evilGoogleExec.height);
+                window.ctx.globalCompositeOperation = 'source-over';
+                window.ctx.restore();
+            }
+            
             window.ctx.drawImage(window.evilGoogleExecImage, window.evilGoogleExec.x, window.evilGoogleExec.y, window.evilGoogleExec.width, window.evilGoogleExec.height);
             
             // Draw health bar
@@ -1165,6 +1183,16 @@ function draw() {
             // Apply fade-out effect if defeated
             if (window.linkedInSpammer.isDefeated) {
                 window.ctx.globalAlpha = 1 - (window.linkedInSpammer.fadeTimer / 30); // Fade over 0.5 second (30 frames)
+            }
+            
+            // Apply red flash effect if hit
+            if (window.linkedInSpammer.hitFlashTimer > 0) {
+                window.ctx.save();
+                window.ctx.globalCompositeOperation = 'multiply';
+                window.ctx.fillStyle = '#ff4444';
+                window.ctx.fillRect(window.linkedInSpammer.x, window.linkedInSpammer.y, window.linkedInSpammer.width, window.linkedInSpammer.height);
+                window.ctx.globalCompositeOperation = 'source-over';
+                window.ctx.restore();
             }
             
             // Safety check: ensure image is loaded before drawing

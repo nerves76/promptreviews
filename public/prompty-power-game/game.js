@@ -1057,6 +1057,17 @@ function update() {
         window.karen.fadeTimer++;
     }
     
+    // Update boss hit flash timers
+    if (window.karen && window.karen.hitFlashTimer > 0) {
+        window.karen.hitFlashTimer--;
+    }
+    if (window.evilGoogleExec && window.evilGoogleExec.hitFlashTimer > 0) {
+        window.evilGoogleExec.hitFlashTimer--;
+    }
+    if (window.linkedInSpammer && window.linkedInSpammer.hitFlashTimer > 0) {
+        window.linkedInSpammer.hitFlashTimer--;
+    }
+    
     // Check Karen collisions (RE-ENABLED WITH SIMPLE LOGIC)
     if (window.karen) {
         for (let i = hearts.length - 1; i >= 0; i--) {
@@ -1070,6 +1081,9 @@ function update() {
                 // Hit Karen - fire hearts do more damage
                 const damage = heart.isPowerful ? 3 : 1;
                 window.karen.health -= damage;
+                
+                // Red flash effect
+                window.karen.hitFlashTimer = 10; // Flash red for 10 frames
                 
                 // Play boss hit sound
                 playSound('bossHit');
@@ -1167,6 +1181,9 @@ function update() {
                 const damage = heart.isPowerful ? 3 : 1;
                 window.evilGoogleExec.health -= damage;
                 
+                // Red flash effect
+                window.evilGoogleExec.hitFlashTimer = 10; // Flash red for 10 frames
+                
                 // Play boss hit sound
                 playSound('bossHit');
                 
@@ -1252,6 +1269,9 @@ function update() {
             // Hit LinkedIn Spammer - fire hearts do more damage
             const damage = heart.isPowerful ? 3 : 1; // Fire hearts do 3 damage, normal hearts do 1
             window.linkedInSpammer.health -= damage;
+            
+            // Red flash effect
+            window.linkedInSpammer.hitFlashTimer = 10; // Flash red for 10 frames
             
             // Play boss hit sound
             playSound('bossHit');
