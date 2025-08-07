@@ -1090,17 +1090,17 @@ function draw() {
                     window.ctx.globalAlpha = Math.max(0, 1 - fadeProgress);
                 }
                 
-                // Apply red flash effect if hit
-                if (window.karen.hitFlashTimer > 0) {
-                    window.ctx.globalCompositeOperation = 'multiply';
-                    window.ctx.fillStyle = '#ff4444';
-                    window.ctx.fillRect(window.karen.x, window.karen.y, window.karen.width, window.karen.height);
-                    window.ctx.globalCompositeOperation = 'source-over';
-                }
-                
-                // Draw Karen normally - no complex effects
+                // Draw Karen with red tint if hit
                 if (window.karenImage && window.karenImage.complete) {
-                    window.ctx.drawImage(window.karenImage, window.karen.x, window.karen.y, window.karen.width, window.karen.height);
+                    if (window.karen.hitFlashTimer > 0) {
+                        // Apply red tint filter to the image
+                        window.ctx.filter = 'hue-rotate(0deg) saturate(200%) brightness(150%) sepia(100%) hue-rotate(-50deg)';
+                        window.ctx.drawImage(window.karenImage, window.karen.x, window.karen.y, window.karen.width, window.karen.height);
+                        window.ctx.filter = 'none'; // Reset filter
+                    } else {
+                        // Draw normally
+                        window.ctx.drawImage(window.karenImage, window.karen.x, window.karen.y, window.karen.width, window.karen.height);
+                    }
                 } else {
                     console.warn('Karen image not loaded, skipping draw');
                 }
@@ -1142,17 +1142,15 @@ function draw() {
         
         // Draw Evil Google Exec (ULTRA SIMPLIFIED TO PREVENT FREEZING)
         if (window.evilGoogleExec && !window.evilGoogleExec.isDefeated && window.evilGoogleExec.health > 0) {
-            // Apply red flash effect if hit
+            // Draw Evil Google Exec with red tint if hit
             if (window.evilGoogleExec.hitFlashTimer > 0) {
-                window.ctx.save();
-                window.ctx.globalCompositeOperation = 'multiply';
-                window.ctx.fillStyle = '#ff4444';
-                window.ctx.fillRect(window.evilGoogleExec.x, window.evilGoogleExec.y, window.evilGoogleExec.width, window.evilGoogleExec.height);
-                window.ctx.globalCompositeOperation = 'source-over';
-                window.ctx.restore();
+                // Apply red tint filter to the image
+                window.ctx.filter = 'hue-rotate(0deg) saturate(200%) brightness(150%) sepia(100%) hue-rotate(-50deg)';
+                window.ctx.drawImage(window.evilGoogleExecImage, window.evilGoogleExec.x, window.evilGoogleExec.y, window.evilGoogleExec.width, window.evilGoogleExec.height);
+                window.ctx.filter = 'none'; // Reset filter
+            } else {
+                window.ctx.drawImage(window.evilGoogleExecImage, window.evilGoogleExec.x, window.evilGoogleExec.y, window.evilGoogleExec.width, window.evilGoogleExec.height);
             }
-            
-            window.ctx.drawImage(window.evilGoogleExecImage, window.evilGoogleExec.x, window.evilGoogleExec.y, window.evilGoogleExec.width, window.evilGoogleExec.height);
             
             // Draw health bar
             const barWidth = 100;
@@ -1185,22 +1183,23 @@ function draw() {
                 window.ctx.globalAlpha = 1 - (window.linkedInSpammer.fadeTimer / 30); // Fade over 0.5 second (30 frames)
             }
             
-            // Apply red flash effect if hit
-            if (window.linkedInSpammer.hitFlashTimer > 0) {
-                window.ctx.save();
-                window.ctx.globalCompositeOperation = 'multiply';
-                window.ctx.fillStyle = '#ff4444';
-                window.ctx.fillRect(window.linkedInSpammer.x, window.linkedInSpammer.y, window.linkedInSpammer.width, window.linkedInSpammer.height);
-                window.ctx.globalCompositeOperation = 'source-over';
-                window.ctx.restore();
-            }
-            
-            // Safety check: ensure image is loaded before drawing
+            // Draw LinkedIn Spammer with red tint if hit
             if (window.linkedInSpammerImage && window.linkedInSpammerImage.complete) {
-                window.ctx.drawImage(window.linkedInSpammerImage, window.linkedInSpammer.x, window.linkedInSpammer.y, window.linkedInSpammer.width, window.linkedInSpammer.height);
+                if (window.linkedInSpammer.hitFlashTimer > 0) {
+                    // Apply red tint filter to the image
+                    window.ctx.filter = 'hue-rotate(0deg) saturate(200%) brightness(150%) sepia(100%) hue-rotate(-50deg)';
+                    window.ctx.drawImage(window.linkedInSpammerImage, window.linkedInSpammer.x, window.linkedInSpammer.y, window.linkedInSpammer.width, window.linkedInSpammer.height);
+                    window.ctx.filter = 'none'; // Reset filter
+                } else {
+                    window.ctx.drawImage(window.linkedInSpammerImage, window.linkedInSpammer.x, window.linkedInSpammer.y, window.linkedInSpammer.width, window.linkedInSpammer.height);
+                }
             } else {
-                // Fallback: draw a red rectangle
-                window.ctx.fillStyle = '#FF4444';
+                // Fallback: draw a red rectangle (tinted if hit)
+                if (window.linkedInSpammer.hitFlashTimer > 0) {
+                    window.ctx.fillStyle = '#FF0000'; // Brighter red when hit
+                } else {
+                    window.ctx.fillStyle = '#FF4444';
+                }
                 window.ctx.fillRect(window.linkedInSpammer.x, window.linkedInSpammer.y, window.linkedInSpammer.width, window.linkedInSpammer.height);
                 window.ctx.fillStyle = '#FFFFFF';
                 window.ctx.font = '12px Arial';
