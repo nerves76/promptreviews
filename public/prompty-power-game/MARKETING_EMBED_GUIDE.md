@@ -45,8 +45,8 @@ This creates a beautiful button that opens the game in a modal.
 ```html
 <iframe 
     src="https://app.promptreviews.app/prompty-power-game/index.html" 
-    width="900" 
-    height="750" 
+    width="1120" 
+    height="760" 
     frameborder="0"
     title="Get Found Online: The Game">
 </iframe>
