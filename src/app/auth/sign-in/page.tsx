@@ -116,25 +116,11 @@ export default function SignIn() {
         console.warn("Analytics tracking failed:", trackError);
       }
 
-      console.log("🔄 Waiting for AuthContext to process authentication...");
+      console.log("🔄 Authentication successful, redirecting immediately...");
       
-      // Wait for AuthContext to recognize authentication instead of using fixed delay
-      let attempts = 0;
-      const maxAttempts = 20; // 10 seconds max
-      
-      while (attempts < maxAttempts && !isAuthenticated) {
-        console.log(`🔄 Waiting for authentication recognition... (${attempts + 1}/${maxAttempts})`);
-        await new Promise(resolve => setTimeout(resolve, 500));
-        attempts++;
-      }
-      
-      if (isAuthenticated) {
-        console.log("✅ AuthContext recognized authentication, redirecting to dashboard...");
-        router.replace("/dashboard");
-      } else {
-        console.error("❌ AuthContext failed to recognize authentication after 10 seconds");
-        setError("Authentication succeeded but session failed to initialize. Please try refreshing the page.");
-      }
+      // Since AuthContext uses onAuthStateChange listener, the session should be available
+      // Let's redirect immediately and let dashboard handle any loading states
+      router.replace("/dashboard");
     } catch (error: any) {
       console.error("💥 Sign in process failed:", error);
       setError(error.message || "An unexpected error occurred. Please try again.");
