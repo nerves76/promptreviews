@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Direct Auth Test</title>
+</head>
+<body>
+    <h1>Direct Supabase Auth Test</h1>
+    <button onclick="testAuth()">Test Authentication</button>
+    <div id="result"></div>
+
+    <script>
+        async function testAuth() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = 'Testing...';
+            
+            try {
+                // Direct API call to Supabase
+                const response = await fetch('https://ltneloufqjktdplodvao.supabase.co/auth/v1/user', {
+                    headers: {
+                        'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx0bmVsb3VmcWprdGRwbG9kdmFvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTAyNzYxNzIsImV4cCI6MjAyNTg1MjE3Mn0.4cHRvmKFDpdcyicIq5g6P6vbQcZZ8miW1aLTVPXBmLc',
+                        'Authorization': 'Bearer ' + (document.cookie.match(/sb-access-token=([^;]+)/) || ['',''])[1]
+                    }
+                });
+                
+                const data = await response.json();
+                resultDiv.innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+                
+                if (data.id) {
+                    resultDiv.innerHTML += '<p style="color: green;">✅ You are authenticated!</p>';
+                    resultDiv.innerHTML += '<p>User ID: ' + data.id + '</p>';
+                    resultDiv.innerHTML += '<p>Email: ' + data.email + '</p>';
+                    resultDiv.innerHTML += '<a href="/dashboard">Try going to dashboard</a>';
+                } else {
+                    resultDiv.innerHTML += '<p style="color: red;">❌ Not authenticated</p>';
+                }
+                
+            } catch (error) {
+                resultDiv.innerHTML = '<p style="color: red;">Error: ' + error.message + '</p>';
+            }
+        }
+        
+        // Test on load
+        window.onload = testAuth;
+    </script>
+</body>
+</html>
