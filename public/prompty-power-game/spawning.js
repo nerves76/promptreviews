@@ -569,8 +569,8 @@ function spawnEmailIcon(x, y, vx, vy) {
         const emailIcon = {
             x: x,
             y: y,
-            width: 30,
-            height: 20,
+            width: 40,  // Increased from 30 (33% bigger)
+            height: 30, // Increased from 20 (50% bigger)
             vx: vx,
             vy: vy,
             bounces: 0,

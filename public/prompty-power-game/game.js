@@ -1663,8 +1663,8 @@ function update() {
             // Throw email icon
             const throwX = window.linkedInSpammer.x + window.linkedInSpammer.width / 2;
             const throwY = window.linkedInSpammer.y + window.linkedInSpammer.height;
-            const throwVx = (Math.random() - 0.5) * 8; // Random horizontal velocity
-            const throwVy = 5 + Math.random() * 3; // Downward velocity with some randomness
+            const throwVx = (Math.random() - 0.5) * 5; // Slower horizontal velocity (reduced from 8 to 5)
+            const throwVy = 3 + Math.random() * 2; // Slower downward velocity (reduced from 5-8 to 3-5)
             
             spawnEmailIcon(throwX, throwY, throwVx, throwVy);
             window.linkedInSpammer.emailThrowTimer = window.linkedInSpammer.emailThrowInterval;
