@@ -41,8 +41,27 @@ export default function DashboardLayout({
 
 
 
+  // DEBUG: Log authentication state
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🔍 Dashboard Layout State:', {
+        isInitialized,
+        isLoading,
+        hasUser: !!user,
+        userEmail: user?.email,
+        accountLoading,
+        hasAccount: !!account,
+        accountId: account?.id,
+        timestamp: new Date().toISOString()
+      });
+    }
+  }, [isInitialized, isLoading, user, accountLoading, account]);
+
   // Show loading while AuthContext initializes or is still loading
   if (!isInitialized || isLoading) {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🔄 Dashboard: Waiting for AuthContext initialization...');
+    }
     return (
       <div className="min-h-screen flex flex-col items-center justify-center">
         <AppLoader variant="compact" />
@@ -50,8 +69,12 @@ export default function DashboardLayout({
     );
   }
 
-  // If no user after initialization, AuthContext will handle redirect
+  // If no user after initialization, redirect to sign-in
   if (!user) {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('❌ Dashboard: No user found after initialization, redirecting to sign-in');
+    }
+    router.push('/auth/sign-in');
     return null;
   }
 
