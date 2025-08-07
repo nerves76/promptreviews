@@ -273,27 +273,27 @@ function drawStars() {
             window.ctx.strokeStyle = `rgba(255, 165, 0, ${alpha})`; // Orange outline
             window.ctx.lineWidth = 2;
             
-            // Draw 5-pointed star with better proportions
-            drawStar(window.ctx, star.x, star.y, 12, 5, 12, 6);
+            // Draw 5-pointed star with better proportions (40% smaller)
+            drawStar(window.ctx, star.x, star.y, 7.2, 5, 7.2, 3.6);
             window.ctx.fill();
             window.ctx.stroke();
             
-            // Add sparkle effect in center
+            // Add sparkle effect in center (40% smaller)
             window.ctx.save();
             window.ctx.globalCompositeOperation = 'screen';
             window.ctx.fillStyle = '#FFFFFF';
             window.ctx.globalAlpha = alpha * 0.9;
             window.ctx.beginPath();
-            window.ctx.arc(star.x, star.y, 4, 0, Math.PI * 2);
+            window.ctx.arc(star.x, star.y, 2.4, 0, Math.PI * 2);
             window.ctx.fill();
             window.ctx.restore();
             
-            // Add outer glow effect for special stars
+            // Add outer glow effect for special stars (40% smaller)
             window.ctx.save();
             window.ctx.globalCompositeOperation = 'screen';
             window.ctx.fillStyle = '#FFD700';
             window.ctx.globalAlpha = alpha * 0.4;
-            drawStar(window.ctx, star.x, star.y, 16, 5, 16, 8);
+            drawStar(window.ctx, star.x, star.y, 9.6, 5, 9.6, 4.8);
             window.ctx.fill();
             window.ctx.restore();
             
