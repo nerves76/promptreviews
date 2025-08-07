@@ -39,7 +39,7 @@ const melodies = {
     victory: [523, 659, 784, 1047, 1319, 1568, 1319, 1047, 784, 659, 523, 659, 784, 1047], // Celebratory fanfare
     bossHit: [220, 175, 131, 98], // Short staccato crash (quick descending)
     virusWarning: [220, 196, 175, 165, 147, 131, 117, 110, 98], // Longer static warning (rapid descending)
-    sadGameOver: [220, 196, 175, 147, 131, 117, 98, 87, 78, 65] // Slow sad descending melody
+    sadGameOver: [440, 392, 350, 294, 262, 234, 196, 174, 156, 130] // Slow sad descending melody (one octave higher)
 };
 
 // Initialize audio context on first user interaction
@@ -102,8 +102,8 @@ function playMelody(melodyName) {
         noteDuration = 0.05; // Slightly longer for warning effect
         noteGap = 0.01; // Tiny gaps for static-like effect
     } else if (melodyName === 'sadGameOver') {
-        noteDuration = 0.4; // Long, slow sad notes
-        noteGap = 0.2; // Long pauses between notes for dramatic effect
+        noteDuration = 0.8; // Much longer, slower sad notes (doubled from 0.4)
+        noteGap = 0.3; // Longer pauses between notes for more dramatic effect
     }
     
     // Choose wave type based on melody
