@@ -38,7 +38,8 @@ const melodies = {
     ouch: [196, 175, 147, 131], // G, F, D, C (low descending)
     victory: [523, 659, 784, 1047, 1319, 1568, 1319, 1047, 784, 659, 523, 659, 784, 1047], // Celebratory fanfare
     bossHit: [220, 175, 131, 98], // Short staccato crash (quick descending)
-    virusWarning: [220, 196, 175, 165, 147, 131, 117, 110, 98] // Longer static warning (rapid descending)
+    virusWarning: [220, 196, 175, 165, 147, 131, 117, 110, 98], // Longer static warning (rapid descending)
+    sadGameOver: [220, 196, 175, 147, 131, 117, 98, 87, 78, 65] // Slow sad descending melody
 };
 
 // Initialize audio context on first user interaction
@@ -100,6 +101,9 @@ function playMelody(melodyName) {
     } else if (melodyName === 'virusWarning') {
         noteDuration = 0.05; // Slightly longer for warning effect
         noteGap = 0.01; // Tiny gaps for static-like effect
+    } else if (melodyName === 'sadGameOver') {
+        noteDuration = 0.4; // Long, slow sad notes
+        noteGap = 0.2; // Long pauses between notes for dramatic effect
     }
     
     // Choose wave type based on melody
@@ -118,6 +122,20 @@ function playMelody(melodyName) {
         const noteStartTime = startTime + (index * (noteDuration + noteGap));
         createNote(frequency, noteStartTime, noteDuration, waveType);
     });
+}
+
+// Stop all audio
+function stopAllSounds() {
+    if (audioContext && audioContext.state === 'running') {
+        audioContext.suspend().catch(console.error);
+    }
+}
+
+// Resume audio
+function resumeAudio() {
+    if (audioContext && audioContext.state === 'suspended') {
+        audioContext.resume().catch(console.error);
+    }
 }
 
 // Play sound function (now plays melodies instead of single frequencies)
@@ -221,4 +239,6 @@ window.playTripleOuch = playTripleOuch;
 window.playLevelUpMelody = playLevelUpMelody;
 window.testSound = testSound;
 window.testAllSounds = testAllSounds;
-window.initAudio = initAudio; 
+window.initAudio = initAudio;
+window.stopAllSounds = stopAllSounds;
+window.resumeAudio = resumeAudio; 
