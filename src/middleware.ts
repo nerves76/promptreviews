@@ -82,11 +82,15 @@ export async function middleware(req: NextRequest) {
     const hasSession = !!user && !error;
     const userId = user?.id;
 
+    // Always log in production for debugging
     console.log('Middleware: Session check result:', {
       hasSession,
       userId,
       pathname: req.nextUrl.pathname,
-      retriesUsed: retryCount
+      retriesUsed: retryCount,
+      error: error?.message,
+      cookies: req.headers.get('cookie')?.includes('sb-') ? 'has supabase cookies' : 'no supabase cookies',
+      env: process.env.NODE_ENV
     });
 
     // In development, log but don't redirect
@@ -94,11 +98,14 @@ export async function middleware(req: NextRequest) {
       return res;
     }
 
-    // In production, redirect if no session
+    // TEMPORARY: Log but don't redirect to debug the issue
     if (!hasSession) {
-      console.log('Middleware: Redirecting unauthenticated user to sign-in');
-      const signInUrl = new URL('/auth/sign-in', req.url);
-      return NextResponse.redirect(signInUrl);
+      console.log('Middleware: Would redirect to sign-in but temporarily disabled for debugging', {
+        pathname: req.nextUrl.pathname,
+        hasSession,
+        error: error?.message
+      });
+      // TEMPORARILY DISABLED: return NextResponse.redirect(signInUrl);
     }
 
     return res;
