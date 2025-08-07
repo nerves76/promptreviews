@@ -7,7 +7,7 @@ import { trackEvent, GA_EVENTS } from '../../../utils/analytics';
 import SimpleMarketingNav from "@/app/components/SimpleMarketingNav";
 
 export default function SignIn() {
-  const { signIn, error: authError, clearError, isAuthenticated } = useAuth();
+  const { signIn, error: authError, clearError, isAuthenticated, isInitialized } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
@@ -118,13 +118,23 @@ export default function SignIn() {
 
       console.log("🔄 Waiting for AuthContext to process authentication...");
       
-      // Wait for AuthContext to process the SIGNED_IN event
-      // This prevents race condition with dashboard layout
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Wait for AuthContext to recognize authentication instead of using fixed delay
+      let attempts = 0;
+      const maxAttempts = 20; // 10 seconds max
       
-      console.log("🔄 Redirecting to dashboard...");
-      // Use replace instead of push to prevent back button issues
-      router.replace("/dashboard");
+      while (attempts < maxAttempts && !isAuthenticated) {
+        console.log(`🔄 Waiting for authentication recognition... (${attempts + 1}/${maxAttempts})`);
+        await new Promise(resolve => setTimeout(resolve, 500));
+        attempts++;
+      }
+      
+      if (isAuthenticated) {
+        console.log("✅ AuthContext recognized authentication, redirecting to dashboard...");
+        router.replace("/dashboard");
+      } else {
+        console.error("❌ AuthContext failed to recognize authentication after 10 seconds");
+        setError("Authentication succeeded but session failed to initialize. Please try refreshing the page.");
+      }
     } catch (error: any) {
       console.error("💥 Sign in process failed:", error);
       setError(error.message || "An unexpected error occurred. Please try again.");

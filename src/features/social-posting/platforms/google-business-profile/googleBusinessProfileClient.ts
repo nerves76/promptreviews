@@ -760,6 +760,99 @@ export class GoogleBusinessProfileClient {
   }
 
   /**
+   * Fetches unresponded reviews from the last 30 days
+   * Used for review reminder system
+   */
+  async getUnrespondedReviews(locationId?: string): Promise<{
+    locationId: string;
+    locationName: string;
+    accountId: string;
+    accountName: string;
+    reviews: Array<{
+      id: string;
+      reviewer: {
+        displayName: string;
+        profilePhotoUri?: string;
+      };
+      starRating: string;
+      comment: string;
+      createTime: string;
+      updateTime: string;
+      reviewReply?: {
+        comment: string;
+        updateTime: string;
+      };
+    }>;
+  }[]> {
+    console.log('🔄 Fetching unresponded reviews from last 30 days');
+    
+    try {
+      // Get all accounts
+      const accounts = await this.listAccounts();
+      if (accounts.length === 0) {
+        throw new Error('No Google Business Profile accounts found');
+      }
+
+      const results = [];
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+      // Process each account
+      for (const account of accounts) {
+        const accountId = account.name.replace('accounts/', '');
+        const accountName = account.accountName || 'Unknown Account';
+
+        // Get locations for this account
+        const locations = await this.listLocations(accountId);
+        
+        for (const location of locations) {
+          const locationId = location.name.replace('locations/', '');
+          const locationName = location.title || 'Unknown Location';
+
+          // Skip if specific location requested and this isn't it
+          if (locationId && locationId !== locationId) {
+            continue;
+          }
+
+          try {
+            // Fetch reviews for this location
+            const reviews = await this.getReviews(locationId);
+            
+            // Filter for unresponded reviews from last 30 days
+            const unrespondedReviews = reviews.filter(review => {
+              const reviewDate = new Date(review.createTime);
+              const hasResponse = review.reviewReply && review.reviewReply.comment;
+              
+              return reviewDate >= thirtyDaysAgo && !hasResponse;
+            });
+
+            if (unrespondedReviews.length > 0) {
+              results.push({
+                locationId,
+                locationName,
+                accountId,
+                accountName,
+                reviews: unrespondedReviews
+              });
+            }
+
+          } catch (locationError) {
+            console.warn(`⚠️ Failed to fetch reviews for location ${locationId}:`, locationError);
+            // Continue with other locations
+          }
+        }
+      }
+
+      console.log(`✅ Found ${results.length} locations with unresponded reviews`);
+      return results;
+
+    } catch (error) {
+      console.error('❌ Failed to fetch unresponded reviews:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Lists all available Google Business Categories
    * Uses Business Information API v1
    */

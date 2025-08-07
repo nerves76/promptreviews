@@ -14,6 +14,10 @@
     {
       "path": "/api/cron/send-trial-reminders",
       "schedule": "0 9 * * *"
+    },
+    {
+      "path": "/api/cron/send-review-reminders",
+      "schedule": "0 10 1 * *"
     }
   ],
   "buildCommand": "npm run build",

@@ -153,6 +153,62 @@ export default function AccountPage() {
     setNotifSaving(false);
   };
 
+  // Handle Google Business Profile review reminders toggle
+  const [gbpReminderSaving, setGbpReminderSaving] = useState(false);
+  const [gbpReminderSettings, setGbpReminderSettings] = useState<any>(null);
+
+  // Load GBP reminder settings
+  useEffect(() => {
+    const loadGbpReminderSettings = async () => {
+      if (!user) return;
+      
+      const { data, error } = await supabase
+        .from('review_reminder_settings')
+        .select('enabled, frequency')
+        .eq('user_id', user.id)
+        .single();
+
+      if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
+        console.error('Error loading GBP reminder settings:', error);
+      } else {
+        setGbpReminderSettings(data || { enabled: true, frequency: 'monthly' });
+      }
+    };
+
+    loadGbpReminderSettings();
+  }, [user, supabase]);
+
+  const handleGbpReminderToggle = async () => {
+    if (!user) return;
+    setGbpReminderSaving(true);
+    
+    try {
+      const newEnabled = !gbpReminderSettings?.enabled;
+      
+      const { error } = await supabase
+        .from('review_reminder_settings')
+        .upsert({
+          user_id: user.id,
+          enabled: newEnabled,
+          frequency: 'monthly',
+          updated_at: new Date().toISOString()
+        });
+
+      if (!error) {
+        setGbpReminderSettings((prev: any) => ({
+          ...prev,
+          enabled: newEnabled
+        }));
+      } else {
+        console.error('Error updating GBP reminder settings:', error);
+      }
+    } catch (error) {
+      console.error('Error toggling GBP reminders:', error);
+    } finally {
+      setGbpReminderSaving(false);
+    }
+  };
+
   const handleCancelAccount = async () => {
     if (cancelConfirmText !== 'DELETE') {
       setError('Please type "DELETE" to confirm account cancellation');
@@ -327,6 +383,39 @@ export default function AccountPage() {
                 </p>
                 <p className="mt-1">
                   When enabled, you'll receive email notifications at <strong>{user?.email}</strong> whenever customers submit reviews through your widgets or prompt pages.
+                </p>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Google Business Profile Review Reminders</label>
+                  <p className="mt-1 text-sm text-gray-500">Get email reminders to request reviews from your Google Business Profile</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleGbpReminderToggle}
+                  disabled={gbpReminderSaving}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2 disabled:opacity-50 ${
+                    gbpReminderSettings?.enabled ? "bg-slate-blue" : "bg-gray-200"
+                  }`}
+                  aria-pressed={gbpReminderSettings?.enabled}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+                      gbpReminderSettings?.enabled ? "translate-x-6" : "translate-x-1"
+                    }`}
+                  />
+                </button>
+              </div>
+              {gbpReminderSaving && (
+                <div className="text-sm text-gray-500">Saving...</div>
+              )}
+              <div className="text-sm text-gray-600">
+                <p>
+                  <strong>Status:</strong> {gbpReminderSettings?.enabled ? "Enabled" : "Disabled"}
+                </p>
+                <p className="mt-1">
+                  When enabled, you'll receive email reminders at <strong>{user?.email}</strong> to request reviews from your Google Business Profile.
                 </p>
               </div>
             </div>

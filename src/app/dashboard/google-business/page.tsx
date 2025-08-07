@@ -16,6 +16,7 @@ import ReviewResponseGenerator from '@/app/components/ReviewResponseGenerator';
 import ServiceDescriptionGenerator from '@/app/components/ServiceDescriptionGenerator';
 import BusinessDescriptionAnalyzer from '@/app/components/BusinessDescriptionAnalyzer';
 import { createClient } from '@/utils/supabaseClient';
+import UnrespondedReviewsWidget from '@/app/components/UnrespondedReviewsWidget';
 // Using built-in alert for notifications instead of react-toastify
 
 interface GoogleBusinessLocation {
@@ -1370,10 +1371,13 @@ export default function SocialPostingDashboard() {
                   </button>
                 </div>
               ) : (
-                <ReviewManagement 
-                  locations={locations}
-                  isConnected={isConnected}
-                />
+                <>
+                  <UnrespondedReviewsWidget />
+                  <ReviewManagement 
+                    locations={locations}
+                    isConnected={isConnected}
+                  />
+                </>
               )}
             </div>
           )}
