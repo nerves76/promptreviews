@@ -449,11 +449,16 @@ function resetGame() {
     window.hearts = [];
     window.customers = [];
     window.stars = [];
+    window.powerUps = []; // Missing - caused power-ups to persist
+    window.floatingTexts = []; // Missing - caused floating text to persist
     
     // Reset all bosses
     window.karen = null;
     window.evilGoogleExec = null;
     window.linkedInSpammer = null;
+    
+    // Reset boss defeat flags
+    window.karenDefeated = false;
     
     // Reset all boss-related arrays and timers
     window.karenLasers = [];
@@ -472,9 +477,16 @@ function resetGame() {
     window.emojiSpawnTimer = 0;
     window.customersConverted = 0;
     
-    // Reset UI timers
+    // Reset UI timers and overlays
     window.promptyHurtTimer = 0;
     window.screenShakeTimer = 0;
+    
+    // Reset level complete overlay
+    if (window.levelCompleteOverlay) {
+        window.levelCompleteOverlay.visible = false;
+        window.levelCompleteOverlay.timer = 0;
+        window.levelCompleteOverlay.alpha = 0;
+    }
     
     // Resume audio if it was stopped
     if (window.resumeAudio) {
