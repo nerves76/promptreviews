@@ -640,7 +640,7 @@ body {
 .promptyCharacter {
     position: absolute;
     left: 20px;
-    top: 10px;
+    top: 30px;
     width: 120px;
     height: 120px;
     background-image: url('https://ltneloufqjktdplodvao.supabase.co/storage/v1/object/public/logos/prompt-assets/prompty-slingshot-for-reviews.png');
