@@ -494,6 +494,11 @@ function resetGame() {
 // Main game loop
 function update() {
     try {
+        // Stop updating if game is over
+        if (window.gameState === 'gameOver') {
+            return; // Don't update anything when game is over
+        }
+        
         // Debug: Track if multiple loops are running
         if (!window.updateCallCount) window.updateCallCount = 0;
         window.updateCallCount++;
@@ -1756,25 +1761,33 @@ function update() {
         console.warn('Update function taking too long:', Date.now() - startTime, 'ms');
     }
     
-        // Continue loop - bulletproof approach
-        requestAnimationFrame(update);
+        // Continue loop only if game is not over
+        if (window.gameState !== 'gameOver') {
+            requestAnimationFrame(update);
+        } else {
+            console.log('🛑 Game loop stopped - game is over');
+        }
     } catch (error) {
         console.error('💥 CRASH in update function at:', error.stack);
         console.error('💥 Error details:', error.message);
         console.error('💥 Karen state at crash:', window.karen);
         console.error('💥 Karen lasers count:', window.karenLasers ? window.karenLasers.length : 'undefined');
         
-        // CRITICAL: Restart loop even if there's an error (with guard)
-        console.log('🔄 Restarting game loop after error...');
-        setTimeout(() => {
-            if (!window.gameLoopPending) {
-                window.gameLoopPending = true;
-                requestAnimationFrame(() => {
-                    window.gameLoopPending = false;
-                    update();
-                });
-            }
-        }, 100);
+        // CRITICAL: Restart loop even if there's an error (but only if game not over)
+        if (window.gameState !== 'gameOver') {
+            console.log('🔄 Restarting game loop after error...');
+            setTimeout(() => {
+                if (!window.gameLoopPending && window.gameState !== 'gameOver') {
+                    window.gameLoopPending = true;
+                    requestAnimationFrame(() => {
+                        window.gameLoopPending = false;
+                        update();
+                    });
+                }
+            }, 100);
+        } else {
+            console.log('🛑 Not restarting game loop - game is over');
+        }
     }
 }
 
