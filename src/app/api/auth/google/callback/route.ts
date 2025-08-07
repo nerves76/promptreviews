@@ -137,9 +137,17 @@ export async function GET(request: NextRequest) {
     }
     
     if (authError || !user) {
-      console.log('❌ Authentication error in OAuth callback after retries:', authError);
+      console.log('❌ Authentication error in OAuth callback after retries:', {
+        error: authError?.message,
+        hasUser: !!user,
+        retryCount,
+        cookies: request.headers.get('cookie')?.includes('sb-') ? 'has supabase cookies' : 'no supabase cookies'
+      });
+      
+      // Instead of redirecting to sign-in, redirect back with an error
+      // This prevents logging the user out
       return NextResponse.redirect(
-        new URL(`/auth/sign-in?message=Please sign in to connect Google Business Profile`, request.url)
+        new URL(`${returnUrl}?error=auth_failed&message=${encodeURIComponent('Session verification failed. Please try again.')}`, request.url)
       );
     }
 
