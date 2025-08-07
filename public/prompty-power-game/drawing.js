@@ -334,48 +334,50 @@ function drawEmailIcons() {
             if (emailIcon.icon && emailIcon.icon.complete) {
                 window.ctx.drawImage(emailIcon.icon, emailIcon.x, emailIcon.y, emailIcon.width, emailIcon.height);
             } else {
-                // Draw a proper email envelope
+                // Draw a better email envelope
                 const centerX = emailIcon.x + emailIcon.width / 2;
                 const centerY = emailIcon.y + emailIcon.height / 2;
-                const envelopeWidth = emailIcon.width * 0.8;
-                const envelopeHeight = emailIcon.height * 0.6;
+                const envelopeWidth = emailIcon.width * 0.9;
+                const envelopeHeight = emailIcon.height * 0.7;
                 
-                // Main envelope body
-                window.ctx.fillStyle = '#f8f8f8'; // Light gray envelope
-                window.ctx.strokeStyle = '#333';
-                window.ctx.lineWidth = 1;
+                // Main envelope body (white with border)
+                window.ctx.fillStyle = '#ffffff'; // White envelope
+                window.ctx.strokeStyle = '#666666';
+                window.ctx.lineWidth = 2;
                 window.ctx.fillRect(centerX - envelopeWidth/2, centerY - envelopeHeight/2, envelopeWidth, envelopeHeight);
                 window.ctx.strokeRect(centerX - envelopeWidth/2, centerY - envelopeHeight/2, envelopeWidth, envelopeHeight);
                 
-                // Envelope flap (triangle at top)
-                window.ctx.fillStyle = '#e0e0e0'; // Slightly darker gray for flap
+                // Envelope flap (folded triangle at top)
+                window.ctx.fillStyle = '#f0f0f0'; // Light gray flap
+                window.ctx.strokeStyle = '#666666';
+                window.ctx.lineWidth = 2;
                 window.ctx.beginPath();
                 window.ctx.moveTo(centerX - envelopeWidth/2, centerY - envelopeHeight/2); // Top left
                 window.ctx.lineTo(centerX + envelopeWidth/2, centerY - envelopeHeight/2); // Top right
-                window.ctx.lineTo(centerX, centerY - envelopeHeight/2 + envelopeHeight * 0.4); // Center point down
+                window.ctx.lineTo(centerX, centerY - envelopeHeight/2 + envelopeHeight * 0.35); // Fold point
                 window.ctx.closePath();
                 window.ctx.fill();
                 window.ctx.stroke();
                 
                 // Envelope lines (content lines)
-                window.ctx.strokeStyle = '#ccc';
-                window.ctx.lineWidth = 0.5;
-                const lineY1 = centerY - envelopeHeight/2 + envelopeHeight * 0.6;
-                const lineY2 = centerY - envelopeHeight/2 + envelopeHeight * 0.75;
-                const lineMargin = envelopeWidth * 0.15;
+                window.ctx.strokeStyle = '#cccccc';
+                window.ctx.lineWidth = 1.5;
+                const lineY1 = centerY - envelopeHeight/2 + envelopeHeight * 0.55;
+                const lineY2 = centerY - envelopeHeight/2 + envelopeHeight * 0.7;
+                const lineMargin = envelopeWidth * 0.2;
                 
                 window.ctx.beginPath();
                 window.ctx.moveTo(centerX - envelopeWidth/2 + lineMargin, lineY1);
                 window.ctx.lineTo(centerX + envelopeWidth/2 - lineMargin, lineY1);
                 window.ctx.moveTo(centerX - envelopeWidth/2 + lineMargin, lineY2);
-                window.ctx.lineTo(centerX + envelopeWidth/2 - lineMargin * 2, lineY2);
+                window.ctx.lineTo(centerX + envelopeWidth/2 - lineMargin * 1.5, lineY2);
                 window.ctx.stroke();
                 
-                // Small "SPAM" text
-                window.ctx.font = 'bold 8px Arial';
-                window.ctx.fillStyle = '#d32f2f'; // Red spam indicator
+                // "SPAM" text (larger and more visible)
+                window.ctx.font = 'bold 10px Arial';
+                window.ctx.fillStyle = '#ff0000'; // Bright red spam indicator
                 window.ctx.textAlign = 'center';
-                window.ctx.fillText('SPAM', centerX, centerY + envelopeHeight/2 - 3);
+                window.ctx.fillText('SPAM', centerX, centerY + envelopeHeight/2 - 2);
             }
         } catch (error) {
             console.error('Error drawing email icon:', error);

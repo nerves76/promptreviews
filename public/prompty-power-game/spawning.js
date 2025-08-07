@@ -541,9 +541,9 @@ function spawnLinkedInSpammer() {
             speechBubbleDuration: 180, // 3 seconds
             currentQuote: 0,
             quotes: [
-                "Just pushing this to the top of your inbox, friend.",
-                "How'd you like to double your business in just 3 months?",
-                "Your customers can't find you in Google. But don't worry, I can help."
+                "Pushing this to the top of your inbox, friend.",
+                "Let's maximize your MRR",
+                "Sorry to interrupt your busy schedule."
             ],
             emailThrowTimer: 0,
             emailThrowInterval: 90, // Throw email every 1.5 seconds
