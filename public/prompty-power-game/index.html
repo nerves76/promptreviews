@@ -152,18 +152,21 @@
         /* Layout fixes */
         body {
             display: block !important;
-            overflow: auto !important;
-            min-height: auto !important;
+            overflow: hidden !important;
+            height: 100% !important;
             align-items: unset !important;
             justify-content: unset !important;
+            margin: 0 !important;
+            padding: 0 !important;
         }
         
         .main-container {
             display: flex;
             flex-direction: column;
             align-items: center;
-            min-height: 100vh;
+            height: auto;
             padding: 20px 0;
+            overflow: hidden;
         }
         
         /* Leaderboard styles */
@@ -171,18 +174,18 @@
             display: block !important;
             visibility: visible !important;
             background: #000000;
-            border: 1px solid transparent;
+            border: 2px solid transparent;
             background-image: linear-gradient(#000000, #000000), linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             background-origin: border-box;
             background-clip: content-box, border-box;
             margin: 0 auto;
-            padding: 20px;
+            padding: 20px 25px 30px 25px;
             border-radius: 10px;
-            background-size: calc(100% - 2px) calc(100% - 2px), 100% 100%;
             width: 800px;
             max-width: 90vw;
             min-height: 200px !important;
             color: white;
+            box-sizing: border-box;
         }
         
         #leaderboardContent {
@@ -302,8 +305,9 @@
             display: flex;
             justify-content: center;
             gap: 15px;
-            margin: 15px auto 0;
+            margin: 20px auto 0;
             flex-wrap: wrap;
+            padding-bottom: 5px;
         }
         
         .refresh-btn, .show-all-btn {
