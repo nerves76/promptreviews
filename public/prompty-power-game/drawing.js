@@ -800,8 +800,9 @@ function drawFloatingTexts() {
         window.ctx.save();
         window.ctx.globalAlpha = text.alpha;
         
-        // Handle multi-line text
-        const lines = text.text.split('\n');
+        // Handle multi-line text (with safety check)
+        const textString = String(text.text || ''); // Ensure it's a string
+        const lines = textString.split('\n');
         const lineHeight = text.fontSize + 4; // Small spacing between lines
         const totalHeight = (lines.length - 1) * lineHeight;
         const startY = text.y - totalHeight / 2; // Center the multi-line text
