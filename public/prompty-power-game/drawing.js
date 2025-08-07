@@ -123,8 +123,8 @@ function drawBackground() {
     window.ctx.fillRect(550, window.canvas.height - 280, 80, 60); // Table 2 - right side (moved down 20px)
     window.ctx.fillRect(350, window.canvas.height - 330, 80, 60); // Table 3 - center back (moved down 20px)
     
-    // Table tops - using different color to avoid cream background conflicts
-    window.ctx.fillStyle = '#D2B48C'; // Slightly different tan color for tables
+    // Table tops - purple like the back wall
+    window.ctx.fillStyle = '#667eea'; // Purple like back wall
     window.ctx.fillRect(145, window.canvas.height - 285, 90, 10);
     window.ctx.fillRect(545, window.canvas.height - 285, 90, 10);
     window.ctx.fillRect(345, window.canvas.height - 335, 90, 10);
