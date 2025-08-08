@@ -10,6 +10,35 @@ This project is currently focused on developing a standalone widget for collecti
 
 ## Recent Updates (Latest)
 
+### 🚀 Manual Review Addition to Contact Management (February 2025)
+- **Enhanced Contact Form**: Added ability to add up to 15 reviews per contact during manual contact creation
+- **Review Management UI**: Interactive review cards with edit/delete functionality, similar to review platform management
+- **CSV Import Support**: Extended CSV template to include optional review columns for bulk import with reviews
+- **Google Import Preparation**: Added fields compatible with Google Business Profile API for future review import functionality
+- **Contact-Centric Reviews**: Reviews are linked to contacts rather than prompt pages, allowing standalone review management
+
+#### **Key Features**
+- ✅ **Multiple Reviews Per Contact**: Add up to 15 reviews per contact with platform, rating, content, and reviewer info
+- ✅ **Interactive Review Cards**: Visual display of reviews with star ratings, dates, and reviewer information
+- ✅ **Review Form Modal**: Comprehensive form for adding/editing reviews with platform selection and star rating
+- ✅ **CSV Template Enhancement**: Optional review columns (review_1_content, review_1_platform, etc.) for bulk import
+- ✅ **Bulk Review Processing**: CSV upload now processes review data alongside contact information
+- ✅ **Manual Review Status**: All manually added reviews default to "verified" status since they're added by business owners
+- ✅ **No Prompt Page Association**: Reviews are contact-centric rather than prompt-page-centric for standalone management
+
+#### **Technical Implementation**
+- **Enhanced ManualContactForm**: Added review state management, form validation, and UI components
+- **API Updates**: Modified `/api/contacts/create` to handle review creation with contact linking
+- **CSV Processing**: Updated `/api/upload-contacts` to parse and create reviews from CSV data
+- **Database Integration**: Uses existing `review_submissions` table with `contact_id` linking and `prompt_page_id: null`
+- **UI Components**: Review cards, star rating selector, platform dropdown, and form validation
+
+#### **Files Modified**
+- `src/app/components/ManualContactForm.tsx` - Added complete review management functionality
+- `src/app/api/contacts/create/route.ts` - Enhanced to create reviews alongside contacts
+- `src/app/api/upload-contacts/route.ts` - Added CSV review processing
+- `src/app/dashboard/contacts/page.tsx` - Updated CSV template with review columns
+
 ### 🚀 Google Business Profile Overview Dashboard (February 2025)
 - **Comprehensive Overview Page**: Built complete overview dashboard for Google Business Profile management with analytics, health metrics, and optimization opportunities
 - **Review Analytics**: Interactive charts showing monthly review trends with star rating breakdown, similar to Google's native interface

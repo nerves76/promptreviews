@@ -16,21 +16,39 @@ export async function GET(request: NextRequest) {
   try {
     console.log('🔍 Social posting platforms API called');
     
-    // Create server-side Supabase client that handles session cookies
+    // Debug cookie information
     const cookieStore = await cookies();
+    const allCookies = cookieStore.getAll();
+    const supabaseCookies = allCookies.filter(cookie => cookie.name.startsWith('sb-'));
+    
+    console.log('🍪 Debug cookies info:', {
+      totalCookies: allCookies.length,
+      supabaseCookies: supabaseCookies.length,
+      supabaseCookieNames: supabaseCookies.map(c => c.name),
+      hasAuthCookie: allCookies.some(c => c.name.includes('access-token') || c.name.includes('auth-token')),
+      requestCookieHeader: request.headers.get('cookie')?.includes('sb-') ? 'has sb cookies' : 'no sb cookies'
+    });
+    
+    // Create server-side Supabase client that handles session cookies
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       {
         cookies: {
-          get: (name) => cookieStore.get(name)?.value,
+          get: (name) => {
+            const value = cookieStore.get(name)?.value;
+            console.log(`🍪 Cookie get: ${name} = ${value ? 'present' : 'missing'}`);
+            return value;
+          },
           set: () => {},
           remove: () => {},
         },
       }
     );
     
+    console.log('🔑 Attempting to get user...');
     const { data: { user }, error: authError } = await supabase.auth.getUser();
+    console.log('🔑 Auth result:', { hasUser: !!user, error: authError?.message });
     
     if (authError || !user) {
       console.log('❌ Authentication error:', authError?.message || 'No user found');

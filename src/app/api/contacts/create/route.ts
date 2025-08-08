@@ -79,9 +79,23 @@ export async function POST(request: NextRequest) {
     // Parse request body
     const contactData = await request.json();
     
+    // Extract reviews from the request (if any)
+    const reviews = contactData.reviews || [];
+    
     // Validate required fields
     if (!contactData.first_name || contactData.first_name.trim() === '') {
       return NextResponse.json({ error: 'First name is required' }, { status: 400 });
+    }
+
+    // Validate reviews (if any)
+    if (reviews.length > 15) {
+      return NextResponse.json({ error: 'Maximum 15 reviews allowed per contact' }, { status: 400 });
+    }
+
+    for (const review of reviews) {
+      if (!review.review_content?.trim() || !review.platform) {
+        return NextResponse.json({ error: 'Review content and platform are required for all reviews' }, { status: 400 });
+      }
     }
 
     // Prepare contact for insertion
@@ -123,9 +137,43 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Create reviews if any were provided
+    if (reviews.length > 0) {
+      console.log('🔍 Contacts API - Creating reviews for contact:', insertedContact.id);
+      
+      const reviewSubmissions = reviews.map(review => ({
+        prompt_page_id: null, // No prompt page association for manual reviews
+        contact_id: insertedContact.id, // Link to the created contact
+        platform: review.platform,
+        review_content: review.review_content.trim(),
+        first_name: review.reviewer_first_name?.trim() || null,
+        last_name: review.reviewer_last_name?.trim() || null,
+        reviewer_role: review.reviewer_role?.trim() || null,
+        star_rating: review.star_rating || null,
+        created_at: review.date_posted || new Date().toISOString(),
+        status: "submitted",
+        verified: true, // Manual reviews are verified by default
+        emoji_sentiment_selection: null, // Not applicable for manual reviews
+      }));
+
+      const { error: reviewInsertError } = await supabaseAdmin
+        .from("review_submissions")
+        .insert(reviewSubmissions);
+
+      if (reviewInsertError) {
+        console.error("Error inserting reviews:", reviewInsertError);
+        // Note: We don't fail the entire request if review creation fails
+        // The contact was created successfully, so we return success
+        // but log the review creation error
+      } else {
+        console.log('✅ Contacts API - Successfully created', reviewSubmissions.length, 'reviews');
+      }
+    }
+
     return NextResponse.json({
       success: true,
       contact: insertedContact,
+      reviewsCreated: reviews.length,
       message: "Contact created successfully"
     });
 
