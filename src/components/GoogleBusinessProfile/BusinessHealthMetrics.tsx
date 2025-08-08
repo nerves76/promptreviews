@@ -71,11 +71,15 @@ export default function BusinessHealthMetrics({
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
 
   // Calculate completion percentages
-  const categoryCompletion = (profileData.categoriesUsed / profileData.maxCategories) * 100;
-  const serviceDescriptionCompletion = profileData.servicesCount > 0 
+  const categoryCompletion = profileData?.categoriesUsed && profileData?.maxCategories 
+    ? (profileData.categoriesUsed / profileData.maxCategories) * 100 
+    : 0;
+  const serviceDescriptionCompletion = profileData?.servicesCount && profileData?.servicesCount > 0 
     ? (profileData.servicesWithDescriptions / profileData.servicesCount) * 100 
     : 0;
-  const businessDescriptionCompletion = (profileData.businessDescriptionLength / profileData.businessDescriptionMaxLength) * 100;
+  const businessDescriptionCompletion = profileData?.businessDescriptionLength && profileData?.businessDescriptionMaxLength
+    ? (profileData.businessDescriptionLength / profileData.businessDescriptionMaxLength) * 100 
+    : 0;
 
   // Photo categories with expected counts
   const expectedPhotos = {
@@ -88,7 +92,7 @@ export default function BusinessHealthMetrics({
   };
 
   const totalExpectedPhotos = Object.values(expectedPhotos).reduce((sum, count) => sum + count, 0);
-  const totalActualPhotos = Object.values(profileData.photosByCategory).reduce((sum, count) => sum + count, 0);
+  const totalActualPhotos = profileData?.photosByCategory ? Object.values(profileData.photosByCategory).reduce((sum, count) => sum + count, 0) : 0;
   const photoCompletion = (totalActualPhotos / totalExpectedPhotos) * 100;
 
   if (isLoading) {
@@ -160,7 +164,7 @@ export default function BusinessHealthMetrics({
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-medium text-gray-700">Categories Used</span>
               <span className="text-sm text-gray-600">
-                {profileData.categoriesUsed}/{profileData.maxCategories}
+                {profileData?.categoriesUsed || 0}/{profileData?.maxCategories || 0}
               </span>
             </div>
             <ProgressBar percentage={categoryCompletion} />
@@ -170,12 +174,12 @@ export default function BusinessHealthMetrics({
           <div>
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-medium text-gray-700">Services</span>
-              <span className="text-sm text-gray-600">{profileData.servicesCount} total</span>
+              <span className="text-sm text-gray-600">{profileData?.servicesCount || 0} total</span>
             </div>
             <div className="flex items-center justify-between mb-1">
               <span className="text-xs text-gray-600">With descriptions</span>
               <span className="text-xs text-gray-600">
-                {profileData.servicesWithDescriptions}/{profileData.servicesCount}
+                {profileData?.servicesWithDescriptions || 0}/{profileData?.servicesCount || 0}
               </span>
             </div>
             <ProgressBar percentage={serviceDescriptionCompletion} className="bg-green-500" />
@@ -186,12 +190,12 @@ export default function BusinessHealthMetrics({
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-medium text-gray-700">Business Description</span>
               <span className="text-sm text-gray-600">
-                {profileData.businessDescriptionLength}/{profileData.businessDescriptionMaxLength}
+                {profileData?.businessDescriptionLength || 0}/{profileData?.businessDescriptionMaxLength || 0}
               </span>
             </div>
             <div className="flex items-center justify-between mb-1">
               <span className="text-xs text-gray-600">SEO Score</span>
-              <span className="text-xs font-medium text-gray-900">{profileData.seoScore}/10</span>
+              <span className="text-xs font-medium text-gray-900">{profileData?.seoScore || 0}/10</span>
             </div>
             <ProgressBar percentage={businessDescriptionCompletion} className="bg-purple-500" />
           </div>
