@@ -382,8 +382,16 @@ const Dashboard = React.memo(function Dashboard() {
 
     
     setPlanSelectionRequired(!!isPlanSelectionRequired);
-    setShowPricingModal(!!shouldShowPricingModal);
-  }, [authLoading, accountLoading, businessesLoading, account, businessData, justCompletedPayment]);
+    
+    // Prevent pricing modal flicker during progressive loading
+    // Don't hide modal if it's currently shown and we're still loading data
+    if (!shouldShowPricingModal && showPricingModal && (businessesLoading || !dashboardData)) {
+      console.log('🎯 Dashboard: Preventing pricing modal flicker during loading');
+      // Keep modal shown until loading completes
+    } else {
+      setShowPricingModal(!!shouldShowPricingModal);
+    }
+  }, [authLoading, accountLoading, businessesLoading, account, businessData, justCompletedPayment, showPricingModal, dashboardData]);
 
   // Close modal and clear flags for Maven users
   useEffect(() => {
