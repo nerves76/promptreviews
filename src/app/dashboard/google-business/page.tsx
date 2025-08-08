@@ -282,12 +282,23 @@ export default function SocialPostingDashboard() {
     console.log('Loading platforms (database check only)...');
     
     try {
-      // Get the current session token for authentication
+      // Force session refresh to ensure cookies are properly set after OAuth redirect
       const supabase = createClient();
-      const { data: { session } } = await supabase.auth.getSession();
+      console.log('🔄 Refreshing session to ensure cookies are set...');
       
-      if (!session?.access_token) {
-        console.log('No session token available');
+      // First try to get the current session
+      let { data: { session }, error } = await supabase.auth.getSession();
+      
+      // If no session or error, try to refresh the session
+      if (!session || error) {
+        console.log('🔄 No active session found, attempting refresh...');
+        const refreshResult = await supabase.auth.refreshSession();
+        session = refreshResult.data.session;
+        error = refreshResult.error;
+      }
+      
+      if (!session?.access_token || error) {
+        console.log('❌ No session token available after refresh:', error);
         setIsConnected(false);
         setLocations([]);
         setSelectedLocations([]);
@@ -298,13 +309,19 @@ export default function SocialPostingDashboard() {
         setIsLoading(false);
         return;
       }
+      
+      console.log('✅ Session confirmed, proceeding with API call...');
+
+      // Small delay to ensure cookies are fully propagated
+      await new Promise(resolve => setTimeout(resolve, 100));
 
       // Check platforms API for database state only (no token validation calls)
       console.log('🔍 Fetching platforms (database only)...');
       const response = await fetch('/api/social-posting/platforms', {
-        credentials: 'same-origin',
+        credentials: 'include', // Changed from 'same-origin' to 'include' for better cookie handling
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`, // Add explicit auth header as fallback
         }
       });
       console.log('Platforms API response status:', response.status);
