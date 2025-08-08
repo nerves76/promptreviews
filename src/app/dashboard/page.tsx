@@ -570,7 +570,7 @@ const Dashboard = React.memo(function Dashboard() {
     dashboardData
   ]);
 
-  // Clean up timeout on unmount
+  // Clean up timeout on unmount - moved before early returns to comply with React hooks rules
   useEffect(() => {
     return () => {
       if (modalTimeoutRef.current) {
