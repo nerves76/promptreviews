@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 import { createClient, createServiceRoleClient } from "@/utils/supabaseClient";
 import { sendTemplatedEmail } from "@/utils/emailTemplates";
 import { standardReviewRateLimit } from "@/utils/reviewRateLimit";
@@ -6,7 +6,7 @@ import { standardReviewRateLimit } from "@/utils/reviewRateLimit";
 // Use service role client to bypass RLS for anonymous review submissions
 const supabase = createServiceRoleClient();
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
     // Apply rate limiting first
     const rateLimitResult = standardReviewRateLimit(request);

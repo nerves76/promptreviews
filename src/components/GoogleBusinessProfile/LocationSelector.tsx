@@ -61,7 +61,7 @@ export default function LocationSelector({
   if (!isConnected) {
     return (
       <div className={`bg-gray-50 rounded-lg p-4 text-center ${className}`}>
-        <Icon name="FaMapMarkerAlt" className="w-6 h-6 text-gray-400 mx-auto mb-2" />
+        <Icon name="FaMapMarker" className="w-6 h-6 text-gray-400 mx-auto mb-2" />
         <p className="text-gray-600 text-sm">Connect Google Business Profile to select locations</p>
       </div>
     );
@@ -88,7 +88,7 @@ export default function LocationSelector({
         className="w-full flex items-center justify-between px-4 py-3 border border-gray-300 rounded-md bg-white hover:bg-gray-50 focus:ring-2 focus:ring-slate-blue focus:border-slate-blue transition-colors"
       >
         <div className="flex items-center space-x-3">
-          <Icon name="FaMapMarkerAlt" className="w-4 h-4 text-gray-500" />
+          <Icon name="FaMapMarker" className="w-4 h-4 text-gray-500" />
           <div className="text-left">
             {selectedLocation ? (
               <>

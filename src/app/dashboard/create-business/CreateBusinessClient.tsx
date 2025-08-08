@@ -248,8 +248,7 @@ export default function CreateBusinessClient() {
     <>
       <div className="min-h-screen flex justify-center items-start px-4 sm:px-0">
         <PageCard
-          title=""
-          headerAction={
+          topRightAction={
             <button
               onClick={handleTopSaveClick}
               disabled={isSubmitting}

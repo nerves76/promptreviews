@@ -395,7 +395,7 @@ export default function BusinessLocationModal({
           {/* Header */}
           <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4 relative">
             <div className="flex items-center gap-3">
-              <Icon name="FaMapMarkerAlt" className="w-6 h-6 text-slate-blue" size={24} />
+              <Icon name="FaMapMarker" className="w-6 h-6 text-slate-blue" size={24} />
               <h2 className="text-xl font-bold text-slate-blue">
                 {location ? 'Edit Location' : 'Add New Location'}
               </h2>

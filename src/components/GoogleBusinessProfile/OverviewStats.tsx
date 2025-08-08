@@ -206,7 +206,7 @@ export default function OverviewStats({
                 reviewTrend > 0 ? 'text-green-600' : 'text-red-600'
               }`}>
                 <Icon 
-                  name={reviewTrend > 0 ? "FaArrowUp" : "FaArrowDown"} 
+                  name={reviewTrend > 0 ? "MdArrowUpward" : "MdArrowDownward"} 
                   className="w-3 h-3 mr-1" 
                 />
                 {reviewTrend > 0 ? '+' : ''}{reviewTrend}

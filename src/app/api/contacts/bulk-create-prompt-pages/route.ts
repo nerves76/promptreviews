@@ -38,8 +38,8 @@ export async function POST(request: NextRequest) {
 
     if (!user) {
       console.error('🔒 Bulk API - Authentication failed:', {
-        cookieError: cookieResult.error?.message || 'No cookie session',
-        headerError: userError?.message || 'No valid token',
+        cookieError: cookieResult.error instanceof Error ? cookieResult.error.message : 'No cookie session',
+        headerError: userError instanceof Error ? userError.message : 'No valid token',
         hasAuthHeader: !!request.headers.get('authorization')
       });
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

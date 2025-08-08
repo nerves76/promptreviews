@@ -190,7 +190,7 @@ export default function BusinessProfilePage() {
             }
           } catch (err) {
             businessProfiles = [];
-            businessError = { message: err.message };
+            businessError = { message: err instanceof Error ? err.message : String(err) };
           }
         } else {
           // Normal mode: Use Supabase client directly

@@ -482,7 +482,7 @@ const DashboardContent = React.memo(function DashboardContent({
         <div className="rounded-lg p-6 bg-blue-50 border border-blue-200 flex flex-col md:flex-row items-center gap-8 shadow">
           <div className="flex-1 w-full">
             <div className="flex items-center gap-2 mb-4">
-              <Icon name="FaChartBar" className="w-6 h-6 text-slate-blue" size={24} />
+              <Icon name="MdBarChart" className="w-6 h-6 text-slate-blue" size={24} />
               <h3 className="text-xl font-bold text-slate-blue mr-4">Review stats</h3>
               <Link href="/dashboard/analytics" className="text-slate-blue underline text-base font-medium hover:text-indigo-800 transition ml-auto">
                 View more stats
@@ -1022,7 +1022,6 @@ function UniversalTooltip() {
           name="FaQuestionCircle"
           className="inline-block w-4 h-4 align-middle cursor-pointer"
           size={16}
-          title="Universal Prompt Page info"
         />
       </button>
       {show && (

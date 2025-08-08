@@ -156,7 +156,7 @@ export default function CategorySearch({
             <Icon name="FaSpinner" className="w-4 h-4 animate-spin text-slate-blue" />
           ) : selectedCategory ? (
             <>
-              <Icon name="FaCheck" className="w-4 h-4 text-green-600" title="Selected" />
+              <Icon name="FaCheck" className="w-4 h-4 text-green-600" />
               <button
                 onClick={handleClearSelection}
                 disabled={disabled}

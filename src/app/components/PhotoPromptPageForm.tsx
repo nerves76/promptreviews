@@ -390,7 +390,7 @@ export default function PhotoPromptPageForm({
           <RecentReviewsFeature
             enabled={formData.recent_reviews_enabled}
             onEnabledChange={(enabled) => 
-              setFormData(prev => ({ ...prev, recent_reviews_enabled: enabled }))
+              setFormData((prev: any) => ({ ...prev, recent_reviews_enabled: enabled }))
             }
             initialData={{
               recent_reviews_enabled: formData.recent_reviews_enabled,
