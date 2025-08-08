@@ -60,9 +60,6 @@ export async function POST(request: NextRequest) {
         custom_prompt_page_count: 0,
         contact_count: 0,
         review_notifications_enabled: true,
-        has_seen_welcome: false,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
       })
       .select()
       .single();
