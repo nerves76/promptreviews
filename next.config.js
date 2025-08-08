@@ -11,12 +11,8 @@ const nextConfig = {
   // Performance optimizations
   experimental: {
     optimizePackageImports: ['react-icons', 'lucide-react'],
-    // Enable aggressive minification
-    swcMinify: true,
     // Modern JavaScript compilation
     esmExternals: true,
-    // Optimize font loading
-    optimizeFonts: true,
   },
   
   // Turbopack configuration (moved from experimental.turbo)
