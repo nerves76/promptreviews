@@ -15,6 +15,16 @@ import { cookies } from 'next/headers';
 export async function GET(request: NextRequest) {
   try {
     console.log('🔍 Social posting platforms API called');
+    
+    // Simple test to verify the route is working
+    return NextResponse.json({ 
+      message: 'API route is working',
+      timestamp: new Date().toISOString(),
+      platforms: []
+    });
+    
+    // Temporarily disable authentication for debugging
+    /*
     console.log('📝 Request cookies:', request.headers.get('cookie')?.includes('sb-') ? 'has supabase cookies' : 'no supabase cookies');
     
     // Create server-side Supabase client that handles session cookies
@@ -87,6 +97,7 @@ export async function GET(request: NextRequest) {
         details: authError?.message || 'User not authenticated'
       }, { status: 401 });
     }
+    */
 
     console.log('✅ User authenticated:', user.id);
 
