@@ -699,18 +699,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Listen for force refresh events (after functions are initialized)
   useEffect(() => {
-    const handleForceRefresh = () => {
+    const handleForceRefresh = (event: Event) => {
       if (process.env.NODE_ENV === 'development') {
-        console.log('🔄 AuthContext: Force refresh event received');
+        console.log('🔄 AuthContext: Force refresh event received', {
+          eventType: event.type,
+          timestamp: new Date().toISOString()
+        });
       }
       // Get current user state from supabase instead of relying on hook dependency
       supabase.auth.getUser().then(({ data: { user: currentUser } }) => {
         if (currentUser) {
+          if (process.env.NODE_ENV === 'development') {
+            console.log('🔄 AuthContext: Calling checkBusinessProfile with forceRefresh=true for user:', currentUser.id);
+          }
           // Call the functions directly without dependencies to avoid initialization issues
           setTimeout(() => {
             checkBusinessProfile(currentUser, true);
             checkAccountDetails(currentUser, true);
           }, 100);
+        } else {
+          console.log('🔄 AuthContext: No current user found for refresh');
         }
       });
     };

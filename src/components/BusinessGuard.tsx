@@ -93,6 +93,19 @@ export default function BusinessGuard({ children }: BusinessGuardProps) {
       (urlParams?.get("change") === "upgrade" || urlParams?.get("change") === "downgrade");
     const businessJustCreated = urlParams?.get("businessCreated") === "1";
 
+    // Debug URL parameters
+    if (typeof window !== "undefined" && process.env.NODE_ENV === 'development') {
+      console.log('🔍 BusinessGuard: URL debug', {
+        pathname,
+        search: window.location.search,
+        businessCreatedParam: urlParams?.get("businessCreated"),
+        businessJustCreated,
+        isComingFromPlanChange,
+        hasBusiness,
+        timestamp: new Date().toISOString()
+      });
+    }
+
     // Skip business requirements if user is coming from plan change
     if (isComingFromPlanChange) {
       return;
