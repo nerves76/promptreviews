@@ -145,6 +145,12 @@ export default function CreateBusinessClient() {
     console.log("✅ CreateBusinessClient: handleBusinessCreated called at:", new Date().toISOString());
     setIsSubmitting(false);
     
+    // Set a flag to prevent BusinessGuard interference during redirect
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('businessCreationInProgress', 'true');
+      console.log('🚫 CreateBusinessClient: Set businessCreationInProgress flag');
+    }
+    
     // Force refresh business profile in auth context
     if (typeof window !== 'undefined') {
       console.log('🔄 CreateBusinessClient: Dispatching forceRefreshBusiness event');
@@ -156,7 +162,7 @@ export default function CreateBusinessClient() {
       }
     }
     
-    // Add a small delay to allow auth context to update before redirect
+    // Shorter delay - BusinessGuard now gives 3 seconds for state update
     setTimeout(() => {
       console.log("🚀 CreateBusinessClient: Starting redirect process...");
       console.log("🚀 CreateBusinessClient: About to call redirectToDashboard");
@@ -166,7 +172,7 @@ export default function CreateBusinessClient() {
       } catch (error) {
         console.error("❌ CreateBusinessClient: Error in redirectToDashboard:", error);
       }
-    }, 500);
+    }, 100); // Reduced from 500ms to 100ms since BusinessGuard now waits longer
   }, [redirectToDashboard]);
 
   // Handle top save button click
