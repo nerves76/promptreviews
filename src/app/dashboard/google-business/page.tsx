@@ -98,7 +98,7 @@ export default function SocialPostingDashboard() {
     imageUrlsRef.current = imageUrls;
   }, [imageUrls]);
 
-  // Tab state with URL parameter support
+  // Tab state with URL parameter support and dynamic default based on connection
   const [activeTab, setActiveTab] = useState<'connect' | 'overview' | 'post' | 'photos' | 'business-info' | 'reviews'>(() => {
     // Initialize from URL parameter if available
     if (typeof window !== 'undefined') {
@@ -108,12 +108,32 @@ export default function SocialPostingDashboard() {
         return tabParam;
       }
     }
+    // Default tab will be set based on connection status in useEffect
     return 'connect';
   });
+
+  // Mobile menu state
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Set default tab based on connection status
+  useEffect(() => {
+    // Only set default tab if no URL parameter was provided and not loading
+    if (!isLoading && typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const hasTabParam = urlParams.has('tab');
+      
+      if (!hasTabParam) {
+        // Default to Overview if connected, Connect if not
+        const defaultTab = isConnected ? 'overview' : 'connect';
+        setActiveTab(defaultTab);
+      }
+    }
+  }, [isConnected, isLoading]);
 
   // Update URL when tab changes
   const changeTab = (newTab: 'connect' | 'overview' | 'post' | 'photos' | 'business-info' | 'reviews') => {
     setActiveTab(newTab);
+    setIsMobileMenuOpen(false); // Close mobile menu when tab changes
     
     // Update URL parameter
     if (typeof window !== 'undefined') {
@@ -912,7 +932,26 @@ export default function SocialPostingDashboard() {
 
           {/* Tab Navigation */}
           <div className="border-b border-gray-200">
-            <nav className="-mb-px flex space-x-8">
+            {/* Mobile Hamburger Button */}
+            <div className="md:hidden flex justify-between items-center p-4">
+              <h3 className="text-lg font-medium text-gray-900">
+                {activeTab === 'connect' && 'Connect'}
+                {activeTab === 'overview' && 'Overview'}
+                {activeTab === 'post' && 'Post'}
+                {activeTab === 'photos' && 'Photos'}
+                {activeTab === 'business-info' && 'Business Info'}
+                {activeTab === 'reviews' && 'Reviews'}
+              </h3>
+              <button
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-slate-blue"
+              >
+                <Icon name={isMobileMenuOpen ? "FaTimes" : "FaBars"} className="w-5 h-5" size={20} />
+              </button>
+            </div>
+
+            {/* Desktop Navigation */}
+            <nav className="hidden md:flex -mb-px space-x-8">
               <button
                 onClick={() => changeTab('connect')}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
@@ -923,7 +962,7 @@ export default function SocialPostingDashboard() {
               >
                 <div className="flex items-center space-x-2">
                   <Icon name="FaGoogle" className="w-4 h-4" />
-                  <span>Connect Platforms</span>
+                  <span>Connect</span>
                 </div>
               </button>
               <button
@@ -951,7 +990,7 @@ export default function SocialPostingDashboard() {
               >
                 <div className="flex items-center space-x-2">
                   <Icon name="FaPlus" className="w-4 h-4" size={16} />
-                  <span>Create Posts</span>
+                  <span>Post</span>
                 </div>
               </button>
               <button
@@ -993,10 +1032,111 @@ export default function SocialPostingDashboard() {
               >
                 <div className="flex items-center space-x-2">
                   <Icon name="FaStar" className="w-4 h-4" size={16} />
-                  <span>Reviews Management</span>
+                  <span>Reviews</span>
                 </div>
               </button>
             </nav>
+
+            {/* Mobile Navigation Menu */}
+            {isMobileMenuOpen && (
+              <div className="md:hidden bg-gray-50 border-t border-gray-200">
+                <div className="px-2 py-3 space-y-1">
+                  <button
+                    onClick={() => changeTab('connect')}
+                    className={`w-full text-left px-3 py-2 rounded-md text-sm font-medium ${
+                      activeTab === 'connect'
+                        ? 'bg-slate-blue text-white'
+                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-3">
+                      <Icon name="FaGoogle" className="w-4 h-4" />
+                      <span>Connect</span>
+                    </div>
+                  </button>
+                  <button
+                    onClick={() => changeTab('overview')}
+                    disabled={!isConnected}
+                    className={`w-full text-left px-3 py-2 rounded-md text-sm font-medium ${
+                      activeTab === 'overview' && isConnected
+                        ? 'bg-slate-blue text-white'
+                        : isConnected 
+                          ? 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                          : 'text-gray-400 cursor-not-allowed'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-3">
+                      <Icon name="MdBarChart" className="w-4 h-4" size={16} />
+                      <span>Overview</span>
+                    </div>
+                  </button>
+                  <button
+                    onClick={() => changeTab('post')}
+                    disabled={!isConnected}
+                    className={`w-full text-left px-3 py-2 rounded-md text-sm font-medium ${
+                      activeTab === 'post' && isConnected
+                        ? 'bg-slate-blue text-white'
+                        : isConnected 
+                          ? 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                          : 'text-gray-400 cursor-not-allowed'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-3">
+                      <Icon name="FaPlus" className="w-4 h-4" size={16} />
+                      <span>Post</span>
+                    </div>
+                  </button>
+                  <button
+                    onClick={() => changeTab('photos')}
+                    disabled={!isConnected}
+                    className={`w-full text-left px-3 py-2 rounded-md text-sm font-medium ${
+                      activeTab === 'photos' && isConnected
+                        ? 'bg-slate-blue text-white'
+                        : isConnected 
+                          ? 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                          : 'text-gray-400 cursor-not-allowed'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-3">
+                      <Icon name="FaImage" className="w-4 h-4" size={16} />
+                      <span>Photos</span>
+                    </div>
+                  </button>
+                  <button
+                    onClick={() => changeTab('business-info')}
+                    disabled={!isConnected}
+                    className={`w-full text-left px-3 py-2 rounded-md text-sm font-medium ${
+                      activeTab === 'business-info' && isConnected
+                        ? 'bg-slate-blue text-white'
+                        : isConnected 
+                          ? 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                          : 'text-gray-400 cursor-not-allowed'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-3">
+                      <Icon name="FaStore" className="w-4 h-4" size={16} />
+                      <span>Business Info</span>
+                    </div>
+                  </button>
+                  <button
+                    onClick={() => changeTab('reviews')}
+                    disabled={!isConnected}
+                    className={`w-full text-left px-3 py-2 rounded-md text-sm font-medium ${
+                      activeTab === 'reviews' && isConnected
+                        ? 'bg-slate-blue text-white'
+                        : isConnected 
+                          ? 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                          : 'text-gray-400 cursor-not-allowed'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-3">
+                      <Icon name="FaStar" className="w-4 h-4" size={16} />
+                      <span>Reviews</span>
+                    </div>
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Tab Content */}
