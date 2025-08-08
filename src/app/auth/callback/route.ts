@@ -36,8 +36,79 @@ export async function GET(request: NextRequest) {
     );
   }
 
+  // If no code, check if we already have a session (Supabase might have set it during redirect)
   if (!code) {
-    console.log('❌ No code provided, redirecting to sign-in');
+    console.log('⚠️ No code provided, checking for existing session...');
+    
+    try {
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (session && session.user) {
+        console.log('✅ Found existing session from Supabase redirect');
+        // Continue with the normal flow using the existing session
+        const user = session.user;
+        const { id: userId, email } = user;
+        
+        // Jump to account creation logic
+        console.log('🔄 Processing user with existing session:', userId);
+        
+        // Check for pending team invitations
+        let hasAcceptedInvitation = false;
+        try {
+          const { data: pendingInvitations, error: invitationError } = await supabase
+            .from('account_invitations')
+            .select('token, account_id, role')
+            .eq('email', email)
+            .is('accepted_at', null)
+            .gte('expires_at', new Date().toISOString());
+
+          if (!invitationError && pendingInvitations && pendingInvitations.length > 0) {
+            // Handle invitation logic (same as below)
+            const invitation = pendingInvitations[0];
+            const { data: canAdd } = await supabase
+              .rpc('can_add_user_to_account', { account_uuid: invitation.account_id });
+
+            if (canAdd) {
+              const { error: addUserError } = await supabase
+                .from('account_users')
+                .insert({
+                  account_id: invitation.account_id,
+                  user_id: userId,
+                  role: invitation.role
+                });
+
+              if (!addUserError) {
+                await supabase
+                  .from('account_invitations')
+                  .update({ accepted_at: new Date().toISOString() })
+                  .eq('token', invitation.token);
+                
+                return NextResponse.redirect(`${requestUrl.origin}/dashboard`);
+              }
+            }
+          }
+        } catch (error) {
+          console.error('❌ Error checking invitations:', error);
+        }
+        
+        // Check if user has account
+        const { data: accountLinks } = await supabase
+          .from("account_users")
+          .select("account_id")
+          .eq("user_id", userId);
+        
+        const isNewUser = !accountLinks || accountLinks.length === 0;
+        const redirectUrl = isNewUser 
+          ? `${requestUrl.origin}/dashboard/create-business`
+          : `${requestUrl.origin}/dashboard`;
+        
+        return NextResponse.redirect(redirectUrl);
+      }
+    } catch (error) {
+      console.error('❌ Error checking session:', error);
+    }
+    
+    console.log('❌ No code and no session found');
     return NextResponse.redirect(`${requestUrl.origin}/auth/sign-in?error=missing_code`);
   }
 
