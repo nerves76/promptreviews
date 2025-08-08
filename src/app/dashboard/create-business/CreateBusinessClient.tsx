@@ -38,8 +38,26 @@ export default function CreateBusinessClient() {
   // Memoize router functions to prevent infinite loops
   const redirectToDashboard = useCallback(() => {
     console.log("🔄 CreateBusinessClient: redirectToDashboard called");
-    router.replace("/dashboard?businessCreated=1");
-    console.log("🔄 CreateBusinessClient: router.replace called with businessCreated=1");
+    console.log("🔄 CreateBusinessClient: Current pathname:", window.location.pathname);
+    console.log("🔄 CreateBusinessClient: About to call router.replace with /dashboard?businessCreated=1");
+    
+    try {
+      router.replace("/dashboard?businessCreated=1");
+      console.log("✅ CreateBusinessClient: router.replace called successfully");
+      
+      // Also try window.location as fallback after a delay
+      setTimeout(() => {
+        console.log("🔄 CreateBusinessClient: Checking if redirect worked...");
+        if (window.location.pathname === "/dashboard/create-business") {
+          console.log("⚠️ CreateBusinessClient: Still on create-business page, trying window.location redirect");
+          window.location.href = "/dashboard?businessCreated=1";
+        }
+      }, 1000);
+    } catch (error) {
+      console.error("❌ CreateBusinessClient: router.replace failed:", error);
+      console.log("🔄 CreateBusinessClient: Trying window.location fallback");
+      window.location.href = "/dashboard?businessCreated=1";
+    }
   }, [router]);
 
   // Handler for closing the welcome popup
@@ -124,18 +142,30 @@ export default function CreateBusinessClient() {
   // Handle successful business creation
   const handleBusinessCreated = useCallback(() => {
     console.log("✅ CreateBusinessClient: Business created successfully, refreshing...");
+    console.log("✅ CreateBusinessClient: handleBusinessCreated called at:", new Date().toISOString());
     setIsSubmitting(false);
     
     // Force refresh business profile in auth context
     if (typeof window !== 'undefined') {
       console.log('🔄 CreateBusinessClient: Dispatching forceRefreshBusiness event');
-      window.dispatchEvent(new CustomEvent('forceRefreshBusiness'));
+      try {
+        window.dispatchEvent(new CustomEvent('forceRefreshBusiness'));
+        console.log('✅ CreateBusinessClient: forceRefreshBusiness event dispatched successfully');
+      } catch (error) {
+        console.error('❌ CreateBusinessClient: Error dispatching forceRefreshBusiness event:', error);
+      }
     }
     
     // Add a small delay to allow auth context to update before redirect
     setTimeout(() => {
-      console.log("✅ CreateBusinessClient: Business created successfully, redirecting...");
-      redirectToDashboard();
+      console.log("🚀 CreateBusinessClient: Starting redirect process...");
+      console.log("🚀 CreateBusinessClient: About to call redirectToDashboard");
+      try {
+        redirectToDashboard();
+        console.log("✅ CreateBusinessClient: redirectToDashboard completed");
+      } catch (error) {
+        console.error("❌ CreateBusinessClient: Error in redirectToDashboard:", error);
+      }
     }, 500);
   }, [redirectToDashboard]);
 
