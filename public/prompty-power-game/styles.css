@@ -30,7 +30,7 @@ body {
 }
 
 .sidePanel {
-    width: 250px;
+    width: 220px;
     background: #000000;
     position: relative;
     border-radius: 10px;
@@ -41,6 +41,7 @@ body {
     display: flex;
     flex-direction: column;
     margin-top: 20px; /* Push sidebar down to align with game container */
+    margin-left: 15px; /* Move sidebar closer to game */
 }
 
 .sidePanel::before {
