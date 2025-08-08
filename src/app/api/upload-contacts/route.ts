@@ -84,6 +84,28 @@ export async function POST(request: NextRequest) {
           business_name: ["businessname", "business name"],
           notes: ["notes"],
           category: ["category"],
+          // Review fields (up to 15 reviews)
+          review_1_content: ["review1content", "review 1 content", "review_1_content"],
+          review_1_platform: ["review1platform", "review 1 platform", "review_1_platform"],
+          review_1_rating: ["review1rating", "review 1 rating", "review_1_rating"],
+          review_1_date: ["review1date", "review 1 date", "review_1_date"],
+          review_1_reviewer_first_name: ["review1reviewerfirstname", "review 1 reviewer first name", "review_1_reviewer_first_name"],
+          review_1_reviewer_last_name: ["review1reviewerlastname", "review 1 reviewer last name", "review_1_reviewer_last_name"],
+          review_1_reviewer_role: ["review1reviewerrole", "review 1 reviewer role", "review_1_reviewer_role"],
+          review_2_content: ["review2content", "review 2 content", "review_2_content"],
+          review_2_platform: ["review2platform", "review 2 platform", "review_2_platform"],
+          review_2_rating: ["review2rating", "review 2 rating", "review_2_rating"],
+          review_2_date: ["review2date", "review 2 date", "review_2_date"],
+          review_2_reviewer_first_name: ["review2reviewerfirstname", "review 2 reviewer first name", "review_2_reviewer_first_name"],
+          review_2_reviewer_last_name: ["review2reviewerlastname", "review 2 reviewer last name", "review_2_reviewer_last_name"],
+          review_2_reviewer_role: ["review2reviewerrole", "review 2 reviewer role", "review_2_reviewer_role"],
+          review_3_content: ["review3content", "review 3 content", "review_3_content"],
+          review_3_platform: ["review3platform", "review 3 platform", "review_3_platform"],
+          review_3_rating: ["review3rating", "review 3 rating", "review_3_rating"],
+          review_3_date: ["review3date", "review 3 date", "review_3_date"],
+          review_3_reviewer_first_name: ["review3reviewerfirstname", "review 3 reviewer first name", "review_3_reviewer_first_name"],
+          review_3_reviewer_last_name: ["review3reviewerlastname", "review 3 reviewer last name", "review_3_reviewer_last_name"],
+          review_3_reviewer_role: ["review3reviewerrole", "review 3 reviewer role", "review_3_reviewer_role"],
         };
         // Map normalized header to expected field
         return headers.map((header: string) => {
@@ -210,10 +232,60 @@ export async function POST(request: NextRequest) {
       insertedContacts,
     );
 
-    // No prompt page creation logic here
+    // Create reviews if any were provided in the CSV
+    let totalReviewsCreated = 0;
+    if (insertedContacts && insertedContacts.length > 0) {
+      console.log("Processing reviews from CSV...");
+      
+      for (let i = 0; i < insertedContacts.length; i++) {
+        const contact = insertedContacts[i];
+        const record = validRecords[i];
+        
+        // Extract reviews from the record (up to 15 reviews)
+        const reviews = [];
+        for (let reviewIndex = 1; reviewIndex <= 15; reviewIndex++) {
+          const contentKey = `review_${reviewIndex}_content`;
+          const platformKey = `review_${reviewIndex}_platform`;
+          
+          if (record[contentKey]?.trim() && record[platformKey]?.trim()) {
+            reviews.push({
+              prompt_page_id: null, // No prompt page association for manual reviews
+              contact_id: contact.id,
+              platform: record[platformKey].trim(),
+              review_content: record[contentKey].trim(),
+              first_name: record[`review_${reviewIndex}_reviewer_first_name`]?.trim() || null,
+              last_name: record[`review_${reviewIndex}_reviewer_last_name`]?.trim() || null,
+              reviewer_role: record[`review_${reviewIndex}_reviewer_role`]?.trim() || null,
+              star_rating: record[`review_${reviewIndex}_rating`] ? parseInt(record[`review_${reviewIndex}_rating`]) : null,
+              created_at: record[`review_${reviewIndex}_date`] || new Date().toISOString(),
+              status: "submitted",
+              verified: true, // Manual reviews are verified by default
+              emoji_sentiment_selection: null, // Not applicable for manual reviews
+            });
+          }
+        }
+        
+        // Insert reviews for this contact
+        if (reviews.length > 0) {
+          console.log(`Creating ${reviews.length} reviews for contact ${contact.id}`);
+          const { error: reviewInsertError } = await supabase
+            .from("review_submissions")
+            .insert(reviews);
+          
+          if (reviewInsertError) {
+            console.error(`Error inserting reviews for contact ${contact.id}:`, reviewInsertError);
+          } else {
+            totalReviewsCreated += reviews.length;
+            console.log(`Successfully created ${reviews.length} reviews for contact ${contact.id}`);
+          }
+        }
+      }
+    }
+
     return NextResponse.json({
       message: "Successfully uploaded contacts",
       contactsCreated: insertedContacts?.length || 0,
+      reviewsCreated: totalReviewsCreated,
     });
   } catch (error) {
     console.error("Error processing upload:", error);
