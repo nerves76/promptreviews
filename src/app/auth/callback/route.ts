@@ -41,6 +41,29 @@ export async function GET(request: NextRequest) {
     console.log('⚠️ No code provided, checking for existing session...');
     
     try {
+      // Create server client to check session
+      const { cookies } = await import('next/headers');
+      const cookieStore = await cookies();
+      
+      const supabase = createServerClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        {
+          cookies: {
+            get: (name) => {
+              const value = cookieStore.get(name)?.value;
+              return value;
+            },
+            set: (name, value, options) => {
+              cookieStore.set(name, value, options);
+            },
+            remove: (name, options) => {
+              cookieStore.set(name, '', { ...options, maxAge: 0 });
+            },
+          },
+        }
+      );
+      
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       
       if (session && session.user) {
