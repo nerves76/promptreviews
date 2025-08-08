@@ -159,42 +159,36 @@ const Dashboard = React.memo(function Dashboard() {
           .eq("account_id", account.id)
           .order("created_at", { ascending: false }),
         
-        // Fetch review submissions for this account (properly filtered)
+        // Fetch review submissions using JOIN for better performance
         (async () => {
           try {
-            console.log('🔍 Dashboard: Attempting to fetch review_submissions...');
+            console.log('🔍 Dashboard: Fetching review_submissions with optimized query...');
             
-            // First get the prompt page IDs for this account
-            const promptPageIdsResult = await supabase
-              .from("prompt_pages")
-              .select("id")
-              .eq("account_id", account.id);
-            
-            if (promptPageIdsResult.error) {
-              console.error("Error fetching prompt page IDs:", promptPageIdsResult.error);
-              return { data: [], error: null };
-            }
-            
-            const promptPageIds = promptPageIdsResult.data?.map(p => p.id) || [];
-            
-            if (promptPageIds.length === 0) {
-              console.log('🔍 Dashboard: No prompt pages found for account, returning empty reviews');
-              return { data: [], error: null };
-            }
-            
-            // Fetch review submissions for these prompt pages
+            // Use a single query with JOIN instead of two sequential queries
             const result = await supabase
               .from("review_submissions")
-              .select("id, created_at, verified")
-              .in("prompt_page_id", promptPageIds);
+              .select(`
+                id, 
+                created_at, 
+                verified,
+                prompt_pages!inner(account_id)
+              `)
+              .eq("prompt_pages.account_id", account.id);
             
             if (result.error) {
-              console.error('❌ Dashboard: review_submissions query failed:', result.error);
+              console.error('❌ Dashboard: review_submissions JOIN query failed:', result.error);
               return { data: [], error: null };
             }
             
-            console.log('✅ Dashboard: Found', result.data?.length || 0, 'review submissions for account');
-            return result;
+            // Transform the data to match expected format
+            const reviewData = result.data?.map(row => ({
+              id: row.id,
+              created_at: row.created_at,
+              verified: row.verified
+            })) || [];
+            
+            console.log('✅ Dashboard: Found', reviewData.length, 'review submissions for account');
+            return { data: reviewData, error: null };
           } catch (error) {
             console.error('❌ Dashboard: review_submissions query exception:', error);
             return { data: [], error: null };
@@ -540,33 +534,39 @@ const Dashboard = React.memo(function Dashboard() {
     }
   }, [user?.email, account?.plan, businessData?.businessCount, account?.stripe_customer_id]);
 
-  // Load remaining dashboard data when pricing modal is closed and data hasn't been loaded
+  // Load dashboard data immediately when account is available (don't wait for pricing modal)
   useEffect(() => {
-    if (!showPricingModal && !dashboardData && businessData && !isDashboardLoading) {
-      console.log('📊 Loading remaining dashboard data after plan selection');
+    if (!dashboardData && businessData && !isDashboardLoading && account?.id) {
+      console.log('📊 Loading dashboard data immediately (not waiting for pricing modal)');
       loadDashboardSpecificData();
     }
-  }, [showPricingModal, dashboardData, businessData, isDashboardLoading]);
+  }, [dashboardData, businessData, isDashboardLoading, account?.id, loadDashboardSpecificData]);
 
   // Loading state
   const isLoading = authLoading || accountLoading || isDashboardLoading;
 
-  // Consolidated data for components (combining AuthContext + dashboard data)
+  // Progressive data loading - show content as it becomes available
   const consolidatedData = useMemo(() => {
-    if (!account || !businessData || !dashboardData) return null;
-    
+    // Always return an object, populate fields as data becomes available
     return {
-      user,
-      account,
-      businesses: businessData.businesses,
-      promptPages: dashboardData.promptPages,
-      widgets: dashboardData.widgets,
+      user: user || null,
+      account: account || null,
+      businesses: businessData?.businesses || [],
+      promptPages: dashboardData?.promptPages || [],
+      widgets: dashboardData?.widgets || [],
       isAdminUser,
-      accountLimits: dashboardData.accountLimits,
-      reviewStats: dashboardData.reviewStats,
-      universalPromptPage: dashboardData.universalPromptPage,
-      customPromptPages: dashboardData.customPromptPages,
-      universalUrl: dashboardData.universalUrl
+      accountLimits: dashboardData?.accountLimits || null,
+      reviewStats: dashboardData?.reviewStats || { 
+        total: { week: 0, month: 0, year: 0 }, 
+        verified: { week: 0, month: 0, year: 0 } 
+      },
+      universalPromptPage: dashboardData?.universalPromptPage || null,
+      customPromptPages: dashboardData?.customPromptPages || [],
+      universalUrl: dashboardData?.universalUrl || "",
+      // Loading states for progressive rendering
+      isAccountLoaded: !!account,
+      isBusinessDataLoaded: !!businessData,
+      isDashboardDataLoaded: !!dashboardData
     };
   }, [
     user?.id,
@@ -579,7 +579,10 @@ const Dashboard = React.memo(function Dashboard() {
     isAdminUser,
     dashboardData?.universalPromptPage?.id,
     dashboardData?.customPromptPages?.length,
-    dashboardData?.universalUrl
+    dashboardData?.universalUrl,
+    account,
+    businessData,
+    dashboardData
   ]);
 
   // Early returns for loading and error states
@@ -608,23 +611,15 @@ const Dashboard = React.memo(function Dashboard() {
     );
   }
 
-  if (isDashboardLoading || businessesLoading) {
+  // Only show full loading screen for initial auth/account loading
+  // Dashboard-specific data can load progressively
+  if (!account && accountLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50">
         <div className="text-center">
           <FiveStarSpinner />
-          <p className="mt-4 text-gray-600">Loading your dashboard...</p>
+          <p className="mt-4 text-gray-600">Loading your account...</p>
         </div>
-      </div>
-    );
-  }
-
-
-
-  if (!consolidatedData) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
-        <FiveStarSpinner />
       </div>
     );
   }

@@ -94,14 +94,35 @@ Here's your first tip: [icon] <— click here`;
 
   const renderMessage = (text: string) => {
     if (!text) return null;
+    
+    // Helper function to parse markdown formatting in text
+    const parseMarkdown = (text: string) => {
+      // Handle bold text **text**
+      const boldRegex = /\*\*(.*?)\*\*/g;
+      const parts = text.split(boldRegex);
+      
+      return parts.map((part, index) => {
+        // Every odd index is the bold text content
+        if (index % 2 === 1) {
+          return <strong key={index} className="font-semibold">{part}</strong>;
+        }
+        return part;
+      });
+    };
+    
     return text.split('\n').map((paragraph, index) => {
+      // Skip empty paragraphs but keep line breaks
+      if (paragraph.trim() === '') {
+        return <div key={index} className="h-2" />;
+      }
+      
       // Check if this paragraph contains the robot icon placeholder
       if (paragraph.includes('[icon]')) {
         return (
           <div key={index} className="text-sm flex items-center gap-2">
             {paragraph.split('[icon]').map((part, partIndex, arr) => (
               <React.Fragment key={partIndex}>
-                {part}
+                {parseMarkdown(part)}
                 {partIndex < arr.length - 1 && (
                   <span className="relative inline-block align-middle">
                     <button
@@ -132,9 +153,10 @@ Here's your first tip: [icon] <— click here`;
           </div>
         );
       }
+      
       return (
         <p key={index} className="text-sm">
-          {paragraph}
+          {parseMarkdown(paragraph)}
         </p>
       );
     });
