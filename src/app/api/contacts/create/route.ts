@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
       user = cookieResult.data.session.user;
       console.log('✅ Contacts API - Cookie auth successful for user:', user.id);
     } else {
-      console.log('❌ Contacts API - Cookie auth failed:', cookieResult.error?.message);
+      console.log('❌ Contacts API - Cookie auth failed:', cookieResult.error instanceof Error ? cookieResult.error.message : 'Unknown error');
       // If cookie auth fails, try Authorization header
       const authHeader = request.headers.get('authorization');
       if (authHeader?.startsWith('Bearer ')) {
@@ -48,8 +48,8 @@ export async function POST(request: NextRequest) {
     
     if (!user) {
       console.error('🔒 Contacts API - Authentication failed:', {
-        cookieError: cookieResult.error?.message || 'No cookie session',
-        headerError: userError?.message || 'No valid token',
+        cookieError: cookieResult.error instanceof Error ? cookieResult.error.message : 'No cookie session',
+        headerError: userError instanceof Error ? userError.message : 'No valid token',
         hasAuthHeader: !!request.headers.get('authorization')
       });
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

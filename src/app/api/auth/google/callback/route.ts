@@ -138,7 +138,7 @@ export async function GET(request: NextRequest) {
     
     if (authError || !user) {
       console.log('❌ Authentication error in OAuth callback after retries:', {
-        error: authError?.message,
+        error: authError instanceof Error ? authError.message : String(authError),
         hasUser: !!user,
         retryCount,
         cookies: request.headers.get('cookie')?.includes('sb-') ? 'has supabase cookies' : 'no supabase cookies'

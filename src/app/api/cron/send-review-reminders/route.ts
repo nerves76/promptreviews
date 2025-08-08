@@ -177,8 +177,8 @@ export async function GET(request: NextRequest) {
 
         const accounts = Array.from(accountsByAccountId.values()).map(account => ({
           businessName: account.businessName,
-          reviewCount: account.locations.reduce((sum, loc) => sum + loc.reviewCount, 0),
-          multipleReviews: account.locations.reduce((sum, loc) => sum + loc.reviewCount, 0) > 1,
+          reviewCount: account.locations.reduce((sum: number, loc: any) => sum + loc.reviewCount, 0),
+          multipleReviews: account.locations.reduce((sum: number, loc: any) => sum + loc.reviewCount, 0) > 1,
           locations: account.locations
         }));
 

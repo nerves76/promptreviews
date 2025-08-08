@@ -55,7 +55,7 @@ export default function ProductDetailsSection({
     <div className="custom-space-y">
       {/* Product Details Header */}
       <div className="flex items-center gap-3 mt-12 mb-6">
-        <Icon name="FaList" className="w-7 h-7" style={{ color: "#1A237E" }} size={28} />
+        <Icon name="MdList" className="w-7 h-7" style={{ color: "#1A237E" }} size={28} />
         <h2 className="text-2xl font-bold text-slate-blue">
           Product details
         </h2>

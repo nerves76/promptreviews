@@ -85,7 +85,7 @@ export const loadAllFallingIcons = async (): Promise<{
     FaRobot,
     FaClock,
     FaBell,
-    FaMapMarkerAlt,
+    FaMapMarker,
     FaAppleAlt,
     FaCandyCane,
     FaIceCream,
@@ -295,7 +295,7 @@ export const loadAllFallingIcons = async (): Promise<{
     // Time & Communication
     { key: "clock", label: "Clock", icon: FaClock, color: "text-gray-600", category: "Time & Communication" },
     { key: "bell", label: "Bell", icon: FaBell, color: "text-yellow-500", category: "Time & Communication" },
-    { key: "mapmarkeralt", label: "Location", icon: FaMapMarkerAlt, color: "text-red-500", category: "Time & Communication" },
+    { key: "mapmarkeralt", label: "Location", icon: FaMapMarker, color: "text-red-500", category: "Time & Communication" },
     { key: "questioncircle", label: "Question", icon: FaQuestionCircle, color: "text-blue-500", category: "Time & Communication" },
     
     // Community & Support
@@ -329,7 +329,7 @@ export const getFallingIcon = (key: string) => {
     
     // First check popular icons (immediate)
     const popularIcon = POPULAR_FALLING_ICONS.find((icon) => icon.key === key);
-    if (popularIcon && popularIcon.icon) {
+    if (popularIcon) {
       return popularIcon;
     }
     
@@ -349,7 +349,7 @@ export const getFallingIconAsync = async (key: string) => {
   try {
     // First check popular icons (immediate)
     const popularIcon = POPULAR_FALLING_ICONS.find((icon) => icon.key === key);
-    if (popularIcon && popularIcon.icon) {
+    if (popularIcon) {
       return popularIcon;
     }
     
@@ -357,7 +357,7 @@ export const getFallingIconAsync = async (key: string) => {
     try {
       const allIcons = await loadAllFallingIcons();
       const foundIcon = allIcons.find((icon) => icon.key === key);
-      if (foundIcon && foundIcon.icon) {
+      if (foundIcon) {
         return foundIcon;
       }
     } catch (loadError) {

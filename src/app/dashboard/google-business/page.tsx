@@ -923,7 +923,7 @@ export default function SocialPostingDashboard() {
                 } ${!isConnected ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
                 <div className="flex items-center space-x-2">
-                  <Icon name="FaChartBar" className="w-4 h-4" size={16} />
+                  <Icon name="MdBarChart" className="w-4 h-4" size={16} />
                   <span>Overview</span>
                 </div>
               </button>
@@ -1134,7 +1134,7 @@ export default function SocialPostingDashboard() {
             <div className="space-y-6">
               {!isConnected ? (
                 <div className="text-center py-12">
-                  <Icon name="FaChartBar" className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <Icon name="MdBarChart" className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">Connect Google Business Profile</h3>
                   <p className="text-gray-600 mb-4">
                     Connect your Google Business Profile to view comprehensive overview and analytics.
@@ -1272,7 +1272,7 @@ export default function SocialPostingDashboard() {
                     
                     {locations.length === 0 ? (
                       <div className="text-center py-8">
-                        <Icon name="FaMapMarkerAlt" className="w-8 h-8 text-gray-400 mx-auto mb-3" />
+                        <Icon name="FaMapMarker" className="w-8 h-8 text-gray-400 mx-auto mb-3" />
                         <p className="text-gray-600 mb-4">No business locations found</p>
                         <p className="text-sm text-gray-500 mb-4">
                           You need to fetch your business locations first.
@@ -1291,7 +1291,7 @@ export default function SocialPostingDashboard() {
                           className="w-full flex items-center justify-between px-4 py-3 border border-gray-300 rounded-md bg-white hover:bg-gray-50 focus:ring-2 focus:ring-slate-blue focus:border-slate-blue"
                         >
                           <div className="flex items-center space-x-2">
-                            <Icon name="FaMapMarkerAlt" className="w-4 h-4 text-gray-500" />
+                            <Icon name="FaMapMarker" className="w-4 h-4 text-gray-500" />
                             <span className="text-gray-700">
                               {selectedLocations.length === 0 
                                 ? 'Select business locations' 
@@ -1396,7 +1396,7 @@ export default function SocialPostingDashboard() {
                               </>
                             ) : (
                               <>
-                                <Icon name="FaBolt" className="w-3 h-3" />
+                                <Icon name="MdFlashOn" className="w-3 h-3" />
                                 <span>AI Improve</span>
                               </>
                             )}

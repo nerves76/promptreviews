@@ -949,7 +949,7 @@ export default function QRCodeGenerator({
       const isTableTentPDF = frameSize.label.includes('Table Tent');
       
       // Create PDF with standard letter size (8.5" x 11") for proper printing
-      const pdf = new jsPDF({
+      let pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'in',
         format: 'letter'
@@ -1071,7 +1071,7 @@ export default function QRCodeGenerator({
         
         // Fold lines (dashed gray)
         pdf.setDrawColor(100, 100, 100);
-        pdf.setLineDashPattern([0.03, 0.03]);
+        (pdf as any).setLineDashPattern([0.03, 0.03]);
         
         // Vertical fold lines
         pdf.line(middlePanelX, startY, middlePanelX, startY + panelHeight);
@@ -1080,7 +1080,7 @@ export default function QRCodeGenerator({
         // Horizontal fold line for tab
         pdf.line(leftPanelX, startY + panelHeight, leftPanelX + (panelWidth * 3), startY + panelHeight);
         
-        pdf.setLineDashPattern([]);
+        (pdf as any).setLineDashPattern([]);
         
         // Instructions
         pdf.setFontSize(12);

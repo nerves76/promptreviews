@@ -92,7 +92,7 @@ export default function IconDemoPage() {
     business: {
       title: 'Business & Operations',
       description: 'Icons related to business operations and features',
-      icons: ['FaStore', 'FaBuilding', 'FaUsers', 'FaCalendarAlt', 'FaMapMarkerAlt', 'FaClock', 'FaPhone', 'FaEnvelope', 'FaGlobe', 'FaChartLine']
+      icons: ['FaStore', 'FaBuilding', 'FaUsers', 'FaCalendarAlt', 'FaMapMarker', 'FaClock', 'FaPhone', 'FaEnvelope', 'FaGlobe', 'FaChartLine']
     },
     content: {
       title: 'Content & Media',

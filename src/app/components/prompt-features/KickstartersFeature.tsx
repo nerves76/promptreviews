@@ -118,7 +118,7 @@ export default function KickstartersFeature({
   };
   
   // Local state management
-  const [allKickstarters, setAllKickstarters] = useState<KickstarterOption[]>([]);
+  const [allKickstarters, setAllKickstarters] = useState<Kickstarter[]>([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<string[]>(selectedKickstarters || []);
   const [showModal, setShowModal] = useState(false);

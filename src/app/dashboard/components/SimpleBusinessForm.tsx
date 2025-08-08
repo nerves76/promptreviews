@@ -37,7 +37,6 @@ function RobotTooltip({ text }: { text: string }) {
       >
         <svg
           className="inline-block w-4 h-4 align-middle cursor-pointer"
-          title={text}
         >
           <use href="/icons-sprite.svg#FaRobot" />
         </svg>

@@ -526,7 +526,7 @@ export default function ReviewManagement({ locations, isConnected }: ReviewManag
                         onClick={() => setReplyingTo(review.reviewId)}
                         className="flex items-center space-x-2 text-sm text-slate-blue hover:text-slate-blue/80"
                       >
-                        <Icon name="FaReply" className="w-3 h-3 text-slate-blue" />
+                        <Icon name="MdReply" className="w-3 h-3 text-slate-blue" />
                         <span>Reply to this review</span>
                       </button>
                       <button
