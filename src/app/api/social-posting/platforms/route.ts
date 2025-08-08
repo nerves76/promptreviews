@@ -15,6 +15,7 @@ import { cookies } from 'next/headers';
 export async function GET(request: NextRequest) {
   try {
     console.log('🔍 Social posting platforms API called');
+    console.log('📝 Request cookies:', request.headers.get('cookie')?.includes('sb-') ? 'has supabase cookies' : 'no supabase cookies');
     
     // Create server-side Supabase client that handles session cookies
     const cookieStore = await cookies();
@@ -24,7 +25,15 @@ export async function GET(request: NextRequest) {
       {
         cookies: {
           get(name: string) {
-            return cookieStore.get(name)?.value;
+            const value = cookieStore.get(name)?.value;
+            console.log(`🍪 Cookie ${name}: ${value ? 'exists' : 'missing'}`);
+            return value;
+          },
+          set: (name, value, options) => {
+            cookieStore.set({ name, value, ...options });
+          },
+          remove: (name, options) => {
+            cookieStore.set({ name, value: '', ...options });
           },
         },
       }
