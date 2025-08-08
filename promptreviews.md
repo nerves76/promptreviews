@@ -10,6 +10,13 @@ This project is currently focused on developing a standalone widget for collecti
 
 ## Recent Updates (Latest)
 
+### 🚀 Auto-Create Contacts for Individual Prompt Pages (February 2025)
+- **Automatic Contact Creation**: Individual prompt pages now automatically create contacts from the form data
+- **Contact Linking**: All new individual prompt pages are linked to their corresponding contacts
+- **Enhanced Prompt Pages Dashboard**: Shows contact information for linked prompt pages with navigation to contact management
+- **User Education**: Clear messaging about the contact-first workflow to avoid duplicates
+- **Database Integration**: Added `contact_id` column to `prompt_pages` table for proper relationship management
+
 ### 🚀 Manual Review Addition to Contact Management (February 2025)
 - **Enhanced Contact Form**: Added ability to add up to 15 reviews per contact during manual contact creation
 - **Review Management UI**: Interactive review cards with edit/delete functionality, similar to review platform management
@@ -34,6 +41,11 @@ This project is currently focused on developing a standalone widget for collecti
 - **UI Components**: Review cards, star rating selector, platform dropdown, and form validation
 
 #### **Files Modified**
+- `supabase/migrations/0078_add_contact_id_to_prompt_pages.sql` - Added contact_id column to prompt_pages table
+- `src/app/api/contacts/create-from-prompt-page/route.ts` - New API endpoint for creating contacts from prompt page data
+- `src/app/create-prompt-page/CreatePromptPageClient.tsx` - Enhanced to auto-create contacts after prompt page creation
+- `src/app/components/PromptPagesTable.tsx` - Added contact information display in prompt pages table
+- `src/app/prompt-pages/page.tsx` - Updated data fetching to include contact information
 - `src/app/components/ManualContactForm.tsx` - Added complete review management functionality
 - `src/app/api/contacts/create/route.ts` - Enhanced to create reviews alongside contacts
 - `src/app/api/upload-contacts/route.ts` - Added CSV review processing

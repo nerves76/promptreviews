@@ -15,6 +15,14 @@ export interface PromptPage {
   is_universal: boolean;
   review_type?: string;
   nfc_text_enabled?: boolean;
+  contact_id?: string;
+  contacts?: {
+    id: string;
+    first_name: string;
+    last_name: string;
+    email: string;
+    phone: string;
+  };
 }
 
 interface PromptPagesTableProps {
@@ -251,6 +259,7 @@ export default function PromptPagesTable({
               <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 cursor-pointer select-none hover:bg-gray-100 group" onClick={() => handleSort("first_name")}>First {sortField === "first_name" ? (sortDirection === "asc" ? "↑" : "↓") : <span className="text-xs">↕</span>}</th>
               <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 cursor-pointer select-none hover:bg-gray-100 group" onClick={() => handleSort("last_name")}>Last {sortField === "last_name" ? (sortDirection === "asc" ? "↑" : "↓") : <span className="text-xs">↕</span>}</th>
               <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 cursor-pointer select-none hover:bg-gray-100 group" onClick={() => handleSort("review_type")}>Type {sortField === "review_type" ? (sortDirection === "asc" ? "↑" : "↓") : <span className="text-xs">↕</span>}</th>
+              <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Contact</th>
               <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Edit</th>
               <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Status</th>
               <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Created</th>
@@ -277,6 +286,36 @@ export default function PromptPagesTable({
                   {page.review_type === "event" && "Event"}
                   {page.review_type === "product" && "Product"}
                   {!["service", "photo", "video", "event", "product"].includes(page.review_type || "") && (page.review_type ? page.review_type.charAt(0).toUpperCase() + page.review_type.slice(1) : "Service")}
+                </td>
+                <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-900">
+                  {page.contacts ? (
+                    <div className="flex flex-col">
+                      <span className="font-medium">
+                        {page.contacts.first_name} {page.contacts.last_name}
+                      </span>
+                      <span className="text-xs text-gray-500">
+                        {page.contacts.email || page.contacts.phone || "No contact info"}
+                      </span>
+                      <Link 
+                        href={`/dashboard/contacts`}
+                        className="text-xs text-slate-blue hover:text-slate-blue/80 underline"
+                      >
+                        View Contact
+                      </Link>
+                    </div>
+                  ) : page.contact_id ? (
+                    <div className="flex flex-col">
+                      <span className="text-gray-500 text-xs">Contact Linked</span>
+                      <Link 
+                        href={`/dashboard/contacts`}
+                        className="text-xs text-slate-blue hover:text-slate-blue/80 underline"
+                      >
+                        View Contact
+                      </Link>
+                    </div>
+                  ) : (
+                    <span className="text-gray-400 text-xs">No Contact</span>
+                  )}
                 </td>
                 <td className="whitespace-nowrap px-3 py-4 text-sm flex gap-2 items-center">
                   <div className="mt-[6px] flex gap-2">

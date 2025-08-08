@@ -52,26 +52,7 @@ export function createClient(): SupabaseClient {
     
     _browserClient = createBrowserClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        auth: {
-          persistSession: true,
-          autoRefreshToken: true,
-          detectSessionInUrl: true,
-        },
-        realtime: {
-          params: {
-            eventsPerSecond: 10
-          }
-        },
-        cookieOptions: {
-          name: 'supabase-auth-token',
-          lifetime: 60 * 60 * 24 * 7, // 7 days
-          domain: process.env.NODE_ENV === 'production' ? 'app.promptreviews.app' : undefined,
-          sameSite: 'lax',
-          secure: process.env.NODE_ENV === 'production'
-        }
-      }
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     );
     
     if (isDevelopment && _instanceCount === 1) {

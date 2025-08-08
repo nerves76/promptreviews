@@ -902,11 +902,61 @@ export default function CreatePromptPageClient({
           localStorage.setItem('createdSlug', data.slug);
         }
         
+        // Auto-create contact for individual prompt pages
+        if (formData.campaign_type === 'individual' && formData.first_name) {
+          try {
+            console.log('🔍 Creating contact for prompt page:', data.id);
+            
+            const contactResponse = await fetch('/api/contacts/create-from-prompt-page', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+              },
+              body: JSON.stringify({
+                promptPageData: {
+                  first_name: formData.first_name,
+                  last_name: formData.last_name,
+                  email: formData.email,
+                  phone: formData.phone,
+                  business_name: formData.business_name,
+                  role: formData.role,
+                  address_line1: formData.address_line1,
+                  address_line2: formData.address_line2,
+                  city: formData.city,
+                  state: formData.state,
+                  postal_code: formData.postal_code,
+                  country: formData.country,
+                  category: formData.category,
+                  notes: formData.notes,
+                },
+                promptPageId: data.id
+              }),
+            });
+
+            if (contactResponse.ok) {
+              const contactResult = await contactResponse.json();
+              console.log('✅ Contact created successfully:', contactResult);
+              
+              // Update success message to mention contact creation
+              const contactName = `${formData.first_name} ${formData.last_name || ''}`.trim();
+              setSaveSuccess(`Prompt page created successfully! Contact '${contactName}' was also created.`);
+            } else {
+              console.error('❌ Failed to create contact:', await contactResponse.text());
+              // Don't fail the entire operation if contact creation fails
+              setSaveSuccess("Prompt page created successfully!");
+            }
+          } catch (contactError) {
+            console.error('❌ Error creating contact:', contactError);
+            // Don't fail the entire operation if contact creation fails
+            setSaveSuccess("Prompt page created successfully!");
+          }
+        } else {
+          setSaveSuccess("Prompt page created successfully!");
+        }
+        
         // For product pages, set success message and then redirect
         if (formData.review_type === "product") {
-          // Set success message for the form
-          setSaveSuccess("Product page created successfully!");
-          
           // Set success modal data before navigation
           const modalData = { 
             url: `/r/${data.slug}`,
@@ -922,7 +972,6 @@ export default function CreatePromptPageClient({
         }
 
         setStep(2);
-        setSaveSuccess("Step 1 saved! Continue to step 2.");
         return;
       }
 

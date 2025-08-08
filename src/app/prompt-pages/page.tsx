@@ -251,10 +251,19 @@ function PromptPagesContent() {
           .order("created_at", { ascending: false });
         setPromptPages(publicPages || []);
         
-        // Fetch individual prompt pages (campaign_type = 'individual')
+        // Fetch individual prompt pages (campaign_type = 'individual') with contact information
         const { data: individualPages } = await supabase
           .from("prompt_pages")
-          .select("*")
+          .select(`
+            *,
+            contacts (
+              id,
+              first_name,
+              last_name,
+              email,
+              phone
+            )
+          `)
           .eq("account_id", accountId)
           .eq("is_universal", false)
           .eq("campaign_type", "individual")
