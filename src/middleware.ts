@@ -11,6 +11,12 @@ export async function middleware(req: NextRequest) {
     return res;
   }
 
+  // TEMPORARY: Disable middleware completely to debug auth issues
+  if (process.env.NODE_ENV === "production") {
+    console.log('Middleware: Temporarily disabled for production debugging');
+    return res;
+  }
+
   // Only require auth in production
   if (process.env.NODE_ENV !== "production") {
     // In development, still check session but don't block requests
@@ -158,5 +164,6 @@ export const config = {
     '/api/widgets/:path*',
     '/api/cron/:path*',
     // NOTE: /r/:path* (prompt pages) are intentionally EXCLUDED to remain public
+    // NOTE: /api/social-posting/:path* are intentionally EXCLUDED - handled internally
   ],
 };
