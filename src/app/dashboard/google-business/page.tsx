@@ -129,6 +129,19 @@ export default function SocialPostingDashboard() {
     const urlParams = new URLSearchParams(window.location.search);
     const isPostOAuth = urlParams.get('connected') === 'true';
     
+    // Clear OAuth flag when returning from OAuth
+    if (typeof window !== 'undefined' && sessionStorage.getItem('googleOAuthInProgress') === 'true') {
+      sessionStorage.removeItem('googleOAuthInProgress');
+      console.log('🔒 Cleared googleOAuthInProgress flag on page load');
+    }
+    
+    // Also check for cookie flag from OAuth callback
+    if (typeof document !== 'undefined' && document.cookie.includes('clearGoogleOAuthFlag=true')) {
+      // Clear the cookie
+      document.cookie = 'clearGoogleOAuthFlag=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
+      console.log('🔒 Cleared OAuth flag from callback cookie');
+    }
+    
     if (isPostOAuth) {
       console.log('🔄 Post-OAuth redirect detected');
       
@@ -358,6 +371,12 @@ export default function SocialPostingDashboard() {
     try {
       setIsLoading(true);
       
+      // Store flag to preserve session during OAuth redirect
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('googleOAuthInProgress', 'true');
+        console.log('🔒 Set OAuth in progress flag to preserve session');
+      }
+      
       // Get Google OAuth credentials from environment
       const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '984479581786-8h619lvt0jvhakg7riaom9bs7mlo1lku.apps.googleusercontent.com';
       const redirectUriRaw = process.env.NEXT_PUBLIC_GOOGLE_REDIRECT_URI;
@@ -367,6 +386,10 @@ export default function SocialPostingDashboard() {
         console.error('❌ Missing environment variable: NEXT_PUBLIC_GOOGLE_REDIRECT_URI');
         setPostResult({ success: false, message: 'Missing Google OAuth configuration. Please check environment variables.' });
         setIsLoading(false);
+        // Clear OAuth flag on error
+        if (typeof window !== 'undefined') {
+          sessionStorage.removeItem('googleOAuthInProgress');
+        }
         return;
       }
       
@@ -382,13 +405,22 @@ export default function SocialPostingDashboard() {
       const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}&response_type=${responseType}&state=${state}&access_type=offline&prompt=consent`;
       
       console.log('🔗 Redirecting to Google OAuth:', googleAuthUrl);
+      console.log('🔒 OAuth flag set, preserving Supabase session during redirect');
       
-      // Redirect to Google OAuth
-      window.location.href = googleAuthUrl;
+      // Add a small delay to ensure session storage is set
+      setTimeout(() => {
+        // Redirect to Google OAuth
+        window.location.href = googleAuthUrl;
+      }, 100);
     } catch (error) {
       console.error('❌ Failed to initiate Google OAuth:', error);
       setPostResult({ success: false, message: 'Failed to connect to Google Business Profile' });
       setIsLoading(false);
+      // Clear OAuth flag on error
+      if (typeof window !== 'undefined') {
+        sessionStorage.removeItem('googleOAuthInProgress');
+        console.log('🔒 Cleared googleOAuthInProgress flag due to error');
+      }
     }
   };
 

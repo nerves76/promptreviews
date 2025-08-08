@@ -283,11 +283,20 @@ export async function GET(request: NextRequest) {
       console.log('⚠️ Token test failed, but proceeding with OAuth success:', testError instanceof Error ? testError.message : 'Unknown error');
     }
 
-    // Redirect with success message
-    console.log('✅ OAuth callback completed successfully');
-    return NextResponse.redirect(
+    // Create a response that clears the OAuth flag and redirects with success
+    const response = NextResponse.redirect(
       new URL(`${returnUrl}?connected=true&message=Successfully connected Google Business Profile!`, request.url)
     );
+    
+    // Set a flag for the client to clear the OAuth in progress flag
+    response.cookies.set('clearGoogleOAuthFlag', 'true', { 
+      maxAge: 10, // Short lived - just for the redirect
+      path: '/',
+      httpOnly: false // Allow client-side access
+    });
+    
+    console.log('✅ OAuth callback completed successfully');
+    return response;
 
   } catch (error) {
     console.error('❌ Error in OAuth callback:', error);
