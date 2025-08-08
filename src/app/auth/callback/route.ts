@@ -216,6 +216,63 @@ export async function GET(request: NextRequest) {
     // For sign-up/sign-in (no next parameter), handle account creation
     const { id: userId, email } = user;
     
+    // First, ensure the account exists (in case the trigger failed)
+    try {
+      console.log('🔧 Ensuring account exists for user:', userId);
+      
+      // Check if account exists
+      const { data: existingAccount, error: checkError } = await supabase
+        .from('accounts')
+        .select('id')
+        .eq('id', userId)
+        .single();
+      
+      if (checkError && checkError.code === 'PGRST116') {
+        // Account doesn't exist, create it
+        console.log('⚠️ Account not found, creating manually...');
+        
+        // Call the backup function to create account
+        const { data: createResult, error: createError } = await supabase
+          .rpc('create_account_for_user', { user_id: userId });
+        
+        if (createError) {
+          console.error('❌ Failed to create account via RPC:', createError);
+          
+          // Try direct insert as last resort
+          const { error: insertError } = await supabase
+            .from('accounts')
+            .insert({
+              id: userId,
+              user_id: userId,
+              email: email || '',
+              first_name: user.user_metadata?.first_name || '',
+              last_name: user.user_metadata?.last_name || '',
+              plan: 'no_plan',
+              trial_start: new Date().toISOString(),
+              trial_end: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
+              is_free_account: false,
+              custom_prompt_page_count: 0,
+              contact_count: 0,
+              review_notifications_enabled: true,
+              has_seen_welcome: false
+            });
+          
+          if (insertError) {
+            console.error('❌ Direct account creation also failed:', insertError);
+          } else {
+            console.log('✅ Account created via direct insert');
+          }
+        } else {
+          console.log('✅ Account created via RPC:', createResult);
+        }
+      } else if (existingAccount) {
+        console.log('✅ Account already exists');
+      }
+    } catch (error) {
+      console.error('❌ Error ensuring account exists:', error);
+      // Don't fail the whole flow, continue anyway
+    }
+    
     // 🔧 ENSURE ADMIN PRIVILEGES for admin emails
     if (email) {
       try {
