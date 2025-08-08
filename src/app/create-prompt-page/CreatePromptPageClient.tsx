@@ -247,38 +247,15 @@ export default function CreatePromptPageClient({
         let retryCount = 0;
         const maxRetries = isPostBusinessCreation ? 5 : 3; // More retries after business creation
         
-        // First, get the user's account_id from account_users table
-        // Handle multiple accounts - get all and use the first one (or owner role)
-        const { data: accountUsers, error: accountError } = await supabase
-          .from("account_users")
-          .select("account_id, role")
-          .eq("user_id", user.id)
-          .order("created_at", { ascending: true }); // Get oldest first (likely primary)
-          
-        if (accountError) {
-          console.error("🎯 Error fetching account_id:", accountError);
-          throw new Error(`Failed to get account for user: ${accountError.message}`);
-        }
-        
-        // Select the appropriate account - prefer owner role, then fallback to first
-        let selectedAccount = accountUsers?.find(a => a.role === 'owner') || accountUsers?.[0];
-        
-        // If no account_users record, fallback to using user.id as account_id
-        if (!selectedAccount) {
-          console.log("🎯 No account_users record found, using user.id as account_id");
-          selectedAccount = { account_id: user.id, role: 'owner' };
-        }
-        
-        if (!selectedAccount?.account_id) {
+        // Use the centralized account selection logic to ensure consistency
+        const accountId = await getAccountIdForUser(user.id, supabase);
+        if (!accountId) {
           console.error("🎯 No account found for user:", user.id);
           throw new Error("No account found for user");
         }
         
-        const accountUser = selectedAccount;
-        console.log("🔑 Using account_id:", accountUser.account_id, "role:", accountUser.role, "for user:", user.id);
-        if (accountUsers && accountUsers.length > 1) {
-          console.log(`🔑 User has ${accountUsers.length} accounts, selected the ${accountUser.role} account`);
-        }
+        const accountUser = { account_id: accountId };
+        console.log("🔑 Using account_id:", accountUser.account_id, "for user:", user.id);
         
         while (retryCount < maxRetries && !businessData && !businessError) {
           console.log(`🔄 Fetching business profile (attempt ${retryCount + 1}/${maxRetries}) for account:`, accountUser.account_id);
