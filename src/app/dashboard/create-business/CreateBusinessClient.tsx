@@ -49,6 +49,23 @@ export default function CreateBusinessClient() {
     localStorage.setItem('hasSeenCreateBusinessWelcome', 'true');
   };
 
+  // Handler for successful business creation
+  const handleBusinessCreated = useCallback(() => {
+    console.log('✅ CreateBusinessClient: Business created successfully, refreshing...');
+    
+    // Force refresh business profile in auth context
+    if (typeof window !== 'undefined') {
+      console.log('🔄 CreateBusinessClient: Dispatching forceRefreshBusiness event');
+      window.dispatchEvent(new CustomEvent('forceRefreshBusiness'));
+    }
+    
+    // Add a small delay to allow auth context to update before redirect
+    setTimeout(() => {
+      console.log('✅ CreateBusinessClient: Business created successfully, redirecting...');
+      redirectToDashboard();
+    }, 500);
+  }, [redirectToDashboard]);
+
   useEffect(() => {
     const setupBusinessCreation = async () => {
       try {

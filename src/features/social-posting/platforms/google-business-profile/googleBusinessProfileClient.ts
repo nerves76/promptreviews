@@ -902,4 +902,259 @@ export class GoogleBusinessProfileClient {
       throw error;
     }
   }
+
+  /**
+   * Get overview data for a specific location
+   * Aggregates data from multiple APIs for the overview dashboard
+   */
+  async getOverviewData(locationId: string): Promise<{
+    profileData: any;
+    engagementData: any;
+    performanceData: any;
+    reviewTrends: any;
+    optimizationOpportunities: any[];
+  }> {
+    try {
+      console.log('📊 Fetching overview data for location:', locationId);
+
+      // Fetch data from multiple sources in parallel
+      const [
+        locationInfo,
+        reviews,
+        insights,
+        photos,
+        localPosts
+      ] = await Promise.allSettled([
+        this.getLocationInfo(locationId),
+        this.getReviews(locationId),
+        this.getLocationInsights(locationId),
+        this.getLocationPhotos(locationId),
+        this.getLocalPosts(locationId)
+      ]);
+
+      // Process the results, handling any rejections gracefully
+      const location = locationInfo.status === 'fulfilled' ? locationInfo.value : null;
+      const reviewsData = reviews.status === 'fulfilled' ? reviews.value : [];
+      const insightsData = insights.status === 'fulfilled' ? insights.value : [];
+      const photosData = photos.status === 'fulfilled' ? photos.value : [];
+      const postsData = localPosts.status === 'fulfilled' ? localPosts.value : [];
+
+      // Use helper functions to process the data
+      const { 
+        calculateProfileCompleteness, 
+        processReviewTrends, 
+        identifyOptimizationOpportunities,
+        formatPerformanceData 
+      } = await import('@/utils/googleBusinessProfile/overviewDataHelpers');
+
+      const profileData = location ? 
+        calculateProfileCompleteness(location, [], photosData) : 
+        { categoriesUsed: 0, maxCategories: 10, servicesCount: 0, servicesWithDescriptions: 0, businessDescriptionLength: 0, businessDescriptionMaxLength: 750, seoScore: 0, photosByCategory: {} };
+
+      const reviewTrends = processReviewTrends(reviewsData);
+
+      const engagementData = {
+        unrespondedReviews: reviewsData.filter((review: any) => !review.reviewReply).length,
+        totalQuestions: 0, // Would need Q&A API
+        unansweredQuestions: 0, // Would need Q&A API  
+        recentPosts: postsData.filter((post: any) => {
+          const postDate = new Date(post.createTime);
+          const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+          return postDate >= thirtyDaysAgo;
+        }).length,
+        lastPostDate: postsData.length > 0 ? postsData[0].createTime : undefined
+      };
+
+      const performanceData = formatPerformanceData(insightsData, []);
+
+      const optimizationOpportunities = location ? 
+        identifyOptimizationOpportunities(location, profileData, engagementData, photosData) : 
+        [];
+
+      console.log('✅ Successfully aggregated overview data');
+
+      return {
+        profileData,
+        engagementData,
+        performanceData,
+        reviewTrends,
+        optimizationOpportunities
+      };
+    } catch (error: any) {
+      console.error('❌ Failed to fetch overview data:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get location information for overview
+   */
+  async getLocationInfo(locationId: string): Promise<any> {
+    try {
+      console.log('📍 Fetching location info for:', locationId);
+      
+      const endpoint = `/v1/${locationId}`;
+      const response = await this.makeRequest(endpoint, { method: 'GET' });
+      
+      console.log('✅ Successfully fetched location info');
+      return response;
+    } catch (error: any) {
+      console.error('❌ Failed to fetch location info:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get location insights for performance data
+   */
+  async getLocationInsights(locationId: string, dateRange: string = 'THIRTY_DAYS'): Promise<any[]> {
+    try {
+      console.log('📈 Fetching location insights for:', locationId);
+      
+      // Extract account ID and location ID from the full location name
+      const locationParts = locationId.split('/');
+      if (locationParts.length < 4) {
+        throw new Error('Invalid location ID format');
+      }
+      
+      const accountId = `accounts/${locationParts[1]}`;
+      const shortLocationId = `locations/${locationParts[3]}`;
+      
+      // Switch to Google My Business API v4 for insights
+      const originalBaseUrl = this.config.baseUrl;
+      this.config.baseUrl = GOOGLE_BUSINESS_PROFILE.LEGACY_BASE_URL;
+      
+      const endpoint = `/v4/${accountId}/${shortLocationId}/reportInsights`;
+      const requestBody = {
+        locationNames: [locationId],
+        basicRequest: {
+          metricRequests: [
+            { metric: 'QUERIES_DIRECT' },
+            { metric: 'QUERIES_INDIRECT' },
+            { metric: 'VIEWS_MAPS' },
+            { metric: 'VIEWS_SEARCH' },
+            { metric: 'ACTIONS_WEBSITE' },
+            { metric: 'ACTIONS_PHONE' },
+            { metric: 'ACTIONS_DRIVING_DIRECTIONS' }
+          ],
+          timeRange: {
+            startTime: this.getDateRange(dateRange).start,
+            endTime: this.getDateRange(dateRange).end
+          }
+        }
+      };
+
+      const response = await this.makeRequest(endpoint, {
+        method: 'POST',
+        body: JSON.stringify(requestBody)
+      });
+
+      // Restore original base URL
+      this.config.baseUrl = originalBaseUrl;
+      
+      console.log('✅ Successfully fetched location insights');
+      return response.locationMetrics || [];
+    } catch (error: any) {
+      console.error('❌ Failed to fetch location insights:', error);
+      // Don't throw error, return empty array to allow other data to load
+      return [];
+    }
+  }
+
+  /**
+   * Get location photos for completeness analysis
+   */
+  async getLocationPhotos(locationId: string): Promise<any[]> {
+    try {
+      console.log('📸 Fetching location photos for:', locationId);
+      
+      // Extract account ID and location ID from the full location name
+      const locationParts = locationId.split('/');
+      if (locationParts.length < 4) {
+        throw new Error('Invalid location ID format');
+      }
+      
+      const accountId = `accounts/${locationParts[1]}`;
+      const shortLocationId = `locations/${locationParts[3]}`;
+      
+      // Switch to Google My Business API v4 for media
+      const originalBaseUrl = this.config.baseUrl;
+      this.config.baseUrl = GOOGLE_BUSINESS_PROFILE.LEGACY_BASE_URL;
+      
+      const endpoint = `/v4/${accountId}/${shortLocationId}/media`;
+      const response = await this.makeRequest(endpoint, { method: 'GET' });
+
+      // Restore original base URL
+      this.config.baseUrl = originalBaseUrl;
+      
+      console.log('✅ Successfully fetched location photos');
+      return response.mediaItems || [];
+    } catch (error: any) {
+      console.error('❌ Failed to fetch location photos:', error);
+      // Don't throw error, return empty array to allow other data to load
+      return [];
+    }
+  }
+
+  /**
+   * Get local posts for engagement analysis
+   */
+  async getLocalPosts(locationId: string): Promise<any[]> {
+    try {
+      console.log('📝 Fetching local posts for:', locationId);
+      
+      // Extract account ID and location ID from the full location name
+      const locationParts = locationId.split('/');
+      if (locationParts.length < 4) {
+        throw new Error('Invalid location ID format');
+      }
+      
+      const accountId = `accounts/${locationParts[1]}`;
+      const shortLocationId = `locations/${locationParts[3]}`;
+      
+      // Switch to Google My Business API v4 for posts
+      const originalBaseUrl = this.config.baseUrl;
+      this.config.baseUrl = GOOGLE_BUSINESS_PROFILE.LEGACY_BASE_URL;
+      
+      const endpoint = `/v4/${accountId}/${shortLocationId}/localPosts`;
+      const response = await this.makeRequest(endpoint, { method: 'GET' });
+
+      // Restore original base URL
+      this.config.baseUrl = originalBaseUrl;
+      
+      console.log('✅ Successfully fetched local posts');
+      return response.localPosts || [];
+    } catch (error: any) {
+      console.error('❌ Failed to fetch local posts:', error);
+      // Don't throw error, return empty array to allow other data to load
+      return [];
+    }
+  }
+
+  /**
+   * Helper function to get date range for insights API
+   */
+  private getDateRange(range: string): { start: string; end: string } {
+    const end = new Date();
+    const start = new Date();
+    
+    switch (range) {
+      case 'SEVEN_DAYS':
+        start.setDate(end.getDate() - 7);
+        break;
+      case 'THIRTY_DAYS':
+        start.setDate(end.getDate() - 30);
+        break;
+      case 'THREE_MONTHS':
+        start.setMonth(end.getMonth() - 3);
+        break;
+      default:
+        start.setDate(end.getDate() - 30);
+    }
+    
+    return {
+      start: start.toISOString(),
+      end: end.toISOString()
+    };
+  }
 } 
