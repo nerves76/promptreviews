@@ -94,6 +94,8 @@ export default function BusinessGuard({ children }: BusinessGuardProps) {
     const businessJustCreated = urlParams?.get("businessCreated") === "1";
     const businessCreationInProgress = typeof window !== "undefined" ? 
       sessionStorage.getItem('businessCreationInProgress') === 'true' : false;
+    const googleOAuthInProgress = typeof window !== "undefined" ? 
+      sessionStorage.getItem('googleOAuthInProgress') === 'true' : false;
 
     // Debug URL parameters
     if (typeof window !== "undefined" && process.env.NODE_ENV === 'development') {
@@ -103,6 +105,7 @@ export default function BusinessGuard({ children }: BusinessGuardProps) {
         businessCreatedParam: urlParams?.get("businessCreated"),
         businessJustCreated,
         businessCreationInProgress,
+        googleOAuthInProgress,
         isComingFromPlanChange,
         hasBusiness,
         timestamp: new Date().toISOString()
@@ -111,6 +114,19 @@ export default function BusinessGuard({ children }: BusinessGuardProps) {
 
     // Skip business requirements if user is coming from plan change
     if (isComingFromPlanChange) {
+      return;
+    }
+    
+    // If Google OAuth is in progress, don't interfere to prevent session logout
+    if (googleOAuthInProgress) {
+      console.log('🔒 BusinessGuard: Google OAuth in progress, skipping check to preserve session');
+      // Clean up the flag after a longer delay (OAuth can take time)
+      setTimeout(() => {
+        if (typeof window !== 'undefined') {
+          sessionStorage.removeItem('googleOAuthInProgress');
+          console.log('🔒 BusinessGuard: Cleared googleOAuthInProgress flag');
+        }
+      }, 30000); // 30 seconds to allow OAuth to complete
       return;
     }
     
