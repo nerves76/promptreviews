@@ -41,7 +41,7 @@ body {
     display: flex;
     flex-direction: column;
     margin-top: 20px; /* Push sidebar down to align with game container */
-    margin-left: 15px; /* Move sidebar closer to game */
+    margin-left: -15px; /* Move sidebar closer to game */
 }
 
 .sidePanel::before {
