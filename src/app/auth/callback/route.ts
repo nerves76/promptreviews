@@ -11,10 +11,30 @@ export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get('code') || requestUrl.searchParams.get('token');
   const next = requestUrl.searchParams.get('next');
-
+  const type = requestUrl.searchParams.get('type');
+  
+  // Check hash fragment for error information (Supabase puts errors there for security)
+  const hashFragment = requestUrl.hash;
   console.log('🔗 Auth callback triggered with URL:', request.url);
-  console.log('📝 Code parameter:', code ? 'Present' : 'Missing');
+  console.log('📝 Code parameter:', code ? `Present (${code.substring(0, 10)}...)` : 'Missing');
   console.log('🔄 Next parameter:', next || 'None');
+  console.log('📋 Type parameter:', type || 'None');
+  console.log('#️⃣ Hash fragment:', hashFragment || 'None');
+
+  // Check if there's an error in the hash fragment
+  if (hashFragment && hashFragment.includes('error=')) {
+    const hashParams = new URLSearchParams(hashFragment.substring(1));
+    const error = hashParams.get('error');
+    const errorCode = hashParams.get('error_code');
+    const errorDescription = hashParams.get('error_description');
+    
+    console.log('❌ Error in hash fragment:', { error, errorCode, errorDescription });
+    
+    // Redirect with the error information
+    return NextResponse.redirect(
+      `${requestUrl.origin}/auth/sign-in?error=${error || 'auth_failed'}&error_code=${errorCode || ''}&error_description=${encodeURIComponent(errorDescription || '')}`
+    );
+  }
 
   if (!code) {
     console.log('❌ No code provided, redirecting to sign-in');
@@ -46,15 +66,28 @@ export async function GET(request: NextRequest) {
     );
 
     console.log('🔄 Exchanging code for session...');
-
-    // Use the correct SSR method for code exchange
-    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
-
-    if (error) {
-      console.log('❌ Session exchange error:', error);
-      return NextResponse.redirect(`${requestUrl.origin}/auth/sign-in?error=${encodeURIComponent(error.message)}`);
+    
+    // Try to exchange the code as a regular auth code first
+    // This handles both OAuth codes and modern magic links
+    const { data: sessionData, error: sessionError } = await supabase.auth.exchangeCodeForSession(code);
+    
+    if (sessionError) {
+      console.log('❌ Session exchange error:', sessionError);
+      console.log('❌ Error details:', {
+        message: sessionError.message,
+        status: sessionError.status,
+        code: sessionError.code
+      });
+      
+      // If it's a token verification error, provide a more helpful message
+      if (sessionError.message.includes('otp') || sessionError.message.includes('expired')) {
+        return NextResponse.redirect(
+          `${requestUrl.origin}/auth/sign-in?error=link_expired&message=${encodeURIComponent('Your sign-in link has expired. Please request a new one.')}`
+        );
+      }
+      
+      return NextResponse.redirect(`${requestUrl.origin}/auth/sign-in?error=${encodeURIComponent(sessionError.message)}`);
     }
-
 
 
     // Get the user after successful code exchange
