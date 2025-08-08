@@ -13,12 +13,16 @@ export async function GET(request: NextRequest) {
   const next = requestUrl.searchParams.get('next');
   const type = requestUrl.searchParams.get('type');
   
+  // Check all URL parameters for debugging
+  const allParams = Object.fromEntries(requestUrl.searchParams.entries());
+  
   // Check hash fragment for error information (Supabase puts errors there for security)
   const hashFragment = requestUrl.hash;
   console.log('🔗 Auth callback triggered with URL:', request.url);
   console.log('📝 Code parameter:', code ? `Present (${code.substring(0, 10)}...)` : 'Missing');
   console.log('🔄 Next parameter:', next || 'None');
   console.log('📋 Type parameter:', type || 'None');
+  console.log('📋 All parameters:', allParams);
   console.log('#️⃣ Hash fragment:', hashFragment || 'None');
 
   // Check if there's an error in the hash fragment
@@ -161,9 +165,39 @@ export async function GET(request: NextRequest) {
 
     console.log('🔄 Exchanging code for session...');
     
-    // Try to exchange the code as a regular auth code first
-    // This handles both OAuth codes and modern magic links
-    const { data: sessionData, error: sessionError } = await supabase.auth.exchangeCodeForSession(code);
+    // For email confirmations, the code verifier might be stored in cookies
+    // Look for any code verifier cookies
+    const cookies = cookieStore.getAll();
+    let codeVerifier = null;
+    
+    // Find the code verifier cookie (it should contain 'code-verifier')
+    for (const cookie of cookies) {
+      if (cookie.name.includes('code-verifier')) {
+        codeVerifier = cookie.value;
+        console.log('🍪 Found code verifier cookie:', cookie.name);
+        break;
+      }
+    }
+    
+    console.log('🔑 Code verifier status:', codeVerifier ? 'Found' : 'Not found');
+    
+    // Try to exchange the code
+    // If we have a code verifier, use it; otherwise try without it
+    let sessionData, sessionError;
+    
+    if (codeVerifier) {
+      // Use the PKCE flow with code verifier
+      const result = await supabase.auth.exchangeCodeForSession(code, {
+        codeVerifier
+      });
+      sessionData = result.data;
+      sessionError = result.error;
+    } else {
+      // Try without code verifier (for backward compatibility)
+      const result = await supabase.auth.exchangeCodeForSession(code);
+      sessionData = result.data;
+      sessionError = result.error;
+    }
     
     if (sessionError) {
       console.log('❌ Session exchange error:', sessionError);
