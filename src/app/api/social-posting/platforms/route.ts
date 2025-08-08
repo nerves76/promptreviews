@@ -15,7 +15,6 @@ import { cookies } from 'next/headers';
 export async function GET(request: NextRequest) {
   try {
     console.log('🔍 Social posting platforms API called');
-    console.log('📝 Request cookies:', request.headers.get('cookie')?.includes('sb-') ? 'has supabase cookies' : 'no supabase cookies');
     
     // Create server-side Supabase client that handles session cookies
     const cookieStore = await cookies();
@@ -25,47 +24,16 @@ export async function GET(request: NextRequest) {
       {
         cookies: {
           get(name: string) {
-            const value = cookieStore.get(name)?.value;
-            console.log(`🍪 Cookie ${name}: ${value ? 'exists' : 'missing'}`);
-            return value;
-          },
-          set: (name, value, options) => {
-            cookieStore.set({ name, value, ...options });
-          },
-          remove: (name, options) => {
-            cookieStore.set({ name, value: '', ...options });
+            return cookieStore.get(name)?.value;
           },
         },
       }
     );
     
-    let { data: { user }, error: authError } = await supabase.auth.getUser();
-    
-    // Fallback: try authorization header if cookie-based auth fails
-    if ((authError || !user) && request.headers.get('authorization')) {
-      console.log('🔄 Cookie auth failed, trying Authorization header...');
-      const authHeader = request.headers.get('authorization');
-      const token = authHeader?.replace('Bearer ', '');
-      
-      if (token) {
-        console.log('🔑 Using token from Authorization header for authentication');
-        
-        // Try to get user using the token directly
-        const { data: { user: tokenUser }, error: tokenError } = await supabase.auth.getUser(token);
-        
-        if (tokenUser && !tokenError) {
-          user = tokenUser;
-          authError = null;
-          console.log('✅ Authorization header authentication successful');
-        } else {
-          console.log('❌ Authorization header authentication failed:', tokenError?.message);
-        }
-      }
-    }
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
     
     if (authError || !user) {
       console.log('❌ Authentication error:', authError?.message || 'No user found');
-      console.log('🍪 Available cookies:', Array.from(cookieStore.getAll()).map(c => c.name));
       return NextResponse.json({ 
         error: 'Authentication required',
         details: authError?.message || 'User not authenticated'
