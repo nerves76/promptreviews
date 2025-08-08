@@ -353,8 +353,18 @@ const Dashboard = React.memo(function Dashboard() {
     
     setPlanSelectionRequired(!!isPlanSelectionRequired);
     
-    // DISABLED: Automatic pricing modal display to prevent flashing
-    // Modal will only show when explicitly triggered by businessCreated param
+    // Show pricing modal when plan selection is required (but not during initial load)
+    // Only show if user hasn't dismissed it and it's not already showing
+    if (isPlanSelectionRequired && !showPricingModal && !isDashboardLoading) {
+      // Check if user hasn't recently dismissed the modal
+      const modalDismissed = typeof window !== "undefined" ? 
+        sessionStorage.getItem('pricingModalDismissed') === 'true' : false;
+      
+      if (!modalDismissed) {
+        console.log('💰 Plan selection required, showing pricing modal');
+        setShowPricingModal(true);
+      }
+    }
     
   }, [authLoading, accountLoading, businessesLoading, isDashboardLoading, account, businessData, justCompletedPayment, dashboardData]);
 
@@ -616,6 +626,28 @@ const Dashboard = React.memo(function Dashboard() {
         </div>
       </div>
     );
+  }
+
+  // Early business check to prevent dashboard flash before BusinessGuard redirect
+  // Only apply if not coming from business creation or other exempt flows
+  if (businessData && !businessData.hasBusinesses) {
+    const urlParams = new URLSearchParams(window.location.search);
+    const businessJustCreated = urlParams.get("businessCreated") === "1";
+    const businessCreationInProgress = typeof window !== "undefined" ? 
+      sessionStorage.getItem('businessCreationInProgress') === 'true' : false;
+    
+    // If no business and not in an exempt flow, show loading while BusinessGuard redirects
+    if (!businessJustCreated && !businessCreationInProgress) {
+      console.log('🔄 Dashboard: No business detected, waiting for BusinessGuard redirect...');
+      return (
+        <div className="flex items-center justify-center min-h-screen bg-gray-50">
+          <div className="text-center">
+            <FiveStarSpinner />
+            <p className="mt-4 text-gray-600">Setting up your account...</p>
+          </div>
+        </div>
+      );
+    }
   }
 
   // Rest of component handlers...
