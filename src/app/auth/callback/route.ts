@@ -167,11 +167,11 @@ export async function GET(request: NextRequest) {
     
     // For email confirmations, the code verifier might be stored in cookies
     // Look for any code verifier cookies
-    const cookies = cookieStore.getAll();
+    const allCookies = cookieStore.getAll();
     let codeVerifier = null;
     
     // Find the code verifier cookie (it should contain 'code-verifier')
-    for (const cookie of cookies) {
+    for (const cookie of allCookies) {
       if (cookie.name.includes('code-verifier')) {
         codeVerifier = cookie.value;
         console.log('🍪 Found code verifier cookie:', cookie.name);
@@ -185,19 +185,10 @@ export async function GET(request: NextRequest) {
     // If we have a code verifier, use it; otherwise try without it
     let sessionData, sessionError;
     
-    if (codeVerifier) {
-      // Use the PKCE flow with code verifier
-      const result = await supabase.auth.exchangeCodeForSession(code, {
-        codeVerifier
-      });
-      sessionData = result.data;
-      sessionError = result.error;
-    } else {
-      // Try without code verifier (for backward compatibility)
-      const result = await supabase.auth.exchangeCodeForSession(code);
-      sessionData = result.data;
-      sessionError = result.error;
-    }
+    // Try without code verifier - Supabase handles PKCE internally
+    const result = await supabase.auth.exchangeCodeForSession(code);
+    sessionData = result.data;
+    sessionError = result.error;
     
     if (sessionError) {
       console.log('❌ Session exchange error:', sessionError);
