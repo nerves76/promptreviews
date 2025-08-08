@@ -281,7 +281,12 @@ export default function SocialPostingDashboard() {
 
       // Check platforms API for database state only (no token validation calls)
       console.log('🔍 Fetching platforms (database only)...');
-      const response = await fetch('/api/social-posting/platforms');
+      const response = await fetch('/api/social-posting/platforms', {
+        credentials: 'same-origin',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
       console.log('Platforms API response status:', response.status);
       
       if (response.status === 401) {
@@ -460,6 +465,10 @@ export default function SocialPostingDashboard() {
       const response = await fetch(`/api/social-posting/platforms/${platformId}/fetch-locations`, {
         method: 'POST',
         signal: controller.signal,
+        credentials: 'same-origin',
+        headers: {
+          'Content-Type': 'application/json'
+        }
       });
       
       clearTimeout(timeoutId);
@@ -551,6 +560,7 @@ export default function SocialPostingDashboard() {
         
         const response = await fetch('/api/social-posting/posts', {
           method: 'POST',
+          credentials: 'same-origin',
           headers: {
             'Content-Type': 'application/json',
           },
@@ -668,6 +678,7 @@ export default function SocialPostingDashboard() {
 
       const response = await fetch('/api/social-posting/improve-with-ai', {
         method: 'POST',
+        credentials: 'same-origin',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -806,7 +817,9 @@ export default function SocialPostingDashboard() {
     setOverviewError(null);
 
     try {
-      const response = await fetch(`/api/google-business-profile/overview?locationId=${encodeURIComponent(locationId)}&mock=true`);
+      const response = await fetch(`/api/google-business-profile/overview?locationId=${encodeURIComponent(locationId)}&mock=true`, {
+        credentials: 'same-origin'
+      });
       const data = await response.json();
 
       if (data.success) {
