@@ -40,7 +40,7 @@ body {
     color: white;
     display: flex;
     flex-direction: column;
-    margin-top: 20px; /* Push sidebar down to align with game container */
+    margin-top: 16px; /* Push sidebar down to align with game container */
     margin-left: -15px; /* Move sidebar closer to game */
 }
 
