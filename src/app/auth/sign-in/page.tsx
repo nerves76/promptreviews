@@ -291,7 +291,7 @@ export default function SignIn() {
                 </button>
               </div>
             </>
-          ) : showReset ? (
+          ) : (
             <form onSubmit={handlePasswordReset} className="space-y-4">
               <div>
                 <label className="block font-medium mb-1">Email</label>
