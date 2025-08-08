@@ -15,16 +15,6 @@ import { cookies } from 'next/headers';
 export async function GET(request: NextRequest) {
   try {
     console.log('🔍 Social posting platforms API called');
-    
-    // Simple test to verify the route is working
-    return NextResponse.json({ 
-      message: 'API route is working',
-      timestamp: new Date().toISOString(),
-      platforms: []
-    });
-    
-    // Temporarily disable authentication for debugging
-    /*
     console.log('📝 Request cookies:', request.headers.get('cookie')?.includes('sb-') ? 'has supabase cookies' : 'no supabase cookies');
     
     // Create server-side Supabase client that handles session cookies
@@ -58,46 +48,29 @@ export async function GET(request: NextRequest) {
       const token = authHeader?.replace('Bearer ', '');
       
       if (token) {
-        // Create a new Supabase client with the token
-        const tokenBasedSupabase = createServerClient(
-          process.env.NEXT_PUBLIC_SUPABASE_URL!,
-          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-          {
-            cookies: {
-              get(name: string) {
-                return cookieStore.get(name)?.value;
-              },
-              set: (name, value, options) => {
-                cookieStore.set({ name, value, ...options });
-              },
-              remove: (name, options) => {
-                cookieStore.set({ name, value: '', ...options });
-              },
-            },
-            global: {
-              headers: {
-                Authorization: `Bearer ${token}`
-              }
-            }
-          }
-        );
+        console.log('🔑 Using token from Authorization header for authentication');
         
-        const tokenResult = await tokenBasedSupabase.auth.getUser();
-        user = tokenResult.data.user;
-        authError = tokenResult.error;
-        console.log('🔄 Authorization header result:', user ? 'success' : 'failed');
+        // Try to get user using the token directly
+        const { data: { user: tokenUser }, error: tokenError } = await supabase.auth.getUser(token);
+        
+        if (tokenUser && !tokenError) {
+          user = tokenUser;
+          authError = null;
+          console.log('✅ Authorization header authentication successful');
+        } else {
+          console.log('❌ Authorization header authentication failed:', tokenError?.message);
+        }
       }
     }
     
     if (authError || !user) {
       console.log('❌ Authentication error:', authError?.message || 'No user found');
-      console.log('🍪 Available cookies:', Object.keys(Object.fromEntries(cookieStore.getAll().map(c => [c.name, c.value]))));
+      console.log('🍪 Available cookies:', Array.from(cookieStore.getAll()).map(c => c.name));
       return NextResponse.json({ 
         error: 'Authentication required',
         details: authError?.message || 'User not authenticated'
       }, { status: 401 });
     }
-    */
 
     console.log('✅ User authenticated:', user.id);
 
