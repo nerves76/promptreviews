@@ -67,7 +67,7 @@ export function createClient(): SupabaseClient {
         cookieOptions: {
           name: 'supabase-auth-token',
           lifetime: 60 * 60 * 24 * 7, // 7 days
-          domain: process.env.NODE_ENV === 'production' ? '.promptreviews.app' : undefined,
+          domain: process.env.NODE_ENV === 'production' ? 'app.promptreviews.app' : undefined,
           sameSite: 'lax',
           secure: process.env.NODE_ENV === 'production'
         }
