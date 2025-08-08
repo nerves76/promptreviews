@@ -87,11 +87,13 @@ export default function BusinessGuard({ children }: BusinessGuardProps) {
       return;
     }
 
-    // Get URL parameters once
+    // Get URL parameters and session flags
     const urlParams = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
     const isComingFromPlanChange = urlParams?.get("success") === "1" && 
       (urlParams?.get("change") === "upgrade" || urlParams?.get("change") === "downgrade");
     const businessJustCreated = urlParams?.get("businessCreated") === "1";
+    const businessCreationInProgress = typeof window !== "undefined" ? 
+      sessionStorage.getItem('businessCreationInProgress') === 'true' : false;
 
     // Debug URL parameters
     if (typeof window !== "undefined" && process.env.NODE_ENV === 'development') {
@@ -100,6 +102,7 @@ export default function BusinessGuard({ children }: BusinessGuardProps) {
         search: window.location.search,
         businessCreatedParam: urlParams?.get("businessCreated"),
         businessJustCreated,
+        businessCreationInProgress,
         isComingFromPlanChange,
         hasBusiness,
         timestamp: new Date().toISOString()
@@ -111,17 +114,33 @@ export default function BusinessGuard({ children }: BusinessGuardProps) {
       return;
     }
     
+    // If business creation is in progress, don't interfere
+    if (businessCreationInProgress) {
+      console.log('🚫 BusinessGuard: Business creation in progress, skipping check');
+      // Clean up the flag after a delay
+      setTimeout(() => {
+        if (typeof window !== 'undefined') {
+          sessionStorage.removeItem('businessCreationInProgress');
+          console.log('🚫 BusinessGuard: Cleared businessCreationInProgress flag');
+        }
+      }, 2000);
+      return;
+    }
+    
     // If business was just created, give the state time to update before checking
     if (businessJustCreated) {
       console.log('🎉 BusinessGuard: Business just created, allowing state to update');
-      // Clean up the URL parameter after a short delay
+      console.log('🎉 BusinessGuard: Skipping business check for 3 seconds to allow auth context update');
+      
+      // Clean up the URL parameter after a longer delay to prevent conflicts
       setTimeout(() => {
         if (typeof window !== 'undefined') {
           const url = new URL(window.location.href);
           url.searchParams.delete('businessCreated');
           window.history.replaceState({}, '', url.toString());
+          console.log('🎉 BusinessGuard: Cleaned up businessCreated parameter');
         }
-      }, 1000);
+      }, 3000); // Increased from 1000ms to 3000ms
       return;
     }
 
