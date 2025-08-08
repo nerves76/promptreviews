@@ -570,6 +570,15 @@ const Dashboard = React.memo(function Dashboard() {
     dashboardData
   ]);
 
+  // Clean up timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (modalTimeoutRef.current) {
+        clearTimeout(modalTimeoutRef.current);
+      }
+    };
+  }, []);
+
   // Early returns for loading and error states
   if (authLoading) {
     return <AppLoader />;
@@ -783,15 +792,6 @@ const Dashboard = React.memo(function Dashboard() {
       user.user_metadata.full_name.trim().split(" ")[0]) ||
     user?.email?.split("@")[0] ||
     "there";
-
-  // Clean up timeout on unmount
-  useEffect(() => {
-    return () => {
-      if (modalTimeoutRef.current) {
-        clearTimeout(modalTimeoutRef.current);
-      }
-    };
-  }, []);
 
   // Add development refresh function
   const handleForceRefresh = async () => {
