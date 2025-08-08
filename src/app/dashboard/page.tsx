@@ -77,6 +77,7 @@ const Dashboard = React.memo(function Dashboard() {
   const [showPostSaveModal, setShowPostSaveModal] = useState(false);
   const [savedPromptPageUrl, setSavedPromptPageUrl] = useState<string | null>(null);
   const [showPricingModal, setShowPricingModal] = useState(false);
+  const modalTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [pendingAccountUpdate, setPendingAccountUpdate] = useState(false);
   const [showStarfallCelebration, setShowStarfallCelebration] = useState(false);
   const [showTopLoader, setShowTopLoader] = useState(false);
@@ -350,48 +351,12 @@ const Dashboard = React.memo(function Dashboard() {
       ((!plan || plan === 'no_plan' || plan === 'NULL') && businessCount > 0) ||
       (plan === "grower" && isTrialExpired && !hasStripeCustomer);
     
-    // Users with no valid plan should ALWAYS see the modal - never allow dismissal
-    const hasInvalidPlan = (!plan || plan === 'no_plan' || plan === 'NULL') && businessCount > 0;
-    
-    // Check if user has manually dismissed the modal (only applies to users who don't need a plan)
-    const hasManuallyDismissed = !isPlanSelectionRequired && !hasInvalidPlan && typeof window !== "undefined" && 
-      sessionStorage.getItem('pricingModalDismissed') === 'true';
-    
-    if (hasManuallyDismissed) {
-      setShowPricingModal(false);
-      return;
-    }
-    
-    if (hasInvalidPlan) {
-      // Clear any dismissal flags for users with invalid plans
-      if (typeof window !== "undefined" && sessionStorage.getItem('pricingModalDismissed') === 'true') {
-        sessionStorage.removeItem('pricingModalDismissed');
-      }
-    }
-    
-    // Show pricing modal for users who need to choose plan (but not if they just completed payment)
-    const paidPlans = ['builder', 'maven'];
-    const isPaidUserCheck = plan ? paidPlans.includes(plan) : false;
-    const shouldShowPricingModal = 
-      !justCompletedPayment && 
-      !isPaidUser &&
-      !isPaidUserCheck &&
-      (((!plan || plan === 'no_plan' || plan === 'NULL') && businessCount > 0) ||
-      (plan === "grower" && isTrialExpired && !hasStripeCustomer));
-    
-
-    
     setPlanSelectionRequired(!!isPlanSelectionRequired);
     
-    // Prevent pricing modal flicker during progressive loading
-    // Don't hide modal if it's currently shown and we're still loading data
-    if (!shouldShowPricingModal && showPricingModal && (businessesLoading || !dashboardData)) {
-      console.log('🎯 Dashboard: Preventing pricing modal flicker during loading');
-      // Keep modal shown until loading completes
-    } else {
-      setShowPricingModal(!!shouldShowPricingModal);
-    }
-  }, [authLoading, accountLoading, businessesLoading, account, businessData, justCompletedPayment, showPricingModal, dashboardData]);
+    // DISABLED: Automatic pricing modal display to prevent flashing
+    // Modal will only show when explicitly triggered by businessCreated param
+    
+  }, [authLoading, accountLoading, businessesLoading, isDashboardLoading, account, businessData, justCompletedPayment, dashboardData]);
 
   // Close modal and clear flags for Maven users
   useEffect(() => {
@@ -412,6 +377,14 @@ const Dashboard = React.memo(function Dashboard() {
   useEffect(() => {
     if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
+    
+    console.log('🔍 Dashboard URL params on mount:', {
+      businessCreated: params.get("businessCreated"),
+      canceled: params.get("canceled"),
+      success: params.get("success"),
+      businessCreatedHandled: sessionStorage.getItem('businessCreatedHandled'),
+      url: window.location.href
+    });
     
     // Handle successful Stripe payment
     if (params.get("success") === "1") {
@@ -495,9 +468,13 @@ const Dashboard = React.memo(function Dashboard() {
         sessionStorage.setItem('businessCreatedHandled', 'true');
       }
       
-      // Show pricing modal after business creation - new users need to select a plan
-      setShowPricingModal(true);
-      setPlanSelectionRequired(true); // Make it required so user can't dismiss
+      // Delay showing pricing modal to let page fully render
+      console.log('🎯 Setting timeout to show pricing modal in 2 seconds');
+      setTimeout(() => {
+        console.log('🎯 Showing pricing modal after business creation');
+        setShowPricingModal(true);
+        setPlanSelectionRequired(true); // Make it required so user can't dismiss
+      }, 2000); // Wait 2 seconds for page to fully load
       
       // Clean up the URL immediately
       const newUrl = window.location.pathname;
@@ -619,14 +596,14 @@ const Dashboard = React.memo(function Dashboard() {
     );
   }
 
-  // Only show full loading screen for initial auth/account loading
-  // Dashboard-specific data can load progressively
-  if (!account && accountLoading) {
+  // Show loading screen while essential data loads to prevent dashboard flash
+  // This prevents briefly showing dashboard before redirect to create-business
+  if (!account || businessesLoading || (account && !businessData)) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50">
         <div className="text-center">
           <FiveStarSpinner />
-          <p className="mt-4 text-gray-600">Loading your account...</p>
+          <p className="mt-4 text-gray-600">Loading your dashboard...</p>
         </div>
       </div>
     );
@@ -806,6 +783,15 @@ const Dashboard = React.memo(function Dashboard() {
       user.user_metadata.full_name.trim().split(" ")[0]) ||
     user?.email?.split("@")[0] ||
     "there";
+
+  // Clean up timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (modalTimeoutRef.current) {
+        clearTimeout(modalTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Add development refresh function
   const handleForceRefresh = async () => {

@@ -33,7 +33,7 @@ const tiers = [
       "1000 contacts",
       "Review widget",
       "Analytics",
-      "Google Business Profile publishing",
+      "Google Business Profile management",
     ],
   },
   {
@@ -52,7 +52,7 @@ const tiers = [
       "10,000 contacts",
       "Review widget",
       "Analytics",
-      "Google Business Profile publishing",
+      "Google Business Profile management",
     ],
   },
 ];
