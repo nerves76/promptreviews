@@ -39,10 +39,49 @@ export async function GET(request: NextRequest) {
       }
     );
     
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    let { data: { user }, error: authError } = await supabase.auth.getUser();
+    
+    // Fallback: try authorization header if cookie-based auth fails
+    if ((authError || !user) && request.headers.get('authorization')) {
+      console.log('🔄 Cookie auth failed, trying Authorization header...');
+      const authHeader = request.headers.get('authorization');
+      const token = authHeader?.replace('Bearer ', '');
+      
+      if (token) {
+        // Create a new Supabase client with the token
+        const tokenBasedSupabase = createServerClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+          {
+            cookies: {
+              get(name: string) {
+                return cookieStore.get(name)?.value;
+              },
+              set: (name, value, options) => {
+                cookieStore.set({ name, value, ...options });
+              },
+              remove: (name, options) => {
+                cookieStore.set({ name, value: '', ...options });
+              },
+            },
+            global: {
+              headers: {
+                Authorization: `Bearer ${token}`
+              }
+            }
+          }
+        );
+        
+        const tokenResult = await tokenBasedSupabase.auth.getUser();
+        user = tokenResult.data.user;
+        authError = tokenResult.error;
+        console.log('🔄 Authorization header result:', user ? 'success' : 'failed');
+      }
+    }
     
     if (authError || !user) {
       console.log('❌ Authentication error:', authError?.message || 'No user found');
+      console.log('🍪 Available cookies:', Object.keys(Object.fromEntries(cookieStore.getAll().map(c => [c.name, c.value]))));
       return NextResponse.json({ 
         error: 'Authentication required',
         details: authError?.message || 'User not authenticated'
