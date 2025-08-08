@@ -566,7 +566,7 @@ export default function UploadContactsPage() {
   fieldKeys = ["Name", ...fieldKeys, "role", "category"];
 
   return (
-    <PageCard icon={<Icon name="FaUsers" className="w-12 h-12 text-[#1A237E]" />}>
+    <PageCard icon={<Icon name="FaUsers" className="w-8 h-8 text-slate-blue" size={32} />}>
       <div className="w-full mx-auto relative" style={{ maxWidth: 1000 }}>
         <div className="flex items-center justify-between mb-8">
           <div className="flex flex-col">

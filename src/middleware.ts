@@ -5,6 +5,12 @@ import type { NextRequest } from "next/server";
 export async function middleware(req: NextRequest) {
   const res = NextResponse.next();
 
+  // Skip middleware for social-posting routes - they handle auth internally
+  if (req.nextUrl.pathname.startsWith('/api/social-posting/')) {
+    console.log('Middleware: Skipping social-posting route:', req.nextUrl.pathname);
+    return res;
+  }
+
   // Only require auth in production
   if (process.env.NODE_ENV !== "production") {
     // In development, still check session but don't block requests

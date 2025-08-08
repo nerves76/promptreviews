@@ -34,16 +34,8 @@ export async function POST(request: NextRequest) {
     // Use service role client to create user without email confirmation
     const supabase = createServiceRoleClient();
     
-    // Check if user already exists
-    const { data: existingUser } = await supabase.auth.admin.listUsers();
-    const userExists = existingUser.users?.some(user => user.email === email);
-    
-    if (userExists) {
-      return NextResponse.json(
-        { error: 'User already registered. Please sign in instead.' },
-        { status: 400 }
-      );
-    }
+    // Don't check for existing users - let Supabase handle this automatically
+    // The createUser call will fail if user already exists, which is the desired behavior
     
     // Create user with service role (bypasses email confirmation)
     const { data, error } = await supabase.auth.admin.createUser({
