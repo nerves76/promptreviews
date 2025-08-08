@@ -17,6 +17,9 @@ import ServiceDescriptionGenerator from '@/app/components/ServiceDescriptionGene
 import BusinessDescriptionAnalyzer from '@/app/components/BusinessDescriptionAnalyzer';
 import { createClient } from '@/utils/supabaseClient';
 import UnrespondedReviewsWidget from '@/app/components/UnrespondedReviewsWidget';
+import LocationSelector from '@/components/GoogleBusinessProfile/LocationSelector';
+import OverviewStats from '@/components/GoogleBusinessProfile/OverviewStats';
+import BusinessHealthMetrics from '@/components/GoogleBusinessProfile/BusinessHealthMetrics';
 // Using built-in alert for notifications instead of react-toastify
 
 interface GoogleBusinessLocation {
@@ -81,6 +84,12 @@ export default function SocialPostingDashboard() {
   const [isPostOAuthConnecting, setIsPostOAuthConnecting] = useState(false);
   const [rateLimitedUntil, setRateLimitedUntil] = useState<number | null>(null);
 
+  // Overview page state
+  const [selectedLocationId, setSelectedLocationId] = useState<string>('');
+  const [overviewData, setOverviewData] = useState<any>(null);
+  const [overviewLoading, setOverviewLoading] = useState(false);
+  const [overviewError, setOverviewError] = useState<string | null>(null);
+
   // Ref to track image URLs for cleanup
   const imageUrlsRef = useRef<string[]>([]);
 
@@ -90,12 +99,12 @@ export default function SocialPostingDashboard() {
   }, [imageUrls]);
 
   // Tab state with URL parameter support
-  const [activeTab, setActiveTab] = useState<'connect' | 'post' | 'photos' | 'business-info' | 'reviews'>(() => {
+  const [activeTab, setActiveTab] = useState<'connect' | 'overview' | 'post' | 'photos' | 'business-info' | 'reviews'>(() => {
     // Initialize from URL parameter if available
     if (typeof window !== 'undefined') {
       const urlParams = new URLSearchParams(window.location.search);
-      const tabParam = urlParams.get('tab') as 'connect' | 'post' | 'photos' | 'business-info' | 'reviews';
-      if (tabParam && ['connect', 'post', 'photos', 'business-info', 'reviews'].includes(tabParam)) {
+      const tabParam = urlParams.get('tab') as 'connect' | 'overview' | 'post' | 'photos' | 'business-info' | 'reviews';
+      if (tabParam && ['connect', 'overview', 'post', 'photos', 'business-info', 'reviews'].includes(tabParam)) {
         return tabParam;
       }
     }
@@ -103,7 +112,7 @@ export default function SocialPostingDashboard() {
   });
 
   // Update URL when tab changes
-  const changeTab = (newTab: 'connect' | 'post' | 'photos' | 'business-info' | 'reviews') => {
+  const changeTab = (newTab: 'connect' | 'overview' | 'post' | 'photos' | 'business-info' | 'reviews') => {
     setActiveTab(newTab);
     
     // Update URL parameter
@@ -213,6 +222,27 @@ export default function SocialPostingDashboard() {
       return () => clearInterval(checkInterval);
     }
   }, [rateLimitedUntil]);
+
+  // Auto-select first location when locations load
+  useEffect(() => {
+    if (locations.length > 0 && !selectedLocationId) {
+      setSelectedLocationId(locations[0].id);
+    }
+  }, [locations, selectedLocationId]);
+
+  // Fetch overview data when tab becomes active
+  useEffect(() => {
+    if (activeTab === 'overview' && selectedLocationId && isConnected) {
+      fetchOverviewData(selectedLocationId);
+    }
+  }, [activeTab, selectedLocationId, isConnected]);
+
+  // Switch to overview tab when connected and on connect tab
+  useEffect(() => {
+    if (isConnected && activeTab === 'connect' && locations.length > 0) {
+      changeTab('overview');
+    }
+  }, [isConnected, activeTab, locations.length]);
 
   // Simplified platform loading - no API validation calls
   const loadPlatforms = async () => {
@@ -736,6 +766,58 @@ export default function SocialPostingDashboard() {
     }
   };
 
+  // Handle overview data fetching
+  const fetchOverviewData = async (locationId: string) => {
+    if (!locationId) return;
+
+    setOverviewLoading(true);
+    setOverviewError(null);
+
+    try {
+      const response = await fetch(`/api/google-business-profile/overview?locationId=${encodeURIComponent(locationId)}&mock=true`);
+      const data = await response.json();
+
+      if (data.success) {
+        setOverviewData(data.data);
+      } else {
+        setOverviewError(data.error || 'Failed to fetch overview data');
+      }
+    } catch (error) {
+      console.error('Error fetching overview data:', error);
+      setOverviewError('Failed to fetch overview data');
+    } finally {
+      setOverviewLoading(false);
+    }
+  };
+
+  // Handle location selection for overview
+  const handleLocationChange = (locationId: string) => {
+    setSelectedLocationId(locationId);
+    if (locationId && activeTab === 'overview') {
+      fetchOverviewData(locationId);
+    }
+  };
+
+  // Handle quick actions from overview
+  const handleOverviewQuickAction = (action: string, data?: any) => {
+    switch (action) {
+      case 'edit-business-info':
+        changeTab('business-info');
+        break;
+      case 'manage-reviews':
+        changeTab('reviews');
+        break;
+      case 'create-post':
+        changeTab('post');
+        break;
+      case 'navigate':
+        if (data?.url) {
+          window.open(data.url, '_blank');
+        }
+        break;
+    }
+  };
+
   if (isLoading || isPostOAuthConnecting) {
     return (
       <div className="w-full mx-auto px-4 sm:px-6 md:px-8 lg:px-12 mt-12 md:mt-16 lg:mt-20 mb-16 flex justify-center items-start">
@@ -797,6 +879,20 @@ export default function SocialPostingDashboard() {
                 <div className="flex items-center space-x-2">
                   <Icon name="FaGoogle" className="w-4 h-4" />
                   <span>Connect Platforms</span>
+                </div>
+              </button>
+              <button
+                onClick={() => changeTab('overview')}
+                disabled={!isConnected}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'overview' && isConnected
+                    ? 'border-slate-blue text-slate-blue'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                } ${!isConnected ? 'opacity-50 cursor-not-allowed' : ''}`}
+              >
+                <div className="flex items-center space-x-2">
+                  <Icon name="FaChartBar" className="w-4 h-4" size={16} />
+                  <span>Overview</span>
                 </div>
               </button>
               <button
@@ -995,6 +1091,113 @@ export default function SocialPostingDashboard() {
                     <div className="mt-2 flex items-center space-x-2 text-sm text-red-600">
                       <Icon name="FaClock" className="w-3 h-3" />
                       <span>You can retry in {rateLimitCountdown} seconds</span>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {activeTab === 'overview' && (
+            <div className="space-y-6">
+              {!isConnected ? (
+                <div className="text-center py-12">
+                  <Icon name="FaChartBar" className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Connect Google Business Profile</h3>
+                  <p className="text-gray-600 mb-4">
+                    Connect your Google Business Profile to view comprehensive overview and analytics.
+                  </p>
+                  <button
+                    onClick={handleConnect}
+                    disabled={isLoading}
+                    className="px-6 py-2 bg-slate-600 text-white rounded-md hover:bg-slate-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center space-x-2 mx-auto"
+                  >
+                    {isLoading ? (
+                      <>
+                        <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />
+                        <span>Connecting...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Icon name="FaGoogle" className="w-4 h-4" />
+                        <span>Connect Google Business</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  {/* Location Selector */}
+                  <LocationSelector
+                    locations={locations.map(loc => ({
+                      id: loc.id,
+                      name: loc.name,
+                      address: loc.address,
+                      status: loc.status
+                    }))}
+                    selectedLocationId={selectedLocationId}
+                    onLocationChange={handleLocationChange}
+                    isConnected={isConnected}
+                  />
+
+                  {/* Error State */}
+                  {overviewError && (
+                    <div className="bg-red-50 border border-red-200 rounded-md p-4">
+                      <div className="flex items-center space-x-2 text-red-800 mb-2">
+                        <Icon name="FaExclamationTriangle" className="w-4 h-4" />
+                        <span className="text-sm font-medium">Error Loading Overview</span>
+                      </div>
+                      <p className="text-sm text-red-700">{overviewError}</p>
+                      <button
+                        onClick={() => selectedLocationId && fetchOverviewData(selectedLocationId)}
+                        className="mt-2 text-sm text-red-600 hover:text-red-700 font-medium"
+                      >
+                        Try Again
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Overview Stats */}
+                  {overviewData && (
+                    <>
+                      <OverviewStats
+                        totalReviews={overviewData.reviewTrends.totalReviews}
+                        reviewTrend={overviewData.reviewTrends.reviewTrend}
+                        averageRating={overviewData.reviewTrends.averageRating}
+                        monthlyReviewData={overviewData.reviewTrends.monthlyReviewData}
+                        isLoading={overviewLoading}
+                      />
+
+                      <BusinessHealthMetrics
+                        locationId={selectedLocationId}
+                        profileData={overviewData.profileData}
+                        engagementData={overviewData.engagementData}
+                        performanceData={overviewData.performanceData}
+                        optimizationOpportunities={overviewData.optimizationOpportunities}
+                        isLoading={overviewLoading}
+                        onQuickAction={handleOverviewQuickAction}
+                      />
+                    </>
+                  )}
+
+                  {/* Loading State */}
+                  {overviewLoading && !overviewData && (
+                    <div className="space-y-6">
+                      <OverviewStats
+                        totalReviews={0}
+                        reviewTrend={0}
+                        averageRating={0}
+                        monthlyReviewData={[]}
+                        isLoading={true}
+                      />
+                      <BusinessHealthMetrics
+                        locationId=""
+                        profileData={{} as any}
+                        engagementData={{} as any}
+                        performanceData={{} as any}
+                        optimizationOpportunities={[]}
+                        isLoading={true}
+                      />
                     </div>
                   )}
                 </div>
