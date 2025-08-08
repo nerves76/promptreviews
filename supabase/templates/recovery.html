@@ -38,15 +38,24 @@
         .button {
             display: inline-block;
             padding: 12px 32px;
-            background-color: #475569;
-            color: white;
+            background-color: #3b82f6 !important;
+            color: white !important;
             text-decoration: none;
             border-radius: 6px;
             font-weight: 500;
             margin: 20px 0;
+            border: none;
+            text-align: center;
+            font-size: 16px;
         }
         .button:hover {
-            background-color: #334155;
+            background-color: #2563eb !important;
+        }
+        .button:visited {
+            color: white !important;
+        }
+        .button:active {
+            color: white !important;
         }
         .footer {
             text-align: center;
@@ -74,7 +83,11 @@
         <p>We received a request to reset your PromptReviews password. Click the button below to choose a new password:</p>
         
         <p style="text-align: center;">
-            <a href="{{ .ConfirmationURL }}" class="button">Reset Password</a>
+            <a href="{{ .ConfirmationURL }}" 
+               class="button" 
+               style="display: inline-block; padding: 12px 32px; background-color: #3b82f6 !important; color: white !important; text-decoration: none; border-radius: 6px; font-weight: 500; margin: 20px 0; border: none; text-align: center; font-size: 16px;">
+                Reset Password
+            </a>
         </p>
         
         <p>If the button doesn't work, you can also copy and paste this link into your browser:</p>

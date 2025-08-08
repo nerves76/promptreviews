@@ -597,7 +597,8 @@ export default function Header() {
                             Admin panel
                           </Link>
                         )}
-                        <Link href="/game" className="block px-4 py-2 text-sm text-gray-700 hover:bg-slate-blue/10 hover:text-slate-blue" onClick={() => setAccountMenuOpen(false)}>
+                        {/* Game link hidden on mobile due to compatibility issues */}
+                        <Link href="/game" className="hidden md:block px-4 py-2 text-sm text-gray-700 hover:bg-slate-blue/10 hover:text-slate-blue" onClick={() => setAccountMenuOpen(false)}>
                           <span className="mr-2">🎮</span>
                           Get Found Online: The Game
                         </Link>
