@@ -187,103 +187,53 @@ function SignUpContent() {
     }
 
     try {
-      console.log('🚀 Starting sign-up process...');
+      console.log('🚀 Starting server-side sign-up process...');
       console.log('📝 Form data after validation:', { firstName, lastName, email, password: '***' });
       
-      // Always use the current origin for email redirects
-      // This works because both localhost:3002 and app.promptreviews.app are in additional_redirect_urls
-      const redirectUrl = `${window.location.origin}/auth/callback`;
-
-      console.log('Sign-up redirect URL:', redirectUrl);
-      console.log('Current origin:', window.location.origin);
-
-      console.log('📧 Calling Supabase auth.signUp...');
-      
-      // Add error handling for Supabase client
-      if (!supabase) {
-        throw new Error('Supabase client not initialized');
-      }
-      
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: redirectUrl,
-          data: {
-            first_name: firstName,
-            last_name: lastName,
-          },
+      // Use our new server-side API endpoint
+      const response = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
+        body: JSON.stringify({
+          email,
+          password,
+          firstName,
+          lastName,
+        }),
       });
 
-      console.log('📧 Supabase auth.signUp response:', { 
-        data: data ? { 
-          user: data.user ? { 
-            id: data.user.id, 
-            email: data.user.email,
-            email_confirmed_at: data.user.email_confirmed_at
-          } : null,
-          session: !!data.session
-        } : null, 
-        error 
-      });
+      const result = await response.json();
+      console.log('📧 Server signup response:', { status: response.status, result });
 
-      if (error) {
-        console.error('❌ Sign-up error:', error);
-        console.error('❌ Error details:', {
-          message: error.message,
-          status: error.status,
-          name: error.name
-        });
+      if (!response.ok) {
+        console.error('❌ Server signup error:', result);
         
-        // Enhanced error handling with better duplicate email detection
-        let errorMessage = error.message;
+        // Handle server errors
+        let errorMessage = result.error || 'Failed to create account';
         
-        // Map specific error messages - check multiple variations
-        if (error.message.includes('User already registered') || 
-            error.message.includes('already registered') ||
-            error.message.includes('email address is already taken') ||
-            error.message.includes('already exists')) {
+        // Map specific error messages
+        if (errorMessage.includes('already registered') || errorMessage.includes('already exists')) {
           errorMessage = errorMessages["User already registered"];
-        } else if (error.message.includes('Password should be at least 6 characters')) {
+        } else if (errorMessage.includes('Password must be at least 6 characters')) {
           errorMessage = errorMessages["Password should be at least 6 characters"];
-        } else if (error.message.includes('Email is not valid')) {
+        } else if (errorMessage.includes('Invalid email')) {
           errorMessage = errorMessages["Email is not valid"];
-        } else if (error.message.includes('Rate limit exceeded')) {
-          errorMessage = errorMessages["Rate limit exceeded"];
         }
         
         setError(errorMessage);
         setLoading(false);
         return;
-      } else if (data.user) {
-        console.log('✅ User data received:', {
-          userId: data.user.id,
-          email: data.user.email,
-          emailConfirmed: data.user.email_confirmed_at,
-          identities: data.user.identities?.length || 0,
-          metadata: data.user.user_metadata
-        });
+      }
+
+      if (result.success) {
+        console.log('✅ Account created successfully:', result.user);
         
-        // Enhanced duplicate email detection for when email confirmations are enabled
-        // Supabase might return a user object but with obfuscated data for existing users
-        if (data.user.identities?.length === 0 || 
-            !data.user.identities ||
-            (data.user.email !== email.toLowerCase())) {
-          console.log('⚠️ Possible duplicate email detected - user object looks obfuscated');
-          setError(errorMessages["User already registered"]);
-          setLoading(false);
-          return;
-        }
-        
-        console.log('📧 User email confirmed:', data.user.email_confirmed_at);
-        console.log('📧 User metadata:', data.user.user_metadata);
-        console.log('🔧 Phase 1 triggers will handle account creation automatically when email is confirmed');
-        
-        // Show email confirmation message
-        console.log('✅ Sign-up completed, waiting for email confirmation');
+        // Show success message and redirect to sign-in
+        console.log('✅ Sign-up completed successfully');
         setEmailSent(true);
-        setMessage('Check your email and click the confirmation link to activate your account.');
+        setMessage('Account created successfully! You can now sign in with your credentials.');
         
         // Track sign up event
         console.log('📊 Tracking sign up event...');
@@ -294,17 +244,8 @@ function SignUpContent() {
           // Don't fail the sign-up process if tracking fails
         }
       } else {
-        console.log('⚠️ No user data returned from sign-up');
-        console.log('🔍 Full response data:', data);
-        
-        // This could indicate a duplicate email with email confirmations enabled
-        // When confirmations are enabled and email exists, Supabase might return success with no user
-        if (!data.user && !error) {
-          console.log('⚠️ No user or error returned - possible duplicate email');
-          setError(errorMessages["User already registered"]);
-        } else {
-          setError('Sign-up completed but no user data returned. Please check your email for confirmation.');
-        }
+        console.log('⚠️ Unexpected server response');
+        setError('Account creation completed but with unexpected response. Please try signing in.');
       }
     } catch (err) {
       console.error("❌ Unexpected error:", err);
