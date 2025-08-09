@@ -124,6 +124,8 @@ export async function GET(request: NextRequest) {
       
       let foundLocation = null;
       
+      let foundAccount = null;
+      
       // Search through all accounts to find the location (same as Business Info)
       for (const account of accounts) {
         try {
@@ -144,6 +146,7 @@ export async function GET(request: NextRequest) {
           
           if (foundLocation) {
             console.log('✅ Found location with complete Google data:', foundLocation.name);
+            foundAccount = account;
             break;
           } else {
             console.log(`⚠️ Location ${locationId} not found in account ${account.name}`);
@@ -160,6 +163,7 @@ export async function GET(request: NextRequest) {
             if (altFound) {
               console.log('✅ Found location with alternative matching:', altFound.name);
               foundLocation = altFound;
+              foundAccount = account;
               break;
             }
           }
@@ -172,9 +176,31 @@ export async function GET(request: NextRequest) {
       const locationData = foundLocation;
       console.log('📍 Final location data:', locationData ? 'Complete Google object found' : 'Not found');
 
-      // Get reviews via API (this is working)
-      const reviewsData = await gbpClient.getReviews(locationId);
-      console.log('📝 Reviews from API:', reviewsData.length);
+      // Extract account and location IDs for API calls
+      const accountId = foundAccount ? foundAccount.name.replace('accounts/', '') : '';
+      const cleanLocationId = locationId.replace('locations/', '');
+
+      // Fetch data from multiple APIs in parallel
+      const [reviewsResult, photosResult, postsResult] = await Promise.allSettled([
+        gbpClient.getReviews(locationId),
+        gbpClient.getMedia(locationId),
+        accountId ? gbpClient.listLocalPosts(accountId, cleanLocationId) : Promise.resolve([])
+      ]);
+
+      // Process results with error logging
+      const reviewsData = reviewsResult.status === 'fulfilled' ? reviewsResult.value : [];
+      const photosData = photosResult.status === 'fulfilled' ? photosResult.value : [];
+      const postsData = postsResult.status === 'fulfilled' ? postsResult.value : [];
+
+      // Log API call results
+      console.log('📊 API Results Summary:');
+      console.log(`  Reviews: ${reviewsResult.status} - ${reviewsData.length} items`);
+      console.log(`  Photos: ${photosResult.status} - ${photosData.length} items`);
+      console.log(`  Posts: ${postsResult.status} - ${postsData.length} items`);
+      
+      if (reviewsResult.status === 'rejected') console.log('  Reviews error:', reviewsResult.reason);
+      if (photosResult.status === 'rejected') console.log('  Photos error:', photosResult.reason);
+      if (postsResult.status === 'rejected') console.log('  Posts error:', postsResult.reason);
 
       // Process the data using helper functions
       const { 
@@ -225,15 +251,48 @@ export async function GET(request: NextRequest) {
 
       const reviewTrends = processReviewTrends(reviewsData);
 
+      // Calculate recent activity (last 30 days)
+      const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+      
+      const recentPhotos = photosData.filter((photo: any) => {
+        if (!photo.createTime) return false;
+        const photoDate = new Date(photo.createTime);
+        return photoDate >= thirtyDaysAgo;
+      });
+
+      const recentPostsData = postsData.filter((post: any) => {
+        if (!post.createTime) return false;
+        const postDate = new Date(post.createTime);
+        return postDate >= thirtyDaysAgo;
+      });
+
+      // Find most recent dates
+      const getLatestDate = (items: any[], dateField: string) => {
+        if (items.length === 0) return undefined;
+        const dates = items
+          .map(item => item[dateField])
+          .filter(date => date)
+          .map(date => new Date(date))
+          .sort((a, b) => b.getTime() - a.getTime());
+        return dates.length > 0 ? dates[0].toISOString() : undefined;
+      };
+
       const engagementData = {
         unrespondedReviews: reviewsData.filter((review: any) => !review.reviewReply).length,
         totalQuestions: 0, // Would need Q&A API
         unansweredQuestions: 0, // Would need Q&A API  
-        recentPosts: 0, // TODO: Implement posts API to count posts from last 30 days
-        recentPhotos: 0, // TODO: Implement photos API to count photos from last 30 days
-        lastPostDate: undefined,
-        lastPhotoDate: undefined
+        recentPosts: recentPostsData.length,
+        recentPhotos: recentPhotos.length,
+        lastPostDate: getLatestDate(postsData, 'createTime'),
+        lastPhotoDate: getLatestDate(photosData, 'createTime')
       };
+
+      console.log('📊 Activity metrics:', {
+        recentPhotos: recentPhotos.length,
+        recentPosts: recentPostsData.length,
+        totalPhotos: photosData.length,
+        totalPosts: postsData.length
+      });
 
       const performanceData = {
         monthlyViews: 0,
