@@ -225,9 +225,9 @@ export default function BusinessHealthMetrics({
 
   return (
     <div ref={animationRef} className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      {/* Profile Completeness */}
+      {/* Profile Optimization */}
       <MetricCard 
-        title="Profile Completeness" 
+        title="Profile Optimization" 
         icon="FaStore"
         actions={
           hasProfileData ? (
@@ -315,6 +315,35 @@ export default function BusinessHealthMetrics({
                 </div>
               )}
             </div>
+
+            {/* Monthly Posts */}
+            {engagementData && (
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium text-gray-700">Monthly Posts</span>
+                  <span className="text-sm text-gray-600">
+                    {engagementData.recentPosts}/4 this month
+                  </span>
+                </div>
+                <ProgressBar percentage={(engagementData.recentPosts / 4) * 100} className="bg-green-500" />
+                {engagementData.recentPosts < 4 && (
+                  <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded text-xs text-green-700">
+                    💡 <strong>Goal:</strong> Post 4+ times per month for consistent engagement and better visibility.
+                    <button
+                      onClick={() => onQuickAction?.('create-post')}
+                      className="ml-2 text-green-800 hover:text-green-900 font-medium underline"
+                    >
+                      Create Post
+                    </button>
+                  </div>
+                )}
+                {engagementData.lastPostDate && (
+                  <div className="mt-1 text-xs text-gray-500">
+                    Last post: {new Date(engagementData.lastPostDate).toLocaleDateString()}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center py-8 text-center">
@@ -366,33 +395,6 @@ export default function BusinessHealthMetrics({
               <div className="text-2xl font-bold text-yellow-600">{engagementData.unansweredQuestions}</div>
               <div className="text-xs text-gray-600">Unanswered</div>
             </div>
-          </div>
-
-          {/* Monthly Posts */}
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-gray-700">Monthly Posts</span>
-              <span className="text-sm text-gray-600">
-                {engagementData.recentPosts}/4 this month
-              </span>
-            </div>
-            <ProgressBar percentage={(engagementData.recentPosts / 4) * 100} className="bg-green-500" />
-            {engagementData.recentPosts < 4 && (
-              <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded text-xs text-green-700">
-                💡 <strong>Goal:</strong> Post 4+ times per month for consistent engagement and better visibility.
-                <button
-                  onClick={() => onQuickAction?.('create-post')}
-                  className="ml-2 text-green-800 hover:text-green-900 font-medium underline"
-                >
-                  Create Post
-                </button>
-              </div>
-            )}
-            {engagementData.lastPostDate && (
-              <div className="mt-1 text-xs text-gray-500">
-                Last post: {new Date(engagementData.lastPostDate).toLocaleDateString()}
-              </div>
-            )}
           </div>
         </div>
       </MetricCard>
