@@ -1209,6 +1209,59 @@ export default function CreatePromptPageClient({
         throw error;
       }
 
+      // Auto-create contact for individual prompt pages (same logic as handleStep1Submit)
+      console.log('🎯 Service page contact creation check:', {
+        campaign_type_from_formData: formData.campaign_type,
+        campaign_type_from_insertData: data.campaign_type,
+        has_first_name: !!formData.first_name,
+        first_name: formData.first_name,
+        should_create_contact: formData.campaign_type === 'individual' && formData.first_name
+      });
+      
+      if (formData.campaign_type === 'individual' && formData.first_name) {
+        try {
+          console.log('🔍 Creating contact for service page:', data.id);
+          
+          const contactResponse = await fetch('/api/contacts/create-from-prompt-page', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+            },
+            body: JSON.stringify({
+              promptPageData: {
+                first_name: formData.first_name,
+                last_name: formData.last_name,
+                email: formData.email,
+                phone: formData.phone,
+                business_name: formData.business_name,
+                role: formData.role,
+                address_line1: formData.address_line1,
+                address_line2: formData.address_line2,
+                city: formData.city,
+                state: formData.state,
+                postal_code: formData.postal_code,
+                country: formData.country,
+                category: formData.category,
+                notes: formData.notes,
+              },
+              promptPageId: data.id
+            }),
+          });
+
+          if (contactResponse.ok) {
+            const contactResult = await contactResponse.json();
+            console.log('✅ Contact created successfully for service page:', contactResult);
+          } else {
+            console.error('❌ Failed to create contact for service page:', await contactResponse.text());
+            // Don't fail the entire operation if contact creation fails
+          }
+        } catch (contactError) {
+          console.error('❌ Error creating contact for service page:', contactError);
+          // Don't fail the entire operation if contact creation fails
+        }
+      }
+
       // Set success modal data in localStorage
       if (typeof window !== 'undefined') {
         localStorage.setItem('showPostSaveModal', JSON.stringify({
