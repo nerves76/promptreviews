@@ -9,6 +9,7 @@
 import { useState, useEffect } from 'react';
 import Icon from '@/components/Icon';
 import { createClient } from '@/utils/supabaseClient';
+import { getAccountIdForUser } from '@/utils/accountUtils';
 
 // Import our modular components
 import CategorySearch from './business-info/CategorySearch';
@@ -95,20 +96,17 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
         const { data: { user } } = await createClient().auth.getUser();
         if (!user) return;
 
-        // Get account ID
-        const { data: accountUser } = await createClient()
-          .from('account_users')
-          .select('account_id')
-          .eq('user_id', user.id)
-          .single();
+        // Get account ID using the proper utility function
+        // This handles multiple account_user records correctly
+        const accountId = await getAccountIdForUser(user.id, createClient());
 
-        if (!accountUser?.account_id) return;
+        if (!accountId) return;
 
         // Fetch business profile
         const { data: business } = await createClient()
           .from('businesses')
           .select('business_name, business_type, city, state, services, industry')
-          .eq('account_id', accountUser.account_id)
+          .eq('account_id', accountId)
           .single();
 
         if (business) {
