@@ -184,8 +184,9 @@ export default function SocialPostingDashboard() {
         loadPlatforms();
       }, 1000);
     } else {
-      // Load platforms on page load with simplified logic (normal page load)
-      loadPlatforms();
+      // TEMP DISABLE: Load platforms on page load with simplified logic (normal page load)
+      console.log('🚨 TEMP DISABLED: Initial loadPlatforms() call');
+      // loadPlatforms();
     }
     
     // IMPORTANT: No automatic refresh after initial load to prevent form resets
@@ -291,6 +292,7 @@ export default function SocialPostingDashboard() {
 
   // Simplified platform loading - no API validation calls
   const loadPlatforms = async () => {
+    console.log('🔍 TRACE: loadPlatforms called from:', new Error().stack?.split('\n')[1]?.trim());
     console.log('Loading platforms (database check only)...');
     
     try {
