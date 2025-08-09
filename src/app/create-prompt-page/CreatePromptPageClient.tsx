@@ -898,6 +898,7 @@ export default function CreatePromptPageClient({
         console.log('🔍 Checking contact creation conditions:', {
           campaign_type: formData.campaign_type,
           first_name: formData.first_name,
+          review_type: formData.review_type,
           shouldCreate: formData.first_name && (formData.campaign_type === 'individual' || formData.campaign_type === 'public')
         });
         
