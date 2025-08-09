@@ -895,7 +895,13 @@ export default function CreatePromptPageClient({
         }
         
         // Auto-create contact for individual prompt pages
-        if (formData.campaign_type === 'individual' && formData.first_name) {
+        console.log('🔍 Checking contact creation conditions:', {
+          campaign_type: formData.campaign_type,
+          first_name: formData.first_name,
+          shouldCreate: formData.first_name && (formData.campaign_type === 'individual' || formData.campaign_type === 'public')
+        });
+        
+        if (formData.first_name && (formData.campaign_type === 'individual' || formData.campaign_type === 'public')) {
           try {
             console.log('🔍 Creating contact for prompt page:', data.id);
             
