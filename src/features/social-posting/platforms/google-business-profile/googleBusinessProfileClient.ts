@@ -1032,23 +1032,23 @@ export class GoogleBusinessProfileClient {
       const dateRangeObj = this.getDateRange(dateRange);
       console.log('🔍 [NEW API] Date range:', dateRangeObj);
       
-      // Build query parameters for the new API
+      // Build query parameters for the new API using CORRECT Performance API v1 DailyMetric values
+      // NOTE: Performance API requires special access approval from Google
       const queryParams = new URLSearchParams({
         'dailyMetrics': [
-          'BUSINESS_IMPRESSIONS_DESKTOP_MAPS',
-          'BUSINESS_IMPRESSIONS_DESKTOP_SEARCH', 
-          'BUSINESS_IMPRESSIONS_MOBILE_MAPS',
-          'BUSINESS_IMPRESSIONS_MOBILE_SEARCH',
-          'BUSINESS_DIRECTION_REQUESTS',
-          'CALL_CLICKS',
-          'WEBSITE_CLICKS'
+          'WEBSITE_CLICKS',
+          'CALL_CLICKS', 
+          'DIRECTION_REQUESTS',
+          'BUSINESS_IMPRESSIONS',
+          'BUSINESS_BOOKINGS',
+          'BUSINESS_FOOD_ORDERS'
         ].join(','),
-        'startDate.year': dateRangeObj.start.split('-')[0],
-        'startDate.month': dateRangeObj.start.split('-')[1],
-        'startDate.day': dateRangeObj.start.split('-')[2],
-        'endDate.year': dateRangeObj.end.split('-')[0],
-        'endDate.month': dateRangeObj.end.split('-')[1],
-        'endDate.day': dateRangeObj.end.split('-')[2]
+        'dailyRange.startDate.year': dateRangeObj.start.split('-')[0],
+        'dailyRange.startDate.month': dateRangeObj.start.split('-')[1],
+        'dailyRange.startDate.day': dateRangeObj.start.split('-')[2],
+        'dailyRange.endDate.year': dateRangeObj.end.split('-')[0],
+        'dailyRange.endDate.month': dateRangeObj.end.split('-')[1],
+        'dailyRange.endDate.day': dateRangeObj.end.split('-')[2]
       });
 
       const fullEndpoint = `${endpoint}?${queryParams.toString()}`;
@@ -1083,13 +1083,27 @@ export class GoogleBusinessProfileClient {
         response: error.response
       });
       
+      // Specific error detection for Performance API access issues
+      const isAccessDenied = error.status === 403 || error.message?.includes('Permission denied') || error.message?.includes('quota');
+      const isNotFound = error.status === 404;
+      const isQuotaZero = error.message?.includes('quota') && error.message?.includes('0');
+      
+      if (isQuotaZero || (isAccessDenied && error.message?.includes('Performance'))) {
+        console.error('🚨 PERFORMANCE API ACCESS DENIED - This requires special Google approval!');
+        console.error('📋 Official Google documentation states:');
+        console.error('   "Note - If you have a quota of 0 after enabling the API, please request for GBP API access."');
+        console.error('🔗 You need to request access at: https://developers.google.com/my-business');
+      }
+      
       console.log('🔄 [NEW API] This is likely due to:');
-      console.log('  1. ⚠️  Business Profile Performance API NOT ENABLED in Google Console');
-      console.log('  2. 🔑 Insufficient permissions or unverified business profile');
-      console.log('  3. 📊 No performance data available for selected time period');
-      console.log('  4. 🔗 API endpoint or authentication issue');
+      console.log('  1. 🚨 PERFORMANCE API REQUIRES SPECIAL ACCESS APPROVAL from Google');
+      console.log('  2. ⚠️  Business Profile Performance API NOT ENABLED in Google Console');
+      console.log('  3. 🔑 Insufficient permissions or unverified business profile');
+      console.log('  4. 📊 No performance data available for selected time period');
+      console.log('  5. 🔗 API endpoint or authentication issue');
       
       console.log('🛠️  To fix:');
+      console.log('     - 🆘 REQUEST GBP API ACCESS from Google (Performance API requires approval)');
       console.log('     - Enable "Business Profile Performance API" in Google Cloud Console');
       console.log('     - Verify business profile is claimed and verified');
       console.log('     - Check if business has sufficient activity for metrics');
