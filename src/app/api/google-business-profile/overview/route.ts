@@ -298,6 +298,15 @@ export async function GET(request: NextRequest) {
         totalPosts: postsData.length
       });
 
+      // Debug: Log raw insights data structure
+      console.log('🔍 Raw insights data from Google API:', JSON.stringify(insightsData, null, 2));
+      console.log('🔍 Insights data structure:', {
+        isArray: Array.isArray(insightsData),
+        length: insightsData?.length,
+        firstItem: insightsData?.[0] ? Object.keys(insightsData[0]) : 'none',
+        sample: insightsData?.[0]
+      });
+
       // Process real Google Business Profile performance data
       const performanceData = formatPerformanceData(insightsData, []);
       
