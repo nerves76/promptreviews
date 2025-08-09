@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { createServerSupabaseClient } from "@/utils/supabaseClient";
+import { getAccountIdForUser } from "@/utils/accountUtils";
 
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY!;
 if (!stripeSecretKey) {

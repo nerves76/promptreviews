@@ -440,36 +440,89 @@ export function identifyOptimizationOpportunities(
 }
 
 /**
- * Format performance data for display
+ * Format performance data from NEW Business Profile Performance API v1
+ * Handles multiDailyMetricsTimeSeries response format
  */
-export function formatPerformanceData(insights: any[], customerActions: any[]): PerformanceData {
-  // Process insights data (this would come from Google's Insights API)
-  const monthlyViews = insights.reduce((total, insight) => {
-    return total + (insight.metricValues?.find((mv: any) => mv.metric === 'QUERIES_DIRECT')?.value || 0);
-  }, 0);
+export function formatPerformanceData(multiDailyMetrics: any[], customerActions: any[]): PerformanceData {
+  console.log('🔍 Processing NEW Performance API data:', multiDailyMetrics);
+  
+  if (!multiDailyMetrics || !Array.isArray(multiDailyMetrics)) {
+    console.log('⚠️ No performance data available');
+    return {
+      monthlyViews: 0,
+      viewsTrend: 0,
+      topSearchQueries: [],
+      customerActions: {
+        websiteClicks: 0,
+        phoneCalls: 0,
+        directionRequests: 0,
+        photoViews: 0
+      }
+    };
+  }
 
-  // Calculate trends (simplified - would need historical data)
-  const viewsTrend = 0; // This would require comparing to previous period
+  let totalViews = 0;
+  let totalWebsiteClicks = 0;
+  let totalPhoneCalls = 0;
+  let totalDirectionRequests = 0;
 
-  // Extract top search queries
-  const searchQueryData = insights.filter(insight => insight.metric === 'QUERIES_INDIRECT');
-  const topSearchQueries = searchQueryData
-    .slice(0, 5)
-    .map(query => query.dimensionValues?.QUERY || 'Unknown query');
+  // Process each daily metric time series
+  multiDailyMetrics.forEach((metricSeries: any) => {
+    const dailyMetric = metricSeries.dailyMetric;
+    const timeSeries = metricSeries.timeSeries;
+    
+    if (!timeSeries?.dailyValues) return;
 
-  // Process customer actions
-  const actions = {
-    websiteClicks: customerActions.filter(action => action.action === 'WEBSITE').length,
-    phoneCalls: customerActions.filter(action => action.action === 'PHONE').length,
-    directionRequests: customerActions.filter(action => action.action === 'DRIVING_DIRECTIONS').length,
-    photoViews: customerActions.filter(action => action.action === 'PHOTOS_VIEWED').length
-  };
+    // Sum up all daily values for the metric
+    const totalValue = timeSeries.dailyValues.reduce((sum: number, daily: any) => {
+      return sum + (daily.value || 0);
+    }, 0);
+
+    console.log(`📊 ${dailyMetric}: ${totalValue}`);
+
+    // Map new API metrics to our display values
+    switch (dailyMetric) {
+      case 'BUSINESS_IMPRESSIONS_DESKTOP_MAPS':
+      case 'BUSINESS_IMPRESSIONS_DESKTOP_SEARCH':
+      case 'BUSINESS_IMPRESSIONS_MOBILE_MAPS':
+      case 'BUSINESS_IMPRESSIONS_MOBILE_SEARCH':
+        totalViews += totalValue;
+        break;
+      case 'WEBSITE_CLICKS':
+        totalWebsiteClicks += totalValue;
+        break;
+      case 'CALL_CLICKS':
+        totalPhoneCalls += totalValue;
+        break;
+      case 'BUSINESS_DIRECTION_REQUESTS':
+        totalDirectionRequests += totalValue;
+        break;
+    }
+  });
+
+  // Calculate trends (simplified - would need historical data comparison)
+  const viewsTrend = 0; // TODO: Implement by comparing with previous period
+
+  // Top search queries would come from separate searchkeywords API
+  const topSearchQueries: string[] = []; // TODO: Implement searchkeywords API call
+
+  console.log('📈 Performance totals:', {
+    totalViews,
+    totalWebsiteClicks,
+    totalPhoneCalls,
+    totalDirectionRequests
+  });
 
   return {
-    monthlyViews,
+    monthlyViews: totalViews,
     viewsTrend,
     topSearchQueries,
-    customerActions: actions
+    customerActions: {
+      websiteClicks: totalWebsiteClicks,
+      phoneCalls: totalPhoneCalls,
+      directionRequests: totalDirectionRequests,
+      photoViews: 0 // Not available in Performance API, would need different endpoint
+    }
   };
 }
 
