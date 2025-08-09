@@ -410,16 +410,27 @@ export default function BusinessHealthMetrics({
                 <span className="text-sm font-medium text-yellow-800">Performance Data Unavailable</span>
               </div>
               <div className="text-xs text-yellow-700 space-y-1">
-                <p>• <strong>Business Profile Performance API</strong> may require additional verification</p>
-                <p>• Your business may need more activity/history for Google to provide metrics</p>
+                <p>• <strong>Performance API requires special access approval</strong> from Google</p>
+                <p>• Google states: <em>"If you have a quota of 0 after enabling the API, please request for GBP API access"</em></p>
+                <p>• Your business profile must be verified and claimed</p>
                 <p>• Some businesses don't qualify for performance insights</p>
               </div>
-              <button
-                onClick={() => onQuickAction?.('check-verification')}
-                className="mt-2 text-xs text-yellow-800 hover:text-yellow-900 font-medium underline"
-              >
-                Check Business Verification Status →
-              </button>
+              <div className="mt-2 space-y-1">
+                <a
+                  href="https://developers.google.com/my-business"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block text-xs text-yellow-800 hover:text-yellow-900 font-medium underline"
+                >
+                  Request GBP API Access from Google →
+                </a>
+                <button
+                  onClick={() => onQuickAction?.('check-verification')}
+                  className="block text-xs text-yellow-800 hover:text-yellow-900 font-medium underline"
+                >
+                  Check Business Verification Status →
+                </button>
+              </div>
             </div>
           )}
 
