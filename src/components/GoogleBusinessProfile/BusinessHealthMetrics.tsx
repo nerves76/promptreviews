@@ -26,7 +26,9 @@ interface EngagementData {
   totalQuestions: number;
   unansweredQuestions: number;
   recentPosts: number;
+  recentPhotos?: number;
   lastPostDate?: string;
+  lastPhotoDate?: string;
 }
 
 interface PerformanceData {
@@ -282,15 +284,31 @@ export default function BusinessHealthMetrics({
               )}
             </div>
 
-            {/* Photos */}
+            {/* Recent Photos */}
             <div>
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-gray-700">Photos</span>
+                <span className="text-sm font-medium text-gray-700">Photo Activity</span>
                 <span className="text-sm text-gray-600">
-                  {totalActualPhotos}/{totalExpectedPhotos} recommended
+                  {engagementData?.recentPhotos || 0}/2 this month
                 </span>
               </div>
-              <ProgressBar percentage={photoCompletion} className="bg-blue-500" />
+              <ProgressBar percentage={((engagementData?.recentPhotos || 0) / 2) * 100} className="bg-blue-500" />
+              {(engagementData?.recentPhotos || 0) < 2 && (
+                <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-700">
+                  💡 <strong>Goal:</strong> Upload 2+ photos per month to stay active and improve search ranking.
+                  <button
+                    onClick={() => onQuickAction?.('manage-photos')}
+                    className="ml-2 text-blue-800 hover:text-blue-900 font-medium underline"
+                  >
+                    Upload Photos
+                  </button>
+                </div>
+              )}
+              {engagementData?.lastPhotoDate && (
+                <div className="mt-1 text-xs text-gray-500">
+                  Last photo: {new Date(engagementData.lastPhotoDate).toLocaleDateString()}
+                </div>
+              )}
             </div>
           </div>
         ) : (
@@ -345,26 +363,31 @@ export default function BusinessHealthMetrics({
             </div>
           </div>
 
-          {/* Recent Posts */}
+          {/* Monthly Posts */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-gray-700">Recent Posts</span>
-              <button
-                onClick={() => onQuickAction?.('create-post')}
-                className="text-slate-blue hover:text-slate-700 text-xs font-medium"
-              >
-                Create Post
-              </button>
+              <span className="text-sm font-medium text-gray-700">Monthly Posts</span>
+              <span className="text-sm text-gray-600">
+                {engagementData.recentPosts}/4 this month
+              </span>
             </div>
-            <div className="flex items-center space-x-2">
-              <span className="text-2xl font-bold text-gray-900">{engagementData.recentPosts}</span>
-              <span className="text-sm text-gray-600">this month</span>
-              {engagementData.lastPostDate && (
-                <span className="text-xs text-gray-500">
-                  · Last: {new Date(engagementData.lastPostDate).toLocaleDateString()}
-                </span>
-              )}
-            </div>
+            <ProgressBar percentage={(engagementData.recentPosts / 4) * 100} className="bg-green-500" />
+            {engagementData.recentPosts < 4 && (
+              <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded text-xs text-green-700">
+                💡 <strong>Goal:</strong> Post 4+ times per month for consistent engagement and better visibility.
+                <button
+                  onClick={() => onQuickAction?.('create-post')}
+                  className="ml-2 text-green-800 hover:text-green-900 font-medium underline"
+                >
+                  Create Post
+                </button>
+              </div>
+            )}
+            {engagementData.lastPostDate && (
+              <div className="mt-1 text-xs text-gray-500">
+                Last post: {new Date(engagementData.lastPostDate).toLocaleDateString()}
+              </div>
+            )}
           </div>
         </div>
       </MetricCard>

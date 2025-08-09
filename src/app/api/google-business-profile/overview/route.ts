@@ -229,8 +229,10 @@ export async function GET(request: NextRequest) {
         unrespondedReviews: reviewsData.filter((review: any) => !review.reviewReply).length,
         totalQuestions: 0, // Would need Q&A API
         unansweredQuestions: 0, // Would need Q&A API  
-        recentPosts: 0, // Would need Posts API
-        lastPostDate: undefined
+        recentPosts: 0, // TODO: Implement posts API to count posts from last 30 days
+        recentPhotos: 0, // TODO: Implement photos API to count photos from last 30 days
+        lastPostDate: undefined,
+        lastPhotoDate: undefined
       };
 
       const performanceData = {
