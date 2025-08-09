@@ -246,22 +246,16 @@ export default function CreatePromptPageClient({
         let retryCount = 0;
         const maxRetries = isPostBusinessCreation ? 5 : 3; // More retries after business creation
         
-        // First, get the user's account_id from account_users table
-        const { data: accountUser, error: accountError } = await supabase
-          .from("account_users")
-          .select("account_id")
-          .eq("user_id", user.id)
-          .single();
-          
-        if (accountError) {
-          console.error("🎯 Error fetching account_id:", accountError);
-          throw new Error(`Failed to get account for user: ${accountError.message}`);
-        }
+        // Get the user's account_id using the proper utility function
+        // This handles multiple account_user records correctly
+        const accountId = await getAccountIdForUser(user.id, supabase);
         
-        if (!accountUser?.account_id) {
+        if (!accountId) {
           console.error("🎯 No account found for user:", user.id);
           throw new Error("No account found for user");
         }
+        
+        console.log('🎯 Using account ID:', accountId);
         
         console.log("🔑 Using account_id:", accountUser.account_id, "for user:", user.id);
         

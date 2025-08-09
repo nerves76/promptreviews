@@ -215,7 +215,12 @@ export default function BusinessHealthMetrics({
 
   // Check if we have meaningful data to show
   const hasProfileData = profileData && (profileData.categoriesUsed > 0 || profileData.servicesCount > 0);
-  const hasEngagementData = engagementData && (engagementData.totalQuestions > 0 || engagementData.recentPosts > 0);
+  // Always show engagement data if we have the engagementData object, even if all values are 0
+  // This is important so users can see their current photo/post frequency (even if it's 0/2 or 0/4)
+  const hasEngagementData = !!engagementData;
+
+  // Debug logging to see what data we're receiving
+  console.log('🔍 BusinessHealthMetrics engagement data:', engagementData);
   const hasPerformanceData = performanceData && (performanceData.monthlyViews > 0 || performanceData.topSearchQueries?.length > 0);
 
   return (
