@@ -14,6 +14,7 @@ import { generateMockOverviewData } from '@/utils/googleBusinessProfile/overview
 
 export async function GET(request: NextRequest) {
   try {
+    console.error('🚨🚨🚨 GMB OVERVIEW API CALLED - THIS SHOULD SHOW 🚨🚨🚨');
     console.log('📊 GMB Overview API: Starting overview data fetch');
 
     // Get location ID from query parameters
