@@ -73,8 +73,22 @@ export function calculateProfileCompleteness(
   const maxCategories = 10; // Google allows up to 10 categories
   const maxDescriptionLength = 750; // Google's limit for business descriptions
 
-  // Count categories
-  const categoriesUsed = 1 + (location.additionalCategories?.length || 0); // Primary + additional
+  // Count categories - handle different Google API structures
+  let categoriesUsed = 0;
+  
+  // Check for categories under 'categories' object (common Google structure)
+  if (location.categories) {
+    if (location.categories.primaryCategory) categoriesUsed++;
+    if (location.categories.additionalCategories && Array.isArray(location.categories.additionalCategories)) {
+      categoriesUsed += location.categories.additionalCategories.length;
+    }
+  } else {
+    // Check for categories directly on location object (fallback)
+    if (location.primaryCategory) categoriesUsed++;
+    if (location.additionalCategories && Array.isArray(location.additionalCategories)) {
+      categoriesUsed += location.additionalCategories.length;
+    }
+  }
 
   // Count services
   const servicesCount = location.serviceItems?.length || 0;
