@@ -257,10 +257,10 @@ export default function CreatePromptPageClient({
         
         console.log('🎯 Using account ID:', accountId);
         
-        console.log("🔑 Using account_id:", accountUser.account_id, "for user:", user.id);
+        console.log("🔑 Using account_id:", accountId, "for user:", user.id);
         
         while (retryCount < maxRetries && !businessData && !businessError) {
-          console.log(`🔄 Fetching business profile (attempt ${retryCount + 1}/${maxRetries}) for account:`, accountUser.account_id);
+          console.log(`🔄 Fetching business profile (attempt ${retryCount + 1}/${maxRetries}) for account:`, accountId);
           if (isPostBusinessCreation) {
             console.log("🆕 Post-business-creation flow detected, using extended retry logic");
           }
@@ -268,7 +268,7 @@ export default function CreatePromptPageClient({
                   const result = await supabase
           .from("businesses")
           .select("name, services_offered, default_offer_enabled, default_offer_title, default_offer_body, review_platforms, facebook_url, instagram_url, bluesky_url, tiktok_url, youtube_url, linkedin_url, pinterest_url, created_at, updated_at")
-          .eq("account_id", accountUser.account_id)
+          .eq("account_id", accountId)
           .maybeSingle();
             
           businessData = result.data;
@@ -285,19 +285,19 @@ export default function CreatePromptPageClient({
           
         if (businessError) {
           console.error("🎯 Business query failed!");
-          console.error("🎯 Account ID used:", accountUser.account_id);
+          console.error("🎯 Account ID used:", accountId);
           console.error("🎯 User ID:", user.id);
           console.error("🎯 Raw error:", businessError);
           console.error("🎯 Error toString:", String(businessError));
           
           // Let's also check if account_users query worked
-          console.log("🔍 Account user data:", accountUser);
+          console.log("🔍 Account ID:", accountId);
           
           // Use default business profile on error
         }
         
         if (!businessData) {
-          console.warn("🎯 No business found for account ID:", accountUser.account_id);
+          console.warn("🎯 No business found for account ID:", accountId);
           console.log("🔍 This is normal if the user hasn't created a business yet");
           // Use default business profile when no business exists
           setBusinessProfile({
@@ -1345,7 +1345,7 @@ export default function CreatePromptPageClient({
   if (isLoading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center">
-        <AppLoader />
+        <FiveStarSpinner size={24} />
       </div>
     );
   }

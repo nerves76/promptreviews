@@ -298,14 +298,30 @@ export async function GET(request: NextRequest) {
         totalPosts: postsData.length
       });
 
-      // Debug: Log raw insights data structure
-      console.log('🔍 Raw insights data from Google API:', JSON.stringify(insightsData, null, 2));
-      console.log('🔍 Insights data structure:', {
-        isArray: Array.isArray(insightsData),
-        length: insightsData?.length,
-        firstItem: insightsData?.[0] ? Object.keys(insightsData[0]) : 'none',
-        sample: insightsData?.[0]
+          // Debug: Log raw insights data structure
+    console.log('🔍 Raw insights data from Google API:', JSON.stringify(insightsData, null, 2));
+    console.log('🔍 Insights data structure:', {
+      isArray: Array.isArray(insightsData),
+      length: insightsData?.length,
+      firstItem: insightsData?.[0] ? Object.keys(insightsData[0]) : 'none',
+      sample: insightsData?.[0]
+    });
+
+    // ADDITIONAL DEBUG: Log each metric in detail
+    if (Array.isArray(insightsData) && insightsData.length > 0) {
+      console.log('🔍 DETAILED METRICS BREAKDOWN:');
+      insightsData.forEach((metric, index) => {
+        console.log(`  Metric ${index + 1}:`, {
+          dailyMetric: metric.dailyMetric,
+          hasTimeSeries: !!metric.timeSeries,
+          hasDailyValues: !!metric.timeSeries?.dailyValues,
+          dailyValuesCount: metric.timeSeries?.dailyValues?.length || 0,
+          sampleValues: metric.timeSeries?.dailyValues?.slice(0, 3) || 'none'
+        });
       });
+    } else {
+      console.log('⚠️ No insights data or empty array received');
+    }
 
       // Process real Google Business Profile performance data
       const performanceData = formatPerformanceData(insightsData, []);
