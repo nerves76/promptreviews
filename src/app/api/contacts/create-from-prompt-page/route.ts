@@ -4,6 +4,7 @@ import { getAccountIdForUser } from '@/utils/accountUtils';
 import { checkAccountLimits } from '@/utils/accountLimits';
 
 export async function POST(request: NextRequest) {
+  console.log('🚨 CONTACT API ENDPOINT HIT - Request received');
   try {
     const supabase = createClient();
     const supabaseAdmin = createServiceRoleClient();

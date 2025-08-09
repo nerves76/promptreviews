@@ -30,6 +30,7 @@ import SectionHeader from "./SectionHeader";
 import { TopNavigation, BottomNavigation } from "./sections/StepNavigation";
 import { generateContextualReview } from "../../utils/aiReviewGeneration";
 import Icon from "@/components/Icon";
+import FiveStarSpinner from "./FiveStarSpinner";
 
 /**
  * ServicePromptPageForm component
@@ -254,8 +255,8 @@ export default function ServicePromptPageForm({
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-slate-blue"></div>
-          <p className="mt-4 text-gray-600">Loading business profile...</p>
+          <FiveStarSpinner size={24} />
+          <p className="mt-4 text-gray-600">Loading...</p>
         </div>
       </div>
     );
@@ -415,8 +416,8 @@ export default function ServicePromptPageForm({
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-slate-blue"></div>
-          <p className="mt-4 text-gray-600">Loading form...</p>
+          <FiveStarSpinner size={24} />
+          <p className="mt-4 text-gray-600">Loading...</p>
         </div>
       </div>
     );

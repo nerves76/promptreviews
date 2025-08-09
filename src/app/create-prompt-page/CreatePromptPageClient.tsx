@@ -896,17 +896,24 @@ export default function CreatePromptPageClient({
         
         // Auto-create contact for individual prompt pages
         console.log('=== CONTACT CREATION CHECKPOINT ===');
+        console.log('🔍 localStorage campaign_type:', localStorage.getItem('campaign_type'));
+        console.log('🔍 formData campaign_type:', formData.campaign_type);
         console.log('🔍 Checking contact creation conditions:', {
           campaign_type: formData.campaign_type,
           first_name: formData.first_name,
+          first_name_exists: !!formData.first_name,
+          first_name_length: formData.first_name?.length,
           review_type: formData.review_type,
-          shouldCreate: formData.first_name && (formData.campaign_type === 'individual' || formData.campaign_type === 'public')
+          shouldCreate: formData.first_name && (formData.campaign_type === 'individual' || formData.campaign_type === 'public'),
+          allFormData: formData
         });
         console.log('=== END CHECKPOINT ===');
         
         if (formData.first_name && (formData.campaign_type === 'individual' || formData.campaign_type === 'public')) {
           try {
             console.log('🔍 Creating contact for prompt page:', data.id);
+            console.log('🚨 CONTACT CREATION STARTING - THIS SHOULD BE VISIBLE');
+            alert('Contact creation starting - check console for details');
             
             const contactPayload = {
               promptPageData: {

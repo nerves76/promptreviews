@@ -10,6 +10,7 @@ import AppLoader from "@/app/components/AppLoader";
 import { trackEvent, GA_EVENTS } from "../../../utils/analytics";
 import { getAccountIdForUser } from "@/utils/accountUtils";
 import { useAuthGuard } from "@/utils/authGuard";
+import { canCreateAccounts } from "@/config/adminConfig";
 
 export default function AccountPage() {
   const supabase = createClient();
@@ -30,6 +31,12 @@ export default function AccountPage() {
 
   // Payment portal state
   const [paymentLoading, setPaymentLoading] = useState(false);
+
+  // Create account state
+  const [showCreateAccountModal, setShowCreateAccountModal] = useState(false);
+  const [createAccountLoading, setCreateAccountLoading] = useState(false);
+  const [createAccountError, setCreateAccountError] = useState<string | null>(null);
+  const [createAccountSuccess, setCreateAccountSuccess] = useState<string | null>(null);
 
   useEffect(() => {
     const loadAccountData = async () => {
@@ -284,6 +291,52 @@ export default function AccountPage() {
     }
   };
 
+  const handleCreateAccount = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setCreateAccountLoading(true);
+    setCreateAccountError(null);
+    setCreateAccountSuccess(null);
+
+    const formData = new FormData(e.target as HTMLFormElement);
+    const businessName = formData.get('businessName') as string;
+    const businessEmail = formData.get('businessEmail') as string;
+    const industry = formData.get('industry') as string;
+
+    try {
+      const response = await fetch('/api/accounts/create-additional', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          businessName,
+          businessEmail,
+          industry
+        }),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        setCreateAccountSuccess(`Account "${businessName}" created successfully! You can now switch to it from the account selector.`);
+        setShowCreateAccountModal(false);
+        
+        // Track the creation
+        trackEvent(GA_EVENTS.ACCOUNT_CREATED, {
+          business_name: businessName,
+          industry: industry
+        });
+      } else {
+        setCreateAccountError(result.error || 'Failed to create account');
+      }
+    } catch (error) {
+      console.error('Create account error:', error);
+      setCreateAccountError('An error occurred while creating the account');
+    } finally {
+      setCreateAccountLoading(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="w-full mx-auto px-4 sm:px-6 md:px-8 lg:px-12 mt-12 md:mt-16 lg:mt-20 mb-16 flex justify-center items-start">
@@ -491,6 +544,30 @@ export default function AccountPage() {
                 )}
               </button>
 
+              {/* Create New Account - Admin Only */}
+              {canCreateAccounts(user?.email || '') && (
+                <div className="border-t border-gray-200 pt-4">
+                  <h4 className="text-md font-semibold text-gray-900 mb-2">Create New Account</h4>
+                  <p className="text-sm text-gray-600 mb-3">
+                    Create additional accounts for demos, client management, or testing.
+                  </p>
+                  
+                  {createAccountSuccess && (
+                    <div className="mb-3 p-3 bg-green-50 border border-green-200 rounded-md">
+                      <p className="text-sm text-green-800">{createAccountSuccess}</p>
+                    </div>
+                  )}
+                  
+                  <button
+                    onClick={() => setShowCreateAccountModal(true)}
+                    className="w-full flex items-center justify-center px-4 py-2 border border-slate-blue rounded-md shadow-sm text-sm font-medium text-slate-blue bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-blue"
+                  >
+                    <Icon name="FaPlus" className="w-4 h-4 mr-2" />
+                    Create New Account
+                  </button>
+                </div>
+              )}
+
               <div className="border-t border-gray-200 pt-4">
                 <button
                   onClick={() => setShowCancelModal(true)}
@@ -608,6 +685,114 @@ export default function AccountPage() {
                 >
                   {cancelLoading ? 'Cancelling...' : 'Cancel Account'}
                 </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Create Account Modal */}
+      {showCreateAccountModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-semibold text-gray-900">Create New Account</h2>
+                <button
+                  onClick={() => {
+                    setShowCreateAccountModal(false);
+                    setCreateAccountError(null);
+                  }}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              <div className="mb-6">
+                <p className="text-sm text-gray-600 mb-4">
+                  Create a new account for demos, client management, or testing purposes.
+                </p>
+
+                {createAccountError && (
+                  <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
+                    {createAccountError}
+                  </div>
+                )}
+
+                <form onSubmit={handleCreateAccount} className="space-y-4">
+                  <div>
+                    <label htmlFor="businessName" className="block text-sm font-medium text-gray-700">
+                      Business Name *
+                    </label>
+                    <input
+                      type="text"
+                      id="businessName"
+                      name="businessName"
+                      required
+                      className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-slate-blue"
+                      placeholder="Enter business name"
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="businessEmail" className="block text-sm font-medium text-gray-700">
+                      Business Email
+                    </label>
+                    <input
+                      type="email"
+                      id="businessEmail"
+                      name="businessEmail"
+                      className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-slate-blue"
+                      placeholder="Optional - defaults to your email"
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="industry" className="block text-sm font-medium text-gray-700">
+                      Industry
+                    </label>
+                    <select
+                      id="industry"
+                      name="industry"
+                      className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-slate-blue"
+                    >
+                      <option value="">Select industry</option>
+                      <option value="Restaurant">Restaurant</option>
+                      <option value="Retail">Retail</option>
+                      <option value="Healthcare">Healthcare</option>
+                      <option value="Professional Services">Professional Services</option>
+                      <option value="Beauty & Wellness">Beauty & Wellness</option>
+                      <option value="Home Services">Home Services</option>
+                      <option value="Automotive">Automotive</option>
+                      <option value="Real Estate">Real Estate</option>
+                      <option value="Technology">Technology</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+
+                  <div className="flex gap-3 mt-6">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowCreateAccountModal(false);
+                        setCreateAccountError(null);
+                      }}
+                      className="flex-1 px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-blue"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={createAccountLoading}
+                      className="flex-1 px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-slate-blue hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-blue disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {createAccountLoading ? 'Creating...' : 'Create Account'}
+                    </button>
+                  </div>
+                </form>
               </div>
             </div>
           </div>

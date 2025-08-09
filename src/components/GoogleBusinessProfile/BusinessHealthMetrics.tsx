@@ -8,7 +8,7 @@
 'use client';
 
 import { useState } from 'react';
-import Icon from '@/components/Icon';
+import Icon, { IconName } from '@/components/Icon';
 
 interface ProfileData {
   categoriesUsed: number;
@@ -125,7 +125,7 @@ export default function BusinessHealthMetrics({
 
   const MetricCard = ({ title, icon, children, actions }: { 
     title: string; 
-    icon: string; 
+    icon: IconName; 
     children: React.ReactNode; 
     actions?: React.ReactNode;
   }) => (
@@ -281,10 +281,10 @@ export default function BusinessHealthMetrics({
               <span className="text-sm font-medium text-gray-700">Profile Views</span>
               <div className="flex items-center space-x-1">
                 {performanceData.viewsTrend !== 0 && (
-                  <Icon 
-                    name={performanceData.viewsTrend > 0 ? "FaArrowUp" : "FaArrowDown"} 
-                    className={`w-3 h-3 ${performanceData.viewsTrend > 0 ? 'text-green-500' : 'text-red-500'}`}
-                  />
+                                <Icon
+                name={performanceData.viewsTrend > 0 ? "FaCaretUp" : "FaCaretDown"}
+                className={`w-3 h-3 ${performanceData.viewsTrend > 0 ? 'text-green-500' : 'text-red-500'}`}
+              />
                 )}
                 <span className="text-sm text-gray-600">this month</span>
               </div>
@@ -331,7 +331,7 @@ export default function BusinessHealthMetrics({
       </MetricCard>
 
       {/* Optimization Opportunities */}
-      <MetricCard title="Optimization Opportunities" icon="FaBolt">
+      <MetricCard title="Optimization Opportunities" icon="FaTrophy">
         <div className="space-y-3">
           {optimizationOpportunities.length === 0 ? (
             <div className="text-center py-4">

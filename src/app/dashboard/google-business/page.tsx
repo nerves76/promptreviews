@@ -263,12 +263,13 @@ export default function SocialPostingDashboard() {
     }
   }, [locations, selectedLocationId]);
 
-  // Fetch overview data when tab becomes active
+  // Auto-fetch overview data when tab becomes active or location changes
   useEffect(() => {
-    if (activeTab === 'overview' && selectedLocationId && isConnected) {
+    if (activeTab === 'overview' && selectedLocationId) {
+      console.log('🔄 Auto-loading overview data for location:', selectedLocationId);
       fetchOverviewData(selectedLocationId);
     }
-  }, [activeTab, selectedLocationId, isConnected]);
+  }, [activeTab, selectedLocationId]); // Removed isConnected requirement for auto-loading
 
   // Switch to overview tab when connected and on connect tab
   useEffect(() => {
@@ -832,7 +833,7 @@ export default function SocialPostingDashboard() {
     setOverviewError(null);
 
     try {
-      const response = await fetch(`/api/google-business-profile/overview?locationId=${encodeURIComponent(locationId)}&mock=true`, {
+      const response = await fetch(`/api/google-business-profile/overview?locationId=${encodeURIComponent(locationId)}`, {
         credentials: 'same-origin'
       });
       const data = await response.json();
@@ -852,8 +853,11 @@ export default function SocialPostingDashboard() {
 
   // Handle location selection for overview
   const handleLocationChange = (locationId: string) => {
+    console.log('📍 Location changed to:', locationId);
     setSelectedLocationId(locationId);
+    // Auto-load data when location changes (regardless of connection status)
     if (locationId && activeTab === 'overview') {
+      console.log('🔄 Auto-loading data for new location:', locationId);
       fetchOverviewData(locationId);
     }
   };
@@ -1337,17 +1341,19 @@ export default function SocialPostingDashboard() {
                     </div>
                   )}
 
-                  {/* Overview Stats */}
-                  {overviewData && (
-                    <>
-                      <OverviewStats
-                        totalReviews={overviewData.reviewTrends.totalReviews}
-                        reviewTrend={overviewData.reviewTrends.reviewTrend}
-                        averageRating={overviewData.reviewTrends.averageRating}
-                        monthlyReviewData={overviewData.reviewTrends.monthlyReviewData}
-                        isLoading={overviewLoading}
-                      />
+                  {/* Overview Stats - Always show with Load Data button */}
+                  <div className="space-y-6">
+                    <OverviewStats
+                      totalReviews={overviewData?.reviewTrends?.totalReviews || 0}
+                      reviewTrend={overviewData?.reviewTrends?.reviewTrend || 0}
+                      averageRating={overviewData?.reviewTrends?.averageRating || 0}
+                      monthlyReviewData={overviewData?.reviewTrends?.monthlyReviewData || []}
+                      isLoading={overviewLoading}
+                      onLoadData={() => selectedLocationId && fetchOverviewData(selectedLocationId)}
+                      dataLoaded={!!overviewData}
+                    />
 
+                    {overviewData && selectedLocationId && (
                       <BusinessHealthMetrics
                         locationId={selectedLocationId}
                         profileData={overviewData.profileData}
@@ -1357,29 +1363,8 @@ export default function SocialPostingDashboard() {
                         isLoading={overviewLoading}
                         onQuickAction={handleOverviewQuickAction}
                       />
-                    </>
-                  )}
-
-                  {/* Loading State */}
-                  {overviewLoading && !overviewData && (
-                    <div className="space-y-6">
-                      <OverviewStats
-                        totalReviews={0}
-                        reviewTrend={0}
-                        averageRating={0}
-                        monthlyReviewData={[]}
-                        isLoading={true}
-                      />
-                      <BusinessHealthMetrics
-                        locationId=""
-                        profileData={{} as any}
-                        engagementData={{} as any}
-                        performanceData={{} as any}
-                        optimizationOpportunities={[]}
-                        isLoading={true}
-                      />
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
               )}
             </div>

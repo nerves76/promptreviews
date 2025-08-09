@@ -35,10 +35,10 @@ export const promptTypes: PromptType[] = [
     description: "Capture a review from a customer or client who loves what you do",
   },
   {
-    key: "photo",
-    label: "Photo + testimonial",
-    icon: <Icon name="FaCamera" className="w-7 h-7 text-slate-blue" size={28} />,
-    description: "Capture a headshot and testimonial to display on your website or in marketing materials.",
+    key: "event",
+    label: "Events & spaces",
+    icon: <Icon name="FaCalendarAlt" className="w-7 h-7 text-slate-blue" size={28} />,
+    description: "For events, rentals, tours, and more.",
   },
   {
     key: "product",
@@ -53,10 +53,10 @@ export const promptTypes: PromptType[] = [
     description: "Create a review page to showcase individual team members and inspire competition",
   },
   {
-    key: "event",
-    label: "Events & spaces",
-    icon: <Icon name="FaCalendarAlt" className="w-7 h-7 text-slate-blue" size={28} />,
-    description: "For events, rentals, tours, and more.",
+    key: "photo",
+    label: "Photo + testimonial",
+    icon: <Icon name="FaCamera" className="w-7 h-7 text-slate-blue" size={28} />,
+    description: "Capture a headshot and testimonial to display on your website or in marketing materials.",
   },
   {
     key: "video",

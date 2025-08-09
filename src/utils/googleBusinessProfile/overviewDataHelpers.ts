@@ -414,6 +414,51 @@ export function formatPerformanceData(insights: any[], customerActions: any[]): 
 }
 
 /**
+ * Generate mock monthly review data that matches current date logic
+ */
+function generateMockMonthlyReviewData(): ReviewTrendsData['monthlyReviewData'] {
+  const months = [];
+  const now = new Date();
+  
+  // Generate last 12 months (same logic as real data)
+  for (let i = 11; i >= 0; i--) {
+    const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const monthName = date.toLocaleDateString('en-US', { month: 'short' });
+    
+    // Generate some mock review data with realistic distribution
+    let mockData;
+    const monthIndex = 11 - i; // 0 to 11, where 11 is current month
+    
+    // Create a pattern where recent months have more reviews
+    if (monthIndex === 1) { // March equivalent (second month)
+      mockData = { fiveStar: 5, fourStar: 2, threeStar: 0, twoStar: 0, oneStar: 0, noRating: 0 };
+    } else if (monthIndex === 2) { // April equivalent
+      mockData = { fiveStar: 1, fourStar: 0, threeStar: 0, twoStar: 0, oneStar: 0, noRating: 0 };
+    } else if (monthIndex === 3) { // May equivalent
+      mockData = { fiveStar: 1, fourStar: 0, threeStar: 0, twoStar: 0, oneStar: 0, noRating: 0 };
+    } else if (monthIndex === 4) { // June equivalent
+      mockData = { fiveStar: 2, fourStar: 0, threeStar: 0, twoStar: 0, oneStar: 0, noRating: 0 };
+    } else if (monthIndex === 6) { // August equivalent
+      mockData = { fiveStar: 1, fourStar: 0, threeStar: 0, twoStar: 0, oneStar: 0, noRating: 0 };
+    } else if (monthIndex === 10) { // December equivalent (2 months ago)
+      mockData = { fiveStar: 8, fourStar: 0, threeStar: 0, twoStar: 0, oneStar: 0, noRating: 0 };
+    } else if (monthIndex === 11) { // Current month equivalent
+      mockData = { fiveStar: 1, fourStar: 0, threeStar: 0, twoStar: 0, oneStar: 0, noRating: 0 };
+    } else {
+      // Empty months
+      mockData = { fiveStar: 0, fourStar: 0, threeStar: 0, twoStar: 0, oneStar: 0, noRating: 0 };
+    }
+    
+    months.push({
+      month: monthName,
+      ...mockData
+    });
+  }
+  
+  return months;
+}
+
+/**
  * Generate mock data for testing (remove in production)
  */
 export function generateMockOverviewData(): {
@@ -465,24 +510,14 @@ export function generateMockOverviewData(): {
     }
   };
 
+  // Generate dynamic mock data that matches current date logic
+  const mockMonthlyData = generateMockMonthlyReviewData();
+  
   const reviewTrends: ReviewTrendsData = {
     totalReviews: 22,
     reviewTrend: 20,
     averageRating: 4.8,
-    monthlyReviewData: [
-      { month: 'Feb', fiveStar: 0, fourStar: 0, threeStar: 0, twoStar: 0, oneStar: 0, noRating: 0 },
-      { month: 'Mar', fiveStar: 5, fourStar: 2, threeStar: 0, twoStar: 0, oneStar: 0, noRating: 0 },
-      { month: 'Apr', fiveStar: 1, fourStar: 0, threeStar: 0, twoStar: 0, oneStar: 0, noRating: 0 },
-      { month: 'May', fiveStar: 1, fourStar: 0, threeStar: 0, twoStar: 0, oneStar: 0, noRating: 0 },
-      { month: 'Jun', fiveStar: 2, fourStar: 0, threeStar: 0, twoStar: 0, oneStar: 0, noRating: 0 },
-      { month: 'Jul', fiveStar: 0, fourStar: 0, threeStar: 0, twoStar: 0, oneStar: 0, noRating: 0 },
-      { month: 'Aug', fiveStar: 1, fourStar: 0, threeStar: 0, twoStar: 0, oneStar: 0, noRating: 0 },
-      { month: 'Sep', fiveStar: 0, fourStar: 0, threeStar: 0, twoStar: 0, oneStar: 0, noRating: 0 },
-      { month: 'Oct', fiveStar: 0, fourStar: 0, threeStar: 0, twoStar: 0, oneStar: 0, noRating: 0 },
-      { month: 'Nov', fiveStar: 0, fourStar: 0, threeStar: 0, twoStar: 0, oneStar: 0, noRating: 0 },
-      { month: 'Dec', fiveStar: 8, fourStar: 0, threeStar: 0, twoStar: 0, oneStar: 0, noRating: 0 },
-      { month: 'Jan', fiveStar: 1, fourStar: 0, threeStar: 0, twoStar: 0, oneStar: 0, noRating: 0 }
-    ]
+    monthlyReviewData: mockMonthlyData
   };
 
   const optimizationOpportunities = identifyOptimizationOpportunities(
