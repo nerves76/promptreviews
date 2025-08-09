@@ -813,42 +813,47 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     checkAuthState();
   }, [checkAuthState]);
 
-  // Listen for auth state changes
-  useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (process.env.NODE_ENV === 'development') {
-          console.log('AuthContext: Auth state changed:', event, session?.user?.id);
-        }
-        
-        if (event === 'SIGNED_IN' && session) {
-          setSession(session);
-          setUser(session.user);
-          setError(null);
-          
-          // Check admin, business status, and account details for new session
-          if (session.user) {
-            checkAdminStatus(session.user, true);
-            checkBusinessProfile(session.user, true);
-            checkAccountDetails(session.user, true);
-          }
-        } else if (event === 'SIGNED_OUT') {
-          setUser(null);
-          setSession(null);
-          setAccountId(null);
-          setHasBusiness(false);
-          setAccount(null);
-          setIsAdminUser(false);
-          setError(null);
-        } else if (event === 'TOKEN_REFRESHED' && session) {
-          setSession(session);
-          setUser(session.user);
-        }
-      }
-    );
+  // TEMPORARILY DISABLED: Listen for auth state changes (causing infinite loop)
+  // useEffect(() => {
+  //   const { data: { subscription } } = supabase.auth.onAuthStateChange(
+  //     async (event, session) => {
+  //       if (process.env.NODE_ENV === 'development') {
+  //         console.log('AuthContext: Auth state changed:', event, session?.user?.id);
+  //       }
+  //       
+  //       if (event === 'SIGNED_IN' && session) {
+  //         setSession(session);
+  //         setUser(session.user);
+  //         setError(null);
+  //         
+  //         // Check admin, business status, and account details for new session
+  //         if (session.user) {
+  //           checkAdminStatus(session.user, true);
+  //           checkBusinessProfile(session.user, true);
+  //           checkAccountDetails(session.user, true);
+  //         }
+  //       } else if (event === 'SIGNED_OUT') {
+  //         setUser(null);
+  //         setSession(null);
+  //         setAccountId(null);
+  //         setHasBusiness(false);
+  //         setAccount(null);
+  //         setIsAdminUser(false);
+  //         setError(null);
+  //       } else if (event === 'TOKEN_REFRESHED' && session) {
+  //         setSession(session);
+  //         setUser(session.user);
+  //       } else if (event === 'INITIAL_SESSION') {
+  //         if (process.env.NODE_ENV === 'development') {
+  //           console.log('AuthContext: Initial session event - letting checkAuthState handle it');
+  //         }
+  //         // Let the initial checkAuthState() handle this instead of duplicating logic
+  //       }
+  //     }
+  //   );
 
-    return () => subscription.unsubscribe();
-  }, [checkAdminStatus, checkBusinessProfile, checkAccountDetails]);
+  //   return () => subscription.unsubscribe();
+  // }, [checkAdminStatus, checkBusinessProfile, checkAccountDetails]);
 
   // REMOVED: Custom auto-refresh that was causing form resets
   // Supabase already handles session refresh automatically via autoRefreshToken: true
