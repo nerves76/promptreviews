@@ -297,7 +297,7 @@ export default function CreateBusinessClient() {
               <div className="block sm:hidden w-full mt-4">
                 <button
                   type="button"
-                  onClick={handleTopButtonClick}
+                  onClick={handleTopSaveClick}
                   disabled={isSubmitting}
                   className="w-full bg-slate-blue text-white py-3 px-6 rounded-lg hover:bg-slate-blue/90 transition-all duration-200 font-semibold disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg"
                 >
