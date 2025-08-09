@@ -111,13 +111,15 @@ export default function OverviewStats({
   const animatedReviewTrend = useCountUp(Math.abs(reviewTrend), 1500, isVisible);
   const animatedAverageRating = useCountUp(averageRating * 10, 2500, isVisible) / 10;
   
-  // Calculate max reviews for chart scaling
-  const maxReviews = Math.max(
-    ...monthlyReviewData.map(data => 
-      data.fiveStar + data.fourStar + data.threeStar + data.twoStar + data.oneStar
-    ),
-    1 // Prevent division by zero
+  // Calculate max reviews for chart scaling with better minimum scale
+  const monthlyTotals = monthlyReviewData.map(data => 
+    data.fiveStar + data.fourStar + data.threeStar + data.twoStar + data.oneStar
   );
+  const actualMaxReviews = Math.max(...monthlyTotals, 1);
+  
+  // Use a minimum scale that makes sense - at least 10 reviews for better proportions
+  // This way, if you have 1-2 reviews per month, the bars won't fill the entire height
+  const maxReviews = Math.max(actualMaxReviews, 10);
 
   // Get rating percentage for circular progress
   const ratingPercentage = (animatedAverageRating / 5) * 100;
@@ -316,6 +318,13 @@ export default function OverviewStats({
               );
             })}
           </div>
+          
+          {/* Chart Scale Indicator */}
+          {maxReviews > actualMaxReviews && (
+            <div className="text-xs text-gray-500 text-center mt-2">
+              Chart scaled to {maxReviews} reviews max for better visibility
+            </div>
+          )}
         </div>
       </div>
 
