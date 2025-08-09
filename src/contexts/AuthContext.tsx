@@ -849,37 +849,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => subscription.unsubscribe();
   }, [checkAdminStatus, checkBusinessProfile, checkAccountDetails]);
 
-  // Set up automatic session refresh to prevent expiration (less aggressive to prevent form resets)
-  useEffect(() => {
-    const refreshInterval = setInterval(async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session) {
-          // Only refresh token if it expires within the next 5 minutes (was 10 minutes)
-          const expiresAt = session.expires_at;
-          const now = Math.floor(Date.now() / 1000);
-          const fiveMinutes = 5 * 60;
-          
-          if (expiresAt && (expiresAt - now) < fiveMinutes) {
-            console.log('AuthContext: Session expiring soon, refreshing...');
-            // Refresh session without triggering full state reload
-            const { data, error } = await supabase.auth.refreshSession();
-            if (error) {
-              console.error('AuthContext: Session refresh failed:', error);
-            } else if (data.session) {
-              console.log('AuthContext: Session refreshed successfully (silent update)');
-              // Session is refreshed internally by Supabase - no need to manually update state
-              // This prevents cascading updates that reset forms
-            }
-          }
-        }
-      } catch (error) {
-        console.error('AuthContext: Error during automatic session refresh:', error);
-      }
-    }, 15 * 60 * 1000); // Check every 15 minutes instead of 5 (much less frequent)
-
-    return () => clearInterval(refreshInterval);
-  }, []);
+  // REMOVED: Custom auto-refresh that was causing form resets
+  // Supabase already handles session refresh automatically via autoRefreshToken: true
+  // This built-in mechanism doesn't trigger state updates or cause form resets
 
   // Context value
   const value: AuthContextType = useMemo(() => ({
