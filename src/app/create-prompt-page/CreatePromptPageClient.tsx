@@ -1156,18 +1156,8 @@ export default function CreatePromptPageClient({
         (insertData as any).service_description = (formData as any).service_description || '';
       }
 
-      // Add Event-specific fields for event pages
-      if (formData.review_type === 'event') {
-        (insertData as any).eve_name = (formData as any).eve_name || '';
-        (insertData as any).eve_type = (formData as any).eve_type || '';
-        (insertData as any).eve_date = (formData as any).eve_date || null;
-        (insertData as any).eve_location = (formData as any).eve_location || '';
-        (insertData as any).eve_description = (formData as any).eve_description || '';
-        (insertData as any).eve_duration = (formData as any).eve_duration || '';
-        (insertData as any).eve_organizer = (formData as any).eve_organizer || '';
-        (insertData as any).eve_special_features = (formData as any).eve_special_features || [];
-        (insertData as any).eve_review_guidance = (formData as any).eve_review_guidance || '';
-      }
+      // Note: Event-specific fields (eve_*) were removed from database schema
+      // Event pages now use the standard prompt page structure
 
       // Generate slug
               const businessName = businessData.name || "business";
