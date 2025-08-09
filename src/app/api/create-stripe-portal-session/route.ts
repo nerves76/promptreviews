@@ -35,14 +35,11 @@ export async function POST(req: NextRequest) {
     const user = session.user;
     console.log("✅ Portal API: User authenticated:", user.id);
 
-    // Get the user's account through account_users table
-    const { data: accountUser, error: accountUserError } = await supabase
-      .from("account_users")
-      .select("account_id")
-      .eq("user_id", user.id)
-      .single();
+    // Get the user's account using the proper utility function
+    // This handles multiple account_user records correctly
+    const accountId = await getAccountIdForUser(user.id, supabase);
 
-    if (accountUserError || !accountUser) {
+    if (!accountId) {
       return NextResponse.json({ error: "Account not found" }, { status: 404 });
     }
 
@@ -50,7 +47,7 @@ export async function POST(req: NextRequest) {
     const { data: account, error: accountError } = await supabase
       .from("accounts")
       .select("stripe_customer_id, is_free_account, free_plan_level")
-      .eq("id", accountUser.account_id)
+      .eq("id", accountId)
       .single();
 
     if (accountError || !account) {

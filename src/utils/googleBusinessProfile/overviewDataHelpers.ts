@@ -440,13 +440,13 @@ export function identifyOptimizationOpportunities(
 }
 
 /**
- * Format performance data from NEW Business Profile Performance API v1
- * Handles multiDailyMetricsTimeSeries response format
+ * Format performance data from NEW Business Profile Performance API v1 OR legacy v4
+ * Handles both multiDailyMetricsTimeSeries and legacy locationMetrics response formats
  */
-export function formatPerformanceData(multiDailyMetrics: any[], customerActions: any[]): PerformanceData {
-  console.log('🔍 Processing NEW Performance API data:', multiDailyMetrics);
+export function formatPerformanceData(performanceData: any[], customerActions: any[]): PerformanceData {
+  console.log('🔍 Processing performance data:', performanceData);
   
-  if (!multiDailyMetrics || !Array.isArray(multiDailyMetrics)) {
+  if (!performanceData || !Array.isArray(performanceData)) {
     console.log('⚠️ No performance data available');
     return {
       monthlyViews: 0,
@@ -461,6 +461,22 @@ export function formatPerformanceData(multiDailyMetrics: any[], customerActions:
     };
   }
 
+  // Check if this is NEW API format (multiDailyMetricsTimeSeries) or LEGACY format
+  const isNewApiFormat = performanceData.length > 0 && performanceData[0].dailyMetric;
+  
+  if (isNewApiFormat) {
+    console.log('📊 Using NEW Performance API v1 format');
+    return formatNewPerformanceData(performanceData);
+  } else {
+    console.log('📊 Using LEGACY v4 API format (fallback)');
+    return formatLegacyPerformanceData(performanceData);
+  }
+}
+
+/**
+ * Format NEW Performance API v1 response (multiDailyMetricsTimeSeries)
+ */
+function formatNewPerformanceData(multiDailyMetrics: any[]): PerformanceData {
   let totalViews = 0;
   let totalWebsiteClicks = 0;
   let totalPhoneCalls = 0;
@@ -500,13 +516,7 @@ export function formatPerformanceData(multiDailyMetrics: any[], customerActions:
     }
   });
 
-  // Calculate trends (simplified - would need historical data comparison)
-  const viewsTrend = 0; // TODO: Implement by comparing with previous period
-
-  // Top search queries would come from separate searchkeywords API
-  const topSearchQueries: string[] = []; // TODO: Implement searchkeywords API call
-
-  console.log('📈 Performance totals:', {
+  console.log('📈 NEW API Performance totals:', {
     totalViews,
     totalWebsiteClicks,
     totalPhoneCalls,
@@ -515,13 +525,70 @@ export function formatPerformanceData(multiDailyMetrics: any[], customerActions:
 
   return {
     monthlyViews: totalViews,
-    viewsTrend,
-    topSearchQueries,
+    viewsTrend: 0, // TODO: Implement by comparing with previous period
+    topSearchQueries: [], // TODO: Implement searchkeywords API call
     customerActions: {
       websiteClicks: totalWebsiteClicks,
       phoneCalls: totalPhoneCalls,
       directionRequests: totalDirectionRequests,
       photoViews: 0 // Not available in Performance API, would need different endpoint
+    }
+  };
+}
+
+/**
+ * Format LEGACY v4 reportInsights response (locationMetrics)
+ */
+function formatLegacyPerformanceData(locationMetrics: any[]): PerformanceData {
+  let totalViews = 0;
+  let totalWebsiteClicks = 0;
+  let totalPhoneCalls = 0;
+  let totalDirectionRequests = 0;
+
+  // Process legacy format
+  locationMetrics.forEach((location: any) => {
+    if (!location.metricValues) return;
+
+    location.metricValues.forEach((metric: any) => {
+      const value = parseInt(metric.totalValue?.value || '0');
+      console.log(`📊 LEGACY ${metric.metric}: ${value}`);
+
+      switch (metric.metric) {
+        case 'VIEWS_MAPS':
+        case 'VIEWS_SEARCH':
+        case 'QUERIES_DIRECT':
+        case 'QUERIES_INDIRECT':
+          totalViews += value;
+          break;
+        case 'ACTIONS_WEBSITE':
+          totalWebsiteClicks += value;
+          break;
+        case 'ACTIONS_PHONE':
+          totalPhoneCalls += value;
+          break;
+        case 'ACTIONS_DRIVING_DIRECTIONS':
+          totalDirectionRequests += value;
+          break;
+      }
+    });
+  });
+
+  console.log('📈 LEGACY API Performance totals:', {
+    totalViews,
+    totalWebsiteClicks,
+    totalPhoneCalls,
+    totalDirectionRequests
+  });
+
+  return {
+    monthlyViews: totalViews,
+    viewsTrend: 0,
+    topSearchQueries: [],
+    customerActions: {
+      websiteClicks: totalWebsiteClicks,
+      phoneCalls: totalPhoneCalls,
+      directionRequests: totalDirectionRequests,
+      photoViews: 0
     }
   };
 }
