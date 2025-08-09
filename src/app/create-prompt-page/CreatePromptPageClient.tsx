@@ -773,18 +773,23 @@ export default function CreatePromptPageClient({
         throw new Error("No business found");
       }
       
-      // Get the campaign type from localStorage
-      const campaignType = typeof window !== 'undefined' 
+      // Get the campaign type from localStorage or formData
+      const campaignType = formData.campaign_type || (typeof window !== 'undefined' 
         ? localStorage.getItem('campaign_type') || 'individual'
-        : 'individual';
-
+        : 'individual');
+      
+      console.log('🔍 Campaign type resolution:', {
+        from_formData: formData.campaign_type,
+        from_localStorage: typeof window !== 'undefined' ? localStorage.getItem('campaign_type') : null,
+        final_value: campaignType
+      });
 
       // Prepare the data for insertion
       let insertData = {
         ...formData,
         account_id: user.id,
         status: formData.review_type === "product" ? "published" : "draft",
-        campaign_type: campaignType,
+        campaign_type: formData.campaign_type || campaignType,
         // Convert camelCase to snake_case
         emoji_sentiment_enabled: formData.emojiSentimentEnabled,
         emoji_sentiment_question: formData.emojiSentimentQuestion,
@@ -903,6 +908,14 @@ export default function CreatePromptPageClient({
         }
         
         // Auto-create contact for individual prompt pages
+        console.log('🎯 Contact creation check:', {
+          campaign_type_from_formData: formData.campaign_type,
+          campaign_type_from_insertData: data.campaign_type,
+          has_first_name: !!formData.first_name,
+          first_name: formData.first_name,
+          should_create_contact: formData.campaign_type === 'individual' && formData.first_name
+        });
+        
         if (formData.campaign_type === 'individual' && formData.first_name) {
           try {
             console.log('🔍 Creating contact for prompt page:', data.id);
