@@ -122,7 +122,6 @@ async function testPromptPageCreation(promptType, campaignType) {
       testData.eve_description = 'An amazing test event';
       testData.eve_type = 'Conference';
       testData.eve_duration = '2 days';
-      testData.eve_capacity = 100;
       testData.eve_organizer = 'Test Organizer';
       break;
     
