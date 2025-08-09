@@ -96,10 +96,49 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
   const [formDataBackup, setFormDataBackup] = useState<BusinessInfo | null>(null);
   const [showUnsavedWarning, setShowUnsavedWarning] = useState(false);
 
+  // Debug: Log when component mounts/unmounts
+  useEffect(() => {
+    console.log('🟢 BusinessInfoEditor: Component MOUNTED');
+    return () => {
+      console.log('🔴 BusinessInfoEditor: Component UNMOUNTED');
+    };
+  }, []);
+
   // Note: Removed auto-selection to allow users to uncheck all locations
+  
+  // Debug: Track selectedLocationIds changes
+  useEffect(() => {
+    console.log('📍 BusinessInfoEditor: selectedLocationIds changed:', selectedLocationIds);
+    // Persist selection to localStorage to survive component remounts
+    if (selectedLocationIds.length > 0) {
+      localStorage.setItem('business-info-selected-locations', JSON.stringify(selectedLocationIds));
+    }
+  }, [selectedLocationIds]);
+  
+  // Restore selected locations on mount
+  useEffect(() => {
+    const savedSelections = localStorage.getItem('business-info-selected-locations');
+    if (savedSelections && selectedLocationIds.length === 0) {
+      try {
+        const parsed = JSON.parse(savedSelections);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          console.log('🔄 Restoring selected locations from localStorage:', parsed);
+          setSelectedLocationIds(parsed);
+        }
+      } catch (error) {
+        console.error('Failed to parse saved location selections:', error);
+      }
+    }
+  }, [locations]); // Run when locations are available
 
   // Fetch business context for AI analysis
   useEffect(() => {
+    // Only run if we have connection - prevent unnecessary queries
+    if (!isConnected) {
+      console.log('BusinessInfoEditor: Skipping business context fetch - not connected');
+      return;
+    }
+
     const fetchBusinessContext = async () => {
       try {
         const { data: { user } } = await createClient().auth.getUser();
@@ -111,22 +150,13 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
 
         if (!accountId) return;
 
-        // Fetch business profile
-        const { data: business } = await createClient()
-          .from('businesses')
-          .select('business_name, business_type, city, state, services, industry')
-          .eq('account_id', accountId)
-          .single();
-
-        if (business) {
-          setBusinessContext({
-            businessName: business.business_name,
-            businessType: business.business_type,
-            location: business.city && business.state ? `${business.city}, ${business.state}` : undefined,
-            services: business.services ? business.services.split(',').map((s: string) => s.trim()) : [],
-            industry: business.industry
-          });
-        }
+        // DISABLED: Skip business profile query to prevent 400 errors until schema is confirmed
+        console.log('BusinessInfoEditor: Skipping business context query - preventing 400 errors');
+        // 
+        // Note: The businesses table may be missing expected columns:
+        // business_name, business_type, city, state, services, industry
+        // 
+        // This query will be re-enabled once the database schema is confirmed to have these columns
       } catch (error) {
         console.log('Could not fetch business context:', error);
         // Non-critical, continue without context
@@ -134,7 +164,7 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
     };
 
     fetchBusinessContext();
-  }, []);
+  }, [isConnected]); // Add isConnected as dependency
 
   // Reset details loaded state when selection changes (but preserve form data if user has been editing)
   useEffect(() => {

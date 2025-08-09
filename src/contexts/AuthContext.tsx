@@ -32,7 +32,7 @@
 
 "use client";
 
-import React, { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/utils/supabaseClient';
 import { User, Session } from '@supabase/supabase-js';
@@ -185,6 +185,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isCheckingAdmin, setIsCheckingAdmin] = useState(false);
   const [isCheckingBusiness, setIsCheckingBusiness] = useState(false);
   const [isCheckingAccount, setIsCheckingAccount] = useState(false);
+
+  // Use refs to prevent circular dependencies in useCallback
+  const isRefreshingRef = useRef(false);
+  
+  // Update ref whenever state changes
+  useEffect(() => {
+    isRefreshingRef.current = isRefreshing;
+  }, [isRefreshing]);
+
+  // Circuit breaker to prevent infinite loops
+  const circuitBreaker = useRef({ 
+    businessCalls: 0, 
+    lastReset: Date.now(),
+    isOpen: false 
+  });
 
   // Computed values
   const isAuthenticated = useMemo(() => !!user && !!session, [user, session]);
@@ -401,9 +416,168 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []); // Empty dependency array - only register once
 
-  // Core authentication functions
+  // Declare the individual check functions first
+  const checkAdminStatus = useCallback(async (currentUser: User, forceRefresh = false) => {
+    if (isCheckingAdmin && !forceRefresh) return;
+    
+    const now = Date.now();
+    if (!forceRefresh && now - lastAdminCheck < ADMIN_CACHE_DURATION) return;
+    
+    setIsCheckingAdmin(true);
+    setAdminLoading(true);
+    
+    try {
+      // Ensure admin for known admin emails
+      if (currentUser.email) {
+        await ensureAdminForEmail({ id: currentUser.id, email: currentUser.email }, supabase);
+      }
+      
+      const adminStatus = await isAdmin(currentUser.id, supabase);
+      setIsAdminUser(adminStatus);
+      setLastAdminCheck(now);
+      
+    } catch (err) {
+      console.error('AuthContext: Admin check failed:', err);
+      // Don't change admin status on error
+    } finally {
+      setAdminLoading(false);
+      setIsCheckingAdmin(false);
+    }
+  }, [isCheckingAdmin, lastAdminCheck]);
+
+  const checkBusinessProfile = useCallback(async (currentUser: User, forceRefresh = false) => {
+    // Circuit breaker: Reset counter every 30 seconds
+    const now = Date.now();
+    if (now - circuitBreaker.current.lastReset > 30000) {
+      circuitBreaker.current.businessCalls = 0;
+      circuitBreaker.current.lastReset = now;
+      circuitBreaker.current.isOpen = false;
+    }
+    
+    // Circuit breaker: Prevent infinite calls
+    if (circuitBreaker.current.businessCalls > 5) {
+      if (!circuitBreaker.current.isOpen) {
+        console.warn('🚨 AuthContext: Circuit breaker activated - too many business profile checks');
+        circuitBreaker.current.isOpen = true;
+      }
+      return;
+    }
+    
+    circuitBreaker.current.businessCalls++;
+    
+    if (isCheckingBusiness && !forceRefresh) return;
+    
+    if (!forceRefresh && now - lastBusinessCheck < BUSINESS_CACHE_DURATION) return;
+    
+    setIsCheckingBusiness(true);
+    setBusinessLoading(true);
+    
+    try {
+      const userAccountId = await getAccountIdForUser(currentUser.id, supabase);
+      // Only log if account ID has changed
+      if (accountId !== userAccountId && process.env.NODE_ENV === 'development') {
+        console.log('🔍 AuthContext: User account ID:', userAccountId);
+      }
+      setAccountId(userAccountId);
+      
+      // 🔧 FIXED: Check for actual businesses, not just account existence
+      if (userAccountId) {
+        const { data: businesses, error: businessError } = await supabase
+          .from('businesses')
+          .select('id')
+          .eq('account_id', userAccountId);
+          
+        if (businessError) {
+          console.error('AuthContext: Error checking businesses:', {
+            error: businessError,
+            code: businessError.code,
+            message: businessError.message,
+            details: businessError.details,
+            hint: businessError.hint,
+            userAccountId
+          });
+          setHasBusiness(false);
+        } else {
+          // Only set hasBusiness to true if user has actual businesses
+          const hasBusinesses = businesses && businesses.length > 0;
+          
+          // Only log if business status has changed or it's a force refresh
+          if (forceRefresh && process.env.NODE_ENV === 'development') {
+            console.log('🔍 AuthContext: Business check result:', {
+              userAccountId,
+              businessesCount: businesses?.length || 0,
+              hasBusinesses,
+              timestamp: new Date().toISOString(),
+              isForceRefresh: forceRefresh
+            });
+            console.log('🔍 AuthContext: Setting hasBusiness to:', hasBusinesses);
+          }
+          setHasBusiness(hasBusinesses);
+        }
+      } else {
+        setHasBusiness(false);
+      }
+      
+      setLastBusinessCheck(now);
+      
+    } catch (err) {
+      console.error('AuthContext: Business check failed:', err);
+      // Don't change business status on error
+    } finally {
+      setBusinessLoading(false);
+      setIsCheckingBusiness(false);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isCheckingBusiness, lastBusinessCheck]); // REMOVED: accountId, hasBusiness to break circular dependency
+
+  const checkAccountDetails = useCallback(async (currentUser: User, forceRefresh = false) => {
+    if (isCheckingAccount && !forceRefresh) return;
+    
+    const now = Date.now();
+    if (!forceRefresh && now - lastAccountCheck < ACCOUNT_CACHE_DURATION) return;
+    
+    setIsCheckingAccount(true);
+    setAccountLoading(true);
+    
+    try {
+      const userAccountId = await getAccountIdForUser(currentUser.id, supabase);
+      
+      if (!userAccountId) {
+        setAccount(null);
+        setLastAccountCheck(now);
+        return;
+      }
+
+      // Fetch full account details including trial and is_free_account data
+      const { data: accountData, error: accountError } = await supabase
+        .from('accounts')
+        .select('*')
+        .eq('id', userAccountId)
+        .single();
+
+      if (accountError) {
+        console.error('AuthContext: Account details check failed:', accountError);
+        // Don't change account data on error
+        return;
+      }
+
+      setAccount(accountData);
+      setLastAccountCheck(now);
+      
+    } catch (err) {
+      console.error('AuthContext: Account details check failed:', err);
+      // Don't change account data on error
+    } finally {
+      setAccountLoading(false);
+      setIsCheckingAccount(false);
+      console.log('✅ AuthContext: Account loading completed, accountLoading set to false');
+    }
+  }, [isCheckingAccount, lastAccountCheck]);
+
+  // Core authentication function (declared after individual check functions to avoid hoisting issues)
   const checkAuthState = useCallback(async (forceRefresh = false) => {
-    if (isRefreshing && !forceRefresh) return;
+    // Use ref for isRefreshing to avoid dependency on state
+    if (isRefreshingRef.current && !forceRefresh) return;
     
     try {
       setIsRefreshing(true);
@@ -494,139 +668,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setIsLoading(false);
       setIsRefreshing(false);
     }
-  }, [isRefreshing]);
-
-  const checkAdminStatus = useCallback(async (currentUser: User, forceRefresh = false) => {
-    if (isCheckingAdmin && !forceRefresh) return;
-    
-    const now = Date.now();
-    if (!forceRefresh && now - lastAdminCheck < ADMIN_CACHE_DURATION) return;
-    
-    setIsCheckingAdmin(true);
-    setAdminLoading(true);
-    
-    try {
-      // Ensure admin for known admin emails
-      if (currentUser.email) {
-        await ensureAdminForEmail({ id: currentUser.id, email: currentUser.email }, supabase);
-      }
-      
-      const adminStatus = await isAdmin(currentUser.id, supabase);
-      setIsAdminUser(adminStatus);
-      setLastAdminCheck(now);
-      
-    } catch (err) {
-      console.error('AuthContext: Admin check failed:', err);
-      // Don't change admin status on error
-    } finally {
-      setAdminLoading(false);
-      setIsCheckingAdmin(false);
-    }
-  }, [isCheckingAdmin, lastAdminCheck]);
-
-  const checkBusinessProfile = useCallback(async (currentUser: User, forceRefresh = false) => {
-    if (isCheckingBusiness && !forceRefresh) return;
-    
-    const now = Date.now();
-    if (!forceRefresh && now - lastBusinessCheck < BUSINESS_CACHE_DURATION) return;
-    
-    setIsCheckingBusiness(true);
-    setBusinessLoading(true);
-    
-    try {
-      const userAccountId = await getAccountIdForUser(currentUser.id, supabase);
-      // Only log if account ID has changed
-      if (accountId !== userAccountId && process.env.NODE_ENV === 'development') {
-        console.log('🔍 AuthContext: User account ID:', userAccountId);
-      }
-      setAccountId(userAccountId);
-      
-      // 🔧 FIXED: Check for actual businesses, not just account existence
-      if (userAccountId) {
-        const { data: businesses, error: businessError } = await supabase
-          .from('businesses')
-          .select('id')
-          .eq('account_id', userAccountId);
-          
-        if (businessError) {
-          console.error('AuthContext: Error checking businesses:', businessError);
-          setHasBusiness(false);
-        } else {
-          // Only set hasBusiness to true if user has actual businesses
-          const hasBusinesses = businesses && businesses.length > 0;
-          
-          // Only log if business status has changed or it's a force refresh
-          if ((hasBusiness !== hasBusinesses || forceRefresh) && process.env.NODE_ENV === 'development') {
-            console.log('🔍 AuthContext: Business check result:', {
-              userAccountId,
-              businessesCount: businesses?.length || 0,
-              hasBusinesses,
-              statusChanged: hasBusiness !== hasBusinesses,
-              timestamp: new Date().toISOString(),
-              isForceRefresh: forceRefresh
-            });
-            console.log('🔍 AuthContext: Setting hasBusiness to:', hasBusinesses);
-          }
-          setHasBusiness(hasBusinesses);
-        }
-      } else {
-        setHasBusiness(false);
-      }
-      
-      setLastBusinessCheck(now);
-      
-    } catch (err) {
-      console.error('AuthContext: Business check failed:', err);
-      // Don't change business status on error
-    } finally {
-      setBusinessLoading(false);
-      setIsCheckingBusiness(false);
-    }
-  }, [isCheckingBusiness, lastBusinessCheck, accountId, hasBusiness]);
-
-  const checkAccountDetails = useCallback(async (currentUser: User, forceRefresh = false) => {
-    if (isCheckingAccount && !forceRefresh) return;
-    
-    const now = Date.now();
-    if (!forceRefresh && now - lastAccountCheck < ACCOUNT_CACHE_DURATION) return;
-    
-    setIsCheckingAccount(true);
-    setAccountLoading(true);
-    
-    try {
-      const userAccountId = await getAccountIdForUser(currentUser.id, supabase);
-      
-      if (!userAccountId) {
-        setAccount(null);
-        setLastAccountCheck(now);
-        return;
-      }
-
-      // Fetch full account details including trial and is_free_account data
-      const { data: accountData, error: accountError } = await supabase
-        .from('accounts')
-        .select('*')
-        .eq('id', userAccountId)
-        .single();
-
-      if (accountError) {
-        console.error('AuthContext: Account details check failed:', accountError);
-        // Don't change account data on error
-        return;
-      }
-
-      setAccount(accountData);
-      setLastAccountCheck(now);
-      
-    } catch (err) {
-      console.error('AuthContext: Account details check failed:', err);
-      // Don't change account data on error
-    } finally {
-      setAccountLoading(false);
-      setIsCheckingAccount(false);
-      console.log('✅ AuthContext: Account loading completed, accountLoading set to false');
-    }
-  }, [isCheckingAccount, lastAccountCheck]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Empty dependencies to prevent circular dependency chain
 
   // Public API functions
   const signIn = useCallback(async (email: string, password: string) => {
@@ -735,7 +778,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         window.removeEventListener('forceRefreshBusiness', handleForceRefresh);
       };
     }
-  }, []); // Empty dependency array - only register once
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Empty dependency array to prevent re-creating listener
 
   // Navigation guards
   const requireAuth = useCallback((redirectTo = '/auth/sign-in') => {
@@ -811,49 +855,68 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Initialize auth state
   useEffect(() => {
     checkAuthState();
-  }, [checkAuthState]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Empty dependency array - only run once on mount to prevent circular dependencies
 
-  // TEMPORARILY DISABLED: Listen for auth state changes (causing infinite loop)
-  // useEffect(() => {
-  //   const { data: { subscription } } = supabase.auth.onAuthStateChange(
-  //     async (event, session) => {
-  //       if (process.env.NODE_ENV === 'development') {
-  //         console.log('AuthContext: Auth state changed:', event, session?.user?.id);
-  //       }
-  //       
-  //       if (event === 'SIGNED_IN' && session) {
-  //         setSession(session);
-  //         setUser(session.user);
-  //         setError(null);
-  //         
-  //         // Check admin, business status, and account details for new session
-  //         if (session.user) {
-  //           checkAdminStatus(session.user, true);
-  //           checkBusinessProfile(session.user, true);
-  //           checkAccountDetails(session.user, true);
-  //         }
-  //       } else if (event === 'SIGNED_OUT') {
-  //         setUser(null);
-  //         setSession(null);
-  //         setAccountId(null);
-  //         setHasBusiness(false);
-  //         setAccount(null);
-  //         setIsAdminUser(false);
-  //         setError(null);
-  //       } else if (event === 'TOKEN_REFRESHED' && session) {
-  //         setSession(session);
-  //         setUser(session.user);
-  //       } else if (event === 'INITIAL_SESSION') {
-  //         if (process.env.NODE_ENV === 'development') {
-  //           console.log('AuthContext: Initial session event - letting checkAuthState handle it');
-  //         }
-  //         // Let the initial checkAuthState() handle this instead of duplicating logic
-  //       }
-  //     }
-  //   );
+  // Listen for auth state changes (with infinite loop prevention)
+  useEffect(() => {
+    let isProcessing = false; // Prevent concurrent processing
+    
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (process.env.NODE_ENV === 'development') {
+          console.log('AuthContext: Auth state changed:', event, session?.user?.id);
+        }
+        
+        // Prevent concurrent processing of auth events
+        if (isProcessing) {
+          console.log('AuthContext: Skipping event, already processing:', event);
+          return;
+        }
+        
+        isProcessing = true;
+        
+        try {
+          if (event === 'SIGNED_IN' && session) {
+            setSession(session);
+            setUser(session.user);
+            setError(null);
+            
+            // Check admin, business status, and account details for new session
+            if (session.user) {
+              await Promise.all([
+                checkAdminStatus(session.user, true),
+                checkBusinessProfile(session.user, true),
+                checkAccountDetails(session.user, true)
+              ]);
+            }
+          } else if (event === 'SIGNED_OUT') {
+            setUser(null);
+            setSession(null);
+            setAccountId(null);
+            setHasBusiness(false);
+            setAccount(null);
+            setIsAdminUser(false);
+            setError(null);
+          } else if (event === 'TOKEN_REFRESHED' && session) {
+            setSession(session);
+            setUser(session.user);
+            // Don't trigger full checks for token refresh
+          } else if (event === 'INITIAL_SESSION') {
+            // Don't process INITIAL_SESSION here - let checkAuthState handle initial load
+            console.log('AuthContext: Ignoring INITIAL_SESSION event to prevent duplicated checks');
+          }
+        } finally {
+          isProcessing = false;
+        }
+      }
+    );
 
-  //   return () => subscription.unsubscribe();
-  // }, [checkAdminStatus, checkBusinessProfile, checkAccountDetails]);
+    return () => {
+      subscription.unsubscribe();
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps  
+  }, []); // Empty dependencies to prevent re-creating listener
 
   // REMOVED: Custom auto-refresh that was causing form resets
   // Supabase already handles session refresh automatically via autoRefreshToken: true
