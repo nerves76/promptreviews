@@ -402,6 +402,27 @@ export default function BusinessHealthMetrics({
       {/* Business Performance */}
       <MetricCard title="Business Performance" icon="FaChartLine">
         <div className="space-y-4">
+          {/* Performance API Status Diagnostic */}
+          {performanceData.monthlyViews === 0 && (
+            <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <div className="flex items-center space-x-2 mb-2">
+                <Icon name="FaExclamationTriangle" className="w-4 h-4 text-yellow-600" />
+                <span className="text-sm font-medium text-yellow-800">Performance Data Unavailable</span>
+              </div>
+              <div className="text-xs text-yellow-700 space-y-1">
+                <p>• <strong>Business Profile Performance API</strong> may require additional verification</p>
+                <p>• Your business may need more activity/history for Google to provide metrics</p>
+                <p>• Some businesses don't qualify for performance insights</p>
+              </div>
+              <button
+                onClick={() => onQuickAction?.('check-verification')}
+                className="mt-2 text-xs text-yellow-800 hover:text-yellow-900 font-medium underline"
+              >
+                Check Business Verification Status →
+              </button>
+            </div>
+          )}
+
           {/* Monthly Views */}
           <div>
             <div className="flex items-center justify-between mb-2">
@@ -417,26 +438,34 @@ export default function BusinessHealthMetrics({
               </div>
             </div>
             <div className="text-3xl font-bold text-gray-900">
-              {performanceData.monthlyViews.toLocaleString()}
+              {performanceData.monthlyViews === 0 ? 'Not Available' : performanceData.monthlyViews.toLocaleString()}
             </div>
           </div>
 
           {/* Customer Actions */}
           <div className="grid grid-cols-2 gap-2">
             <div className="text-center p-2 bg-blue-50 rounded">
-              <div className="text-lg font-bold text-blue-600">{performanceData.customerActions.websiteClicks}</div>
+              <div className="text-lg font-bold text-blue-600">
+                {performanceData.customerActions.websiteClicks === 0 ? 'N/A' : performanceData.customerActions.websiteClicks}
+              </div>
               <div className="text-xs text-gray-600">Website clicks</div>
             </div>
             <div className="text-center p-2 bg-green-50 rounded">
-              <div className="text-lg font-bold text-green-600">{performanceData.customerActions.phoneCalls}</div>
+              <div className="text-lg font-bold text-green-600">
+                {performanceData.customerActions.phoneCalls === 0 ? 'N/A' : performanceData.customerActions.phoneCalls}
+              </div>
               <div className="text-xs text-gray-600">Phone calls</div>
             </div>
             <div className="text-center p-2 bg-purple-50 rounded">
-              <div className="text-lg font-bold text-purple-600">{performanceData.customerActions.directionRequests}</div>
+              <div className="text-lg font-bold text-purple-600">
+                {performanceData.customerActions.directionRequests === 0 ? 'N/A' : performanceData.customerActions.directionRequests}
+              </div>
               <div className="text-xs text-gray-600">Directions</div>
             </div>
             <div className="text-center p-2 bg-orange-50 rounded">
-              <div className="text-lg font-bold text-orange-600">{performanceData.customerActions.photoViews}</div>
+              <div className="text-lg font-bold text-orange-600">
+                {performanceData.customerActions.photoViews === 0 ? 'N/A' : performanceData.customerActions.photoViews}
+              </div>
               <div className="text-xs text-gray-600">Photo views</div>
             </div>
           </div>
