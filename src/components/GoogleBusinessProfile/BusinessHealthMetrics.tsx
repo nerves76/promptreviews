@@ -402,37 +402,7 @@ export default function BusinessHealthMetrics({
       {/* Business Performance */}
       <MetricCard title="Business Performance" icon="FaChartLine">
         <div className="space-y-4">
-          {/* Performance API Status Diagnostic */}
-          {performanceData.monthlyViews === 0 && (
-            <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-              <div className="flex items-center space-x-2 mb-2">
-                <Icon name="FaExclamationTriangle" className="w-4 h-4 text-yellow-600" />
-                <span className="text-sm font-medium text-yellow-800">Performance Data Unavailable</span>
-              </div>
-              <div className="text-xs text-yellow-700 space-y-1">
-                <p>• <strong>Performance API requires special access approval</strong> from Google</p>
-                <p>• Google states: <em>"If you have a quota of 0 after enabling the API, please request for GBP API access"</em></p>
-                <p>• Your business profile must be verified and claimed</p>
-                <p>• Some businesses don't qualify for performance insights</p>
-              </div>
-              <div className="mt-2 space-y-1">
-                <a
-                  href="https://docs.google.com/forms/d/e/1FAIpQLSfJqjNs-jtxjRqryG49gG0K-FZqzD8vQ9jGpRw3SfFCmFnpEQ/viewform"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block text-xs text-yellow-800 hover:text-yellow-900 font-medium underline"
-                >
-                  Request Google My Business API Access →
-                </a>
-                <button
-                  onClick={() => onQuickAction?.('check-verification')}
-                  className="block text-xs text-yellow-800 hover:text-yellow-900 font-medium underline"
-                >
-                  Check Business Verification Status →
-                </button>
-              </div>
-            </div>
-          )}
+
 
           {/* Monthly Views */}
           <div>
