@@ -181,26 +181,30 @@ export async function GET(request: NextRequest) {
       const cleanLocationId = locationId.replace('locations/', '');
 
       // Fetch data from multiple APIs in parallel
-      const [reviewsResult, photosResult, postsResult] = await Promise.allSettled([
+      const [reviewsResult, photosResult, postsResult, insightsResult] = await Promise.allSettled([
         gbpClient.getReviews(locationId),
         gbpClient.getMedia(locationId),
-        accountId ? gbpClient.listLocalPosts(accountId, cleanLocationId) : Promise.resolve([])
+        accountId ? gbpClient.listLocalPosts(accountId, cleanLocationId) : Promise.resolve([]),
+        gbpClient.getLocationInsights(locationId, 'THIRTY_DAYS')
       ]);
 
       // Process results with error logging
       const reviewsData = reviewsResult.status === 'fulfilled' ? reviewsResult.value : [];
       const photosData = photosResult.status === 'fulfilled' ? photosResult.value : [];
       const postsData = postsResult.status === 'fulfilled' ? postsResult.value : [];
+      const insightsData = insightsResult.status === 'fulfilled' ? insightsResult.value : [];
 
       // Log API call results
       console.log('📊 API Results Summary:');
       console.log(`  Reviews: ${reviewsResult.status} - ${reviewsData.length} items`);
       console.log(`  Photos: ${photosResult.status} - ${photosData.length} items`);
       console.log(`  Posts: ${postsResult.status} - ${postsData.length} items`);
+      console.log(`  Insights: ${insightsResult.status} - ${insightsData.length} metrics`);
       
       if (reviewsResult.status === 'rejected') console.log('  Reviews error:', reviewsResult.reason);
       if (photosResult.status === 'rejected') console.log('  Photos error:', photosResult.reason);
       if (postsResult.status === 'rejected') console.log('  Posts error:', postsResult.reason);
+      if (insightsResult.status === 'rejected') console.log('  Insights error:', insightsResult.reason);
 
       // Process the data using helper functions
       const { 
@@ -294,17 +298,15 @@ export async function GET(request: NextRequest) {
         totalPosts: postsData.length
       });
 
-      const performanceData = {
-        monthlyViews: 0,
-        viewsTrend: 0,
-        topSearchQueries: [],
-        customerActions: {
-          websiteClicks: 0,
-          phoneCalls: 0,
-          directionRequests: 0,
-          photoViews: 0
-        }
-      };
+      // Process real Google Business Profile performance data
+      const performanceData = formatPerformanceData(insightsData, []);
+      
+      console.log('📈 Performance data processed:', {
+        monthlyViews: performanceData.monthlyViews,
+        viewsTrend: performanceData.viewsTrend,
+        topSearchQueries: performanceData.topSearchQueries?.length,
+        customerActions: performanceData.customerActions
+      });
 
       const optimizationOpportunities = identifyOptimizationOpportunities(locationData, profileData, engagementData, []);
 
