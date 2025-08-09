@@ -116,15 +116,25 @@ export async function GET(request: NextRequest) {
 
     // Get business data from database like other working tabs do
     try {
-      // Get location data from database (same as working tabs)
-      const { data: locationData, error: locationError } = await serviceSupabase
+      // Get all location data from database (same as working tabs)
+      const { data: allLocations, error: locationError } = await serviceSupabase
         .from('google_business_locations')
         .select('*')
-        .eq('user_id', user.id)
-        .eq('location_id', locationId)
-        .single();
+        .eq('user_id', user.id);
 
-      console.log('📍 Location data from database:', locationData ? 'Found' : 'Not found');
+      console.log('📍 All locations from database:', allLocations?.length || 0);
+      
+      // Find the specific location - try different possible field matches
+      const locationData = allLocations?.find(loc => 
+        loc.location_id === locationId || 
+        loc.name === locationId ||
+        loc.location_name === locationId ||
+        loc.id === locationId
+      );
+
+      console.log('📍 Matched location:', locationData ? 'Found' : 'Not found');
+      console.log('📍 Looking for locationId:', locationId);
+      console.log('📍 Available location fields:', allLocations?.[0] ? Object.keys(allLocations[0]) : 'None');
 
       // Get reviews via API (this is working)
       const reviewsData = await gbpClient.getReviews(locationId);
@@ -138,10 +148,17 @@ export async function GET(request: NextRequest) {
         formatPerformanceData 
       } = await import('@/utils/googleBusinessProfile/overviewDataHelpers');
 
+      // Debug the location data structure
+      if (locationData) {
+        console.log('📍 Location data structure:', JSON.stringify(locationData, null, 2));
+      }
+
       // Use location data from database for profile completeness
       const profileData = locationData ? 
         calculateProfileCompleteness(locationData, [], []) : 
         { categoriesUsed: 0, maxCategories: 10, servicesCount: 0, servicesWithDescriptions: 0, businessDescriptionLength: 0, businessDescriptionMaxLength: 750, seoScore: 0, photosByCategory: {} };
+
+      console.log('📊 Calculated profile data:', profileData);
 
       const reviewTrends = processReviewTrends(reviewsData);
 
