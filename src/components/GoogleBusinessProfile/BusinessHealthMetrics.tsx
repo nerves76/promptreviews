@@ -211,6 +211,11 @@ export default function BusinessHealthMetrics({
     </div>
   );
 
+  // Check if we have meaningful data to show
+  const hasProfileData = profileData && (profileData.categoriesUsed > 0 || profileData.servicesCount > 0);
+  const hasEngagementData = engagementData && (engagementData.totalQuestions > 0 || engagementData.recentPosts > 0);
+  const hasPerformanceData = performanceData && (performanceData.monthlyViews > 0 || performanceData.topSearchQueries?.length > 0);
+
   return (
     <div ref={animationRef} className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       {/* Profile Completeness */}
@@ -218,67 +223,85 @@ export default function BusinessHealthMetrics({
         title="Profile Completeness" 
         icon="FaStore"
         actions={
-          <button
-            onClick={() => onQuickAction?.('edit-business-info')}
-            className="text-slate-blue hover:text-slate-700 text-sm font-medium"
-          >
-            Edit Info →
-          </button>
+          hasProfileData ? (
+            <button
+              onClick={() => onQuickAction?.('edit-business-info')}
+              className="text-slate-blue hover:text-slate-700 text-sm font-medium"
+            >
+              Edit Info →
+            </button>
+          ) : null
         }
       >
-        <div className="space-y-4">
-          {/* Categories */}
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-gray-700">Categories Used</span>
-              <span className="text-sm text-gray-600">
-                {profileData?.categoriesUsed || 0}/{profileData?.maxCategories || 0}
-              </span>
+        {hasProfileData ? (
+          <div className="space-y-4">
+            {/* Categories */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-gray-700">Categories Used</span>
+                <span className="text-sm text-gray-600">
+                  {profileData?.categoriesUsed || 0}/{profileData?.maxCategories || 0}
+                </span>
+              </div>
+              <ProgressBar percentage={categoryCompletion} />
             </div>
-            <ProgressBar percentage={categoryCompletion} />
-          </div>
 
-          {/* Services */}
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-gray-700">Services</span>
-              <span className="text-sm text-gray-600">{profileData?.servicesCount || 0} total</span>
+            {/* Services */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-gray-700">Services</span>
+                <span className="text-sm text-gray-600">{profileData?.servicesCount || 0} total</span>
+              </div>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs text-gray-600">With descriptions</span>
+                <span className="text-xs text-gray-600">
+                  {profileData?.servicesWithDescriptions || 0}/{profileData?.servicesCount || 0}
+                </span>
+              </div>
+              <ProgressBar percentage={serviceDescriptionCompletion} className="bg-green-500" />
             </div>
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-xs text-gray-600">With descriptions</span>
-              <span className="text-xs text-gray-600">
-                {profileData?.servicesWithDescriptions || 0}/{profileData?.servicesCount || 0}
-              </span>
-            </div>
-            <ProgressBar percentage={serviceDescriptionCompletion} className="bg-green-500" />
-          </div>
 
-          {/* Business Description */}
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-gray-700">Business Description</span>
-              <span className="text-sm text-gray-600">
-                {profileData?.businessDescriptionLength || 0}/{profileData?.businessDescriptionMaxLength || 0}
-              </span>
+            {/* Business Description */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-gray-700">Business Description</span>
+                <span className="text-sm text-gray-600">
+                  {profileData?.businessDescriptionLength || 0}/{profileData?.businessDescriptionMaxLength || 0}
+                </span>
+              </div>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs text-gray-600">SEO Score</span>
+                <span className="text-xs font-medium text-gray-900">{profileData?.seoScore || 0}/10</span>
+              </div>
+              <ProgressBar percentage={businessDescriptionCompletion} className="bg-purple-500" />
             </div>
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-xs text-gray-600">SEO Score</span>
-              <span className="text-xs font-medium text-gray-900">{profileData?.seoScore || 0}/10</span>
-            </div>
-            <ProgressBar percentage={businessDescriptionCompletion} className="bg-purple-500" />
-          </div>
 
-          {/* Photos */}
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-gray-700">Photos</span>
-              <span className="text-sm text-gray-600">
-                {totalActualPhotos}/{totalExpectedPhotos} recommended
-              </span>
+            {/* Photos */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-gray-700">Photos</span>
+                <span className="text-sm text-gray-600">
+                  {totalActualPhotos}/{totalExpectedPhotos} recommended
+                </span>
+              </div>
+              <ProgressBar percentage={photoCompletion} className="bg-blue-500" />
             </div>
-            <ProgressBar percentage={photoCompletion} className="bg-blue-500" />
           </div>
-        </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-8 text-center">
+            <Icon name="FaExclamationCircle" className="w-8 h-8 text-orange-500 mb-3" />
+            <h3 className="text-sm font-medium text-gray-900 mb-1">Business Info Not Available</h3>
+            <p className="text-xs text-gray-500 mb-3">
+              Additional Google Business Profile permissions required to access detailed business information.
+            </p>
+            <button
+              onClick={() => onQuickAction?.('edit-business-info')}
+              className="text-xs text-slate-blue hover:text-slate-700 font-medium"
+            >
+              Check Business Info Tab →
+            </button>
+          </div>
+        )}
       </MetricCard>
 
       {/* Customer Engagement */}
