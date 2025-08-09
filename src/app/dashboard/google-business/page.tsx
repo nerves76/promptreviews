@@ -187,6 +187,8 @@ export default function SocialPostingDashboard() {
       // Load platforms on page load with simplified logic (normal page load)
       loadPlatforms();
     }
+    
+    // IMPORTANT: No automatic refresh after initial load to prevent form resets
   }, []);
 
   // Add effect to close dropdown when clicking outside
@@ -352,7 +354,20 @@ export default function SocialPostingDashboard() {
             status: 'active' // Default status since we don't have this info
           }));
           
-          setLocations(transformedLocations);
+          // Only update locations if they've actually changed to prevent unnecessary re-renders
+          setLocations(prev => {
+            const hasChanged = prev.length !== transformedLocations.length || 
+              prev.some((loc, idx) => loc.id !== transformedLocations[idx]?.id);
+            
+            if (hasChanged) {
+              console.log('📍 Locations have changed, updating state');
+              return transformedLocations;
+            } else {
+              console.log('📍 Locations unchanged, keeping existing state to prevent re-renders');
+              return prev; // Return existing array to prevent re-render
+            }
+          });
+          
           if (transformedLocations.length > 0 && selectedLocations.length === 0) {
             setSelectedLocations([transformedLocations[0].id]); // Select first location by default
           }
@@ -560,7 +575,8 @@ export default function SocialPostingDashboard() {
       alert(`Successfully fetched ${result.locations?.length || 0} business locations!${demoNote}`);
       
       // Refresh platforms to show new locations
-      await loadPlatforms();
+      // DISABLED: This causes form resets - locations will update on next page load
+      // await loadPlatforms();
     } catch (error) {
       console.error('Error fetching locations:', error);
       if (error instanceof Error && error.name === 'AbortError') {
