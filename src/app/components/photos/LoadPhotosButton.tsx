@@ -139,7 +139,7 @@ export default function LoadPhotosButton({
         ) : (
           <>
             <Icon name="MdDownload" className="w-4 h-4" />
-            <span>Load Photos</span>
+            <span>Load photos</span>
           </>
         )}
       </button>

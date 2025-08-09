@@ -253,7 +253,7 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl,
             {/* Frame Size Selector - Always visible */}
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Frame Size
+                Frame size
               </label>
               <select
                 value={selectedFrameSize.label}
@@ -300,7 +300,7 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl,
                 {/* Headline Input */}
                 <div className="mb-4 mt-6">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Headline Text
+                    Headline text
                   </label>
                   <textarea
                     value={headline}
@@ -318,7 +318,7 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl,
                 {/* Main Color - Always visible */}
                 <div className="mb-4">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Main Color
+                    Main color
                   </label>
                   <input
                     type="color"

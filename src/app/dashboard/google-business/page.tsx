@@ -5,7 +5,7 @@
 
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import Icon from '@/components/Icon';
 import PageCard from '@/app/components/PageCard';
 import FiveStarSpinner from '@/app/components/FiveStarSpinner';
@@ -84,6 +84,9 @@ export default function SocialPostingDashboard() {
   const [isPostOAuthConnecting, setIsPostOAuthConnecting] = useState(false);
   const [rateLimitedUntil, setRateLimitedUntil] = useState<number | null>(null);
   const [showDisconnectConfirm, setShowDisconnectConfirm] = useState(false);
+  const [isLoadingPlatforms, setIsLoadingPlatforms] = useState(false);
+  const loadingRef = useRef(false); // More persistent loading prevention
+  const initialLoadDone = useRef(false); // Track if initial load has been completed
 
   // Overview page state
   const [selectedLocationId, setSelectedLocationId] = useState<string>('');
@@ -146,6 +149,15 @@ export default function SocialPostingDashboard() {
 
   // Handle post-OAuth redirects  
   useEffect(() => {
+    console.log('🔄 Main useEffect triggered - checking for OAuth or initial load');
+    console.log('🔄 initialLoadDone.current:', initialLoadDone.current);
+    
+    // Prevent multiple runs - only run once per page load
+    if (initialLoadDone.current) {
+      console.log('⏸️ Skipping useEffect - initial load already completed');
+      return;
+    }
+    
     // Check if we're coming back from OAuth (has 'connected=true' in URL)
     const urlParams = new URLSearchParams(window.location.search);
     const isPostOAuth = urlParams.get('connected') === 'true';
@@ -184,10 +196,14 @@ export default function SocialPostingDashboard() {
         loadPlatforms();
       }, 1000);
     } else {
-      // TEMP DISABLE: Load platforms on page load with simplified logic (normal page load)
-      console.log('🚨 TEMP DISABLED: Initial loadPlatforms() call');
-      // loadPlatforms();
+      // Load platforms on page load (normal page load)
+      console.log('🔄 Initial page load: Loading platforms');
+      loadPlatforms();
     }
+    
+    // Mark initial load as completed
+    initialLoadDone.current = true;
+    console.log('✅ Initial load marked as completed');
     
     // IMPORTANT: No automatic refresh after initial load to prevent form resets
   }, []);
@@ -225,22 +241,8 @@ export default function SocialPostingDashboard() {
     };
   }, []); // Empty dependency array means this runs only on unmount
 
-  // Load platforms when component mounts
-  useEffect(() => {
-    // Don't load platforms if we have rate limit errors or are handling OAuth
-    if (hasRateLimitError || rateLimitCountdown > 0) { // Removed hasHandledOAuth
-      console.log('⏸️ Skipping platform load - rate limit or OAuth handling active');
-      setIsLoading(false); // Ensure loading state is cleared
-      return;
-    }
-    
-    // Only load platforms if we haven't loaded them yet and we're not already loading
-    // if (!hasLoadedPlatforms && !isLoading) { // This state was removed
-      console.log('🔄 Loading platforms...');
-      setIsLoading(true);
-      // loadPlatforms(); // This function was removed
-    // }
-  }, [hasRateLimitError, rateLimitCountdown]); // Removed hasLoadedPlatforms
+  // REMOVED: Conflicting useEffect that was setting loading states without calling loadPlatforms
+  // The main useEffect above handles all platform loading logic
 
   // Handle rate limit countdown
   useEffect(() => {
@@ -291,9 +293,21 @@ export default function SocialPostingDashboard() {
   }, [isConnected, activeTab, locations.length]);
 
   // Simplified platform loading - no API validation calls
-  const loadPlatforms = async () => {
+  const loadPlatforms = useCallback(async () => {
     console.log('🔍 TRACE: loadPlatforms called from:', new Error().stack?.split('\n')[1]?.trim());
+    console.log('🔍 Current loadingRef.current:', loadingRef.current);
+    console.log('🔍 Current isLoadingPlatforms state:', isLoadingPlatforms);
+    
+    // Prevent multiple simultaneous calls using ref (more reliable)
+    if (loadingRef.current) {
+      console.log('⏸️ Skipping loadPlatforms - already in progress (via ref)');
+      return;
+    }
+    
     console.log('Loading platforms (database check only)...');
+    console.log('🔄 Setting loading flags to true');
+    loadingRef.current = true;
+    setIsLoadingPlatforms(true);
     
     try {
       // Get the current session token for authentication
@@ -409,10 +423,13 @@ export default function SocialPostingDashboard() {
         message: 'Failed to load Google Business Profile connection. Please refresh the page or try reconnecting.' 
       });
     } finally {
-      console.log('Setting isLoading to false');
+      console.log('Setting loading states to false');
+      console.log('🔄 Setting both loading flags to false');
+      loadingRef.current = false;
       setIsLoading(false);
+      setIsLoadingPlatforms(false);
     }
-  };
+  }, []); // Remove dependency to prevent useEffect from running multiple times
 
   const handleConnect = async () => {
     try {
@@ -944,7 +961,7 @@ export default function SocialPostingDashboard() {
     }
   };
 
-  if (isLoading || isPostOAuthConnecting) {
+  if (isLoading || isPostOAuthConnecting || isLoadingPlatforms) {
     return (
       <div className="w-full mx-auto px-4 sm:px-6 md:px-8 lg:px-12 mt-12 md:mt-16 lg:mt-20 mb-16 flex justify-center items-start">
         <PageCard
@@ -954,7 +971,7 @@ export default function SocialPostingDashboard() {
           <div className="min-h-[400px] flex flex-col items-center justify-center">
             <FiveStarSpinner />
             <p className="mt-4 text-gray-600">
-              {isPostOAuthConnecting ? 'Connecting to Google Business Profile...' : 'Loading Social Posting...'}
+              {isPostOAuthConnecting ? 'Connecting to Google Business Profile...' : 'Loading...'}
             </p>
           </div>
         </PageCard>
@@ -1841,10 +1858,38 @@ export default function SocialPostingDashboard() {
           {/* Business Information Tab */}
           {activeTab === 'business-info' && (
             <div className="space-y-6">
-              <BusinessInfoEditor 
-                locations={locations}
-                isConnected={isConnected}
-              />
+              {!isConnected ? (
+                <div className="text-center py-12">
+                  <Icon name="FaStore" className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Connect Google Business Profile</h3>
+                  <p className="text-gray-600 mb-4">
+                    Connect your Google Business Profile to edit business information.
+                  </p>
+                  <button
+                    onClick={handleConnect}
+                    disabled={isLoading}
+                    className="px-6 py-2 bg-slate-600 text-white rounded-md hover:bg-slate-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center space-x-2 mx-auto"
+                  >
+                    {isLoading ? (
+                      <>
+                        <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />
+                        <span>Connecting...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Icon name="FaGoogle" className="w-4 h-4" />
+                        <span>Connect Google Business</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              ) : (
+                <BusinessInfoEditor 
+                  key="business-info-editor" 
+                  locations={locations}
+                  isConnected={isConnected}
+                />
+              )}
             </div>
           )}
 

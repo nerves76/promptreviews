@@ -233,7 +233,7 @@ export default function ServiceItemsEditor({
                     ) : (
                       <>
                         <Icon name="FaRobot" className="w-4 h-4 text-white" size={16} />
-                        <span>Generate Description</span>
+                        <span>Generate description</span>
                       </>
                     )}
                   </button>

@@ -202,7 +202,7 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
             title: "Fill out your business profile",
             description: "Complete your business information",
             link: "/dashboard/business-profile",
-            icon: <Icon name="FaBusinessTime" className="w-5 h-5" size={20} />,
+            icon: <Icon name="FaStore" className="w-5 h-5" size={20} />,
             completed: false
           },
           {
@@ -218,7 +218,7 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
             title: "Customize your universal prompt options",
             description: "Configure your universal prompt page settings",
             link: "/dashboard/edit-prompt-page/universal",
-            icon: <Icon name="FaCog" className="w-5 h-5" size={20} />,
+            icon: <Icon name="FaWrench" className="w-5 h-5" size={20} />,
             completed: false
           },
           {
@@ -226,14 +226,14 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
             title: "Create a new prompt page",
             description: "Build your first custom prompt page",
             link: "/dashboard/create-prompt-page",
-            icon: <Icon name="FaPlus" className="w-5 h-5" size={20} />,
+            icon: <Icon name="FaFileAlt" className="w-5 h-5" size={20} />,
             completed: false
           },
           {
             id: "share",
             title: "Share with customers and clients!",
             description: "Start collecting reviews from your customers",
-            icon: <Icon name="FaShare" className="w-5 h-5" size={20} />,
+            icon: <Icon name="FaHandsHelping" className="w-5 h-5" size={20} />,
             completed: false
           }
         ];

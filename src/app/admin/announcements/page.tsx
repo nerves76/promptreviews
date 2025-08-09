@@ -134,7 +134,7 @@ export default function AdminAnnouncementsPage() {
 
         {showForm && (
           <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 mb-6">
-            <h2 className="text-xl font-semibold mb-4">Create New Announcement</h2>
+            <h2 className="text-xl font-semibold mb-4">Create new announcement</h2>
             <form onSubmit={handleSubmit}>
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 mb-2">

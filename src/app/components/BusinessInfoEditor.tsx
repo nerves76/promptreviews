@@ -718,7 +718,7 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
                           className="flex items-center space-x-2 text-sm text-purple-600 hover:text-purple-800 border border-purple-300 rounded px-3 py-1 hover:bg-purple-50"
                         >
                           <Icon name="FaRobot" className="w-3 h-3 text-slate-blue" size={12} />
-                          <span>Generate Description</span>
+                          <span>Generate description</span>
                         </button>
                         {businessInfo.description.trim() && (
                           <button

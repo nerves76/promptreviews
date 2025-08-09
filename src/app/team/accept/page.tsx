@@ -142,7 +142,7 @@ function TeamAcceptContent() {
       <div className="min-h-screen bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600 flex items-center justify-center">
         <div className="max-w-md w-full bg-white rounded-lg shadow-md p-8 text-center">
           <XCircleIcon className="w-16 h-16 text-red-500 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Invalid Invitation</h1>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Invalid invitation</h1>
           <p className="text-gray-600 mb-6">{error}</p>
           <button
             onClick={() => router.push('/dashboard')}
@@ -160,7 +160,7 @@ function TeamAcceptContent() {
       <div className="min-h-screen bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600 flex items-center justify-center">
         <div className="max-w-md w-full bg-white rounded-lg shadow-md p-8 text-center">
           <ExclamationTriangleIcon className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Different Account Detected</h1>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Different account detected</h1>
           <p className="text-gray-600 mb-4">
             You are currently logged in as <span className="font-semibold">{emailMismatch.currentUserEmail}</span>, 
             but this invitation was sent to <span className="font-semibold">{emailMismatch.invitationEmail}</span>.
@@ -192,7 +192,7 @@ function TeamAcceptContent() {
       <div className="min-h-screen bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600 flex items-center justify-center">
         <div className="max-w-md w-full bg-white rounded-lg shadow-md p-8 text-center">
           <ExclamationTriangleIcon className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Invitation Expired</h1>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Invitation expired</h1>
           <p className="text-gray-600 mb-6">
             This invitation has expired. Please contact the account owner to send a new invitation.
           </p>
@@ -234,7 +234,7 @@ function TeamAcceptContent() {
       <div className="min-h-screen bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600 flex items-center justify-center">
         <div className="max-w-md w-full bg-white rounded-lg shadow-md p-8 text-center">
           <XCircleIcon className="w-16 h-16 text-red-500 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Invitation Not Found</h1>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Invitation not found</h1>
           <p className="text-gray-600 mb-6">
             This invitation could not be found or has already been used.
           </p>
@@ -253,7 +253,7 @@ function TeamAcceptContent() {
     <div className="min-h-screen bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600 flex items-center justify-center">
       <div className="max-w-md w-full bg-white rounded-lg shadow-md p-8">
         <div className="text-center mb-6">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Team Invitation</h1>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Team invitation</h1>
           <p className="text-gray-600">
             You've been invited to join a team on Prompt Reviews
           </p>

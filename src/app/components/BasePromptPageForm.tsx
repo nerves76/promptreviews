@@ -565,7 +565,7 @@ export default function BasePromptPageForm({
           className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
           disabled={isSaving || disabled}
         >
-          {isSaving ? "Saving..." : "Save & Publish"}
+          {isSaving ? "Saving..." : "Save & publish"}
         </button>
       </div>
 

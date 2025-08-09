@@ -159,7 +159,7 @@ export default function FreeAccountsPage() {
 
       {/* Create Free Account Form */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">Create Free Account</h2>
+        <h2 className="text-xl font-semibold text-gray-900 mb-4">Create free account</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">

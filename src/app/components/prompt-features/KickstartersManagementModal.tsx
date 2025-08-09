@@ -204,7 +204,7 @@ export default function KickstartersManagementModal({
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <div className="flex items-center gap-3">
             <Icon name="FaLightbulb" className="text-slate-blue text-xl" size={20} />
-            <h2 className="text-xl font-bold text-gray-900">Manage Kickstarters</h2>
+            <h2 className="text-xl font-bold text-gray-900">Manage kickstarters</h2>
             <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
               AKA Prompts
             </span>

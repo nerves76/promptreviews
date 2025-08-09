@@ -547,7 +547,7 @@ export default function AccountPage() {
               {/* Create New Account - Admin Only */}
               {canCreateAccounts(user?.email || '') && (
                 <div className="border-t border-gray-200 pt-4">
-                  <h4 className="text-md font-semibold text-gray-900 mb-2">Create New Account</h4>
+                  <h4 className="text-md font-semibold text-gray-900 mb-2">Create new account</h4>
                   <p className="text-sm text-gray-600 mb-3">
                     Create additional accounts for demos, client management, or testing.
                   </p>
@@ -697,7 +697,7 @@ export default function AccountPage() {
           <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
             <div className="p-6">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold text-gray-900">Create New Account</h2>
+                <h2 className="text-xl font-semibold text-gray-900">Create new account</h2>
                 <button
                   onClick={() => {
                     setShowCreateAccountModal(false);
