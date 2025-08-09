@@ -832,7 +832,7 @@ export default function SocialPostingDashboard() {
     setOverviewError(null);
 
     try {
-      const response = await fetch(`/api/google-business-profile/overview?locationId=${encodeURIComponent(locationId)}&mock=true`, {
+      const response = await fetch(`/api/google-business-profile/overview?locationId=${encodeURIComponent(locationId)}`, {
         credentials: 'same-origin'
       });
       const data = await response.json();
