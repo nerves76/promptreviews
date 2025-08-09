@@ -1061,6 +1061,9 @@ export class GoogleBusinessProfileClient {
       this.config.baseUrl = originalBaseUrl;
       
       console.log('✅ Successfully fetched location insights');
+      console.log('🔍 Raw insights response:', JSON.stringify(response, null, 2));
+      console.log('🔍 Location metrics:', response.locationMetrics?.length || 0);
+      
       return response.locationMetrics || [];
     } catch (error: any) {
       console.error('❌ Failed to fetch location insights:', error);
