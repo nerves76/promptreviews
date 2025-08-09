@@ -121,12 +121,27 @@ export function processReviewTrends(reviews: any[]): ReviewTrendsData {
   
   // Calculate average rating
   const ratingsSum = reviews.reduce((sum, review) => {
-    // Try different possible rating field names
-    const rating = parseInt(review.starRating) || 
-                   parseInt(review.rating) || 
-                   parseInt(review.star_rating) || 
-                   parseFloat(review.starRating) || 
-                   parseFloat(review.rating) || 0;
+    let rating = 0;
+    
+    // Handle Google's text-based rating format
+    if (review.starRating) {
+      const starRating = review.starRating.toString().toUpperCase();
+      switch (starRating) {
+        case 'FIVE': rating = 5; break;
+        case 'FOUR': rating = 4; break;
+        case 'THREE': rating = 3; break;
+        case 'TWO': rating = 2; break;
+        case 'ONE': rating = 1; break;
+        default:
+          // Try parsing as number
+          rating = parseInt(review.starRating) || parseFloat(review.starRating) || 0;
+      }
+    } else if (review.rating) {
+      rating = parseInt(review.rating) || parseFloat(review.rating) || 0;
+    } else if (review.star_rating) {
+      rating = parseInt(review.star_rating) || parseFloat(review.star_rating) || 0;
+    }
+    
     console.log(`📊 Review rating: ${rating} (from starRating: ${review.starRating}, rating: ${review.rating})`);
     return sum + rating;
   }, 0);
@@ -182,7 +197,24 @@ function generateMonthlyReviewData(reviews: any[]): ReviewTrendsData['monthlyRev
     };
 
     monthReviews.forEach(review => {
-      const rating = parseInt(review.starRating);
+      let rating = 0;
+      
+      // Handle Google's text-based rating format
+      if (review.starRating) {
+        const starRating = review.starRating.toString().toUpperCase();
+        switch (starRating) {
+          case 'FIVE': rating = 5; break;
+          case 'FOUR': rating = 4; break;
+          case 'THREE': rating = 3; break;
+          case 'TWO': rating = 2; break;
+          case 'ONE': rating = 1; break;
+          default:
+            rating = parseInt(review.starRating) || parseFloat(review.starRating) || 0;
+        }
+      } else if (review.rating) {
+        rating = parseInt(review.rating) || parseFloat(review.rating) || 0;
+      }
+      
       switch (rating) {
         case 5: starCounts.fiveStar++; break;
         case 4: starCounts.fourStar++; break;
