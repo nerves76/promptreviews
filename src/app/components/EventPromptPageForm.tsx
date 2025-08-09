@@ -76,8 +76,17 @@ export default function EventPromptPageForm({
     fallingEnabled: initialData.fallingEnabled ?? initialData.falling_enabled ?? true,
     show_friendly_note: initialData.show_friendly_note ?? false,
     recent_reviews_enabled: initialData.recent_reviews_enabled ?? false,
-    // Event pages now use standard prompt page fields
-    // Note: Event-specific fields (eve_*) were removed from database schema
+    // Event-specific fields (using eve_ prefix)
+    eve_name: initialData.eve_name || '',
+    eve_date: initialData.eve_date || '',
+    eve_type: initialData.eve_type || '',
+    eve_location: initialData.eve_location || '',
+    eve_description: initialData.eve_description || '',
+    eve_duration: initialData.eve_duration || '',
+    eve_capacity: initialData.eve_capacity || '',
+    eve_organizer: initialData.eve_organizer || '',
+    eve_special_features: Array.isArray(initialData.eve_special_features) ? initialData.eve_special_features : [''],
+    eve_review_guidance: initialData.eve_review_guidance || '',
   };
   
   const [formData, setFormData] = useState(safeInitialData);
@@ -201,7 +210,7 @@ export default function EventPromptPageForm({
   const validateForm = () => {
     const errors = [];
     
-    if (!formData.client_name?.trim()) {
+    if (!formData.eve_name?.trim()) {
       errors.push('Event name is required');
     }
     
@@ -491,7 +500,7 @@ export default function EventPromptPageForm({
             </div>
 
 
-            {/* Event Special Features */}
+            {/* Event Highlights */}
             <div>
               <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
                 Event Highlights
@@ -508,7 +517,7 @@ export default function EventPromptPageForm({
               {(formData.eve_special_features || []).map((feature: any, index: number) => (
                 <div key={index} className="flex gap-2 mb-2">
                   <Input
-                    placeholder={`Special feature ${index + 1}`}
+                    placeholder={`Event highlight ${index + 1}`}
                     value={feature}
                     onChange={(e) => updateArrayField('eve_special_features', index, e.target.value)}
                     className="flex-1"
