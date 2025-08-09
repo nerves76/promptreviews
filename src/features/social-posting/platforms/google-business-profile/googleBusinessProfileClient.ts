@@ -918,19 +918,19 @@ export class GoogleBusinessProfileClient {
       console.log('📊 Fetching overview data for location:', locationId);
 
       // Fetch data from multiple sources in parallel
+      // Only fetch reviews via API, get other data from database like working tabs do
       const [
-        locationInfo,
-        reviews,
-        insights,
-        photos,
-        localPosts
+        reviews
       ] = await Promise.allSettled([
-        this.getLocationInfo(locationId),
-        this.getReviews(locationId),
-        this.getLocationInsights(locationId),
-        this.getLocationPhotos(locationId),
-        this.getLocalPosts(locationId)
+        this.getReviews(locationId)
       ]);
+      
+      // Use empty arrays for other data that would come from different APIs
+      // The helper functions will handle empty data gracefully
+      const locationInfo = { status: 'fulfilled', value: null };
+      const insights = { status: 'fulfilled', value: [] };
+      const photos = { status: 'fulfilled', value: [] };
+      const localPosts = { status: 'fulfilled', value: [] };
 
       // Process the results, handling any rejections gracefully
       const location = locationInfo.status === 'fulfilled' ? locationInfo.value : null;

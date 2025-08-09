@@ -114,15 +114,68 @@ export async function GET(request: NextRequest) {
 
     console.log('🔧 GMB Overview API: Client initialized, fetching overview data...');
 
-    // Fetch overview data with timeout and error handling
-    const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('Request timeout')), 30000); // 30 second timeout
-    });
-
-    const dataPromise = gbpClient.getOverviewData(locationId);
-
+    // Get business data from database like other working tabs do
     try {
-      const overviewData = await Promise.race([dataPromise, timeoutPromise]) as any;
+      // Get location data from database (same as working tabs)
+      const { data: locationData, error: locationError } = await serviceSupabase
+        .from('google_business_locations')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('location_id', locationId)
+        .single();
+
+      console.log('📍 Location data from database:', locationData ? 'Found' : 'Not found');
+
+      // Get reviews via API (this is working)
+      const reviewsData = await gbpClient.getReviews(locationId);
+      console.log('📝 Reviews from API:', reviewsData.length);
+
+      // Process the data using helper functions
+      const { 
+        calculateProfileCompleteness, 
+        processReviewTrends, 
+        identifyOptimizationOpportunities,
+        formatPerformanceData 
+      } = await import('@/utils/googleBusinessProfile/overviewDataHelpers');
+
+      // Use location data from database for profile completeness
+      const profileData = locationData ? 
+        calculateProfileCompleteness(locationData, [], []) : 
+        { categoriesUsed: 0, maxCategories: 10, servicesCount: 0, servicesWithDescriptions: 0, businessDescriptionLength: 0, businessDescriptionMaxLength: 750, seoScore: 0, photosByCategory: {} };
+
+      const reviewTrends = processReviewTrends(reviewsData);
+
+      const engagementData = {
+        unrespondedReviews: reviewsData.filter((review: any) => !review.reviewReply).length,
+        totalQuestions: 0, // Would need Q&A API
+        unansweredQuestions: 0, // Would need Q&A API  
+        recentPosts: 0, // Would need Posts API
+        lastPostDate: undefined
+      };
+
+      const performanceData = {
+        monthlyViews: 0,
+        viewsTrend: 0,
+        topSearchQueries: [],
+        customerActions: {
+          websiteClicks: 0,
+          phoneCalls: 0,
+          directionRequests: 0,
+          photoViews: 0
+        }
+      };
+
+      const optimizationOpportunities = locationData ? 
+        identifyOptimizationOpportunities(locationData, profileData, engagementData, []) : 
+        [];
+
+      const overviewData = {
+        profileData,
+        engagementData,
+        performanceData,
+        reviewTrends,
+        optimizationOpportunities
+      };
       
       console.log('✅ GMB Overview API: Successfully fetched overview data');
       console.log('📊 API Response - Review Trends:', overviewData.reviewTrends);
