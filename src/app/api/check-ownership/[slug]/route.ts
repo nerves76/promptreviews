@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { getAccountIdForUser } from "@/utils/accountUtils";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -46,25 +47,17 @@ export async function GET(
     console.log('Prompt page account_id:', promptPage.account_id);
 
     // Check if user owns this prompt page by comparing account_ids
-    const { data: accountUser, error: accountError } = await supabase
-      .from('account_users')
-      .select('account_id')
-      .eq('user_id', user.id)
-      .single();
+    // Use proper utility function that handles multiple account_user records
+    const accountId = await getAccountIdForUser(user.id, supabase);
 
-    if (accountError) {
-      console.log('Account user lookup error:', accountError);
+    if (!accountId) {
+      console.log('No account found for user');
       return NextResponse.json({ isOwner: false });
     }
 
-    if (!accountUser) {
-      console.log('No account_user record found for user');
-      return NextResponse.json({ isOwner: false });
-    }
+    console.log('User account_id:', accountId);
 
-    console.log('User account_id:', accountUser.account_id);
-
-    const isOwner = accountUser.account_id === promptPage.account_id;
+    const isOwner = accountId === promptPage.account_id;
     
     console.log('Ownership check result:', isOwner ? 'User is owner' : 'User is not owner');
 

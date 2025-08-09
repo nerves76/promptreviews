@@ -1068,14 +1068,88 @@ export class GoogleBusinessProfileClient {
       return response.multiDailyMetricsTimeSeries || [];
     } catch (error: any) {
       console.error('❌ [NEW API] Failed to fetch performance data:', error);
-      console.log('🔄 [NEW API] This might be due to:');
-      console.log('  1. Business Profile Performance API not enabled in Google Console');
-      console.log('  2. Insufficient permissions or unverified business profile');
-      console.log('  3. No performance data available for selected time period');
+      console.error('❌ [NEW API] Error details:', {
+        message: error.message,
+        status: error.status,
+        statusText: error.statusText,
+        response: error.response
+      });
       
-      // Don't throw error, return empty array to allow other data to load
-      return [];
+      console.log('🔄 [NEW API] This is likely due to:');
+      console.log('  1. ⚠️  Business Profile Performance API NOT ENABLED in Google Console');
+      console.log('  2. 🔑 Insufficient permissions or unverified business profile');
+      console.log('  3. 📊 No performance data available for selected time period');
+      console.log('  4. 🔗 API endpoint or authentication issue');
+      
+      console.log('🛠️  To fix:');
+      console.log('     - Enable "Business Profile Performance API" in Google Cloud Console');
+      console.log('     - Verify business profile is claimed and verified');
+      console.log('     - Check if business has sufficient activity for metrics');
+      
+      console.log('🔄 [FALLBACK] Trying deprecated v4 API as backup...');
+      
+      // FALLBACK: Try the old API as a temporary measure
+      try {
+        return await this.getLocationInsightsLegacy(locationId, dateRange);
+      } catch (fallbackError) {
+        console.error('❌ [FALLBACK] Legacy API also failed:', fallbackError);
+        return [];
+      }
     }
+  }
+
+  /**
+   * FALLBACK: Legacy v4 reportInsights API (deprecated but might still work)
+   * Used as temporary backup if new Performance API isn't enabled
+   */
+  private async getLocationInsightsLegacy(locationId: string, dateRange: string = 'THIRTY_DAYS'): Promise<any[]> {
+    console.log('🔄 [LEGACY FALLBACK] Using deprecated v4 reportInsights API');
+    
+    // Extract account ID and location ID from the full location name
+    const locationParts = locationId.split('/');
+    if (locationParts.length < 4) {
+      throw new Error('Invalid location ID format');
+    }
+    
+    const accountId = `accounts/${locationParts[1]}`;
+    const shortLocationId = `locations/${locationParts[3]}`;
+    
+    // Switch to legacy API
+    const originalBaseUrl = this.config.baseUrl;
+    this.config.baseUrl = GOOGLE_BUSINESS_PROFILE.LEGACY_BASE_URL;
+    
+    const endpoint = `/v4/${accountId}/${shortLocationId}/reportInsights`;
+    const requestBody = {
+      locationNames: [locationId],
+      basicRequest: {
+        metricRequests: [
+          { metric: 'QUERIES_DIRECT' },
+          { metric: 'QUERIES_INDIRECT' },
+          { metric: 'VIEWS_MAPS' },
+          { metric: 'VIEWS_SEARCH' },
+          { metric: 'ACTIONS_WEBSITE' },
+          { metric: 'ACTIONS_PHONE' },
+          { metric: 'ACTIONS_DRIVING_DIRECTIONS' }
+        ],
+        timeRange: {
+          startTime: this.getDateRange(dateRange).start,
+          endTime: this.getDateRange(dateRange).end
+        }
+      }
+    };
+
+    const response = await this.makeRequest(endpoint, {
+      method: 'POST',
+      body: JSON.stringify(requestBody)
+    });
+
+    // Restore original base URL
+    this.config.baseUrl = originalBaseUrl;
+    
+    console.log('✅ [LEGACY FALLBACK] Got response from v4 API');
+    console.log('🔍 [LEGACY FALLBACK] Response:', JSON.stringify(response, null, 2));
+    
+    return response.locationMetrics || [];
   }
 
   /**
