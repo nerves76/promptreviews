@@ -417,12 +417,12 @@ export default function BusinessHealthMetrics({
               </div>
               <div className="mt-2 space-y-1">
                 <a
-                  href="https://developers.google.com/my-business"
+                  href="https://docs.google.com/forms/d/e/1FAIpQLSfJqjNs-jtxjRqryG49gG0K-FZqzD8vQ9jGpRw3SfFCmFnpEQ/viewform"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="block text-xs text-yellow-800 hover:text-yellow-900 font-medium underline"
                 >
-                  Request GBP API Access from Google →
+                  Request Google My Business API Access →
                 </a>
                 <button
                   onClick={() => onQuickAction?.('check-verification')}
