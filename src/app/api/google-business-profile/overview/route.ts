@@ -125,6 +125,9 @@ export async function GET(request: NextRequest) {
       const overviewData = await Promise.race([dataPromise, timeoutPromise]) as any;
       
       console.log('✅ GMB Overview API: Successfully fetched overview data');
+      console.log('📊 API Response - Review Trends:', overviewData.reviewTrends);
+      console.log('📊 API Response - Profile Data:', overviewData.profileData);
+      console.log('📊 API Response - Performance Data:', overviewData.performanceData);
 
       return NextResponse.json({
         success: true,
