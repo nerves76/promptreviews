@@ -83,6 +83,7 @@ export default function SocialPostingDashboard() {
   const [fetchingLocations, setFetchingLocations] = useState<string | null>(null);
   const [isPostOAuthConnecting, setIsPostOAuthConnecting] = useState(false);
   const [rateLimitedUntil, setRateLimitedUntil] = useState<number | null>(null);
+  const [showDisconnectConfirm, setShowDisconnectConfirm] = useState(false);
 
   // Overview page state
   const [selectedLocationId, setSelectedLocationId] = useState<string>('');
@@ -173,10 +174,19 @@ export default function SocialPostingDashboard() {
       
       // Clean up URL parameters
       window.history.replaceState({}, '', window.location.pathname);
+      
+      // 🔧 FIX: Force state refresh after OAuth to ensure UI updates properly
+      console.log('🔄 Post-OAuth: Forcing platform reload with delay to ensure proper state update');
+      
+      // Small delay to let the OAuth success message show, then reload platforms
+      setTimeout(() => {
+        console.log('🔄 Post-OAuth: Reloading platforms to refresh connection state');
+        loadPlatforms();
+      }, 1000);
+    } else {
+      // Load platforms on page load with simplified logic (normal page load)
+      loadPlatforms();
     }
-    
-    // Load platforms on page load with simplified logic
-    loadPlatforms();
   }, []);
 
   // Add effect to close dropdown when clicking outside
@@ -444,13 +454,52 @@ export default function SocialPostingDashboard() {
     }
   };
 
-  const handleDisconnect = () => {
-    localStorage.removeItem('google-business-connected');
-    localStorage.removeItem('google-business-locations');
-    localStorage.removeItem('google-business-selected-locations');
-    setIsConnected(false);
-    setLocations([]);
-    setSelectedLocations([]);
+  const handleDisconnect = async () => {
+    try {
+      console.log('🔌 Disconnecting Google Business Profile...');
+      setIsLoading(true);
+      
+      // Call API to remove OAuth tokens from database
+      const response = await fetch('/api/social-posting/platforms/google-business-profile/disconnect', {
+        method: 'POST',
+        credentials: 'same-origin'
+      });
+      
+      if (response.ok) {
+        console.log('✅ Successfully disconnected from Google Business Profile API');
+        setPostResult({ 
+          success: true, 
+          message: 'Successfully disconnected from Google Business Profile' 
+        });
+      } else {
+        console.warn('⚠️ API disconnect failed, clearing local state anyway');
+        setPostResult({ 
+          success: false, 
+          message: 'Disconnect partially failed - local state cleared' 
+        });
+      }
+    } catch (error) {
+      console.error('❌ Error during disconnect:', error);
+      setPostResult({ 
+        success: false, 
+        message: 'Error during disconnect - local state cleared' 
+      });
+    } finally {
+      // Always clear local state regardless of API success
+      console.log('🧹 Clearing local Google Business Profile state');
+      localStorage.removeItem('google-business-connected');
+      localStorage.removeItem('google-business-locations');
+      localStorage.removeItem('google-business-selected-locations');
+      setIsConnected(false);
+      setLocations([]);
+      setSelectedLocations([]);
+      setIsLoading(false);
+      
+      // Clear any existing messages after a delay
+      setTimeout(() => {
+        setPostResult(null);
+      }, 3000);
+    }
   };
 
   const handleFetchLocations = async (platformId: string) => {
@@ -1158,10 +1207,25 @@ export default function SocialPostingDashboard() {
                           <span className="text-sm font-medium">Connected</span>
                         </div>
                         <button
-                          onClick={handleDisconnect}
-                          className="px-4 py-2 text-red-600 border border-red-200 rounded-md hover:bg-red-50 transition-colors text-sm"
+                          onClick={() => setShowDisconnectConfirm(true)}
+                          disabled={isLoading}
+                          className={`px-4 py-2 rounded-md transition-colors text-sm flex items-center space-x-2 ${
+                            isLoading
+                              ? 'bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200'
+                              : 'text-red-600 border border-red-200 hover:bg-red-50'
+                          }`}
                         >
-                          Disconnect
+                          {isLoading ? (
+                            <>
+                              <div className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
+                              <span>Disconnecting...</span>
+                            </>
+                          ) : (
+                            <>
+                              <Icon name="FaTimes" className="w-4 h-4" />
+                              <span>Disconnect</span>
+                            </>
+                          )}
                         </button>
                       </>
                     ) : (
@@ -1257,6 +1321,32 @@ export default function SocialPostingDashboard() {
                   </div>
                 )}
               </div>
+
+              {/* Success Messages */}
+              {postResult && postResult.success && (
+                <div className="bg-green-50 border border-green-200 rounded-md p-4">
+                  <div className="flex items-center space-x-2 text-green-800 mb-2">
+                    <Icon name="FaCheck" className="w-4 h-4" />
+                    <span className="text-sm font-medium">Success</span>
+                  </div>
+                  <p className="text-sm text-green-700">{postResult.message}</p>
+                  {/* 🔧 FIX: Add refresh button if connected but no locations visible */}
+                  {isConnected && locations.length === 0 && (
+                    <div className="mt-3">
+                      <button
+                        onClick={() => {
+                          console.log('🔄 Manual refresh requested');
+                          setIsLoading(true);
+                          loadPlatforms();
+                        }}
+                        className="px-3 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700 transition-colors"
+                      >
+                        Refresh Connection Status
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Error Messages */}
               {postResult && !postResult.success && (
@@ -1767,6 +1857,51 @@ export default function SocialPostingDashboard() {
 
         </div>
       </PageCard>
+      
+      {/* Disconnect Confirmation Dialog */}
+      {showDisconnectConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <div className="flex items-center space-x-3 mb-4">
+              <Icon name="FaExclamationTriangle" className="w-6 h-6 text-red-500" />
+              <h3 className="text-lg font-semibold text-gray-900">Disconnect Google Business Profile?</h3>
+            </div>
+            <p className="text-gray-600 mb-6">
+              This will remove your Google Business Profile connection and all stored business locations. 
+              You'll need to reconnect and fetch your locations again to use posting features.
+            </p>
+            <div className="flex space-x-3">
+              <button
+                onClick={() => {
+                  setShowDisconnectConfirm(false);
+                  handleDisconnect();
+                }}
+                disabled={isLoading}
+                className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:bg-gray-300 transition-colors flex items-center space-x-2"
+              >
+                {isLoading ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    <span>Disconnecting...</span>
+                  </>
+                ) : (
+                  <>
+                    <Icon name="FaTimes" className="w-4 h-4" />
+                    <span>Yes, Disconnect</span>
+                  </>
+                )}
+              </button>
+              <button
+                onClick={() => setShowDisconnectConfirm(false)}
+                disabled={isLoading}
+                className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 disabled:bg-gray-100 transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 } 
