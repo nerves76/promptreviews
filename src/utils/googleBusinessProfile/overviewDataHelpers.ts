@@ -278,10 +278,10 @@ function calculateSEOScore(description: string, location: BusinessLocation): num
   const lowerDesc = description.toLowerCase();
   const words = description.trim().split(/\s+/).length;
   
-  // Length score (0-2 points)
-  if (description.length >= 150 && description.length <= 500) {
+  // Length score (0-2 points) - prioritize hitting 250+ characters
+  if (description.length >= 250 && description.length <= 750) {
     score += 2;
-  } else if (description.length >= 100 && description.length <= 600) {
+  } else if (description.length >= 200 && description.length < 250) {
     score += 1;
   }
   
