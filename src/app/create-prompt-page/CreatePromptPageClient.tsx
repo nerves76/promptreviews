@@ -1096,7 +1096,11 @@ export default function CreatePromptPageClient({
       }
 
       // Create complete prompt page data (only include valid prompt_pages columns)
-      const campaignType = formData.campaign_type || 'public';
+      // Get campaign type from localStorage to determine if contact should be created
+      // This ensures the correct campaign type is used regardless of formData.campaign_type state
+      const campaignType = typeof window !== 'undefined' 
+        ? localStorage.getItem('campaign_type') || 'individual'
+        : 'individual';
       const insertData = {
         account_id: accountId,
         // Note: business_name column doesn't exist - removed
@@ -1209,19 +1213,11 @@ export default function CreatePromptPageClient({
         throw error;
       }
 
-      // Auto-create contact for individual prompt pages (same logic as handleStep1Submit)
-      console.log('🎯 Service page contact creation check:', {
-        campaign_type_from_formData: formData.campaign_type,
-        campaign_type_from_insertData: data.campaign_type,
-        has_first_name: !!formData.first_name,
-        first_name: formData.first_name,
-        should_create_contact: formData.campaign_type === 'individual' && formData.first_name
-      });
-      
-      if (formData.campaign_type === 'individual' && formData.first_name) {
+      // Auto-create contact for individual prompt pages
+      // This ensures contacts are created for all individual campaign types (service, product, photo, employee, event)
+      // The contact creation API handles account limits and RLS policies
+      if (campaignType === 'individual' && formData.first_name) {
         try {
-          console.log('🔍 Creating contact for service page:', data.id);
-          
           const contactResponse = await fetch('/api/contacts/create-from-prompt-page', {
             method: 'POST',
             headers: {
@@ -1249,16 +1245,13 @@ export default function CreatePromptPageClient({
             }),
           });
 
-          if (contactResponse.ok) {
-            const contactResult = await contactResponse.json();
-            console.log('✅ Contact created successfully for service page:', contactResult);
-          } else {
-            console.error('❌ Failed to create contact for service page:', await contactResponse.text());
+          if (!contactResponse.ok) {
             // Don't fail the entire operation if contact creation fails
+            console.error('Failed to create contact for individual prompt page');
           }
         } catch (contactError) {
-          console.error('❌ Error creating contact for service page:', contactError);
           // Don't fail the entire operation if contact creation fails
+          console.error('Error creating contact for individual prompt page:', contactError);
         }
       }
 
