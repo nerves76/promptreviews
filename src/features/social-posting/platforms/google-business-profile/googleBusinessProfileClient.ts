@@ -1013,60 +1013,66 @@ export class GoogleBusinessProfileClient {
   }
 
   /**
-   * Get location insights for performance data
+   * Get location performance data using NEW Business Profile Performance API v1
+   * Replaces deprecated v4 reportInsights API
    */
   async getLocationInsights(locationId: string, dateRange: string = 'THIRTY_DAYS'): Promise<any[]> {
     try {
-      console.log('📈 Fetching location insights for:', locationId);
+      console.log('📈 [NEW API] Fetching performance data for:', locationId);
       
-      // Extract account ID and location ID from the full location name
-      const locationParts = locationId.split('/');
-      if (locationParts.length < 4) {
-        throw new Error('Invalid location ID format');
-      }
-      
-      const accountId = `accounts/${locationParts[1]}`;
-      const shortLocationId = `locations/${locationParts[3]}`;
-      
-      // Switch to Google My Business API v4 for insights
+      // Use NEW Business Profile Performance API v1
       const originalBaseUrl = this.config.baseUrl;
-      this.config.baseUrl = GOOGLE_BUSINESS_PROFILE.LEGACY_BASE_URL;
+      this.config.baseUrl = GOOGLE_BUSINESS_PROFILE.PERFORMANCE_BASE_URL;
       
-      const endpoint = `/v4/${accountId}/${shortLocationId}/reportInsights`;
-      const requestBody = {
-        locationNames: [locationId],
-        basicRequest: {
-          metricRequests: [
-            { metric: 'QUERIES_DIRECT' },
-            { metric: 'QUERIES_INDIRECT' },
-            { metric: 'VIEWS_MAPS' },
-            { metric: 'VIEWS_SEARCH' },
-            { metric: 'ACTIONS_WEBSITE' },
-            { metric: 'ACTIONS_PHONE' },
-            { metric: 'ACTIONS_DRIVING_DIRECTIONS' }
-          ],
-          timeRange: {
-            startTime: this.getDateRange(dateRange).start,
-            endTime: this.getDateRange(dateRange).end
-          }
-        }
-      };
+      // Format endpoint with location ID
+      const endpoint = GOOGLE_BUSINESS_PROFILE.ENDPOINTS.PERFORMANCE_MULTI_DAILY_METRICS
+        .replace('{locationId}', locationId);
+      
+      // Get date range for the request
+      const dateRangeObj = this.getDateRange(dateRange);
+      
+      // Build query parameters for the new API
+      const queryParams = new URLSearchParams({
+        'dailyMetrics': [
+          'BUSINESS_IMPRESSIONS_DESKTOP_MAPS',
+          'BUSINESS_IMPRESSIONS_DESKTOP_SEARCH', 
+          'BUSINESS_IMPRESSIONS_MOBILE_MAPS',
+          'BUSINESS_IMPRESSIONS_MOBILE_SEARCH',
+          'BUSINESS_DIRECTION_REQUESTS',
+          'CALL_CLICKS',
+          'WEBSITE_CLICKS'
+        ].join(','),
+        'startDate.year': dateRangeObj.start.split('-')[0],
+        'startDate.month': dateRangeObj.start.split('-')[1],
+        'startDate.day': dateRangeObj.start.split('-')[2],
+        'endDate.year': dateRangeObj.end.split('-')[0],
+        'endDate.month': dateRangeObj.end.split('-')[1],
+        'endDate.day': dateRangeObj.end.split('-')[2]
+      });
 
-      const response = await this.makeRequest(endpoint, {
-        method: 'POST',
-        body: JSON.stringify(requestBody)
+      const fullEndpoint = `${endpoint}?${queryParams.toString()}`;
+      
+      console.log('🔍 [NEW API] Endpoint:', fullEndpoint);
+
+      const response = await this.makeRequest(fullEndpoint, {
+        method: 'GET'
       });
 
       // Restore original base URL
       this.config.baseUrl = originalBaseUrl;
       
-      console.log('✅ Successfully fetched location insights');
-      console.log('🔍 Raw insights response:', JSON.stringify(response, null, 2));
-      console.log('🔍 Location metrics:', response.locationMetrics?.length || 0);
+      console.log('✅ [NEW API] Successfully fetched performance data');
+      console.log('🔍 [NEW API] Raw response:', JSON.stringify(response, null, 2));
       
-      return response.locationMetrics || [];
+      // New API returns multiDailyMetricsTimeSeries array
+      return response.multiDailyMetricsTimeSeries || [];
     } catch (error: any) {
-      console.error('❌ Failed to fetch location insights:', error);
+      console.error('❌ [NEW API] Failed to fetch performance data:', error);
+      console.log('🔄 [NEW API] This might be due to:');
+      console.log('  1. Business Profile Performance API not enabled in Google Console');
+      console.log('  2. Insufficient permissions or unverified business profile');
+      console.log('  3. No performance data available for selected time period');
+      
       // Don't throw error, return empty array to allow other data to load
       return [];
     }

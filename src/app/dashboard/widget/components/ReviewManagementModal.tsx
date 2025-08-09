@@ -5,6 +5,7 @@ import { DraggableModal } from './DraggableModal';
 import AppLoader from "@/app/components/AppLoader";
 import { PhotoUpload } from './PhotoUpload';
 import { createClient } from '@/utils/supabaseClient';
+import { getAccountIdForUser } from '@/utils/accountUtils';
 
 const WORD_LIMIT = 250;
 const MAX_WIDGET_REVIEWS = 8;
@@ -101,21 +102,17 @@ export function ReviewManagementModal({
         return;
       }
 
-      // Get account ID for the current user
-      const { data: accountUser, error: accountUserError } = await supabase
-        .from('account_users')
-        .select('account_id')
-        .eq('user_id', user.id)
-        .single();
+      // Get account ID using the proper utility function
+      // This handles multiple account_user records correctly
+      const accountId = await getAccountIdForUser(user.id, supabase);
 
-      if (accountUserError || !accountUser?.account_id) {
-        console.error('❌ ReviewManagementModal: No account found for user:', accountUserError);
+      if (!accountId) {
+        console.error('❌ ReviewManagementModal: No account found for user');
         setReviewError("No account found for user");
         setLoadingReviews(false);
         return;
       }
 
-      const accountId = accountUser.account_id;
       console.log('✅ ReviewManagementModal: Found account ID:', accountId);
 
       // Fetch reviews from review_submissions for this account by joining with prompt_pages

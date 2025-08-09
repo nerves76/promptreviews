@@ -14,8 +14,11 @@ export const GOOGLE_BUSINESS_PROFILE = {
   // Account Management API v1.1 - for account operations
   ACCOUNT_MGMT_BASE_URL: 'https://mybusinessaccountmanagement.googleapis.com',
   
-  // Google My Business API v4.9 - for reviews, posts, media, insights
+  // Google My Business API v4.9 - for reviews, posts, media
   LEGACY_BASE_URL: 'https://mybusiness.googleapis.com',
+  
+  // Business Profile Performance API v1 - for performance insights (NEW)
+  PERFORMANCE_BASE_URL: 'https://businessprofileperformance.googleapis.com',
 
   ENDPOINTS: {
     // Account Management API v1.1 endpoints
@@ -32,7 +35,11 @@ export const GOOGLE_BUSINESS_PROFILE = {
     REVIEWS: '/v4/accounts/{accountId}/locations/{locationId}/reviews',
     LOCAL_POSTS: '/v4/accounts/{accountId}/locations/{locationId}/localPosts',
     MEDIA: '/v4/accounts/{accountId}/locations/{locationId}/media',
-    INSIGHTS: '/v4/accounts/{accountId}/locations/{locationId}/reportInsights'
+    INSIGHTS_DEPRECATED: '/v4/accounts/{accountId}/locations/{locationId}/reportInsights', // DEPRECATED
+    
+    // Business Profile Performance API v1 endpoints (NEW)
+    PERFORMANCE_MULTI_DAILY_METRICS: '/v1/{locationId}:fetchMultiDailyMetricsTimeSeries',
+    PERFORMANCE_SEARCH_KEYWORDS: '/v1/{locationId}/searchkeywords/impressions/monthly'
   },
 
   SCOPES: [
