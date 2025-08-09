@@ -181,18 +181,28 @@ export async function GET(request: NextRequest) {
       const cleanLocationId = locationId.replace('locations/', '');
 
       // Fetch data from multiple APIs in parallel
+      console.error('🚨 ABOUT TO CALL PERFORMANCE API - This should always show');
+      
       const [reviewsResult, photosResult, postsResult, insightsResult] = await Promise.allSettled([
         gbpClient.getReviews(locationId),
         gbpClient.getMedia(locationId),
         accountId ? gbpClient.listLocalPosts(accountId, cleanLocationId) : Promise.resolve([]),
         gbpClient.getLocationInsights(locationId, 'THIRTY_DAYS')
       ]);
+      
+      console.error('🚨 PERFORMANCE API COMPLETED - Result status:', insightsResult.status);
+      
+      if (insightsResult.status === 'rejected') {
+        console.error('🚨 PERFORMANCE API FAILED - Error:', insightsResult.reason);
+      }
 
       // Process results with error logging
       const reviewsData = reviewsResult.status === 'fulfilled' ? reviewsResult.value : [];
       const photosData = photosResult.status === 'fulfilled' ? photosResult.value : [];
       const postsData = postsResult.status === 'fulfilled' ? postsResult.value : [];
       const insightsData = insightsResult.status === 'fulfilled' ? insightsResult.value : [];
+      
+      console.error('🚨 INSIGHTS DATA LENGTH:', insightsData?.length || 0);
 
       // Log API call results
       console.log('📊 API Results Summary:');
