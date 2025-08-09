@@ -1034,22 +1034,29 @@ export class GoogleBusinessProfileClient {
       
       // Build query parameters for the new API using CORRECT Performance API v1 DailyMetric values
       // NOTE: Performance API requires special access approval from Google
-      const queryParams = new URLSearchParams({
-        'dailyMetrics': [
-          'WEBSITE_CLICKS',
-          'CALL_CLICKS', 
-          'DIRECTION_REQUESTS',
-          'BUSINESS_IMPRESSIONS',
-          'BUSINESS_BOOKINGS',
-          'BUSINESS_FOOD_ORDERS'
-        ].join(','),
-        'dailyRange.startDate.year': dateRangeObj.start.split('-')[0],
-        'dailyRange.startDate.month': dateRangeObj.start.split('-')[1],
-        'dailyRange.startDate.day': dateRangeObj.start.split('-')[2],
-        'dailyRange.endDate.year': dateRangeObj.end.split('-')[0],
-        'dailyRange.endDate.month': dateRangeObj.end.split('-')[1],
-        'dailyRange.endDate.day': dateRangeObj.end.split('-')[2]
+      const queryParams = new URLSearchParams();
+      
+      // Add each metric as a separate parameter (API requires repeated params, not comma-separated)
+      const metrics = [
+        'WEBSITE_CLICKS',
+        'CALL_CLICKS', 
+        'DIRECTION_REQUESTS',
+        'BUSINESS_IMPRESSIONS',
+        'BUSINESS_BOOKINGS',
+        'BUSINESS_FOOD_ORDERS'
+      ];
+      
+      metrics.forEach(metric => {
+        queryParams.append('dailyMetrics', metric);
       });
+      
+      // Add date range parameters
+      queryParams.append('dailyRange.startDate.year', dateRangeObj.start.split('-')[0]);
+      queryParams.append('dailyRange.startDate.month', dateRangeObj.start.split('-')[1]);
+      queryParams.append('dailyRange.startDate.day', dateRangeObj.start.split('-')[2]);
+      queryParams.append('dailyRange.endDate.year', dateRangeObj.end.split('-')[0]);
+      queryParams.append('dailyRange.endDate.month', dateRangeObj.end.split('-')[1]);
+      queryParams.append('dailyRange.endDate.day', dateRangeObj.end.split('-')[2]);
 
       const fullEndpoint = `${endpoint}?${queryParams.toString()}`;
       
@@ -1266,8 +1273,8 @@ export class GoogleBusinessProfileClient {
     }
     
     return {
-      start: start.toISOString(),
-      end: end.toISOString()
+      start: start.toISOString().split('T')[0],  // Return YYYY-MM-DD format
+      end: end.toISOString().split('T')[0]      // Return YYYY-MM-DD format
     };
   }
 } 
