@@ -57,6 +57,13 @@ interface BusinessInfoEditorProps {
 }
 
 export default function BusinessInfoEditor({ locations, isConnected }: BusinessInfoEditorProps) {
+  // 🚨 DEBUG: Track component lifecycle
+  console.log('🔵 BusinessInfoEditor: Component render/re-render at', new Date().toISOString(), {
+    locationsCount: locations?.length,
+    isConnected,
+    locationsIds: locations?.map(l => l.id)
+  });
+  
   const [selectedLocationIds, setSelectedLocationIds] = useState<string[]>([]);
   const [isLocationDropdownOpen, setIsLocationDropdownOpen] = useState(false);
   const [businessInfo, setBusinessInfo] = useState<BusinessInfo>({

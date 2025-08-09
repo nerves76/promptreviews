@@ -624,6 +624,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setAccountLoading(false);
       setIsCheckingAccount(false);
+      console.log('✅ AuthContext: Account loading completed, accountLoading set to false');
     }
   }, [isCheckingAccount, lastAccountCheck]);
 
@@ -852,6 +853,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // REMOVED: Custom auto-refresh that was causing form resets
   // Supabase already handles session refresh automatically via autoRefreshToken: true
   // This built-in mechanism doesn't trigger state updates or cause form resets
+
+  // 🚨 SAFETY: Force clear loading states if they get stuck for more than 10 seconds
+  useEffect(() => {
+    if (isLoading || accountLoading) {
+      const timeout = setTimeout(() => {
+        console.warn('🚨 AuthContext: Loading states stuck, force clearing...', {
+          isLoading,
+          accountLoading,
+          timestamp: new Date().toISOString()
+        });
+        setIsLoading(false);
+        setAccountLoading(false);
+      }, 10000); // 10 seconds
+      
+      return () => clearTimeout(timeout);
+    }
+  }, [isLoading, accountLoading]);
 
   // Context value
   const value: AuthContextType = useMemo(() => ({
