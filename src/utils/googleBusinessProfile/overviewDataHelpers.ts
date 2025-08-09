@@ -477,13 +477,21 @@ export function formatPerformanceData(performanceData: any[], customerActions: a
  * Format NEW Performance API v1 response (multiDailyMetricsTimeSeries)
  */
 function formatNewPerformanceData(multiDailyMetrics: any[]): PerformanceData {
+  console.log('🔍 formatNewPerformanceData called with:', multiDailyMetrics?.length || 0, 'metrics');
+  
   let totalViews = 0;
   let totalWebsiteClicks = 0;
   let totalPhoneCalls = 0;
   let totalDirectionRequests = 0;
 
   // Process each daily metric time series
-  multiDailyMetrics.forEach((metricSeries: any) => {
+  multiDailyMetrics.forEach((metricSeries: any, index: number) => {
+    console.log(`🔍 Processing metric ${index + 1}:`, {
+      dailyMetric: metricSeries.dailyMetric,
+      hasTimeSeries: !!metricSeries.timeSeries,
+      hasValues: !!metricSeries.timeSeries?.dailyValues,
+      valuesCount: metricSeries.timeSeries?.dailyValues?.length || 0
+    });
     const dailyMetric = metricSeries.dailyMetric;
     const timeSeries = metricSeries.timeSeries;
     

@@ -1030,6 +1030,7 @@ export class GoogleBusinessProfileClient {
       
       // Get date range for the request
       const dateRangeObj = this.getDateRange(dateRange);
+      console.log('🔍 [NEW API] Date range:', dateRangeObj);
       
       // Build query parameters for the new API
       const queryParams = new URLSearchParams({
@@ -1053,6 +1054,7 @@ export class GoogleBusinessProfileClient {
       const fullEndpoint = `${endpoint}?${queryParams.toString()}`;
       
       console.log('🔍 [NEW API] Endpoint:', fullEndpoint);
+      console.log('🔍 [NEW API] Full URL being called:', `${this.config.baseUrl}${fullEndpoint}`);
 
       const response = await this.makeRequest(fullEndpoint, {
         method: 'GET'
@@ -1063,6 +1065,12 @@ export class GoogleBusinessProfileClient {
       
       console.log('✅ [NEW API] Successfully fetched performance data');
       console.log('🔍 [NEW API] Raw response:', JSON.stringify(response, null, 2));
+      console.log('🔍 [NEW API] Response structure:', {
+        hasMultiDailyMetricsTimeSeries: !!response.multiDailyMetricsTimeSeries,
+        metricsCount: response.multiDailyMetricsTimeSeries?.length || 0,
+        responseKeys: Object.keys(response || {}),
+        firstMetric: response.multiDailyMetricsTimeSeries?.[0] || 'none'
+      });
       
       // New API returns multiDailyMetricsTimeSeries array
       return response.multiDailyMetricsTimeSeries || [];
