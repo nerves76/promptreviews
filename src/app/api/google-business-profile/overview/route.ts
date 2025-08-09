@@ -6,7 +6,9 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/utils/supabaseClient';
+import { createServerClient } from '@supabase/ssr';
+import { createClient } from '@supabase/supabase-js';
+import { cookies } from 'next/headers';
 import { GoogleBusinessProfileClient } from '@/features/social-posting/platforms/google-business-profile/googleBusinessProfileClient';
 import { generateMockOverviewData } from '@/utils/googleBusinessProfile/overviewDataHelpers';
 
@@ -40,10 +42,27 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Get authenticated user
-    const supabase = createClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    // Get authenticated user using proper server client
+    const cookieStore = await cookies();
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          get: (name) => {
+            return cookieStore.get(name)?.value;
+          },
+          set: (name, value, options) => {
+            cookieStore.set({ name, value, ...options });
+          },
+          remove: (name, options) => {
+            cookieStore.set({ name, value: '', ...options });
+          },
+        },
+      }
+    );
 
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {
       console.error('❌ GMB Overview API: Authentication failed:', authError);
       return NextResponse.json(
@@ -54,29 +73,32 @@ export async function GET(request: NextRequest) {
 
     console.log('✅ GMB Overview API: User authenticated:', user.id);
 
-    // Get Google Business Profile credentials from database
-    const { data: platforms, error: platformError } = await supabase
-      .from('social_platforms')
+    // Create service role client for accessing OAuth tokens (bypasses RLS)
+    const serviceSupabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+
+    // Get Google Business Profile tokens using the correct table
+    const { data: tokens, error: tokenError } = await serviceSupabase
+      .from('google_business_profiles')
       .select('*')
       .eq('user_id', user.id)
-      .eq('platform_id', 'google-business-profile')
-      .eq('connected', true)
-      .single();
+      .maybeSingle();
 
-    if (platformError || !platforms) {
-      console.error('❌ GMB Overview API: No connected Google Business Profile found:', platformError);
+    if (tokenError || !tokens) {
+      console.error('❌ GMB Overview API: No Google Business Profile tokens found:', tokenError);
       return NextResponse.json(
         { success: false, error: 'Google Business Profile not connected' },
         { status: 404 }
       );
     }
 
-    console.log('✅ GMB Overview API: Found connected platform');
+    console.log('✅ GMB Overview API: Found Google Business Profile tokens');
 
-    // Decrypt credentials
-    const credentials = platforms.credentials;
-    if (!credentials?.access_token) {
-      console.error('❌ GMB Overview API: Invalid credentials');
+    // Check if we have valid credentials
+    if (!tokens.access_token) {
+      console.error('❌ GMB Overview API: Invalid access token');
       return NextResponse.json(
         { success: false, error: 'Invalid Google Business Profile credentials' },
         { status: 400 }
@@ -85,9 +107,9 @@ export async function GET(request: NextRequest) {
 
     // Initialize Google Business Profile client
     const gbpClient = new GoogleBusinessProfileClient({
-      accessToken: credentials.access_token,
-      refreshToken: credentials.refresh_token,
-      expiresAt: credentials.expires_at
+      accessToken: tokens.access_token,
+      refreshToken: tokens.refresh_token,
+      expiresAt: new Date(tokens.expires_at).getTime()
     });
 
     console.log('🔧 GMB Overview API: Client initialized, fetching overview data...');
