@@ -214,7 +214,7 @@ export default function KickstartersManagementModal({
               onClick={handleSave}
               className="px-4 py-2 bg-slate-blue text-white rounded-lg hover:bg-slate-blue-dark focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2 transition-colors"
             >
-              Save Selection
+              Save selection
             </button>
             <button
               onClick={onClose}
@@ -293,7 +293,7 @@ export default function KickstartersManagementModal({
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
                   <div className="flex items-center gap-2 mb-3">
                     <Icon name="FaPlus" className="text-blue-600" size={16} />
-                    <h3 className="font-medium text-blue-900">Add Custom Kickstarter</h3>
+                    <h3 className="font-medium text-blue-900">Add custom kickstarter</h3>
                   </div>
                   <div className="space-y-3">
                     <div>
@@ -335,7 +335,7 @@ export default function KickstartersManagementModal({
                         disabled={saving || !customQuestion.trim()}
                         className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        {saving ? 'Adding...' : 'Add Question'}
+                        {saving ? 'Adding...' : 'Add question'}
                       </button>
                       <button
                         onClick={() => {
@@ -419,7 +419,7 @@ export default function KickstartersManagementModal({
             <div className="p-6 h-full flex flex-col min-h-0">
               {/* Category Stats */}
               <div className="mb-4">
-                <h3 className="text-sm font-medium text-gray-900 mb-2">Selection by Category</h3>
+                <h3 className="text-sm font-medium text-gray-900 mb-2">Selection by category</h3>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                   {getCategoryStats().map(stat => (
                     <div key={stat.category} className="bg-gray-50 rounded-lg p-3 text-center">
@@ -437,7 +437,7 @@ export default function KickstartersManagementModal({
                   className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
                 >
                   <Icon name="FaPlus" className="w-4 h-4" size={16} />
-                  Add Custom Question
+                  Add custom question
                 </button>
               </div>
 
@@ -513,7 +513,7 @@ export default function KickstartersManagementModal({
                 onClick={handleSave}
                 className="px-4 py-2 bg-slate-blue text-white rounded-lg hover:bg-slate-blue-dark focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
               >
-                Save Selection
+                Save selection
               </button>
             </div>
           </div>

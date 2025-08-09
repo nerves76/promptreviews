@@ -257,7 +257,7 @@ export default function FeedbackModal({
             className="w-full text-white py-3 px-6 rounded-md hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-colors"
             style={{ backgroundColor: '#2E4A7D' }}
           >
-            {isSubmitting ? 'Sending...' : 'Send Feedback'}
+            {isSubmitting ? 'Sending...' : 'Send feedback'}
           </button>
         </form>
       </div>

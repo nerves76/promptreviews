@@ -448,7 +448,7 @@ export default function IndividualOutreach() {
                 <div>
                   <h2 className="text-2xl font-bold text-slate-blue mb-2 flex items-center gap-3">
                     <Icon name="FaStar" className="w-8 h-8 text-slate-blue" size={32} />
-                    Individual Prompt Pages
+                    Individual prompt pages
                   </h2>
                   <p className="text-sm text-gray-600">
                     These Prompt Pages are great for personalized outreach. For best results, send as a text.

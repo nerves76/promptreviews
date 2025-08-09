@@ -27,6 +27,7 @@ const GetReviewsDropdown: React.FC<GetReviewsDropdownProps> = ({
   onNavigate
 }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isSpinning, setIsSpinning] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const router = useRouter();
@@ -59,6 +60,16 @@ const GetReviewsDropdown: React.FC<GetReviewsDropdownProps> = ({
     }
   };
 
+  const handleDropdownToggle = () => {
+    setIsSpinning(true);
+    setIsOpen(!isOpen);
+    
+    // Stop spinning after animation completes
+    setTimeout(() => {
+      setIsSpinning(false);
+    }, 300);
+  };
+
   const isActive = (path: string) => {
     return pathname === path || pathname.startsWith(path + '/');
   };
@@ -74,7 +85,7 @@ const GetReviewsDropdown: React.FC<GetReviewsDropdownProps> = ({
       href: "/dashboard/contacts", 
       label: "Contacts",
       icon: "FaUsers",
-      description: "Manage customer contact lists"
+      description: "Upload and manage contacts"
     },
     {
       href: "/dashboard/reviews",
@@ -89,7 +100,7 @@ const GetReviewsDropdown: React.FC<GetReviewsDropdownProps> = ({
       {/* Dropdown Trigger Button */}
       <button
         ref={triggerRef}
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={handleDropdownToggle}
         className={`${
           isActive("/prompt-pages") || isActive("/dashboard/contacts") || isActive("/dashboard/reviews")
             ? "border-white text-white"
@@ -99,8 +110,10 @@ const GetReviewsDropdown: React.FC<GetReviewsDropdownProps> = ({
       >
         <span className="mr-1">Get reviews</span>
         <Icon 
-          name="FaCaretDown" 
-          className={`w-4 h-4 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} 
+          name="FaStar" 
+          className={`w-4 h-4 transition-transform duration-300 ${
+            isSpinning ? 'animate-spin' : ''
+          }`}
           size={16} 
         />
       </button>
