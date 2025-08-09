@@ -952,7 +952,7 @@ export default function SocialPostingDashboard() {
       >
         <div className="space-y-8">
           {/* Header */}
-          <div className="flex items-start justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between space-y-4 sm:space-y-0">
             <div className="text-left">
               <h1 className="text-3xl font-bold text-slate-blue mb-2">
                 Google Business Profiles
@@ -960,17 +960,57 @@ export default function SocialPostingDashboard() {
               <p className="text-gray-600">
                 Optimize your Google Business Profiles with Prompty power! Update regularly for best results.
               </p>
+              {/* Connection Status Indicator */}
+              {isConnected && (
+                <div className="mt-2 flex items-center space-x-2 text-sm">
+                  <div className="flex items-center space-x-1 text-green-600">
+                    <Icon name="FaCheck" className="w-3 h-3" />
+                    <span className="font-medium">Connected</span>
+                  </div>
+                  {locations.length > 0 && (
+                    <span className="text-gray-500">
+                      • {locations.length} location{locations.length !== 1 ? 's' : ''}
+                    </span>
+                  )}
+                </div>
+              )}
             </div>
-            {/* Full Editor Button */}
-            <a
-              href="https://business.google.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center space-x-2 px-4 py-2 text-sm text-slate-blue border border-slate-blue rounded-md hover:bg-slate-blue hover:text-white transition-colors"
-            >
-              <Icon name="FaGoogle" className="w-4 h-4" size={16} />
-              <span>Full Editor</span>
-            </a>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-3">
+              {/* Disconnect Button - Always visible when connected */}
+              {isConnected && (
+                <button
+                  onClick={() => setShowDisconnectConfirm(true)}
+                  disabled={isLoading}
+                  className={`w-full sm:w-auto px-3 py-2 rounded-md transition-colors text-sm flex items-center justify-center space-x-2 ${
+                    isLoading
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200'
+                      : 'text-red-600 border border-red-200 hover:bg-red-50'
+                  }`}
+                >
+                  {isLoading ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
+                      <span>Disconnecting...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Icon name="FaTimes" className="w-4 h-4" />
+                      <span>Disconnect</span>
+                    </>
+                  )}
+                </button>
+              )}
+              {/* Full Editor Button */}
+              <a
+                href="https://business.google.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full sm:w-auto flex items-center justify-center space-x-2 px-4 py-2 text-sm text-slate-blue border border-slate-blue rounded-md hover:bg-slate-blue hover:text-white transition-colors"
+              >
+                <Icon name="FaGoogle" className="w-4 h-4" size={16} />
+                <span>Full Editor</span>
+              </a>
+            </div>
           </div>
 
           {/* Tab Navigation */}
