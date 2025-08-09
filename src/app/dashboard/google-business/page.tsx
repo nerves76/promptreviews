@@ -976,30 +976,6 @@ export default function SocialPostingDashboard() {
               )}
             </div>
             <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-3">
-              {/* Disconnect Button - Always visible when connected */}
-              {isConnected && (
-                <button
-                  onClick={() => setShowDisconnectConfirm(true)}
-                  disabled={isLoading}
-                  className={`w-full sm:w-auto px-3 py-2 rounded-md transition-colors text-sm flex items-center justify-center space-x-2 ${
-                    isLoading
-                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200'
-                      : 'text-red-600 border border-red-200 hover:bg-red-50'
-                  }`}
-                >
-                  {isLoading ? (
-                    <>
-                      <div className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
-                      <span>Disconnecting...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Icon name="FaTimes" className="w-4 h-4" />
-                      <span>Disconnect</span>
-                    </>
-                  )}
-                </button>
-              )}
               {/* Full Editor Button */}
               <a
                 href="https://business.google.com"
@@ -1894,6 +1870,52 @@ export default function SocialPostingDashboard() {
             </div>
           )}
 
+
+          {/* Settings/Danger Zone - Bottom of page */}
+          {isConnected && (
+            <div className="border-t border-gray-200 pt-8">
+              <div className="max-w-2xl">
+                <h3 className="text-lg font-medium text-gray-900 mb-2">Connection Settings</h3>
+                <p className="text-sm text-gray-600 mb-4">
+                  Manage your Google Business Profile connection and account settings.
+                </p>
+                
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                  <div className="flex items-start space-x-3">
+                    <Icon name="FaExclamationTriangle" className="w-5 h-5 text-red-500 mt-0.5" />
+                    <div className="flex-1">
+                      <h4 className="text-sm font-medium text-red-800 mb-1">Danger Zone</h4>
+                      <p className="text-sm text-red-700 mb-3">
+                        Disconnecting will remove your Google Business Profile connection and all stored business locations. 
+                        You'll need to reconnect and fetch your locations again.
+                      </p>
+                      <button
+                        onClick={() => setShowDisconnectConfirm(true)}
+                        disabled={isLoading}
+                        className={`px-4 py-2 rounded-md transition-colors text-sm flex items-center space-x-2 ${
+                          isLoading
+                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200'
+                            : 'bg-red-600 text-white hover:bg-red-700'
+                        }`}
+                      >
+                        {isLoading ? (
+                          <>
+                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                            <span>Disconnecting...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Icon name="FaTimes" className="w-4 h-4" />
+                            <span>Disconnect Google Business Profile</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
         </div>
       </PageCard>
