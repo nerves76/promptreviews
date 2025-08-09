@@ -41,21 +41,21 @@ export default function DashboardLayout({
 
 
 
-  // DEBUG: Log authentication state
-  useEffect(() => {
-    if (process.env.NODE_ENV === 'development') {
-      console.log('🔍 Dashboard Layout State:', {
-        isInitialized,
-        isLoading,
-        hasUser: !!user,
-        userEmail: user?.email,
-        accountLoading,
-        hasAccount: !!account,
-        accountId: account?.id,
-        timestamp: new Date().toISOString()
-      });
-    }
-  }, [isInitialized, isLoading, user, accountLoading, account]);
+  // DEBUG: Log authentication state (DISABLED - was causing infinite re-renders)
+  // useEffect(() => {
+  //   if (process.env.NODE_ENV === 'development') {
+  //     console.log('🔍 Dashboard Layout State:', {
+  //       isInitialized,
+  //       isLoading,
+  //       hasUser: !!user,
+  //       userEmail: user?.email,
+  //       accountLoading,
+  //       hasAccount: !!account,
+  //       accountId: account?.id,
+  //       timestamp: new Date().toISOString()
+  //     });
+  //   }
+  // }, [isInitialized, isLoading, user, accountLoading, account]);
 
   // Show loading while AuthContext initializes
   if (!isInitialized) {
