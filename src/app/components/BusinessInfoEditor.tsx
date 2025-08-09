@@ -86,6 +86,8 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
   const [showServiceGenerator, setShowServiceGenerator] = useState(false);
   const [showDescriptionAnalyzer, setShowDescriptionAnalyzer] = useState(false);
   const [businessContext, setBusinessContext] = useState<any>(null);
+  const [formDataBackup, setFormDataBackup] = useState<BusinessInfo | null>(null);
+  const [showUnsavedWarning, setShowUnsavedWarning] = useState(false);
 
   // Note: Removed auto-selection to allow users to uncheck all locations
 
@@ -127,11 +129,17 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
     fetchBusinessContext();
   }, []);
 
-  // Reset details loaded state when selection changes
+  // Reset details loaded state when selection changes (but preserve form data if user has been editing)
   useEffect(() => {
-    setDetailsLoaded(false);
-    setDetailsError(null);
-  }, [selectedLocationIds]);
+    // Only reset if user hasn't made changes to the form
+    if (!hasChanges) {
+      setDetailsLoaded(false);
+      setDetailsError(null);
+    } else {
+      // If user has changes, just update the details loaded flag without clearing
+      console.log('🔒 Preserving form changes during location selection change');
+    }
+  }, [selectedLocationIds, hasChanges]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -146,13 +154,29 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isLocationDropdownOpen]);
 
+  // Restore form data if it gets unexpectedly reset while user has changes
+  useEffect(() => {
+    if (hasChanges && formDataBackup && 
+        businessInfo.description === '' && 
+        formDataBackup.description !== '') {
+      console.log('🔄 Detected form reset, restoring backed up data');
+      setBusinessInfo(formDataBackup);
+    }
+  }, [businessInfo, hasChanges, formDataBackup]);
+
   const handleInputChange = (field: keyof BusinessInfo, value: any) => {
-    setBusinessInfo(prev => ({
-      ...prev,
+    const newInfo = {
+      ...businessInfo,
       [field]: value
-    }));
+    };
+    
+    setBusinessInfo(newInfo);
     setHasChanges(true);
     setSaveResult(null);
+    
+    // Backup form data while user is actively editing
+    setFormDataBackup(newInfo);
+    console.log('💾 Backed up form data during edit');
   };
 
   const handleBusinessInfoLoaded = (loadedInfo: Partial<BusinessInfo>) => {
@@ -219,6 +243,8 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
           message: result.message || `Business information updated successfully for ${selectedLocationIds.length} location${selectedLocationIds.length !== 1 ? 's' : ''}!` 
         });
         setHasChanges(false);
+        setFormDataBackup(null); // Clear backup after successful save
+        console.log('✅ Form data saved and backup cleared');
       } else {
         setSaveResult({ 
           success: false, 
@@ -355,6 +381,19 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
 
   return (
     <div className="space-y-6">
+      {/* Unsaved Changes Warning */}
+      {hasChanges && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4">
+          <div className="flex items-center space-x-2">
+            <Icon name="FaExclamationTriangle" className="w-4 h-4 text-yellow-600" />
+            <span className="text-sm font-medium text-yellow-800">You have unsaved changes</span>
+          </div>
+          <p className="text-sm text-yellow-700 mt-1">
+            Your edits will be lost if you navigate away or refresh the page without saving.
+          </p>
+        </div>
+      )}
+
       {/* Header with Save & Publish button */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div className="flex-1 min-w-0">
