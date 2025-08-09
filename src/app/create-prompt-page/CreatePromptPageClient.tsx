@@ -19,7 +19,6 @@ import PhotoPromptPageForm from "../components/PhotoPromptPageForm";
 import EmployeePromptPageForm from "../components/EmployeePromptPageForm";
 import EventPromptPageForm from "../components/EventPromptPageForm";
 import FiveStarSpinner from "../components/FiveStarSpinner";
-import AppLoader from "../components/AppLoader";
 
 interface ReviewPlatformLink {
   platform: string;
