@@ -838,6 +838,8 @@ export default function SocialPostingDashboard() {
       const data = await response.json();
 
       if (data.success) {
+        console.log('📊 Overview data received:', data.data);
+        console.log('📊 Review trends structure:', data.data.reviewTrends);
         setOverviewData(data.data);
       } else {
         setOverviewError(data.error || 'Failed to fetch overview data');

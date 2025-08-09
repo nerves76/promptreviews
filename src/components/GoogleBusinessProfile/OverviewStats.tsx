@@ -162,7 +162,10 @@ export default function OverviewStats({
       {/* Review Progress Chart */}
       <div className="lg:col-span-2 bg-white rounded-lg border border-gray-200 p-6">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-slate-blue">Review Progress</h2>
+          <div>
+            <h2 className="text-xl font-bold text-slate-blue">Review Progress</h2>
+            <p className="text-sm text-gray-500">Last 12 months</p>
+          </div>
           <div className="flex items-center space-x-4">
             {/* Load Data Button - Always visible when onLoadData is provided */}
             {onLoadData && (
@@ -321,7 +324,10 @@ export default function OverviewStats({
         {/* Total Reviews */}
         <div className="bg-white rounded-lg border border-gray-200 p-6">
           <div className="flex items-center justify-between mb-2">
-            <h3 className="text-lg font-semibold text-slate-blue">Total Reviews</h3>
+            <div>
+              <h3 className="text-lg font-semibold text-slate-blue">Total Reviews</h3>
+              <p className="text-xs text-gray-500">All time</p>
+            </div>
             <Icon name="FaStar" className="w-6 h-6 text-slate-blue" />
           </div>
           <div className="flex items-end space-x-2">
@@ -334,7 +340,7 @@ export default function OverviewStats({
                   name={reviewTrend > 0 ? "MdArrowUpward" : "MdArrowDownward"} 
                   className="w-3 h-3 mr-1" 
                 />
-                {reviewTrend > 0 ? '+' : ''}{animatedReviewTrend}
+                {reviewTrend > 0 ? '+' : ''}{animatedReviewTrend} last 30 days
               </span>
             )}
           </div>
@@ -343,7 +349,10 @@ export default function OverviewStats({
         {/* Average Star Rating */}
         <div className="bg-white rounded-lg border border-gray-200 p-6">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-slate-blue">Average Star Rating</h3>
+            <div>
+              <h3 className="text-lg font-semibold text-slate-blue">Average Star Rating</h3>
+              <p className="text-xs text-gray-500">All time</p>
+            </div>
             <Icon name="FaStar" className="w-6 h-6 text-slate-blue" />
           </div>
           

@@ -337,7 +337,7 @@ export default function EventPromptPageForm({
         {campaignType === 'public' && (
           <div className="mb-6">
             <div className="mb-6 flex items-center gap-3">
-              <Icon name="MdEvent" className="w-7 h-7 text-slate-blue" />
+              <Icon name="FaCalendarAlt" className="w-7 h-7 text-slate-blue" />
               <h2 className="text-2xl font-bold text-slate-blue">
                 Prompt page name
               </h2>
@@ -378,7 +378,7 @@ export default function EventPromptPageForm({
         {/* Event Information */}
         <div>
           <div className="mb-4 flex items-center gap-2">
-            <Icon name="MdEvent" className="w-5 h-5 text-[#1A237E]" />
+            <Icon name="FaCalendarAlt" className="w-5 h-5 text-[#1A237E]" />
             <h2 className="text-xl font-semibold text-slate-blue">
               Event Information
             </h2>

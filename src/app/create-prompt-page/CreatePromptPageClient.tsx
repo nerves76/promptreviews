@@ -1354,7 +1354,7 @@ export default function CreatePromptPageClient({
       case "employee":
         return <Icon name="FaUser" className="w-9 h-9 text-slate-blue" size={36} />;
       case "event":
-        return <Icon name="MdEvent" className="w-9 h-9 text-slate-blue" size={36} />;
+        return <Icon name="FaCalendarAlt" className="w-9 h-9 text-slate-blue" size={36} />;
       default:
         return undefined; // No icon for fallback
     }
