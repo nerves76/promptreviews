@@ -161,8 +161,9 @@ export default function BusinessGuard({ children }: BusinessGuardProps) {
     }
 
     // If authenticated user doesn't have a business, redirect to create-business
+    // But add a delay to prevent redirects during session refresh or temporary auth issues
     if (!hasBusiness && pathname !== '/dashboard/create-business') {
-      console.log('🔄 BusinessGuard: No business found, redirecting to create-business', {
+      console.log('🔄 BusinessGuard: No business found, checking if redirect needed', {
         isAuthenticated,
         hasBusiness,
         isLoading,
@@ -171,7 +172,19 @@ export default function BusinessGuard({ children }: BusinessGuardProps) {
         pathname,
         timestamp: new Date().toISOString()
       });
-      router.push("/dashboard/create-business");
+      
+      // Add a small delay to allow auth state to stabilize after tab switching
+      // This prevents redirects during session refresh or temporary auth issues
+      setTimeout(() => {
+        // Double-check auth state after delay
+        if (isAuthenticated && !hasBusiness && pathname !== '/dashboard/create-business') {
+          console.log('🔄 BusinessGuard: Confirmed no business after delay, redirecting', {
+            pathname,
+            timestamp: new Date().toISOString()
+          });
+          router.push("/dashboard/create-business");
+        }
+      }, 1000); // 1 second delay to allow auth state to stabilize
       return;
     }
 

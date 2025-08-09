@@ -832,47 +832,17 @@ export default function SocialPostingDashboard() {
     setOverviewError(null);
 
     try {
-      console.log('🔍 Frontend: Making API call to overview endpoint...');
-      console.log('🔍 Frontend: Location ID:', locationId);
-      console.log('🔍 Frontend: Document cookies:', document.cookie.includes('sb-') ? 'Has Supabase cookies' : 'No Supabase cookies');
-      
-      // First check if we're authenticated
-      console.log('🔍 Frontend: Checking authentication status...');
-      const authResponse = await fetch('/api/debug-auth', {
+      const response = await fetch(`/api/google-business-profile/overview?locationId=${encodeURIComponent(locationId)}`, {
         credentials: 'same-origin'
       });
-      const authData = await authResponse.json();
-      console.log('🔍 Frontend: Auth status:', authData);
-      
-      if (!authData.hasUser) {
-        console.error('❌ Frontend: User not authenticated, aborting overview fetch');
-        setOverviewError('Please log in to view Google Business Profile data');
-        return;
-      }
-      
-      const response = await fetch(`/api/google-business-profile/overview?locationId=${encodeURIComponent(locationId)}`, {
-        credentials: 'same-origin',
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      });
-      
-      console.log('🔍 Frontend: Response status:', response.status);
-      console.log('🔍 Frontend: Response headers:', Object.fromEntries(response.headers.entries()));
-      
       const data = await response.json();
-      console.log('🔍 Frontend: Response data:', data);
 
       if (data.success) {
-        console.log('📊 Overview data received:', data.data);
-        console.log('📊 Review trends structure:', data.data.reviewTrends);
         setOverviewData(data.data);
       } else {
-        console.error('❌ Frontend: API returned error:', data);
         setOverviewError(data.error || 'Failed to fetch overview data');
       }
     } catch (error) {
-      console.error('❌ Frontend: Exception during fetch:', error);
       setOverviewError('Failed to fetch overview data');
     } finally {
       setOverviewLoading(false);
