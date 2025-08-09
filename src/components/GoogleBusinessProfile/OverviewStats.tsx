@@ -334,7 +334,7 @@ export default function OverviewStats({
                   name={reviewTrend > 0 ? "MdArrowUpward" : "MdArrowDownward"} 
                   className="w-3 h-3 mr-1" 
                 />
-                {reviewTrend > 0 ? '+' : ''}{reviewTrend}
+                {reviewTrend > 0 ? '+' : ''}{animatedReviewTrend}
               </span>
             )}
           </div>
@@ -371,14 +371,15 @@ export default function OverviewStats({
                   fill="transparent"
                   strokeDasharray={circumference}
                   strokeDashoffset={strokeDashoffset}
-                  className="text-green-500 transition-all duration-500 ease-in-out"
+                  className="text-green-500 transition-all duration-2000 ease-out"
+                  style={{ transitionDelay: isVisible ? '500ms' : '0ms' }}
                   strokeLinecap="round"
                 />
               </svg>
               {/* Rating Number */}
               <div className="absolute inset-0 flex items-center justify-center">
                 <span className="text-2xl font-bold text-gray-900">
-                  {averageRating.toFixed(1)}
+                  {animatedAverageRating.toFixed(1)}
                 </span>
               </div>
             </div>

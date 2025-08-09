@@ -7,7 +7,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Icon, { IconName } from '@/components/Icon';
 
 interface ProfileData {
@@ -59,6 +59,71 @@ interface BusinessHealthMetricsProps {
   onQuickAction?: (action: string, data?: any) => void;
 }
 
+// Custom hook for counting animation
+function useCountUp(end: number, duration: number = 2000, shouldAnimate: boolean = false) {
+  const [count, setCount] = useState(0);
+  
+  useEffect(() => {
+    if (!shouldAnimate) {
+      setCount(end);
+      return;
+    }
+    
+    let startTime: number;
+    let animationFrame: number;
+    
+    const animate = (currentTime: number) => {
+      if (!startTime) startTime = currentTime;
+      const progress = Math.min((currentTime - startTime) / duration, 1);
+      
+      // Easing function for smooth animation
+      const easeOutQuart = 1 - Math.pow(1 - progress, 4);
+      setCount(Math.floor(easeOutQuart * end));
+      
+      if (progress < 1) {
+        animationFrame = requestAnimationFrame(animate);
+      }
+    };
+    
+    animationFrame = requestAnimationFrame(animate);
+    
+    return () => {
+      if (animationFrame) {
+        cancelAnimationFrame(animationFrame);
+      }
+    };
+  }, [end, duration, shouldAnimate]);
+  
+  return count;
+}
+
+// Custom hook for intersection observer
+function useIntersectionObserver() {
+  const [isVisible, setIsVisible] = useState(false);
+  const [hasAnimated, setHasAnimated] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !hasAnimated) {
+          setIsVisible(true);
+          setHasAnimated(true);
+        }
+      },
+      { threshold: 0.1 }
+    );
+    
+    if (ref.current) {
+      observer.observe(ref.current);
+    }
+    
+    return () => observer.disconnect();
+  }, [hasAnimated]);
+  
+  return { ref, isVisible };
+}
+
 export default function BusinessHealthMetrics({
   locationId,
   profileData,
@@ -69,6 +134,9 @@ export default function BusinessHealthMetrics({
   onQuickAction
 }: BusinessHealthMetricsProps) {
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
+  
+  // Animation setup
+  const { ref: animationRef, isVisible } = useIntersectionObserver();
 
   // Calculate completion percentages
   const categoryCompletion = profileData?.categoriesUsed && profileData?.maxCategories 
@@ -144,7 +212,7 @@ export default function BusinessHealthMetrics({
   );
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div ref={animationRef} className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       {/* Profile Completeness */}
       <MetricCard 
         title="Profile Completeness" 
