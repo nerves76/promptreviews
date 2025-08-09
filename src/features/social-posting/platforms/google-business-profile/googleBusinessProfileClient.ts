@@ -939,6 +939,14 @@ export class GoogleBusinessProfileClient {
       const photosData = photos.status === 'fulfilled' ? photos.value : [];
       const postsData = localPosts.status === 'fulfilled' ? localPosts.value : [];
 
+      // Debug logging for failed API calls
+      console.log('📊 GBP API Results:');
+      console.log(`  Location Info: ${locationInfo.status} ${locationInfo.status === 'rejected' ? '❌ ' + locationInfo.reason : '✅'}`);
+      console.log(`  Reviews: ${reviews.status} ${reviews.status === 'rejected' ? '❌ ' + reviews.reason : `✅ ${reviewsData.length} reviews`}`);
+      console.log(`  Insights: ${insights.status} ${insights.status === 'rejected' ? '❌ ' + insights.reason : `✅ ${insightsData.length} insights`}`);
+      console.log(`  Photos: ${photos.status} ${photos.status === 'rejected' ? '❌ ' + photos.reason : `✅ ${photosData.length} photos`}`);
+      console.log(`  Posts: ${localPosts.status} ${localPosts.status === 'rejected' ? '❌ ' + localPosts.reason : `✅ ${postsData.length} posts`}`);
+
       // Use helper functions to process the data
       const { 
         calculateProfileCompleteness, 

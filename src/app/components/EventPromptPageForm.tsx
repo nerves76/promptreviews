@@ -76,16 +76,8 @@ export default function EventPromptPageForm({
     fallingEnabled: initialData.fallingEnabled ?? initialData.falling_enabled ?? true,
     show_friendly_note: initialData.show_friendly_note ?? false,
     recent_reviews_enabled: initialData.recent_reviews_enabled ?? false,
-    // Event-specific fields (using eve_ prefix)
-    eve_name: initialData.eve_name || '',
-    eve_date: initialData.eve_date || '',
-    eve_type: initialData.eve_type || '',
-    eve_location: initialData.eve_location || '',
-    eve_description: initialData.eve_description || '',
-    eve_duration: initialData.eve_duration || '',
-    eve_organizer: initialData.eve_organizer || '',
-    eve_special_features: Array.isArray(initialData.eve_special_features) ? initialData.eve_special_features : [''],
-    eve_review_guidance: initialData.eve_review_guidance || '',
+    // Event pages now use standard prompt page fields
+    // Note: Event-specific fields (eve_*) were removed from database schema
   };
   
   const [formData, setFormData] = useState(safeInitialData);
@@ -128,7 +120,7 @@ export default function EventPromptPageForm({
     setFormData((prev: any) => ({ ...prev, [field]: value }));
   };
 
-  // Handle array field updates (event special features)
+  // Handle array field updates (event highlights)
   const updateArrayField = (fieldName: string, index: number, value: string) => {
     const currentArray = formData[fieldName] || [];
     const newArray = [...currentArray];
@@ -209,7 +201,7 @@ export default function EventPromptPageForm({
   const validateForm = () => {
     const errors = [];
     
-    if (!formData.eve_name?.trim()) {
+    if (!formData.client_name?.trim()) {
       errors.push('Event name is required');
     }
     
@@ -502,7 +494,7 @@ export default function EventPromptPageForm({
             {/* Event Special Features */}
             <div>
               <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-                Special Features
+                Event Highlights
                 <div className="group relative">
                   <Icon name="FaRobot" className="w-4 h-4 text-slate-blue cursor-help" size={16} />
                   <div className="absolute left-0 bottom-6 bg-gray-800 text-white text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10">

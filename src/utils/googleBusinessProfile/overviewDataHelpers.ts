@@ -113,12 +113,26 @@ export function processReviewTrends(reviews: any[]): ReviewTrendsData {
   const now = new Date();
   const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
   
+  // Debug: Log first few reviews to see their structure
+  if (reviews.length > 0) {
+    console.log('📊 Sample review structure:', reviews[0]);
+    console.log('📊 Available review fields:', Object.keys(reviews[0]));
+  }
+  
   // Calculate average rating
   const ratingsSum = reviews.reduce((sum, review) => {
-    const rating = parseInt(review.starRating) || 0;
+    // Try different possible rating field names
+    const rating = parseInt(review.starRating) || 
+                   parseInt(review.rating) || 
+                   parseInt(review.star_rating) || 
+                   parseFloat(review.starRating) || 
+                   parseFloat(review.rating) || 0;
+    console.log(`📊 Review rating: ${rating} (from starRating: ${review.starRating}, rating: ${review.rating})`);
     return sum + rating;
   }, 0);
   const averageRating = totalReviews > 0 ? ratingsSum / totalReviews : 0;
+  
+  console.log(`📊 Rating calculation: ${ratingsSum} / ${totalReviews} = ${averageRating}`);
 
   // Calculate review trend (new reviews in last 30 days)
   const recentReviews = reviews.filter(review => {
