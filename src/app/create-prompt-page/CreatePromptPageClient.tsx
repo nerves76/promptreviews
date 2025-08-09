@@ -1164,7 +1164,6 @@ export default function CreatePromptPageClient({
         (insertData as any).eve_location = (formData as any).eve_location || '';
         (insertData as any).eve_description = (formData as any).eve_description || '';
         (insertData as any).eve_duration = (formData as any).eve_duration || '';
-        (insertData as any).eve_capacity = (formData as any).eve_capacity || null;
         (insertData as any).eve_organizer = (formData as any).eve_organizer || '';
         (insertData as any).eve_special_features = (formData as any).eve_special_features || [];
         (insertData as any).eve_review_guidance = (formData as any).eve_review_guidance || '';

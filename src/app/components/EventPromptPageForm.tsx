@@ -83,7 +83,6 @@ export default function EventPromptPageForm({
     eve_location: initialData.eve_location || '',
     eve_description: initialData.eve_description || '',
     eve_duration: initialData.eve_duration || '',
-    eve_capacity: initialData.eve_capacity || '',
     eve_organizer: initialData.eve_organizer || '',
     eve_special_features: Array.isArray(initialData.eve_special_features) ? initialData.eve_special_features : [''],
     eve_review_guidance: initialData.eve_review_guidance || '',
@@ -470,13 +469,12 @@ export default function EventPromptPageForm({
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Capacity (optional)
+                  Organizer
                 </label>
                 <Input
-                  type="number"
-                  placeholder="50, 200, 1000"
-                  value={formData.eve_capacity}
-                  onChange={(e) => updateFormData('eve_capacity', parseInt(e.target.value) || '')}
+                  placeholder="Your company name or organizing team"
+                  value={formData.eve_organizer}
+                  onChange={(e) => updateFormData('eve_organizer', e.target.value)}
                 />
               </div>
             </div>
@@ -500,23 +498,6 @@ export default function EventPromptPageForm({
               />
             </div>
 
-            {/* Event Organizer */}
-            <div>
-              <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-                Event Organizer
-                <div className="group relative">
-                  <Icon name="FaRobot" className="w-4 h-4 text-slate-blue cursor-help" size={16} />
-                  <div className="absolute left-0 bottom-6 bg-gray-800 text-white text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10">
-                    AI mentions organizer in review content
-                  </div>
-                </div>
-              </label>
-              <Input
-                placeholder="Your company name or organizing team"
-                value={formData.eve_organizer}
-                onChange={(e) => updateFormData('eve_organizer', e.target.value)}
-              />
-            </div>
 
             {/* Event Special Features */}
             <div>
