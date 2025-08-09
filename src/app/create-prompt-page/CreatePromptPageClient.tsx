@@ -905,33 +905,38 @@ export default function CreatePromptPageClient({
           try {
             console.log('🔍 Creating contact for prompt page:', data.id);
             
+            const contactPayload = {
+              promptPageData: {
+                first_name: formData.first_name,
+                last_name: formData.last_name,
+                email: formData.email,
+                phone: formData.phone,
+                business_name: formData.business_name,
+                role: formData.role,
+                address_line1: formData.address_line1,
+                address_line2: formData.address_line2,
+                city: formData.city,
+                state: formData.state,
+                postal_code: formData.postal_code,
+                country: formData.country,
+                category: formData.category,
+                notes: formData.notes,
+              },
+              promptPageId: data.id
+            };
+            console.log('📤 Sending contact data:', contactPayload);
+            
             const contactResponse = await fetch('/api/contacts/create-from-prompt-page', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
               },
-              body: JSON.stringify({
-                promptPageData: {
-                  first_name: formData.first_name,
-                  last_name: formData.last_name,
-                  email: formData.email,
-                  phone: formData.phone,
-                  business_name: formData.business_name,
-                  role: formData.role,
-                  address_line1: formData.address_line1,
-                  address_line2: formData.address_line2,
-                  city: formData.city,
-                  state: formData.state,
-                  postal_code: formData.postal_code,
-                  country: formData.country,
-                  category: formData.category,
-                  notes: formData.notes,
-                },
-                promptPageId: data.id
-              }),
+              body: JSON.stringify(contactPayload),
             });
 
+            console.log('📡 Contact API response status:', contactResponse.status);
+            
             if (contactResponse.ok) {
               const contactResult = await contactResponse.json();
               console.log('✅ Contact created successfully:', contactResult);
@@ -940,14 +945,16 @@ export default function CreatePromptPageClient({
               const contactName = `${formData.first_name} ${formData.last_name || ''}`.trim();
               setSaveSuccess(`Prompt page created successfully! Contact '${contactName}' was also created.`);
             } else {
-              console.error('❌ Failed to create contact:', await contactResponse.text());
+              const errorText = await contactResponse.text();
+              console.error('❌ Failed to create contact - Status:', contactResponse.status);
+              console.error('❌ Failed to create contact - Error:', errorText);
               // Don't fail the entire operation if contact creation fails
-              setSaveSuccess("Prompt page created successfully!");
+              setSaveSuccess("Prompt page created successfully, but contact creation failed. Check console for details.");
             }
           } catch (contactError) {
-            console.error('❌ Error creating contact:', contactError);
+            console.error('❌ Error creating contact (network/fetch error):', contactError);
             // Don't fail the entire operation if contact creation fails
-            setSaveSuccess("Prompt page created successfully!");
+            setSaveSuccess("Prompt page created successfully, but contact creation failed. Check console for details.");
           }
         } else {
           setSaveSuccess("Prompt page created successfully!");
