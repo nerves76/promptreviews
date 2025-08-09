@@ -114,27 +114,63 @@ export async function GET(request: NextRequest) {
 
     console.log('🔧 GMB Overview API: Client initialized, fetching overview data...');
 
-    // Get business data from database like other working tabs do
+    // Get business data from Google APIs (same pattern as Business Info tab)
     try {
-      // Get all location data from database (same as working tabs)
-      const { data: allLocations, error: locationError } = await serviceSupabase
-        .from('google_business_locations')
-        .select('*')
-        .eq('user_id', user.id);
-
-      console.log('📍 All locations from database:', allLocations?.length || 0);
+      // Use the same successful pattern as business-information/location-details
+      console.log('🔍 Fetching accounts to find location details...');
       
-      // Find the specific location - try different possible field matches
-      const locationData = allLocations?.find(loc => 
-        loc.location_id === locationId || 
-        loc.name === locationId ||
-        loc.location_name === locationId ||
-        loc.id === locationId
-      );
+      const accounts = await gbpClient.listAccounts();
+      console.log(`✅ Found ${accounts.length} accounts`);
+      
+      let foundLocation = null;
+      
+      // Search through all accounts to find the location (same as Business Info)
+      for (const account of accounts) {
+        try {
+          console.log(`🔍 Checking account: ${account.name}`);
+          const locations = await gbpClient.listLocations(account.name);
+          console.log(`📍 Account ${account.name} has ${locations.length} locations:`, 
+            locations.map(loc => ({ name: loc.name, title: loc.title })));
+          
+          // Find the matching location
+          console.log(`🔍 Searching for location ID: "${locationId}"`);
+          console.log(`🔍 Available location names in this account:`, locations.map(loc => `"${loc.name}"`));
+          
+          foundLocation = locations.find(loc => {
+            const matches = loc.name === locationId;
+            console.log(`🔍 Comparing "${loc.name}" === "${locationId}" = ${matches}`);
+            return matches;
+          });
+          
+          if (foundLocation) {
+            console.log('✅ Found location with complete Google data:', foundLocation.name);
+            break;
+          } else {
+            console.log(`⚠️ Location ${locationId} not found in account ${account.name}`);
+            
+            // Try alternative matching approaches
+            const cleanLocationId = locationId.replace('locations/', '');
+            const altFound = locations.find(loc => {
+              const cleanLocName = loc.name.replace('locations/', '');
+              const altMatches = cleanLocName === cleanLocationId;
+              console.log(`🔍 Alternative match: "${cleanLocName}" === "${cleanLocationId}" = ${altMatches}`);
+              return altMatches;
+            });
+            
+            if (altFound) {
+              console.log('✅ Found location with alternative matching:', altFound.name);
+              foundLocation = altFound;
+              break;
+            }
+          }
+        } catch (accountError) {
+          console.log(`⚠️ Error checking account ${account.name}:`, accountError);
+          // Continue with other accounts
+        }
+      }
 
-      console.log('📍 Matched location:', locationData ? 'Found' : 'Not found');
-      console.log('📍 Looking for locationId:', locationId);
-      console.log('📍 Available location fields:', allLocations?.[0] ? Object.keys(allLocations[0]) : 'None');
+      const locationData = foundLocation;
+      console.log('📍 Final location data:', locationData ? 'Complete Google object found' : 'Not found');
 
       // Get reviews via API (this is working)
       const reviewsData = await gbpClient.getReviews(locationId);
@@ -148,17 +184,29 @@ export async function GET(request: NextRequest) {
         formatPerformanceData 
       } = await import('@/utils/googleBusinessProfile/overviewDataHelpers');
 
-      // Debug the location data structure
-      if (locationData) {
-        console.log('📍 Location data structure:', JSON.stringify(locationData, null, 2));
-      }
-
-      // Use location data from database for profile completeness
+      // Use complete Google location data for profile completeness (same as Business Info)
       const profileData = locationData ? 
         calculateProfileCompleteness(locationData, [], []) : 
         { categoriesUsed: 0, maxCategories: 10, servicesCount: 0, servicesWithDescriptions: 0, businessDescriptionLength: 0, businessDescriptionMaxLength: 750, seoScore: 0, photosByCategory: {} };
 
-      console.log('📊 Calculated profile data:', profileData);
+      console.log('📊 Profile completeness calculated:', {
+        categoriesUsed: profileData.categoriesUsed,
+        servicesCount: profileData.servicesCount,
+        servicesWithDescriptions: profileData.servicesWithDescriptions,
+        descriptionLength: profileData.businessDescriptionLength,
+        seoScore: profileData.seoScore
+      });
+
+      if (!locationData) {
+        console.log('❌ Location not found in any account');
+        console.log('🔍 Requested location ID:', locationId);
+        
+        return NextResponse.json({
+          success: false,
+          error: 'Location not found',
+          message: `The requested location "${locationId}" was not found in your Google Business Profile accounts.`
+        }, { status: 404 });
+      }
 
       const reviewTrends = processReviewTrends(reviewsData);
 
@@ -182,9 +230,7 @@ export async function GET(request: NextRequest) {
         }
       };
 
-      const optimizationOpportunities = locationData ? 
-        identifyOptimizationOpportunities(locationData, profileData, engagementData, []) : 
-        [];
+      const optimizationOpportunities = identifyOptimizationOpportunities(locationData, profileData, engagementData, []);
 
       const overviewData = {
         profileData,
