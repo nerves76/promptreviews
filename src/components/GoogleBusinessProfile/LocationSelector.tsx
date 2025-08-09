@@ -80,7 +80,7 @@ export default function LocationSelector({
   return (
     <div className={`location-selector-dropdown relative ${className}`}>
       <label className="block text-sm font-medium text-gray-700 mb-2">
-        Business Location
+        Select business
       </label>
       
       <button
