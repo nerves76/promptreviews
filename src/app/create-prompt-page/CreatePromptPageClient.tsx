@@ -1,7 +1,6 @@
 "use client";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect, useRef, Suspense } from "react";
-import Link from "next/link";
 import { generateContextualReview, generateContextualTestimonial } from "@/utils/aiReviewGeneration";
 import Icon from "@/components/Icon";
 import { checkAccountLimits } from "@/utils/accountLimits";
@@ -247,14 +246,23 @@ export default function CreatePromptPageClient({
         let retryCount = 0;
         const maxRetries = isPostBusinessCreation ? 5 : 3; // More retries after business creation
         
-        // Use the centralized account selection logic to ensure consistency
-        const accountId = await getAccountIdForUser(user.id, supabase);
-        if (!accountId) {
+        // First, get the user's account_id from account_users table
+        const { data: accountUser, error: accountError } = await supabase
+          .from("account_users")
+          .select("account_id")
+          .eq("user_id", user.id)
+          .single();
+          
+        if (accountError) {
+          console.error("🎯 Error fetching account_id:", accountError);
+          throw new Error(`Failed to get account for user: ${accountError.message}`);
+        }
+        
+        if (!accountUser?.account_id) {
           console.error("🎯 No account found for user:", user.id);
           throw new Error("No account found for user");
         }
         
-        const accountUser = { account_id: accountId };
         console.log("🔑 Using account_id:", accountUser.account_id, "for user:", user.id);
         
         while (retryCount < maxRetries && !businessData && !businessError) {
@@ -895,46 +903,9 @@ export default function CreatePromptPageClient({
         }
         
         // Auto-create contact for individual prompt pages
-        console.log('=== CONTACT CREATION CHECKPOINT ===');
-        console.log('🔍 localStorage campaign_type:', localStorage.getItem('campaign_type'));
-        console.log('🔍 formData campaign_type:', formData.campaign_type);
-        console.log('🔍 Checking contact creation conditions:', {
-          campaign_type: formData.campaign_type,
-          first_name: formData.first_name,
-          first_name_exists: !!formData.first_name,
-          first_name_length: formData.first_name?.length,
-          review_type: formData.review_type,
-          shouldCreate: formData.first_name && (formData.campaign_type === 'individual' || formData.campaign_type === 'public'),
-          allFormData: formData
-        });
-        console.log('=== END CHECKPOINT ===');
-        
-        if (formData.first_name && (formData.campaign_type === 'individual' || formData.campaign_type === 'public')) {
+        if (formData.campaign_type === 'individual' && formData.first_name) {
           try {
             console.log('🔍 Creating contact for prompt page:', data.id);
-            console.log('🚨 CONTACT CREATION STARTING - THIS SHOULD BE VISIBLE');
-            alert('Contact creation starting - check console for details');
-            
-            const contactPayload = {
-              promptPageData: {
-                first_name: formData.first_name,
-                last_name: formData.last_name,
-                email: formData.email,
-                phone: formData.phone,
-                business_name: formData.business_name,
-                role: formData.role,
-                address_line1: formData.address_line1,
-                address_line2: formData.address_line2,
-                city: formData.city,
-                state: formData.state,
-                postal_code: formData.postal_code,
-                country: formData.country,
-                category: formData.category,
-                notes: formData.notes,
-              },
-              promptPageId: data.id
-            };
-            console.log('📤 Sending contact data:', contactPayload);
             
             const contactResponse = await fetch('/api/contacts/create-from-prompt-page', {
               method: 'POST',
@@ -942,11 +913,27 @@ export default function CreatePromptPageClient({
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
               },
-              body: JSON.stringify(contactPayload),
+              body: JSON.stringify({
+                promptPageData: {
+                  first_name: formData.first_name,
+                  last_name: formData.last_name,
+                  email: formData.email,
+                  phone: formData.phone,
+                  business_name: formData.business_name,
+                  role: formData.role,
+                  address_line1: formData.address_line1,
+                  address_line2: formData.address_line2,
+                  city: formData.city,
+                  state: formData.state,
+                  postal_code: formData.postal_code,
+                  country: formData.country,
+                  category: formData.category,
+                  notes: formData.notes,
+                },
+                promptPageId: data.id
+              }),
             });
 
-            console.log('📡 Contact API response status:', contactResponse.status);
-            
             if (contactResponse.ok) {
               const contactResult = await contactResponse.json();
               console.log('✅ Contact created successfully:', contactResult);
@@ -955,16 +942,14 @@ export default function CreatePromptPageClient({
               const contactName = `${formData.first_name} ${formData.last_name || ''}`.trim();
               setSaveSuccess(`Prompt page created successfully! Contact '${contactName}' was also created.`);
             } else {
-              const errorText = await contactResponse.text();
-              console.error('❌ Failed to create contact - Status:', contactResponse.status);
-              console.error('❌ Failed to create contact - Error:', errorText);
+              console.error('❌ Failed to create contact:', await contactResponse.text());
               // Don't fail the entire operation if contact creation fails
-              setSaveSuccess("Prompt page created successfully, but contact creation failed. Check console for details.");
+              setSaveSuccess("Prompt page created successfully!");
             }
           } catch (contactError) {
-            console.error('❌ Error creating contact (network/fetch error):', contactError);
+            console.error('❌ Error creating contact:', contactError);
             // Don't fail the entire operation if contact creation fails
-            setSaveSuccess("Prompt page created successfully, but contact creation failed. Check console for details.");
+            setSaveSuccess("Prompt page created successfully!");
           }
         } else {
           setSaveSuccess("Prompt page created successfully!");
@@ -1636,8 +1621,8 @@ export default function CreatePromptPageClient({
           {isLoadingBusinessProfile ? (
             <div className="flex items-center justify-center min-h-[400px]">
               <div className="text-center">
-                <FiveStarSpinner size={24} />
-                <p className="mt-4 text-gray-600">Loading...</p>
+                <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-slate-blue"></div>
+                <p className="mt-4 text-gray-600">Loading business profile...</p>
               </div>
             </div>
           ) : (
