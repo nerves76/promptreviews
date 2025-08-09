@@ -274,6 +274,12 @@ export default function BusinessHealthMetrics({
                 <span className="text-xs font-medium text-gray-900">{profileData?.seoScore || 0}/10</span>
               </div>
               <ProgressBar percentage={businessDescriptionCompletion} className="bg-purple-500" />
+              {(profileData?.businessDescriptionLength || 0) < 250 && (
+                <div className="mt-2 p-2 bg-amber-50 border border-amber-200 rounded text-xs text-amber-700">
+                  💡 <strong>Tip:</strong> Users only see the first 250 characters before "Read more". 
+                  Aim for 250+ characters to maximize visibility.
+                </div>
+              )}
             </div>
 
             {/* Photos */}
