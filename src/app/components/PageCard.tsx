@@ -107,7 +107,7 @@ export default function PageCard({
         )}
         {/* Top-right action button */}
         {topRightAction && (
-          <div className="absolute top-4 right-4 sm:right-8 z-20">
+          <div className="absolute top-4 right-4 sm:right-8 z-20 hidden sm:block">
             {topRightAction}
           </div>
         )}

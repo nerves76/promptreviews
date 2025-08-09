@@ -13,6 +13,7 @@ import PageCard from "@/app/components/PageCard";
 import WelcomePopup from "@/app/components/WelcomePopup";
 import Icon from "@/components/Icon";
 import { ensureAccountExists, getAccountIdForUser } from "@/utils/accountUtils";
+import { OptimizedSpinner } from "@/app/components/OptimizedComponents";
 
 
 export default function CreateBusinessClient() {
@@ -276,20 +277,34 @@ export default function CreateBusinessClient() {
         >
           <div className="max-w-4xl mx-auto">
             {/* Welcome Message */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 w-full gap-2 relative">
-              <h1 className="text-4xl font-bold flex items-center gap-3 text-slate-blue pt-2">
-                <Icon name="FaStore" size={32} className="text-slate-blue" />
-                Create your business profile
-              </h1>
-            </div>
-            
-            <div className="mb-8">
-              <h2 className="text-xl font-bold text-slate-blue">
-                Welcome! Let's get started
-              </h2>
-              <p className="mt-2 text-sm text-gray-600 max-w-[650px]">
-                Let's create your business profile so you can start collecting reviews and growing your reputation online.
-              </p>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 w-full gap-4 relative">
+              <div className="flex-1">
+                <h1 className="text-4xl font-bold flex items-center gap-3 text-slate-blue pt-2">
+                  <Icon name="FaStore" size={32} className="text-slate-blue" />
+                  Create your business profile
+                </h1>
+                <div className="mt-6">
+                  <h2 className="text-xl font-bold text-slate-blue">
+                    Welcome! Let's get started
+                  </h2>
+                  <p className="mt-2 text-sm text-gray-600 max-w-[650px]">
+                    Let's create your business profile so you can start collecting reviews and growing your reputation online.
+                  </p>
+                </div>
+              </div>
+              
+              {/* Mobile button - shows on small screens */}
+              <div className="block sm:hidden w-full mt-4">
+                <button
+                  type="button"
+                  onClick={handleTopButtonClick}
+                  disabled={isSubmitting}
+                  className="w-full bg-slate-blue text-white py-3 px-6 rounded-lg hover:bg-slate-blue/90 transition-all duration-200 font-semibold disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg"
+                >
+                  {isSubmitting && <OptimizedSpinner size="sm" className="text-white" />}
+                  {isSubmitting ? "Creating..." : "Create Business"}
+                </button>
+              </div>
             </div>
 
             {/* Business Form */}
