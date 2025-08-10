@@ -53,6 +53,15 @@ export default function SocialPostingDashboard() {
     }
     return [];
   });
+
+  // Track whether user has attempted to fetch locations before
+  const [hasAttemptedFetch, setHasAttemptedFetch] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('google-business-fetch-attempted');
+      return stored === 'true';
+    }
+    return false;
+  });
   
   const [selectedLocations, setSelectedLocations] = useState<string[]>(() => {
     if (typeof window !== 'undefined') {
@@ -85,6 +94,9 @@ export default function SocialPostingDashboard() {
   const [rateLimitedUntil, setRateLimitedUntil] = useState<number | null>(null);
   const [showDisconnectConfirm, setShowDisconnectConfirm] = useState(false);
   const [isLoadingPlatforms, setIsLoadingPlatforms] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [isImportingReviews, setIsImportingReviews] = useState(false);
+  const [importResult, setImportResult] = useState<{ success: boolean; message: string; count?: number } | null>(null);
   const loadingRef = useRef(false); // More persistent loading prevention
   const initialLoadDone = useRef(false); // Track if initial load has been completed
 
@@ -103,12 +115,12 @@ export default function SocialPostingDashboard() {
   }, [imageUrls]);
 
   // Tab state with URL parameter support and dynamic default based on connection
-  const [activeTab, setActiveTab] = useState<'connect' | 'overview' | 'post' | 'photos' | 'business-info' | 'reviews'>(() => {
+  const [activeTab, setActiveTab] = useState<'connect' | 'overview' | 'create-post' | 'respond-reviews' | 'business-info' | 'reviews'>(() => {
     // Initialize from URL parameter if available
     if (typeof window !== 'undefined') {
       const urlParams = new URLSearchParams(window.location.search);
-      const tabParam = urlParams.get('tab') as 'connect' | 'overview' | 'post' | 'photos' | 'business-info' | 'reviews';
-      if (tabParam && ['connect', 'overview', 'post', 'photos', 'business-info', 'reviews'].includes(tabParam)) {
+      const tabParam = urlParams.get('tab') as 'connect' | 'overview' | 'create-post' | 'respond-reviews' | 'business-info' | 'reviews';
+      if (tabParam && ['connect', 'overview', 'create-post', 'respond-reviews', 'business-info', 'reviews'].includes(tabParam)) {
         return tabParam;
       }
     }
@@ -135,7 +147,7 @@ export default function SocialPostingDashboard() {
   }, [isConnected, isLoading]);
 
   // Update URL when tab changes
-  const changeTab = (newTab: 'connect' | 'overview' | 'post' | 'photos' | 'business-info' | 'reviews') => {
+  const changeTab = (newTab: 'connect' | 'overview' | 'create-post' | 'respond-reviews' | 'business-info' | 'reviews') => {
     setActiveTab(newTab);
     setIsMobileMenuOpen(false); // Close mobile menu when tab changes
     
@@ -285,12 +297,13 @@ export default function SocialPostingDashboard() {
     }
   }, [activeTab, selectedLocationId, isConnected]);
 
-  // Switch to overview tab when connected and on connect tab
-  useEffect(() => {
-    if (isConnected && activeTab === 'connect' && locations.length > 0) {
-      changeTab('overview');
-    }
-  }, [isConnected, activeTab, locations.length]);
+  // REMOVED: Auto-switch to overview tab - let users stay on the tab they choose
+  // This was causing confusion when users fetched locations and got moved away from Connect tab
+  // useEffect(() => {
+  //   if (isConnected && activeTab === 'connect' && locations.length > 0) {
+  //     changeTab('overview');
+  //   }
+  // }, [isConnected, activeTab, locations.length]);
 
   // Simplified platform loading - no API validation calls
   const loadPlatforms = useCallback(async () => {
@@ -541,6 +554,12 @@ export default function SocialPostingDashboard() {
       const remainingTime = Math.ceil((rateLimitedUntil - Date.now()) / 1000);
       alert(`Rate limited. Please wait ${remainingTime} more seconds.`);
       return;
+    }
+    
+    // Mark that user has attempted to fetch locations
+    setHasAttemptedFetch(true);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('google-business-fetch-attempted', 'true');
     }
 
     // Warn user about the wait time
@@ -961,6 +980,58 @@ export default function SocialPostingDashboard() {
     }
   };
 
+  // Handle importing reviews from Google Business Profile
+  const handleImportReviews = async (type: 'all' | 'new') => {
+    if (!selectedLocationId) {
+      setImportResult({ success: false, message: 'Please select a location first' });
+      return;
+    }
+
+    setIsImportingReviews(true);
+    setImportResult(null);
+
+    try {
+      console.log(`🔄 Importing ${type} reviews for location:`, selectedLocationId);
+      
+      const response = await fetch('/api/google-business-profile/import-reviews', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          locationId: selectedLocationId,
+          importType: type
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        setImportResult({ 
+          success: true, 
+          message: result.message || 'Reviews imported successfully!',
+          count: result.count
+        });
+        console.log('✅ Reviews imported successfully:', result.count);
+      } else {
+        setImportResult({ 
+          success: false, 
+          message: result.error || 'Failed to import reviews'
+        });
+        console.error('❌ Failed to import reviews:', result.error);
+      }
+    } catch (error) {
+      console.error('❌ Error importing reviews:', error);
+      setImportResult({ 
+        success: false, 
+        message: 'Failed to import reviews. Please try again.' 
+      });
+    } finally {
+      setIsImportingReviews(false);
+    }
+  };
+
   if (isLoading || isPostOAuthConnecting || isLoadingPlatforms) {
     return (
       <div className="w-full mx-auto px-4 sm:px-6 md:px-8 lg:px-12 mt-12 md:mt-16 lg:mt-20 mb-16 flex justify-center items-start">
@@ -1011,16 +1082,16 @@ export default function SocialPostingDashboard() {
               )}
             </div>
             <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-3">
-              {/* Full Editor Button */}
-              <a
-                href="https://business.google.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full sm:w-auto flex items-center justify-center space-x-2 px-4 py-2 text-sm text-slate-blue border border-slate-blue rounded-md hover:bg-slate-blue hover:text-white transition-colors"
-              >
-                <Icon name="FaGoogle" className="w-4 h-4" size={16} />
-                <span>Full Editor</span>
-              </a>
+              {/* Import Reviews Button */}
+              {isConnected && (
+                <button
+                  onClick={() => setShowImportModal(true)}
+                  className="w-full sm:w-auto flex items-center justify-center space-x-2 px-4 py-2 text-sm text-green-700 border border-green-300 rounded-md hover:bg-green-50 transition-colors"
+                >
+                  <Icon name="FaImport" className="w-4 h-4" size={16} />
+                  <span>Import Reviews</span>
+                </button>
+              )}
             </div>
           </div>
 
@@ -1031,8 +1102,8 @@ export default function SocialPostingDashboard() {
               <h3 className="text-lg font-medium text-gray-900">
                 {activeTab === 'connect' && 'Connect'}
                 {activeTab === 'overview' && 'Overview'}
-                {activeTab === 'post' && 'Post'}
-                {activeTab === 'photos' && 'Photos'}
+                {activeTab === 'create-post' && 'Create Post'}
+                {activeTab === 'respond-reviews' && 'Respond to Reviews'}
                 {activeTab === 'business-info' && 'Business Info'}
                 {activeTab === 'reviews' && 'Reviews'}
               </h3>
@@ -1074,34 +1145,6 @@ export default function SocialPostingDashboard() {
                 </div>
               </button>
               <button
-                onClick={() => changeTab('post')}
-                disabled={!isConnected}
-                className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === 'post' && isConnected
-                    ? 'border-slate-blue text-slate-blue'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                } ${!isConnected ? 'opacity-50 cursor-not-allowed' : ''}`}
-              >
-                <div className="flex items-center space-x-2">
-                  <Icon name="FaPlus" className="w-4 h-4" size={16} />
-                  <span>Post</span>
-                </div>
-              </button>
-              <button
-                onClick={() => changeTab('photos')}
-                disabled={!isConnected}
-                className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === 'photos' && isConnected
-                    ? 'border-slate-blue text-slate-blue'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                } ${!isConnected ? 'opacity-50 cursor-not-allowed' : ''}`}
-              >
-                <div className="flex items-center space-x-2">
-                  <Icon name="FaImage" className="w-4 h-4" size={16} />
-                  <span>Photos</span>
-                </div>
-              </button>
-              <button
                 onClick={() => changeTab('business-info')}
                 disabled={!isConnected}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
@@ -1113,6 +1156,34 @@ export default function SocialPostingDashboard() {
                 <div className="flex items-center space-x-2">
                   <Icon name="FaStore" className="w-4 h-4" size={16} />
                   <span>Business Info</span>
+                </div>
+              </button>
+              <button
+                onClick={() => changeTab('create-post')}
+                disabled={!isConnected}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'create-post' && isConnected
+                    ? 'border-slate-blue text-slate-blue'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                } ${!isConnected ? 'opacity-50 cursor-not-allowed' : ''}`}
+              >
+                <div className="flex items-center space-x-2">
+                  <Icon name="FaPlus" className="w-4 h-4" size={16} />
+                  <span>Create Post</span>
+                </div>
+              </button>
+              <button
+                onClick={() => changeTab('respond-reviews')}
+                disabled={!isConnected}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'respond-reviews' && isConnected
+                    ? 'border-slate-blue text-slate-blue'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                } ${!isConnected ? 'opacity-50 cursor-not-allowed' : ''}`}
+              >
+                <div className="flex items-center space-x-2">
+                  <Icon name="FaCommentAlt" className="w-4 h-4" size={16} />
+                  <span>Respond to Reviews</span>
                 </div>
               </button>
               <button
@@ -1165,38 +1236,6 @@ export default function SocialPostingDashboard() {
                     </div>
                   </button>
                   <button
-                    onClick={() => changeTab('post')}
-                    disabled={!isConnected}
-                    className={`w-full text-left px-3 py-2 rounded-md text-sm font-medium ${
-                      activeTab === 'post' && isConnected
-                        ? 'bg-slate-blue text-white'
-                        : isConnected 
-                          ? 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                          : 'text-gray-400 cursor-not-allowed'
-                    }`}
-                  >
-                    <div className="flex items-center space-x-3">
-                      <Icon name="FaPlus" className="w-4 h-4" size={16} />
-                      <span>Post</span>
-                    </div>
-                  </button>
-                  <button
-                    onClick={() => changeTab('photos')}
-                    disabled={!isConnected}
-                    className={`w-full text-left px-3 py-2 rounded-md text-sm font-medium ${
-                      activeTab === 'photos' && isConnected
-                        ? 'bg-slate-blue text-white'
-                        : isConnected 
-                          ? 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                          : 'text-gray-400 cursor-not-allowed'
-                    }`}
-                  >
-                    <div className="flex items-center space-x-3">
-                      <Icon name="FaImage" className="w-4 h-4" size={16} />
-                      <span>Photos</span>
-                    </div>
-                  </button>
-                  <button
                     onClick={() => changeTab('business-info')}
                     disabled={!isConnected}
                     className={`w-full text-left px-3 py-2 rounded-md text-sm font-medium ${
@@ -1210,6 +1249,38 @@ export default function SocialPostingDashboard() {
                     <div className="flex items-center space-x-3">
                       <Icon name="FaStore" className="w-4 h-4" size={16} />
                       <span>Business Info</span>
+                    </div>
+                  </button>
+                  <button
+                    onClick={() => changeTab('create-post')}
+                    disabled={!isConnected}
+                    className={`w-full text-left px-3 py-2 rounded-md text-sm font-medium ${
+                      activeTab === 'create-post' && isConnected
+                        ? 'bg-slate-blue text-white'
+                        : isConnected 
+                          ? 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                          : 'text-gray-400 cursor-not-allowed'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-3">
+                      <Icon name="FaPlus" className="w-4 h-4" size={16} />
+                      <span>Create Post</span>
+                    </div>
+                  </button>
+                  <button
+                    onClick={() => changeTab('respond-reviews')}
+                    disabled={!isConnected}
+                    className={`w-full text-left px-3 py-2 rounded-md text-sm font-medium ${
+                      activeTab === 'respond-reviews' && isConnected
+                        ? 'bg-slate-blue text-white'
+                        : isConnected 
+                          ? 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                          : 'text-gray-400 cursor-not-allowed'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-3">
+                      <Icon name="FaCommentAlt" className="w-4 h-4" size={16} />
+                      <span>Respond to Reviews</span>
                     </div>
                   </button>
                   <button
@@ -1304,15 +1375,18 @@ export default function SocialPostingDashboard() {
 
 
                 {isConnected && locations.length === 0 && (
-                  <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4">
+                  <div className={`border rounded-md p-4 ${hasAttemptedFetch ? 'bg-yellow-50 border-yellow-200' : 'bg-blue-50 border-blue-200'}`}>
                     <div className="flex items-start space-x-3">
-                      <Icon name="FaExclamationTriangle" className="w-5 h-5 text-yellow-600 mt-0.5" />
+                      <Icon name={hasAttemptedFetch ? "FaExclamationTriangle" : "FaInfoCircle"} className={`w-5 h-5 mt-0.5 ${hasAttemptedFetch ? 'text-yellow-600' : 'text-blue-600'}`} />
                       <div>
-                        <h4 className="text-sm font-medium text-yellow-800 mb-1">
-                          Fetch Your Business Locations
+                        <h4 className={`text-sm font-medium mb-1 ${hasAttemptedFetch ? 'text-yellow-800' : 'text-blue-800'}`}>
+                          {hasAttemptedFetch ? 'No Locations Found' : 'Next Step: Fetch Your Business Locations'}
                         </h4>
-                        <p className="text-sm text-yellow-700 mb-3">
-                          Your Google Business Profile is connected! Now you need to fetch your business locations to start posting.
+                        <p className={`text-sm mb-3 ${hasAttemptedFetch ? 'text-yellow-700' : 'text-blue-700'}`}>
+                          {hasAttemptedFetch 
+                            ? 'Your Google Business Profile appears to have no locations, or they couldn\'t be retrieved. You can try fetching again or check your Google Business Profile.'
+                            : 'Great! Your Google Business Profile is connected. Now fetch your business locations to start creating posts and managing your online presence.'
+                          }
                         </p>
                         <div className="flex space-x-2">
                           <button
@@ -1355,16 +1429,16 @@ export default function SocialPostingDashboard() {
                         </p>
                         <div className="flex space-x-2">
                           <button
-                            onClick={() => changeTab('post')}
+                            onClick={() => changeTab('create-post')}
                             className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm font-medium"
                           >
                             Create Posts →
                           </button>
                           <button
-                            onClick={() => changeTab('photos')}
+                            onClick={() => changeTab('reviews')}
                             className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm font-medium"
                           >
-                            Manage Photos →
+                            Respond to Reviews →
                           </button>
                         </div>
                       </div>
@@ -1525,7 +1599,7 @@ export default function SocialPostingDashboard() {
             </div>
           )}
 
-          {activeTab === 'post' && (
+          {activeTab === 'create-post' && (
             <div className="space-y-6">
               {!isConnected ? (
                 <div className="text-center py-12">
@@ -1561,16 +1635,52 @@ export default function SocialPostingDashboard() {
                     {locations.length === 0 ? (
                       <div className="text-center py-8">
                         <Icon name="FaMapMarker" className="w-8 h-8 text-gray-400 mx-auto mb-3" />
-                        <p className="text-gray-600 mb-4">No business locations found</p>
-                        <p className="text-sm text-gray-500 mb-4">
-                          You need to fetch your business locations first.
-                        </p>
-                        <button
-                          onClick={() => changeTab('connect')}
-                          className="px-4 py-2 bg-slate-blue text-white rounded-md hover:bg-slate-700 transition-colors text-sm"
-                        >
-                          Go to Connect Tab →
-                        </button>
+                        {hasAttemptedFetch ? (
+                          <>
+                            <p className="text-gray-600 mb-4">No business locations found</p>
+                            <p className="text-sm text-gray-500 mb-4">
+                              Your Google Business Profile might not have any locations, or they couldn't be retrieved.
+                            </p>
+                          </>
+                        ) : (
+                          <>
+                            <p className="text-gray-600 mb-4">Ready to get started</p>
+                            <p className="text-sm text-gray-500 mb-4">
+                              Fetch your business locations from Google Business Profile to begin posting.
+                            </p>
+                          </>
+                        )}
+                        <div className="flex flex-col sm:flex-row gap-2 justify-center">
+                          <button
+                            onClick={() => handleFetchLocations('google-business-profile')}
+                            disabled={fetchingLocations === 'google-business-profile' || Boolean(rateLimitedUntil && Date.now() < rateLimitedUntil)}
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                              fetchingLocations === 'google-business-profile' || Boolean(rateLimitedUntil && Date.now() < rateLimitedUntil)
+                                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                : 'bg-slate-blue text-white hover:bg-slate-700'
+                            }`}
+                          >
+                            {fetchingLocations === 'google-business-profile' ? (
+                              <>
+                                <Icon name="FaSpinner" className="w-4 h-4 animate-spin mr-2" />
+                                Fetching...
+                              </>
+                            ) : rateLimitedUntil && Date.now() < rateLimitedUntil ? (
+                              `Rate limited (${Math.ceil((rateLimitedUntil - Date.now()) / 1000)}s)`
+                            ) : (
+                              <>
+                                <Icon name="MdDownload" className="w-4 h-4 mr-2" />
+                                Fetch Locations
+                              </>
+                            )}
+                          </button>
+                          <button
+                            onClick={() => changeTab('connect')}
+                            className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors text-sm"
+                          >
+                            Or go to Connect Tab →
+                          </button>
+                        </div>
                       </div>
                     ) : (
                       <div className="location-dropdown relative">
@@ -1819,7 +1929,7 @@ export default function SocialPostingDashboard() {
             </div>
           )}
 
-          {activeTab === 'photos' && (
+          {activeTab === 'respond-reviews' && (
             <div className="space-y-6">
               {!isConnected ? (
                 <div className="text-center py-12">
@@ -2022,6 +2132,105 @@ export default function SocialPostingDashboard() {
                 className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 disabled:bg-gray-100 transition-colors"
               >
                 Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Import Reviews Modal */}
+      {showImportModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <div className="flex items-center space-x-3 mb-4">
+              <Icon name="FaImport" className="w-6 h-6 text-green-600" />
+              <h3 className="text-lg font-semibold text-gray-900">Import Google Reviews</h3>
+            </div>
+            
+            <div className="mb-6">
+              <p className="text-gray-600 mb-4">
+                Import your existing Google Business Profile reviews into PromptReviews. This will help you manage all your reviews in one place.
+              </p>
+              
+              {selectedLocationId && (
+                <div className="bg-blue-50 border border-blue-200 rounded-md p-3 mb-4">
+                  <div className="flex items-center space-x-2">
+                    <Icon name="FaMapMarker" className="w-4 h-4 text-blue-600" />
+                    <span className="text-sm text-blue-800 font-medium">
+                      Location: {locations.find(l => l.id === selectedLocationId)?.name || 'Selected Location'}
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              <div className="space-y-3">
+                <p className="text-sm font-medium text-gray-700">Import Options:</p>
+                <div className="space-y-2">
+                  <button
+                    onClick={() => handleImportReviews('all')}
+                    disabled={isImportingReviews || !selectedLocationId}
+                    className="w-full px-4 py-3 text-left border border-gray-200 rounded-md hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed transition-colors"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="font-medium text-gray-900">Import All Reviews</div>
+                        <div className="text-sm text-gray-500">Import all reviews from this location</div>
+                      </div>
+                      <Icon name="FaImport" className="w-4 h-4 text-gray-400" />
+                    </div>
+                  </button>
+                  
+                  <button
+                    onClick={() => handleImportReviews('new')}
+                    disabled={isImportingReviews || !selectedLocationId}
+                    className="w-full px-4 py-3 text-left border border-gray-200 rounded-md hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed transition-colors"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="font-medium text-gray-900">Import New Reviews Only</div>
+                        <div className="text-sm text-gray-500">Skip reviews that already exist</div>
+                      </div>
+                      <Icon name="FaPlus" className="w-4 h-4 text-gray-400" />
+                    </div>
+                  </button>
+                </div>
+              </div>
+
+              {importResult && (
+                <div className={`mt-4 p-3 rounded-md ${
+                  importResult.success ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'
+                }`}>
+                  <div className={`flex items-center space-x-2 ${
+                    importResult.success ? 'text-green-800' : 'text-red-800'
+                  }`}>
+                    <Icon 
+                      name={importResult.success ? "FaCheck" : "FaExclamationTriangle"} 
+                      className="w-4 h-4" 
+                    />
+                    <span className="text-sm font-medium">
+                      {importResult.success ? 'Success' : 'Error'}
+                    </span>
+                  </div>
+                  <p className={`text-sm mt-1 ${
+                    importResult.success ? 'text-green-700' : 'text-red-700'
+                  }`}>
+                    {importResult.message}
+                    {importResult.count !== undefined && ` (${importResult.count} reviews)`}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            <div className="flex space-x-3">
+              <button
+                onClick={() => {
+                  setShowImportModal(false);
+                  setImportResult(null);
+                }}
+                disabled={isImportingReviews}
+                className="flex-1 px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 disabled:bg-gray-100 transition-colors"
+              >
+                {isImportingReviews ? 'Importing...' : 'Close'}
               </button>
             </div>
           </div>
