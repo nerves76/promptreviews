@@ -16,7 +16,6 @@ import CategorySearch from './business-info/CategorySearch';
 import ServiceItemsEditor from './business-info/ServiceItemsEditor';
 import BusinessHoursEditor from './business-info/BusinessHoursEditor';
 import LoadBusinessInfoButton from './business-info/LoadBusinessInfoButton';
-import ServiceDescriptionGenerator from './ServiceDescriptionGenerator';
 import BusinessDescriptionAnalyzer from './BusinessDescriptionAnalyzer';
 
 interface BusinessLocation {
@@ -90,7 +89,6 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
   const [isLoadingDetails, setIsLoadingDetails] = useState(false);
   const [detailsLoaded, setDetailsLoaded] = useState(false);
   const [detailsError, setDetailsError] = useState<string | null>(null);
-  const [showServiceGenerator, setShowServiceGenerator] = useState(false);
   const [showDescriptionAnalyzer, setShowDescriptionAnalyzer] = useState(false);
   const [businessContext, setBusinessContext] = useState<any>(null);
   const [formDataBackup, setFormDataBackup] = useState<BusinessInfo | null>(null);
@@ -380,12 +378,49 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
     setShowDescriptionAnalyzer(false); // Close analyzer after applying
   };
 
-  const handleServiceDescriptionsGenerated = (descriptions: any) => {
-    // Use the medium length description as a starting point
-    if (descriptions.medium) {
-      handleInputChange('description', descriptions.medium);
+
+  const handleImportBusinessDescription = async () => {
+    try {
+      // Get current user
+      const { data: { user } } = await createClient().auth.getUser();
+      if (!user) return;
+
+      // Get account ID
+      const accountId = await getAccountIdForUser(user.id, createClient());
+      if (!accountId) return;
+
+      // Fetch business profile data
+      const { data: businessProfile, error } = await createClient()
+        .from('businesses')
+        .select('about_us')
+        .eq('account_id', accountId)
+        .single();
+
+      if (error) {
+        console.error('Error fetching business profile:', error);
+        return;
+      }
+
+      if (businessProfile?.about_us?.trim()) {
+        const existingText = businessInfo.description.trim();
+        if (existingText && existingText !== businessProfile.about_us) {
+          // If there's existing text that's different, ask for confirmation
+          const confirmOverwrite = window.confirm(
+            'This will replace your current description. Continue?'
+          );
+          if (!confirmOverwrite) {
+            return;
+          }
+        }
+        handleInputChange('description', businessProfile.about_us);
+        console.log('✅ Imported business description from Your Business profile');
+      } else {
+        alert('No business description found in Your Business profile. Please add one there first.');
+      }
+    } catch (error) {
+      console.error('Error importing business description:', error);
+      alert('Failed to import business description. Please try again.');
     }
-    setShowServiceGenerator(false);
   };
 
   if (!isConnected) {
@@ -711,14 +746,14 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
                   {/* AI Tools */}
                   <div className="mt-4 space-y-4">
                     {/* AI Action Buttons */}
-                    {!showServiceGenerator && !showDescriptionAnalyzer && (
+                    {!showDescriptionAnalyzer && (
                       <div className="flex items-center space-x-3">
                         <button
-                          onClick={() => setShowServiceGenerator(true)}
-                          className="flex items-center space-x-2 text-sm text-purple-600 hover:text-purple-800 border border-purple-300 rounded px-3 py-1 hover:bg-purple-50"
+                          onClick={handleImportBusinessDescription}
+                          className="flex items-center space-x-2 text-sm text-blue-600 hover:text-blue-800 border border-blue-300 rounded px-3 py-1 hover:bg-blue-50"
                         >
-                          <Icon name="FaRobot" className="w-3 h-3 text-slate-blue" size={12} />
-                          <span>Generate description</span>
+                          <Icon name="MdDownload" className="w-3 h-3 text-slate-blue" size={12} />
+                          <span>Import from Your Business</span>
                         </button>
                         {businessInfo.description.trim() && (
                           <button
@@ -732,23 +767,6 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
                       </div>
                     )}
 
-                    {/* Service Description Generator */}
-                    {showServiceGenerator && (
-                      <div className="border border-purple-200 rounded-lg p-4 bg-purple-50">
-                        <div className="flex items-center justify-between mb-3">
-                          <h5 className="font-medium text-purple-900">AI Service Description Generator</h5>
-                          <button
-                            onClick={() => setShowServiceGenerator(false)}
-                            className="text-purple-600 hover:text-purple-800 text-sm"
-                          >
-                            ✕
-                          </button>
-                        </div>
-                        <ServiceDescriptionGenerator 
-                          onDescriptionsGenerated={handleServiceDescriptionsGenerated}
-                        />
-                      </div>
-                    )}
 
                     {/* Business Description Analyzer */}
                     {showDescriptionAnalyzer && (
