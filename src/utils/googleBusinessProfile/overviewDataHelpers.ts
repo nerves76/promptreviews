@@ -483,6 +483,10 @@ function formatNewPerformanceData(multiDailyMetrics: any[]): PerformanceData {
   let totalWebsiteClicks = 0;
   let totalPhoneCalls = 0;
   let totalDirectionRequests = 0;
+  let totalConversations = 0;
+  let totalBookings = 0;
+  let totalFoodOrders = 0;
+  let totalMenuClicks = 0;
 
   // Process each daily metric time series
   multiDailyMetrics.forEach((metricSeries: any, index: number) => {
@@ -521,6 +525,18 @@ function formatNewPerformanceData(multiDailyMetrics: any[]): PerformanceData {
       case 'BUSINESS_DIRECTION_REQUESTS':
         totalDirectionRequests += totalValue;
         break;
+      case 'BUSINESS_CONVERSATIONS':
+        totalConversations += totalValue;
+        break;
+      case 'BUSINESS_BOOKINGS':
+        totalBookings += totalValue;
+        break;
+      case 'BUSINESS_FOOD_ORDERS':
+        totalFoodOrders += totalValue;
+        break;
+      case 'BUSINESS_FOOD_MENU_CLICKS':
+        totalMenuClicks += totalValue;
+        break;
     }
   });
 
@@ -528,7 +544,11 @@ function formatNewPerformanceData(multiDailyMetrics: any[]): PerformanceData {
     totalViews,
     totalWebsiteClicks,
     totalPhoneCalls,
-    totalDirectionRequests
+    totalDirectionRequests,
+    totalConversations,
+    totalBookings,
+    totalFoodOrders,
+    totalMenuClicks
   });
 
   return {

@@ -1037,13 +1037,19 @@ export class GoogleBusinessProfileClient {
       const queryParams = new URLSearchParams();
       
       // Add each metric as a separate parameter (API requires repeated params, not comma-separated)
+      // Using correct DailyMetric enum values from Google Business Profile Performance API v1
       const metrics = [
         'WEBSITE_CLICKS',
         'CALL_CLICKS', 
-        'DIRECTION_REQUESTS',
-        'BUSINESS_IMPRESSIONS',
+        'BUSINESS_DIRECTION_REQUESTS',
+        'BUSINESS_IMPRESSIONS_DESKTOP_MAPS',
+        'BUSINESS_IMPRESSIONS_DESKTOP_SEARCH',
+        'BUSINESS_IMPRESSIONS_MOBILE_MAPS',
+        'BUSINESS_IMPRESSIONS_MOBILE_SEARCH',
+        'BUSINESS_CONVERSATIONS',
         'BUSINESS_BOOKINGS',
-        'BUSINESS_FOOD_ORDERS'
+        'BUSINESS_FOOD_ORDERS',
+        'BUSINESS_FOOD_MENU_CLICKS'
       ];
       
       metrics.forEach(metric => {
