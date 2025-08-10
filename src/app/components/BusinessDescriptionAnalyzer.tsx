@@ -358,9 +358,9 @@ export default function BusinessDescriptionAnalyzer({
                     <span className="text-sm text-gray-700 flex-1">{keyword}</span>
                     <span 
                       className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full"
-                      title="Optimized for search"
+                      title="Include this keyword?"
                     >
-                      SEO
+                      Include?
                     </span>
                   </label>
                 ))}
