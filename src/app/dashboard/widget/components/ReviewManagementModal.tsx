@@ -7,11 +7,11 @@ import { PhotoUpload } from './PhotoUpload';
 import { createClient } from '@/utils/supabaseClient';
 import { getAccountIdForUser } from '@/utils/accountUtils';
 
-const WORD_LIMIT = 250;
-const MAX_WIDGET_REVIEWS = 8;
+const CHARACTER_LIMIT = 250;
+const MAX_WIDGET_REVIEWS = 25;
 
-function wordCount(str: string) {
-  return str.trim().split(/\s+/).length;
+function characterCount(str: string) {
+  return str.trim().length;
 }
 
 interface ReviewManagementModalProps {
@@ -63,6 +63,8 @@ export function ReviewManagementModal({
   const [photoUploadProgress, setPhotoUploadProgress] = useState<{ [id: string]: boolean }>({});
   const [photoUploadErrors, setPhotoUploadErrors] = useState<{ [id: string]: string }>({});
   const [widgetType, setWidgetType] = useState<string | null>(null);
+  const [showTrimConfirmation, setShowTrimConfirmation] = useState(false);
+  const [reviewsToTrim, setReviewsToTrim] = useState<Array<{review: any, text: string, characterCount: number}>>([]);
 
   // Fetch reviews when modal opens
   useEffect(() => {
@@ -126,6 +128,7 @@ export function ReviewManagementModal({
           review_content, 
           platform, 
           created_at,
+          star_rating,
           prompt_pages!inner(account_id)
         `)
         .eq('prompt_pages.account_id', accountId)
@@ -171,7 +174,8 @@ export function ReviewManagementModal({
         reviewer_role: r.reviewer_role,
         review_content: r.review_content,
         platform: r.platform,
-        created_at: r.created_at
+        created_at: r.created_at,
+        star_rating: r.star_rating
       }));
 
       // Available reviews should ONLY be actual customer submissions from review_submissions
@@ -296,6 +300,98 @@ export function ReviewManagementModal({
   const handleSaveReviews = async () => {
     if (!widgetId) return;
     
+    // Check if any reviews exceed character limit and offer to trim
+    const reviewsToTrim = [];
+    for (const review of selectedReviews) {
+      const text = editedReviews[review.review_id] ?? review.review_content;
+      if (characterCount(text) > CHARACTER_LIMIT) {
+        reviewsToTrim.push({
+          review,
+          text,
+          characterCount: characterCount(text)
+        });
+      }
+    }
+    
+    if (reviewsToTrim.length > 0) {
+      setReviewsToTrim(reviewsToTrim);
+      setShowTrimConfirmation(true);
+      return;
+    }
+    
+    // If no trimming needed, proceed with save
+    await handleSaveReviewsInternal();
+  };
+
+  const getFilteredAndSortedReviews = () => {
+    let filtered = allReviews;
+    
+    // Apply search filter
+    if (reviewSearch) {
+      const searchLower = reviewSearch.toLowerCase();
+      filtered = filtered.filter(
+        (review) =>
+          review.review_content.toLowerCase().includes(searchLower) ||
+          `${review.first_name} ${review.last_name}`.toLowerCase().includes(searchLower) ||
+          (review.reviewer_role || "").toLowerCase().includes(searchLower)
+      );
+    }
+    
+    // Apply sorting
+    const sorted = filtered.sort((a, b) => {
+      if (reviewSort === "recent") {
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      } else {
+        // alphabetical
+        const nameA = `${a.first_name} ${a.last_name}`.toLowerCase();
+        const nameB = `${b.first_name} ${b.last_name}`.toLowerCase();
+        return nameA.localeCompare(nameB);
+      }
+    });
+
+    // Calculate pagination
+    const totalPages = Math.ceil(sorted.length / reviewsPerPage);
+    const startIndex = (currentPage - 1) * reviewsPerPage;
+    const paginatedReviews = sorted.slice(startIndex, startIndex + reviewsPerPage);
+    
+    return {
+      reviews: paginatedReviews,
+      totalPages,
+      totalReviews: sorted.length
+    };
+  };
+
+  const handleConfirmTrim = async () => {
+    // Auto-trim the reviews that are too long
+    for (const item of reviewsToTrim) {
+      const trimmedText = item.text.substring(0, CHARACTER_LIMIT).trim();
+      setEditedReviews(prev => ({
+        ...prev,
+        [item.review.review_id]: trimmedText
+      }));
+    }
+    
+    setShowTrimConfirmation(false);
+    setReviewsToTrim([]);
+    
+    // Continue with save after trimming
+    await handleSaveReviewsInternal();
+  };
+
+  const handleCancelTrim = () => {
+    setShowTrimConfirmation(false);
+    setReviewsToTrim([]);
+    setReviewError(
+      `${reviewsToTrim.length} review(s) exceed the ${CHARACTER_LIMIT} character limit. Please edit them under the Selected reviews tab.`
+    );
+  };
+
+  const handleSaveReviewsInternal = async () => {
+    if (!widgetId) return;
+    
+    // Clear any existing errors
+    setReviewError("");
+    
     // Add new custom review if it exists and is valid
     if (
       newCustomReview.review_content?.trim() &&
@@ -330,18 +426,7 @@ export function ReviewManagementModal({
       setShowAddCustomReview(false);
     }
     
-    // Validate all selected reviews are within word limit
-    for (const review of selectedReviews) {
-      const text = editedReviews[review.review_id] ?? review.review_content;
-      if (wordCount(text) > WORD_LIMIT) {
-        setReviewError(
-          `One or more reviews are too long. Limit: ${WORD_LIMIT} words.`,
-        );
-        return;
-      }
-    }
-    
-    // Prepare reviews for API call
+    // Prepare reviews for API call (all reviews should now be within limits)
     const reviewsToSave = selectedReviews.map((review, index) => ({
       review_id: review.review_id,
       review_content: editedReviews[review.review_id] ?? review.review_content,
@@ -389,44 +474,6 @@ export function ReviewManagementModal({
       console.error("Error saving widget reviews:", error);
       setReviewError("Failed to save reviews. Please try again.");
     }
-  };
-
-  const getFilteredAndSortedReviews = () => {
-    let filtered = allReviews;
-    
-    // Apply search filter
-    if (reviewSearch) {
-      const searchLower = reviewSearch.toLowerCase();
-      filtered = filtered.filter(
-        (review) =>
-          review.review_content.toLowerCase().includes(searchLower) ||
-          `${review.first_name} ${review.last_name}`.toLowerCase().includes(searchLower) ||
-          (review.reviewer_role || "").toLowerCase().includes(searchLower)
-      );
-    }
-    
-    // Apply sorting
-    const sorted = filtered.sort((a, b) => {
-      if (reviewSort === "recent") {
-        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-      } else {
-        // alphabetical
-        const nameA = `${a.first_name} ${a.last_name}`.toLowerCase();
-        const nameB = `${b.first_name} ${b.last_name}`.toLowerCase();
-        return nameA.localeCompare(nameB);
-      }
-    });
-
-    // Calculate pagination
-    const totalPages = Math.ceil(sorted.length / reviewsPerPage);
-    const startIndex = (currentPage - 1) * reviewsPerPage;
-    const paginatedReviews = sorted.slice(startIndex, startIndex + reviewsPerPage);
-    
-    return {
-      reviews: paginatedReviews,
-      totalPages,
-      totalReviews: sorted.length
-    };
   };
 
   const handleAddCustomReview = () => {
@@ -570,6 +617,19 @@ export function ReviewManagementModal({
                           <p className="font-semibold text-gray-800">
                             {review.first_name} {review.last_name}
                           </p>
+                          {review.star_rating && (
+                            <div className="flex items-center gap-1 mb-1">
+                              {[1, 2, 3, 4, 5].map(star => (
+                                <span
+                                  key={star}
+                                  className={`text-sm ${star <= review.star_rating ? 'text-yellow-400' : 'text-gray-300'}`}
+                                >
+                                  ★
+                                </span>
+                              ))}
+                              <span className="text-xs text-gray-500 ml-1">({review.star_rating})</span>
+                            </div>
+                          )}
                           <p className="text-sm text-gray-600">{review.review_content.substring(0, 70)}...</p>
                         </div>
                         {selectedReviews.some((r) => r.review_id === review.review_id) && (
@@ -737,7 +797,7 @@ export function ReviewManagementModal({
                         
                         <div className="flex justify-between items-center mt-2">
                           <div className="text-sm text-gray-500">
-                            {wordCount(editedReviews[review.review_id] || "")}/{WORD_LIMIT} words
+                            {characterCount(editedReviews[review.review_id] || "")}/{CHARACTER_LIMIT} characters
                           </div>
                           <button
                             onClick={() => handleToggleReview(review)}
@@ -766,6 +826,46 @@ export function ReviewManagementModal({
             </button>
           </div>
         </>
+      )}
+      
+      {/* Character Limit Confirmation Modal */}
+      {showTrimConfirmation && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60]">
+          <div className="bg-white rounded-lg shadow-xl p-6 max-w-md mx-4">
+            <div className="flex items-center mb-4">
+              <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center mr-4">
+                <svg className="w-6 h-6 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">Character Limit Exceeded</h3>
+              </div>
+            </div>
+            
+            <div className="mb-6">
+              <p className="text-gray-600">
+                {reviewsToTrim.length} review(s) are over the {CHARACTER_LIMIT} character limit. 
+                Continue and they will be automatically trimmed, or cancel and edit under the Selected reviews tab.
+              </p>
+            </div>
+            
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={handleCancelTrim}
+                className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md font-medium transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmTrim}
+                className="px-4 py-2 bg-slate-600 hover:bg-slate-700 text-white rounded-md font-medium transition-colors"
+              >
+                Continue
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </DraggableModal>
   );
