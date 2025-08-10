@@ -758,10 +758,10 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
                         {businessInfo.description.trim() && (
                           <button
                             onClick={() => setShowDescriptionAnalyzer(true)}
-                            className="flex items-center space-x-2 text-sm text-blue-600 hover:text-blue-800 border border-blue-300 rounded px-3 py-1 hover:bg-blue-50"
+                            className="flex items-center space-x-2 text-sm text-blue-600 hover:text-blue-800 hover:underline"
                           >
-                            <Icon name="FaRobot" className="w-3 h-3 text-slate-blue" size={12} />
-                            <span>AI Search Optimize</span>
+                            <Icon name="FaRobot" className="w-3 h-3 text-blue-600" size={12} />
+                            <span>Open Optimizer</span>
                           </button>
                         )}
                       </div>
