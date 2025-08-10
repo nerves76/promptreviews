@@ -122,6 +122,8 @@ export default function CreatePromptPageClient({
   const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [loadingReviews, setLoadingReviews] = useState(false);
+  const reviewsLoadedRef = useRef<string | null>(null);
   const [step, setStep] = useState(1);
   const [createdSlug, setCreatedSlug] = useState<string | null>(() => {
     // Initialize from localStorage if available
@@ -479,6 +481,8 @@ export default function CreatePromptPageClient({
     const phone = searchParams.get("phone");
     const business_name = searchParams.get("business_name");
     const contact_id = searchParams.get("contact_id");
+    const include_reviews = searchParams.get("include_reviews") === "true";
+    
     setFormData((prev) => ({
       ...prev,
       first_name: first_name ?? prev.first_name,
@@ -488,7 +492,50 @@ export default function CreatePromptPageClient({
       business_name: business_name ?? prev.business_name,
       contact_id: contact_id ?? prev.contact_id,
     }));
+
+    // Load existing reviews if include_reviews is true and we have a contact_id
+    if (include_reviews && contact_id && !loadingReviews && reviewsLoadedRef.current !== contact_id) {
+      reviewsLoadedRef.current = contact_id;
+      loadContactReviews(contact_id);
+    }
   }, [searchParams]);
+
+  // Function to load existing reviews for a contact
+  const loadContactReviews = async (contactId: string) => {
+    setLoadingReviews(true);
+    try {
+      const { data: contactReviews, error: reviewsError } = await supabase
+        .from('review_submissions')
+        .select('platform, star_rating, review_content, verified, created_at')
+        .eq('contact_id', contactId)
+        .order('created_at', { ascending: false });
+      
+      if (reviewsError) throw reviewsError;
+      
+      if (contactReviews && contactReviews.length > 0) {
+        // Convert reviews to review platform format
+        const reviewPlatforms = contactReviews.map(review => ({
+          platform: review.platform || 'Other',
+          url: '', // Will be filled in by user
+          wordCount: review.review_content ? review.review_content.split(' ').length : 200,
+          customInstructions: `Original ${review.star_rating}-star review from ${new Date(review.created_at).toLocaleDateString()}`,
+          reviewText: review.review_content || '',
+        }));
+
+        setFormData(prev => ({
+          ...prev,
+          review_platforms: reviewPlatforms
+        }));
+        
+        console.log(`✅ Imported ${contactReviews.length} reviews as review platform templates`);
+      }
+    } catch (err) {
+      console.error('Error loading contact reviews:', err);
+      setError('Failed to load existing reviews. You can still create the prompt page manually.');
+    } finally {
+      setLoadingReviews(false);
+    }
+  };
 
   // Show modal if no type is set
   useEffect(() => {

@@ -270,14 +270,16 @@ export default function ManualContactForm({
       <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
       
       <div className="fixed inset-0 flex items-center justify-center p-4">
-        <Dialog.Panel className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto relative">
-          {/* Close button positioned at top right corner, breaching the modal border */}
+        <Dialog.Panel className="bg-white rounded-lg w-full max-w-2xl max-h-[90vh] relative">
+          {/* Close button positioned outside the scrollable area */}
           <button
             onClick={onClose}
             className="absolute -top-3 -right-3 w-8 h-8 bg-white border border-gray-300 rounded-full flex items-center justify-center hover:bg-gray-50 shadow-md z-10"
           >
             <Icon name="FaTimes" className="w-4 h-4 text-red-500" />
           </button>
+          
+          <div className="p-6 max-h-[90vh] overflow-y-auto">
           
           <div className="mb-6 flex justify-between items-start">
             <Dialog.Title className="text-2xl font-bold text-slate-blue">
@@ -773,6 +775,7 @@ export default function ManualContactForm({
               </div>
             </div>
           )}
+          </div>
         </Dialog.Panel>
       </div>
     </Dialog>

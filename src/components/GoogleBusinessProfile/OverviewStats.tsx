@@ -104,9 +104,28 @@ export default function OverviewStats({
   onLoadData,
   dataLoaded = false
 }: OverviewStatsProps) {
+  const [tooltip, setTooltip] = useState<{
+    show: boolean;
+    x: number;
+    y: number;
+    data: MonthlyReviewData;
+    totalReviews: number;
+  } | null>(null);
   
   // Animation setup
   const { ref: animationRef, isVisible } = useIntersectionObserver();
+
+  // Close tooltip when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (tooltip && !(event.target as Element).closest('.chart-bar')) {
+        setTooltip(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [tooltip]);
   const animatedTotalReviews = useCountUp(totalReviews, 2000, isVisible);
   const animatedReviewTrend = useCountUp(Math.abs(reviewTrend), 1500, isVisible);
   const animatedAverageRating = useCountUp(averageRating * 10, 2500, isVisible) / 10;
@@ -236,8 +255,19 @@ export default function OverviewStats({
                 <div key={index} className="flex-1 flex flex-col items-center">
                   {/* Stacked Bar */}
                   <div 
-                    className="w-full max-w-12 relative bg-gray-100 rounded-t"
+                    className="chart-bar w-full max-w-12 relative bg-gray-100 rounded-t cursor-pointer hover:bg-gray-200 transition-colors"
                     style={{ height: '120px' }}
+                    onClick={(e) => {
+                      const rect = e.currentTarget.getBoundingClientRect();
+                      const totalMonthReviews = data.fiveStar + data.fourStar + data.threeStar + data.twoStar + data.oneStar;
+                      setTooltip({
+                        show: true,
+                        x: rect.left + rect.width / 2,
+                        y: rect.top - 10,
+                        data,
+                        totalReviews: totalMonthReviews
+                      });
+                    }}
                   >
                     {totalMonthReviews > 0 && (
                       <div 
@@ -326,6 +356,76 @@ export default function OverviewStats({
             </div>
           )}
         </div>
+
+        {/* Tooltip */}
+        {tooltip && (
+          <div 
+            className="fixed z-50 bg-white border border-gray-200 rounded-lg shadow-lg p-3 text-sm"
+            style={{
+              left: `${tooltip.x}px`,
+              top: `${tooltip.y}px`,
+              transform: 'translateX(-50%) translateY(-100%)'
+            }}
+          >
+            <div className="font-semibold text-gray-900 mb-2">
+              {tooltip.data.month} - {tooltip.totalReviews} review{tooltip.totalReviews !== 1 ? 's' : ''}
+            </div>
+            <div className="space-y-1">
+              {tooltip.data.fiveStar > 0 && (
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                    <span className="text-gray-600">5 Star</span>
+                  </div>
+                  <span className="font-medium">{tooltip.data.fiveStar}</span>
+                </div>
+              )}
+              {tooltip.data.fourStar > 0 && (
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-3 h-3 bg-green-400 rounded-full"></div>
+                    <span className="text-gray-600">4 Star</span>
+                  </div>
+                  <span className="font-medium">{tooltip.data.fourStar}</span>
+                </div>
+              )}
+              {tooltip.data.threeStar > 0 && (
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-3 h-3 bg-yellow-400 rounded-full"></div>
+                    <span className="text-gray-600">3 Star</span>
+                  </div>
+                  <span className="font-medium">{tooltip.data.threeStar}</span>
+                </div>
+              )}
+              {tooltip.data.twoStar > 0 && (
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-3 h-3 bg-orange-400 rounded-full"></div>
+                    <span className="text-gray-600">2 Star</span>
+                  </div>
+                  <span className="font-medium">{tooltip.data.twoStar}</span>
+                </div>
+              )}
+              {tooltip.data.oneStar > 0 && (
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                    <span className="text-gray-600">1 Star</span>
+                  </div>
+                  <span className="font-medium">{tooltip.data.oneStar}</span>
+                </div>
+              )}
+            </div>
+            {/* Close button */}
+            <button
+              onClick={() => setTooltip(null)}
+              className="absolute -top-2 -right-2 w-5 h-5 bg-gray-200 rounded-full flex items-center justify-center hover:bg-gray-300 transition-colors"
+            >
+              <Icon name="FaTimes" className="w-3 h-3 text-gray-600" />
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Right Side Stats */}

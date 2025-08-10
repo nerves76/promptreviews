@@ -172,7 +172,7 @@ export default function Header() {
         const accountId = await getAccountIdForUser(session.user.id, supabase);
           
         if (!accountId) {
-          console.error('🚨 Header: Could not get user account ID');
+          console.log('🔔 Header: No account found for user, skipping notifications');
           return;
         }
         
@@ -522,9 +522,6 @@ export default function Header() {
                         <Link href="/dashboard/plan" className="block px-4 py-2 text-sm text-gray-700 hover:bg-slate-blue/10 hover:text-slate-blue" onClick={() => setAccountMenuOpen(false)}>
                           Plan
                         </Link>
-                        <Link href="/dashboard/contacts" className="block px-4 py-2 text-sm text-gray-700 hover:bg-slate-blue/10 hover:text-slate-blue" onClick={() => setAccountMenuOpen(false)}>
-                          Contacts
-                        </Link>
                         <Link href="/dashboard/team" className="block px-4 py-2 text-sm text-gray-700 hover:bg-slate-blue/10 hover:text-slate-blue" onClick={() => setAccountMenuOpen(false)}>
                           Team
                         </Link>
@@ -840,30 +837,6 @@ export default function Header() {
                       } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
                     >
                       Plan
-                      {!hasBusiness && (
-                        <span className="text-xs text-blue-600 block mt-1">Create business profile first</span>
-                      )}
-                    </Link>
-                    <Link
-                      href={hasBusiness ? "/dashboard/contacts" : "#"}
-                      onClick={(e) => {
-                        if (!hasBusiness) {
-                          e.preventDefault();
-                          router.push("/dashboard/create-business");
-                          setMenuOpen(false);
-                        } else {
-                          setMenuOpen(false);
-                        }
-                      }}
-                      className={`${
-                        isActive("/dashboard/contacts")
-                          ? "bg-slate-blue/10 text-slate-blue"
-                          : hasBusiness 
-                            ? "text-blue-900 hover:bg-slate-blue/10 hover:text-slate-blue"
-                            : "text-blue-400 cursor-not-allowed"
-                      } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
-                    >
-                      Contacts
                       {!hasBusiness && (
                         <span className="text-xs text-blue-600 block mt-1">Create business profile first</span>
                       )}

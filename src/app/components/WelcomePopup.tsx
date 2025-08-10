@@ -113,7 +113,7 @@ Here's your first tip: [icon] <— click here`;
     return text.split('\n').map((paragraph, index) => {
       // Skip empty paragraphs but keep line breaks
       if (paragraph.trim() === '') {
-        return <div key={index} className="h-2" />;
+        return <div key={index} className="h-1" />;
       }
       
       // Check if this paragraph contains the robot icon placeholder
@@ -154,6 +154,15 @@ Here's your first tip: [icon] <— click here`;
         );
       }
       
+      // Check if this is a numbered header (e.g., "**1. Keywords**")
+      if (paragraph.trim().match(/^\*\*\d+\.\s+.*\*\*$/)) {
+        return (
+          <h3 key={index} className="text-lg font-bold text-slate-blue mt-4 mb-2">
+            {parseMarkdown(paragraph)}
+          </h3>
+        );
+      }
+      
       return (
         <p key={index} className="text-sm">
           {parseMarkdown(paragraph)}
@@ -180,12 +189,12 @@ Here's your first tip: [icon] <— click here`;
         <div className="bg-white shadow-lg flex flex-col md:flex-row gap-8 text-left rounded-xl overflow-hidden">
         
         {/* Left side: Content */}
-        <div className="flex-1 space-y-6 py-8 px-8 overflow-y-auto">
+        <div className="flex-1 space-y-4 py-6 px-8 overflow-y-auto">
           <div>
             <h2 className="text-2xl font-bold text-slate-blue mb-4">
               {welcomeTitle}
             </h2>
-            <div className="text-gray-700 leading-relaxed space-y-4">
+            <div className="text-gray-700 leading-relaxed space-y-2">
               {renderMessage(welcomeMessage)}
             </div>
             

@@ -879,17 +879,17 @@ export default function BusinessProfilePage() {
       <WelcomePopup
         isOpen={showWelcomePopup}
         onClose={handleWelcomeClose}
-        title={`Hello again${form.name ? `, ${form.name}` : ''}!`}
-        message={`Welcome to "Your business!" This section is all about highlighting what makes your business stand out so I can generate reviews that your audience can use, modify, and post on review sites.
+        title={`Hello again${form.name ? `, ${form.name.split(' ')[0]}` : ''}!`}
+        message={`Welcome to "Your business!" This section is all about highlighting what makes your business stand out.
 
-Here are two key sections to pay attention to:
+What you enter here can improve your AI-assisted reviews. Especially these two areas:
 
 **1. Keywords**
-Keywords help boost your web presence. For example, if you sell widgets in Seattle, you might want to include phrases like "best widget shop in Seattle." When those keywords show up in reviews, it can improve your visibility in search engines and AI tools like ChatGPT.
+Reviews can help you rank better in search engines when they contain relevant topics and keyword phrases. For example, if you sell Goose Juice (or Moose Juice) in Seattle, you might want reviewers to use phrases like **"Best Moose Juice this side of The Space Needle."** When those keywords show up in reviews, it can improve your visibility in search engines as well as AI tools like ChatGPT.
 
 **2. AI Dos and Don'ts**
-	•	AI Dos are preferences: e.g., "Always use ALL CAPS for our brand name."
-	•	AI Don'ts are things to avoid: e.g., "Don't say we offer free consults—we don't."
+• AI Dos are preferences: e.g., **"Always imply our Goose Juice is fly"**
+• AI Don'ts are things to avoid: e.g., **"And never dare say our Goose Juice is dry"**
 
 You can update your don'ts over time by testing outputs and reviewing what gets generated.`}
         imageUrl="https://ltneloufqjktdplodvao.supabase.co/storage/v1/object/public/logos/prompt-assets/prompty-teaching-about-your-business.png"

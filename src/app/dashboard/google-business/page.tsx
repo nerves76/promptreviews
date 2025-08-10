@@ -96,7 +96,7 @@ export default function SocialPostingDashboard() {
   const [isLoadingPlatforms, setIsLoadingPlatforms] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
   const [isImportingReviews, setIsImportingReviews] = useState(false);
-  const [importResult, setImportResult] = useState<{ success: boolean; message: string; count?: number } | null>(null);
+  const [importResult, setImportResult] = useState<{ success: boolean; message: string; count?: number; errors?: string[]; totalErrorCount?: number } | null>(null);
   const loadingRef = useRef(false); // More persistent loading prevention
   const initialLoadDone = useRef(false); // Track if initial load has been completed
 
@@ -1011,9 +1011,14 @@ export default function SocialPostingDashboard() {
         setImportResult({ 
           success: true, 
           message: result.message || 'Reviews imported successfully!',
-          count: result.count
+          count: result.count,
+          errors: result.errors, // Include error details for debugging
+          totalErrorCount: result.totalErrorCount
         });
         console.log('✅ Reviews imported successfully:', result.count);
+        if (result.errors && result.errors.length > 0) {
+          console.log('⚠️ Import errors:', result.errors);
+        }
       } else {
         setImportResult({ 
           success: false, 
@@ -2141,7 +2146,22 @@ export default function SocialPostingDashboard() {
       {/* Import Reviews Modal */}
       {showImportModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 relative">
+            {/* Standardized circular close button */}
+            <button
+              onClick={() => {
+                setShowImportModal(false);
+                setImportResult(null);
+              }}
+              className="absolute -top-3 -right-3 bg-white border border-gray-200 rounded-full shadow-lg hover:shadow-xl transition-shadow duration-200 flex items-center justify-center hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 z-20"
+              style={{ width: 48, height: 48 }}
+              aria-label="Close modal"
+            >
+              <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            
             <div className="flex items-center space-x-3 mb-4">
               <Icon name="FaImport" className="w-6 h-6 text-green-600" />
               <h3 className="text-lg font-semibold text-gray-900">Import Google Reviews</h3>
@@ -2149,7 +2169,18 @@ export default function SocialPostingDashboard() {
             
             <div className="mb-6">
               <p className="text-gray-600 mb-4">
-                Import your existing Google Business Profile reviews into PromptReviews. This will help you manage all your reviews in one place.
+                Import your existing Google Business Profile reviews into Prompt Reviews. Showcase them in a widget, launch a double-dip campaign
+                <span className="relative inline-block ml-1 group">
+                  <Icon 
+                    name="FaQuestionCircle" 
+                    className="w-4 h-4 text-blue-500 cursor-help hover:text-blue-700 transition-colors" 
+                  />
+                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none w-64 z-50">
+                    A double-dip campaign is just my silly terminology for asking contacts to take a review they've already written and edit/alter/improve and post on another review site. My advice? Go for the "triple-dip." YOLO! - Chris
+                    <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-800"></div>
+                  </div>
+                </span>
+                , or filter out contacts who have already reviewed you.
               </p>
               
               {selectedLocationId && (
@@ -2217,21 +2248,21 @@ export default function SocialPostingDashboard() {
                     {importResult.message}
                     {importResult.count !== undefined && ` (${importResult.count} reviews)`}
                   </p>
+                  {importResult.errors && importResult.errors.length > 0 && (
+                    <div className="mt-2 text-xs text-red-600">
+                      <p className="font-medium mb-1">Error details:</p>
+                      <ul className="list-disc list-inside space-y-1">
+                        {importResult.errors.map((error, idx) => (
+                          <li key={idx}>{error}</li>
+                        ))}
+                      </ul>
+                      {importResult.totalErrorCount && importResult.totalErrorCount > 5 && (
+                        <p className="mt-1 italic">...and {importResult.totalErrorCount - 5} more errors</p>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
-            </div>
-
-            <div className="flex space-x-3">
-              <button
-                onClick={() => {
-                  setShowImportModal(false);
-                  setImportResult(null);
-                }}
-                disabled={isImportingReviews}
-                className="flex-1 px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 disabled:bg-gray-100 transition-colors"
-              >
-                {isImportingReviews ? 'Importing...' : 'Close'}
-              </button>
             </div>
           </div>
         </div>

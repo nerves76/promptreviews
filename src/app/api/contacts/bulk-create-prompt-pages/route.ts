@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Parse request body
-    const { contactIds, promptType } = await request.json();
+    const { contactIds, promptType, includeReviews } = await request.json();
     
     if (!contactIds || !Array.isArray(contactIds) || contactIds.length === 0) {
       return NextResponse.json({ error: 'No contacts selected' }, { status: 400 });
@@ -150,6 +150,46 @@ export async function POST(request: NextRequest) {
             error: promptError.message
           });
         } else {
+          // If includeReviews is true, import existing reviews into the prompt page
+          if (includeReviews) {
+            try {
+              // Fetch reviews for this contact
+              const { data: contactReviews, error: reviewsError } = await supabaseAdmin
+                .from('review_submissions')
+                .select('platform, star_rating, review_content, verified, created_at')
+                .eq('contact_id', contact.id)
+                .order('created_at', { ascending: false });
+
+              if (reviewsError) {
+                console.error('⚠️ Failed to fetch reviews for contact:', contact.id, reviewsError);
+              } else if (contactReviews && contactReviews.length > 0) {
+                // Import reviews into the prompt page's review platforms
+                const reviewPlatforms = contactReviews.map(review => ({
+                  platform: review.platform || 'Other',
+                  review: review.review_content || '',
+                  rating: review.star_rating || 5,
+                  verified: review.verified || false,
+                  date: review.created_at
+                }));
+
+                // Update the prompt page with review platforms
+                const { error: updateError } = await supabaseAdmin
+                  .from('prompt_pages')
+                  .update({
+                    review_platforms: reviewPlatforms
+                  })
+                  .eq('id', promptPage.id);
+
+                if (updateError) {
+                  console.error('⚠️ Failed to import reviews for prompt page:', promptPage.id, updateError);
+                } else {
+                  console.log(`✅ Imported ${contactReviews.length} reviews for prompt page:`, promptPage.id);
+                }
+              }
+            } catch (reviewImportError) {
+              console.error('⚠️ Error during review import for contact:', contact.id, reviewImportError);
+            }
+          }
           console.log('✅ Bulk API - Successfully created prompt page:', {
             contactId: contact.id,
             contactName: contactName,

@@ -27,6 +27,8 @@ interface Review {
   verified?: boolean;
   verified_at?: string | null;
   platform_url?: string;
+  imported_from_google?: boolean;
+  contact_id?: string;
 }
 
 interface ReviewerGroup {
@@ -255,13 +257,9 @@ function getSentimentIcon(sentiment: string) {
     (l) => l.toLowerCase() === (sentiment || "").toLowerCase(),
   );
   if (idx !== -1) {
-    const { icon: iconName, color } = EMOJI_SENTIMENT_ICONS[idx];
+    const { icon: IconComponent, color } = EMOJI_SENTIMENT_ICONS[idx];
     return (
-      <Icon
-        name={iconName}
-        className={`w-7 h-7 ${color}`}
-        size={28}
-      />
+      <IconComponent className={`w-7 h-7 ${color}`} />
     );
   }
   return null;
@@ -369,7 +367,7 @@ export default function ReviewsPage() {
         const { data: existingReviews, error: fetchError } = await supabase
           .from("review_submissions")
           .select(
-            "id, prompt_page_id, first_name, last_name, reviewer_role, platform, review_content, created_at, status, emoji_sentiment_selection, verified, verified_at, platform_url"
+            "id, prompt_page_id, first_name, last_name, reviewer_role, platform, review_content, created_at, status, emoji_sentiment_selection, verified, verified_at, platform_url, imported_from_google, contact_id"
           )
           .in('prompt_page_id', promptPageIds)
           .order("created_at", { ascending: false })
@@ -513,14 +511,83 @@ export default function ReviewsPage() {
   // Toggle review verified status
   const handleToggleVerified = async (reviewId: string, currentVerified: boolean) => {
     try {
-      const { error } = await supabase
+      // First, get the review details to check if it has a contact_id and platform
+      const { data: reviewData, error: reviewFetchError } = await supabase
+        .from("review_submissions")
+        .select("contact_id, platform")
+        .eq("id", reviewId)
+        .single();
+
+      if (reviewFetchError) {
+        console.error("Error fetching review data:", reviewFetchError);
+        throw reviewFetchError;
+      }
+
+      // Update the review verification status
+      const { error: reviewUpdateError } = await supabase
         .from("review_submissions")
         .update({
           verified: !currentVerified,
           verified_at: !currentVerified ? new Date().toISOString() : null,
         })
         .eq("id", reviewId);
-      if (error) throw error;
+      
+      if (reviewUpdateError) throw reviewUpdateError;
+
+      // If review has a contact_id and is being verified, update the contact's platform verification
+      if (reviewData?.contact_id && !currentVerified) {
+        const platform = reviewData.platform?.toLowerCase();
+        const platformFieldMap: { [key: string]: string } = {
+          'google': 'google_review_verified_at',
+          'google business profile': 'google_review_verified_at',
+          'yelp': 'yelp_review_verified_at',
+          'facebook': 'facebook_review_verified_at'
+        };
+
+        const verificationField = platformFieldMap[platform];
+        
+        if (verificationField) {
+          // Update the contact's platform-specific verification field
+          const { error: contactUpdateError } = await supabase
+            .from("contacts")
+            .update({
+              [verificationField]: new Date().toISOString(),
+              review_verification_status: 'verified'
+            })
+            .eq("id", reviewData.contact_id);
+            
+          if (contactUpdateError) {
+            console.error("Error updating contact verification:", contactUpdateError);
+            // Don't fail the whole operation if contact update fails
+          }
+        }
+      } else if (reviewData?.contact_id && currentVerified) {
+        // If un-verifying, remove the platform verification
+        const platform = reviewData.platform?.toLowerCase();
+        const platformFieldMap: { [key: string]: string } = {
+          'google': 'google_review_verified_at',
+          'google business profile': 'google_review_verified_at',
+          'yelp': 'yelp_review_verified_at',
+          'facebook': 'facebook_review_verified_at'
+        };
+
+        const verificationField = platformFieldMap[platform];
+        
+        if (verificationField) {
+          const { error: contactUpdateError } = await supabase
+            .from("contacts")
+            .update({
+              [verificationField]: null
+            })
+            .eq("id", reviewData.contact_id);
+            
+          if (contactUpdateError) {
+            console.error("Error removing contact verification:", contactUpdateError);
+          }
+        }
+      }
+
+      // Update the UI
       setReviews((prev) =>
         prev.map((r) =>
           r.id === reviewId
@@ -529,6 +596,7 @@ export default function ReviewsPage() {
         ),
       );
     } catch (err) {
+      console.error("Error in handleToggleVerified:", err);
       setError("Failed to update verified status. Please try again.");
     }
   };
@@ -644,7 +712,6 @@ export default function ReviewsPage() {
               Sentiment
               <Icon name="FaQuestionCircle"
                 className="w-3.5 h-3.5 text-gray-400 cursor-pointer"
-                title="You must be using the sentiment gating feature to collect reviews tagged with sentiment."
               />
             </label>
             <div className="flex items-end gap-2">
@@ -791,6 +858,12 @@ export default function ReviewsPage() {
                         Not verified
                       </span>
                     )}
+                    {review.imported_from_google && (
+                      <span className="ml-2 inline-flex items-center gap-1 px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded">
+                        <Icon name="FaGoogle" className="w-3 h-3" size={12} />
+                        Imported
+                      </span>
+                    )}
                   </div>
                   <span className="ml-4 text-gray-400">
                     {isExpanded ? (
@@ -847,6 +920,15 @@ export default function ReviewsPage() {
                         >
                           View prompt page
                         </a>
+                        {review.contact_id && (
+                          <a
+                            href={`/dashboard/contacts?id=${review.contact_id}`}
+                            className="text-xs text-purple-700 underline flex items-center gap-1"
+                          >
+                            <Icon name="FaUser" className="w-3 h-3" size={12} />
+                            View contact
+                          </a>
+                        )}
                         <button
                           className={`text-xs rounded px-3 py-1 ${review.verified ? "bg-green-100 text-green-700 hover:bg-green-200" : "bg-gray-100 text-gray-500 hover:bg-gray-200"}`}
                           onClick={(e) => {
