@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation";
 
 import UnifiedPromptTypeSelectModal from "@/app/components/UnifiedPromptTypeSelectModal";
 import ManualContactForm from "@/app/components/ManualContactForm";
+import ContactMergeModal from "@/app/components/ContactMergeModal";
 import { checkAccountLimits } from "@/utils/accountLimits";
 
 export default function UploadContactsPage() {
@@ -62,6 +63,16 @@ export default function UploadContactsPage() {
   // Reviews state for contact edit modal
   const [contactReviews, setContactReviews] = useState<any[]>([]);
   const [reviewsLoading, setReviewsLoading] = useState(false);
+
+  // Duplicate merge state
+  const [duplicateGroups, setDuplicateGroups] = useState<any[]>([]);
+  const [findingDuplicates, setFindingDuplicates] = useState(false);
+  const [showMergeModal, setShowMergeModal] = useState(false);
+  const [selectedDuplicateGroup, setSelectedDuplicateGroup] = useState<any>(null);
+
+  // Sorting state
+  const [sortField, setSortField] = useState<string>('');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
   // Function to check contact limits
   const checkContactLimits = async () => {
@@ -156,6 +167,60 @@ export default function UploadContactsPage() {
         {reviewCount}
       </span>
     );
+  };
+
+  // Function to refresh contacts data
+  const refreshContacts = async () => {
+    setContactsLoading(true);
+    
+    // Get total count
+    const { count, error: countError } = await supabase
+      .from("contacts")
+      .select("*", { count: "exact", head: true });
+    
+    if (!countError && count !== null) {
+      setTotalCount(count);
+    }
+    
+    // Get paginated data with review counts
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage - 1;
+    
+    const { data, error } = await supabase
+      .from("contacts")
+      .select(`
+        *
+      `)
+      .order("created_at", { ascending: false })
+      .range(startIndex, endIndex);
+      
+    // Get review counts for each contact separately
+    if (data && data.length > 0) {
+      const contactIds = data.map(contact => contact.id);
+      const { data: reviewCounts } = await supabase
+        .from("review_submissions")
+        .select("contact_id")
+        .in("contact_id", contactIds)
+        .eq("verified", true);
+        
+      // Count reviews per contact
+      const reviewCountMap = (reviewCounts || []).reduce((acc: {[key: string]: number}, review) => {
+        acc[review.contact_id] = (acc[review.contact_id] || 0) + 1;
+        return acc;
+      }, {});
+      
+      // Add review counts to contacts
+      data.forEach(contact => {
+        contact.review_count = reviewCountMap[contact.id] || 0;
+      });
+    }
+      
+    if (!error && data) {
+      setContacts(data);
+      // Clear selections when refreshing
+      setSelectedContactIds([]);
+    }
+    setContactsLoading(false);
   };
 
   // Fetch contacts with pagination
@@ -614,6 +679,146 @@ export default function UploadContactsPage() {
     }
   }
 
+  // Find duplicates function
+  const handleFindDuplicates = async () => {
+    setFindingDuplicates(true);
+    setError('');
+    
+    try {
+      const response = await fetch('/api/contacts/find-duplicates', {
+        headers: {
+          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+        },
+      });
+
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to find duplicates');
+      }
+
+      setDuplicateGroups(data.duplicateGroups || []);
+      
+      if (data.duplicateGroups.length === 0) {
+        setSuccess('No duplicate contacts found!');
+        setTimeout(() => setSuccess(''), 3000);
+      }
+    } catch (error) {
+      console.error('Find duplicates error:', error);
+      setError(error instanceof Error ? error.message : 'Failed to find duplicates');
+    } finally {
+      setFindingDuplicates(false);
+    }
+  };
+
+  // Handle merge contacts
+  const handleMergeContacts = async (primaryContactId: string, fieldsToKeep: Record<string, any>) => {
+    if (!selectedDuplicateGroup) return;
+    
+    try {
+      const contactIds = selectedDuplicateGroup.contacts.map((c: any) => c.id);
+      
+      const response = await fetch('/api/contacts/merge', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+        },
+        body: JSON.stringify({
+          primaryContactId,
+          fieldsToKeep,
+          contactIdsToMerge: contactIds
+        }),
+      });
+
+      const result = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to merge contacts');
+      }
+
+      setSuccess(`Successfully merged ${result.deletedContacts + 1} contacts with ${result.transferredReviews} reviews and ${result.transferredPromptPages} prompt pages!`);
+      setTimeout(() => setSuccess(''), 5000);
+      
+      // Refresh contacts list immediately
+      await refreshContacts();
+      
+      // Remove the merged group from duplicates list
+      setDuplicateGroups(prev => prev.filter(group => 
+        group.contacts[0].id !== selectedDuplicateGroup.contacts[0].id
+      ));
+      
+    } catch (error) {
+      console.error('Merge error:', error);
+      setError(error instanceof Error ? error.message : 'Failed to merge contacts');
+    }
+  };
+
+  // Sorting function
+  const handleSort = (field: string) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
+  // Get sortable value for a contact
+  const getSortValue = (contact: any, field: string): string => {
+    switch (field) {
+      case 'name':
+        if (contact.imported_from_google && contact.first_name === "Google User" && contact.google_reviewer_name) {
+          return contact.google_reviewer_name.toLowerCase();
+        }
+        return `${contact.first_name || ''} ${contact.last_name || ''}`.toLowerCase().trim();
+      case 'first_name':
+        return (contact.first_name || '').toLowerCase();
+      case 'last_name':
+        return (contact.last_name || '').toLowerCase();
+      case 'email':
+        return (contact.email || '').toLowerCase();
+      case 'company':
+        return (contact.business_name || '').toLowerCase();
+      case 'category':
+        return (contact.category || '').toLowerCase();
+      case 'google_name':
+        return (contact.google_reviewer_name || '').toLowerCase();
+      default:
+        return '';
+    }
+  };
+
+  // Sort contacts
+  const sortedContacts = [...contacts].sort((a, b) => {
+    if (!sortField) return 0;
+    
+    const aValue = getSortValue(a, sortField);
+    const bValue = getSortValue(b, sortField);
+    
+    if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
+    if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
+    return 0;
+  });
+
+  // Sortable header component
+  const SortableHeader = ({ field, children }: { field: string, children: React.ReactNode }) => (
+    <th 
+      className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+      onClick={() => handleSort(field)}
+    >
+      <div className="flex items-center gap-1">
+        {children}
+        {sortField === field && (
+          <Icon 
+            name={sortDirection === 'asc' ? "FaChevronUp" : "FaChevronDown"} 
+            className="w-3 h-3 text-gray-400" 
+          />
+        )}
+      </div>
+    </th>
+  );
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center">
@@ -642,6 +847,18 @@ export default function UploadContactsPage() {
                             <h1 className="text-4xl font-bold text-slate-blue mt-0 mb-2">Contacts</h1>
           </div>
           <div className="flex gap-3">
+            <button
+              onClick={handleFindDuplicates}
+              disabled={findingDuplicates || contacts.length < 2}
+              className={`px-4 py-2 rounded-lg font-semibold shadow flex items-center gap-2 ${
+                !findingDuplicates && contacts.length >= 2
+                  ? 'bg-purple-600 text-white hover:bg-purple-700'
+                  : 'bg-gray-400 text-gray-200 cursor-not-allowed'
+              }`}
+            >
+              <Icon name="FaSearch" className="w-4 h-4" />
+              {findingDuplicates ? 'Finding...' : 'Find Duplicates'}
+            </button>
             <button
               onClick={async () => {
                 try {
@@ -719,6 +936,106 @@ export default function UploadContactsPage() {
           </div>
         )}
 
+        {/* Duplicate Contacts Section */}
+        {duplicateGroups.length > 0 && (
+          <div className="mb-8 bg-orange-50 p-6 rounded-lg border border-orange-200">
+            <h2 className="text-2xl font-bold text-orange-600 mb-4 flex items-center gap-2">
+              <Icon name="FaExclamationTriangle" className="w-6 h-6" />
+              Potential Duplicates Found ({duplicateGroups.length})
+            </h2>
+            <p className="text-orange-700 mb-4 text-sm">
+              Review these potential duplicate contacts and merge them to clean up your contact list.
+            </p>
+            <div className="space-y-4">
+              {duplicateGroups.map((group, index) => {
+                const getReasonDisplay = () => {
+                  switch (group.reason) {
+                    case 'exact_email':
+                      return { label: 'Same email address', color: 'bg-red-100 text-red-700 border-red-200', icon: 'FaEnvelope' };
+                    case 'exact_phone':
+                      return { label: 'Same phone number', color: 'bg-orange-100 text-orange-700 border-orange-200', icon: 'FaPhone' };
+                    case 'similar_name':
+                      return { label: `Similar names (${Math.round(group.score * 100)}% match)`, color: 'bg-yellow-100 text-yellow-700 border-yellow-200', icon: 'FaUser' };
+                    default:
+                      return { label: 'Similar contacts', color: 'bg-gray-100 text-gray-700 border-gray-200', icon: 'FaUser' };
+                  }
+                };
+
+                const reasonDisplay = getReasonDisplay();
+                const getDisplayName = (contact: any) => {
+                  if (contact.imported_from_google && contact.first_name === "Google User" && contact.google_reviewer_name) {
+                    return contact.google_reviewer_name;
+                  }
+                  return `${contact.first_name || ''} ${contact.last_name || ''}`.trim() || 'Unnamed Contact';
+                };
+
+                return (
+                  <div key={index} className="bg-white border border-orange-200 rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <span className={`px-2 py-1 text-xs font-medium rounded-full border ${reasonDisplay.color}`}>
+                          <Icon name={reasonDisplay.icon as any} className="w-3 h-3 inline mr-1" />
+                          {reasonDisplay.label}
+                        </span>
+                        <span className="text-sm text-gray-600">
+                          {group.contacts.length} contacts
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => {
+                          console.log('Merge button clicked for group:', group);
+                          setSelectedDuplicateGroup(group);
+                          setShowMergeModal(true);
+                        }}
+                        className="px-4 py-2 text-sm rounded-lg font-semibold shadow-lg"
+                        style={{
+                          backgroundColor: '#4F46E5',
+                          color: '#FFFFFF',
+                          border: '2px solid #3730A3',
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = '#4338CA';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = '#4F46E5';
+                        }}
+                      >
+                        Review & Merge
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                      {group.contacts.map((contact: any) => (
+                        <div key={contact.id} className="bg-gray-50 rounded p-3 text-sm">
+                          <div className="font-medium text-gray-900 flex items-center gap-2">
+                            {getDisplayName(contact)}
+                            {contact.imported_from_google && (
+                              <span className="inline-flex items-center justify-center w-4 h-4 text-xs bg-blue-100 text-blue-700 rounded-full font-medium">
+                                G
+                              </span>
+                            )}
+                          </div>
+                          {contact.email && (
+                            <div className="text-gray-600 flex items-center gap-1 mt-1">
+                              <Icon name="FaEnvelope" className="w-3 h-3" />
+                              {contact.email}
+                            </div>
+                          )}
+                          {contact.phone && (
+                            <div className="text-gray-600 flex items-center gap-1 mt-1">
+                              <Icon name="FaPhone" className="w-3 h-3" />
+                              {contact.phone}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         {/* Contacts Table */}
         <div className="mb-16">
           <h2 className="text-2xl font-bold text-slate-blue mb-6">
@@ -768,23 +1085,20 @@ export default function UploadContactsPage() {
                           aria-label="Select all contacts"
                         />
                       </th>
-                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Name
-                      </th>
-                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Email
-                      </th>
+                      <SortableHeader field="first_name">First Name</SortableHeader>
+                      <SortableHeader field="last_name">Last Name</SortableHeader>
+                      <SortableHeader field="email">Email</SortableHeader>
+                      <SortableHeader field="company">Company</SortableHeader>
                       <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Phone
                       </th>
                       <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Role
                       </th>
+                      <SortableHeader field="category">Category</SortableHeader>
+                      <SortableHeader field="google_name">Google Name</SortableHeader>
                       <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Reviews
-                      </th>
-                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Category
                       </th>
                       <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
                         Actions
@@ -792,7 +1106,7 @@ export default function UploadContactsPage() {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {contacts.map((contact) => (
+                    {sortedContacts.map((contact) => (
                     <tr key={contact.id}>
                       <td className="px-3 py-2 text-sm">
                         <input
@@ -803,17 +1117,27 @@ export default function UploadContactsPage() {
                         />
                       </td>
                       <td className="px-3 py-2 text-sm text-gray-900">
+                        <div className="flex items-center gap-2">
+                          {contact.imported_from_google && contact.first_name === "Google User" 
+                            ? contact.google_reviewer_name?.split(' ')[0] || ""
+                            : contact.first_name || ""}
+                          {contact.imported_from_google && (
+                            <span className="inline-flex items-center justify-center w-5 h-5 text-xs bg-blue-100 text-blue-700 rounded-full font-medium">
+                              G
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-3 py-2 text-sm text-gray-900">
                         {contact.imported_from_google && contact.first_name === "Google User" 
-                          ? contact.google_reviewer_name 
-                          : `${contact.first_name} ${contact.last_name}`}
-                        {contact.imported_from_google && (
-                          <span className="ml-2 inline-flex items-center justify-center w-5 h-5 text-xs bg-blue-100 text-blue-700 rounded-full font-medium">
-                            G
-                          </span>
-                        )}
+                          ? contact.google_reviewer_name?.split(' ').slice(1).join(' ') || ""
+                          : contact.last_name || ""}
                       </td>
                       <td className="px-3 py-2 text-sm text-gray-900">
                         {contact.email}
+                      </td>
+                      <td className="px-3 py-2 text-sm text-gray-900">
+                        {contact.business_name || ""}
                       </td>
                       <td className="px-3 py-2 text-sm text-gray-900">
                         {contact.phone}
@@ -821,11 +1145,14 @@ export default function UploadContactsPage() {
                       <td className="px-3 py-2 text-sm text-gray-900">
                         {contact.role || ""}
                       </td>
-                      <td className="px-3 py-2 text-sm">
-                        {renderReviewCount(contact)}
-                      </td>
                       <td className="px-3 py-2 text-sm text-gray-900">
                         {contact.category || ""}
+                      </td>
+                      <td className="px-3 py-2 text-sm text-gray-900">
+                        {contact.google_reviewer_name && contact.imported_from_google ? contact.google_reviewer_name : ""}
+                      </td>
+                      <td className="px-3 py-2 text-sm">
+                        {renderReviewCount(contact)}
                       </td>
                       <td className="px-3 py-2 text-sm whitespace-nowrap">
                         <button
@@ -1542,6 +1869,19 @@ export default function UploadContactsPage() {
             </div>
           </div>
         )}
+
+        {/* Contact Merge Modal */}
+        <ContactMergeModal
+          open={showMergeModal}
+          onClose={() => {
+            setShowMergeModal(false);
+            setSelectedDuplicateGroup(null);
+          }}
+          contacts={selectedDuplicateGroup?.contacts || []}
+          onMerge={handleMergeContacts}
+          reason={selectedDuplicateGroup?.reason || 'similar_name'}
+          score={selectedDuplicateGroup?.score || 0}
+        />
       </div>
     </PageCard>
   );
