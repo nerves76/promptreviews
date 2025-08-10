@@ -1077,11 +1077,13 @@ export class GoogleBusinessProfileClient {
       this.config.baseUrl = originalBaseUrl;
       
       console.log('✅ [NEW API] Successfully fetched performance data');
-      console.log('🔍 [NEW API] Raw response:', JSON.stringify(response, null, 2));
+      console.log('🔍 [NEW API] Response keys:', Object.keys(response || {}));
+      console.log('🔍 [NEW API] Response type:', typeof response);
       console.log('🔍 [NEW API] Response structure:', {
         hasMultiDailyMetricsTimeSeries: !!response.multiDailyMetricsTimeSeries,
         metricsCount: response.multiDailyMetricsTimeSeries?.length || 0,
         responseKeys: Object.keys(response || {}),
+        fullResponse: response,  // Log the full response
         firstMetric: response.multiDailyMetricsTimeSeries?.[0] || 'none'
       });
       
