@@ -43,6 +43,8 @@ export default function BusinessDescriptionAnalyzer({
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
   const [error, setError] = useState('');
   const [copied, setCopied] = useState(false);
+  const [selectedKeywords, setSelectedKeywords] = useState<string[]>([]);
+  const [isIntegrating, setIsIntegrating] = useState(false);
 
   // Auto-analyze when component mounts if autoAnalyze is true
   useEffect(() => {
@@ -125,6 +127,69 @@ export default function BusinessDescriptionAnalyzer({
   const clearForm = () => {
     setAnalysis(null);
     setError('');
+    setSelectedKeywords([]);
+  };
+
+  const handleKeywordToggle = (keyword: string) => {
+    setSelectedKeywords(prev => 
+      prev.includes(keyword) 
+        ? prev.filter(k => k !== keyword)
+        : [...prev, keyword]
+    );
+  };
+
+  const handleIntegrateKeywords = async () => {
+    if (selectedKeywords.length === 0) {
+      setError('Please select at least one keyword to integrate');
+      return;
+    }
+
+    setIsIntegrating(true);
+    setError('');
+
+    try {
+      console.log('🔧 Integrating keywords into description...');
+      
+      const response = await fetch('/api/ai/google-business/integrate-keywords', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          currentDescription,
+          keywords: selectedKeywords,
+          businessContext
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Integration failed');
+      }
+
+      const data = await response.json();
+      
+      if (!data.success || !data.optimizedDescription) {
+        throw new Error('Invalid response from keyword integration');
+      }
+
+      // Update the analysis with the new optimized description
+      if (analysis) {
+        const updatedAnalysis = {
+          ...analysis,
+          optimizedDescription: data.optimizedDescription
+        };
+        setAnalysis(updatedAnalysis);
+        onAnalysisComplete?.(updatedAnalysis);
+      }
+      
+      console.log('✅ Keywords integrated successfully');
+    } catch (error: any) {
+      console.error('❌ Keyword integration failed:', error);
+      setError(error.message || 'Failed to integrate keywords. Please try again.');
+    } finally {
+      setIsIntegrating(false);
+    }
   };
 
   const getScoreColor = (score: number) => {
@@ -272,26 +337,47 @@ export default function BusinessDescriptionAnalyzer({
 
           {/* Keywords */}
           {analysis.keywordSuggestions.length > 0 && (
-            <div className="border border-blue-200 rounded-lg p-4">
-              <h4 className="font-medium text-gray-900 mb-3">SEO Keywords</h4>
+            <div className="border border-green-200 rounded-lg p-4">
+              <h4 className="font-medium text-gray-900 mb-3">Optimize with Keywords</h4>
               <p className="text-sm text-gray-600 mb-3">
-                                  Keywords optimized for search engines:
+                Select any or all of the relevant keyword phrases below to be included in your bio.
               </p>
-              <div className="flex flex-wrap gap-2">
+              
+              <div className="space-y-2 mb-4">
                 {analysis.keywordSuggestions.map((keyword, index) => (
-                  <span
+                  <label
                     key={index}
-                    className="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full cursor-pointer hover:bg-blue-200 transition-colors"
-                    title="Click to copy"
-                    onClick={() => navigator.clipboard.writeText(keyword)}
+                    className="flex items-center space-x-3 p-2 rounded-lg hover:bg-green-50 cursor-pointer transition-colors"
                   >
-                    {keyword}
-                  </span>
+                    <input
+                      type="checkbox"
+                      checked={selectedKeywords.includes(keyword)}
+                      onChange={() => handleKeywordToggle(keyword)}
+                      className="w-4 h-4 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500 focus:ring-2"
+                    />
+                    <span className="text-sm text-gray-700 flex-1">{keyword}</span>
+                    <span 
+                      className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full"
+                      title="Optimized for search"
+                    >
+                      SEO
+                    </span>
+                  </label>
                 ))}
               </div>
-              <p className="text-xs text-gray-500 mt-2">
-                💡 Tip: Click any keyword to copy it to your clipboard
-              </p>
+
+              <div className="flex items-center justify-between">
+                <p className="text-xs text-gray-500">
+                  {selectedKeywords.length} of {analysis.keywordSuggestions.length} keywords selected
+                </p>
+                <button
+                  onClick={handleIntegrateKeywords}
+                  disabled={selectedKeywords.length === 0 || isIntegrating}
+                  className="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {isIntegrating ? 'Integrating...' : 'Integrate'}
+                </button>
+              </div>
             </div>
           )}
         </div>
