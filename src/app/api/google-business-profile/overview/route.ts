@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
     // Get location ID from query parameters
     const { searchParams } = new URL(request.url);
     const locationId = searchParams.get('locationId');
-    const useMockData = searchParams.get('mock') === 'true' || true; // Temporarily always use mock data
+    const useMockData = searchParams.get('mock') === 'true';
 
     if (!locationId) {
       return NextResponse.json(

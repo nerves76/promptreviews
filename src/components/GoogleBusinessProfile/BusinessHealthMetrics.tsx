@@ -399,8 +399,9 @@ export default function BusinessHealthMetrics({
         </div>
       </MetricCard>
 
-      {/* Business Performance */}
-      <MetricCard title="Business Performance" icon="FaChartLine">
+      {/* Business Performance - Only show if we have performance data */}
+      {hasPerformanceData && (
+        <MetricCard title="Business Performance" icon="FaChartLine">
         <div className="space-y-4">
 
 
@@ -466,6 +467,7 @@ export default function BusinessHealthMetrics({
           )}
         </div>
       </MetricCard>
+      )}
 
       {/* Optimization Opportunities */}
       <MetricCard title="Optimization Opportunities" icon="FaTrophy">
