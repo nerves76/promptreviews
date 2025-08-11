@@ -15,7 +15,8 @@ import {
   Zap,
   Star,
   BarChart3,
-  Settings
+  Settings,
+  Target
 } from 'lucide-react'
 import { clsx } from 'clsx'
 
@@ -57,6 +58,20 @@ const navigation: NavItem[] = [
       { title: 'Page Types', href: '/prompt-pages/types' },
       { title: 'Service Pages', href: '/prompt-pages/types/service' },
       { title: 'Features', href: '/prompt-pages/features' },
+    ]
+  },
+  {
+    title: 'Strategies',
+    href: '/strategies',
+    icon: Target,
+    children: [
+      { title: 'Overview', href: '/strategies' },
+      { title: 'Double-Dip', href: '/strategies/double-dip' },
+      { title: 'Reciprocity', href: '/strategies/reciprocity' },
+      { title: 'Personal Outreach', href: '/strategies/personal-outreach' },
+      { title: 'Non-AI Strategies', href: '/strategies/non-ai-strategies' },
+      { title: 'Novelty Factor', href: '/strategies/novelty' },
+      { title: 'Reviews on the Fly', href: '/strategies/reviews-on-fly' },
     ]
   },
   {

@@ -42,9 +42,17 @@ export default function Header({ onSearchClick }: HeaderProps) {
               </kbd>
             </button>
 
+            {/* Back to Site */}
+            <Link
+              href="https://promptreviews.app"
+              className="hidden sm:inline-flex items-center space-x-2 px-4 py-2 border border-white/30 text-white rounded-lg hover:bg-white/10 transition-colors"
+            >
+              <span>Back to Site</span>
+            </Link>
+
             {/* App Link */}
             <Link
-              href="https://promptreviews.com/dashboard"
+              href="https://app.promptreviews.app/dashboard"
               className="hidden sm:inline-flex items-center space-x-2 px-4 py-2 bg-slate-blue text-white rounded-lg hover:bg-slate-700 transition-colors"
             >
               <span>Open App</span>
