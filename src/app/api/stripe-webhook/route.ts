@@ -86,6 +86,10 @@ export async function POST(req: NextRequest) {
       maxLocations = 10;
     }
 
+    // Determine billing period from subscription interval
+    const billingPeriod = subscription.items.data[0]?.price.recurring?.interval === 'year' ? 'annual' : 'monthly';
+    console.log("  Billing Period:", billingPeriod);
+
     // Update the user's account in Supabase by customerId
     console.log("🔄 Attempting to update account by customer ID:", customerId);
     console.log("  Setting max_users to:", maxUsers);
@@ -96,6 +100,7 @@ export async function POST(req: NextRequest) {
         plan_lookup_key: lookupKey,
         stripe_subscription_id: subscription.id,
         subscription_status: status,
+        billing_period: billingPeriod,
         max_users: maxUsers,
         max_locations: maxLocations,
         ...(isPaidPlan ? { has_had_paid_plan: true } : {}),
@@ -159,6 +164,7 @@ export async function POST(req: NextRequest) {
             stripe_subscription_id: subscription.id,
             subscription_status: status,
             stripe_customer_id: customerId, // CRITICAL: always set this for future events
+            billing_period: billingPeriod,
             max_users: maxUsers,
             max_locations: maxLocations,
             ...(isPaidPlan ? { has_had_paid_plan: true } : {}),
@@ -183,6 +189,7 @@ export async function POST(req: NextRequest) {
             stripe_subscription_id: subscription.id,
             subscription_status: status,
             stripe_customer_id: customerId, // CRITICAL: always set this for future events
+            billing_period: billingPeriod,
             max_users: maxUsers,
             max_locations: maxLocations,
             ...(isPaidPlan ? { has_had_paid_plan: true } : {}),

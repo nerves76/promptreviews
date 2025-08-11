@@ -8,7 +8,6 @@
 import ProfileOptimizationEmbed from '@/components/GoogleBusinessProfile/embeds/ProfileOptimizationEmbed';
 import CustomerEngagementEmbed from '@/components/GoogleBusinessProfile/embeds/CustomerEngagementEmbed';
 import OptimizationOpportunitiesEmbed from '@/components/GoogleBusinessProfile/embeds/OptimizationOpportunitiesEmbed';
-import BusinessPerformanceEmbed from '@/components/GoogleBusinessProfile/embeds/BusinessPerformanceEmbed';
 import OverviewStatsEmbed from '@/components/GoogleBusinessProfile/embeds/OverviewStatsEmbed';
 
 export default function ReviewTrendsTablet() {
@@ -47,34 +46,16 @@ export default function ReviewTrendsTablet() {
             <div className="overflow-y-auto max-h-[70vh]">
               <div className="p-4 space-y-6">
                 {/* Review Trends Overview */}
-                <div>
-                  <h2 className="text-lg font-bold text-gray-900 mb-3">Review Trends Overview</h2>
-                  <OverviewStatsEmbed />
-                </div>
-                
-                {/* Business Performance */}
-                <div>
-                  <h2 className="text-lg font-bold text-gray-900 mb-3">Business Performance</h2>
-                  <BusinessPerformanceEmbed />
-                </div>
+                <OverviewStatsEmbed />
                 
                 {/* Profile Optimization */}
-                <div>
-                  <h2 className="text-lg font-bold text-gray-900 mb-3">Profile Optimization Score</h2>
-                  <ProfileOptimizationEmbed />
-                </div>
+                <ProfileOptimizationEmbed />
                 
                 {/* Customer Engagement */}
-                <div>
-                  <h2 className="text-lg font-bold text-gray-900 mb-3">Customer Engagement Metrics</h2>
-                  <CustomerEngagementEmbed />
-                </div>
+                <CustomerEngagementEmbed />
                 
                 {/* AI-Powered Recommendations */}
-                <div>
-                  <h2 className="text-lg font-bold text-gray-900 mb-3">AI-Powered Recommendations</h2>
-                  <OptimizationOpportunitiesEmbed />
-                </div>
+                <OptimizationOpportunitiesEmbed />
               </div>
             </div>
           </div>
@@ -106,34 +87,16 @@ export default function ReviewTrendsTablet() {
                 <div className="overflow-y-auto" style={{ height: 'calc(100% - 40px)', maxHeight: '760px' }}>
                   <div className="p-4 lg:p-6 space-y-6 lg:space-y-8">
                   {/* Review Trends Overview */}
-                  <div>
-                    <h2 className="text-xl font-bold text-gray-900 mb-4">Review Trends Overview</h2>
-                    <OverviewStatsEmbed />
-                  </div>
-                  
-                  {/* Business Performance */}
-                  <div>
-                    <h2 className="text-xl font-bold text-gray-900 mb-4">Business Performance</h2>
-                    <BusinessPerformanceEmbed />
-                  </div>
+                  <OverviewStatsEmbed />
                   
                   {/* Profile Optimization */}
-                  <div>
-                    <h2 className="text-xl font-bold text-gray-900 mb-4">Profile Optimization Score</h2>
-                    <ProfileOptimizationEmbed />
-                  </div>
+                  <ProfileOptimizationEmbed />
                   
                   {/* Customer Engagement */}
-                  <div>
-                    <h2 className="text-xl font-bold text-gray-900 mb-4">Customer Engagement Metrics</h2>
-                    <CustomerEngagementEmbed />
-                  </div>
+                  <CustomerEngagementEmbed />
                   
                   {/* AI-Powered Recommendations */}
-                  <div>
-                    <h2 className="text-xl font-bold text-gray-900 mb-4">AI-Powered Recommendations</h2>
-                    <OptimizationOpportunitiesEmbed />
-                  </div>
+                  <OptimizationOpportunitiesEmbed />
                 </div>
               </div>
             </div>
@@ -345,7 +308,7 @@ export default function ReviewDashboard() {
   ReviewDashboard.init('review-trends-widget', {
     showHeader: true,
     theme: 'light',
-    components: ['overview', 'performance', 'optimization', 'engagement', 'recommendations']
+    components: ['overview', 'optimization', 'engagement', 'recommendations']
   });
   
   // Only initialize tablet widget on larger screens
@@ -353,7 +316,7 @@ export default function ReviewDashboard() {
     ReviewDashboard.init('review-trends-widget-tablet', {
       showHeader: true,
       theme: 'light',
-      components: ['overview', 'performance', 'optimization', 'engagement', 'recommendations']
+      components: ['overview', 'optimization', 'engagement', 'recommendations']
     });
   }
 </script>`}

@@ -20,7 +20,7 @@ export default function TestWidget() {
         (window as any).ReviewDashboard.init('widget-container', {
           showHeader: true,
           theme: 'light',
-          components: ['overview', 'performance', 'optimization']
+          components: ['overview', 'optimization', 'engagement']
         });
       }
     };
@@ -48,7 +48,7 @@ export default function TestWidget() {
           <h2 className="text-xl font-semibold text-gray-800 mb-4">Test 2: Direct Iframe Embed</h2>
           <div className="bg-white rounded-lg shadow-lg p-6">
             <iframe 
-              src="/embed/review-dashboard?theme=light&showHeader=true&components=overview,performance"
+              src="/embed/review-dashboard?theme=light&showHeader=true&components=overview,optimization,engagement,recommendations"
               width="100%"
               height="600"
               frameBorder="0"
@@ -86,7 +86,7 @@ export default function TestWidget() {
   ReviewDashboard.init('my-review-widget', {
     showHeader: true,
     theme: 'light',
-    components: ['overview', 'performance', 'optimization']
+    components: ['overview', 'optimization', 'engagement']
   });
 </script>`}</pre>
             </div>

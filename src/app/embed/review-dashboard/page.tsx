@@ -10,7 +10,6 @@ import { useEffect, Suspense } from 'react';
 import ProfileOptimizationEmbed from '@/components/GoogleBusinessProfile/embeds/ProfileOptimizationEmbed';
 import CustomerEngagementEmbed from '@/components/GoogleBusinessProfile/embeds/CustomerEngagementEmbed';
 import OptimizationOpportunitiesEmbed from '@/components/GoogleBusinessProfile/embeds/OptimizationOpportunitiesEmbed';
-import BusinessPerformanceEmbed from '@/components/GoogleBusinessProfile/embeds/BusinessPerformanceEmbed';
 import OverviewStatsEmbed from '@/components/GoogleBusinessProfile/embeds/OverviewStatsEmbed';
 
 function EmbedReviewDashboardContent() {
@@ -19,7 +18,7 @@ function EmbedReviewDashboardContent() {
   // Parse parameters
   const theme = searchParams.get('theme') || 'light';
   const showHeader = searchParams.get('showHeader') !== 'false';
-  const componentsParam = searchParams.get('components') || 'overview,performance,optimization,engagement,recommendations';
+  const componentsParam = searchParams.get('components') || 'overview,optimization,engagement,recommendations';
   const components = componentsParam.split(',').filter(Boolean);
   
   // Send height updates to parent
@@ -56,12 +55,6 @@ function EmbedReviewDashboardContent() {
       <div key="overview">
         {showHeader && <h2 className="text-xl font-bold text-gray-900 mb-4">Review Trends Overview</h2>}
         <OverviewStatsEmbed />
-      </div>
-    ),
-    performance: (
-      <div key="performance">
-        {showHeader && <h2 className="text-xl font-bold text-gray-900 mb-4">Business Performance</h2>}
-        <BusinessPerformanceEmbed />
       </div>
     ),
     optimization: (

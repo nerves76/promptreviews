@@ -94,6 +94,11 @@ export default function PlanPage() {
       setCurrentPlan(accountData?.plan || null);
       prevPlanRef.current = accountData?.plan || null;
       
+      // Set billing period from database if available
+      if (accountData?.billing_period) {
+        setBillingPeriod(accountData.billing_period as 'monthly' | 'annual');
+      }
+      
       // Check if account has expired
       const now = new Date();
       const trialEnd = accountData?.trial_end ? new Date(accountData.trial_end) : null;
@@ -438,7 +443,7 @@ export default function PlanPage() {
             <p className="text-xl text-gray-300 max-w-2xl mx-auto">
               {currentPlan === "grower" || !currentPlan 
                 ? "Select the perfect plan to start collecting more reviews."
-                : `You're currently on the ${tiers.find(t => t.key === currentPlan)?.name || currentPlan} plan.`
+                : `You're currently on the ${tiers.find(t => t.key === currentPlan)?.name || currentPlan} plan${account?.billing_period === 'annual' ? ' (Annual billing)' : account?.billing_period === 'monthly' ? ' (Monthly billing)' : ''}.`
               }
             </p>
             
@@ -523,7 +528,7 @@ export default function PlanPage() {
                 {currentPlan === tier.key && (
                   <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
                     <span className="bg-blue-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
-                      Current Plan
+                      Current Plan{account?.billing_period === 'annual' ? ' (Annual)' : ''}
                     </span>
                   </div>
                 )}
