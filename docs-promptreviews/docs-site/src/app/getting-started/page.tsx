@@ -2,6 +2,8 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import DocsLayout from '../docs-layout'
 import PageHeader from '../components/PageHeader'
+import PageFAQs from '../components/PageFAQs'
+import { pageFAQs } from '../utils/faqData'
 import { 
   CheckCircle, 
   Star, 
@@ -315,6 +317,13 @@ export default function GettingStartedPage() {
             </Link>
           </div>
         </div>
+
+        {/* FAQs Section */}
+        <PageFAQs 
+          faqs={pageFAQs['getting-started']}
+          pageTitle="Getting Started with Prompt Reviews"
+          pageUrl="https://docs.promptreviews.com/getting-started"
+        />
 
         {/* Related Articles */}
         <h2>Related Articles</h2>

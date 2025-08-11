@@ -301,7 +301,7 @@ export default function ReviewsPage() {
             </Link>
             
             <a
-              href="https://promptreviews.com/dashboard/reviews"
+              href="https://promptreviews.app/dashboard/reviews"
               className="inline-flex items-center space-x-2 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
             >
               <span>View Your Reviews</span>

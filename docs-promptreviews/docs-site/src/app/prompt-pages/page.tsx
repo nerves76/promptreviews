@@ -2,6 +2,8 @@ import { Metadata } from 'next';
 import Link from 'next/link'
 import DocsLayout from '../docs-layout'
 import PageHeader from '../components/PageHeader'
+import PageFAQs from '../components/PageFAQs'
+import { pageFAQs } from '../utils/faqData'
 import { 
   MessageCircle, 
   Star, 
@@ -415,6 +417,13 @@ export default function PromptPagesPage() {
             </div>
           </div>
         </div>
+
+        {/* FAQs Section */}
+        <PageFAQs 
+          faqs={pageFAQs['prompt-pages']}
+          pageTitle="Prompt Pages"
+          pageUrl="https://docs.promptreviews.com/prompt-pages"
+        />
 
         {/* Next Steps */}
         <div className="text-center">

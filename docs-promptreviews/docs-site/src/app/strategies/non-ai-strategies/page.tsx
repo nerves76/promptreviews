@@ -16,15 +16,16 @@ import {
 } from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: 'Non-AI Strategies | Prompt Reviews',
-  description: 'Learn how to use kickstarters, recent reviews, and personalized templates to help customers write better reviews without AI assistance.',
+  title: 'Review Writing Help: Templates, Examples & Tips for Customers',
+  description: 'Learn how to help customers write better reviews without AI. Use templates, examples, and tips to improve review quality and increase response rates.',
   keywords: [
-    'non-ai review strategies',
-    'review kickstarters',
-    'review templates',
-    'customer review help',
-    'review writing assistance',
-    'review collection techniques'
+    'review writing help',
+    'review templates for customers',
+    'review examples for customers',
+    'help customers write reviews',
+    'review writing tips',
+    'review templates examples',
+    'how to help customers write reviews'
   ],
   alternates: {
     canonical: 'https://docs.promptreviews.com/strategies/non-ai-strategies',
@@ -89,8 +90,8 @@ export default function NonAIStrategiesPage() {
           categoryLabel="Review Collection"
           categoryIcon={Lightbulb}
           categoryColor="yellow"
-          title="Non-AI strategies"
-          description="Use kickstarters, recent reviews, and personalized templates to help customers write better reviews. Sometimes the best assistance doesn't need AI."
+          title="Review writing help"
+          description="Learn how to help customers write better reviews without AI. Use templates, examples, and tips to improve review quality and increase response rates."
         />
 
         {/* Strategy Overview */}
@@ -98,12 +99,12 @@ export default function NonAIStrategiesPage() {
           <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-8">
             <div className="text-center mb-8">
               <Lightbulb className="w-16 h-16 text-yellow-300 mx-auto mb-4" />
-              <h2 className="text-2xl font-bold text-white mb-4">What are Non-AI Strategies?</h2>
-              <p className="text-white/90 text-lg">
-                While AI is powerful, sometimes the best way to help customers write reviews is through simple, 
-                human-centered approaches. These strategies provide structure, examples, and guidance without 
-                relying on artificial intelligence.
-              </p>
+                             <h2 className="text-2xl font-bold text-white mb-4">How to Help Customers Write Better Reviews</h2>
+               <p className="text-white/90 text-lg">
+                 While AI is powerful, sometimes the best way to help customers write reviews is through simple, 
+                 human-centered approaches. These review writing help strategies provide structure, examples, and guidance without 
+                 relying on artificial intelligence.
+               </p>
             </div>
             
             <div className="grid md:grid-cols-3 gap-6">

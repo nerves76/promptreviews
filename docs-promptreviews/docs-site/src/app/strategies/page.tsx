@@ -16,15 +16,17 @@ import {
 } from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: 'Review Collection Strategies | Prompt Reviews',
-  description: 'Master the art of collecting customer reviews with proven strategies. From the Double-Dip technique to leveraging reciprocity, discover tactics that work.',
+  title: 'How to Get More Customer Reviews: 6 Proven Strategies That Work',
+  description: 'Increase your customer reviews by 300% with these 6 proven strategies. Learn the psychology, timing, and techniques that actually work for review collection.',
   keywords: [
-    'review collection strategies',
-    'customer review tactics',
-    'review marketing',
-    'review psychology',
-    'review collection best practices',
-    'review generation techniques'
+    'how to get more customer reviews',
+    'increase customer reviews',
+    'customer review strategies',
+    'review collection techniques',
+    'get more reviews',
+    'customer review psychology',
+    'review marketing strategies',
+    '300% increase reviews'
   ],
   alternates: {
     canonical: 'https://docs.promptreviews.com/strategies',
@@ -35,8 +37,8 @@ export const metadata: Metadata = {
 const pageJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'Article',
-  headline: 'Review Collection Strategies',
-  description: 'Master the art of collecting customer reviews with proven strategies and psychological techniques.',
+  headline: 'How to Get More Customer Reviews: 6 Proven Strategies That Work',
+  description: 'Increase your customer reviews by 300% with these 6 proven strategies. Learn the psychology, timing, and techniques that actually work for review collection.',
   author: {
     '@type': 'Organization',
     name: 'Prompt Reviews'
@@ -141,8 +143,8 @@ export default function StrategiesPage() {
           categoryLabel="Review Collection"
           categoryIcon={Target}
           categoryColor="blue"
-          title="Review collection strategies"
-          description="Master the art of collecting customer reviews with proven psychological techniques and innovative approaches. From the Double-Dip to leveraging reciprocity, discover strategies that actually work."
+          title="How to get more customer reviews"
+          description="Increase your customer reviews by 300% with these 6 proven strategies. Learn the psychology, timing, and techniques that actually work for review collection."
         />
 
         {/* Introduction */}
@@ -162,10 +164,10 @@ export default function StrategiesPage() {
                 <div className="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center mx-auto mb-3">
                   <TrendingUp className="w-6 h-6 text-blue-300" />
                 </div>
-                <h3 className="font-semibold text-white mb-2">Higher Response Rates</h3>
-                <p className="text-white/80 text-sm">
-                  Proven techniques that increase review collection by 3-5x
-                </p>
+                               <h3 className="font-semibold text-white mb-2">Increase Reviews by 300%</h3>
+               <p className="text-white/80 text-sm">
+                 Proven techniques that increase review collection by 3-5x
+               </p>
               </div>
               
               <div className="text-center">

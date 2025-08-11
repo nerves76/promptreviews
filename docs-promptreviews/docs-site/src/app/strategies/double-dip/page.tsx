@@ -16,15 +16,16 @@ import {
 } from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: 'The Double-Dip Strategy | Prompt Reviews',
-  description: 'Learn how to import existing Google reviews and turn them into prompt pages to collect reviews on other platforms. Master the art of review multiplication.',
+  title: 'Double Your Reviews: Turn Google Reviews into Yelp, Facebook & More',
+  description: 'Learn how to get reviews on multiple platforms from one customer. Import Google reviews and turn them into Yelp, Facebook, and other platform reviews.',
   keywords: [
-    'double-dip strategy',
-    'review multiplication',
-    'Google reviews import',
-    'cross-platform reviews',
-    'review collection tactics',
-    'review platform expansion'
+    'double your reviews',
+    'get reviews on multiple platforms',
+    'Google reviews to Yelp',
+    'cross platform reviews',
+    'multiple platform reviews',
+    'turn Google reviews into other reviews',
+    'review multiplication strategy'
   ],
   alternates: {
     canonical: 'https://docs.promptreviews.com/strategies/double-dip',
@@ -35,8 +36,8 @@ export const metadata: Metadata = {
 const pageJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'HowTo',
-  name: 'The Double-Dip Strategy',
-  description: 'How to import existing Google reviews and turn them into prompt pages to collect reviews on other platforms',
+  name: 'Double Your Reviews: Turn Google Reviews into Yelp, Facebook & More',
+  description: 'How to get reviews on multiple platforms from one customer by importing Google reviews',
   image: 'https://docs.promptreviews.com/images/double-dip-strategy.jpg',
   estimatedCost: {
     '@type': 'MonetaryAmount',
@@ -89,8 +90,8 @@ export default function DoubleDipPage() {
           categoryLabel="Review Collection"
           categoryIcon={Target}
           categoryColor="blue"
-          title="The Double-Dip strategy"
-          description="Import your existing Google reviews and turn them into prompt pages to collect reviews on other platforms. It's like getting two scoops of ice cream for the price of one!"
+          title="Double your reviews"
+          description="Turn Google reviews into Yelp, Facebook, and other platform reviews. Get reviews on multiple platforms from one customer!"
         />
 
         {/* Strategy Overview */}
@@ -98,12 +99,12 @@ export default function DoubleDipPage() {
           <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-8">
             <div className="text-center mb-8">
               <Target className="w-16 h-16 text-blue-300 mx-auto mb-4" />
-              <h2 className="text-2xl font-bold text-white mb-4">What is the Double-Dip?</h2>
-              <p className="text-white/90 text-lg">
-                The Double-Dip is a clever strategy that takes your existing Google reviews and turns them into 
-                opportunities to collect reviews on other platforms. It's like getting a second scoop of reviews 
-                from customers who already love you!
-              </p>
+                             <h2 className="text-2xl font-bold text-white mb-4">How to Get Reviews on Multiple Platforms</h2>
+               <p className="text-white/90 text-lg">
+                 The Double-Dip strategy takes your existing Google reviews and turns them into opportunities 
+                 to get reviews on Yelp, Facebook, and other platforms. It's like getting a second scoop of reviews 
+                 from customers who already love you!
+               </p>
             </div>
             
             <div className="grid md:grid-cols-3 gap-6">

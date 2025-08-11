@@ -88,10 +88,18 @@ export default function TutorialsTab({
   const getMockTutorials = (keywords: string[]): Tutorial[] => {
     const allTutorials: Tutorial[] = [
       {
+        id: 'faq',
+        title: 'Complete FAQ - All Your Questions Answered',
+        description: 'Comprehensive FAQ covering everything about Prompt Reviews - setup, features, pricing, and more',
+        url: 'https://promptreviews.app/docs/faq-comprehensive',
+        category: 'faq',
+        tags: ['faq', 'questions', 'help', 'answers', 'support']
+      },
+      {
         id: '1',
         title: 'Getting Started with Prompt Pages',
         description: 'Learn how to create your first prompt page to collect customer reviews',
-        url: 'https://docs.promptreviews.app/getting-started',
+        url: 'https://promptreviews.app/docs/getting-started',
         category: 'getting-started',
         tags: ['prompt-pages', 'create', 'setup']
       },
@@ -99,7 +107,7 @@ export default function TutorialsTab({
         id: '2',
         title: 'Customizing Your Business Profile',
         description: 'Set up your business information, branding, and contact details',
-        url: 'https://docs.promptreviews.app/business/profile-setup',
+        url: 'https://promptreviews.app/docs/business-profile',
         category: 'business',
         tags: ['business', 'profile', 'branding']
       },
@@ -107,7 +115,7 @@ export default function TutorialsTab({
         id: '3',
         title: 'Managing Contacts and Import Options',
         description: 'Upload, organize, and manage your customer contacts effectively',
-        url: 'https://docs.promptreviews.app/contacts/management',
+        url: 'https://promptreviews.app/docs/contacts',
         category: 'contacts',
         tags: ['contacts', 'upload', 'import', 'manage']
       },
@@ -115,7 +123,7 @@ export default function TutorialsTab({
         id: '4',
         title: 'Embedding Review Widgets',
         description: 'Add review widgets to your website to showcase customer feedback',
-        url: 'https://docs.promptreviews.app/widgets/embedding',
+        url: 'https://promptreviews.app/docs/widgets',
         category: 'widgets',
         tags: ['widgets', 'embed', 'website']
       },
@@ -123,7 +131,7 @@ export default function TutorialsTab({
         id: '5',
         title: 'Google Business Profile Integration',
         description: 'Connect and sync with your Google Business Profile for enhanced visibility',
-        url: 'https://docs.promptreviews.app/integrations/google-business',
+        url: 'https://promptreviews.app/docs/google-business',
         category: 'integrations',
         tags: ['google', 'business-profile', 'integration']
       },
@@ -131,7 +139,7 @@ export default function TutorialsTab({
         id: '6',
         title: 'Dashboard Overview and Navigation',
         description: 'Understanding your dashboard and key features',
-        url: 'https://docs.promptreviews.app/dashboard/overview',
+        url: 'https://promptreviews.app/docs',
         category: 'dashboard',
         tags: ['dashboard', 'overview', 'navigation']
       }
@@ -276,7 +284,7 @@ export default function TutorialsTab({
       {/* Browse all tutorials link */}
       <div className="mt-6 pt-6 border-t border-gray-200 text-center">
         <a
-          href="https://docs.promptreviews.app"
+          href="https://promptreviews.app/docs"
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center space-x-2 text-slate-blue hover:text-slate-blue/80 font-medium"

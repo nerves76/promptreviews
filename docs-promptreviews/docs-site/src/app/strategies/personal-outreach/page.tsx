@@ -17,15 +17,16 @@ import {
 } from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: 'Personal Outreach Strategy | Prompt Reviews',
-  description: 'Learn why one-on-one connections are more effective than mass requests for building trust, loyalty, and collecting authentic customer reviews.',
+  title: 'Personal vs Mass Marketing for Reviews: Which Gets Better Results?',
+  description: 'Discover why personal customer outreach gets more reviews than mass marketing. Learn how one-on-one connections build trust and loyalty for better review collection.',
   keywords: [
-    'personal outreach',
-    'one-on-one marketing',
-    'customer relationships',
-    'review collection',
-    'trust building',
-    'loyalty marketing'
+    'personal vs mass marketing for reviews',
+    'personal customer outreach',
+    'one-on-one marketing reviews',
+    'mass marketing vs personal outreach',
+    'which gets more reviews',
+    'personal outreach vs mass marketing',
+    'customer relationship building for reviews'
   ],
   alternates: {
     canonical: 'https://docs.promptreviews.com/strategies/personal-outreach',
@@ -90,8 +91,8 @@ export default function PersonalOutreachPage() {
           categoryLabel="Review Collection"
           categoryIcon={Users}
           categoryColor="green"
-          title="Personal outreach"
-          description="Why one-on-one connections are more effective than mass requests for building trust, loyalty, and word of mouth by connecting."
+          title="Personal vs mass marketing for reviews"
+          description="Discover why personal customer outreach gets more reviews than mass marketing. Learn how one-on-one connections build trust and loyalty."
         />
 
         {/* Strategy Overview */}
@@ -99,12 +100,12 @@ export default function PersonalOutreachPage() {
           <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-8">
             <div className="text-center mb-8">
               <Users className="w-16 h-16 text-green-300 mx-auto mb-4" />
-              <h2 className="text-2xl font-bold text-white mb-4">What is Personal Outreach?</h2>
-              <p className="text-white/90 text-lg">
-                Personal outreach is the art of connecting with customers on an individual level rather than treating them 
-                as part of a mass audience. It's about building genuine relationships that lead to trust, loyalty, and 
-                authentic word-of-mouth recommendations.
-              </p>
+                             <h2 className="text-2xl font-bold text-white mb-4">Personal vs Mass Marketing: Which Gets More Reviews?</h2>
+               <p className="text-white/90 text-lg">
+                 Personal customer outreach is the art of connecting with customers on an individual level rather than treating them 
+                 as part of a mass audience. It's about building genuine relationships that lead to trust, loyalty, and 
+                 authentic word-of-mouth recommendations.
+               </p>
             </div>
             
             <div className="grid md:grid-cols-3 gap-6">

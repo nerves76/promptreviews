@@ -286,7 +286,7 @@ export default function VideoPromptPages() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a
-              href="https://app.promptreviews.com/dashboard"
+              href="https://promptreviews.app/dashboard"
               className="inline-flex items-center px-6 py-3 bg-white/20 text-white backdrop-blur-sm font-medium rounded-lg hover:bg-white/30 transition-colors"
             >
               Create Video Page

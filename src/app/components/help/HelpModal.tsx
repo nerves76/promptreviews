@@ -150,22 +150,34 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
           <div className="flex flex-col md:flex-row items-center justify-between text-xs text-gray-500">
             <div className="flex items-center space-x-4 mb-2 md:mb-0">
               <a 
-                href="https://docs.promptreviews.app"
+                href="https://promptreviews.app/docs/faq-comprehensive"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-slate-blue transition-colors flex items-center space-x-1"
+                onClick={() => trackEvent('help_footer_faq_clicked')}
+              >
+                <Icon name="FaQuestionCircle" className="w-3 h-3" size={12} />
+                <span>FAQ</span>
+              </a>
+              <a 
+                href="https://promptreviews.app/docs"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="hover:text-slate-blue transition-colors flex items-center space-x-1"
                 onClick={() => trackEvent('help_footer_docs_clicked')}
               >
                 <Icon name="FaBook" className="w-3 h-3" size={12} />
-                <span>Documentation</span>
+                <span>Docs</span>
               </a>
               <a 
-                href="mailto:support@promptreviews.app"
+                href="https://promptreviews.app/contact"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="hover:text-slate-blue transition-colors flex items-center space-x-1"
-                onClick={() => trackEvent('help_footer_email_clicked')}
+                onClick={() => trackEvent('help_footer_contact_clicked')}
               >
                 <Icon name="FaEnvelope" className="w-3 h-3" size={12} />
-                <span>Email Support</span>
+                <span>Contact</span>
               </a>
             </div>
             <div className="flex items-center space-x-1">

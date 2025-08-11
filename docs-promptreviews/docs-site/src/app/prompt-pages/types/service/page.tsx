@@ -314,7 +314,7 @@ export default function ServicePromptPages() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a
-              href="https://app.promptreviews.app/dashboard/create-prompt-page"
+              href="https://promptreviews.app/dashboard/create-prompt-page"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center px-6 py-3 bg-white/20 text-white backdrop-blur-sm font-medium rounded-lg hover:bg-white/30 transition-colors"

@@ -16,15 +16,16 @@ import {
 } from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: 'Leverage Reciprocity Strategy | Prompt Reviews',
-  description: 'Learn how to use the psychology of reciprocity to increase review response rates. Master Dr. Cialdini\'s principles for better customer relationships.',
+  title: 'The Psychology of Getting Customer Reviews: Dr. Cialdini\'s Method',
+  description: 'Learn how to use psychology to get more customer reviews. Master Dr. Cialdini\'s reciprocity principle to increase review response rates naturally.',
   keywords: [
-    'reciprocity psychology',
-    'Dr. Cialdini',
-    'review psychology',
-    'customer relationships',
-    'review response rates',
-    'psychological triggers'
+    'psychology of getting customer reviews',
+    'Dr. Cialdini review method',
+    'use psychology to get reviews',
+    'reciprocity principle reviews',
+    'customer review psychology',
+    'psychological triggers for reviews',
+    'how psychology helps get reviews'
   ],
   alternates: {
     canonical: 'https://docs.promptreviews.com/strategies/reciprocity',
@@ -89,8 +90,8 @@ export default function ReciprocityPage() {
           categoryLabel="Review Collection"
           categoryIcon={Heart}
           categoryColor="red"
-          title="Leverage reciprocity"
-          description="Use the psychology of reciprocity to increase review response rates. When you do something nice for someone, they naturally want to return the favor."
+          title="The psychology of getting customer reviews"
+          description="Learn how to use psychology to get more customer reviews. Master Dr. Cialdini's reciprocity principle to increase review response rates naturally."
         />
 
         {/* Strategy Overview */}
@@ -98,12 +99,12 @@ export default function ReciprocityPage() {
           <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-8">
             <div className="text-center mb-8">
               <Heart className="w-16 h-16 text-red-300 mx-auto mb-4" />
-              <h2 className="text-2xl font-bold text-white mb-4">What is Reciprocity?</h2>
-              <p className="text-white/90 text-lg">
-                Reciprocity is one of the most powerful psychological principles: when someone does something nice for us, 
-                we feel a natural urge to return the favor. It's hardwired into human nature and can dramatically increase 
-                your review response rates.
-              </p>
+                             <h2 className="text-2xl font-bold text-white mb-4">How Psychology Helps You Get More Reviews</h2>
+               <p className="text-white/90 text-lg">
+                 Understanding the psychology of getting customer reviews is key to success. When you use psychology 
+                 to get more reviews, you tap into natural human behavior that can dramatically increase your review 
+                 response rates.
+               </p>
             </div>
             
             <div className="grid md:grid-cols-3 gap-6">

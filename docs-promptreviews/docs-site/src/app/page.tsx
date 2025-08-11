@@ -15,7 +15,7 @@ import {
 
 export const metadata: Metadata = {
   title: 'Prompt Reviews Documentation - Complete Help Center & Guides',
-  description: 'Welcome to Prompt Reviews documentation! Learn how to collect, manage, and leverage customer reviews with our comprehensive guides, tutorials, and troubleshooting resources. Get started with our AI-powered review collection system.',
+  description: 'Learn how to level-up your online presence in Google & ChatGPT by leveraging the power of customer reviews with Prompt Reviews. Explore tutorials from account setup to advanced review capture strategies.',
   keywords: [
     'Prompt Reviews help',
     'review management tutorial',
@@ -80,6 +80,14 @@ const features = [
     href: '/getting-started',
     icon: BookOpen,
     color: 'bg-green-500',
+    popular: true,
+  },
+  {
+    name: 'Complete FAQ',
+    description: 'Find answers to all your questions with our comprehensive FAQ covering every aspect of Prompt Reviews.',
+    href: '/faq-comprehensive',
+    icon: MessageSquare,
+    color: 'bg-cyan-500',
     popular: true,
   },
   {
@@ -171,8 +179,8 @@ export default function HomePage() {
           </h1>
           
           <p className="text-xl text-white/90 mb-8 max-w-3xl mx-auto text-balance">
-            Learn how to collect, manage, and leverage customer reviews with Prompt Reviews. 
-            From setup to advanced automation with our AI-powered review collection system.
+            Learn how to level-up your online presence in Google & ChatGPT by leveraging the power 
+            of customer reviews with Prompt Reviews. Explore tutorials from account setup to advanced review capture strategies.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
@@ -186,11 +194,11 @@ export default function HomePage() {
             </Link>
             
             <Link
-              href="/troubleshooting/faq"
+              href="/faq-comprehensive"
               className="inline-flex items-center space-x-2 border border-white/30 text-white px-6 py-3 rounded-lg hover:bg-white/10 transition-colors font-medium backdrop-blur-sm"
             >
               <MessageSquare className="w-5 h-5" />
-              <span>Browse FAQ</span>
+              <span>Browse Complete FAQ</span>
             </Link>
           </div>
 
@@ -309,7 +317,7 @@ export default function HomePage() {
             </Link>
             
             <a
-              href="mailto:support@promptreviews.com"
+              href="https://promptreviews.app/contact"
               className="inline-flex items-center space-x-2 bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700 transition-colors font-medium"
             >
               <span>Contact Support</span>

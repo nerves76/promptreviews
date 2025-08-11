@@ -2,6 +2,8 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import DocsLayout from '../docs-layout'
 import PageHeader from '../components/PageHeader'
+import PageFAQs from '../components/PageFAQs'
+import { pageFAQs } from '../utils/faqData'
 import { 
   Users, 
   Upload, 
@@ -440,6 +442,13 @@ export default function ContactsPage() {
             </Link>
           </div>
         </div>
+
+        {/* FAQs Section */}
+        <PageFAQs 
+          faqs={pageFAQs['contacts']}
+          pageTitle="Contact Management"
+          pageUrl="https://docs.promptreviews.com/contacts"
+        />
 
         {/* Related Articles */}
         <h2>Related Articles</h2>

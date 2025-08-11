@@ -15,6 +15,16 @@ import { useRouter, usePathname } from "next/navigation";
 import Icon from "@/components/Icon";
 import { createPortal } from "react-dom";
 
+// Custom [P] icon component for Prompt Pages
+const PromptPagesIcon = ({ className }: { className?: string }) => (
+  <span 
+    className={className} 
+    style={{ fontFamily: 'Inter, sans-serif', fontWeight: 'bold' }}
+  >
+    [P]
+  </span>
+);
+
 interface GetReviewsDropdownProps {
   hasBusiness: boolean;
   businessLoading: boolean;
@@ -78,7 +88,7 @@ const GetReviewsDropdown: React.FC<GetReviewsDropdownProps> = ({
     {
       href: "/prompt-pages",
       label: "Prompt Pages",
-      icon: "FaFileAlt",
+      icon: PromptPagesIcon,
       description: "Create review collection pages"
     },
     {
@@ -143,7 +153,11 @@ const GetReviewsDropdown: React.FC<GetReviewsDropdownProps> = ({
               }`}
               title={!hasBusiness ? "Create your business profile first" : ""}
             >
-              <Icon name={item.icon as any} className="w-5 h-5 mr-3" size={20} />
+              {typeof item.icon === 'string' ? (
+                <Icon name={item.icon as any} className="w-5 h-5 mr-3" size={20} />
+              ) : (
+                <item.icon className="w-5 h-5 mr-3" />
+              )}
               <div className="flex-1">
                 <div className="font-medium">{item.label}</div>
                 <div className="text-sm text-gray-500">{item.description}</div>

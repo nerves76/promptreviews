@@ -437,11 +437,11 @@ export default function TroubleshootingPage() {
           </p>
           <div className="flex flex-col sm:flex-row gap-3">
             <a
-              href="mailto:support@promptreviews.com"
+              href="https://promptreviews.app/contact"
               className="inline-flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium no-underline"
             >
               <Mail className="w-4 h-4" />
-              <span>Email Support</span>
+              <span>Contact Support</span>
             </a>
             <Link
               href="/getting-started"

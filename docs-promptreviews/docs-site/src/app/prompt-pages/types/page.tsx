@@ -271,7 +271,7 @@ export default function PromptPageTypes() {
                         <p className="text-white/70 text-sm mt-1">Get started in just a few minutes</p>
                       </div>
                       <a
-                        href="https://app.promptreviews.app/dashboard/create-prompt-page"
+                        href="https://promptreviews.app/dashboard/create-prompt-page"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="mt-4 sm:mt-0 inline-flex items-center px-6 py-3 bg-slate-blue text-white font-medium rounded-lg hover:bg-slate-blue/90 transition-colors"
@@ -364,7 +364,7 @@ export default function PromptPageTypes() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a
-              href="https://app.promptreviews.app/dashboard/create-prompt-page"
+              href="https://promptreviews.app/dashboard/create-prompt-page"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center px-6 py-3 bg-white/20 text-white font-medium rounded-lg hover:bg-white/30 backdrop-blur-sm transition-colors"

@@ -2,6 +2,8 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import DocsLayout from '../docs-layout'
 import PageHeader from '../components/PageHeader'
+import PageFAQs from '../components/PageFAQs'
+import { pageFAQs } from '../utils/faqData'
 import { 
   Building2, 
   Link2, 
@@ -284,6 +286,15 @@ export default function GoogleBusinessPage() {
         </div>
       </div>
 
+      {/* FAQs Section */}
+      <div className="max-w-4xl mx-auto mb-16">
+        <PageFAQs 
+          faqs={pageFAQs['google-business']}
+          pageTitle="Google Business Profile Integration"
+          pageUrl="https://docs.promptreviews.com/google-business"
+        />
+      </div>
+
       {/* Next Steps */}
       <div className="max-w-4xl mx-auto">
         <div className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 p-8 text-center">
@@ -302,7 +313,7 @@ export default function GoogleBusinessPage() {
             </Link>
             
             <a
-              href="https://promptreviews.com/dashboard/google-business"
+              href="https://promptreviews.app/dashboard/google-business"
               className="inline-flex items-center space-x-2 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
             >
               <span>Connect Google Business</span>
