@@ -55,3 +55,6 @@ docs-promptreviews/docs-site/build/
 # any other build directories
 **/build/
 **/out/
+
+# database exports that may contain sensitive data
+pg_policies
