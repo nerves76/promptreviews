@@ -6,14 +6,14 @@
 'use client';
 
 import { useSearchParams } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, Suspense } from 'react';
 import ProfileOptimizationEmbed from '@/components/GoogleBusinessProfile/embeds/ProfileOptimizationEmbed';
 import CustomerEngagementEmbed from '@/components/GoogleBusinessProfile/embeds/CustomerEngagementEmbed';
 import OptimizationOpportunitiesEmbed from '@/components/GoogleBusinessProfile/embeds/OptimizationOpportunitiesEmbed';
 import BusinessPerformanceEmbed from '@/components/GoogleBusinessProfile/embeds/BusinessPerformanceEmbed';
 import OverviewStatsEmbed from '@/components/GoogleBusinessProfile/embeds/OverviewStatsEmbed';
 
-export default function EmbedReviewDashboard() {
+function EmbedReviewDashboardContent() {
   const searchParams = useSearchParams();
   
   // Parse parameters
@@ -90,5 +90,17 @@ export default function EmbedReviewDashboard() {
         {components.map(component => componentMap[component] || null)}
       </div>
     </div>
+  );
+}
+
+export default function EmbedReviewDashboard() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-gray-500">Loading...</div>
+      </div>
+    }>
+      <EmbedReviewDashboardContent />
+    </Suspense>
   );
 }

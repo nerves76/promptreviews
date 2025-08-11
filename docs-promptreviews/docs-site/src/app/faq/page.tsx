@@ -53,7 +53,7 @@ const pageJsonLd = {
       name: 'How much does Prompt Reviews cost?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Prompt Reviews starts at $15/month for the Grower plan, with Builder ($35/month) and Maven ($100/month) plans available for growing businesses.'
+        text: 'Prompt Reviews starts at $15/month ($153/year) for Grower. Builder is $35/month ($357/year) and Maven is $100/month ($1,020/year). Save 15% with annual billing!'
       }
     },
     {
@@ -137,7 +137,7 @@ const faqCategories = [
     questions: [
       {
         question: 'How much does Prompt Reviews cost?',
-        answer: 'Prompt Reviews starts at $15/month for the Grower plan. We offer Builder ($35/month) and Maven ($100/month) plans to fit businesses of all sizes, with features that scale with your needs.',
+        answer: 'Prompt Reviews starts at $15/month ($153/year) for the Grower plan. We offer Builder ($35/month or $357/year) and Maven ($100/month or $1,020/year) plans. Save 15% with annual billing on any plan!',
         related: ['/pricing', 'Pricing Plans']
       },
       {

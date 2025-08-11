@@ -40,7 +40,8 @@ export default function BillingPage() {
               {/* Grower Plan */}
               <div className="bg-blue-500/20 border border-blue-400/30 rounded-xl p-6">
                 <h3 className="text-xl font-bold text-white mb-2">Grower</h3>
-                <div className="text-3xl font-bold text-blue-300 mb-4">$15<span className="text-lg text-white/70">/month</span></div>
+                <div className="text-3xl font-bold text-blue-300">$15<span className="text-lg text-white/70">/month</span></div>
+                <div className="text-sm text-white/60 mb-3">or $153/year <span className="text-xs bg-green-500/20 text-green-300 px-2 py-0.5 rounded-full ml-2">Save $27</span></div>
                 <p className="text-white/80 text-sm mb-4">Perfect for small businesses getting started</p>
                 
                 <ul className="space-y-2 mb-6">
@@ -75,7 +76,8 @@ export default function BillingPage() {
                   </span>
                 </div>
                 <h3 className="text-xl font-bold text-white mb-2">Builder</h3>
-                <div className="text-3xl font-bold text-purple-300 mb-4">$35<span className="text-lg text-white/70">/month</span></div>
+                <div className="text-3xl font-bold text-purple-300">$35<span className="text-lg text-white/70">/month</span></div>
+                <div className="text-sm text-white/60 mb-3">or $357/year <span className="text-xs bg-green-500/20 text-green-300 px-2 py-0.5 rounded-full ml-2">Save $63</span></div>
                 <p className="text-white/80 text-sm mb-4">Ideal for growing businesses</p>
                 
                 <ul className="space-y-2 mb-6">
@@ -105,7 +107,8 @@ export default function BillingPage() {
               {/* Maven Plan */}
               <div className="bg-yellow-500/20 border border-yellow-400/30 rounded-xl p-6">
                 <h3 className="text-xl font-bold text-white mb-2">Maven</h3>
-                <div className="text-3xl font-bold text-yellow-300 mb-4">$100<span className="text-lg text-white/70">/month</span></div>
+                <div className="text-3xl font-bold text-yellow-300">$100<span className="text-lg text-white/70">/month</span></div>
+                <div className="text-sm text-white/60 mb-3">or $1,020/year <span className="text-xs bg-green-500/20 text-green-300 px-2 py-0.5 rounded-full ml-2">Save $180</span></div>
                 <p className="text-white/80 text-sm mb-4">For established businesses & franchises</p>
                 
                 <ul className="space-y-2 mb-6">
@@ -130,6 +133,55 @@ export default function BillingPage() {
                     All features included
                   </li>
                 </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Annual Billing */}
+        <div className="mb-12">
+          <h2 className="text-2xl font-bold text-white mb-6">Annual Billing - Save 15%</h2>
+          
+          <div className="bg-gradient-to-r from-green-500/20 to-blue-500/20 border border-green-400/30 rounded-xl p-6">
+            <div className="grid md:grid-cols-2 gap-6">
+              <div>
+                <h3 className="text-lg font-semibold text-white mb-3">Why Choose Annual?</h3>
+                <ul className="space-y-2 text-white/80">
+                  <li className="flex items-start space-x-2">
+                    <Check className="w-5 h-5 text-green-300 flex-shrink-0 mt-0.5" />
+                    <span>Save 15% on any plan - almost 2 months free!</span>
+                  </li>
+                  <li className="flex items-start space-x-2">
+                    <Check className="w-5 h-5 text-green-300 flex-shrink-0 mt-0.5" />
+                    <span>Lock in your pricing for a full year</span>
+                  </li>
+                  <li className="flex items-start space-x-2">
+                    <Check className="w-5 h-5 text-green-300 flex-shrink-0 mt-0.5" />
+                    <span>One less monthly expense to track</span>
+                  </li>
+                  <li className="flex items-start space-x-2">
+                    <Check className="w-5 h-5 text-green-300 flex-shrink-0 mt-0.5" />
+                    <span>Show commitment to growing your reviews</span>
+                  </li>
+                </ul>
+              </div>
+              
+              <div>
+                <h3 className="text-lg font-semibold text-white mb-3">Annual Savings</h3>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center p-3 bg-white/10 rounded-lg">
+                    <span className="text-white">Grower Annual</span>
+                    <span className="text-green-300 font-semibold">Save $27/year</span>
+                  </div>
+                  <div className="flex justify-between items-center p-3 bg-white/10 rounded-lg">
+                    <span className="text-white">Builder Annual</span>
+                    <span className="text-green-300 font-semibold">Save $63/year</span>
+                  </div>
+                  <div className="flex justify-between items-center p-3 bg-white/10 rounded-lg">
+                    <span className="text-white">Maven Annual</span>
+                    <span className="text-green-300 font-semibold">Save $180/year</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

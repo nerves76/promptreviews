@@ -14,7 +14,10 @@ const plans = [
   {
     name: 'Grower',
     price: '$15',
+    annualPrice: '$153',
     period: '/month',
+    annualPeriod: '/year',
+    savings: '$27',
     description: 'Perfect for small businesses just getting started',
     color: 'blue',
     features: [
@@ -34,7 +37,10 @@ const plans = [
   {
     name: 'Builder',
     price: '$35',
+    annualPrice: '$357',
     period: '/month',
+    annualPeriod: '/year',
+    savings: '$63',
     description: 'Ideal for growing businesses with a team',
     color: 'purple',
     features: [
@@ -54,7 +60,10 @@ const plans = [
   {
     name: 'Maven',
     price: '$100',
+    annualPrice: '$1,020',
     period: '/month',
+    annualPeriod: '/year',
+    savings: '$180',
     description: 'For established businesses & franchises',
     color: 'yellow',
     features: [
@@ -104,6 +113,20 @@ export default function ChoosingPlanPage() {
           </div>
         </div>
 
+        {/* Annual Billing Banner */}
+        <div className="mb-8 bg-blue-500/20 border border-blue-400/30 rounded-xl p-6">
+          <div className="flex items-start space-x-3">
+            <Zap className="w-6 h-6 text-blue-300 flex-shrink-0 mt-1" />
+            <div>
+              <h3 className="text-lg font-semibold text-white mb-2">Save 15% with Annual Billing</h3>
+              <p className="text-white/80">
+                Choose annual billing and save 15% on any plan! Pay yearly and get the equivalent of almost 2 months free. 
+                Perfect for businesses ready to commit to growing their online reputation.
+              </p>
+            </div>
+          </div>
+        </div>
+
         {/* Plan Comparison */}
         <div className="mb-12">
           <h2 className="text-2xl font-bold text-white mb-6">Compare Plans</h2>
@@ -125,9 +148,15 @@ export default function ChoosingPlanPage() {
                 
                 <div className="text-center mb-6">
                   <h3 className="text-xl font-bold text-white mb-2">{plan.name}</h3>
-                  <div className="flex items-baseline justify-center mb-2">
+                  <div className="flex items-baseline justify-center mb-1">
                     <span className="text-3xl font-bold text-white">{plan.price}</span>
                     <span className="text-white/60 ml-1">{plan.period}</span>
+                  </div>
+                  <div className="flex items-center justify-center mb-2">
+                    <span className="text-sm text-white/70">or {plan.annualPrice}{plan.annualPeriod}</span>
+                    <span className="ml-2 text-xs bg-green-500/20 text-green-300 px-2 py-0.5 rounded-full">
+                      Save {plan.savings}
+                    </span>
                   </div>
                   <p className="text-white/80 text-sm">{plan.description}</p>
                 </div>
