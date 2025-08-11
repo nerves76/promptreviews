@@ -45,8 +45,6 @@ interface OptimizationOpportunity {
   title: string;
   description: string;
   priority: 'high' | 'medium' | 'low';
-  impact: string;
-  timeToImplement: string;
 }
 
 interface OptimizationOpportunitiesEmbedProps {
@@ -70,41 +68,31 @@ export default function OptimizationOpportunitiesEmbed({
       id: '1',
       title: 'Add More Photos',
       description: 'Businesses with photos receive 42% more requests for directions and 35% more click-throughs to their websites.',
-      priority: 'high',
-      impact: '+42% Direction Requests',
-      timeToImplement: '15 mins'
+      priority: 'high'
     },
     {
       id: '2',
       title: 'Complete Service Descriptions',
       description: 'Adding detailed service descriptions helps customers understand your offerings and improves search visibility.',
-      priority: 'high',
-      impact: '+25% Search Visibility',
-      timeToImplement: '30 mins'
+      priority: 'high'
     },
     {
       id: '3',
       title: 'Enable Messaging',
       description: 'Allow customers to message you directly from Google Search and Maps for quick inquiries.',
-      priority: 'medium',
-      impact: '+30% Customer Inquiries',
-      timeToImplement: '5 mins'
+      priority: 'medium'
     },
     {
       id: '4',
       title: 'Add Business Attributes',
       description: 'Highlight features like "wheelchair accessible" or "free Wi-Fi" to attract more customers.',
-      priority: 'medium',
-      impact: '+15% Profile Views',
-      timeToImplement: '10 mins'
+      priority: 'medium'
     },
     {
       id: '5',
       title: 'Create Google Posts',
       description: 'Share updates, offers, and events to keep your profile fresh and engaging.',
-      priority: 'low',
-      impact: '+20% Engagement',
-      timeToImplement: '20 mins'
+      priority: 'low'
     }
   ];
   
@@ -153,17 +141,7 @@ export default function OptimizationOpportunitiesEmbed({
                     {opportunity.priority}
                   </span>
                 </div>
-                <p className="text-xs text-gray-600 mb-2">{opportunity.description}</p>
-                <div className="flex items-center space-x-4">
-                  <div className="flex items-center space-x-1">
-                    <Icon name="FaChartLine" className="w-3 h-3 text-green-600" />
-                    <span className="text-xs font-medium text-green-600">{opportunity.impact}</span>
-                  </div>
-                  <div className="flex items-center space-x-1">
-                    <Icon name="FaClock" className="w-3 h-3 text-gray-500" />
-                    <span className="text-xs text-gray-500">{opportunity.timeToImplement}</span>
-                  </div>
-                </div>
+                <p className="text-xs text-gray-600">{opportunity.description}</p>
               </div>
               <button className="ml-2 text-slate-blue hover:text-slate-700 transition-colors">
                 <Icon name="FaArrowRight" className="w-3 h-3" />
@@ -171,20 +149,6 @@ export default function OptimizationOpportunitiesEmbed({
             </div>
           </div>
         ))}
-      </div>
-      
-      {/* Summary Stats */}
-      <div className="mt-4 p-3 bg-gradient-to-r from-slate-50 to-blue-50 rounded-lg">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-xs text-gray-600">Potential Impact</p>
-            <p className="text-sm font-semibold text-slate-blue">+87% Profile Performance</p>
-          </div>
-          <div className="text-right">
-            <p className="text-xs text-gray-600">Time to Complete All</p>
-            <p className="text-sm font-semibold text-slate-blue">~1.5 hours</p>
-          </div>
-        </div>
       </div>
     </div>
   );
