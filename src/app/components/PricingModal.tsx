@@ -20,6 +20,7 @@ const tiers = [
       "3 custom prompt pages",
       "Cannot upload contacts",
       "Review widget",
+      "Analytics",
     ],
   },
   {
@@ -257,7 +258,7 @@ export default function PricingModal({
                     </div>
                   )}
                 </div>
-                <ul className="mb-8 text-lg text-gray-800 space-y-2">
+                <ul className="flex-grow text-lg text-gray-800 space-y-2 mb-8">
                   {tier.features.map((f) => {
                     // Hide the 14-day free trial feature if user is already subscribed or has had a paid plan
                     if (

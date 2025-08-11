@@ -108,7 +108,7 @@ export default function PlanPage() {
       setIsLoading(false);
     };
     fetchAccount();
-  }, []);
+  }, [router, supabase]);
 
   const handleSelectTier = useCallback(
     async (tierKey: string, billing: 'monthly' | 'annual' = 'monthly') => {
@@ -251,7 +251,7 @@ export default function PlanPage() {
         window.location.reload();
       }
     },
-    [account, isNewUser, router, userRole],
+    [account, isNewUser, userRole, currentPlan, user, supabase],
   );
 
   // Show success modal after successful Stripe payment or handle canceled checkout
@@ -562,20 +562,20 @@ export default function PlanPage() {
             {tiers.map((tier) => (
               <div
                 key={tier.key}
-                className={`relative bg-white/10 backdrop-blur-sm rounded-lg p-6 border-2 transition-all duration-300 hover:scale-105 ${
-                  currentPlan === tier.key
+                className={`relative bg-white/10 backdrop-blur-sm rounded-lg p-6 border-2 transition-all duration-300 hover:scale-105 flex flex-col ${
+                  currentPlan === tier.key && billingPeriod === account?.billing_period
                     ? "border-blue-400 bg-blue-500/20"
                     : "border-white/20 hover:border-white/40"
                 }`}
               >
-                {currentPlan === tier.key && (
+                {currentPlan === tier.key && billingPeriod === account?.billing_period && (
                   <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
                     <span className="bg-blue-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
-                      Current Plan{account?.billing_period === 'annual' ? ' (Annual)' : ''}
+                      Current Plan
                     </span>
                   </div>
                 )}
-                <div className="text-center">
+                <div className="text-center flex flex-col h-full">
                   <h3 className="text-2xl font-bold text-white mb-2">
                     {tier.name}
                   </h3>
@@ -595,7 +595,7 @@ export default function PlanPage() {
                       </div>
                     )}
                   </div>
-                  <ul className="text-white/90 space-y-2 mb-6">
+                  <ul className="text-white/90 space-y-2 mb-6 flex-grow">
                     {tier.features.map((feature, index) => (
                       <li key={index} className="flex items-center">
                         <span className="text-green-400 mr-2">✓</span>

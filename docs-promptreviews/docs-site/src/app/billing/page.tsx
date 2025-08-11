@@ -61,6 +61,10 @@ export default function BillingPage() {
                     <Check className="w-4 h-4 text-green-300 mr-2" />
                     Review widget
                   </li>
+                  <li className="flex items-center text-sm text-white/80">
+                    <Check className="w-4 h-4 text-green-300 mr-2" />
+                    Analytics
+                  </li>
                   <li className="flex items-center text-sm text-red-300">
                     <X className="w-4 h-4 mr-2" />
                     Contact uploads

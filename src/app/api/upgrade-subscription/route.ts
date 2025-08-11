@@ -36,7 +36,7 @@ const PRICE_IDS: Record<string, { monthly: string; annual: string }> = {
 
 export async function POST(req: NextRequest) {
   try {
-    const { plan, userId, currentPlan, billingPeriod = 'monthly' } = await req.json();
+    const { plan, userId, currentPlan, billingPeriod = 'monthly' }: { plan: string; userId: string; currentPlan: string; billingPeriod?: 'monthly' | 'annual' } = await req.json();
     
     if (!plan || !PRICE_IDS[plan]) {
       return NextResponse.json({ error: "Invalid plan" }, { status: 400 });
