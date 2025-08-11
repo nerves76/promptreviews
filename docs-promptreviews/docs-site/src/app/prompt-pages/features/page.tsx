@@ -16,8 +16,18 @@ import {
   Globe,
   Zap,
   Users,
-  Target
+  Target,
+  Smile,
+  Bot,
+  Download,
+  Settings,
+  Star,
+  Camera,
+  Video,
+  Calendar,
+  User
 } from 'lucide-react';
+import DocsLayout from '../../docs-layout';
 
 export const metadata: Metadata = {
   title: 'Prompt Page Features - Emoji Sentiment Flow, Prompty AI & More | Prompt Reviews',
@@ -84,102 +94,109 @@ const features = [
   {
     id: 'emoji-sentiment-flow',
     title: 'Emoji Sentiment Flow',
-    icon: Heart,
+    icon: Smile,
     description: 'Interactive emoji-based review collection that makes leaving reviews fun and engaging',
     category: 'engagement',
     priority: 'high',
     details: {
-      overview: 'The Emoji Sentiment Flow transforms the review process into an interactive, emotion-driven experience that encourages customers to share their feelings about your business.',
+      overview: 'The Emoji Sentiment Flow feature allows customers to express their satisfaction through emoji reactions before leaving a detailed review. This creates a quick, engaging way for customers to provide feedback.',
       howItWorks: [
-        'Customers see a series of emoji options representing different emotions',
-        'They select emojis that best represent their experience',
-        'The system guides them through a natural conversation flow',
-        'Reviews are collected with authentic emotional context'
+        'Customers see a question with emoji options (Excellent, Satisfied, Neutral, Unsatisfied, Frustrated)',
+        'They select an emoji that best represents their experience',
+        'Based on their selection, they\'re guided to appropriate review platforms',
+        'Positive sentiments (Excellent/Satisfied) lead to public review platforms',
+        'Negative sentiments (Neutral/Unsatisfied/Frustrated) lead to private feedback options'
       ],
       benefits: [
-        'Higher completion rates due to engaging interface',
-        'Authentic emotional feedback from customers',
-        'Reduced friction in review process',
-        'Visual and interactive experience'
+        'Increases customer engagement and participation',
+        'Provides quick emotional feedback',
+        'Guides customers to appropriate review channels',
+        'Makes review collection more fun and interactive',
+        'Helps identify customer satisfaction levels quickly'
       ],
       useCases: [
-        'Restaurants collecting food and service feedback',
-        'Salons gathering style satisfaction',
-        'Service businesses understanding customer emotions',
-        'Any business wanting authentic emotional feedback'
+        'Restaurants wanting to gauge customer satisfaction',
+        'Service businesses collecting quick feedback',
+        'Any business wanting to make review collection more engaging',
+        'Businesses wanting to filter positive vs negative feedback'
       ],
       examples: [
-        '😊 "I loved the service!" → Detailed positive review',
-        '😐 "It was okay" → Constructive feedback opportunity',
-        '😍 "Amazing experience!" → Enthusiastic testimonial'
+        'A restaurant asks "How was your dining experience?" with emoji options',
+        'A salon uses emoji sentiment to guide customers to appropriate review platforms',
+        'A service business uses emoji reactions to quickly assess customer satisfaction'
       ]
     }
   },
   {
     id: 'prompty-ai',
     title: 'Prompty AI',
-    icon: Brain,
+    icon: Bot,
     description: 'AI-powered review generation and optimization to help customers write better reviews',
     category: 'ai',
     priority: 'high',
     details: {
-      overview: 'Prompty AI is your intelligent assistant that helps customers write detailed, authentic reviews by understanding their business and generating personalized review suggestions.',
+      overview: 'Prompty AI is an intelligent assistant that helps customers write better, more detailed reviews by providing suggestions, improving grammar, and optimizing content for better visibility.',
       howItWorks: [
-        'AI analyzes your business information and customer feedback',
-        'Generates personalized review templates based on context',
-        'Customers can use AI suggestions or write their own',
-        'Continuously learns and improves from feedback patterns'
+        'AI analyzes the business context and customer experience',
+        'Generates personalized review suggestions based on the service/product',
+        'Offers grammar and spelling improvements',
+        'Provides SEO-optimized content suggestions',
+        'Allows customers to customize and edit AI suggestions'
       ],
       benefits: [
-        'Higher quality, more detailed reviews',
-        'Reduced writer\'s block for customers',
-        'Consistent review quality across all submissions',
-        'Time-saving for both businesses and customers'
+        'Helps customers write more detailed and helpful reviews',
+        'Improves review quality and consistency',
+        'Increases review completion rates',
+        'Provides SEO-optimized content',
+        'Reduces the barrier to writing reviews'
       ],
       useCases: [
-        'Businesses wanting more detailed customer feedback',
-        'Customers who struggle to write reviews',
-        'Consistent review quality across platforms',
-        'Multi-language review generation'
+        'Businesses wanting higher quality reviews',
+        'Customers who struggle to write detailed reviews',
+        'Businesses looking for SEO-optimized review content',
+        'Any business wanting to improve review completion rates'
       ],
       examples: [
-        'AI suggests specific details about service quality',
-        'Generates reviews mentioning unique business features',
-        'Creates authentic-sounding testimonials'
+        'AI suggests specific details about food quality and service for restaurant reviews',
+        'Provides professional language for service business reviews',
+        'Offers grammar corrections and improvements for all reviews'
       ]
     }
   },
   {
     id: 'qr-codes',
     title: 'QR Code Generation',
-    icon: QrCode,
+    icon: Download,
     description: 'Generate QR codes for easy access to your prompt pages from anywhere',
     category: 'accessibility',
     priority: 'high',
     details: {
-      overview: 'QR codes provide instant access to your prompt pages, making it easy for customers to leave reviews from their mobile devices with just a scan.',
+      overview: 'QR Code Generation allows businesses to create scannable codes that customers can use to quickly access prompt pages from their mobile devices, making review collection more convenient.',
       howItWorks: [
-        'Automatically generate QR codes for each prompt page',
-        'QR codes link directly to the review collection page',
-        'Works with any smartphone camera app',
-        'No app download required for customers'
+        'Generate unique QR codes for each prompt page',
+        'QR codes link directly to the prompt page URL',
+        'Customers scan codes with their phone camera',
+        'Automatically opens the prompt page in their browser',
+        'Works with any smartphone camera app'
       ],
       benefits: [
-        'Instant access from mobile devices',
-        'No typing URLs or searching',
-        'Professional appearance on marketing materials',
-        'Trackable usage and engagement'
+        'Makes review collection extremely convenient',
+        'Reduces friction in the review process',
+        'Perfect for physical locations and printed materials',
+        'Works offline and doesn\'t require typing URLs',
+        'Increases review collection rates'
       ],
       useCases: [
         'Business cards and marketing materials',
-        'Table tents and counter displays',
+        'Table tents and in-store displays',
         'Receipts and invoices',
-        'Physical store locations'
+        'Physical marketing materials',
+        'Any situation where typing a URL is inconvenient'
       ],
       examples: [
-        'QR code on restaurant table tents',
-        'Business card with review QR code',
-        'Receipt footer with review invitation'
+        'Restaurant includes QR code on receipts for easy review access',
+        'Business cards feature QR codes for quick review collection',
+        'Table tents in waiting rooms with QR codes for customer feedback'
       ]
     }
   },
@@ -191,29 +208,31 @@ const features = [
     category: 'branding',
     priority: 'medium',
     details: {
-      overview: 'Make your prompt pages look and feel like your brand with comprehensive customization options including colors, fonts, logos, and messaging.',
+      overview: 'Customization Options allow businesses to personalize their prompt pages with their brand colors, logos, custom messaging, and business-specific styling to create a cohesive brand experience.',
       howItWorks: [
         'Upload your business logo and brand assets',
-        'Choose from preset color schemes or create custom ones',
-        'Customize fonts, spacing, and layout options',
-        'Add personalized messaging and call-to-actions'
+        'Choose from brand color palettes or create custom colors',
+        'Customize page headers, questions, and messaging',
+        'Add business-specific information and contact details',
+        'Preview changes in real-time before publishing'
       ],
       benefits: [
-        'Professional, branded appearance',
-        'Consistent with your business identity',
-        'Increased customer trust and recognition',
-        'Better conversion rates from branded pages'
+        'Creates a professional, branded experience',
+        'Builds customer trust and recognition',
+        'Maintains brand consistency across all touchpoints',
+        'Differentiates your business from competitors',
+        'Improves customer engagement through familiarity'
       ],
       useCases: [
-        'Businesses with strong brand identity',
-        'Franchises maintaining consistent branding',
-        'Professional services requiring credibility',
-        'Any business wanting polished appearance'
+        'Businesses wanting to maintain brand consistency',
+        'Companies with strong brand identities',
+        'Businesses wanting to appear more professional',
+        'Any business wanting to customize their review experience'
       ],
       examples: [
-        'Restaurant with branded colors and logo',
-        'Professional service with corporate styling',
-        'Retail store with product imagery'
+        'A restaurant uses their brand colors and logo on prompt pages',
+        'A salon customizes questions to match their service offerings',
+        'A professional service firm adds their branding and contact information'
       ]
     }
   },
@@ -221,169 +240,179 @@ const features = [
     id: 'analytics',
     title: 'Analytics & Insights',
     icon: BarChart3,
-    description: 'Track performance, engagement, and review collection metrics',
+    description: 'Track performance and gain insights into your review collection efforts',
     category: 'insights',
     priority: 'medium',
     details: {
-      overview: 'Get detailed insights into how your prompt pages are performing, including view counts, completion rates, and review quality metrics.',
+      overview: 'Analytics & Insights provide detailed data about your review collection performance, including completion rates, platform distribution, customer engagement, and actionable insights to improve your review strategy.',
       howItWorks: [
-        'Track page views, interactions, and completions',
-        'Monitor review submission rates and quality',
-        'Analyze customer engagement patterns',
-        'Generate performance reports and trends'
+        'Tracks review completion rates and conversion metrics',
+        'Monitors which review platforms perform best',
+        'Analyzes customer engagement patterns',
+        'Provides insights on optimal timing and messaging',
+        'Offers recommendations for improvement'
       ],
       benefits: [
-        'Data-driven optimization decisions',
-        'Understanding of customer behavior',
-        'Identification of improvement opportunities',
-        'ROI measurement for review campaigns'
+        'Understand what drives review completion',
+        'Optimize review collection strategy',
+        'Identify best-performing platforms and content',
+        'Make data-driven decisions about review collection',
+        'Track ROI of review collection efforts'
       ],
       useCases: [
         'Businesses wanting to optimize review collection',
-        'Marketing teams measuring campaign success',
-        'Understanding customer engagement patterns',
-        'A/B testing different approaches'
+        'Companies tracking marketing ROI',
+        'Businesses wanting to understand customer behavior',
+        'Any business wanting to improve review performance'
       ],
       examples: [
-        'Tracking which QR code locations get most scans',
-        'Measuring completion rates by page type',
-        'Analyzing peak review submission times'
+        'A restaurant discovers that Google reviews perform better than Facebook',
+        'A service business learns that shorter questions get higher completion rates',
+        'A retail store identifies the best time to ask for reviews'
       ]
     }
   },
   {
-    id: 'multi-platform',
+    id: 'multi-platform-sharing',
     title: 'Multi-Platform Sharing',
     icon: Share2,
-    description: 'Share your prompt pages across multiple platforms and channels',
+    description: 'Distribute your prompt pages across all your marketing channels',
     category: 'distribution',
     priority: 'medium',
     details: {
-      overview: 'Distribute your prompt pages across multiple channels including social media, email, SMS, and direct links for maximum reach.',
+      overview: 'Multi-Platform Sharing allows businesses to easily distribute their prompt pages across all marketing channels, including social media, email, websites, and physical materials.',
       howItWorks: [
         'Generate shareable links for each prompt page',
-        'Integrate with social media platforms',
-        'Send via email marketing campaigns',
-        'Use in SMS and messaging apps'
+        'Create embed codes for website integration',
+        'Share directly to social media platforms',
+        'Include in email campaigns and newsletters',
+        'Print QR codes for physical materials'
       ],
       benefits: [
-        'Maximum reach across all customer touchpoints',
-        'Flexible distribution options',
-        'Consistent experience across platforms',
-        'Easy integration with existing marketing'
+        'Reach customers across all touchpoints',
+        'Increase review collection opportunities',
+        'Maintain consistent messaging across channels',
+        'Track performance across different platforms',
+        'Maximize review collection potential'
       ],
       useCases: [
-        'Social media marketing campaigns',
-        'Email newsletter integration',
-        'SMS marketing and reminders',
-        'Multi-channel customer communication'
+        'Businesses with multiple marketing channels',
+        'Companies wanting to maximize review collection',
+        'Businesses with active social media presence',
+        'Any business wanting to reach more customers'
       ],
       examples: [
-        'Facebook post with review link',
-        'Email signature with review invitation',
-        'SMS follow-up after service completion'
+        'A restaurant shares prompt pages on Instagram, Facebook, and email',
+        'A service business embeds prompt pages on their website',
+        'A retail store includes QR codes in their physical marketing materials'
       ]
     }
   },
   {
-    id: 'mobile-optimized',
+    id: 'mobile-optimization',
     title: 'Mobile Optimization',
     icon: Smartphone,
-    description: 'Perfect experience on all mobile devices and screen sizes',
+    description: 'Perfect experience on all devices with responsive design',
     category: 'accessibility',
     priority: 'high',
     details: {
-      overview: 'All prompt pages are fully optimized for mobile devices, ensuring a seamless experience regardless of screen size or device type.',
+      overview: 'Mobile Optimization ensures that prompt pages work perfectly on all devices, from smartphones to tablets to desktop computers, providing a seamless experience regardless of how customers access your pages.',
       howItWorks: [
         'Responsive design adapts to any screen size',
-        'Touch-friendly interface elements',
-        'Fast loading on mobile networks',
-        'Optimized for mobile browsers'
+        'Touch-friendly interface for mobile devices',
+        'Optimized loading speeds for mobile networks',
+        'Mobile-specific features like camera integration',
+        'Cross-platform compatibility testing'
       ],
       benefits: [
-        'Great experience on all devices',
-        'Higher completion rates on mobile',
-        'No app download required',
-        'Works with any mobile browser'
+        'Works perfectly on all devices and screen sizes',
+        'Provides excellent user experience on mobile',
+        'Increases completion rates on mobile devices',
+        'Reduces bounce rates and improves engagement',
+        'Future-proofs your review collection strategy'
       ],
       useCases: [
-        'Customers using smartphones to leave reviews',
-        'QR code scanning from mobile devices',
-        'Social media sharing from mobile',
-        'On-the-go review collection'
+        'Businesses with mobile-first customers',
+        'Companies wanting to reach customers on any device',
+        'Businesses with diverse customer demographics',
+        'Any business wanting maximum accessibility'
       ],
       examples: [
-        'Perfect display on iPhone and Android',
-        'Touch-friendly emoji selection',
-        'Easy photo upload from mobile camera'
+        'A restaurant\'s prompt page works perfectly on customer phones',
+        'A service business\'s page adapts to tablet screens',
+        'A retail store\'s page loads quickly on mobile networks'
       ]
     }
   },
   {
-    id: 'security',
+    id: 'security-privacy',
     title: 'Security & Privacy',
     icon: Shield,
-    description: 'Enterprise-grade security and privacy protection for all data',
+    description: 'Enterprise-grade security and privacy protection for your data',
     category: 'security',
     priority: 'high',
     details: {
-      overview: 'Your data and customer information are protected with enterprise-grade security measures and privacy controls.',
+      overview: 'Security & Privacy features ensure that all customer data and review information is protected with enterprise-grade security measures, maintaining customer trust and compliance with privacy regulations.',
       howItWorks: [
-        'SSL encryption for all data transmission',
-        'Secure data storage and processing',
-        'Privacy controls and data protection',
-        'Compliance with privacy regulations'
+        'End-to-end encryption for all data transmission',
+        'Secure hosting with industry-standard security',
+        'Privacy controls for customer information',
+        'GDPR and CCPA compliance features',
+        'Regular security audits and updates'
       ],
       benefits: [
-        'Customer data protection',
-        'Compliance with privacy laws',
-        'Secure review collection process',
-        'Trust and credibility with customers'
+        'Protects customer data and privacy',
+        'Builds customer trust and confidence',
+        'Ensures compliance with privacy regulations',
+        'Reduces security risks and liability',
+        'Maintains professional reputation'
       ],
       useCases: [
-        'Businesses handling sensitive customer data',
-        'Compliance with GDPR and privacy regulations',
-        'Building customer trust and confidence',
-        'Professional service requirements'
+        'Businesses handling sensitive customer information',
+        'Companies needing GDPR/CCPA compliance',
+        'Businesses wanting to build customer trust',
+        'Any business prioritizing data security'
       ],
       examples: [
-        'Encrypted data transmission',
-        'Privacy policy compliance',
-        'Secure customer information handling'
+        'A healthcare provider ensures patient privacy in reviews',
+        'A financial services firm maintains data security',
+        'A retail business builds customer trust through secure review collection'
       ]
     }
   },
   {
-    id: 'integration',
+    id: 'platform-integration',
     title: 'Platform Integration',
     icon: Globe,
-    description: 'Seamless integration with Google, Facebook, Yelp, and other review platforms',
+    description: 'Connect with major review platforms and business directories',
     category: 'integration',
     priority: 'medium',
     details: {
-      overview: 'Connect your prompt pages with major review platforms to automatically distribute reviews where they matter most.',
+      overview: 'Platform Integration allows businesses to seamlessly connect their prompt pages with major review platforms like Google, Facebook, Yelp, and other business directories for maximum visibility and impact.',
       howItWorks: [
-        'Connect your business profiles on major platforms',
-        'Automatically submit reviews to connected platforms',
-        'Manage review distribution preferences',
-        'Track reviews across all platforms'
+        'Direct integration with major review platforms',
+        'Automatic review submission to connected platforms',
+        'Platform-specific optimization and formatting',
+        'Real-time status updates and notifications',
+        'Analytics across all connected platforms'
       ],
       benefits: [
-        'Reviews appear on multiple platforms automatically',
-        'Centralized review management',
-        'Increased online visibility',
-        'Time-saving automation'
+        'Maximizes review visibility across platforms',
+        'Reduces manual review management',
+        'Ensures consistent review distribution',
+        'Improves local search rankings',
+        'Streamlines review collection workflow'
       ],
       useCases: [
-        'Businesses wanting presence on multiple platforms',
-        'Automated review distribution',
-        'Centralized review management',
-        'Maximizing online visibility'
+        'Businesses wanting maximum review visibility',
+        'Companies managing multiple review platforms',
+        'Businesses focusing on local search optimization',
+        'Any business wanting to streamline review management'
       ],
       examples: [
-        'Review automatically posted to Google and Facebook',
-        'Centralized dashboard for all reviews',
-        'Consistent review presence across platforms'
+        'A restaurant automatically submits reviews to Google, Facebook, and Yelp',
+        'A service business optimizes reviews for local search platforms',
+        'A retail store manages all reviews from a single dashboard'
       ]
     }
   }
@@ -391,23 +420,18 @@ const features = [
 
 export default function PromptPageFeatures() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-fuchsia-900">
-      {/* Header */}
-      <div className="bg-white/10 backdrop-blur-md border-b border-white/20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="text-center">
-            <h1 className="text-4xl font-bold text-white mb-4">
-              Prompt Page Features
-            </h1>
-            <p className="text-xl text-white/80 max-w-3xl mx-auto">
-              Discover all the powerful features that make prompt pages the most effective way to collect customer reviews. From AI-powered assistance to mobile optimization, we've got everything you need.
-            </p>
-          </div>
-        </div>
-      </div>
+    <DocsLayout>
 
-      {/* Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="max-w-4xl mx-auto">
+        {/* Header */}
+        <div className="mb-12">
+          <h1 className="text-4xl font-bold text-white mb-4">
+            Prompt Page Features
+          </h1>
+          <p className="text-xl text-white/80">
+            Discover all the powerful features that make prompt pages the most effective way to collect customer reviews. From AI-powered assistance to mobile optimization, we've got everything you need.
+          </p>
+        </div>
         {/* Feature Categories */}
         <div className="mb-12">
           <h2 className="text-2xl font-bold text-white mb-6">Feature Categories</h2>
@@ -543,10 +567,10 @@ export default function PromptPageFeatures() {
         {/* Feature Comparison */}
         <div className="mt-16">
           <h2 className="text-2xl font-bold text-white mb-6">Feature Comparison</h2>
-          <div className="bg-white rounded-lg shadow-sm border border-white/20 overflow-hidden">
+          <div className="bg-white/10 backdrop-blur-md rounded-lg shadow-sm border border-white/20 overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gradient-to-br from-indigo-900 via-purple-900 to-fuchsia-900">
+              <table className="min-w-full divide-y divide-white/20">
+                <thead className="bg-white/5">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-white/60 uppercase tracking-wider">
                       Feature
@@ -617,6 +641,6 @@ export default function PromptPageFeatures() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-    </div>
+    </DocsLayout>
   );
 }

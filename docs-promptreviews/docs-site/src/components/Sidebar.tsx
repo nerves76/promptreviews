@@ -31,51 +31,105 @@ const navigation: NavItem[] = [
     title: 'Getting Started',
     href: '/getting-started',
     icon: BookOpen,
-  },
-  {
-    title: 'AI-Assisted Reviews',
-    href: '/ai-reviews',
-    icon: Star,
+    children: [
+      { title: 'Quick Start Guide', href: '/getting-started#quick-start' },
+      { title: 'Account Setup', href: '/getting-started#account-setup' },
+      { title: 'Business Profile', href: '/getting-started#business-profile' },
+      { title: 'First Prompt Page', href: '/getting-started#first-prompt-page' },
+    ]
   },
   {
     title: 'Prompt Pages',
     href: '/prompt-pages',
     icon: Zap,
+    children: [
+      { title: 'Overview', href: '/prompt-pages' },
+      { title: 'Page Types', href: '/prompt-pages/types' },
+      { title: 'Service Pages', href: '/prompt-pages/types/service' },
+      { title: 'Features', href: '/prompt-pages/features' },
+    ]
+  },
+  {
+    title: 'AI-Assisted Reviews',
+    href: '/ai-reviews',
+    icon: Star,
+    children: [
+      { title: 'Prompty AI', href: '/ai-reviews#prompty-ai' },
+      { title: 'How It Works', href: '/ai-reviews#how-it-works' },
+      { title: 'Best Practices', href: '/ai-reviews#best-practices' },
+    ]
   },
   {
     title: 'Contact Management',
     href: '/contacts',
     icon: Users,
+    children: [
+      { title: 'Import Contacts', href: '/contacts#import' },
+      { title: 'Organize Contacts', href: '/contacts#organize' },
+      { title: 'Send Requests', href: '/contacts#send-requests' },
+    ]
   },
   {
     title: 'Review Management',
     href: '/reviews',
-    icon: Star,
+    icon: MessageSquare,
+    children: [
+      { title: 'Track Reviews', href: '/reviews#track' },
+      { title: 'Respond to Reviews', href: '/reviews#respond' },
+      { title: 'Analytics', href: '/reviews#analytics' },
+    ]
   },
   {
     title: 'Google Business Profile',
     href: '/google-business',
     icon: Building2,
+    children: [
+      { title: 'Connect Profile', href: '/google-business#connect' },
+      { title: 'Manage Reviews', href: '/google-business#reviews' },
+      { title: 'Multiple Locations', href: '/google-business#locations' },
+      { title: 'Google Posts', href: '/google-business#posts' },
+    ]
   },
   {
     title: 'Website Integration',
     href: '/widgets',
     icon: Code,
+    children: [
+      { title: 'Widget Types', href: '/widgets#types' },
+      { title: 'Installation', href: '/widgets#installation' },
+      { title: 'Customization', href: '/widgets#customization' },
+    ]
   },
   {
     title: 'Team & Account',
     href: '/team',
     icon: Settings,
+    children: [
+      { title: 'Team Roles', href: '/team#roles' },
+      { title: 'Add Members', href: '/team#add-members' },
+      { title: 'Account Settings', href: '/team#settings' },
+    ]
   },
   {
     title: 'Advanced Features',
     href: '/advanced',
     icon: BarChart3,
+    children: [
+      { title: 'Analytics', href: '/advanced#analytics' },
+      { title: 'Automation', href: '/advanced#automation' },
+      { title: 'API Access', href: '/advanced#api' },
+      { title: 'Webhooks', href: '/advanced#webhooks' },
+    ]
   },
   {
-    title: 'Troubleshooting & FAQ',
+    title: 'Help & Support',
     href: '/troubleshooting',
     icon: HelpCircle,
+    children: [
+      { title: 'Troubleshooting', href: '/troubleshooting' },
+      { title: 'FAQ', href: '/faq' },
+      { title: 'Contact Support', href: '/troubleshooting#support' },
+    ]
   },
 ]
 

@@ -4,7 +4,20 @@
  */
 
 import { Metadata } from 'next';
-import { Star, MessageCircle, Camera, Video, Heart, ThumbsUp, Smile } from 'lucide-react';
+import { 
+  MessageCircle, 
+  Star, 
+  Camera, 
+  Video, 
+  Heart, 
+  Brain, 
+  QrCode, 
+  Palette,
+  Calendar,
+  User,
+  Globe
+} from 'lucide-react';
+import DocsLayout from '../../docs-layout';
 
 export const metadata: Metadata = {
   title: 'Prompt Page Types - Service, Product, Photo, Video & More | Prompt Reviews',
@@ -67,158 +80,95 @@ const promptPageTypes = [
     id: 'service',
     title: 'Service Prompt Pages',
     icon: MessageCircle,
-    description: 'Perfect for service-based businesses like restaurants, salons, and professional services',
-    features: [
-      'Service-specific review prompts',
-      'Business information display',
-      'Contact details and hours',
-      'Service category optimization',
-      'Local SEO benefits'
-    ],
-    useCases: [
-      'Restaurants and cafes',
-      'Hair salons and spas',
-      'Professional services (lawyers, accountants)',
-      'Home services (plumbers, electricians)',
-      'Healthcare providers'
-    ],
-    benefits: [
-      'Optimized for service reviews',
-      'Better local search visibility',
-      'Professional appearance',
-      'Easy customer engagement'
-    ],
-    example: 'A restaurant uses a Service prompt page to collect reviews about food quality, service, and atmosphere'
+    description: 'Perfect for restaurants, salons, and service-based businesses',
+    url: '/prompt-pages/types/service',
+    features: ['Service-specific questions', 'Business information', 'Local SEO optimized'],
+    useCases: ['Restaurants', 'Hair salons', 'Professional services', 'Consultants'],
+    benefits: ['Higher review quality', 'Service-specific context', 'Better customer engagement'],
+    example: 'A restaurant creates a service prompt page asking "How was your dining experience?" with specific questions about food quality, service, and atmosphere.'
   },
   {
     id: 'product',
     title: 'Product Prompt Pages',
     icon: Star,
     description: 'Ideal for product-based businesses and e-commerce stores',
-    features: [
-      'Product-specific review prompts',
-      'Product images and details',
-      'Purchase verification',
-      'Product category targeting',
-      'E-commerce integration'
-    ],
-    useCases: [
-      'Online stores',
-      'Product manufacturers',
-      'Retail businesses',
-      'Software companies',
-      'Physical product sellers'
-    ],
-    benefits: [
-      'Product-focused reviews',
-      'Purchase verification',
-      'Better product visibility',
-      'Customer feedback on specific items'
-    ],
-    example: 'An online store uses a Product prompt page to collect reviews about specific products and shopping experience'
+    url: '/prompt-pages/types/product',
+    features: ['Product-focused reviews', 'Purchase verification', 'E-commerce integration'],
+    useCases: ['E-commerce stores', 'Retail businesses', 'Product manufacturers', 'Online marketplaces'],
+    benefits: ['Product-specific feedback', 'Purchase context', 'Better conversion tracking'],
+    example: 'An online store creates a product prompt page for a specific item, asking customers about their purchase experience and product satisfaction.'
   },
   {
     id: 'photo',
     title: 'Photo Prompt Pages',
     icon: Camera,
     description: 'Collect reviews with customer photos for visual social proof',
-    features: [
-      'Photo upload capability',
-      'Visual review collection',
-      'Social media sharing',
-      'Photo moderation tools',
-      'Visual content marketing'
-    ],
-    useCases: [
-      'Restaurants (food photos)',
-      'Hair salons (before/after)',
-      'Home improvement (project results)',
-      'Fashion and beauty',
-      'Real estate (property photos)'
-    ],
-    benefits: [
-      'Visual social proof',
-      'Higher engagement rates',
-      'Social media content',
-      'Authentic customer photos'
-    ],
-    example: 'A hair salon uses a Photo prompt page to collect reviews with before/after photos of haircuts and styles'
+    url: '/prompt-pages/types/photo',
+    features: ['Photo upload capability', 'Visual reviews', 'Social media sharing'],
+    useCases: ['Hair salons', 'Tattoo artists', 'Interior designers', 'Fashion retailers'],
+    benefits: ['Visual social proof', 'Higher engagement', 'Better marketing content'],
+    example: 'A hair salon creates a photo prompt page where customers can upload photos of their new haircut along with their review.'
   },
   {
     id: 'video',
     title: 'Video Prompt Pages',
     icon: Video,
     description: 'Collect video reviews for maximum engagement and authenticity',
-    features: [
-      'Video recording capability',
-      'Video moderation tools',
-      'High engagement potential',
-      'Authentic testimonials',
-      'Social media integration'
-    ],
-    useCases: [
-      'High-value services',
-      'Personal trainers',
-      'Consultants and coaches',
-      'Luxury businesses',
-      'Experience-based services'
-    ],
-    benefits: [
-      'Maximum authenticity',
-      'High engagement rates',
-      'Powerful testimonials',
-      'Social media content'
-    ],
-    example: 'A personal trainer uses a Video prompt page to collect video testimonials from satisfied clients'
+    url: '/prompt-pages/types/video',
+    features: ['Video recording', 'High engagement', 'Authentic testimonials'],
+    useCases: ['Personal trainers', 'Coaches', 'Consultants', 'Service providers'],
+    benefits: ['Maximum authenticity', 'Higher engagement', 'Compelling testimonials'],
+    example: 'A personal trainer creates a video prompt page where clients can record short video testimonials about their fitness journey.'
+  },
+  {
+    id: 'event',
+    title: 'Event Prompt Pages',
+    icon: Calendar,
+    description: 'Perfect for events, workshops, and special occasions',
+    url: '/prompt-pages/types/event',
+    features: ['Event-specific context', 'Date tracking', 'Attendee feedback'],
+    useCases: ['Event planners', 'Venues', 'Workshop hosts', 'Conference organizers'],
+    benefits: ['Event-specific feedback', 'Date-based tracking', 'Attendee engagement'],
+    example: 'A wedding venue creates an event prompt page for each wedding, asking guests about their experience at the specific event.'
+  },
+  {
+    id: 'employee',
+    title: 'Employee Prompt Pages',
+    icon: User,
+    description: 'Spotlight individual team members with dedicated review pages',
+    url: '/prompt-pages/types/employee',
+    features: ['Employee recognition', 'Personal touch', 'Team building'],
+    useCases: ['Service businesses', 'Sales teams', 'Consulting firms', 'Healthcare practices'],
+    benefits: ['Employee recognition', 'Personal connection', 'Team motivation'],
+    example: 'A consulting firm creates individual prompt pages for each consultant, allowing clients to leave specific feedback about their experience.'
   },
   {
     id: 'universal',
     title: 'Universal Prompt Pages',
-    icon: Heart,
+    icon: Globe,
     description: 'One-page solution for any type of review collection',
-    features: [
-      'Works for any business type',
-      'QR code generation',
-      'No pre-written reviews',
-      'Prompty AI assistance',
-      'Universal compatibility'
-    ],
-    useCases: [
-      'Business cards',
-      'Front desk displays',
-      'Table tents',
-      'Newsletters',
-      'General marketing'
-    ],
-    benefits: [
-      'Universal application',
-      'QR code convenience',
-      'Prevents duplicate reviews',
-      'AI-powered assistance'
-    ],
-    example: 'A business uses a Universal prompt page with QR codes on business cards and front desk displays'
+    url: '/prompt-pages/types/universal',
+    features: ['Works for any business', 'QR code generation', 'Universal compatibility'],
+    useCases: ['Any business type', 'General review collection', 'Business cards', 'Email signatures'],
+    benefits: ['Universal compatibility', 'Easy sharing', 'Always ready'],
+    example: 'A small business creates a universal prompt page that works for all customers, perfect for business cards and general use.'
   }
 ];
 
 export default function PromptPageTypes() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-fuchsia-900">
-      {/* Header */}
-      <div className="bg-white/10 backdrop-blur-md border-b border-white/20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="text-center">
-            <h1 className="text-4xl font-bold text-white mb-4">
-              Prompt Page Types
-            </h1>
-            <p className="text-xl text-white/80 max-w-3xl mx-auto">
-              Choose the perfect prompt page type for your business. Each type is designed for specific use cases and offers unique features to help you collect better reviews.
-            </p>
-          </div>
-        </div>
-      </div>
+    <DocsLayout>
 
-      {/* Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="max-w-4xl mx-auto">
+        {/* Header */}
+        <div className="mb-12">
+          <h1 className="text-4xl font-bold text-white mb-4">
+            Prompt Page Types
+          </h1>
+          <p className="text-xl text-white/80">
+            Choose the perfect prompt page type for your business. Each type is designed for specific use cases and offers unique features to help you collect better reviews.
+          </p>
+        </div>
         {/* Quick Navigation */}
         <div className="mb-12">
           <h2 className="text-2xl font-bold text-white mb-6">Quick Navigation</h2>
@@ -430,6 +380,6 @@ export default function PromptPageTypes() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-    </div>
+    </DocsLayout>
   );
 }
