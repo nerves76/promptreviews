@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import DocsLayout from '../docs-layout'
+import PageHeader from '../components/PageHeader'
 import { 
   CheckCircle, 
   Star, 
@@ -160,29 +161,20 @@ export default function GettingStartedPage() {
       />
 
       <div className="prose-docs">
-        {/* Breadcrumb */}
-        <nav className="flex items-center space-x-2 text-sm text-white/60 mb-8">
-          <Link href="/" className="hover:text-white/80">Documentation</Link>
-          <span>/</span>
-          <span className="text-white">Getting Started</span>
-        </nav>
-
         {/* Header */}
-        <div className="mb-12">
-          <div className="inline-flex items-center space-x-2 bg-green-500/20 text-green-300 px-3 py-1 rounded-full text-sm font-medium mb-6">
-            <CheckCircle className="w-4 h-4" />
-            <span>Quick Start Guide</span>
-          </div>
+        <PageHeader
+          breadcrumbs={[
+            { label: 'Help', href: '/' }
+          ]}
+          currentPage="Getting Started"
+          categoryLabel="Quick Start Guide"
+          categoryIcon={CheckCircle}
+          categoryColor="green"
+          title="Getting Started with Prompt Reviews"
+          description="Welcome to Prompt Reviews! This guide will help you set up your account and start collecting customer reviews with Prompty, your AI-powered review assistant, in under 30 minutes."
+        />
 
-          <h1 className="text-4xl font-bold text-white mb-4">
-            Getting Started with Prompt Reviews
-          </h1>
-
-          <p className="text-xl text-white/70 mb-6">
-            Welcome to Prompt Reviews! This guide will help you set up your account and start collecting 
-            customer reviews with <strong>Prompty</strong>, your AI-powered review assistant, in under 30 minutes.
-          </p>
-
+        <div className="max-w-4xl mx-auto mb-8">
           <div className="flex items-center space-x-6 text-sm text-white/70">
             <div className="flex items-center space-x-2">
               <Clock className="w-4 h-4" />

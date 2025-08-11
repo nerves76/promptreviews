@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import DocsLayout from '../docs-layout'
+import PageHeader from '../components/PageHeader'
 import { 
   Users, 
   Upload, 
@@ -24,7 +25,8 @@ import {
   FileText,
   Smartphone,
   Globe,
-  Tag
+  Tag,
+  Tags
 } from 'lucide-react'
 
 export const metadata: Metadata = {
@@ -186,29 +188,20 @@ export default function ContactsPage() {
       />
 
       <div className="prose-docs">
-        {/* Breadcrumb */}
-        <nav className="flex items-center space-x-2 text-sm text-white/60 mb-8">
-          <Link href="/" className="hover:text-white/80">Documentation</Link>
-          <span>/</span>
-          <span className="text-white">Contacts</span>
-        </nav>
-
         {/* Header */}
-        <div className="mb-12">
-          <div className="inline-flex items-center space-x-2 bg-blue-500/20 text-blue-300 px-3 py-1 rounded-full text-sm font-medium mb-6">
-            <Users className="w-4 h-4" />
-            <span>Contact Management</span>
-          </div>
+        <PageHeader
+          breadcrumbs={[
+            { label: 'Help', href: '/' }
+          ]}
+          currentPage="Contact Management"
+          categoryLabel="Contact Management"
+          categoryIcon={Users}
+          categoryColor="blue"
+          title="Managing Your Customer Contacts"
+          description="Your customer database is the foundation of successful review collection. Learn how to import, organize, and manage your contacts to get the most from your review requests."
+        />
 
-          <h1 className="text-4xl font-bold text-white mb-4">
-            Managing Your Customer Contacts
-          </h1>
-
-          <p className="text-xl text-white/70 mb-6">
-            Your customer database is the foundation of successful review collection. Learn how to import, 
-            organize, and manage your contacts to get the most from your review requests.
-          </p>
-
+        <div className="max-w-4xl mx-auto mb-8">
           <div className="flex items-center space-x-6 text-sm text-white/70">
             <div className="flex items-center space-x-2">
               <Upload className="w-4 h-4" />

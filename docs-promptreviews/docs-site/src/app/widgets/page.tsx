@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import DocsLayout from '../docs-layout'
+import PageHeader from '../components/PageHeader'
 import { 
   Code, 
   Smartphone, 
@@ -35,21 +36,17 @@ export default function WidgetsPage() {
   return (
     <DocsLayout>
       {/* Hero Section */}
-      <div className="max-w-4xl mx-auto mb-16">
-        <div className="inline-flex items-center space-x-2 bg-indigo-500/20 text-indigo-300 px-4 py-2 rounded-full text-sm font-medium mb-6">
-          <Code className="w-4 h-4" />
-          <span>Review Widgets</span>
-        </div>
-        
-        <h1 className="text-4xl sm:text-5xl font-bold text-white mb-6 text-balance">
-          Review Widgets for Your Website
-        </h1>
-        
-        <p className="text-xl text-white/90 mb-8 text-balance">
-          Create customizable widgets to display your reviews on any website. Choose from different 
-          layouts, customize colors and styling, and embed with simple HTML code.
-        </p>
-      </div>
+      <PageHeader
+        breadcrumbs={[
+          { label: 'Help', href: '/' }
+        ]}
+        currentPage="Review Widgets"
+        categoryLabel="Review Widgets"
+        categoryIcon={Code}
+        categoryColor="blue"
+        title="Review Widgets for Your Website"
+        description="Create customizable widgets to display your reviews on any website. Choose from different layouts, customize colors and styling, and embed with simple HTML code."
+      />
 
       {/* Widget Overview */}
       <div className="max-w-4xl mx-auto mb-16">

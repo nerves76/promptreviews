@@ -26,6 +26,16 @@ interface NavItem {
   children?: NavItem[]
 }
 
+// Custom [P] icon component for Prompt Pages
+const PromptPagesIcon = ({ className }: { className?: string }) => (
+  <span 
+    className={className} 
+    style={{ fontFamily: 'Inter, sans-serif', fontWeight: 'bold' }}
+  >
+    [P]
+  </span>
+)
+
 const navigation: NavItem[] = [
   {
     title: 'Getting Started',
@@ -41,7 +51,7 @@ const navigation: NavItem[] = [
   {
     title: 'Prompt Pages',
     href: '/prompt-pages',
-    icon: Zap,
+    icon: PromptPagesIcon,
     children: [
       { title: 'Overview', href: '/prompt-pages' },
       { title: 'Page Types', href: '/prompt-pages/types' },
@@ -217,7 +227,7 @@ export default function Sidebar({ className }: SidebarProps) {
               </Link>
             )}
 
-            {hasChildren && isExpanded && (
+            {hasChildren && isExpanded && section.children && (
               <div className="ml-4 mt-1 space-y-1">
                 {section.children.map((child) => (
                   <Link

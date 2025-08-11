@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import DocsLayout from '../docs-layout'
+import PageHeader from '../components/PageHeader'
 import { 
   Star, 
   BarChart3, 
@@ -35,21 +36,17 @@ export default function ReviewsPage() {
   return (
     <DocsLayout>
       {/* Hero Section */}
-      <div className="max-w-4xl mx-auto mb-16">
-        <div className="inline-flex items-center space-x-2 bg-yellow-500/20 text-yellow-300 px-4 py-2 rounded-full text-sm font-medium mb-6">
-          <Star className="w-4 h-4" />
-          <span>Review Management</span>
-        </div>
-        
-        <h1 className="text-4xl sm:text-5xl font-bold text-white mb-6 text-balance">
-          Track & Manage All Your Reviews
-        </h1>
-        
-        <p className="text-xl text-white/90 mb-8 text-balance">
-          Monitor review submissions, verify publication on platforms, respond to feedback, 
-          and gain insights from comprehensive analytics—all in one dashboard.
-        </p>
-      </div>
+      <PageHeader
+        breadcrumbs={[
+          { label: 'Help', href: '/' }
+        ]}
+        currentPage="Review Management"
+        categoryLabel="Review Management"
+        categoryIcon={Star}
+        categoryColor="yellow"
+        title="Track & Manage All Your Reviews"
+        description="Monitor review submissions, verify publication on platforms, respond to feedback, and gain insights from comprehensive analytics—all in one dashboard."
+      />
 
       {/* Review Dashboard Overview */}
       <div className="max-w-4xl mx-auto mb-16">

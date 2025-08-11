@@ -113,8 +113,8 @@ const features = [
     popular: true,
   },
   {
-    name: 'Website Integration',
-    description: 'Embed review widgets on your website with customizable designs and mobile optimization.',
+    name: 'Widgets',
+    description: 'Create and customize review widgets to display customer reviews on your website.',
     href: '/widgets',
     icon: Code,
     color: 'bg-indigo-500',

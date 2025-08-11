@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import DocsLayout from '../docs-layout'
+import PageHeader from '../components/PageHeader'
 import { 
   AlertTriangle, 
   Search, 
@@ -256,29 +257,20 @@ export default function TroubleshootingPage() {
       />
 
       <div className="prose-docs">
-        {/* Breadcrumb */}
-        <nav className="flex items-center space-x-2 text-sm text-white/60 mb-8">
-          <Link href="/" className="hover:text-white">Documentation</Link>
-          <span>/</span>
-          <span className="text-white">Troubleshooting</span>
-        </nav>
-
         {/* Header */}
-        <div className="mb-12">
-          <div className="inline-flex items-center space-x-2 bg-orange-500/20 text-orange-300 px-3 py-1 rounded-full text-sm font-medium mb-6">
-            <AlertTriangle className="w-4 h-4" />
-            <span>Need Help?</span>
-          </div>
+        <PageHeader
+          breadcrumbs={[
+            { label: 'Help', href: '/' }
+          ]}
+          currentPage="Troubleshooting"
+          categoryLabel="Need Help?"
+          categoryIcon={AlertTriangle}
+          categoryColor="orange"
+          title="Troubleshooting Guide"
+          description="Running into issues? Don't worry—most problems have simple solutions. Find quick fixes for common issues and get back to collecting great reviews."
+        />
 
-          <h1 className="text-4xl font-bold text-white mb-4">
-            Troubleshooting Guide
-          </h1>
-
-          <p className="text-xl text-white/90 mb-6">
-            Running into issues? Don't worry—most problems have simple solutions. Find quick fixes 
-            for common issues and get back to collecting great reviews.
-          </p>
-
+        <div className="max-w-4xl mx-auto mb-8">
           <div className="flex items-center space-x-6 text-sm text-white/70">
             <div className="flex items-center space-x-2">
               <Search className="w-4 h-4" />

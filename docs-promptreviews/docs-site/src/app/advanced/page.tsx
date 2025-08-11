@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import DocsLayout from '../docs-layout'
+import PageHeader from '../components/PageHeader'
 import { 
   BarChart3, 
   Zap, 
@@ -34,21 +35,17 @@ export default function AdvancedPage() {
   return (
     <DocsLayout>
       {/* Hero Section */}
-      <div className="max-w-4xl mx-auto mb-16">
-        <div className="inline-flex items-center space-x-2 bg-pink-500/20 text-pink-300 px-4 py-2 rounded-full text-sm font-medium mb-6">
-          <BarChart3 className="w-4 h-4" />
-          <span>Advanced Features</span>
-        </div>
-        
-        <h1 className="text-4xl sm:text-5xl font-bold text-white mb-6 text-balance">
-          Advanced Features & Analytics
-        </h1>
-        
-        <p className="text-xl text-white/90 mb-8 text-balance">
-          Take your review management to the next level with analytics, automation, 
-          API access, and custom integrations.
-        </p>
-      </div>
+      <PageHeader
+        breadcrumbs={[
+          { label: 'Help', href: '/' }
+        ]}
+        currentPage="Advanced Features"
+        categoryLabel="Advanced Features"
+        categoryIcon={BarChart3}
+        categoryColor="pink"
+        title="Advanced Features & Analytics"
+        description="Take your review management to the next level with analytics, automation, API access, and custom integrations."
+      />
 
       {/* Analytics Dashboard */}
       <div className="max-w-4xl mx-auto mb-16">

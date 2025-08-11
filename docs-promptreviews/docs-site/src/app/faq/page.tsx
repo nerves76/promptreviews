@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import DocsLayout from '../docs-layout'
+import PageHeader from '../components/PageHeader'
 import { 
   HelpCircle, 
   Search, 
@@ -253,29 +254,20 @@ export default function FAQPage() {
       />
 
       <div className="prose-docs">
-        {/* Breadcrumb */}
-        <nav className="flex items-center space-x-2 text-sm text-white/60 mb-8">
-          <Link href="/" className="hover:text-white/80">Documentation</Link>
-          <span>/</span>
-          <span className="text-white">FAQ</span>
-        </nav>
-
         {/* Header */}
-        <div className="mb-12">
-          <div className="inline-flex items-center space-x-2 bg-blue-500/20 text-blue-300 px-3 py-1 rounded-full text-sm font-medium mb-6">
-            <HelpCircle className="w-4 h-4" />
-            <span>Frequently Asked Questions</span>
-          </div>
+        <PageHeader
+          breadcrumbs={[
+            { label: 'Help', href: '/' }
+          ]}
+          currentPage="FAQ"
+          categoryLabel="Frequently Asked Questions"
+          categoryIcon={HelpCircle}
+          categoryColor="blue"
+          title="Frequently Asked Questions"
+          description="Find answers to the most common questions about Prompt Reviews. Can't find what you're looking for? Our support team is here to help."
+        />
 
-          <h1 className="text-4xl font-bold text-white mb-4">
-            Frequently Asked Questions
-          </h1>
-
-          <p className="text-xl text-white/70 mb-6">
-            Find answers to the most common questions about Prompt Reviews. Can't find what you're 
-            looking for? Our support team is here to help.
-          </p>
-
+        <div className="max-w-4xl mx-auto mb-8">
           <div className="flex items-center space-x-6 text-sm text-white/70">
             <div className="flex items-center space-x-2">
               <Search className="w-4 h-4" />

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import DocsLayout from '../docs-layout'
+import PageHeader from '../components/PageHeader'
 import { 
   Sparkles, 
   Star, 
@@ -146,30 +147,20 @@ export default function AIReviewsPage() {
       />
 
       <div className="prose-docs">
-        {/* Breadcrumb */}
-        <nav className="flex items-center space-x-2 text-sm text-white/60 mb-8">
-          <Link href="/" className="hover:text-white/80">Documentation</Link>
-          <span>/</span>
-          <span className="text-white">AI Reviews</span>
-        </nav>
-
         {/* Header */}
-        <div className="mb-12">
-          <div className="inline-flex items-center space-x-2 bg-purple-500/20 text-purple-300 px-3 py-1 rounded-full text-sm font-medium mb-6">
-            <Sparkles className="w-4 h-4" />
-            <span>Meet Prompty</span>
-          </div>
+        <PageHeader
+          breadcrumbs={[
+            { label: 'Help', href: '/' }
+          ]}
+          currentPage="AI Reviews"
+          categoryLabel="Meet Prompty"
+          categoryIcon={Sparkles}
+          categoryColor="purple"
+          title="Prompty: Your AI-Powered Review Assistant"
+          description="Think of Prompty as your review collection co-pilot. This AI assistant helps you create personalized, human-sounding review requests that actually work—without losing the personal touch that makes your business special."
+        />
 
-          <h1 className="text-4xl font-bold text-white mb-4">
-            Prompty: Your AI-Powered Review Assistant
-          </h1>
-
-          <p className="text-xl text-white/70 mb-6">
-            Think of Prompty as your review collection co-pilot. This AI assistant helps you create personalized, 
-            human-sounding review requests that actually work—without losing the personal touch that makes your 
-            business special.
-          </p>
-
+        <div className="max-w-4xl mx-auto mb-8">
           <div className="flex items-center space-x-6 text-sm text-white/70">
             <div className="flex items-center space-x-2">
               <Brain className="w-4 h-4" />

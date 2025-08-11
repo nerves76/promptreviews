@@ -15,9 +15,11 @@ import {
   Palette,
   Calendar,
   User,
-  Globe
+  Globe,
+  FileText
 } from 'lucide-react';
 import DocsLayout from '../../docs-layout';
+import PageHeader from '../../components/PageHeader';
 
 export const metadata: Metadata = {
   title: 'Prompt Page Types - Service, Product, Photo, Video & More | Prompt Reviews',
@@ -161,14 +163,18 @@ export default function PromptPageTypes() {
 
       <div className="max-w-4xl mx-auto">
         {/* Header */}
-        <div className="mb-12">
-          <h1 className="text-4xl font-bold text-white mb-4">
-            Prompt Page Types
-          </h1>
-          <p className="text-xl text-white/80">
-            Choose the perfect prompt page type for your business. Each type is designed for specific use cases and offers unique features to help you collect better reviews.
-          </p>
-        </div>
+        <PageHeader
+          breadcrumbs={[
+            { label: 'Help', href: '/' },
+            { label: 'Prompt Pages', href: '/prompt-pages' }
+          ]}
+          currentPage="Page Types"
+          categoryLabel="Page Types"
+          categoryIcon={FileText}
+          categoryColor="blue"
+          title="Prompt Page Types"
+          description="Choose the perfect prompt page type for your business. Each type is designed for specific use cases and offers unique features to help you collect better reviews."
+        />
         {/* Quick Navigation */}
         <div className="mb-12">
           <h2 className="text-2xl font-bold text-white mb-6">Quick Navigation</h2>

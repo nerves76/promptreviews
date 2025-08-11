@@ -28,6 +28,7 @@ import {
   User
 } from 'lucide-react';
 import DocsLayout from '../../docs-layout';
+import PageHeader from '../../components/PageHeader';
 
 export const metadata: Metadata = {
   title: 'Prompt Page Features - Emoji Sentiment Flow, Prompty AI & More | Prompt Reviews',
@@ -424,14 +425,18 @@ export default function PromptPageFeatures() {
 
       <div className="max-w-4xl mx-auto">
         {/* Header */}
-        <div className="mb-12">
-          <h1 className="text-4xl font-bold text-white mb-4">
-            Prompt Page Features
-          </h1>
-          <p className="text-xl text-white/80">
-            Discover all the powerful features that make prompt pages the most effective way to collect customer reviews. From AI-powered assistance to mobile optimization, we've got everything you need.
-          </p>
-        </div>
+        <PageHeader
+          breadcrumbs={[
+            { label: 'Help', href: '/' },
+            { label: 'Prompt Pages', href: '/prompt-pages' }
+          ]}
+          currentPage="Features"
+          categoryLabel="Features"
+          categoryIcon={Zap}
+          categoryColor="purple"
+          title="Prompt Page Features"
+          description="Discover all the powerful features that make prompt pages the most effective way to collect customer reviews. From AI-powered assistance to mobile optimization, we've got everything you need."
+        />
         {/* Feature Categories */}
         <div className="mb-12">
           <h2 className="text-2xl font-bold text-white mb-6">Feature Categories</h2>
