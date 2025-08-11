@@ -23,7 +23,7 @@ export default function FirstReviewRequestPage() {
           categoryLabel="Step 5"
           categoryIcon={Send}
           categoryColor="pink"
-          title="Send Your First Review Request"
+          title="Send your first review request"
           description="Learn how to send personalized review requests to your customers through multiple channels."
         />
 

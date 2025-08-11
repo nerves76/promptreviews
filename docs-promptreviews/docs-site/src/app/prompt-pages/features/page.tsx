@@ -434,7 +434,7 @@ export default function PromptPageFeatures() {
           categoryLabel="Features"
           categoryIcon={Zap}
           categoryColor="purple"
-          title="Prompt Page Features"
+          title="Prompt page features"
           description="Discover all the powerful features that make prompt pages the most effective way to collect customer reviews. From AI-powered assistance to mobile optimization, we've got everything you need."
         />
         {/* Feature Categories */}
@@ -473,7 +473,7 @@ export default function PromptPageFeatures() {
                   </div>
                   <a
                     href={`#${feature.id}`}
-                    className="inline-flex items-center text-slate-blue hover:text-slate-blue/80 font-medium"
+                    className="inline-flex items-center text-slate-blue hover:underline font-medium"
                   >
                     Learn more
                     <svg className="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

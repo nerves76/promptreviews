@@ -43,7 +43,7 @@ export default function AdvancedPage() {
         categoryLabel="Advanced Features"
         categoryIcon={BarChart3}
         categoryColor="pink"
-        title="Advanced Features & Analytics"
+        title="Advanced features & analytics"
         description="Take your review management to the next level with analytics, automation, API access, and custom integrations."
       />
 

@@ -22,7 +22,7 @@ export default function BusinessProfilePage() {
           categoryLabel="Configuration"
           categoryIcon={Building}
           categoryColor="blue"
-          title="Business Profile Setup"
+          title="Business profile setup"
           description="Create a comprehensive business profile that powers AI-generated content and provides essential information across all your prompt pages."
         />
 

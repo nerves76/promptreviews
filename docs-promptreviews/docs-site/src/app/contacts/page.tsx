@@ -197,7 +197,7 @@ export default function ContactsPage() {
           categoryLabel="Contact Management"
           categoryIcon={Users}
           categoryColor="blue"
-          title="Managing Your Customer Contacts"
+          title="Managing your customer contacts"
           description="Your customer database is the foundation of successful review collection. Learn how to import, organize, and manage your contacts to get the most from your review requests."
         />
 

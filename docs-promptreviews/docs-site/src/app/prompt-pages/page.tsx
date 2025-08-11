@@ -197,7 +197,7 @@ export default function PromptPagesPage() {
           categoryLabel="Prompt Pages Overview"
           categoryIcon={MessageCircle}
           categoryColor="purple"
-          title="Prompt Pages: Your Review Collection Superpower"
+          title="Prompt pages: Your review collection superpower"
           description="Create personalized review request pages that make it easy for customers to leave detailed, authentic reviews. Choose from multiple types, customize everything, and watch your reviews grow."
         />
           
@@ -288,7 +288,7 @@ export default function PromptPagesPage() {
                   </ul>
                 </div>
                 
-                <Link href={type.url} className="inline-flex items-center text-yellow-300 hover:text-yellow-200 font-medium text-sm">
+                <Link href={type.url} className="inline-flex items-center text-yellow-300 hover:underline font-medium text-sm">
                   Learn more
                   <ArrowRight className="ml-1 w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </Link>
@@ -299,7 +299,7 @@ export default function PromptPagesPage() {
           <div className="mt-8 text-center">
             <Link
               href="/prompt-pages/types"
-              className="inline-flex items-center space-x-2 text-yellow-300 hover:text-yellow-200 font-medium"
+              className="inline-flex items-center space-x-2 text-yellow-300 hover:underline font-medium"
             >
               <span>Learn more about each type</span>
               <ArrowRight className="w-4 h-4" />
@@ -323,7 +323,7 @@ export default function PromptPagesPage() {
                 
                 <p className="text-white/80 mb-4">{feature.description}</p>
                 
-                <Link href={feature.url} className="inline-flex items-center text-yellow-300 hover:text-yellow-200 font-medium text-sm">
+                <Link href={feature.url} className="inline-flex items-center text-yellow-300 hover:underline font-medium text-sm">
                   Learn more
                   <ArrowRight className="ml-1 w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </Link>

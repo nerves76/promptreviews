@@ -266,7 +266,7 @@ export default function TroubleshootingPage() {
           categoryLabel="Need Help?"
           categoryIcon={AlertTriangle}
           categoryColor="orange"
-          title="Troubleshooting Guide"
+          title="Troubleshooting guide"
           description="Running into issues? Don't worry—most problems have simple solutions. Find quick fixes for common issues and get back to collecting great reviews."
         />
 

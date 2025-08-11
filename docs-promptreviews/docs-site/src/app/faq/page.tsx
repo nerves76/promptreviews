@@ -263,7 +263,7 @@ export default function FAQPage() {
           categoryLabel="Frequently Asked Questions"
           categoryIcon={HelpCircle}
           categoryColor="blue"
-          title="Frequently Asked Questions"
+          title="Frequently asked questions"
           description="Find answers to the most common questions about Prompt Reviews. Can't find what you're looking for? Our support team is here to help."
         />
 
@@ -306,7 +306,7 @@ export default function FAQPage() {
                 <div className={`p-2 rounded-lg ${link.color}`}>
                   <link.icon className="w-4 h-4" />
                 </div>
-                <h3 className="font-semibold text-white mb-0 group-hover:text-blue-300 transition-colors">
+                <h3 className="font-semibold text-white mb-0 group-hover:underline transition-colors">
                   {link.title}
                 </h3>
               </div>
@@ -341,7 +341,7 @@ export default function FAQPage() {
                         <Link
                           key={idx}
                           href={typeof related === 'string' ? related : '#'}
-                          className="text-blue-300 hover:text-blue-300 font-medium"
+                          className="text-blue-300 hover:underline font-medium"
                         >
                           {typeof related === 'string' ? related.split('/').pop()?.replace('-', ' ') : related}
                         </Link>

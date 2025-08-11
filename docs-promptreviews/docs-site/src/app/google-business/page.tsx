@@ -45,7 +45,7 @@ export default function GoogleBusinessPage() {
         categoryLabel="Google Business Profile"
         categoryIcon={Building2}
         categoryColor="red"
-        title="Google Business Profile Integration"
+        title="Google Business profile integration"
         description="Connect your Google Business Profile to manage reviews, respond to customers, create posts, and handle multiple locations—all from your Prompt Reviews dashboard."
       />
 

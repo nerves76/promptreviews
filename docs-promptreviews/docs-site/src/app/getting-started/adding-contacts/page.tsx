@@ -23,7 +23,7 @@ export default function AddingContactsPage() {
           categoryLabel="Step 4"
           categoryIcon={Users}
           categoryColor="indigo"
-          title="Add Your First Contacts"
+          title="Add your first contacts"
           description="Import your customer database or manually add contacts to start sending personalized review requests."
         />
 
@@ -123,7 +123,7 @@ export default function AddingContactsPage() {
                       </tbody>
                     </table>
                   </div>
-                  <button className="mt-3 inline-flex items-center text-blue-300 hover:text-blue-200 text-sm">
+                  <button className="mt-3 inline-flex items-center text-blue-300 hover:underline text-sm">
                     <Download className="w-4 h-4 mr-1" />
                     Download CSV Template
                   </button>

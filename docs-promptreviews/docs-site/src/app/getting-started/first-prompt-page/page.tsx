@@ -23,7 +23,7 @@ export default function FirstPromptPage() {
           categoryLabel="Step 3"
           categoryIcon={FileText}
           categoryColor="green"
-          title="Create Your First Prompt Page"
+          title="Create your first prompt page"
           description="Build a personalized review request page with AI-powered content generation to start collecting customer reviews."
         />
 
@@ -112,7 +112,7 @@ export default function FirstPromptPage() {
                   <span><strong>Universal:</strong> All-purpose solution</span>
                 </li>
               </ul>
-              <Link href="/prompt-pages/types" className="inline-block mt-4 text-purple-300 hover:text-purple-200 text-sm">
+                              <Link href="/prompt-pages/types" className="inline-block mt-4 text-purple-300 hover:underline text-sm">
                 Learn more about page types →
               </Link>
             </div>

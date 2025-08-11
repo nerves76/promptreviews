@@ -156,7 +156,7 @@ export default function AIReviewsPage() {
           categoryLabel="AI Features"
           categoryIcon={Sparkles}
           categoryColor="purple"
-          title="AI-Powered Review Collection"
+          title="AI-powered review collection"
           description="Our AI-powered system helps you create personalized, human-sounding review requests that actually work—without losing the personal touch that makes your business special."
         />
 

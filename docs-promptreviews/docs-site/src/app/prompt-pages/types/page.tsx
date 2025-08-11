@@ -172,7 +172,7 @@ export default function PromptPageTypes() {
           categoryLabel="Page Types"
           categoryIcon={FileText}
           categoryColor="blue"
-          title="Prompt Page Types"
+          title="Prompt page types"
           description="Choose the perfect prompt page type for your business. Each type is designed for specific use cases and offers unique features to help you collect better reviews."
         />
         {/* Quick Navigation */}

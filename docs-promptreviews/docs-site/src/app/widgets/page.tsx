@@ -44,7 +44,7 @@ export default function WidgetsPage() {
         categoryLabel="Review Widgets"
         categoryIcon={Code}
         categoryColor="blue"
-        title="Review Widgets for Your Website"
+        title="Review widgets for your website"
         description="Create customizable widgets to display your reviews on any website. Choose from different layouts, customize colors and styling, and embed with simple HTML code."
       />
 

@@ -5,7 +5,7 @@ import {
   Users, 
   Building2, 
   Code, 
-  Zap, 
+  Square, 
   Star, 
   ArrowRight,
   Search,
@@ -75,7 +75,7 @@ const homepageJsonLd = {
 
 const features = [
   {
-    name: 'Getting Started',
+    name: 'Getting started',
     description: 'Set up your account, create your first prompt page, and start collecting reviews with AI-powered content generation.',
     href: '/getting-started',
     icon: BookOpen,
@@ -83,29 +83,29 @@ const features = [
     popular: true,
   },
   {
-    name: 'Prompt Pages',
+    name: 'Prompt pages',
     description: 'Create personalized review request pages for services, products, events, and employee spotlights.',
     href: '/prompt-pages',
-    icon: Zap,
+    icon: Square,
     color: 'bg-blue-500',
     popular: true,
   },
   {
-    name: 'Contact Management',
+    name: 'Contact management',
     description: 'Import, organize, and manage your customer database with bulk operations and duplicate detection.',
     href: '/contacts',
     icon: Users,
     color: 'bg-purple-500',
   },
   {
-    name: 'Review Management',
+    name: 'Review management',
     description: 'Track, verify, and respond to reviews across all platforms with comprehensive analytics.',
     href: '/reviews',
     icon: Star,
     color: 'bg-yellow-500',
   },
   {
-    name: 'Google Business Profile',
+    name: 'Google Business profile',
     description: 'Connect your Google Business Profile, manage multiple locations, and sync reviews automatically.',
     href: '/google-business',
     icon: Building2,
@@ -233,7 +233,7 @@ export default function HomePage() {
                   <feature.icon className="w-6 h-6 text-white" />
                 </div>
                 
-                <h3 className="text-xl font-semibold text-white mb-2 group-hover:text-yellow-300 transition-colors">
+                <h3 className="text-xl font-semibold text-white mb-2 group-hover:underline transition-colors">
                   {feature.name}
                 </h3>
                 
@@ -273,7 +273,7 @@ export default function HomePage() {
                     {index + 1}
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-semibold text-white mb-2 group-hover:text-yellow-300 transition-colors">
+                    <h3 className="font-semibold text-white mb-2 group-hover:underline transition-colors">
                       {action.title}
                     </h3>
                     <p className="text-white/80 text-sm mb-3">

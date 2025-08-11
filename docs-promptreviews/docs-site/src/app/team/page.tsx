@@ -43,7 +43,7 @@ export default function TeamPage() {
         categoryLabel="Team & Account"
         categoryIcon={Users}
         categoryColor="orange"
-        title="Team Management & Account Settings"
+        title="Team management & account settings"
         description="Add team members, manage permissions, and control account settings. Collaborate effectively while maintaining security and control."
       />
 

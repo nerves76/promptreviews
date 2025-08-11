@@ -23,7 +23,7 @@ export default function StyleSettingsPage() {
           categoryLabel="Customization"
           categoryIcon={Palette}
           categoryColor="purple"
-          title="Style Settings"
+          title="Style settings"
           description="Customize the visual appearance of your prompt pages to perfectly match your brand identity."
         />
 

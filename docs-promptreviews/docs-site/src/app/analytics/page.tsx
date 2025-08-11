@@ -23,7 +23,7 @@ export default function AnalyticsPage() {
           categoryLabel="Insights"
           categoryIcon={BarChart3}
           categoryColor="indigo"
-          title="Analytics & Insights"
+          title="Analytics & insights"
           description="Track your review collection performance, understand customer sentiment, and make data-driven decisions to improve your review strategy."
         />
 

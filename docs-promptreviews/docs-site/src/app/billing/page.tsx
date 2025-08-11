@@ -23,7 +23,7 @@ export default function BillingPage() {
           categoryLabel="Account Management"
           categoryIcon={CreditCard}
           categoryColor="green"
-          title="Billing & Plans Management"
+          title="Billing & plans management"
           description="Everything you need to know about managing your Prompt Reviews subscription, changing plans, and handling billing."
         />
 

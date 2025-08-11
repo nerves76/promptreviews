@@ -86,7 +86,7 @@ export default function ChoosingPlanPage() {
           categoryLabel="Step 2"
           categoryIcon={CreditCard}
           categoryColor="purple"
-          title="Choose Your Plan"
+          title="Choose your plan"
           description="Select the subscription plan that best fits your business size and review collection needs."
         />
 

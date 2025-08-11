@@ -23,7 +23,7 @@ export default function ReviewWidgetPage() {
           categoryLabel="Step 6"
           categoryIcon={Code}
           categoryColor="teal"
-          title="Set Up Your Review Widget"
+          title="Set up your review widget"
           description="Display your best reviews on your website with customizable widgets that match your brand."
         />
 

@@ -44,7 +44,7 @@ export default function ReviewsPage() {
         categoryLabel="Review Management"
         categoryIcon={Star}
         categoryColor="yellow"
-        title="Track & Manage All Your Reviews"
+        title="Track & manage all your reviews"
         description="Monitor review submissions, verify publication on platforms, respond to feedback, and gain insights from comprehensive analytics—all in one dashboard."
       />
 

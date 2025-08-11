@@ -171,7 +171,7 @@ export default function GettingStartedPage() {
           categoryLabel="Quick Start Guide"
           categoryIcon={CheckCircle}
           categoryColor="green"
-          title="Getting Started with Prompt Reviews"
+          title="Getting started with Prompt Reviews"
           description="Welcome to Prompt Reviews! This guide will help you set up your account and start collecting customer reviews in under 30 minutes."
         />
 
@@ -224,7 +224,7 @@ export default function GettingStartedPage() {
                 
                 <div className="flex-1">
                   <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-lg font-semibold text-white group-hover:text-primary-600 transition-colors mb-0">
+                    <h3 className="text-lg font-semibold text-white group-hover:underline transition-colors mb-0">
                       {step.title}
                     </h3>
                     <ArrowRight className="w-5 h-5 text-primary-500 group-hover:translate-x-1 transition-transform" />

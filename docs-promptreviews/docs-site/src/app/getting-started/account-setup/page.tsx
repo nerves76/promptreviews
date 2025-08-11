@@ -23,7 +23,7 @@ export default function AccountSetupPage() {
           categoryLabel="Step 1"
           categoryIcon={UserPlus}
           categoryColor="blue"
-          title="Account Setup & Business Profile"
+          title="Account setup & business profile"
           description="Create your Prompt Reviews account and complete your business information to get started."
         />
 
@@ -38,7 +38,7 @@ export default function AccountSetupPage() {
                 <h3 className="text-xl font-semibold text-white">Visit the Sign-Up Page</h3>
               </div>
               <p className="text-white/90 mb-4">
-                Go to <a href="https://app.promptreviews.com/signup" className="text-blue-300 hover:text-blue-200">app.promptreviews.com/signup</a> to create your account.
+                Go to <a href="https://app.promptreviews.com/signup" className="text-blue-300 hover:underline">app.promptreviews.com/signup</a> to create your account.
               </p>
               <ul className="space-y-2 text-white/80">
                 <li className="flex items-start space-x-2">
