@@ -8,6 +8,9 @@ const withMDX = require('@next/mdx')({
 })
 
 const nextConfig = {
+  // Static export for cPanel hosting
+  output: 'export',
+  
   // Subdirectory deployment configuration
   basePath: process.env.NODE_ENV === 'production' ? '/docs' : '',
   assetPrefix: process.env.NODE_ENV === 'production' ? '/docs' : '',
@@ -16,6 +19,7 @@ const nextConfig = {
   pageExtensions: ['ts', 'tsx', 'js', 'jsx', 'md', 'mdx'],
   images: {
     domains: ['docs.promptreviews.com', 'promptreviews.com'],
+    unoptimized: true, // Required for static export
   },
   async redirects() {
     return [

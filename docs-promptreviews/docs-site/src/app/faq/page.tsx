@@ -53,15 +53,15 @@ const pageJsonLd = {
       name: 'How much does Prompt Reviews cost?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Prompt Reviews starts at $15/month for the Starter plan, with additional plans available for growing businesses.'
+        text: 'Prompt Reviews starts at $15/month for the Grower plan, with Builder ($35/month) and Maven ($100/month) plans available for growing businesses.'
       }
     },
     {
       '@type': 'Question',
-      name: 'What is Prompty AI?',
+      name: 'What is AI-powered review collection?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Prompty is our AI assistant that helps create personalized review requests and optimize your review collection strategy.'
+        text: 'Our AI-powered system helps create personalized review requests and optimize your review collection strategy.'
       }
     },
     {
@@ -109,9 +109,9 @@ const faqCategories = [
     color: 'bg-purple-500',
     questions: [
       {
-        question: 'What is Prompty AI and how does it work?',
-        answer: 'Prompty is your AI-powered review assistant. It analyzes your business, customers, and context to create personalized review requests that feel genuinely human. Prompty helps you be more personal, not less.',
-        related: ['/ai-reviews', 'Prompty AI']
+        question: 'What is AI-powered review collection and how does it work?',
+        answer: 'Our AI-powered system analyzes your business, customers, and context to create personalized review requests that feel genuinely human. The AI helps you be more personal, not less.',
+        related: ['/ai-reviews', 'AI Features']
       },
       {
         question: 'What are prompt pages?',
@@ -125,7 +125,7 @@ const faqCategories = [
       },
       {
         question: 'Can I customize the review request messages?',
-        answer: 'Absolutely! While Prompty AI generates personalized suggestions, you can edit, customize, or completely rewrite any content before sending. You always have full control over your messaging.',
+        answer: 'Absolutely! While our AI generates personalized suggestions, you can edit, customize, or completely rewrite any content before sending. You always have full control over your messaging.',
         related: ['/ai-reviews', 'Personalization']
       }
     ]
@@ -137,12 +137,12 @@ const faqCategories = [
     questions: [
       {
         question: 'How much does Prompt Reviews cost?',
-        answer: 'Prompt Reviews starts at $15/month for the Starter plan. We offer different plans to fit businesses of all sizes, with features that scale with your needs.',
+        answer: 'Prompt Reviews starts at $15/month for the Grower plan. We offer Builder ($35/month) and Maven ($100/month) plans to fit businesses of all sizes, with features that scale with your needs.',
         related: ['/pricing', 'Pricing Plans']
       },
       {
         question: 'What\'s included in each plan?',
-        answer: 'All plans include prompt pages, contact management, Prompty AI assistance, and basic analytics. Higher plans add features like advanced reporting, team collaboration, and priority support.',
+        answer: 'All plans include prompt pages, contact management (except Grower), AI-powered content generation, and basic analytics. Higher plans add features like advanced reporting, team collaboration, and Google Business Profile integration.',
         related: ['/pricing', 'Plan Comparison']
       },
       {
@@ -223,7 +223,7 @@ const quickLinks = [
   },
   {
     icon: Zap,
-    title: 'Prompty AI',
+    title: 'AI Features',
     description: 'Learn about your AI assistant.',
     href: '/ai-reviews',
     color: 'bg-purple-500/20 text-purple-300'

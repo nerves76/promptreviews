@@ -15,13 +15,13 @@ import {
 
 export const metadata: Metadata = {
   title: 'Prompt Reviews Documentation - Complete Help Center & Guides',
-  description: 'Welcome to Prompt Reviews documentation! Learn how to collect, manage, and leverage customer reviews with our comprehensive guides, tutorials, and troubleshooting resources. Get started with Prompty, your AI-powered review assistant.',
+  description: 'Welcome to Prompt Reviews documentation! Learn how to collect, manage, and leverage customer reviews with our comprehensive guides, tutorials, and troubleshooting resources. Get started with our AI-powered review collection system.',
   keywords: [
     'Prompt Reviews help',
     'review management tutorial',
     'customer review software',
     'Google Business Profile help',
-    'Prompty AI assistant',
+    'AI-powered reviews',
     'review automation guide',
     'business reputation management'
   ],
@@ -76,7 +76,7 @@ const homepageJsonLd = {
 const features = [
   {
     name: 'Getting Started',
-    description: 'Set up your account, create your first prompt page, and start collecting reviews with Prompty\'s AI assistance.',
+    description: 'Set up your account, create your first prompt page, and start collecting reviews with AI-powered content generation.',
     href: '/getting-started',
     icon: BookOpen,
     color: 'bg-green-500',
@@ -172,7 +172,7 @@ export default function HomePage() {
           
           <p className="text-xl text-white/90 mb-8 max-w-3xl mx-auto text-balance">
             Learn how to collect, manage, and leverage customer reviews with Prompt Reviews. 
-            From setup to advanced automation with <strong>Prompty</strong>, your AI-powered review assistant.
+            From setup to advanced automation with our AI-powered review collection system.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
