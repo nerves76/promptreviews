@@ -11,6 +11,7 @@ import ProfileOptimizationEmbed from '@/components/GoogleBusinessProfile/embeds/
 import CustomerEngagementEmbed from '@/components/GoogleBusinessProfile/embeds/CustomerEngagementEmbed';
 import OptimizationOpportunitiesEmbed from '@/components/GoogleBusinessProfile/embeds/OptimizationOpportunitiesEmbed';
 import OverviewStatsEmbed from '@/components/GoogleBusinessProfile/embeds/OverviewStatsEmbed';
+import SpriteLoader from '@/components/SpriteLoader';
 
 function EmbedReviewDashboardContent() {
   const searchParams = useSearchParams();
@@ -88,12 +89,15 @@ function EmbedReviewDashboardContent() {
 
 export default function EmbedReviewDashboard() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-gray-500">Loading...</div>
-      </div>
-    }>
-      <EmbedReviewDashboardContent />
-    </Suspense>
+    <>
+      <SpriteLoader />
+      <Suspense fallback={
+        <div className="min-h-screen bg-white flex items-center justify-center">
+          <div className="text-gray-500">Loading...</div>
+        </div>
+      }>
+        <EmbedReviewDashboardContent />
+      </Suspense>
+    </>
   );
 }

@@ -69,7 +69,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
     }
 
-    const { plan, userId, email, billingPeriod = 'monthly' } = requestBody;
+    const { plan, userId, email, billingPeriod = 'monthly' }: { plan: string; userId: string; email?: string; billingPeriod?: 'monthly' | 'annual' } = requestBody;
     console.log("📊 Request:", { plan, userId, email: email ? "provided" : "missing", billingPeriod });
     
     // Validate required fields
@@ -178,7 +178,7 @@ export async function POST(req: NextRequest) {
     const sessionConfig = {
       payment_method_types: ["card" as const],
       mode: "subscription" as const,
-      line_items: [{ price: PRICE_IDS[plan][billingPeriod], quantity: 1 }],
+      line_items: [{ price: PRICE_IDS[plan]?.[billingPeriod] || PRICE_IDS[plan]?.monthly, quantity: 1 }],
       metadata: { 
         userId, 
         plan,
@@ -195,7 +195,7 @@ export async function POST(req: NextRequest) {
     };
 
     console.log("📋 Session config:", {
-      priceId: PRICE_IDS[plan][billingPeriod],
+      priceId: PRICE_IDS[plan]?.[billingPeriod] || PRICE_IDS[plan]?.monthly,
       billingPeriod,
       hasValidCustomer: !!validCustomerId,
       usingCustomerEmail: !validCustomerId,

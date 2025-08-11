@@ -9,10 +9,13 @@ import ProfileOptimizationEmbed from '@/components/GoogleBusinessProfile/embeds/
 import CustomerEngagementEmbed from '@/components/GoogleBusinessProfile/embeds/CustomerEngagementEmbed';
 import OptimizationOpportunitiesEmbed from '@/components/GoogleBusinessProfile/embeds/OptimizationOpportunitiesEmbed';
 import OverviewStatsEmbed from '@/components/GoogleBusinessProfile/embeds/OverviewStatsEmbed';
+import SpriteLoader from '@/components/SpriteLoader';
 
 export default function ReviewTrendsTablet() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 py-12">
+    <>
+      <SpriteLoader />
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 py-12">
       <div className="max-w-4xl mx-auto px-4">
 
         {/* Tablet Wrapper - Responsive */}
@@ -346,5 +349,6 @@ export default function ReviewDashboard() {
         </div>
       </div>
     </div>
+    </>
   );
 }

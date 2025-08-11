@@ -112,7 +112,7 @@ export async function POST(req: NextRequest) {
         items: [
           {
             id: subscriptionItem.id,
-            price: PRICE_IDS[plan][billingPeriod],
+            price: PRICE_IDS[plan]?.[billingPeriod] || PRICE_IDS[plan]?.monthly || '',
           },
         ],
         // Prorate the difference
