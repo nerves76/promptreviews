@@ -391,7 +391,14 @@ export default function AccountPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">Plan</label>
-                <p className="mt-1 text-sm text-gray-900">{account?.plan || "Free"}</p>
+                <p className="mt-1 text-sm text-gray-900">
+                  {account?.plan || "Free"}
+                  {account?.billing_period && account?.plan !== 'grower' && account?.plan !== 'free' && (
+                    <span className="ml-2 text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">
+                      {account.billing_period === 'annual' ? 'Annual' : 'Monthly'}
+                    </span>
+                  )}
+                </p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">Created</label>
@@ -495,6 +502,13 @@ export default function AccountPage() {
             
             <div className="space-y-4">
               <button
+                onClick={() => router.push("/dashboard/plan")}
+                className="w-full flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+              >
+                {account?.plan === 'grower' || account?.plan === 'free' || !account?.plan ? 'View Plans' : 'Change Plan'}
+              </button>
+              
+              <button
                 onClick={() => router.push("/dashboard")}
                 className="w-full flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-slate-blue hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-blue"
               >
@@ -528,7 +542,7 @@ export default function AccountPage() {
 
               <button
                 onClick={handleUpdatePayment}
-                disabled={paymentLoading}
+                disabled={paymentLoading || account?.plan === 'grower' || account?.plan === 'free' || !account?.plan}
                 className="w-full flex items-center justify-center px-4 py-2 border border-slate-blue rounded-md shadow-sm text-sm font-medium text-slate-blue bg-white hover:bg-slate-blue hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-blue disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {paymentLoading ? (
@@ -540,7 +554,7 @@ export default function AccountPage() {
                     Opening Payment Portal...
                   </>
                 ) : (
-                  'Update Payment Information'
+                  'Manage Billing & Payment'
                 )}
               </button>
 

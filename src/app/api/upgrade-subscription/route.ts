@@ -120,10 +120,13 @@ export async function POST(req: NextRequest) {
       }
     );
 
-    // Update the plan in our database
+    // Update the plan and billing period in our database
     await supabase
       .from("accounts")
-      .update({ plan: plan })
+      .update({ 
+        plan: plan,
+        billing_period: billingPeriod 
+      })
       .eq("id", userId);
 
     return NextResponse.json({ 

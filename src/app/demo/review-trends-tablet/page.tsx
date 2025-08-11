@@ -12,17 +12,8 @@ import OverviewStatsEmbed from '@/components/GoogleBusinessProfile/embeds/Overvi
 
 export default function ReviewTrendsTablet() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 py-20">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 py-12">
       <div className="max-w-4xl mx-auto px-4">
-        {/* Header */}
-        <div className="text-center mb-8 md:mb-12">
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-3 md:mb-4">
-            Review Analytics Dashboard
-          </h1>
-          <p className="text-base sm:text-lg md:text-xl text-gray-600 max-w-2xl mx-auto px-4">
-            Track your review growth and trends with real-time insights
-          </p>
-        </div>
 
         {/* Tablet Wrapper - Responsive */}
         <div className="relative mx-auto max-w-full md:max-w-2xl lg:max-w-3xl">
@@ -43,7 +34,7 @@ export default function ReviewTrendsTablet() {
             </div>
             
             {/* Mobile Content */}
-            <div className="overflow-y-auto max-h-[70vh]">
+            <div className="h-[500px] overflow-y-auto">
               <div className="p-4 space-y-6">
                 {/* Review Trends Overview */}
                 <OverviewStatsEmbed />
@@ -68,7 +59,7 @@ export default function ReviewTrendsTablet() {
               <div className="absolute top-2 lg:top-3 left-1/2 transform -translate-x-1/2 w-16 lg:w-20 h-1 lg:h-1.5 bg-gray-800 rounded-full"></div>
               
               {/* Screen Container */}
-              <div className="relative bg-white rounded-[1.25rem] lg:rounded-[1.5rem] overflow-hidden" style={{ minHeight: '500px', maxHeight: '800px' }}>
+              <div className="relative bg-white rounded-[1.25rem] lg:rounded-[1.5rem] overflow-hidden" style={{ height: '600px' }}>
                 {/* Status Bar */}
                 <div className="bg-gray-100 px-4 lg:px-6 py-2 flex items-center justify-between border-b">
                   <div className="flex items-center space-x-2">
@@ -84,7 +75,7 @@ export default function ReviewTrendsTablet() {
                 </div>
 
                 {/* Scrollable Content Area */}
-                <div className="overflow-y-auto" style={{ height: 'calc(100% - 40px)', maxHeight: '760px' }}>
+                <div className="overflow-y-auto" style={{ height: 'calc(100% - 40px)' }}>
                   <div className="p-4 lg:p-6 space-y-6 lg:space-y-8">
                   {/* Review Trends Overview */}
                   <OverviewStatsEmbed />

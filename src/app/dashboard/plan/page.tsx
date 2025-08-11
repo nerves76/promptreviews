@@ -131,7 +131,50 @@ export default function PlanPage() {
         hasValidCurrentPlan && targetTier && targetTier.order > currentTier.order;
       const isDowngrade =
         hasValidCurrentPlan && targetTier && targetTier.order < currentTier.order;
+      const isBillingPeriodChange = 
+        hasValidCurrentPlan && tierKey === currentPlan && billing !== account?.billing_period;
 
+      // Handle billing period change (monthly to annual or vice versa)
+      if (isBillingPeriodChange && account.stripe_customer_id) {
+        const confirmMessage = billing === 'annual' 
+          ? `Switch to annual billing and save 15%? Your next charge will be prorated.`
+          : `Switch to monthly billing? You'll lose the 15% annual discount. Any unused time will be credited.`;
+        
+        if (confirm(confirmMessage)) {
+          setUpgrading(true);
+          setUpgradingPlan('Updating billing period...');
+          
+          try {
+            const res = await fetch("/api/upgrade-subscription", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                plan: tierKey,
+                userId: account.id,
+                currentPlan: currentPlan,
+                billingPeriod: billing,
+              }),
+            });
+            
+            if (res.ok) {
+              // Redirect to success page
+              window.location.href = `/dashboard?success=1&change=billing_period&plan=${tierKey}`;
+              return;
+            } else {
+              const errorData = await res.json();
+              throw new Error(errorData.message || 'Billing period change failed');
+            }
+          } catch (error) {
+            console.error("Billing period change error:", error);
+            alert("Failed to change billing period. Please try again.");
+          } finally {
+            setUpgrading(false);
+            setUpgradingPlan('');
+          }
+        }
+        return;
+      }
+      
       if (isUpgrade) {
         // Show upgrade confirmation modal
         const gainedFeatures = targetTier.features.filter(feature => 
@@ -562,9 +605,9 @@ export default function PlanPage() {
                   </ul>
                   <button
                     onClick={() => handleSelectTier(tier.key, billingPeriod)}
-                    disabled={currentPlan === tier.key || !canManageBilling}
+                    disabled={(currentPlan === tier.key && billingPeriod === account?.billing_period) || !canManageBilling}
                     className={`w-full py-3 px-4 rounded-lg font-semibold transition-colors ${
-                      currentPlan === tier.key
+                      currentPlan === tier.key && billingPeriod === account?.billing_period
                         ? "bg-purple-400 text-purple-900 cursor-not-allowed"
                         : !canManageBilling
                         ? "bg-gray-600 text-gray-300 cursor-not-allowed"
@@ -572,7 +615,10 @@ export default function PlanPage() {
                     }`}
                   >
                     {(() => {
-                      if (currentPlan === tier.key) return "Current Plan";
+                      if (currentPlan === tier.key && billingPeriod === account?.billing_period) return "Current Plan";
+                      if (currentPlan === tier.key && billingPeriod !== account?.billing_period) {
+                        return billingPeriod === 'annual' ? "Switch to Annual" : "Switch to Monthly";
+                      }
                       if (!canManageBilling) return "Contact Account Owner";
                       if (isNewUser || !currentPlan || currentPlan === 'grower') {
                         return tier.key === "grower" ? "Start Free Trial" : "Get Started";
@@ -773,6 +819,21 @@ export default function PlanPage() {
         {/* Star Animation Overlay */}
         {starAnimation && (
           <TopLoaderOverlay />
+        )}
+        
+        {/* Loading Overlay for Billing Changes */}
+        {upgrading && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-8 max-w-sm mx-4 text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-blue mx-auto mb-4"></div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                {upgradingPlan || 'Processing...'}
+              </h3>
+              <p className="text-gray-600 text-sm">
+                Please wait while we update your billing...
+              </p>
+            </div>
+          </div>
         )}
       </div>
     </>
