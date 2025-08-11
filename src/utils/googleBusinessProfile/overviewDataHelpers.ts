@@ -76,18 +76,10 @@ export function calculateProfileCompleteness(
   // Count categories - handle different Google API structures
   let categoriesUsed = 0;
   
-  // Check for categories under 'categories' object (common Google structure)
-  if (location.categories) {
-    if (location.categories.primaryCategory) categoriesUsed++;
-    if (location.categories.additionalCategories && Array.isArray(location.categories.additionalCategories)) {
-      categoriesUsed += location.categories.additionalCategories.length;
-    }
-  } else {
-    // Check for categories directly on location object (fallback)
-    if (location.primaryCategory) categoriesUsed++;
-    if (location.additionalCategories && Array.isArray(location.additionalCategories)) {
-      categoriesUsed += location.additionalCategories.length;
-    }
+  // Check for categories directly on location object (matches actual interface)
+  if (location.primaryCategory) categoriesUsed++;
+  if (location.additionalCategories && Array.isArray(location.additionalCategories)) {
+    categoriesUsed += location.additionalCategories.length;
   }
 
   // Count services

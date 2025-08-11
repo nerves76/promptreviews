@@ -6,14 +6,15 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { getSessionOrMock, createServiceRoleClient } from '@/utils/supabaseClient';
+import { createServerSupabaseClient, createServiceRoleClient } from '@/utils/supabaseClient';
 import { canCreateAccounts } from '@/config/adminConfig';
 import { v4 as uuidv4 } from 'uuid';
 
 export async function POST(request: NextRequest) {
   try {
     // Get authenticated user
-    const { data: { user }, error: userError } = await getSessionOrMock();
+    const supabase = await createServerSupabaseClient();
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
     
     if (userError || !user) {
       return NextResponse.json(
@@ -39,7 +40,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const supabase = createServiceRoleClient();
+    const serviceSupabase = createServiceRoleClient();
     
     // Generate new account ID
     const newAccountId = uuidv4();
@@ -60,7 +61,7 @@ export async function POST(request: NextRequest) {
       review_notifications_enabled: true
     };
 
-    const { error: accountError } = await supabase
+    const { error: accountError } = await serviceSupabase
       .from('accounts')
       .insert(accountData);
 
@@ -73,7 +74,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create account_users link for the current user
-    const { error: linkError } = await supabase
+    const { error: linkError } = await serviceSupabase
       .from('account_users')
       .insert({
         account_id: newAccountId,
@@ -116,7 +117,7 @@ export async function POST(request: NextRequest) {
       review_platforms: []
     };
 
-    const { error: businessError } = await supabase
+    const { error: businessError } = await serviceSupabase
       .from('businesses')
       .insert(businessData);
 

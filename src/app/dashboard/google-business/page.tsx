@@ -15,7 +15,8 @@ import BusinessInfoEditor from '@/app/components/BusinessInfoEditor';
 import ReviewResponseGenerator from '@/app/components/ReviewResponseGenerator';
 import ServiceDescriptionGenerator from '@/app/components/ServiceDescriptionGenerator';
 import BusinessDescriptionAnalyzer from '@/app/components/BusinessDescriptionAnalyzer';
-import { createClient } from '@/utils/supabaseClient';
+import { createClient, getSessionOrMock } from '@/utils/supabaseClient';
+import { useAuth } from '@/contexts/AuthContext';
 import UnrespondedReviewsWidget from '@/app/components/UnrespondedReviewsWidget';
 import LocationSelector from '@/components/GoogleBusinessProfile/LocationSelector';
 import OverviewStats from '@/components/GoogleBusinessProfile/OverviewStats';
@@ -30,6 +31,8 @@ interface GoogleBusinessLocation {
 }
 
 export default function SocialPostingDashboard() {
+  const { currentPlan } = useAuth();
+  
   // Loading and connection state
   const [isLoading, setIsLoading] = useState(true);
   
@@ -97,6 +100,21 @@ export default function SocialPostingDashboard() {
   const [showImportModal, setShowImportModal] = useState(false);
   const [isImportingReviews, setIsImportingReviews] = useState(false);
   const [importResult, setImportResult] = useState<{ success: boolean; message: string; count?: number; errors?: string[]; totalErrorCount?: number } | null>(null);
+  
+  // Plan access state for Growers
+  const [hasGBPAccess, setHasGBPAccess] = useState(true);
+  const [gbpAccessMessage, setGbpAccessMessage] = useState("");
+  
+  // Check if user has Google Business Profile access
+  const checkGBPAccess = () => {
+    if (currentPlan === 'grower') {
+      setHasGBPAccess(false);
+      setGbpAccessMessage("Google Business Profile integration is available on Builder and Maven plans.");
+    } else {
+      setHasGBPAccess(true);
+      setGbpAccessMessage("");
+    }
+  };
   const loadingRef = useRef(false); // More persistent loading prevention
   const initialLoadDone = useRef(false); // Track if initial load has been completed
 
@@ -124,8 +142,8 @@ export default function SocialPostingDashboard() {
         return tabParam;
       }
     }
-    // Default tab will be set based on connection status in useEffect
-    return 'connect';
+    // Default to overview to showcase the impressive stats
+    return 'overview';
   });
 
   // Mobile menu state
@@ -139,12 +157,19 @@ export default function SocialPostingDashboard() {
       const hasTabParam = urlParams.has('tab');
       
       if (!hasTabParam) {
-        // Default to Overview if connected, Connect if not
-        const defaultTab = isConnected ? 'overview' : 'connect';
+        // Everyone lands on Overview tab to see the impressive stats
+        const defaultTab = 'overview';
         setActiveTab(defaultTab);
       }
     }
   }, [isConnected, isLoading]);
+
+  // Check GBP access when plan changes
+  useEffect(() => {
+    if (currentPlan) {
+      checkGBPAccess();
+    }
+  }, [currentPlan]);
 
   // Update URL when tab changes
   const changeTab = (newTab: 'connect' | 'overview' | 'create-post' | 'respond-reviews' | 'business-info' | 'reviews') => {
@@ -445,6 +470,15 @@ export default function SocialPostingDashboard() {
   }, []); // Remove dependency to prevent useEffect from running multiple times
 
   const handleConnect = async () => {
+    // Check if user has GBP access before connecting
+    if (!hasGBPAccess) {
+      setPostResult({ 
+        success: false, 
+        message: 'Google Business Profile integration is available on Builder and Maven plans. Please upgrade to connect your Google Business Profile.' 
+      });
+      return;
+    }
+    
     try {
       setIsLoading(true);
       
@@ -1061,6 +1095,7 @@ export default function SocialPostingDashboard() {
         icon={<Icon name="FaGoogle" className="w-8 h-8 text-slate-blue" size={32} />}
         topMargin="mt-0"
       >
+        
         <div className="space-y-8">
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between space-y-4 sm:space-y-0">
@@ -1137,12 +1172,11 @@ export default function SocialPostingDashboard() {
               </button>
               <button
                 onClick={() => changeTab('overview')}
-                disabled={!isConnected}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === 'overview' && isConnected
+                  activeTab === 'overview'
                     ? 'border-slate-blue text-slate-blue'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                } ${!isConnected ? 'opacity-50 cursor-not-allowed' : ''}`}
+                }`}
               >
                 <div className="flex items-center space-x-2">
                   <Icon name="MdBarChart" className="w-4 h-4" size={16} />
@@ -1226,13 +1260,10 @@ export default function SocialPostingDashboard() {
                   </button>
                   <button
                     onClick={() => changeTab('overview')}
-                    disabled={!isConnected}
                     className={`w-full text-left px-3 py-2 rounded-md text-sm font-medium ${
-                      activeTab === 'overview' && isConnected
+                      activeTab === 'overview'
                         ? 'bg-slate-blue text-white'
-                        : isConnected 
-                          ? 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                          : 'text-gray-400 cursor-not-allowed'
+                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
                     }`}
                   >
                     <div className="flex items-center space-x-3">
@@ -1499,42 +1530,40 @@ export default function SocialPostingDashboard() {
 
           {activeTab === 'overview' && (
             <div className="space-y-6">
-              {!isConnected ? (
-                <div className="text-center py-12">
-                  <Icon name="MdBarChart" className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Connect Google Business Profile</h3>
-                  <p className="text-gray-600 mb-4">
-                    Connect your Google Business Profile to view comprehensive overview and analytics.
+              {/* GBP Access Message for Growers */}
+              {!hasGBPAccess && gbpAccessMessage && (
+                <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <p className="text-yellow-800">
+                    {gbpAccessMessage}
+                    <button 
+                      onClick={() => window.open('/dashboard/plan', '_blank')}
+                      className="ml-2 text-yellow-900 underline hover:no-underline"
+                    >
+                      Upgrade your plan
+                    </button>
+                    {' '}to connect your Google Business Profile.
                   </p>
-                  <button
-                    onClick={handleConnect}
-                    disabled={isLoading}
-                    className="px-6 py-2 bg-slate-600 text-white rounded-md hover:bg-slate-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center space-x-2 mx-auto"
-                  >
-                    {isLoading ? (
-                      <>
-                        <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />
-                        <span>Connecting...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Icon name="FaGoogle" className="w-4 h-4" />
-                        <span>Connect Google Business</span>
-                      </>
-                    )}
-                  </button>
                 </div>
-              ) : (
+              )}
+              {/* Always show the impressive charts and stats */}
+              {(
                 <div className="space-y-6">
-                  {/* Location Selector */}
+                  {/* Location Selector - show demo location if not connected */}
                   <LocationSelector
-                    locations={locations.map(loc => ({
+                    locations={locations.length > 0 ? locations.map(loc => ({
                       id: loc.id,
                       name: loc.name,
                       address: loc.address,
                       status: loc.status
-                    }))}
-                    selectedLocationId={selectedLocationId}
+                    })) : [
+                      {
+                        id: 'demo-location',
+                        name: 'Your Business Name',
+                        address: '123 Main Street, Your City, State 12345',
+                        status: 'active' as const
+                      }
+                    ]}
+                    selectedLocationId={selectedLocationId || 'demo-location'}
                     onLocationChange={handleLocationChange}
                     isConnected={isConnected}
                   />
@@ -1556,28 +1585,76 @@ export default function SocialPostingDashboard() {
                     </div>
                   )}
 
-                  {/* Overview Stats */}
-                  {overviewData && (
-                    <>
-                      <OverviewStats
-                        totalReviews={overviewData.reviewTrends.totalReviews}
-                        reviewTrend={overviewData.reviewTrends.reviewTrend}
-                        averageRating={overviewData.reviewTrends.averageRating}
-                        monthlyReviewData={overviewData.reviewTrends.monthlyReviewData}
-                        isLoading={overviewLoading}
-                      />
+                  {/* Overview Stats - Always show with dummy data when not connected */}
+                  <OverviewStats
+                    totalReviews={overviewData?.reviewTrends.totalReviews || 247}
+                    reviewTrend={overviewData?.reviewTrends.reviewTrend || 12.5}
+                    averageRating={overviewData?.reviewTrends.averageRating || 4.8}
+                    monthlyReviewData={overviewData?.reviewTrends.monthlyReviewData || [
+                      { month: 'Jan', fiveStar: 45, fourStar: 12, threeStar: 3, twoStar: 1, oneStar: 2, noRating: 5 },
+                      { month: 'Feb', fiveStar: 52, fourStar: 8, threeStar: 2, twoStar: 1, oneStar: 1, noRating: 3 },
+                      { month: 'Mar', fiveStar: 38, fourStar: 15, threeStar: 4, twoStar: 2, oneStar: 1, noRating: 7 },
+                      { month: 'Apr', fiveStar: 61, fourStar: 11, threeStar: 2, twoStar: 0, oneStar: 1, noRating: 4 },
+                      { month: 'May', fiveStar: 49, fourStar: 13, threeStar: 5, twoStar: 2, oneStar: 2, noRating: 6 },
+                      { month: 'Jun', fiveStar: 55, fourStar: 9, threeStar: 3, twoStar: 1, oneStar: 0, noRating: 2 }
+                    ]}
+                    isLoading={overviewLoading}
+                  />
 
-                      <BusinessHealthMetrics
-                        locationId={selectedLocationId}
-                        profileData={overviewData.profileData}
-                        engagementData={overviewData.engagementData}
-                        performanceData={overviewData.performanceData}
-                        optimizationOpportunities={overviewData.optimizationOpportunities}
-                        isLoading={overviewLoading}
-                        onQuickAction={handleOverviewQuickAction}
-                      />
-                    </>
-                  )}
+                  <BusinessHealthMetrics
+                    locationId={selectedLocationId || 'demo'}
+                    profileData={overviewData?.profileData || {
+                      completeness: 92,
+                      photosCount: 47,
+                      hoursComplete: true,
+                      phoneComplete: true,
+                      websiteComplete: true,
+                      categoryComplete: true,
+                      categoriesUsed: 3,
+                      maxCategories: 9,
+                      servicesCount: 8,
+                      servicesWithDescriptions: 6,
+                      businessDescriptionLength: 525,
+                      businessDescriptionMaxLength: 750,
+                      seoScore: 7,
+                      photosByCategory: {
+                        'LOGO': 1,
+                        'COVER': 2,
+                        'INTERIOR': 12,
+                        'EXTERIOR': 8,
+                        'TEAM': 4,
+                        'PRODUCT': 15
+                      }
+                    }}
+                    engagementData={overviewData?.engagementData || {
+                      unrespondedReviews: 3,
+                      totalQuestions: 12,
+                      unansweredQuestions: 2,
+                      recentPosts: 1,
+                      recentPhotos: 0,
+                      lastPostDate: '2024-07-15',
+                      lastPhotoDate: '2024-06-28'
+                    }}
+                    performanceData={overviewData?.performanceData || {
+                      monthlyViews: 0,
+                      viewsTrend: 0,
+                      topSearchQueries: [],
+                      customerActions: {
+                        websiteClicks: 0,
+                        phoneCalls: 0,
+                        directionRequests: 0,
+                        photoViews: 0
+                      }
+                    }}
+                    optimizationOpportunities={overviewData?.optimizationOpportunities || [
+                      { id: '1', priority: 'high', title: 'Upload more photos', description: 'Your profile needs 2+ photos this month. Current: 0/2 photos uploaded.' },
+                      { id: '2', priority: 'low', title: 'Optimize business description', description: 'Add 225 more characters to maximize your 750-character description for better SEO.' },
+                      { id: '3', priority: 'high', title: 'Respond to 3 reviews', description: 'You have 3 unresponded reviews that need attention to improve customer relations.' },
+                      { id: '4', priority: 'medium', title: 'Add more service categories', description: 'Use 6 more of your available 9 categories to improve discoverability.' }
+                    ]}
+                    isLoading={overviewLoading}
+                    onQuickAction={handleOverviewQuickAction}
+                  />
 
                   {/* Loading State */}
                   {overviewLoading && !overviewData && (

@@ -85,6 +85,7 @@ const Dashboard = React.memo(function Dashboard() {
   const [planSelectionRequired, setPlanSelectionRequired] = useState(false);
   const [paymentChangeType, setPaymentChangeType] = useState<string | null>(null);
   const [justCompletedPayment, setJustCompletedPayment] = useState(false);
+  const [isPendingPricingModal, setIsPendingPricingModal] = useState(false);
 
   // State for businesses data (loaded separately from AuthContext)
   const [businessesData, setBusinessesData] = useState<any[]>([]);
@@ -478,10 +479,14 @@ const Dashboard = React.memo(function Dashboard() {
         sessionStorage.setItem('businessCreatedHandled', 'true');
       }
       
+      // Set pending state immediately to maintain loading state
+      setIsPendingPricingModal(true);
+      
       // Delay showing pricing modal to let page fully render
       console.log('🎯 Setting timeout to show pricing modal in 2 seconds');
       setTimeout(() => {
         console.log('🎯 Showing pricing modal after business creation');
+        setIsPendingPricingModal(false);
         setShowPricingModal(true);
         setPlanSelectionRequired(true); // Make it required so user can't dismiss
       }, 2000); // Wait 2 seconds for page to fully load
@@ -617,12 +622,15 @@ const Dashboard = React.memo(function Dashboard() {
 
   // Show loading screen while essential data loads to prevent dashboard flash
   // This prevents briefly showing dashboard before redirect to create-business
-  if (!account || businessesLoading || (account && !businessData)) {
+  // Also show loading when pricing modal is pending after business creation
+  if (!account || businessesLoading || (account && !businessData) || isPendingPricingModal) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50">
         <div className="text-center">
           <FiveStarSpinner />
-          <p className="mt-4 text-gray-600">Loading your dashboard...</p>
+          <p className="mt-4 text-gray-600">
+            {isPendingPricingModal ? "Setting up your account..." : "Loading your dashboard..."}
+          </p>
         </div>
       </div>
     );

@@ -165,6 +165,10 @@ export default function EditPromptPage() {
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   // Removed step state - now single step
+  const [originalFormData, setOriginalFormData] = useState<any>(null);
+  const [showNameChangeDialog, setShowNameChangeDialog] = useState(false);
+  const [pendingUpdateData, setPendingUpdateData] = useState<any>(null);
+  const [pendingAction, setPendingAction] = useState<"save" | "publish" | null>(null);
   const [formData, setFormData] = useState({
     first_name: "",
     last_name: "",
@@ -285,6 +289,19 @@ export default function EditPromptPage() {
         setIsLoading(false);
         return;
       }
+      // Store original data for comparison
+      console.log("[DEBUG] Prompt data loaded:", promptData);
+      console.log("[DEBUG] Contact ID:", promptData.contact_id);
+      setOriginalFormData({
+        ...promptData,
+        review_platforms: promptData.review_platforms || [],
+        services_offered: Array.isArray(promptData.services_offered)
+          ? promptData.services_offered
+          : typeof promptData.services_offered === "string"
+            ? [promptData.services_offered]
+            : [],
+      });
+      
       // Set the prompt page data to form state
       setFormData((prev) => ({
         ...prev,
@@ -541,8 +558,25 @@ export default function EditPromptPage() {
     e: React.FormEvent,
     action: "save" | "publish",
     data?: any,
+    skipNameCheck?: boolean,
   ) => {
     e.preventDefault();
+    
+    // Check for name changes if this is an individual prompt page
+    if (!skipNameCheck && originalFormData && originalFormData.contact_id) {
+      const nameChanged = 
+        (data?.first_name || formData.first_name) !== originalFormData.first_name ||
+        (data?.last_name || formData.last_name) !== originalFormData.last_name;
+      
+      if (nameChanged) {
+        // Show confirmation dialog
+        setPendingUpdateData(data || formData);
+        setPendingAction(action);
+        setShowNameChangeDialog(true);
+        return;
+      }
+    }
+    
     setIsLoading(true);
     setError(null);
     setSuccessMessage(null);
@@ -708,17 +742,43 @@ export default function EditPromptPage() {
       const { data: updateDataResult, error: updateError } = await supabase
         .from("prompt_pages")
         .update(payload)
-        .eq("id", promptPage.id);
+        .eq("id", promptPage.id)
+        .select()
+        .single();
 
       // Log the full response for debugging
       console.log("[DEBUG] Supabase update response:", {
         updateDataResult,
         updateError,
       });
+      
       if (updateError) {
         console.error("[DEBUG] Update error object:", updateError);
+        throw updateError;
       }
-
+      
+      // If we're also updating the contact (from name change dialog)
+      if (pendingUpdateData && originalFormData?.contact_id) {
+        const { error: contactError } = await supabase
+          .from("contacts")
+          .update({
+            first_name: payload.first_name,
+            last_name: payload.last_name,
+          })
+          .eq("id", originalFormData.contact_id);
+        
+        if (contactError) {
+          console.error("Failed to update contact:", contactError);
+          setError("Prompt page updated but failed to update contact");
+        } else {
+          setSuccessMessage("Prompt page and contact updated successfully!");
+        }
+      } else {
+        setSuccessMessage("Prompt page updated successfully!");
+      }
+      
+      // Update original form data with the new values
+      setOriginalFormData(updateDataResult);
       setShowShareModal(true);
     } catch (err) {
       setError(
@@ -766,7 +826,7 @@ export default function EditPromptPage() {
       // Get the prompt page ID
       const { data: promptPage, error: fetchError } = await supabase
         .from("prompt_pages")
-        .select("id, slug")
+        .select("id, slug, campaign_type")
         .eq("slug", params.slug)
         .single();
       if (fetchError) throw fetchError;
@@ -859,9 +919,25 @@ export default function EditPromptPage() {
         );
       }
       
-      // Navigate immediately to prompt-pages to show the modal
+      // Navigate immediately to prompt-pages with appropriate tab to show the modal
       console.log('🔍 Navigating to prompt-pages to show success modal');
-      router.push("/prompt-pages");
+      
+      // Redirect based on campaign type
+      let redirectUrl = '/prompt-pages'; // Default to main page (public tab)
+      
+      if (promptPage.campaign_type === 'individual') {
+        redirectUrl = '/prompt-pages?tab=individual';
+      } else if (promptPage.campaign_type === 'locations') {
+        redirectUrl = '/prompt-pages?tab=locations';
+      }
+      // If campaign_type is 'public' or anything else, use default /prompt-pages
+      
+      console.log('🔍 Redirecting after edit:', { 
+        campaign_type: promptPage.campaign_type,
+        redirectUrl 
+      });
+      
+      router.push(redirectUrl);
       
     } catch (err) {
       setError(
@@ -889,7 +965,7 @@ export default function EditPromptPage() {
       // Get the prompt page ID
       const { data: promptPage, error: fetchError } = await supabase
         .from("prompt_pages")
-        .select("id, slug")
+        .select("id, slug, campaign_type")
         .eq("slug", params.slug)
         .single();
       if (fetchError) throw fetchError;
@@ -949,15 +1025,39 @@ export default function EditPromptPage() {
 
       console.log("[DEBUG] Service Save payload:", payload);
       // Update the prompt page
-      const { error: updateError } = await supabase
+      const { data: updatedPromptPage, error: updateError } = await supabase
         .from("prompt_pages")
         .update(payload)
-        .eq("id", promptPage.id);
+        .eq("id", promptPage.id)
+        .select()
+        .single();
+      
       // Debug log for Supabase response
       console.log("[DEBUG] Supabase update error:", updateError);
       if (updateError) {
         setError(updateError.message);
         return;
+      }
+      
+      // If we need to update the contact as well (from name change dialog)
+      if (formState.updateContact && originalFormData?.contact_id) {
+        const { error: contactError } = await supabase
+          .from("contacts")
+          .update({
+            first_name: formState.first_name,
+            last_name: formState.last_name,
+          })
+          .eq("id", originalFormData.contact_id);
+        
+        if (contactError) {
+          console.error("Failed to update contact:", contactError);
+          // Don't fail the whole operation, just log the error
+        }
+      }
+      
+      // Update originalFormData with the new values
+      if (updatedPromptPage) {
+        setOriginalFormData(updatedPromptPage);
       }
       
       // Set localStorage flag for post-save modal and redirect to dashboard
@@ -978,7 +1078,10 @@ export default function EditPromptPage() {
       console.log('✅ SAVE COMPLETED: Data saved successfully to database');
       console.log('🔍 Navigating to prompt-pages to show success modal');
       
-      router.push("/prompt-pages");
+      // Determine the appropriate tab based on the form data
+      const hasIndividualInfo = formData.first_name || formData.email || formData.phone;
+      const redirectUrl = hasIndividualInfo ? '/prompt-pages?tab=individual' : '/prompt-pages?tab=locations';
+      router.push(redirectUrl);
       
       // Return the result object for proper callback handling
       return { slug: promptPage.slug };
@@ -993,7 +1096,31 @@ export default function EditPromptPage() {
   };
 
   const handleFormSave = async (formState: ServicePromptFormState | any) => {
-    // Single step save - use the unified save handler
+    // Check for name changes if this is an individual prompt page
+    console.log("[DEBUG] handleFormSave - originalFormData:", originalFormData);
+    console.log("[DEBUG] handleFormSave - contact_id:", originalFormData?.contact_id);
+    console.log("[DEBUG] handleFormSave - formState names:", formState.first_name, formState.last_name);
+    console.log("[DEBUG] handleFormSave - original names:", originalFormData?.first_name, originalFormData?.last_name);
+    
+    if (originalFormData && originalFormData.contact_id) {
+      const nameChanged = 
+        formState.first_name !== originalFormData.first_name ||
+        formState.last_name !== originalFormData.last_name;
+      
+      console.log("[DEBUG] Name changed?", nameChanged);
+      
+      if (nameChanged) {
+        // Show confirmation dialog
+        setPendingUpdateData(formState);
+        setPendingAction("save");
+        setShowNameChangeDialog(true);
+        return;
+      }
+    } else {
+      console.log("[DEBUG] No contact_id found, skipping name change check");
+    }
+    
+    // No name change or no contact, proceed with normal save
     return handleStep2Save(formState);
   };
 
@@ -1220,6 +1347,89 @@ export default function EditPromptPage() {
         error={error}
         isLoading={isLoading}
       />
+      
+      {/* Name Change Confirmation Dialog */}
+      {showNameChangeDialog && pendingUpdateData && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-xl">
+            <div className="mb-4">
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                Name Change Detected
+              </h3>
+              <p className="text-sm text-gray-600 mb-4">
+                You're changing the name from <strong>{originalFormData?.first_name} {originalFormData?.last_name}</strong> to <strong>{pendingUpdateData.first_name} {pendingUpdateData.last_name}</strong>.
+              </p>
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4">
+                <div className="flex items-start gap-2">
+                  <Icon name="FaExclamationTriangle" className="w-5 h-5 text-amber-600 mt-0.5" />
+                  <div className="text-sm text-amber-800">
+                    <p className="font-medium mb-1">This prompt page is linked to a contact.</p>
+                    <p className="mb-2">To maintain data consistency, the contact must be updated along with the prompt page.</p>
+                    <p className="font-medium">Is this a correction to the existing person's name?</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="space-y-3">
+              <button
+                onClick={async () => {
+                  setShowNameChangeDialog(false);
+                  // Update both prompt page and contact
+                  const updatedData = { ...pendingUpdateData, updateContact: true };
+                  setPendingUpdateData(updatedData);
+                  
+                  // Call handleStep2Save directly for form saves
+                  if (pendingAction === "save") {
+                    await handleStep2Save(updatedData);
+                  } else {
+                    await handleSubmit(
+                      { preventDefault: () => {} } as React.FormEvent,
+                      pendingAction || "save",
+                      updatedData,
+                      true // Skip name check
+                    );
+                  }
+                }}
+                className="w-full px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium transition-colors text-left"
+              >
+                <div className="flex items-center gap-3">
+                  <Icon name="FaCheck" className="w-5 h-5" />
+                  <div>
+                    <div className="font-semibold">Yes, Update Everything</div>
+                    <div className="text-sm opacity-90">This is a correction - update prompt page and contact</div>
+                  </div>
+                </div>
+              </button>
+              
+              <button
+                onClick={() => {
+                  setShowNameChangeDialog(false);
+                  setPendingUpdateData(null);
+                  setPendingAction(null);
+                }}
+                className="w-full px-4 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 font-medium transition-colors text-left"
+              >
+                <div className="flex items-center gap-3">
+                  <Icon name="FaTimes" className="w-5 h-5" />
+                  <div>
+                    <div className="font-semibold">No, Cancel Changes</div>
+                    <div className="text-sm opacity-90">Keep the original name</div>
+                  </div>
+                </div>
+              </button>
+            </div>
+            
+            <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-xs text-red-800">
+                <strong>Important:</strong> If you're trying to change this to a different person, you should instead:
+                <br />1. Create a new prompt page for the new person
+                <br />2. Delete or complete this prompt page
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </PageCard>
   );
 }

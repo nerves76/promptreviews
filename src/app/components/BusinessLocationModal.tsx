@@ -247,11 +247,11 @@ export default function BusinessLocationModal({
         console.log('🔍 Setting localStorage showPostSaveModal for location:', modalData);
         localStorage.setItem("showPostSaveModal", JSON.stringify(modalData));
         
-        // Close the modal first, then redirect to prompt-pages to show the success modal
-        console.log('🔍 Closing modal and redirecting to prompt-pages for success modal');
+        // Close the modal first, then redirect to prompt-pages with locations tab to show the success modal
+        console.log('🔍 Closing modal and redirecting to prompt-pages?tab=locations for success modal');
         onClose();
         
-        // Navigate immediately to prompt-pages
+        // Navigate immediately to prompt-pages with locations tab
         window.location.href = "/prompt-pages?tab=locations";
         return;
       }

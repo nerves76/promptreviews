@@ -2602,8 +2602,8 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
               value={fallbackModalText}
               readOnly
               rows={5}
-              onFocus={(e) => e.target.select()}
-              onClick={(e) => e.target.select()}
+              onFocus={(e) => (e.target as HTMLTextAreaElement).select()}
+              onClick={(e) => (e.target as HTMLTextAreaElement).select()}
               style={{
                 background: businessProfile?.card_bg || "#F9FAFB",
                 color: businessProfile?.card_text || "#1A1A1A",
@@ -2815,8 +2815,8 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
       
 
 
-      {/* Style Modal - Only for authenticated users who own this prompt page */}
-      {showStyleModal && user && canUserEdit && (
+      {/* Style Modal */}
+      {showStyleModal && (
         <StyleModalPage 
           onClose={() => setShowStyleModal(false)} 
           onStyleUpdate={handleStyleUpdate}

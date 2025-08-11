@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { createClient } from '@/utils/supabaseClient';
 import PageCard from '@/app/components/PageCard';
+import Icon from '@/components/Icon';
 
 interface PromptPage {
   id: string;
@@ -83,11 +84,13 @@ export default function DebugFriendlyNotePage() {
     <div className="min-h-screen bg-gradient-to-br from-blue-500 to-purple-600 p-4">
       <div className="max-w-6xl mx-auto">
         <PageCard
-          title="Friendly Note Debug Tool"
-          icon="FaBug"
-          description="Debug and test friendly note functionality"
+          icon={<Icon name="FaBug" className="w-8 h-8" />}
         >
           <div className="space-y-6">
+            <div className="text-center mb-6">
+              <h1 className="text-2xl font-bold text-gray-900 mb-2">Friendly Note Debug Tool</h1>
+              <p className="text-gray-600">Debug and test friendly note functionality</p>
+            </div>
             {error && (
               <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
                 <strong>Error:</strong> {error}

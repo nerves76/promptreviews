@@ -2,11 +2,12 @@ import React, { useState } from "react";
 import Link from "next/link";
 import Icon from "@/components/Icon";
 import QRCodeModal from "./QRCodeModal";
+import CommunicationButtons from "./communication/CommunicationButtons";
 
 export interface PromptPage {
   id: string;
   slug: string;
-  status: "in_queue" | "in_progress" | "complete" | "draft";
+  status: "draft" | "in_queue" | "sent" | "follow_up" | "complete";
   created_at: string;
   phone?: string;
   email?: string;
@@ -36,10 +37,11 @@ interface PromptPagesTableProps {
 }
 
 const STATUS_COLORS = {
-  in_queue: "bg-blue-100 text-blue-800",
-  in_progress: "bg-yellow-100 text-yellow-800",
-  complete: "bg-green-100 text-green-800",
   draft: "bg-gray-100 text-gray-800",
+  in_queue: "bg-blue-100 text-blue-800",
+  sent: "bg-purple-100 text-purple-800",
+  follow_up: "bg-yellow-100 text-yellow-800",
+  complete: "bg-green-100 text-green-800",
 };
 
 export default function PromptPagesTable({
@@ -53,7 +55,7 @@ export default function PromptPagesTable({
 }: PromptPagesTableProps) {
   // Table state
   const [selectedType, setSelectedType] = useState("");
-  const [selectedTab, setSelectedTab] = useState<"draft" | "in_queue" | "in_progress" | "complete">("draft");
+  const [selectedTab, setSelectedTab] = useState<"draft" | "in_queue" | "sent" | "follow_up" | "complete">("draft");
   const [sortField, setSortField] = useState<"first_name" | "last_name" | "review_type" | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [selectedPages, setSelectedPages] = useState<string[]>([]);
@@ -67,17 +69,19 @@ export default function PromptPagesTable({
   const filteredPromptPages = promptPages.filter((page) => {
     if (page.is_universal) return false;
     if (selectedType && page.review_type !== selectedType) return false;
-    if (selectedTab === "in_queue") return page.status === "in_queue";
-    if (selectedTab === "in_progress") return page.status === "in_progress";
-    if (selectedTab === "complete") return page.status === "complete";
     if (selectedTab === "draft") return page.status === "draft";
+    if (selectedTab === "in_queue") return page.status === "in_queue";
+    if (selectedTab === "sent") return page.status === "sent";
+    if (selectedTab === "follow_up") return page.status === "follow_up";
+    if (selectedTab === "complete") return page.status === "complete";
     return true;
   });
 
-  const inQueueCount = promptPages.filter((p) => p.status === "in_queue" && !p.is_universal).length;
-  const inProgressCount = promptPages.filter((p) => p.status === "in_progress" && !p.is_universal).length;
-  const completeCount = promptPages.filter((p) => p.status === "complete" && !p.is_universal).length;
   const draftCount = promptPages.filter((p) => p.status === "draft" && !p.is_universal).length;
+  const inQueueCount = promptPages.filter((p) => p.status === "in_queue" && !p.is_universal).length;
+  const sentCount = promptPages.filter((p) => p.status === "sent" && !p.is_universal).length;
+  const followUpCount = promptPages.filter((p) => p.status === "follow_up" && !p.is_universal).length;
+  const completeCount = promptPages.filter((p) => p.status === "complete" && !p.is_universal).length;
 
   const handleSort = (field: "first_name" | "last_name" | "review_type") => {
     if (sortField === field) {
@@ -179,13 +183,23 @@ export default function PromptPagesTable({
           </button>
           <button
             className={`px-4 py-1.5 rounded-t-md text-sm font-semibold border-b-2 transition-colors
-              ${selectedTab === "in_progress"
+              ${selectedTab === "sent"
                 ? "border-blue-500 bg-white text-blue-600 shadow-sm z-10"
                 : "border-transparent bg-gray-500 text-white hover:bg-gray-600"}
             `}
-            onClick={() => setSelectedTab("in_progress")}
+            onClick={() => setSelectedTab("sent")}
           >
-            In progress ({inProgressCount})
+            Sent ({sentCount})
+          </button>
+          <button
+            className={`px-4 py-1.5 rounded-t-md text-sm font-semibold border-b-2 transition-colors
+              ${selectedTab === "follow_up"
+                ? "border-blue-500 bg-white text-blue-600 shadow-sm z-10"
+                : "border-transparent bg-gray-500 text-white hover:bg-gray-600"}
+            `}
+            onClick={() => setSelectedTab("follow_up")}
+          >
+            Follow up ({followUpCount})
           </button>
           <button
             className={`px-4 py-1.5 rounded-t-md text-sm font-semibold border-b-2 transition-colors
@@ -223,10 +237,11 @@ export default function PromptPagesTable({
               onChange={(e) => setBatchStatus(e.target.value as PromptPage["status"])}
               className="rounded-md border-gray-300 text-sm"
             >
-              <option value="in_queue">In queue</option>
-              <option value="in_progress">In progress</option>
-              <option value="complete">Complete</option>
               <option value="draft">Draft</option>
+              <option value="in_queue">In queue</option>
+              <option value="sent">Sent</option>
+              <option value="follow_up">Follow up</option>
+              <option value="complete">Complete</option>
             </select>
             <button
               onClick={handleBatchStatusUpdate}
@@ -338,37 +353,36 @@ export default function PromptPagesTable({
                     onChange={(e) => onStatusUpdate(page.id, e.target.value as PromptPage["status"])}
                     className={`rounded-full px-2 py-1 text-xs font-medium ${STATUS_COLORS[page.status] || "bg-gray-100 text-gray-800"}`}
                   >
-                    <option value="in_queue">In queue</option>
-                    <option value="in_progress">In progress</option>
-                    <option value="complete">Complete</option>
                     <option value="draft">Draft</option>
+                    <option value="in_queue">In queue</option>
+                    <option value="sent">Sent</option>
+                    <option value="follow_up">Follow up</option>
+                    <option value="complete">Complete</option>
                   </select>
                 </td>
                 <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{new Date(page.created_at).toLocaleDateString()}</td>
                 <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                   <div className="flex flex-row gap-2 items-center justify-end">
-                    {!page.is_universal && page.phone && (
-                      <button
-                        type="button"
-                        className="inline-flex items-center px-3 py-1.5 bg-green-100 text-green-800 rounded hover:bg-green-200 text-sm font-medium shadow h-9 align-middle whitespace-nowrap w-full sm:w-auto"
-                        onClick={() => {
-                          const name = page.first_name || "[name]";
-                          const businessName = business?.name || "[Business]";
-                          const reviewUrl = `${window.location.origin}/r/${page.slug}`;
-                          const message = `Hi ${name}, do you have 1-3 minutes to leave a review for ${businessName}? I have a review you can use and everything. Positive reviews really help small business get found online. Thanks so much! ${reviewUrl}`;
-                          window.location.href = `sms:${page.phone}?&body=${encodeURIComponent(message)}`;
+                    {!page.is_universal && (page.phone || page.email) && (
+                      <CommunicationButtons
+                        contact={{
+                          id: page.contact_id || page.id,
+                          first_name: page.first_name || page.contacts?.first_name || "",
+                          last_name: page.last_name || page.contacts?.last_name || "",
+                          email: page.email || page.contacts?.email,
+                          phone: page.phone || page.contacts?.phone
                         }}
-                      >
-                        Send SMS
-                      </button>
-                    )}
-                    {!page.is_universal && page.email && (
-                      <a
-                        href={`mailto:${page.email}?subject=${encodeURIComponent("Quick Review Request")}&body=${encodeURIComponent(`Hi ${page.first_name || "[name]"}, do you have 1-3 minutes to leave a review for ${business?.name || "[Business]"}? I have a review you can use and everything. Positive reviews really help small business get found online. Thanks so much! ${window.location.origin}/r/${page.slug}`)}`}
-                        className="inline-flex items-center px-3 py-1.5 bg-blue-100 text-blue-800 rounded hover:bg-blue-200 text-sm font-medium shadow h-9 align-middle whitespace-nowrap w-full sm:w-auto"
-                      >
-                        Send Email
-                      </a>
+                        promptPage={{
+                          id: page.id,
+                          slug: page.slug,
+                          status: page.status,
+                          client_name: `${page.first_name || ""} ${page.last_name || ""}`.trim(),
+                          location: business?.name
+                        }}
+                        singleButton={true}
+                        buttonText="Send"
+                        className="inline-flex items-center px-3 py-1.5 bg-teal-100 text-teal-800 rounded hover:bg-teal-200 text-sm font-medium shadow h-9 align-middle whitespace-nowrap w-full sm:w-auto"
+                      />
                     )}
                     {!page.is_universal && (
                       <button

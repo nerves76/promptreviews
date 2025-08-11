@@ -7,13 +7,8 @@
 
 import { useState } from 'react';
 import Icon from '@/components/Icon';
+import { BusinessLocation } from '@/types/business';
 
-interface BusinessLocation {
-  id: string;
-  name: string;
-  address: string;
-  status: 'active' | 'pending' | 'suspended';
-}
 
 interface BusinessInfo {
   description: string;
@@ -112,31 +107,7 @@ export default function LoadBusinessInfoButton({
         let primaryCategory = null;
         let additionalCategories = [];
         
-        // Check if categories are under a 'categories' object (common Google structure)
-        if (data.location.categories) {
-          console.log('📋 Processing categories from data.location.categories:', data.location.categories);
-          console.log('📋 Raw primary category:', data.location.categories.primaryCategory);
-          console.log('📋 Raw additional categories:', data.location.categories.additionalCategories);
-          
-          // Convert primary category to our format
-          if (data.location.categories.primaryCategory) {
-            primaryCategory = {
-              categoryId: data.location.categories.primaryCategory.name,
-              displayName: data.location.categories.primaryCategory.displayName
-            };
-          }
-          
-          // Convert additional categories to our format
-          if (data.location.categories.additionalCategories && Array.isArray(data.location.categories.additionalCategories)) {
-            additionalCategories = data.location.categories.additionalCategories.map((cat: any) => ({
-              categoryId: cat.name,
-              displayName: cat.displayName
-            }));
-            console.log('📋 Converted additional categories:', additionalCategories);
-          }
-        }
-        
-        // Check if categories are directly on the location object (fallback)
+        // Check if categories are directly on the location object
         if (data.location.primaryCategory) {
           console.log('📋 Processing primary category from data.location.primaryCategory:', data.location.primaryCategory);
           primaryCategory = {

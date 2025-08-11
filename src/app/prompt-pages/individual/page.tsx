@@ -24,6 +24,7 @@ import { BusinessLocation } from "@/types/business";
 import { hasLocationAccess, formatLocationAddress, getLocationDisplayName } from "@/utils/locationUtils";
 
 import EmojiEmbedButton from "@/app/components/EmojiEmbedButton";
+import CommunicationButtons from "@/app/components/communication/CommunicationButtons";
 
 const StylePage = dynamic(() => import("../../dashboard/style/StyleModalPage"), { ssr: false });
 
@@ -93,7 +94,10 @@ export default function IndividualOutreach() {
         const accountId = await getAccountIdForUser(user.id, supabase);
         
         if (!accountId) {
-          throw new Error("No account found for user");
+          console.log('No account found for user - user may need to complete setup');
+          setError("Please complete your account setup to access prompt pages.");
+          setLoading(false);
+          return;
         }
 
         // Fetch account data for plan info
@@ -626,26 +630,34 @@ export default function IndividualOutreach() {
                   </button>
                 </div>
 
-                {/* SMS link */}
-                <div className="flex items-center justify-between p-3 bg-green-100 rounded-lg">
-                  <span className="text-sm font-medium text-gray-700">Send SMS</span>
-                  <a
-                    href={`sms:${postSaveData.phone || ''}?body=Hi ${postSaveData.first_name || 'there'}, I'd love to get your feedback! Please leave a review here: ${postSaveData.url}`}
-                    className="text-slate-blue hover:text-slate-blue/80 text-sm font-medium"
-                  >
-                    Send
-                  </a>
-                </div>
-
-                {/* Email link */}
-                <div className="flex items-center justify-between p-3 bg-blue-100 rounded-lg">
-                  <span className="text-sm font-medium text-gray-700">Send email</span>
-                  <a
-                    href={`mailto:${postSaveData.email || ''}?subject=Please leave a review&body=Hi ${postSaveData.first_name || 'there'},%0D%0A%0D%0AI'd love to get your feedback! Please leave a review here: ${postSaveData.url}%0D%0A%0D%0AThank you!`}
-                    className="text-slate-blue hover:text-slate-blue/80 text-sm font-medium"
-                  >
-                    Send
-                  </a>
+                {/* Communication Buttons with Tracking */}
+                <div className="p-3 bg-gray-50 rounded-lg">
+                  <div className="text-sm font-medium text-gray-700 mb-3">Send Review Request</div>
+                  <CommunicationButtons
+                    contact={{
+                      id: postSaveData.contact_id || postSaveData.id || `temp-${Date.now()}`,
+                      first_name: postSaveData.first_name || '',
+                      last_name: postSaveData.last_name || '',
+                      email: postSaveData.email,
+                      phone: postSaveData.phone
+                    }}
+                    promptPage={{
+                      id: postSaveData.prompt_page_id || postSaveData.id || `temp-${Date.now()}`,
+                      slug: postSaveData.url ? postSaveData.url.split('/r/')[1] || '' : '',
+                      status: postSaveData.status || 'draft',
+                      client_name: business?.name || 'Your Business',
+                      location: postSaveData.location || ''
+                    }}
+                    onCommunicationSent={() => {
+                      console.log('Communication sent for:', postSaveData.first_name);
+                    }}
+                    onStatusUpdated={(newStatus) => {
+                      console.log('Status updated to:', newStatus);
+                      // Update postSaveData if needed
+                      setPostSaveData((prev: any) => ({ ...prev, status: newStatus }));
+                    }}
+                    className="flex gap-2 justify-center"
+                  />
                 </div>
 
                 <div className="flex items-center justify-between p-3 bg-amber-100 rounded-lg">

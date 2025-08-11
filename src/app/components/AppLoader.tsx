@@ -1,3 +1,5 @@
+"use client";
+
 /**
  * AppLoader Component
  * 
@@ -20,21 +22,37 @@ interface AppLoaderProps {
 
 export default function AppLoader({ size = 18, variant = 'default' }: AppLoaderProps = {}) {
   const getContainerClasses = () => {
+    const baseClasses = "transition-opacity duration-300 ease-in-out animate-fadeIn";
     switch (variant) {
       case 'centered':
-        return "min-h-screen flex flex-col items-center justify-center";
+        return `min-h-screen flex flex-col items-center justify-center ${baseClasses}`;
       case 'compact':
-        return "min-h-screen flex flex-col items-center pt-24";
+        return `min-h-screen flex flex-col items-center pt-24 ${baseClasses}`;
       case 'default':
       default:
-        return "min-h-screen flex flex-col items-center pt-48";
+        return `min-h-screen flex flex-col items-center pt-48 ${baseClasses}`;
     }
   };
 
   return (
-    <div className={getContainerClasses()}>
-      <FiveStarSpinner size={size} />
-      <div className="mt-4 text-lg text-white font-semibold">Loading…</div>
-    </div>
+    <>
+      <style jsx>{`
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+          }
+          to {
+            opacity: 1;
+          }
+        }
+        .animate-fadeIn {
+          animation: fadeIn 0.3s ease-in-out;
+        }
+      `}</style>
+      <div className={getContainerClasses()}>
+        <FiveStarSpinner size={size} />
+        <div className="mt-4 text-lg text-white font-semibold">Loading…</div>
+      </div>
+    </>
   );
 }

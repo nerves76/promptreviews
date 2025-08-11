@@ -58,14 +58,6 @@ export default function LocationSelector({
     setIsDropdownOpen(false);
   };
 
-  if (!isConnected) {
-    return (
-      <div className={`bg-gray-50 rounded-lg p-4 text-center ${className}`}>
-        <Icon name="FaMapMarker" className="w-6 h-6 text-gray-400 mx-auto mb-2" />
-        <p className="text-gray-600 text-sm">Connect Google Business Profile to select locations</p>
-      </div>
-    );
-  }
 
   if (locations.length === 0) {
     return (

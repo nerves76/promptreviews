@@ -129,7 +129,77 @@ export async function GET(request: NextRequest) {
           ? `${requestUrl.origin}/dashboard/create-business`
           : `${requestUrl.origin}/dashboard`;
         
-        return NextResponse.redirect(redirectUrl);
+        // Return HTML with loading animation for smooth transition
+        const html = `
+          <!DOCTYPE html>
+          <html>
+            <head>
+              <meta charset="utf-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1">
+              <title>Redirecting...</title>
+              <style>
+                body {
+                  margin: 0;
+                  display: flex;
+                  justify-content: center;
+                  align-items: center;
+                  min-height: 100vh;
+                  background: #f9fafb;
+                  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+                }
+                .loader {
+                  display: flex;
+                  flex-direction: column;
+                  align-items: center;
+                  gap: 1rem;
+                }
+                .stars {
+                  display: flex;
+                  gap: 0.5rem;
+                }
+                .star {
+                  font-size: 2rem;
+                  animation: pulse 1.5s ease-in-out infinite;
+                }
+                .star:nth-child(1) { animation-delay: 0s; }
+                .star:nth-child(2) { animation-delay: 0.15s; }
+                .star:nth-child(3) { animation-delay: 0.3s; }
+                .star:nth-child(4) { animation-delay: 0.45s; }
+                .star:nth-child(5) { animation-delay: 0.6s; }
+                @keyframes pulse {
+                  0%, 100% { opacity: 0.3; transform: scale(0.8); }
+                  50% { opacity: 1; transform: scale(1); }
+                }
+                .message {
+                  color: #6b7280;
+                  font-size: 0.875rem;
+                }
+              </style>
+            </head>
+            <body>
+              <div class="loader">
+                <div class="stars">
+                  <span class="star">⭐</span>
+                  <span class="star">⭐</span>
+                  <span class="star">⭐</span>
+                  <span class="star">⭐</span>
+                  <span class="star">⭐</span>
+                </div>
+                <p class="message">${isNewUser ? 'Setting up your account...' : 'Loading your dashboard...'}</p>
+              </div>
+              <script>
+                sessionStorage.setItem('auth-redirect-in-progress', 'true');
+                setTimeout(() => {
+                  window.location.href = '${redirectUrl}';
+                }, 100);
+              </script>
+            </body>
+          </html>
+        `;
+        
+        return new Response(html, {
+          headers: { 'Content-Type': 'text/html' }
+        });
       }
     } catch (error) {
       console.error('❌ Error checking session:', error);

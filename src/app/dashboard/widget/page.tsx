@@ -235,7 +235,7 @@ export default function WidgetPage() {
                   className="p-2 bg-white/40 backdrop-blur-sm rounded-full shadow-lg hover:bg-white/50 transition-all duration-200 group"
                   title="Edit Style"
                 >
-                  <Icon name="FaEdit" className="w-4 h-4 text-slate-blue group-hover:text-slate-blue/80 transition-colors" size={16} />
+                  <Icon name="FaPalette" className="w-4 h-4 text-slate-blue group-hover:text-slate-blue/80 transition-colors" size={16} />
                 </button>
                 
                 <button
@@ -311,7 +311,13 @@ export default function WidgetPage() {
         isOpen={showReviewModal}
         onClose={() => setShowReviewModal(false)}
         widgetId={selectedWidget?.id}
-        onReviewsChange={fetchWidgets}
+        onReviewsChange={() => {
+          fetchWidgets();
+          // Also refresh the full widget data to update the preview
+          if (selectedWidget?.id) {
+            fetchFullWidgetData(selectedWidget.id);
+          }
+        }}
       />
 
       {showStyleModal && selectedWidget && (

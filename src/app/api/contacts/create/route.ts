@@ -141,7 +141,7 @@ export async function POST(request: NextRequest) {
     if (reviews.length > 0) {
       console.log('🔍 Contacts API - Creating reviews for contact:', insertedContact.id);
       
-      const reviewSubmissions = reviews.map(review => ({
+      const reviewSubmissions = reviews.map((review: any) => ({
         prompt_page_id: null, // No prompt page association for manual reviews
         contact_id: insertedContact.id, // Link to the created contact
         platform: review.platform,

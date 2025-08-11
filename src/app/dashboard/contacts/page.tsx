@@ -12,6 +12,8 @@ import { useRouter } from "next/navigation";
 import UnifiedPromptTypeSelectModal from "@/app/components/UnifiedPromptTypeSelectModal";
 import ManualContactForm from "@/app/components/ManualContactForm";
 import ContactMergeModal from "@/app/components/ContactMergeModal";
+import CommunicationHistory from "@/app/components/communication/CommunicationHistory";
+import UpcomingReminders from "@/app/components/communication/UpcomingReminders";
 import { checkAccountLimits } from "@/utils/accountLimits";
 
 export default function UploadContactsPage() {
@@ -31,6 +33,9 @@ export default function UploadContactsPage() {
   const [editLoading, setEditLoading] = useState(false);
   const [editError, setEditError] = useState("");
   const [editSuccess, setEditSuccess] = useState("");
+  const [showNameChangeDialog, setShowNameChangeDialog] = useState(false);
+  const [pendingNameChange, setPendingNameChange] = useState<{firstName: string, lastName: string} | null>(null);
+  const [nameChangeAction, setNameChangeAction] = useState<'update-all' | 'contact-only' | null>(null);
   const [selectedContactIds, setSelectedContactIds] = useState<string[]>([]);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteConfirmation, setDeleteConfirmation] = useState("");
@@ -63,6 +68,10 @@ export default function UploadContactsPage() {
   // Reviews state for contact edit modal
   const [contactReviews, setContactReviews] = useState<any[]>([]);
   const [reviewsLoading, setReviewsLoading] = useState(false);
+  
+  // Prompt pages state for contact edit modal
+  const [contactPromptPages, setContactPromptPages] = useState<any[]>([]);
+  const [promptPagesLoading, setPromptPagesLoading] = useState(false);
 
   // Duplicate merge state
   const [duplicateGroups, setDuplicateGroups] = useState<any[]>([]);
@@ -73,6 +82,9 @@ export default function UploadContactsPage() {
   // Sorting state
   const [sortField, setSortField] = useState<string>('');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  
+  // Tab state for edit modal
+  const [activeTab, setActiveTab] = useState<'details' | 'reviews-reminders'>('details');
 
   // Function to check contact limits
   const checkContactLimits = async () => {
@@ -99,6 +111,75 @@ export default function UploadContactsPage() {
     checkContactLimits();
     // Manually trigger contacts refresh without relying on success state
     setCurrentPage(1); // This will trigger the useEffect
+  };
+
+  // Update contact helper function
+  const updateContact = async (updated: any, updatePromptPages: boolean = false) => {
+    setEditLoading(true);
+    setEditError("");
+    setEditSuccess("");
+    
+    try {
+      // Update the contact
+      const { error: contactError } = await supabase
+        .from("contacts")
+        .update({
+          first_name: updated.first_name,
+          last_name: updated.last_name,
+          email: updated.email,
+          phone: updated.phone,
+          address_line1: updated.address_line1,
+          address_line2: updated.address_line2,
+          city: updated.city,
+          state: updated.state,
+          postal_code: updated.postal_code,
+          country: updated.country,
+          business_name: updated.business_name,
+          role: updated.role,
+          notes: updated.notes,
+          category: updated.category,
+        })
+        .eq("id", editContact.id);
+      
+      if (contactError) throw contactError;
+      
+      // If requested, update associated prompt pages
+      if (updatePromptPages && contactPromptPages.length > 0) {
+        const promptPageIds = contactPromptPages.map(p => p.id);
+        const { error: promptError } = await supabase
+          .from("prompt_pages")
+          .update({
+            first_name: updated.first_name,
+            last_name: updated.last_name,
+          })
+          .in("id", promptPageIds);
+        
+        if (promptError) {
+          console.error("Failed to update prompt pages:", promptError);
+          setEditError("Contact updated but failed to update prompt pages");
+        } else {
+          setEditSuccess("Contact and prompt pages updated!");
+        }
+      } else {
+        setEditSuccess("Contact updated!");
+      }
+      
+      // Update local state
+      setContacts(prev => prev.map(c => 
+        c.id === editContact.id 
+          ? { ...c, first_name: updated.first_name, last_name: updated.last_name }
+          : c
+      ));
+      
+      setTimeout(() => {
+        setShowEditModal(false);
+        setShowNameChangeDialog(false);
+      }, 1000);
+    } catch (err: any) {
+      setEditError(err.message || "Failed to update contact");
+    } finally {
+      setEditLoading(false);
+    }
   };
 
   // Helper function to get platform info
@@ -131,6 +212,36 @@ export default function UploadContactsPage() {
       setContactReviews([]);
     } finally {
       setReviewsLoading(false);
+    }
+  };
+  
+  // Function to load prompt pages for a contact
+  const loadContactPromptPages = async (contactId: string) => {
+    setPromptPagesLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('prompt_pages')
+        .select(`
+          id, 
+          slug, 
+          status, 
+          created_at, 
+          campaign_type, 
+          name,
+          first_name,
+          last_name,
+          type
+        `)
+        .eq('contact_id', contactId)
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      setContactPromptPages(data || []);
+    } catch (error) {
+      console.error('Error loading contact prompt pages:', error);
+      setContactPromptPages([]);
+    } finally {
+      setPromptPagesLoading(false);
     }
   };
 
@@ -1089,12 +1200,6 @@ export default function UploadContactsPage() {
                       <SortableHeader field="last_name">Last Name</SortableHeader>
                       <SortableHeader field="email">Email</SortableHeader>
                       <SortableHeader field="company">Company</SortableHeader>
-                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Phone
-                      </th>
-                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Role
-                      </th>
                       <SortableHeader field="category">Category</SortableHeader>
                       <SortableHeader field="google_name">Google Name</SortableHeader>
                       <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -1140,12 +1245,6 @@ export default function UploadContactsPage() {
                         {contact.business_name || ""}
                       </td>
                       <td className="px-3 py-2 text-sm text-gray-900">
-                        {contact.phone}
-                      </td>
-                      <td className="px-3 py-2 text-sm text-gray-900">
-                        {contact.role || ""}
-                      </td>
-                      <td className="px-3 py-2 text-sm text-gray-900">
                         {contact.category || ""}
                       </td>
                       <td className="px-3 py-2 text-sm text-gray-900">
@@ -1163,7 +1262,9 @@ export default function UploadContactsPage() {
                             setShowEditModal(true);
                             setEditError("");
                             setEditSuccess("");
+                            setActiveTab('details'); // Reset to details tab when opening
                             loadContactReviews(contact.id);
+                            loadContactPromptPages(contact.id);
                           }}
                         >
                           Edit
@@ -1442,7 +1543,7 @@ export default function UploadContactsPage() {
               className="fixed inset-0 bg-black opacity-30"
               aria-hidden="true"
             />
-            <div className="relative bg-white rounded-lg shadow-xl max-w-lg w-full mx-auto p-8 z-10">
+            <div className="relative bg-white rounded-lg shadow-xl max-w-4xl w-full mx-auto p-8 z-10">
               {/* Close button */}
               <button
                 className="absolute -top-4 -right-4 bg-white border border-gray-200 rounded-full shadow-lg flex items-center justify-center hover:bg-gray-100 focus:outline-none"
@@ -1452,47 +1553,72 @@ export default function UploadContactsPage() {
               >
                 <Icon name="FaTimes" className="w-5 h-5 text-red-600" />
               </button>
-              <Dialog.Title className="text-lg font-bold mb-4">
+              <Dialog.Title className="text-lg font-bold mb-2">
                 Edit Contact
               </Dialog.Title>
-              {editContact && (
+              
+              {/* Tab Navigation */}
+              <div className="border-b border-gray-200 mb-4">
+                <nav className="-mb-px flex space-x-8">
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('details')}
+                    className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                      activeTab === 'details'
+                        ? 'border-indigo-500 text-indigo-600'
+                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <Icon name="FaUser" className="w-4 h-4" />
+                      Contact Details
+                    </div>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('reviews-reminders')}
+                    className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                      activeTab === 'reviews-reminders'
+                        ? 'border-indigo-500 text-indigo-600'
+                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <Icon name="FaStar" className="w-4 h-4" />
+                      Reviews & Reminders
+                    </div>
+                  </button>
+                </nav>
+              </div>
+              
+              {editContact && activeTab === 'details' && (
                 <form
                   onSubmit={async (e) => {
                     e.preventDefault();
-                    setEditLoading(true);
-                    setEditError("");
-                    setEditSuccess("");
                     const form = e.target as HTMLFormElement;
                     const formData = new FormData(form);
                     const updated = Object.fromEntries(formData.entries());
-                    try {
-                      const { error } = await supabase
-                        .from("contacts")
-                        .update({
-                          first_name: updated.first_name,
-                          last_name: updated.last_name,
-                          email: updated.email,
-                          phone: updated.phone,
-                          address_line1: updated.address_line1,
-                          address_line2: updated.address_line2,
-                          city: updated.city,
-                          state: updated.state,
-                          postal_code: updated.postal_code,
-                          country: updated.country,
-                          business_name: updated.business_name,
-                          role: updated.role,
-                          notes: updated.notes,
-                          category: updated.category,
-                        })
-                        .eq("id", editContact.id);
-                      if (error) throw error;
-                      setEditSuccess("Contact updated!");
-                      setTimeout(() => setShowEditModal(false), 1000);
-                    } catch (err: any) {
-                      setEditError(err.message || "Failed to update contact");
-                    } finally {
-                      setEditLoading(false);
+                    
+                    // Check if name has changed
+                    const nameChanged = 
+                      updated.first_name !== editContact.first_name || 
+                      updated.last_name !== editContact.last_name;
+                    
+                    // Check if there are associated prompt pages
+                    const hasPromptPages = contactPromptPages.length > 0;
+                    
+                    if (nameChanged && hasPromptPages) {
+                      // Show confirmation dialog for name change
+                      setPendingNameChange({
+                        firstName: updated.first_name as string,
+                        lastName: updated.last_name as string
+                      });
+                      setShowNameChangeDialog(true);
+                      return;
                     }
+                    
+                    // No name change or no prompt pages, proceed with normal update
+                    await updateContact(updated);
                   }}
                 >
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1642,8 +1768,38 @@ export default function UploadContactsPage() {
                     </div>
                   </div>
 
+                  {editError && (
+                    <div className="mt-2 text-red-600 text-sm">{editError}</div>
+                  )}
+                  {editSuccess && (
+                    <div className="mt-2 text-green-600 text-sm">
+                      {editSuccess}
+                    </div>
+                  )}
+                  <div className="mt-6 flex justify-end gap-2">
+                    <button
+                      type="button"
+                      className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200"
+                      onClick={() => setShowEditModal(false)}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-4 py-2 bg-slate-blue text-white rounded-md hover:bg-slate-blue/90 font-semibold"
+                      disabled={editLoading}
+                    >
+                      {editLoading ? "Saving..." : "Save"}
+                    </button>
+                  </div>
+                </form>
+              )}
+              
+              {/* Reviews & Reminders Tab Content */}
+              {editContact && activeTab === 'reviews-reminders' && (
+                <div className="space-y-6">
                   {/* Reviews Section */}
-                  <div className="mt-6 border-t pt-6">
+                  <div>
                     <h3 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
                       <Icon name="FaComments" className="w-4 h-4" />
                       Reviews ({contactReviews.length})
@@ -1736,32 +1892,129 @@ export default function UploadContactsPage() {
                       </div>
                     )}
                   </div>
-
-                  {editError && (
-                    <div className="mt-2 text-red-600 text-sm">{editError}</div>
-                  )}
-                  {editSuccess && (
-                    <div className="mt-2 text-green-600 text-sm">
-                      {editSuccess}
-                    </div>
-                  )}
-                  <div className="mt-6 flex justify-end gap-2">
-                    <button
-                      type="button"
-                      className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200"
-                      onClick={() => setShowEditModal(false)}
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      className="px-4 py-2 bg-slate-blue text-white rounded-md hover:bg-slate-blue/90 font-semibold"
-                      disabled={editLoading}
-                    >
-                      {editLoading ? "Saving..." : "Save"}
-                    </button>
+                  
+                  {/* Divider */}
+                  <div className="border-t border-gray-200"></div>
+                  
+                  {/* Prompt Pages Section */}
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
+                      <Icon name="FaLink" className="w-4 h-4" />
+                      Prompt Pages ({contactPromptPages.length})
+                    </h3>
+                    
+                    {promptPagesLoading ? (
+                      <div className="flex items-center justify-center py-4">
+                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600"></div>
+                        <span className="ml-2 text-sm text-gray-500">Loading prompt pages...</span>
+                      </div>
+                    ) : contactPromptPages.length === 0 ? (
+                      <div className="text-center py-4 text-gray-500 text-sm">
+                        <Icon name="FaLink" className="w-8 h-8 mx-auto mb-2 text-gray-300" />
+                        No prompt pages created for this contact
+                      </div>
+                    ) : (
+                      <div className="space-y-2 max-h-60 overflow-y-auto">
+                        {contactPromptPages.map((page) => {
+                          const statusColors = {
+                            draft: 'bg-gray-100 text-gray-700',
+                            in_queue: 'bg-blue-100 text-blue-700',
+                            in_progress: 'bg-yellow-100 text-yellow-700',
+                            complete: 'bg-green-100 text-green-700'
+                          };
+                          
+                          const campaignTypeLabels: Record<string, string> = {
+                            service: 'Service',
+                            product: 'Product',
+                            event: 'Event',
+                            photo: 'Photo',
+                            video: 'Video',
+                            employee: 'Employee',
+                            individual: 'Individual'
+                          };
+                          
+                          // Get the prompt page type label
+                          const promptTypeLabel = page.type || campaignTypeLabels[page.campaign_type] || page.campaign_type || 'Standard';
+                          const displayType = typeof promptTypeLabel === 'string' 
+                            ? promptTypeLabel.charAt(0).toUpperCase() + promptTypeLabel.slice(1).replace('_', ' ')
+                            : 'Standard';
+                          
+                          return (
+                            <div key={page.id} className="border rounded-lg p-3 bg-gray-50 hover:bg-gray-100 transition-colors">
+                              <div className="flex items-start justify-between">
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <span className="text-sm font-medium text-gray-900 truncate">
+                                      {page.first_name || page.last_name ? (
+                                        <>{page.first_name} {page.last_name} - {displayType} Page</>
+                                      ) : (
+                                        page.name || `${displayType} Page`
+                                      )}
+                                    </span>
+                                    <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${statusColors[page.status as keyof typeof statusColors] || 'bg-gray-100 text-gray-700'}`}>
+                                      {page.status?.replace('_', ' ')}
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center gap-3 text-xs text-gray-500">
+                                    <span className="flex items-center gap-1 font-medium text-gray-600">
+                                      <Icon name="FaTags" className="w-3 h-3" />
+                                      Type: {displayType}
+                                    </span>
+                                    <span className="flex items-center gap-1">
+                                      <Icon name="FaCalendarAlt" className="w-3 h-3" />
+                                      {new Date(page.created_at).toLocaleDateString()}
+                                    </span>
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-2 ml-2">
+                                  <button
+                                    type="button"
+                                    className="text-indigo-600 hover:text-indigo-800 text-xs font-medium"
+                                    onClick={() => {
+                                      window.open(`${window.location.origin}/r/${page.slug}`, '_blank');
+                                    }}
+                                  >
+                                    <Icon name="FaArrowRight" className="w-3 h-3" />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className="text-indigo-600 hover:text-indigo-800 text-xs font-medium"
+                                    onClick={() => {
+                                      router.push(`/dashboard/edit-prompt-page/${page.slug}`);
+                                    }}
+                                  >
+                                    Edit →
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
-                </form>
+                  
+                  {/* Divider */}
+                  <div className="border-t border-gray-200"></div>
+                  
+                  {/* Communication Reminders and History */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Upcoming Reminders */}
+                    <div>
+                      <UpcomingReminders 
+                        contactId={editContact.id}
+                        className="mb-6"
+                      />
+                    </div>
+                    
+                    {/* Communication History */}
+                    <div>
+                      <CommunicationHistory 
+                        contactId={editContact.id}
+                      />
+                    </div>
+                  </div>
+                </div>
               )}
             </div>
           </div>
@@ -1815,6 +2068,90 @@ export default function UploadContactsPage() {
                 >
                   Delete
                 </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Name Change Confirmation Dialog */}
+        {showNameChangeDialog && pendingNameChange && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-xl">
+              <div className="mb-4">
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  Name Change Detected
+                </h3>
+                <p className="text-sm text-gray-600 mb-4">
+                  You're changing the contact name from <strong>{editContact.first_name} {editContact.last_name}</strong> to <strong>{pendingNameChange.firstName} {pendingNameChange.lastName}</strong>.
+                </p>
+                <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4">
+                  <div className="flex items-start gap-2">
+                    <Icon name="FaExclamationTriangle" className="w-5 h-5 text-amber-600 mt-0.5" />
+                    <div className="text-sm text-amber-800">
+                      <p className="font-medium mb-1">This contact has {contactPromptPages.length} associated prompt page{contactPromptPages.length > 1 ? 's' : ''}.</p>
+                      <p className="mb-2">To maintain data consistency, prompt pages must be updated along with the contact.</p>
+                      <p className="font-medium">Is this a correction to the existing person's name?</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="space-y-3">
+                <button
+                  onClick={async () => {
+                    setNameChangeAction('update-all');
+                    const updated = {
+                      first_name: pendingNameChange.firstName,
+                      last_name: pendingNameChange.lastName,
+                      email: (document.querySelector('input[name="email"]') as HTMLInputElement)?.value,
+                      phone: (document.querySelector('input[name="phone"]') as HTMLInputElement)?.value,
+                      address_line1: (document.querySelector('input[name="address_line1"]') as HTMLInputElement)?.value,
+                      address_line2: (document.querySelector('input[name="address_line2"]') as HTMLInputElement)?.value,
+                      city: (document.querySelector('input[name="city"]') as HTMLInputElement)?.value,
+                      state: (document.querySelector('input[name="state"]') as HTMLInputElement)?.value,
+                      postal_code: (document.querySelector('input[name="postal_code"]') as HTMLInputElement)?.value,
+                      country: (document.querySelector('input[name="country"]') as HTMLInputElement)?.value,
+                      business_name: (document.querySelector('input[name="business_name"]') as HTMLInputElement)?.value,
+                      role: (document.querySelector('input[name="role"]') as HTMLInputElement)?.value,
+                      notes: (document.querySelector('textarea[name="notes"]') as HTMLTextAreaElement)?.value,
+                      category: (document.querySelector('input[name="category"]') as HTMLInputElement)?.value,
+                    };
+                    await updateContact(updated, true);
+                  }}
+                  className="w-full px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium transition-colors text-left"
+                >
+                  <div className="flex items-center gap-3">
+                    <Icon name="FaCheck" className="w-5 h-5" />
+                    <div>
+                      <div className="font-semibold">Yes, Update Everything</div>
+                      <div className="text-sm opacity-90">This is a correction - update contact and all prompt pages</div>
+                    </div>
+                  </div>
+                </button>
+                
+                <button
+                  onClick={() => {
+                    setShowNameChangeDialog(false);
+                    setPendingNameChange(null);
+                  }}
+                  className="w-full px-4 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 font-medium transition-colors text-left"
+                >
+                  <div className="flex items-center gap-3">
+                    <Icon name="FaTimes" className="w-5 h-5" />
+                    <div>
+                      <div className="font-semibold">No, Cancel Changes</div>
+                      <div className="text-sm opacity-90">Keep the original name</div>
+                    </div>
+                  </div>
+                </button>
+              </div>
+              
+              <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-xs text-red-800">
+                  <strong>Important:</strong> If you're trying to repurpose this contact for a different person, you should instead:
+                  <br />1. Create a new contact for the new person
+                  <br />2. Delete or archive this contact and its prompt pages
+                </p>
               </div>
             </div>
           </div>

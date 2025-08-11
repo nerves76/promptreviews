@@ -156,14 +156,14 @@ const SAMPLE_REVIEWS = [
 ];
 
 // Custom BBB and Angi icons as React components
-const BBBIcon: IconType = () => (
+const BBBIcon: React.FC = () => (
   <span
     style={{ fontWeight: "bold", fontSize: "1.2em", letterSpacing: "0.05em" }}
   >
     BBB
   </span>
 );
-const AngiIcon: IconType = () => (
+const AngiIcon: React.FC = () => (
   <span
     style={{ fontWeight: "bold", fontSize: "1.2em", letterSpacing: "0.05em" }}
   >

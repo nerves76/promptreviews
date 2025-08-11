@@ -1097,7 +1097,8 @@ This page provides a slider to adjust widget width and test the responsive behav
 - [Widget System](WIDGET_SYSTEM_DOCUMENTATION.md) - Widget development and customization guide
 - [Widget Dashboard](WIDGET_DASHBOARD_DOCUMENTATION.md) - Dashboard widget management interface
 - [Troubleshooting](TROUBLESHOOTING_DOCUMENTATION.md) - Common issues and solutions
-- [User Documentation](USER_DOCUMENTATION.md) - End-user guide and features 
+- [User Documentation](USER_DOCUMENTATION.md) - End-user guide and features
+- [Brand Voice Guide](BRAND_VOICE_GUIDE.md) - Official brand voice and tone guidelines for Prompt Reviews and Prompty 
 
 # PromptReviews - Local Development Setup
 

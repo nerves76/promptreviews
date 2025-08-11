@@ -637,8 +637,8 @@ export default function ManualContactForm({
                     >
                       <option value="">Select platform</option>
                       {platformOptions.map((platform) => (
-                        <option key={platform.value} value={platform.value}>
-                          {platform.label}
+                        <option key={platform} value={platform}>
+                          {platform}
                         </option>
                       ))}
                     </select>

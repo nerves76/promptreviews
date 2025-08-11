@@ -144,7 +144,15 @@ function PromptPagesContent() {
       try {
         // Use auth context user and accountId instead of direct Supabase call
         if (!authUser) throw new Error("Not signed in");
-        if (!authAccountId) throw new Error("No account found for user");
+        
+        // If no account ID, user might be new - handle gracefully
+        if (!authAccountId) {
+          console.log('No account found for user - user may need to complete setup');
+          setLoading(false);
+          // Optionally show a message to complete account setup
+          setError("Please complete your account setup to access prompt pages.");
+          return;
+        }
         
         setUser(authUser);
         const accountId = authAccountId;
@@ -414,11 +422,29 @@ function PromptPagesContent() {
 
   // Handle post-save modal and starfall celebration
   useEffect(() => {
+    // Only check for modal when we're not loading and have the necessary data
+    if (loading) return;
+    
     const handlePostSaveModal = async () => {
       const flag = localStorage.getItem("showPostSaveModal");
       if (flag) {
         try {
           const data = JSON.parse(flag);
+          
+          // Determine which tab this modal should show on
+          const isForLocation = data.isLocationCreation;
+          const isForIndividual = !isForLocation && (data.first_name || data.email || data.phone);
+          
+          // Check if we're on the right tab
+          const currentTab = promptPagesTab;
+          const expectedTab = isForLocation ? 'locations' : (isForIndividual ? 'individual' : 'public');
+          
+          // If we're not on the right tab, don't show the modal here
+          // The redirect should have put us on the right tab
+          if (currentTab !== expectedTab) {
+            console.log(`Modal is for ${expectedTab} tab but we're on ${currentTab}, skipping`);
+            return;
+          }
           
           // If this is a location creation, find the latest location prompt page
           if (data.isLocationCreation) {
@@ -462,7 +488,7 @@ function PromptPagesContent() {
     };
 
     handlePostSaveModal();
-  }, []); // Remove locationPromptPages dependency to prevent re-running
+  }, [loading, promptPagesTab, locationPromptPages]); // Check when loading completes and tab changes
 
   // Update URL for location creation if modal is already shown and locationPromptPages updates
   useEffect(() => {

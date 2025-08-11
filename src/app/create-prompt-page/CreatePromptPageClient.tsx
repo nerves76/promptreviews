@@ -1019,8 +1019,17 @@ export default function CreatePromptPageClient({
           };
           localStorage.setItem("showPostSaveModal", JSON.stringify(modalData));
           
-          // Navigate immediately to prompt-pages
-          router.push("/prompt-pages");
+          // Navigate to prompt-pages based on campaign type
+          // Product pages are typically individual, but respect the campaign_type
+          let redirectUrl = '/prompt-pages?tab=individual'; // Default for product pages
+          
+          if (formData.campaign_type === 'public') {
+            redirectUrl = '/prompt-pages';
+          } else if (formData.campaign_type === 'locations') {
+            redirectUrl = '/prompt-pages?tab=locations';
+          }
+          
+          router.push(redirectUrl);
           return;
         }
 
@@ -1309,12 +1318,33 @@ export default function CreatePromptPageClient({
           slug: data.slug,
           url: `${window.location.origin}/r/${data.slug}`,
           timestamp: new Date().toISOString(),
-          isLocationCreation: false
+          isLocationCreation: false,
+          // Include individual info to help determine which tab to show on
+          first_name: formData.first_name || null,
+          email: formData.email || null,
+          phone: formData.phone || null
         }));
       }
 
-      // Redirect to prompt pages list
-      router.push('/prompt-pages');
+      // Redirect to prompt pages list based on campaign type
+      // Public pages go to main page (defaults to public tab)
+      // Individual pages go to individual tab
+      // Location pages go to locations tab
+      let redirectUrl = '/prompt-pages'; // Default to main page (public tab)
+      
+      if (data.campaign_type === 'individual' || formData.campaign_type === 'individual') {
+        redirectUrl = '/prompt-pages?tab=individual';
+      } else if (data.campaign_type === 'locations' || formData.campaign_type === 'locations') {
+        redirectUrl = '/prompt-pages?tab=locations';
+      }
+      // If campaign_type is 'public' or anything else, use default /prompt-pages
+      
+      console.log('🔍 Redirecting after save:', { 
+        campaign_type: data.campaign_type || formData.campaign_type,
+        redirectUrl 
+      });
+      
+      router.push(redirectUrl);
       return data;
       
     } catch (error) {
@@ -1411,8 +1441,10 @@ export default function CreatePromptPageClient({
             email: formData.email
           }),
         );
-        // Success - redirecting to prompt pages
-        router.push("/prompt-pages");
+        // Success - redirecting to prompt pages with appropriate tab
+        const hasIndividualInfo = formData.first_name || formData.email || formData.phone;
+        const redirectUrl = hasIndividualInfo ? '/prompt-pages?tab=individual' : '/prompt-pages?tab=locations';
+        router.push(redirectUrl);
 
         // Show success message and redirect
         setShowPostSaveModal(true);
@@ -1551,7 +1583,9 @@ export default function CreatePromptPageClient({
                 email: formData.email
               }),
             );
-            router.push("/prompt-pages");
+            const hasIndividualInfo = formData.first_name || formData.email || formData.phone;
+            const redirectUrl = hasIndividualInfo ? '/prompt-pages?tab=individual' : '/prompt-pages?tab=locations';
+            router.push(redirectUrl);
           }}
           campaignType={formData.campaign_type || 'individual'}
           onGenerateReview={handleGenerateAIReview}
@@ -1579,7 +1613,9 @@ export default function CreatePromptPageClient({
                 email: formData.email
               }),
             );
-            router.push("/prompt-pages");
+            const hasIndividualInfo = formData.first_name || formData.email || formData.phone;
+            const redirectUrl = hasIndividualInfo ? '/prompt-pages?tab=individual' : '/prompt-pages?tab=locations';
+            router.push(redirectUrl);
           }}
           campaignType={formData.campaign_type || 'individual'}
           onGenerateReview={handleGenerateAIReview}
@@ -1607,7 +1643,9 @@ export default function CreatePromptPageClient({
                 email: formData.email
               }),
             );
-            router.push("/prompt-pages");
+            const hasIndividualInfo = formData.first_name || formData.email || formData.phone;
+            const redirectUrl = hasIndividualInfo ? '/prompt-pages?tab=individual' : '/prompt-pages?tab=locations';
+            router.push(redirectUrl);
           }}
           campaignType={formData.campaign_type || 'individual'}
           onGenerateReview={handleGenerateAIReview}

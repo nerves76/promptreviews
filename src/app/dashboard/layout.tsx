@@ -27,11 +27,29 @@ export default function DashboardLayout({
   } = useAuth();
   
   const [isClient, setIsClient] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(false);
   const router = useRouter();
 
   // Ensure we're on the client side before accessing browser APIs
   useEffect(() => {
     setIsClient(true);
+    
+    // Check for redirect flags to maintain smooth transitions
+    const authRedirect = sessionStorage.getItem('auth-redirect-in-progress');
+    const businessCreated = sessionStorage.getItem('business-creation-complete');
+    const redirectInProgress = sessionStorage.getItem('redirect-in-progress');
+    
+    if (authRedirect || businessCreated || redirectInProgress) {
+      setIsTransitioning(true);
+      
+      // Clear flags and stop transitioning after a brief delay
+      setTimeout(() => {
+        sessionStorage.removeItem('auth-redirect-in-progress');
+        sessionStorage.removeItem('business-creation-complete');
+        sessionStorage.removeItem('redirect-in-progress');
+        setIsTransitioning(false);
+      }, 500);
+    }
   }, []);
 
 
@@ -57,10 +75,10 @@ export default function DashboardLayout({
   //   }
   // }, [isInitialized, isLoading, user, accountLoading, account]);
 
-  // Show loading while AuthContext initializes
-  if (!isInitialized) {
+  // Show loading while AuthContext initializes or during transitions
+  if (!isInitialized || isTransitioning) {
     if (process.env.NODE_ENV === 'development') {
-      console.log('🔄 Dashboard: Waiting for AuthContext initialization...');
+      console.log('🔄 Dashboard: Loading state', { isInitialized, isTransitioning });
     }
     return (
       <div className="min-h-screen flex flex-col items-center justify-center">

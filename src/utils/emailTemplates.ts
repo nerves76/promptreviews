@@ -68,14 +68,59 @@ export function renderTemplate(template: string, variables: TemplateVariables): 
  * Send an email using a template
  */
 export async function sendTemplatedEmail(
-  templateName: string,
-  to: string,
-  variables: TemplateVariables
+  templateNameOrOptions: string | {
+    templateName: string;
+    to: string;
+    variables: TemplateVariables;
+    fallbackSubject?: string;
+    fallbackHtml?: string;
+    fallbackText?: string;
+  },
+  to?: string,
+  variables?: TemplateVariables
 ): Promise<{ success: boolean; error?: string }> {
   try {
+    // Handle both old and new function signatures
+    let templateName: string;
+    let emailTo: string;
+    let emailVariables: TemplateVariables;
+    let fallbackSubject: string | undefined;
+    let fallbackHtml: string | undefined;
+    let fallbackText: string | undefined;
+
+    if (typeof templateNameOrOptions === 'string') {
+      // Old signature: sendTemplatedEmail(templateName, to, variables)
+      templateName = templateNameOrOptions;
+      emailTo = to!;
+      emailVariables = variables!;
+    } else {
+      // New signature: sendTemplatedEmail(options)
+      templateName = templateNameOrOptions.templateName;
+      emailTo = templateNameOrOptions.to;
+      emailVariables = templateNameOrOptions.variables;
+      fallbackSubject = templateNameOrOptions.fallbackSubject;
+      fallbackHtml = templateNameOrOptions.fallbackHtml;
+      fallbackText = templateNameOrOptions.fallbackText;
+    }
+
     // Get the template
     const template = await getEmailTemplate(templateName);
     if (!template) {
+      // If template not found and we have fallbacks, use them
+      if (fallbackSubject && fallbackHtml) {
+        console.log(`Template '${templateName}' not found, using fallback content`);
+        
+        const result = await resend.emails.send({
+          from: "Prompt Reviews <team@updates.promptreviews.app>",
+          to: emailTo,
+          subject: fallbackSubject,
+          html: fallbackHtml,
+          ...(fallbackText && { text: fallbackText })
+        });
+
+        return { success: true };
+      }
+      
       return { success: false, error: `Template '${templateName}' not found` };
     }
 
@@ -90,7 +135,7 @@ export async function sendTemplatedEmail(
       upgradeUrl: process.env.NEXT_PUBLIC_APP_URL 
         ? `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/plan`
         : 'https://app.promptreviews.app/dashboard/plan',
-      ...variables
+      ...emailVariables
     };
 
     // Render the template
@@ -103,7 +148,7 @@ export async function sendTemplatedEmail(
     // Send the email
     const result = await resend.emails.send({
       from: "Prompt Reviews <team@updates.promptreviews.app>",
-      to,
+      to: emailTo,
       subject,
       html: htmlContent,
       ...(textContent && { text: textContent })
@@ -111,7 +156,8 @@ export async function sendTemplatedEmail(
 
     return { success: true };
   } catch (error) {
-    console.error(`Error sending templated email '${templateName}':`, error);
+    const templateNameForLog = typeof templateNameOrOptions === 'string' ? templateNameOrOptions : templateNameOrOptions.templateName;
+    console.error(`Error sending templated email '${templateNameForLog}':`, error);
     return { 
       success: false, 
       error: error instanceof Error ? error.message : 'Unknown error' 

@@ -322,7 +322,7 @@ export default function AccountPage() {
         setShowCreateAccountModal(false);
         
         // Track the creation
-        trackEvent(GA_EVENTS.ACCOUNT_CREATED, {
+        trackEvent(GA_EVENTS.BUSINESS_CREATED, {
           business_name: businessName,
           industry: industry
         });

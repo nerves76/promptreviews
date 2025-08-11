@@ -12,13 +12,14 @@ export async function middleware(req: NextRequest) {
   }
 
   // TEMPORARY: Disable middleware completely to debug auth issues
-  if (process.env.NODE_ENV === "production") {
+  const nodeEnv = process.env.NODE_ENV as string;
+  if (nodeEnv === "production") {
     console.log('Middleware: Temporarily disabled for production debugging');
     return res;
   }
 
   // Only require auth in production
-  if (process.env.NODE_ENV !== "production") {
+  if (nodeEnv !== "production") {
     // In development, still check session but don't block requests
     console.log('Middleware: Development mode - checking session but not blocking');
   }
@@ -102,11 +103,11 @@ export async function middleware(req: NextRequest) {
       retriesUsed: retryCount,
       error: error?.message,
       cookies: req.headers.get('cookie')?.includes('sb-') ? 'has supabase cookies' : 'no supabase cookies',
-      env: process.env.NODE_ENV
+      env: nodeEnv
     });
 
     // In development, log but don't redirect
-    if (process.env.NODE_ENV !== "production") {
+    if (nodeEnv !== "production") {
       return res;
     }
 
@@ -126,7 +127,7 @@ export async function middleware(req: NextRequest) {
     console.error('Middleware: Unexpected error:', error);
     
     // In development, continue anyway
-    if (process.env.NODE_ENV !== "production") {
+    if (nodeEnv !== "production") {
       return res;
     }
 

@@ -37,3 +37,21 @@ next-env.d.ts
 .env*
 
 test-supabase-service-role.js
+
+/src/generated/prisma
+
+# docs-site build artifacts
+docs-promptreviews/docs-site/.next/
+docs-promptreviews/docs-site/node_modules/
+docs-promptreviews/docs-site/out/
+docs-promptreviews/docs-site/build/
+
+# any other node_modules directories
+**/node_modules/
+
+# any other .next directories
+**/.next/
+
+# any other build directories
+**/build/
+**/out/

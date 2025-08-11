@@ -591,6 +591,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const mockUser = {
             id: '12345678-1234-5678-9abc-123456789012', // Use existing account ID
             email: 'test@example.com',
+            app_metadata: {},
+            aud: 'authenticated',
+            created_at: new Date().toISOString(),
             user_metadata: {
               first_name: 'Dev',
               last_name: 'User'

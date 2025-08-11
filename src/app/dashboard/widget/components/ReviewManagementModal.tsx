@@ -362,20 +362,40 @@ export function ReviewManagementModal({
   };
 
   const handleConfirmTrim = async () => {
+    console.log('🔍 ReviewManagementModal: handleConfirmTrim called');
+    console.log('🔍 ReviewManagementModal: reviewsToTrim:', reviewsToTrim);
+    
     // Auto-trim the reviews that are too long
+    const trimmedUpdates: { [id: string]: string } = {};
+    
     for (const item of reviewsToTrim) {
+      const originalText = item.text;
       const trimmedText = item.text.substring(0, CHARACTER_LIMIT).trim();
-      setEditedReviews(prev => ({
-        ...prev,
-        [item.review.review_id]: trimmedText
-      }));
+      
+      console.log(`🔍 ReviewManagementModal: Trimming review ${item.review.review_id}:`);
+      console.log(`   Original length: ${originalText.length}`);
+      console.log(`   Original text: "${originalText}"`);
+      console.log(`   Trimmed length: ${trimmedText.length}`);
+      console.log(`   Trimmed text: "${trimmedText}"`);
+      
+      trimmedUpdates[item.review.review_id] = trimmedText;
     }
+    
+    console.log('🔍 ReviewManagementModal: trimmedUpdates:', trimmedUpdates);
+    
+    // Update the edited reviews state with trimmed content for UI
+    setEditedReviews(prev => {
+      const newState = { ...prev, ...trimmedUpdates };
+      console.log('🔍 ReviewManagementModal: Updated editedReviews state:', newState);
+      return newState;
+    });
     
     setShowTrimConfirmation(false);
     setReviewsToTrim([]);
     
-    // Continue with save after trimming
-    await handleSaveReviewsInternal();
+    // Continue with save, passing the trimmed updates
+    console.log('🔍 ReviewManagementModal: Calling handleSaveReviewsInternal with trimmedUpdates');
+    await handleSaveReviewsInternal(trimmedUpdates);
   };
 
   const handleCancelTrim = () => {
@@ -386,7 +406,7 @@ export function ReviewManagementModal({
     );
   };
 
-  const handleSaveReviewsInternal = async () => {
+  const handleSaveReviewsInternal = async (trimmedUpdates: { [id: string]: string } = {}) => {
     if (!widgetId) return;
     
     // Clear any existing errors
@@ -429,7 +449,7 @@ export function ReviewManagementModal({
     // Prepare reviews for API call (all reviews should now be within limits)
     const reviewsToSave = selectedReviews.map((review, index) => ({
       review_id: review.review_id,
-      review_content: editedReviews[review.review_id] ?? review.review_content,
+      review_content: trimmedUpdates[review.review_id] ?? editedReviews[review.review_id] ?? review.review_content,
       first_name: (editedNames[review.review_id] ?? `${review.first_name || ''} ${review.last_name || ''}`.trim()).split(' ')[0],
       last_name: (editedNames[review.review_id] ?? `${review.first_name || ''} ${review.last_name || ''}`.trim()).split(' ').slice(1).join(' '),
       reviewer_role: editedRoles[review.review_id] ?? review.reviewer_role,

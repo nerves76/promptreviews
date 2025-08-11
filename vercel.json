@@ -18,6 +18,10 @@
     {
       "path": "/api/cron/send-review-reminders",
       "schedule": "0 10 1 * *"
+    },
+    {
+      "path": "/api/cron/send-communication-reminders",
+      "schedule": "0 9 * * *"
     }
   ],
   "buildCommand": "npm run build",

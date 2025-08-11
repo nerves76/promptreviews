@@ -75,5 +75,5 @@ export const fontMap = {
 
 // Get optimized font class if available, fallback to original for Google Fonts loading
 export function getOptimizedFontClass(fontName: string): string {
-  return fontMap[fontName] || '';
+  return fontMap[fontName as keyof typeof fontMap] || '';
 }

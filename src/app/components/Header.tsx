@@ -355,7 +355,8 @@ export default function Header() {
                     onNavigate={() => {}}
                   />
 
-                  {hasGBPAccess && (
+                  {/* Always show Google Biz nav item - access control handled within the page */}
+                  {(
                     <Link
                       href={hasBusiness ? "/dashboard/google-business" : "#"}
                       onClick={(e) => {
@@ -712,7 +713,8 @@ export default function Header() {
                       </div>
                     </div>
 
-                    {hasGBPAccess && (
+                    {/* Always show Google Biz nav item - access control handled within the page */}
+                  {(
                                               <Link
                           href={hasBusiness ? "/dashboard/google-business" : "#"}
                           onClick={(e) => {

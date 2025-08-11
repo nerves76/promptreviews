@@ -3,12 +3,6 @@
  * Ensures consistency across all business info modules
  */
 
-export interface BusinessLocation {
-  id: string;
-  name: string;
-  address: string;
-  status: 'active' | 'pending' | 'suspended';
-}
 
 export interface BusinessCategory {
   categoryId: string;

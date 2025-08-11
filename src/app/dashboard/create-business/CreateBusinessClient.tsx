@@ -40,22 +40,21 @@ export default function CreateBusinessClient() {
   const redirectToDashboard = useCallback(() => {
     console.log("🔄 CreateBusinessClient: redirectToDashboard called");
     console.log("🔄 CreateBusinessClient: Current pathname:", window.location.pathname);
-    console.log("🔄 CreateBusinessClient: About to call router.replace with /dashboard?businessCreated=1");
+    console.log("🔄 CreateBusinessClient: About to call router.push with /dashboard?businessCreated=1");
+    
+    // Set flag to maintain loading state during transition
+    sessionStorage.setItem('business-creation-complete', 'true');
+    sessionStorage.setItem('redirect-in-progress', 'true');
+    
+    // Keep loading state active during redirect
+    // Don't set loading to false - let the destination handle it
     
     try {
-      router.replace("/dashboard?businessCreated=1");
-      console.log("✅ CreateBusinessClient: router.replace called successfully");
-      
-      // Also try window.location as fallback after a delay
-      setTimeout(() => {
-        console.log("🔄 CreateBusinessClient: Checking if redirect worked...");
-        if (window.location.pathname === "/dashboard/create-business") {
-          console.log("⚠️ CreateBusinessClient: Still on create-business page, trying window.location redirect");
-          window.location.href = "/dashboard?businessCreated=1";
-        }
-      }, 1000);
+      // Use push instead of replace for smoother transition
+      router.push("/dashboard?businessCreated=1");
+      console.log("✅ CreateBusinessClient: router.push called successfully");
     } catch (error) {
-      console.error("❌ CreateBusinessClient: router.replace failed:", error);
+      console.error("❌ CreateBusinessClient: router.push failed:", error);
       console.log("🔄 CreateBusinessClient: Trying window.location fallback");
       window.location.href = "/dashboard?businessCreated=1";
     }

@@ -1,0 +1,98 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom CSS for PromptReviews Documentation */
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  body {
+    font-feature-settings: "rlig" 1, "calt" 1;
+    /* PromptReviews app gradient background */
+    background: linear-gradient(
+      to bottom,
+      rgb(82, 125, 231) 0%,
+      rgb(120, 100, 200) 50%,
+      rgb(145, 74, 174) 100%
+    ) !important;
+    background-attachment: fixed !important;
+    background-size: 100% 100% !important;
+    background-repeat: no-repeat !important;
+    min-height: 100vh;
+  }
+}
+
+@layer components {
+  /* Navigation styles */
+  .nav-link {
+    @apply block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors duration-150;
+  }
+
+  .nav-link.active {
+    @apply bg-primary-50 text-primary-700 border-r-2 border-primary-500;
+  }
+
+  /* Content styles */
+  .prose-docs {
+    @apply prose prose-gray max-w-none;
+  }
+
+  .prose-docs h1 {
+    @apply text-3xl font-bold text-gray-900 mb-4;
+  }
+
+  .prose-docs h2 {
+    @apply text-2xl font-semibold text-gray-800 mt-8 mb-4 border-b border-gray-200 pb-2;
+  }
+
+  .prose-docs h3 {
+    @apply text-xl font-medium text-gray-800 mt-6 mb-3;
+  }
+
+  .prose-docs pre {
+    @apply bg-gray-900 text-green-400 rounded-lg p-4 overflow-x-auto;
+  }
+
+  .prose-docs code {
+    @apply bg-gray-100 text-gray-800 px-1 py-0.5 rounded text-sm;
+  }
+
+  .prose-docs pre code {
+    @apply bg-transparent text-green-400 p-0;
+  }
+
+  /* Screenshot placeholder styles */
+  .screenshot-placeholder {
+    @apply bg-gradient-to-br from-gray-100 to-gray-200 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center p-8 text-gray-500;
+  }
+
+  /* Callout styles */
+  .callout {
+    @apply p-4 rounded-lg border-l-4 my-6;
+  }
+
+  .callout.info {
+    @apply bg-blue-50 border-blue-400 text-blue-800;
+  }
+
+  .callout.warning {
+    @apply bg-yellow-50 border-yellow-400 text-yellow-800;
+  }
+
+  .callout.success {
+    @apply bg-green-50 border-green-400 text-green-800;
+  }
+
+  .callout.tip {
+    @apply bg-purple-50 border-purple-400 text-purple-800;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
