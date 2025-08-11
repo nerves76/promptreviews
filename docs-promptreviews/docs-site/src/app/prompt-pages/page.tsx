@@ -128,7 +128,7 @@ const keyFeatures = [
   },
   {
     id: 'prompty-ai',
-    title: 'Prompty AI',
+    title: 'AI-Powered Content',
     icon: Bot,
     description: 'AI-powered review generation and optimization to help customers write better reviews',
     url: '/prompt-pages/features#prompty-ai'
@@ -256,7 +256,7 @@ export default function PromptPagesPage() {
                 </div>
                 <h3 className="font-semibold text-white mb-2">AI-Powered</h3>
                 <p className="text-white/80 text-sm">
-                  Prompty AI helps customers write better reviews
+                  AI-powered content helps customers write better reviews
                 </p>
               </div>
             </div>

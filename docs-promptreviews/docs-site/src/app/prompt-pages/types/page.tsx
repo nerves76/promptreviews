@@ -340,7 +340,7 @@ export default function PromptPageTypes() {
                   </tr>
                   <tr>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">
-                      Prompty AI
+                      AI-Powered Content
                     </td>
                     {promptPageTypes.map((type) => (
                       <td key={type.id} className="px-6 py-4 whitespace-nowrap text-sm text-white/70">

@@ -37,10 +37,10 @@ const articlesMetadata = [
   {
     id: 'prompt-page-features',
     title: 'Prompt Page Features',
-    description: 'Explore all features: Emoji Sentiment Flow, Prompty AI, QR codes, and more',
+    description: 'Explore all features: Emoji Sentiment Flow, AI-powered content, QR codes, and more',
     url: '/prompt-pages/features',
     category: 'prompt-pages',
-    tags: ['prompt-page-features', 'emoji-sentiment-flow', 'prompty-ai', 'qr-codes', 'features'],
+    tags: ['prompt-page-features', 'emoji-sentiment-flow', 'ai-powered', 'qr-codes', 'features'],
     priority: 'high'
   },
   {
@@ -54,11 +54,11 @@ const articlesMetadata = [
   },
   {
     id: 'ai-reviews',
-    title: 'Prompty AI',
+    title: 'AI-Powered Reviews',
     description: 'AI-powered review generation and optimization',
     url: '/ai-reviews',
     category: 'ai',
-    tags: ['ai', 'prompty', 'reviews', 'generation', 'optimization'],
+    tags: ['ai', 'ai-powered', 'reviews', 'generation', 'optimization'],
     priority: 'medium'
   },
   {

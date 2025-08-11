@@ -78,7 +78,7 @@ const commonIssues = [
           'Focus on recent, satisfied customers first',
           'Personalize your requests with specific details',
           'Send requests 1-3 days after service completion',
-          'Use Prompty AI to create more engaging messages'
+          'Use AI-powered content generation to create more engaging messages'
         ],
         icon: Star,
         severity: 'medium'
@@ -178,7 +178,7 @@ const commonIssues = [
         severity: 'low'
       },
       {
-        title: 'Prompty AI Not Working',
+        title: 'AI Features Not Working',
         description: 'AI assistant not generating content or suggestions?',
         solutions: [
           'Ensure your business profile is complete',

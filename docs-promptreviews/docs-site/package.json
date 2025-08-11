@@ -7,7 +7,9 @@
     "build": "next build",
     "build:prod": "NODE_ENV=production next build",
     "start": "next start -p 3001",
-    "lint": "next lint"
+    "lint": "next lint",
+    "deploy": "./scripts/sync.sh",
+    "deploy:auto": "./scripts/deploy.sh"
   },
   "dependencies": {
     "@next/mdx": "^14.0.0",

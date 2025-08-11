@@ -348,7 +348,7 @@ export default function ContactsPage() {
               <h3 className="font-semibold text-white mb-0">Email Requests</h3>
             </div>
             <p className="text-white/70 mb-3">
-              Send personalized review requests via email with Prompty's AI assistance.
+              Send personalized review requests via email with AI-powered content generation.
             </p>
             <ul className="text-sm text-white/70 space-y-1">
               <li>• Personalized subject lines</li>

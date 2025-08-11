@@ -153,7 +153,7 @@ export default function AccountSetupPage() {
             <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6">
               <h3 className="font-semibold text-white mb-2">Complete Profile = Better Results</h3>
               <p className="text-white/80 text-sm">
-                A complete business profile helps Prompty AI generate more personalized and effective review requests.
+                A complete business profile helps our AI generate more personalized and effective review requests.
               </p>
             </div>
             

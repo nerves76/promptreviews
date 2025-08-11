@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     'customer review software guide',
     'Google Business Profile integration',
     'review collection tutorial',
-    'Prompty AI assistant',
+    'AI-powered review collection',
     'review widget setup',
     'business review automation'
   ],

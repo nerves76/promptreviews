@@ -31,8 +31,8 @@ import DocsLayout from '../../docs-layout';
 import PageHeader from '../../components/PageHeader';
 
 export const metadata: Metadata = {
-  title: 'Prompt Page Features - Emoji Sentiment Flow, Prompty AI & More | Prompt Reviews',
-  description: 'Explore all prompt page features: Emoji Sentiment Flow, Prompty AI, QR codes, customization, analytics, and more.',
+  title: 'Prompt Page Features - Emoji Sentiment Flow, AI-Powered Content & More | Prompt Reviews',
+  description: 'Explore all prompt page features: Emoji Sentiment Flow, AI-powered content generation, QR codes, customization, analytics, and more.',
   keywords: 'prompt page features, emoji sentiment flow, prompty ai, qr codes, review analytics, customization',
   openGraph: {
     title: 'Prompt Page Features - Complete Guide',
@@ -65,7 +65,7 @@ const jsonLd = {
       {
         "@type": "ListItem",
         "position": 2,
-        "name": "Prompty AI"
+        "name": "AI-Powered Content"
       },
       {
         "@type": "ListItem",
@@ -130,13 +130,13 @@ const features = [
   },
   {
     id: 'prompty-ai',
-    title: 'Prompty AI',
+    title: 'AI-Powered Content',
     icon: Bot,
     description: 'AI-powered review generation and optimization to help customers write better reviews',
     category: 'ai',
     priority: 'high',
     details: {
-      overview: 'Prompty AI is an intelligent assistant that helps customers write better, more detailed reviews by providing suggestions, improving grammar, and optimizing content for better visibility.',
+      overview: 'Our AI-powered system helps customers write better, more detailed reviews by providing suggestions, improving grammar, and optimizing content for better visibility.',
       howItWorks: [
         'AI analyzes the business context and customer experience',
         'Generates personalized review suggestions based on the service/product',

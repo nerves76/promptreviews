@@ -1,0 +1,13 @@
+# Add this to your WordPress .htaccess file (in public_html)
+# This will proxy /docs/ requests to docs.promptreviews.app
+
+# Proxy /docs/ requests to the docs site
+RewriteEngine On
+
+# Proxy /docs/ to docs.promptreviews.app
+RewriteCond %{REQUEST_URI} ^/docs/(.*)$
+RewriteRule ^docs/(.*)$ https://docs.promptreviews.app/$1 [P,L]
+
+# Set proxy headers
+ProxyPreserveHost On
+ProxyPassReverse /docs/ https://docs.promptreviews.app/

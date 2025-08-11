@@ -280,14 +280,14 @@ export default function AIReviewsPage() {
         <div className="callout success">
           <h3 className="text-lg font-semibold mb-3">Your Data Stays Yours</h3>
           <p className="mb-3">
-            Prompty is designed with privacy and ethics in mind. We believe AI should enhance human relationships, 
+            Our AI is designed with privacy and ethics in mind. We believe AI should enhance human relationships, 
             not exploit them.
           </p>
           <ul className="space-y-1 mb-0">
             <li>• Prompty never stores or shares your customer data</li>
             <li>• All AI processing happens securely on our servers</li>
             <li>• You always review and approve content before sending</li>
-            <li>• Prompty follows ethical AI guidelines and best practices</li>
+            <li>• Our AI follows ethical guidelines and best practices</li>
           </ul>
         </div>
 

@@ -129,7 +129,7 @@ export default function AdvancedPage() {
             <Brain className="w-8 h-8 text-purple-400 mb-4" />
             <h3 className="text-xl font-semibold text-white mb-2">AI Optimization</h3>
             <p className="text-white/80">
-              Let Prompty AI optimize your request timing and messaging for maximum response rates.
+              Let AI-powered optimization improve your request timing and messaging for maximum response rates.
             </p>
           </div>
           

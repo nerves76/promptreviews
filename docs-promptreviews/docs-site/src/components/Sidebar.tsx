@@ -44,7 +44,7 @@ const navigation: NavItem[] = [
     children: [
       { title: 'Quick Start Guide', href: '/getting-started#quick-start' },
       { title: 'Account Setup', href: '/getting-started#account-setup' },
-      { title: 'Business Profile', href: '/getting-started#business-profile' },
+      { title: 'Business Profile Setup', href: '/business-profile' },
       { title: 'First Prompt Page', href: '/getting-started#first-prompt-page' },
     ]
   },
@@ -117,6 +117,7 @@ const navigation: NavItem[] = [
     children: [
       { title: 'Team Roles', href: '/team#roles' },
       { title: 'Add Members', href: '/team#add-members' },
+      { title: 'Billing & Plans', href: '/billing' },
       { title: 'Account Settings', href: '/team#settings' },
     ]
   },
@@ -125,7 +126,8 @@ const navigation: NavItem[] = [
     href: '/advanced',
     icon: BarChart3,
     children: [
-      { title: 'Analytics', href: '/advanced#analytics' },
+      { title: 'Style Settings', href: '/style-settings' },
+      { title: 'Analytics', href: '/analytics' },
       { title: 'Automation', href: '/advanced#automation' },
       { title: 'API Access', href: '/advanced#api' },
       { title: 'Webhooks', href: '/advanced#webhooks' },

@@ -1,0 +1,8 @@
+# Add this to your WordPress .htaccess file (in public_html)
+# This will redirect /docs/ to docs.yoursite.com
+
+RewriteEngine On
+
+# Redirect /docs/ to docs.yoursite.com
+RewriteCond %{REQUEST_URI} ^/docs/(.*)$
+RewriteRule ^docs/(.*)$ https://docs.yoursite.com/$1 [R=301,L]
