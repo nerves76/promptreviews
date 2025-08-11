@@ -8,6 +8,11 @@ const withMDX = require('@next/mdx')({
 })
 
 const nextConfig = {
+  // Subdirectory deployment configuration
+  basePath: process.env.NODE_ENV === 'production' ? '/docs' : '',
+  assetPrefix: process.env.NODE_ENV === 'production' ? '/docs' : '',
+  trailingSlash: true,
+  
   pageExtensions: ['ts', 'tsx', 'js', 'jsx', 'md', 'mdx'],
   images: {
     domains: ['docs.promptreviews.com', 'promptreviews.com'],

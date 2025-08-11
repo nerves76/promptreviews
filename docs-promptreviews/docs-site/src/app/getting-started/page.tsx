@@ -14,12 +14,12 @@ import {
 
 export const metadata: Metadata = {
   title: 'Getting Started with Prompt Reviews - Complete Setup Guide',
-  description: 'Learn how to set up your Prompt Reviews account, create your first prompt page, and start collecting customer reviews with Prompty AI assistant in under 30 minutes.',
+  description: 'Learn how to set up your Prompt Reviews account, create your first prompt page, and start collecting customer reviews in under 30 minutes.',
   keywords: [
     'Prompt Reviews setup',
     'getting started guide',
     'review collection tutorial',
-    'Prompty AI assistant',
+    'Prompt Reviews mascot',
     'customer review automation',
     'business profile setup'
   ],
@@ -57,7 +57,7 @@ const pageJsonLd = {
   tool: [
     {
       '@type': 'HowToTool',
-      name: 'Prompty AI Assistant',
+      name: 'Review Collection Tools',
     },
   ],
   step: [
@@ -76,7 +76,7 @@ const pageJsonLd = {
     {
       '@type': 'HowToStep',
       name: 'Create First Prompt Page',
-      text: 'Build your first personalized review request page with Prompty AI assistance',
+      text: 'Build your first personalized review request page with AI-powered content generation',
       url: 'https://docs.promptreviews.com/getting-started/first-prompt-page',
     },
   ],
@@ -101,7 +101,7 @@ const steps = [
   },
   {
     title: 'Create Your First Prompt Page',
-    description: 'Build a personalized review request page using Prompty AI to generate optimized content.',
+    description: 'Build a personalized review request page with AI-powered content generation.',
     href: '/getting-started/first-prompt-page',
     time: '10 minutes',
     difficulty: 'Easy',
@@ -136,8 +136,8 @@ const steps = [
 const tips = [
   {
     icon: Star,
-    title: 'Meet Prompty',
-    description: 'Your AI assistant helps generate personalized review requests and optimize your prompt pages for better response rates.',
+    title: 'AI-Powered Content',
+    description: 'AI-powered content generation helps create personalized review requests and optimize your prompt pages for better response rates.',
   },
   {
     icon: Zap,
@@ -171,7 +171,7 @@ export default function GettingStartedPage() {
           categoryIcon={CheckCircle}
           categoryColor="green"
           title="Getting Started with Prompt Reviews"
-          description="Welcome to Prompt Reviews! This guide will help you set up your account and start collecting customer reviews with Prompty, your AI-powered review assistant, in under 30 minutes."
+          description="Welcome to Prompt Reviews! This guide will help you set up your account and start collecting customer reviews in under 30 minutes."
         />
 
         <div className="max-w-4xl mx-auto mb-8">
@@ -192,7 +192,7 @@ export default function GettingStartedPage() {
           <h3 className="text-lg font-semibold mb-3">What You'll Learn</h3>
           <ul className="space-y-2 mb-0">
             <li>How to set up your business profile and choose the right plan</li>
-            <li>Creating personalized prompt pages with Prompty AI assistance</li>
+            <li>Creating personalized prompt pages with AI-powered content generation</li>
             <li>Importing and managing your customer contacts</li>
             <li>Sending your first review requests via multiple channels</li>
             <li>Embedding review widgets on your website</li>

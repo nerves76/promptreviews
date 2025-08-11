@@ -20,11 +20,11 @@ import {
 } from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: 'Prompty AI - Your AI-Powered Review Assistant | Prompt Reviews',
-  description: 'Meet Prompty, your AI assistant that helps create personalized review requests, optimizes your prompt pages, and makes review collection feel human and authentic.',
+  title: 'AI-Powered Review Collection | Prompt Reviews',
+  description: 'Discover how AI-powered content generation helps create personalized review requests, optimizes your prompt pages, and makes review collection feel human and authentic.',
   keywords: [
-    'Prompty AI',
-    'AI review assistant',
+    'AI review generation',
+    'AI-powered content',
     'personalized review requests',
     'review automation',
     'customer review AI',
@@ -39,8 +39,8 @@ export const metadata: Metadata = {
 const pageJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'SoftwareApplication',
-  name: 'Prompty AI Review Assistant',
-  description: 'AI-powered assistant that helps create personalized review requests and optimize review collection',
+  name: 'AI-Powered Review System',
+  description: 'AI-powered system that helps create personalized review requests and optimize review collection',
   applicationCategory: 'BusinessApplication',
   operatingSystem: 'Web Browser',
   url: 'https://promptreviews.com',
@@ -60,7 +60,7 @@ const features = [
   {
     icon: Brain,
     title: 'Smart Personalization',
-    description: 'Prompty analyzes your business, customers, and context to create review requests that feel genuinely personal.',
+    description: 'Our AI analyzes your business, customers, and context to create review requests that feel genuinely personal.',
     benefit: 'Higher response rates from authentic, human-sounding requests'
   },
   {
@@ -73,12 +73,12 @@ const features = [
     icon: TrendingUp,
     title: 'Performance Optimization',
     description: 'Learns from your results and continuously improves your review request strategies.',
-    benefit: 'Better results over time as Prompty adapts to your business'
+    benefit: 'Better results over time as the AI adapts to your business'
   },
   {
     icon: Shield,
     title: 'Human-First Approach',
-    description: 'Designed to enhance human connection, not replace it. Prompty helps you be more personal, not less.',
+    description: 'Designed to enhance human connection, not replace it. Our AI helps you be more personal, not less.',
     benefit: 'Authentic relationships while scaling your review collection'
   }
 ]
@@ -153,11 +153,11 @@ export default function AIReviewsPage() {
             { label: 'Help', href: '/' }
           ]}
           currentPage="AI Reviews"
-          categoryLabel="Meet Prompty"
+          categoryLabel="AI Features"
           categoryIcon={Sparkles}
           categoryColor="purple"
-          title="Prompty: Your AI-Powered Review Assistant"
-          description="Think of Prompty as your review collection co-pilot. This AI assistant helps you create personalized, human-sounding review requests that actually work—without losing the personal touch that makes your business special."
+          title="AI-Powered Review Collection"
+          description="Our AI-powered system helps you create personalized, human-sounding review requests that actually work—without losing the personal touch that makes your business special."
         />
 
         <div className="max-w-4xl mx-auto mb-8">
@@ -173,21 +173,21 @@ export default function AIReviewsPage() {
           </div>
         </div>
 
-        {/* What is Prompty */}
+        {/* What is AI-Powered Review Collection */}
         <div className="callout info">
-          <h3 className="text-lg font-semibold mb-3">What Makes Prompty Different?</h3>
+          <h3 className="text-lg font-semibold mb-3">What Makes Our AI Different?</h3>
           <p className="mb-3">
-            Unlike generic AI tools, Prompty is specifically designed for review collection. It understands that 
+            Unlike generic AI tools, our system is specifically designed for review collection. It understands that 
             the best reviews come from genuine customer relationships, not robotic automation.
           </p>
           <p className="mb-0">
-            <strong>Prompty helps you be more human, not less.</strong> It takes the guesswork out of creating 
+            <strong>Our AI helps you be more human, not less.</strong> It takes the guesswork out of creating 
             personalized review requests while preserving the authentic voice that makes your business unique.
           </p>
         </div>
 
         {/* Features Grid */}
-        <h2>How Prompty Works for You</h2>
+        <h2>How AI-Powered Review Collection Works</h2>
         
         <div className="grid md:grid-cols-2 gap-6 mb-12">
           {features.map((feature) => (
@@ -207,7 +207,7 @@ export default function AIReviewsPage() {
         </div>
 
         {/* How It Works Process */}
-        <h2>The Prompty Process</h2>
+        <h2>The AI-Powered Process</h2>
         
         <div className="grid gap-6 mb-12">
           {howItWorks.map((step) => (
@@ -228,7 +228,7 @@ export default function AIReviewsPage() {
         </div>
 
         {/* Example Section */}
-        <h2>See Prompty in Action</h2>
+        <h2>See AI-Powered Reviews in Action</h2>
         
         <div className="grid md:grid-cols-2 gap-6 mb-12">
           <div className="p-6 bg-yellow-500/20 border border-yellow-400/30 rounded-lg">
