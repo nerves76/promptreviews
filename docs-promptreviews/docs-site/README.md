@@ -1,207 +1,195 @@
 # Prompt Reviews Documentation Site
 
-A comprehensive documentation website for Prompt Reviews, built with Next.js 14, TypeScript, and Tailwind CSS.
+This is the documentation site for Prompt Reviews, built with Next.js and designed to integrate with the main application's help system.
 
-## 🚀 Quick Start
+## Features
 
-```bash
-# Install dependencies
-npm install
+- **Search API**: Provides article search functionality for the main app's help system
+- **Article Association**: Maps app pages to relevant documentation articles
+- **Context-Aware Recommendations**: Suggests articles based on user's current page and behavior
+- **Responsive Design**: Works on desktop and mobile devices
+- **Modern UI**: Beautiful gradient backgrounds and glassmorphism design
 
-# Start development server
-npm run dev
+## API Endpoints
 
-# Open http://localhost:3001 in your browser
+### Search API (`/api/search`)
+
+The search API provides article search functionality for the main application's help system.
+
+**POST** `/api/search`
+- **Purpose**: Search articles based on keywords and context
+- **Request Body**:
+  ```json
+  {
+    "keywords": ["prompt-pages", "create"],
+    "path": "/dashboard/create-prompt-page",
+    "limit": 6,
+    "includeMetadata": true
+  }
+  ```
+- **Response**:
+  ```json
+  {
+    "tutorials": [...],
+    "articles": [...],
+    "total": 6,
+    "keywords": ["prompt-pages", "create"],
+    "path": "/dashboard/create-prompt-page",
+    "timestamp": "2024-01-01T00:00:00.000Z"
+  }
+  ```
+
+**GET** `/api/search`
+- **Query Parameters**:
+  - `q`: Search query string
+  - `category`: Filter by article category
+- **Example**: `/api/search?q=prompt pages&category=getting-started`
+
+## Article Metadata
+
+Each documentation page includes metadata for better search and association:
+
+```typescript
+export const metadata = {
+  title: 'Getting Started',
+  description: 'Quick start guide for new users',
+  helpContext: {
+    appPages: ['/dashboard', '/dashboard/business-profile'],
+    keywords: ['getting-started', 'setup', 'overview'],
+    category: 'getting-started',
+    priority: 'high'
+  }
+}
 ```
 
-## 📁 Project Structure
+## Integration with Main App
+
+The main application connects to this docs site through:
+
+1. **Help Bubble**: Floating help button in bottom-right corner
+2. **Context Mapping**: Maps app routes to relevant docs articles
+3. **Behavioral Tracking**: Tracks user actions for better recommendations
+4. **Smart Recommendations**: Suggests articles based on current page and user behavior
+
+## Development
+
+### Running Locally
+
+```bash
+cd docs-promptreviews/docs-site
+npm install
+npm run dev
+```
+
+### Environment Variables
+
+Add to your `.env.local`:
+```
+# Help System Configuration
+DOCS_API_URL=https://docs.promptreviews.app/api/search
+```
+
+### Adding New Articles
+
+1. Create a new page in `src/app/`
+2. Add metadata with help context
+3. Update the search API metadata array
+4. Test the integration with the main app
+
+## File Structure
 
 ```
 docs-site/
 ├── src/
-│   ├── app/                    # App Router pages
-│   │   ├── getting-started/    # Getting started guides
-│   │   ├── prompt-pages/       # Prompt pages documentation
-│   │   ├── contacts/           # Contact management guides
-│   │   ├── reviews/            # Review management docs
-│   │   ├── google-business/    # Google Business Profile guides
-│   │   ├── widgets/            # Widget integration docs
-│   │   ├── team/               # Team management guides
-│   │   ├── advanced/           # Advanced features
-│   │   └── troubleshooting/    # Troubleshooting & FAQ
-│   ├── components/             # Reusable React components
-│   │   ├── Header.tsx          # Site header with navigation
-│   │   └── Sidebar.tsx         # Documentation sidebar
-│   └── lib/                    # Utility functions
-├── content/                    # MDX content files (future)
-├── public/                     # Static assets
-└── tailwind.config.js          # Tailwind configuration
+│   ├── app/
+│   │   ├── api/
+│   │   │   └── search/
+│   │   │       └── route.ts          # Search API endpoint
+│   │   ├── getting-started/
+│   │   ├── prompt-pages/
+│   │   │   ├── page.tsx              # Main prompt pages overview
+│   │   │   ├── types/
+│   │   │   │   ├── page.tsx          # All prompt page types
+│   │   │   │   └── service/
+│   │   │   │       └── page.tsx      # Service prompt pages guide
+│   │   │   └── features/
+│   │   │       └── page.tsx          # All prompt page features
+│   │   ├── ai-reviews/
+│   │   ├── contacts/
+│   │   ├── troubleshooting/
+│   │   └── faq/
+│   └── components/
+└── README.md
 ```
 
-## 🎨 Brand & Design
+## Design System
 
-### Colors
-- **Primary**: `#6366F1` (Slate Blue) - Prompt Reviews brand color
-- **Secondary**: Gray scale for text and backgrounds
-- **Accent**: Purple and blue gradients for visual hierarchy
+### Styling Approach
 
-### Typography
-- **Font**: Inter (sans-serif)
-- **Headings**: Bold weights with proper hierarchy
-- **Body**: Regular weight with good line height for readability
+The documentation site uses a modern design system with:
 
-### Components
-- **Header**: Sticky navigation with search and app link
-- **Sidebar**: Collapsible navigation with icons and active states
-- **Content**: Responsive prose with callouts and code blocks
-- **Screenshot Placeholders**: Ready for actual app screenshots
+- **Gradient Backgrounds**: Beautiful indigo-to-purple-to-fuchsia gradients
+- **Glassmorphism**: Semi-transparent backgrounds with backdrop blur
+- **Consistent Spacing**: Tailwind CSS utility classes for spacing
+- **Responsive Design**: Mobile-first approach with responsive breakpoints
 
-## 📝 Content Guidelines
+### Color Palette
 
-### Writing Style
-- **Voice**: Friendly, professional, helpful
-- **Tone**: Clear, concise, action-oriented
-- **Prompt Reviews Features**: Always mention "Prompty" AI assistant when relevant
-- **Screenshots**: Include placeholder divs ready for actual screenshots
+- **Primary**: Slate blue (`#6366F1`) - Prompt Reviews brand color
+- **Background**: Gradient from indigo-900 to purple-900 to fuchsia-900
+- **Text**: White with opacity variations for hierarchy
+- **Accents**: Blue, green, purple for different content types
 
-### SEO Optimization
-- **Meta Tags**: Comprehensive title, description, keywords
-- **Schema Markup**: JSON-LD structured data for better search visibility
-- **URL Structure**: Clean, hierarchical paths
-- **Internal Linking**: Cross-references between related topics
+### Component Patterns
 
-### Content Structure
-```markdown
-# Page Title
-Brief introduction with what users will learn.
+- **Cards**: Semi-transparent backgrounds with backdrop blur
+- **Headers**: Gradient backgrounds with white text
+- **Navigation**: Hover effects with border color changes
+- **Tables**: Semi-transparent backgrounds with proper contrast
 
-## Prerequisites
-What users need before starting.
+## Prompt Pages Documentation
 
-## Step-by-Step Instructions
-Numbered steps with screenshots.
+### Structure
 
-## Tips & Best Practices
-Additional helpful information.
+The prompt pages documentation is organized into three main sections:
 
-## Related Articles
-Links to related documentation.
-```
+1. **Main Overview** (`/prompt-pages`)
+   - Introduction to prompt pages
+   - Quick navigation to types and features
+   - Getting started guide
 
-## 🔍 SEO Features
+2. **Types** (`/prompt-pages/types`)
+   - Service Prompt Pages
+   - Product Prompt Pages
+   - Photo Prompt Pages
+   - Video Prompt Pages
+   - Universal Prompt Pages
+   - Comparison table
 
-### Metadata
-- Dynamic page titles with template
-- Comprehensive meta descriptions
-- Keywords targeting search terms
-- OpenGraph and Twitter Card support
+3. **Features** (`/prompt-pages/features`)
+   - Emoji Sentiment Flow
+   - Prompty AI
+   - QR Code Generation
+   - Customization Options
+   - Analytics & Insights
+   - Multi-Platform Sharing
+   - Mobile Optimization
+   - Security & Privacy
+   - Platform Integration
 
-### Structured Data
-- WebSite schema for homepage
-- HowTo schema for tutorials
-- BreadcrumbList for navigation
-- TechArticle schema for technical content
+### Content Guidelines
 
-### Performance
-- Static site generation for fast loading
-- Optimized images with Next.js Image component
-- Minimal JavaScript bundle
-- Mobile-first responsive design
+- **Comprehensive Coverage**: Every prompt page type and feature documented
+- **Real Examples**: Practical use cases and business examples
+- **Step-by-Step Guides**: Clear instructions for implementation
+- **Best Practices**: Tips for optimal results
+- **SEO Optimization**: Proper metadata and structured data
 
-## 📱 Features
+## Recent Updates
 
-### Navigation
-- **Header**: Global navigation with search and app link
-- **Sidebar**: Contextual navigation with expand/collapse
-- **Breadcrumbs**: Show user location in site hierarchy
-- **Mobile**: Responsive design with mobile menu
-
-### Search (Planned)
-- Full-text search across all documentation
-- Keyboard shortcut (⌘K) support
-- Search suggestions and autocomplete
-- Results highlighting
-
-### Content
-- **Callouts**: Info, warning, success, and tip boxes
-- **Code Blocks**: Syntax highlighting with copy button
-- **Screenshots**: Placeholder system ready for actual images
-- **Cross-References**: Related articles and internal linking
-
-## 🚀 Deployment
-
-### Development
-```bash
-npm run dev    # Start development server on port 3001
-npm run build  # Build for production
-npm run start  # Start production server
-```
-
-### Production
-- Deploy to Vercel, Netlify, or similar platform
-- Set up custom domain: `docs.promptreviews.com`
-- Configure analytics (Google Analytics, Mixpanel, etc.)
-- Set up search indexing (Algolia DocSearch)
-
-### Environment Variables
-```env
-# Add if using search or analytics
-NEXT_PUBLIC_ALGOLIA_APP_ID=your_algolia_app_id
-NEXT_PUBLIC_ALGOLIA_SEARCH_KEY=your_search_key
-NEXT_PUBLIC_GA_TRACKING_ID=your_ga_id
-```
-
-## 📸 Adding Screenshots
-
-Replace screenshot placeholders with actual app screenshots:
-
-1. **Take Screenshots**: Capture key screens from Prompt Reviews app
-2. **Optimize Images**: Use WebP format, optimize for web
-3. **Replace Placeholders**: Update `.screenshot-placeholder` divs
-4. **Add Alt Text**: Descriptive alt text for accessibility
-
-### Screenshot Guidelines
-- **Consistent**: Same browser, zoom level, and UI state
-- **Clean**: Hide sensitive user data, use sample data
-- **Annotated**: Add callouts and highlights when helpful
-- **Mobile**: Include mobile screenshots for responsive features
-
-## 🤝 Contributing
-
-### Adding New Content
-1. Create new page in appropriate `src/app/` subdirectory
-2. Follow content structure guidelines
-3. Include proper metadata and SEO optimization
-4. Add navigation links in `Sidebar.tsx`
-5. Test on mobile and desktop
-
-### Content Updates
-- Keep documentation in sync with app updates
-- Update screenshots when UI changes
-- Verify all links work correctly
-- Test search functionality
-
-## 🛠 Technical Details
-
-### Built With
-- **Next.js 14**: App Router, Server Components
-- **TypeScript**: Type safety and better DX
-- **Tailwind CSS**: Utility-first styling
-- **MDX**: Markdown with React components (future)
-- **Lucide Icons**: Consistent icon set
-
-### Performance
-- **Static Generation**: Fast loading times
-- **Image Optimization**: Automatic WebP conversion
-- **Code Splitting**: Minimal JavaScript bundles
-- **Caching**: Aggressive caching for production
-
-### Accessibility
-- **Semantic HTML**: Proper heading hierarchy
-- **Keyboard Navigation**: Full keyboard support
-- **Screen Readers**: ARIA labels and descriptions
-- **Color Contrast**: WCAG 2.1 AA compliance
-
----
-
-**Note**: This documentation site is ready for content and screenshots. The structure, navigation, and styling are complete. Add your app screenshots to replace the placeholder boxes and start creating comprehensive documentation for Prompt Reviews users.
+- **2024-01-XX**: Added comprehensive prompt page documentation structure
+- **2024-01-XX**: Implemented modern gradient design system
+- **2024-01-XX**: Created individual pages for each prompt page type
+- **2024-01-XX**: Added detailed feature documentation
+- **2024-01-XX**: Updated search API with new content
+- **2024-01-XX**: Added article association system

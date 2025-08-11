@@ -1,5 +1,6 @@
 /**
  * Tutorials tab component for the help modal
+ * Enhanced with article association and behavioral tracking
  */
 
 'use client';
@@ -8,6 +9,11 @@ import { useState, useEffect } from 'react';
 import Icon from '@/components/Icon';
 import { Tutorial } from './types';
 import { calculateRelevanceScore } from './contextMapper';
+import { 
+  trackUserAction, 
+  getRecommendedArticles,
+  getPageKeywords 
+} from './articleAssociation';
 import { trackEvent } from '../../../utils/analytics';
 
 interface TutorialsTabProps {
@@ -24,21 +30,38 @@ export default function TutorialsTab({
   const [tutorials, setTutorials] = useState<Tutorial[]>([]);
   const [loadingTutorials, setLoadingTutorials] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [recommendedArticles, setRecommendedArticles] = useState<string[]>([]);
 
   useEffect(() => {
     fetchTutorials();
-  }, [pathname, contextKeywords]);
+    // Track page view for behavioral recommendations
+    trackUserAction({
+      action: 'page_view',
+      page: pathname,
+      timestamp: new Date(),
+      success: true,
+      context: pageName
+    });
+  }, [pathname, contextKeywords, pageName]);
 
   const fetchTutorials = async () => {
     setLoadingTutorials(true);
     try {
-      // TODO: Replace with your Help Docs API endpoint
+      // Get recommended articles based on current page and user behavior
+      const recommendations = getRecommendedArticles(pathname, 3);
+      setRecommendedArticles(recommendations);
+      
+      // Combine context keywords with page-specific keywords
+      const pageKeywords = getPageKeywords(pathname);
+      const allKeywords = [...new Set([...contextKeywords, ...pageKeywords])];
+      
       const response = await fetch('/api/help-docs/tutorials', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          context: contextKeywords,
-          pathname: pathname
+          context: allKeywords,
+          pathname: pathname,
+          recommendedArticles: recommendations
         })
       });
 
@@ -46,29 +69,29 @@ export default function TutorialsTab({
         const data = await response.json();
         const tutorialsWithScores = data.tutorials.map((tutorial: Tutorial) => ({
           ...tutorial,
-          relevanceScore: calculateRelevanceScore(tutorial, contextKeywords)
+          relevanceScore: calculateRelevanceScore(tutorial, allKeywords)
         }));
         setTutorials(tutorialsWithScores);
       } else {
         // Fallback to mock data if API not available
-        setTutorials(getMockTutorials());
+        setTutorials(getMockTutorials(allKeywords));
       }
     } catch (error) {
       console.error('Error fetching tutorials:', error);
       // Fallback to mock data
-      setTutorials(getMockTutorials());
+      setTutorials(getMockTutorials(contextKeywords));
     } finally {
       setLoadingTutorials(false);
     }
   };
 
-  const getMockTutorials = (): Tutorial[] => {
+  const getMockTutorials = (keywords: string[]): Tutorial[] => {
     const allTutorials: Tutorial[] = [
       {
         id: '1',
         title: 'Getting Started with Prompt Pages',
         description: 'Learn how to create your first prompt page to collect customer reviews',
-        url: 'https://docs.promptreviews.app/getting-started/prompt-pages',
+        url: 'https://docs.promptreviews.app/getting-started',
         category: 'getting-started',
         tags: ['prompt-pages', 'create', 'setup']
       },
@@ -118,13 +141,22 @@ export default function TutorialsTab({
     return allTutorials
       .map(tutorial => ({
         ...tutorial,
-        relevanceScore: calculateRelevanceScore(tutorial, contextKeywords)
+        relevanceScore: calculateRelevanceScore(tutorial, keywords)
       }))
       .sort((a, b) => (b.relevanceScore || 0) - (a.relevanceScore || 0))
       .slice(0, 6);
   };
 
   const handleTutorialClick = (tutorial: Tutorial) => {
+    // Track tutorial click for behavioral recommendations
+    trackUserAction({
+      action: 'tutorial_clicked',
+      page: pathname,
+      timestamp: new Date(),
+      success: true,
+      context: tutorial.title
+    });
+    
     trackEvent('help_tutorial_clicked', {
       tutorial_id: tutorial.id,
       tutorial_title: tutorial.title,
@@ -157,11 +189,11 @@ export default function TutorialsTab({
             </span>
           </div>
           <span className="text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded">
-            Context-aware help
+            Smart recommendations
           </span>
         </div>
         <p className="text-sm text-blue-700">
-          These tutorials are specifically relevant to what you're working on right now.
+          These tutorials are tailored to what you're working on and your recent activity.
         </p>
       </div>
 
@@ -206,11 +238,18 @@ export default function TutorialsTab({
                 <h3 className="font-medium text-gray-900 group-hover:text-slate-blue transition-colors line-clamp-2">
                   {tutorial.title}
                 </h3>
-                {tutorial.relevanceScore && tutorial.relevanceScore > 80 && (
-                  <span className="ml-2 px-2 py-1 text-xs bg-green-100 text-green-800 rounded-full whitespace-nowrap">
-                    Recommended
-                  </span>
-                )}
+                <div className="flex items-center space-x-1">
+                  {recommendedArticles.includes(tutorial.id) && (
+                    <span className="px-2 py-1 text-xs bg-green-100 text-green-800 rounded-full whitespace-nowrap">
+                      Recommended
+                    </span>
+                  )}
+                  {tutorial.relevanceScore && tutorial.relevanceScore > 80 && (
+                    <span className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full whitespace-nowrap">
+                      Relevant
+                    </span>
+                  )}
+                </div>
               </div>
               <p className="text-sm text-gray-600 mb-3 line-clamp-2">
                 {tutorial.description}

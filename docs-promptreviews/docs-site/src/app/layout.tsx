@@ -116,7 +116,7 @@ export default function RootLayout({
         <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
       </head>
-      <body className={`${inter.className} text-gray-900 antialiased`}>
+      <body className={`${inter.className} text-white antialiased`}>
         <div className="min-h-screen flex flex-col">
           <Header />
           <main className="flex-1">

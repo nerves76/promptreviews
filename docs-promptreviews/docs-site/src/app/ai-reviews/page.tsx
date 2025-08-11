@@ -1,399 +1,344 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import DocsLayout from '../docs-layout'
 import { 
-  CheckCircle, 
+  Sparkles, 
   Star, 
-  Users, 
+  MessageSquare, 
   Zap, 
   ArrowRight, 
-  Clock,
-  AlertCircle,
   Brain,
-  Edit3,
-  Shield,
   Target,
-  Settings
+  Users,
+  CheckCircle,
+  Lightbulb,
+  TrendingUp,
+  Shield,
+  Clock,
+  Heart
 } from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: 'AI-Assisted Reviews - Human-Controlled, AI-Enhanced | Prompt Reviews Help',
-  description: 'Learn how Prompt Reviews uses AI to help create authentic reviews while keeping humans in complete control. Never auto-submits, always requires human approval.',
+  title: 'Prompty AI - Your AI-Powered Review Assistant | Prompt Reviews',
+  description: 'Meet Prompty, your AI assistant that helps create personalized review requests, optimizes your prompt pages, and makes review collection feel human and authentic.',
   keywords: [
-    'AI reviews',
-    'AI-assisted review generation',
-    'human-controlled AI',
-    'authentic review creation',
-    'Prompty AI assistant',
-    'review automation with oversight'
+    'Prompty AI',
+    'AI review assistant',
+    'personalized review requests',
+    'review automation',
+    'customer review AI',
+    'review collection automation'
   ],
   alternates: {
     canonical: 'https://docs.promptreviews.com/ai-reviews',
   },
 }
 
-const aiFeatures = [
-  {
-    name: 'Human-First Approach',
-    description: 'AI generates, humans decide. Every review requires manual approval before submission.',
-    icon: Shield,
-    color: 'bg-green-500',
+// JSON-LD structured data
+const pageJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'SoftwareApplication',
+  name: 'Prompty AI Review Assistant',
+  description: 'AI-powered assistant that helps create personalized review requests and optimize review collection',
+  applicationCategory: 'BusinessApplication',
+  operatingSystem: 'Web Browser',
+  url: 'https://promptreviews.com',
+  author: {
+    '@type': 'Organization',
+    name: 'Prompt Reviews',
   },
+  featureList: [
+    'Personalized review request generation',
+    'Prompt page optimization',
+    'Customer sentiment analysis',
+    'Review response rate optimization'
+  ],
+}
+
+const features = [
   {
-    name: 'Business Intelligence',
-    description: 'AI learns your business details, values, and voice to create authentic-sounding reviews.',
     icon: Brain,
-    color: 'bg-blue-500',
+    title: 'Smart Personalization',
+    description: 'Prompty analyzes your business, customers, and context to create review requests that feel genuinely personal.',
+    benefit: 'Higher response rates from authentic, human-sounding requests'
   },
   {
-    name: 'Always Editable',
-    description: 'Generated content appears in editable text areas. Change anything, anytime.',
-    icon: Edit3,
-    color: 'bg-purple-500',
-  },
-  {
-    name: 'Platform Optimization',
-    description: 'AI adapts content for Google, Yelp, Facebook, and other review platforms.',
     icon: Target,
-    color: 'bg-orange-500',
+    title: 'Context-Aware Content',
+    description: 'Creates different messages for different situations - whether it\'s a service completion, product purchase, or event attendance.',
+    benefit: 'Relevant messaging that resonates with each customer\'s experience'
   },
+  {
+    icon: TrendingUp,
+    title: 'Performance Optimization',
+    description: 'Learns from your results and continuously improves your review request strategies.',
+    benefit: 'Better results over time as Prompty adapts to your business'
+  },
+  {
+    icon: Shield,
+    title: 'Human-First Approach',
+    description: 'Designed to enhance human connection, not replace it. Prompty helps you be more personal, not less.',
+    benefit: 'Authentic relationships while scaling your review collection'
+  }
 ]
 
-const promptPageTypes = [
+const howItWorks = [
   {
-    name: 'Universal Pages',
-    context: 'General business reviews',
-    aiTraining: 'Business profile only',
-    bestFor: 'Ongoing review collection',
+    step: 1,
+    title: 'Understand Your Business',
+    description: 'Prompty learns about your business type, services, customer base, and review goals.',
+    icon: Users
+  },
+  {
+    step: 2,
+    title: 'Analyze Customer Context',
+    description: 'Considers the customer\'s experience, relationship with your business, and what they\'re most likely to review.',
+    icon: Target
+  },
+  {
+    step: 3,
+    title: 'Generate Personalized Content',
+    description: 'Creates review requests that feel personal, relevant, and authentic to each customer.',
+    icon: MessageSquare
+  },
+  {
+    step: 4,
+    title: 'Optimize for Results',
+    description: 'Tracks performance and adjusts strategies to improve your review collection success.',
+    icon: TrendingUp
+  }
+]
+
+const bestPractices = [
+  {
+    icon: Heart,
+    title: 'Keep It Personal',
+    description: 'Use Prompty to enhance your personal touch, not replace it. Add your own voice and specific details.',
+    tip: 'Review and customize Prompty\'s suggestions before sending'
+  },
+  {
+    icon: Clock,
+    title: 'Timing Matters',
+    description: 'Send review requests when the experience is fresh but not overwhelming. Prompty helps you find the sweet spot.',
+    tip: 'Consider your customer\'s journey and when they\'re most likely to respond'
+  },
+  {
     icon: Star,
+    title: 'Focus on Happy Customers',
+    description: 'Prompty works best when targeting customers who had positive experiences. Quality over quantity.',
+    tip: 'Use your CRM data to identify satisfied customers first'
   },
   {
-    name: 'Service Pages',
-    context: 'Specific services provided',
-    aiTraining: 'Business + service + outcomes',
-    bestFor: 'Professional services',
-    icon: Settings,
-  },
-  {
-    name: 'Product Pages',
-    context: 'Specific products sold',
-    aiTraining: 'Business + product + experience',
-    bestFor: 'E-commerce businesses',
-    icon: Target,
-  },
-  {
-    name: 'Employee Pages',
-    context: 'Team member highlights',
-    aiTraining: 'Business + employee + interaction',
-    bestFor: 'Service-based businesses',
-    icon: Users,
-  },
+    icon: Zap,
+    title: 'Test and Iterate',
+    description: 'Try different approaches and let Prompty learn what works best for your specific business and customers.',
+    tip: 'Start with a small group and expand based on results'
+  }
 ]
 
 export default function AIReviewsPage() {
   return (
-    <>
-      {/* Hero Section */}
-      <div className="max-w-4xl mx-auto mb-16">
-        <div className="inline-flex items-center space-x-2 bg-blue-50 text-blue-700 px-4 py-2 rounded-full text-sm font-medium mb-6">
-          <Brain className="w-4 h-4" />
-          <span>AI-Assisted Reviews</span>
-        </div>
-        
-        <h1 className="text-4xl sm:text-5xl font-bold text-white mb-6 text-balance">
-          AI-Assisted Reviews: Human-Controlled, AI-Enhanced
-        </h1>
-        
-        <p className="text-xl text-white/90 mb-8 text-balance">
-          The best reviews feel real because they are. Prompt Reviews uses AI to help create authentic reviews while keeping you in complete control—no auto-submissions, ever.
-        </p>
+    <DocsLayout>
+      {/* JSON-LD structured data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(pageJsonLd) }}
+      />
 
-        <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6 mb-12">
-          <h2 className="text-xl font-semibold text-white mb-4 flex items-center">
-            <Shield className="w-6 h-6 mr-2 text-green-300" />
-            Our Core Promise
-          </h2>
-          <div className="grid md:grid-cols-2 gap-4 text-white/90">
-            <div className="flex items-start space-x-3">
-              <CheckCircle className="w-5 h-5 text-green-300 mt-0.5 flex-shrink-0" />
-              <span>Every AI-generated review requires human approval</span>
+      <div className="prose-docs">
+        {/* Breadcrumb */}
+        <nav className="flex items-center space-x-2 text-sm text-white/60 mb-8">
+          <Link href="/" className="hover:text-white/80">Documentation</Link>
+          <span>/</span>
+          <span className="text-white">AI Reviews</span>
+        </nav>
+
+        {/* Header */}
+        <div className="mb-12">
+          <div className="inline-flex items-center space-x-2 bg-purple-500/20 text-purple-300 px-3 py-1 rounded-full text-sm font-medium mb-6">
+            <Sparkles className="w-4 h-4" />
+            <span>Meet Prompty</span>
+          </div>
+
+          <h1 className="text-4xl font-bold text-white mb-4">
+            Prompty: Your AI-Powered Review Assistant
+          </h1>
+
+          <p className="text-xl text-white/70 mb-6">
+            Think of Prompty as your review collection co-pilot. This AI assistant helps you create personalized, 
+            human-sounding review requests that actually work—without losing the personal touch that makes your 
+            business special.
+          </p>
+
+          <div className="flex items-center space-x-6 text-sm text-white/70">
+            <div className="flex items-center space-x-2">
+              <Brain className="w-4 h-4" />
+              <span>AI-powered personalization</span>
             </div>
-            <div className="flex items-start space-x-3">
-              <CheckCircle className="w-5 h-5 text-green-300 mt-0.5 flex-shrink-0" />
-              <span>All content is fully editable before submission</span>
-            </div>
-            <div className="flex items-start space-x-3">
-              <CheckCircle className="w-5 h-5 text-green-300 mt-0.5 flex-shrink-0" />
-              <span>No automatic submissions to any platform</span>
-            </div>
-            <div className="flex items-start space-x-3">
-              <CheckCircle className="w-5 h-5 text-green-300 mt-0.5 flex-shrink-0" />
-              <span>Humans always have the final say</span>
+            <div className="flex items-center space-x-2">
+              <Zap className="w-4 h-4" />
+              <span>Human-first approach</span>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* How It Works Section */}
-      <div className="max-w-4xl mx-auto mb-16">
-        <h2 className="text-3xl font-bold text-white mb-8">How AI-Assisted Reviews Work</h2>
-        
-        <div className="space-y-8">
-          {/* Step 1 */}
-          <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6">
-            <div className="flex items-center space-x-3 mb-4">
-              <div className="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center font-semibold">1</div>
-              <h3 className="text-xl font-semibold text-white">Business Information Training</h3>
-            </div>
-            <p className="text-white/90 mb-4">
-              Your business profile becomes Prompty's knowledge base. The more details you provide, the more authentic your AI-generated reviews become.
-            </p>
-            <div className="grid md:grid-cols-2 gap-4">
-              <div>
-                <h4 className="font-medium text-white mb-2">Essential Details:</h4>
-                <ul className="text-sm text-white/80 space-y-1">
-                  <li>• Services & expertise you offer</li>
-                  <li>• Company values and approach</li>
-                  <li>• What makes you different</li>
-                  <li>• Years in business</li>
-                </ul>
-              </div>
-              <div>
-                <h4 className="font-medium text-white mb-2">AI Instructions:</h4>
-                <ul className="text-sm text-white/80 space-y-1">
-                  <li>• What to always mention</li>
-                  <li>• What to never include</li>
-                  <li>• Your preferred tone</li>
-                  <li>• Industry keywords</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-
-          {/* Step 2 */}
-          <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6">
-            <div className="flex items-center space-x-3 mb-4">
-              <div className="w-8 h-8 bg-purple-500 text-white rounded-full flex items-center justify-center font-semibold">2</div>
-              <h3 className="text-xl font-semibold text-white">Contextual Information Layer</h3>
-            </div>
-            <p className="text-white/90 mb-4">
-              Each prompt page adds specific context that makes reviews feel personal and authentic.
-            </p>
-            <div className="bg-white/5 rounded-lg p-4">
-              <h4 className="font-medium text-white mb-2">Context Includes:</h4>
-              <div className="grid md:grid-cols-3 gap-4 text-sm text-white/80">
-                <div>
-                  <strong>Service Details:</strong>
-                  <br />What was provided, outcomes achieved
-                </div>
-                <div>
-                  <strong>Customer Info:</strong>
-                  <br />Names, roles, specific needs
-                </div>
-                <div>
-                  <strong>Project Specifics:</strong>
-                  <br />Timeline, team members, unique aspects
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Step 3 */}
-          <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6">
-            <div className="flex items-center space-x-3 mb-4">
-              <div className="w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center font-semibold">3</div>
-              <h3 className="text-xl font-semibold text-white">Generation with Human Control</h3>
-            </div>
-            <p className="text-white/90 mb-4">
-              When you click "Generate with AI," here's what happens:
-            </p>
-            <div className="space-y-3">
-              <div className="flex items-start space-x-3">
-                <div className="w-6 h-6 bg-blue-400 rounded-full flex items-center justify-center text-xs font-bold text-white mt-0.5">AI</div>
-                <span className="text-white/90">Analyzes your business profile + contextual information</span>
-              </div>
-              <div className="flex items-start space-x-3">
-                <div className="w-6 h-6 bg-blue-400 rounded-full flex items-center justify-center text-xs font-bold text-white mt-0.5">AI</div>
-                <span className="text-white/90">Generates a personalized, authentic-sounding review draft</span>
-              </div>
-              <div className="flex items-start space-x-3">
-                <div className="w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center text-xs font-bold text-white mt-0.5">👤</div>
-                <span className="text-white/90">Presents draft to you for inspection and editing</span>
-              </div>
-              <div className="flex items-start space-x-3">
-                <div className="w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center text-xs font-bold text-white mt-0.5">👤</div>
-                <span className="text-white/90">You edit, revise, or completely rewrite as needed</span>
-              </div>
-              <div className="flex items-start space-x-3">
-                <div className="w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center text-xs font-bold text-white mt-0.5">👤</div>
-                <span className="text-white/90">You manually submit to your chosen platform</span>
-              </div>
-            </div>
-          </div>
+        {/* What is Prompty */}
+        <div className="callout info">
+          <h3 className="text-lg font-semibold mb-3">What Makes Prompty Different?</h3>
+          <p className="mb-3">
+            Unlike generic AI tools, Prompty is specifically designed for review collection. It understands that 
+            the best reviews come from genuine customer relationships, not robotic automation.
+          </p>
+          <p className="mb-0">
+            <strong>Prompty helps you be more human, not less.</strong> It takes the guesswork out of creating 
+            personalized review requests while preserving the authentic voice that makes your business unique.
+          </p>
         </div>
-      </div>
 
-      {/* Key Features */}
-      <div className="max-w-4xl mx-auto mb-16">
-        <h2 className="text-3xl font-bold text-white mb-8 text-center">Key Features That Keep You in Control</h2>
+        {/* Features Grid */}
+        <h2>How Prompty Works for You</h2>
         
-        <div className="grid md:grid-cols-2 gap-6">
-          {aiFeatures.map((feature) => (
-            <div key={feature.name} className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6">
-              <div className="flex items-start space-x-4">
-                <div className={`inline-flex p-3 rounded-lg ${feature.color} mb-4`}>
-                  <feature.icon className="w-6 h-6 text-white" />
+        <div className="grid md:grid-cols-2 gap-6 mb-12">
+          {features.map((feature) => (
+            <div key={feature.title} className="p-6 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg">
+              <div className="flex items-center space-x-3 mb-4">
+                <div className="p-2 bg-purple-500/20 rounded-lg">
+                  <feature.icon className="w-5 h-5 text-purple-300" />
                 </div>
-                <div className="flex-1">
-                  <h3 className="text-xl font-semibold text-white mb-2">{feature.name}</h3>
-                  <p className="text-white/80">{feature.description}</p>
-                </div>
+                <h3 className="font-semibold text-white mb-0">{feature.title}</h3>
+              </div>
+              <p className="text-white/70 mb-3">{feature.description}</p>
+              <div className="text-sm text-purple-300 font-medium">
+                💡 {feature.benefit}
               </div>
             </div>
           ))}
         </div>
-      </div>
 
-      {/* Prompt Page Types */}
-      <div className="max-w-4xl mx-auto mb-16">
-        <h2 className="text-3xl font-bold text-white mb-8">Understanding Prompt Page Types</h2>
+        {/* How It Works Process */}
+        <h2>The Prompty Process</h2>
         
-        <div className="bg-white/5 border border-white/20 rounded-xl p-6 mb-8">
-          <p className="text-white/90">
-            Different prompt page types give AI different levels of context, resulting in more targeted and authentic reviews.
-          </p>
-        </div>
-
-        <div className="grid md:grid-cols-2 gap-6">
-          {promptPageTypes.map((type, index) => (
-            <div key={type.name} className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6">
-              <div className="flex items-start space-x-4">
-                <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
-                  <type.icon className="w-6 h-6 text-white" />
+        <div className="grid gap-6 mb-12">
+          {howItWorks.map((step) => (
+            <div key={step.step} className="flex items-start space-x-4 p-6 bg-gray-50 rounded-lg">
+              <div className="flex-shrink-0 w-8 h-8 bg-purple-500/20 text-purple-300 rounded-full flex items-center justify-center font-bold text-sm">
+                {step.step}
+              </div>
+              
+              <div className="flex-1">
+                <div className="flex items-center space-x-3 mb-2">
+                  <step.icon className="w-5 h-5 text-purple-300" />
+                  <h3 className="text-lg font-semibold text-white mb-0">{step.title}</h3>
                 </div>
-                <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-white mb-2">{type.name}</h3>
-                  <div className="space-y-2 text-sm">
-                    <div>
-                      <span className="font-medium text-white">Context: </span>
-                      <span className="text-white/80">{type.context}</span>
-                    </div>
-                    <div>
-                      <span className="font-medium text-white">AI Training: </span>
-                      <span className="text-white/80">{type.aiTraining}</span>
-                    </div>
-                    <div>
-                      <span className="font-medium text-white">Best For: </span>
-                      <span className="text-white/80">{type.bestFor}</span>
-                    </div>
-                  </div>
-                </div>
+                <p className="text-white/70 mb-0">{step.description}</p>
               </div>
             </div>
           ))}
         </div>
-      </div>
 
-      {/* Training Your AI */}
-      <div className="max-w-4xl mx-auto mb-16">
-        <h2 className="text-3xl font-bold text-white mb-8">Training Your AI for Better Results</h2>
+        {/* Example Section */}
+        <h2>See Prompty in Action</h2>
         
-        <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-8">
-          <div className="grid md:grid-cols-2 gap-8">
-            <div>
-              <h3 className="text-xl font-semibold text-white mb-4 flex items-center">
-                <CheckCircle className="w-5 h-5 mr-2 text-green-300" />
-                AI Do's - What to Include
-              </h3>
-              <div className="space-y-3 text-white/90">
-                <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-3">
-                  <strong>Example:</strong> "Always mention our 24/7 customer support"
-                </div>
-                <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-3">
-                  <strong>Example:</strong> "Highlight our eco-friendly practices"
-                </div>
-                <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-3">
-                  <strong>Example:</strong> "Reference our certified technicians"
-                </div>
-              </div>
-            </div>
-            
-            <div>
-              <h3 className="text-xl font-semibold text-white mb-4 flex items-center">
-                <AlertCircle className="w-5 h-5 mr-2 text-red-300" />
-                AI Don'ts - What to Avoid
-              </h3>
-              <div className="space-y-3 text-white/90">
-                <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3">
-                  <strong>Example:</strong> "Never mention competitors by name"
-                </div>
-                <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3">
-                  <strong>Example:</strong> "Don't reference pricing in reviews"
-                </div>
-                <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3">
-                  <strong>Example:</strong> "Avoid technical jargon"
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Example Section */}
-      <div className="max-w-4xl mx-auto mb-16">
-        <h2 className="text-3xl font-bold text-white mb-8">See AI Training in Action</h2>
-        
-        <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6">
-          <div className="mb-6">
-            <h3 className="text-lg font-semibold text-white mb-3">Business Profile Example:</h3>
-            <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4 text-white/90">
-              <strong>Business:</strong> "Green Clean Solutions"<br />
-              <strong>Service:</strong> "Eco-friendly carpet cleaning"<br />
-              <strong>Values:</strong> "Environmental responsibility, family safety"<br />
-              <strong>Differentiator:</strong> "100% non-toxic cleaning products"<br />
-              <strong>Experience:</strong> "15 years in business"
-            </div>
+        <div className="grid md:grid-cols-2 gap-6 mb-12">
+          <div className="p-6 bg-yellow-500/20 border border-yellow-400/30 rounded-lg">
+            <h4 className="font-semibold text-white mb-3">Before Prompty</h4>
+            <blockquote className="text-white/70 italic mb-4">
+              "Hi! Please leave us a review on Google. Thanks!"
+            </blockquote>
+            <p className="text-sm text-white/60 mb-0">
+              Generic, impersonal, low response rate
+            </p>
           </div>
           
-          <div>
-            <h3 className="text-lg font-semibold text-white mb-3">Generated Review Sample:</h3>
-            <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-4 text-white/90 italic">
-              "I've been using Green Clean Solutions for my carpet cleaning needs and couldn't be happier! With 15 years in the business, they really know what they're doing. What I love most is their commitment to environmental responsibility—they use 100% non-toxic cleaning products, which gives me peace of mind with my young children. The family safety aspect was huge for me, and they delivered exactly what they promised. Highly recommend!"
-            </div>
-          </div>
-          
-          <div className="mt-4 text-sm text-white/70">
-            <strong>Notice how AI wove in:</strong> Business experience (15 years), values (environmental responsibility), differentiator (non-toxic products), and customer context (family with children)
+          <div className="p-6 bg-green-500/20 border border-green-400/30 rounded-lg">
+            <h4 className="font-semibold text-white mb-3">With Prompty</h4>
+            <blockquote className="text-white/70 italic mb-4">
+              "Hi Sarah! We loved helping you transform your kitchen last month. The before-and-after photos 
+              you shared with us were incredible. Would you mind sharing your experience on Google? Your 
+              review would help other homeowners discover what's possible with a kitchen renovation."
+            </blockquote>
+            <p className="text-sm text-white/60 mb-0">
+              Personal, specific, much higher response rate
+            </p>
           </div>
         </div>
-      </div>
 
-      {/* Next Steps */}
-      <div className="max-w-4xl mx-auto">
-        <div className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 p-8 text-center">
-          <h2 className="text-2xl font-bold text-white mb-4">Ready to Try AI-Assisted Reviews?</h2>
-          <p className="text-white/80 mb-6 max-w-2xl mx-auto">
-            Start with a solid business profile, then create your first prompt page. Remember: AI suggests, you decide.
+        {/* Best Practices */}
+        <h2>Getting the Most from Prompty</h2>
+        
+        <div className="grid md:grid-cols-2 gap-6 mb-12">
+          {bestPractices.map((practice) => (
+            <div key={practice.title} className="p-6 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg">
+              <div className="flex items-center space-x-3 mb-4">
+                <div className="p-2 bg-blue-500/20 rounded-lg">
+                  <practice.icon className="w-5 h-5 text-blue-300" />
+                </div>
+                <h3 className="font-semibold text-white mb-0">{practice.title}</h3>
+              </div>
+              <p className="text-white/70 mb-3">{practice.description}</p>
+              <div className="text-sm text-blue-300 font-medium">
+                💡 {practice.tip}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Privacy & Ethics */}
+        <h2>Privacy & Ethics</h2>
+        
+        <div className="callout success">
+          <h3 className="text-lg font-semibold mb-3">Your Data Stays Yours</h3>
+          <p className="mb-3">
+            Prompty is designed with privacy and ethics in mind. We believe AI should enhance human relationships, 
+            not exploit them.
           </p>
-          
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <ul className="space-y-1 mb-0">
+            <li>• Prompty never stores or shares your customer data</li>
+            <li>• All AI processing happens securely on our servers</li>
+            <li>• You always review and approve content before sending</li>
+            <li>• Prompty follows ethical AI guidelines and best practices</li>
+          </ul>
+        </div>
+
+        {/* Getting Started */}
+        <div className="callout info">
+          <h3 className="text-lg font-semibold mb-3">Ready to Meet Prompty?</h3>
+          <p className="mb-4">
+            Prompty is included with every Prompt Reviews plan. Start creating personalized review requests 
+            that actually work.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3">
             <Link
               href="/getting-started"
-              className="inline-flex items-center space-x-2 bg-white/10 text-white px-6 py-3 rounded-lg hover:bg-white/20 border border-white/30 transition-colors font-medium backdrop-blur-sm"
+              className="inline-flex items-center space-x-2 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors font-medium no-underline"
             >
-              <span>Get Started Guide</span>
+              <span>Get Started</span>
               <ArrowRight className="w-4 h-4" />
             </Link>
-            
-            <a
-              href="https://promptreviews.com/dashboard"
-              className="inline-flex items-center space-x-2 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+            <Link
+              href="/prompt-pages"
+              className="inline-flex items-center space-x-2 border border-purple-400 text-purple-300 px-4 py-2 rounded-lg hover:bg-white/10/20 transition-colors font-medium no-underline"
             >
-              <span>Try It Now</span>
-              <Zap className="w-4 h-4" />
-            </a>
+              <span>Learn About Prompt Pages</span>
+            </Link>
           </div>
         </div>
+
+        {/* Related Articles */}
+        <h2>Related Articles</h2>
+        
+        <div className="grid md:grid-cols-2 gap-4">
+          <Link href="/prompt-pages" className="block p-4 border border-white/20 rounded-lg hover:border-purple-400 transition-colors no-underline">
+            <h4 className="font-semibold text-white mb-2">Creating Prompt Pages</h4>
+            <p className="text-sm text-white/70 mb-0">Learn how to create personalized review request pages with Prompty's help.</p>
+          </Link>
+          
+          <Link href="/getting-started" className="block p-4 border border-white/20 rounded-lg hover:border-purple-400 transition-colors no-underline">
+            <h4 className="font-semibold text-white mb-2">Getting Started Guide</h4>
+            <p className="text-sm text-white/70 mb-0">Set up your account and start using Prompty in under 30 minutes.</p>
+          </Link>
+        </div>
       </div>
-    </>
+    </DocsLayout>
   )
 }

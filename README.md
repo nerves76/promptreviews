@@ -1089,454 +1089,348 @@ This page provides a slider to adjust widget width and test the responsive behav
 - The user must click the confirmation link in their email to activate their account before signing in.
 - This process improves security, prevents spam, and ensures account recovery. 
 
-## Documentation
+## 📚 Documentation
 
-- [Database Schema](databaseschema.md) - Complete database structure and relationships
-- [Sign-Up Process & Multi-User System](SIGNUP_AND_MULTI_USER_DOCUMENTATION.md) - Comprehensive guide to authentication and multi-user account management
-- [Authentication Cleanup](AUTHENTICATION_CLEANUP.md) - Security standardization and API authentication patterns
-- [Widget System](WIDGET_SYSTEM_DOCUMENTATION.md) - Widget development and customization guide
-- [Widget Dashboard](WIDGET_DASHBOARD_DOCUMENTATION.md) - Dashboard widget management interface
-- [Troubleshooting](TROUBLESHOOTING_DOCUMENTATION.md) - Common issues and solutions
-- [User Documentation](USER_DOCUMENTATION.md) - End-user guide and features
-- [Brand Voice Guide](BRAND_VOICE_GUIDE.md) - Official brand voice and tone guidelines for Prompt Reviews and Prompty 
+### Help System
 
-# PromptReviews - Local Development Setup
+The application includes a comprehensive help system that integrates with the documentation site to provide context-aware assistance.
 
-## Current Status
+#### Features
 
-This project is transitioning from a production Supabase instance to a local Supabase instance for development. The application is a Next.js-based review management system with Supabase as the backend.
+- **Help Bubble**: Floating help button in bottom-right corner with keyboard shortcut (?) 
+- **Context-Aware Recommendations**: Suggests relevant articles based on current page
+- **Behavioral Tracking**: Learns from user actions to improve recommendations
+- **Search Integration**: Connects to docs site for real-time article search
+- **Smart Fallbacks**: Graceful degradation when docs site is unavailable
 
-## Environment Configuration
+#### Components
 
-### .env.local File
-- **Status**: ✅ Correctly configured
-- **Local Supabase URL**: `http://127.0.0.1:54321`
-- **Local Supabase Anon Key**: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0`
-- **Local Supabase Service Key**: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU`
-- **Verification**: Values match `supabase status` output
-- **Loading**: Server loads `.env.local` on startup (confirmed by logs: `Reload env: .env.local`)
+- `FeedbackBubble.tsx` - Main help button and modal trigger
+- `HelpModal.tsx` - Tabbed help interface (Tutorials & Issues)
+- `TutorialsTab.tsx` - Context-aware tutorial recommendations
+- `contextMapper.ts` - Maps app routes to help content
+- `articleAssociation.ts` - Article association and behavioral tracking
 
-### Server Environment
-- **Next.js Server**: Running on port 3001
-- **Environment Loading**: ✅ Server loads `.env.local` correctly
-- **Cache Management**: `.next` build cache cleared after environment changes
-- **Restart Protocol**: Server fully stopped and restarted after every environment change
+#### API Integration
 
-## Supabase Local Instance
+- **Main App**: `/api/help-docs/tutorials` - Fetches articles from docs site
+- **Docs Site**: `/api/search` - Provides article search functionality
+- **Environment**: Set `DOCS_API_URL` to configure docs site connection
 
-### Status
-- **Running**: ✅ Supabase is running locally
-- **API URL**: `http://127.0.0.1:54321` (accessible)
-- **Studio URL**: `http://127.0.0.1:54323` (accessible)
-- **Database**: PostgreSQL running on port 54322
+### Prompt Pages Documentation
 
-### Database State
-- **Migrations**: All migrations applied successfully
-- **Schema**: Complete schema with all tables created
-- **Users**: Currently empty (after recent reset)
-- **Accounts**: Currently empty (after recent reset)
+The documentation site includes comprehensive guides for all prompt page types and features:
 
-## Known Issues & Troubleshooting
+#### Structure
 
-### 1. JWT Signature Error
-**Error**: `JWSError JWSInvalidSignature` when calling `/api/create-account`
+1. **Main Overview** (`/prompt-pages`)
+   - Introduction to prompt pages
+   - Quick navigation to types and features
+   - Getting started guide
 
-**Root Cause**: JWT token being sent to Supabase does not match the expected signature for the local instance.
+2. **Types** (`/prompt-pages/types`)
+   - **Service Prompt Pages**: Perfect for restaurants, salons, professional services
+   - **Product Prompt Pages**: Ideal for e-commerce and product-based businesses
+   - **Photo Prompt Pages**: Collect reviews with customer photos
+   - **Video Prompt Pages**: Maximum engagement with video testimonials
+   - **Universal Prompt Pages**: One-page solution for any business
 
-**Possible Causes**:
-- User logged in with a JWT from a different Supabase instance (e.g., production)
-- Browser session contains stale authentication data
-- JWT token format mismatch between local and production instances
+3. **Features** (`/prompt-pages/features`)
+   - **Emoji Sentiment Flow**: Interactive emotion-based review collection
+   - **Prompty AI**: AI-powered review generation and optimization
+   - **QR Code Generation**: Easy mobile access from anywhere
+   - **Customization Options**: Brand your pages with colors and logos
+   - **Analytics & Insights**: Track performance and engagement
+   - **Multi-Platform Sharing**: Distribute across all channels
+   - **Mobile Optimization**: Perfect experience on all devices
+   - **Security & Privacy**: Enterprise-grade protection
+   - **Platform Integration**: Connect with major review sites
 
-**Troubleshooting Steps**:
-1. Clear browser storage and cache completely
-2. Sign out from any existing sessions
-3. Clear localStorage and sessionStorage
-4. Try in incognito/private browsing mode
-5. Verify no cached authentication tokens exist
+#### Design System
 
-### 2. Browser/Cache Issues
-**Status**: ✅ Tested across multiple browsers
-- **Safari**: Tested
-- **Chrome**: Tested
-- **Incognito Mode**: Tested
-- **Cache Clearing**: Completed
+The documentation uses a modern design system with:
+- **Gradient Backgrounds**: Beautiful indigo-to-purple-to-fuchsia gradients
+- **Glassmorphism**: Semi-transparent backgrounds with backdrop blur
+- **Responsive Design**: Mobile-first approach
+- **SEO Optimization**: Proper metadata and structured data
 
-**Result**: Error persists across browsers, confirming it's not a browser cache issue.
+## [2024-06-08] Dashboard Widget Preview: Swiper Global Loading Fix
 
-### 3. Test/Debug Files
-**Status**: ✅ Cleaned up
-- All test scripts deleted
-- Sentry test page removed
-- No hardcoded test data remains
-- No `"test-user-123"` references in codebase
+- The dashboard widget preview now waits for the Swiper script to be available globally (`window.Swiper`) before rendering the vanilla JS multi-widget.
+- This ensures that design changes (such as color) made in the editor are reflected live in the widget preview.
+- Previously, if Swiper was not available on the global scope, the widget would not update visually after design changes.
+- This fix resolves the issue and improves reliability of the live preview.
 
-### 4. Frontend Code
-**Status**: ✅ Correctly configured
-- Sign-up form uses correct user ID from Supabase Auth
-- No hardcoded user IDs
-- API calls use proper authentication flow
+Last updated: March 19, 2024 
 
-## Current Database State
+## Recent Updates
 
-### Users Table
-- **Location**: `auth.users` (Supabase Auth schema)
-- **Current State**: Empty (after recent reset)
-- **Expected**: Should contain users after successful sign-up
+### Widget Mobile & Tablet Navigation Fixes (Latest)
 
-### Accounts Table
-- **Location**: `public.accounts`
-- **Current State**: Empty (after recent reset)
-- **Expected**: Should contain account records after successful sign-up
+**Date:** January 2025
 
-### Account Users Table
-- **Location**: `public.account_users`
-- **Purpose**: Links users to accounts
-- **Current State**: Empty (after recent reset)
+**Issues Fixed:**
+- Mobile and tablet navigation buttons were not aligning correctly
+- Desktop navigation buttons were being pushed out of view on smaller screens
+- Navigation structure was duplicated causing layout conflicts
+- Breakpoint logic wasn't properly aligned with CSS media queries
 
-## Next Steps
+**Changes Made:**
 
-### Immediate Actions Required
-1. **Clear All Authentication State**
-   - Sign out from any existing sessions
-   - Clear browser storage completely
-   - Restart browser
+1. **JavaScript Structure (`public/widgets/multi/widget-embed.js`):**
+   - Restructured navigation element creation to prevent duplication
+   - Separated desktop and mobile navigation with clear class names
+   - Fixed Swiper configuration to properly target navigation elements
+   - Removed debug code and cleaned up implementation
+   - Added proper pagination targeting for different screen sizes
 
-2. **Test Sign-up Flow**
-   - Attempt to create a new user account
-   - Monitor for JWT signature errors
-   - Check if user appears in `auth.users` table
+2. **CSS Layout (`public/widgets/multi/widget-embed.css`):**
+   - Added proper container padding to accommodate desktop navigation buttons
+   - Fixed mobile navigation row layout and positioning
+   - Improved responsive behavior across all breakpoints
+   - Updated media queries to properly hide/show navigation elements
+   - Fixed button positioning to prevent overflow issues
 
-3. **Verify Database State**
-   - Check if user is created in `auth.users`
-   - Check if account is created in `public.accounts`
-   - Check if user-account link is created in `public.account_users`
+3. **Responsive Behavior:**
+   - **Mobile (≤900px):** Navigation buttons appear below carousel in a centered row
+   - **Tablet (901px-1200px):** Desktop navigation with adjusted positioning
+   - **Desktop (>1200px):** Full desktop navigation with side buttons
 
-### If JWT Error Persists
-1. **Check Supabase Configuration**
-   - Verify JWT secret in `supabase/config.toml`
-   - Consider regenerating local Supabase instance
-   - Check for any custom JWT configuration
+**Testing:**
+- Created test file `public/widgets/multi/test.html` for easy testing
+- Test covers mobile (375px), tablet (768px), desktop (1200px), and large desktop (1920px)
+- Navigation buttons now properly align and remain visible on all screen sizes
 
-2. **Alternative Approaches**
-   - Use different browser profile
-   - Test with fresh Supabase instance
-   - Verify no environment variable conflicts
+## Features
 
-## Development Commands
+### Core Functionality
+- **Review Collection:** AI-powered review request generation
+- **Widget System:** Customizable embeddable review widgets
+- **Business Management:** Complete business profile and review management
+- **Analytics:** Review performance tracking and insights
 
-### Start Local Development
+### Widget Types
+- **Multi Widget:** Carousel-style review display with Swiper.js
+- **Single Widget:** Individual review showcase
+- **Photo Widget:** Review display with customer photos
+
+### Technical Stack
+- **Frontend:** Next.js 14, React, TypeScript, Tailwind CSS
+- **Backend:** Supabase (Database, Auth, Storage)
+- **AI:** OpenAI GPT-4 for review generation
+- **Payments:** Stripe integration
+- **Email:** Resend for transactional emails
+
+## Development
+
+### Prerequisites
+- Node.js 18+
+- npm or yarn
+- Supabase account
+- Stripe account (for payments)
+- Resend account (for emails)
+
+### Environment Setup
 ```bash
-# Start Supabase
-supabase start
+# Clone the repository
+git clone <repository-url>
+cd promptreviews
 
-# Start Next.js server
+# Install dependencies
+npm install
+
+# Set up environment variables in your deployment platform
+# See Environment Variables section below for required variables
+
+# Run development server
 npm run dev
-
-# Check Supabase status
-supabase status
 ```
 
-### Database Management
+### Environment Variables
+```env
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+
+# Stripe
+STRIPE_SECRET_KEY=your_stripe_secret_key
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=your_stripe_publishable_key
+STRIPE_WEBHOOK_SECRET=your_webhook_secret
+
+# Resend
+RESEND_API_KEY=your_resend_api_key
+
+# OpenAI
+OPENAI_API_KEY=your_openai_api_key
+```
+
+### Widget Development
+The widget system is built with vanilla JavaScript for maximum compatibility:
+
 ```bash
-# Reset database (applies all migrations)
-supabase db reset
-
-# Check database schema
-supabase db diff
-
-# View logs
-supabase logs
+# Widget files location
+public/widgets/multi/
+├── widget-embed.js    # Main widget JavaScript
+├── widget-embed.css   # Widget styles
+├── test.html         # Test file for development
+└── multi.html        # Example implementation
 ```
 
-### Environment Verification
-```bash
-# Check environment variables
-cat .env.local
-
-# Verify Supabase keys match
-supabase status
-```
-
-## Architecture Overview
-
-### Authentication Flow
-1. User signs up via Supabase Auth
-2. User record created in `auth.users`
-3. Account created in `public.accounts`
-4. User linked to account in `public.account_users`
-5. JWT token issued for authenticated requests
-
-### API Endpoints
-- `/api/create-account`: Creates account and links user
-- `/api/auth/*`: Supabase Auth endpoints
-- `/api/widgets/*`: Widget management endpoints
+**Testing Widget Changes:**
+1. Open `public/widgets/multi/test.html` in your browser
+2. Use the responsive test buttons to check different screen sizes
+3. Verify navigation buttons align correctly on mobile and tablet
+4. Check that desktop navigation doesn't overflow
 
 ### Database Schema
-- **auth.users**: Supabase Auth user records
-- **public.accounts**: Business accounts
-- **public.account_users**: User-account relationships
-- **public.businesses**: Business profiles
-- **public.contacts**: Contact management
-- **public.review_submissions**: Review data
+See `databaseschema.md` for complete database structure.
 
-## Troubleshooting Checklist
+### Key Files
+- `src/app/dashboard/widget/page.tsx` - Widget management interface
+- `public/widgets/multi/widget-embed.js` - Main widget JavaScript
+- `public/widgets/multi/widget-embed.css` - Widget styles
+- `src/app/api/widgets/[id]/route.ts` - Widget API endpoints
 
-- [ ] Supabase running locally
-- [ ] Environment variables correct
-- [ ] Server restarted after env changes
-- [ ] Browser cache cleared
-- [ ] No test data in codebase
-- [ ] Database reset and migrations applied
-- [ ] JWT signature error resolved
-- [ ] User creation working
-- [ ] Account creation working
-- [ ] User-account linking working
+## Deployment
+
+### Vercel (Recommended)
+```bash
+# Deploy to Vercel
+vercel --prod
+```
+
+### Environment Variables
+Ensure all environment variables are set in your deployment platform.
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly, especially widget responsiveness
+5. Submit a pull request
 
 ## Support
 
-For issues related to:
-- **Supabase**: Check [Supabase Documentation](https://supabase.com/docs)
-- **Next.js**: Check [Next.js Documentation](https://nextjs.org/docs)
-- **Local Development**: Refer to troubleshooting steps above
+For support or questions, please contact the development team.
 
----
+**Note:** This project uses environment variables for configuration. Ensure all required environment variables are set in your deployment platform.
 
-**Last Updated**: January 2025
-**Environment**: Local Development
-**Status**: JWT Signature Error - Under Investigation 
+## Recent Performance Improvements (Latest Update)
 
-# Automated Signup & Business Creation Testing
+### Widget Responsiveness Fixes
+- **Fixed freezing issue** when adjusting widget width in the dashboard
+- **Optimized resize handlers** with better debouncing (300ms) and requestAnimationFrame
+- **Reduced excessive re-rendering** by implementing proper initialization checks
+- **Added performance optimizations** including hardware acceleration and layout containment
+- **Improved cleanup functions** to prevent memory leaks and event listener conflicts
 
-## Primary Test Script: `test-signup-quick.js`
+### Submit Review Button Fixes
+- **Fixed button being cut off** in dashboard preview by increasing container heights
+- **Added proper padding and margins** to ensure button visibility
+- **Improved overflow handling** to prevent content clipping
+- **Enhanced responsive behavior** for different screen sizes
 
-This script is the **official and only supported tool** for end-to-end testing of the signup and business creation flow. It simulates a real user by:
-- Creating a user via Supabase Auth
-- Creating an account via the `/api/create-account` endpoint
-- Retrieving the correct `account_id` for the user
-- Creating a business via the `/api/businesses` endpoint (not a direct DB insert)
-- Verifying the business was created in the database
+### Key Changes Made
+1. **Enhanced resize handling** in `public/widgets/multi/widget-embed.js`:
+   - Increased debounce timeout to 300ms
+   - Added requestAnimationFrame for smoother updates
+   - Reduced console logging in production
+   - Better error handling and validation
 
-**Usage:**
-```bash
-node test-signup-quick.js
+2. **Optimized widget rendering** in `src/app/dashboard/widget/page.tsx`:
+   - Added debounced design change effects (500ms)
+   - Implemented proper cleanup and timeout management
+   - Added hardware acceleration and layout containment
+   - Prevented race conditions during initialization
+   - Moved console.log to useEffect to prevent render-time state updates
+
+3. **Created test pages**:
+   - `public/widgets/multi/test-responsive.html` for isolated widget testing
+   - `public/widgets/multi/test-submit-button.html` for submit button visibility testing
+
+4. **Fixed submit review button visibility** in `public/widgets/multi/multi-widget.css`:
+   - Increased container heights and padding
+   - Added proper overflow handling
+   - Enhanced button container spacing
+   - Improved responsive behavior
+
+### Testing Widget Responsiveness
+You can test the widget responsiveness independently by visiting:
+```
+http://localhost:3001/widgets/multi/test-responsive.html
 ```
 
-- The script prints a summary with all relevant IDs and emails for easy reference and cleanup.
-- If any step fails, the script will exit with an error and log details for debugging.
+This page provides a slider to adjust widget width and test the responsive behavior without the complexity of the full dashboard. 
 
-**Best Practices:**
-- Run this script after making changes to the signup or business creation flow to ensure everything works as expected.
-- Use the cleanup script below to remove test data after testing.
+## Account Sign-Up Flow
 
----
+- When a user signs up, they will receive a confirmation email.
+- The user must click the confirmation link in their email to activate their account before signing in.
+- This process improves security, prevents spam, and ensures account recovery. 
 
-## Test Data Cleanup: `cleanup-test-data.js`
+## 📚 Documentation
 
-This script removes test data created by the test script. It can clean up specific test data or all test data based on patterns.
+### Help System
 
-**Usage:**
-```bash
-node cleanup-test-data.js
-```
+The application includes a comprehensive help system that integrates with the documentation site to provide context-aware assistance.
 
-- By default, it will remove all test users, accounts, and businesses matching the test patterns (e.g., emails starting with `test-`).
-- You can also pass a specific email to clean up a single test user and their data.
+#### Features
 
-**Best Practices:**
-- Always run this script after running tests to keep your development and test environments clean.
-- Review the script before running in production environments.
+- **Help Bubble**: Floating help button in bottom-right corner with keyboard shortcut (?) 
+- **Context-Aware Recommendations**: Suggests relevant articles based on current page
+- **Behavioral Tracking**: Learns from user actions to improve recommendations
+- **Search Integration**: Connects to docs site for real-time article search
+- **Smart Fallbacks**: Graceful degradation when docs site is unavailable
 
----
+#### Components
 
-## Deprecated Test Scripts
+- `FeedbackBubble.tsx` - Main help button and modal trigger
+- `HelpModal.tsx` - Tabbed help interface (Tutorials & Issues)
+- `TutorialsTab.tsx` - Context-aware tutorial recommendations
+- `contextMapper.ts` - Maps app routes to help content
+- `articleAssociation.ts` - Article association and behavioral tracking
 
-All previous test scripts for signup, account, or business creation have been deleted. Only use the scripts above for testing these flows.
+#### API Integration
 
----
+- **Main App**: `/api/help-docs/tutorials` - Fetches articles from docs site
+- **Docs Site**: `/api/search` - Provides article search functionality
+- **Environment**: Set `DOCS_API_URL` to configure docs site connection
 
-*Last updated: 2025-06-29* 
+### Prompt Pages Documentation
 
-## Onboarding Tasks System
+The documentation site includes comprehensive guides for all prompt page types and features:
 
-This project includes a comprehensive onboarding system that tracks user progress through key setup tasks with persistent database storage.
+#### Structure
 
-### Features
-- ✅ **Database-backed task tracking** with RLS security
-- ✅ **Automatic task completion** when users visit key pages
-- ✅ **Persistent progress** across sessions and page refreshes
-- ✅ **Real-time status updates** in the UI
-- ✅ **Error handling** with graceful fallbacks
-- ✅ **Multi-user support** compatible with account architecture
+1. **Main Overview** (`/prompt-pages`)
+   - Introduction to prompt pages
+   - Quick navigation to types and features
+   - Getting started guide
 
-### Task Types
+2. **Types** (`/prompt-pages/types`)
+   - **Service Prompt Pages**: Perfect for restaurants, salons, professional services
+   - **Product Prompt Pages**: Ideal for e-commerce and product-based businesses
+   - **Photo Prompt Pages**: Collect reviews with customer photos
+   - **Video Prompt Pages**: Maximum engagement with video testimonials
+   - **Universal Prompt Pages**: One-page solution for any business
 
-The system tracks completion of these key onboarding tasks:
+3. **Features** (`/prompt-pages/features`)
+   - **Emoji Sentiment Flow**: Interactive emotion-based review collection
+   - **Prompty AI**: AI-powered review generation and optimization
+   - **QR Code Generation**: Easy mobile access from anywhere
+   - **Customization Options**: Brand your pages with colors and logos
+   - **Analytics & Insights**: Track performance and engagement
+   - **Multi-Platform Sharing**: Distribute across all channels
+   - **Mobile Optimization**: Perfect experience on all devices
+   - **Security & Privacy**: Enterprise-grade protection
+   - **Platform Integration**: Connect with major review sites
 
-- **Business Profile Created** (`business_profile_created`)
-  - Automatically completes when user visits `/dashboard/business-profile`
-  - Tracks business information setup
+#### Design System
 
-- **Style Configured** (`style_configured`)
-  - Automatically completes when user visits `/dashboard/style`
-  - Tracks branding and design preferences
-
-- **Prompt Page Created** (`prompt_page_created`)
-  - Automatically completes when user visits `/dashboard/create-prompt-page`
-  - Tracks first prompt page creation
-
-- **Widget Configured** (`widget_configured`)
-  - Automatically completes when user visits `/dashboard/widget`
-  - Tracks widget setup and configuration
-
-- **Contacts Uploaded** (`contacts_uploaded`)
-  - Automatically completes when user visits `/dashboard/contacts`
-  - Tracks contact list management
-
-### Technical Implementation
-
-#### Database Schema
-```sql
-CREATE TABLE onboarding_tasks (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
-  task_key TEXT NOT NULL,
-  completed BOOLEAN DEFAULT FALSE,
-  completed_at TIMESTAMP WITH TIME ZONE,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  UNIQUE(user_id, task_key)
-);
-```
-
-#### Utility Functions
-- `getOnboardingTasks(userId)` - Fetch all tasks for a user
-- `markTaskComplete(userId, taskKey)` - Mark a specific task as complete
-- `initializeUserTasks(userId)` - Create default task records for new users
-
-#### Component Integration
-- **GettingStarted Component**: Displays task completion status from database
-- **Dashboard Pages**: Pass user ID to enable automatic task completion
-- **Error Recovery**: Falls back to local state if database is unavailable
-
-### Usage
-
-The onboarding tasks system is automatically integrated into the user experience:
-
-1. **New Users**: Task records are created when users first access the dashboard
-2. **Progress Tracking**: The GettingStarted component shows real-time completion status
-3. **Automatic Completion**: Tasks complete when users visit relevant pages
-4. **Persistent Storage**: Progress is saved to database and persists across sessions
-
-### Security
-
-- **RLS Policies**: Users can only access their own task records
-- **Input Validation**: All task keys are validated against allowed values
-- **Error Handling**: Graceful fallbacks prevent system failures
-
----
-
-*Last updated: 2025-06-29* 
-
-## 2025-06-30: Back Button for Multi-Step Prompt Pages
-- Added back button functionality to multi-step prompt page forms
-- Users can now navigate from step 2 back to step 1 to modify customer/client details
-- Added back button to top right action area in edit prompt page (`[slug]/page.tsx`)
-- Added back button to bottom left of step 2 in `PromptPageForm.tsx` for create mode
-- Product prompt pages already had back button correctly implemented
-- Improves user experience by allowing easy navigation between steps
-- See `src/app/dashboard/edit-prompt-page/` for details.
-
-## 2025-06-30: Authentication Error Fixes
-- Fixed "Auth session missing" errors that were preventing prompt pages from loading
-- Updated `getUserOrMock` and `getSessionOrMock` functions in `src/utils/supabase.ts` to handle authentication errors gracefully
-- Functions now return null user/session instead of throwing errors when no auth session exists
-- Prompt pages now work properly for both authenticated and unauthenticated users
-- Resolves blank page issue when visiting saved prompt pages
-- Improves overall application stability and user experience
-- See `src/utils/supabase.ts` for implementation details.
-
-## 2025-06-30: Performance Optimizations and Development Improvements
-- **Performance Improvements:**
-  - Fixed Sentry integration causing compilation errors and slow builds
-  - Optimized Next.js webpack configuration for faster development builds
-  - Added `dev:fast` script with Turbo mode for maximum development performance
-  - Disabled source maps in development for faster compilation
-  - Reduced webpack optimization overhead in development mode
-  - Fixed port conflicts and server startup issues
-- **Development Commands:**
-  - `npm run dev` - Standard development server with Sentry disabled
-  - `npm run dev:fast` - Fast development server with Turbo mode and optimizations
-- **Performance Gains:**
-  - Reduced compilation times from 8-37 seconds to 2-8 seconds
-  - Eliminated Sentry-related compilation errors
-  - Faster hot reload and page navigation
-  - Improved development experience on slower machines
-- See `next.config.js` and `package.json` for implementation details.
-
-## 2025-06-30: Migration Enforcement System
-- **Automatic Migration Checks:** Added `predev` hook that runs before `npm run dev`
-- **Migration Status:** Shows clear status messages: "All migrations applied" or lists missing migrations
-- **Auto-Application:** Automatically applies missing migrations when found
-- **Manual Commands:** Added `npm run migrations:check` and `npm run migrations:apply`
-- **Error Handling:** Graceful handling of database connection issues and CLI problems
-- **Color-coded Output:** Green for success, yellow for warnings, red for errors
-- **Prevents Schema Issues:** Ensures database schema is always up-to-date
-- **Development Integration:** Runs automatically before development server starts
-- See `scripts/check-migrations.js` for implementation details.
-
-## 2025-06-30: Popup Conflict Modal Improvements
-- Updated popup conflict modal message to be more user-friendly and clear
-- Changed message to: "You can't enable Emoji Sentiment and Personalized note pop-up at the same time because that's pop-ups on top of pop-ups—which would be weird."
-- Added conflict modal to `ServicePromptPageForm.tsx` (was missing)
-- Conflict modal now appears in both `PromptPageForm.tsx` and `ServicePromptPageForm.tsx`
-- Users get clear feedback when trying to enable conflicting popup features
-- Improves user experience by explaining why certain features can't be enabled together
-- See `src/app/components/PromptPageForm.tsx` and `src/app/dashboard/edit-prompt-page/[slug]/ServicePromptPageForm.tsx` for details.
-
-## Prompt Page Type Enum
-
-The `type` field on prompt pages uses the following enum values:
-
-- `universal`: General-use prompt page for all customers/clients
-- `product`: Product review prompt page
-- `service`: Service review prompt page
-- `photo`: Photo + testimonial prompt page
-- `event`: Events & spaces prompt page
-- `video`: Video testimonial prompt page
-- `employee`: Employee feedback prompt page
-
-All prompt page creation and filtering logic should use these values. Legacy values like `custom` and `experience` are no longer supported. 
-
-## Email Configuration
-
-### Custom Auth Emails
-
-**Updated: January 2025**
-
-All Supabase authentication emails (sign-up confirmation, password reset, etc.) now use your branded email templates and send from your own email address.
-
-#### Configuration:
-- **SMTP Provider**: Resend (same as other app emails)
-- **Sender**: `Prompt Reviews <noreply@updates.promptreviews.app>`
-- **Templates**: Custom HTML templates in `supabase/templates/`
-
-#### Setup:
-- **Local Development**: Ensure `RESEND_SMTP_PASSWORD` is NOT in `.env.local` (uses Inbucket)
-- **Production**: Add `RESEND_SMTP_PASSWORD=your_resend_api_key` to production environment
-- **Documentation**: See `EMAIL_CONFIGURATION.md` for detailed setup instructions
-
-#### Email Templates:
-- **Account Confirmation**: `supabase/templates/confirm.html`
-- **Password Reset**: `supabase/templates/recovery.html`
-- **Team Invitations**: `supabase/templates/invite.html`
-- **Magic Links**: `supabase/templates/magic_link.html`
-
-All templates use your brand colors and styling for consistent user experience.
-
-### Other Email Services
-
-- **Transactional Emails**: Resend (`emailTemplates.ts`)
-- **Review Notifications**: Resend
-- **Welcome Emails**: Resend
-- **Trial Reminders**: Resend 
+The documentation uses a modern design system with:
+- **Gradient Backgrounds**: Beautiful indigo-to-purple-to-fuchsia gradients
+- **Glassmorphism**: Semi-transparent backgrounds with backdrop blur
+- **Responsive Design**: Mobile-first approach
+- **SEO Optimization**: Proper metadata and structured data 

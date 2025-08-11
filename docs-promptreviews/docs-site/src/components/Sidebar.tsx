@@ -124,15 +124,15 @@ export default function Sidebar({ className }: SidebarProps) {
                 className={clsx(
                   'flex items-center justify-between w-full px-3 py-2 text-sm font-medium rounded-lg transition-colors',
                   parentActive
-                    ? 'bg-primary-50 text-primary-700'
-                    : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                    ? 'bg-white/20 text-white'
+                    : 'text-white/80 hover:bg-white/10 hover:text-white'
                 )}
               >
                 <div className="flex items-center space-x-3">
                   {section.icon && (
                     <section.icon className={clsx(
                       'w-4 h-4',
-                      parentActive ? 'text-primary-600' : 'text-gray-500'
+                      parentActive ? 'text-yellow-300' : 'text-white/60'
                     )} />
                   )}
                   <span>{section.title}</span>
@@ -149,14 +149,14 @@ export default function Sidebar({ className }: SidebarProps) {
                 className={clsx(
                   'flex items-center space-x-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors',
                   isActive(section.href)
-                    ? 'bg-primary-50 text-primary-700 border-r-2 border-primary-500'
-                    : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                    ? 'bg-white/20 text-white border-l-2 border-yellow-300'
+                    : 'text-white/80 hover:bg-white/10 hover:text-white'
                 )}
               >
                 {section.icon && (
                   <section.icon className={clsx(
                     'w-4 h-4',
-                    isActive(section.href) ? 'text-primary-600' : 'text-gray-500'
+                    isActive(section.href) ? 'text-yellow-300' : 'text-white/60'
                   )} />
                 )}
                 <span>{section.title}</span>
@@ -172,8 +172,8 @@ export default function Sidebar({ className }: SidebarProps) {
                     className={clsx(
                       'block px-3 py-1.5 text-sm rounded-lg transition-colors border-l-2',
                       isActive(child.href)
-                        ? 'bg-primary-50 text-primary-700 border-primary-300'
-                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50 border-gray-200'
+                        ? 'bg-white/20 text-white border-yellow-300'
+                        : 'text-white/60 hover:text-white hover:bg-white/10 border-white/20'
                     )}
                   >
                     {child.title}

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import DocsLayout from '../docs-layout'
 import { 
   CheckCircle, 
   Star, 
@@ -151,7 +152,7 @@ const tips = [
 
 export default function GettingStartedPage() {
   return (
-    <>
+    <DocsLayout>
       {/* JSON-LD structured data */}
       <script
         type="application/ld+json"
@@ -160,29 +161,29 @@ export default function GettingStartedPage() {
 
       <div className="prose-docs">
         {/* Breadcrumb */}
-        <nav className="flex items-center space-x-2 text-sm text-gray-500 mb-8">
-          <Link href="/" className="hover:text-gray-700">Documentation</Link>
+        <nav className="flex items-center space-x-2 text-sm text-white/60 mb-8">
+          <Link href="/" className="hover:text-white/80">Documentation</Link>
           <span>/</span>
-          <span className="text-gray-900">Getting Started</span>
+          <span className="text-white">Getting Started</span>
         </nav>
 
         {/* Header */}
         <div className="mb-12">
-          <div className="inline-flex items-center space-x-2 bg-green-50 text-green-700 px-3 py-1 rounded-full text-sm font-medium mb-6">
+          <div className="inline-flex items-center space-x-2 bg-green-500/20 text-green-300 px-3 py-1 rounded-full text-sm font-medium mb-6">
             <CheckCircle className="w-4 h-4" />
             <span>Quick Start Guide</span>
           </div>
 
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
+          <h1 className="text-4xl font-bold text-white mb-4">
             Getting Started with Prompt Reviews
           </h1>
 
-          <p className="text-xl text-gray-600 mb-6">
+          <p className="text-xl text-white/70 mb-6">
             Welcome to Prompt Reviews! This guide will help you set up your account and start collecting 
             customer reviews with <strong>Prompty</strong>, your AI-powered review assistant, in under 30 minutes.
           </p>
 
-          <div className="flex items-center space-x-6 text-sm text-gray-600">
+          <div className="flex items-center space-x-6 text-sm text-white/70">
             <div className="flex items-center space-x-2">
               <Clock className="w-4 h-4" />
               <span>~30 minutes total</span>
@@ -224,7 +225,7 @@ export default function GettingStartedPage() {
             <Link
               key={step.title}
               href={step.href}
-              className="group block p-6 bg-white border border-gray-200 rounded-lg hover:border-primary-300 hover:shadow-md transition-all no-underline"
+              className="group block p-6 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg hover:border-primary-300 hover:shadow-md transition-all no-underline"
             >
               <div className="flex items-start space-x-4">
                 <div className="flex-shrink-0 w-8 h-8 bg-primary-100 text-primary-600 rounded-full flex items-center justify-center font-bold text-sm">
@@ -233,27 +234,27 @@ export default function GettingStartedPage() {
                 
                 <div className="flex-1">
                   <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-lg font-semibold text-gray-900 group-hover:text-primary-600 transition-colors mb-0">
+                    <h3 className="text-lg font-semibold text-white group-hover:text-primary-600 transition-colors mb-0">
                       {step.title}
                     </h3>
                     <ArrowRight className="w-5 h-5 text-primary-500 group-hover:translate-x-1 transition-transform" />
                   </div>
                   
-                  <p className="text-gray-600 mb-3">
+                  <p className="text-white/70 mb-3">
                     {step.description}
                   </p>
                   
                   <div className="flex items-center space-x-4 text-sm">
-                    <div className="flex items-center space-x-1 text-gray-500">
+                    <div className="flex items-center space-x-1 text-white/60">
                       <Clock className="w-3 h-3" />
                       <span>{step.time}</span>
                     </div>
                     <div className={`px-2 py-0.5 rounded-full text-xs font-medium ${
                       step.difficulty === 'Easy' 
-                        ? 'bg-green-100 text-green-700'
+                        ? 'bg-green-500/20 text-green-300'
                         : step.difficulty === 'Medium'
-                        ? 'bg-yellow-100 text-yellow-700'
-                        : 'bg-red-100 text-red-700'
+                        ? 'bg-yellow-500/20 text-yellow-300'
+                        : 'bg-red-500/20 text-red-300'
                     }`}>
                       {step.difficulty}
                     </div>
@@ -277,9 +278,9 @@ export default function GettingStartedPage() {
                 <div className="p-2 bg-primary-100 rounded-lg">
                   <tip.icon className="w-5 h-5 text-primary-600" />
                 </div>
-                <h3 className="font-semibold text-gray-900 mb-0">{tip.title}</h3>
+                <h3 className="font-semibold text-white mb-0">{tip.title}</h3>
               </div>
-              <p className="text-gray-600 text-sm mb-0">{tip.description}</p>
+              <p className="text-white/70 text-sm mb-0">{tip.description}</p>
             </div>
           ))}
         </div>
@@ -289,9 +290,9 @@ export default function GettingStartedPage() {
         
         <div className="screenshot-placeholder mb-8">
           <div className="text-center">
-            <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-lg font-medium text-gray-600 mb-2">Screenshot Coming Soon</p>
-            <p className="text-sm text-gray-500">
+            <AlertCircle className="w-12 h-12 text-white/50 mx-auto mb-4" />
+            <p className="text-lg font-medium text-white/70 mb-2">Screenshot Coming Soon</p>
+            <p className="text-sm text-white/60">
               Dashboard overview showing main navigation, prompt pages, and review statistics
             </p>
           </div>
@@ -316,17 +317,17 @@ export default function GettingStartedPage() {
         <h2>Related Articles</h2>
         
         <div className="grid md:grid-cols-2 gap-4">
-          <Link href="/prompt-pages/types" className="block p-4 border border-gray-200 rounded-lg hover:border-primary-300 transition-colors no-underline">
-            <h4 className="font-semibold text-gray-900 mb-2">Understanding Prompt Page Types</h4>
-            <p className="text-sm text-gray-600 mb-0">Learn about the different types of review request pages you can create.</p>
+          <Link href="/prompt-pages/types" className="block p-4 border border-white/20 rounded-lg hover:border-primary-300 transition-colors no-underline">
+            <h4 className="font-semibold text-white mb-2">Understanding Prompt Page Types</h4>
+            <p className="text-sm text-white/70 mb-0">Learn about the different types of review request pages you can create.</p>
           </Link>
           
-          <Link href="/troubleshooting/common-issues" className="block p-4 border border-gray-200 rounded-lg hover:border-primary-300 transition-colors no-underline">
-            <h4 className="font-semibold text-gray-900 mb-2">Common Setup Issues</h4>
-            <p className="text-sm text-gray-600 mb-0">Troubleshoot common problems during the initial setup process.</p>
+          <Link href="/troubleshooting/common-issues" className="block p-4 border border-white/20 rounded-lg hover:border-primary-300 transition-colors no-underline">
+            <h4 className="font-semibold text-white mb-2">Common Setup Issues</h4>
+            <p className="text-sm text-white/70 mb-0">Troubleshoot common problems during the initial setup process.</p>
           </Link>
         </div>
       </div>
-    </>
+    </DocsLayout>
   )
 }
