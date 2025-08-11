@@ -12,64 +12,64 @@ export const metadata: Metadata = {
 
 const plans = [
   {
-    name: 'Starter',
+    name: 'Grower',
     price: '$15',
     period: '/month',
     description: 'Perfect for small businesses just getting started',
     color: 'blue',
     features: [
-      { text: '1 Prompt Page', included: true },
-      { text: '100 Review Requests/month', included: true },
-      { text: 'Basic Analytics', included: true },
-      { text: 'Email Support', included: true },
-      { text: 'Standard Templates', included: true },
-      { text: 'QR Code Generation', included: true },
-      { text: 'Google Business Integration', included: false },
-      { text: 'Custom Branding', included: false },
-      { text: 'API Access', included: false },
-      { text: 'Priority Support', included: false },
+      { text: '14-day free trial', included: true, highlight: true },
+      { text: 'Universal prompt page', included: true },
+      { text: '3 custom prompt pages', included: true },
+      { text: 'Review widget', included: true },
+      { text: 'Upload contacts', included: false },
+      { text: 'Team members', included: false },
+      { text: 'Analytics', included: false },
+      { text: 'Google Business Profile management', included: false },
+      { text: 'Multiple locations', included: false },
     ],
     recommended: false,
+    trialAvailable: true,
   },
   {
-    name: 'Professional',
-    price: '$49',
+    name: 'Builder',
+    price: '$35',
     period: '/month',
-    description: 'Most popular choice for growing businesses',
+    description: 'Ideal for growing businesses with a team',
     color: 'purple',
     features: [
-      { text: '5 Prompt Pages', included: true },
-      { text: '500 Review Requests/month', included: true },
-      { text: 'Advanced Analytics', included: true },
-      { text: 'Priority Email Support', included: true },
-      { text: 'All Templates', included: true },
-      { text: 'QR Code Generation', included: true },
-      { text: 'Google Business Integration', included: true },
-      { text: 'Custom Branding', included: true },
-      { text: 'API Access', included: false },
-      { text: 'Phone Support', included: false },
+      { text: '3 team members', included: true },
+      { text: 'Workflow management', included: true },
+      { text: 'Universal prompt page', included: true },
+      { text: '50 prompt pages', included: true },
+      { text: '1,000 contacts', included: true },
+      { text: 'Review widget', included: true },
+      { text: 'Analytics', included: true },
+      { text: 'Google Business Profile management', included: true },
+      { text: 'Multiple locations', included: false },
     ],
     recommended: true,
+    trialAvailable: false,
   },
   {
-    name: 'Enterprise',
-    price: 'Custom',
-    period: '',
-    description: 'For large businesses with advanced needs',
-    color: 'green',
+    name: 'Maven',
+    price: '$100',
+    period: '/month',
+    description: 'For established businesses & franchises',
+    color: 'yellow',
     features: [
-      { text: 'Unlimited Prompt Pages', included: true },
-      { text: 'Unlimited Review Requests', included: true },
-      { text: 'Enterprise Analytics', included: true },
-      { text: '24/7 Priority Support', included: true },
-      { text: 'Custom Templates', included: true },
-      { text: 'Advanced QR Features', included: true },
-      { text: 'All Integrations', included: true },
-      { text: 'White Label Options', included: true },
-      { text: 'Full API Access', included: true },
-      { text: 'Dedicated Account Manager', included: true },
+      { text: '5 team members', included: true },
+      { text: 'Up to 10 business locations', included: true },
+      { text: 'Workflow management', included: true },
+      { text: '500 prompt pages', included: true },
+      { text: '10,000 contacts', included: true },
+      { text: 'Review widget', included: true },
+      { text: 'Analytics', included: true },
+      { text: 'Google Business Profile management', included: true },
+      { text: 'Priority support', included: true },
     ],
     recommended: false,
+    trialAvailable: false,
   },
 ];
 
@@ -95,10 +95,10 @@ export default function ChoosingPlanPage() {
           <div className="flex items-start space-x-3">
             <Star className="w-6 h-6 text-green-300 flex-shrink-0 mt-1" />
             <div>
-              <h3 className="text-lg font-semibold text-white mb-2">14-Day Free Trial</h3>
+              <h3 className="text-lg font-semibold text-white mb-2">14-Day Free Trial Available</h3>
               <p className="text-white/80">
-                All plans come with a 14-day free trial. No credit card required to start.
-                Experience the full power of Prompt Reviews before committing.
+                Start with the Grower plan and get a 14-day free trial - no credit card required! 
+                Perfect for testing the waters before upgrading to a paid plan with more features.
               </p>
             </div>
           </div>
@@ -140,7 +140,13 @@ export default function ChoosingPlanPage() {
                       ) : (
                         <X className="w-5 h-5 text-red-400 flex-shrink-0" />
                       )}
-                      <span className={`text-sm ${feature.included ? 'text-white/80' : 'text-white/40'}`}>
+                      <span className={`text-sm ${
+                        feature.highlight 
+                          ? 'text-yellow-300 font-semibold' 
+                          : feature.included 
+                            ? 'text-white/80' 
+                            : 'text-white/40'
+                      }`}>
                         {feature.text}
                       </span>
                     </li>
@@ -154,7 +160,7 @@ export default function ChoosingPlanPage() {
                       : 'bg-white/20 text-white hover:bg-white/30'
                   }`}
                 >
-                  {plan.name === 'Enterprise' ? 'Contact Sales' : 'Start Free Trial'}
+                  {plan.trialAvailable ? 'Start Free Trial' : 'Get Started'}
                 </button>
               </div>
             ))}
@@ -169,33 +175,33 @@ export default function ChoosingPlanPage() {
             <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6">
               <h3 className="font-semibold text-white mb-2 flex items-center">
                 <Zap className="w-5 h-5 mr-2 text-yellow-300" />
-                Prompt Pages
+                Universal vs Custom Prompt Pages
               </h3>
               <p className="text-white/80 text-sm">
-                Customizable review request pages with AI-powered content. Each page can be tailored for different 
-                services, products, or customer segments.
+                <strong>Universal prompt page:</strong> A single page to collect reviews from any platform, perfect for QR codes and general use.<br/>
+                <strong>Custom prompt pages:</strong> Personalized pages for individual customers with AI-powered assistance for writing reviews.
               </p>
             </div>
             
             <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6">
               <h3 className="font-semibold text-white mb-2 flex items-center">
                 <Building className="w-5 h-5 mr-2 text-blue-300" />
-                Google Business Integration
+                Google Business Profile Management
               </h3>
               <p className="text-white/80 text-sm">
-                Direct integration with Google Business Profile for automatic review syncing, management, and 
-                response capabilities.
+                Direct integration with Google Business Profile for importing reviews, managing responses, and 
+                handling multiple business locations (Maven plan only).
               </p>
             </div>
             
             <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6">
               <h3 className="font-semibold text-white mb-2 flex items-center">
                 <Star className="w-5 h-5 mr-2 text-green-300" />
-                Review Requests
+                Contact Management & Workflow
               </h3>
               <p className="text-white/80 text-sm">
-                Monthly allocation for sending personalized review requests via email, SMS, or QR codes. 
-                Unused requests don't roll over.
+                Upload and organize customer contacts (Builder & Maven plans), send personalized review requests, 
+                and automate your review collection workflow with team collaboration features.
               </p>
             </div>
           </div>
@@ -216,15 +222,17 @@ export default function ChoosingPlanPage() {
             <details className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6">
               <summary className="font-semibold text-white cursor-pointer">What happens after the free trial?</summary>
               <p className="text-white/80 text-sm mt-3">
-                After 14 days, you'll be prompted to enter payment information to continue. If you don't, your account 
-                will be downgraded to a limited free version.
+                After your 14-day Grower plan trial ends, you can choose to upgrade to Builder or Maven for more features, 
+                or continue with the Grower plan at $15/month. Your data and settings will be preserved.
               </p>
             </details>
             
             <details className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6">
-              <summary className="font-semibold text-white cursor-pointer">Do you offer discounts for annual billing?</summary>
+              <summary className="font-semibold text-white cursor-pointer">What's the difference between the plans?</summary>
               <p className="text-white/80 text-sm mt-3">
-                Yes! Save 20% when you pay annually. Contact our sales team for custom enterprise pricing.
+                <strong>Grower:</strong> Basic features for solo businesses, no contact uploads or team features.<br/>
+                <strong>Builder:</strong> Adds team collaboration, contact management, and analytics.<br/>
+                <strong>Maven:</strong> Everything in Builder plus support for multiple locations and higher limits.
               </p>
             </details>
           </div>
@@ -238,15 +246,15 @@ export default function ChoosingPlanPage() {
             <div className="flex items-start space-x-3">
               <Info className="w-6 h-6 text-blue-300 flex-shrink-0 mt-1" />
               <div>
-                <h3 className="text-lg font-semibold text-white mb-2">Not Sure Which Plan?</h3>
+                <h3 className="text-lg font-semibold text-white mb-2">Which Plan Is Right for You?</h3>
                 <ul className="space-y-2 text-white/80 text-sm">
-                  <li>• <strong>Starter:</strong> Great for solo entrepreneurs and small local businesses</li>
-                  <li>• <strong>Professional:</strong> Ideal for established businesses with multiple services</li>
-                  <li>• <strong>Enterprise:</strong> Perfect for franchises and multi-location businesses</li>
+                  <li>• <strong>Grower ($15/mo):</strong> Perfect for solo entrepreneurs and small businesses just starting with review collection</li>
+                  <li>• <strong>Builder ($35/mo):</strong> Ideal for growing businesses that need team collaboration and contact management</li>
+                  <li>• <strong>Maven ($100/mo):</strong> Best for established businesses, franchises, or multi-location operations</li>
                 </ul>
                 <p className="text-white/80 text-sm mt-3">
-                  Start with the Professional plan during your free trial to experience all features, 
-                  then adjust based on your needs.
+                  Start with the free 14-day Grower trial to test the platform, then upgrade to Builder or Maven 
+                  when you need more advanced features like team management and analytics.
                 </p>
               </div>
             </div>

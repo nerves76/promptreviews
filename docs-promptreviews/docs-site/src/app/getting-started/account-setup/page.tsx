@@ -2,7 +2,7 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import DocsLayout from '../../docs-layout';
 import PageHeader from '../../components/PageHeader';
-import { UserPlus, Building, Mail, Shield, ArrowRight, CheckCircle } from 'lucide-react';
+import { UserPlus, Building, Mail, Shield, ArrowRight, ArrowLeft, CheckCircle } from 'lucide-react';
 
 export const metadata: Metadata = {
   title: 'Account Setup & Business Profile | Prompt Reviews',
@@ -158,49 +158,51 @@ export default function AccountSetupPage() {
             </div>
             
             <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6">
-              <h3 className="font-semibold text-white mb-2">Verify Your Email</h3>
+              <h3 className="font-semibold text-white mb-2">Add Review Platforms Early</h3>
               <p className="text-white/80 text-sm">
-                Check your inbox for the verification email. You'll need to verify before accessing all features.
+                Set up your review platforms in your business profile. They'll be available on all prompt pages automatically.
               </p>
             </div>
             
             <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6">
-              <h3 className="font-semibold text-white mb-2">Add Team Members</h3>
+              <h3 className="font-semibold text-white mb-2">Use Keywords for SEO</h3>
               <p className="text-white/80 text-sm">
-                You can invite team members later to help manage reviews and prompt pages.
+                Include relevant keywords in your business description to help with search engine rankings and discoverability.
               </p>
             </div>
             
             <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6">
-              <h3 className="font-semibold text-white mb-2">Connect Google Business</h3>
+              <h3 className="font-semibold text-white mb-2">AI Best Practices</h3>
               <p className="text-white/80 text-sm">
-                Connecting your Google Business Profile enables automatic review syncing and management.
+                Be specific about your services and customer experience. The more detail you provide, the better AI can assist customers.
               </p>
             </div>
           </div>
         </div>
 
-        {/* Next Steps */}
-        <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg p-8 text-center">
-          <h2 className="text-2xl font-bold text-white mb-4">
-            Account Created? Let's Choose Your Plan
-          </h2>
-          <p className="text-white/90 mb-6 max-w-2xl mx-auto">
-            With your account set up, the next step is choosing the right plan for your business needs.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link
-              href="/getting-started/choosing-plan"
-              className="inline-flex items-center px-6 py-3 bg-white/20 text-white backdrop-blur-sm font-medium rounded-lg hover:bg-white/30 transition-colors"
-            >
-              Choose Your Plan
-              <ArrowRight className="ml-2 w-4 h-4" />
-            </Link>
+        {/* Navigation */}
+        <div className="flex items-center justify-between pt-8 border-t border-white/20">
+          <div className="flex-1">
             <Link
               href="/getting-started"
-              className="inline-flex items-center px-6 py-3 border border-white text-white font-medium rounded-lg hover:bg-white/10 transition-colors"
+              className="inline-flex items-center space-x-2 px-4 py-2 text-white/80 border border-white/20 rounded-lg hover:bg-white/10 transition-colors"
             >
-              Back to Overview
+              <ArrowLeft className="w-4 h-4" />
+              <span>Previous: Overview</span>
+            </Link>
+          </div>
+          
+          <div className="flex-1 text-center">
+            <span className="text-sm text-white/60">Step 2 of 4</span>
+          </div>
+          
+          <div className="flex-1 text-right">
+            <Link
+              href="/getting-started/choosing-plan"
+              className="inline-flex items-center space-x-2 bg-primary-600 text-white px-6 py-2 rounded-lg hover:bg-primary-700 transition-colors font-medium"
+            >
+              <span>Next: Choose Plan</span>
+              <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
         </div>

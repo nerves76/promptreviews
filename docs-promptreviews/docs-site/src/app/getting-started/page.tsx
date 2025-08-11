@@ -8,6 +8,7 @@ import {
   Users, 
   Zap, 
   ArrowRight, 
+  ArrowLeft,
   Clock,
   AlertCircle 
 } from 'lucide-react'
@@ -287,19 +288,32 @@ export default function GettingStartedPage() {
           </div>
         </div>
 
-        {/* Next Steps */}
-        <div className="callout success">
-          <h3 className="text-lg font-semibold mb-3">Ready to Get Started?</h3>
-          <p className="mb-4">
-            Follow the step-by-step guide above, or jump straight into account setup if you're ready to begin.
-          </p>
-          <Link
-            href="/getting-started/account-setup"
-            className="inline-flex items-center space-x-2 bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors font-medium no-underline"
-          >
-            <span>Start Account Setup</span>
-            <ArrowRight className="w-4 h-4" />
-          </Link>
+        {/* Navigation */}
+        <div className="flex items-center justify-between pt-8 border-t border-white/20">
+          <div className="flex-1">
+            {/* Back button - disabled since this is the first page */}
+            <button 
+              disabled
+              className="inline-flex items-center space-x-2 px-4 py-2 text-white/50 border border-white/20 rounded-lg cursor-not-allowed opacity-50"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span>Previous</span>
+            </button>
+          </div>
+          
+          <div className="flex-1 text-center">
+            <span className="text-sm text-white/60">Step 1 of 4</span>
+          </div>
+          
+          <div className="flex-1 text-right">
+            <Link
+              href="/getting-started/account-setup"
+              className="inline-flex items-center space-x-2 bg-primary-600 text-white px-6 py-2 rounded-lg hover:bg-primary-700 transition-colors font-medium"
+            >
+              <span>Next: Account Setup</span>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
         </div>
 
         {/* Related Articles */}
