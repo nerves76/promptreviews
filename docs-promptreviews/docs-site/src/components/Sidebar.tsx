@@ -91,7 +91,7 @@ const navigation: NavItem[] = [
     ]
   },
   {
-    title: 'Website Integration',
+    title: 'Widgets',
     href: '/widgets',
     icon: Code,
     children: [
