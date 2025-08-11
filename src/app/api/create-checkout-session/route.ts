@@ -10,6 +10,9 @@ const appUrl = process.env.NEXT_PUBLIC_APP_URL;
 const builderPriceId = process.env.STRIPE_PRICE_ID_BUILDER;
 const mavenPriceId = process.env.STRIPE_PRICE_ID_MAVEN;
 const growerPriceId = process.env.STRIPE_PRICE_ID_GROWER;
+const builderAnnualPriceId = process.env.STRIPE_PRICE_ID_BUILDER_ANNUAL;
+const mavenAnnualPriceId = process.env.STRIPE_PRICE_ID_MAVEN_ANNUAL;
+const growerAnnualPriceId = process.env.STRIPE_PRICE_ID_GROWER_ANNUAL;
 
 if (!stripeSecretKey || !supabaseUrl || !supabaseServiceKey || !appUrl || !builderPriceId || !mavenPriceId || !growerPriceId) {
   console.error("❌ Missing required environment variables");
@@ -38,10 +41,19 @@ const validatedEnvVars = {
 
 const stripe = new Stripe(validatedEnvVars.stripeSecretKey, { apiVersion: "2025-06-30.basil" });
 
-const PRICE_IDS: Record<string, string> = {
-  grower: validatedEnvVars.growerPriceId,
-  builder: validatedEnvVars.builderPriceId,
-  maven: validatedEnvVars.mavenPriceId,
+const PRICE_IDS: Record<string, { monthly: string; annual: string }> = {
+  grower: {
+    monthly: validatedEnvVars.growerPriceId,
+    annual: growerAnnualPriceId || validatedEnvVars.growerPriceId,
+  },
+  builder: {
+    monthly: validatedEnvVars.builderPriceId,
+    annual: builderAnnualPriceId || validatedEnvVars.builderPriceId,
+  },
+  maven: {
+    monthly: validatedEnvVars.mavenPriceId,
+    annual: mavenAnnualPriceId || validatedEnvVars.mavenPriceId,
+  },
 };
 
 export async function POST(req: NextRequest) {
@@ -57,8 +69,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
     }
 
-    const { plan, userId, email } = requestBody;
-    console.log("📊 Request:", { plan, userId, email: email ? "provided" : "missing" });
+    const { plan, userId, email, billingPeriod = 'monthly' } = requestBody;
+    console.log("📊 Request:", { plan, userId, email: email ? "provided" : "missing", billingPeriod });
     
     // Validate required fields
     if (!plan || !PRICE_IDS[plan]) {
@@ -166,7 +178,7 @@ export async function POST(req: NextRequest) {
     const sessionConfig = {
       payment_method_types: ["card" as const],
       mode: "subscription" as const,
-      line_items: [{ price: PRICE_IDS[plan], quantity: 1 }],
+      line_items: [{ price: PRICE_IDS[plan][billingPeriod], quantity: 1 }],
       metadata: { 
         userId, 
         plan,
@@ -183,7 +195,8 @@ export async function POST(req: NextRequest) {
     };
 
     console.log("📋 Session config:", {
-      priceId: PRICE_IDS[plan],
+      priceId: PRICE_IDS[plan][billingPeriod],
+      billingPeriod,
       hasValidCustomer: !!validCustomerId,
       usingCustomerEmail: !validCustomerId,
       customerEmail: userEmail,

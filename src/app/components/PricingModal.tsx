@@ -4,7 +4,12 @@ const tiers = [
   {
     key: "grower",
     name: "Grower",
-    price: "15 / month",
+    price: "15",
+    priceMonthly: "15",
+    priceAnnual: "12.75", // $153/year ÷ 12 months
+    annualTotal: "153",
+    savings: "27",
+    period: "month",
     order: 1,
     bg: "bg-blue-100",
     text: "text-slate-blue",
@@ -20,7 +25,12 @@ const tiers = [
   {
     key: "builder",
     name: "Builder",
-    price: "35 / month",
+    price: "35",
+    priceMonthly: "35",
+    priceAnnual: "29.75", // $357/year ÷ 12 months
+    annualTotal: "357",
+    savings: "63",
+    period: "month",
     order: 2,
     bg: "bg-purple-200",
     text: "text-slate-blue",
@@ -39,7 +49,12 @@ const tiers = [
   {
     key: "maven",
     name: "Maven",
-    price: "100 / month",
+    price: "100",
+    priceMonthly: "100",
+    priceAnnual: "85", // $1020/year ÷ 12 months
+    annualTotal: "1020",
+    savings: "180",
+    period: "month",
     order: 3,
     bg: "bg-yellow-200",
     text: "text-slate-blue",
@@ -58,7 +73,7 @@ const tiers = [
 ];
 
 interface PricingModalProps {
-  onSelectTier: (tierKey: string) => void;
+  onSelectTier: (tierKey: string, billingPeriod: 'monthly' | 'annual') => void;
   asModal?: boolean;
   currentPlan?: string;
   hasHadPaidPlan?: boolean;
@@ -111,6 +126,7 @@ export default function PricingModal({
   const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(
     null,
   );
+  const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'annual'>('monthly');
   
   const wrapperClass = asModal
     ? "fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80 overflow-y-auto"
@@ -151,6 +167,35 @@ export default function PricingModal({
             </div>
           </div>
         )}
+        
+        {/* Billing Period Toggle */}
+        <div className="mb-8 flex justify-center">
+          <div className="bg-white rounded-lg p-1 shadow-md flex items-center">
+            <button
+              onClick={() => setBillingPeriod('monthly')}
+              className={`px-4 py-2 rounded-md transition-all ${
+                billingPeriod === 'monthly' 
+                  ? 'bg-slate-blue text-white' 
+                  : 'text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              Monthly
+            </button>
+            <button
+              onClick={() => setBillingPeriod('annual')}
+              className={`px-4 py-2 rounded-md transition-all flex items-center ${
+                billingPeriod === 'annual' 
+                  ? 'bg-slate-blue text-white' 
+                  : 'text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              Annual
+              <span className="ml-2 text-xs bg-green-500 text-white px-2 py-0.5 rounded-full">
+                Save 15%
+              </span>
+            </button>
+          </div>
+        </div>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full">
           {tiers.map((tier) => {
@@ -196,8 +241,21 @@ export default function PricingModal({
                 <h3 className={`text-3xl font-bold mb-2 ${tier.text}`}>
                   {tier.name}
                 </h3>
-                <div className={`text-2xl font-semibold mb-4 ${tier.text}`}>
-                  {tier.price}
+                <div className={`mb-4 ${tier.text}`}>
+                  {billingPeriod === 'monthly' ? (
+                    <div>
+                      <span className="text-2xl font-semibold">${tier.priceMonthly}</span>
+                      <span className="text-lg"> / month</span>
+                    </div>
+                  ) : (
+                    <div>
+                      <span className="text-2xl font-semibold">${tier.priceAnnual}</span>
+                      <span className="text-lg"> / month</span>
+                      <div className="text-sm mt-1">
+                        ${tier.annualTotal}/year - Save ${tier.savings}
+                      </div>
+                    </div>
+                  )}
                 </div>
                 <ul className="mb-8 text-lg text-gray-800 space-y-2">
                   {tier.features.map((f) => {
@@ -266,7 +324,7 @@ export default function PricingModal({
                 </ul>
                 <button
                   className={`w-full mt-auto py-3 rounded-lg font-semibold text-lg ${tier.button}`}
-                  onClick={() => onSelectTier(tier.key)}
+                  onClick={() => onSelectTier(tier.key, billingPeriod)}
                   disabled={tier.key === currentPlan && !!currentPlan}
                 >
                   {getButtonLabel(tier.key, currentPlan)}

@@ -127,9 +127,27 @@ const nextConfig = {
           },
         ],
       },
+      // Review dashboard embed should allow iframe embedding
+      {
+        source: '/embed/review-dashboard',
+        headers: [
+          {
+            key: 'X-Frame-Options',
+            value: 'ALLOWALL',
+          },
+          {
+            key: 'Content-Security-Policy',
+            value: "frame-ancestors *;",
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+        ],
+      },
       // All other routes should deny iframe embedding
       {
-        source: '/((?!prompty-power-game|emoji-sentiment-embed).*)',
+        source: '/((?!prompty-power-game|emoji-sentiment-embed|embed/review-dashboard).*)',
         headers: [
           {
             key: 'X-Content-Type-Options',

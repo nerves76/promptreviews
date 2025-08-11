@@ -11,19 +11,32 @@ const stripe = new Stripe(stripeSecretKey, { apiVersion: "2025-06-30.basil" });
 const builderPriceId = process.env.STRIPE_PRICE_ID_BUILDER!;
 const mavenPriceId = process.env.STRIPE_PRICE_ID_MAVEN!;
 const growerPriceId = process.env.STRIPE_PRICE_ID_GROWER!;
+const builderAnnualPriceId = process.env.STRIPE_PRICE_ID_BUILDER_ANNUAL;
+const mavenAnnualPriceId = process.env.STRIPE_PRICE_ID_MAVEN_ANNUAL;
+const growerAnnualPriceId = process.env.STRIPE_PRICE_ID_GROWER_ANNUAL;
+
 if (!builderPriceId || !mavenPriceId || !growerPriceId) {
   throw new Error("Stripe price IDs are not set");
 }
 
-const PRICE_IDS: Record<string, string> = {
-  grower: growerPriceId,
-  builder: builderPriceId,
-  maven: mavenPriceId,
+const PRICE_IDS: Record<string, { monthly: string; annual: string }> = {
+  grower: {
+    monthly: growerPriceId,
+    annual: growerAnnualPriceId || growerPriceId,
+  },
+  builder: {
+    monthly: builderPriceId,
+    annual: builderAnnualPriceId || builderPriceId,
+  },
+  maven: {
+    monthly: mavenPriceId,
+    annual: mavenAnnualPriceId || mavenPriceId,
+  },
 };
 
 export async function POST(req: NextRequest) {
   try {
-    const { plan, userId, currentPlan } = await req.json();
+    const { plan, userId, currentPlan, billingPeriod = 'monthly' } = await req.json();
     
     if (!plan || !PRICE_IDS[plan]) {
       return NextResponse.json({ error: "Invalid plan" }, { status: 400 });
@@ -99,7 +112,7 @@ export async function POST(req: NextRequest) {
         items: [
           {
             id: subscriptionItem.id,
-            price: PRICE_IDS[plan],
+            price: PRICE_IDS[plan][billingPeriod],
           },
         ],
         // Prorate the difference

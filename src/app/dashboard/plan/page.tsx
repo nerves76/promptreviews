@@ -31,17 +31,27 @@ export default function PlanPage() {
   const [isExpired, setIsExpired] = useState(false);
   const [upgrading, setUpgrading] = useState(false);
   const [upgradingPlan, setUpgradingPlan] = useState<string>('');
+  const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'annual'>('monthly');
   const prevPlanRef = useRef<string | null>(null);
   const router = useRouter();
 
   // Helper function to get price ID for a plan
-  const getPriceId = (plan: string) => {
-    const priceMap: { [key: string]: string } = {
-      grower: "price_1RT6s7LqwlpgZPtwjv65Q3xa", // Free trial, use builder price for first payment
-      builder: "price_1RT6s7LqwlpgZPtwjv65Q3xa",
-      maven: "price_1RT6sVLqwlpgZPtwEZLKBQo7"
+  const getPriceId = (plan: string, billing: 'monthly' | 'annual' = 'monthly') => {
+    const priceMap: { [key: string]: { monthly: string; annual: string } } = {
+      grower: {
+        monthly: "price_1RT6s7LqwlpgZPtwjv65Q3xa", // Free trial, use builder price for first payment
+        annual: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_GROWER_ANNUAL || "price_1RT6s7LqwlpgZPtwjv65Q3xa"
+      },
+      builder: {
+        monthly: "price_1RT6s7LqwlpgZPtwjv65Q3xa",
+        annual: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_BUILDER_ANNUAL || "price_1RT6s7LqwlpgZPtwjv65Q3xa"
+      },
+      maven: {
+        monthly: "price_1RT6sVLqwlpgZPtwEZLKBQo7",
+        annual: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_MAVEN_ANNUAL || "price_1RT6sVLqwlpgZPtwEZLKBQo7"
+      }
     };
-    return priceMap[plan] || "";
+    return priceMap[plan]?.[billing] || "";
   };
 
   useEffect(() => {
@@ -96,7 +106,7 @@ export default function PlanPage() {
   }, []);
 
   const handleSelectTier = useCallback(
-    async (tierKey: string) => {
+    async (tierKey: string, billing: 'monthly' | 'annual' = 'monthly') => {
       if (!account || !user) return;
       
       // Check if user has permission to change billing
@@ -138,6 +148,7 @@ export default function PlanPage() {
               plan: tierKey,
               userId: account.id,
               email: user.email,
+              billingPeriod: billing,
             }),
           });
           
@@ -254,6 +265,7 @@ export default function PlanPage() {
             plan: downgradeTarget,
             userId: account.id,
             currentPlan: currentPlan,
+            billingPeriod: billingPeriod,
           }),
         });
         
@@ -329,6 +341,7 @@ export default function PlanPage() {
             plan: upgradeTarget,
             userId: account.id,
             currentPlan: currentPlan,
+            billingPeriod: billingPeriod,
           }),
         });
         
@@ -351,6 +364,7 @@ export default function PlanPage() {
                 plan: upgradeTarget,
                 userId: account.id,
                 email: user.email,
+                billingPeriod: billingPeriod,
               }),
             });
             
@@ -376,6 +390,7 @@ export default function PlanPage() {
             plan: upgradeTarget,
             userId: account.id,
             email: user.email,
+            billingPeriod: billingPeriod,
           }),
         });
         
@@ -466,6 +481,35 @@ export default function PlanPage() {
             </div>
           )}
 
+          {/* Billing Period Toggle */}
+          <div className="mb-8 flex justify-center">
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-1 flex items-center border border-white/20">
+              <button
+                onClick={() => setBillingPeriod('monthly')}
+                className={`px-4 py-2 rounded-md transition-all ${
+                  billingPeriod === 'monthly' 
+                    ? 'bg-slate-blue text-white' 
+                    : 'text-white/70 hover:text-white'
+                }`}
+              >
+                Monthly
+              </button>
+              <button
+                onClick={() => setBillingPeriod('annual')}
+                className={`px-4 py-2 rounded-md transition-all flex items-center ${
+                  billingPeriod === 'annual' 
+                    ? 'bg-slate-blue text-white' 
+                    : 'text-white/70 hover:text-white'
+                }`}
+              >
+                Annual
+                <span className="ml-2 text-xs bg-green-500 text-white px-2 py-0.5 rounded-full">
+                  Save 15%
+                </span>
+              </button>
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl w-full px-4">
             {tiers.map((tier) => (
               <div
@@ -487,8 +531,21 @@ export default function PlanPage() {
                   <h3 className="text-2xl font-bold text-white mb-2">
                     {tier.name}
                   </h3>
-                  <div className="text-3xl font-bold text-white mb-4">
-                    ${tier.price}
+                  <div className="mb-4">
+                    {billingPeriod === 'monthly' ? (
+                      <div className="text-3xl font-bold text-white">
+                        ${tier.priceMonthly}<span className="text-lg font-normal">/mo</span>
+                      </div>
+                    ) : (
+                      <div>
+                        <div className="text-3xl font-bold text-white">
+                          ${tier.priceAnnual}<span className="text-lg font-normal">/mo</span>
+                        </div>
+                        <div className="text-sm text-white/70 mt-1">
+                          ${tier.annualTotal}/year
+                        </div>
+                      </div>
+                    )}
                   </div>
                   <ul className="text-white/90 space-y-2 mb-6">
                     {tier.features.map((feature, index) => (
@@ -499,7 +556,7 @@ export default function PlanPage() {
                     ))}
                   </ul>
                   <button
-                    onClick={() => handleSelectTier(tier.key)}
+                    onClick={() => handleSelectTier(tier.key, billingPeriod)}
                     disabled={currentPlan === tier.key || !canManageBilling}
                     className={`w-full py-3 px-4 rounded-lg font-semibold transition-colors ${
                       currentPlan === tier.key

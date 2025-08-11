@@ -361,10 +361,11 @@ export default function BillingPage() {
                 <div>
                   <h3 className="text-lg font-semibold text-white mb-2">Billing Cycles</h3>
                   <p className="text-white/80 mb-3">
-                    All plans are billed monthly in advance.
+                    Choose between monthly or annual billing for all plans.
                   </p>
                   <div className="space-y-2 text-white/70 text-sm">
                     <p>• <strong>Monthly billing:</strong> Charged on the same date each month</p>
+                    <p>• <strong>Annual billing:</strong> Charged once per year with 15% discount</p>
                     <p>• <strong>Prorated charges:</strong> Upgrades are prorated for remaining cycle</p>
                     <p>• <strong>Automatic renewal:</strong> Subscriptions renew automatically</p>
                     <p>• <strong>Invoice delivery:</strong> Emailed within 24 hours of payment</p>
@@ -424,8 +425,8 @@ export default function BillingPage() {
                 Do you offer annual billing discounts?
               </summary>
               <p className="text-white/80 text-sm mt-3">
-                Currently, all plans are billed monthly. Contact our sales team for custom pricing on annual contracts 
-                or enterprise needs.
+                Yes! All plans offer annual billing with a 15% discount. Save almost 2 months of fees when you pay annually. 
+                You can switch between monthly and annual billing when selecting or changing your plan.
               </p>
             </details>
             
