@@ -220,9 +220,6 @@ export default function GettingStartedPage() {
               className="group block p-6 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg hover:border-primary-300 hover:shadow-md transition-all no-underline"
             >
               <div className="flex items-start space-x-4">
-                <div className="flex-shrink-0 w-8 h-8 bg-primary-100 text-primary-600 rounded-full flex items-center justify-center font-bold text-sm">
-                  {index + 1}
-                </div>
                 
                 <div className="flex-1">
                   <div className="flex items-center justify-between mb-2">
