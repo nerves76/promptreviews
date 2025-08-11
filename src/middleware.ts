@@ -2,8 +2,21 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
+// Docs site URL for proxying
+const DOCS_SITE_URL = 'https://docs-site-7mwbiq8mr-nerves76s-projects.vercel.app';
+
 export async function middleware(req: NextRequest) {
   const res = NextResponse.next();
+  
+  // Handle /docs routes - proxy to the docs site
+  if (req.nextUrl.pathname.startsWith('/docs')) {
+    const docsPath = req.nextUrl.pathname.replace('/docs', '') || '/';
+    const queryString = req.nextUrl.search;
+    const targetUrl = `${DOCS_SITE_URL}${docsPath}${queryString}`;
+    
+    console.log('Middleware: Proxying docs request to:', targetUrl);
+    return NextResponse.rewrite(targetUrl);
+  }
 
   // Skip middleware for social-posting routes - they handle auth internally
   if (req.nextUrl.pathname.startsWith('/api/social-posting/')) {
@@ -140,6 +153,8 @@ export async function middleware(req: NextRequest) {
 // Configure which routes to run middleware on
 export const config = {
   matcher: [
+    // Docs routing (proxy to docs site)
+    '/docs/:path*',
     // REMOVED: '/dashboard/:path*' - Now handled by client-side AuthContext
     // Only run on specific API routes that need authentication
     '/api/admin/:path*',
