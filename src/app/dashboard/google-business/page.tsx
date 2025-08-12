@@ -544,7 +544,10 @@ export default function SocialPostingDashboard() {
       // Call API to remove OAuth tokens from database
       const response = await fetch('/api/social-posting/platforms/google-business-profile/disconnect', {
         method: 'POST',
-        credentials: 'same-origin'
+        credentials: 'include',  // Changed from 'same-origin' to 'include' to ensure cookies are sent
+        headers: {
+          'Content-Type': 'application/json'
+        }
       });
       
       if (response.ok) {

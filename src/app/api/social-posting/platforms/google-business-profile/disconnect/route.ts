@@ -4,19 +4,54 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/utils/supabaseClient';
-import { getUserOrMock } from '@/utils/supabaseClient';
+import { createServerClient } from '@supabase/ssr';
+import { cookies } from 'next/headers';
 
 export async function POST(request: NextRequest) {
   try {
     console.log('🔌 Google Business Profile disconnect requested');
     
-    // Get current user
-    const supabase = createClient();
-    const { data: { user }, error: userError } = await getUserOrMock(supabase);
+    // Create server-side Supabase client
+    const cookieStore = await cookies();
+    
+    // Debug cookies
+    const allCookies = cookieStore.getAll();
+    console.log('🍪 Available cookies:', {
+      total: allCookies.length,
+      supabaseCookies: allCookies.filter(c => c.name.startsWith('sb-')).length,
+      cookieNames: allCookies.map(c => c.name)
+    });
+    
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          get: (name) => {
+            return cookieStore.get(name)?.value;
+          },
+          set: (name, value, options) => {
+            cookieStore.set({ name, value, ...options });
+          },
+          remove: (name, options) => {
+            cookieStore.set({ name, value: '', ...options });
+          },
+        },
+      }
+    );
+    
+    // Get current user with proper error handling
+    console.log('🔍 Attempting to get user for disconnect...');
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    
+    console.log('🔍 User fetch result:', {
+      hasUser: !!user,
+      userId: user?.id,
+      error: userError?.message
+    });
     
     if (userError || !user) {
-      console.error('❌ User not authenticated for disconnect:', userError);
+      console.error('❌ User not authenticated for disconnect:', userError || 'No user found');
       return NextResponse.json(
         { success: false, error: 'Authentication required' },
         { status: 401 }
@@ -75,6 +110,32 @@ export async function POST(request: NextRequest) {
     }
     
     console.log('✅ Successfully removed Google Business Profile tokens from database');
+    
+    // Also remove all Google Business locations for this user
+    const { error: locationsDeleteError } = await supabase
+      .from('google_business_locations')
+      .delete()
+      .eq('user_id', user.id);
+    
+    if (locationsDeleteError) {
+      console.error('⚠️ Error removing Google Business locations:', locationsDeleteError);
+      // Don't fail the whole operation if location cleanup fails
+    } else {
+      console.log('✅ Successfully removed Google Business locations from database');
+    }
+    
+    // Clean up rate limit records
+    const { error: rateLimitError } = await supabase
+      .from('google_api_rate_limits')
+      .delete()
+      .eq('user_id', user.id);
+    
+    if (rateLimitError) {
+      console.error('⚠️ Error removing rate limit records:', rateLimitError);
+      // Don't fail the whole operation if rate limit cleanup fails
+    } else {
+      console.log('✅ Successfully cleaned up rate limit records');
+    }
     
     return NextResponse.json({
       success: true,

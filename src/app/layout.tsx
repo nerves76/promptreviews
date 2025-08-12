@@ -9,6 +9,7 @@ import ClientRoot from "./ClientRoot";
 import AppMain from "./components/AppMain";
 import GoogleAnalytics from "./components/GoogleAnalytics";
 import { Providers } from "@/components/Providers";
+import BodyWrapper from "./components/BodyWrapper";
 import { inter, fontVariables } from "./fonts";
 
 // Sentry is initialized in instrumentation.ts - no need to import here
@@ -63,13 +64,15 @@ export default function RootLayout({
         <meta httpEquiv="x-dns-prefetch-control" content="on" />
       </head>
       <body 
-        className={`${fontVariables} font-sans min-h-screen bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600`}
+        className={`${fontVariables} font-sans`}
         suppressHydrationWarning={true}
       >
         <Providers>
-          <ClientRoot>
-            <AppMain>{children}</AppMain>
-          </ClientRoot>
+          <BodyWrapper fontVariables={fontVariables}>
+            <ClientRoot>
+              <AppMain>{children}</AppMain>
+            </ClientRoot>
+          </BodyWrapper>
         </Providers>
       </body>
     </html>
