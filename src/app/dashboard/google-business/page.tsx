@@ -66,6 +66,16 @@ export default function SocialPostingDashboard() {
     return false;
   });
   
+  // Auto-clear messages after a delay
+  useEffect(() => {
+    if (postResult) {
+      const timer = setTimeout(() => {
+        setPostResult(null);
+      }, 5000); // Clear after 5 seconds
+      return () => clearTimeout(timer);
+    }
+  }, [postResult]);
+  
   const [selectedLocations, setSelectedLocations] = useState<string[]>(() => {
     if (typeof window !== 'undefined') {
       const stored = localStorage.getItem('google-business-selected-locations');
@@ -196,9 +206,10 @@ export default function SocialPostingDashboard() {
       return;
     }
     
-    // Check if we're coming back from OAuth (has 'connected=true' in URL)
+    // Check if we're coming back from OAuth
     const urlParams = new URLSearchParams(window.location.search);
     const isPostOAuth = urlParams.get('connected') === 'true';
+    const hasError = urlParams.get('error');
     
     // Clear OAuth flag when returning from OAuth
     if (typeof window !== 'undefined' && sessionStorage.getItem('googleOAuthInProgress') === 'true') {
@@ -213,7 +224,21 @@ export default function SocialPostingDashboard() {
       console.log('🔒 Cleared OAuth flag from callback cookie');
     }
     
-    if (isPostOAuth) {
+    // Handle OAuth errors
+    if (hasError) {
+      console.log('❌ OAuth error detected:', hasError);
+      const message = urlParams.get('message');
+      setPostResult({ 
+        success: false, 
+        message: message ? decodeURIComponent(message) : 'Failed to connect to Google Business Profile' 
+      });
+      
+      // Clean up URL parameters
+      window.history.replaceState({}, '', window.location.pathname);
+      
+      // Load platforms to show disconnected state
+      loadPlatforms();
+    } else if (isPostOAuth) {
       console.log('🔄 Post-OAuth redirect detected');
       
       // Show success message from OAuth
@@ -226,16 +251,10 @@ export default function SocialPostingDashboard() {
       window.history.replaceState({}, '', window.location.pathname);
       
       // 🔧 FIX: Force state refresh after OAuth to ensure UI updates properly
-      console.log('🔄 Post-OAuth: Forcing platform reload with delay to ensure proper state update');
+      console.log('🔄 Post-OAuth: Forcing platform reload to ensure proper state update');
       
-      // Set initial connected state optimistically since we know OAuth succeeded
-      setIsConnected(true);
-      
-      // Small delay to let the database update complete, then reload platforms
-      setTimeout(() => {
-        console.log('🔄 Post-OAuth: Reloading platforms to refresh connection state');
-        loadPlatforms();
-      }, 2000); // Increased delay to ensure database is updated
+      // Load platforms immediately to get actual connection state
+      loadPlatforms();
     } else {
       // Load platforms on page load (normal page load)
       console.log('🔄 Initial page load: Loading platforms');
@@ -429,6 +448,12 @@ export default function SocialPostingDashboard() {
           if (transformedLocations.length > 0 && selectedLocations.length === 0) {
             setSelectedLocations([transformedLocations[0].id]); // Select first location by default
           }
+          
+          // If we have locations, clear the attempted fetch flag
+          if (transformedLocations.length > 0) {
+            setHasAttemptedFetch(false);
+            localStorage.removeItem('google-business-fetch-attempted');
+          }
         } else {
           setIsConnected(false);
           setLocations([]);
@@ -509,8 +534,11 @@ export default function SocialPostingDashboard() {
       }
       
       const redirectUri = encodeURIComponent(redirectUriRaw);
-      // Updated scopes for Google Business Profile API v1 (2024/2025)
-      const scope = encodeURIComponent('https://www.googleapis.com/auth/business.manage openid email profile');
+      // OAuth scope for Google Business Profile API
+      // Use the exact scope that was working before
+      const scope = 'https://www.googleapis.com/auth/business.manage email profile openid';
+      // URL encode the entire scope string
+      const encodedScope = encodeURIComponent(scope);
       const responseType = 'code';
       const state = encodeURIComponent(JSON.stringify({ 
         platform: 'google-business-profile',
@@ -518,8 +546,9 @@ export default function SocialPostingDashboard() {
       }));
 
       // Construct Google OAuth URL
-      // Added prompt=consent to force re-consent and include_granted_scopes=true to ensure all scopes are requested
-      const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}&response_type=${responseType}&state=${state}&access_type=offline&prompt=consent&include_granted_scopes=true`;
+      // Use prompt=consent to force showing all permissions
+      // include_granted_scopes=false ensures only requested scopes are granted
+      const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${encodedScope}&response_type=${responseType}&state=${state}&access_type=offline&prompt=consent&include_granted_scopes=false`;
       
       console.log('🔗 Redirecting to Google OAuth:', googleAuthUrl);
       console.log('🔒 OAuth flag set, preserving Supabase session during redirect');
@@ -580,30 +609,27 @@ export default function SocialPostingDashboard() {
       localStorage.removeItem('google-business-connected');
       localStorage.removeItem('google-business-locations');
       localStorage.removeItem('google-business-selected-locations');
+      localStorage.removeItem('google-business-fetch-attempted'); // Clear fetch attempt flag
       setIsConnected(false);
       setLocations([]);
       setSelectedLocations([]);
+      setHasAttemptedFetch(false); // Reset fetch attempt state
       setIsLoading(false);
-      
-      // Clear any existing messages after a delay
-      setTimeout(() => {
-        setPostResult(null);
-      }, 3000);
     }
   };
 
   const handleFetchLocations = async (platformId: string) => {
     if (rateLimitedUntil && Date.now() < rateLimitedUntil) {
       const remainingTime = Math.ceil((rateLimitedUntil - Date.now()) / 1000);
-      alert(`Rate limited. Please wait ${remainingTime} more seconds.`);
+      setPostResult({ 
+        success: false, 
+        message: `Rate limited. Please wait ${remainingTime} more seconds.` 
+      });
       return;
     }
     
-    // Mark that user has attempted to fetch locations
-    setHasAttemptedFetch(true);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('google-business-fetch-attempted', 'true');
-    }
+    // Don't mark as attempted until we actually get a response
+    // This prevents showing "No Locations Found" prematurely
 
     // Warn user about the wait time
     const confirmed = confirm(
@@ -655,7 +681,7 @@ export default function SocialPostingDashboard() {
           message += `\n📝 Reason: ${result.details.reason}`;
         }
         
-        alert(message);
+        setPostResult({ success: false, message });
         return;
       }
 
@@ -665,7 +691,10 @@ export default function SocialPostingDashboard() {
           
           // Handle specific error types
           if (errorData.error === 'AUTH_ERROR') {
-            alert(`Authentication Error: ${errorData.message}\n\n${errorData.suggestion || 'Please reconnect your Google Business Profile.'}`);
+            setPostResult({ 
+              success: false, 
+              message: `Authentication Error: ${errorData.message}. ${errorData.suggestion || 'Please reconnect your Google Business Profile.'}` 
+            });
             // Clear connection state
             setIsConnected(false);
             setLocations([]);
@@ -673,14 +702,20 @@ export default function SocialPostingDashboard() {
             localStorage.removeItem('google-business-locations');
             return;
           } else if (errorData.error === 'PERMISSION_ERROR') {
-            alert(`Permission Error: ${errorData.message}\n\n${errorData.suggestion || 'Check your Google Business Profile permissions.'}`);
+            setPostResult({ 
+              success: false, 
+              message: `Permission Error: ${errorData.message}. ${errorData.suggestion || 'Check your Google Business Profile permissions.'}` 
+            });
             return;
           } else if (errorData.error === 'NETWORK_ERROR') {
-            alert(`Network Error: ${errorData.message}\n\n${errorData.suggestion || 'Check your internet connection.'}`);
+            setPostResult({ 
+              success: false, 
+              message: `Network Error: ${errorData.message}. ${errorData.suggestion || 'Check your internet connection.'}` 
+            });
             return;
           } else if (errorData.error === 'TOKEN_REFRESHED') {
             // Token was refreshed, retry automatically
-            alert('Your authentication was refreshed. Retrying...');
+            setPostResult({ success: true, message: 'Your authentication was refreshed. Retrying...' });
             // Retry the fetch
             setTimeout(() => handleFetchLocations(platformId), 1000);
             return;
@@ -697,24 +732,56 @@ export default function SocialPostingDashboard() {
       const result = await response.json();
       console.log(`✅ Fetched ${result.locations?.length || 0} business locations`);
       
+      // Update local state with fetched locations
+      if (result.locations && result.locations.length > 0) {
+        setLocations(result.locations);
+        localStorage.setItem('google-business-locations', JSON.stringify(result.locations));
+        setHasAttemptedFetch(false); // Clear the flag since we have locations now
+        
+        // Auto-select first location if none selected
+        if (!selectedLocationId && result.locations.length > 0) {
+          setSelectedLocationId(result.locations[0].id);
+        }
+      } else {
+        // Only mark as attempted if we got a response but no locations
+        setHasAttemptedFetch(true);
+        localStorage.setItem('google-business-fetch-attempted', 'true');
+      }
+      
       // Show success message with demo mode indicator
       const demoNote = result.isDemoMode ? ' (Demo Mode - Using test data due to Google rate limits)' : '';
-      alert(`Successfully fetched ${result.locations?.length || 0} business locations!${demoNote}`);
+      setPostResult({ 
+        success: true, 
+        message: `Successfully fetched ${result.locations?.length || 0} business locations!${demoNote}` 
+      });
       
-      // Refresh platforms to show new locations
-      // DISABLED: This causes form resets - locations will update on next page load
-      // await loadPlatforms();
+      
+      // Refresh platforms to get updated state from server
+      // Small delay to ensure database is updated
+      setTimeout(() => {
+        console.log('🔄 Refreshing platform data after fetch...');
+        loadPlatforms();
+      }, 1000);
     } catch (error) {
       console.error('Error fetching locations:', error);
       if (error instanceof Error && error.name === 'AbortError') {
-        alert('Request timed out. The process may still be running in the background. Please wait a few minutes and refresh the page to check if locations were fetched.');
+        setPostResult({ 
+          success: false, 
+          message: 'Request timed out. The process may still be running in the background. Please wait a few minutes and refresh the page to check if locations were fetched.' 
+        });
              } else if (error instanceof Error && error.message.includes('rate limit')) {
         // Rate limited - set a 2 minute cooldown
         const cooldownTime = Date.now() + (120 * 1000); // 2 minutes
         setRateLimitedUntil(cooldownTime);
-        alert('Google Business Profile API quota exhausted. Please wait 2 minutes before trying again, or request higher quota limits in Google Cloud Console.');
+        setPostResult({ 
+          success: false, 
+          message: 'Google Business Profile API quota exhausted. Please wait 2 minutes before trying again, or request higher quota limits in Google Cloud Console.' 
+        });
       } else {
-        alert('Failed to fetch business locations. Please try again.');
+        setPostResult({ 
+          success: false, 
+          message: 'Failed to fetch business locations. Please try again.' 
+        });
       }
     } finally {
       setFetchingLocations(null);
@@ -1465,7 +1532,7 @@ export default function SocialPostingDashboard() {
 
 
 
-                {isConnected && locations.length === 0 && (
+                {isConnected && locations.length === 0 && !fetchingLocations && (
                   <div className={`border rounded-md p-4 ${hasAttemptedFetch ? 'bg-yellow-50 border-yellow-200' : 'bg-blue-50 border-blue-200'}`}>
                     <div className="flex items-start space-x-3">
                       <Icon name={hasAttemptedFetch ? "FaExclamationTriangle" : "FaInfoCircle"} className={`w-5 h-5 mt-0.5 ${hasAttemptedFetch ? 'text-yellow-600' : 'text-blue-600'}`} />
@@ -1580,6 +1647,7 @@ export default function SocialPostingDashboard() {
                   )}
                 </div>
               )}
+              
             </div>
           )}
 
@@ -2181,51 +2249,6 @@ export default function SocialPostingDashboard() {
           )}
 
 
-          {/* Settings/Danger Zone - Bottom of page */}
-          {isConnected && (
-            <div className="border-t border-gray-200 pt-8">
-              <div className="max-w-2xl">
-                <h3 className="text-lg font-medium text-gray-900 mb-2">Connection Settings</h3>
-                <p className="text-sm text-gray-600 mb-4">
-                  Manage your Google Business Profile connection and account settings.
-                </p>
-                
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                  <div className="flex items-start space-x-3">
-                    <Icon name="FaExclamationTriangle" className="w-5 h-5 text-red-500 mt-0.5" />
-                    <div className="flex-1">
-                      <h4 className="text-sm font-medium text-red-800 mb-1">Danger Zone</h4>
-                      <p className="text-sm text-red-700 mb-3">
-                        Disconnecting will remove your Google Business Profile connection and all stored business locations. 
-                        You'll need to reconnect and fetch your locations again.
-                      </p>
-                      <button
-                        onClick={() => setShowDisconnectConfirm(true)}
-                        disabled={isLoading}
-                        className={`px-4 py-2 rounded-md transition-colors text-sm flex items-center space-x-2 ${
-                          isLoading
-                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200'
-                            : 'bg-red-600 text-white hover:bg-red-700'
-                        }`}
-                      >
-                        {isLoading ? (
-                          <>
-                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                            <span>Disconnecting...</span>
-                          </>
-                        ) : (
-                          <>
-                            <Icon name="FaTimes" className="w-4 h-4" />
-                            <span>Disconnect Google Business Profile</span>
-                          </>
-                        )}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
 
         </div>
       </PageCard>

@@ -229,8 +229,15 @@ export async function GET(request: NextRequest) {
     // Verify the business.manage scope is present
     const hasBusinessScope = tokens.scope?.includes('business.manage');
     if (!hasBusinessScope) {
-      console.warn('⚠️ WARNING: business.manage scope not granted. User may not have proper permissions.');
+      console.error('❌ CRITICAL: business.manage scope not granted. Cannot proceed without business permissions.');
+      
+      // Don't store tokens without proper permissions
+      return NextResponse.redirect(
+        new URL(`${returnUrl}?error=missing_scope&message=Google did not grant business management permissions. Please revoke app access from Google account settings and try again.`, request.url)
+      );
     }
+    
+    console.log('✅ business.manage scope confirmed');
 
     // Store tokens in database
     console.log('💾 Storing tokens in database...');

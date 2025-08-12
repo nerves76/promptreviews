@@ -130,6 +130,14 @@ export default function UnrespondedReviewsWidget({ className = '' }: Unresponded
         </Link>
       </div>
 
+      {/* Google visibility message */}
+      <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+        <p className="text-sm text-blue-900">
+          <span className="font-medium">💡 Google rewards businesses that respond quickly with increased visibility.</span>
+          <span className="text-blue-700"> We recommend replying within 24 hours.</span>
+        </p>
+      </div>
+
       {data.locations.length > 0 && (
         <div className="mt-4 space-y-2">
           {data.locations.slice(0, 3).map((location, index) => (
