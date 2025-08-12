@@ -186,10 +186,24 @@ export default function TeamPage() {
       alreadyFetching: fetchingRef.current
     });
     
-    // Only fetch team data if user is authenticated, account is selected, and not already loading
-    if (user?.id && !authLoading && !accountLoading && selectedAccount?.account_id && !fetchingRef.current) {
-      console.log('✅ Team Page - Conditions met, fetching team data for account:', selectedAccount.account_id);
-      fetchTeamData().catch(console.error);
+    // Fetch team data if user is authenticated and auth is loaded
+    // Don't wait for account selection if it's taking too long
+    if (user?.id && !authLoading && !fetchingRef.current) {
+      // If account loading is taking too long, proceed anyway
+      if (!accountLoading || selectedAccount) {
+        console.log('✅ Team Page - Fetching team data, account:', selectedAccount?.account_id || 'default');
+        fetchTeamData().catch(console.error);
+      } else {
+        // Set a timeout to fetch anyway if account selection takes too long
+        const timeout = setTimeout(() => {
+          if (!fetchingRef.current && user?.id) {
+            console.log('⏱️ Team Page - Account selection timeout, fetching with default account');
+            fetchTeamData().catch(console.error);
+          }
+        }, 3000); // 3 second timeout
+        
+        return () => clearTimeout(timeout);
+      }
     }
     
     return () => {
@@ -545,6 +559,21 @@ export default function TeamPage() {
       setAddingChris(false);
     }
   };
+
+  // Add safety timeout for stuck loading states
+  useEffect(() => {
+    if (loading) {
+      const timeout = setTimeout(() => {
+        console.warn('⚠️ Team Page - Loading timeout reached, forcing complete');
+        setLoading(false);
+        if (!teamData) {
+          setError('Failed to load team data. Please refresh the page.');
+        }
+      }, 10000); // 10 second timeout
+      
+      return () => clearTimeout(timeout);
+    }
+  }, [loading, teamData]);
 
   // Show loading spinner while auth is loading or team data is loading
   if (authLoading || loading || !user) {
