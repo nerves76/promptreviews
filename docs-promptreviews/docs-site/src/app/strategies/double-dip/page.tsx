@@ -267,20 +267,19 @@ export default function DoubleDipPage() {
               <div className="bg-white/5 rounded-lg p-4 border-l-4 border-blue-400">
                 <h4 className="text-white font-semibold mb-2">Hi Sarah!</h4>
                 <p className="text-white/90 mb-3">
-                  Thank you for your wonderful Google review of our kitchen renovation work! We're so glad you're happy with the results.
+                  Thank you for your wonderful Google review of our kitchen renovation work that you provided a few months ago!
                 </p>
                 <p className="text-white/90 mb-3">
-                  We'd love it if you could share your experience on Yelp as well. Just click this link to submit a review:
+                  We're trying to grow our web presence on Facebook and we would love it if you could share your experience there as well. 
+                  If you click this <span className="text-blue-300 underline">LINK</span> you will see I provided your original review 
+                  (which you can edit or rewrite with the AI button).
                 </p>
                 <div className="bg-blue-500/20 rounded px-3 py-2 inline-block mb-3">
                   <span className="text-blue-300 font-mono text-sm">https://promptreviews.app/r/kitchen-reno-sarah</span>
                 </div>
                 <p className="text-white/90 mb-3">
-                  I've included your previous Google review on the page if you want to just update that and post it. 
-                  Or you can try the AI-Generate button to create something totally new based on your experience!
-                </p>
-                <p className="text-white/80 text-sm">
-                  Thanks again for being such a great customer!
+                  Then just click "Copy & submit" and you will be redirected to Facebook where you can post the review. 
+                  Easy as that! We really appreciate your support.
                 </p>
               </div>
             </div>
@@ -300,7 +299,7 @@ export default function DoubleDipPage() {
                 
                 <div className="flex space-x-3 mb-3">
                   <button className="bg-blue-500/20 border border-blue-400/50 text-blue-300 px-4 py-2 rounded-lg text-sm">
-                    ✏️ Edit & Post to Yelp
+                    📋 Copy & Submit to Facebook
                   </button>
                   <button className="bg-purple-500/20 border border-purple-400/50 text-purple-300 px-4 py-2 rounded-lg text-sm">
                     🤖 AI-Generate New Version

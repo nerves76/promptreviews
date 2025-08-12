@@ -84,7 +84,9 @@ export default function LocationSelector({
           <div className="text-left">
             {selectedLocation ? (
               <>
-                <div className="font-medium text-gray-900">{selectedLocation.name}</div>
+                <div className="font-medium text-gray-900">
+                  {selectedLocation.name || `Location ${selectedLocation.id.replace('locations/', '').substring(0, 8)}...`}
+                </div>
                 {selectedLocation.address && (
                   <div className="text-sm text-gray-500 truncate">{selectedLocation.address}</div>
                 )}
@@ -123,7 +125,9 @@ export default function LocationSelector({
               }`}
             >
               <div className="flex-1 min-w-0">
-                <div className="font-medium text-gray-900 truncate">{location.name}</div>
+                <div className="font-medium text-gray-900 truncate">
+                  {location.name || `Location ${location.id.replace('locations/', '').substring(0, 8)}...`}
+                </div>
                 {location.address && (
                   <div className="text-sm text-gray-500 truncate">{location.address}</div>
                 )}

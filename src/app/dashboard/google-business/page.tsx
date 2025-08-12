@@ -481,12 +481,23 @@ export default function SocialPostingDashboard() {
           console.log('Locations from platforms API:', locations);
           
           // Transform locations to match expected format
-          const transformedLocations = locations.map((loc: any) => ({
-            id: loc.location_id || loc.id,
-            name: loc.location_name || loc.name || (loc.location_id || loc.id)?.replace('locations/', '') || 'Unknown Location',
-            address: loc.address || '',
-            status: 'active' // Default status since we don't have this info
-          }));
+          const transformedLocations = locations.map((loc: any) => {
+            // Debug log to see what we're getting
+            console.log('Raw location data:', {
+              location_id: loc.location_id,
+              location_name: loc.location_name,
+              address: loc.address,
+              status: loc.status,
+              allKeys: Object.keys(loc)
+            });
+            
+            return {
+              id: loc.location_id || loc.id,
+              name: loc.location_name || loc.name || 'Unknown Location',
+              address: loc.address || '',
+              status: loc.status || 'active' // Use actual status if available
+            };
+          });
           
           // Only update locations if they've actually changed to prevent unnecessary re-renders
           setLocations(prev => {

@@ -5,13 +5,14 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
+import { createClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
 
 export async function POST(request: NextRequest) {
   try {
     console.log('🔌 Google Business Profile disconnect requested');
     
-    // Create server-side Supabase client
+    // Create server-side Supabase client for auth
     const cookieStore = await cookies();
     
     // Debug cookies
@@ -40,6 +41,12 @@ export async function POST(request: NextRequest) {
       }
     );
     
+    // Create service role client for database operations (bypasses RLS)
+    const serviceSupabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+    
     // Get current user with proper error handling
     console.log('🔍 Attempting to get user for disconnect...');
     const { data: { user }, error: userError } = await supabase.auth.getUser();
@@ -64,8 +71,8 @@ export async function POST(request: NextRequest) {
     try {
       console.log('🔄 Getting tokens for revocation...');
       
-      // Get the tokens before we delete them
-      const { data: tokenData } = await supabase
+      // Get the tokens before we delete them (using service role)
+      const { data: tokenData } = await serviceSupabase
         .from('google_business_profiles')
         .select('access_token')
         .eq('user_id', user.id)
@@ -95,8 +102,8 @@ export async function POST(request: NextRequest) {
       // Don't fail the whole operation if revocation fails
     }
     
-    // First check if tokens exist before deleting
-    const { data: existingTokens, error: checkError } = await supabase
+    // First check if tokens exist before deleting (using service role)
+    const { data: existingTokens, error: checkError } = await serviceSupabase
       .from('google_business_profiles')
       .select('id')
       .eq('user_id', user.id)
@@ -108,8 +115,8 @@ export async function POST(request: NextRequest) {
       checkError: checkError?.message
     });
     
-    // Remove Google Business Profile tokens from database
-    const { error: deleteError, count } = await supabase
+    // Remove Google Business Profile tokens from database (using service role)
+    const { error: deleteError, count } = await serviceSupabase
       .from('google_business_profiles')
       .delete()
       .eq('user_id', user.id)
@@ -127,8 +134,8 @@ export async function POST(request: NextRequest) {
       deletedCount: count
     });
     
-    // Verify deletion
-    const { data: verifyTokens, error: verifyError } = await supabase
+    // Verify deletion (using service role)
+    const { data: verifyTokens, error: verifyError } = await serviceSupabase
       .from('google_business_profiles')
       .select('id')
       .eq('user_id', user.id)
@@ -140,8 +147,8 @@ export async function POST(request: NextRequest) {
       verifyError: verifyError?.message
     });
     
-    // Also remove all Google Business locations for this user
-    const { error: locationsDeleteError } = await supabase
+    // Also remove all Google Business locations for this user (using service role)
+    const { error: locationsDeleteError } = await serviceSupabase
       .from('google_business_locations')
       .delete()
       .eq('user_id', user.id);
@@ -153,8 +160,8 @@ export async function POST(request: NextRequest) {
       console.log('✅ Successfully removed Google Business locations from database');
     }
     
-    // Clean up rate limit records
-    const { error: rateLimitError } = await supabase
+    // Clean up rate limit records (using service role)
+    const { error: rateLimitError } = await serviceSupabase
       .from('google_api_rate_limits')
       .delete()
       .eq('user_id', user.id);
