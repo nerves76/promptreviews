@@ -1,6 +1,29 @@
 /**
  * Google Business Profile Disconnect API Route
  * Safely removes OAuth tokens and disconnects the platform
+ * 
+ * CRITICAL IMPLEMENTATION NOTES:
+ * 
+ * 1. MUST use service role client (createClient with SUPABASE_SERVICE_ROLE_KEY) for ALL database operations
+ *    - Regular client will fail due to RLS policies on google_business_profiles table
+ *    - Service role client bypasses RLS policies
+ * 
+ * 2. Order of operations:
+ *    a. Get user authentication (use regular client)
+ *    b. Attempt to revoke tokens with Google (optional, don't fail if it doesn't work)
+ *    c. Delete from google_business_profiles table (use service role)
+ *    d. Delete from google_business_locations table (use service role)
+ *    e. Delete from google_api_rate_limits table (use service role)
+ * 
+ * 3. Frontend expectations:
+ *    - Returns { success: true } on successful disconnect
+ *    - Frontend MUST call loadPlatforms() after receiving response
+ *    - Frontend MUST clear all local state (isConnected, locations, selectedLocationId)
+ * 
+ * 4. Common issues and solutions:
+ *    - If tokens aren't deleted: Check you're using service role client
+ *    - If UI doesn't update: Ensure frontend calls loadPlatforms() after disconnect
+ *    - If locations remain: Check all cleanup queries are using service role client
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -116,7 +139,7 @@ export async function POST(request: NextRequest) {
     });
     
     // Remove Google Business Profile tokens from database (using service role)
-    const { error: deleteError, count } = await serviceSupabase
+    const { data: deleteData, error: deleteError, count } = await serviceSupabase
       .from('google_business_profiles')
       .delete()
       .eq('user_id', user.id)
@@ -131,7 +154,9 @@ export async function POST(request: NextRequest) {
     }
     
     console.log('✅ Successfully removed Google Business Profile tokens from database', {
-      deletedCount: count
+      deletedCount: count,
+      deletedRows: deleteData?.length || 0,
+      deletedData: deleteData
     });
     
     // Verify deletion (using service role)

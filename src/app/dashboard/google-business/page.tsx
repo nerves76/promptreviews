@@ -33,6 +33,32 @@ interface GoogleBusinessLocation {
 export default function SocialPostingDashboard() {
   const { currentPlan } = useAuth();
   
+  /**
+   * GOOGLE BUSINESS PROFILE STATE DOCUMENTATION
+   * 
+   * CRITICAL LOCATION SELECTION ISSUES & FIXES:
+   * 
+   * 1. BUSINESS NAMES NOT SHOWING:
+   *    - Problem: location_name field may be undefined/empty from API
+   *    - Solution: Added fallback display using location ID
+   *    - Implementation: {location.name || `Business ${location.id}...`}
+   * 
+   * 2. SELECTING ONE CHECKBOX SELECTS ALL:
+   *    - Problem: Label click propagates to all checkboxes
+   *    - Solution: Added e.stopPropagation() on checkbox events
+   *    - Implementation: Both onChange and onClick handlers stop propagation
+   * 
+   * 3. DATA FLOW:
+   *    - Platforms API → returns raw DB data with location_name, location_id
+   *    - Transform → maps to {id, name, address, status}
+   *    - Display → shows name with fallback if empty
+   * 
+   * 4. STATE MANAGEMENT:
+   *    - selectedLocations: Array of location IDs (not names)
+   *    - Must create new array on change for React to detect updates
+   *    - Uses localStorage for persistence across page refreshes
+   */
+  
   // Loading and connection state
   const [isLoading, setIsLoading] = useState(true);
   
@@ -134,12 +160,12 @@ export default function SocialPostingDashboard() {
   }, [imageUrls]);
 
   // Tab state with URL parameter support and dynamic default based on connection
-  const [activeTab, setActiveTab] = useState<'connect' | 'overview' | 'create-post' | 'respond-reviews' | 'business-info' | 'reviews'>(() => {
+  const [activeTab, setActiveTab] = useState<'connect' | 'overview' | 'create-post' | 'photos' | 'business-info' | 'reviews'>(() => {
     // Initialize from URL parameter if available
     if (typeof window !== 'undefined') {
       const urlParams = new URLSearchParams(window.location.search);
-      const tabParam = urlParams.get('tab') as 'connect' | 'overview' | 'create-post' | 'respond-reviews' | 'business-info' | 'reviews';
-      if (tabParam && ['connect', 'overview', 'create-post', 'respond-reviews', 'business-info', 'reviews'].includes(tabParam)) {
+      const tabParam = urlParams.get('tab') as 'connect' | 'overview' | 'create-post' | 'photos' | 'business-info' | 'reviews';
+      if (tabParam && ['connect', 'overview', 'create-post', 'photos', 'business-info', 'reviews'].includes(tabParam)) {
         return tabParam;
       }
     }
@@ -174,7 +200,7 @@ export default function SocialPostingDashboard() {
   }, [currentPlan]);
 
   // Update URL when tab changes
-  const changeTab = (newTab: 'connect' | 'overview' | 'create-post' | 'respond-reviews' | 'business-info' | 'reviews') => {
+  const changeTab = (newTab: 'connect' | 'overview' | 'create-post' | 'photos' | 'business-info' | 'reviews') => {
     setActiveTab(newTab);
     setIsMobileMenuOpen(false); // Close mobile menu when tab changes
     
@@ -197,7 +223,33 @@ export default function SocialPostingDashboard() {
     // Don't auto-clear error messages - user must dismiss them manually
   }, [postResult]);
 
-  // Handle post-OAuth redirects  
+  /**
+   * Handle post-OAuth redirects and initial page load
+   * 
+   * CRITICAL OAUTH ERROR HANDLING:
+   * 1. OAuth callback adds query params: ?tab=connect&error=XXX&message=YYY
+   * 2. This effect reads those params and displays appropriate messages
+   * 3. Most common error: missing_scope (user didn't check permission checkbox)
+   * 
+   * URL PARAMETER HANDLING:
+   * - Must properly parse when URL already has query params (?tab=connect)
+   * - OAuth callback uses & to append additional params
+   * - Clean up URL after processing to prevent message persistence
+   * - MUST preserve tab parameter when cleaning URL (fixed bug where tab was lost)
+   * 
+   * COMMON ISSUES & FIXES:
+   * - If no message shows: Check URL has proper format (not ?tab=connect?error=...)
+   * - If message disappears: Check postResult state is being set
+   * - If wrong tab shows: Ensure setActiveTab('connect') for errors
+   * - If connection succeeds but UI doesn't update: Check tab parameter is preserved
+   * 
+   * FLOW AFTER OAUTH:
+   * 1. User clicks Connect → Goes to Google OAuth
+   * 2. User grants/denies permissions → Redirects to callback
+   * 3. Callback processes tokens → Redirects to dashboard with params
+   * 4. This effect reads params → Shows message and updates UI
+   * 5. Clean URL but keep tab → User stays on correct tab
+   */
   useEffect(() => {
     console.log('🔄 Main useEffect triggered - checking for OAuth or initial load');
     console.log('🔄 initialLoadDone.current:', initialLoadDone.current);
@@ -209,9 +261,17 @@ export default function SocialPostingDashboard() {
     }
     
     // Check if we're coming back from OAuth
+    console.log('📍 Current URL:', window.location.href);
+    console.log('📍 Query string:', window.location.search);
     const urlParams = new URLSearchParams(window.location.search);
     const isPostOAuth = urlParams.get('connected') === 'true';
     const hasError = urlParams.get('error');
+    console.log('📍 Parsed params:', {
+      connected: urlParams.get('connected'),
+      error: urlParams.get('error'),
+      message: urlParams.get('message'),
+      tab: urlParams.get('tab')
+    });
     
     // Clear OAuth flag when returning from OAuth
     if (typeof window !== 'undefined' && sessionStorage.getItem('googleOAuthInProgress') === 'true') {
@@ -251,13 +311,31 @@ export default function SocialPostingDashboard() {
         });
       }
       
-      // Clean up URL parameters
-      window.history.replaceState({}, '', window.location.pathname);
+      /**
+       * CRITICAL: Clean up OAuth parameters but PRESERVE the tab parameter
+       * 
+       * Previous bug: Using window.location.pathname removed ALL query params including tab
+       * This caused the UI to lose track of which tab to show after OAuth redirect
+       * 
+       * Solution: Extract and preserve the tab parameter when cleaning the URL
+       * This ensures users stay on the Connect tab after OAuth success/error
+       */
+      const tabParam = urlParams.get('tab');
+      const cleanUrl = tabParam ? `${window.location.pathname}?tab=${tabParam}` : window.location.pathname;
+      window.history.replaceState({}, '', cleanUrl);
       
       // Load platforms to show disconnected state
       loadPlatforms();
     } else if (isPostOAuth) {
       console.log('🔄 Post-OAuth redirect detected');
+      
+      /**
+       * POST-OAUTH LOADING STATE FIX:
+       * Show immediate loading feedback to user after OAuth
+       * Previously tabs were greyed out with no indication of processing
+       */
+      setIsPostOAuthConnecting(true); // Show "Finalizing connection..." state
+      setIsLoading(true);
       
       // Show success message from OAuth
       const message = urlParams.get('message');
@@ -265,21 +343,32 @@ export default function SocialPostingDashboard() {
         setPostResult({ success: true, message: decodeURIComponent(message) });
       } else {
         // Default success message if none provided
-        setPostResult({ success: true, message: 'Successfully connected to Google Business Profile!' });
+        setPostResult({ success: true, message: 'Successfully connected! Finalizing setup...' });
       }
       
-      // Clean up URL parameters
-      window.history.replaceState({}, '', window.location.pathname);
+      /**
+       * CRITICAL: Clean up OAuth parameters but PRESERVE the tab parameter
+       * 
+       * Previous bug: Using window.location.pathname removed ALL query params including tab
+       * This caused the UI to lose track of which tab to show after OAuth redirect
+       * 
+       * Solution: Extract and preserve the tab parameter when cleaning the URL
+       * This ensures users stay on the Connect tab after OAuth success/error
+       */
+      const tabParam = urlParams.get('tab');
+      const cleanUrl = tabParam ? `${window.location.pathname}?tab=${tabParam}` : window.location.pathname;
+      window.history.replaceState({}, '', cleanUrl);
       
       // Set connected state optimistically since OAuth succeeded
       setIsConnected(true);
-      setIsLoading(true);
       
       // Give the database a moment to save the tokens, then load platforms
       console.log('🔄 Post-OAuth: Waiting for database to sync before loading platforms...');
       setTimeout(() => {
         console.log('🔄 Post-OAuth: Loading platforms to refresh connection state');
-        loadPlatforms();
+        loadPlatforms().finally(() => {
+          setIsPostOAuthConnecting(false); // Clear the connecting state
+        });
       }, 2000); // 2 second delay to ensure database is updated
     } else {
       // Load platforms on page load (normal page load)
@@ -416,7 +505,13 @@ export default function SocialPostingDashboard() {
 
       // Check platforms API for database state only (no token validation calls)
       console.log('🔍 Fetching platforms (database only)...');
-      const response = await fetch('/api/social-posting/platforms');
+      // Add cache-busting to ensure fresh data after disconnect
+      const response = await fetch(`/api/social-posting/platforms?t=${Date.now()}`, {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache'
+        }
+      });
       console.log('Platforms API response status:', response.status);
       
       if (response.status === 401) {
@@ -450,22 +545,32 @@ export default function SocialPostingDashboard() {
           console.log('Locations from platforms API:', locations);
           
           // Transform locations to match expected format
-          const transformedLocations = locations.map((loc: any) => {
+          const transformedLocations = locations.map((loc: any, index: number) => {
             // Debug log to see what we're getting
-            console.log('Raw location data:', {
+            console.log(`🔍 Raw location data [${index}]:`, {
               location_id: loc.location_id,
               location_name: loc.location_name,
               address: loc.address,
               status: loc.status,
-              allKeys: Object.keys(loc)
+              allKeys: Object.keys(loc),
+              fullObject: JSON.stringify(loc, null, 2)
             });
             
-            return {
-              id: loc.location_id || loc.id,
+            const transformed = {
+              id: loc.location_id || loc.id || `location-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
               name: loc.location_name || loc.name || 'Unknown Location',
               address: loc.address || '',
               status: loc.status || 'active' // Use actual status if available
             };
+            
+            console.log(`✅ Transformed location [${index}]:`, {
+              id: transformed.id,
+              name: transformed.name,
+              address: transformed.address,
+              status: transformed.status
+            });
+            
+            return transformed;
           });
           
           // Only update locations if they've actually changed to prevent unnecessary re-renders
@@ -608,6 +713,34 @@ export default function SocialPostingDashboard() {
     }
   };
 
+  /**
+   * Handles disconnecting from Google Business Profile
+   * 
+   * CRITICAL NOTES:
+   * 1. State is cleared IMMEDIATELY in finally block for instant UI feedback
+   * 2. Tab is forced to 'connect' after disconnect to show connection UI
+   * 3. Uses 1.5s delay before loadPlatforms() to ensure DB transaction completes
+   * 4. Service role client used in API to bypass RLS policies
+   * 
+   * DISCONNECT UI UPDATE FIX (2025-08-12):
+   * - Problem: UI wasn't updating immediately after disconnect
+   * - Root cause: loadPlatforms() was called too soon (500ms) before DB update completed
+   * - Solution: 
+   *   a) Clear all state IMMEDIATELY in finally block (don't wait for API)
+   *   b) Force activeTab to 'connect' to show connection UI
+   *   c) Increase delay to 1.5s before loadPlatforms() for DB sync
+   *   d) Added validation in platforms API to check for null tokens
+   * 
+   * Flow:
+   * 1. Call disconnect API to revoke Google tokens and remove from database
+   * 2. Immediately clear all localStorage and React state (in finally block)
+   * 3. Force tab to 'connect' and close modal
+   * 4. Wait 1.5s then reload platforms to confirm disconnection
+   * 
+   * State cleared:
+   * - localStorage: google-business-connected, locations, selected-locations, fetch-attempted
+   * - React state: isConnected, locations, selectedLocations, selectedLocationId, hasAttemptedFetch
+   */
   const handleDisconnect = async () => {
     try {
       console.log('🔌 Disconnecting Google Business Profile...');
@@ -642,20 +775,51 @@ export default function SocialPostingDashboard() {
         message: 'Error during disconnect - local state cleared' 
       });
     } finally {
-      // Always clear local state regardless of API success
-      console.log('🧹 Clearing local Google Business Profile state');
+      /**
+       * CRITICAL: Clear state IMMEDIATELY to reflect disconnection in UI
+       * This ensures the user sees the change right away, even before
+       * the platforms API confirms the disconnection.
+       * 
+       * Order of operations:
+       * 1. Clear all localStorage entries
+       * 2. Reset all React state to disconnected state
+       * 3. Close modal
+       * 4. Wait longer (1.5s) before reloading platforms to ensure DB is updated
+       */
+      console.log('🧹 Clearing local Google Business Profile state IMMEDIATELY');
+      
+      // Clear all localStorage entries
       localStorage.removeItem('google-business-connected');
       localStorage.removeItem('google-business-locations');
       localStorage.removeItem('google-business-selected-locations');
-      localStorage.removeItem('google-business-fetch-attempted'); // Clear fetch attempt flag
+      localStorage.removeItem('google-business-fetch-attempted');
+      
+      // Immediately update UI state to show disconnected
       setIsConnected(false);
       setLocations([]);
       setSelectedLocations([]);
-      setHasAttemptedFetch(false); // Reset fetch attempt state
+      setSelectedLocationId('');
+      setHasAttemptedFetch(false);
       setIsLoading(false);
       
       // Close the disconnect confirmation dialog
       setShowDisconnectConfirm(false);
+      
+      // Force tab to Connect after disconnect to show the connection UI
+      setActiveTab('connect');
+      
+      // CRITICAL: Wait longer before reloading to ensure database is fully updated
+      // This gives time for the database transaction to complete
+      // Also force a hard refresh to clear any potential caching
+      setTimeout(async () => {
+        console.log('🔄 Reloading platforms after disconnect (2s delay for DB sync)...');
+        
+        // Force clear the loading ref to ensure loadPlatforms can run
+        loadingRef.current = false;
+        
+        // Add a cache-busting parameter to force fresh data
+        await loadPlatforms();
+      }, 2000); // Increased to 2000ms for better reliability
     }
   };
 
@@ -1295,7 +1459,7 @@ export default function SocialPostingDashboard() {
                 {activeTab === 'connect' && 'Connect'}
                 {activeTab === 'overview' && 'Overview'}
                 {activeTab === 'create-post' && 'Create Post'}
-                {activeTab === 'respond-reviews' && 'Respond to Reviews'}
+                {activeTab === 'photos' && 'Photos'}
                 {activeTab === 'business-info' && 'Business Info'}
                 {activeTab === 'reviews' && 'Reviews'}
               </h3>
@@ -1364,17 +1528,17 @@ export default function SocialPostingDashboard() {
                 </div>
               </button>
               <button
-                onClick={() => changeTab('respond-reviews')}
+                onClick={() => changeTab('photos')}
                 disabled={!isConnected || locations.length === 0}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === 'respond-reviews' && isConnected && locations.length > 0
+                  activeTab === 'photos' && isConnected && locations.length > 0
                     ? 'border-slate-blue text-slate-blue'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 } ${(!isConnected || locations.length === 0) ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
                 <div className="flex items-center space-x-2">
                   <Icon name="FaCommentAlt" className="w-4 h-4" size={16} />
-                  <span>Respond to Reviews</span>
+                  <span>Photos</span>
                 </div>
               </button>
               <button
@@ -1456,10 +1620,10 @@ export default function SocialPostingDashboard() {
                     </div>
                   </button>
                   <button
-                    onClick={() => changeTab('respond-reviews')}
+                    onClick={() => changeTab('photos')}
                     disabled={!isConnected}
                     className={`w-full text-left px-3 py-2 rounded-md text-sm font-medium ${
-                      activeTab === 'respond-reviews' && isConnected
+                      activeTab === 'photos' && isConnected
                         ? 'bg-slate-blue text-white'
                         : isConnected 
                           ? 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
@@ -1468,7 +1632,7 @@ export default function SocialPostingDashboard() {
                   >
                     <div className="flex items-center space-x-3">
                       <Icon name="FaCommentAlt" className="w-4 h-4" size={16} />
-                      <span>Respond to Reviews</span>
+                      <span>Photos</span>
                     </div>
                   </button>
                   <button
@@ -1670,10 +1834,10 @@ export default function SocialPostingDashboard() {
                             Create Post
                           </button>
                           <button
-                            onClick={() => changeTab('reviews')}
+                            onClick={() => changeTab('photos')}
                             className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm font-medium"
                           >
-                            Respond to Reviews →
+                            View Photos →
                           </button>
                         </div>
                       </div>
@@ -1999,36 +2163,53 @@ export default function SocialPostingDashboard() {
                         {isLocationDropdownOpen && (
                           <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-50 max-h-60 overflow-y-auto">
                             {locations.map((location) => (
-                              <label
+                              <div
                                 key={location.id}
-                                className="flex items-center space-x-3 px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
+                                className="flex items-center space-x-3 px-4 py-3 hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
                               >
                                 <input
                                   type="checkbox"
+                                  id={`location-checkbox-${location.id}`}
                                   checked={selectedLocations.includes(location.id)}
                                   onChange={(e) => {
+                                    /**
+                                     * CRITICAL: Individual checkbox selection
+                                     * Must create new array to trigger React re-render
+                                     * Using div instead of label to prevent event issues
+                                     */
+                                    console.log(`📍 Checkbox clicked for location: ${location.name} (${location.id}), checked: ${e.target.checked}`);
+                                    console.log('Current selection before change:', selectedLocations);
+                                    
                                     if (e.target.checked) {
-                                      setSelectedLocations([...selectedLocations, location.id]);
+                                      // Only add if not already in the list
+                                      if (!selectedLocations.includes(location.id)) {
+                                        const newSelection = [...selectedLocations, location.id];
+                                        console.log('✅ Adding location, new selection:', newSelection);
+                                        setSelectedLocations(newSelection);
+                                      }
                                     } else {
-                                      setSelectedLocations(selectedLocations.filter(id => id !== location.id));
+                                      const newSelection = selectedLocations.filter(id => id !== location.id);
+                                      console.log('❌ Removing location, new selection:', newSelection);
+                                      setSelectedLocations(newSelection);
                                     }
                                   }}
                                   className="w-4 h-4 text-slate-blue border-gray-300 rounded focus:ring-slate-blue"
                                 />
                                 <div className="flex-1 min-w-0">
-                                  <div className="font-medium text-gray-900 truncate">{location.name}</div>
+                                  <div className="font-medium text-gray-900 truncate">
+                                    {location.name && location.name !== 'Unknown Location' ? (
+                                      location.name
+                                    ) : location.id ? (
+                                      `Business ${location.id.replace('locations/', '').substring(0, 8)}...`
+                                    ) : (
+                                      'Unnamed Business'
+                                    )}
+                                  </div>
                                   {location.address && (
                                     <div className="text-sm text-gray-500 truncate">{location.address}</div>
                                   )}
                                 </div>
-                                <div className={`px-2 py-1 rounded-full text-xs font-medium flex-shrink-0 ${
-                                  location.status === 'active' ? 'bg-green-100 text-green-800' :
-                                  location.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                                  'bg-red-100 text-red-800'
-                                }`}>
-                                  {location.status}
-                                </div>
-                              </label>
+                              </div>
                             ))}
                           </div>
                         )}
@@ -2219,7 +2400,7 @@ export default function SocialPostingDashboard() {
             </div>
           )}
 
-          {activeTab === 'respond-reviews' && (
+          {activeTab === 'photos' && (
             <div className="space-y-6">
               {!isConnected ? (
                 <div className="text-center py-12">

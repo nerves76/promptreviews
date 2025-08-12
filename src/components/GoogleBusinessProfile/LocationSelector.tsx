@@ -14,7 +14,7 @@ interface Location {
   id: string;
   name: string;
   address: string;
-  status: 'active' | 'pending' | 'suspended';
+  status?: 'active' | 'pending' | 'suspended'; // Optional, not displayed
 }
 
 interface LocationSelectorProps {
@@ -96,16 +96,7 @@ export default function LocationSelector({
             )}
           </div>
         </div>
-        <div className="flex items-center space-x-2">
-          {selectedLocation && (
-            <div className={`px-2 py-1 rounded-full text-xs font-medium ${
-              selectedLocation.status === 'active' ? 'bg-green-100 text-green-800' :
-              selectedLocation.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-              'bg-red-100 text-red-800'
-            }`}>
-              {selectedLocation.status}
-            </div>
-          )}
+        <div className="flex items-center">
           {isDropdownOpen ? (
             <Icon name="FaChevronUp" className="w-4 h-4 text-gray-500" />
           ) : (
@@ -131,13 +122,6 @@ export default function LocationSelector({
                 {location.address && (
                   <div className="text-sm text-gray-500 truncate">{location.address}</div>
                 )}
-              </div>
-              <div className={`px-2 py-1 rounded-full text-xs font-medium flex-shrink-0 ${
-                location.status === 'active' ? 'bg-green-100 text-green-800' :
-                location.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                'bg-red-100 text-red-800'
-              }`}>
-                {location.status}
               </div>
               {selectedLocationId === location.id && (
                 <Icon name="FaCheck" className="w-4 h-4 text-slate-blue flex-shrink-0" />

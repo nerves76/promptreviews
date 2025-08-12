@@ -399,17 +399,6 @@ export default function PhotoManagement({ locations, isConnected }: PhotoManagem
                         <div className="text-sm text-gray-500 truncate">
                           {location.address}
                         </div>
-                        <div className="flex items-center space-x-2 mt-1">
-                          <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
-                            location.status === 'active' 
-                              ? 'bg-green-100 text-green-800'
-                              : location.status === 'pending'
-                              ? 'bg-yellow-100 text-yellow-800'
-                              : 'bg-red-100 text-red-800'
-                          }`}>
-                            {location.status}
-                          </span>
-                        </div>
                       </div>
                     </label>
                   </div>
