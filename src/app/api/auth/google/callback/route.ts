@@ -223,8 +223,14 @@ export async function GET(request: NextRequest) {
       hasRefreshToken: !!tokens.refresh_token,
       expiresIn: tokens.expires_in,
       expiresInHours: tokens.expires_in ? tokens.expires_in / 3600 : 'unknown',
-      scope: tokens.scope?.substring(0, 100)
+      scope: tokens.scope
     });
+    
+    // Verify the business.manage scope is present
+    const hasBusinessScope = tokens.scope?.includes('business.manage');
+    if (!hasBusinessScope) {
+      console.warn('⚠️ WARNING: business.manage scope not granted. User may not have proper permissions.');
+    }
 
     // Store tokens in database
     console.log('💾 Storing tokens in database...');

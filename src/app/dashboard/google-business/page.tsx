@@ -228,11 +228,14 @@ export default function SocialPostingDashboard() {
       // 🔧 FIX: Force state refresh after OAuth to ensure UI updates properly
       console.log('🔄 Post-OAuth: Forcing platform reload with delay to ensure proper state update');
       
-      // Small delay to let the OAuth success message show, then reload platforms
+      // Set initial connected state optimistically since we know OAuth succeeded
+      setIsConnected(true);
+      
+      // Small delay to let the database update complete, then reload platforms
       setTimeout(() => {
         console.log('🔄 Post-OAuth: Reloading platforms to refresh connection state');
         loadPlatforms();
-      }, 1000);
+      }, 2000); // Increased delay to ensure database is updated
     } else {
       // Load platforms on page load (normal page load)
       console.log('🔄 Initial page load: Loading platforms');
