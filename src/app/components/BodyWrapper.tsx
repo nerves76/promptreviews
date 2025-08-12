@@ -18,9 +18,11 @@ export default function BodyWrapper({
   useEffect(() => {
     // Apply or remove background classes based on route
     if (isEmbed) {
-      document.body.className = `${fontVariables} font-sans`;
+      document.body.className = `${fontVariables} font-sans bg-white`;
+      document.body.style.background = 'white';
     } else {
       document.body.className = `${fontVariables} font-sans min-h-screen bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600`;
+      document.body.style.background = '';
     }
   }, [pathname, isEmbed, fontVariables]);
   
