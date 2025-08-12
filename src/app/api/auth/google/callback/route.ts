@@ -53,23 +53,27 @@ export async function GET(request: NextRequest) {
     if (error) {
       console.log('❌ OAuth error received:', error);
       return NextResponse.redirect(
-        new URL('/dashboard/google-business?error=oauth_denied&message=Access was denied', request.url)
+        new URL('/dashboard/google-business?tab=connect&error=oauth_denied&message=Access was denied', request.url)
       );
     }
     
     if (!code) {
       console.log('❌ No authorization code received');
       return NextResponse.redirect(
-        new URL('/dashboard/google-business?error=callback_failed&message=No authorization code received', request.url)
+        new URL('/dashboard/google-business?tab=connect&error=callback_failed&message=No authorization code received', request.url)
       );
     }
 
-    // Parse state to get return URL
-          let returnUrl = '/dashboard/google-business';
+    // Parse state to get return URL - always stay on Connect tab
+          let returnUrl = '/dashboard/google-business?tab=connect';
     if (state) {
       try {
         const stateData = JSON.parse(decodeURIComponent(state));
-        returnUrl = stateData.returnUrl || '/dashboard/google-business';
+        returnUrl = stateData.returnUrl || '/dashboard/google-business?tab=connect';
+        // Make sure we stay on the Connect tab
+        if (!returnUrl.includes('tab=')) {
+          returnUrl = returnUrl.includes('?') ? `${returnUrl}&tab=connect` : `${returnUrl}?tab=connect`;
+        }
         console.log('🔄 Return URL from state:', returnUrl);
       } catch (e) {
         console.log('⚠️ Failed to parse state:', e);
@@ -233,7 +237,7 @@ export async function GET(request: NextRequest) {
       
       // Don't store tokens without proper permissions
       return NextResponse.redirect(
-        new URL(`${returnUrl}?error=missing_scope&message=Google did not grant business management permissions. Please revoke app access from Google account settings and try again.`, request.url)
+        new URL(`${returnUrl}?error=missing_scope&message=Please try connecting again and make sure to check the business management permission checkbox when prompted.`, request.url)
       );
     }
     
@@ -331,7 +335,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('❌ Error in OAuth callback:', error);
     return NextResponse.redirect(
-              new URL('/dashboard/google-business?error=callback_failed&message=Unexpected error during OAuth callback', request.url)
+              new URL('/dashboard/google-business?tab=connect&error=callback_failed&message=Unexpected error during OAuth callback', request.url)
     );
   }
 } 

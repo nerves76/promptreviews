@@ -328,14 +328,14 @@ export default function DoubleDipPage() {
           
           <div className="grid md:grid-cols-2 gap-6">
             <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6">
-              <h3 className="font-semibold text-white mb-3">Timing Matters</h3>
+              <h3 className="font-semibold text-white mb-3">Offer Multiple Options</h3>
               <p className="text-white/80 text-sm mb-4">
-                Wait 2-3 months after their original review before asking for a Double-Dip. This gives them time to experience 
-                the long-term quality of your work.
+                Give customers a choice of platforms to review on. Not everyone has accounts on all platforms, so offering 
+                2-3 options increases your success rate.
               </p>
               <div className="bg-white/5 rounded-lg p-3">
                 <p className="text-xs text-white/70">
-                  <strong>Pro tip:</strong> The longer they've been satisfied, the more likely they are to help again.
+                  <strong>Pro tip:</strong> Include Facebook, Yelp, and an industry-specific site. Let them choose what's easiest for them.
                 </p>
               </div>
             </div>

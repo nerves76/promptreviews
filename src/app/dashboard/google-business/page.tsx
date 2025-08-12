@@ -233,47 +233,16 @@ export default function SocialPostingDashboard() {
       
       // Check if this is a missing_scope error
       if (hasError === 'missing_scope') {
-        console.log('🔄 Missing scope detected - attempting automatic fix');
+        console.log('❌ Missing scope detected - user needs to check the checkbox');
         
-        // Show a temporary message while we fix it
+        // Just show the simple message - no auto-fix attempts
         setPostResult({ 
           success: false, 
-          message: 'Google didn\'t grant all permissions. Fixing this automatically...' 
+          message: message ? decodeURIComponent(message) : 'Please try connecting again and make sure to check the business management permission checkbox when prompted.' 
         });
         
-        // Try to revoke and reconnect automatically
-        setTimeout(async () => {
-          try {
-            // First revoke existing permissions
-            const revokeResponse = await fetch('/api/social-posting/platforms/google-business-profile/revoke', {
-              method: 'POST',
-              credentials: 'include',
-              headers: {
-                'Content-Type': 'application/json'
-              }
-            });
-            
-            if (revokeResponse.ok) {
-              console.log('✅ Revoked existing permissions');
-              setPostResult({ 
-                success: false, 
-                message: 'Permissions cleared. Please click "Connect Google Business" to try again with fresh permissions.' 
-              });
-            } else {
-              // Fall back to manual instructions if revoke fails
-              setPostResult({ 
-                success: false, 
-                message: message ? decodeURIComponent(message) : 'Google did not grant business management permissions. Please try connecting again.' 
-              });
-            }
-          } catch (error) {
-            console.error('❌ Failed to auto-revoke:', error);
-            setPostResult({ 
-              success: false, 
-              message: message ? decodeURIComponent(message) : 'Failed to connect to Google Business Profile' 
-            });
-          }
-        }, 1000);
+        // Set active tab to connect so user sees the Connect button
+        setActiveTab('connect');
       } else {
         // Other errors - show the message
         setPostResult({ 
@@ -610,7 +579,7 @@ export default function SocialPostingDashboard() {
       const responseType = 'code';
       const state = encodeURIComponent(JSON.stringify({ 
         platform: 'google-business-profile',
-        returnUrl: '/dashboard/google-business'
+        returnUrl: '/dashboard/google-business?tab=connect'
       }));
 
       // Construct Google OAuth URL
@@ -1685,14 +1654,20 @@ export default function SocialPostingDashboard() {
                           Setup Complete!
                         </h4>
                         <p className="text-sm text-green-700 mb-3">
-                          Found {locations.length} business location{locations.length !== 1 ? 's' : ''}. Your Google Business Profile is ready! You can now create posts, manage photos, business info, and reviews.
+                          Found {locations.length} business location{locations.length !== 1 ? 's' : ''}. Your Google Business Profile is ready!
                         </p>
                         <div className="flex space-x-2">
                           <button
-                            onClick={() => changeTab('create-post')}
+                            onClick={() => changeTab('overview')}
                             className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm font-medium"
                           >
-                            Create Posts →
+                            View Overview →
+                          </button>
+                          <button
+                            onClick={() => changeTab('create-post')}
+                            className="px-4 py-2 bg-white text-green-700 border border-green-300 rounded-md hover:bg-green-50 transition-colors text-sm font-medium"
+                          >
+                            Create Post
                           </button>
                           <button
                             onClick={() => changeTab('reviews')}
@@ -1748,20 +1723,6 @@ export default function SocialPostingDashboard() {
                     <span className="text-sm font-medium">Error</span>
                   </div>
                   <p className="text-sm text-red-700">{postResult.message}</p>
-                  
-                  {/* Add specific help for permission/scope errors */}
-                  {postResult.message && (postResult.message.includes('revoke') || postResult.message.includes('permission') || postResult.message.includes('scope')) && (
-                    <div className="mt-3 p-3 bg-white border border-red-200 rounded">
-                      <p className="text-sm font-medium text-red-800 mb-2">How to revoke and reconnect:</p>
-                      <ol className="text-xs text-red-700 space-y-1 list-decimal list-inside">
-                        <li>Go to <a href="https://myaccount.google.com/permissions" target="_blank" rel="noopener noreferrer" className="underline hover:no-underline text-red-800 font-medium">Google Account Permissions</a></li>
-                        <li>Find "Prompt Reviews" in the list</li>
-                        <li>Click on it and select "Remove Access"</li>
-                        <li>Come back here and click "Connect Google Business" again</li>
-                        <li>Make sure to check ALL permission checkboxes when prompted</li>
-                      </ol>
-                    </div>
-                  )}
                   
                   {rateLimitCountdown > 0 && (
                     <div className="mt-2 flex items-center space-x-2 text-sm text-red-600">
