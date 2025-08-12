@@ -16,7 +16,8 @@ export default function AppMain({
   const isPublic =
     pathname.startsWith("/r/") || 
     pathname.startsWith("/prompt-pages/") ||
-    pathname.startsWith("/demo/");
+    pathname.startsWith("/demo/") ||
+    pathname.startsWith("/embed/");
   const isAuth = pathname.startsWith("/auth/") || pathname.startsWith("/reset-password");
   if (isPublic) {
     return <main>{children}</main>;
