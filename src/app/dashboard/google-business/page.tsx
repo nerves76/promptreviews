@@ -18,6 +18,7 @@ import BusinessDescriptionAnalyzer from '@/app/components/BusinessDescriptionAna
 import { createClient, getSessionOrMock } from '@/utils/supabaseClient';
 import { useAuth } from '@/contexts/AuthContext';
 import UnrespondedReviewsWidget from '@/app/components/UnrespondedReviewsWidget';
+import { safeTransformLocations, validateTransformedLocations } from '@/lib/google-business/safe-transformer';
 import LocationSelector from '@/components/GoogleBusinessProfile/LocationSelector';
 import OverviewStats from '@/components/GoogleBusinessProfile/OverviewStats';
 import BusinessHealthMetrics from '@/components/GoogleBusinessProfile/BusinessHealthMetrics';
@@ -27,7 +28,8 @@ interface GoogleBusinessLocation {
   id: string;
   name: string;
   address: string;
-  status: 'active' | 'pending' | 'suspended';
+  status?: string; // Made optional and flexible since we don't use it
+  _debug?: any; // Debug info from safe transformer (only in dev)
 }
 
 export default function SocialPostingDashboard() {
@@ -544,34 +546,25 @@ export default function SocialPostingDashboard() {
           const locations = googlePlatform.locations || [];
           console.log('Locations from platforms API:', locations);
           
-          // Transform locations to match expected format
-          const transformedLocations = locations.map((loc: any, index: number) => {
-            // Debug log to see what we're getting
-            console.log(`🔍 Raw location data [${index}]:`, {
-              location_id: loc.location_id,
-              location_name: loc.location_name,
-              address: loc.address,
-              status: loc.status,
-              allKeys: Object.keys(loc),
-              fullObject: JSON.stringify(loc, null, 2)
+          // Use safe transformer to prevent TypeErrors
+          const transformedLocations = safeTransformLocations(locations);
+          
+          // Validate the transformation
+          const validation = validateTransformedLocations(transformedLocations);
+          if (!validation.valid && process.env.NODE_ENV === 'development') {
+            console.warn('⚠️ Location data validation issues:', validation.issues);
+            // Still proceed, but log issues for monitoring
+          }
+          
+          // Log summary in development
+          if (process.env.NODE_ENV === 'development') {
+            console.log(`✅ Safely transformed ${transformedLocations.length} locations`);
+            transformedLocations.forEach((loc, i) => {
+              if (loc._debug?.warnings?.length) {
+                console.log(`Location ${i} warnings:`, loc._debug.warnings);
+              }
             });
-            
-            const transformed = {
-              id: loc.location_id || loc.id || `location-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-              name: loc.location_name || loc.name || 'Unknown Location',
-              address: loc.address || '',
-              status: loc.status || 'active' // Use actual status if available
-            };
-            
-            console.log(`✅ Transformed location [${index}]:`, {
-              id: transformed.id,
-              name: transformed.name,
-              address: transformed.address,
-              status: transformed.status
-            });
-            
-            return transformed;
-          });
+          }
           
           // Only update locations if they've actually changed to prevent unnecessary re-renders
           setLocations(prev => {
@@ -1925,14 +1918,12 @@ export default function SocialPostingDashboard() {
                     locations={locations.length > 0 ? locations.map(loc => ({
                       id: loc.id,
                       name: loc.name,
-                      address: loc.address,
-                      status: loc.status
+                      address: loc.address
                     })) : [
                       {
                         id: 'demo-location',
                         name: 'Your Business Name',
-                        address: '123 Main Street, Your City, State 12345',
-                        status: 'active' as const
+                        address: '123 Main Street, Your City, State 12345'
                       }
                     ]}
                     selectedLocationId={selectedLocationId || 'demo-location'}

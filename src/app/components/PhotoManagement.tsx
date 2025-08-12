@@ -14,7 +14,7 @@ interface GoogleBusinessLocation {
   id: string;
   name: string;
   address: string;
-  status: 'active' | 'pending' | 'suspended';
+  status?: string; // Optional, not displayed
 }
 
 interface PhotoManagementProps {
