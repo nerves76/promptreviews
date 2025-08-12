@@ -9,7 +9,7 @@ import { useState, useEffect, useRef } from 'react';
 import Icon from '@/components/Icon';
 import SpriteLoader from '@/components/SpriteLoader';
 
-// Fake business locations
+// Fake business locations - Just 3 to avoid scrolling
 const fakeLocations = [
   {
     id: '1',
@@ -27,12 +27,6 @@ const fakeLocations = [
     id: '3',
     name: "Snuzzlepup's Veterinary Clinic - Hawthorne",
     address: '3456 SE Hawthorne Blvd, Portland, OR 97214',
-    status: 'active' as const
-  },
-  {
-    id: '4',
-    name: "Snuzzlepup's Homes 4 Pets Non-Profit",
-    address: '1234 NE Sandy Blvd, Portland, OR 97213',
     status: 'active' as const
   }
 ];
