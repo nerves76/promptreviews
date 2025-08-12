@@ -136,23 +136,8 @@ export default function MultiBusinessPostingEmbedDemo() {
         }
       `}</style>
       <SpriteLoader />
-      {/* Browser Window - No Container */}
+      {/* Interface Only - No Browser Chrome */}
       <div className="bg-white rounded-xl overflow-hidden w-full">
-          {/* Mock Browser Bar */}
-          <div className="bg-gray-100 px-4 py-3 border-b border-gray-200 flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <div className="flex space-x-2">
-                <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-              </div>
-              <div className="ml-4 px-4 py-1 bg-white rounded-md text-sm text-gray-600">
-                app.promptreviews.app/dashboard/google-business
-              </div>
-            </div>
-            <Icon name="FaLock" className="w-4 h-4 text-green-600" />
-          </div>
-
           {/* Demo Content */}
           <div className="p-8">
             {/* Page Title */}
