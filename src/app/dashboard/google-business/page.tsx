@@ -66,16 +66,6 @@ export default function SocialPostingDashboard() {
     return false;
   });
   
-  // Auto-clear messages after a delay
-  useEffect(() => {
-    if (postResult) {
-      const timer = setTimeout(() => {
-        setPostResult(null);
-      }, 5000); // Clear after 5 seconds
-      return () => clearTimeout(timer);
-    }
-  }, [postResult]);
-  
   const [selectedLocations, setSelectedLocations] = useState<string[]>(() => {
     if (typeof window !== 'undefined') {
       const stored = localStorage.getItem('google-business-selected-locations');
@@ -110,6 +100,7 @@ export default function SocialPostingDashboard() {
   const [showImportModal, setShowImportModal] = useState(false);
   const [isImportingReviews, setIsImportingReviews] = useState(false);
   const [importResult, setImportResult] = useState<{ success: boolean; message: string; count?: number; errors?: string[]; totalErrorCount?: number } | null>(null);
+  const [showFetchConfirmModal, setShowFetchConfirmModal] = useState(false);
   
   // Plan access state for Growers
   const [hasGBPAccess, setHasGBPAccess] = useState(true);
@@ -195,6 +186,17 @@ export default function SocialPostingDashboard() {
     }
   };
 
+  // Auto-clear SUCCESS messages after a delay, but keep ERROR messages visible
+  useEffect(() => {
+    if (postResult && postResult.success) {
+      const timer = setTimeout(() => {
+        setPostResult(null);
+      }, 5000); // Clear success messages after 5 seconds
+      return () => clearTimeout(timer);
+    }
+    // Don't auto-clear error messages - user must dismiss them manually
+  }, [postResult]);
+
   // Handle post-OAuth redirects  
   useEffect(() => {
     console.log('🔄 Main useEffect triggered - checking for OAuth or initial load');
@@ -228,10 +230,57 @@ export default function SocialPostingDashboard() {
     if (hasError) {
       console.log('❌ OAuth error detected:', hasError);
       const message = urlParams.get('message');
-      setPostResult({ 
-        success: false, 
-        message: message ? decodeURIComponent(message) : 'Failed to connect to Google Business Profile' 
-      });
+      
+      // Check if this is a missing_scope error
+      if (hasError === 'missing_scope') {
+        console.log('🔄 Missing scope detected - attempting automatic fix');
+        
+        // Show a temporary message while we fix it
+        setPostResult({ 
+          success: false, 
+          message: 'Google didn\'t grant all permissions. Fixing this automatically...' 
+        });
+        
+        // Try to revoke and reconnect automatically
+        setTimeout(async () => {
+          try {
+            // First revoke existing permissions
+            const revokeResponse = await fetch('/api/social-posting/platforms/google-business-profile/revoke', {
+              method: 'POST',
+              credentials: 'include',
+              headers: {
+                'Content-Type': 'application/json'
+              }
+            });
+            
+            if (revokeResponse.ok) {
+              console.log('✅ Revoked existing permissions');
+              setPostResult({ 
+                success: false, 
+                message: 'Permissions cleared. Please click "Connect Google Business" to try again with fresh permissions.' 
+              });
+            } else {
+              // Fall back to manual instructions if revoke fails
+              setPostResult({ 
+                success: false, 
+                message: message ? decodeURIComponent(message) : 'Google did not grant business management permissions. Please try connecting again.' 
+              });
+            }
+          } catch (error) {
+            console.error('❌ Failed to auto-revoke:', error);
+            setPostResult({ 
+              success: false, 
+              message: message ? decodeURIComponent(message) : 'Failed to connect to Google Business Profile' 
+            });
+          }
+        }, 1000);
+      } else {
+        // Other errors - show the message
+        setPostResult({ 
+          success: false, 
+          message: message ? decodeURIComponent(message) : 'Failed to connect to Google Business Profile' 
+        });
+      }
       
       // Clean up URL parameters
       window.history.replaceState({}, '', window.location.pathname);
@@ -245,16 +294,24 @@ export default function SocialPostingDashboard() {
       const message = urlParams.get('message');
       if (message) {
         setPostResult({ success: true, message: decodeURIComponent(message) });
+      } else {
+        // Default success message if none provided
+        setPostResult({ success: true, message: 'Successfully connected to Google Business Profile!' });
       }
       
       // Clean up URL parameters
       window.history.replaceState({}, '', window.location.pathname);
       
-      // 🔧 FIX: Force state refresh after OAuth to ensure UI updates properly
-      console.log('🔄 Post-OAuth: Forcing platform reload to ensure proper state update');
+      // Set connected state optimistically since OAuth succeeded
+      setIsConnected(true);
+      setIsLoading(true);
       
-      // Load platforms immediately to get actual connection state
-      loadPlatforms();
+      // Give the database a moment to save the tokens, then load platforms
+      console.log('🔄 Post-OAuth: Waiting for database to sync before loading platforms...');
+      setTimeout(() => {
+        console.log('🔄 Post-OAuth: Loading platforms to refresh connection state');
+        loadPlatforms();
+      }, 2000); // 2 second delay to ensure database is updated
     } else {
       // Load platforms on page load (normal page load)
       console.log('🔄 Initial page load: Loading platforms');
@@ -546,9 +603,10 @@ export default function SocialPostingDashboard() {
       }));
 
       // Construct Google OAuth URL
-      // Use prompt=consent to force showing all permissions
+      // Use prompt=select_account+consent to force account selection AND show all permissions
+      // This helps bypass Google's cached permissions
       // include_granted_scopes=false ensures only requested scopes are granted
-      const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${encodedScope}&response_type=${responseType}&state=${state}&access_type=offline&prompt=consent&include_granted_scopes=false`;
+      const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${encodedScope}&response_type=${responseType}&state=${state}&access_type=offline&prompt=select_account%20consent&include_granted_scopes=false`;
       
       console.log('🔗 Redirecting to Google OAuth:', googleAuthUrl);
       console.log('🔒 OAuth flag set, preserving Supabase session during redirect');
@@ -615,6 +673,9 @@ export default function SocialPostingDashboard() {
       setSelectedLocations([]);
       setHasAttemptedFetch(false); // Reset fetch attempt state
       setIsLoading(false);
+      
+      // Close the disconnect confirmation dialog
+      setShowDisconnectConfirm(false);
     }
   };
 
@@ -628,19 +689,13 @@ export default function SocialPostingDashboard() {
       return;
     }
     
-    // Don't mark as attempted until we actually get a response
-    // This prevents showing "No Locations Found" prematurely
-
-    // Warn user about the wait time
-    const confirmed = confirm(
-      'Fetching business locations requires multiple API calls to Google Business Profile. ' +
-      'Due to Google\'s strict rate limits (1 request per minute per Google Cloud project), this process will take at least 1-2 minutes. ' +
-      'The system will automatically wait between API calls to avoid rate limit errors. ' +
-      'Please keep this tab open and wait for completion. Continue?'
-    );
-    
-    if (!confirmed) return;
-
+    // Show confirmation modal
+    setShowFetchConfirmModal(true);
+  };
+  
+  const performFetchLocations = async () => {
+    const platformId = 'google-business-profile';
+    setShowFetchConfirmModal(false);
     setFetchingLocations(platformId);
     
     try {
@@ -755,13 +810,8 @@ export default function SocialPostingDashboard() {
         message: `Successfully fetched ${result.locations?.length || 0} business locations!${demoNote}` 
       });
       
-      
-      // Refresh platforms to get updated state from server
-      // Small delay to ensure database is updated
-      setTimeout(() => {
-        console.log('🔄 Refreshing platform data after fetch...');
-        loadPlatforms();
-      }, 1000);
+      // Don't call loadPlatforms here as it causes duplicate messages
+      // The state is already updated above
     } catch (error) {
       console.error('Error fetching locations:', error);
       if (error instanceof Error && error.name === 'AbortError') {
@@ -1307,12 +1357,12 @@ export default function SocialPostingDashboard() {
               </button>
               <button
                 onClick={() => changeTab('business-info')}
-                disabled={!isConnected}
+                disabled={!isConnected || locations.length === 0}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === 'business-info' && isConnected
+                  activeTab === 'business-info' && isConnected && locations.length > 0
                     ? 'border-slate-blue text-slate-blue'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                } ${!isConnected ? 'opacity-50 cursor-not-allowed' : ''}`}
+                } ${(!isConnected || locations.length === 0) ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
                 <div className="flex items-center space-x-2">
                   <Icon name="FaStore" className="w-4 h-4" size={16} />
@@ -1321,12 +1371,12 @@ export default function SocialPostingDashboard() {
               </button>
               <button
                 onClick={() => changeTab('create-post')}
-                disabled={!isConnected}
+                disabled={!isConnected || locations.length === 0}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === 'create-post' && isConnected
+                  activeTab === 'create-post' && isConnected && locations.length > 0
                     ? 'border-slate-blue text-slate-blue'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                } ${!isConnected ? 'opacity-50 cursor-not-allowed' : ''}`}
+                } ${(!isConnected || locations.length === 0) ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
                 <div className="flex items-center space-x-2">
                   <Icon name="FaPlus" className="w-4 h-4" size={16} />
@@ -1335,12 +1385,12 @@ export default function SocialPostingDashboard() {
               </button>
               <button
                 onClick={() => changeTab('respond-reviews')}
-                disabled={!isConnected}
+                disabled={!isConnected || locations.length === 0}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === 'respond-reviews' && isConnected
+                  activeTab === 'respond-reviews' && isConnected && locations.length > 0
                     ? 'border-slate-blue text-slate-blue'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                } ${!isConnected ? 'opacity-50 cursor-not-allowed' : ''}`}
+                } ${(!isConnected || locations.length === 0) ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
                 <div className="flex items-center space-x-2">
                   <Icon name="FaCommentAlt" className="w-4 h-4" size={16} />
@@ -1349,12 +1399,12 @@ export default function SocialPostingDashboard() {
               </button>
               <button
                 onClick={() => changeTab('reviews')}
-                disabled={!isConnected}
+                disabled={!isConnected || locations.length === 0}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === 'reviews' && isConnected
+                  activeTab === 'reviews' && isConnected && locations.length > 0
                     ? 'border-slate-blue text-slate-blue'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                } ${!isConnected ? 'opacity-50 cursor-not-allowed' : ''}`}
+                } ${(!isConnected || locations.length === 0) ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
                 <div className="flex items-center space-x-2">
                   <Icon name="FaStar" className="w-4 h-4" size={16} />
@@ -1465,6 +1515,21 @@ export default function SocialPostingDashboard() {
           {/* Tab Content */}
           {activeTab === 'connect' && (
             <div className="space-y-6">
+              {/* Show loading state when syncing after OAuth */}
+              {isLoading && isConnected && locations.length === 0 && (
+                <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
+                  <div className="flex items-center space-x-3">
+                    <Icon name="FaSpinner" className="w-5 h-5 text-blue-600 animate-spin" />
+                    <div>
+                      <h4 className="text-sm font-medium text-blue-800">Syncing Connection...</h4>
+                      <p className="text-xs text-blue-700 mt-1">
+                        Verifying your Google Business Profile connection. Please wait...
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
               {/* Google Business Profile Connection Status */}
               <div className="bg-gray-50 rounded-lg p-6">
                 <div className="flex items-center justify-between mb-4">
@@ -1532,6 +1597,21 @@ export default function SocialPostingDashboard() {
 
 
 
+                {/* Show fetching progress indicator */}
+                {fetchingLocations === 'google-business-profile' && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-md p-4 mb-4">
+                    <div className="flex items-center space-x-3">
+                      <Icon name="FaSpinner" className="w-5 h-5 text-blue-600 animate-spin" />
+                      <div>
+                        <h4 className="text-sm font-medium text-blue-800">Fetching Business Locations...</h4>
+                        <p className="text-xs text-blue-700 mt-1">
+                          This typically takes 1-2 minutes due to Google API rate limits. Please wait...
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
                 {isConnected && locations.length === 0 && !fetchingLocations && (
                   <div className={`border rounded-md p-4 ${hasAttemptedFetch ? 'bg-yellow-50 border-yellow-200' : 'bg-blue-50 border-blue-200'}`}>
                     <div className="flex items-start space-x-3">
@@ -1550,21 +1630,27 @@ export default function SocialPostingDashboard() {
                           <button
                             onClick={() => handleFetchLocations('google-business-profile')}
                             disabled={fetchingLocations === 'google-business-profile' || Boolean(rateLimitedUntil && Date.now() < rateLimitedUntil)}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center space-x-2 ${
                               fetchingLocations === 'google-business-profile' || Boolean(rateLimitedUntil && Date.now() < rateLimitedUntil)
                                 ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                                 : 'bg-slate-600 text-white hover:bg-slate-700'
                             }`}
                           >
                             {fetchingLocations === 'google-business-profile' ? (
-                              <div className="flex items-center space-x-2">
-                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                              <>
+                                <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />
                                 <span>Fetching (1-2 min)...</span>
-                              </div>
+                              </>
                             ) : Boolean(rateLimitedUntil && Date.now() < rateLimitedUntil) ? (
-                              `Rate limited (${rateLimitedUntil ? Math.ceil((rateLimitedUntil - Date.now()) / 1000) : 0}s)`
+                              <>
+                                <Icon name="FaClock" className="w-4 h-4" />
+                                <span>Rate limited ({rateLimitedUntil ? Math.ceil((rateLimitedUntil - Date.now()) / 1000) : 0}s)</span>
+                              </>
                             ) : (
-                              'Fetch Business Locations'
+                              <>
+                                <Icon name="FaDownload" className="w-4 h-4" />
+                                <span>Fetch Business Locations</span>
+                              </>
                             )}
                           </button>
                         </div>
@@ -1633,12 +1719,34 @@ export default function SocialPostingDashboard() {
 
               {/* Error Messages */}
               {postResult && !postResult.success && (
-                <div className="bg-red-50 border border-red-200 rounded-md p-4">
+                <div className="bg-red-50 border border-red-200 rounded-md p-4 relative">
+                  <button
+                    onClick={() => setPostResult(null)}
+                    className="absolute top-2 right-2 text-red-400 hover:text-red-600"
+                    aria-label="Dismiss"
+                  >
+                    <Icon name="FaTimes" className="w-4 h-4" />
+                  </button>
                   <div className="flex items-center space-x-2 text-red-800 mb-2">
                     <Icon name="FaExclamationTriangle" className="w-4 h-4" />
                     <span className="text-sm font-medium">Error</span>
                   </div>
                   <p className="text-sm text-red-700">{postResult.message}</p>
+                  
+                  {/* Add specific help for permission/scope errors */}
+                  {postResult.message && (postResult.message.includes('revoke') || postResult.message.includes('permission') || postResult.message.includes('scope')) && (
+                    <div className="mt-3 p-3 bg-white border border-red-200 rounded">
+                      <p className="text-sm font-medium text-red-800 mb-2">How to revoke and reconnect:</p>
+                      <ol className="text-xs text-red-700 space-y-1 list-decimal list-inside">
+                        <li>Go to <a href="https://myaccount.google.com/permissions" target="_blank" rel="noopener noreferrer" className="underline hover:no-underline text-red-800 font-medium">Google Account Permissions</a></li>
+                        <li>Find "Prompt Reviews" in the list</li>
+                        <li>Click on it and select "Remove Access"</li>
+                        <li>Come back here and click "Connect Google Business" again</li>
+                        <li>Make sure to check ALL permission checkboxes when prompted</li>
+                      </ol>
+                    </div>
+                  )}
+                  
                   {rateLimitCountdown > 0 && (
                     <div className="mt-2 flex items-center space-x-2 text-sm text-red-600">
                       <Icon name="FaClock" className="w-3 h-3" />
@@ -2418,6 +2526,50 @@ export default function SocialPostingDashboard() {
                   )}
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Fetch Locations Confirmation Modal */}
+      {showFetchConfirmModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <div className="flex items-center space-x-3 mb-4">
+              <Icon name="FaDownload" className="w-6 h-6 text-blue-600" />
+              <h3 className="text-lg font-semibold text-gray-900">Fetch Business Locations</h3>
+            </div>
+            <p className="text-gray-600 mb-6">
+              This will retrieve all your Google Business Profile locations and their details.
+              The process is usually quick but may take a moment depending on the number of locations.
+            </p>
+            <div className="bg-blue-50 border border-blue-200 rounded p-3 mb-6">
+              <div className="flex items-start space-x-2">
+                <Icon name="FaInfoCircle" className="w-4 h-4 text-blue-600 mt-0.5" />
+                <div className="text-sm text-blue-800">
+                  <p className="font-medium mb-1">What happens next:</p>
+                  <ul className="list-disc list-inside space-y-1 text-xs">
+                    <li>We'll fetch all your business locations from Google</li>
+                    <li>Each location's details will be saved for quick access</li>
+                    <li>You'll be able to post updates to any of your locations</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+            <div className="flex space-x-3">
+              <button
+                onClick={performFetchLocations}
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center space-x-2"
+              >
+                <Icon name="FaDownload" className="w-4 h-4" />
+                <span>Fetch Locations</span>
+              </button>
+              <button
+                onClick={() => setShowFetchConfirmModal(false)}
+                className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors"
+              >
+                Cancel
+              </button>
             </div>
           </div>
         </div>
