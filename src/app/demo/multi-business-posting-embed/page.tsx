@@ -136,9 +136,8 @@ export default function MultiBusinessPostingEmbedDemo() {
         }
       `}</style>
       <SpriteLoader />
-      <div className="flex items-center justify-center p-4" style={{ backgroundColor: 'transparent' }}>
-        {/* Browser Window Only */}
-        <div className="bg-white rounded-xl overflow-hidden w-full max-w-4xl">
+      {/* Browser Window - No Container */}
+      <div className="bg-white rounded-xl overflow-hidden w-full">
           {/* Mock Browser Bar */}
           <div className="bg-gray-100 px-4 py-3 border-b border-gray-200 flex items-center justify-between">
             <div className="flex items-center space-x-2">
@@ -205,7 +204,7 @@ export default function MultiBusinessPostingEmbedDemo() {
                 
                 {/* Dropdown */}
                 {isDropdownOpen && (
-                  <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-50 animate-slideDown">
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md z-50 animate-slideDown">
                     {fakeLocations.map((location) => (
                       <label
                         key={location.id}
@@ -323,7 +322,6 @@ export default function MultiBusinessPostingEmbedDemo() {
             </div>
           </div>
         </div>
-      </div>
 
       <style jsx>{`
         @keyframes slideDown {
