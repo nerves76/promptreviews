@@ -141,7 +141,9 @@ export async function GET(request: NextRequest) {
     console.log('🔍 Token query result:', {
       hasTokens: !!googleTokens,
       tokenId: googleTokens?.id,
-      error: googleError?.message
+      userId: user.id,
+      error: googleError?.message,
+      errorCode: googleError?.code
     });
 
     let isGoogleConnected = false;

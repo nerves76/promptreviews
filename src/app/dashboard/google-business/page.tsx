@@ -518,7 +518,8 @@ export default function SocialPostingDashboard() {
       }));
 
       // Construct Google OAuth URL
-      const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}&response_type=${responseType}&state=${state}&access_type=offline&prompt=consent`;
+      // Added prompt=consent to force re-consent and include_granted_scopes=true to ensure all scopes are requested
+      const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}&response_type=${responseType}&state=${state}&access_type=offline&prompt=consent&include_granted_scopes=true`;
       
       console.log('🔗 Redirecting to Google OAuth:', googleAuthUrl);
       console.log('🔒 OAuth flag set, preserving Supabase session during redirect');

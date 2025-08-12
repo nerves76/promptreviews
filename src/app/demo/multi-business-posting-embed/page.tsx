@@ -138,8 +138,8 @@ export default function MultiBusinessPostingEmbedDemo() {
       <SpriteLoader />
       {/* Interface Only - No Browser Chrome */}
       <div className="bg-white rounded-xl overflow-hidden w-full">
-          {/* Demo Content */}
-          <div className="p-8">
+          {/* Demo Content - Fixed min-height to prevent layout shift */}
+          <div className="p-8" style={{ minHeight: '650px' }}>
             {/* Page Title */}
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-bold text-gray-900 flex items-center">
