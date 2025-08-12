@@ -57,25 +57,25 @@ export default function MultiBusinessPostingEmbedDemo() {
       // Open dropdown
       setPhase('dropdown');
       setIsDropdownOpen(true);
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise(resolve => setTimeout(resolve, 1500));
       
       // Start selecting locations
       setPhase('selecting');
       
       // Select first location
-      await new Promise(resolve => setTimeout(resolve, 800));
+      await new Promise(resolve => setTimeout(resolve, 1200));
       setSelectedLocations(['1']);
       
       // Select second location
-      await new Promise(resolve => setTimeout(resolve, 600));
+      await new Promise(resolve => setTimeout(resolve, 1000));
       setSelectedLocations(['1', '2']);
       
       // Select third location
-      await new Promise(resolve => setTimeout(resolve, 600));
+      await new Promise(resolve => setTimeout(resolve, 1000));
       setSelectedLocations(['1', '2', '3']);
       
       // Close dropdown
-      await new Promise(resolve => setTimeout(resolve, 800));
+      await new Promise(resolve => setTimeout(resolve, 1200));
       setIsDropdownOpen(false);
       
       // Start typing
