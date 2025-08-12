@@ -336,7 +336,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const accountStatus = useMemo(() => {
     if (!account) return 'requires_action';
     
-    if (account.deleted_at) return 'canceled';
+    // ============================================
+    // CRITICAL FIX: Handle reactivation properly
+    // If deleted_at exists but user is logged in, they're trying to return
+    // ============================================
+    if (account.deleted_at) {
+      console.log('🔄 Deleted account detected - user needs reactivation');
+      // Don't block them as 'canceled' - let them reactivate
+      return 'requires_action'; // This will prompt plan selection
+    }
     
     switch (subscriptionStatus) {
       case 'active':
@@ -658,9 +666,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       // Check admin status, business profile, and account details in parallel
       if (currentSession.user) {
-        checkAdminStatus(currentSession.user);
-        checkBusinessProfile(currentSession.user);
-        checkAccountDetails(currentSession.user);
+        await Promise.all([
+          checkAdminStatus(currentSession.user),
+          checkBusinessProfile(currentSession.user),
+          checkAccountDetails(currentSession.user)
+        ]).catch(err => {
+          console.error('AuthContext: Error checking user details:', err);
+          // Don't fail auth if these checks fail
+        });
       }
       
     } catch (err) {
@@ -936,7 +949,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         });
         setIsLoading(false);
         setAccountLoading(false);
-      }, 10000); // 10 seconds
+        setIsInitialized(true); // Ensure initialized is set
+      }, 20000); // 20 seconds - increased for slower connections
       
       return () => clearTimeout(timeout);
     }
