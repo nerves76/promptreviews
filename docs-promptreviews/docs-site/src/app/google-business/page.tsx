@@ -209,6 +209,56 @@ export default function GoogleBusinessPage() {
         </div>
       </div>
 
+      {/* Review Management Best Practices */}
+      <div className="max-w-4xl mx-auto mb-16">
+        <h2 className="text-3xl font-bold text-white mb-8">Review Management</h2>
+        
+        <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-8">
+          {/* Google Visibility Alert */}
+          <div className="bg-blue-400/20 border border-blue-300/30 rounded-lg p-4 mb-6">
+            <div className="flex items-start space-x-3">
+              <Clock className="w-6 h-6 text-blue-300 mt-0.5" />
+              <div>
+                <p className="text-white font-semibold">
+                  💡 Google rewards businesses that respond quickly with increased visibility.
+                </p>
+                <p className="text-white/90 text-sm mt-1">
+                  We recommend replying within 24 hours for maximum impact on your local search ranking.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <p className="text-white/90 mb-6">
+            Managing reviews effectively is crucial for your online reputation and local SEO performance.
+          </p>
+          
+          <div className="grid md:grid-cols-2 gap-6">
+            <div>
+              <h3 className="text-lg font-semibold text-white mb-3">Response Best Practices</h3>
+              <ul className="space-y-2 text-white/80 text-sm">
+                <li>• Respond within 24 hours</li>
+                <li>• Thank customers for positive reviews</li>
+                <li>• Address concerns professionally</li>
+                <li>• Keep responses personalized</li>
+                <li>• Include your business name naturally</li>
+              </ul>
+            </div>
+            
+            <div>
+              <h3 className="text-lg font-semibold text-white mb-3">What to Avoid</h3>
+              <ul className="space-y-2 text-white/80 text-sm">
+                <li>• Generic copy-paste responses</li>
+                <li>• Arguing with customers</li>
+                <li>• Sharing private information</li>
+                <li>• Ignoring negative reviews</li>
+                <li>• Delayed responses (over 48 hours)</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Google Posts */}
       <div className="max-w-4xl mx-auto mb-16">
         <h2 className="text-3xl font-bold text-white mb-8">Creating Google Posts</h2>
