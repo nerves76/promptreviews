@@ -1574,23 +1574,28 @@ export default function SocialPostingDashboard() {
                         </button>
                       </>
                     ) : (
-                      <button
-                        onClick={handleConnect}
-                        disabled={isLoading}
-                        className="px-4 py-2 bg-slate-600 text-white rounded-md hover:bg-slate-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center space-x-2 text-sm"
-                      >
-                        {isLoading ? (
-                          <>
-                            <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />
-                            <span>Connecting...</span>
-                          </>
-                        ) : (
-                          <>
-                            <Icon name="FaGoogle" className="w-4 h-4" />
-                            <span>Connect Google Business</span>
-                          </>
-                        )}
-                      </button>
+                      <div className="flex flex-col items-end space-y-2">
+                        <button
+                          onClick={handleConnect}
+                          disabled={isLoading}
+                          className="px-4 py-2 bg-slate-600 text-white rounded-md hover:bg-slate-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center space-x-2 text-sm"
+                        >
+                          {isLoading ? (
+                            <>
+                              <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />
+                              <span>Connecting...</span>
+                            </>
+                          ) : (
+                            <>
+                              <Icon name="FaGoogle" className="w-4 h-4" />
+                              <span>Connect Google Business</span>
+                            </>
+                          )}
+                        </button>
+                        <p className="text-xs text-gray-500 text-right max-w-xs">
+                          ⚠️ Important: Check ALL permission boxes when prompted by Google
+                        </p>
+                      </div>
                     )}
                   </div>
                 </div>

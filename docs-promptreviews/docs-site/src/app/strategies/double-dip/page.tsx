@@ -167,31 +167,51 @@ export default function DoubleDipPage() {
             <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6">
               <div className="flex items-center space-x-3 mb-4">
                 <div className="w-8 h-8 bg-purple-500 text-white rounded-full flex items-center justify-center font-semibold">2</div>
-                <h3 className="text-xl font-semibold text-white">Create Personalized Prompt Pages</h3>
+                <h3 className="text-xl font-semibold text-white">Create Personalized Prompt Pages with Imported Reviews</h3>
               </div>
               <p className="text-white/90 mb-4">
-                For each review, create a personalized prompt page that references their previous positive experience. 
-                Include their name, the service they received, and their original review.
+                When you create a prompt page from a Google contact, you can automatically import their existing Google review! 
+                This pre-fills their review content, making it incredibly easy for them to share on other platforms.
               </p>
+              
+              <div className="bg-blue-500/20 border border-blue-400/30 rounded-lg p-4 mb-4">
+                <p className="text-white/90 text-sm">
+                  <strong className="text-blue-300">✨ Key Feature:</strong> Their Google review is imported automatically, allowing customers to:
+                </p>
+                <ul className="text-white/80 text-sm mt-2 space-y-1 ml-4">
+                  <li>• Reference their previous review for consistency</li>
+                  <li>• Post it as-is to save time</li>
+                  <li>• Easily modify or expand on their original thoughts</li>
+                  <li>• Add new experiences since their Google review</li>
+                </ul>
+              </div>
+              
               <div className="grid md:grid-cols-2 gap-4 text-sm">
                 <div className="bg-white/5 rounded-lg p-3">
-                  <h4 className="font-semibold text-white mb-2">Include in Prompt Page:</h4>
+                  <h4 className="font-semibold text-white mb-2">Auto-Imported Content:</h4>
                   <ul className="text-white/80 space-y-1">
-                    <li>• Customer's name</li>
-                    <li>• Original service date</li>
-                    <li>• Their Google review</li>
-                    <li>• Specific details they mentioned</li>
+                    <li>• Their complete Google review text</li>
+                    <li>• Original star rating</li>
+                    <li>• Review date and context</li>
+                    <li>• Customer's name and details</li>
                   </ul>
                 </div>
                 <div className="bg-white/5 rounded-lg p-3">
-                  <h4 className="font-semibold text-white mb-2">Request:</h4>
+                  <h4 className="font-semibold text-white mb-2">Encourage Them To:</h4>
                   <ul className="text-white/80 space-y-1">
-                    <li>• Update their review</li>
-                    <li>• Share on different platform</li>
-                    <li>• Add recent experience</li>
-                    <li>• Include new details</li>
+                    <li>• Personalize for each platform</li>
+                    <li>• Add platform-specific details</li>
+                    <li>• Update with recent experiences</li>
+                    <li>• Vary the wording slightly</li>
                   </ul>
                 </div>
+              </div>
+              
+              <div className="bg-yellow-500/20 border border-yellow-400/30 rounded-lg p-3 mt-4">
+                <p className="text-xs text-white/90">
+                  <strong>Best Practice:</strong> While customers can post their review as-is, encouraging them to modify it slightly 
+                  for each platform helps avoid duplicate content issues and makes reviews appear more authentic.
+                </p>
               </div>
             </div>
 
@@ -243,18 +263,30 @@ export default function DoubleDipPage() {
             </div>
             
             <div className="mb-6">
-              <h3 className="text-lg font-semibold text-white mb-4">Double-Dip Prompt Page:</h3>
+              <h3 className="text-lg font-semibold text-white mb-4">Double-Dip Prompt Page (with Imported Review):</h3>
               <div className="bg-white/5 rounded-lg p-4 border-l-4 border-blue-400">
                 <h4 className="text-white font-semibold mb-2">Hi Sarah!</h4>
                 <p className="text-white/90 mb-3">
                   Thank you for your wonderful Google review of our kitchen renovation work! We're so glad you're happy with the results.
                 </p>
                 <p className="text-white/90 mb-3">
-                  We'd love it if you could share your experience on Yelp as well. Your detailed feedback about our professionalism, 
-                  timeliness, and quality would be incredibly helpful for other homeowners considering renovations.
+                  We'd love it if you could share your experience on Yelp as well. We've imported your Google review below to make it easy 
+                  for you - you can post it as-is, or feel free to modify it with any updates or additional details!
                 </p>
-                <p className="text-white/90">
-                  <strong>Your original review:</strong> "Amazing service! The team was professional and completed our kitchen renovation on time and under budget. The quality is outstanding and they really listened to our vision. Highly recommend!"
+                
+                <div className="bg-white/10 rounded-lg p-3 mt-4 mb-3">
+                  <p className="text-xs text-white/70 mb-2">YOUR IMPORTED GOOGLE REVIEW (feel free to edit):</p>
+                  <div className="border border-white/20 rounded bg-white/5 p-3">
+                    <p className="text-white/90 italic">
+                      "Amazing service! The team was professional and completed our kitchen renovation on time and under budget. 
+                      The quality is outstanding and they really listened to our vision. Highly recommend!"
+                    </p>
+                  </div>
+                </div>
+                
+                <p className="text-white/80 text-sm">
+                  <CheckCircle className="w-4 h-4 text-green-400 inline mr-1" />
+                  Your review is pre-filled and ready to post. Just click "Submit to Yelp" or customize it first!
                 </p>
               </div>
             </div>
