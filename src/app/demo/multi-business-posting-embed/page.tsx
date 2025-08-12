@@ -9,7 +9,7 @@ import { useState, useEffect, useRef } from 'react';
 import Icon from '@/components/Icon';
 import SpriteLoader from '@/components/SpriteLoader';
 
-// Fake business locations - Just 3 to avoid scrolling
+// Fake business locations
 const fakeLocations = [
   {
     id: '1',
@@ -27,6 +27,12 @@ const fakeLocations = [
     id: '3',
     name: "Snuzzlepup's Veterinary Clinic - Hawthorne",
     address: '3456 SE Hawthorne Blvd, Portland, OR 97214',
+    status: 'active' as const
+  },
+  {
+    id: '4',
+    name: "Snuzzlepup's Homes 4 Pets Non-Profit",
+    address: '1234 NE Sandy Blvd, Portland, OR 97213',
     status: 'active' as const
   }
 ];
@@ -123,17 +129,19 @@ export default function MultiBusinessPostingEmbedDemo() {
         body {
           background: transparent !important;
           background-image: none !important;
+          overflow: hidden !important;
         }
         html {
           background: transparent !important;
           background-image: none !important;
+          overflow: hidden !important;
         }
       `}</style>
       <SpriteLoader />
       {/* Interface Only - No Browser Chrome */}
-      <div className="bg-white rounded-xl overflow-hidden w-full">
+      <div className="bg-white rounded-xl overflow-hidden w-full" style={{ overflow: 'hidden' }}>
           {/* Demo Content - Fixed min-height to prevent layout shift */}
-          <div className="p-8" style={{ minHeight: '650px' }}>
+          <div className="p-8" style={{ minHeight: '650px', overflow: 'hidden' }}>
             {/* Page Title */}
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-bold text-gray-900 flex items-center">
