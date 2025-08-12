@@ -365,12 +365,12 @@ export default function MultiBusinessPostingDemo() {
             <div className="space-y-6">
               {/* Iframe Embed */}
               <div>
-                <h3 className="text-lg font-semibold text-gray-800 mb-3">Simple Iframe Embed</h3>
+                <h3 className="text-lg font-semibold text-gray-800 mb-3">Simple Iframe Embed (Browser Window Only)</h3>
                 <pre className="bg-gray-900 text-yellow-400 p-4 rounded-lg overflow-x-auto text-sm">
 {`<iframe 
-  src="https://app.promptreviews.app/demo/multi-business-posting"
+  src="https://app.promptreviews.app/demo/multi-business-posting-embed"
   width="100%"
-  height="1200"
+  height="700"
   frameborder="0"
   style="border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.1);"
   title="Multi-Location Posting Demo">
@@ -382,9 +382,9 @@ export default function MultiBusinessPostingDemo() {
               <div>
                 <h3 className="text-lg font-semibold text-gray-800 mb-3">Responsive Container Embed</h3>
                 <pre className="bg-gray-900 text-blue-400 p-4 rounded-lg overflow-x-auto text-sm">
-{`<div style="position: relative; width: 100%; padding-bottom: 75%; overflow: hidden;">
+{`<div style="position: relative; width: 100%; padding-bottom: 56.25%; overflow: hidden;">
   <iframe 
-    src="https://app.promptreviews.app/demo/multi-business-posting"
+    src="https://app.promptreviews.app/demo/multi-business-posting-embed"
     style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; border-radius: 12px;"
     title="Multi-Location Posting Demo">
   </iframe>
@@ -401,9 +401,9 @@ export default function MultiBusinessPostingDemo() {
     See How Multi-Location Posting Works
   </h2>
   <iframe 
-    src="https://app.promptreviews.app/demo/multi-business-posting"
+    src="https://app.promptreviews.app/demo/multi-business-posting-embed"
     width="100%"
-    height="1200"
+    height="700"
     frameborder="0"
     style="border-radius: 12px; box-shadow: 0 20px 60px rgba(0,0,0,0.15);"
     title="Multi-Location Posting Demo">

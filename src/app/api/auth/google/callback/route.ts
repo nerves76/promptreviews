@@ -218,6 +218,13 @@ export async function GET(request: NextRequest) {
 
     const tokens = await tokenResponse.json();
     console.log('✅ OAuth tokens received successfully');
+    console.log('🔍 Token details from Google:', {
+      hasAccessToken: !!tokens.access_token,
+      hasRefreshToken: !!tokens.refresh_token,
+      expiresIn: tokens.expires_in,
+      expiresInHours: tokens.expires_in ? tokens.expires_in / 3600 : 'unknown',
+      scope: tokens.scope?.substring(0, 100)
+    });
 
     // Store tokens in database
     console.log('💾 Storing tokens in database...');
@@ -229,11 +236,21 @@ export async function GET(request: NextRequest) {
       .eq('user_id', user.id)
       .single();
     
+    const now = Date.now();
+    const expiresAt = new Date(now + (tokens.expires_in || 3600) * 1000);
+    
+    console.log('🕐 Token expiration calculation:', {
+      now: new Date(now).toISOString(),
+      expiresIn: tokens.expires_in,
+      calculatedExpiresAt: expiresAt.toISOString(),
+      hoursFromNow: ((expiresAt.getTime() - now) / 1000 / 3600).toFixed(2)
+    });
+    
     const upsertData = {
       user_id: user.id,
       access_token: tokens.access_token,
       refresh_token: tokens.refresh_token,
-      expires_at: new Date(Date.now() + tokens.expires_in * 1000).toISOString(),
+      expires_at: expiresAt.toISOString(),
       scopes: tokens.scope
     };
     

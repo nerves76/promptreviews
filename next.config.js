@@ -163,6 +163,24 @@ const nextConfig = {
           },
         ],
       },
+      // Multi-business posting embed version should allow iframe embedding
+      {
+        source: '/demo/multi-business-posting-embed',
+        headers: [
+          {
+            key: 'X-Frame-Options',
+            value: 'ALLOWALL',
+          },
+          {
+            key: 'Content-Security-Policy',
+            value: "frame-ancestors *;",
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+        ],
+      },
       // Review trends tablet demo should allow iframe embedding
       {
         source: '/demo/review-trends-tablet',
@@ -183,7 +201,7 @@ const nextConfig = {
       },
       // All other routes should deny iframe embedding
       {
-        source: '/((?!prompty-power-game|emoji-sentiment-embed|embed/review-dashboard|demo/multi-business-posting|demo/review-trends-tablet).*)',
+        source: '/((?!prompty-power-game|emoji-sentiment-embed|embed/review-dashboard|demo/multi-business-posting|demo/multi-business-posting-embed|demo/review-trends-tablet).*)',
         headers: [
           {
             key: 'X-Content-Type-Options',

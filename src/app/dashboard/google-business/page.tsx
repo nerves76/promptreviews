@@ -142,8 +142,8 @@ export default function SocialPostingDashboard() {
         return tabParam;
       }
     }
-    // Default to overview to showcase the impressive stats
-    return 'overview';
+    // Default to connect tab if not connected, otherwise overview
+    return 'connect';
   });
 
   // Mobile menu state
@@ -157,8 +157,9 @@ export default function SocialPostingDashboard() {
       const hasTabParam = urlParams.has('tab');
       
       if (!hasTabParam) {
-        // Everyone lands on Overview tab to see the impressive stats
-        const defaultTab = 'overview';
+        // If not connected or no locations, show connect tab
+        // Otherwise show overview tab with stats
+        const defaultTab = (!isConnected || locations.length === 0) ? 'connect' : 'overview';
         setActiveTab(defaultTab);
       }
     }
@@ -626,17 +627,63 @@ export default function SocialPostingDashboard() {
 
       if (response.status === 429) {
         const result = await response.json();
-        const retryAfter = result.retryAfter || 60; // Default to 60 seconds
+        const retryAfter = result.retryAfter || 120; // Default to 120 seconds (2 minutes)
         const cooldownTime = Date.now() + (retryAfter * 1000);
         setRateLimitedUntil(cooldownTime);
         
-        alert(`Google Business Profile API rate limit exceeded. ${result.message || 'Please wait before trying again.'}`);
+        // Show detailed rate limit message
+        let message = `⏳ Google Business Profile API Rate Limit\n\n`;
+        message += result.message || 'API rate limit reached.';
+        
+        if (result.suggestion) {
+          message += `\n\n💡 ${result.suggestion}`;
+        }
+        
+        if (result.details?.waitTime) {
+          message += `\n\n⏱️ Wait time: ${result.details.waitTime}`;
+        }
+        
+        if (result.details?.reason) {
+          message += `\n📝 Reason: ${result.details.reason}`;
+        }
+        
+        alert(message);
         return;
       }
 
       if (!response.ok) {
-        const errorData = await response.text();
-        throw new Error(`Failed to fetch locations: ${errorData}`);
+        try {
+          const errorData = await response.json();
+          
+          // Handle specific error types
+          if (errorData.error === 'AUTH_ERROR') {
+            alert(`Authentication Error: ${errorData.message}\n\n${errorData.suggestion || 'Please reconnect your Google Business Profile.'}`);
+            // Clear connection state
+            setIsConnected(false);
+            setLocations([]);
+            localStorage.removeItem('google-business-connected');
+            localStorage.removeItem('google-business-locations');
+            return;
+          } else if (errorData.error === 'PERMISSION_ERROR') {
+            alert(`Permission Error: ${errorData.message}\n\n${errorData.suggestion || 'Check your Google Business Profile permissions.'}`);
+            return;
+          } else if (errorData.error === 'NETWORK_ERROR') {
+            alert(`Network Error: ${errorData.message}\n\n${errorData.suggestion || 'Check your internet connection.'}`);
+            return;
+          } else if (errorData.error === 'TOKEN_REFRESHED') {
+            // Token was refreshed, retry automatically
+            alert('Your authentication was refreshed. Retrying...');
+            // Retry the fetch
+            setTimeout(() => handleFetchLocations(platformId), 1000);
+            return;
+          }
+          
+          throw new Error(errorData.message || errorData.error || 'Failed to fetch locations');
+        } catch (parseError) {
+          // If JSON parsing fails, fall back to text
+          const errorText = await response.text();
+          throw new Error(`Failed to fetch locations: ${errorText}`);
+        }
       }
 
       const result = await response.json();

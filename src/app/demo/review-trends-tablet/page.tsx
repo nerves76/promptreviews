@@ -62,7 +62,7 @@ export default function ReviewTrendsTablet() {
               <div className="absolute top-2 lg:top-3 left-1/2 transform -translate-x-1/2 w-16 lg:w-20 h-1 lg:h-1.5 bg-gray-800 rounded-full"></div>
               
               {/* Screen Container */}
-              <div className="relative bg-white rounded-[1.25rem] lg:rounded-[1.5rem] overflow-hidden" style={{ height: '600px' }}>
+              <div className="relative bg-white rounded-[1.25rem] lg:rounded-[1.5rem] overflow-hidden" style={{ height: '650px' }}>
                 {/* Status Bar */}
                 <div className="bg-gray-100 px-4 lg:px-6 py-2 flex items-center justify-between border-b">
                   <div className="flex items-center space-x-2">
@@ -78,21 +78,24 @@ export default function ReviewTrendsTablet() {
                 </div>
 
                 {/* Scrollable Content Area */}
-                <div className="overflow-y-auto" style={{ height: 'calc(100% - 40px)' }}>
-                  <div className="p-4 lg:p-6 space-y-6 lg:space-y-8">
-                  {/* Review Trends Overview */}
-                  <OverviewStatsEmbed />
-                  
-                  {/* Profile Optimization */}
-                  <ProfileOptimizationEmbed />
-                  
-                  {/* Customer Engagement */}
-                  <CustomerEngagementEmbed />
-                  
-                  {/* AI-Powered Recommendations */}
-                  <OptimizationOpportunitiesEmbed />
+                <div className="overflow-y-auto overflow-x-hidden" style={{ height: 'calc(100% - 40px)', maxHeight: '610px' }}>
+                  <div className="p-4 lg:p-6 space-y-4 pb-8">
+                    {/* Review Trends Overview */}
+                    <OverviewStatsEmbed />
+                    
+                    {/* Profile Optimization */}
+                    <ProfileOptimizationEmbed />
+                    
+                    {/* Customer Engagement */}
+                    <CustomerEngagementEmbed />
+                    
+                    {/* AI-Powered Recommendations */}
+                    <OptimizationOpportunitiesEmbed />
+                    
+                    {/* End marker to ensure proper scroll boundary */}
+                    <div className="h-1"></div>
+                  </div>
                 </div>
-              </div>
             </div>
 
               {/* Home Button */}

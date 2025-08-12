@@ -226,26 +226,141 @@ export async function POST(request: NextRequest) {
          } catch (apiError) {
        console.error('Error fetching locations from Google API:', apiError);
        
-       // Check if it's a rate limit error
-       if (apiError instanceof Error && 
-           (apiError.message.includes('429') || 
-            apiError.message.includes('rate limit') ||
-            apiError.message.includes('Quota exceeded') ||
-            apiError.message.includes('Rate limit exceeded'))) {
-         return NextResponse.json({
-           success: false,
-           error: 'Rate limit exceeded. Please try again in a few minutes.',
-           message: 'Google Business Profile API rate limit reached. Please wait 1-2 minutes and try again.',
-           retryAfter: 60, // Suggest waiting 60 seconds
-           isRateLimit: true
-         }, { status: 429 });
-       }
-       
-       return NextResponse.json({
+       // Enhanced error handling with specific messages
+       let errorResponse: any = {
          success: false,
          error: 'Failed to fetch locations from Google Business Profile API',
-         message: 'Unable to fetch business locations at this time.'
-       }, { status: 500 });
+         message: 'Unable to fetch business locations at this time.',
+         details: {}
+       };
+       
+       // Check for different error types
+       if (apiError instanceof Error) {
+         const errorMessage = apiError.message.toLowerCase();
+         
+         // Rate limit error
+         if (errorMessage.includes('429') || 
+             errorMessage.includes('rate limit') ||
+             errorMessage.includes('quota exceeded') ||
+             errorMessage.includes('rate limit exceeded')) {
+           console.log('⚠️ Rate limit detected:', apiError.message);
+           return NextResponse.json({
+             success: false,
+             error: 'RATE_LIMIT_ERROR',
+             message: 'Google Business Profile API rate limit reached. The API allows only 1 request every 2 minutes.',
+             suggestion: 'Please wait 2 minutes before trying again. Consider requesting higher API quotas from Google Cloud Console.',
+             retryAfter: 120,
+             isRateLimit: true,
+             details: {
+               errorType: 'rate_limit',
+               waitTime: '2 minutes',
+               reason: 'Google Business Profile API has strict quota limits'
+             }
+           }, { status: 429 });
+         }
+         
+         // Authentication/token errors
+         if (errorMessage.includes('401') || 
+             errorMessage.includes('unauthorized') ||
+             errorMessage.includes('invalid credentials') ||
+             errorMessage.includes('token expired')) {
+           console.log('⚠️ Authentication error detected:', apiError.message);
+           
+           // Try to refresh the token
+           if (tokens.refresh_token) {
+             console.log('🔄 Attempting to refresh expired token...');
+             try {
+               const newTokens = await client.refreshAccessToken();
+               if (newTokens && newTokens.access_token) {
+                 // Update tokens in database
+                 await serviceSupabase
+                   .from('google_business_profiles')
+                   .update({
+                     access_token: newTokens.access_token,
+                     expires_at: new Date(Date.now() + (newTokens.expires_in || 3600) * 1000).toISOString(),
+                     updated_at: new Date().toISOString()
+                   })
+                   .eq('user_id', user.id);
+                 
+                 console.log('✅ Token refreshed successfully');
+                 return NextResponse.json({
+                   success: false,
+                   error: 'TOKEN_REFRESHED',
+                   message: 'Your Google authentication was refreshed. Please try again.',
+                   shouldRetry: true
+                 }, { status: 401 });
+               }
+             } catch (refreshError) {
+               console.error('❌ Token refresh failed:', refreshError);
+             }
+           }
+           
+           return NextResponse.json({
+             success: false,
+             error: 'AUTH_ERROR',
+             message: 'Your Google Business Profile connection has expired or is invalid.',
+             suggestion: 'Please disconnect and reconnect your Google Business Profile account.',
+             details: {
+               errorType: 'authentication',
+               action: 'reconnect_required'
+             }
+           }, { status: 401 });
+         }
+         
+         // Permission errors
+         if (errorMessage.includes('403') || 
+             errorMessage.includes('forbidden') ||
+             errorMessage.includes('permission denied') ||
+             errorMessage.includes('access denied')) {
+           console.log('⚠️ Permission error detected:', apiError.message);
+           return NextResponse.json({
+             success: false,
+             error: 'PERMISSION_ERROR',
+             message: 'You don\'t have permission to access these Google Business Profile locations.',
+             suggestion: 'Ensure you have admin or manager access to the Google Business Profile account.',
+             details: {
+               errorType: 'permissions',
+               requiredRole: 'Admin or Manager',
+               action: 'check_google_permissions'
+             }
+           }, { status: 403 });
+         }
+         
+         // Network/timeout errors
+         if (errorMessage.includes('timeout') || 
+             errorMessage.includes('econnrefused') ||
+             errorMessage.includes('network')) {
+           console.log('⚠️ Network error detected:', apiError.message);
+           return NextResponse.json({
+             success: false,
+             error: 'NETWORK_ERROR',
+             message: 'Unable to connect to Google Business Profile API.',
+             suggestion: 'Check your internet connection and try again.',
+             details: {
+               errorType: 'network',
+               action: 'retry'
+             }
+           }, { status: 503 });
+         }
+         
+         // Google API specific errors
+         if (errorMessage.includes('google') || errorMessage.includes('gmbapi')) {
+           console.log('⚠️ Google API error:', apiError.message);
+           errorResponse.details = {
+             googleError: apiError.message,
+             suggestion: 'The Google Business Profile API returned an error. This might be temporary.'
+           };
+         }
+       }
+       
+       // Log the full error for debugging
+       console.error('❌ Unhandled API error:', {
+         name: apiError?.name,
+         message: apiError?.message,
+         stack: apiError?.stack
+       });
+       
+       return NextResponse.json(errorResponse, { status: 500 });
      }
 
   } catch (error) {

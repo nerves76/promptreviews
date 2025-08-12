@@ -141,9 +141,22 @@ export async function GET(request: NextRequest) {
     let googleConnectionError = null;
 
     if (googleError) {
-      console.log('❌ Error fetching Google tokens:', googleError);
+      console.error('❌ Error fetching Google tokens:', {
+        error: googleError.message,
+        code: googleError.code,
+        details: googleError.details,
+        hint: googleError.hint
+      });
     } else if (googleTokens) {
       console.log('✅ Found Google Business Profile tokens for user:', user.id);
+      console.log('🔍 Token details:', {
+        hasAccessToken: !!googleTokens.access_token,
+        hasRefreshToken: !!googleTokens.refresh_token,
+        expiresAt: googleTokens.expires_at,
+        isExpired: googleTokens.expires_at ? new Date(googleTokens.expires_at) < new Date() : 'unknown',
+        createdAt: googleTokens.created_at,
+        updatedAt: googleTokens.updated_at
+      });
       
       // Check if tokens exist and are not expired (database-only check)
       try {
@@ -151,12 +164,65 @@ export async function GET(request: NextRequest) {
         const now = Date.now();
         
         if (expiresAt > now) {
-          console.log('✅ Google tokens appear valid based on expiry time');
+          const remainingTime = Math.floor((expiresAt - now) / 1000 / 60);
+          console.log(`✅ Google tokens valid for ${remainingTime} more minutes`);
           isGoogleConnected = true;
         } else {
-          console.log('⚠️ Google tokens appear expired based on expiry time');
-          googleConnectionError = 'Google Business Profile tokens may be expired. Try reconnecting if posting fails.';
-          isGoogleConnected = true; // Still show as connected, but with warning
+          const expiredTime = Math.floor((now - expiresAt) / 1000 / 60);
+          console.warn(`⚠️ Google tokens expired ${expiredTime} minutes ago`);
+          
+          // Try to refresh the token automatically if we have a refresh token
+          if (googleTokens.refresh_token) {
+            console.log('🔄 Attempting automatic token refresh...');
+            try {
+              // Import the client dynamically to avoid circular dependencies
+              const { GoogleBusinessProfileClient } = await import('@/features/social-posting/platforms/google-business-profile/googleBusinessProfileClient');
+              
+              const client = new GoogleBusinessProfileClient({
+                accessToken: googleTokens.access_token,
+                refreshToken: googleTokens.refresh_token,
+                expiresAt: expiresAt
+              });
+              
+              const newTokens = await client.refreshAccessToken();
+              
+              if (newTokens && newTokens.access_token) {
+                console.log('✅ Token refreshed successfully');
+                
+                // Update tokens in database
+                const { error: updateError } = await supabase
+                  .from('google_business_profiles')
+                  .update({
+                    access_token: newTokens.access_token,
+                    expires_at: new Date(Date.now() + (newTokens.expires_in || 3600) * 1000).toISOString(),
+                    updated_at: new Date().toISOString()
+                  })
+                  .eq('user_id', user.id);
+                
+                if (!updateError) {
+                  console.log('✅ Updated tokens in database');
+                  isGoogleConnected = true;
+                  googleConnectionError = null;
+                } else {
+                  console.error('❌ Failed to update tokens in database:', updateError);
+                  googleConnectionError = `Token refresh failed. Please reconnect to continue.`;
+                  isGoogleConnected = false;
+                }
+              } else {
+                console.log('❌ Token refresh returned no tokens');
+                googleConnectionError = `Google Business Profile tokens expired ${expiredTime} minutes ago. Please reconnect to continue.`;
+                isGoogleConnected = false;
+              }
+            } catch (refreshError: any) {
+              console.error('❌ Token refresh failed:', refreshError.message);
+              googleConnectionError = `Google Business Profile tokens expired. Automatic refresh failed. Please reconnect.`;
+              isGoogleConnected = false;
+            }
+          } else {
+            console.log('❌ No refresh token available');
+            googleConnectionError = `Google Business Profile tokens expired ${expiredTime} minutes ago. Please reconnect to continue.`;
+            isGoogleConnected = false;
+          }
         }
       } catch (error: any) {
         console.error('❌ Error checking Google token expiry:', error);
@@ -176,9 +242,21 @@ export async function GET(request: NextRequest) {
         .eq('user_id', user.id);
 
       if (locationsError) {
-        console.log('❌ Error fetching locations:', locationsError);
+        console.error('❌ Error fetching locations:', {
+          error: locationsError.message,
+          code: locationsError.code,
+          userId: user.id
+        });
       } else {
         console.log(`✅ Found ${locationData?.length || 0} locations for user:`, user.id);
+        if (locationData && locationData.length > 0) {
+          console.log('📍 Location details:', locationData.map(loc => ({
+            id: loc.location_id,
+            name: loc.location_name,
+            status: loc.status,
+            lastFetched: loc.updated_at
+          })));
+        }
         locations = locationData || [];
       }
     }

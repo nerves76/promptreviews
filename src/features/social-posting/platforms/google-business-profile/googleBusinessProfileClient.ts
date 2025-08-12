@@ -92,8 +92,9 @@ export class GoogleBusinessProfileClient {
 
   /**
    * Refreshes the access token using the refresh token
+   * Returns the new tokens if successful
    */
-  private async refreshAccessToken(): Promise<void> {
+  public async refreshAccessToken(): Promise<{ access_token: string; expires_in: number; refresh_token?: string } | null> {
     try {
       console.log('🔄 Server-side token refresh initiated');
 
@@ -134,6 +135,13 @@ export class GoogleBusinessProfileClient {
       this.expiresAt = Date.now() + data.expiresIn * 1000; // expiresIn is in seconds
       this.refreshToken = data.refreshToken || this.refreshToken; // Refresh token might also be updated
 
+      // Return the new tokens
+      return {
+        access_token: data.accessToken,
+        expires_in: data.expiresIn,
+        refresh_token: data.refreshToken
+      };
+
     } catch (refreshError: any) {
       if (refreshError.message?.includes('GOOGLE_REAUTH_REQUIRED')) {
         throw refreshError; // Re-throw specific re-auth error
@@ -147,6 +155,8 @@ export class GoogleBusinessProfileClient {
       
       throw new Error(`Failed to refresh access token: ${refreshError.message}`);
     }
+    
+    return null; // Return null if refresh fails
   }
 
   // Note: Token saving is now handled by the server-side refresh endpoint
