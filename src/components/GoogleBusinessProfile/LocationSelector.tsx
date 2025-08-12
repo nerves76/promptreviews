@@ -85,7 +85,7 @@ export default function LocationSelector({
             {selectedLocation ? (
               <>
                 <div className="font-medium text-gray-900">
-                  {selectedLocation.name || `Location ${selectedLocation.id.replace('locations/', '').substring(0, 8)}...`}
+                  {selectedLocation.name || (selectedLocation.id ? `Location ${selectedLocation.id.replace('locations/', '').substring(0, 8)}...` : 'Unknown Location')}
                 </div>
                 {selectedLocation.address && (
                   <div className="text-sm text-gray-500 truncate">{selectedLocation.address}</div>
@@ -117,7 +117,7 @@ export default function LocationSelector({
             >
               <div className="flex-1 min-w-0">
                 <div className="font-medium text-gray-900 truncate">
-                  {location.name || `Location ${location.id.replace('locations/', '').substring(0, 8)}...`}
+                  {location.name || (location.id ? `Location ${location.id.replace('locations/', '').substring(0, 8)}...` : 'Unknown Location')}
                 </div>
                 {location.address && (
                   <div className="text-sm text-gray-500 truncate">{location.address}</div>
