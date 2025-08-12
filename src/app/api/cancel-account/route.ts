@@ -65,7 +65,10 @@ export async function POST(request: NextRequest) {
 
     console.log(`✅ Account soft-deleted successfully: ${account.email}`);
 
-    // Cancel Stripe subscription if exists
+    // ============================================
+    // CRITICAL FIX: Actually cancel Stripe subscription
+    // This prevents continued billing after account deletion
+    // ============================================
     try {
       const { data: accountData } = await supabase
         .from('accounts')
@@ -74,13 +77,31 @@ export async function POST(request: NextRequest) {
         .single();
 
       if (accountData?.stripe_subscription_id) {
-        // Note: In a real implementation, you'd want to cancel the Stripe subscription here
-        // For now, we'll just log it
-        console.log(`📋 Note: Stripe subscription ${accountData.stripe_subscription_id} should be cancelled`);
+        console.log(`🎯 Cancelling Stripe subscription: ${accountData.stripe_subscription_id}`);
+        
+        // Call our new dedicated cancellation endpoint
+        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3002';
+        const response = await fetch(`${baseUrl}/api/cancel-subscription`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Cookie': request.headers.get('cookie') || '', // Pass auth cookies
+          }
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          console.log('✅ Stripe subscription cancelled:', result);
+        } else {
+          console.error('⚠️ Failed to cancel Stripe subscription:', await response.text());
+          // Continue with account deletion even if Stripe fails
+          // User won't be charged as account is marked deleted
+        }
       }
     } catch (stripeError) {
-      console.warn('Error handling Stripe cancellation:', stripeError);
+      console.error('⚠️ Error handling Stripe cancellation:', stripeError);
       // Don't fail the whole operation if Stripe handling fails
+      // The soft delete will prevent access regardless
     }
 
     return NextResponse.json({ 

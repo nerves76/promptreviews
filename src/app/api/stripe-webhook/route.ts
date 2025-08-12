@@ -203,7 +203,10 @@ export async function POST(req: NextRequest) {
         }
       }
       
-      // CRITICAL: Alert if all methods failed
+      // ============================================
+      // CRITICAL FIX: Store failed webhook for recovery
+      // This ensures no payment data is ever lost
+      // ============================================
       if (!updateResult.data || updateResult.data.length === 0) {
         console.error("🚨 CRITICAL: All update methods failed!");
         console.error("  Customer ID:", customerId);
@@ -212,8 +215,26 @@ export async function POST(req: NextRequest) {
         console.error("  Plan:", plan);
         console.error("  Subscription ID:", subscription.id);
         
-        // TODO: Add monitoring/alerting here (e.g., Sentry, email notification)
-        // This should trigger immediate investigation
+        // Import the recovery system
+        const { WebhookRecoverySystem } = await import('@/lib/webhook-recovery');
+        const recovery = new WebhookRecoverySystem(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.SUPABASE_SERVICE_ROLE_KEY!
+        );
+        
+        // Store for recovery
+        await recovery.storeFailedWebhook({
+          eventId: event.id,
+          eventType: event.type,
+          customerId: customerId,
+          subscriptionId: subscription.id,
+          payload: subscription,
+          error: `Could not match customer to account - tried customer_id: ${customerId}, email: ${email}, user_id: ${userId}`
+        });
+        
+        // Don't return error - webhook was received successfully
+        // Recovery will happen asynchronously
+        console.log("📦 Webhook stored for recovery - will retry automatically");
       }
     }
     
