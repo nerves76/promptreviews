@@ -44,6 +44,55 @@ export async function POST(request: NextRequest) {
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
+    
+    // First check if we already have locations in the database
+    const { data: existingLocations, error: checkError } = await serviceSupabase
+      .from('google_business_locations')
+      .select('*')
+      .eq('user_id', user.id);
+    
+    if (!checkError && existingLocations && existingLocations.length > 0) {
+      console.log(`✅ Found ${existingLocations.length} existing locations in database`);
+      
+      // Check if any location needs updating (status is UNKNOWN or updated_at is old)
+      const needsUpdate = existingLocations.some(loc => 
+        loc.status === 'UNKNOWN' || 
+        !loc.updated_at ||
+        (new Date().getTime() - new Date(loc.updated_at).getTime()) > 24 * 60 * 60 * 1000 // More than 24 hours old
+      );
+      
+      if (!needsUpdate) {
+        console.log('✅ Locations are up to date, returning cached data');
+        return NextResponse.json({
+          success: true,
+          message: `Found ${existingLocations.length} business locations`,
+          locations: existingLocations.map(loc => ({
+            user_id: loc.user_id,
+            location_id: loc.location_id,
+            location_name: loc.location_name,
+            account_name: loc.account_name,
+            address: loc.address,
+            status: loc.status,
+            primary_phone: loc.primary_phone,
+            website_uri: loc.website_uri
+          }))
+        });
+      } else {
+        console.log('⚠️ Locations need updating (have UNKNOWN status or are stale), fetching fresh data from Google');
+        // Delete old locations with UNKNOWN status to force fresh fetch
+        const { error: deleteError } = await serviceSupabase
+          .from('google_business_locations')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('status', 'UNKNOWN');
+        
+        if (deleteError) {
+          console.log('⚠️ Error deleting stale locations:', deleteError);
+        } else {
+          console.log('✅ Deleted stale locations with UNKNOWN status');
+        }
+      }
+    }
 
     // Production mode: Use real Google API calls
 
@@ -154,18 +203,57 @@ export async function POST(request: NextRequest) {
           // Store locations in database
           for (const location of locations) {
             // Log the location fields for debugging
-            console.log(`📍 Processing location - ID: ${location.name}, title: "${location.title}", locationName: "${location.locationName}"`);
+            console.log(`📍 Processing location:`, {
+              id: location.name,
+              title: location.title,
+              locationName: location.locationName,
+              storefrontAddress: location.storefrontAddress,
+              phoneNumbers: location.phoneNumbers,
+              websiteUri: location.websiteUri,
+              metadata: location.metadata,
+              locationState: location.locationState,
+              verificationState: location.verificationState
+            });
+            
+            // Extract address properly
+            let address = '';
+            if (location.storefrontAddress) {
+              const addr = location.storefrontAddress;
+              const parts = [];
+              if (addr.addressLines?.length > 0) {
+                parts.push(...addr.addressLines);
+              }
+              if (addr.locality) parts.push(addr.locality);
+              if (addr.administrativeArea) parts.push(addr.administrativeArea);
+              if (addr.postalCode) parts.push(addr.postalCode);
+              address = parts.join(', ');
+            }
+            
+            // Extract phone number properly
+            const primaryPhone = location.phoneNumbers?.primaryPhone || 
+                               location.primaryPhone || 
+                               '';
+            
+            // Determine status - if we have a location from Google, it's active
+            // The locationState field can be: "LOCATION_STATE_UNSPECIFIED", "DISABLED", etc.
+            let status = 'ACTIVE';
+            if (location.locationState === 'DISABLED') {
+              status = 'DISABLED';
+            } else if (location.verificationState === 'UNVERIFIED') {
+              status = 'UNVERIFIED';
+            }
             
             const locationData = {
               user_id: user.id,
               location_id: location.name,
-              location_name: location.title || location.locationName || location.name, // Use title (business name) first, fallback to locationName, then ID
+              location_name: location.title || location.locationName || location.name, // Use title (business name) first
               account_name: account.name, // Store the full account name (accounts/{id})
-              address: location.address?.addressLines?.join(', ') || '',
-              status: 'UNKNOWN',
-              primary_phone: location.primaryPhone || '',
+              address: address,
+              status: status,
+              primary_phone: primaryPhone,
               website_uri: location.websiteUri || '',
-              created_at: new Date().toISOString()
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
             };
             
             console.log(`📍 Storing location with name: "${locationData.location_name}"`);

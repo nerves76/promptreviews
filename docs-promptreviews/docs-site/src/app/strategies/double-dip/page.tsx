@@ -263,19 +263,33 @@ export default function DoubleDipPage() {
             </div>
             
             <div className="mb-6">
-              <h3 className="text-lg font-semibold text-white mb-4">Double-Dip Prompt Page (with Imported Review):</h3>
+              <h3 className="text-lg font-semibold text-white mb-4">Double-Dip Email/Text Message:</h3>
               <div className="bg-white/5 rounded-lg p-4 border-l-4 border-blue-400">
                 <h4 className="text-white font-semibold mb-2">Hi Sarah!</h4>
                 <p className="text-white/90 mb-3">
                   Thank you for your wonderful Google review of our kitchen renovation work! We're so glad you're happy with the results.
                 </p>
                 <p className="text-white/90 mb-3">
-                  We'd love it if you could share your experience on Yelp as well. We've imported your Google review below to make it easy 
-                  for you - you can post it as-is, or feel free to modify it with any updates or additional details!
+                  We'd love it if you could share your experience on Yelp as well. Just click this link to submit a review:
                 </p>
-                
-                <div className="bg-white/10 rounded-lg p-3 mt-4 mb-3">
-                  <p className="text-xs text-white/70 mb-2">YOUR IMPORTED GOOGLE REVIEW (feel free to edit):</p>
+                <div className="bg-blue-500/20 rounded px-3 py-2 inline-block mb-3">
+                  <span className="text-blue-300 font-mono text-sm">https://promptreviews.app/r/kitchen-reno-sarah</span>
+                </div>
+                <p className="text-white/90 mb-3">
+                  I've included your previous Google review on the page if you want to just update that and post it. 
+                  Or you can try the AI-Generate button to create something totally new based on your experience!
+                </p>
+                <p className="text-white/80 text-sm">
+                  Thanks again for being such a great customer!
+                </p>
+              </div>
+            </div>
+            
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold text-white mb-4">What Sarah Sees on the Prompt Page:</h3>
+              <div className="bg-white/5 rounded-lg p-4 border-l-4 border-green-400">
+                <div className="bg-white/10 rounded-lg p-3 mb-3">
+                  <p className="text-xs text-white/70 mb-2">YOUR IMPORTED GOOGLE REVIEW:</p>
                   <div className="border border-white/20 rounded bg-white/5 p-3">
                     <p className="text-white/90 italic">
                       "Amazing service! The team was professional and completed our kitchen renovation on time and under budget. 
@@ -284,9 +298,18 @@ export default function DoubleDipPage() {
                   </div>
                 </div>
                 
+                <div className="flex space-x-3 mb-3">
+                  <button className="bg-blue-500/20 border border-blue-400/50 text-blue-300 px-4 py-2 rounded-lg text-sm">
+                    ✏️ Edit & Post to Yelp
+                  </button>
+                  <button className="bg-purple-500/20 border border-purple-400/50 text-purple-300 px-4 py-2 rounded-lg text-sm">
+                    🤖 AI-Generate New Version
+                  </button>
+                </div>
+                
                 <p className="text-white/80 text-sm">
                   <CheckCircle className="w-4 h-4 text-green-400 inline mr-1" />
-                  Your review is pre-filled and ready to post. Just click "Submit to Yelp" or customize it first!
+                  Your review is pre-filled and ready to post. Choose any option above!
                 </p>
               </div>
             </div>
