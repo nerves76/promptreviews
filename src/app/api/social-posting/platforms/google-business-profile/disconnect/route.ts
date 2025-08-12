@@ -95,11 +95,25 @@ export async function POST(request: NextRequest) {
       // Don't fail the whole operation if revocation fails
     }
     
+    // First check if tokens exist before deleting
+    const { data: existingTokens, error: checkError } = await supabase
+      .from('google_business_profiles')
+      .select('id')
+      .eq('user_id', user.id)
+      .maybeSingle();
+    
+    console.log('🔍 Tokens before deletion:', {
+      exists: !!existingTokens,
+      id: existingTokens?.id,
+      checkError: checkError?.message
+    });
+    
     // Remove Google Business Profile tokens from database
-    const { error: deleteError } = await supabase
+    const { error: deleteError, count } = await supabase
       .from('google_business_profiles')
       .delete()
-      .eq('user_id', user.id);
+      .eq('user_id', user.id)
+      .select();
     
     if (deleteError) {
       console.error('❌ Error removing Google Business Profile tokens:', deleteError);
@@ -109,7 +123,22 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    console.log('✅ Successfully removed Google Business Profile tokens from database');
+    console.log('✅ Successfully removed Google Business Profile tokens from database', {
+      deletedCount: count
+    });
+    
+    // Verify deletion
+    const { data: verifyTokens, error: verifyError } = await supabase
+      .from('google_business_profiles')
+      .select('id')
+      .eq('user_id', user.id)
+      .maybeSingle();
+    
+    console.log('🔍 Tokens after deletion:', {
+      stillExists: !!verifyTokens,
+      id: verifyTokens?.id,
+      verifyError: verifyError?.message
+    });
     
     // Also remove all Google Business locations for this user
     const { error: locationsDeleteError } = await supabase

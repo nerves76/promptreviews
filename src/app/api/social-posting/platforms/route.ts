@@ -131,11 +131,18 @@ export async function GET(request: NextRequest) {
     console.log(`🎯 Using ${ownedAccount ? 'owned' : 'first available'} account with plan: ${accountPlan}`);
 
     // Check for Google Business Profile connection and validate tokens
+    console.log('🔍 Checking for Google Business Profile tokens for user:', user.id);
     const { data: googleTokens, error: googleError } = await supabase
       .from('google_business_profiles')
       .select('*')
       .eq('user_id', user.id)
       .maybeSingle();
+    
+    console.log('🔍 Token query result:', {
+      hasTokens: !!googleTokens,
+      tokenId: googleTokens?.id,
+      error: googleError?.message
+    });
 
     let isGoogleConnected = false;
     let googleConnectionError = null;

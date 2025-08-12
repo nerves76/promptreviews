@@ -125,6 +125,16 @@ export default function MultiBusinessPostingEmbedDemo() {
 
   return (
     <>
+      <style jsx global>{`
+        body {
+          background: transparent !important;
+          background-image: none !important;
+        }
+        html {
+          background: transparent !important;
+          background-image: none !important;
+        }
+      `}</style>
       <SpriteLoader />
       <div className="flex items-center justify-center p-4" style={{ backgroundColor: 'transparent' }}>
         {/* Browser Window Only */}

@@ -506,7 +506,8 @@ export default function SocialPostingDashboard() {
       }
       
       const redirectUri = encodeURIComponent(redirectUriRaw);
-      const scope = encodeURIComponent('https://www.googleapis.com/auth/plus.business.manage openid email profile');
+      // Updated scopes for Google Business Profile API v1 (2024/2025)
+      const scope = encodeURIComponent('https://www.googleapis.com/auth/business.manage openid email profile');
       const responseType = 'code';
       const state = encodeURIComponent(JSON.stringify({ 
         platform: 'google-business-profile',
