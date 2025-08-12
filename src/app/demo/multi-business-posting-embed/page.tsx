@@ -126,7 +126,7 @@ export default function MultiBusinessPostingEmbedDemo() {
   return (
     <>
       <SpriteLoader />
-      <div className="flex items-center justify-center p-4 bg-white" style={{ backgroundColor: 'white' }}>
+      <div className="flex items-center justify-center p-4" style={{ backgroundColor: 'transparent' }}>
         {/* Browser Window Only */}
         <div className="bg-white rounded-xl shadow-2xl overflow-hidden w-full max-w-4xl">
           {/* Mock Browser Bar */}
