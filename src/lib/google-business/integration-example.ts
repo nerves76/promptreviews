@@ -6,7 +6,7 @@
 import { safeTransformLocations, validateTransformedLocations } from './safe-transformer';
 
 // Example: Update the loadPlatforms function in page.tsx
-export function exampleSafeLoadPlatforms() {
+export function exampleSafeLoadPlatforms(locations: any[]) {
   // Instead of:
   /*
   const transformedLocations = locations.map((loc: any, index: number) => {
@@ -34,6 +34,8 @@ export function exampleSafeLoadPlatforms() {
 }
 
 // Example: Wrap components with error boundary
+// Note: This would be in a .tsx file, not .ts
+/*
 export function exampleErrorBoundaryUsage() {
   return (
     <GoogleBusinessErrorBoundary>
@@ -41,6 +43,7 @@ export function exampleErrorBoundaryUsage() {
     </GoogleBusinessErrorBoundary>
   );
 }
+*/
 
 // Example: Add retry logic to API calls
 export async function exampleAPICallWithRetry() {

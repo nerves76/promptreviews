@@ -12,10 +12,7 @@ import FiveStarSpinner from '@/app/components/FiveStarSpinner';
 import PhotoManagement from '@/app/components/PhotoManagement';
 import ReviewManagement from '@/app/components/ReviewManagement';
 import BusinessInfoEditor from '@/app/components/BusinessInfoEditor';
-import ReviewResponseGenerator from '@/app/components/ReviewResponseGenerator';
-import ServiceDescriptionGenerator from '@/app/components/ServiceDescriptionGenerator';
-import BusinessDescriptionAnalyzer from '@/app/components/BusinessDescriptionAnalyzer';
-import { createClient, getSessionOrMock } from '@/utils/supabaseClient';
+import { createClient } from '@/utils/supabaseClient';
 import { useAuth } from '@/contexts/AuthContext';
 import UnrespondedReviewsWidget from '@/app/components/UnrespondedReviewsWidget';
 import { safeTransformLocations, validateTransformedLocations } from '@/lib/google-business/safe-transformer';
@@ -619,7 +616,7 @@ export default function SocialPostingDashboard() {
       setLocations([]);
       setSelectedLocations([]);
       
-      const errorMessage = error instanceof Error ? error.message : String(error);
+      // const errorMessage = error instanceof Error ? error.message : String(error);
       setPostResult({ 
         success: false, 
         message: 'Failed to load Google Business Profile connection. Please refresh the page or try reconnecting.' 
@@ -816,7 +813,7 @@ export default function SocialPostingDashboard() {
     }
   };
 
-  const handleFetchLocations = async (platformId: string) => {
+  const handleFetchLocations = async () => {
     if (rateLimitedUntil && Date.now() < rateLimitedUntil) {
       const remainingTime = Math.ceil((rateLimitedUntil - Date.now()) / 1000);
       setPostResult({ 
@@ -909,7 +906,7 @@ export default function SocialPostingDashboard() {
             // Token was refreshed, retry automatically
             setPostResult({ success: true, message: 'Your authentication was refreshed. Retrying...' });
             // Retry the fetch
-            setTimeout(() => handleFetchLocations(platformId), 1000);
+            setTimeout(() => handleFetchLocations(), 1000);
             return;
           }
           
@@ -1313,7 +1310,7 @@ export default function SocialPostingDashboard() {
         changeTab('reviews');
         break;
       case 'create-post':
-        changeTab('post');
+        changeTab('create-post');
         break;
       case 'navigate':
         if (data?.url) {
@@ -1770,7 +1767,7 @@ export default function SocialPostingDashboard() {
                         </p>
                         <div className="flex space-x-2">
                           <button
-                            onClick={() => handleFetchLocations('google-business-profile')}
+                            onClick={() => handleFetchLocations()}
                             disabled={fetchingLocations === 'google-business-profile' || Boolean(rateLimitedUntil && Date.now() < rateLimitedUntil)}
                             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center space-x-2 ${
                               fetchingLocations === 'google-business-profile' || Boolean(rateLimitedUntil && Date.now() < rateLimitedUntil)
@@ -2097,7 +2094,7 @@ export default function SocialPostingDashboard() {
                         )}
                         <div className="flex flex-col sm:flex-row gap-2 justify-center">
                           <button
-                            onClick={() => handleFetchLocations('google-business-profile')}
+                            onClick={() => handleFetchLocations()}
                             disabled={fetchingLocations === 'google-business-profile' || Boolean(rateLimitedUntil && Date.now() < rateLimitedUntil)}
                             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                               fetchingLocations === 'google-business-profile' || Boolean(rateLimitedUntil && Date.now() < rateLimitedUntil)
