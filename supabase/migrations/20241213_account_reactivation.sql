@@ -22,13 +22,13 @@ CREATE TABLE IF NOT EXISTS account_events (
   account_id UUID REFERENCES accounts(id) ON DELETE CASCADE,
   event_type TEXT NOT NULL,
   event_data JSONB,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  
-  -- Indexes
-  INDEX idx_account_events_account (account_id),
-  INDEX idx_account_events_type (event_type),
-  INDEX idx_account_events_created (created_at DESC)
+  created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Create indexes separately
+CREATE INDEX IF NOT EXISTS idx_account_events_account ON account_events(account_id);
+CREATE INDEX IF NOT EXISTS idx_account_events_type ON account_events(event_type);
+CREATE INDEX IF NOT EXISTS idx_account_events_created ON account_events(created_at DESC);
 
 -- Enable RLS
 ALTER TABLE account_events ENABLE ROW LEVEL SECURITY;
@@ -102,11 +102,11 @@ CREATE TRIGGER trigger_check_account_reactivation
 -- ============================================
 CREATE OR REPLACE VIEW reactivation_metrics AS
 SELECT 
-  COUNT(DISTINCT account_id) as total_reactivations,
+  COUNT(DISTINCT id) as total_reactivations,
   AVG(EXTRACT(EPOCH FROM (reactivated_at - deleted_at))/86400)::INT as avg_days_to_return,
   MAX(reactivation_count) as max_reactivations_per_user,
-  COUNT(DISTINCT account_id) FILTER (WHERE reactivated_at > NOW() - INTERVAL '30 days') as reactivations_last_30_days,
-  COUNT(DISTINCT account_id) FILTER (WHERE reactivated_at > NOW() - INTERVAL '7 days') as reactivations_last_7_days
+  COUNT(DISTINCT id) FILTER (WHERE reactivated_at > NOW() - INTERVAL '30 days') as reactivations_last_30_days,
+  COUNT(DISTINCT id) FILTER (WHERE reactivated_at > NOW() - INTERVAL '7 days') as reactivations_last_7_days
 FROM accounts
 WHERE reactivated_at IS NOT NULL;
 

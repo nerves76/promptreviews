@@ -29,13 +29,13 @@ CREATE TABLE IF NOT EXISTS failed_webhooks (
   -- Timestamps
   created_at TIMESTAMPTZ DEFAULT NOW(),
   last_retry_at TIMESTAMPTZ,
-  recovered_at TIMESTAMPTZ,
-  
-  -- Indexes for quick lookups
-  INDEX idx_failed_webhooks_status (status),
-  INDEX idx_failed_webhooks_customer (customer_id),
-  INDEX idx_failed_webhooks_created (created_at DESC)
+  recovered_at TIMESTAMPTZ
 );
+
+-- Create indexes separately
+CREATE INDEX IF NOT EXISTS idx_failed_webhooks_status ON failed_webhooks(status);
+CREATE INDEX IF NOT EXISTS idx_failed_webhooks_customer ON failed_webhooks(customer_id);
+CREATE INDEX IF NOT EXISTS idx_failed_webhooks_created ON failed_webhooks(created_at DESC);
 
 -- ============================================
 -- Add RLS policies for admin access only
@@ -119,13 +119,13 @@ CREATE TABLE IF NOT EXISTS payment_events (
   error_message TEXT,
   
   -- Timestamp
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  
-  -- Indexes
-  INDEX idx_payment_events_account (account_id),
-  INDEX idx_payment_events_created (created_at DESC),
-  INDEX idx_payment_events_stripe_event (stripe_event_id)
+  created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Create indexes separately
+CREATE INDEX IF NOT EXISTS idx_payment_events_account ON payment_events(account_id);
+CREATE INDEX IF NOT EXISTS idx_payment_events_created ON payment_events(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_payment_events_stripe_event ON payment_events(stripe_event_id);
 
 -- Enable RLS
 ALTER TABLE payment_events ENABLE ROW LEVEL SECURITY;

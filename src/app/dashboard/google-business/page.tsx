@@ -739,6 +739,7 @@ export default function SocialPostingDashboard() {
     try {
       console.log('🔌 Disconnecting Google Business Profile...');
       setIsLoading(true);
+      setIsLoadingPlatforms(true); // Also set platforms loading state
       
       // Call API to remove OAuth tokens from database
       const response = await fetch('/api/social-posting/platforms/google-business-profile/disconnect', {
@@ -796,6 +797,7 @@ export default function SocialPostingDashboard() {
       setSelectedLocationId('');
       setHasAttemptedFetch(false);
       setIsLoading(false);
+      setIsLoadingPlatforms(false); // Clear platforms loading state too
       
       // Close the disconnect confirmation dialog
       setShowDisconnectConfirm(false);

@@ -6,20 +6,13 @@ import type { NextRequest } from "next/server";
 const DOCS_SITE_URL = 'https://docs-site-7mwbiq8mr-nerves76s-projects.vercel.app';
 
 export async function middleware(req: NextRequest) {
-  // Handle static CSS files - ensure correct MIME type
-  if (req.nextUrl.pathname.match(/\/_next\/static\/css\/.*\.css$/)) {
-    const response = NextResponse.next();
-    response.headers.set('Content-Type', 'text/css; charset=utf-8');
-    response.headers.set('X-Content-Type-Options', 'nosniff');
-    return response;
-  }
-  
-  // Handle static JS files - ensure correct MIME type
-  if (req.nextUrl.pathname.match(/\/_next\/static\/.*\.js$/)) {
-    const response = NextResponse.next();
-    response.headers.set('Content-Type', 'application/javascript; charset=utf-8');
-    response.headers.set('X-Content-Type-Options', 'nosniff');
-    return response;
+  // Skip middleware for Next.js internal routes and static assets
+  if (
+    req.nextUrl.pathname.startsWith('/_next/static') ||
+    req.nextUrl.pathname.startsWith('/_next/image') ||
+    req.nextUrl.pathname.includes('.') // Skip all files with extensions
+  ) {
+    return NextResponse.next();
   }
   
   const res = NextResponse.next();

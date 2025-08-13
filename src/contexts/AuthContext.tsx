@@ -574,8 +574,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
     } catch (err) {
       console.error('AuthContext: Account details check failed:', err);
-      // Don't change account data on error
+      // Don't change account data on error, but ensure loading states are cleared
+      setAccountLoading(false);
+      setIsCheckingAccount(false);
     } finally {
+      // Always clear loading states, even if there was an error
       setAccountLoading(false);
       setIsCheckingAccount(false);
       console.log('✅ AuthContext: Account loading completed, accountLoading set to false');
@@ -978,14 +981,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Supabase already handles session refresh automatically via autoRefreshToken: true
   // This built-in mechanism doesn't trigger state updates or cause form resets
 
-  // 🚨 SAFETY: Force clear loading states if they get stuck for more than 8 seconds
+  // 🚨 SAFETY: Force clear loading states if they get stuck for more than 10 seconds
   useEffect(() => {
     // Only set timeout if we're actually loading and not already initialized
-    if ((isLoading || accountLoading) && !isInitialized) {
+    if ((isLoading || accountLoading || businessLoading || adminLoading) && !isInitialized) {
       const timeout = setTimeout(() => {
         console.warn('🚨 AuthContext: Loading states stuck, force clearing...', {
           isLoading,
           accountLoading,
+          businessLoading,
+          adminLoading,
           user: user?.id ? 'present' : 'missing',
           hasSession: !!user,
           timestamp: new Date().toISOString()
@@ -996,11 +1001,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setBusinessLoading(false);
         setIsInitialized(true); // Ensure initialized is set
         setIsRefreshing(false); // Clear refreshing state too
-      }, 8000); // 8 seconds - faster timeout for better UX
+        setIsCheckingAccount(false); // Clear checking flags
+        setIsCheckingAdmin(false);
+        setIsCheckingBusiness(false);
+      }, 10000); // 10 seconds - increased for slower connections
       
       return () => clearTimeout(timeout);
     }
-  }, [isLoading, accountLoading, isInitialized]);
+  }, [isLoading, accountLoading, businessLoading, adminLoading, isInitialized]);
 
   // Context value
   const value: AuthContextType = useMemo(() => ({
