@@ -110,13 +110,23 @@ const GetReviewsDropdown: React.FC<GetReviewsDropdownProps> = ({
       {/* Dropdown Trigger Button */}
       <button
         ref={triggerRef}
-        onClick={handleDropdownToggle}
+        onClick={(e) => {
+          if (!hasBusiness) {
+            e.preventDefault();
+            router.push("/dashboard/create-business");
+            return;
+          }
+          handleDropdownToggle();
+        }}
         className={`${
           isActive("/prompt-pages") || isActive("/dashboard/contacts") || isActive("/dashboard/reviews")
             ? "border-white text-white"
-            : "border-transparent text-white hover:border-white/30 hover:text-white/90"
-        } inline-flex items-center px-1 pt-1 border-b-4 text-base font-medium transition-colors duration-200 h-16 group`}
+            : hasBusiness
+              ? "border-transparent text-white hover:border-white/30 hover:text-white/90"
+              : "border-transparent text-white/50 cursor-not-allowed"
+        } inline-flex items-center px-1 pt-1 border-b-4 text-base font-medium transition-colors duration-200 h-16 group relative`}
         disabled={businessLoading}
+        title={!hasBusiness ? "Create your business profile first" : ""}
       >
         <span className="mr-1">Get reviews</span>
         <Icon 
@@ -126,6 +136,11 @@ const GetReviewsDropdown: React.FC<GetReviewsDropdownProps> = ({
           }`}
           size={16} 
         />
+        {!hasBusiness && (
+          <span className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap" style={{ zIndex: 2147483647 }}>
+            Create business profile first
+          </span>
+        )}
       </button>
 
       {/* Dropdown Menu - Rendered in Portal */}

@@ -307,14 +307,28 @@ export default function Header() {
           <div className="hidden md:flex flex-1 justify-center">
             <div className="flex space-x-8">
                             <Link
-                href="/dashboard"
+                href={hasBusiness ? "/dashboard" : "#"}
+                onClick={(e) => {
+                  if (!hasBusiness) {
+                    e.preventDefault();
+                    router.push("/dashboard/create-business");
+                  }
+                }}
                 className={`${
                   isActive("/dashboard")
                     ? "border-white text-white"
-                    : "border-transparent text-white hover:border-white/30 hover:text-white/90"
-                } inline-flex items-center px-1 pt-1 border-b-4 text-base font-medium transition-colors duration-200 h-16`}
+                    : hasBusiness
+                      ? "border-transparent text-white hover:border-white/30 hover:text-white/90"
+                      : "border-transparent text-white/50 cursor-not-allowed"
+                } inline-flex items-center px-1 pt-1 border-b-4 text-base font-medium transition-colors duration-200 h-16 relative group`}
+                title={!hasBusiness ? "Create your business profile first" : ""}
               >
                 Dashboard
+                {!hasBusiness && (
+                  <span className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap" style={{ zIndex: 2147483647 }}>
+                    Create business profile first
+                  </span>
+                )}
               </Link>
               {!businessLoading && (
                 <>
@@ -349,11 +363,13 @@ export default function Header() {
                       </>
                     )}
                   </Link>
-                  <GetReviewsDropdown 
-                    hasBusiness={hasBusiness}
-                    businessLoading={businessLoading}
-                    onNavigate={() => {}}
-                  />
+                  <div className={hasBusiness ? "" : "opacity-50 cursor-not-allowed"}>
+                    <GetReviewsDropdown 
+                      hasBusiness={hasBusiness}
+                      businessLoading={businessLoading}
+                      onNavigate={() => {}}
+                    />
+                  </div>
 
                   {/* Always show Google Biz nav item - access control handled within the page */}
                   {(
@@ -426,11 +442,18 @@ export default function Header() {
               <div className="relative top-1">
                 <button
                   ref={notificationsButtonRef}
-                  className="relative focus:outline-none"
-                  onClick={() => setShowNotifications((v) => !v)}
+                  className={`relative focus:outline-none ${!hasBusiness ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  onClick={() => {
+                    if (!hasBusiness) {
+                      router.push("/dashboard/create-business");
+                      return;
+                    }
+                    setShowNotifications((v) => !v);
+                  }}
                   aria-label="Show notifications"
+                  title={!hasBusiness ? "Create your business profile first" : ""}
                 >
-                  <Icon name="FaBell" className="w-6 h-6 text-white hover:text-white/80 transition-colors" size={24} />
+                  <Icon name="FaBell" className={`w-6 h-6 ${hasBusiness ? 'text-white hover:text-white/80' : 'text-white/50'} transition-colors`} size={24} />
                   {notifications.filter((n) => !n.read).length > 0 && (
                     <span className="absolute -top-1 -right-1 bg-pink-300 text-slate-blue text-[10px] rounded-full w-4 h-4 flex items-center justify-center font-bold border border-white">
                       {notifications.filter((n) => !n.read).length}
@@ -593,15 +616,28 @@ export default function Header() {
                 </div>
                 
                 <Link
-                  href="/dashboard"
+                  href={hasBusiness ? "/dashboard" : "#"}
+                  onClick={(e) => {
+                    if (!hasBusiness) {
+                      e.preventDefault();
+                      router.push("/dashboard/create-business");
+                      setMenuOpen(false);
+                    } else {
+                      setMenuOpen(false);
+                    }
+                  }}
                   className={`${
                     isActive("/dashboard")
                       ? "bg-slate-blue/10 text-slate-blue"
-                      : "text-blue-900 hover:bg-slate-blue/10 hover:text-slate-blue"
+                      : hasBusiness
+                        ? "text-blue-900 hover:bg-slate-blue/10 hover:text-slate-blue"
+                        : "text-blue-400 cursor-not-allowed"
                   } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
-                  onClick={() => setMenuOpen(false)}
                 >
                   Dashboard
+                  {!hasBusiness && (
+                    <span className="text-xs text-blue-600 block mt-1">Create business profile first</span>
+                  )}
                 </Link>
                 {!businessLoading && (
                   <>
@@ -635,8 +671,8 @@ export default function Header() {
                       )}
                     </Link>
                     {/* Get Reviews Section */}
-                    <div className="px-3 py-2">
-                      <div className="text-sm font-medium text-blue-700 mb-2">Get reviews</div>
+                    <div className={`px-3 py-2 ${!hasBusiness ? 'opacity-50' : ''}`}>
+                      <div className={`text-sm font-medium ${hasBusiness ? 'text-blue-700' : 'text-blue-400'} mb-2`}>Get reviews</div>
                       <div className="space-y-1">
                         <Link
                           href={hasBusiness ? "/prompt-pages" : "#"}

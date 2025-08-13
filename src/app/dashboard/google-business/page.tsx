@@ -30,7 +30,22 @@ interface GoogleBusinessLocation {
 }
 
 export default function SocialPostingDashboard() {
-  const { currentPlan } = useAuth();
+  // Initialize with default values to prevent null errors
+  let currentPlan = 'free';
+  
+  // Try to get auth context safely
+  try {
+    const authContext = useAuth();
+    if (authContext) {
+      currentPlan = authContext.currentPlan || 'free';
+      console.log('Google Business - Successfully got auth context, plan:', currentPlan);
+    } else {
+      console.warn('Google Business - Auth context is null');
+    }
+  } catch (error) {
+    console.error('Google Business - Error accessing auth context:', error);
+    // Continue with default plan
+  }
   
   /**
    * GOOGLE BUSINESS PROFILE STATE DOCUMENTATION
