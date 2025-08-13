@@ -938,23 +938,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Supabase already handles session refresh automatically via autoRefreshToken: true
   // This built-in mechanism doesn't trigger state updates or cause form resets
 
-  // 🚨 SAFETY: Force clear loading states if they get stuck for more than 10 seconds
+  // 🚨 SAFETY: Force clear loading states if they get stuck for more than 8 seconds
   useEffect(() => {
     if (isLoading || accountLoading) {
       const timeout = setTimeout(() => {
         console.warn('🚨 AuthContext: Loading states stuck, force clearing...', {
           isLoading,
           accountLoading,
+          user: user?.id ? 'present' : 'missing',
+          hasSession: !!user,
           timestamp: new Date().toISOString()
         });
         setIsLoading(false);
         setAccountLoading(false);
         setIsInitialized(true); // Ensure initialized is set
-      }, 20000); // 20 seconds - increased for slower connections
+      }, 8000); // 8 seconds - faster timeout for better UX
       
       return () => clearTimeout(timeout);
     }
-  }, [isLoading, accountLoading]);
+  }, [isLoading, accountLoading, user?.id]);
 
   // Context value
   const value: AuthContextType = useMemo(() => ({
