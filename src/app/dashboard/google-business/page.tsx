@@ -790,6 +790,7 @@ export default function SocialPostingDashboard() {
       
       // Immediately update UI state to show disconnected
       setIsConnected(false);
+      setConnectedEmail(null); // Clear the connected email
       setLocations([]);
       setSelectedLocations([]);
       setSelectedLocationId('');

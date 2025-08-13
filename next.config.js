@@ -99,6 +99,33 @@ const nextConfig = {
   // Headers for performance and caching
   async headers() {
     return [
+      // Ensure correct MIME types for static assets
+      {
+        source: '/_next/static/css/:path*',
+        headers: [
+          {
+            key: 'Content-Type',
+            value: 'text/css; charset=utf-8',
+          },
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+      {
+        source: '/_next/static/chunks/:path*',
+        headers: [
+          {
+            key: 'Content-Type',
+            value: 'application/javascript; charset=utf-8',
+          },
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
       // Game files should allow iframe embedding (no X-Frame-Options = allows all)
       {
         source: '/prompty-power-game/(.*)',
