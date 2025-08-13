@@ -6,6 +6,7 @@ import { createClient, getUserOrMock } from "@/utils/supabaseClient";
 import Cropper from "react-easy-crop";
 import type { Area } from "react-easy-crop";
 import { useAuthGuard } from "@/utils/authGuard";
+import { useAuth } from "@/contexts/AuthContext";
 import { useAccountSelection } from "@/utils/accountSelectionHooks";
 import Icon from "@/components/Icon";
 import { getAccountIdForUser } from "@/utils/accountUtils";
@@ -71,6 +72,7 @@ export default function BusinessProfilePage() {
 
 
   useAuthGuard();
+  const { user } = useAuth();
   const [form, setForm] = useState({
     name: "",
     company_values: "",
@@ -879,7 +881,7 @@ export default function BusinessProfilePage() {
       <WelcomePopup
         isOpen={showWelcomePopup}
         onClose={handleWelcomeClose}
-        title={`Hello again${form.name ? `, ${form.name.split(' ')[0]}` : ''}!`}
+        title="Welcome to Your Business Profile!"
         message={`Welcome to "Your business!" This section is all about highlighting what makes your business stand out.
 
 What you enter here can improve your AI-assisted reviews. Especially these two areas:
