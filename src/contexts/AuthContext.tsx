@@ -1005,33 +1005,65 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Supabase already handles session refresh automatically via autoRefreshToken: true
   // This built-in mechanism doesn't trigger state updates or cause form resets
 
-  // 🚨 SAFETY: Force clear loading states if they get stuck for more than 15 seconds
-  // IMPORTANT: Increased timeout to prevent premature clearing during Google OAuth
+  // 🚨 SAFETY: Force clear loading states if they get stuck
+  // IMPORTANT: Two-phase timeout - quick for normal loads, longer for OAuth
   useEffect(() => {
     // Only set timeout if we're actually loading and not already initialized
     if ((isLoading || accountLoading || businessLoading || adminLoading) && !isInitialized) {
-      const timeout = setTimeout(() => {
-        console.warn('🚨 AuthContext: Loading states stuck, force clearing...', {
+      // First timeout - 8 seconds for normal page loads
+      const quickTimeout = setTimeout(() => {
+        // Check if we're in an OAuth flow (URL contains callback or oauth params)
+        const isOAuthFlow = typeof window !== 'undefined' && 
+          (window.location.pathname.includes('/callback') || 
+           window.location.search.includes('code=') ||
+           window.location.search.includes('error='));
+        
+        if (!isOAuthFlow) {
+          console.warn('⚡ AuthContext: Quick timeout - clearing stuck loading states', {
+            isLoading,
+            accountLoading,
+            businessLoading,
+            adminLoading,
+            user: user?.id ? 'present' : 'missing',
+            timestamp: new Date().toISOString()
+          });
+          setIsLoading(false);
+          setAccountLoading(false);
+          setAdminLoading(false);
+          setBusinessLoading(false);
+          setIsInitialized(true);
+          setIsRefreshing(false);
+          setIsCheckingAccount(false);
+          setIsCheckingAdmin(false);
+          setIsCheckingBusiness(false);
+        }
+      }, 8000); // 8 seconds for normal loads
+      
+      // Second timeout - 20 seconds for OAuth flows
+      const longTimeout = setTimeout(() => {
+        console.warn('🚨 AuthContext: Final timeout - force clearing all loading states', {
           isLoading,
           accountLoading,
           businessLoading,
           adminLoading,
           user: user?.id ? 'present' : 'missing',
-          hasSession: !!user,
           timestamp: new Date().toISOString()
         });
         setIsLoading(false);
         setAccountLoading(false);
         setAdminLoading(false);
         setBusinessLoading(false);
-        setIsInitialized(true); // Ensure initialized is set
-        setIsRefreshing(false); // Clear refreshing state too
-        setIsCheckingAccount(false); // Clear checking flags
+        setIsInitialized(true);
+        setIsRefreshing(false);
+        setIsCheckingAccount(false);
         setIsCheckingAdmin(false);
         setIsCheckingBusiness(false);
-      }, 15000); // 15 seconds - increased to prevent conflicts with OAuth flows
+      }, 20000); // 20 seconds max for OAuth
       
-      return () => clearTimeout(timeout);
+      return () => {
+        clearTimeout(quickTimeout);
+        clearTimeout(longTimeout);
+      };
     }
   }, [isLoading, accountLoading, businessLoading, adminLoading, isInitialized]);
 

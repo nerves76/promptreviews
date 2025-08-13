@@ -20,13 +20,20 @@ export default function BusinessGuard({ children }: BusinessGuardProps) {
   } = useAuth();
 
   useEffect(() => {
-    // Don't do anything while loading
+    // Don't do anything while ANY loading is happening
+    // This prevents false redirects during auth state changes
     if (isLoading || businessLoading || accountLoading) {
+      console.log('⏳ BusinessGuard: Skipping checks - still loading', {
+        isLoading,
+        businessLoading,
+        accountLoading
+      });
       return;
     }
 
     // Only apply business requirements to authenticated users
     if (!isAuthenticated) {
+      console.log('🔒 BusinessGuard: User not authenticated, skipping business check');
       return;
     }
 

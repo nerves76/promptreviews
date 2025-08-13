@@ -6,8 +6,8 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
+import { createClient, User } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
-import { GoogleBusinessProfileClient } from '@/features/social-posting/platforms/google-business-profile/googleBusinessProfileClient';
 
 /**
  * OAuth Callback Route for Google Business Profile
@@ -308,6 +308,7 @@ export async function GET(request: NextRequest) {
         console.log('✅ Google account email:', googleEmail);
         
         // Check if this Google account is already connected to a different PR account
+        // Use regular supabase client for this read operation
         const { data: existingConnection } = await supabase
           .from('google_business_profiles')
           .select('user_id')
@@ -333,8 +334,20 @@ export async function GET(request: NextRequest) {
     // Store tokens in database
     console.log('💾 Storing tokens in database...');
     
+    // Create a service role client for database operations (bypasses RLS)
+    const supabaseAdmin = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
+      }
+    );
+    
     // First check if a record already exists for this user
-    const { data: existingRecord } = await supabase
+    const { data: existingRecord } = await supabaseAdmin
       .from('google_business_profiles')
       .select('id')
       .eq('user_id', user.id)
@@ -362,14 +375,14 @@ export async function GET(request: NextRequest) {
     let tokenError;
     if (existingRecord) {
       // Update existing record
-      const { error } = await supabase
+      const { error } = await supabaseAdmin
         .from('google_business_profiles')
         .update(upsertData)
         .eq('user_id', user.id);
       tokenError = error;
     } else {
       // Insert new record
-      const { error } = await supabase
+      const { error } = await supabaseAdmin
         .from('google_business_profiles')
         .insert(upsertData);
       tokenError = error;
@@ -390,21 +403,9 @@ export async function GET(request: NextRequest) {
     console.log('💾 OAuth tokens stored successfully in database');
     console.log('✅ Google Business Profile connection successful - tokens stored');
     
-    // Optional: Try to fetch one account to validate the tokens work
-    try {
-      const testClient = new GoogleBusinessProfileClient({
-        accessToken: tokens.access_token,
-        refreshToken: tokens.refresh_token,
-        expiresAt: new Date(Date.now() + tokens.expires_in * 1000).getTime()
-      });
-      
-      // Just test authentication - don't fetch full data due to rate limits
-      console.log('🧪 Testing token validity...');
-      // We skip the actual API call due to rate limits but log success
-      console.log('✅ Tokens appear valid for Google Business Profile API');
-    } catch (testError) {
-      console.log('⚠️ Token test failed, but proceeding with OAuth success:', testError instanceof Error ? testError.message : 'Unknown error');
-    }
+    // Optional: Log token validation (skip actual API call to avoid rate limits)
+    console.log('🧪 Tokens stored - skipping validation to avoid rate limits');
+    console.log('✅ OAuth flow completed successfully');
 
     // Create a response that clears the OAuth flag and redirects with success
     // Make sure to use & if returnUrl already has query params
