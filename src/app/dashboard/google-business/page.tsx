@@ -2187,7 +2187,7 @@ export default function SocialPostingDashboard() {
                                   <div className="font-medium text-gray-900 truncate">
                                     {location.name && location.name !== 'Unknown Location' ? (
                                       location.name
-                                    ) : location.id ? (
+                                    ) : location.id && typeof location.id === 'string' ? (
                                       `Business ${location.id.replace('locations/', '').substring(0, 8)}...`
                                     ) : (
                                       'Unnamed Business'
