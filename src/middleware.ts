@@ -31,18 +31,12 @@ export async function middleware(req: NextRequest) {
     return NextResponse.rewrite(targetUrl);
   }
 
-  // TEMPORARY: Disable middleware auth checking to debug issues
+  // For now, don't do auth checks in middleware - let client-side handle it
+  // This prevents issues with public pages and reduces complexity
+  return res;
+  
+  /* === COMMENTED OUT AUTH CODE - Can be re-enabled if needed ===
   const nodeEnv = process.env.NODE_ENV as string;
-  if (nodeEnv === "production") {
-    // Skip auth checks in production for now
-    return res;
-  }
-
-  // Only require auth in production
-  if (nodeEnv !== "production") {
-    // In development, still check session but don't block requests
-    console.log('Middleware: Development mode - checking session but not blocking');
-  }
 
   // Create Supabase client with proper cookie handling (Next.js 15 async compatible)
   const { cookies } = await import('next/headers');
@@ -155,6 +149,7 @@ export async function middleware(req: NextRequest) {
     const signInUrl = new URL('/auth/sign-in', req.url);
     return NextResponse.redirect(signInUrl);
   }
+  === END OF COMMENTED AUTH CODE === */
 }
 
 // Configure which routes to run middleware on
