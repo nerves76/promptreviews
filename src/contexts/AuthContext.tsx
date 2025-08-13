@@ -647,6 +647,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(null);
         setSession(null);
         setIsInitialized(true);
+        setIsLoading(false); // FIX: Clear loading state on error
+        setIsRefreshing(false);
+        
+        // Redirect to login if we have a session error on a protected page
+        if (typeof window !== 'undefined' && 
+            window.location.pathname.startsWith('/dashboard')) {
+          console.log('🔄 AuthContext: Session error on dashboard, redirecting to login');
+          window.location.href = '/auth/sign-in';
+        }
         return;
       }
       
@@ -657,6 +666,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setHasBusiness(false);
         setIsAdminUser(false);
         setIsInitialized(true);
+        setIsLoading(false); // FIX: Clear loading state when no session
+        setIsRefreshing(false);
+        
+        // Redirect to login if no session on dashboard pages
+        if (typeof window !== 'undefined' && 
+            window.location.pathname.startsWith('/dashboard')) {
+          console.log('🔄 AuthContext: No session on dashboard, redirecting to login');
+          window.location.href = '/auth/sign-in';
+        }
         return;
       }
       
@@ -914,6 +932,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setAccount(null);
             setIsAdminUser(false);
             setError(null);
+            setIsLoading(false);
+            setIsRefreshing(false);
+            
+            // Redirect to login if on dashboard
+            if (typeof window !== 'undefined' && 
+                window.location.pathname.startsWith('/dashboard')) {
+              console.log('🔄 AuthContext: User signed out on dashboard, redirecting to login');
+              window.location.href = '/auth/sign-in';
+            }
           } else if (event === 'TOKEN_REFRESHED' && session) {
             setSession(session);
             setUser(session.user);
