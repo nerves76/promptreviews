@@ -881,7 +881,7 @@ export default function BusinessProfilePage() {
       <WelcomePopup
         isOpen={showWelcomePopup}
         onClose={handleWelcomeClose}
-        title="Welcome to Your Business Profile!"
+        title={`Hello again${selectedAccount?.first_name ? `, ${selectedAccount.first_name}` : ''}!`}
         message={`Welcome to "Your business!" This section is all about highlighting what makes your business stand out.
 
 What you enter here can improve your AI-assisted reviews. Especially these two areas:
