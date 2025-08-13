@@ -99,7 +99,25 @@ const nextConfig = {
   // Headers for performance and caching
   async headers() {
     return [
-      // Ensure correct MIME types for static assets
+      // CRITICAL: Ensure correct MIME types for ALL CSS files (including chunked CSS)
+      {
+        source: '/_next/static/css/:path*.css',
+        headers: [
+          {
+            key: 'Content-Type',
+            value: 'text/css; charset=utf-8',
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+      // Additional catch-all for any CSS file pattern
       {
         source: '/_next/static/css/:path*',
         headers: [

@@ -82,78 +82,117 @@ export async function GET(request: NextRequest) {
 
     // 🔧 FIX: Add retry logic for authentication check
     // Sometimes the session isn't immediately available after OAuth redirect
+    // IMPORTANT: Don't fail auth during OAuth - it might just be session refresh timing
     let user = null;
     let authError = null;
     let retryCount = 0;
-    const maxRetries = 5;
+    const maxRetries = 10; // Increased retries for OAuth flow
     
-    while (retryCount < maxRetries) {
-      try {
-        // Try getUser() first as it's more reliable
-        const { data: { user: userResult }, error: userError } = await supabase.auth.getUser();
-        
-        if (userResult && !userError) {
-          user = userResult;
-          authError = null;
-          break;
-        }
-        
-        // If getUser() fails, try getSession() as fallback
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        
-        if (session?.user && !sessionError) {
-          user = session.user;
-          authError = null;
-          break;
-        }
-        
-        // If both fail, check if it's a timing issue
-        const isTimingError = (userError || sessionError) && (
-          (userError?.message?.includes('User from sub claim in JWT does not exist')) ||
-          (sessionError?.message?.includes('User from sub claim in JWT does not exist')) ||
-          (userError?.message?.includes('JWT')) ||
-          (sessionError?.message?.includes('JWT')) ||
-          (userError?.code === 'PGRST301') ||
-          (sessionError?.code === 'PGRST301')
-        );
-        
-        if (isTimingError && retryCount < maxRetries - 1) {
-          console.log(`🔄 OAuth callback retry ${retryCount + 1}/${maxRetries} - Session timing error, retrying...`);
+    // First, try to refresh the session to ensure we have the latest
+    console.log('🔄 OAuth callback: Refreshing session before authentication check...');
+    try {
+      const { data: { session: refreshedSession }, error: refreshError } = await supabase.auth.refreshSession();
+      if (refreshedSession?.user && !refreshError) {
+        user = refreshedSession.user;
+        console.log('✅ OAuth callback: Session refreshed successfully, user:', user.id);
+      } else {
+        console.log('⚠️ OAuth callback: Session refresh failed, will retry with getUser');
+      }
+    } catch (refreshErr) {
+      console.log('⚠️ OAuth callback: Session refresh error, continuing with getUser:', refreshErr);
+    }
+    
+    // If refresh didn't work, try standard auth checks with retries
+    if (!user) {
+      while (retryCount < maxRetries) {
+        try {
+          // Try getUser() first as it's more reliable
+          const { data: { user: userResult }, error: userError } = await supabase.auth.getUser();
+          
+          if (userResult && !userError) {
+            user = userResult;
+            authError = null;
+            break;
+          }
+          
+          // If getUser() fails, try getSession() as fallback
+          const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+          
+          if (session?.user && !sessionError) {
+            user = session.user;
+            authError = null;
+            break;
+          }
+          
+          // During OAuth, auth might be temporarily unavailable - keep retrying
+          console.log(`🔄 OAuth callback retry ${retryCount + 1}/${maxRetries} - Auth check failed, retrying...`);
           retryCount++;
-          await new Promise(resolve => setTimeout(resolve, 500 + (retryCount * 200))); // Exponential backoff
-          continue;
+          
+          // Always retry during OAuth flow unless we've hit max retries
+          if (retryCount < maxRetries) {
+            await new Promise(resolve => setTimeout(resolve, 1000 + (retryCount * 500))); // Longer delays for OAuth
+            continue;
+          }
+          
+          // For max retries reached, store the error but continue
+          authError = userError || sessionError;
+          break;
+          
+        } catch (err) {
+          console.log(`⚠️ OAuth callback retry ${retryCount + 1}/${maxRetries} - Unexpected error:`, err);
+          retryCount++;
+          if (retryCount < maxRetries) {
+            await new Promise(resolve => setTimeout(resolve, 1000 + (retryCount * 500)));
+            continue;
+          }
+          authError = err;
+          break;
         }
-        
-        // For other errors or max retries reached, break
-        authError = userError || sessionError;
-        break;
-        
-      } catch (err) {
-        console.log(`❌ OAuth callback retry ${retryCount + 1}/${maxRetries} - Unexpected error:`, err);
-        retryCount++;
-        if (retryCount < maxRetries) {
-          await new Promise(resolve => setTimeout(resolve, 500 + (retryCount * 200)));
-          continue;
-        }
-        authError = err;
-        break;
       }
     }
     
     if (authError || !user) {
-      console.log('❌ Authentication error in OAuth callback after retries:', {
+      console.log('⚠️ OAuth callback: Authentication not immediately available, but continuing...', {
         error: authError instanceof Error ? authError.message : String(authError),
         hasUser: !!user,
         retryCount,
         cookies: request.headers.get('cookie')?.includes('sb-') ? 'has supabase cookies' : 'no supabase cookies'
       });
       
-      // Instead of redirecting to sign-in, redirect back with an error
-      // This prevents logging the user out
-      const separator = returnUrl.includes('?') ? '&' : '?';
-      return NextResponse.redirect(
-        new URL(`${returnUrl}${separator}error=auth_failed&message=${encodeURIComponent('Session verification failed. Please try again.')}`, request.url)
-      );
+      // IMPORTANT: During OAuth, the session might be in transition
+      // Don't fail the OAuth flow - continue and let the client-side handle auth
+      // This prevents unnecessary logouts during the OAuth flow
+      console.log('🔄 OAuth callback: Continuing despite auth check failure - session may be refreshing');
+      
+      // Try to get any user ID from cookies as a fallback
+      const authCookie = cookieStore.get('sb-ltneloufqjktdplodvao-auth-token');
+      if (!authCookie?.value) {
+        console.log('❌ OAuth callback: No auth cookie found, cannot proceed');
+        const separator = returnUrl.includes('?') ? '&' : '?';
+        return NextResponse.redirect(
+          new URL(`${returnUrl}${separator}error=auth_required&message=${encodeURIComponent('Please sign in first before connecting Google Business Profile')}`, request.url)
+        );
+      }
+      
+      // If we have an auth cookie, try to decode it to get the user ID
+      try {
+        const tokenData = JSON.parse(authCookie.value);
+        if (tokenData?.user?.id) {
+          console.log('✅ OAuth callback: Found user ID from auth cookie:', tokenData.user.id);
+          user = { id: tokenData.user.id, email: tokenData.user.email } as User;
+        }
+      } catch (e) {
+        console.log('⚠️ OAuth callback: Could not parse auth cookie');
+      }
+      
+      // If we still don't have a user, we must fail
+      if (!user) {
+        console.log('❌ OAuth callback: No user found after all attempts');
+        const separator = returnUrl.includes('?') ? '&' : '?';
+        return NextResponse.redirect(
+          new URL(`${returnUrl}${separator}error=auth_failed&message=${encodeURIComponent('Session verification failed. Please try refreshing the page and trying again.')}`, request.url)
+        );
+      }
     }
 
     console.log('✅ OAuth callback - User authenticated:', user.id);

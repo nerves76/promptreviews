@@ -438,8 +438,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const timeout = setTimeout(() => {
       setAdminLoading(false);
       setIsCheckingAdmin(false);
-      console.warn('⚠️ AuthContext: Admin check timeout after 5s');
-    }, 5000);
+      console.warn('⚠️ AuthContext: Admin check timeout after 10s');
+    }, 10000); // Increased to 10s to prevent premature timeouts
     
     try {
       // Ensure admin for known admin emails
@@ -492,8 +492,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const timeout = setTimeout(() => {
       setBusinessLoading(false);
       setIsCheckingBusiness(false);
-      console.warn('⚠️ AuthContext: Business check timeout after 5s');
-    }, 5000);
+      console.warn('⚠️ AuthContext: Business check timeout after 10s');
+    }, 10000); // Increased to 10s to prevent premature timeouts
     
     try {
       const userAccountId = await getAccountIdForUser(currentUser.id, supabase);
@@ -567,8 +567,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const timeout = setTimeout(() => {
       setAccountLoading(false);
       setIsCheckingAccount(false);
-      console.warn('⚠️ AuthContext: Account check timeout after 5s');
-    }, 5000);
+      console.warn('⚠️ AuthContext: Account check timeout after 10s');
+    }, 10000); // Increased to 10s to prevent premature timeouts
     
     try {
       const userAccountId = await getAccountIdForUser(currentUser.id, supabase);
@@ -1005,7 +1005,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Supabase already handles session refresh automatically via autoRefreshToken: true
   // This built-in mechanism doesn't trigger state updates or cause form resets
 
-  // 🚨 SAFETY: Force clear loading states if they get stuck for more than 10 seconds
+  // 🚨 SAFETY: Force clear loading states if they get stuck for more than 15 seconds
+  // IMPORTANT: Increased timeout to prevent premature clearing during Google OAuth
   useEffect(() => {
     // Only set timeout if we're actually loading and not already initialized
     if ((isLoading || accountLoading || businessLoading || adminLoading) && !isInitialized) {
@@ -1028,7 +1029,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setIsCheckingAccount(false); // Clear checking flags
         setIsCheckingAdmin(false);
         setIsCheckingBusiness(false);
-      }, 10000); // 10 seconds - increased for slower connections
+      }, 15000); // 15 seconds - increased to prevent conflicts with OAuth flows
       
       return () => clearTimeout(timeout);
     }
