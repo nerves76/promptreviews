@@ -19,8 +19,9 @@ export default function Home() {
     const getUser = async () => {
       try {
         // Add a timeout to prevent infinite loading
+        // Increased to 15 seconds to handle slower connections and OAuth flows
         const timeoutPromise = new Promise((_, reject) => {
-          setTimeout(() => reject(new Error('Auth check timeout')), 5000);
+          setTimeout(() => reject(new Error('Auth check timeout')), 15000);
         });
 
         const authPromise = getUserOrMock(supabase);
@@ -46,14 +47,14 @@ export default function Home() {
     getUser();
   }, [router]);
 
-  // Show loading for a maximum of 6 seconds, then redirect to sign-in
+  // Show loading for a maximum of 20 seconds, then redirect to sign-in
   useEffect(() => {
     const fallbackTimeout = setTimeout(() => {
       if (isLoading) {
         console.log('Auth check taking too long, redirecting to sign-in');
         router.push("/auth/sign-in");
       }
-    }, 6000);
+    }, 20000); // Increased to match auth timeout
 
     return () => clearTimeout(fallbackTimeout);
   }, [isLoading, router]);

@@ -926,7 +926,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Initialize auth state
   useEffect(() => {
     // Only run if not already initialized
-    if (!isInitialized && !isLoading) {
+    // CRITICAL FIX: Don't check isLoading here as it starts as true
+    // We need to actually start the auth check!
+    if (!isInitialized) {
+      console.log('🚀 AuthContext: Initializing auth state');
       checkAuthState();
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
