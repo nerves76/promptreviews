@@ -31,26 +31,14 @@ export default function RootLayout({
         
         {/* ⚡ PERFORMANCE: Resource preloading and optimization hints */}
         
-        {/* Preload SVG icon sprite for immediate availability */}
-        <link rel="preload" href="/icons-sprite.svg" as="image" type="image/svg+xml" />
-        
         {/* Preconnect to external domains for faster loading */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://www.googletagmanager.com" />
         
         {/* DNS prefetch for external services */}
         <link rel="dns-prefetch" href="https://www.google-analytics.com" />
         <link rel="dns-prefetch" href="https://connect.facebook.net" />
-        
-        {/* Preload critical Inter font variations */}
-        <link
-          rel="preload"
-          href="https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hiA.woff2"
-          as="font"
-          type="font/woff2"
-          crossOrigin=""
-        />
         
         {/* Prefetch widget assets for faster embedding */}
         <link rel="prefetch" href="/emojis/excellent.svg" />

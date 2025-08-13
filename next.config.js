@@ -108,6 +108,10 @@ const nextConfig = {
             value: 'text/css; charset=utf-8',
           },
           {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
             key: 'Cache-Control',
             value: 'public, max-age=31536000, immutable',
           },
@@ -121,8 +125,26 @@ const nextConfig = {
             value: 'application/javascript; charset=utf-8',
           },
           {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
             key: 'Cache-Control',
             value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+      // Additional rule for any Next.js static JS files
+      {
+        source: '/_next/static/:path*.js',
+        headers: [
+          {
+            key: 'Content-Type',
+            value: 'application/javascript; charset=utf-8',
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
           },
         ],
       },
