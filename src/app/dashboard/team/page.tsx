@@ -146,8 +146,10 @@ export default function TeamPage() {
       // Get authentication headers
       const headers = await getAuthHeaders();
 
-      // Fetch members
-      const membersResponse = await fetch('/api/team/members', { headers });
+      // Fetch members - pass selected account if available
+      const accountId = selectedAccount?.account_id || user?.id;
+      const membersUrl = accountId ? `/api/team/members?account_id=${accountId}` : '/api/team/members';
+      const membersResponse = await fetch(membersUrl, { headers });
       if (!membersResponse.ok) {
         throw new Error('Failed to fetch team members');
       }
@@ -172,7 +174,7 @@ export default function TeamPage() {
       setLoading(false);
       fetchingRef.current = false;
     }
-  }, []); // Empty dependency array since this function doesn't depend on any props or state
+  }, [selectedAccount, user?.id]); // Dependencies for account selection
 
   // Single useEffect for initial data loading
   useEffect(() => {

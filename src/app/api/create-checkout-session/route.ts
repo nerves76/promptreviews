@@ -69,7 +69,21 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
     }
 
-    const { plan, userId, email, billingPeriod = 'monthly' }: { plan: string; userId: string; email?: string; billingPeriod?: 'monthly' | 'annual' } = requestBody;
+    const { 
+      plan, 
+      userId, 
+      email, 
+      billingPeriod = 'monthly',
+      isReactivation = false,
+      reactivationOffer = null
+    }: { 
+      plan: string; 
+      userId: string; 
+      email?: string; 
+      billingPeriod?: 'monthly' | 'annual';
+      isReactivation?: boolean;
+      reactivationOffer?: any;
+    } = requestBody;
     console.log("📊 Request:", { plan, userId, email: email ? "provided" : "missing", billingPeriod });
     
     // Validate required fields
@@ -175,7 +189,7 @@ export async function POST(req: NextRequest) {
     }
     
     // Debug configuration
-    const sessionConfig = {
+    let sessionConfig = {
       payment_method_types: ["card" as const],
       mode: "subscription" as const,
       line_items: [{ price: PRICE_IDS[plan]?.[billingPeriod] || PRICE_IDS[plan]?.monthly, quantity: 1 }],
@@ -183,7 +197,8 @@ export async function POST(req: NextRequest) {
         userId, 
         plan,
         userEmail: userEmail || "",
-        changeType
+        changeType,
+        isReactivation: isReactivation ? 'true' : 'false'
       },
       success_url: `${validatedEnvVars.appUrl}/dashboard?success=1&change=${changeType}&plan=${plan}`,
       cancel_url: `${validatedEnvVars.appUrl}/dashboard?canceled=1`,
@@ -193,6 +208,30 @@ export async function POST(req: NextRequest) {
         : { customer_email: userEmail }
       )
     };
+
+    // ============================================
+    // CRITICAL: Apply reactivation offer if eligible (Simplified)
+    // ============================================
+    if (isReactivation) {
+      console.log('🎁 Applying reactivation offer for billing period:', billingPeriod);
+      
+      try {
+        const { applyReactivationOffer } = await import('@/lib/stripe-reactivation-offers');
+        
+        // Apply the appropriate offer based on billing period
+        sessionConfig = await applyReactivationOffer(
+          sessionConfig,
+          userId,
+          isReactivation,
+          billingPeriod
+        );
+        
+        console.log('✅ Reactivation offer applied to checkout session');
+      } catch (offerError) {
+        console.error('⚠️ Could not apply reactivation offer:', offerError);
+        // Continue without offer - don't block checkout
+      }
+    }
 
     console.log("📋 Session config:", {
       priceId: PRICE_IDS[plan]?.[billingPeriod] || PRICE_IDS[plan]?.monthly,
@@ -216,16 +255,21 @@ export async function POST(req: NextRequest) {
         code: stripeError.code
       });
       
-      let errorMessage = "Payment setup failed";
-      if (stripeError.type === "StripeInvalidRequestError") {
-        errorMessage = `Invalid payment request: ${stripeError.message}`;
-      } else if (stripeError.type === "StripeAPIError") {
-        errorMessage = "Payment service temporarily unavailable";
-      } else if (stripeError.message) {
-        errorMessage = stripeError.message;
-      }
+      // ============================================
+      // IMPROVED: Use payment error handler for clear messages
+      // ============================================
+      const { formatPaymentErrorResponse, logPaymentError } = await import('@/lib/payment-errors');
       
-      return NextResponse.json({ error: errorMessage }, { status: 500 });
+      // Log for monitoring
+      logPaymentError(stripeError, {
+        userId,
+        customerId: validCustomerId || undefined,
+        action: 'create_checkout_session'
+      });
+      
+      // Return user-friendly error
+      const errorResponse = formatPaymentErrorResponse(stripeError);
+      return NextResponse.json(errorResponse, { status: 400 });
     }
 
     // Return success response

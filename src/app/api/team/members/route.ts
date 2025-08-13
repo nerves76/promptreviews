@@ -43,10 +43,18 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Get the user's account
-    console.log('🔍 Looking for account_user with user_id:', user.id);
+    // Get account_id from query params (for multi-account support)
+    const { searchParams } = new URL(request.url);
+    const requestedAccountId = searchParams.get('account_id');
     
-    const { data: accountUser, error: accountError } = await supabase
+    console.log('🔍 Team members request:', {
+      userId: user.id,
+      requestedAccountId,
+      hasAccountParam: !!requestedAccountId
+    });
+    
+    // For multi-account support: if account_id is provided, use it; otherwise get all user's accounts
+    let accountQuery = supabase
       .from('account_users')
       .select(`
         account_id,
@@ -60,15 +68,24 @@ export async function GET(request: NextRequest) {
           max_users
         )
       `)
-      .eq('user_id', user.id)
-      .single();
+      .eq('user_id', user.id);
+    
+    // If specific account requested, filter for it
+    if (requestedAccountId) {
+      accountQuery = accountQuery.eq('account_id', requestedAccountId);
+    }
+    
+    const { data: accountUsers, error: accountError } = await accountQuery;
+    
+    // Get the first account (or the requested one)
+    const accountUser = accountUsers?.[0];
 
     console.log('🔍 accountUser result:', accountUser);
     console.log('🔍 accountError:', accountError);
 
     // If account_user doesn't exist, check if the user has their own account
     // This handles users created before the account_users system was fully implemented
-    if (accountError && accountError.code === 'PGRST116') {
+    if (!accountUser && accountError && accountError.code === 'PGRST116') {
       console.log('🔧 No account_users entry found, checking for user account...');
       
       // Check if user has an account with their user_id as account_id

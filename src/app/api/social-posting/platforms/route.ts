@@ -2,6 +2,12 @@
  * API Route: GET /api/social-posting/platforms
  * Returns the status of connected social media platforms
  * Uses browser session authentication with cookies
+ * 
+ * DISCONNECT UI UPDATE FIX (2025-08-12):
+ * - Added validation to check both access_token AND refresh_token exist
+ * - Handles case where database row exists but tokens are null
+ * - This prevents false positive "connected" status after disconnect
+ * - See handleDisconnect in dashboard/google-business/page.tsx for client-side fix
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -130,7 +136,17 @@ export async function GET(request: NextRequest) {
 
     console.log(`🎯 Using ${ownedAccount ? 'owned' : 'first available'} account with plan: ${accountPlan}`);
 
-    // Check for Google Business Profile connection and validate tokens
+    /**
+     * Check for Google Business Profile connection and validate tokens
+     * 
+     * CRITICAL: Use maybeSingle() to handle case where no tokens exist
+     * This prevents errors when checking after disconnect
+     * 
+     * Additional verification:
+     * - Check if tokens actually exist (not just the row)
+     * - Validate both access_token and refresh_token are present
+     * - Log detailed status for debugging disconnect issues
+     */
     console.log('🔍 Checking for Google Business Profile tokens for user:', user.id);
     const { data: googleTokens, error: googleError } = await supabase
       .from('google_business_profiles')
@@ -140,10 +156,13 @@ export async function GET(request: NextRequest) {
     
     console.log('🔍 Token query result:', {
       hasTokens: !!googleTokens,
+      hasAccessToken: !!googleTokens?.access_token,
+      hasRefreshToken: !!googleTokens?.refresh_token,
       tokenId: googleTokens?.id,
       userId: user.id,
       error: googleError?.message,
-      errorCode: googleError?.code
+      errorCode: googleError?.code,
+      timestamp: new Date().toISOString()
     });
 
     let isGoogleConnected = false;
@@ -156,8 +175,13 @@ export async function GET(request: NextRequest) {
         details: googleError.details,
         hint: googleError.hint
       });
-    } else if (googleTokens) {
-      console.log('✅ Found Google Business Profile tokens for user:', user.id);
+    } else if (googleTokens && googleTokens.access_token && googleTokens.refresh_token) {
+      /**
+       * CRITICAL: Only consider connected if BOTH tokens exist
+       * Sometimes a row exists but tokens are null after failed operations
+       * This additional check prevents false positive connections
+       */
+      console.log('✅ Found valid Google Business Profile tokens for user:', user.id);
       console.log('🔍 Token details:', {
         hasAccessToken: !!googleTokens.access_token,
         hasRefreshToken: !!googleTokens.refresh_token,
@@ -238,6 +262,19 @@ export async function GET(request: NextRequest) {
         googleConnectionError = 'Error checking Google Business Profile connection.';
         isGoogleConnected = false;
       }
+    } else if (googleTokens) {
+      /**
+       * Row exists but tokens are missing/null
+       * This can happen after partial operations or corrupted data
+       * Treat as disconnected
+       */
+      console.log('⚠️ Google Business Profile row exists but tokens are missing:', {
+        hasRow: true,
+        hasAccessToken: !!googleTokens.access_token,
+        hasRefreshToken: !!googleTokens.refresh_token,
+        userId: user.id
+      });
+      console.log('❌ Treating as disconnected due to missing tokens');
     } else {
       console.log('ℹ️ No Google Business Profile tokens found for user:', user.id);
     }

@@ -397,6 +397,33 @@ const Dashboard = React.memo(function Dashboard() {
       url: window.location.href
     });
     
+    // Handle reactivation flow
+    if (params.get("reactivation") === "true") {
+      console.log('🔄 User is reactivating account, showing pricing modal...');
+      
+      // Get any stored reactivation offer
+      const offerData = sessionStorage.getItem('reactivation_offer');
+      if (offerData) {
+        try {
+          const offer = JSON.parse(offerData);
+          console.log('🎁 Reactivation offer found:', offer);
+          // You can pass this to the pricing modal
+        } catch (e) {
+          console.error('Error parsing reactivation offer:', e);
+        }
+      }
+      
+      setShowPricingModal(true);
+      setPlanSelectionRequired(true);
+      
+      // Clean up the URL
+      params.delete("reactivation");
+      const newUrl = window.location.pathname + (params.toString() ? `?${params.toString()}` : "");
+      window.history.replaceState({}, document.title, newUrl);
+      
+      return;
+    }
+    
     // Handle successful Stripe payment
     if (params.get("success") === "1") {
       const changeType = params.get("change");

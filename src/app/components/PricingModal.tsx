@@ -81,6 +81,13 @@ interface PricingModalProps {
   showCanceledMessage?: boolean;
   onClose?: () => void;
   isPlanSelectionRequired?: boolean;
+  reactivationOffer?: {
+    hasOffer: boolean;
+    offerType?: string;
+    discount?: number;
+    message?: string;
+  };
+  isReactivation?: boolean;
 }
 
 function getButtonLabel(tierKey: string, currentPlan?: string) {
@@ -122,6 +129,8 @@ export default function PricingModal({
   showCanceledMessage = false,
   onClose,
   isPlanSelectionRequired = false,
+  reactivationOffer,
+  isReactivation = false,
 }: PricingModalProps) {
   const [tooltip, setTooltip] = useState<string | null>(null);
   const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(
@@ -146,6 +155,23 @@ export default function PricingModal({
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
+        )}
+        
+        {/* Show reactivation offer if available */}
+        {isReactivation && reactivationOffer?.hasOffer && (
+          <div className="mb-6 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg p-6 max-w-2xl w-full text-white shadow-xl">
+            <div className="text-center">
+              <h3 className="text-xl font-bold mb-2">
+                Welcome Back!
+              </h3>
+              <p className="text-lg">
+                Get <span className="font-bold">50% off</span> your first month
+              </p>
+              <p className="text-sm mt-1 opacity-90">
+                or save <span className="font-bold">20%</span> on annual (instead of 15%)
+              </p>
+            </div>
+          </div>
         )}
         
         {/* Show canceled message if user just came back from Stripe */}

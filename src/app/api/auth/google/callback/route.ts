@@ -150,8 +150,9 @@ export async function GET(request: NextRequest) {
       
       // Instead of redirecting to sign-in, redirect back with an error
       // This prevents logging the user out
+      const separator = returnUrl.includes('?') ? '&' : '?';
       return NextResponse.redirect(
-        new URL(`${returnUrl}?error=auth_failed&message=${encodeURIComponent('Session verification failed. Please try again.')}`, request.url)
+        new URL(`${returnUrl}${separator}error=auth_failed&message=${encodeURIComponent('Session verification failed. Please try again.')}`, request.url)
       );
     }
 
@@ -169,8 +170,9 @@ export async function GET(request: NextRequest) {
         hasRedirectUri: !!redirectUri,
         actualRedirectUri: redirectUri
       });
+      const separator = returnUrl.includes('?') ? '&' : '?';
       return NextResponse.redirect(
-        new URL(`${returnUrl}?error=callback_failed&message=Missing environment variables`, request.url)
+        new URL(`${returnUrl}${separator}error=callback_failed&message=Missing environment variables`, request.url)
       );
     }
 
@@ -215,8 +217,9 @@ export async function GET(request: NextRequest) {
         errorText: errorText.substring(0, 500),
         requestBody: `code=${code}&client_id=${clientId}&client_secret=${clientSecret?.substring(0, 10)}...&redirect_uri=${redirectUri}&grant_type=authorization_code`
       });
+      const separator = returnUrl.includes('?') ? '&' : '?';
       return NextResponse.redirect(
-        new URL(`${returnUrl}?error=callback_failed&message=Failed to exchange code for tokens: ${tokenResponse.statusText} - ${errorText.substring(0, 200)}`, request.url)
+        new URL(`${returnUrl}${separator}error=callback_failed&message=Failed to exchange code for tokens: ${tokenResponse.statusText} - ${errorText.substring(0, 200)}`, request.url)
       );
     }
 
@@ -235,10 +238,17 @@ export async function GET(request: NextRequest) {
     if (!hasBusinessScope) {
       console.error('❌ CRITICAL: business.manage scope not granted. Cannot proceed without business permissions.');
       
+      /**
+       * CRITICAL: Properly append error parameters to returnUrl
+       * returnUrl already contains ?tab=connect, so we need to use & for additional params
+       */
+      const separator = returnUrl.includes('?') ? '&' : '?';
+      const errorUrl = `${returnUrl}${separator}error=missing_scope&message=${encodeURIComponent('Please try connecting again and make sure to check the business management permission checkbox when prompted.')}`;
+      
+      console.log('🔄 Redirecting with error:', errorUrl);
+      
       // Don't store tokens without proper permissions
-      return NextResponse.redirect(
-        new URL(`${returnUrl}?error=missing_scope&message=Please try connecting again and make sure to check the business management permission checkbox when prompted.`, request.url)
-      );
+      return NextResponse.redirect(new URL(errorUrl, request.url));
     }
     
     console.log('✅ business.manage scope confirmed');
@@ -289,8 +299,9 @@ export async function GET(request: NextRequest) {
 
     if (tokenError) {
       console.error('❌ Error storing tokens:', tokenError);
+      const separator = returnUrl.includes('?') ? '&' : '?';
       return NextResponse.redirect(
-        new URL(`${returnUrl}?error=callback_failed&message=Failed to store tokens`, request.url)
+        new URL(`${returnUrl}${separator}error=callback_failed&message=Failed to store tokens`, request.url)
       );
     }
 
@@ -318,8 +329,15 @@ export async function GET(request: NextRequest) {
     }
 
     // Create a response that clears the OAuth flag and redirects with success
+    // Make sure to use & if returnUrl already has query params
+    const separator = returnUrl.includes('?') ? '&' : '?';
+    const successMessage = encodeURIComponent('Successfully connected Google Business Profile!');
+    const redirectUrl = `${returnUrl}${separator}connected=true&message=${successMessage}`;
+    
+    console.log('✅ Redirecting to:', redirectUrl);
+    
     const response = NextResponse.redirect(
-      new URL(`${returnUrl}?connected=true&message=Successfully connected Google Business Profile!`, request.url)
+      new URL(redirectUrl, request.url)
     );
     
     // Set a flag for the client to clear the OAuth in progress flag

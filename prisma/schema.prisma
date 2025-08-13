@@ -422,6 +422,9 @@ model accounts {
   location_count               Int?                      @default(0)
   max_locations                Int?                      @default(0)
   deleted_at                   DateTime?                 @db.Timestamptz(6)
+  reactivated_at               DateTime?                 @db.Timestamptz(6)
+  reactivation_count           Int?                      @default(0)
+  last_cancellation_reason     String?
   is_admin                     Boolean?                  @default(false)
   free_plan_level              String?
   promotion_code               String?
@@ -443,6 +446,7 @@ model accounts {
   review_reminder_logs         review_reminder_logs[]
   trial_reminder_logs          trial_reminder_logs[]
   widgets                      widgets[]
+  account_events               account_events[]
 
   @@index([created_at], map: "idx_accounts_created_at")
   @@index([deleted_at], map: "idx_accounts_deleted_at")
@@ -450,6 +454,21 @@ model accounts {
   @@index([plan], map: "idx_accounts_plan")
   @@index([plan, trial_end], map: "idx_accounts_plan_trial_end")
   @@index([trial_end], map: "idx_accounts_trial_end")
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model account_events {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  account_id String?   @db.Uuid
+  event_type String
+  event_data Json?     @db.Json
+  created_at DateTime? @default(now()) @db.Timestamptz(6)
+  accounts   accounts? @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([account_id], map: "idx_account_events_account")
+  @@index([event_type], map: "idx_account_events_type")
+  @@index([created_at(sort: Desc)], map: "idx_account_events_created")
   @@schema("public")
 }
 
