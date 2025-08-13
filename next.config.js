@@ -67,21 +67,39 @@ const nextConfig = {
   
   // Bundle optimization
   webpack: (config, { dev, isServer }) => {
-    // Optimize bundle size
+    // CRITICAL FIX: Prevent CSS from being loaded as JavaScript
+    // This is a workaround for Next.js 15 CSS chunking bug
     if (!dev && !isServer) {
+      // Disable CSS code splitting to prevent MIME type errors
+      // This forces all CSS into a single file instead of chunks
       config.optimization.splitChunks = {
         chunks: 'all',
         cacheGroups: {
+          default: false,
+          vendors: false,
+          // Force all CSS into a single chunk
+          styles: {
+            name: 'styles',
+            test: /\.(css|scss|sass)$/,
+            chunks: 'all',
+            enforce: true,
+            priority: 40,
+            reuseExistingChunk: true,
+          },
+          // Keep vendor code separate
           vendor: {
             test: /[\\/]node_modules[\\/]/,
             name: 'vendors',
             chunks: 'all',
+            priority: 10,
           },
+          // Common chunks for shared code
           common: {
             name: 'common',
             minChunks: 2,
-            chunks: 'all',
-            enforce: true,
+            chunks: 'async',
+            priority: 5,
+            reuseExistingChunk: true,
           },
         },
       };

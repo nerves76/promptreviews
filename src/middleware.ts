@@ -1,4 +1,3 @@
-import { createServerClient } from "@supabase/ssr";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
@@ -8,14 +7,24 @@ const DOCS_SITE_URL = 'https://docs-site-7mwbiq8mr-nerves76s-projects.vercel.app
 export async function middleware(req: NextRequest) {
   // CRITICAL: Skip middleware for ALL Next.js internal routes and static assets
   // This MUST happen first to prevent interference with CSS/JS serving
+  // SPECIFICALLY handle CSS files to prevent MIME type errors
   if (
     req.nextUrl.pathname.startsWith('/_next') || // All Next.js internal routes
     req.nextUrl.pathname.startsWith('/api') ||    // All API routes
-    req.nextUrl.pathname.includes('.') ||         // All files with extensions
+    req.nextUrl.pathname.includes('.css') ||      // CSS files specifically
+    req.nextUrl.pathname.includes('.js') ||       // JS files specifically  
+    req.nextUrl.pathname.includes('.') ||         // All other files with extensions
     req.nextUrl.pathname.startsWith('/favicon') || // Favicon
     req.nextUrl.pathname.startsWith('/robots') ||  // Robots.txt
     req.nextUrl.pathname.startsWith('/sitemap')    // Sitemap
   ) {
+    // For CSS files, ensure proper headers
+    if (req.nextUrl.pathname.includes('.css')) {
+      const response = NextResponse.next();
+      response.headers.set('Content-Type', 'text/css; charset=utf-8');
+      response.headers.set('X-Content-Type-Options', 'nosniff');
+      return response;
+    }
     return NextResponse.next();
   }
   
