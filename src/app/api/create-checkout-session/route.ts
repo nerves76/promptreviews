@@ -233,13 +233,24 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // ============================================
+    // TESTING MODE: Apply testing discounts for admin accounts
+    // ============================================
+    const { isTestingAccount, applyTestingMode } = await import('@/lib/testing-mode');
+    const isAdmin = await isTestingAccount(userEmail);
+    if (isAdmin) {
+      console.log('🧪 Admin detected, applying testing mode for:', userEmail);
+      sessionConfig = await applyTestingMode(sessionConfig, userEmail, billingPeriod);
+    }
+
     console.log("📋 Session config:", {
       priceId: PRICE_IDS[plan]?.[billingPeriod] || PRICE_IDS[plan]?.monthly,
       billingPeriod,
       hasValidCustomer: !!validCustomerId,
       usingCustomerEmail: !validCustomerId,
       customerEmail: userEmail,
-      metadata: sessionConfig.metadata
+      metadata: sessionConfig.metadata,
+      hasAdminTestingMode: isAdmin
     });
 
     let checkoutSession;
