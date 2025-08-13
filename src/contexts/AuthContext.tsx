@@ -434,6 +434,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsCheckingAdmin(true);
     setAdminLoading(true);
     
+    // Add timeout to prevent stuck state
+    const timeout = setTimeout(() => {
+      setAdminLoading(false);
+      setIsCheckingAdmin(false);
+      console.warn('⚠️ AuthContext: Admin check timeout after 5s');
+    }, 5000);
+    
     try {
       // Ensure admin for known admin emails
       if (currentUser.email) {
@@ -448,6 +455,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.error('AuthContext: Admin check failed:', err);
       // Don't change admin status on error
     } finally {
+      clearTimeout(timeout);
       setAdminLoading(false);
       setIsCheckingAdmin(false);
     }
@@ -479,6 +487,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     
     setIsCheckingBusiness(true);
     setBusinessLoading(true);
+    
+    // Add timeout to prevent stuck state
+    const timeout = setTimeout(() => {
+      setBusinessLoading(false);
+      setIsCheckingBusiness(false);
+      console.warn('⚠️ AuthContext: Business check timeout after 5s');
+    }, 5000);
     
     try {
       const userAccountId = await getAccountIdForUser(currentUser.id, supabase);
@@ -532,6 +547,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.error('AuthContext: Business check failed:', err);
       // Don't change business status on error
     } finally {
+      clearTimeout(timeout);
       setBusinessLoading(false);
       setIsCheckingBusiness(false);
     }
@@ -546,6 +562,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     
     setIsCheckingAccount(true);
     setAccountLoading(true);
+    
+    // Add timeout to prevent stuck state
+    const timeout = setTimeout(() => {
+      setAccountLoading(false);
+      setIsCheckingAccount(false);
+      console.warn('⚠️ AuthContext: Account check timeout after 5s');
+    }, 5000);
     
     try {
       const userAccountId = await getAccountIdForUser(currentUser.id, supabase);
@@ -579,6 +602,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setIsCheckingAccount(false);
     } finally {
       // Always clear loading states, even if there was an error
+      clearTimeout(timeout);
       setAccountLoading(false);
       setIsCheckingAccount(false);
       console.log('✅ AuthContext: Account loading completed, accountLoading set to false');

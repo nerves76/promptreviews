@@ -6,11 +6,15 @@ import type { NextRequest } from "next/server";
 const DOCS_SITE_URL = 'https://docs-site-7mwbiq8mr-nerves76s-projects.vercel.app';
 
 export async function middleware(req: NextRequest) {
-  // Skip middleware for Next.js internal routes and static assets
+  // CRITICAL: Skip middleware for ALL Next.js internal routes and static assets
+  // This MUST happen first to prevent interference with CSS/JS serving
   if (
-    req.nextUrl.pathname.startsWith('/_next/static') ||
-    req.nextUrl.pathname.startsWith('/_next/image') ||
-    req.nextUrl.pathname.includes('.') // Skip all files with extensions
+    req.nextUrl.pathname.startsWith('/_next') || // All Next.js internal routes
+    req.nextUrl.pathname.startsWith('/api') ||    // All API routes
+    req.nextUrl.pathname.includes('.') ||         // All files with extensions
+    req.nextUrl.pathname.startsWith('/favicon') || // Favicon
+    req.nextUrl.pathname.startsWith('/robots') ||  // Robots.txt
+    req.nextUrl.pathname.startsWith('/sitemap')    // Sitemap
   ) {
     return NextResponse.next();
   }
@@ -27,16 +31,10 @@ export async function middleware(req: NextRequest) {
     return NextResponse.rewrite(targetUrl);
   }
 
-  // Skip middleware for social-posting routes - they handle auth internally
-  if (req.nextUrl.pathname.startsWith('/api/social-posting/')) {
-    console.log('Middleware: Skipping social-posting route:', req.nextUrl.pathname);
-    return res;
-  }
-
-  // TEMPORARY: Disable middleware completely to debug auth issues
+  // TEMPORARY: Disable middleware auth checking to debug issues
   const nodeEnv = process.env.NODE_ENV as string;
   if (nodeEnv === "production") {
-    console.log('Middleware: Temporarily disabled for production debugging');
+    // Skip auth checks in production for now
     return res;
   }
 
@@ -160,35 +158,17 @@ export async function middleware(req: NextRequest) {
 }
 
 // Configure which routes to run middleware on
+// IMPORTANT: Using negative lookahead to exclude static assets
 export const config = {
   matcher: [
-    // Docs routing (proxy to docs site)
-    '/docs/:path*',
-    // REMOVED: '/dashboard/:path*' - Now handled by client-side AuthContext
-    // Only run on specific API routes that need authentication
-    '/api/admin/:path*',
-    '/api/cancel-account',
-    '/api/check-schema',
-    '/api/create-account',
-    '/api/delete-user',
-    '/api/feedback',
-    // '/api/generate-review', // Removed: Should be publicly accessible for anonymous users
-    '/api/generate-reviews',
-    '/api/initialize-onboarding-tasks',
-    '/api/metadata-templates/:path*',
-    '/api/refresh-session',
-    '/api/review-submissions/:path*',
-    '/api/send-trial-reminders',
-    '/api/send-welcome-email',
-    '/api/team/:path*',
-    '/api/test-sentry',
-    '/api/upgrade-subscription',
-    '/api/upload-contacts',
-    '/api/upload-photo',
-    '/api/upload-widget-photo',
-    '/api/widgets/:path*',
-    '/api/cron/:path*',
-    // NOTE: /r/:path* (prompt pages) are intentionally EXCLUDED to remain public
-    // NOTE: /api/social-posting/:path* are intentionally EXCLUDED - handled internally
+    /*
+     * Match all request paths except for the ones starting with:
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * - public folder
+     * - Any file with an extension (e.g., .js, .css, .png)
+     */
+    '/((?!_next/static|_next/image|favicon.ico|public|.*\\.).*)',
   ],
 };
