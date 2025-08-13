@@ -314,6 +314,7 @@ export async function GET(request: NextRequest) {
         connected: isGoogleConnected,
         locations: locations,
         status: isGoogleConnected ? 'connected' : 'disconnected',
+        connectedEmail: googleTokens?.google_email || null, // Show which Google account is connected
         ...(googleConnectionError && { error: googleConnectionError })
       }
     ];

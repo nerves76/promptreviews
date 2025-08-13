@@ -253,6 +253,44 @@ export async function GET(request: NextRequest) {
     
     console.log('✅ business.manage scope confirmed');
 
+    // Fetch Google account info to get the email
+    console.log('📧 Fetching Google account information...');
+    let googleEmail = null;
+    try {
+      const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+        headers: {
+          'Authorization': `Bearer ${tokens.access_token}`
+        }
+      });
+      
+      if (userInfoResponse.ok) {
+        const userInfo = await userInfoResponse.json();
+        googleEmail = userInfo.email;
+        console.log('✅ Google account email:', googleEmail);
+        
+        // Check if this Google account is already connected to a different PR account
+        const { data: existingConnection } = await supabase
+          .from('google_business_profiles')
+          .select('user_id')
+          .eq('google_email', googleEmail)
+          .neq('user_id', user.id)
+          .single();
+          
+        if (existingConnection) {
+          console.warn('⚠️ This Google account is already connected to a different Prompt Reviews account');
+          const separator = returnUrl.includes('?') ? '&' : '?';
+          return NextResponse.redirect(
+            new URL(`${returnUrl}${separator}error=already_connected&message=${encodeURIComponent('This Google account is already connected to a different Prompt Reviews account')}`, request.url)
+          );
+        }
+      } else {
+        console.warn('⚠️ Could not fetch Google account info:', userInfoResponse.statusText);
+      }
+    } catch (error) {
+      console.error('❌ Error fetching Google account info:', error);
+      // Continue without email - backward compatibility
+    }
+
     // Store tokens in database
     console.log('💾 Storing tokens in database...');
     
@@ -278,7 +316,8 @@ export async function GET(request: NextRequest) {
       access_token: tokens.access_token,
       refresh_token: tokens.refresh_token,
       expires_at: expiresAt.toISOString(),
-      scopes: tokens.scope
+      scopes: tokens.scope,
+      google_email: googleEmail // Store which Google account is connected
     };
     
     let tokenError;

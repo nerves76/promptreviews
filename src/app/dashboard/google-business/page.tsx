@@ -62,6 +62,7 @@ export default function SocialPostingDashboard() {
   const [isLoading, setIsLoading] = useState(true);
   
   // Connection state with localStorage persistence
+  const [connectedEmail, setConnectedEmail] = useState<string | null>(null);
   const [isConnected, setIsConnected] = useState<boolean>(() => {
     if (typeof window !== 'undefined') {
       const stored = localStorage.getItem('google-business-connected');
@@ -537,7 +538,9 @@ export default function SocialPostingDashboard() {
         
         if (googlePlatform && googlePlatform.connected) {
           setIsConnected(true);
+          setConnectedEmail(googlePlatform.connectedEmail || null);
           console.log('Google Business Profile is connected');
+          console.log('Connected Google account:', googlePlatform.connectedEmail);
           
           // Load business locations from the platforms response
           const locations = googlePlatform.locations || [];
@@ -588,6 +591,7 @@ export default function SocialPostingDashboard() {
           }
         } else {
           setIsConnected(false);
+          setConnectedEmail(null);
           setLocations([]);
           setSelectedLocations([]);
           console.log('Google Business Profile is not connected');
@@ -1414,11 +1418,16 @@ export default function SocialPostingDashboard() {
               </p>
               {/* Connection Status Indicator */}
               {isConnected && (
-                <div className="mt-2 flex items-center space-x-2 text-sm">
+                <div className="mt-2 flex flex-col sm:flex-row sm:items-center space-y-1 sm:space-y-0 sm:space-x-2 text-sm">
                   <div className="flex items-center space-x-1 text-green-600">
                     <Icon name="FaCheck" className="w-3 h-3" />
                     <span className="font-medium">Connected</span>
                   </div>
+                  {connectedEmail && (
+                    <span className="text-gray-600">
+                      • {connectedEmail}
+                    </span>
+                  )}
                   {locations.length > 0 && (
                     <span className="text-gray-500">
                       • {locations.length} location{locations.length !== 1 ? 's' : ''}

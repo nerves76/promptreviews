@@ -585,11 +585,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Core authentication function (declared after individual check functions to avoid hoisting issues)
   const checkAuthState = useCallback(async (forceRefresh = false) => {
     // Use ref for isRefreshing to avoid dependency on state
-    if (isRefreshingRef.current && !forceRefresh) return;
+    if (isRefreshingRef.current && !forceRefresh) {
+      console.log('⏭️ AuthContext: Skipping check - already refreshing');
+      return;
+    }
     
     try {
       setIsRefreshing(true);
       setError(null);
+      // Clear loading states if this is a refresh
+      if (forceRefresh) {
+        setIsLoading(false);
+        setAccountLoading(false);
+        setAdminLoading(false);
+        setBusinessLoading(false);
+      }
       
       // DEVELOPMENT MODE BYPASS - Check for dev bypass flag
       if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined') {
@@ -888,7 +898,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Initialize auth state
   useEffect(() => {
-    checkAuthState();
+    // Only run if not already initialized
+    if (!isInitialized && !isLoading) {
+      checkAuthState();
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Empty dependency array - only run once on mount to prevent circular dependencies
 
@@ -967,7 +980,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // 🚨 SAFETY: Force clear loading states if they get stuck for more than 8 seconds
   useEffect(() => {
-    if (isLoading || accountLoading) {
+    // Only set timeout if we're actually loading and not already initialized
+    if ((isLoading || accountLoading) && !isInitialized) {
       const timeout = setTimeout(() => {
         console.warn('🚨 AuthContext: Loading states stuck, force clearing...', {
           isLoading,
@@ -978,12 +992,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         });
         setIsLoading(false);
         setAccountLoading(false);
+        setAdminLoading(false);
+        setBusinessLoading(false);
         setIsInitialized(true); // Ensure initialized is set
+        setIsRefreshing(false); // Clear refreshing state too
       }, 8000); // 8 seconds - faster timeout for better UX
       
       return () => clearTimeout(timeout);
     }
-  }, [isLoading, accountLoading, user?.id]);
+  }, [isLoading, accountLoading, isInitialized]);
 
   // Context value
   const value: AuthContextType = useMemo(() => ({
