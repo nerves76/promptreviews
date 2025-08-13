@@ -31,53 +31,8 @@ async function setupTestingCoupons() {
       console.log('\nDelete these first if you want to recreate them.\n');
     }
     
-    // Create $1/month test coupon (for monthly plans)
-    try {
-      const monthly1Dollar = await stripe.coupons.create({
-        id: 'TESTDEV_MONTHLY',
-        name: 'Test Dev - $1 Monthly',
-        amount_off: 9900, // $99 off to make it $1
-        currency: 'usd',
-        duration: 'forever',
-        metadata: {
-          type: 'testing',
-          description: 'Internal testing - reduces monthly to $1',
-          created_by: 'setup-testing-coupons',
-          warning: 'DO NOT USE IN PRODUCTION'
-        }
-      });
-      console.log('✅ Created TESTDEV_MONTHLY - Reduces monthly plans to ~$1');
-    } catch (err) {
-      if (err.code === 'resource_already_exists') {
-        console.log('ℹ️  TESTDEV_MONTHLY already exists');
-      } else {
-        throw err;
-      }
-    }
-    
-    // Create $3/year test coupon (for annual plans) 
-    try {
-      const annual3Dollar = await stripe.coupons.create({
-        id: 'TESTDEV_ANNUAL',
-        name: 'Test Dev - $3 Annual', 
-        amount_off: 116700, // $1167 off to make it ~$3
-        currency: 'usd',
-        duration: 'forever',
-        metadata: {
-          type: 'testing',
-          description: 'Internal testing - reduces annual to $3',
-          created_by: 'setup-testing-coupons',
-          warning: 'DO NOT USE IN PRODUCTION'
-        }
-      });
-      console.log('✅ Created TESTDEV_ANNUAL - Reduces annual plans to ~$3');
-    } catch (err) {
-      if (err.code === 'resource_already_exists') {
-        console.log('ℹ️  TESTDEV_ANNUAL already exists');
-      } else {
-        throw err;
-      }
-    }
+    // Skip amount_off coupons as they don't work well with 'forever' duration
+    // We'll just use the 99% off coupon for everything
     
     // Create 99% off test coupon (makes everything ~$1)
     try {
