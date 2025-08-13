@@ -173,19 +173,32 @@ export default function BusinessGuard({ children }: BusinessGuardProps) {
         timestamp: new Date().toISOString()
       });
       
-      // Add a small delay to allow auth state to stabilize after tab switching
+      // Add a delay to allow auth state to stabilize after tab switching
       // This prevents redirects during session refresh or temporary auth issues
-      setTimeout(() => {
-        // Double-check auth state after delay
-        if (isAuthenticated && !hasBusiness && pathname !== '/dashboard/create-business') {
-          console.log('🔄 BusinessGuard: Confirmed no business after delay, redirecting', {
+      const timeoutId = setTimeout(() => {
+        // IMPORTANT: Re-check ALL states including loading flags after delay
+        // This prevents redirecting users who DO have a business but data is still loading
+        if (isAuthenticated && !hasBusiness && !isLoading && !businessLoading && !accountLoading && pathname !== '/dashboard/create-business') {
+          console.log('🔄 BusinessGuard: Confirmed no business after delay (not loading), redirecting', {
             pathname,
+            isLoading,
+            businessLoading,
+            accountLoading,
             timestamp: new Date().toISOString()
           });
           router.push("/dashboard/create-business");
+        } else if (isLoading || businessLoading || accountLoading) {
+          console.log('⏳ BusinessGuard: Still loading after delay, NOT redirecting', {
+            isLoading,
+            businessLoading,
+            accountLoading,
+            timestamp: new Date().toISOString()
+          });
         }
-      }, 1000); // 1 second delay to allow auth state to stabilize
-      return;
+      }, 2000); // Increased to 2 seconds for better stability
+      
+      // Clean up timeout if component unmounts or deps change
+      return () => clearTimeout(timeoutId);
     }
 
   }, [isAuthenticated, hasBusiness, isLoading, businessLoading, accountLoading, pathname, router]);
