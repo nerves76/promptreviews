@@ -187,23 +187,10 @@ export default function TeamPage() {
     });
     
     // Fetch team data if user is authenticated and auth is loaded
-    // Don't wait for account selection if it's taking too long
+    // Simplified logic: just proceed if user is ready
     if (user?.id && !authLoading && !fetchingRef.current) {
-      // If account loading is taking too long, proceed anyway
-      if (!accountLoading || selectedAccount) {
-        console.log('✅ Team Page - Fetching team data, account:', selectedAccount?.account_id || 'default');
-        fetchTeamData().catch(console.error);
-      } else {
-        // Set a timeout to fetch anyway if account selection takes too long
-        const timeout = setTimeout(() => {
-          if (!fetchingRef.current && user?.id) {
-            console.log('⏱️ Team Page - Account selection timeout, fetching with default account');
-            fetchTeamData().catch(console.error);
-          }
-        }, 3000); // 3 second timeout
-        
-        return () => clearTimeout(timeout);
-      }
+      console.log('✅ Team Page - Fetching team data, account:', selectedAccount?.account_id || 'default');
+      fetchTeamData().catch(console.error);
     }
     
     return () => {
