@@ -184,9 +184,10 @@ function BusinessGuard({ children }: BusinessGuardProps) {
       const isAccountOwner = account.id === user?.id; // In this system, account ID equals user ID for owners
       
       // Check if this account has NEVER had a business
-      // We can check this by looking for a flag in the account or by checking if this is their first real login
-      // For now, we'll check if they have the 'has_seen_welcome' flag which gets set after business creation
-      const hasNeverHadBusiness = !account.has_seen_welcome && isAccountOwner;
+      // We check localStorage for the business creation flag
+      const hasCreatedBusiness = typeof window !== 'undefined' ? 
+        localStorage.getItem(`hasCreatedBusiness_${account.id}`) === 'true' : false;
+      const hasNeverHadBusiness = !hasCreatedBusiness && isAccountOwner;
       
       // Also check if account has a paid plan - paid accounts should have businesses
       const hasPaidPlan = account.plan && account.plan !== 'free' && account.plan !== 'no_plan';
@@ -196,7 +197,7 @@ function BusinessGuard({ children }: BusinessGuardProps) {
         isAccountOwner,
         hasNeverHadBusiness,
         hasPaidPlan,
-        hasSeenWelcome: account.has_seen_welcome,
+        hasCreatedBusiness,
         accountId: account.id,
         userId: user?.id,
         plan: account.plan,
@@ -240,8 +241,8 @@ function BusinessGuard({ children }: BusinessGuardProps) {
           plan: account.plan,
           timestamp: new Date().toISOString()
         });
-      } else if (account.has_seen_welcome) {
-        console.log('ℹ️ BusinessGuard: User has seen welcome (likely had business before), not redirecting', {
+      } else if (hasCreatedBusiness) {
+        console.log('ℹ️ BusinessGuard: User has created business before, not redirecting', {
           timestamp: new Date().toISOString()
         });
       }

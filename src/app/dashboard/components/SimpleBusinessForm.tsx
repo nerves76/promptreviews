@@ -316,6 +316,13 @@ const SimpleBusinessForm = forwardRef<HTMLFormElement, SimpleBusinessFormProps>(
       }
       
       console.log("Business created successfully, calling onSuccess callback");
+      
+      // Set flag that this account has created a business
+      if (accountId) {
+        localStorage.setItem(`hasCreatedBusiness_${accountId}`, 'true');
+        console.log("✅ Set hasCreatedBusiness flag for account:", accountId);
+      }
+      
       // Call the success callback
       onSuccess();
       console.log("onSuccess callback completed");
