@@ -75,6 +75,17 @@ export default function DashboardLayout({
   //   }
   // }, [isInitialized, isLoading, user, accountLoading, account]);
 
+  // Handle redirect to sign-in in useEffect to avoid render-time side effects
+  // This must be called before any conditional returns to follow React hooks rules
+  useEffect(() => {
+    if (isInitialized && !user && isClient) {
+      if (process.env.NODE_ENV === 'development') {
+        console.log('❌ Dashboard: No user found after initialization, redirecting to sign-in');
+      }
+      router.push('/auth/sign-in');
+    }
+  }, [isInitialized, user, isClient, router]);
+
   // Show loading while AuthContext initializes or during transitions
   if (!isInitialized || isTransitioning) {
     if (process.env.NODE_ENV === 'development') {
@@ -86,16 +97,6 @@ export default function DashboardLayout({
       </div>
     );
   }
-
-  // Handle redirect to sign-in in useEffect to avoid render-time side effects
-  useEffect(() => {
-    if (isInitialized && !user && isClient) {
-      if (process.env.NODE_ENV === 'development') {
-        console.log('❌ Dashboard: No user found after initialization, redirecting to sign-in');
-      }
-      router.push('/auth/sign-in');
-    }
-  }, [isInitialized, user, isClient, router]);
 
   // Show nothing while redirecting
   if (isInitialized && !user && isClient) {

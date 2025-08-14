@@ -143,7 +143,7 @@ export default function BasePromptPageForm({
   const router = useRouter();
   
   // Generate a unique key for this form instance to persist data
-  const formStorageKey = `promptPageForm_${pageType || 'unknown'}_${initialData?.id || 'new'}`;
+  const formStorageKey = `promptPageForm_${campaignType || 'unknown'}_${initialData?.id || 'new'}`;
   
   // Initialize form state with defaults, checking localStorage first
   const [formData, setFormData] = useState<BaseFormState>(() => {
