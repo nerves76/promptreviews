@@ -12,6 +12,20 @@ import PaymentStatus, { PaymentStateExamples } from '@/app/components/PaymentSta
 import FiveStarSpinner from '@/app/components/FiveStarSpinner';
 
 export default function PaymentDemoPage() {
+  const authData = useAuth();
+  
+  // Handle null context during static generation
+  if (!authData) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600 flex items-center justify-center">
+        <div className="bg-white rounded-lg p-8 shadow-lg">
+          <FiveStarSpinner />
+          <p className="mt-4 text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+  
   const { 
     isAuthenticated, 
     isLoading, 
@@ -23,7 +37,7 @@ export default function PaymentDemoPage() {
     hasActivePlan,
     canAccessFeatures,
     planTier
-  } = useAuth();
+  } = authData;
 
   if (isLoading) {
     return (

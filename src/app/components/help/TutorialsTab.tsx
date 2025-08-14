@@ -32,6 +32,7 @@ export default function TutorialsTab({
   const [loadingTutorials, setLoadingTutorials] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [recommendedArticles, setRecommendedArticles] = useState<string[]>([]);
+  const [selectedArticle, setSelectedArticle] = useState<Tutorial | null>(null);
 
   useEffect(() => {
     fetchTutorials();
@@ -173,7 +174,12 @@ export default function TutorialsTab({
       relevance_score: tutorial.relevanceScore
     });
     
-    window.open(tutorial.url, '_blank', 'noopener,noreferrer');
+    // Show article inline instead of opening in new window
+    setSelectedArticle(tutorial);
+  };
+
+  const handleBackToList = () => {
+    setSelectedArticle(null);
   };
 
   const filteredTutorials = tutorials.filter(tutorial => {
@@ -185,6 +191,16 @@ export default function TutorialsTab({
       tutorial.tags.some(tag => tag.toLowerCase().includes(query))
     );
   });
+
+  // Show article viewer if an article is selected
+  if (selectedArticle) {
+    return (
+      <ArticleViewer 
+        article={selectedArticle} 
+        onBack={handleBackToList}
+      />
+    );
+  }
 
   return (
     <div className="p-6">

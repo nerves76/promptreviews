@@ -59,7 +59,7 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
       />
       
       {/* Modal - Larger size for desktop, responsive for mobile */}
-      <div className="relative bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] md:max-h-[85vh] flex flex-col">
+      <div className="relative bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] md:max-h-[85vh] overflow-hidden flex flex-col">
         {/* Close button */}
         <button
           className="absolute -top-3 -right-3 md:-top-4 md:-right-4 bg-white border border-gray-200 rounded-full shadow-lg flex items-center justify-center hover:bg-gray-100 focus:outline-none z-10 transition-colors"
