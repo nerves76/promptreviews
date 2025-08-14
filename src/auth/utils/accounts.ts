@@ -472,6 +472,8 @@ export async function getAccountIdForUser(userId: string, supabaseClient?: any):
       
       // Fetch account details for all users
       const accountIds = accountUsers.map((au: any) => au.account_id);
+      console.log('🔍 Looking for accounts with IDs:', accountIds);
+      
       const { data: accounts, error: accountsError } = await client
         .from("accounts")
         .select("id, plan, first_name, last_name")
@@ -483,8 +485,11 @@ export async function getAccountIdForUser(userId: string, supabaseClient?: any):
         return accountUsers[0].account_id;
       }
       
+      console.log('📊 Accounts found:', accounts?.map((a: any) => ({ id: a.id, plan: a.plan })));
+      
       if (!accounts || accounts.length === 0) {
         console.log('⚠️ No accounts found for account_ids:', accountIds);
+        console.log('⚠️ This might mean the accounts table is out of sync with account_users');
         // Still return the account_id even if we can't fetch details
         return accountUsers[0].account_id;
       }

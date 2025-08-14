@@ -107,6 +107,8 @@ export function BusinessProvider({ children }: { children: React.ReactNode }) {
 
     setBusinessLoading(true);
     try {
+      console.log('🏢 Loading business for account:', accountId);
+      
       const { data, error } = await supabase
         .from('businesses')
         .select('*')
@@ -116,6 +118,7 @@ export function BusinessProvider({ children }: { children: React.ReactNode }) {
       if (error) {
         if (error.code === 'PGRST116') {
           // No business found - this is expected for new accounts
+          console.log('📭 No business found for account:', accountId);
           setBusiness(null);
         } else {
           console.error('Failed to load business:', error);
@@ -123,6 +126,8 @@ export function BusinessProvider({ children }: { children: React.ReactNode }) {
         }
         return;
       }
+      
+      console.log('✅ Business loaded:', data?.business_name || data?.id);
 
       setBusiness(data);
       
