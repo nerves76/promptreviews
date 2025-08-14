@@ -207,9 +207,13 @@ function BusinessGuard({ children }: BusinessGuardProps) {
       
       // Only redirect if:
       // 1. User is the account owner (not a team member)
-      // 2. Account has never had a business (hasn't seen welcome)
-      // 3. Account doesn't have a paid plan (paid plans should already have businesses)
-      if (isAccountOwner && hasNeverHadBusiness && !hasPaidPlan) {
+      // 2. Account has never had a business (no localStorage flag)
+      // 3. Account doesn't have a paid plan (paid plans shouldn't need redirect)
+      // 4. Account is less than 24 hours old (grace period for existing accounts)
+      const accountAge = account.created_at ? Date.now() - new Date(account.created_at).getTime() : Infinity;
+      const isNewAccount = accountAge < 24 * 60 * 60 * 1000; // 24 hours
+      
+      if (isAccountOwner && hasNeverHadBusiness && !hasPaidPlan && isNewAccount) {
         console.log('🔄 BusinessGuard: Account owner without business (never created one), will redirect after delay', {
           pathname,
           timestamp: new Date().toISOString()
@@ -219,7 +223,7 @@ function BusinessGuard({ children }: BusinessGuardProps) {
         const timeoutId = setTimeout(() => {
           // Re-check states after delay
           if (isAuthenticated && !hasBusiness && !isLoading && !businessLoading && !accountLoading && 
-              pathname !== '/dashboard/create-business' && isAccountOwner && hasNeverHadBusiness && !hasPaidPlan) {
+              pathname !== '/dashboard/create-business' && isAccountOwner && hasNeverHadBusiness && !hasPaidPlan && isNewAccount) {
             console.log('🔄 BusinessGuard: Redirecting account owner to create-business', {
               pathname,
               timestamp: new Date().toISOString()
@@ -243,6 +247,12 @@ function BusinessGuard({ children }: BusinessGuardProps) {
         });
       } else if (hasCreatedBusiness) {
         console.log('ℹ️ BusinessGuard: User has created business before, not redirecting', {
+          timestamp: new Date().toISOString()
+        });
+      } else if (!isNewAccount) {
+        console.log('ℹ️ BusinessGuard: Account is older than 24 hours, not redirecting', {
+          accountAge: accountAge / 1000 / 60 / 60, // in hours
+          accountCreatedAt: account.created_at,
           timestamp: new Date().toISOString()
         });
       }

@@ -128,17 +128,25 @@ export function BusinessProvider({ children }: { children: React.ReactNode }) {
         .from('businesses')
         .select('*')
         .eq('account_id', accountId)
-        .single();
+        .maybeSingle(); // Use maybeSingle instead of single to avoid errors when no rows
 
       if (error) {
-        if (error.code === 'PGRST116') {
-          // No business found - this is expected for new accounts
-          console.log('📭 No business found for account:', accountId);
-          setBusiness(null);
-        } else {
-          console.error('Failed to load business:', error);
-          setBusiness(null);
-        }
+        console.error('Failed to load business:', error);
+        console.error('Error details:', {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          accountId
+        });
+        setBusiness(null);
+        return;
+      }
+      
+      if (!data) {
+        // No business found - this is expected for new accounts
+        console.log('📭 No business found for account:', accountId);
+        setBusiness(null);
         return;
       }
       
