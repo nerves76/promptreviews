@@ -517,25 +517,40 @@ export async function getAccountIdForUser(userId: string, supabaseClient?: any):
         plan: au.account?.plan || 'NO_ACCOUNT_DATA'
       })));
       
-      // PRIORITY 1: Owned accounts with account data (prefer your own accounts)
-      const ownedAccount = accountUsersWithData.find((au: any) => 
-        au.role === 'owner' && 
-        au.account // Just check that account data exists
+      // PRIORITY 1: Support/team accounts with paid plans (these likely have businesses)
+      const teamAccountWithPlan = accountUsersWithData.find((au: any) => 
+        (au.role === 'member' || au.role === 'support' || au.role === 'admin') && 
+        au.account &&
+        au.account.plan &&
+        au.account.plan !== 'free' &&
+        au.account.plan !== 'no_plan'
       );
       
-      if (ownedAccount) {
-        console.log('✅ Selected owned account:', ownedAccount.account_id, 'plan:', ownedAccount.account?.plan);
-        return ownedAccount.account_id;
+      if (teamAccountWithPlan) {
+        console.log('✅ Selected team account with paid plan:', teamAccountWithPlan.account_id, 'plan:', teamAccountWithPlan.account?.plan);
+        return teamAccountWithPlan.account_id;
       }
       
-      // PRIORITY 2: Team/support accounts with account data
-      const teamAccount = accountUsersWithData.find((au: any) => 
-        (au.role === 'member' || au.role === 'support' || au.role === 'admin') && 
-        au.account // Just check that account data exists
+      // PRIORITY 2: Owned accounts with paid plans
+      const ownedAccountWithPlan = accountUsersWithData.find((au: any) => 
+        au.role === 'owner' && 
+        au.account &&
+        au.account.plan &&
+        au.account.plan !== 'free' &&
+        au.account.plan !== 'no_plan'
       );
       
-      if (teamAccount) {
-        return teamAccount.account_id;
+      if (ownedAccountWithPlan) {
+        console.log('✅ Selected owned account with paid plan:', ownedAccountWithPlan.account_id, 'plan:', ownedAccountWithPlan.account?.plan);
+        return ownedAccountWithPlan.account_id;
+      }
+      
+      // PRIORITY 3: Any account with account data (including free plans)
+      const anyAccountWithData = accountUsersWithData.find((au: any) => au.account);
+      
+      if (anyAccountWithData) {
+        console.log('✅ Selected account with data:', anyAccountWithData.account_id, 'role:', anyAccountWithData.role, 'plan:', anyAccountWithData.account?.plan);
+        return anyAccountWithData.account_id;
       }
       
       // PRIORITY 3: Any owned account (even without plan)
