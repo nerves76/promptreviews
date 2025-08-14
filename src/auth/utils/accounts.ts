@@ -439,74 +439,68 @@ export async function getAccountIdForUser(userId: string, supabaseClient?: any):
       }
     }
 
-    // Get ALL account relationships for this user with account details
+    // Get ALL account relationships for this user
+    // Split the query to avoid join issues with RLS policies
     const { data: accountUsers, error: accountUserError } = await client
       .from("account_users")
-      .select(`
-        account_id, 
-        role,
-        accounts (
-          plan,
-          first_name,
-          last_name
-        )
-      `)
+      .select("account_id, role")
       .eq("user_id", userId)
       .order("role", { ascending: true });
 
     if (accountUsers && accountUsers.length > 0) {
-      // Only log occasionally to reduce noise (10% of the time)
-      if (process.env.NODE_ENV === 'development' && Math.random() < 0.1) {
-        console.log('🔍 Account selection debug for user:', userId);
-        console.log('🔍 Found accounts:', accountUsers.map((au: any) => ({
-          account_id: au.account_id,
-          role: au.role,
-          plan: au.accounts?.plan,
-          first_name: au.accounts?.first_name,
-          last_name: au.accounts?.last_name
-        })));
+      // For multi-account users, we need to fetch account details separately
+      // to avoid join issues with RLS policies
+      
+      // If only one account, return it immediately
+      if (accountUsers.length === 1) {
+        return accountUsers[0].account_id;
       }
       
-      // PRIORITY 1: Team accounts (always use team account if available)
-      const teamAccount = accountUsers.find((au: any) => 
+      // For multiple accounts, fetch their details
+      const accountIds = accountUsers.map((au: any) => au.account_id);
+      const { data: accounts } = await client
+        .from("accounts")
+        .select("id, plan, first_name, last_name")
+        .in("id", accountIds);
+      
+      // Create a map for easy lookup
+      const accountMap = new Map(accounts?.map((a: any) => [a.id, a]) || []);
+      
+      // Add account data to accountUsers
+      const accountUsersWithData = accountUsers.map((au: any) => ({
+        ...au,
+        account: accountMap.get(au.account_id)
+      }));
+      
+      // PRIORITY 1: Team accounts with plans
+      const teamAccount = accountUsersWithData.find((au: any) => 
         au.role === 'member' && 
-        au.accounts && 
-        au.accounts.plan && 
-        au.accounts.plan !== 'no_plan'
+        au.account?.plan && 
+        au.account.plan !== 'no_plan'
       );
       
       if (teamAccount) {
-        if (process.env.NODE_ENV === 'development' && Math.random() < 0.1) {
-          console.log('🎯 Using team account (highest priority)');
-          console.log('🎯 Team account plan:', teamAccount.accounts.plan);
-        }
         return teamAccount.account_id;
       }
       
-      // PRIORITY 2: Owned accounts with proper plans
-      const ownedAccount = accountUsers.find((au: any) => 
+      // PRIORITY 2: Owned accounts with plans
+      const ownedAccount = accountUsersWithData.find((au: any) => 
         au.role === 'owner' && 
-        au.accounts && 
-        au.accounts.plan && 
-        au.accounts.plan !== 'no_plan'
+        au.account?.plan && 
+        au.account.plan !== 'no_plan'
       );
       
       if (ownedAccount) {
-        if (process.env.NODE_ENV === 'development' && Math.random() < 0.2) {
-          console.log('🎯 Using owned account with plan:', ownedAccount.accounts.plan);
-        }
         return ownedAccount.account_id;
       }
       
-      // PRIORITY 3: Any team account (even if no plan info)
-      const anyTeamAccount = accountUsers.find((au: any) => au.role === 'member');
+      // PRIORITY 3: Any team account
+      const anyTeamAccount = accountUsersWithData.find((au: any) => au.role === 'member');
       if (anyTeamAccount) {
         return anyTeamAccount.account_id;
       }
       
-      // PRIORITY 4: Fallback to any account (including no_plan accounts)
-      console.log('🔍 No good accounts found, using last resort fallback:', accountUsers[0].account_id);
-      console.log('💡 This account may need business setup and plan selection');
+      // PRIORITY 4: Fallback to first account
       return accountUsers[0].account_id;
     }
 
