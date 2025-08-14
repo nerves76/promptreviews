@@ -407,9 +407,11 @@ export async function ensureAccountExists(
  */
 export async function getAccountIdForUser(userId: string, supabaseClient?: any): Promise<string | null> {
   // Check if there's already a pending request for this user
-  const requestKey = `${userId}-${supabaseClient ? 'custom' : 'default'}`;
+  // Use a unique key based on the client instance to avoid mixing different auth states
+  const clientId = supabaseClient ? supabaseClient._supabaseUrl || 'custom' : 'default';
+  const requestKey = `${userId}-${clientId}`;
   if (pendingRequests.has(requestKey)) {
-    console.log('🔄 Reusing pending request for user:', userId);
+    console.log('🔄 Reusing pending request for user:', userId, 'client:', clientId);
     return pendingRequests.get(requestKey)!;
   }
 
