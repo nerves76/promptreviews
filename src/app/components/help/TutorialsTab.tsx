@@ -15,6 +15,7 @@ import {
   getPageKeywords 
 } from './articleAssociation';
 import { trackEvent } from '../../../utils/analytics';
+import ArticleViewer from './ArticleViewer';
 
 interface TutorialsTabProps {
   pathname: string;

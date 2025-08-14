@@ -24,6 +24,8 @@ export const Icon: React.FC<IconProps> = ({
     ...style
   };
 
+
+
   return (
     <svg 
       className={className}
