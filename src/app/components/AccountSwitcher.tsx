@@ -129,7 +129,7 @@ export function AccountSwitcher() {
       {isOpen && typeof window !== 'undefined' && createPortal(
         <div
           ref={dropdownRef}
-          className="fixed w-80 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden"
+          className="fixed w-80 bg-white/90 backdrop-blur-sm border-2 border-white rounded-lg shadow-2xl overflow-hidden"
           style={{
             zIndex: 2147483648, // One higher than other header elements
             top: buttonRef.current ? buttonRef.current.getBoundingClientRect().bottom + 8 : 0,
@@ -137,9 +137,9 @@ export function AccountSwitcher() {
           }}
         >
           {/* Header */}
-          <div className="px-4 py-3 bg-gray-50 border-b border-gray-200">
-            <h3 className="text-sm font-medium text-gray-900">Switch Account</h3>
-            <p className="text-xs text-gray-500 mt-1">
+          <div className="px-4 py-3 bg-gradient-to-r from-indigo-600 via-purple-600 to-fuchsia-600">
+            <h3 className="text-sm font-medium text-white">Switch Account</h3>
+            <p className="text-xs text-white/80 mt-1">
               Select which account you want to work with
             </p>
           </div>
@@ -210,8 +210,8 @@ export function AccountSwitcher() {
           </div>
 
           {/* Footer */}
-          <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
-            <p className="text-xs text-gray-500">
+          <div className="px-4 py-3 bg-gradient-to-r from-indigo-600/10 via-purple-600/10 to-fuchsia-600/10 border-t border-white/20">
+            <p className="text-xs text-gray-600">
               💡 <strong>Customer Support:</strong> When customers invite you to their account, 
               you'll be able to switch to their account here to help them debug issues.
             </p>

@@ -211,12 +211,14 @@ export default function KickstartersManagementModal({
           </div>
           <div className="flex items-center gap-3">
             <button
+              type="button"
               onClick={handleSave}
               className="px-4 py-2 bg-slate-blue text-white rounded-lg hover:bg-slate-blue-dark focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2 transition-colors"
             >
               Save selection
             </button>
             <button
+              type="button"
               onClick={onClose}
               className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-gray-300"
             >
@@ -237,6 +239,7 @@ export default function KickstartersManagementModal({
           <div className="border-b border-gray-200">
             <nav className="-mb-px flex space-x-8">
               <button
+                type="button"
                 onClick={() => setActiveTab('browse')}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
                   activeTab === 'browse'
@@ -247,6 +250,7 @@ export default function KickstartersManagementModal({
                 Browse Questions ({getFilteredKickstarters().length})
               </button>
               <button
+                type="button"
                 onClick={() => setActiveTab('selected')}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
                   activeTab === 'selected'
@@ -331,6 +335,7 @@ export default function KickstartersManagementModal({
                     </div>
                     <div className="flex items-center gap-2">
                       <button
+                        type="button"
                         onClick={handleAddCustomKickstarter}
                         disabled={saving || !customQuestion.trim()}
                         className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -338,6 +343,7 @@ export default function KickstartersManagementModal({
                         {saving ? 'Adding...' : 'Add question'}
                       </button>
                       <button
+                        type="button"
                         onClick={() => {
                           setShowAddCustom(false);
                           setCustomQuestion('');
@@ -433,6 +439,7 @@ export default function KickstartersManagementModal({
               {/* Add Custom Button */}
               <div className="mb-4">
                 <button
+                  type="button"
                   onClick={() => setShowAddCustom(true)}
                   className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
                 >
@@ -474,6 +481,7 @@ export default function KickstartersManagementModal({
                             </p>
                           </div>
                           <button
+                            type="button"
                             onClick={() => toggleKickstarter(kickstarter.id)}
                             className="w-6 h-6 bg-red-500 hover:bg-red-600 rounded-full flex items-center justify-center text-white ml-3"
                           >
@@ -497,6 +505,7 @@ export default function KickstartersManagementModal({
             </div>
             <div className="flex items-center gap-3">
               <button
+                type="button"
                 onClick={() => setSelected([])}
                 className="px-4 py-2 text-gray-600 hover:text-gray-800"
                 disabled={selected.length === 0}
@@ -504,12 +513,14 @@ export default function KickstartersManagementModal({
                 Clear All
               </button>
               <button
+                type="button"
                 onClick={onClose}
                 className="px-4 py-2 text-gray-600 hover:text-gray-800"
               >
                 Cancel
               </button>
               <button
+                type="button"
                 onClick={handleSave}
                 className="px-4 py-2 bg-slate-blue text-white rounded-lg hover:bg-slate-blue-dark focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
               >

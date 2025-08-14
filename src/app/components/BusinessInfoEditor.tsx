@@ -63,9 +63,28 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
     locationsIds: locations?.map(l => l.id)
   });
   
+  // Storage key for form data persistence
+  const formStorageKey = 'businessInfoEditorForm';
+  
   const [selectedLocationIds, setSelectedLocationIds] = useState<string[]>([]);
   const [isLocationDropdownOpen, setIsLocationDropdownOpen] = useState(false);
-  const [businessInfo, setBusinessInfo] = useState<BusinessInfo>({
+  const [businessInfo, setBusinessInfo] = useState<BusinessInfo>(() => {
+    // Try to restore from localStorage first
+    if (typeof window !== 'undefined') {
+      const savedData = localStorage.getItem(formStorageKey);
+      if (savedData) {
+        try {
+          const parsed = JSON.parse(savedData);
+          console.log('📝 Restored business info form data from localStorage');
+          return parsed;
+        } catch (e) {
+          console.error('Failed to parse saved form data:', e);
+        }
+      }
+    }
+    
+    // Fall back to default values
+    return {
     locationName: '',
     description: '',
     regularHours: {
@@ -80,6 +99,7 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
     primaryCategory: undefined,
     additionalCategories: [],
     serviceItems: []
+    };
   });
   
   const [isLoading, setIsLoading] = useState(false);
@@ -128,6 +148,18 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
       }
     }
   }, [locations]); // Run when locations are available
+  
+  // Auto-save business info to localStorage
+  useEffect(() => {
+    const saveTimeout = setTimeout(() => {
+      if (typeof window !== 'undefined' && businessInfo) {
+        localStorage.setItem(formStorageKey, JSON.stringify(businessInfo));
+        console.log('💾 Auto-saved business info form data');
+      }
+    }, 1000); // Debounce for 1 second
+    
+    return () => clearTimeout(saveTimeout);
+  }, [businessInfo, formStorageKey]);
 
   // Fetch business context for AI analysis
   useEffect(() => {
@@ -279,6 +311,12 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
         });
         setHasChanges(false);
         setFormDataBackup(null); // Clear backup after successful save
+        
+        // Clear saved form data after successful submission
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem(formStorageKey);
+          console.log('🗑️ Cleared saved business info form data');
+        }
         console.log('✅ Form data saved and backup cleared');
       } else {
         setSaveResult({ 

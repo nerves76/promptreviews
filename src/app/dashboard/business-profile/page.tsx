@@ -73,7 +73,27 @@ export default function BusinessProfilePage() {
 
   useAuthGuard();
   const { user } = useAuth();
-  const [form, setForm] = useState({
+  
+  // Storage key for form data persistence
+  const formStorageKey = 'businessProfileForm';
+  
+  const [form, setForm] = useState(() => {
+    // Try to restore from localStorage first
+    if (typeof window !== 'undefined') {
+      const savedData = localStorage.getItem(formStorageKey);
+      if (savedData) {
+        try {
+          const parsed = JSON.parse(savedData);
+          console.log('📝 Restored business profile form data from localStorage');
+          return parsed;
+        } catch (e) {
+          console.error('Failed to parse saved form data:', e);
+        }
+      }
+    }
+    
+    // Fall back to default values
+    return {
     name: "",
     company_values: "",
     differentiators: "",
@@ -110,16 +130,39 @@ export default function BusinessProfilePage() {
     kickstarters_enabled: false,
     selected_kickstarters: [],
     kickstarters_background_design: false,
+    };
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [noProfile, setNoProfile] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [services, setServices] = useState<string[]>([""]);
-  const [platforms, setPlatforms] = useState<Platform[]>([
-    { name: "", url: "", wordCount: 200 },
-  ]);
+  
+  // Restore services from localStorage
+  const [services, setServices] = useState<string[]>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('businessProfileServices');
+      if (saved) {
+        try {
+          return JSON.parse(saved);
+        } catch (e) {}
+      }
+    }
+    return [""];
+  });
+  
+  // Restore platforms from localStorage
+  const [platforms, setPlatforms] = useState<Platform[]>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('businessProfilePlatforms');
+      if (saved) {
+        try {
+          return JSON.parse(saved);
+        } catch (e) {}
+      }
+    }
+    return [{ name: "", url: "", wordCount: 200 }];
+  });
   const [platformErrors, setPlatformErrors] = useState<string[]>([]);
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [logoFile, setLogoFile] = useState<File | null>(null);
@@ -144,6 +187,30 @@ export default function BusinessProfilePage() {
       localStorage.setItem('hasSeenBusinessWelcome', 'true');
     }
   };
+
+  // Auto-save form data to localStorage
+  useEffect(() => {
+    const saveTimeout = setTimeout(() => {
+      if (typeof window !== 'undefined' && form) {
+        localStorage.setItem(formStorageKey, JSON.stringify(form));
+        console.log('💾 Auto-saved business profile form data');
+      }
+    }, 1000); // Debounce for 1 second
+    
+    return () => clearTimeout(saveTimeout);
+  }, [form, formStorageKey]);
+
+  // Also save platforms and services separately
+  useEffect(() => {
+    const saveTimeout = setTimeout(() => {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('businessProfilePlatforms', JSON.stringify(platforms));
+        localStorage.setItem('businessProfileServices', JSON.stringify(services));
+      }
+    }, 1000);
+    
+    return () => clearTimeout(saveTimeout);
+  }, [platforms, services]);
 
   useEffect(() => {
     const loadBusinessProfile = async () => {
@@ -718,6 +785,14 @@ export default function BusinessProfilePage() {
       console.log("Profile update successful!");
       setSuccess("Profile updated successfully!");
       
+      // Clear saved form data after successful submission
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem(formStorageKey);
+        localStorage.removeItem('businessProfilePlatforms');
+        localStorage.removeItem('businessProfileServices');
+        console.log('🗑️ Cleared saved business profile form data');
+      }
+      
       // Mark business profile task as completed when user successfully saves
       try {
         await markTaskAsCompleted(user.id, "business-profile");
@@ -748,16 +823,11 @@ export default function BusinessProfilePage() {
 
   if (loading || accountLoading) {
     return (
-      <div className="w-full mx-auto px-4 sm:px-6 md:px-8 lg:px-12 mt-12 md:mt-16 lg:mt-20 mb-16 flex justify-center items-start">
-        <div className="page relative w-full max-w-[1000px] rounded-2xl bg-white shadow-lg pt-4 px-8 md:px-12 pb-8">
-          <div className="icon absolute -top-4 -left-4 sm:-top-6 sm:-left-6 z-10 bg-white rounded-full shadow-lg p-3 sm:p-4 flex items-center justify-center">
-            <Icon name="FaStore" className="w-9 h-9 text-slate-blue" size={36} />
-          </div>
-          <div className="min-h-[400px] flex flex-col items-center justify-center">
-            <AppLoader />
-          </div>
+      <PageCard icon={<Icon name="FaStore" className="w-9 h-9 text-slate-blue" size={36} />}>
+        <div className="min-h-[400px] flex flex-col items-center justify-center">
+          <AppLoader />
         </div>
-      </div>
+      </PageCard>
     );
   }
 

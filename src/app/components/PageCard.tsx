@@ -97,11 +97,11 @@ export default function PageCard({
   return (
     <div className={`w-full mx-auto px-4 sm:px-6 md:px-8 lg:px-12 ${topMargin} mb-16 flex justify-center items-start`}>
       <div
-        className={`page relative w-full max-w-[1000px] rounded-2xl bg-white shadow-lg pt-4 px-8 md:px-12 pb-8 ${className}`}
+        className={`page relative w-full max-w-[1000px] rounded-2xl bg-white/90 shadow-2xl border-2 border-white pt-4 px-8 md:px-12 pb-8 ${className}`}
         style={{ overflow: "visible" }} // Restore to visible for icon breaching
       >
         {icon && (
-          <div key="page-card-icon" className="icon absolute -top-4 -left-4 sm:-top-6 sm:-left-6 z-10 bg-white rounded-full shadow-lg w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center">
+          <div key="page-card-icon" className="icon absolute -top-4 -left-4 sm:-top-6 sm:-left-6 z-10 bg-white/60 backdrop-blur-xl rounded-full shadow-lg w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center">
             {icon}
           </div>
         )}

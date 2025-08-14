@@ -236,19 +236,19 @@ export default function TutorialsTab({
   return (
     <div className="p-6">
       {/* Context indicator */}
-      <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+      <div className="mb-6 p-4 bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200/50 rounded-xl">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center space-x-2">
-            <Icon name="FaMapMarker" className="w-4 h-4 text-blue-600" size={16} />
-            <span className="text-sm font-medium text-blue-800">
+            <Icon name="FaMapMarker" className="w-4 h-4 text-indigo-600" size={16} />
+            <span className="text-sm font-medium text-indigo-800">
               {pageName}
             </span>
           </div>
-          <span className="text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded">
+          <span className="text-xs text-indigo-600 bg-indigo-100 px-2 py-1 rounded-full">
             Smart recommendations
           </span>
         </div>
-        <p className="text-sm text-blue-700">
+        <p className="text-sm text-indigo-700">
           These tutorials are tailored to what you're working on and your recent activity.
         </p>
       </div>
@@ -266,7 +266,7 @@ export default function TutorialsTab({
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search tutorials..."
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent"
+            className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white/80 backdrop-blur-sm shadow-sm"
           />
         </div>
       </div>
@@ -274,12 +274,14 @@ export default function TutorialsTab({
       {/* Tutorials List */}
       {loadingTutorials ? (
         <div className="flex items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-blue"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
           <span className="ml-3 text-gray-600">Loading tutorials...</span>
         </div>
       ) : filteredTutorials.length === 0 ? (
         <div className="text-center py-12">
-          <Icon name="FaSearch" className="w-12 h-12 text-gray-300 mx-auto mb-3" size={48} />
+          <div className="w-16 h-16 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Icon name="FaSearch" className="w-8 h-8 text-indigo-400" size={32} />
+          </div>
           <p className="text-gray-500">No tutorials found matching your search.</p>
         </div>
       ) : (
@@ -288,10 +290,10 @@ export default function TutorialsTab({
             <div
               key={tutorial.id}
               onClick={() => handleTutorialClick(tutorial)}
-              className="p-4 border border-gray-200 rounded-lg hover:border-slate-blue hover:shadow-md transition-all cursor-pointer group bg-white"
+              className="p-4 border border-gray-200/50 rounded-xl hover:border-indigo-300 hover:shadow-lg transition-all cursor-pointer group bg-white/95 backdrop-blur-sm hover:bg-white"
             >
               <div className="flex items-start justify-between mb-3">
-                <h3 className="font-medium text-gray-900 group-hover:text-slate-blue transition-colors line-clamp-2">
+                <h3 className="font-medium text-gray-900 group-hover:text-indigo-600 transition-colors line-clamp-2">
                   {tutorial.title}
                 </h3>
                 <div className="flex items-center space-x-1">
@@ -301,7 +303,7 @@ export default function TutorialsTab({
                     </span>
                   )}
                   {tutorial.relevanceScore && tutorial.relevanceScore > 80 && (
-                    <span className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full whitespace-nowrap">
+                    <span className="px-2 py-1 text-xs bg-indigo-100 text-indigo-800 rounded-full whitespace-nowrap">
                       Relevant
                     </span>
                   )}
@@ -318,14 +320,14 @@ export default function TutorialsTab({
               <div className="flex items-center justify-between">
                 <div className="flex flex-wrap gap-1">
                   {tutorial.tags.slice(0, 3).map((tag) => (
-                    <span key={tag} className="px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded">
+                    <span key={tag} className="px-2 py-1 text-xs bg-gray-100/80 text-gray-600 rounded-full">
                       {tag}
                     </span>
                   ))}
                 </div>
                 <Icon 
                   name="FaChevronRight" 
-                  className="w-4 h-4 text-gray-400 group-hover:text-slate-blue transition-colors flex-shrink-0" 
+                  className="w-4 h-4 text-gray-400 group-hover:text-indigo-600 transition-colors flex-shrink-0" 
                   size={16} 
                 />
               </div>

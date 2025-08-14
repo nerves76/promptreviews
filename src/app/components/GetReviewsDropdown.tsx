@@ -147,7 +147,7 @@ const GetReviewsDropdown: React.FC<GetReviewsDropdownProps> = ({
       {isOpen && typeof window !== 'undefined' && createPortal(
         <div 
           ref={dropdownRef}
-          className="fixed bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-[2147483647]"
+          className="fixed bg-white/90 backdrop-blur-sm rounded-lg shadow-2xl border-2 border-white py-2 z-[2147483647]"
           style={{
             top: triggerRef.current ? triggerRef.current.getBoundingClientRect().bottom + 4 : 0,
             left: triggerRef.current ? triggerRef.current.getBoundingClientRect().left : 0,

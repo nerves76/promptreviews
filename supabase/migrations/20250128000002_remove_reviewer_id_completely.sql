@@ -16,36 +16,60 @@ DROP POLICY IF EXISTS "Users can view their own businesses" ON public.businesses
 -- Step 4: Now drop the reviewer_id column
 ALTER TABLE public.businesses DROP COLUMN IF EXISTS reviewer_id;
 
--- Step 5: Create new RLS policies that use account_id instead
-CREATE POLICY "Users can view their account's businesses"
-  ON public.businesses FOR SELECT
-  USING (
-    EXISTS (
-      SELECT 1 FROM account_users au
-      WHERE au.account_id = businesses.account_id
-      AND au.user_id = auth.uid()
-    )
-  );
+-- Step 5: Create new RLS policies that use account_id instead (if they don't exist)
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies 
+    WHERE schemaname = 'public' 
+    AND tablename = 'businesses' 
+    AND policyname = 'Users can view their account''s businesses'
+  ) THEN
+    CREATE POLICY "Users can view their account's businesses"
+      ON public.businesses FOR SELECT
+      USING (
+        EXISTS (
+          SELECT 1 FROM account_users au
+          WHERE au.account_id = businesses.account_id
+          AND au.user_id = auth.uid()
+        )
+      );
+  END IF;
 
-CREATE POLICY "Users can update their account's businesses"
-  ON public.businesses FOR UPDATE
-  USING (
-    EXISTS (
-      SELECT 1 FROM account_users au
-      WHERE au.account_id = businesses.account_id
-      AND au.user_id = auth.uid()
-    )
-  );
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies 
+    WHERE schemaname = 'public' 
+    AND tablename = 'businesses' 
+    AND policyname = 'Users can update their account''s businesses'
+  ) THEN
+    CREATE POLICY "Users can update their account's businesses"
+      ON public.businesses FOR UPDATE
+      USING (
+        EXISTS (
+          SELECT 1 FROM account_users au
+          WHERE au.account_id = businesses.account_id
+          AND au.user_id = auth.uid()
+        )
+      );
+  END IF;
 
-CREATE POLICY "Users can create businesses for their account"
-  ON public.businesses FOR INSERT
-  WITH CHECK (
-    EXISTS (
-      SELECT 1 FROM account_users au
-      WHERE au.account_id = businesses.account_id
-      AND au.user_id = auth.uid()
-    )
-  );
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies 
+    WHERE schemaname = 'public' 
+    AND tablename = 'businesses' 
+    AND policyname = 'Users can create businesses for their account'
+  ) THEN
+    CREATE POLICY "Users can create businesses for their account"
+      ON public.businesses FOR INSERT
+      WITH CHECK (
+        EXISTS (
+          SELECT 1 FROM account_users au
+          WHERE au.account_id = businesses.account_id
+          AND au.user_id = auth.uid()
+        )
+      );
+  END IF;
+END $$;
 
 -- Step 6: Verify the column was removed
 SELECT column_name, data_type, is_nullable 

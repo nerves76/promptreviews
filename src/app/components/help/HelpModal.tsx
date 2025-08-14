@@ -19,6 +19,9 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
   const pathname = usePathname();
   const [activeTab, setActiveTab] = useState<TabType>('tutorials');
   
+  // Debug logging
+  console.log('🎯 HelpModal rendered, isOpen:', isOpen);
+  
   // Get context information from current page
   const { keywords, pageName, helpTopics } = getContextFromPath(pathname);
 
@@ -60,10 +63,10 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
       />
       
       {/* Modal - Larger size for desktop, responsive for mobile */}
-      <div className="relative bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] md:max-h-[85vh] flex flex-col overflow-visible">
+      <div className="relative bg-gradient-to-br from-indigo-50 via-white to-purple-50 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] md:max-h-[85vh] flex flex-col overflow-visible border border-white/20 backdrop-blur-sm">
         {/* Close button */}
         <button
-          className="absolute -top-3 -right-3 md:-top-4 md:-right-4 bg-white border border-gray-200 rounded-full shadow-lg flex items-center justify-center hover:bg-gray-100 focus:outline-none z-10 transition-colors"
+          className="absolute -top-3 -right-3 md:-top-4 md:-right-4 bg-white/70 backdrop-blur-sm border border-white/40 rounded-full shadow-lg flex items-center justify-center hover:bg-white/90 focus:outline-none z-10 transition-colors"
           style={{ width: 36, height: 36 }}
           onClick={handleClose}
           aria-label="Close"
@@ -72,17 +75,17 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
         </button>
 
         {/* Header with Tabs */}
-        <div className="border-b border-gray-200 bg-gray-50">
+        <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-fuchsia-600 rounded-t-2xl">
           <div className="flex items-center justify-between p-4 md:p-6 pb-0">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-slate-blue/10 rounded-lg flex items-center justify-center">
-                <Icon name="FaQuestionCircle" className="w-5 h-5 text-slate-blue" size={20} />
+              <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center backdrop-blur-sm">
+                <Icon name="FaQuestionCircle" className="w-5 h-5 text-white" size={20} />
               </div>
               <div>
-                <h2 className="text-lg md:text-xl font-semibold text-gray-900">
+                <h2 className="text-lg md:text-xl font-semibold text-white">
                   Help & Support
                 </h2>
-                <p className="text-xs text-gray-500 hidden md:block">
+                <p className="text-xs text-white/80 hidden md:block">
                   Get help, find tutorials, or report issues
                 </p>
               </div>
@@ -95,15 +98,15 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
               onClick={() => handleTabChange('tutorials')}
               className={`flex-1 md:flex-initial px-3 md:px-4 py-2 text-sm font-medium rounded-t-md transition-all ${
                 activeTab === 'tutorials'
-                  ? 'bg-white text-slate-blue border-b-2 border-slate-blue shadow-sm'
-                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+                  ? 'bg-white text-indigo-600 border-b-2 border-white shadow-sm'
+                  : 'text-white/80 hover:text-white hover:bg-white/10'
               }`}
             >
               <div className="flex items-center justify-center md:justify-start space-x-2">
                 <Icon name="FaFileAlt" className="w-4 h-4" size={16} />
                 <span>Tutorials</span>
                 {activeTab === 'tutorials' && helpTopics.length > 0 && (
-                  <span className="hidden md:inline-flex ml-1 px-2 py-0.5 text-xs bg-blue-100 text-blue-700 rounded-full">
+                  <span className="hidden md:inline-flex ml-1 px-2 py-0.5 text-xs bg-indigo-100 text-indigo-700 rounded-full">
                     {helpTopics.length}
                   </span>
                 )}
@@ -113,8 +116,8 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
               onClick={() => handleTabChange('faqs')}
               className={`flex-1 md:flex-initial px-3 md:px-4 py-2 text-sm font-medium rounded-t-md transition-all ${
                 activeTab === 'faqs'
-                  ? 'bg-white text-slate-blue border-b-2 border-slate-blue shadow-sm'
-                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+                  ? 'bg-white text-indigo-600 border-b-2 border-white shadow-sm'
+                  : 'text-white/80 hover:text-white hover:bg-white/10'
               }`}
             >
               <div className="flex items-center justify-center md:justify-start space-x-2">
@@ -126,8 +129,8 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
               onClick={() => handleTabChange('issues')}
               className={`flex-1 md:flex-initial px-3 md:px-4 py-2 text-sm font-medium rounded-t-md transition-all ${
                 activeTab === 'issues'
-                  ? 'bg-white text-slate-blue border-b-2 border-slate-blue shadow-sm'
-                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+                  ? 'bg-white text-indigo-600 border-b-2 border-white shadow-sm'
+                  : 'text-white/80 hover:text-white hover:bg-white/10'
               }`}
             >
               <div className="flex items-center justify-center md:justify-start space-x-2">
@@ -139,74 +142,76 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
         </div>
 
         {/* Content Area */}
-        <div className="flex-1 overflow-y-auto bg-gray-50">
-          <div className="bg-white">
-            {activeTab === 'tutorials' && (
-              <TutorialsTab 
-                pathname={pathname}
-                contextKeywords={keywords}
-                pageName={pageName}
-              />
-            )}
-            
-            {activeTab === 'faqs' && (
-              <FAQsTab 
-                pathname={pathname}
-                contextKeywords={keywords}
-                pageName={pageName}
-              />
-            )}
-            
-            {activeTab === 'issues' && (
-              <IssuesTab 
-                pathname={pathname}
-                contextKeywords={keywords}
-                onClose={handleClose}
-              />
-            )}
-          </div>
-        </div>
-
-        {/* Footer (optional - for quick links) */}
-        <div className="border-t border-gray-200 bg-gray-50 px-4 md:px-6 py-3">
-          <div className="flex flex-col md:flex-row items-center justify-between text-xs text-gray-500">
-            <div className="flex items-center space-x-4 mb-2 md:mb-0">
-              <a 
-                href="https://promptreviews.app/docs/faq-comprehensive"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-slate-blue transition-colors flex items-center space-x-1"
-                onClick={() => trackEvent('help_footer_faq_clicked')}
-              >
-                <Icon name="FaQuestionCircle" className="w-3 h-3" size={12} />
-                <span>FAQ</span>
-              </a>
-              <a 
-                href="https://promptreviews.app/docs"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-slate-blue transition-colors flex items-center space-x-1"
-                onClick={() => trackEvent('help_footer_docs_clicked')}
-              >
-                <Icon name="FaFileAlt" className="w-3 h-3" size={12} />
-                <span>Docs</span>
-              </a>
-              <a 
-                href="https://promptreviews.app/contact"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-slate-blue transition-colors flex items-center space-x-1"
-                onClick={() => trackEvent('help_footer_contact_clicked')}
-              >
-                <Icon name="FaEnvelope" className="w-3 h-3" size={12} />
-                <span>Contact</span>
-              </a>
+        <div className="flex-1 overflow-y-auto bg-gradient-to-br from-indigo-50/50 via-white to-purple-50/50 rounded-b-2xl">
+          <div className="bg-white/80 backdrop-blur-sm h-full flex flex-col rounded-b-2xl">
+            <div className="flex-1">
+              {activeTab === 'tutorials' && (
+                <TutorialsTab 
+                  pathname={pathname}
+                  contextKeywords={keywords}
+                  pageName={pageName}
+                />
+              )}
+              
+              {activeTab === 'faqs' && (
+                <FAQsTab 
+                  pathname={pathname}
+                  contextKeywords={keywords}
+                  pageName={pageName}
+                />
+              )}
+              
+              {activeTab === 'issues' && (
+                <IssuesTab 
+                  pathname={pathname}
+                  contextKeywords={keywords}
+                  onClose={handleClose}
+                />
+              )}
             </div>
-            <div className="flex items-center space-x-1">
-              <Icon name="FaKey" className="w-3 h-3" size={12} />
-              <span>Press</span>
-              <kbd className="px-1.5 py-0.5 bg-gray-200 rounded text-xs">?</kbd>
-              <span>for help</span>
+            
+            {/* Footer (optional - for quick links) */}
+            <div className="bg-gradient-to-r from-indigo-600/10 via-purple-600/10 to-fuchsia-600/10 border-t border-white/20 px-4 md:px-6 py-3">
+              <div className="flex flex-col md:flex-row items-center justify-between text-xs text-gray-600">
+                <div className="flex items-center space-x-4 mb-2 md:mb-0">
+                  <a 
+                    href="https://promptreviews.app/docs/faq-comprehensive"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:text-indigo-600 transition-colors flex items-center space-x-1"
+                    onClick={() => trackEvent('help_footer_faq_clicked')}
+                  >
+                    <Icon name="FaQuestionCircle" className="w-3 h-3" size={12} />
+                    <span>FAQ</span>
+                  </a>
+                  <a 
+                    href="https://promptreviews.app/docs"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:text-indigo-600 transition-colors flex items-center space-x-1"
+                    onClick={() => trackEvent('help_footer_docs_clicked')}
+                  >
+                    <Icon name="FaFileAlt" className="w-3 h-3" size={12} />
+                    <span>Docs</span>
+                  </a>
+                  <a 
+                    href="https://promptreviews.app/contact"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:text-indigo-600 transition-colors flex items-center space-x-1"
+                    onClick={() => trackEvent('help_footer_contact_clicked')}
+                  >
+                    <Icon name="FaEnvelope" className="w-3 h-3" size={12} />
+                    <span>Contact</span>
+                  </a>
+                </div>
+                <div className="flex items-center space-x-1">
+                  <Icon name="FaKey" className="w-3 h-3" size={12} />
+                  <span>Press</span>
+                  <kbd className="px-1.5 py-0.5 bg-white/50 border border-white/30 rounded text-xs backdrop-blur-sm">?</kbd>
+                  <span>for help</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>

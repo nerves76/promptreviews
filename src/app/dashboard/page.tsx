@@ -623,7 +623,23 @@ const Dashboard = React.memo(function Dashboard() {
 
   // Early returns for loading and error states
   if (authLoading) {
-    return <AppLoader />;
+    return (
+      <div className="min-h-screen flex flex-col justify-start px-4 sm:px-0">
+        <div className="h-96 flex justify-center items-center pt-0 -mt-2">
+          <QuoteDisplay />
+        </div>
+        <div className="flex justify-center items-start pt-0 pb-8 -mt-10">
+          <PageCard
+            icon={<Icon name="FaHome" className="w-8 h-8 text-slate-blue" size={32} />}
+            topMargin="mt-0"
+          >
+            <div className="min-h-[400px] flex flex-col items-center justify-center">
+              <AppLoader />
+            </div>
+          </PageCard>
+        </div>
+      </div>
+    );
   }
   
   if (!isAuthenticated) {

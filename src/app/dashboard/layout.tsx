@@ -87,12 +87,18 @@ export default function DashboardLayout({
     );
   }
 
-  // After initialization, if no user, redirect to sign-in  
-  if (isInitialized && !user && isClient) {
-    if (process.env.NODE_ENV === 'development') {
-      console.log('❌ Dashboard: No user found after initialization, redirecting to sign-in');
+  // Handle redirect to sign-in in useEffect to avoid render-time side effects
+  useEffect(() => {
+    if (isInitialized && !user && isClient) {
+      if (process.env.NODE_ENV === 'development') {
+        console.log('❌ Dashboard: No user found after initialization, redirecting to sign-in');
+      }
+      router.push('/auth/sign-in');
     }
-    router.push('/auth/sign-in');
+  }, [isInitialized, user, isClient, router]);
+
+  // Show nothing while redirecting
+  if (isInitialized && !user && isClient) {
     return null;
   }
 

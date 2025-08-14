@@ -33,13 +33,16 @@ import { useAuth } from "@/auth";
 const StylePage = dynamic(() => import("../dashboard/style/StyleModalPage"), { ssr: false });
 
 function PromptPagesContent() {
-  console.log('🔄 PromptPagesContent component mounting/re-rendering');
   const supabase = useMemo(() => createClient(), []);
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { hasBusiness, user: authUser, accountId: authAccountId, isLoading: authLoading } = useAuth();
+  const { hasBusiness, user: authUser, accountId: authAccountId, isLoading: authLoading, accountLoading, businessLoading } = useAuth();
 
-  const [loading, setLoading] = useState(false);
+  // Track if initial auth load is complete
+  const [authInitialized, setAuthInitialized] = useState(false);
+  const [dataLoaded, setDataLoaded] = useState(false);
+  const [minLoadTimeElapsed, setMinLoadTimeElapsed] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [promptPages, setPromptPages] = useState<any[]>([]);
   const [individualPromptPages, setIndividualPromptPages] = useState<any[]>([]);
   const [universalPromptPage, setUniversalPromptPage] = useState<any>(null);
@@ -124,12 +127,32 @@ function PromptPagesContent() {
     }
   }, [searchParams]);
 
+  // Set minimum load time to prevent quick flashes
   useEffect(() => {
-    console.log('🔥 useEffect triggered - deps changed:', { authLoading, authAccountId });
+    const timer = setTimeout(() => {
+      setMinLoadTimeElapsed(true);
+    }, 500); // Half second minimum
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Track when auth is fully initialized - only set to true once
+  useEffect(() => {
+    if (!authInitialized && !authLoading && !accountLoading && !businessLoading && authAccountId !== undefined) {
+      setAuthInitialized(true);
+    }
+  }, [authLoading, accountLoading, businessLoading, authAccountId, authInitialized]);
+
+  useEffect(() => {
     async function fetchData() {
-      // Don't fetch if auth is still loading or if we're already loading
-      if (authLoading || loading) {
-        console.log('⏸️ Skipping fetch - authLoading:', authLoading, 'loading:', loading);
+      // Don't fetch until auth is fully initialized
+      if (!authInitialized) {
+        console.log('⏸️ Skipping fetch - auth not initialized');
+        return;
+      }
+      
+      // Don't fetch if we're already loading
+      if (loading && business) {
+        console.log('⏸️ Skipping fetch - already loading');
         return;
       }
       
@@ -299,10 +322,11 @@ function PromptPagesContent() {
       } finally {
         console.log('✅ Data fetch completed');
         setLoading(false);
+        setDataLoaded(true);
       }
     }
     fetchData();
-  }, [authLoading, authAccountId]);
+  }, [authInitialized, authAccountId, authUser]);
 
   const fetchLocations = async (accountId: string) => {
     try {
@@ -570,10 +594,16 @@ function PromptPagesContent() {
     return props;
   }, []);
 
-  if (loading) {
+  // Show loader while auth is initializing or data is being fetched
+  // Using dataLoaded and minLoadTimeElapsed to ensure smooth loading experience
+  if (!authInitialized || !dataLoaded || !minLoadTimeElapsed) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center">
-        <AppLoader />
+      <div>
+        <PageCard icon={<span className="text-3xl font-bold align-middle text-slate-blue" style={{ fontFamily: 'Inter, sans-serif' }}>[P]</span>}>
+          <div className="min-h-[400px] flex flex-col items-center justify-center">
+            <AppLoader />
+          </div>
+        </PageCard>
       </div>
     );
   }

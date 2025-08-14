@@ -142,8 +142,27 @@ export default function BasePromptPageForm({
 }: BasePromptPageFormProps) {
   const router = useRouter();
   
-  // Initialize form state with defaults
-  const [formData, setFormData] = useState<BaseFormState>({
+  // Generate a unique key for this form instance to persist data
+  const formStorageKey = `promptPageForm_${pageType || 'unknown'}_${initialData?.id || 'new'}`;
+  
+  // Initialize form state with defaults, checking localStorage first
+  const [formData, setFormData] = useState<BaseFormState>(() => {
+    // Try to restore from localStorage if available
+    if (typeof window !== 'undefined') {
+      const savedData = localStorage.getItem(formStorageKey);
+      if (savedData) {
+        try {
+          const parsed = JSON.parse(savedData);
+          console.log('📝 Restored form data from localStorage');
+          return parsed;
+        } catch (e) {
+          console.error('Failed to parse saved form data:', e);
+        }
+      }
+    }
+    
+    // Fall back to initial data
+    return {
     // Personalized Note
     show_friendly_note: initialData?.show_friendly_note ?? false,
     friendly_note: initialData?.friendly_note ?? "",
@@ -183,6 +202,7 @@ export default function BasePromptPageForm({
     is_active: initialData?.is_active ?? true,
     created_at: initialData?.created_at,
     updated_at: initialData?.updated_at,
+    };
   });
 
   const [isSaving, setIsSaving] = useState(false);
@@ -205,6 +225,18 @@ export default function BasePromptPageForm({
   useEffect(() => {
     setLocalBackgroundDesign(businessProfile?.kickstarters_background_design ?? false);
   }, [businessProfile?.kickstarters_background_design]);
+  
+  // Auto-save form data to localStorage
+  useEffect(() => {
+    const saveTimeout = setTimeout(() => {
+      if (typeof window !== 'undefined' && formData) {
+        localStorage.setItem(formStorageKey, JSON.stringify(formData));
+        console.log('💾 Auto-saved form data to localStorage');
+      }
+    }, 1000); // Debounce for 1 second
+    
+    return () => clearTimeout(saveTimeout);
+  }, [formData, formStorageKey]);
 
   // Generic update function
   const updateFormData = (field: keyof BaseFormState, value: any) => {
@@ -239,6 +271,12 @@ export default function BasePromptPageForm({
         await onPublish(formData);
       } else {
         await onSave(formData);
+      }
+      
+      // Clear saved form data after successful submission
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem(formStorageKey);
+        console.log('🗑️ Cleared saved form data after successful submission');
       }
     } catch (error) {
       console.error('Form submission error:', error);
