@@ -65,7 +65,7 @@ const SESSION_WARNING_THRESHOLD = 10 * 60 * 1000; // 10 minutes
 export function CoreAuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const initializationStarted = useRef(false);
-  const sessionCheckInterval = useRef<NodeJS.Timeout>();
+  const sessionCheckInterval = useRef<NodeJS.Timeout | null>(null);
 
   // Check if we're on the server side
   const isServer = typeof window === 'undefined';

@@ -84,7 +84,7 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
       
       // If user has admin email, ensure they have admin status
       if (user.email) {
-        await ensureAdminForEmail(user.email);
+        await ensureAdminForEmail({ id: user.id, email: user.email });
       }
       
       // Update cache

@@ -34,6 +34,16 @@ export interface Account {
   has_had_paid_plan?: boolean;
   is_free_account?: boolean;
   free_plan_level?: string; // 'grower', 'builder', 'maven', etc.
+  // Limits
+  max_contacts?: number;
+  max_locations?: number;
+  max_users?: number;
+  max_prompt_pages?: number;
+  // Usage counts
+  contact_count?: number;
+  location_count?: number;
+  prompt_page_count?: number;
+  custom_prompt_page_count?: number;
   // Business relation
   businesses?: any[];
 }

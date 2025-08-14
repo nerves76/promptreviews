@@ -231,9 +231,9 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
             setAccountId(storedAccountId);
           } else if (accounts.length > 0) {
             // Select best account
-            const bestAccount = selectBestAccount(accounts, null);
+            const bestAccount = selectBestAccount(accounts as any[]);
             if (bestAccount) {
-              setAccountId(bestAccount.id);
+              setAccountId(bestAccount.account_id);
             }
           }
         }
