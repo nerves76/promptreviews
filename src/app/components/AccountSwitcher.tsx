@@ -48,15 +48,27 @@ export function AccountSwitcher() {
   }
 
   const getAccountDisplayName = (account: UserAccount): string => {
-    if (account.business_name) {
+    // First try business name
+    if (account.business_name && account.business_name.trim()) {
       return account.business_name;
     }
     
-    if (account.first_name || account.last_name) {
-      return `${account.first_name || ''} ${account.last_name || ''}`.trim();
+    // Then try account_name (which might be pre-computed)
+    if (account.account_name && account.account_name.trim()) {
+      return account.account_name;
     }
     
-    return `${account.role.charAt(0).toUpperCase() + account.role.slice(1)} Account`;
+    // Then try first/last name
+    const fullName = `${account.first_name || ''} ${account.last_name || ''}`.trim();
+    if (fullName) {
+      return fullName;
+    }
+    
+    // Finally fall back to role-based name with account ID hint
+    const roleLabel = account.role.charAt(0).toUpperCase() + account.role.slice(1);
+    // Add last 4 characters of account ID to distinguish between multiple accounts
+    const idHint = account.account_id ? `(${account.account_id.slice(-4)})` : '';
+    return `${roleLabel} Account ${idHint}`;
   };
 
   const getRoleColor = (role: string): string => {

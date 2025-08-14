@@ -18,7 +18,11 @@ export interface AccountUser {
 
 export interface Account {
   id: string;
-  name?: string;
+  name?: string; // Legacy field for backward compatibility
+  business_name?: string;
+  first_name?: string;
+  last_name?: string;
+  email?: string;
   created_at: string;
   // Stripe-related fields
   stripe_customer_id?: string;
@@ -30,8 +34,6 @@ export interface Account {
   has_had_paid_plan?: boolean;
   is_free_account?: boolean;
   free_plan_level?: string; // 'grower', 'builder', 'maven', etc.
-  first_name?: string;
-  last_name?: string;
   email?: string;
   // Business relation
   businesses?: any[];
@@ -53,7 +55,10 @@ export async function getUserAccounts(
       account_id,
       accounts (
         id,
-        name,
+        business_name,
+        first_name,
+        last_name,
+        email,
         created_at
       )
     `)
