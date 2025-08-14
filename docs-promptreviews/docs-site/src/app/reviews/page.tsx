@@ -48,6 +48,16 @@ export default function ReviewsPage() {
         description="Monitor review submissions, verify publication on platforms, respond to feedback, and gain insights from comprehensive analytics—all in one dashboard."
       />
 
+      {/* Plan Indicator */}
+      <div className="mb-6">
+        <div className="flex flex-wrap gap-2">
+          <span className="text-sm text-white/60">Available on:</span>
+          <span className="bg-green-500/20 text-green-300 text-xs px-2 py-1 rounded-full font-medium">Grower</span>
+          <span className="bg-purple-500/20 text-purple-300 text-xs px-2 py-1 rounded-full font-medium">Builder</span>
+          <span className="bg-yellow-500/20 text-yellow-300 text-xs px-2 py-1 rounded-full font-medium">Maven</span>
+        </div>
+      </div>
+
       {/* Review Dashboard Overview */}
       <div className="max-w-4xl mx-auto mb-16">
         <h2 className="text-3xl font-bold text-white mb-8">Your Review Command Center</h2>

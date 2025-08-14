@@ -11,6 +11,7 @@ import Icon from '@/components/Icon';
 import { TabType, HelpModalProps } from './types';
 import { getContextFromPath } from './contextMapper';
 import TutorialsTab from './TutorialsTab';
+import FAQsTab from './FAQsTab';
 import IssuesTab from './IssuesTab';
 import { trackEvent } from '../../../utils/analytics';
 
@@ -109,6 +110,19 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
               </div>
             </button>
             <button
+              onClick={() => handleTabChange('faqs')}
+              className={`flex-1 md:flex-initial px-3 md:px-4 py-2 text-sm font-medium rounded-t-md transition-all ${
+                activeTab === 'faqs'
+                  ? 'bg-white text-slate-blue border-b-2 border-slate-blue shadow-sm'
+                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              <div className="flex items-center justify-center md:justify-start space-x-2">
+                <Icon name="FaQuestionCircle" className="w-4 h-4" size={16} />
+                <span>FAQs</span>
+              </div>
+            </button>
+            <button
               onClick={() => handleTabChange('issues')}
               className={`flex-1 md:flex-initial px-3 md:px-4 py-2 text-sm font-medium rounded-t-md transition-all ${
                 activeTab === 'issues'
@@ -129,6 +143,14 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
           <div className="bg-white">
             {activeTab === 'tutorials' && (
               <TutorialsTab 
+                pathname={pathname}
+                contextKeywords={keywords}
+                pageName={pageName}
+              />
+            )}
+            
+            {activeTab === 'faqs' && (
+              <FAQsTab 
                 pathname={pathname}
                 contextKeywords={keywords}
                 pageName={pageName}

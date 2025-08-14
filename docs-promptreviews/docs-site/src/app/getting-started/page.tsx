@@ -93,6 +93,7 @@ const steps = [
     time: '5 minutes',
     difficulty: 'Easy',
     completed: false,
+    plans: ['grower', 'builder', 'maven']
   },
   {
     title: 'Choose Your Plan',
@@ -101,6 +102,7 @@ const steps = [
     time: '3 minutes',
     difficulty: 'Easy',
     completed: false,
+    plans: ['grower', 'builder', 'maven']
   },
   {
     title: 'Create Your First Prompt Page',
@@ -109,6 +111,7 @@ const steps = [
     time: '10 minutes',
     difficulty: 'Easy',
     completed: false,
+    plans: ['grower', 'builder', 'maven']
   },
   {
     title: 'Add Your First Contacts',
@@ -117,6 +120,7 @@ const steps = [
     time: '8 minutes',
     difficulty: 'Easy',
     completed: false,
+    plans: ['builder', 'maven']
   },
   {
     title: 'Send Your First Review Request',
@@ -125,6 +129,7 @@ const steps = [
     time: '5 minutes',
     difficulty: 'Easy',
     completed: false,
+    plans: ['grower', 'builder', 'maven']
   },
   {
     title: 'Set Up Your Review Widget',
@@ -133,6 +138,7 @@ const steps = [
     time: '7 minutes',
     difficulty: 'Medium',
     completed: false,
+    plans: ['grower', 'builder', 'maven']
   },
 ]
 
@@ -235,6 +241,22 @@ export default function GettingStartedPage() {
                   <p className="text-white/70 mb-3">
                     {step.description}
                   </p>
+                  
+                  {/* Plan Tags */}
+                  <div className="flex flex-wrap gap-1 mb-3">
+                    {step.plans.map((plan) => (
+                      <span
+                        key={plan}
+                        className={`text-xs px-2 py-1 rounded-full font-medium ${
+                          plan === 'grower' ? 'bg-green-500/20 text-green-300' :
+                          plan === 'builder' ? 'bg-purple-500/20 text-purple-300' :
+                          'bg-yellow-500/20 text-yellow-300'
+                        }`}
+                      >
+                        {plan.charAt(0).toUpperCase() + plan.slice(1)}
+                      </span>
+                    ))}
+                  </div>
                   
                   <div className="flex items-center space-x-4 text-sm">
                     <div className="flex items-center space-x-1 text-white/60">

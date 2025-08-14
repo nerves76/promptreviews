@@ -13,3 +13,5 @@ export {
   useHasBusiness,
   usePaymentStatus
 } from './useAuth';
+
+export { useSubscription } from '../context/SubscriptionContext';

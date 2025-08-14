@@ -48,6 +48,16 @@ export default function WidgetsPage() {
         description="Create customizable widgets to display your reviews on any website. Choose from different layouts, customize colors and styling, and embed with simple HTML code."
       />
 
+      {/* Plan Indicator */}
+      <div className="mb-6">
+        <div className="flex flex-wrap gap-2">
+          <span className="text-sm text-white/60">Available on:</span>
+          <span className="bg-green-500/20 text-green-300 text-xs px-2 py-1 rounded-full font-medium">Grower</span>
+          <span className="bg-purple-500/20 text-purple-300 text-xs px-2 py-1 rounded-full font-medium">Builder</span>
+          <span className="bg-yellow-500/20 text-yellow-300 text-xs px-2 py-1 rounded-full font-medium">Maven</span>
+        </div>
+      </div>
+
       {/* Widget Overview */}
       <div className="max-w-4xl mx-auto mb-16">
         <h2 className="text-3xl font-bold text-white mb-8">What Are Review Widgets?</h2>

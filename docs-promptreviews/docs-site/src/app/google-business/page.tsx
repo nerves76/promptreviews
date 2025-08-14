@@ -53,6 +53,15 @@ export default function GoogleBusinessPage() {
 
       <div className="max-w-4xl mx-auto mb-16">
 
+        {/* Plan Indicator */}
+        <div className="mb-6">
+          <div className="flex flex-wrap gap-2">
+            <span className="text-sm text-white/60">Available on:</span>
+            <span className="bg-purple-500/20 text-purple-300 text-xs px-2 py-1 rounded-full font-medium">Builder</span>
+            <span className="bg-yellow-500/20 text-yellow-300 text-xs px-2 py-1 rounded-full font-medium">Maven</span>
+          </div>
+        </div>
+
         {/* Important Note */}
         <div className="bg-yellow-400/20 backdrop-blur-md border border-yellow-300/30 rounded-xl p-6">
           <div className="flex items-start space-x-3">

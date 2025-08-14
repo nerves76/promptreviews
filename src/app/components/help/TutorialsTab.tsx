@@ -7,7 +7,7 @@
 
 import { useState, useEffect } from 'react';
 import Icon from '@/components/Icon';
-import { Tutorial } from './types';
+import { Tutorial, PlanType } from './types';
 import { calculateRelevanceScore } from './contextMapper';
 import { 
   trackUserAction, 
@@ -16,6 +16,7 @@ import {
 } from './articleAssociation';
 import { trackEvent } from '../../../utils/analytics';
 import ArticleViewer from './ArticleViewer';
+import { useSubscription } from '@/auth';
 
 interface TutorialsTabProps {
   pathname: string;
@@ -28,11 +29,26 @@ export default function TutorialsTab({
   contextKeywords,
   pageName 
 }: TutorialsTabProps) {
+  const { currentPlan } = useSubscription();
   const [tutorials, setTutorials] = useState<Tutorial[]>([]);
   const [loadingTutorials, setLoadingTutorials] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [recommendedArticles, setRecommendedArticles] = useState<string[]>([]);
   const [selectedArticle, setSelectedArticle] = useState<Tutorial | null>(null);
+
+  // Get user's current plan
+  const userPlan: PlanType = (currentPlan as PlanType) || 'grower'; // Default to grower if no plan
+
+  // Filter tutorials based on user's plan
+  const filterTutorialsByPlan = (tutorials: Tutorial[]): Tutorial[] => {
+    return tutorials.filter(tutorial => {
+      // If no plans specified, available to all
+      if (!tutorial.plans || tutorial.plans.length === 0) return true;
+      
+      // Check if user's plan is in the tutorial's allowed plans
+      return tutorial.plans.includes(userPlan);
+    });
+  };
 
   useEffect(() => {
     fetchTutorials();
@@ -63,7 +79,8 @@ export default function TutorialsTab({
         body: JSON.stringify({
           context: allKeywords,
           pathname: pathname,
-          recommendedArticles: recommendations
+          recommendedArticles: recommendations,
+          userPlan: userPlan
         })
       });
 
@@ -73,15 +90,21 @@ export default function TutorialsTab({
           ...tutorial,
           relevanceScore: calculateRelevanceScore(tutorial, allKeywords)
         }));
-        setTutorials(tutorialsWithScores);
+        // Filter by plan
+        const planFilteredTutorials = filterTutorialsByPlan(tutorialsWithScores);
+        setTutorials(planFilteredTutorials);
       } else {
         // Fallback to mock data if API not available
-        setTutorials(getMockTutorials(allKeywords));
+        const mockTutorials = getMockTutorials(allKeywords);
+        const planFilteredTutorials = filterTutorialsByPlan(mockTutorials);
+        setTutorials(planFilteredTutorials);
       }
     } catch (error) {
       console.error('Error fetching tutorials:', error);
       // Fallback to mock data
-      setTutorials(getMockTutorials(contextKeywords));
+      const mockTutorials = getMockTutorials(contextKeywords);
+      const planFilteredTutorials = filterTutorialsByPlan(mockTutorials);
+      setTutorials(planFilteredTutorials);
     } finally {
       setLoadingTutorials(false);
     }
@@ -95,7 +118,8 @@ export default function TutorialsTab({
         description: 'Comprehensive FAQ covering everything about Prompt Reviews - setup, features, pricing, and more',
         url: 'https://promptreviews.app/docs/faq-comprehensive',
         category: 'faq',
-        tags: ['faq', 'questions', 'help', 'answers', 'support']
+        tags: ['faq', 'questions', 'help', 'answers', 'support'],
+        plans: ['grower', 'builder', 'maven', 'enterprise'] // Available to all plans
       },
       {
         id: '1',
@@ -103,7 +127,8 @@ export default function TutorialsTab({
         description: 'Learn how to create your first prompt page to collect customer reviews',
         url: 'https://promptreviews.app/docs/getting-started',
         category: 'getting-started',
-        tags: ['prompt-pages', 'create', 'setup']
+        tags: ['prompt-pages', 'create', 'setup'],
+        plans: ['grower', 'builder', 'maven', 'enterprise'] // Available to all plans
       },
       {
         id: '2',
@@ -111,7 +136,8 @@ export default function TutorialsTab({
         description: 'Set up your business information, branding, and contact details',
         url: 'https://promptreviews.app/docs/business-profile',
         category: 'business',
-        tags: ['business', 'profile', 'branding']
+        tags: ['business', 'profile', 'branding'],
+        plans: ['grower', 'builder', 'maven', 'enterprise'] // Available to all plans
       },
       {
         id: '3',
@@ -119,7 +145,8 @@ export default function TutorialsTab({
         description: 'Upload, organize, and manage your customer contacts effectively',
         url: 'https://promptreviews.app/docs/contacts',
         category: 'contacts',
-        tags: ['contacts', 'upload', 'import', 'manage']
+        tags: ['contacts', 'upload', 'import', 'manage'],
+        plans: ['builder', 'maven', 'enterprise'] // Builder+ only
       },
       {
         id: '4',
@@ -127,7 +154,8 @@ export default function TutorialsTab({
         description: 'Add review widgets to your website to showcase customer feedback',
         url: 'https://promptreviews.app/docs/widgets',
         category: 'widgets',
-        tags: ['widgets', 'embed', 'website']
+        tags: ['widgets', 'embed', 'website'],
+        plans: ['builder', 'maven', 'enterprise'] // Builder+ only
       },
       {
         id: '5',
@@ -135,7 +163,8 @@ export default function TutorialsTab({
         description: 'Connect and sync with your Google Business Profile for enhanced visibility',
         url: 'https://promptreviews.app/docs/google-business',
         category: 'integrations',
-        tags: ['google', 'business-profile', 'integration']
+        tags: ['google', 'business-profile', 'integration'],
+        plans: ['builder', 'maven', 'enterprise'] // Builder+ only
       },
       {
         id: '6',
@@ -143,7 +172,8 @@ export default function TutorialsTab({
         description: 'Understanding your dashboard and key features',
         url: 'https://promptreviews.app/docs',
         category: 'dashboard',
-        tags: ['dashboard', 'overview', 'navigation']
+        tags: ['dashboard', 'overview', 'navigation'],
+        plans: ['grower', 'builder', 'maven', 'enterprise'] // Available to all plans
       }
     ];
 
@@ -191,6 +221,7 @@ export default function TutorialsTab({
       tutorial.tags.some(tag => tag.toLowerCase().includes(query))
     );
   });
+
 
   // Show article viewer if an article is selected
   if (selectedArticle) {
@@ -274,6 +305,11 @@ export default function TutorialsTab({
                       Relevant
                     </span>
                   )}
+                  {tutorial.plans && !tutorial.plans.includes('grower') && (
+                    <span className="px-2 py-1 text-xs bg-purple-100 text-purple-800 rounded-full whitespace-nowrap">
+                      {tutorial.plans.includes('builder') ? 'Builder+' : 'Pro'}
+                    </span>
+                  )}
                 </div>
               </div>
               <p className="text-sm text-gray-600 mb-3 line-clamp-2">
@@ -288,7 +324,7 @@ export default function TutorialsTab({
                   ))}
                 </div>
                 <Icon 
-                  name="FaExternalLinkAlt" 
+                  name="FaChevronRight" 
                   className="w-4 h-4 text-gray-400 group-hover:text-slate-blue transition-colors flex-shrink-0" 
                   size={16} 
                 />
@@ -298,20 +334,7 @@ export default function TutorialsTab({
         </div>
       )}
 
-      {/* Browse all tutorials link */}
-      <div className="mt-6 pt-6 border-t border-gray-200 text-center">
-        <a
-          href="https://promptreviews.app/docs"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center space-x-2 text-slate-blue hover:text-slate-blue/80 font-medium"
-          onClick={() => trackEvent('help_browse_all_clicked', { context: pathname })}
-        >
-          <Icon name="FaFileAlt" className="w-4 h-4" size={16} />
-          <span>Browse all tutorials</span>
-          <Icon name="FaLink" className="w-3 h-3" size={12} />
-        </a>
-      </div>
+
     </div>
   );
 }

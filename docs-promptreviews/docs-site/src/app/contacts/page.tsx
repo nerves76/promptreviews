@@ -203,6 +203,23 @@ export default function ContactsPage() {
           description="Your customer database is the foundation of successful review collection. Learn how to import, organize, and manage your contacts to get the most from your review requests."
         />
 
+        {/* Plan Indicator */}
+        <div className="mb-6">
+          <div className="flex flex-wrap gap-2">
+            <span className="text-sm text-white/60">Available on:</span>
+            <span className="bg-purple-500/20 text-purple-300 text-xs px-2 py-1 rounded-full font-medium">Builder</span>
+            <span className="bg-yellow-500/20 text-yellow-300 text-xs px-2 py-1 rounded-full font-medium">Maven</span>
+          </div>
+          <div className="mt-2 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
+            <p className="text-yellow-300 text-sm">
+              <strong>Note:</strong> Contact management is not available on the Grower plan. 
+              <Link href="/getting-started/choosing-plan" className="text-yellow-200 hover:underline ml-1">
+                Learn about plan differences →
+              </Link>
+            </p>
+          </div>
+        </div>
+
         <div className="max-w-4xl mx-auto mb-8">
           <div className="flex items-center space-x-6 text-sm text-white/70">
             <div className="flex items-center space-x-2">

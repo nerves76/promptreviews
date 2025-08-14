@@ -27,6 +27,16 @@ export default function AnalyticsPage() {
           description="Track your review collection performance, understand customer sentiment, and make data-driven decisions to improve your review strategy."
         />
 
+        {/* Plan Indicator */}
+        <div className="mb-6">
+          <div className="flex flex-wrap gap-2">
+            <span className="text-sm text-white/60">Available on:</span>
+            <span className="bg-green-500/20 text-green-300 text-xs px-2 py-1 rounded-full font-medium">Grower</span>
+            <span className="bg-purple-500/20 text-purple-300 text-xs px-2 py-1 rounded-full font-medium">Builder</span>
+            <span className="bg-yellow-500/20 text-yellow-300 text-xs px-2 py-1 rounded-full font-medium">Maven</span>
+          </div>
+        </div>
+
         {/* Overview */}
         <div className="mb-12">
           <h2 className="text-2xl font-bold text-white mb-6">Analytics Overview</h2>

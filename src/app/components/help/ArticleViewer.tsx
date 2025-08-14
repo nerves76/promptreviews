@@ -82,16 +82,42 @@ export default function ArticleViewer({ article, onBack }: ArticleViewerProps) {
         </ol>
       `,
       '2': `
-        <h2>Managing Business Locations</h2>
-        <p>Add and manage multiple business locations from a single dashboard.</p>
+        <h2>Customizing Your Business Profile</h2>
+        <p>Set up your business information, branding, and contact details to create a professional presence.</p>
         
-        <h3>Adding a Location</h3>
+        <h3>Setting Up Your Profile</h3>
         <ol>
-          <li>Go to Settings → Business Locations</li>
-          <li>Click "Add Location"</li>
-          <li>Enter your location details</li>
-          <li>Verify your location</li>
+          <li>Go to Dashboard → Business Profile</li>
+          <li>Add your business name and description</li>
+          <li>Upload your logo and brand colors</li>
+          <li>Add contact information and social links</li>
+          <li>Save your changes</li>
         </ol>
+      `,
+      '5': `
+        <h2>Google Business Profile Integration</h2>
+        <p>Connect and sync with your Google Business Profile for enhanced visibility and better review management.</p>
+        
+        <h3>Connecting Your Google Business Profile</h3>
+        <ol>
+          <li>Navigate to Dashboard → Google Business</li>
+          <li>Click "Connect Google Business Profile"</li>
+          <li>Sign in with your Google account</li>
+          <li>Select the business location you want to connect</li>
+          <li>Grant necessary permissions</li>
+          <li>Review and confirm the connection</li>
+        </ol>
+        
+        <h3>Benefits of Integration</h3>
+        <ul>
+          <li>Automatic sync of business information</li>
+          <li>Direct posting of reviews to Google</li>
+          <li>Unified dashboard for all review platforms</li>
+          <li>Enhanced local SEO performance</li>
+        </ul>
+        
+        <h3>Managing Your Connection</h3>
+        <p>Once connected, you can manage your Google Business Profile directly from your dashboard, including updating business hours, responding to reviews, and posting updates.</p>
       `
     };
     
@@ -190,26 +216,7 @@ export default function ArticleViewer({ article, onBack }: ArticleViewerProps) {
         dangerouslySetInnerHTML={{ __html: formatContent(content) }}
       />
 
-      {/* Related articles */}
-      {article.relatedArticles && article.relatedArticles.length > 0 && (
-        <div className="mt-8 pt-6 border-t border-gray-200">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Related Articles</h3>
-          <div className="space-y-2">
-            {article.relatedArticles.map((relatedId) => (
-              <button
-                key={relatedId}
-                className="text-slate-blue hover:text-slate-blue/80 text-sm"
-                onClick={() => {
-                  // TODO: Load related article
-                  console.log('Load related article:', relatedId);
-                }}
-              >
-                View related article →
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
+      {/* Related articles - placeholder for future implementation */}
     </div>
   );
 }

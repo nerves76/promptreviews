@@ -203,6 +203,16 @@ export default function PromptPagesPage() {
           description="Create personalized review request pages that make it easy for customers to leave detailed, authentic reviews. Choose from multiple types, customize everything, and watch your reviews grow."
         />
           
+        {/* Plan Indicator */}
+        <div className="mb-6">
+          <div className="flex flex-wrap gap-2 justify-center">
+            <span className="text-sm text-white/60">Available on:</span>
+            <span className="bg-green-500/20 text-green-300 text-xs px-2 py-1 rounded-full font-medium">Grower</span>
+            <span className="bg-purple-500/20 text-purple-300 text-xs px-2 py-1 rounded-full font-medium">Builder</span>
+            <span className="bg-yellow-500/20 text-yellow-300 text-xs px-2 py-1 rounded-full font-medium">Maven</span>
+          </div>
+        </div>
+
           <div className="flex flex-wrap gap-4 justify-center mb-16">
             <Link
               href="/prompt-pages/types"

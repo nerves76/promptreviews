@@ -5,27 +5,33 @@ export const pageFAQs = {
   'getting-started': [
     {
       question: 'How long does it take to set up Prompt Reviews?',
-      answer: 'Most businesses are fully set up and collecting their first reviews within 30 minutes. The basic setup (account creation and business profile) takes about 5 minutes, and creating your first prompt page takes another 10 minutes.'
+      answer: 'Most businesses are fully set up and collecting their first reviews within 30 minutes. The basic setup (account creation and business profile) takes about 5 minutes, and creating your first prompt page takes another 10 minutes.',
+      plans: ['grower', 'builder', 'maven']
     },
     {
       question: 'Do I need technical skills to use Prompt Reviews?',
-      answer: 'No technical skills required! Prompt Reviews is designed to be user-friendly. The interface is intuitive, and our AI assistant helps you create content automatically. If you can use email and social media, you can use Prompt Reviews.'
+      answer: 'No technical skills required! Prompt Reviews is designed to be user-friendly. The interface is intuitive, and our AI assistant helps you create content automatically. If you can use email and social media, you can use Prompt Reviews.',
+      plans: ['grower', 'builder', 'maven']
     },
     {
       question: 'Can I start collecting reviews immediately after signing up?',
-      answer: 'Yes! As soon as you create your account and set up your first prompt page, you can start sharing it with customers. Many businesses send their first review request within minutes of signing up.'
+      answer: 'Yes! As soon as you create your account and set up your first prompt page, you can start sharing it with customers. Many businesses send their first review request within minutes of signing up.',
+      plans: ['grower', 'builder', 'maven']
     },
     {
       question: 'What information do I need to get started?',
-      answer: 'You\'ll need your business name, address, phone number, and website. Having a customer contact list ready (optional) helps you start faster, but you can also add contacts manually or collect them via QR codes.'
+      answer: 'You\'ll need your business name, address, phone number, and website. Having a customer contact list ready (optional) helps you start faster, but you can also add contacts manually or collect them via QR codes.',
+      plans: ['grower', 'builder', 'maven']
     },
     {
       question: 'Is there a free trial available?',
-      answer: 'Yes, we offer a free trial so you can experience how Prompt Reviews works for your business before committing to a paid plan. You can explore all features and start collecting reviews during the trial period.'
+      answer: 'Yes, we offer a free trial so you can experience how Prompt Reviews works for your business before committing to a paid plan. You can explore all features and start collecting reviews during the trial period.',
+      plans: ['grower', 'builder', 'maven']
     },
     {
       question: 'Can I migrate from another review platform?',
-      answer: 'Yes! You can import your existing customer contacts via CSV and continue building on your review collection efforts. While we cannot import reviews from other platforms, you can display existing Google reviews through our integration.'
+      answer: 'Yes! You can import your existing customer contacts via CSV and continue building on your review collection efforts. While we cannot import reviews from other platforms, you can display existing Google reviews through our integration.',
+      plans: ['builder', 'maven']
     }
   ],
 
@@ -33,35 +39,43 @@ export const pageFAQs = {
   'prompt-pages': [
     {
       question: 'What exactly is a prompt page?',
-      answer: 'A prompt page is a personalized review request page you create for specific situations, customers, or services. It\'s like a landing page designed specifically to make leaving reviews easy and engaging for your customers.'
+      answer: 'A prompt page is a personalized review request page you create for specific situations, customers, or services. It\'s like a landing page designed specifically to make leaving reviews easy and engaging for your customers.',
+      plans: ['grower', 'builder', 'maven']
     },
     {
       question: 'How many prompt pages can I create?',
-      answer: 'The number of prompt pages depends on your plan. The Grower plan includes 3 custom prompt pages, Builder includes 50 prompt pages, and Maven includes 500 prompt pages. You can create different pages for various services, employees, or customer types.'
+      answer: 'The number of prompt pages depends on your plan. The Grower plan includes 3 custom prompt pages, Builder includes 50 prompt pages, and Maven includes 500 prompt pages. You can create different pages for various services, employees, or customer types.',
+      plans: ['grower', 'builder', 'maven']
     },
     {
       question: 'Can I customize the look of my prompt pages?',
-      answer: 'Yes! You can customize colors, add your logo, personalize messages, and choose from different page types (service, product, photo, video, event, employee, or universal). Each page can be tailored to match your brand and specific use case.'
+      answer: 'Yes! You can customize colors, add your logo, personalize messages, and choose from different page types (service, product, photo, video, event, employee, or universal). Each page can be tailored to match your brand and specific use case.',
+      plans: ['grower', 'builder', 'maven']
     },
     {
       question: 'How do customers access my prompt pages?',
-      answer: 'Customers can access your prompt pages through multiple channels: direct links (via email or text), QR codes (perfect for in-person), NFC tags, or embedded buttons on your website. Each page has a unique URL that you can share anywhere.'
+      answer: 'Customers can access your prompt pages through multiple channels: direct links (via email or text), QR codes (perfect for in-person), NFC tags, or embedded buttons on your website. Each page has a unique URL that you can share anywhere.',
+      plans: ['grower', 'builder', 'maven']
     },
     {
       question: 'Do prompt pages work on mobile devices?',
-      answer: 'Absolutely! All prompt pages are fully responsive and optimized for mobile devices. Since most customers leave reviews on their phones, we\'ve designed the experience to be perfect on smaller screens.'
+      answer: 'Absolutely! All prompt pages are fully responsive and optimized for mobile devices. Since most customers leave reviews on their phones, we\'ve designed the experience to be perfect on smaller screens.',
+      plans: ['grower', 'builder', 'maven']
     },
     {
       question: 'Can I track which prompt pages perform best?',
-      answer: 'Yes, you get detailed analytics for each prompt page including views, conversion rates, and review submissions. This helps you understand what works best for your business and optimize your approach.'
+      answer: 'Yes, you get detailed analytics for each prompt page including views, conversion rates, and review submissions. This helps you understand what works best for your business and optimize your approach.',
+      plans: ['grower', 'builder', 'maven']
     },
     {
       question: 'What\'s the difference between page types?',
-      answer: 'Each page type is optimized for different scenarios: Service pages focus on experience, Product pages on items purchased, Photo/Video pages include media uploads, Event pages are time-specific, Employee pages spotlight team members, and Universal pages work for any situation.'
+      answer: 'Each page type is optimized for different scenarios: Service pages focus on experience, Product pages on items purchased, Photo/Video pages include media uploads, Event pages are time-specific, Employee pages spotlight team members, and Universal pages work for any situation.',
+      plans: ['grower', 'builder', 'maven']
     },
     {
       question: 'Can I use AI to help create prompt page content?',
-      answer: 'Yes! Our AI assistant can generate personalized content for your prompt pages based on your business type and customer context. You can use AI suggestions as-is or customize them to match your voice.'
+      answer: 'Yes! Our AI assistant can generate personalized content for your prompt pages based on your business type and customer context. You can use AI suggestions as-is or customize them to match your voice.',
+      plans: ['grower', 'builder', 'maven']
     }
   ],
 
@@ -69,31 +83,38 @@ export const pageFAQs = {
   'contacts': [
     {
       question: 'How do I import my existing customer list?',
-      answer: 'You can import contacts via CSV file upload. We support most common formats and automatically detect duplicates. Your CSV should include email addresses, names, and optionally phone numbers and custom tags. The import process takes just 2-5 minutes.'
+      answer: 'You can import contacts via CSV file upload. We support most common formats and automatically detect duplicates. Your CSV should include email addresses, names, and optionally phone numbers and custom tags. The import process takes just 2-5 minutes.',
+      plans: ['builder', 'maven']
     },
     {
       question: 'What happens if I have duplicate contacts?',
-      answer: 'Our system automatically detects and merges duplicate contacts based on email addresses and phone numbers. This keeps your database clean and prevents sending multiple requests to the same customer.'
+      answer: 'Our system automatically detects and merges duplicate contacts based on email addresses and phone numbers. This keeps your database clean and prevents sending multiple requests to the same customer.',
+      plans: ['builder', 'maven']
     },
     {
       question: 'Can I segment my contacts into different groups?',
-      answer: 'Yes! You can organize contacts using tags, custom fields, and groups. This allows you to send targeted review requests to specific customer segments, like "VIP customers," "recent purchases," or "event attendees."'
+      answer: 'Yes! You can organize contacts using tags, custom fields, and groups. This allows you to send targeted review requests to specific customer segments, like "VIP customers," "recent purchases," or "event attendees."',
+      plans: ['builder', 'maven']
     },
     {
       question: 'How many contacts can I store?',
-      answer: 'Contact limits vary by plan. The Grower plan doesn\'t include contact management, Builder plan includes up to 1,000 contacts, and Maven plan offers up to 10,000 contacts.'
+      answer: 'Contact limits vary by plan. The Grower plan doesn\'t include contact management, Builder plan includes up to 1,000 contacts, and Maven plan offers up to 10,000 contacts.',
+      plans: ['builder', 'maven']
     },
     {
       question: 'Can customers add themselves to my contact list?',
-      answer: 'Yes! Customers can add themselves through QR codes at your location or through sign-up forms on your prompt pages. This self-service option is perfect for in-person businesses and events.'
+      answer: 'Yes! Customers can add themselves through QR codes at your location or through sign-up forms on your prompt pages. This self-service option is perfect for in-person businesses and events.',
+      plans: ['builder', 'maven']
     },
     {
       question: 'How do I ensure high email deliverability?',
-      answer: 'We handle email authentication and send from verified domains to avoid spam filters. We also automatically clean your list by removing invalid addresses and managing bounces to maintain high deliverability rates.'
+      answer: 'We handle email authentication and send from verified domains to avoid spam filters. We also automatically clean your list by removing invalid addresses and managing bounces to maintain high deliverability rates.',
+      plans: ['builder', 'maven']
     },
     {
       question: 'Can I send review requests via SMS?',
-      answer: 'Yes, you can send review requests via SMS if you have phone numbers for your contacts. SMS requests often have higher open rates and faster responses than email, especially for service-based businesses.'
+      answer: 'Yes, you can send review requests via SMS if you have phone numbers for your contacts. SMS requests often have higher open rates and faster responses than email, especially for service-based businesses.',
+      plans: ['builder', 'maven']
     }
   ],
 
@@ -101,31 +122,38 @@ export const pageFAQs = {
   'google-business': [
     {
       question: 'Which plans include Google Business Profile integration?',
-      answer: 'Google Business Profile integration is available on Builder ($35/month) and Maven ($100/month) plans. This feature is not available on the Grower plan.'
+      answer: 'Google Business Profile integration is available on Builder ($35/month) and Maven ($100/month) plans. This feature is not available on the Grower plan.',
+      plans: ['builder', 'maven']
     },
     {
       question: 'What can I do with Google Business Profile integration?',
-      answer: 'You can manage reviews, respond to customers, create and schedule Google Posts, import existing reviews, and manage multiple locations - all from your Prompt Reviews dashboard without switching between platforms.'
+      answer: 'You can manage reviews, respond to customers, create and schedule Google Posts, import existing reviews, and manage multiple locations - all from your Prompt Reviews dashboard without switching between platforms.',
+      plans: ['builder', 'maven']
     },
     {
       question: 'Do I need to be the owner of the Google Business Profile?',
-      answer: 'You need to be either an owner or manager of the Google Business Profile to connect it. If you\'re not sure about your role, check your Google Business Profile settings or ask the profile owner to add you as a manager.'
+      answer: 'You need to be either an owner or manager of the Google Business Profile to connect it. If you\'re not sure about your role, check your Google Business Profile settings or ask the profile owner to add you as a manager.',
+      plans: ['builder', 'maven']
     },
     {
       question: 'Can I manage multiple Google Business locations?',
-      answer: 'Yes! Perfect for franchises or multi-location businesses. You can connect and manage multiple locations from one dashboard, create location-specific prompt pages, and track analytics for each location separately.'
+      answer: 'Yes! Perfect for franchises or multi-location businesses. You can connect and manage multiple locations from one dashboard, create location-specific prompt pages, and track analytics for each location separately.',
+      plans: ['builder', 'maven']
     },
     {
       question: 'Is it safe to connect my Google account?',
-      answer: 'Absolutely. We use OAuth 2.0 for secure authentication - we never see or store your Google password. You can revoke access at any time from your Google account settings. We only request the minimum permissions needed.'
+      answer: 'Absolutely. We use OAuth 2.0 for secure authentication - we never see or store your Google password. You can revoke access at any time from your Google account settings. We only request the minimum permissions needed.',
+      plans: ['builder', 'maven']
     },
     {
       question: 'Can I schedule Google Posts in advance?',
-      answer: 'Yes, you can create and schedule Google Posts in advance. This helps maintain a consistent presence on your Google Business Profile without daily manual work.'
+      answer: 'Yes, you can create and schedule Google Posts in advance. This helps maintain a consistent presence on your Google Business Profile without daily manual work.',
+      plans: ['builder', 'maven']
     },
     {
       question: 'Will connecting Google affect my existing reviews?',
-      answer: 'No, connecting your Google Business Profile won\'t affect your existing reviews. It simply allows you to manage them from Prompt Reviews. Your reviews remain on Google, and we help you respond and track them more efficiently.'
+      answer: 'No, connecting your Google Business Profile won\'t affect your existing reviews. It simply allows you to manage them from Prompt Reviews. Your reviews remain on Google, and we help you respond and track them more efficiently.',
+      plans: ['builder', 'maven']
     }
   ],
 
@@ -133,27 +161,33 @@ export const pageFAQs = {
   'reviews': [
     {
       question: 'How do I track reviews from multiple platforms?',
-      answer: 'Prompt Reviews centralizes reviews from Google, Yelp, Facebook, and other platforms in one dashboard. You can see all reviews, respond to them, and track trends without logging into multiple accounts.'
+      answer: 'Prompt Reviews centralizes reviews from Google, Yelp, Facebook, and other platforms in one dashboard. You can see all reviews, respond to them, and track trends without logging into multiple accounts.',
+      plans: ['grower', 'builder', 'maven']
     },
     {
       question: 'Can I respond to reviews directly from Prompt Reviews?',
-      answer: 'Yes, for connected platforms like Google Business Profile (on Builder and Maven plans), you can respond to reviews directly from your dashboard. For other platforms, we provide quick links to respond on the original platform.'
+      answer: 'Yes, for connected platforms like Google Business Profile (on Builder and Maven plans), you can respond to reviews directly from your dashboard. For other platforms, we provide quick links to respond on the original platform.',
+      plans: ['grower', 'builder', 'maven']
     },
     {
       question: 'How do I handle negative reviews?',
-      answer: 'Respond promptly and professionally to all reviews, especially negative ones. Address concerns constructively, apologize if appropriate, offer to resolve issues offline, and show you value customer feedback. Never argue or get defensive in public responses.'
+      answer: 'Respond promptly and professionally to all reviews, especially negative ones. Address concerns constructively, apologize if appropriate, offer to resolve issues offline, and show you value customer feedback. Never argue or get defensive in public responses.',
+      plans: ['grower', 'builder', 'maven']
     },
     {
       question: 'Can I filter or report fake reviews?',
-      answer: 'While Prompt Reviews can\'t remove reviews from platforms, we help you identify potentially fake reviews through pattern analysis. You can then report these directly to the review platform (Google, Yelp, etc.) with the evidence needed.'
+      answer: 'While Prompt Reviews can\'t remove reviews from platforms, we help you identify potentially fake reviews through pattern analysis. You can then report these directly to the review platform (Google, Yelp, etc.) with the evidence needed.',
+      plans: ['grower', 'builder', 'maven']
     },
     {
       question: 'How often should I check for new reviews?',
-      answer: 'We recommend checking at least weekly, but daily is better for active businesses. Prompt Reviews sends notifications for new reviews so you never miss one. Quick responses show customers you care and can improve your reputation.'
+      answer: 'We recommend checking at least weekly, but daily is better for active businesses. Prompt Reviews sends notifications for new reviews so you never miss one. Quick responses show customers you care and can improve your reputation.',
+      plans: ['grower', 'builder', 'maven']
     },
     {
       question: 'Can I export my review data?',
-      answer: 'Yes, you can export your review data, analytics, and reports at any time. This is useful for presentations, deeper analysis, or backup purposes. Exports are available in CSV format.'
+      answer: 'Yes, you can export your review data, analytics, and reports at any time. This is useful for presentations, deeper analysis, or backup purposes. Exports are available in CSV format.',
+      plans: ['grower', 'builder', 'maven']
     }
   ],
 

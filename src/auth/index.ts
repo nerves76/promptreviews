@@ -16,7 +16,8 @@ export {
   useIsAdmin,
   useAccount,
   useHasBusiness,
-  usePaymentStatus
+  usePaymentStatus,
+  useSubscription
 } from './hooks';
 
 // Types

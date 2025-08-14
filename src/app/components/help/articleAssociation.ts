@@ -138,10 +138,31 @@ export function calculateBehavioralRelevance(
   
   // Recent successful actions get higher scores
   relevantActions.forEach(action => {
-    const hoursAgo = (Date.now() - action.timestamp.getTime()) / (1000 * 60 * 60);
-    if (hoursAgo < 1) score += 30;
-    else if (hoursAgo < 24) score += 20;
-    else if (hoursAgo < 168) score += 10; // 1 week
+    try {
+      // Ensure timestamp is a Date object
+      let timestamp;
+      if (action.timestamp instanceof Date) {
+        timestamp = action.timestamp;
+      } else if (typeof action.timestamp === 'string' || typeof action.timestamp === 'number') {
+        timestamp = new Date(action.timestamp);
+      } else {
+        // Skip invalid timestamp
+        return;
+      }
+      
+      if (!timestamp || isNaN(timestamp.getTime())) {
+        // Skip invalid dates
+        return;
+      }
+      
+      const hoursAgo = (Date.now() - timestamp.getTime()) / (1000 * 60 * 60);
+      if (hoursAgo < 1) score += 30;
+      else if (hoursAgo < 24) score += 20;
+      else if (hoursAgo < 168) score += 10; // 1 week
+    } catch (error) {
+      // Skip this action if timestamp processing fails
+      console.warn('Failed to process timestamp for action:', action, error);
+    }
   });
   
   return Math.min(score, 100);

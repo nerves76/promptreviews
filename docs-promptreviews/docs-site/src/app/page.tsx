@@ -81,6 +81,7 @@ const features = [
     icon: BookOpen,
     color: 'bg-green-500',
     popular: true,
+    plans: ['grower', 'builder', 'maven']
   },
   {
     name: 'Complete FAQ',
@@ -89,6 +90,7 @@ const features = [
     icon: MessageSquare,
     color: 'bg-cyan-500',
     popular: true,
+    plans: ['grower', 'builder', 'maven']
   },
   {
     name: 'Prompt pages',
@@ -97,6 +99,7 @@ const features = [
     icon: Square,
     color: 'bg-blue-500',
     popular: true,
+    plans: ['grower', 'builder', 'maven']
   },
   {
     name: 'Contact management',
@@ -104,6 +107,7 @@ const features = [
     href: '/contacts',
     icon: Users,
     color: 'bg-purple-500',
+    plans: ['builder', 'maven']
   },
   {
     name: 'Review management',
@@ -111,6 +115,7 @@ const features = [
     href: '/reviews',
     icon: Star,
     color: 'bg-yellow-500',
+    plans: ['grower', 'builder', 'maven']
   },
   {
     name: 'Google Business profile',
@@ -119,6 +124,7 @@ const features = [
     icon: Building2,
     color: 'bg-red-500',
     popular: true,
+    plans: ['builder', 'maven']
   },
   {
     name: 'Widgets',
@@ -126,6 +132,7 @@ const features = [
     href: '/widgets',
     icon: Code,
     color: 'bg-indigo-500',
+    plans: ['grower', 'builder', 'maven']
   },
 ]
 
@@ -135,24 +142,28 @@ const quickActions = [
     description: 'Learn how to set up a personalized review request page in under 5 minutes',
     href: '/getting-started/first-prompt-page',
     time: '5 min read',
+    plans: ['grower', 'builder', 'maven']
   },
   {
     title: 'Import Your Contacts',
     description: 'Upload your customer list via CSV and start sending review requests',
     href: '/getting-started/adding-contacts',
     time: '3 min read',
+    plans: ['builder', 'maven']
   },
   {
     title: 'Connect Google Business Profile',
     description: 'Integrate with Google to manage reviews and posts directly from Prompt Reviews',
     href: '/google-business/connecting',
     time: '10 min read',
+    plans: ['builder', 'maven']
   },
   {
     title: 'Set Up Review Widget',
     description: 'Display your best reviews on your website with our embeddable widgets',
     href: '/getting-started/review-widget',
     time: '7 min read',
+    plans: ['grower', 'builder', 'maven']
   },
 ]
 
@@ -249,6 +260,22 @@ export default function HomePage() {
                   {feature.description}
                 </p>
                 
+                {/* Plan Tags */}
+                <div className="flex flex-wrap gap-1 mb-4">
+                  {feature.plans.map((plan) => (
+                    <span
+                      key={plan}
+                      className={`text-xs px-2 py-1 rounded-full font-medium ${
+                        plan === 'grower' ? 'bg-green-500/20 text-green-300' :
+                        plan === 'builder' ? 'bg-purple-500/20 text-purple-300' :
+                        'bg-yellow-500/20 text-yellow-300'
+                      }`}
+                    >
+                      {plan.charAt(0).toUpperCase() + plan.slice(1)}
+                    </span>
+                  ))}
+                </div>
+                
                 <div className="flex items-center text-yellow-300 text-sm font-medium">
                   <span>Learn more</span>
                   <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
@@ -287,6 +314,23 @@ export default function HomePage() {
                     <p className="text-white/80 text-sm mb-3">
                       {action.description}
                     </p>
+                    
+                    {/* Plan Tags */}
+                    <div className="flex flex-wrap gap-1 mb-3">
+                      {action.plans.map((plan) => (
+                        <span
+                          key={plan}
+                          className={`text-xs px-2 py-1 rounded-full font-medium ${
+                            plan === 'grower' ? 'bg-green-500/20 text-green-300' :
+                            plan === 'builder' ? 'bg-purple-500/20 text-purple-300' :
+                            'bg-yellow-500/20 text-yellow-300'
+                          }`}
+                        >
+                          {plan.charAt(0).toUpperCase() + plan.slice(1)}
+                        </span>
+                      ))}
+                    </div>
+                    
                     <div className="flex items-center justify-between">
                       <span className="text-xs text-white/60">{action.time}</span>
                       <ArrowRight className="w-4 h-4 text-yellow-300 group-hover:translate-x-1 transition-transform" />

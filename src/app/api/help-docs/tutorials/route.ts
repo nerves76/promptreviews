@@ -13,7 +13,8 @@ const fallbackTutorials = [
     description: 'Get up and running with Prompt Reviews in 5 minutes',
     url: 'https://docs.promptreviews.app/getting-started',
     category: 'getting-started',
-    tags: ['getting-started', 'setup', 'overview', 'dashboard']
+    tags: ['getting-started', 'setup', 'overview', 'dashboard'],
+    plans: ['grower', 'builder', 'maven', 'enterprise']
   },
   {
     id: 'pp-1',
@@ -21,7 +22,8 @@ const fallbackTutorials = [
     description: 'Step-by-step guide to creating effective prompt pages',
     url: 'https://docs.promptreviews.app/prompt-pages/create',
     category: 'prompt-pages',
-    tags: ['prompt-pages', 'create', 'setup', 'new']
+    tags: ['prompt-pages', 'create', 'setup', 'new'],
+    plans: ['grower', 'builder', 'maven', 'enterprise']
   },
   {
     id: 'c-1',
@@ -29,7 +31,8 @@ const fallbackTutorials = [
     description: 'Organize and manage your customer contacts effectively',
     url: 'https://docs.promptreviews.app/contacts/management',
     category: 'contacts',
-    tags: ['contacts', 'manage', 'organize', 'customers']
+    tags: ['contacts', 'manage', 'organize', 'customers'],
+    plans: ['builder', 'maven', 'enterprise'] // Builder+ only
   }
 ];
 
@@ -100,16 +103,30 @@ function filterAndRankTutorials(tutorials: any[], context: string[]) {
         }
       });
       
-      return { ...tutorial, relevanceScore: Math.min(score, 100) };
+      // Give a baseline score to ensure we always show some tutorials
+      const finalScore = score > 0 ? score : 10;
+      return { ...tutorial, relevanceScore: Math.min(finalScore, 100) };
     })
-    .filter(tutorial => tutorial.relevanceScore > 0)
     .sort((a, b) => (b.relevanceScore || 0) - (a.relevanceScore || 0))
     .slice(0, 6);
 }
 
+/**
+ * Filter tutorials based on user's plan
+ */
+function filterTutorialsByPlan(tutorials: any[], userPlan: string = 'grower') {
+  return tutorials.filter(tutorial => {
+    // If no plans specified, available to all
+    if (!tutorial.plans || tutorial.plans.length === 0) return true;
+    
+    // Check if user's plan is in the tutorial's allowed plans
+    return tutorial.plans.includes(userPlan);
+  });
+}
+
 export async function POST(req: NextRequest) {
   try {
-    const { context, pathname } = await req.json();
+    const { context, pathname, userPlan } = await req.json();
 
     // Try to fetch from docs site first
     const docsTutorials = await fetchDocsTutorials(context, pathname);
@@ -124,11 +141,15 @@ export async function POST(req: NextRequest) {
       tutorials = filterAndRankTutorials(fallbackTutorials, context);
     }
 
-    // If no relevant tutorials found, return general getting started
+    // Filter by user's plan
+    tutorials = filterTutorialsByPlan(tutorials, userPlan);
+
+    // If no relevant tutorials found, return general getting started that match plan
     if (tutorials.length === 0) {
-      tutorials = fallbackTutorials
+      const gettingStartedTutorials = fallbackTutorials
         .filter(t => t.category === 'getting-started')
         .map(t => ({ ...t, relevanceScore: 50 }));
+      tutorials = filterTutorialsByPlan(gettingStartedTutorials, userPlan);
     }
 
     return NextResponse.json({ 
@@ -155,13 +176,15 @@ export async function POST(req: NextRequest) {
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const category = searchParams.get('category');
+  const userPlan = searchParams.get('userPlan') || 'grower';
 
   if (category) {
-    const categoryTutorials = allTutorials.filter(t => t.category === category);
-    return NextResponse.json({ tutorials: categoryTutorials });
+    const categoryTutorials = fallbackTutorials.filter(t => t.category === category);
+    const planFilteredTutorials = filterTutorialsByPlan(categoryTutorials, userPlan);
+    return NextResponse.json({ tutorials: planFilteredTutorials });
   }
 
-  // Return all categories
-  const categories = [...new Set(allTutorials.map(t => t.category))];
-  return NextResponse.json({ categories, total: allTutorials.length });
+  // Return all categories from fallback tutorials
+  const categories = [...new Set(fallbackTutorials.map(t => t.category))];
+  return NextResponse.json({ categories, total: fallbackTutorials.length });
 }

@@ -270,6 +270,16 @@ export default function TroubleshootingPage() {
           description="Running into issues? Don't worry—most problems have simple solutions. Find quick fixes for common issues and get back to collecting great reviews."
         />
 
+        {/* Plan Indicator */}
+        <div className="mb-6">
+          <div className="flex flex-wrap gap-2">
+            <span className="text-sm text-white/60">Available on:</span>
+            <span className="bg-green-500/20 text-green-300 text-xs px-2 py-1 rounded-full font-medium">Grower</span>
+            <span className="bg-purple-500/20 text-purple-300 text-xs px-2 py-1 rounded-full font-medium">Builder</span>
+            <span className="bg-yellow-500/20 text-yellow-300 text-xs px-2 py-1 rounded-full font-medium">Maven</span>
+          </div>
+        </div>
+
         <div className="max-w-4xl mx-auto mb-8">
           <div className="flex items-center space-x-6 text-sm text-white/70">
             <div className="flex items-center space-x-2">
