@@ -5,7 +5,7 @@
 
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { createClient } from '@/auth/providers/supabase';
 import { 
   UserAccount, 
@@ -177,10 +177,12 @@ export function useAccountSelection() {
     window.location.reload();
   };
 
-  // Get current selected account details
-  const selectedAccount = state.selectedAccountId 
-    ? state.availableAccounts.find(acc => acc.account_id === state.selectedAccountId)
-    : null;
+  // Get current selected account details (memoized to prevent unnecessary re-renders)
+  const selectedAccount = useMemo(() => {
+    return state.selectedAccountId 
+      ? state.availableAccounts.find(acc => acc.account_id === state.selectedAccountId)
+      : null;
+  }, [state.selectedAccountId, state.availableAccounts]);
 
   return {
     ...state,

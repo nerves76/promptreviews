@@ -404,7 +404,7 @@ export default function BusinessProfilePage() {
     };
 
     loadBusinessProfile();
-  }, [router, supabase, selectedAccount, accountLoading]);
+  }, [router, supabase, selectedAccount?.account_id, accountLoading]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
