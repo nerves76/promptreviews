@@ -430,12 +430,13 @@ export async function getAccountIdForUser(userId: string, supabaseClient?: any):
         console.log('🎯 User has manually selected account:', selectedAccountId);
       }
       // Validate that this account still exists and user has access
-      const { data: accountValidation, error: validationError } = await client
+      // Note: We only filter by user_id due to RLS policies
+      const { data: userAccounts, error: validationError } = await client
         .from("account_users")
         .select("account_id, role")
-        .eq("user_id", userId)
-        .eq("account_id", selectedAccountId)
-        .single();
+        .eq("user_id", userId);
+      
+      const accountValidation = userAccounts?.find((ua: any) => ua.account_id === selectedAccountId);
       
       if (!validationError && accountValidation) {
         return selectedAccountId;

@@ -179,12 +179,13 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
     setAccountLoading(true);
     try {
       // Verify user has access to this account
-      const { data: accountUser, error: verifyError } = await supabase
+      // Note: Only filter by user_id due to RLS policies
+      const { data: userAccounts, error: verifyError } = await supabase
         .from('account_users')
-        .select('role')
-        .eq('account_id', newAccountId)
-        .eq('user_id', user.id)
-        .single();
+        .select('account_id, role')
+        .eq('user_id', user.id);
+      
+      const accountUser = userAccounts?.find((ua: any) => ua.account_id === newAccountId);
 
       if (verifyError || !accountUser) {
         throw new Error('You do not have access to this account');
