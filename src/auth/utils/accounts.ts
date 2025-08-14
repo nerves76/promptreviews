@@ -34,7 +34,6 @@ export interface Account {
   has_had_paid_plan?: boolean;
   is_free_account?: boolean;
   free_plan_level?: string; // 'grower', 'builder', 'maven', etc.
-  email?: string;
   // Business relation
   businesses?: any[];
 }
