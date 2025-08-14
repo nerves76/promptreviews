@@ -130,7 +130,7 @@ export function useBusinessProfile() {
       }
 
       // Get the currently selected account (respects account switching)
-      const { getAccountIdForUser } = await import('./accountUtils');
+      const { getAccountIdForUser } = await import('@/auth/utils/accounts');
       const accountId = await getAccountIdForUser(user.id);
 
       if (accountId) {

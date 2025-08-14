@@ -64,7 +64,15 @@ const BUSINESS_CACHE_DURATION = 2 * 60 * 1000; // 2 minutes
 
 export function BusinessProvider({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useCoreAuth();
-  const { accountId, account } = useAccount();
+  const accountContext = useAccount();
+  const { accountId, account } = accountContext;
+  
+  // Debug log to verify we're getting the account context
+  console.log('🔍 BusinessProvider: Account context:', { 
+    accountId: accountContext.accountId, 
+    account: accountContext.account?.id,
+    hasAccountContext: !!accountContext 
+  });
   
   // Business state
   const [business, setBusiness] = useState<Business | null>(null);
@@ -267,11 +275,15 @@ export function BusinessProvider({ children }: { children: React.ReactNode }) {
 
   // Initialize business on account change
   useEffect(() => {
-    console.log('🔄 BusinessContext: Account changed to:', accountId);
+    console.log('🔄 BusinessContext: Account changed to:', accountId, 'account object:', account?.id);
     if (accountId) {
       console.log('📦 BusinessContext: Loading business for new account:', accountId);
-      loadBusiness();
-      loadBusinesses();
+      // Small delay to ensure account data is fully loaded
+      const timer = setTimeout(() => {
+        loadBusiness();
+        loadBusinesses();
+      }, 100);
+      return () => clearTimeout(timer);
     } else {
       console.log('📦 BusinessContext: No account ID, clearing business data');
       setBusiness(null);

@@ -111,7 +111,9 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
   }, [user?.id]);
 
   // Load current account
-  const loadAccount = useCallback(async () => {
+  const loadAccount = useCallback(async (overrideAccountId?: string) => {
+    const targetAccountId = overrideAccountId || accountId;
+    
     if (!user?.id) {
       setAccount(null);
       setAccountId(null);
@@ -119,7 +121,7 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
     }
 
     // Check cache
-    if (accountCache.current && accountId === accountCache.current.data?.id) {
+    if (accountCache.current && targetAccountId === accountCache.current.data?.id) {
       const cacheAge = Date.now() - accountCache.current.timestamp;
       if (cacheAge < ACCOUNT_CACHE_DURATION) {
         setAccount(accountCache.current.data);
@@ -131,7 +133,7 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
     setAccountLoading(true);
     try {
       // Get account ID if not set
-      let currentAccountId = accountId;
+      let currentAccountId = targetAccountId;
       if (!currentAccountId) {
         currentAccountId = await getAccountIdForUser(user.id);
         setAccountId(currentAccountId);
@@ -142,6 +144,8 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
         setAccount(null);
         return;
       }
+
+      console.log('📊 AccountContext: Loading account data for:', currentAccountId);
 
       // Fetch account data
       const { data, error } = await supabase
@@ -156,6 +160,7 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
+      console.log('✅ AccountContext: Account data loaded:', data?.business_name || data?.id);
       setAccount(data);
       
       // Update cache
@@ -221,28 +226,29 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
 
   // Initialize account on auth change
   useEffect(() => {
+    console.log('🔄 AccountContext: Auth state changed, isAuthenticated:', isAuthenticated, 'userId:', user?.id);
     if (isAuthenticated && user?.id) {
-      // Load accounts first
-      loadAccounts().then(() => {
-        // Check for stored account preference
-        if (typeof window !== 'undefined') {
-          const storedAccountId = localStorage.getItem('selected_account_id');
-          if (storedAccountId && accounts.some(a => a.id === storedAccountId)) {
-            setSelectedAccountId(storedAccountId);
-            setAccountId(storedAccountId);
-          } else if (accounts.length > 0) {
-            // Select best account
-            const bestAccount = selectBestAccount(accounts as any[]);
-            if (bestAccount) {
-              setAccountId(bestAccount.account_id);
-            }
-          }
+      // First, get the account ID synchronously
+      getAccountIdForUser(user.id).then((fetchedAccountId) => {
+        console.log('🎯 AccountContext: Got account ID:', fetchedAccountId);
+        if (fetchedAccountId) {
+          console.log('📊 AccountContext: Setting account ID state to:', fetchedAccountId);
+          setAccountId(fetchedAccountId);
+          setSelectedAccountId(fetchedAccountId);
+          
+          // Now load the full account data with the specific ID
+          loadAccount(fetchedAccountId);
+        } else {
+          console.warn('⚠️ AccountContext: No account ID returned for user:', user.id);
         }
         
-        // Load current account
-        loadAccount();
+        // Load all accounts in parallel (for account switcher)
+        loadAccounts();
+      }).catch(error => {
+        console.error('❌ AccountContext: Error getting account ID:', error);
       });
     } else {
+      console.log('🔄 AccountContext: Not authenticated, clearing account data');
       // Clear account data when not authenticated
       setAccount(null);
       setAccountId(null);
