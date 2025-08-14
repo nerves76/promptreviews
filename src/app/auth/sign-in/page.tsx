@@ -102,27 +102,11 @@ export default function SignIn() {
         } else if (errorMessage.includes('Rate limit exceeded')) {
           errorMessage = "Too many sign-in attempts. Please wait a moment and try again.";
         } else if (errorMessage.includes('Database error granting user')) {
-          // This is a known issue with auth triggers - try to create account manually
-          console.warn("⚠️ Database trigger error detected, attempting manual account creation...");
-          errorMessage = "Authentication system is being updated. Please try again in a moment or contact support if the issue persists.";
+          // Stop infinite retry - just show error
+          console.error("⚠️ Database error detected - this is a Supabase auth system issue");
+          errorMessage = "Authentication system error. This appears to be a Supabase configuration issue. Please contact support.";
           
-          // Try to create account manually via API
-          try {
-            const response = await fetch('/api/auth/fix-account', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ email: formData.email })
-            });
-            
-            if (response.ok) {
-              // Retry sign in after account fix
-              console.log("🔄 Account fix attempted, retrying sign in...");
-              setTimeout(() => handleSubmit(e), 1000);
-              return;
-            }
-          } catch (fixError) {
-            console.error("Failed to fix account:", fixError);
-          }
+          // Don't retry - it will create an infinite loop
         }
         
         setError(errorMessage);
