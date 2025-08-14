@@ -69,7 +69,9 @@ export default function BusinessProfilePage() {
   const supabase = createClient();
   const { selectedAccount, loading: accountLoading, availableAccounts } = useAccountSelection();
   
-
+  // Track if we've loaded at least once to prevent showing loading state on refreshes
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   useAuthGuard();
   const { user } = useAuth();
@@ -218,6 +220,12 @@ export default function BusinessProfilePage() {
         // Wait for account selection to complete
         if (accountLoading || !selectedAccount) {
           console.log('Waiting for account selection to complete...');
+          return;
+        }
+
+        // Skip if we've already loaded and this is just a refresh
+        if (hasLoadedOnce && !isInitialLoad && loading === false) {
+          console.log('Skipping business profile reload during auth refresh...');
           return;
         }
 
@@ -384,10 +392,14 @@ export default function BusinessProfilePage() {
         }
 
         setLoading(false);
+        setHasLoadedOnce(true);
+        setIsInitialLoad(false);
       } catch (error) {
         console.error("Error loading business profile:", error);
         setError("Failed to load business profile");
         setLoading(false);
+        setHasLoadedOnce(true);
+        setIsInitialLoad(false);
       }
     };
 
@@ -821,7 +833,8 @@ export default function BusinessProfilePage() {
     }
   };
 
-  if (loading || accountLoading) {
+  // Only show loading state on initial load, not on refreshes
+  if ((loading || accountLoading) && isInitialLoad) {
     return (
       <PageCard icon={<Icon name="FaStore" className="w-9 h-9 text-slate-blue" size={36} />}>
         <div className="min-h-[400px] flex flex-col items-center justify-center">
@@ -850,6 +863,13 @@ export default function BusinessProfilePage() {
 
   return (
     <PageCard icon={<Icon name="FaStore" className="w-9 h-9 text-slate-blue" size={36} />}>
+      {/* Small refresh indicator when auth is refreshing in background */}
+      {accountLoading && hasLoadedOnce && (
+        <div className="absolute top-4 right-4 z-10">
+          <div className="w-4 h-4 bg-blue-500 rounded-full animate-pulse"></div>
+        </div>
+      )}
+      
       <div className="flex items-start justify-between mt-2 mb-4">
         <div className="flex flex-col mt-0 md:mt-[3px]">
           <h1 className="text-4xl font-bold text-slate-blue mt-0 mb-2">
