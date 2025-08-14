@@ -446,6 +446,13 @@ export async function getAccountIdForUser(userId: string, supabaseClient?: any):
       .select("account_id, role")
       .eq("user_id", userId)
       .order("role", { ascending: true });
+    
+    // Log the query result for debugging multi-account issues
+    if (accountUserError) {
+      console.error('❌ Error fetching account_users:', accountUserError);
+    } else if (!accountUsers || accountUsers.length === 0) {
+      console.log('⚠️ No account_users records found for user:', userId);
+    }
 
     if (accountUsers && accountUsers.length > 0) {
       // For multi-account users, we need to fetch account details separately
