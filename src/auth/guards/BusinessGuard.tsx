@@ -16,7 +16,9 @@ function BusinessGuard({ children }: BusinessGuardProps) {
     hasBusiness, 
     isLoading, 
     businessLoading,
-    accountLoading 
+    accountLoading,
+    account,
+    user
   } = useAuth();
 
   useEffect(() => {
@@ -169,53 +171,71 @@ function BusinessGuard({ children }: BusinessGuardProps) {
       return;
     }
 
-    // If authenticated user doesn't have a business, redirect to create-business
-    // But add a delay to prevent redirects during session refresh or temporary auth issues
-    if (!hasBusiness && pathname !== '/dashboard/create-business') {
-      console.log('🔄 BusinessGuard: No business found, checking if redirect needed', {
-        isAuthenticated,
+    // Business creation redirect should ONLY happen for:
+    // 1. Account owners (not team members)
+    // 2. Who don't have a business yet
+    // 3. On their first login (detected by checking if account was created recently)
+    
+    // Team members and support users should NEVER be redirected to create-business
+    // They should use the dashboard normally even without a business
+    
+    if (!hasBusiness && pathname !== '/dashboard/create-business' && account) {
+      // Check if user is the owner of this account
+      const isAccountOwner = account.id === user?.id; // In this system, account ID equals user ID for owners
+      
+      // Check if this is a recently created account (within last 5 minutes)
+      const accountCreatedAt = account.created_at ? new Date(account.created_at) : null;
+      const isRecentlyCreated = accountCreatedAt ? 
+        (Date.now() - accountCreatedAt.getTime()) < 5 * 60 * 1000 : false;
+      
+      console.log('🔍 BusinessGuard: Checking business requirements', {
         hasBusiness,
-        isLoading,
-        businessLoading,
-        accountLoading,
+        isAccountOwner,
+        isRecentlyCreated,
+        accountId: account.id,
+        userId: user?.id,
+        accountCreatedAt: account.created_at,
         pathname,
         timestamp: new Date().toISOString()
       });
       
-      // Add a delay to allow auth state to stabilize after tab switching
-      // This prevents redirects during session refresh or temporary auth issues
-      const timeoutId = setTimeout(() => {
-        // IMPORTANT: Re-check ALL states including loading flags after delay
-        // This prevents redirecting users who DO have a business but data is still loading
-        if (isAuthenticated && !hasBusiness && !isLoading && !businessLoading && !accountLoading && pathname !== '/dashboard/create-business') {
-          console.log('🔄 BusinessGuard: Confirmed no business after delay (not loading), redirecting', {
-            pathname,
-            isLoading,
-            businessLoading,
-            accountLoading,
-            timestamp: new Date().toISOString()
-          });
-          router.push("/dashboard/create-business");
-        } else if (isLoading || businessLoading || accountLoading) {
-          console.log('⏳ BusinessGuard: Still loading after delay, NOT redirecting', {
-            isLoading,
-            businessLoading,
-            accountLoading,
-            timestamp: new Date().toISOString()
-          });
-        } else if (hasBusiness) {
-          console.log('✅ BusinessGuard: Business found after delay, NOT redirecting', {
-            hasBusiness,
-            timestamp: new Date().toISOString()
-          });
-        }
-      }, 3000); // Increased to 3 seconds for better stability
-      
-      // Clean up timeout if component unmounts or deps change
-      return () => clearTimeout(timeoutId);
+      // Only redirect if user is the account owner AND account was recently created
+      if (isAccountOwner && isRecentlyCreated) {
+        console.log('🔄 BusinessGuard: New account owner without business, will redirect after delay', {
+          pathname,
+          timestamp: new Date().toISOString()
+        });
+        
+        // Add a delay to allow state to stabilize
+        const timeoutId = setTimeout(() => {
+          // Re-check states after delay
+          if (isAuthenticated && !hasBusiness && !isLoading && !businessLoading && !accountLoading && 
+              pathname !== '/dashboard/create-business' && isAccountOwner && isRecentlyCreated) {
+            console.log('🔄 BusinessGuard: Redirecting new account owner to create-business', {
+              pathname,
+              timestamp: new Date().toISOString()
+            });
+            router.push("/dashboard/create-business");
+          }
+        }, 2000); // 2 seconds to allow state to stabilize
+        
+        // Clean up timeout if component unmounts or deps change
+        return () => clearTimeout(timeoutId);
+      } else if (!isAccountOwner) {
+        console.log('ℹ️ BusinessGuard: User is a team member, no business required', {
+          accountId: account.id,
+          userId: user?.id,
+          timestamp: new Date().toISOString()
+        });
+      } else if (!isRecentlyCreated) {
+        console.log('ℹ️ BusinessGuard: Not a new account, allowing access without business', {
+          accountCreatedAt: account.created_at,
+          timestamp: new Date().toISOString()
+        });
+      }
     }
 
-  }, [isAuthenticated, hasBusiness, isLoading, businessLoading, accountLoading, pathname, router]);
+  }, [isAuthenticated, hasBusiness, isLoading, businessLoading, accountLoading, pathname, router, account, user]);
 
   return <>{children}</>;
 }
