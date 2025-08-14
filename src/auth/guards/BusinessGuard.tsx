@@ -201,8 +201,13 @@ function BusinessGuard({ children }: BusinessGuardProps) {
             accountLoading,
             timestamp: new Date().toISOString()
           });
+        } else if (hasBusiness) {
+          console.log('✅ BusinessGuard: Business found after delay, NOT redirecting', {
+            hasBusiness,
+            timestamp: new Date().toISOString()
+          });
         }
-      }, 2000); // Increased to 2 seconds for better stability
+      }, 3000); // Increased to 3 seconds for better stability
       
       // Clean up timeout if component unmounts or deps change
       return () => clearTimeout(timeoutId);
