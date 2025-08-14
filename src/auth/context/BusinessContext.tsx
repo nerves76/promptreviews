@@ -92,7 +92,10 @@ export function BusinessProvider({ children }: { children: React.ReactNode }) {
 
   // Computed states
   const hasBusiness = !!business;
-  const requiresBusinessProfile = isAuthenticated && !hasBusiness && account?.plan !== 'no_plan';
+  // Only require business profile for free accounts or new accounts without any plan
+  // Paid accounts can operate without a business (they might be team members or in transition)
+  const isPaidAccount = account?.plan && !['free', 'no_plan', null, undefined].includes(account.plan);
+  const requiresBusinessProfile = isAuthenticated && !hasBusiness && !isPaidAccount;
 
   // Clear business cache
   const clearBusinessCache = useCallback(() => {
@@ -132,13 +135,19 @@ export function BusinessProvider({ children }: { children: React.ReactNode }) {
 
       if (error) {
         console.error('Failed to load business:', error);
-        console.error('Error details:', {
+        console.error('Error details:', JSON.stringify({
           code: error.code,
           message: error.message,
           details: error.details,
           hint: error.hint,
           accountId
-        });
+        }, null, 2));
+        
+        // If it's an RLS error, we might not have access - treat as no business
+        if (error.code === '42501' || error.message?.includes('RLS')) {
+          console.log('📭 RLS policy prevented business fetch - treating as no business for account:', accountId);
+        }
+        
         setBusiness(null);
         return;
       }
