@@ -276,7 +276,7 @@ function SignUpContent() {
       <>
         <SimpleMarketingNav />
         <div className="min-h-screen flex flex-col justify-center items-center bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600">
-          <div className="p-8 rounded shadow text-center bg-white max-w-md w-full">
+          <div className="p-8 rounded-2xl shadow-2xl text-center bg-white/90 backdrop-blur-sm border-2 border-white max-w-md w-full">
             <h2 className="text-2xl font-bold mb-4 text-[#1A237E]">
               {invitationToken ? 'Almost there! Check your email 📧' : message}
             </h2>
@@ -373,7 +373,7 @@ function SignUpContent() {
         
         <form
           onSubmit={handleSubmit}
-          className="mt-8 p-8 rounded shadow w-full max-w-md space-y-6 bg-white"
+          className="mt-8 p-8 rounded-2xl shadow-2xl w-full max-w-md space-y-6 bg-white/90 backdrop-blur-sm border-2 border-white"
         >
           <div>
             <label className="block font-medium mb-1">First name</label>
@@ -533,7 +533,7 @@ export default function SignUpPage() {
       <>
         <SimpleMarketingNav />
         <div className="min-h-screen flex flex-col justify-center items-center bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600">
-          <div className="p-8 rounded shadow text-center bg-white max-w-md w-full">
+                      <div className="p-8 rounded-2xl shadow-2xl text-center bg-white/90 backdrop-blur-sm border-2 border-white max-w-md w-full">
             <div className="animate-pulse">
               <div className="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
               <div className="h-4 bg-gray-200 rounded w-1/2 mb-4"></div>

@@ -229,7 +229,7 @@ export default function SignIn() {
           </p>
         </div>
 
-        <div className="mt-8 p-8 rounded shadow w-full max-w-md space-y-6 bg-white">
+        <div className="mt-8 p-8 rounded-2xl shadow-2xl w-full max-w-md space-y-6 bg-white/90 backdrop-blur-sm border-2 border-white">
           {error && (
             <div className="text-red-600 text-sm">
               {error}

@@ -126,7 +126,7 @@ function TeamAcceptContent() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600 flex items-center justify-center">
-        <div className="max-w-md w-full bg-white rounded-lg shadow-md p-8">
+        <div className="max-w-md w-full bg-white/90 backdrop-blur-sm rounded-2xl shadow-2xl p-8 border-2 border-white">
           <div className="animate-pulse">
             <div className="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
             <div className="h-4 bg-gray-200 rounded w-1/2 mb-4"></div>
@@ -140,7 +140,7 @@ function TeamAcceptContent() {
   if (error) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600 flex items-center justify-center">
-        <div className="max-w-md w-full bg-white rounded-lg shadow-md p-8 text-center">
+        <div className="max-w-md w-full bg-white/90 backdrop-blur-sm rounded-2xl shadow-2xl p-8 text-center border-2 border-white">
           <XCircleIcon className="w-16 h-16 text-red-500 mx-auto mb-4" />
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Invalid invitation</h1>
           <p className="text-gray-600 mb-6">{error}</p>
@@ -158,7 +158,7 @@ function TeamAcceptContent() {
   if (emailMismatch) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600 flex items-center justify-center">
-        <div className="max-w-md w-full bg-white rounded-lg shadow-md p-8 text-center">
+        <div className="max-w-md w-full bg-white/90 backdrop-blur-sm rounded-2xl shadow-2xl p-8 text-center border-2 border-white">
           <ExclamationTriangleIcon className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Different account detected</h1>
           <p className="text-gray-600 mb-4">
@@ -190,7 +190,7 @@ function TeamAcceptContent() {
   if (isExpired) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600 flex items-center justify-center">
-        <div className="max-w-md w-full bg-white rounded-lg shadow-md p-8 text-center">
+        <div className="max-w-md w-full bg-white/90 backdrop-blur-sm rounded-2xl shadow-2xl p-8 text-center border-2 border-white">
           <ExclamationTriangleIcon className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Invitation expired</h1>
           <p className="text-gray-600 mb-6">
@@ -210,7 +210,7 @@ function TeamAcceptContent() {
   if (success) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600 flex items-center justify-center">
-        <div className="max-w-md w-full bg-white rounded-lg shadow-md p-8 text-center">
+        <div className="max-w-md w-full bg-white/90 backdrop-blur-sm rounded-2xl shadow-2xl p-8 text-center border-2 border-white">
           <div className="mb-6">
             <img 
               src="/images/prompty-catching-stars.png" 
@@ -251,7 +251,7 @@ function TeamAcceptContent() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600 flex items-center justify-center">
-      <div className="max-w-md w-full bg-white rounded-lg shadow-md p-8">
+      <div className="max-w-md w-full bg-white/90 backdrop-blur-sm rounded-2xl shadow-2xl p-8 border-2 border-white">
         <div className="text-center mb-6">
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Team invitation</h1>
           <p className="text-gray-600">
