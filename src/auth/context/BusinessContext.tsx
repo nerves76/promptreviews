@@ -90,7 +90,9 @@ export function BusinessProvider({ children }: { children: React.ReactNode }) {
 
   // Load business for current account
   const loadBusiness = useCallback(async () => {
+    console.log('🏢 loadBusiness called with accountId:', accountId);
     if (!accountId) {
+      console.log('🏢 No accountId, clearing business');
       setBusiness(null);
       return;
     }
@@ -265,10 +267,13 @@ export function BusinessProvider({ children }: { children: React.ReactNode }) {
 
   // Initialize business on account change
   useEffect(() => {
+    console.log('🔄 BusinessContext: Account changed to:', accountId);
     if (accountId) {
+      console.log('📦 BusinessContext: Loading business for new account:', accountId);
       loadBusiness();
       loadBusinesses();
     } else {
+      console.log('📦 BusinessContext: No account ID, clearing business data');
       setBusiness(null);
       setBusinesses([]);
       clearBusinessCache();
