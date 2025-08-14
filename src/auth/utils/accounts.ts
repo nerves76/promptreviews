@@ -508,6 +508,12 @@ export async function getAccountIdForUser(userId: string, supabaseClient?: any):
         account: accountMap.get(au.account_id)
       }));
       
+      console.log('📋 Account selection data:', accountUsersWithData.map((au: any) => ({
+        account_id: au.account_id,
+        role: au.role,
+        plan: au.account?.plan || 'NO_ACCOUNT_DATA'
+      })));
+      
       // PRIORITY 1: Owned accounts with plans (prefer your own accounts)
       const ownedAccount = accountUsersWithData.find((au: any) => 
         au.role === 'owner' && 
@@ -516,6 +522,7 @@ export async function getAccountIdForUser(userId: string, supabaseClient?: any):
       );
       
       if (ownedAccount) {
+        console.log('✅ Selected owned account with plan:', ownedAccount.account_id);
         return ownedAccount.account_id;
       }
       
@@ -544,7 +551,8 @@ export async function getAccountIdForUser(userId: string, supabaseClient?: any):
         return anyTeamAccount.account_id;
       }
       
-      // PRIORITY 4: Fallback to first account
+      // PRIORITY 5: Fallback to first account
+      console.log('⚠️ No suitable account found, falling back to first account:', accountUsers[0].account_id);
       return accountUsers[0].account_id;
     }
 
