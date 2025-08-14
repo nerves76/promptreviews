@@ -58,27 +58,36 @@ export async function getUserAccounts(
   supabase: SupabaseClient,
   userId: string
 ): Promise<Account[]> {
-  const { data, error } = await supabase
+  // First get the account IDs the user has access to
+  const { data: accountUsers, error: accountUsersError } = await supabase
     .from('account_users')
-    .select(`
-      account_id,
-      accounts (
-        id,
-        business_name,
-        first_name,
-        last_name,
-        email,
-        created_at
-      )
-    `)
+    .select('account_id')
     .eq('user_id', userId);
 
-  if (error) {
-    console.error('Error fetching user accounts:', error);
-    throw error;
+  if (accountUsersError) {
+    console.error('Error fetching account_users:', accountUsersError);
+    throw accountUsersError;
   }
 
-  return data?.map(item => item.accounts).filter(Boolean).flat() || [];
+  if (!accountUsers || accountUsers.length === 0) {
+    return [];
+  }
+
+  // Extract account IDs
+  const accountIds = accountUsers.map(au => au.account_id);
+
+  // Now fetch the account details
+  const { data: accounts, error: accountsError } = await supabase
+    .from('accounts')
+    .select('id, business_name, first_name, last_name, email, created_at')
+    .in('id', accountIds);
+
+  if (accountsError) {
+    console.error('Error fetching accounts:', accountsError);
+    throw accountsError;
+  }
+
+  return accounts || [];
 }
 
 /**
