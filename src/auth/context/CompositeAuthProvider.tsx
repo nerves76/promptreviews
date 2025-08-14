@@ -13,6 +13,7 @@ import { AccountProvider, useAccount } from './AccountContext';
 import { BusinessProvider, useBusiness } from './BusinessContext';
 import { AdminProvider, useAdmin } from './AdminContext';
 import { SubscriptionProvider, useSubscription } from './SubscriptionContext';
+import { SharedAccountProvider } from './SharedAccountState';
 
 interface CompositeAuthProviderProps {
   children: React.ReactNode;
@@ -21,23 +22,26 @@ interface CompositeAuthProviderProps {
 /**
  * The order of providers matters:
  * 1. CoreAuthProvider - Base authentication (user, session)
- * 2. AccountProvider - Depends on CoreAuth for user
- * 3. BusinessProvider - Depends on Account for accountId
- * 4. AdminProvider - Depends on both CoreAuth and Account
- * 5. SubscriptionProvider - Depends on Account for subscription data
+ * 2. SharedAccountProvider - Manages shared account ID state
+ * 3. AccountProvider - Depends on CoreAuth for user and SharedAccount for state
+ * 4. BusinessProvider - Depends on SharedAccount for accountId
+ * 5. AdminProvider - Depends on both CoreAuth and Account
+ * 6. SubscriptionProvider - Depends on Account for subscription data
  */
 export function CompositeAuthProvider({ children }: CompositeAuthProviderProps) {
   return (
     <CoreAuthProvider>
-      <AccountProvider>
-        <BusinessProvider>
-          <AdminProvider>
-            <SubscriptionProvider>
-              {children}
-            </SubscriptionProvider>
-          </AdminProvider>
-        </BusinessProvider>
-      </AccountProvider>
+      <SharedAccountProvider>
+        <AccountProvider>
+          <BusinessProvider>
+            <AdminProvider>
+              <SubscriptionProvider>
+                {children}
+              </SubscriptionProvider>
+            </AdminProvider>
+          </BusinessProvider>
+        </AccountProvider>
+      </SharedAccountProvider>
     </CoreAuthProvider>
   );
 }

@@ -13,6 +13,7 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
 import { useCoreAuth } from './CoreAuthContext';
 import { useAccount } from './AccountContext';
+import { useSharedAccount } from './SharedAccountState';
 import { createClient } from '../providers/supabase';
 
 const supabase = createClient();
@@ -65,11 +66,15 @@ const BUSINESS_CACHE_DURATION = 2 * 60 * 1000; // 2 minutes
 export function BusinessProvider({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useCoreAuth();
   const accountContext = useAccount();
-  const { accountId, account } = accountContext;
+  const sharedAccount = useSharedAccount();
+  // Use shared account ID to ensure we get updates
+  const accountId = sharedAccount.accountId;
+  const { account } = accountContext;
   
   // Debug log to verify we're getting the account context
   console.log('🔍 BusinessProvider: Account context:', { 
-    accountId: accountContext.accountId, 
+    sharedAccountId: sharedAccount.accountId,
+    contextAccountId: accountContext.accountId, 
     account: accountContext.account?.id,
     hasAccountContext: !!accountContext 
   });
@@ -276,6 +281,13 @@ export function BusinessProvider({ children }: { children: React.ReactNode }) {
   // Initialize business on account change
   useEffect(() => {
     console.log('🔄 BusinessContext: Account changed to:', accountId, 'account object:', account?.id);
+    console.log('🔍 BusinessContext: Full account context state:', {
+      accountId: accountContext.accountId,
+      hasAccount: !!accountContext.account,
+      accountLoading: accountContext.accountLoading,
+      selectedAccountId: accountContext.selectedAccountId
+    });
+    
     if (accountId) {
       console.log('📦 BusinessContext: Loading business for new account:', accountId);
       // Small delay to ensure account data is fully loaded
@@ -290,7 +302,7 @@ export function BusinessProvider({ children }: { children: React.ReactNode }) {
       setBusinesses([]);
       clearBusinessCache();
     }
-  }, [accountId]);
+  }, [accountId, accountContext.accountId]);
 
   // Auto-refresh business data periodically
   useEffect(() => {

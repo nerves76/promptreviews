@@ -9,6 +9,9 @@ import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { createClient, getUserOrMock } from "../providers/supabase";
 import { getUserSelectedAccountId } from './accountSelection';
 
+// Request deduplication map to prevent multiple simultaneous calls
+const pendingRequests = new Map<string, Promise<string | null>>();
+
 export interface AccountUser {
   account_id: string;
   user_id: string;
@@ -403,6 +406,30 @@ export async function ensureAccountExists(
  * @returns Promise<string | null> - The account ID or null if not found
  */
 export async function getAccountIdForUser(userId: string, supabaseClient?: any): Promise<string | null> {
+  // Check if there's already a pending request for this user
+  const requestKey = `${userId}-${supabaseClient ? 'custom' : 'default'}`;
+  if (pendingRequests.has(requestKey)) {
+    console.log('🔄 Reusing pending request for user:', userId);
+    return pendingRequests.get(requestKey)!;
+  }
+
+  // Create the promise and store it
+  const promise = _getAccountIdForUserInternal(userId, supabaseClient);
+  pendingRequests.set(requestKey, promise);
+
+  try {
+    const result = await promise;
+    return result;
+  } finally {
+    // Clean up the pending request
+    pendingRequests.delete(requestKey);
+  }
+}
+
+/**
+ * Internal implementation of getAccountIdForUser
+ */
+async function _getAccountIdForUserInternal(userId: string, supabaseClient?: any): Promise<string | null> {
   try {
     // DEVELOPMENT MODE BYPASS - Check for dev bypass user ID
     if (process.env.NODE_ENV === 'development' && userId === '12345678-1234-5678-9abc-123456789012') {

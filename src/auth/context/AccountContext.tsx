@@ -12,6 +12,7 @@
 
 import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
 import { useCoreAuth } from './CoreAuthContext';
+import { useSharedAccount } from './SharedAccountState';
 import { createClient } from '../providers/supabase';
 import { getAccountIdForUser, getAccountsForUser } from '../utils/accounts';
 import { selectBestAccount } from '../utils/accountSelection';
@@ -52,9 +53,11 @@ const ACCOUNT_CACHE_DURATION = 2 * 60 * 1000; // 2 minutes
 
 export function AccountProvider({ children }: { children: React.ReactNode }) {
   const { user, isAuthenticated } = useCoreAuth();
+  const sharedAccount = useSharedAccount();
   
-  // Account state
-  const [accountId, setAccountId] = useState<string | null>(null);
+  // Account state - use shared state for accountId
+  const accountId = sharedAccount.accountId;
+  const setAccountId = sharedAccount.setAccountId;
   const [account, setAccount] = useState<Account | null>(null);
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
@@ -233,13 +236,20 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
         console.log('🎯 AccountContext: Got account ID:', fetchedAccountId);
         if (fetchedAccountId) {
           console.log('📊 AccountContext: Setting account ID state to:', fetchedAccountId);
+          // Set the shared account ID
           setAccountId(fetchedAccountId);
-          setSelectedAccountId(fetchedAccountId);
+          setSelectedAccountId(() => fetchedAccountId);
+          
+          // Force a re-render by updating a timestamp
+          setAccountCacheTime(Date.now());
           
           // Now load the full account data with the specific ID
           loadAccount(fetchedAccountId);
         } else {
           console.warn('⚠️ AccountContext: No account ID returned for user:', user.id);
+          // Explicitly set to null to trigger updates
+          setAccountId(null);
+          setSelectedAccountId(() => null);
         }
         
         // Load all accounts in parallel (for account switcher)
