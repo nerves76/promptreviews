@@ -282,7 +282,8 @@ export function BusinessProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     console.log('🔄 BusinessContext: Account changed to:', accountId, 'account object:', account?.id);
     console.log('🔍 BusinessContext: Full account context state:', {
-      accountId: accountContext.accountId,
+      sharedAccountId: accountId,
+      contextAccountId: accountContext.accountId,
       hasAccount: !!accountContext.account,
       accountLoading: accountContext.accountLoading,
       selectedAccountId: accountContext.selectedAccountId
@@ -302,7 +303,7 @@ export function BusinessProvider({ children }: { children: React.ReactNode }) {
       setBusinesses([]);
       clearBusinessCache();
     }
-  }, [accountId, accountContext.accountId]);
+  }, [accountId, loadBusiness, loadBusinesses, clearBusinessCache]);
 
   // Auto-refresh business data periodically
   useEffect(() => {
