@@ -67,14 +67,11 @@ export function CoreAuthProvider({ children }: { children: React.ReactNode }) {
   const initializationStarted = useRef(false);
   const sessionCheckInterval = useRef<NodeJS.Timeout | null>(null);
 
-  // Check if we're on the server side
-  const isServer = typeof window === 'undefined';
-
-  // Core state
+  // Core state - MUST have same initial values on server and client to avoid hydration errors
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
-  const [isLoading, setIsLoading] = useState(!isServer); // Don't show loading on server
-  const [isInitialized, setIsInitialized] = useState(isServer); // Mark as initialized on server
+  const [isLoading, setIsLoading] = useState(true); // Always start with loading true
+  const [isInitialized, setIsInitialized] = useState(false); // Always start with initialized false
   const [error, setError] = useState<string | null>(null);
   const [refreshingSession, setRefreshingSession] = useState(false);
 
@@ -231,9 +228,7 @@ export function CoreAuthProvider({ children }: { children: React.ReactNode }) {
 
   // Initialize auth state
   useEffect(() => {
-    // Don't initialize auth on the server side
-    if (isServer) return;
-    
+    // Skip if already initialized or initializing
     if (initializationStarted.current) return;
     initializationStarted.current = true;
 

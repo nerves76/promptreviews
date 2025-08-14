@@ -26,7 +26,9 @@ function BusinessGuard({ children }: BusinessGuardProps) {
       console.log('⏳ BusinessGuard: Skipping checks - still loading', {
         isLoading,
         businessLoading,
-        accountLoading
+        accountLoading,
+        isAuthenticated,
+        hasBusiness
       });
       return;
     }
