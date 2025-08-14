@@ -1,11 +1,13 @@
--- Fix the GRANT statement that's causing "Database error granting user"
--- The issue is granting to 'postgres' role which isn't allowed in production
+-- Fix the auth trigger that's causing "Database error granting user"
+-- This migration handles the current state properly
 
--- First drop the existing function and trigger
+-- First, drop the existing problematic trigger
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+
+-- Drop the function with the bad GRANT
 DROP FUNCTION IF EXISTS handle_new_user_account();
 
--- Recreate the function without problematic GRANT
+-- Create a clean version of the function
 CREATE OR REPLACE FUNCTION handle_new_user_account()
 RETURNS TRIGGER 
 SECURITY DEFINER
@@ -21,44 +23,32 @@ BEGIN
     
     IF NOT account_exists THEN
       BEGIN
-        -- Create account record
+        -- Create account record with all required fields
         INSERT INTO public.accounts (
           id,
           email,
-          first_name,
-          last_name,
           plan,
           trial_start,
           trial_end,
-          is_free_account,
-          custom_prompt_page_count,
-          contact_count,
-          review_notifications_enabled,
           created_at,
           updated_at,
-          has_seen_welcome,
           user_id
         ) VALUES (
           NEW.id,
           COALESCE(NEW.email, ''),
-          COALESCE(NEW.raw_user_meta_data->>'first_name', split_part(COALESCE(NEW.email, ''), '@', 1)),
-          COALESCE(NEW.raw_user_meta_data->>'last_name', ''),
           'no_plan',
           NOW(),
           NOW() + INTERVAL '14 days',
-          false,
-          0,
-          0,
-          true,
           NOW(),
           NOW(),
-          false,
           NEW.id
         );
+        
+        RAISE LOG 'Account created successfully for user %', NEW.id;
       EXCEPTION
         WHEN OTHERS THEN
-          -- Log error but don't fail
-          RAISE LOG 'Error creating account for user %: %', NEW.id, SQLERRM;
+          -- Log the error but don't fail the trigger
+          RAISE LOG 'Error creating account for user %: % %', NEW.id, SQLERRM, SQLSTATE;
       END;
     END IF;
 
@@ -77,25 +67,29 @@ BEGIN
           'owner',
           NOW()
         );
+        
+        RAISE LOG 'Account user link created successfully for user %', NEW.id;
       EXCEPTION
         WHEN OTHERS THEN
-          -- Log error but don't fail
-          RAISE LOG 'Error creating account_users for user %: %', NEW.id, SQLERRM;
+          -- Log the error but don't fail the trigger
+          RAISE LOG 'Error creating account_users for user %: % %', NEW.id, SQLERRM, SQLSTATE;
       END;
     END IF;
   END IF;
 
+  -- Always return NEW to allow the auth operation to continue
   RETURN NEW;
 EXCEPTION
   WHEN OTHERS THEN
     -- Log any unexpected errors but don't fail
-    RAISE LOG 'Unexpected error in handle_new_user_account for user %: %', NEW.id, SQLERRM;
+    RAISE LOG 'Unexpected error in handle_new_user_account for user %: % %', NEW.id, SQLERRM, SQLSTATE;
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
--- Grant execute permission ONLY to roles that exist in production
--- Remove 'postgres' from the grant list as it causes issues
+-- Do NOT use GRANT with postgres role - only use allowed roles
+-- The SECURITY DEFINER is sufficient for the function to work
+REVOKE ALL ON FUNCTION handle_new_user_account() FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION handle_new_user_account() TO authenticated, anon, service_role;
 
 -- Recreate the trigger
@@ -104,7 +98,7 @@ CREATE TRIGGER on_auth_user_created
   FOR EACH ROW 
   EXECUTE FUNCTION handle_new_user_account();
 
--- Also fix the manual function
+-- Also fix the manual account creation function if it exists
 DROP FUNCTION IF EXISTS create_account_for_user(uuid);
 
 CREATE OR REPLACE FUNCTION create_account_for_user(user_id uuid)
@@ -114,6 +108,7 @@ SET search_path = public
 AS $$
 DECLARE
   user_record auth.users%ROWTYPE;
+  result jsonb;
 BEGIN
   -- Get user record
   SELECT * INTO user_record FROM auth.users WHERE id = user_id;
@@ -129,28 +124,38 @@ BEGIN
   
   -- Create account
   INSERT INTO public.accounts (
-    id, email, first_name, last_name, plan, trial_start, trial_end,
-    is_free_account, custom_prompt_page_count, contact_count,
-    review_notifications_enabled, created_at, updated_at,
-    has_seen_welcome, user_id
+    id,
+    email,
+    plan,
+    trial_start,
+    trial_end,
+    created_at,
+    updated_at,
+    user_id
   ) VALUES (
     user_id,
     COALESCE(user_record.email, ''),
-    COALESCE(user_record.raw_user_meta_data->>'first_name', split_part(COALESCE(user_record.email, ''), '@', 1)),
-    COALESCE(user_record.raw_user_meta_data->>'last_name', ''),
     'no_plan',
     NOW(),
     NOW() + INTERVAL '14 days',
-    false, 0, 0, true,
-    NOW(), NOW(),
-    false,
+    NOW(),
+    NOW(),
     user_id
   );
   
   -- Create account_users link
   IF NOT EXISTS (SELECT 1 FROM public.account_users WHERE user_id = user_id AND account_id = user_id) THEN
-    INSERT INTO public.account_users (account_id, user_id, role, created_at)
-    VALUES (user_id, user_id, 'owner', NOW());
+    INSERT INTO public.account_users (
+      account_id,
+      user_id,
+      role,
+      created_at
+    ) VALUES (
+      user_id,
+      user_id,
+      'owner',
+      NOW()
+    );
   END IF;
   
   RETURN jsonb_build_object('success', true, 'message', 'Account created successfully');
@@ -160,5 +165,9 @@ EXCEPTION
 END;
 $$ LANGUAGE plpgsql;
 
--- Grant without 'postgres' role
+-- Grant without postgres role
+REVOKE ALL ON FUNCTION create_account_for_user(uuid) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION create_account_for_user(uuid) TO authenticated, service_role;
+
+-- Add comment explaining the fix
+COMMENT ON FUNCTION handle_new_user_account() IS 'Fixed version without GRANT to postgres role - fixes Database error granting user';

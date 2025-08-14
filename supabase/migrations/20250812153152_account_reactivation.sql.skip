@@ -22,18 +22,19 @@ CREATE TABLE IF NOT EXISTS account_events (
   account_id UUID REFERENCES accounts(id) ON DELETE CASCADE,
   event_type TEXT NOT NULL,
   event_data JSONB,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  
-  -- Indexes
-  INDEX idx_account_events_account (account_id),
-  INDEX idx_account_events_type (event_type),
-  INDEX idx_account_events_created (created_at DESC)
+  created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Create indexes separately
+CREATE INDEX IF NOT EXISTS idx_account_events_account ON account_events(account_id);
+CREATE INDEX IF NOT EXISTS idx_account_events_type ON account_events(event_type);
+CREATE INDEX IF NOT EXISTS idx_account_events_created ON account_events(created_at DESC);
 
 -- Enable RLS
 ALTER TABLE account_events ENABLE ROW LEVEL SECURITY;
 
 -- Policy: Users can see their own events
+DROP POLICY IF EXISTS "Users can view own account events" ON account_events;
 CREATE POLICY "Users can view own account events" ON account_events
   FOR SELECT
   TO authenticated
