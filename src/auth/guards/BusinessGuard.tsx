@@ -183,25 +183,33 @@ function BusinessGuard({ children }: BusinessGuardProps) {
       // Check if user is the owner of this account
       const isAccountOwner = account.id === user?.id; // In this system, account ID equals user ID for owners
       
-      // Check if this is a recently created account (within last 5 minutes)
-      const accountCreatedAt = account.created_at ? new Date(account.created_at) : null;
-      const isRecentlyCreated = accountCreatedAt ? 
-        (Date.now() - accountCreatedAt.getTime()) < 5 * 60 * 1000 : false;
+      // Check if this account has NEVER had a business
+      // We can check this by looking for a flag in the account or by checking if this is their first real login
+      // For now, we'll check if they have the 'has_seen_welcome' flag which gets set after business creation
+      const hasNeverHadBusiness = !account.has_seen_welcome && isAccountOwner;
+      
+      // Also check if account has a paid plan - paid accounts should have businesses
+      const hasPaidPlan = account.plan && account.plan !== 'free' && account.plan !== 'no_plan';
       
       console.log('🔍 BusinessGuard: Checking business requirements', {
         hasBusiness,
         isAccountOwner,
-        isRecentlyCreated,
+        hasNeverHadBusiness,
+        hasPaidPlan,
+        hasSeenWelcome: account.has_seen_welcome,
         accountId: account.id,
         userId: user?.id,
-        accountCreatedAt: account.created_at,
+        plan: account.plan,
         pathname,
         timestamp: new Date().toISOString()
       });
       
-      // Only redirect if user is the account owner AND account was recently created
-      if (isAccountOwner && isRecentlyCreated) {
-        console.log('🔄 BusinessGuard: New account owner without business, will redirect after delay', {
+      // Only redirect if:
+      // 1. User is the account owner (not a team member)
+      // 2. Account has never had a business (hasn't seen welcome)
+      // 3. Account doesn't have a paid plan (paid plans should already have businesses)
+      if (isAccountOwner && hasNeverHadBusiness && !hasPaidPlan) {
+        console.log('🔄 BusinessGuard: Account owner without business (never created one), will redirect after delay', {
           pathname,
           timestamp: new Date().toISOString()
         });
@@ -210,8 +218,8 @@ function BusinessGuard({ children }: BusinessGuardProps) {
         const timeoutId = setTimeout(() => {
           // Re-check states after delay
           if (isAuthenticated && !hasBusiness && !isLoading && !businessLoading && !accountLoading && 
-              pathname !== '/dashboard/create-business' && isAccountOwner && isRecentlyCreated) {
-            console.log('🔄 BusinessGuard: Redirecting new account owner to create-business', {
+              pathname !== '/dashboard/create-business' && isAccountOwner && hasNeverHadBusiness && !hasPaidPlan) {
+            console.log('🔄 BusinessGuard: Redirecting account owner to create-business', {
               pathname,
               timestamp: new Date().toISOString()
             });
@@ -227,9 +235,13 @@ function BusinessGuard({ children }: BusinessGuardProps) {
           userId: user?.id,
           timestamp: new Date().toISOString()
         });
-      } else if (!isRecentlyCreated) {
-        console.log('ℹ️ BusinessGuard: Not a new account, allowing access without business', {
-          accountCreatedAt: account.created_at,
+      } else if (hasPaidPlan) {
+        console.log('ℹ️ BusinessGuard: Paid account, should have business - not redirecting', {
+          plan: account.plan,
+          timestamp: new Date().toISOString()
+        });
+      } else if (account.has_seen_welcome) {
+        console.log('ℹ️ BusinessGuard: User has seen welcome (likely had business before), not redirecting', {
           timestamp: new Date().toISOString()
         });
       }
