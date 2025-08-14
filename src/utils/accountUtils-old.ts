@@ -1,4 +1,20 @@
 /**
+ * ⚠️ DEPRECATED - DO NOT USE THIS FILE ⚠️
+ * 
+ * This is the OLD account utilities file that has been replaced by the new modular auth system.
+ * 
+ * ✅ USE INSTEAD: @/auth/utils/accounts
+ * 
+ * This file is kept for reference only and will be removed in a future update.
+ * All imports have been migrated to the new auth system as of 2025-08-14.
+ * 
+ * The new auth system provides:
+ * - Proper multi-account support
+ * - Fixed RLS policy handling
+ * - Support for all user roles (owner, member, support, admin)
+ * - Better error handling and logging
+ * 
+ * Original description:
  * Account management utilities for multi-user account support
  * This file provides functions for managing account users and permissions
  */
