@@ -320,21 +320,23 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
     }
   }, [isAuthenticated, user?.id, accountId]);
 
-  // Auto-refresh account data periodically
-  useEffect(() => {
-    if (!isAuthenticated) return;
+  // DISABLED: Auto-refresh account data periodically
+  // This was causing PageCard to disappear every minute and users to lose typed content
+  // Account data is refreshed when needed through explicit user actions or auth changes
+  // useEffect(() => {
+  //   if (!isAuthenticated) return;
 
-    const interval = setInterval(() => {
-      if (accountCacheTime) {
-        const cacheAge = Date.now() - accountCacheTime;
-        if (cacheAge > ACCOUNT_CACHE_DURATION) {
-          loadAccount();
-        }
-      }
-    }, 30000); // Check every 30 seconds
+  //   const interval = setInterval(() => {
+  //     if (accountCacheTime) {
+  //       const cacheAge = Date.now() - accountCacheTime;
+  //       if (cacheAge > ACCOUNT_CACHE_DURATION) {
+  //         loadAccount();
+  //       }
+  //     }
+  //   }, 30000); // Check every 30 seconds
 
-    return () => clearInterval(interval);
-  }, [isAuthenticated, accountCacheTime, loadAccount]);
+  //   return () => clearInterval(interval);
+  // }, [isAuthenticated, accountCacheTime, loadAccount]);
 
   const value: AccountContextType = {
     // State
