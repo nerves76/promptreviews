@@ -114,7 +114,6 @@ import { isAdmin } from '@/auth/utils/admin';
 
 ### Files Kept in Original Locations
 - `/src/contexts/AuthContext.tsx` - Keep for backward compatibility
-- `/src/components/BusinessGuard.tsx` - Keep for backward compatibility
 - `/src/utils/*.ts` - Original auth utils kept but imports updated
 
 ## Testing
