@@ -5,7 +5,7 @@
  * Only account owners can view and manage invitations.
  */
 
-import { createServerSupabaseClient } from '@/utils/supabaseClient';
+import { createServerSupabaseClient } from '@/auth/providers/supabase';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest) {

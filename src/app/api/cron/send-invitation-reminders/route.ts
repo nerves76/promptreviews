@@ -6,7 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createServiceRoleClient } from '@/utils/supabaseClient';
+import { createServiceRoleClient } from '@/auth/providers/supabase';
 import { sendTeamInvitationEmail } from '@/utils/emailTemplates';
 
 export async function POST(request: NextRequest) {

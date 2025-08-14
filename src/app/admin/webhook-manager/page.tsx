@@ -10,10 +10,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/auth';
 import { WebhookRecoverySystem } from '@/lib/webhook-recovery';
 import { PaymentRetrySystem } from '@/lib/payment-retry';
-import { createClient } from '@/utils/supabaseClient';
+import { createClient } from '@/auth/providers/supabase';
 
 // ============================================
 // TYPES

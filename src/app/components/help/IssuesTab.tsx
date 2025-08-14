@@ -6,7 +6,7 @@
 
 import { useState } from 'react';
 import Icon from '@/components/Icon';
-import { createClient } from '@/utils/supabaseClient';
+import { createClient } from '@/auth/providers/supabase';
 import { FeedbackCategory, CategoryOption } from './types';
 import { trackEvent } from '../../../utils/analytics';
 

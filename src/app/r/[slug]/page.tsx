@@ -6,7 +6,7 @@
  */
 
 import { notFound } from 'next/navigation';
-import { createServiceRoleClient } from '@/utils/supabaseClient';
+import { createServiceRoleClient } from '@/auth/providers/supabase';
 import { Metadata } from 'next';
 
 // Server component for initial page load

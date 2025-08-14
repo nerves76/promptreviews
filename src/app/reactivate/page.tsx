@@ -11,7 +11,7 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/auth';
 import AccountReactivation from '@/components/AccountReactivation';
 
 export default function ReactivatePage() {

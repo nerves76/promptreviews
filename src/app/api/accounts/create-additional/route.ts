@@ -6,7 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { createServerSupabaseClient, createServiceRoleClient } from '@/utils/supabaseClient';
+import { createServerSupabaseClient, createServiceRoleClient } from '@/auth/providers/supabase';
 import { canCreateAccounts } from '@/config/adminConfig';
 import { v4 as uuidv4 } from 'uuid';
 

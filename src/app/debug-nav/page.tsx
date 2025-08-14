@@ -3,8 +3,8 @@
 import { useEffect, useState } from 'react';
 import { useBusinessProfile } from '@/utils/authGuard';
 // 🔧 CONSOLIDATED: Single import from supabaseClient module
-import { createClient, getUserOrMock } from '@/utils/supabaseClient';
-import { getAccountIdForUser } from '@/utils/accountUtils';
+import { createClient, getUserOrMock } from '@/auth/providers/supabase';
+import { getAccountIdForUser } from '@/auth/utils/accounts';
 
 export default function DebugNav() {
   const supabase = createClient();

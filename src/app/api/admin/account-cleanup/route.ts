@@ -7,9 +7,9 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/utils/supabaseClient';
+import { createClient } from '@/auth/providers/supabase';
 import { deleteUserCompletely } from '@/utils/adminDelete';
-import { isAdmin } from '@/utils/admin';
+import { isAdmin } from '@/auth/utils/admin';
 
 /**
  * GET - Get count of accounts eligible for permanent deletion

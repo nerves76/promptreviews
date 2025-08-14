@@ -4,8 +4,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/utils/supabaseClient';
-import { getAccountIdForUser } from '@/utils/accountUtils';
+import { createClient } from '@/auth/providers/supabase';
+import { getAccountIdForUser } from '@/auth/utils/accounts';
 
 export async function POST(request: NextRequest) {
   try {

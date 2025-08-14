@@ -7,7 +7,7 @@
 
 import { useState } from 'react';
 import Icon from '@/components/Icon';
-import { createClient, getSessionOrMock } from '@/utils/supabaseClient';
+import { createClient, getSessionOrMock } from '@/auth/providers/supabase';
 import { trackEvent } from '../../utils/analytics';
 
 interface FeedbackModalProps {

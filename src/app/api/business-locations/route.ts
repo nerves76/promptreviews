@@ -6,8 +6,8 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
-import { createServiceRoleClient } from '@/utils/supabaseClient';
-import { getAccountIdForUser } from '@/utils/accountUtils';
+import { createServiceRoleClient } from '@/auth/providers/supabase';
+import { getAccountIdForUser } from '@/auth/utils/accounts';
 import { canCreateLocation, getTierLocationLimit, generateLocationPromptPageSlug, createLocationPromptPageData, generateUniqueLocationSlug } from '@/utils/locationUtils';
 
 // 🔧 CONSOLIDATION: Shared Supabase client creation for API routes

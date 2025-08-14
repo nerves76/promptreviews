@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/utils/supabaseClient';
+import { createClient } from '@/auth/providers/supabase';
 import type { CriticalFunctionError } from '@/utils/criticalFunctionMonitoring';
 
 // Configure alert thresholds

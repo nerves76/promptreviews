@@ -5,7 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { getAccountIdForUser } from '@/utils/accountUtils';
+import { getAccountIdForUser } from '@/auth/utils/accounts';
 
 // Initialize Supabase client with service key for privileged operations
 const supabase = createClient(

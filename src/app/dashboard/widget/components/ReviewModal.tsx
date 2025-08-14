@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { createClient } from '@/utils/supabaseClient';
+import { createClient } from '@/auth/providers/supabase';
 import { MAX_WIDGET_REVIEWS } from '@/lib/constants';
 import { ReviewList } from './ReviewList';
 import { PhotoUpload } from './PhotoUpload';

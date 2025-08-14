@@ -5,7 +5,7 @@
  * for different prompt page types
  */
 
-import { createServiceRoleClient } from '@/utils/supabaseClient';
+import { createServiceRoleClient } from '@/auth/providers/supabase';
 
 interface MetadataTemplate {
   id: string;

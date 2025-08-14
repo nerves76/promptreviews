@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSessionOrMock, createClient, createServiceRoleClient } from '@/utils/supabaseClient';
-import { getAccountIdForUser } from '@/utils/accountUtils';
+import { getSessionOrMock, createClient, createServiceRoleClient } from '@/auth/providers/supabase';
+import { getAccountIdForUser } from '@/auth/utils/accounts';
 import { slugify } from '@/utils/slugify';
 import { preparePromptPageData } from '@/utils/promptPageDataMapping';
 

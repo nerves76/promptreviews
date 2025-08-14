@@ -6,7 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { createServerSupabaseClient, createServiceRoleClient, getUserOrMock } from '@/utils/supabaseClient';
+import { createServerSupabaseClient, createServiceRoleClient, getUserOrMock } from '@/auth/providers/supabase';
 import { cookies } from "next/headers";
 
 export async function POST(req: NextRequest) {

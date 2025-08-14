@@ -5,7 +5,7 @@
  * This endpoint is public and doesn't require authentication.
  */
 
-import { createClient } from '@/utils/supabaseClient';
+import { createClient } from '@/auth/providers/supabase';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {

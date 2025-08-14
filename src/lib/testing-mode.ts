@@ -8,7 +8,7 @@
  * rather than hardcoded emails for better security and flexibility
  */
 
-import { createClient } from '@/utils/supabaseClient';
+import { createClient } from '@/auth/providers/supabase';
 
 // Cache admin status for the request lifecycle
 const adminCache = new Map<string, boolean>();

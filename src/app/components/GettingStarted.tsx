@@ -10,7 +10,7 @@ import React, { useState, useEffect } from "react";
 import Icon from "@/components/Icon";
 import Link from "next/link";
 import { fetchOnboardingTasks, markTaskAsCompleted, markTaskAsIncomplete } from "@/utils/onboardingTasks";
-import { createClient } from '@/utils/supabaseClient';
+import { createClient } from '@/auth/providers/supabase';
 
 interface GettingStartedProps {
   onComplete?: () => void;

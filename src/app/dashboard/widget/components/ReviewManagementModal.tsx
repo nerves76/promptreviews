@@ -4,8 +4,8 @@ import { ChatBubbleLeftIcon } from "@heroicons/react/24/outline";
 import { DraggableModal } from './DraggableModal';
 import AppLoader from "@/app/components/AppLoader";
 import { PhotoUpload } from './PhotoUpload';
-import { createClient } from '@/utils/supabaseClient';
-import { getAccountIdForUser } from '@/utils/accountUtils';
+import { createClient } from '@/auth/providers/supabase';
+import { getAccountIdForUser } from '@/auth/utils/accounts';
 
 const CHARACTER_LIMIT = 250;
 const MAX_WIDGET_REVIEWS = 25;

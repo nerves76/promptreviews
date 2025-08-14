@@ -6,7 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { createServiceRoleClient } from '@/utils/supabaseClient';
+import { createServiceRoleClient } from '@/auth/providers/supabase';
 
 // 🔧 CONSOLIDATION: Use centralized service role client
 const supabaseAdmin = createServiceRoleClient();

@@ -6,7 +6,7 @@
  */
 
 import { createServerClient } from '@supabase/ssr';
-import { createServiceRoleClient } from '@/utils/supabaseClient';
+import { createServiceRoleClient } from '@/auth/providers/supabase';
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 

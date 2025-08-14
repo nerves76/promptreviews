@@ -8,8 +8,8 @@
 
 import { useState, useEffect } from 'react';
 import Icon from '@/components/Icon';
-import { createClient } from '@/utils/supabaseClient';
-import { getAccountIdForUser } from '@/utils/accountUtils';
+import { createClient } from '@/auth/providers/supabase';
+import { getAccountIdForUser } from '@/auth/utils/accounts';
 
 // Import our modular components
 import CategorySearch from './business-info/CategorySearch';

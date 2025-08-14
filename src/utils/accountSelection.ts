@@ -3,7 +3,7 @@
  * Handles user's manual account selection for multi-account support
  */
 
-import { createClient } from './supabaseClient';
+import { createClient } from '@/auth/providers/supabase';
 
 const SELECTED_ACCOUNT_KEY = 'promptreviews_selected_account';
 

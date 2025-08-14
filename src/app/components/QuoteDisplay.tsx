@@ -6,8 +6,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { createClient } from '@/utils/supabaseClient';
-import { getAllActiveQuotes } from '../../utils/admin';
+import { createClient } from '@/auth/providers/supabase';
+import { getAllActiveQuotes } from '../../auth/utils/admin';
 import Icon from '@/components/Icon';
 
 // Using singleton Supabase client from supabaseClient.ts

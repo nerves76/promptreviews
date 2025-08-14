@@ -9,7 +9,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useAccountSelection } from '@/utils/accountSelectionHooks';
-import { type UserAccount } from '@/utils/accountSelection';
+import { type UserAccount } from '@/auth/utils/accountSelection';
 
 export function AccountSwitcher() {
   const {

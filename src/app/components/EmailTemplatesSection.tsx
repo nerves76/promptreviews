@@ -5,7 +5,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { createClient } from '@/utils/supabaseClient';
+import { createClient } from '@/auth/providers/supabase';
 
 interface EmailTemplate {
   id: string;

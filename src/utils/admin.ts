@@ -3,7 +3,7 @@
  * UPDATED: Now uses simple is_admin column in accounts table for better reliability
  */
 
-import { createClient } from './supabaseClient';
+import { createClient } from '@/auth/providers/supabase';
 
 /**
  * Check if the current user is an admin using the simple is_admin column

@@ -1,6 +1,6 @@
 "use client";
 
-import { useAuth, useAuthGuard, useAdminGuard, useBusinessGuard } from '@/contexts/AuthContext';
+import { useAuth, useAuthGuard, useAdminGuard, useBusinessGuard } from '@/auth';
 
 export default function TestAuthContext() {
   const {

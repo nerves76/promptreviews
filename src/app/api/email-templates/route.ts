@@ -5,9 +5,9 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerSupabaseClient } from '@/utils/supabaseClient';
+import { createServerSupabaseClient } from '@/auth/providers/supabase';
 import { getAllEmailTemplates, updateEmailTemplate } from '../../../utils/emailTemplates';
-import { isAdmin } from '@/utils/admin';
+import { isAdmin } from '@/auth/utils/admin';
 
 export async function GET(request: NextRequest) {
   try {

@@ -10,7 +10,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { isAdmin } from '@/utils/admin';
+import { isAdmin } from '@/auth/utils/admin';
 
 export async function POST(request: NextRequest) {
   try {

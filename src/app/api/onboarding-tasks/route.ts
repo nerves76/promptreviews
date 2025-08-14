@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServiceRoleClient } from '@/utils/supabaseClient';
+import { createServiceRoleClient } from '@/auth/providers/supabase';
 
 /**
  * GET /api/onboarding-tasks?account_id=xxx - Fetch onboarding tasks for an account

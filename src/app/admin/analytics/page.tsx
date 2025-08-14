@@ -9,8 +9,8 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { createClient } from '@/utils/supabaseClient';
-import { isAdmin } from '../../../utils/admin';
+import { createClient } from '@/auth/providers/supabase';
+import { isAdmin } from '../../../auth/utils/admin';
 import Icon from '@/components/Icon';
 
 // Using singleton Supabase client from supabaseClient.ts

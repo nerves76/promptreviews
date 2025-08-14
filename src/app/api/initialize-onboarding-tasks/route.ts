@@ -5,7 +5,7 @@
  * This endpoint uses the service role key to bypass RLS policies.
  */
 
-import { createServiceRoleClient } from '@/utils/supabaseClient';
+import { createServiceRoleClient } from '@/auth/providers/supabase';
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 

@@ -1,0 +1,304 @@
+/**
+ * Account Management Context
+ * 
+ * Handles account-related operations:
+ * - Account selection and switching
+ * - Multi-account management
+ * - Account data fetching and caching
+ * - Account permissions
+ */
+
+"use client";
+
+import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
+import { useCoreAuth } from './CoreAuthContext';
+import { createClient } from '../providers/supabase';
+import { getAccountIdForUser, getAccountsForUser } from '../utils/accounts';
+import { selectBestAccount } from '../utils/accountSelection';
+import { Account } from '../types';
+
+const supabase = createClient();
+
+interface AccountState {
+  // Account data
+  accountId: string | null;
+  account: Account | null;
+  accounts: Account[];
+  
+  // Multi-account
+  selectedAccountId: string | null;
+  canSwitchAccounts: boolean;
+  
+  // Loading states
+  accountLoading: boolean;
+  accountsLoading: boolean;
+  
+  // Cache metadata
+  accountCacheTime: number | null;
+}
+
+interface AccountContextType extends AccountState {
+  // Account methods
+  loadAccount: () => Promise<void>;
+  loadAccounts: () => Promise<void>;
+  switchAccount: (accountId: string) => Promise<void>;
+  refreshAccount: () => Promise<void>;
+  clearAccountCache: () => void;
+}
+
+const AccountContext = createContext<AccountContextType | undefined>(undefined);
+
+const ACCOUNT_CACHE_DURATION = 2 * 60 * 1000; // 2 minutes
+
+export function AccountProvider({ children }: { children: React.ReactNode }) {
+  const { user, isAuthenticated } = useCoreAuth();
+  
+  // Account state
+  const [accountId, setAccountId] = useState<string | null>(null);
+  const [account, setAccount] = useState<Account | null>(null);
+  const [accounts, setAccounts] = useState<Account[]>([]);
+  const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
+  const [accountLoading, setAccountLoading] = useState(false);
+  const [accountsLoading, setAccountsLoading] = useState(false);
+  const [accountCacheTime, setAccountCacheTime] = useState<number | null>(null);
+  
+  // Refs for caching
+  const accountCache = useRef<{ data: Account | null; timestamp: number } | null>(null);
+  const accountsCache = useRef<{ data: Account[]; timestamp: number } | null>(null);
+
+  // Computed states
+  const canSwitchAccounts = accounts.length > 1;
+
+  // Clear account cache
+  const clearAccountCache = useCallback(() => {
+    accountCache.current = null;
+    accountsCache.current = null;
+    setAccountCacheTime(null);
+  }, []);
+
+  // Load all accounts for user
+  const loadAccounts = useCallback(async () => {
+    if (!user?.id) {
+      setAccounts([]);
+      return;
+    }
+
+    // Check cache
+    if (accountsCache.current) {
+      const cacheAge = Date.now() - accountsCache.current.timestamp;
+      if (cacheAge < ACCOUNT_CACHE_DURATION) {
+        setAccounts(accountsCache.current.data);
+        return;
+      }
+    }
+
+    setAccountsLoading(true);
+    try {
+      const userAccounts = await getAccountsForUser(user.id);
+      setAccounts(userAccounts);
+      
+      // Update cache
+      accountsCache.current = {
+        data: userAccounts,
+        timestamp: Date.now(),
+      };
+    } catch (error) {
+      console.error('Failed to load accounts:', error);
+      setAccounts([]);
+    } finally {
+      setAccountsLoading(false);
+    }
+  }, [user?.id]);
+
+  // Load current account
+  const loadAccount = useCallback(async () => {
+    if (!user?.id) {
+      setAccount(null);
+      setAccountId(null);
+      return;
+    }
+
+    // Check cache
+    if (accountCache.current && accountId === accountCache.current.data?.id) {
+      const cacheAge = Date.now() - accountCache.current.timestamp;
+      if (cacheAge < ACCOUNT_CACHE_DURATION) {
+        setAccount(accountCache.current.data);
+        setAccountCacheTime(accountCache.current.timestamp);
+        return;
+      }
+    }
+
+    setAccountLoading(true);
+    try {
+      // Get account ID if not set
+      let currentAccountId = accountId;
+      if (!currentAccountId) {
+        currentAccountId = await getAccountIdForUser(user.id);
+        setAccountId(currentAccountId);
+      }
+
+      if (!currentAccountId) {
+        console.warn('No account found for user');
+        setAccount(null);
+        return;
+      }
+
+      // Fetch account data
+      const { data, error } = await supabase
+        .from('accounts')
+        .select('*')
+        .eq('id', currentAccountId)
+        .single();
+
+      if (error) {
+        console.error('Failed to load account:', error);
+        setAccount(null);
+        return;
+      }
+
+      setAccount(data);
+      
+      // Update cache
+      accountCache.current = {
+        data,
+        timestamp: Date.now(),
+      };
+      setAccountCacheTime(Date.now());
+    } catch (error) {
+      console.error('Failed to load account:', error);
+      setAccount(null);
+    } finally {
+      setAccountLoading(false);
+    }
+  }, [user?.id, accountId]);
+
+  // Switch to a different account
+  const switchAccount = useCallback(async (newAccountId: string) => {
+    if (!user?.id) return;
+
+    setAccountLoading(true);
+    try {
+      // Verify user has access to this account
+      const { data: accountUser, error: verifyError } = await supabase
+        .from('account_users')
+        .select('role')
+        .eq('account_id', newAccountId)
+        .eq('user_id', user.id)
+        .single();
+
+      if (verifyError || !accountUser) {
+        throw new Error('You do not have access to this account');
+      }
+
+      // Update selected account
+      setAccountId(newAccountId);
+      setSelectedAccountId(newAccountId);
+      
+      // Store in localStorage for persistence
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('selected_account_id', newAccountId);
+      }
+
+      // Clear cache to force reload
+      clearAccountCache();
+      
+      // Reload account data
+      await loadAccount();
+    } catch (error) {
+      console.error('Failed to switch account:', error);
+      throw error;
+    } finally {
+      setAccountLoading(false);
+    }
+  }, [user?.id, clearAccountCache, loadAccount]);
+
+  // Refresh account data
+  const refreshAccount = useCallback(async () => {
+    clearAccountCache();
+    await Promise.all([loadAccount(), loadAccounts()]);
+  }, [clearAccountCache, loadAccount, loadAccounts]);
+
+  // Initialize account on auth change
+  useEffect(() => {
+    if (isAuthenticated && user?.id) {
+      // Load accounts first
+      loadAccounts().then(() => {
+        // Check for stored account preference
+        if (typeof window !== 'undefined') {
+          const storedAccountId = localStorage.getItem('selected_account_id');
+          if (storedAccountId && accounts.some(a => a.id === storedAccountId)) {
+            setSelectedAccountId(storedAccountId);
+            setAccountId(storedAccountId);
+          } else if (accounts.length > 0) {
+            // Select best account
+            const bestAccount = selectBestAccount(accounts, null);
+            if (bestAccount) {
+              setAccountId(bestAccount.id);
+            }
+          }
+        }
+        
+        // Load current account
+        loadAccount();
+      });
+    } else {
+      // Clear account data when not authenticated
+      setAccount(null);
+      setAccountId(null);
+      setAccounts([]);
+      setSelectedAccountId(null);
+      clearAccountCache();
+    }
+  }, [isAuthenticated, user?.id]);
+
+  // Auto-refresh account data periodically
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const interval = setInterval(() => {
+      if (accountCacheTime) {
+        const cacheAge = Date.now() - accountCacheTime;
+        if (cacheAge > ACCOUNT_CACHE_DURATION) {
+          loadAccount();
+        }
+      }
+    }, 30000); // Check every 30 seconds
+
+    return () => clearInterval(interval);
+  }, [isAuthenticated, accountCacheTime, loadAccount]);
+
+  const value: AccountContextType = {
+    // State
+    accountId,
+    account,
+    accounts,
+    selectedAccountId,
+    canSwitchAccounts,
+    accountLoading,
+    accountsLoading,
+    accountCacheTime,
+    
+    // Methods
+    loadAccount,
+    loadAccounts,
+    switchAccount,
+    refreshAccount,
+    clearAccountCache,
+  };
+
+  return (
+    <AccountContext.Provider value={value}>
+      {children}
+    </AccountContext.Provider>
+  );
+}
+
+export function useAccount() {
+  const context = useContext(AccountContext);
+  if (context === undefined) {
+    throw new Error('useAccount must be used within an AccountProvider');
+  }
+  return context;
+}
+
+export { AccountContext };

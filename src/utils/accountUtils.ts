@@ -6,8 +6,8 @@
 import { SupabaseClient } from '@supabase/supabase-js';
 import { createServerClient } from '@supabase/ssr';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
-import { createClient, getUserOrMock } from "./supabaseClient";
-import { getUserSelectedAccountId } from './accountSelection';
+import { createClient, getUserOrMock } from '@/auth/providers/supabase';
+import { getUserSelectedAccountId } from '@/auth/utils/accountSelection';
 
 export interface AccountUser {
   account_id: string;

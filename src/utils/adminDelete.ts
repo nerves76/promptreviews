@@ -13,7 +13,7 @@
  */
 
 import { createClient } from '@supabase/supabase-js';
-import { getAccountIdForUser as getAccountIdForUserUtil } from './accountUtils';
+import { getAccountIdForUser as getAccountIdForUserUtil } from '@/auth/utils/accounts';
 
 // Initialize Supabase admin client with service role key
 const supabaseAdmin = createClient(

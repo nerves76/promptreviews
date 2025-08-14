@@ -93,6 +93,63 @@ export async function POST(request: NextRequest) {
 
     const supabase = createServiceRoleClient();
     
+    // First, verify the account exists
+    console.log(`[BUSINESSES] Verifying account exists: ${account_id}`);
+    const { data: accountExists, error: accountCheckError } = await supabase
+      .from('accounts')
+      .select('id, plan, is_free_account')
+      .eq('id', account_id)
+      .single();
+    
+    if (accountCheckError) {
+      console.error('[BUSINESSES] Account verification failed:', accountCheckError);
+      console.error('[BUSINESSES] Account check error details:', {
+        code: accountCheckError.code,
+        message: accountCheckError.message,
+        accountId: account_id
+      });
+      
+      // If account doesn't exist, we need to create it first
+      if (accountCheckError.code === 'PGRST116') {
+        console.log('[BUSINESSES] Account not found, attempting to create it...');
+        const { error: createAccountError } = await supabase
+          .from('accounts')
+          .insert({
+            id: account_id,
+            plan: 'free',
+            is_free_account: false,
+            custom_prompt_page_count: 0,
+            contact_count: 0,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          });
+        
+        if (createAccountError) {
+          console.error('[BUSINESSES] Failed to create account:', createAccountError);
+          return NextResponse.json(
+            { 
+              error: "Account does not exist and could not be created",
+              details: createAccountError.message,
+              accountId: account_id
+            },
+            { status: 400 }
+          );
+        }
+        console.log('[BUSINESSES] Account created successfully');
+      } else {
+        return NextResponse.json(
+          { 
+            error: "Failed to verify account",
+            details: accountCheckError.message,
+            accountId: account_id
+          },
+          { status: 400 }
+        );
+      }
+    } else {
+      console.log('[BUSINESSES] Account verified:', accountExists);
+    }
+    
     // DEVELOPMENT MODE BYPASS - Use existing account
     let bypassAccountValidation = false;
     if (process.env.NODE_ENV === 'development' && account_id === '12345678-1234-5678-9abc-123456789012') {
@@ -132,6 +189,8 @@ export async function POST(request: NextRequest) {
       updated_at: new Date().toISOString(), // 🔧 FIX: Set updated_at to current time to prevent validation loop
     };
 
+    console.log('[BUSINESSES] Attempting to insert business with data:', JSON.stringify(insertData, null, 2));
+    
     const { data: business, error } = await supabase
       .from('businesses')
       .insert([insertData])
@@ -140,6 +199,13 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       console.error('[BUSINESSES] Error creating business:', error);
+      console.error('[BUSINESSES] Error details:', {
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        accountId: account_id
+      });
       
       // In development mode, if it's a foreign key constraint error for our mock account,
       // try to continue anyway by creating with minimal data
@@ -211,7 +277,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { 
           error: "Failed to create business",
-          details: error.message 
+          details: error.message,
+          code: error.code,
+          hint: error.hint,
+          accountId: account_id
         },
         { status: 500 }
       );
@@ -330,8 +399,17 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(business);
   } catch (error) {
     console.error('[BUSINESSES] Unexpected error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const errorStack = error instanceof Error ? error.stack : undefined;
+    
+    console.error('[BUSINESSES] Error stack:', errorStack);
+    
     return NextResponse.json(
-      { error: "Internal server error" },
+      { 
+        error: "Internal server error",
+        details: errorMessage,
+        stack: process.env.NODE_ENV === 'development' ? errorStack : undefined
+      },
       { status: 500 }
     );
   }

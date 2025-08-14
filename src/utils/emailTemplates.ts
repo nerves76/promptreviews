@@ -4,7 +4,7 @@
  * Handles fetching, rendering, and sending email templates from the database
  */
 
-import { createServiceRoleClient } from '@/utils/supabaseClient';
+import { createServiceRoleClient } from '@/auth/providers/supabase';
 import { Resend } from 'resend';
 
 const resend = new Resend(process.env.RESEND_API_KEY);

@@ -34,11 +34,11 @@
 
 import React, { createContext, useContext, useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { createClient } from '@/auth/providers/supabase';
+import { createClient } from '@/utils/supabaseClient';
 import { User, Session } from '@supabase/supabase-js';
-import { isAdmin, ensureAdminForEmail } from '@/auth/utils/admin';
-import { getAccountIdForUser } from '@/auth/utils/accounts';
-import { Account } from '@/auth/utils/accounts';
+import { isAdmin, ensureAdminForEmail } from '@/utils/admin';
+import { getAccountIdForUser } from '@/utils/accountUtils';
+import { Account } from '@/utils/accountUtils';
 import { AuthResponse } from '@supabase/supabase-js';
 
 // Create singleton client instance

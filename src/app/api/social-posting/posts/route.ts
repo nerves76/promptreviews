@@ -7,7 +7,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { postManager } from '@/features/social-posting';
 import { GoogleBusinessProfileAdapter } from '@/features/social-posting/platforms/google-business-profile/adapter';
 import { GoogleBusinessProfileClient } from '@/features/social-posting/platforms/google-business-profile/googleBusinessProfileClient';
-import { createServerSupabaseClient } from '@/utils/supabaseClient';
+import { createServerSupabaseClient } from '@/auth/providers/supabase';
 import type { UniversalPost, PlatformId } from '@/features/social-posting';
 
 export async function POST(request: NextRequest) {

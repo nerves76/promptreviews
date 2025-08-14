@@ -3,8 +3,8 @@
  * Handles creating, updating and managing communication records and follow-up reminders
  */
 
-import { createClient } from './supabaseClient';
-import { getAccountIdForUser } from './accountUtils';
+import { createClient } from '@/auth/providers/supabase';
+import { getAccountIdForUser } from '@/auth/utils/accounts';
 
 export interface CommunicationRecord {
   id: string;

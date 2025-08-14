@@ -6,7 +6,7 @@
  */
 
 import React from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/auth';
 import FiveStarSpinner from './FiveStarSpinner';
 
 interface PaymentStatusProps {

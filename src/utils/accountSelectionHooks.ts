@@ -6,14 +6,14 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { createClient } from './supabaseClient';
+import { createClient } from '@/auth/providers/supabase';
 import { 
   UserAccount, 
   fetchUserAccounts, 
   getStoredAccountSelection, 
   setStoredAccountSelection, 
   clearStoredAccountSelection 
-} from './accountSelection';
+} from '@/auth/utils/accountSelection';
 
 export interface AccountSelectionState {
   selectedAccountId: string | null;

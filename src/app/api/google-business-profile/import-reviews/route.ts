@@ -11,7 +11,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { createClient } from '@supabase/supabase-js';
-import { getAccountIdForUser } from '@/utils/accountUtils';
+import { getAccountIdForUser } from '@/auth/utils/accounts';
 
 export async function POST(request: NextRequest) {
   try {

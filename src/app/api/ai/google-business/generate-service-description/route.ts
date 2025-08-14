@@ -6,8 +6,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerSupabaseClient } from '@/utils/supabaseClient';
-import { getAccountIdForUser } from '@/utils/accountUtils';
+import { createServerSupabaseClient } from '@/auth/providers/supabase';
+import { getAccountIdForUser } from '@/auth/utils/accounts';
 import { generateServiceDescriptions } from '@/utils/ai/google-business/serviceDescriptionGenerator';
 import { extractBrandContext, AIBrandContext } from '@/utils/ai/google-business/googleBusinessProfileHelpers';
 

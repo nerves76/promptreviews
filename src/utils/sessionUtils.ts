@@ -5,7 +5,7 @@
  * that can cause frequent user deletion issues.
  */
 
-import { createClient } from './supabaseClient';
+import { createClient } from '@/auth/providers/supabase';
 
 /**
  * Refresh the user session if it's close to expiring

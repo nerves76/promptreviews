@@ -6,7 +6,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { createClient } from '@/utils/supabaseClient';
+import { createClient } from '@/auth/providers/supabase';
 import { performCriticalHealthCheck } from '@/utils/criticalFunctionMonitoring';
 
 interface HealthStatus {
