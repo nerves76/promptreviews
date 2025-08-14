@@ -502,6 +502,9 @@ export async function getAccountIdForUser(userId: string, supabaseClient?: any):
       // Create a map for easy lookup
       const accountMap = new Map(accounts?.map((a: any) => [a.id, a]) || []);
       
+      console.log('🗺️ Account map keys:', Array.from(accountMap.keys()));
+      console.log('🔑 Account_users account_ids:', accountUsers.map((au: any) => au.account_id));
+      
       // Add account data to accountUsers
       const accountUsersWithData = accountUsers.map((au: any) => ({
         ...au,
@@ -514,23 +517,21 @@ export async function getAccountIdForUser(userId: string, supabaseClient?: any):
         plan: au.account?.plan || 'NO_ACCOUNT_DATA'
       })));
       
-      // PRIORITY 1: Owned accounts with plans (prefer your own accounts)
+      // PRIORITY 1: Owned accounts with account data (prefer your own accounts)
       const ownedAccount = accountUsersWithData.find((au: any) => 
         au.role === 'owner' && 
-        au.account?.plan && 
-        au.account.plan !== 'no_plan'
+        au.account // Just check that account data exists
       );
       
       if (ownedAccount) {
-        console.log('✅ Selected owned account with plan:', ownedAccount.account_id);
+        console.log('✅ Selected owned account:', ownedAccount.account_id, 'plan:', ownedAccount.account?.plan);
         return ownedAccount.account_id;
       }
       
-      // PRIORITY 2: Team/support accounts with plans
+      // PRIORITY 2: Team/support accounts with account data
       const teamAccount = accountUsersWithData.find((au: any) => 
         (au.role === 'member' || au.role === 'support' || au.role === 'admin') && 
-        au.account?.plan && 
-        au.account.plan !== 'no_plan'
+        au.account // Just check that account data exists
       );
       
       if (teamAccount) {
