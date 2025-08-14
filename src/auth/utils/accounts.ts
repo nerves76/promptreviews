@@ -419,10 +419,17 @@ export async function getAccountIdForUser(userId: string, supabaseClient?: any):
 
   try {
     const result = await promise;
+    // If result is null, clear the cache immediately so next call can retry
+    // This prevents caching authentication failures during session setup
+    if (result === null) {
+      pendingRequests.delete(requestKey);
+    }
     return result;
   } finally {
-    // Clean up the pending request
-    pendingRequests.delete(requestKey);
+    // Clean up the pending request if it still exists
+    if (pendingRequests.has(requestKey)) {
+      pendingRequests.delete(requestKey);
+    }
   }
 }
 

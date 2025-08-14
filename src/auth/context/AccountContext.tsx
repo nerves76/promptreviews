@@ -284,7 +284,7 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
         }).catch(error => {
           console.error('❌ AccountContext: Error getting account ID:', error);
         });
-      }, 200); // Slightly longer initial delay
+      }, 500); // Longer delay to ensure session is fully established
       
       return () => clearTimeout(timeoutId);
     } else if (!isAuthenticated) {
