@@ -18,7 +18,7 @@ import { useRouter } from "next/navigation";
 import QRCodeModal from "../../components/QRCodeModal";
 import StarfallCelebration from "@/app/components/StarfallCelebration";
 import { promptTypesWithDarkIcons as promptTypes } from "@/config/promptTypes";
-import { getAccountIdForUser } from "@/utils/accountUtils";
+import { getAccountIdForUser } from "@/auth/utils/accounts";
 import BusinessLocationModal from "@/app/components/BusinessLocationModal";
 import { BusinessLocation } from "@/types/business";
 import { hasLocationAccess, formatLocationAddress, getLocationDisplayName } from "@/utils/locationUtils";

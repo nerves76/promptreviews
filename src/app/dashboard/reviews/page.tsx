@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { createClient } from "@/utils/supabaseClient";
-import { getAccountIdForUser } from "@/utils/accountUtils";
+import { getAccountIdForUser } from "@/auth/utils/accounts";
 import Icon, { IconName } from "@/components/Icon";
 import PageCard from "@/app/components/PageCard";
 import AppLoader from "@/app/components/AppLoader";

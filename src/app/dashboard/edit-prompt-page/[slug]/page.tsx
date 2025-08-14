@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { generateContextualReview } from "@/utils/aiReviewGeneration";
 import Icon from "@/components/Icon";
 import Link from "next/link";
-import { getAccountIdForUser } from "@/utils/accountUtils";
+import { getAccountIdForUser } from "@/auth/utils/accounts";
 import IndustrySelector from "@/app/components/IndustrySelector";
 import PromptPageForm from "@/app/components/PromptPageForm";
 import PhotoPromptPageForm from "@/app/components/PhotoPromptPageForm";

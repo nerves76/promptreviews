@@ -6,7 +6,7 @@ import AppLoader from "@/app/components/AppLoader";
 import { useRouter } from "next/navigation";
 import { tiers } from "../../components/PricingModal";
 import TopLoaderOverlay from "@/app/components/TopLoaderOverlay";
-import { getAccountIdForUser } from "@/utils/accountUtils";
+import { getAccountIdForUser } from "@/auth/utils/accounts";
 
 export default function PlanPage() {
   const supabase = createClient();

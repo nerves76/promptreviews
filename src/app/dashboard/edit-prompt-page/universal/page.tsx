@@ -17,7 +17,7 @@ import offerConfig from "@/app/components/prompt-modules/offerConfig";
 import { createClient } from "@/utils/supabaseClient";
 import Link from "next/link";
 import { markTaskAsCompleted } from "@/utils/onboardingTasks";
-import { getAccountIdForUser } from "@/utils/accountUtils";
+import { getAccountIdForUser } from "@/auth/utils/accounts";
 
 // Helper to normalize platform names to match dropdown options
 const normalizePlatformName = (name: string): string => {

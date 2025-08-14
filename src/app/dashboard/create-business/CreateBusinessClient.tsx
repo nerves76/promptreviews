@@ -12,7 +12,7 @@ import AppLoader from "@/app/components/AppLoader";
 import PageCard from "@/app/components/PageCard";
 import WelcomePopup from "@/app/components/WelcomePopup";
 import Icon from "@/components/Icon";
-import { ensureAccountExists, getAccountIdForUser } from "@/utils/accountUtils";
+import { ensureAccountExists, getAccountIdForUser } from "@/auth/utils/accounts";
 import { OptimizedSpinner } from "@/app/components/OptimizedComponents";
 
 

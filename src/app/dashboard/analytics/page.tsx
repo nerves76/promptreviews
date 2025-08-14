@@ -5,7 +5,7 @@ import { createClient, getUserOrMock } from "@/utils/supabaseClient";
 import { useAuthGuard } from "@/utils/authGuard";
 import { useAccountSelection } from "@/utils/accountSelectionHooks";
 import Icon from "@/components/Icon";
-import { getAccountIdForUser } from "@/utils/accountUtils";
+import { getAccountIdForUser } from "@/auth/utils/accounts";
 import { isAdmin } from "@/utils/admin";
 import { EMOJI_SENTIMENT_LABELS, EMOJI_SENTIMENT_ICONS } from "@/app/components/prompt-modules/emojiSentimentConfig";
 import PageCard from "@/app/components/PageCard";

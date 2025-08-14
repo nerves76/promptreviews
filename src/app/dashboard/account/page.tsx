@@ -8,7 +8,7 @@ import Link from "next/link";
 import PageCard from "@/app/components/PageCard";
 import AppLoader from "@/app/components/AppLoader";
 import { trackEvent, GA_EVENTS } from "../../../utils/analytics";
-import { getAccountIdForUser } from "@/utils/accountUtils";
+import { getAccountIdForUser } from "@/auth/utils/accounts";
 import { useAuthGuard } from "@/utils/authGuard";
 import { canCreateAccounts } from "@/config/adminConfig";
 

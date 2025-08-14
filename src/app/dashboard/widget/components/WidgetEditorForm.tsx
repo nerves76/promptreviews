@@ -15,7 +15,7 @@
  */
 import React, { useState, useRef, useEffect } from "react";
 import { createClient } from "@/utils/supabaseClient";
-import { getAccountIdForUser } from "@/utils/accountUtils";
+import { getAccountIdForUser } from "@/auth/utils/accounts";
 
 // Assuming Widget and DesignState types might be needed from a shared types file in the future
 // For now, defining them locally.

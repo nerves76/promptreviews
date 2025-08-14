@@ -27,7 +27,7 @@ import { getFallingIcon, getFallingIconColor } from "@/app/components/prompt-mod
 import dynamic from "next/dynamic";
 // 🔧 CONSOLIDATED: Single import from supabaseClient module
 import { createClient, getUserOrMock } from "@/utils/supabaseClient";
-import { getAccountIdForUser } from "@/utils/accountUtils";
+import { getAccountIdForUser } from "@/auth/utils/accounts";
 import offerConfig from "@/app/components/prompt-modules/offerConfig";
 
 // ⚡ PERFORMANCE: Dynamic imports for heavy React components only

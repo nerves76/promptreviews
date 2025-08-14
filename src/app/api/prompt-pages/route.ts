@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { nanoid } from "nanoid";
 import { createClient } from "@supabase/supabase-js";
 import { slugify } from "@/utils/slugify";
-import { getAccountIdForUser } from "@/utils/accountUtils";
+import { getAccountIdForUser } from "@/auth/utils/accounts";
 import { preparePromptPageData, validatePromptPageData } from "@/utils/promptPageDataMapping";
 
 // Initialize Supabase client with service key for privileged operations

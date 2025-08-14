@@ -12,7 +12,7 @@ import { trackEvent, GA_EVENTS } from '../../utils/analytics';
 import { fetchOnboardingTasks } from "@/utils/onboardingTasks";
 import PromptReviewsLogo from "@/app/dashboard/components/PromptReviewsLogo";
 import { AccountSwitcher } from './AccountSwitcher';
-import { getAccountIdForUser } from "@/utils/accountUtils";
+import { getAccountIdForUser } from "@/auth/utils/accounts";
 import GetReviewsDropdown from './GetReviewsDropdown';
 
 const CowboyUserIcon = () => {

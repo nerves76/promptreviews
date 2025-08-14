@@ -9,7 +9,7 @@ import { useAuthGuard } from "@/utils/authGuard";
 import { useAuth } from "@/auth";
 import { useAccountSelection } from "@/utils/accountSelectionHooks";
 import Icon from "@/components/Icon";
-import { getAccountIdForUser } from "@/utils/accountUtils";
+import { getAccountIdForUser } from "@/auth/utils/accounts";
 import { isAdmin } from "@/utils/admin";
 import BusinessProfileForm from "../components/BusinessProfileForm";
 import DashboardCard from "../components/DashboardCard";

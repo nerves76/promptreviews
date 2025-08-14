@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, Suspense } from "react";
 import { generateContextualReview, generateContextualTestimonial } from "@/utils/aiReviewGeneration";
 import Icon from "@/components/Icon";
 import { checkAccountLimits } from "@/utils/accountLimits";
-import { getAccountIdForUser } from "@/utils/accountUtils";
+import { getAccountIdForUser } from "@/auth/utils/accounts";
 import { Dialog } from "@headlessui/react";
 import { getUserOrMock, supabase } from "@/utils/supabaseClient";
 import { markTaskAsCompleted } from "@/utils/onboardingTasks";
