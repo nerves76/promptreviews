@@ -41,7 +41,7 @@ export default function FeedbackBubble() {
         className="fixed bottom-6 right-6 z-50 w-14 h-14 bg-slate-blue text-white rounded-full shadow-lg hover:shadow-xl hover:bg-slate-blue/90 transition-all duration-200 flex items-center justify-center group"
         aria-label="Help & Support"
       >
-        <Icon name="FaHelpBubble" className="w-6 h-6" size={24} />
+        <Icon name="FaQuestionCircle" className="w-6 h-6" size={24} />
         
         {/* Tooltip */}
         <div className="absolute bottom-full right-0 mb-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">

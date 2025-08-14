@@ -191,7 +191,7 @@ export default function TutorialsTab({
       <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center space-x-2">
-            <Icon name="FaMapMarkerAlt" className="w-4 h-4 text-blue-600" size={16} />
+            <Icon name="FaMapMarker" className="w-4 h-4 text-blue-600" size={16} />
             <span className="text-sm font-medium text-blue-800">
               {pageName}
             </span>
@@ -290,9 +290,9 @@ export default function TutorialsTab({
           className="inline-flex items-center space-x-2 text-slate-blue hover:text-slate-blue/80 font-medium"
           onClick={() => trackEvent('help_browse_all_clicked', { context: pathname })}
         >
-          <Icon name="FaBook" className="w-4 h-4" size={16} />
+          <Icon name="FaFileAlt" className="w-4 h-4" size={16} />
           <span>Browse all tutorials</span>
-          <Icon name="FaExternalLinkAlt" className="w-3 h-3" size={12} />
+          <Icon name="FaLink" className="w-3 h-3" size={12} />
         </a>
       </div>
     </div>

@@ -251,7 +251,7 @@ export default function IssuesTab({
       {submitStatus === 'error' && (
         <div className="p-4 bg-red-50 border border-red-200 rounded-md">
           <div className="flex items-start space-x-2">
-            <Icon name="FaExclamationCircle" className="w-5 h-5 text-red-600 mt-0.5" size={20} />
+            <Icon name="FaExclamationTriangle" className="w-5 h-5 text-red-600 mt-0.5" size={20} />
             <div>
               <p className="text-red-800 font-medium">Unable to submit feedback</p>
               <p className="text-red-700 text-sm mt-1">
@@ -276,7 +276,7 @@ export default function IssuesTab({
           </>
         ) : (
           <>
-            <Icon name="FaPaperPlane" className="w-4 h-4 mr-2" size={16} />
+            <Icon name="FaEnvelope" className="w-4 h-4 mr-2" size={16} />
             Send feedback
           </>
         )}

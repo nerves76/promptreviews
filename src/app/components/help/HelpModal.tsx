@@ -75,7 +75,7 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
           <div className="flex items-center justify-between p-4 md:p-6 pb-0">
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-slate-blue/10 rounded-lg flex items-center justify-center">
-                <Icon name="FaLifeRing" className="w-5 h-5 text-slate-blue" size={20} />
+                <Icon name="FaQuestionCircle" className="w-5 h-5 text-slate-blue" size={20} />
               </div>
               <div>
                 <h2 className="text-lg md:text-xl font-semibold text-gray-900">
@@ -99,7 +99,7 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
               }`}
             >
               <div className="flex items-center justify-center md:justify-start space-x-2">
-                <Icon name="FaBook" className="w-4 h-4" size={16} />
+                <Icon name="FaFileAlt" className="w-4 h-4" size={16} />
                 <span>Tutorials</span>
                 {activeTab === 'tutorials' && helpTopics.length > 0 && (
                   <span className="hidden md:inline-flex ml-1 px-2 py-0.5 text-xs bg-blue-100 text-blue-700 rounded-full">
@@ -166,7 +166,7 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
                 className="hover:text-slate-blue transition-colors flex items-center space-x-1"
                 onClick={() => trackEvent('help_footer_docs_clicked')}
               >
-                <Icon name="FaBook" className="w-3 h-3" size={12} />
+                <Icon name="FaFileAlt" className="w-3 h-3" size={12} />
                 <span>Docs</span>
               </a>
               <a 
@@ -181,7 +181,7 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
               </a>
             </div>
             <div className="flex items-center space-x-1">
-              <Icon name="FaKeyboard" className="w-3 h-3" size={12} />
+              <Icon name="FaKey" className="w-3 h-3" size={12} />
               <span>Press</span>
               <kbd className="px-1.5 py-0.5 bg-gray-200 rounded text-xs">?</kbd>
               <span>for help</span>
