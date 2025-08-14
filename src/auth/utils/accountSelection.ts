@@ -102,6 +102,24 @@ export async function fetchUserAccounts(userId: string, supabaseClient?: any): P
 }
 
 /**
+ * Select the best account for the user based on priority rules
+ */
+export function selectBestAccount(accounts: UserAccount[]): UserAccount | null {
+  if (!accounts || accounts.length === 0) return null;
+  
+  // Priority 1: Owner account
+  const ownerAccount = accounts.find(a => a.role === 'owner');
+  if (ownerAccount) return ownerAccount;
+  
+  // Priority 2: Admin account
+  const adminAccount = accounts.find(a => a.role === 'admin');
+  if (adminAccount) return adminAccount;
+  
+  // Priority 3: First member account
+  return accounts[0];
+}
+
+/**
  * Get the account ID that should be used for this user
  * Respects manual selection if valid, otherwise returns null for default algorithm
  */
