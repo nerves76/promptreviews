@@ -102,6 +102,12 @@ const GetReviewsDropdown: React.FC<GetReviewsDropdownProps> = ({
       label: "Review management", 
       icon: "FaStar",
       description: "View and manage collected reviews"
+    },
+    {
+      href: "/dashboard/widgets",
+      label: "Widgets",
+      icon: "FaCode",
+      description: "Embed review widgets on your website"
     }
   ];
 
@@ -119,7 +125,7 @@ const GetReviewsDropdown: React.FC<GetReviewsDropdownProps> = ({
           handleDropdownToggle();
         }}
         className={`${
-          isActive("/prompt-pages") || isActive("/dashboard/contacts") || isActive("/dashboard/reviews")
+          isActive("/prompt-pages") || isActive("/dashboard/contacts") || isActive("/dashboard/reviews") || isActive("/dashboard/widgets")
             ? "border-white text-white"
             : hasBusiness
               ? "border-transparent text-white hover:border-white/30 hover:text-white/90"
