@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/auth";
 import { trackEvent, GA_EVENTS } from '../../../utils/analytics';
 import SimpleMarketingNav from "@/app/components/SimpleMarketingNav";
 

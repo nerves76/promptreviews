@@ -28,7 +28,7 @@ import { hasLocationAccess, formatLocationAddress, getLocationDisplayName } from
 import EmojiEmbedButton from "@/app/components/EmojiEmbedButton";
 import FiveStarSpinner from "@/app/components/FiveStarSpinner";
 import BusinessProfileBanner from "@/app/components/BusinessProfileBanner";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/auth";
 
 const StylePage = dynamic(() => import("../dashboard/style/StyleModalPage"), { ssr: false });
 

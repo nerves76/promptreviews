@@ -7,7 +7,7 @@ import { useRouter, usePathname } from "next/navigation";
 import Icon from "@/components/Icon";
 import { createPortal } from "react-dom";
 import { createClient, getUserOrMock } from "@/utils/supabaseClient";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/auth";
 import { trackEvent, GA_EVENTS } from '../../utils/analytics';
 import { fetchOnboardingTasks } from "@/utils/onboardingTasks";
 import PromptReviewsLogo from "@/app/dashboard/components/PromptReviewsLogo";

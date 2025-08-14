@@ -1,6 +1,6 @@
 "use client";
 
-import { AuthProvider } from "@/contexts/AuthContext";
+import { AuthProvider } from "@/auth";
 import { ReviewerProvider } from "@/contexts/ReviewerContext";
 import BusinessGuard from "./BusinessGuard";
 

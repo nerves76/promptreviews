@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/auth";
 import { useRouter } from "next/navigation";
 import AppLoader from "@/app/components/AppLoader";
 import { trackEvent, GA_EVENTS } from "../../utils/analytics";

@@ -6,7 +6,7 @@ import { createClient, getUserOrMock } from "@/utils/supabaseClient";
 
 const supabase = createClient();
 // Remove the AuthContext import since DashboardLayout already handles auth
-// import { useAuth } from "@/contexts/AuthContext";
+// import { useAuth } from "@/auth";
 import SimpleBusinessForm from "../components/SimpleBusinessForm";
 import AppLoader from "@/app/components/AppLoader";
 import PageCard from "@/app/components/PageCard";

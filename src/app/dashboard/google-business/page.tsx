@@ -13,7 +13,7 @@ import PhotoManagement from '@/app/components/PhotoManagement';
 import ReviewManagement from '@/app/components/ReviewManagement';
 import BusinessInfoEditor from '@/app/components/BusinessInfoEditor';
 import { createClient } from '@/utils/supabaseClient';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/auth';
 import UnrespondedReviewsWidget from '@/app/components/UnrespondedReviewsWidget';
 import { safeTransformLocations, validateTransformedLocations } from '@/lib/google-business/safe-transformer';
 import LocationSelector from '@/components/GoogleBusinessProfile/LocationSelector';

@@ -8,7 +8,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/auth";
 import FiveStarSpinner from "../components/FiveStarSpinner";
 
 export default function GamePage() {

@@ -6,7 +6,7 @@ import { createClient, getUserOrMock } from "@/utils/supabaseClient";
 import Cropper from "react-easy-crop";
 import type { Area } from "react-easy-crop";
 import { useAuthGuard } from "@/utils/authGuard";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/auth";
 import { useAccountSelection } from "@/utils/accountSelectionHooks";
 import Icon from "@/components/Icon";
 import { getAccountIdForUser } from "@/utils/accountUtils";
