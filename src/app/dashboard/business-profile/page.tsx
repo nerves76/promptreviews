@@ -875,7 +875,12 @@ export default function BusinessProfilePage() {
         </div>
       </div>
 
-      {/* Top success message */}
+      {/* Top error and success messages */}
+      {error && (
+        <div className="mb-6 p-4 bg-red-50 text-red-700 rounded-md text-base font-medium border border-red-200">
+          {error}
+        </div>
+      )}
       {success && (
         <div className="mb-6 p-4 bg-green-50 text-green-700 rounded-md text-base font-medium border border-green-200">
           {success}
@@ -940,7 +945,12 @@ export default function BusinessProfilePage() {
         </button>
       </div>
 
-      {/* Bottom success message */}
+      {/* Bottom error and success messages */}
+      {error && (
+        <div className="mt-6 p-4 bg-red-50 text-red-700 rounded-md text-base font-medium border border-red-200">
+          {error}
+        </div>
+      )}
       {success && (
         <div className="mt-6 p-4 bg-green-50 text-green-700 rounded-md text-base font-medium border border-green-200">
           {success}
