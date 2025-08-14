@@ -455,20 +455,34 @@ export async function getAccountIdForUser(userId: string, supabaseClient?: any):
     }
 
     if (accountUsers && accountUsers.length > 0) {
-      // For multi-account users, we need to fetch account details separately
-      // to avoid join issues with RLS policies
+      console.log(`✅ Found ${accountUsers.length} account_users records for user ${userId}`);
       
-      // If only one account, return it immediately
-      if (accountUsers.length === 1) {
-        return accountUsers[0].account_id;
-      }
+      // For ALL users (including single account), we need to verify the account exists
+      // Don't return immediately - always verify the account data is accessible
       
-      // For multiple accounts, fetch their details
+      // Fetch account details for all users
       const accountIds = accountUsers.map((au: any) => au.account_id);
-      const { data: accounts } = await client
+      const { data: accounts, error: accountsError } = await client
         .from("accounts")
         .select("id, plan, first_name, last_name")
         .in("id", accountIds);
+      
+      if (accountsError) {
+        console.error('❌ Error fetching accounts:', accountsError);
+        // If we can't fetch account details, just return the first account_id we have
+        return accountUsers[0].account_id;
+      }
+      
+      if (!accounts || accounts.length === 0) {
+        console.log('⚠️ No accounts found for account_ids:', accountIds);
+        // Still return the account_id even if we can't fetch details
+        return accountUsers[0].account_id;
+      }
+      
+      // If only one account, return it now that we've verified it exists
+      if (accountUsers.length === 1) {
+        return accountUsers[0].account_id;
+      }
       
       // Create a map for easy lookup
       const accountMap = new Map(accounts?.map((a: any) => [a.id, a]) || []);
@@ -479,18 +493,7 @@ export async function getAccountIdForUser(userId: string, supabaseClient?: any):
         account: accountMap.get(au.account_id)
       }));
       
-      // PRIORITY 1: Team accounts with plans
-      const teamAccount = accountUsersWithData.find((au: any) => 
-        au.role === 'member' && 
-        au.account?.plan && 
-        au.account.plan !== 'no_plan'
-      );
-      
-      if (teamAccount) {
-        return teamAccount.account_id;
-      }
-      
-      // PRIORITY 2: Owned accounts with plans
+      // PRIORITY 1: Owned accounts with plans (prefer your own accounts)
       const ownedAccount = accountUsersWithData.find((au: any) => 
         au.role === 'owner' && 
         au.account?.plan && 
@@ -501,8 +504,27 @@ export async function getAccountIdForUser(userId: string, supabaseClient?: any):
         return ownedAccount.account_id;
       }
       
-      // PRIORITY 3: Any team account
-      const anyTeamAccount = accountUsersWithData.find((au: any) => au.role === 'member');
+      // PRIORITY 2: Team/support accounts with plans
+      const teamAccount = accountUsersWithData.find((au: any) => 
+        (au.role === 'member' || au.role === 'support' || au.role === 'admin') && 
+        au.account?.plan && 
+        au.account.plan !== 'no_plan'
+      );
+      
+      if (teamAccount) {
+        return teamAccount.account_id;
+      }
+      
+      // PRIORITY 3: Any owned account (even without plan)
+      const anyOwnedAccount = accountUsersWithData.find((au: any) => au.role === 'owner');
+      if (anyOwnedAccount) {
+        return anyOwnedAccount.account_id;
+      }
+      
+      // PRIORITY 4: Any team/support account
+      const anyTeamAccount = accountUsersWithData.find((au: any) => 
+        au.role === 'member' || au.role === 'support' || au.role === 'admin'
+      );
       if (anyTeamAccount) {
         return anyTeamAccount.account_id;
       }
