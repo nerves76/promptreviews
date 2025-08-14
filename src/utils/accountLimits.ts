@@ -1,5 +1,5 @@
 import { SupabaseClient } from "@supabase/supabase-js";
-import { getAccountIdForUser } from "./accountUtils";
+import { getAccountIdForUser } from "@/auth/utils/accounts";
 
 // Plan limits configuration
 const PLAN_LIMITS = {
