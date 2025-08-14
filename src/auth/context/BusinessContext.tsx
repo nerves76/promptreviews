@@ -131,10 +131,10 @@ export function BusinessProvider({ children }: { children: React.ReactNode }) {
         .from('businesses')
         .select('*')
         .eq('account_id', accountId)
-        .maybeSingle(); // Use maybeSingle instead of single to avoid errors when no rows
+        .order('created_at', { ascending: true }); // Get all businesses, ordered by creation date
 
       if (error) {
-        console.error('Failed to load business:', error);
+        console.error('Failed to load businesses:', error);
         console.error('Error details:', JSON.stringify({
           code: error.code,
           message: error.message,
@@ -152,20 +152,26 @@ export function BusinessProvider({ children }: { children: React.ReactNode }) {
         return;
       }
       
-      if (!data) {
+      if (!data || data.length === 0) {
         // No business found - this is expected for new accounts
         console.log('📭 No business found for account:', accountId);
         setBusiness(null);
         return;
       }
       
-      console.log('✅ Business loaded:', data?.business_name || data?.id);
+      // If multiple businesses exist, use the first one (oldest)
+      const businessData = data[0];
+      if (data.length > 1) {
+        console.log(`📊 Found ${data.length} businesses for account, using first one:`, businessData?.name || businessData?.id);
+      }
+      
+      console.log('✅ Business loaded:', businessData?.name || businessData?.id);
 
-      setBusiness(data);
+      setBusiness(businessData);
       
       // Update cache
       businessCache.current = {
-        data,
+        data: businessData,
         timestamp: Date.now(),
       };
       setBusinessCacheTime(Date.now());
