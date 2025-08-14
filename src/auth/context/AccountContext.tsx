@@ -230,6 +230,13 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
   // Initialize account on auth change
   useEffect(() => {
     console.log('🔄 AccountContext: Auth state changed, isAuthenticated:', isAuthenticated, 'userId:', user?.id);
+    
+    // Don't do anything if we already have an account ID
+    if (accountId && isAuthenticated && user?.id) {
+      console.log('✅ AccountContext: Already have account ID:', accountId, 'skipping fetch');
+      return;
+    }
+    
     if (isAuthenticated && user?.id) {
       // Add a small delay to ensure auth session is fully established
       const timeoutId = setTimeout(() => {
@@ -247,44 +254,49 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
             
             // Now load the full account data with the specific ID
             loadAccount(fetchedAccountId);
+            
+            // Load all accounts in parallel (for account switcher)
+            loadAccounts();
           } else {
             console.warn('⚠️ AccountContext: No account ID returned for user:', user.id);
-            // Don't set to null immediately - retry once
+            // Don't set to null immediately - retry once after a longer delay
             setTimeout(() => {
-              getAccountIdForUser(user.id).then((retryAccountId) => {
-                if (retryAccountId) {
-                  console.log('✅ AccountContext: Retry successful, got account ID:', retryAccountId);
-                  setAccountId(retryAccountId);
-                  setSelectedAccountId(() => retryAccountId);
-                  setAccountCacheTime(Date.now());
-                  loadAccount(retryAccountId);
-                } else {
-                  // Only set to null after retry fails
-                  setAccountId(null);
-                  setSelectedAccountId(() => null);
-                }
-              });
-            }, 500);
+              // Check again if we don't already have an account ID
+              if (!accountId) {
+                getAccountIdForUser(user.id).then((retryAccountId) => {
+                  if (retryAccountId) {
+                    console.log('✅ AccountContext: Retry successful, got account ID:', retryAccountId);
+                    setAccountId(retryAccountId);
+                    setSelectedAccountId(() => retryAccountId);
+                    setAccountCacheTime(Date.now());
+                    loadAccount(retryAccountId);
+                    loadAccounts();
+                  } else {
+                    console.warn('⚠️ AccountContext: Retry also returned null, user may not have accounts');
+                    // Only set to null after retry fails
+                    setAccountId(null);
+                    setSelectedAccountId(() => null);
+                  }
+                });
+              }
+            }, 1000); // Longer delay for retry
           }
-          
-          // Load all accounts in parallel (for account switcher)
-          loadAccounts();
         }).catch(error => {
           console.error('❌ AccountContext: Error getting account ID:', error);
         });
-      }, 100); // Small delay to ensure session is ready
+      }, 200); // Slightly longer initial delay
       
       return () => clearTimeout(timeoutId);
-    } else {
+    } else if (!isAuthenticated) {
       console.log('🔄 AccountContext: Not authenticated, clearing account data');
-      // Clear account data when not authenticated
+      // Clear account data when not authenticated - use force flag
       setAccount(null);
-      setAccountId(null);
+      setAccountId(null, true); // Force clear on logout
       setAccounts([]);
       setSelectedAccountId(null);
       clearAccountCache();
     }
-  }, [isAuthenticated, user?.id]);
+  }, [isAuthenticated, user?.id, accountId]);
 
   // Auto-refresh account data periodically
   useEffect(() => {
