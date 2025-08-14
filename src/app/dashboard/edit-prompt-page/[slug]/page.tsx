@@ -164,6 +164,8 @@ export default function EditPromptPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [hasBusiness, setHasBusiness] = useState<boolean | null>(null);
+  const [businessLoading, setBusinessLoading] = useState(true);
   // Removed step state - now single step
   const [originalFormData, setOriginalFormData] = useState<any>(null);
   const [showNameChangeDialog, setShowNameChangeDialog] = useState(false);
@@ -274,20 +276,31 @@ export default function EditPromptPage() {
         return;
       }
       // Fetch business profile using accountId
-      const { data: businessData, error: businessError } = await supabase
+      // ⚠️ CRITICAL: DO NOT use .single() - accounts can have multiple businesses!
+      // Using .single() will fail with PGRST116 error if multiple businesses exist
+      const { data: businessDataArray, error: businessError } = await supabase
         .from("businesses")
         .select("*")
         .eq("account_id", accountId)
-        .single();
+        .order("created_at", { ascending: true });
+      
       if (businessError) {
+        console.error("Failed to load businesses:", businessError);
         setError("Could not load business profile. Please try again.");
         setIsLoading(false);
         return;
       }
-      if (!businessData) {
+      
+      if (!businessDataArray || businessDataArray.length === 0) {
         setError("Business profile not found. Please create a business profile first.");
         setIsLoading(false);
         return;
+      }
+      
+      // Use the first business if multiple exist (oldest one)
+      const businessData = businessDataArray[0];
+      if (businessDataArray.length > 1) {
+        console.log(`Found ${businessDataArray.length} businesses for account, using first one:`, businessData?.name);
       }
       // Store original data for comparison
       console.log("[DEBUG] Prompt data loaded:", promptData);

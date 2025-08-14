@@ -88,7 +88,7 @@ export default function DashboardLayout({
   }
 
   // After initialization, if no user, redirect to sign-in  
-  if (isInitialized && !user) {
+  if (isInitialized && !user && isClient) {
     if (process.env.NODE_ENV === 'development') {
       console.log('❌ Dashboard: No user found after initialization, redirecting to sign-in');
     }

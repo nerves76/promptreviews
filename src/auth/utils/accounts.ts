@@ -1,6 +1,26 @@
 /**
  * Account management utilities for multi-user account support
  * This file provides functions for managing account users and permissions
+ * 
+ * ⚠️ CRITICAL MULTI-ACCOUNT WARNINGS ⚠️
+ * =====================================
+ * 
+ * 1. Request Deduplication:
+ *    - DO NOT cache null results permanently
+ *    - Null results are cleared immediately to allow retries
+ *    - Breaking this causes AccountContext to never get account ID
+ * 
+ * 2. Supabase Client:
+ *    - ALWAYS accept optional supabaseClient parameter
+ *    - AccountContext MUST pass its client for auth consistency
+ *    - Creating new client internally may not have auth session
+ * 
+ * 3. Multiple Accounts:
+ *    - Users can have multiple accounts (team + personal)
+ *    - Account selection priority matters (see selectBestAccount)
+ *    - Breaking this causes wrong account selection
+ * 
+ * See MULTI_ACCOUNT_TROUBLESHOOTING.md for debugging guide
  */
 
 import { SupabaseClient } from '@supabase/supabase-js';
@@ -401,8 +421,13 @@ export async function ensureAccountExists(
 
 /**
  * Get the account ID for a given user ID
+ * 
+ * ⚠️ CRITICAL: ALWAYS pass supabaseClient from calling context!
+ * Not passing client causes auth session issues and returns null
+ * 
  * @param userId - The user ID to get the account for
  * @param supabaseClient - Optional Supabase client instance. If not provided, creates a new one.
+ *                         ⚠️ AccountContext MUST pass its client for auth consistency!
  * @returns Promise<string | null> - The account ID or null if not found
  */
 export async function getAccountIdForUser(userId: string, supabaseClient?: any): Promise<string | null> {

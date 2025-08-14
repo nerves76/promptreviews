@@ -138,7 +138,8 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
       // Get account ID if not set
       let currentAccountId = targetAccountId;
       if (!currentAccountId) {
-        currentAccountId = await getAccountIdForUser(user.id, supabase);
+        // ⚠️ CRITICAL: Pass supabase client to ensure auth session is used
+      currentAccountId = await getAccountIdForUser(user.id, supabase);
         setAccountId(currentAccountId);
       }
 
@@ -227,7 +228,24 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
     await Promise.all([loadAccount(), loadAccounts()]);
   }, [clearAccountCache, loadAccount, loadAccounts]);
 
-  // Initialize account on auth change
+  /**
+   * Initialize account when authentication state changes
+   * 
+   * This effect is responsible for:
+   * 1. Detecting when a user logs in/out
+   * 2. Fetching the user's account ID
+   * 3. Loading account details
+   * 4. Propagating account ID to SharedAccountState
+   * 
+   * ⚠️ TIMING ISSUES THAT CAUSED 8-HOUR DEBUG:
+   * - Supabase session might not be ready immediately after auth
+   * - getAccountIdForUser might return null on first call
+   * - That's why we have retry logic with delays
+   * - SharedAccountState prevents setting null over existing ID
+   * 
+   * ⚠️ CRITICAL: Must pass supabase client to getAccountIdForUser!
+   * Not passing the client causes new client creation without auth.
+   */
   useEffect(() => {
     console.log('🔄 AccountContext: Auth state changed, isAuthenticated:', isAuthenticated, 'userId:', user?.id);
     
@@ -241,6 +259,9 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
       // Add a small delay to ensure auth session is fully established
       const timeoutId = setTimeout(() => {
         // Get the account ID
+        // ⚠️ CRITICAL: ALWAYS pass supabase client as second parameter!
+        // This ensures the same authenticated session is used.
+        // Not passing this was a major cause of the 8-hour debugging session.
         getAccountIdForUser(user.id, supabase).then((fetchedAccountId) => {
           console.log('🎯 AccountContext: Got account ID:', fetchedAccountId);
           if (fetchedAccountId) {
@@ -263,6 +284,7 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
             setTimeout(() => {
               // Check again if we don't already have an account ID
               if (!accountId) {
+                // ⚠️ CRITICAL: Pass supabase client on retry too!
                 getAccountIdForUser(user.id, supabase).then((retryAccountId) => {
                   if (retryAccountId) {
                     console.log('✅ AccountContext: Retry successful, got account ID:', retryAccountId);

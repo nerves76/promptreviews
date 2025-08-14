@@ -1,3 +1,28 @@
+/**
+ * Business Guard Component
+ * 
+ * ⚠️ CRITICAL FOR MULTI-ACCOUNT/MULTI-BUSINESS SUPPORT ⚠️
+ * =======================================================
+ * 
+ * This component ensures users have a business profile when required.
+ * 
+ * IMPORTANT RULES:
+ * 1. Only redirect ACCOUNT OWNERS without businesses
+ * 2. NEVER redirect team members (they don't own the business)
+ * 3. NEVER redirect paid accounts (they should have businesses)
+ * 4. Only redirect new accounts (< 24 hours old)
+ * 
+ * COMMON ISSUES:
+ * - Using old BusinessGuard from /components instead of this one
+ * - Not checking if user is account owner vs team member
+ * - Redirecting everyone without businesses (breaks team accounts)
+ * 
+ * This component was rewritten to fix the 8-hour debugging session
+ * where team members were being incorrectly redirected.
+ * 
+ * See MULTI_ACCOUNT_TROUBLESHOOTING.md for more details.
+ */
+
 "use client";
 
 import { useEffect } from "react";

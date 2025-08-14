@@ -20,13 +20,32 @@ interface CompositeAuthProviderProps {
 }
 
 /**
- * The order of providers matters:
+ * ⚠️ CRITICAL: PROVIDER ORDER MATTERS! ⚠️
+ * ========================================
+ * 
+ * The order of these providers is ESSENTIAL for proper operation.
+ * Changing the order WILL break multi-account support and cause:
+ * - AccountContext not propagating accountId to BusinessContext
+ * - Users being redirected to create-business when they have businesses
+ * - Navigation getting disabled after account switching
+ * - 8+ hours of debugging pain
+ * 
+ * REQUIRED ORDER:
  * 1. CoreAuthProvider - Base authentication (user, session)
- * 2. SharedAccountProvider - Manages shared account ID state
+ * 2. SharedAccountProvider - MUST be before Account & Business (shares state between them)
  * 3. AccountProvider - Depends on CoreAuth for user and SharedAccount for state
  * 4. BusinessProvider - Depends on SharedAccount for accountId
  * 5. AdminProvider - Depends on both CoreAuth and Account
  * 6. SubscriptionProvider - Depends on Account for subscription data
+ * 
+ * WHY THIS ORDER:
+ * - SharedAccountProvider creates the shared accountId state
+ * - AccountProvider writes to this shared state
+ * - BusinessProvider reads from this shared state
+ * - If SharedAccount isn't before both, they can't share state
+ * - If Account isn't before Business, Business won't get accountId
+ * 
+ * See MULTI_ACCOUNT_TROUBLESHOOTING.md for debugging help.
  */
 export function CompositeAuthProvider({ children }: CompositeAuthProviderProps) {
   return (

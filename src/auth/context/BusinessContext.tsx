@@ -6,6 +6,25 @@
  * - Business validation
  * - Business caching
  * - Business requirements checking
+ * 
+ * ⚠️ CRITICAL: MULTIPLE BUSINESSES WARNING ⚠️
+ * ============================================
+ * This system supports MULTIPLE businesses per account!
+ * 
+ * DO NOT use .single() or .maybeSingle() when fetching businesses.
+ * These will fail with PGRST116 error if an account has multiple businesses.
+ * 
+ * ALWAYS fetch all businesses and handle the array:
+ * - Use .select('*') without .single()
+ * - If you need one business, take the first from the array
+ * - Order by created_at for consistency
+ * 
+ * Breaking this will cause:
+ * - Navigation to be disabled (hasBusiness = false)
+ * - Users getting redirected to create-business
+ * - 8+ hours of debugging pain
+ * 
+ * See loadBusiness() method for the correct implementation.
  */
 
 "use client";
@@ -105,6 +124,8 @@ export function BusinessProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   // Load business for current account
+  // ⚠️ WARNING: DO NOT CHANGE TO .single() or .maybeSingle() - accounts can have MULTIPLE businesses!
+  // This caused an 8-hour debugging session when it broke navigation for multi-business accounts
   const loadBusiness = useCallback(async () => {
     console.log('🏢 loadBusiness called with accountId:', accountId);
     if (!accountId) {
@@ -127,11 +148,14 @@ export function BusinessProvider({ children }: { children: React.ReactNode }) {
     try {
       console.log('🏢 Loading business for account:', accountId);
       
+      // ⚠️ CRITICAL: DO NOT ADD .single() or .maybeSingle() here!
+      // Accounts can have multiple businesses (e.g., from mergers, migrations, or duplicates)
+      // Using .single() will cause PGRST116 error and break navigation
       const { data, error } = await supabase
         .from('businesses')
         .select('*')
         .eq('account_id', accountId)
-        .order('created_at', { ascending: true }); // Get all businesses, ordered by creation date
+        .order('created_at', { ascending: true }); // Get ALL businesses, handle array
 
       if (error) {
         console.error('Failed to load businesses:', error);
