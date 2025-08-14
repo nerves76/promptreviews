@@ -34,11 +34,11 @@
 
 import React, { createContext, useContext, useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { createClient } from '@/utils/supabaseClient';
+import { createClient } from '@/auth/providers/supabase';
 import { User, Session } from '@supabase/supabase-js';
-import { isAdmin, ensureAdminForEmail } from '@/utils/admin';
-import { getAccountIdForUser } from '@/utils/accountUtils';
-import { Account } from '@/utils/accountUtils';
+import { isAdmin, ensureAdminForEmail } from '@/auth/utils/admin';
+import { getAccountIdForUser } from '@/auth/utils/accounts';
+import { Account } from '@/auth/utils/accounts';
 import { AuthResponse } from '@supabase/supabase-js';
 
 // Create singleton client instance
@@ -618,6 +618,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
     
     try {
+      console.log('🔍 AuthContext: Starting auth check...');
       setIsRefreshing(true);
       setError(null);
       // Clear loading states if this is a refresh
@@ -676,7 +677,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       }
       
-      const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession();
+      // Add timeout to prevent hanging on production
+      const sessionPromise = supabase.auth.getSession();
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Session check timeout after 10s')), 10000)
+      );
+      
+      let currentSession = null;
+      let sessionError = null;
+      
+      try {
+        const result = await Promise.race([sessionPromise, timeoutPromise]) as any;
+        currentSession = result?.data?.session || null;
+        sessionError = result?.error || null;
+      } catch (err) {
+        console.error('❌ Session check failed or timed out:', err);
+        sessionError = err;
+      }
       
       if (sessionError) {
         console.error('AuthContext: Session error:', sessionError);
@@ -736,8 +753,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setError(err instanceof Error ? err.message : 'Authentication check failed');
       setIsInitialized(true);
     } finally {
+      // CRITICAL: Always set loading to false to unblock the UI
+      console.log('🏁 AuthContext: Auth check complete, clearing loading state');
       setIsLoading(false);
       setIsRefreshing(false);
+      setAccountLoading(false);
+      setAdminLoading(false);
+      setBusinessLoading(false);
+      isRefreshingRef.current = false;
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Empty dependencies to prevent circular dependency chain
