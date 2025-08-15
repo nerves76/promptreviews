@@ -60,8 +60,42 @@ export default function TeamPage() {
   const { selectedAccount, loading: accountLoading } = useAccountSelection();
   const [teamData, setTeamData] = useState<TeamData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [inviteEmail, setInviteEmail] = useState('');
-  const [inviteRole, setInviteRole] = useState<'member' | 'owner'>('member');
+  // Storage keys for form data persistence
+  const inviteFormStorageKey = 'teamInviteForm';
+  const bulkInviteStorageKey = 'teamBulkInviteForm';
+  
+  const [inviteEmail, setInviteEmail] = useState(() => {
+    // Try to restore from localStorage
+    if (typeof window !== 'undefined') {
+      const savedData = localStorage.getItem(inviteFormStorageKey);
+      if (savedData) {
+        try {
+          const parsed = JSON.parse(savedData);
+          console.log('📝 Restored team invite form data from localStorage');
+          return parsed.email || '';
+        } catch (e) {
+          console.error('Failed to parse saved invite form data:', e);
+        }
+      }
+    }
+    return '';
+  });
+  
+  const [inviteRole, setInviteRole] = useState<'member' | 'owner'>(() => {
+    // Try to restore from localStorage
+    if (typeof window !== 'undefined') {
+      const savedData = localStorage.getItem(inviteFormStorageKey);
+      if (savedData) {
+        try {
+          const parsed = JSON.parse(savedData);
+          return parsed.role || 'member';
+        } catch (e) {
+          // Ignore
+        }
+      }
+    }
+    return 'member';
+  });
   const [inviting, setInviting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -71,12 +105,57 @@ export default function TeamPage() {
   
   // State for bulk invitations
   const [showBulkInvite, setShowBulkInvite] = useState(false);
-  const [bulkEmails, setBulkEmails] = useState('');
+  const [bulkEmails, setBulkEmails] = useState(() => {
+    // Try to restore from localStorage
+    if (typeof window !== 'undefined') {
+      const savedData = localStorage.getItem(bulkInviteStorageKey);
+      if (savedData) {
+        try {
+          const parsed = JSON.parse(savedData);
+          console.log('📝 Restored bulk invite form data from localStorage');
+          return parsed.emails || '';
+        } catch (e) {
+          console.error('Failed to parse saved bulk invite form data:', e);
+        }
+      }
+    }
+    return '';
+  });
   const [bulkRole, setBulkRole] = useState<'member' | 'owner'>('member');
   const [bulkInviting, setBulkInviting] = useState(false);
   
   // Prevent multiple simultaneous calls
   const fetchingRef = useRef(false);
+  
+  // Auto-save invite form data to localStorage
+  useEffect(() => {
+    const saveTimeout = setTimeout(() => {
+      if (typeof window !== 'undefined' && (inviteEmail || inviteRole !== 'member')) {
+        localStorage.setItem(inviteFormStorageKey, JSON.stringify({
+          email: inviteEmail,
+          role: inviteRole
+        }));
+        console.log('💾 Auto-saved team invite form data');
+      }
+    }, 1000); // Debounce for 1 second
+
+    return () => clearTimeout(saveTimeout);
+  }, [inviteEmail, inviteRole, inviteFormStorageKey]);
+  
+  // Auto-save bulk invite form data to localStorage
+  useEffect(() => {
+    const saveTimeout = setTimeout(() => {
+      if (typeof window !== 'undefined' && (bulkEmails || bulkRole !== 'member')) {
+        localStorage.setItem(bulkInviteStorageKey, JSON.stringify({
+          emails: bulkEmails,
+          role: bulkRole
+        }));
+        console.log('💾 Auto-saved bulk invite form data');
+      }
+    }, 1000); // Debounce for 1 second
+
+    return () => clearTimeout(saveTimeout);
+  }, [bulkEmails, bulkRole, bulkInviteStorageKey]);
   
   // Helper function to get authentication headers
   const getAuthHeaders = async () => {
@@ -285,6 +364,11 @@ export default function TeamPage() {
     if (result) {
       setInviteEmail('');
       setInviteRole('member');
+      // Clear saved form data on successful invite
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem(inviteFormStorageKey);
+        console.log('🗑️ Cleared team invite form data after successful invite');
+      }
       await fetchTeamData();
     }
   };
@@ -361,6 +445,11 @@ export default function TeamPage() {
         setBulkEmails('');
         setBulkRole('member');
         setShowBulkInvite(false);
+        // Clear saved form data on successful bulk invite
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem(bulkInviteStorageKey);
+          console.log('🗑️ Cleared bulk invite form data after successful invites');
+        }
         await fetchTeamData(); // Refresh data
       }
       
