@@ -71,6 +71,14 @@ export default function Header() {
 
   // Check if user has Builder or Maven plan for GBP access
   const hasGBPAccess = currentPlan === 'builder' || currentPlan === 'maven';
+  
+  // Store current user ID in a ref to access it in the callback
+  const currentUserIdRef = useRef<string | undefined>(user?.id);
+
+  useEffect(() => {
+    // Update the ref whenever user changes
+    currentUserIdRef.current = user?.id;
+  }, [user?.id]);
 
   useEffect(() => {
     const getUser = async () => {
@@ -111,10 +119,6 @@ export default function Header() {
     };
 
     getUser();
-
-    // Store current user ID in a ref to access it in the callback
-    const currentUserIdRef = useRef<string | undefined>(user?.id);
-    currentUserIdRef.current = user?.id;
     
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
