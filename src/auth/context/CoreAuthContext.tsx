@@ -261,6 +261,22 @@ export function CoreAuthProvider({ children }: { children: React.ReactNode }) {
       async (event, newSession) => {
         console.log('Auth state change:', event);
         
+        // For token refresh events, only update if user ID actually changed
+        // This prevents unnecessary re-renders when tokens are refreshed
+        if (event === 'TOKEN_REFRESHED' || event === 'SIGNED_IN') {
+          if (newSession?.user?.id === user?.id) {
+            // User hasn't changed, just update session quietly without triggering re-renders
+            setSession(prev => {
+              // Only update if session actually changed
+              if (prev?.access_token !== newSession.access_token) {
+                return newSession;
+              }
+              return prev;
+            });
+            return; // Skip the rest to avoid unnecessary updates
+          }
+        }
+        
         if (newSession) {
           setSession(newSession);
           setUser(newSession.user);
