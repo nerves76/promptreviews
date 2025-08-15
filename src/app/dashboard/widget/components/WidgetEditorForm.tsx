@@ -36,10 +36,41 @@ interface WidgetEditorFormProps {
 
 export const WidgetEditorForm: React.FC<WidgetEditorFormProps> = ({ onSaveSuccess, onCancel, widgetToEdit, design }) => {
   const supabase = createClient();
-  const [form, setForm] = useState({ name: "", widgetType: "multi" });
+  // Storage key for form data persistence
+  const formStorageKey = `widgetEditorForm_${widgetToEdit?.id || 'new'}`;
+  
+  const [form, setForm] = useState(() => {
+    // Try to restore from localStorage first
+    if (typeof window !== 'undefined') {
+      const savedData = localStorage.getItem(formStorageKey);
+      if (savedData) {
+        try {
+          const parsed = JSON.parse(savedData);
+          console.log('📝 Restored widget editor form data from localStorage');
+          return parsed;
+        } catch (e) {
+          console.error('Failed to parse saved widget form data:', e);
+        }
+      }
+    }
+    return { name: "", widgetType: "multi" };
+  });
+  
   const [nameError, setNameError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const nameInputRef = useRef<HTMLInputElement>(null);
+
+  // Auto-save form data to localStorage
+  useEffect(() => {
+    const saveTimeout = setTimeout(() => {
+      if (typeof window !== 'undefined' && form && form.name.trim()) {
+        localStorage.setItem(formStorageKey, JSON.stringify(form));
+        console.log('💾 Auto-saved widget editor form data to localStorage');
+      }
+    }, 1000); // Debounce for 1 second
+
+    return () => clearTimeout(saveTimeout);
+  }, [form, formStorageKey]);
 
   useEffect(() => {
     if (widgetToEdit) {
@@ -89,6 +120,12 @@ export const WidgetEditorForm: React.FC<WidgetEditorFormProps> = ({ onSaveSucces
         if (error) throw error;
       }
 
+      // Clear saved form data on successful save
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem(formStorageKey);
+        console.log('🗑️ Cleared widget editor form data from localStorage after successful save');
+      }
+      
       onSaveSuccess();
     } catch (error: any) {
       console.error('Widget save error:', error);
