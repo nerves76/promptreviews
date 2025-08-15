@@ -119,7 +119,7 @@ export default function WidgetList({
     
     try {
       await deleteWidget(widgetId);
-      fetchWidgets();
+      // Don't call fetchWidgets - deleteWidget already does it internally
     } catch (error) {
       console.error('Error deleting widget:', error);
       alert('Failed to delete widget. Please try again.');
@@ -134,7 +134,7 @@ export default function WidgetList({
   const handleSaveDesign = async () => {
     if (selectedWidgetForStyle) {
       await saveWidgetDesign(selectedWidgetForStyle.id, design);
-      fetchWidgets();
+      // Don't call fetchWidgets - saveWidgetDesign already does it internally
       setShowStyleModal(false);
     }
   };
@@ -154,7 +154,7 @@ export default function WidgetList({
   const handleSaveWidgetName = async (id: string, name: string) => {
     try {
       await saveWidgetName(id, name);
-      fetchWidgets();
+      // Don't call fetchWidgets - saveWidgetName already does it internally
     } catch (error) {
       console.error('Error saving widget name:', error);
       alert('Failed to save widget name. Please try again.');
@@ -188,7 +188,7 @@ export default function WidgetList({
         title={widgetToEdit ? 'Edit widget' : 'Create new widget'}
       >
         <WidgetEditorForm
-          onSaveSuccess={() => { setIsEditorOpen(false); fetchWidgets(); }}
+          onSaveSuccess={() => { setIsEditorOpen(false); /* fetchWidgets is called automatically */ }}
           onCancel={() => setIsEditorOpen(false)}
           widgetToEdit={widgetToEdit}
           design={design}
@@ -202,7 +202,7 @@ export default function WidgetList({
           setSelectedWidgetForReviews(null);
         }}
         widgetId={selectedWidgetForReviews}
-        onReviewsChange={fetchWidgets}
+        onReviewsChange={() => { /* No need to fetch widgets for review changes */ }}
       />
 
       {showStyleModal && selectedWidgetForStyle && (

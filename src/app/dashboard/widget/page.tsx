@@ -16,7 +16,39 @@ export default function WidgetPage() {
   const { widgets, loading, error, createWidget, deleteWidget, saveWidgetName, saveWidgetDesign, fetchWidgets } = useWidgets();
   const [selectedWidget, setSelectedWidget] = useState<any>(null);
   const [selectedWidgetFull, setSelectedWidgetFull] = useState<any>(null);
-  const [design, setDesign] = useState<DesignState>(DEFAULT_DESIGN);
+  
+  // Debug logging for refresh tracking
+  React.useEffect(() => {
+    console.log('🔍 WIDGET PAGE REFRESH TRACKER:', {
+      timestamp: new Date().toISOString(),
+      widgetsCount: widgets?.length,
+      loading,
+      selectedWidget: selectedWidget?.id,
+      location: window.location.href,
+      stack: new Error().stack
+    });
+  });
+  
+  // Storage key for design state persistence
+  const designStorageKey = `widgetDesign_${selectedWidget?.id || 'default'}`;
+  
+  const [design, setDesign] = useState<DesignState>(() => {
+    // Try to restore design from localStorage
+    if (typeof window !== 'undefined') {
+      const savedDesign = localStorage.getItem(designStorageKey);
+      if (savedDesign) {
+        try {
+          const parsed = JSON.parse(savedDesign);
+          console.log('📝 Restored widget design from localStorage');
+          return parsed;
+        } catch (e) {
+          console.error('Failed to parse saved design:', e);
+        }
+      }
+    }
+    return DEFAULT_DESIGN;
+  });
+  
   const [copiedWidgetId, setCopiedWidgetId] = useState<string | null>(null);
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [showStyleModal, setShowStyleModal] = useState(false);
@@ -159,6 +191,18 @@ export default function WidgetPage() {
     }
   }, [loading, widgets?.length]);
 
+  // Auto-save design state to localStorage
+  React.useEffect(() => {
+    const saveTimeout = setTimeout(() => {
+      if (typeof window !== 'undefined' && design && selectedWidget?.id) {
+        localStorage.setItem(designStorageKey, JSON.stringify(design));
+        console.log('💾 Auto-saved widget design to localStorage');
+      }
+    }, 1000); // Debounce for 1 second
+
+    return () => clearTimeout(saveTimeout);
+  }, [design, designStorageKey, selectedWidget?.id]);
+
   // Additional check: if selected widget is fake but real widgets exist, switch to real widget
   React.useEffect(() => {
     if (selectedWidget && selectedWidget.id === "fake-multi-widget" && widgets && widgets.length > 0) {
@@ -212,7 +256,7 @@ export default function WidgetPage() {
   const handleSaveDesign = async () => {
     if (selectedWidget) {
       await saveWidgetDesign(selectedWidget.id, design);
-      fetchWidgets();
+      // Don't call fetchWidgets here - saveWidgetDesign already does it internally
       setShowStyleModal(false);
     }
   };
@@ -324,8 +368,8 @@ export default function WidgetPage() {
         onClose={() => setShowReviewModal(false)}
         widgetId={selectedWidget?.id}
         onReviewsChange={() => {
-          fetchWidgets();
-          // Also refresh the full widget data to update the preview
+          // Only refresh the full widget data to update the preview
+          // Don't call fetchWidgets as it's not needed for review changes
           if (selectedWidget?.id) {
             fetchFullWidgetData(selectedWidget.id);
           }

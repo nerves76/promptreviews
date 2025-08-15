@@ -33,7 +33,8 @@ export function useWidgets() {
   const fetchWidgets = useCallback(async () => {
     console.log('🔄 useWidgets: Starting fetchWidgets', {
       accountLoading,
-      selectedAccountId: selectedAccount?.account_id
+      selectedAccountId: selectedAccount?.account_id,
+      timestamp: new Date().toISOString()
     });
     
     // Wait for account selection to complete
@@ -70,9 +71,19 @@ export function useWidgets() {
     }
   }, [accountLoading, selectedAccount?.account_id]);
 
+  // Only fetch widgets once when component mounts and account is ready
   useEffect(() => {
-    fetchWidgets();
-  }, [fetchWidgets]);
+    // Add a flag to prevent multiple fetches
+    let mounted = true;
+    
+    if (mounted && !accountLoading && selectedAccount?.account_id) {
+      fetchWidgets();
+    }
+    
+    return () => {
+      mounted = false;
+    };
+  }, [accountLoading, selectedAccount?.account_id, fetchWidgets]);
   
   const createWidget = async (name: string, widgetType: string, theme: any) => {
     if (!selectedAccount?.account_id) {

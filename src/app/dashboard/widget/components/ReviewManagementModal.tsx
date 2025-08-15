@@ -129,6 +129,8 @@ export function ReviewManagementModal({
   const [reviewsToTrim, setReviewsToTrim] = useState<Array<{review: any, text: string, characterCount: number}>>([]);
 
   // Auto-save edited review data to localStorage
+  // IMPORTANT: We save the FULL text even if over character limit
+  // This prevents data loss during editing - truncation only happens on actual save
   useEffect(() => {
     const saveTimeout = setTimeout(() => {
       if (typeof window !== 'undefined' && widgetId && 
@@ -137,19 +139,21 @@ export function ReviewManagementModal({
            Object.keys(editedRoles).length > 0 || 
            Object.keys(editedRatings).length > 0)) {
         const dataToSave = {
-          editedReviews,
+          editedReviews, // Full text preserved, even if over 250 chars
           editedNames,
           editedRoles,
           editedRatings,
-          timestamp: Date.now()
+          timestamp: Date.now(),
+          widgetId, // Include widgetId to ensure we restore to correct widget
+          version: 2 // Version to handle future changes
         };
         localStorage.setItem(formStorageKey, JSON.stringify(dataToSave));
-        console.log('💾 Auto-saved review management data to localStorage');
+        console.log('💾 Auto-saved review management data to localStorage (full text preserved)');
       }
     }, 1000); // Debounce for 1 second
 
     return () => clearTimeout(saveTimeout);
-  }, [editedReviews, editedNames, editedRoles, editedRatings, formStorageKey]);
+  }, [editedReviews, editedNames, editedRoles, editedRatings, formStorageKey, widgetId]);
 
   // Fetch reviews when modal opens
   useEffect(() => {

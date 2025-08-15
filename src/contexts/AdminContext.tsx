@@ -109,11 +109,9 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
         
         if (event === 'SIGNED_IN' && session?.user) {
           // Only refresh admin status for actual sign-ins, not token refreshes
-          // Check if this is a real sign-in by seeing if we had a user before
-          const wasSignedOut = !account?.user_id;
-          if (wasSignedOut) {
-            await checkAdminStatus(true);
-          }
+          // Since we don't track previous user state in this context,
+          // skip admin refresh on SIGNED_IN to avoid unnecessary checks
+          // The initial checkAdminStatus() in the useEffect will handle it
         } else if (event === 'SIGNED_OUT') {
           // Clear admin status on sign out
           setIsAdminUser(false);
