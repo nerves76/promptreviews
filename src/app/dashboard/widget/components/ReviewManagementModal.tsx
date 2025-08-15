@@ -28,14 +28,76 @@ export function ReviewManagementModal({
   onReviewsChange 
 }: ReviewManagementModalProps) {
   const supabase = createClient();
+  
+  // Storage key for form data persistence
+  const formStorageKey = `reviewManagement_${widgetId || 'new'}`;
+  
   const [activeTab, setActiveTab] = useState('import');
   const [allReviews, setAllReviews] = useState<any[]>([]);
   const [loadingReviews, setLoadingReviews] = useState(false);
   const [selectedReviews, setSelectedReviews] = useState<any[]>([]);
-  const [editedReviews, setEditedReviews] = useState<{ [id: string]: string }>({});
-  const [editedNames, setEditedNames] = useState<{ [id: string]: string }>({});
-  const [editedRoles, setEditedRoles] = useState<{ [id: string]: string }>({});
-  const [editedRatings, setEditedRatings] = useState<{ [id: string]: number | null }>({});
+  
+  // Initialize edited fields from localStorage if available
+  const [editedReviews, setEditedReviews] = useState<{ [id: string]: string }>(() => {
+    if (typeof window !== 'undefined') {
+      const savedData = localStorage.getItem(formStorageKey);
+      if (savedData) {
+        try {
+          const parsed = JSON.parse(savedData);
+          console.log('📝 Restored review management data from localStorage');
+          return parsed.editedReviews || {};
+        } catch (e) {
+          console.error('Failed to parse saved review data:', e);
+        }
+      }
+    }
+    return {};
+  });
+  
+  const [editedNames, setEditedNames] = useState<{ [id: string]: string }>(() => {
+    if (typeof window !== 'undefined') {
+      const savedData = localStorage.getItem(formStorageKey);
+      if (savedData) {
+        try {
+          const parsed = JSON.parse(savedData);
+          return parsed.editedNames || {};
+        } catch (e) {
+          // Ignore
+        }
+      }
+    }
+    return {};
+  });
+  
+  const [editedRoles, setEditedRoles] = useState<{ [id: string]: string }>(() => {
+    if (typeof window !== 'undefined') {
+      const savedData = localStorage.getItem(formStorageKey);
+      if (savedData) {
+        try {
+          const parsed = JSON.parse(savedData);
+          return parsed.editedRoles || {};
+        } catch (e) {
+          // Ignore
+        }
+      }
+    }
+    return {};
+  });
+  
+  const [editedRatings, setEditedRatings] = useState<{ [id: string]: number | null }>(() => {
+    if (typeof window !== 'undefined') {
+      const savedData = localStorage.getItem(formStorageKey);
+      if (savedData) {
+        try {
+          const parsed = JSON.parse(savedData);
+          return parsed.editedRatings || {};
+        } catch (e) {
+          // Ignore
+        }
+      }
+    }
+    return {};
+  });
   const [reviewError, setReviewError] = useState("");
   const [reviewSort, setReviewSort] = useState<"recent" | "alphabetical">("recent");
   const [reviewSearch, setReviewSearch] = useState("");
@@ -65,6 +127,29 @@ export function ReviewManagementModal({
   const [widgetType, setWidgetType] = useState<string | null>(null);
   const [showTrimConfirmation, setShowTrimConfirmation] = useState(false);
   const [reviewsToTrim, setReviewsToTrim] = useState<Array<{review: any, text: string, characterCount: number}>>([]);
+
+  // Auto-save edited review data to localStorage
+  useEffect(() => {
+    const saveTimeout = setTimeout(() => {
+      if (typeof window !== 'undefined' && widgetId && 
+          (Object.keys(editedReviews).length > 0 || 
+           Object.keys(editedNames).length > 0 || 
+           Object.keys(editedRoles).length > 0 || 
+           Object.keys(editedRatings).length > 0)) {
+        const dataToSave = {
+          editedReviews,
+          editedNames,
+          editedRoles,
+          editedRatings,
+          timestamp: Date.now()
+        };
+        localStorage.setItem(formStorageKey, JSON.stringify(dataToSave));
+        console.log('💾 Auto-saved review management data to localStorage');
+      }
+    }, 1000); // Debounce for 1 second
+
+    return () => clearTimeout(saveTimeout);
+  }, [editedReviews, editedNames, editedRoles, editedRatings, formStorageKey]);
 
   // Fetch reviews when modal opens
   useEffect(() => {
@@ -488,6 +573,12 @@ export function ReviewManagementModal({
       const result = await response.json();
       console.log("Reviews saved successfully:", result);
       
+      // Clear saved form data on successful save
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem(formStorageKey);
+        console.log('🗑️ Cleared review management data from localStorage after successful save');
+      }
+      
       onClose();
       if (onReviewsChange) onReviewsChange();
     } catch (error) {
@@ -851,7 +942,7 @@ export function ReviewManagementModal({
       {/* Character Limit Confirmation Modal */}
       {showTrimConfirmation && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60]">
-          <div className="bg-white rounded-lg shadow-xl p-6 max-w-md mx-4">
+          <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-2xl p-6 max-w-md mx-4 border-2 border-white">
             <div className="flex items-center mb-4">
               <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center mr-4">
                 <svg className="w-6 h-6 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
