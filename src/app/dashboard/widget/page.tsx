@@ -9,25 +9,17 @@ import { StyleModal } from "./components/StyleModal";
 import { ReviewManagementModal } from "./components/ReviewManagementModal";
 import { DEFAULT_DESIGN, DesignState } from "./components/widgets/multi";
 import { useWidgets } from "./hooks/useWidgets";
+import { useRefreshPrevention } from "./hooks/useRefreshPrevention";
 
 export default function WidgetPage() {
   const supabase = createClient();
+  
+  // Use refresh prevention hook
+  useRefreshPrevention('WidgetPage');
 
   const { widgets, loading, error, createWidget, deleteWidget, saveWidgetName, saveWidgetDesign, fetchWidgets } = useWidgets();
   const [selectedWidget, setSelectedWidget] = useState<any>(null);
   const [selectedWidgetFull, setSelectedWidgetFull] = useState<any>(null);
-  
-  // Debug logging for refresh tracking
-  React.useEffect(() => {
-    console.log('🔍 WIDGET PAGE REFRESH TRACKER:', {
-      timestamp: new Date().toISOString(),
-      widgetsCount: widgets?.length,
-      loading,
-      selectedWidget: selectedWidget?.id,
-      location: window.location.href,
-      stack: new Error().stack
-    });
-  });
   
   // Storage key for design state persistence
   const designStorageKey = `widgetDesign_${selectedWidget?.id || 'default'}`;

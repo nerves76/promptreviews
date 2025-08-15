@@ -837,9 +837,30 @@ export function ReviewManagementModal({
                         placeholder="Write the review content here..."
                         value={newCustomReview.review_content}
                         onChange={(e) => setNewCustomReview({ ...newCustomReview, review_content: e.target.value })}
-                        className="w-full p-2 border rounded-md mb-3"
+                        className={`w-full p-2 border rounded-md mb-1 ${
+                          newCustomReview.review_content.length > 250
+                            ? 'border-yellow-500 bg-yellow-50'
+                            : 'border-gray-300'
+                        }`}
                         rows={3}
                       />
+                      <div className="mb-3 flex items-center justify-between">
+                        <div className={`text-xs ${
+                          newCustomReview.review_content.length > 250
+                            ? 'text-yellow-600 font-medium'
+                            : 'text-gray-500'
+                        }`}>
+                          {newCustomReview.review_content.length}/250 characters
+                        </div>
+                        {newCustomReview.review_content.length > 250 && (
+                          <div className="text-xs text-yellow-600 flex items-center">
+                            <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                            </svg>
+                            Text will be truncated when saved
+                          </div>
+                        )}
+                      </div>
                     </div>
                     <div className="flex justify-end gap-3">
                       <button onClick={() => setShowAddCustomReview(false)} className="text-gray-600">Cancel</button>
@@ -890,9 +911,30 @@ export function ReviewManagementModal({
                           <textarea
                             value={editedReviews[review.review_id] || ""}
                             onChange={(e) => handleReviewEdit(review.review_id, e.target.value)}
-                            className="w-full p-2 border rounded-md"
+                            className={`w-full p-2 border rounded-md ${
+                              (editedReviews[review.review_id] || "").length > 250
+                                ? 'border-yellow-500 bg-yellow-50'
+                                : 'border-gray-300'
+                            }`}
                             rows={3}
                           />
+                          <div className="mt-1 flex items-center justify-between">
+                            <div className={`text-xs ${
+                              (editedReviews[review.review_id] || "").length > 250
+                                ? 'text-yellow-600 font-medium'
+                                : 'text-gray-500'
+                            }`}>
+                              {(editedReviews[review.review_id] || "").length}/250 characters
+                            </div>
+                            {(editedReviews[review.review_id] || "").length > 250 && (
+                              <div className="text-xs text-yellow-600 flex items-center">
+                                <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                                </svg>
+                                Text will be truncated when saved
+                              </div>
+                            )}
+                          </div>
                         </div>
                         
                         {/* Photo Upload Section for Photo Widgets */}
