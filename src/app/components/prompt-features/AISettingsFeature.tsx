@@ -83,7 +83,9 @@ export default function AISettingsFeature({
       <div className="flex flex-row justify-between items-start px-2 py-2">
         <div className="flex flex-col">
           <div className="flex items-center gap-3">
-            <Icon name="FaRobot" className="w-7 h-7 text-slate-blue" size={28} />
+            <svg className="w-7 h-7" style={{ color: "#4F46E5" }}>
+              <use href="/icons-sprite.svg#prompty" />
+            </svg>
             <span className="text-2xl font-bold text-[#1A237E]">
               Generate with AI
             </span>

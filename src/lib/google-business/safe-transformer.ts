@@ -74,6 +74,19 @@ export function safeTransformLocation(
   try {
     const loc = rawLocation as any;
     
+    // Debug logging to see what data we're receiving
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`🔍 Transformer receiving location ${index}:`, {
+        hasLocationName: 'location_name' in loc,
+        locationName: loc?.location_name,
+        hasName: 'name' in loc,
+        name: loc?.name,
+        hasTitle: 'title' in loc,
+        title: loc?.title,
+        keys: Object.keys(loc || {})
+      });
+    }
+    
     // Extract ID with multiple strategies
     const idResult = safeString(loc, 'location_id', 'id', 'locationId', 'place_id');
     let id = idResult.value;

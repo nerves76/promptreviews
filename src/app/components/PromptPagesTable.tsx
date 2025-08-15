@@ -303,33 +303,15 @@ export default function PromptPagesTable({
                   {!["service", "photo", "video", "event", "product"].includes(page.review_type || "") && (page.review_type ? page.review_type.charAt(0).toUpperCase() + page.review_type.slice(1) : "Service")}
                 </td>
                 <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-900">
-                  {page.contacts ? (
-                    <div className="flex flex-col">
-                      <span className="font-medium">
-                        {page.contacts.first_name} {page.contacts.last_name}
-                      </span>
-                      <span className="text-xs text-gray-500">
-                        {page.contacts.email || page.contacts.phone || "No contact info"}
-                      </span>
-                      <Link 
-                        href={`/dashboard/contacts`}
-                        className="text-xs text-slate-blue hover:text-slate-blue/80 underline"
-                      >
-                        View Contact
-                      </Link>
-                    </div>
-                  ) : page.contact_id ? (
-                    <div className="flex flex-col">
-                      <span className="text-gray-500 text-xs">Contact Linked</span>
-                      <Link 
-                        href={`/dashboard/contacts`}
-                        className="text-xs text-slate-blue hover:text-slate-blue/80 underline"
-                      >
-                        View Contact
-                      </Link>
-                    </div>
+                  {page.contacts || page.contact_id ? (
+                    <Link 
+                      href={`/dashboard/contacts`}
+                      className="text-slate-blue hover:text-slate-blue/80 underline"
+                    >
+                      View contact
+                    </Link>
                   ) : (
-                    <span className="text-gray-400 text-xs">No Contact</span>
+                    <span className="text-gray-400">—</span>
                   )}
                 </td>
                 <td className="whitespace-nowrap px-3 py-4 text-sm flex gap-2 items-center">

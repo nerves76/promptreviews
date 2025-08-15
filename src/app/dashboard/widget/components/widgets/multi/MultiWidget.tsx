@@ -213,7 +213,7 @@ const MultiWidget: React.FC<MultiWidgetProps> = ({ data, design }) => {
       isMounted = false;
       initializedRef.current = false;
     };
-  }, [reviews, currentDesign, slug, data.id, data.type]);
+  }, [reviews?.length, slug, data.id, data.type]); // Removed currentDesign from deps to prevent re-initialization
 
   if (!reviews || !currentDesign) {
     return <div className="text-center p-4">Loading widget data...</div>;

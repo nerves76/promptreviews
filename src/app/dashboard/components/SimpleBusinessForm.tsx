@@ -7,7 +7,7 @@
  * a streamlined onboarding experience.
  */
 
-import React, { useState, forwardRef } from "react";
+import React, { useState, forwardRef, useEffect, useCallback } from "react";
 import Icon from "@/components/Icon";
 import IndustrySelector from "@/app/components/IndustrySelector";
 import { createClient } from "@/utils/supabaseClient";
@@ -139,28 +139,48 @@ const SimpleBusinessForm = forwardRef<HTMLFormElement, SimpleBusinessFormProps>(
 }, ref) => {
   const supabase = createClient();
   const router = useRouter();
-  const [form, setForm] = useState({
-    name: "",
-    industries_other: "",
-    industry: [],
-    business_website: "",
-    business_email: "",
-    phone: "",
-    address_street: "",
-    address_city: "",
-    address_state: "",
-    address_zip: "",
-    address_country: "United States",
-    tagline: "",
-    company_values: "",
-    ai_dos: "",
-    ai_donts: "",
-    services_offered: "",
-    differentiators: "",
-    years_in_business: "",
-    industries_served: "",
-    promotion_code: "",
+  
+  // Storage key for form persistence
+  const formStorageKey = 'createBusinessForm';
+  
+  // Initialize form with saved data if available
+  const [form, setForm] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const savedData = localStorage.getItem(formStorageKey);
+      if (savedData) {
+        try {
+          const parsed = JSON.parse(savedData);
+          console.log('📝 Restored business form data from localStorage');
+          return parsed;
+        } catch (e) {
+          console.error('Failed to parse saved form data:', e);
+        }
+      }
+    }
+    return {
+      name: "",
+      industries_other: "",
+      industry: [],
+      business_website: "",
+      business_email: "",
+      phone: "",
+      address_street: "",
+      address_city: "",
+      address_state: "",
+      address_zip: "",
+      address_country: "United States",
+      tagline: "",
+      company_values: "",
+      ai_dos: "",
+      ai_donts: "",
+      services_offered: "",
+      differentiators: "",
+      years_in_business: "",
+      industries_served: "",
+      promotion_code: "",
+    };
   });
+  
   const [loading, setLoading] = useState(false);
   const [loadingState, setLoadingState] = useState<'creating' | 'redirecting' | null>(null);
   const [error, setError] = useState("");
@@ -169,6 +189,18 @@ const SimpleBusinessForm = forwardRef<HTMLFormElement, SimpleBusinessFormProps>(
   const [industryType, setIndustryType] = useState<"B2B" | "B2C" | "Both">("Both");
   const [promotionCodeError, setPromotionCodeError] = useState("");
   const [promotionCodeSuccess, setPromotionCodeSuccess] = useState("");
+  
+  // Auto-save form data to localStorage
+  useEffect(() => {
+    const saveTimeout = setTimeout(() => {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(formStorageKey, JSON.stringify(form));
+        console.log('💾 Auto-saved business form to localStorage');
+      }
+    }, 1000); // Debounce for 1 second
+    
+    return () => clearTimeout(saveTimeout);
+  }, [form, formStorageKey]);
 
   // Valid promotion codes
   const VALID_PROMOTION_CODES = ["grower49-offer2025"];
@@ -193,7 +225,7 @@ const SimpleBusinessForm = forwardRef<HTMLFormElement, SimpleBusinessFormProps>(
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setForm(prev => ({ ...prev, [name]: value }));
+    setForm((prev: any) => ({ ...prev, [name]: value }));
     
     // Validate promotion code as user types
     if (name === "promotion_code") {
@@ -322,6 +354,10 @@ const SimpleBusinessForm = forwardRef<HTMLFormElement, SimpleBusinessFormProps>(
         localStorage.setItem(`hasCreatedBusiness_${accountId}`, 'true');
         console.log("✅ Set hasCreatedBusiness flag for account:", accountId);
       }
+      
+      // Clear the saved form data since business was created successfully
+      localStorage.removeItem(formStorageKey);
+      console.log('🗑️ Cleared saved form data after successful business creation');
       
       // Call the success callback
       onSuccess();

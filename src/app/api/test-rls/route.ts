@@ -38,11 +38,18 @@ export async function GET() {
       .single();
 
     // Test 5: Check what policies exist
-    const { data: policies } = await serviceClient
-      .rpc('get_policies_for_table', { 
-        table_name: 'account_users',
-        schema_name: 'public'
-      }).catch(() => ({ data: null }));
+    let policies = null;
+    try {
+      const result = await serviceClient
+        .rpc('get_policies_for_table', { 
+          table_name: 'account_users',
+          schema_name: 'public'
+        });
+      policies = result.data;
+    } catch (error) {
+      // RPC might not exist, that's ok
+      policies = null;
+    }
 
     return NextResponse.json({
       user: {

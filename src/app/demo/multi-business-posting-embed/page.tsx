@@ -46,7 +46,7 @@ export default function MultiBusinessPostingEmbedDemo() {
   const [displayedText, setDisplayedText] = useState('');
   const [isPosting, setIsPosting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
-  const animationTimeoutRef = useRef<NodeJS.Timeout>();
+  const animationTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
   // Animation sequence
   useEffect(() => {

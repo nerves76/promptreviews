@@ -1316,11 +1316,14 @@ export default function CreatePromptPageClient({
         localStorage.setItem('showPostSaveModal', JSON.stringify({
           name: data.name || 'Service Campaign',
           slug: data.slug,
+          prompt_page_id: data.id,
+          contact_id: data.contact_id || formData.contact_id,
           url: `${window.location.origin}/r/${data.slug}`,
           timestamp: new Date().toISOString(),
           isLocationCreation: false,
           // Include individual info to help determine which tab to show on
           first_name: formData.first_name || null,
+          last_name: formData.last_name || null,
           email: formData.email || null,
           phone: formData.phone || null
         }));
@@ -1436,7 +1439,11 @@ export default function CreatePromptPageClient({
           "showPostSaveModal",
           JSON.stringify({ 
             url: `/r/${data.slug}`,
+            slug: data.slug,
+            prompt_page_id: data.id,
+            contact_id: data.contact_id || formData.contact_id,
             first_name: formData.first_name,
+            last_name: formData.last_name,
             phone: formData.phone,
             email: formData.email
           }),
@@ -1578,7 +1585,9 @@ export default function CreatePromptPageClient({
               "showPostSaveModal",
               JSON.stringify({ 
                 url: `/r/${slug}`,
+                slug: slug,
                 first_name: formData.first_name,
+                last_name: formData.last_name,
                 phone: formData.phone,
                 email: formData.email
               }),
@@ -1608,7 +1617,9 @@ export default function CreatePromptPageClient({
               "showPostSaveModal",
               JSON.stringify({ 
                 url: `/r/${slug}`,
+                slug: slug,
                 first_name: formData.first_name,
+                last_name: formData.last_name,
                 phone: formData.phone,
                 email: formData.email
               }),
@@ -1638,7 +1649,9 @@ export default function CreatePromptPageClient({
               "showPostSaveModal",
               JSON.stringify({ 
                 url: `/r/${slug}`,
+                slug: slug,
                 first_name: formData.first_name,
+                last_name: formData.last_name,
                 phone: formData.phone,
                 email: formData.email
               }),

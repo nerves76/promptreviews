@@ -6,6 +6,7 @@ import AppLoader from "@/app/components/AppLoader";
 import { PhotoUpload } from './PhotoUpload';
 import { createClient } from '@/auth/providers/supabase';
 import { getAccountIdForUser } from '@/auth/utils/accounts';
+import { apiClient } from '@/utils/apiClient';
 
 const CHARACTER_LIMIT = 250;
 const MAX_WIDGET_REVIEWS = 25;
@@ -144,6 +145,7 @@ export function ReviewManagementModal({
   const [showTrimConfirmation, setShowTrimConfirmation] = useState(false);
   const [reviewsToTrim, setReviewsToTrim] = useState<Array<{review: any, text: string, characterCount: number}>>([]);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [showRestoredNotification, setShowRestoredNotification] = useState(false);
 
   // Auto-save edited review data to localStorage
   // IMPORTANT: We save the FULL text even if over character limit
@@ -321,6 +323,25 @@ export function ReviewManagementModal({
       console.log('✅ ReviewManagementModal: Available reviews (customer submissions only):', mappedReviews.length);
       console.log('✅ ReviewManagementModal: Selected reviews (includes custom reviews):', widgetReviews?.length || 0);
       
+      // Try to restore saved data from localStorage first
+      let restoredData: any = null;
+      if (typeof window !== 'undefined') {
+        const savedData = localStorage.getItem(formStorageKey);
+        if (savedData) {
+          try {
+            restoredData = JSON.parse(savedData);
+            // Check if the saved data is for the same widget
+            if (restoredData.widgetId === widgetId) {
+              console.log('📝 Found saved review data in localStorage, will merge with database data');
+            } else {
+              restoredData = null; // Ignore saved data if it's for a different widget
+            }
+          } catch (e) {
+            console.error('Failed to parse saved review data:', e);
+          }
+        }
+      }
+      
       // Set edited fields to match the widget's current reviews
       const editedReviewsObj: { [id: string]: string } = {};
       const editedNamesObj: { [id: string]: string } = {};
@@ -329,20 +350,55 @@ export function ReviewManagementModal({
       const photoUploadsObj: { [id: string]: string } = {};
       
       (widgetReviews || []).forEach((r) => {
-        editedReviewsObj[r.review_id] = r.review_content;
-        editedNamesObj[r.review_id] = `${r.first_name} ${r.last_name}`;
-        editedRolesObj[r.review_id] = r.reviewer_role;
-        editedRatingsObj[r.review_id] = r.star_rating ?? null;
+        // Use saved data if available, otherwise use database values
+        editedReviewsObj[r.review_id] = restoredData?.editedReviews?.[r.review_id] ?? r.review_content;
+        editedNamesObj[r.review_id] = restoredData?.editedNames?.[r.review_id] ?? `${r.first_name} ${r.last_name}`;
+        editedRolesObj[r.review_id] = restoredData?.editedRoles?.[r.review_id] ?? r.reviewer_role;
+        editedRatingsObj[r.review_id] = restoredData?.editedRatings?.[r.review_id] ?? r.star_rating ?? null;
         if (r.photo_url) {
           photoUploadsObj[r.review_id] = r.photo_url;
         }
       });
+      
+      // Also restore any edits for reviews that might have been removed from selection
+      // but still have unsaved edits
+      if (restoredData) {
+        Object.keys(restoredData.editedReviews || {}).forEach(reviewId => {
+          if (!editedReviewsObj[reviewId]) {
+            editedReviewsObj[reviewId] = restoredData.editedReviews[reviewId];
+          }
+        });
+        Object.keys(restoredData.editedNames || {}).forEach(reviewId => {
+          if (!editedNamesObj[reviewId]) {
+            editedNamesObj[reviewId] = restoredData.editedNames[reviewId];
+          }
+        });
+        Object.keys(restoredData.editedRoles || {}).forEach(reviewId => {
+          if (!editedRolesObj[reviewId]) {
+            editedRolesObj[reviewId] = restoredData.editedRoles[reviewId];
+          }
+        });
+        Object.keys(restoredData.editedRatings || {}).forEach(reviewId => {
+          if (!editedRatingsObj[reviewId]) {
+            editedRatingsObj[reviewId] = restoredData.editedRatings[reviewId];
+          }
+        });
+      }
       
       setEditedReviews(editedReviewsObj);
       setEditedNames(editedNamesObj);
       setEditedRoles(editedRolesObj);
       setEditedRatings(editedRatingsObj);
       setPhotoUploads(photoUploadsObj);
+      
+      // If we restored data, show a notification
+      if (restoredData && Object.keys(restoredData.editedReviews || {}).length > 0) {
+        console.log('✅ ReviewManagementModal: Restored autosaved edits from localStorage');
+        setHasUnsavedChanges(true);
+        setShowRestoredNotification(true);
+        // Auto-hide notification after 5 seconds
+        setTimeout(() => setShowRestoredNotification(false), 5000);
+      }
       
       console.log('✅ ReviewManagementModal: All data loaded successfully');
       
@@ -597,31 +653,8 @@ export function ReviewManagementModal({
     }));
 
     try {
-      // Get current session for authentication
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.access_token) {
-        setReviewError("Authentication required. Please refresh the page and try again.");
-        return;
-      }
-
-      // Call the new API route
-      const response = await fetch(`/api/widgets/${widgetId}/reviews`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`
-        },
-        body: JSON.stringify({ reviews: reviewsToSave })
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error("API error:", errorData);
-        setReviewError(`Failed to save reviews: ${errorData.error || 'Unknown error'}`);
-        return;
-      }
-
-      const result = await response.json();
+      // Use apiClient which handles auth automatically
+      const result = await apiClient.put(`/widgets/${widgetId}/reviews`, { reviews: reviewsToSave });
       console.log("Reviews saved successfully:", result);
       
       // Clear saved form data on successful save
@@ -712,6 +745,18 @@ export function ReviewManagementModal({
       saveLabel="Save"
     >
       {/* Top right save button is now handled by DraggableModal via onSave prop */}
+      
+      {/* Restored data notification */}
+      {showRestoredNotification && (
+        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-center">
+          <svg className="w-5 h-5 text-blue-600 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+          </svg>
+          <span className="text-sm text-blue-800">
+            Your unsaved edits have been restored. Remember to save your changes when you're done.
+          </span>
+        </div>
+      )}
 
       {loadingReviews ? (
         <div className="flex justify-center items-center h-96">

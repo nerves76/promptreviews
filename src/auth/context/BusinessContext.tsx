@@ -327,7 +327,7 @@ export function BusinessProvider({ children }: { children: React.ReactNode }) {
 
   // Initialize business on account change
   useEffect(() => {
-    console.log('🔄 BusinessContext: Account changed to:', accountId, 'account object:', account?.id);
+    console.log('🔄 BusinessContext: Account changed to:', accountId, 'account object:', account ? account.id : 'undefined');
     console.log('🔍 BusinessContext: Full account context state:', {
       sharedAccountId: accountId,
       contextAccountId: accountContext.accountId,

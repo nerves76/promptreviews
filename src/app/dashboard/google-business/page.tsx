@@ -13,7 +13,7 @@ import PhotoManagement from '@/app/components/PhotoManagement';
 import ReviewManagement from '@/app/components/ReviewManagement';
 import BusinessInfoEditor from '@/app/components/BusinessInfoEditor';
 import { createClient } from '@/utils/supabaseClient';
-import { useAuth } from '@/auth';
+import { useBusinessData, useAuthUser, useAccountData, useSubscriptionData } from '@/auth/hooks/granularAuthHooks';
 import UnrespondedReviewsWidget from '@/app/components/UnrespondedReviewsWidget';
 import { safeTransformLocations, validateTransformedLocations } from '@/lib/google-business/safe-transformer';
 import LocationSelector from '@/components/GoogleBusinessProfile/LocationSelector';
@@ -30,22 +30,13 @@ interface GoogleBusinessLocation {
 }
 
 export default function SocialPostingDashboard() {
-  // Initialize with default values to prevent null errors
-  let currentPlan = 'free';
+  // Use granular auth hooks to prevent refresh issues
+  const { plan: currentPlan = 'free' } = useSubscriptionData();
+  const { user } = useAuthUser();
+  const { business } = useBusinessData();
+  const { account } = useAccountData();
   
-  // Try to get auth context safely
-  try {
-    const authContext = useAuth();
-    if (authContext) {
-      currentPlan = authContext.currentPlan || 'free';
-      console.log('Google Business - Successfully got auth context, plan:', currentPlan);
-    } else {
-      console.warn('Google Business - Auth context is null');
-    }
-  } catch (error) {
-    console.error('Google Business - Error accessing auth context:', error);
-    // Continue with default plan
-  }
+  console.log('Google Business - Successfully got auth context, plan:', currentPlan);
   
   /**
    * GOOGLE BUSINESS PROFILE STATE DOCUMENTATION
@@ -120,11 +111,33 @@ export default function SocialPostingDashboard() {
   });
   
   const [isLocationDropdownOpen, setIsLocationDropdownOpen] = useState(false);
-  const [postContent, setPostContent] = useState('');
+  // Initialize postContent with saved data
+  const [postContent, setPostContent] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const savedContent = localStorage.getItem('googleBusinessPostContent');
+      if (savedContent) {
+        console.log('📝 Restored post content from localStorage');
+        return savedContent;
+      }
+    }
+    return '';
+  });
   const [postType, setPostType] = useState<'WHATS_NEW' | 'EVENT' | 'OFFER' | 'PRODUCT'>('WHATS_NEW');
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [uploadingImages, setUploadingImages] = useState(false);
+  
+  // Auto-save post content to localStorage
+  useEffect(() => {
+    const saveTimeout = setTimeout(() => {
+      if (typeof window !== 'undefined' && postContent) {
+        localStorage.setItem('googleBusinessPostContent', postContent);
+        console.log('💾 Auto-saved post content to localStorage');
+      }
+    }, 1000); // Debounce for 1 second
+    
+    return () => clearTimeout(saveTimeout);
+  }, [postContent]);
   const [showCTA, setShowCTA] = useState(false);
   const [ctaType, setCTAType] = useState<'LEARN_MORE' | 'CALL' | 'ORDER_ONLINE' | 'BOOK' | 'SIGN_UP' | 'BUY'>('LEARN_MORE');
   const [ctaUrl, setCTAUrl] = useState('');
@@ -561,8 +574,25 @@ export default function SocialPostingDashboard() {
           const locations = googlePlatform.locations || [];
           console.log('Locations from platforms API:', locations);
           
+          // Debug: Log the raw location data structure
+          if (locations.length > 0) {
+            console.log('🔍 First location raw data:', {
+              fullObject: locations[0],
+              hasLocationName: 'location_name' in locations[0],
+              locationNameValue: locations[0].location_name,
+              keys: Object.keys(locations[0])
+            });
+          }
+          
+          // Ensure location_name is accessible before transformation
+          const locationsWithNames = locations.map(loc => ({
+            ...loc,
+            name: loc.location_name || loc.name, // Ensure name field exists
+            title: loc.location_name || loc.title // Ensure title field exists
+          }));
+          
           // Use safe transformer to prevent TypeErrors
-          const transformedLocations = safeTransformLocations(locations);
+          const transformedLocations = safeTransformLocations(locationsWithNames);
           
           // Validate the transformation
           const validation = validateTransformedLocations(transformedLocations);
@@ -645,7 +675,13 @@ export default function SocialPostingDashboard() {
       console.log('🔄 Setting both loading flags to false');
       loadingRef.current = false;
       setIsLoading(false);
-      setIsLoadingPlatforms(false);
+      
+      // Add a delay before clearing the platforms loading state
+      // This ensures React has time to process the location state updates
+      setTimeout(() => {
+        console.log('🔄 Delayed setting isLoadingPlatforms to false');
+        setIsLoadingPlatforms(false);
+      }, 500); // Increased delay to 500ms for better reliability
     }
   }, []); // Remove dependency to prevent useEffect from running multiple times
 
@@ -1070,6 +1106,8 @@ export default function SocialPostingDashboard() {
           message: `Successfully published to all ${selectedLocations.length} location${selectedLocations.length !== 1 ? 's' : ''}!`
         });
         setPostContent(''); // Clear content on success
+        localStorage.removeItem('googleBusinessPostContent'); // Clear saved content
+        console.log('🗑️ Cleared saved post content after successful posting');
         clearAllImages(); // Clear uploaded images on success
         setShowCTA(false); // Clear CTA on success
         setCTAType('LEARN_MORE');
@@ -1119,6 +1157,7 @@ export default function SocialPostingDashboard() {
   // Clear all form data
   const clearAllFormData = () => {
     setPostContent('');
+    localStorage.removeItem('googleBusinessPostContent'); // Clear saved content
     setPostResult(null);
     clearAllImages();
     setShowCTA(false);
@@ -1400,7 +1439,10 @@ export default function SocialPostingDashboard() {
     }
   };
 
-  if (isLoading || isPostOAuthConnecting || isLoadingPlatforms) {
+  // Also check if we're connected but locations are still being loaded
+  const isStillLoadingLocations = isConnected && locations.length === 0 && isLoadingPlatforms;
+  
+  if (isLoading || isPostOAuthConnecting || isLoadingPlatforms || isStillLoadingLocations) {
     return (
       <div className="w-full mx-auto px-4 sm:px-6 md:px-8 lg:px-12 mt-12 md:mt-16 lg:mt-20 mb-16 flex justify-center items-start">
         <PageCard
@@ -1940,20 +1982,21 @@ export default function SocialPostingDashboard() {
                 <div className="space-y-6">
                   {/* Location Selector - show demo location if not connected */}
                   <LocationSelector
-                    locations={locations.length > 0 ? locations.map(loc => ({
+                    locations={locations.length > 0 && locations[0].name ? locations.map(loc => ({
                       id: loc.id,
-                      name: loc.name,
-                      address: loc.address
-                    })) : [
+                      name: loc.name || 'Loading...',
+                      address: loc.address || ''
+                    })) : isConnected ? [] : [
                       {
                         id: 'demo-location',
                         name: 'Your Business Name',
                         address: '123 Main Street, Your City, State 12345'
                       }
                     ]}
-                    selectedLocationId={selectedLocationId || 'demo-location'}
+                    selectedLocationId={selectedLocationId || (locations.length > 0 ? locations[0].id : 'demo-location')}
                     onLocationChange={handleLocationChange}
                     isConnected={isConnected}
+                    isLoading={isLoadingPlatforms || (isConnected && locations.length === 0)}
                   />
 
                   {/* Error State */}

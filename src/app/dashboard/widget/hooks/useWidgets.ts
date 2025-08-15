@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/utils/supabaseClient";
 import { useAccountSelection } from "@/utils/accountSelectionHooks";
+import { apiClient } from "@/utils/apiClient";
 
 const supabase = createClient();
 import { trackWidgetCreated } from "../../../../utils/analytics";
@@ -48,7 +49,8 @@ export function useWidgets() {
     try {
       console.log('✅ useWidgets: Fetching widgets for account:', selectedAccount.account_id);
       
-      // Fetch widgets directly from database using selected account ID
+      // Use apiClient for better token management
+      // For now, still use supabase directly but this can be migrated to API endpoint
       const { data: widgetsData, error: fetchError } = await supabase
         .from('widgets')
         .select('*')
@@ -83,7 +85,7 @@ export function useWidgets() {
     return () => {
       mounted = false;
     };
-  }, [accountLoading, selectedAccount?.account_id, fetchWidgets]);
+  }, [accountLoading, selectedAccount?.account_id]); // Remove fetchWidgets from deps to prevent re-fetching
   
   const createWidget = async (name: string, widgetType: string, theme: any) => {
     if (!selectedAccount?.account_id) {

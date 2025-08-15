@@ -120,8 +120,8 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
   const calculateSubscriptionStatus = useCallback(() => {
     if (!account) {
       return {
-        subscriptionStatus: null as const,
-        paymentStatus: null as const,
+        subscriptionStatus: null,
+        paymentStatus: null,
         hasPaymentMethod: false,
         paymentMethodStatus: 'missing' as const,
       };
@@ -164,7 +164,7 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
       return {
         currentPlan: null,
         planDisplayName: null,
-        planTier: null as const,
+        planTier: null,
         hasActivePlan: false,
         requiresPlanSelection: false,
         isFreePlan: false,

@@ -380,13 +380,11 @@ export default function Header() {
                       </>
                     )}
                   </Link>
-                  <div className={hasBusiness ? "" : "opacity-50 cursor-not-allowed"}>
-                    <GetReviewsDropdown 
-                      hasBusiness={hasBusiness}
-                      businessLoading={businessLoading}
-                      onNavigate={() => {}}
-                    />
-                  </div>
+                  <GetReviewsDropdown 
+                    hasBusiness={hasBusiness}
+                    businessLoading={businessLoading}
+                    onNavigate={() => {}}
+                  />
 
                   {/* Always show Google Biz nav item - access control handled within the page */}
                   {(

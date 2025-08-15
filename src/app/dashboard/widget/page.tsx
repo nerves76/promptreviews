@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect, useMemo } from "react";
-import { createClient } from "@/utils/supabaseClient";
+import { apiClient } from "@/utils/apiClient";
 import WidgetList from "./WidgetList";
 import PageCard from "@/app/components/PageCard";
 import Icon from "@/components/Icon";
@@ -9,13 +9,12 @@ import { StyleModal } from "./components/StyleModal";
 import { ReviewManagementModal } from "./components/ReviewManagementModal";
 import { DEFAULT_DESIGN, DesignState } from "./components/widgets/multi";
 import { useWidgets } from "./hooks/useWidgets";
-import { useRefreshPrevention } from "./hooks/useRefreshPrevention";
+// import { useRefreshPrevention } from "./hooks/useRefreshPrevention";
 
 export default function WidgetPage() {
-  const supabase = createClient();
   
-  // Use refresh prevention hook
-  useRefreshPrevention('WidgetPage');
+  // Disabled refresh prevention hook - causing rapid re-render issues
+  // useRefreshPrevention('WidgetPage');
 
   const { widgets, loading, error, createWidget, deleteWidget, saveWidgetName, saveWidgetDesign, fetchWidgets } = useWidgets();
   const [selectedWidget, setSelectedWidget] = useState<any>(null);
@@ -50,28 +49,10 @@ export default function WidgetPage() {
     try {
       console.log('🔍 WidgetPage: Fetching full widget data for:', widgetId);
       
-      // Get the current session token for authentication
-      const { data: { session } } = await supabase.auth.getSession();
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-      };
-      
-      // Add authorization header if we have a session
-      if (session?.access_token) {
-        headers['Authorization'] = `Bearer ${session.access_token}`;
-      }
-      
-      const response = await fetch(`/api/widgets/${widgetId}`, {
-        headers
-      });
-      
-      if (response.ok) {
-        const fullWidgetData = await response.json();
-        console.log('✅ WidgetPage: Full widget data fetched:', fullWidgetData);
-        setSelectedWidgetFull(fullWidgetData);
-      } else {
-        console.error('❌ WidgetPage: Failed to fetch full widget data:', response.status);
-      }
+      // Use apiClient which handles auth automatically
+      const fullWidgetData = await apiClient.get(`/widgets/${widgetId}`);
+      console.log('✅ WidgetPage: Full widget data fetched:', fullWidgetData);
+      setSelectedWidgetFull(fullWidgetData);
     } catch (error) {
       console.error('❌ WidgetPage: Error fetching full widget data:', error);
     }
@@ -162,6 +143,12 @@ export default function WidgetPage() {
       return;
     }
     
+    // Check if we already have a selected widget to avoid unnecessary re-selection
+    if (selectedWidget && selectedWidget.id !== "fake-multi-widget") {
+      console.log('📌 WidgetPage: Already have a selected widget, skipping auto-select');
+      return;
+    }
+    
     if (widgets && widgets.length > 0) {
       console.log('✅ WidgetPage: Found widgets, selecting first one:', widgets[0]);
       // Clear any fake widget and select the first real widget
@@ -181,7 +168,7 @@ export default function WidgetPage() {
       setSelectedWidget(fakeWidget);
       setSelectedWidgetFull(fakeWidget);
     }
-  }, [loading, widgets?.length]);
+  }, [loading, widgets?.length]); // Removed fakeReviews from deps since it's memoized
 
   // Auto-save design state to localStorage
   React.useEffect(() => {

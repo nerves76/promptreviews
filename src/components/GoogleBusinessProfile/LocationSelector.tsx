@@ -24,6 +24,7 @@ interface LocationSelectorProps {
   isConnected: boolean;
   placeholder?: string;
   className?: string;
+  isLoading?: boolean;
 }
 
 export default function LocationSelector({
@@ -32,7 +33,8 @@ export default function LocationSelector({
   onLocationChange,
   isConnected,
   placeholder = "Select a business location",
-  className = ""
+  className = "",
+  isLoading = false
 }: LocationSelectorProps) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
@@ -58,6 +60,26 @@ export default function LocationSelector({
     setIsDropdownOpen(false);
   };
 
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className={`${className}`}>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Select business
+        </label>
+        <div className="w-full flex items-center justify-center px-4 py-3 border border-gray-300 rounded-md bg-gray-50">
+          <div className="animate-pulse flex items-center space-x-3">
+            <div className="w-4 h-4 bg-gray-300 rounded"></div>
+            <div>
+              <div className="h-4 w-32 bg-gray-300 rounded mb-1"></div>
+              <div className="h-3 w-48 bg-gray-200 rounded"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (locations.length === 0) {
     return (
@@ -85,7 +107,7 @@ export default function LocationSelector({
             {selectedLocation ? (
               <>
                 <div className="font-medium text-gray-900">
-                  {selectedLocation.name || (selectedLocation.id && typeof selectedLocation.id === 'string' ? `Location ${selectedLocation.id.replace('locations/', '').substring(0, 8)}...` : 'Unknown Location')}
+                  {selectedLocation.name || (selectedLocation.id && typeof selectedLocation.id === 'string' ? `Loading...` : 'Select a location')}
                 </div>
                 {selectedLocation.address && (
                   <div className="text-sm text-gray-500 truncate">{selectedLocation.address}</div>
@@ -117,7 +139,7 @@ export default function LocationSelector({
             >
               <div className="flex-1 min-w-0">
                 <div className="font-medium text-gray-900 truncate">
-                  {location.name || (location.id && typeof location.id === 'string' ? `Location ${location.id.replace('locations/', '').substring(0, 8)}...` : 'Unknown Location')}
+                  {location.name || (location.id && typeof location.id === 'string' ? `Loading...` : 'Select a location')}
                 </div>
                 {location.address && (
                   <div className="text-sm text-gray-500 truncate">{location.address}</div>

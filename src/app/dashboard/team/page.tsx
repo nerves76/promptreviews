@@ -386,8 +386,8 @@ export default function TeamPage() {
       // Parse emails (split by comma, newline, or semicolon)
       const emailList = bulkEmails
         .split(/[,;\n]/)
-        .map(email => email.trim())
-        .filter(email => email && email.includes('@'));
+        .map((email: string) => email.trim())
+        .filter((email: string) => email && email.includes('@'));
 
       if (emailList.length === 0) {
         throw new Error('No valid email addresses found');

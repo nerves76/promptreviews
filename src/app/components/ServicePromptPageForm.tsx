@@ -426,7 +426,7 @@ export default function ServicePromptPageForm({
   return (
     <form 
       onSubmit={handleSubmit}
-      className="max-w-4xl mx-auto bg-white px-6 py-8">
+      className="max-w-4xl mx-auto px-6 py-8">
       <div className="space-y-8">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-8">
           <h1 className="text-2xl sm:text-3xl font-bold leading-6 text-slate-blue">

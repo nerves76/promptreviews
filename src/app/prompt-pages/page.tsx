@@ -24,11 +24,12 @@ import BusinessLocationModal from "@/app/components/BusinessLocationModal";
 import LocationCard from "@/app/components/LocationCard";
 import { BusinessLocation, LocationWithPromptPage } from "@/types/business";
 import { hasLocationAccess, formatLocationAddress, getLocationDisplayName } from "@/utils/locationUtils";
+import CommunicationButtons from "@/app/components/communication/CommunicationButtons";
 
 import EmojiEmbedButton from "@/app/components/EmojiEmbedButton";
 import FiveStarSpinner from "@/app/components/FiveStarSpinner";
 import BusinessProfileBanner from "@/app/components/BusinessProfileBanner";
-import { useAuth } from "@/auth";
+import { useBusinessData, useAuthUser, useAccountData, useAuthLoading } from "@/auth/hooks/granularAuthHooks";
 
 const StylePage = dynamic(() => import("../dashboard/style/StyleModalPage"), { ssr: false });
 
@@ -36,7 +37,10 @@ function PromptPagesContent() {
   const supabase = useMemo(() => createClient(), []);
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { hasBusiness, user: authUser, accountId: authAccountId, isLoading: authLoading, accountLoading, businessLoading } = useAuth();
+  const { hasBusiness, businessName } = useBusinessData();
+  const { user: authUser } = useAuthUser();
+  const { accountId: authAccountId } = useAccountData();
+  const { isLoading: authLoading } = useAuthLoading();
 
   // Track if initial auth load is complete
   const [authInitialized, setAuthInitialized] = useState(false);
@@ -137,10 +141,10 @@ function PromptPagesContent() {
 
   // Track when auth is fully initialized - only set to true once
   useEffect(() => {
-    if (!authInitialized && !authLoading && !accountLoading && !businessLoading && authAccountId !== undefined) {
+    if (!authInitialized && !authLoading && authAccountId !== undefined) {
       setAuthInitialized(true);
     }
-  }, [authLoading, accountLoading, businessLoading, authAccountId, authInitialized]);
+  }, [authLoading, authAccountId, authInitialized]);
 
   useEffect(() => {
     async function fetchData() {
@@ -455,6 +459,15 @@ function PromptPagesContent() {
         try {
           const data = JSON.parse(flag);
           
+          console.log('🔍 Setting post save data:', data);
+          console.log('🔍 Is individual page check:', {
+            has_first_name: !!data.first_name,
+            has_email: !!data.email,
+            has_phone: !!data.phone,
+            is_location: data.isLocationCreation,
+            should_show_new_modal: (data.first_name || data.email || data.phone) && !data.isLocationCreation
+          });
+          
           // Determine which tab this modal should show on
           const isForLocation = data.isLocationCreation;
           const isForIndividual = !isForLocation && (data.first_name || data.email || data.phone);
@@ -497,7 +510,6 @@ function PromptPagesContent() {
             }
           }
           
-          console.log('🔍 Setting post save data:', data);
           setPostSaveData(data);
           setShowPostSaveModal(true);
           // Trigger starfall celebration automatically when modal appears
@@ -1112,27 +1124,55 @@ function PromptPagesContent() {
                   </button>
                 </div>
 
-                {/* SMS link */}
-                <div className="flex items-center justify-between p-3 bg-green-100 rounded-lg">
-                  <span className="text-sm font-medium text-gray-700">Send SMS</span>
-                  <a
-                    href={`sms:${postSaveData.phone || ''}?body=Hi ${postSaveData.first_name || 'there'}, I'd love to get your feedback! Please leave a review here: ${postSaveData.url}`}
-                    className="text-slate-blue hover:text-slate-blue/80 text-sm font-medium"
-                  >
-                    Send
-                  </a>
-                </div>
+                {/* For individual prompt pages with contact info, show CommunicationButtons */}
+                {(postSaveData.first_name || postSaveData.email || postSaveData.phone) && !postSaveData.isLocationCreation ? (
+                  <div className="flex items-center justify-between p-3 bg-teal-100 rounded-lg">
+                    <span className="text-sm font-medium text-gray-700">SMS or Email</span>
+                    <CommunicationButtons
+                      contact={{
+                        id: postSaveData.contact_id || 'temp-contact',
+                        first_name: postSaveData.first_name || '',
+                        last_name: postSaveData.last_name || '',
+                        email: postSaveData.email,
+                        phone: postSaveData.phone
+                      }}
+                      promptPage={{
+                        id: postSaveData.prompt_page_id || 'temp-page',
+                        slug: postSaveData.slug || '',
+                        status: 'draft',
+                        client_name: postSaveData.first_name || ''
+                      }}
+                      singleButton={true}
+                      buttonText="Send"
+                      className="px-3 py-1.5 text-sm"
+                    />
+                  </div>
+                ) : (
+                  <>
+                    {/* For non-individual pages, show the original SMS and Email links */}
+                    {/* SMS link */}
+                    <div className="flex items-center justify-between p-3 bg-green-100 rounded-lg">
+                      <span className="text-sm font-medium text-gray-700">Send SMS</span>
+                      <a
+                        href={`sms:${postSaveData.phone || ''}?body=Hi ${postSaveData.first_name || 'there'}, I'd love to get your feedback! Please leave a review here: ${postSaveData.url}`}
+                        className="text-slate-blue hover:text-slate-blue/80 text-sm font-medium"
+                      >
+                        Send
+                      </a>
+                    </div>
 
-                {/* Email link */}
-                <div className="flex items-center justify-between p-3 bg-blue-100 rounded-lg">
-                  <span className="text-sm font-medium text-gray-700">Send email</span>
-                  <a
-                    href={`mailto:${postSaveData.email || ''}?subject=Please leave a review&body=Hi ${postSaveData.first_name || 'there'},%0D%0A%0D%0AI'd love to get your feedback! Please leave a review here: ${postSaveData.url}%0D%0A%0D%0AThank you!`}
-                    className="text-slate-blue hover:text-slate-blue/80 text-sm font-medium"
-                  >
-                    Send
-                  </a>
-                </div>
+                    {/* Email link */}
+                    <div className="flex items-center justify-between p-3 bg-blue-100 rounded-lg">
+                      <span className="text-sm font-medium text-gray-700">Send email</span>
+                      <a
+                        href={`mailto:${postSaveData.email || ''}?subject=Please leave a review&body=Hi ${postSaveData.first_name || 'there'},%0D%0A%0D%0AI'd love to get your feedback! Please leave a review here: ${postSaveData.url}%0D%0A%0D%0AThank you!`}
+                        className="text-slate-blue hover:text-slate-blue/80 text-sm font-medium"
+                      >
+                        Send
+                      </a>
+                    </div>
+                  </>
+                )}
 
                 <div className="flex items-center justify-between p-3 bg-amber-100 rounded-lg">
                   <span className="text-sm font-medium text-gray-700">View Prompt Page</span>

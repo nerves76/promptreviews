@@ -6,7 +6,7 @@ import { createClient, getUserOrMock } from "@/utils/supabaseClient";
 import Cropper from "react-easy-crop";
 import type { Area } from "react-easy-crop";
 import { useAuthGuard } from "@/utils/authGuard";
-import { useAuth } from "@/auth";
+import { useBusinessData, useAuthUser, useAccountData } from "@/auth/hooks/granularAuthHooks";
 import { useAccountSelection } from "@/utils/accountSelectionHooks";
 import Icon from "@/components/Icon";
 import { getAccountIdForUser } from "@/auth/utils/accounts";
@@ -74,7 +74,9 @@ export default function BusinessProfilePage() {
   const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   useAuthGuard();
-  const { user } = useAuth();
+  const { user } = useAuthUser();
+  const { business } = useBusinessData();
+  const { account } = useAccountData();
   
   // Storage key for form data persistence
   const formStorageKey = 'businessProfileForm';

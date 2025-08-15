@@ -1,13 +1,14 @@
 /**
- * Core Authentication Context
+ * Optimized Core Authentication Context
  * 
- * Handles fundamental authentication operations:
- * - User session management
- * - Sign in/out/up operations
- * - Email verification
- * - Session refresh
+ * This is an improved version of CoreAuthContext that prevents
+ * cascading re-renders during TOKEN_REFRESHED events.
  * 
- * This is the foundation context that other auth contexts depend on.
+ * Key improvements:
+ * - Memoized context values
+ * - Stable function references
+ * - Selective state updates
+ * - Integration with TokenManager
  */
 
 "use client";
@@ -63,16 +64,17 @@ const CoreAuthContext = createContext<CoreAuthContextType | undefined>(undefined
 
 const SESSION_WARNING_THRESHOLD = 10 * 60 * 1000; // 10 minutes
 
-export function CoreAuthProvider({ children }: { children: React.ReactNode }) {
+export function OptimizedCoreAuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const initializationStarted = useRef(false);
   const sessionCheckInterval = useRef<NodeJS.Timeout | null>(null);
+  const lastSessionId = useRef<string | null>(null);
 
   // Core state - MUST have same initial values on server and client to avoid hydration errors
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
-  const [isLoading, setIsLoading] = useState(true); // Always start with loading true
-  const [isInitialized, setIsInitialized] = useState(false); // Always start with initialized false
+  const [isLoading, setIsLoading] = useState(true);
+  const [isInitialized, setIsInitialized] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [refreshingSession, setRefreshingSession] = useState(false);
 
@@ -91,12 +93,16 @@ export function CoreAuthProvider({ children }: { children: React.ReactNode }) {
     [sessionExpiresAt]
   );
 
-  // Clear error
+  // Stable function references using useCallback
   const clearError = useCallback(() => {
     setError(null);
   }, []);
 
-  // Refresh session using TokenManager for silent refresh
+  const setErrorStable = useCallback((error: string) => {
+    setError(error);
+  }, []);
+
+  // Refresh session with stable reference
   const refreshSession = useCallback(async () => {
     if (refreshingSession) return;
     
@@ -124,25 +130,25 @@ export function CoreAuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [refreshingSession]);
 
-  // Check session validity
+  // Check session validity with stable reference
   const checkSession = useCallback(async () => {
     try {
-      const { data: { session: currentSession }, error } = await supabase.auth.getSession();
+      const currentSession = tokenManager.getSession();
       
-      if (error) {
-        console.error('Session check error:', error);
-        return;
-      }
-
       if (currentSession) {
-        setSession(currentSession);
-        setUser(currentSession.user);
-        
-        // Auto-refresh if expiring soon
-        const expiresAt = new Date(currentSession.expires_at! * 1000);
-        if (expiresAt.getTime() - Date.now() < SESSION_WARNING_THRESHOLD) {
-          await refreshSession();
-        }
+        // Only update if user changed (not just token)
+        setSession(prev => {
+          if (prev?.user?.id !== currentSession.user?.id) {
+            return currentSession;
+          }
+          return prev;
+        });
+        setUser(prev => {
+          if (prev?.id !== currentSession.user?.id) {
+            return currentSession.user;
+          }
+          return prev;
+        });
       } else {
         setSession(null);
         setUser(null);
@@ -150,9 +156,9 @@ export function CoreAuthProvider({ children }: { children: React.ReactNode }) {
     } catch (error) {
       console.error('Session check failed:', error);
     }
-  }, [refreshSession]);
+  }, []);
 
-  // Sign in
+  // Sign in with stable reference
   const signIn = useCallback(async (email: string, password: string): Promise<AuthResponse> => {
     setIsLoading(true);
     setError(null);
@@ -179,7 +185,7 @@ export function CoreAuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  // Sign up
+  // Sign up with stable reference
   const signUp = useCallback(async (
     email: string, 
     password: string, 
@@ -213,7 +219,7 @@ export function CoreAuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  // Sign out
+  // Sign out with stable reference
   const signOut = useCallback(async () => {
     setIsLoading(true);
     setError(null);
@@ -236,9 +242,8 @@ export function CoreAuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [router]);
 
-  // Initialize auth state
+  // Initialize auth state with TokenManager integration
   useEffect(() => {
-    // Skip if already initialized or initializing
     if (initializationStarted.current) return;
     initializationStarted.current = true;
 
@@ -254,6 +259,7 @@ export function CoreAuthProvider({ children }: { children: React.ReactNode }) {
         if (initialSession) {
           setSession(initialSession);
           setUser(initialSession.user);
+          lastSessionId.current = initialSession.user?.id || null;
         }
       } catch (error) {
         console.error('Auth initialization error:', error);
@@ -266,73 +272,62 @@ export function CoreAuthProvider({ children }: { children: React.ReactNode }) {
 
     initializeAuth();
 
-    // Set up auth state listener
+    // Set up TokenManager callbacks for critical events only
+    tokenManager.onUserChange((userId) => {
+      if (userId !== lastSessionId.current) {
+        console.log('User changed, updating auth state');
+        lastSessionId.current = userId;
+        checkSession();
+      }
+    });
+
+    tokenManager.onSessionExpire(() => {
+      console.log('Session expired, clearing auth state');
+      setUser(null);
+      setSession(null);
+      router.push('/auth/sign-in');
+    });
+
+    // Set up minimal auth state listener for non-token events
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, newSession) => {
-        console.log('Auth state change:', event);
-        
-        // Handle different auth events appropriately
-        // TOKEN_REFRESHED: Silent token refresh, no UI updates needed
-        // SIGNED_IN: Could be initial load OR token refresh with same user
-        // INITIAL_SESSION: First session check on page load
-        
+        // IGNORE TOKEN_REFRESHED completely - TokenManager handles it
         if (event === 'TOKEN_REFRESHED') {
-          // COMPLETELY IGNORE TOKEN_REFRESHED - TokenManager handles it
           console.log('🔇 Ignoring TOKEN_REFRESHED in CoreAuth - handled by TokenManager');
-          return; // Skip ALL updates for token refresh
-        }
-        
-        if (event === 'SIGNED_IN' && newSession?.user?.id === user?.id) {
-          // SIGNED_IN with same user = likely a token refresh
-          // Update session but skip other state updates
-          setSession(newSession);
           return;
         }
         
-        if (event === 'INITIAL_SESSION') {
-          // Initial page load - let it proceed normally
-          console.log('Initial session loaded');
+        console.log('Auth state change (non-token):', event);
+        
+        // Handle actual user state changes
+        if (event === 'SIGNED_IN' && newSession?.user?.id !== user?.id) {
+          setSession(newSession);
+          setUser(newSession?.user || null);
         }
         
-        if (newSession) {
-          setSession(newSession);
-          setUser(newSession.user);
-        } else {
+        if (event === 'SIGNED_OUT') {
           setSession(null);
           setUser(null);
+          router.push('/auth/sign-in');
         }
-
-        // Handle specific events
-        switch (event) {
-          case 'SIGNED_OUT':
-            router.push('/auth/sign-in');
-            break;
-          case 'PASSWORD_RECOVERY':
-            router.push('/reset-password');
-            break;
-          case 'USER_UPDATED':
-            // Refresh user data
-            if (newSession?.user) {
-              setUser(newSession.user);
-            }
-            break;
+        
+        if (event === 'PASSWORD_RECOVERY') {
+          router.push('/reset-password');
         }
       }
     );
 
-    // Set up session check interval
-    sessionCheckInterval.current = setInterval(checkSession, 5 * 60 * 1000); // Every 5 minutes
+    // Use TokenManager for session checks instead of interval
+    // TokenManager already handles proactive refresh
 
     return () => {
       subscription.unsubscribe();
-      if (sessionCheckInterval.current) {
-        clearInterval(sessionCheckInterval.current);
-      }
+      tokenManager.dispose();
     };
-  }, [checkSession, router]);
+  }, [checkSession, router, user?.id]);
 
   // Memoize the entire context value to prevent unnecessary re-renders
-  const value = useMemo<CoreAuthContextType>(() => ({
+  const contextValue = useMemo<CoreAuthContextType>(() => ({
     // State
     user,
     session,
@@ -353,7 +348,7 @@ export function CoreAuthProvider({ children }: { children: React.ReactNode }) {
     refreshSession,
     checkSession,
     clearError,
-    setError,
+    setError: setErrorStable,
   }), [
     // Only include state that should trigger re-renders
     user,
@@ -367,35 +362,32 @@ export function CoreAuthProvider({ children }: { children: React.ReactNode }) {
     sessionExpiresAt,
     isSessionExpiringSoon,
     refreshingSession,
-    // Methods are stable references
+    // Methods are stable, include them for completeness
     signIn,
     signUp,
     signOut,
     refreshSession,
     checkSession,
     clearError,
-    setError,
+    setErrorStable,
   ]);
 
   return (
-    <CoreAuthContext.Provider value={value}>
+    <CoreAuthContext.Provider value={contextValue}>
       {children}
     </CoreAuthContext.Provider>
   );
 }
 
-export function useCoreAuth() {
+export function useOptimizedCoreAuth() {
   const context = useContext(CoreAuthContext);
   
-  // Return default values during SSR or when context is not available
   if (context === undefined) {
-    // Check if we're on the server side
     const isServer = typeof window === 'undefined';
     
     if (isServer) {
       // Return default values for SSR
       return {
-        // State
         user: null,
         session: null,
         isAuthenticated: false,
@@ -407,8 +399,6 @@ export function useCoreAuth() {
         sessionExpiresAt: null,
         isSessionExpiringSoon: false,
         refreshingSession: false,
-        
-        // Methods (no-op functions for SSR)
         signIn: async () => ({ data: { user: null, session: null }, error: null }),
         signUp: async () => ({ data: { user: null, session: null }, error: null }),
         signOut: async () => {},
@@ -419,11 +409,10 @@ export function useCoreAuth() {
       };
     }
     
-    // On client side, throw error if context is not available
-    throw new Error('useCoreAuth must be used within a CoreAuthProvider');
+    throw new Error('useOptimizedCoreAuth must be used within a OptimizedCoreAuthProvider');
   }
   
   return context;
 }
 
-export { CoreAuthContext };
+export { CoreAuthContext as OptimizedCoreAuthContext };

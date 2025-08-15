@@ -1,19 +1,14 @@
 /**
  * GetReviewsDropdown Component
- * 
- * Dropdown menu for review collection related pages including:
- * - Prompt Pages (creating review collection pages)
- * - Contacts (managing customer contact lists) 
- * - Review Management (managing and viewing collected reviews)
  */
 
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import Icon from "@/components/Icon";
-import { createPortal } from "react-dom";
 
 // Custom [P] icon component for Prompt Pages
 const PromptPagesIcon = ({ className }: { className?: string }) => (
@@ -37,147 +32,76 @@ const GetReviewsDropdown: React.FC<GetReviewsDropdownProps> = ({
   onNavigate
 }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [isSpinning, setIsSpinning] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const triggerRef = useRef<HTMLButtonElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
   const router = useRouter();
   const pathname = usePathname();
+  
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
-  // Close dropdown when clicking outside
+  // Close on outside click
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node) && 
-          triggerRef.current && !triggerRef.current.contains(event.target as Node)) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node) &&
+          buttonRef.current && !buttonRef.current.contains(event.target as Node)) {
         setIsOpen(false);
       }
     };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  // Close dropdown when route changes
-  useEffect(() => {
-    setIsOpen(false);
-  }, [pathname]);
-
-  const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
-    console.log('🔗 GetReviewsDropdown: Link clicked:', href);
-    if (!hasBusiness) {
-      e.preventDefault();
-      router.push("/dashboard/create-business");
-    } else {
-      onNavigate();
-    }
-  };
-
-  const handleDropdownToggle = () => {
-    setIsSpinning(true);
-    setIsOpen(!isOpen);
     
-    // Stop spinning after animation completes
-    setTimeout(() => {
-      setIsSpinning(false);
-    }, 300);
-  };
-
-  const isActive = (path: string) => {
-    const isActivePath = pathname === path || pathname.startsWith(path + '/');
-    if (path.includes('widget')) {
-      console.log('🔍 GetReviewsDropdown: isActive check:', { path, pathname, isActivePath });
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
     }
-    return isActivePath;
-  };
+  }, [isOpen]);
 
   const menuItems = [
-    {
-      href: "/prompt-pages",
-      label: "Prompt Pages",
-      icon: PromptPagesIcon,
-      description: "Create review collection pages"
-    },
-    {
-      href: "/dashboard/contacts", 
-      label: "Contacts",
-      icon: "FaUsers",
-      description: "Upload and manage contacts"
-    },
-    {
-      href: "/dashboard/reviews",
-      label: "Review management", 
-      icon: "FaStar",
-      description: "View and manage collected reviews"
-    },
-    {
-                  href: "/dashboard/widget",
-      label: "Widgets",
-      icon: "FaCode",
-      description: "Embed review widgets on your website"
-    }
+    { href: "/prompt-pages", label: "Prompt Pages", icon: PromptPagesIcon, description: "Create review collection pages" },
+    { href: "/dashboard/contacts", label: "Contacts", icon: "FaUsers", description: "Upload and manage contacts" },
+    { href: "/dashboard/reviews", label: "Review management", icon: "FaStar", description: "View and manage collected reviews" },
+    { href: "/dashboard/widget", label: "Widgets", icon: "FaCode", description: "Embed review widgets on your website" }
   ];
 
   return (
     <div className="relative">
-      {/* Dropdown Trigger Button */}
       <button
-        ref={triggerRef}
-        onClick={(e) => {
-          if (!hasBusiness) {
-            e.preventDefault();
-            router.push("/dashboard/create-business");
-            return;
-          }
-          handleDropdownToggle();
+        ref={buttonRef}
+        onClick={() => {
+          setIsOpen(!isOpen);
         }}
-        className={`${
-                         isActive("/prompt-pages") || isActive("/dashboard/contacts") || isActive("/dashboard/reviews") || isActive("/dashboard/widget")
-            ? "border-white text-white"
-            : hasBusiness
-              ? "border-transparent text-white hover:border-white/30 hover:text-white/90"
-              : "border-transparent text-white/50 cursor-not-allowed"
-        } inline-flex items-center px-1 pt-1 border-b-4 text-base font-medium transition-colors duration-200 h-16 group relative`}
+        className="border-transparent text-white hover:border-white/30 hover:text-white/90 inline-flex items-center px-1 pt-1 border-b-4 text-base font-medium transition-colors duration-200 h-16"
         disabled={businessLoading}
-        title={!hasBusiness ? "Create your business profile first" : ""}
       >
         <span className="mr-1">Get reviews</span>
-        <Icon 
-          name="FaStar" 
-          className={`w-4 h-4 transition-transform duration-300 ${
-            isSpinning ? 'animate-spin' : ''
-          }`}
-          size={16} 
-        />
-        {!hasBusiness && (
-          <span className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap" style={{ zIndex: 2147483647 }}>
-            Create business profile first
-          </span>
-        )}
+        <Icon name="FaStar" className="w-4 h-4" size={16} />
       </button>
 
-      {/* Dropdown Menu - Rendered in Portal */}
-      {isOpen && typeof window !== 'undefined' && createPortal(
+      {/* Render dropdown in portal to escape stacking context */}
+      {isOpen && mounted && createPortal(
         <div 
           ref={dropdownRef}
-          className="fixed bg-white/90 backdrop-blur-sm rounded-lg shadow-2xl border-2 border-white py-2 z-[2147483647]"
-          style={{
-            top: triggerRef.current ? triggerRef.current.getBoundingClientRect().bottom + 4 : 0,
-            left: triggerRef.current ? triggerRef.current.getBoundingClientRect().left : 0,
-            width: '256px'
-          }}
-        >
+          className="fixed bg-white/90 backdrop-blur-sm rounded-lg shadow-2xl border-2 border-white py-2" 
+          style={{ 
+            top: buttonRef.current ? buttonRef.current.getBoundingClientRect().bottom + 4 : 0,
+            left: buttonRef.current ? buttonRef.current.getBoundingClientRect().left : 0,
+            width: '256px',
+            zIndex: 2147483647 
+          }}>
           {menuItems.map((item) => (
             <Link
               key={item.href}
-              href={hasBusiness ? item.href : "#"}
-              onClick={(e) => handleLinkClick(e, item.href)}
+              href={item.href}
+              onClick={() => {
+                onNavigate();
+                setIsOpen(false);
+              }}
               className={`${
-                isActive(item.href)
+                pathname === item.href || pathname.startsWith(item.href + '/')
                   ? "bg-slate-blue/10 text-slate-blue"
                   : "text-gray-700 hover:bg-slate-blue/10 hover:text-slate-blue"
-              } flex items-center px-4 py-3 transition-colors duration-200 ${
-                !hasBusiness ? "opacity-50 cursor-not-allowed" : ""
-              }`}
-              title={!hasBusiness ? "Create your business profile first" : ""}
+              } flex items-center px-4 py-3 transition-colors duration-200`}
             >
               {typeof item.icon === 'string' ? (
                 <Icon name={item.icon as any} className="w-5 h-5 mr-3" size={20} />
@@ -197,4 +121,4 @@ const GetReviewsDropdown: React.FC<GetReviewsDropdownProps> = ({
   );
 };
 
-export default GetReviewsDropdown; 
+export default GetReviewsDropdown;
