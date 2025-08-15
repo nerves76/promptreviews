@@ -102,9 +102,18 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
           console.log('AdminContext: Auth state changed:', event, session?.user?.id);
         }
         
+        // Skip token refresh events - they don't need admin status refresh
+        if (event === 'TOKEN_REFRESHED') {
+          return;
+        }
+        
         if (event === 'SIGNED_IN' && session?.user) {
-          // Force refresh admin status on sign in
-          await checkAdminStatus(true);
+          // Only refresh admin status for actual sign-ins, not token refreshes
+          // Check if this is a real sign-in by seeing if we had a user before
+          const wasSignedOut = !account?.user_id;
+          if (wasSignedOut) {
+            await checkAdminStatus(true);
+          }
         } else if (event === 'SIGNED_OUT') {
           // Clear admin status on sign out
           setIsAdminUser(false);

@@ -186,7 +186,7 @@ Here's your first tip: [icon] <— click here`;
           </svg>
         </button>
         
-        <div className="bg-white shadow-lg flex flex-col md:flex-row gap-8 text-left rounded-xl overflow-hidden">
+        <div className="bg-white/90 backdrop-blur-sm shadow-2xl flex flex-col md:flex-row gap-8 text-left rounded-2xl overflow-hidden border-2 border-white">
         
         {/* Left side: Content */}
         <div className="flex-1 space-y-4 py-6 px-8 overflow-y-auto">

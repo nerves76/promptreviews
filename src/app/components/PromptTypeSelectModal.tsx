@@ -25,7 +25,7 @@ const PromptTypeSelectModal: React.FC<PromptTypeSelectModalProps> = ({
   if (!open) return null;
   return (
     <div className="fixed inset-0 z-50 flex justify-center items-center bg-black bg-opacity-40">
-      <div className="bg-white rounded-lg shadow-lg p-8 max-w-4xl w-full text-center relative my-8 flex flex-col" style={{ width: '100%', maxWidth: '56rem' }}>
+              <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-2xl p-8 max-w-4xl w-full text-center relative my-8 flex flex-col border-2 border-white" style={{ width: '100%', maxWidth: '56rem' }}>
         <button
           className="absolute -top-4 -right-4 bg-white border border-gray-200 rounded-full shadow-lg z-20 flex items-center justify-center hover:bg-gray-100 focus:outline-none"
           style={{ width: 40, height: 40 }}

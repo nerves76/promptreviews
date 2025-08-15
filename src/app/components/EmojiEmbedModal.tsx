@@ -112,7 +112,7 @@ const EmojiEmbedModal: React.FC<EmojiEmbedModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="bg-white rounded-lg shadow-xl max-w-5xl w-full mx-12 my-12 max-h-[85vh] relative">
+              <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-2xl max-w-5xl w-full mx-12 my-12 max-h-[85vh] relative border-2 border-white">
         {/* Standardized red X close button */}
         <button
           onClick={onClose}

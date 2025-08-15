@@ -57,7 +57,7 @@ const EmojiSentimentModal: React.FC<EmojiSentimentModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90 animate-fadein">
       <div
-        className="bg-white rounded-2xl shadow-2xl p-10 max-w-lg w-full relative animate-slideup border-2 border-blue-200"
+        className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-2xl p-10 max-w-lg w-full relative animate-slideup border-2 border-white"
         style={{ fontFamily }}
       >
         <div

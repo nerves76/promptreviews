@@ -145,7 +145,7 @@ const ContactMergeModal: React.FC<ContactMergeModalProps> = ({
       <div className="flex items-center justify-center min-h-screen px-4">
         <div className="fixed inset-0 bg-black opacity-30" />
         
-        <div className="relative bg-white rounded-lg shadow-xl max-w-4xl w-full p-6 max-h-[90vh] overflow-y-auto">
+        <div className="relative bg-white/90 backdrop-blur-sm rounded-2xl shadow-2xl max-w-4xl w-full p-6 max-h-[90vh] overflow-y-auto border-2 border-white">
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
             <div>

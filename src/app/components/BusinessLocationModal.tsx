@@ -391,7 +391,7 @@ export default function BusinessLocationModal({
     <div className="fixed inset-0 z-50">
       <div className="fixed inset-0 bg-black/30" aria-hidden="true" onClick={onClose} />
       <div className="fixed inset-0 flex items-center justify-center p-4">
-        <div className="mx-auto max-w-4xl w-full bg-white rounded-xl shadow-lg">
+        <div className="mx-auto max-w-4xl w-full bg-white/90 backdrop-blur-sm rounded-2xl shadow-2xl border-2 border-white">
           {/* Header */}
           <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4 relative">
             <div className="flex items-center gap-3">
@@ -764,7 +764,7 @@ export default function BusinessLocationModal({
       {/* Location Limit Modal */}
       {showLimitModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-          <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full relative">
+          <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-2xl p-8 max-w-md w-full relative border-2 border-white">
             <button
               className="absolute -top-3 -right-3 w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-shadow duration-200 z-10"
               onClick={() => setShowLimitModal(false)}
@@ -804,7 +804,7 @@ export default function BusinessLocationModal({
       {/* Cropping Modal */}
       {showCropper && (locationPhotoUrl || businessLogoUrl) && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 overflow-y-auto">
-          <div className="bg-white p-6 rounded shadow-lg relative max-w-2xl w-full">
+          <div className="bg-white/90 backdrop-blur-sm p-6 rounded-2xl shadow-2xl relative max-w-2xl w-full border-2 border-white">
             <div className="w-full h-96 relative mb-8">
               <Cropper
                 image={locationPhotoUrl || businessLogoUrl || ''}

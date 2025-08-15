@@ -140,10 +140,12 @@ export default function WidgetPage() {
     
     if (widgets && widgets.length > 0) {
       console.log('✅ WidgetPage: Found widgets, selecting first one:', widgets[0]);
+      // Clear any fake widget and select the first real widget
       setSelectedWidget(widgets[0]);
+      setSelectedWidgetFull(null); // Clear fake widget data
       // Fetch full widget data for the selected widget
       fetchFullWidgetData(widgets[0].id);
-    } else {
+    } else if (widgets && widgets.length === 0) {
       console.log('📝 WidgetPage: No widgets found, creating fake widget');
       const fakeWidget = {
         id: "fake-multi-widget",
@@ -156,6 +158,16 @@ export default function WidgetPage() {
       setSelectedWidgetFull(fakeWidget);
     }
   }, [loading, widgets?.length]);
+
+  // Additional check: if selected widget is fake but real widgets exist, switch to real widget
+  React.useEffect(() => {
+    if (selectedWidget && selectedWidget.id === "fake-multi-widget" && widgets && widgets.length > 0) {
+      console.log('🔄 WidgetPage: Switching from fake widget to real widget');
+      setSelectedWidget(widgets[0]);
+      setSelectedWidgetFull(null);
+      fetchFullWidgetData(widgets[0].id);
+    }
+  }, [selectedWidget, widgets]);
 
   // Action handlers
   const handleCopyEmbedCode = async () => {

@@ -84,7 +84,7 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
       <div
-        className="bg-white rounded-lg shadow-xl w-[800px] max-h-[600px] flex flex-col"
+        className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-2xl w-[800px] max-h-[600px] flex flex-col border-2 border-white"
         style={{
           position: 'absolute',
           left: reviewModalPos.x,

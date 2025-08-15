@@ -161,7 +161,7 @@ export default function AccountReactivation({ onReactivated, onSkip }: Reactivat
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
       <div className="max-w-lg w-full">
         {/* Main Card */}
-        <div className="bg-white rounded-2xl shadow-xl p-8">
+        <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-2xl p-8 border-2 border-white">
           {/* Welcome Back Header */}
           <div className="text-center mb-8">
             <div className="text-6xl mb-4">👋</div>

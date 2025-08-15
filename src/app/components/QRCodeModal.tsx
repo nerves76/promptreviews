@@ -209,7 +209,7 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl,
           </svg>
         </button>
         
-        <div className="bg-white shadow-lg p-0 w-full relative flex flex-col md:flex-row gap-8 text-left rounded-xl max-h-[90vh] overflow-y-auto">
+        <div className="bg-white/90 backdrop-blur-sm shadow-2xl p-0 w-full relative flex flex-col md:flex-row gap-8 text-left rounded-2xl max-h-[90vh] overflow-y-auto border-2 border-white">
 
         {/* Top Right Download Button - Only show when preview is available */}
         {showPreview && (
@@ -802,7 +802,7 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl,
         {/* Branding Removal Popup */}
         {showBrandingPopup && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white p-6 rounded-lg max-w-md mx-4 relative">
+            <div className="bg-white/90 backdrop-blur-sm p-6 rounded-2xl max-w-md mx-4 relative border-2 border-white shadow-2xl">
               {/* Standardized circular close button */}
               <button
                 onClick={() => setShowBrandingPopup(false)}
@@ -845,7 +845,7 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl,
         >
           <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
           <div className="fixed inset-0 flex items-center justify-center p-4">
-            <Dialog.Panel className="mx-auto max-w-5xl w-full bg-white rounded-lg shadow-xl max-h-[80vh] overflow-hidden">
+            <Dialog.Panel className="mx-auto max-w-5xl w-full bg-white/90 backdrop-blur-sm rounded-2xl shadow-2xl max-h-[80vh] overflow-hidden border-2 border-white">
               <div className="flex items-center justify-between p-6 border-b border-gray-200">
                 <Dialog.Title className="text-lg font-semibold text-gray-900">
                   Choose your decorative icon

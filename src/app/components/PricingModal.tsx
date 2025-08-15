@@ -197,7 +197,7 @@ export default function PricingModal({
         
         {/* Billing Period Toggle */}
         <div className="mb-8 flex justify-center">
-          <div className="bg-white rounded-lg p-1 shadow-md flex items-center">
+          <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-1 shadow-2xl flex items-center border-2 border-white">
             <button
               onClick={() => setBillingPeriod('monthly')}
               className={`px-4 py-2 rounded-md transition-all ${

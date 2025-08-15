@@ -198,7 +198,7 @@ export default function KickstartersManagementModal({
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div 
         ref={modalRef}
-        className="bg-white rounded-lg shadow-xl max-w-4xl w-full h-[90vh] flex flex-col overflow-hidden"
+        className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-2xl max-w-4xl w-full h-[90vh] flex flex-col overflow-hidden border-2 border-white"
       >
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">

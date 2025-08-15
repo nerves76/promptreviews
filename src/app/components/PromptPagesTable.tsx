@@ -428,7 +428,7 @@ export default function PromptPagesTable({
       {/* Delete Confirmation Modal */}
       {showDeleteModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-          <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full">
+          <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-2xl p-8 max-w-md w-full border-2 border-white">
             <h3 className="text-lg font-bold mb-4 text-red-600">Delete Prompt Pages</h3>
             <p className="mb-4 text-gray-600">
               You are about to delete {selectedPages.length} prompt page{selectedPages.length !== 1 ? "s" : ""}. This action cannot be undone.

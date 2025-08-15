@@ -53,7 +53,7 @@ export default function BulkPromptTypeSelectModal({
       <div className="flex items-center justify-center min-h-screen px-4">
         <div className="fixed inset-0 bg-black opacity-30" />
         
-        <div className="relative bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+        <div className="relative bg-white/90 backdrop-blur-sm rounded-2xl shadow-2xl max-w-md w-full p-6 border-2 border-white">
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
             <Dialog.Title className="text-xl font-semibold text-gray-900">

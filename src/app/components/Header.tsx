@@ -112,14 +112,27 @@ export default function Header() {
 
     getUser();
 
+    // Store current user ID in a ref to access it in the callback
+    const currentUserIdRef = useRef<string | undefined>(user?.id);
+    currentUserIdRef.current = user?.id;
+    
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (process.env.NODE_ENV === 'development') {
           console.log('Header: Auth state changed:', event, session?.user?.id);
         }
-        setUser(session?.user || null);
-        // Reset business profile loaded state when auth changes
-        setBusinessProfileLoaded(false);
+        
+        // Skip token refresh events - they shouldn't reset state
+        if (event === 'TOKEN_REFRESHED' && session?.user?.id === currentUserIdRef.current) {
+          return;
+        }
+        
+        // Only update if user actually changed
+        if (session?.user?.id !== currentUserIdRef.current) {
+          setUser(session?.user || null);
+          // Reset business profile loaded state only when user actually changes
+          setBusinessProfileLoaded(false);
+        }
       }
     );
 

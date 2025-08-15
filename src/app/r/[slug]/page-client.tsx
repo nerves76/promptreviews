@@ -2300,7 +2300,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
               {/* Limit Modal */}
               {showLimitModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-                  <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full relative animate-fadein border-2 border-indigo-500">
+                  <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-2xl p-8 max-w-md w-full relative animate-fadein border-2 border-white">
                     <button
                       className="absolute top-3 right-3 text-gray-400 hover:text-gray-700 text-2xl font-bold focus:outline-none"
                       onClick={() => setShowLimitModal(false)}
@@ -2330,11 +2330,11 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
               {showChoiceModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90 animate-fadein">
                   <div
-                    className="rounded-2xl shadow-2xl p-10 max-w-lg w-full relative animate-slideup border-2"
+                    className="rounded-2xl shadow-2xl p-10 max-w-lg w-full relative animate-slideup border-2 border-white backdrop-blur-sm"
                     style={{ 
                       fontFamily: businessProfile?.primary_font || "Inter",
-                      background: businessProfile?.card_bg || "#fff",
-                      borderColor: businessProfile?.primary_color || "#4F46E5"
+                      background: businessProfile?.card_bg ? `${businessProfile.card_bg}90` : "rgba(255, 255, 255, 0.9)",
+                      borderColor: "white"
                     }}
                   >
                     <div
@@ -2580,9 +2580,9 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
       </div>
       {showFallbackModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
-          <div className="rounded-2xl shadow-2xl p-8 max-w-xl w-full relative animate-fadein border-2" style={{
-            background: businessProfile?.card_bg || "#F9FAFB",
-            borderColor: businessProfile?.primary_color || "#4F46E5"
+          <div className="rounded-2xl shadow-2xl p-8 max-w-xl w-full relative animate-fadein border-2 border-white backdrop-blur-sm" style={{
+            background: businessProfile?.card_bg ? `${businessProfile.card_bg}90` : "rgba(249, 250, 251, 0.9)",
+            borderColor: "white"
           }}>
             <button
               className="absolute top-3 right-3 hover:opacity-70 text-2xl font-bold focus:outline-none"

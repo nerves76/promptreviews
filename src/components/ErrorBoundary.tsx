@@ -62,7 +62,7 @@ export class ErrorBoundary extends Component<Props, State> {
       // Default fallback UI
       return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50">
-          <div className="max-w-md w-full bg-white shadow-lg rounded-lg p-6">
+          <div className="max-w-md w-full bg-white/90 backdrop-blur-sm shadow-2xl rounded-2xl p-6 border-2 border-white">
             <div className="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 rounded-full">
               <svg
                 className="w-6 h-6 text-red-600"

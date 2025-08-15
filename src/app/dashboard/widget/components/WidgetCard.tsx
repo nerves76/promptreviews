@@ -33,7 +33,7 @@ export function WidgetCard({
   const isCopied = copiedWidgetId === widget.id;
 
   return (
-    <div className={`bg-white rounded-lg shadow-md p-4 border transition-colors flex flex-col h-full ${
+    <div className={`bg-white rounded-lg shadow-md p-4 border transition-colors flex flex-col h-full min-h-[200px] ${
       isSelected 
         ? 'border-slate-blue border-2' 
         : 'border-gray-200 hover:border-slate-blue'

@@ -578,7 +578,7 @@ export default function IndividualOutreach() {
           ))}
 
           {/* Modal Content */}
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 relative z-50">
+          <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-2xl max-w-md w-full mx-4 relative z-50 border-2 border-white">
             {/* Standardized red X close button */}
             <button
               onClick={() => {

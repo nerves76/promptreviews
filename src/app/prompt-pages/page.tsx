@@ -1060,7 +1060,7 @@ function PromptPagesContent() {
           ))}
 
           {/* Modal Content */}
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 relative z-50">
+          <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-2xl max-w-md w-full mx-4 relative z-50 border-2 border-white">
             {/* Standardized red X close button */}
             <button
               onClick={() => {
@@ -1154,7 +1154,7 @@ function PromptPagesContent() {
       {/* Business Required Modal */}
       {showBusinessRequiredModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-8 max-w-md mx-4 text-center relative">
+          <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-8 max-w-md mx-4 text-center relative border-2 border-white shadow-2xl">
             <button
               onClick={() => setShowBusinessRequiredModal(false)}
               className="absolute top-4 right-4 w-8 h-8 bg-white text-gray-400 hover:text-gray-600 rounded-full flex items-center justify-center border border-gray-200 hover:border-gray-300 transition-colors"
