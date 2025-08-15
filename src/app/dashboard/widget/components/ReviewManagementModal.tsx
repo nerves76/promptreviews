@@ -31,11 +31,27 @@ export function ReviewManagementModal({
   
   // Storage key for form data persistence
   const formStorageKey = `reviewManagement_${widgetId || 'new'}`;
+  const selectedReviewsKey = `selectedReviews_${widgetId || 'new'}`;
   
   const [activeTab, setActiveTab] = useState('import');
   const [allReviews, setAllReviews] = useState<any[]>([]);
   const [loadingReviews, setLoadingReviews] = useState(false);
-  const [selectedReviews, setSelectedReviews] = useState<any[]>([]);
+  const [selectedReviews, setSelectedReviews] = useState<any[]>(() => {
+    // Restore selected reviews from localStorage
+    if (typeof window !== 'undefined' && widgetId) {
+      const savedSelected = localStorage.getItem(selectedReviewsKey);
+      if (savedSelected) {
+        try {
+          const parsed = JSON.parse(savedSelected);
+          console.log('📝 Restored selected reviews from localStorage:', parsed.length);
+          return parsed;
+        } catch (e) {
+          console.error('Failed to parse saved selected reviews:', e);
+        }
+      }
+    }
+    return [];
+  });
   
   // Initialize edited fields from localStorage if available
   const [editedReviews, setEditedReviews] = useState<{ [id: string]: string }>(() => {
@@ -127,6 +143,7 @@ export function ReviewManagementModal({
   const [widgetType, setWidgetType] = useState<string | null>(null);
   const [showTrimConfirmation, setShowTrimConfirmation] = useState(false);
   const [reviewsToTrim, setReviewsToTrim] = useState<Array<{review: any, text: string, characterCount: number}>>([]);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   // Auto-save edited review data to localStorage
   // IMPORTANT: We save the FULL text even if over character limit
@@ -154,6 +171,18 @@ export function ReviewManagementModal({
 
     return () => clearTimeout(saveTimeout);
   }, [editedReviews, editedNames, editedRoles, editedRatings, formStorageKey, widgetId]);
+
+  // Auto-save selected reviews to localStorage
+  useEffect(() => {
+    const saveTimeout = setTimeout(() => {
+      if (typeof window !== 'undefined' && widgetId && selectedReviews.length > 0) {
+        localStorage.setItem(selectedReviewsKey, JSON.stringify(selectedReviews));
+        console.log('💾 Auto-saved selected reviews to localStorage:', selectedReviews.length);
+      }
+    }, 500); // Shorter debounce for selected reviews
+
+    return () => clearTimeout(saveTimeout);
+  }, [selectedReviews, selectedReviewsKey, widgetId]);
 
   // Fetch reviews when modal opens
   useEffect(() => {
@@ -270,7 +299,24 @@ export function ReviewManagementModal({
       // Available reviews should ONLY be actual customer submissions from review_submissions
       // Custom reviews should only appear in selected reviews, not in available reviews
       setAllReviews(mappedReviews);
-      setSelectedReviews(widgetReviews || []);
+      
+      // Check if we have unsaved selected reviews in localStorage
+      const savedSelected = localStorage.getItem(selectedReviewsKey);
+      if (savedSelected && (!widgetReviews || widgetReviews.length === 0)) {
+        try {
+          const parsed = JSON.parse(savedSelected);
+          console.log('📝 Using unsaved selected reviews from localStorage:', parsed.length);
+          setSelectedReviews(parsed);
+          setHasUnsavedChanges(true);
+          // Show a warning that there are unsaved selections
+          setReviewError("You have unsaved review selections. Click Save to persist them or they will be lost.");
+        } catch (e) {
+          setSelectedReviews(widgetReviews || []);
+        }
+      } else {
+        setSelectedReviews(widgetReviews || []);
+        setHasUnsavedChanges(false);
+      }
       
       console.log('✅ ReviewManagementModal: Available reviews (customer submissions only):', mappedReviews.length);
       console.log('✅ ReviewManagementModal: Selected reviews (includes custom reviews):', widgetReviews?.length || 0);
@@ -312,6 +358,7 @@ export function ReviewManagementModal({
   const handleToggleReview = (review: any) => {
     const alreadySelected = selectedReviews.some((r) => r.review_id === review.review_id);
     let updated;
+    setHasUnsavedChanges(true); // Mark as having unsaved changes
     
     if (alreadySelected) {
       updated = selectedReviews.filter((r) => r.review_id !== review.review_id);
@@ -580,9 +627,11 @@ export function ReviewManagementModal({
       // Clear saved form data on successful save
       if (typeof window !== 'undefined') {
         localStorage.removeItem(formStorageKey);
-        console.log('🗑️ Cleared review management data from localStorage after successful save');
+        localStorage.removeItem(selectedReviewsKey);
+        console.log('🗑️ Cleared review management data and selected reviews from localStorage after successful save');
       }
       
+      setHasUnsavedChanges(false);
       onClose();
       if (onReviewsChange) onReviewsChange();
     } catch (error) {
@@ -636,6 +685,11 @@ export function ReviewManagementModal({
       title={
         <div className="flex items-center gap-3">
           <span>Manage reviews</span>
+          {hasUnsavedChanges && (
+            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+              Unsaved Changes
+            </span>
+          )}
           {widgetType && (
             <span
               className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium whitespace-nowrap flex-shrink-0"
