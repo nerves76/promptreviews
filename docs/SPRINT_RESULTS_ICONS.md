@@ -33,7 +33,7 @@ Successfully migrated **5 critical files** with **17+ icons**:
 - **Status**: ✅ Complete
 
 #### 5. `src/app/components/PromptPageForm.tsx` ✅
-- **Icons Migrated**: 33 icons including `FaRobot`, `FaStar`, `FaGoogle`, `FaFacebook`, `FaYelp`, `FaTripadvisor`, plus emoji and utility icons
+- **Icons Migrated**: 33 icons including `prompty`, `FaStar`, `FaGoogle`, `FaFacebook`, `FaYelp`, `FaTripadvisor`, plus emoji and utility icons
 - **Impact**: Core form component used across app
 - **Status**: ✅ Complete
 

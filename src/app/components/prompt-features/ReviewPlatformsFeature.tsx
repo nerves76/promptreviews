@@ -258,7 +258,7 @@ export default function ReviewPlatformsFeature({
                     disabled={disabled}
                     className="inline-flex items-center px-3 py-2 border border-slate-blue text-sm leading-4 font-medium rounded-md text-slate-blue bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-blue disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <Icon name="FaRobot" className="mr-2 h-4 w-4 text-slate-blue" size={16} />
+                    <Icon name="prompty" className="mr-2 h-4 w-4 text-slate-blue" size={16} />
                     Generate with AI
                   </button>
                 </div>

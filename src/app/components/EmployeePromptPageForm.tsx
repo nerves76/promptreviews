@@ -441,7 +441,7 @@ export default function EmployeePromptPageForm({
                 <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
                   First Name <span className="text-red-600">(required)</span>
                   <div className="group relative">
-                    <Icon name="FaRobot" className="w-4 h-4 text-slate-blue cursor-help" size={16} />
+                    <Icon name="prompty" className="w-4 h-4 text-slate-blue cursor-help" size={16} />
                     <div className="absolute left-0 bottom-6 bg-gray-800 text-white text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10">
                       AI uses this for personalized review suggestions
                     </div>
@@ -458,7 +458,7 @@ export default function EmployeePromptPageForm({
                 <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
                   Last Name <span className="text-red-600">(required)</span>
                   <div className="group relative">
-                    <Icon name="FaRobot" className="w-4 h-4 text-slate-blue cursor-help" size={16} />
+                    <Icon name="prompty" className="w-4 h-4 text-slate-blue cursor-help" size={16} />
                     <div className="absolute left-0 bottom-6 bg-gray-800 text-white text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10">
                       AI uses this for personalized review suggestions
                     </div>
@@ -527,7 +527,7 @@ export default function EmployeePromptPageForm({
                 <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
                   Position/Job Title <span className="text-red-600">(required)</span>
                   <div className="group relative">
-                    <Icon name="FaRobot" className="w-4 h-4 text-slate-blue cursor-help" size={16} />
+                    <Icon name="prompty" className="w-4 h-4 text-slate-blue cursor-help" size={16} />
                     <div className="absolute left-0 bottom-6 bg-gray-800 text-white text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10">
                       AI uses this to create role-specific review suggestions
                     </div>
@@ -544,7 +544,7 @@ export default function EmployeePromptPageForm({
                 <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
                   Business Location/Branch
                   <div className="group relative">
-                    <Icon name="FaRobot" className="w-4 h-4 text-slate-blue cursor-help" size={16} />
+                    <Icon name="prompty" className="w-4 h-4 text-slate-blue cursor-help" size={16} />
                     <div className="absolute left-0 bottom-6 bg-gray-800 text-white text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10">
                       AI uses this for location-specific review context
                     </div>
@@ -563,7 +563,7 @@ export default function EmployeePromptPageForm({
               <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
                 Years at Business
                 <div className="group relative">
-                  <Icon name="FaRobot" className="w-4 h-4 text-slate-blue cursor-help" size={16} />
+                  <Icon name="prompty" className="w-4 h-4 text-slate-blue cursor-help" size={16} />
                   <div className="absolute left-0 bottom-6 bg-gray-800 text-white text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10">
                     AI uses this to highlight experience and dedication
                   </div>
@@ -581,7 +581,7 @@ export default function EmployeePromptPageForm({
               <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
                 Short Bio
                 <div className="group relative">
-                  <Icon name="FaRobot" className="w-4 h-4 text-slate-blue cursor-help" size={16} />
+                  <Icon name="prompty" className="w-4 h-4 text-slate-blue cursor-help" size={16} />
                   <div className="absolute left-0 bottom-6 bg-gray-800 text-white text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10">
                     AI uses this to create personalized, authentic reviews
                   </div>
@@ -600,7 +600,7 @@ export default function EmployeePromptPageForm({
               <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
                 Fun Facts
                 <div className="group relative">
-                  <Icon name="FaRobot" className="w-4 h-4 text-slate-blue cursor-help" size={16} />
+                  <Icon name="prompty" className="w-4 h-4 text-slate-blue cursor-help" size={16} />
                   <div className="absolute left-0 bottom-6 bg-gray-800 text-white text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10">
                     AI uses these to create more engaging, personal reviews
                   </div>
@@ -641,7 +641,7 @@ export default function EmployeePromptPageForm({
               <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
                 Key Skills & Strengths
                 <div className="group relative">
-                  <Icon name="FaRobot" className="w-4 h-4 text-slate-blue cursor-help" size={16} />
+                  <Icon name="prompty" className="w-4 h-4 text-slate-blue cursor-help" size={16} />
                   <div className="absolute left-0 bottom-6 bg-gray-800 text-white text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10">
                     AI highlights these skills in review suggestions
                   </div>
@@ -682,7 +682,7 @@ export default function EmployeePromptPageForm({
               <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
                 What should people mention in reviews?
                 <div className="group relative">
-                  <Icon name="FaRobot" className="w-4 h-4 text-slate-blue cursor-help" size={16} />
+                  <Icon name="prompty" className="w-4 h-4 text-slate-blue cursor-help" size={16} />
                   <div className="absolute left-0 bottom-6 bg-gray-800 text-white text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10">
                     AI uses this to guide review content and suggestions
                   </div>

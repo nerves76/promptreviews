@@ -14,8 +14,7 @@ export default function RobotTooltip({ text }: { text: string }) {
         onBlur={() => setShow(false)}
         style={{ lineHeight: 1 }}
       >
-        <Icon
-          name="FaRobot"
+        <Icon name="prompty"
           className="inline-block w-4 h-4 align-middle cursor-pointer"
           size={16}
         />

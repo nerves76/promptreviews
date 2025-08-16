@@ -395,7 +395,7 @@ export default function EventPromptPageForm({
                 <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
                   Event Name <span className="text-red-600">(required)</span>
                   <div className="group relative">
-                    <Icon name="FaRobot" className="w-4 h-4 text-slate-blue cursor-help" size={16} />
+                    <Icon name="prompty" className="w-4 h-4 text-slate-blue cursor-help" size={16} />
                     <div className="absolute left-0 bottom-6 bg-gray-800 text-white text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10">
                       AI uses this for event-specific review suggestions
                     </div>
@@ -412,7 +412,7 @@ export default function EventPromptPageForm({
                 <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
                   Event Type
                   <div className="group relative">
-                    <Icon name="FaRobot" className="w-4 h-4 text-slate-blue cursor-help" size={16} />
+                    <Icon name="prompty" className="w-4 h-4 text-slate-blue cursor-help" size={16} />
                     <div className="absolute left-0 bottom-6 bg-gray-800 text-white text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10">
                       AI creates type-specific review content
                     </div>
@@ -456,7 +456,7 @@ export default function EventPromptPageForm({
                 <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
                   Event Location
                   <div className="group relative">
-                    <Icon name="FaRobot" className="w-4 h-4 text-slate-blue cursor-help" size={16} />
+                    <Icon name="prompty" className="w-4 h-4 text-slate-blue cursor-help" size={16} />
                     <div className="absolute left-0 bottom-6 bg-gray-800 text-white text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10">
                       AI uses location for venue-specific review context
                     </div>
@@ -485,7 +485,7 @@ export default function EventPromptPageForm({
               <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
                 Event Description
                 <div className="group relative">
-                  <Icon name="FaRobot" className="w-4 h-4 text-slate-blue cursor-help" size={16} />
+                  <Icon name="prompty" className="w-4 h-4 text-slate-blue cursor-help" size={16} />
                   <div className="absolute left-0 bottom-6 bg-gray-800 text-white text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10">
                     AI uses this to create detailed, contextual reviews
                   </div>
@@ -505,7 +505,7 @@ export default function EventPromptPageForm({
               <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
                 Event Highlights
                 <div className="group relative">
-                  <Icon name="FaRobot" className="w-4 h-4 text-slate-blue cursor-help" size={16} />
+                  <Icon name="prompty" className="w-4 h-4 text-slate-blue cursor-help" size={16} />
                   <div className="absolute left-0 bottom-6 bg-gray-800 text-white text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10">
                     AI highlights these features in review suggestions
                   </div>
@@ -548,7 +548,7 @@ export default function EventPromptPageForm({
               <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
                 What should attendees mention in reviews?
                 <div className="group relative">
-                  <Icon name="FaRobot" className="w-4 h-4 text-slate-blue cursor-help" size={16} />
+                  <Icon name="prompty" className="w-4 h-4 text-slate-blue cursor-help" size={16} />
                   <div className="absolute left-0 bottom-6 bg-gray-800 text-white text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10">
                     AI uses this to guide review content and suggestions
                   </div>

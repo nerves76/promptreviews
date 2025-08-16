@@ -84,7 +84,7 @@ export default function ReviewResponseGenerator({ onResponseGenerated }: ReviewR
     <div className="bg-white rounded-lg border border-gray-200 p-6">
       <div className="flex items-center space-x-3 mb-6">
         <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-          <Icon name="FaRobot" className="w-5 h-5 text-slate-blue" size={20} />
+          <Icon name="prompty" className="w-5 h-5 text-slate-blue" size={20} />
         </div>
         <div>
           <h3 className="text-lg font-semibold">AI Review Response Generator</h3>
@@ -171,7 +171,7 @@ export default function ReviewResponseGenerator({ onResponseGenerated }: ReviewR
               </>
             ) : (
               <>
-                <Icon name="FaRobot" className="w-4 h-4 text-slate-blue" size={16} />
+                <Icon name="prompty" className="w-4 h-4 text-slate-blue" size={16} />
                 <span>Generate Response</span>
               </>
             )}

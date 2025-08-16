@@ -82,20 +82,38 @@ export async function applyTestingMode(sessionConfig: any, email: string, billin
   }
   
   console.log('🧪 Admin testing mode activated for:', email);
-  console.log('💰 Applying 99% discount (prices will be ~$1)');
   
-  // Apply 99% off coupon
-  sessionConfig.discounts = [{
-    coupon: 'TESTDEV_99'
-  }];
+  // Only apply coupon in test mode (sk_test_*)
+  const isTestMode = process.env.STRIPE_SECRET_KEY?.startsWith('sk_test_');
   
-  // Add metadata
-  sessionConfig.metadata = {
-    ...sessionConfig.metadata,
-    testing_mode: 'true',
-    admin_account: email,
-    discount_applied: '99_percent'
-  };
+  if (isTestMode) {
+    console.log('💰 Applying 99% discount (prices will be ~$1)');
+    
+    // Apply 99% off coupon
+    sessionConfig.discounts = [{
+      coupon: 'TESTDEV_99'
+    }];
+    
+    // Add metadata
+    sessionConfig.metadata = {
+      ...sessionConfig.metadata,
+      testing_mode: 'true',
+      admin_account: email,
+      discount_applied: '99_percent'
+    };
+  } else {
+    console.log('⚠️ Testing coupons not available in live mode');
+    console.log('💡 Admin can use regular checkout or manual discount codes');
+    
+    // Add metadata but no automatic discount
+    sessionConfig.metadata = {
+      ...sessionConfig.metadata,
+      testing_mode: 'true',
+      admin_account: email,
+      stripe_mode: 'live',
+      note: 'Manual discount required'
+    };
+  }
   
   // Allow promotion codes for additional testing
   sessionConfig.allow_promotion_codes = true;

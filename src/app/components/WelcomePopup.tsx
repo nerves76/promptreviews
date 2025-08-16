@@ -133,7 +133,7 @@ Here's your first tip: [icon] <— click here`;
                       tabIndex={0}
                       type="button"
                     >
-                      <Icon name="FaRobot" className="inline w-5 h-5 align-middle cursor-pointer text-slate-blue" size={20} />
+                      <Icon name="prompty" className="inline w-5 h-5 align-middle cursor-pointer text-slate-blue" size={20} />
                     </button>
                     {showTooltip && (
                       <div 
@@ -141,7 +141,7 @@ Here's your first tip: [icon] <— click here`;
                         className="absolute z-30 left-1/2 -translate-x-1/2 bottom-full mb-2 w-80 p-4 bg-white border border-gray-200 rounded-lg shadow-lg text-sm text-gray-700"
                       >
                         <span className="block mb-2">
-                          Whenever you see me <Icon name="FaRobot" className="inline w-5 h-5 text-slate-blue align-middle" size={20} />, it means this field will help me learn about your business and create review templates for your customers or clients. But using Prompty AI is also totally optional!
+                          Whenever you see me <Icon name="prompty" className="inline w-5 h-5 text-slate-blue align-middle" size={20} />, it means this field will help me learn about your business and create review templates for your customers or clients. But using Prompty AI is also totally optional!
                         </span>
                         <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-200"></div>
                       </div>

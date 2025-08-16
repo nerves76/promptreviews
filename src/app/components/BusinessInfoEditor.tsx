@@ -798,7 +798,7 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
                             onClick={() => setShowDescriptionAnalyzer(true)}
                             className="flex items-center space-x-2 text-sm text-blue-600 hover:text-blue-800 hover:underline"
                           >
-                            <Icon name="FaRobot" className="w-3 h-3 text-blue-600" size={12} />
+                            <Icon name="prompty" className="w-3 h-3 text-blue-600" size={12} />
                             <span>Open Optimizer</span>
                           </button>
                         )}

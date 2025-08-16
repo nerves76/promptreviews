@@ -211,7 +211,7 @@ This project is currently focused on developing a standalone widget for collecti
 
 #### **High-Impact Migrations Completed**
 - **85+ Files**: Dashboard, Header, Public pages, Google Business, business-info, prompt-features, sections migrated (350+ icons)
-- **User-Preferred Icons**: FaStore, FaHandsHelping, FaTags, FaRobot, FaVideo, sentiment icons (FaGrinHearts, FaMeh, FaFrown), AI icons, etc.  
+- **User-Preferred Icons**: FaStore, FaHandsHelping, FaTags, prompty, FaVideo, sentiment icons (FaGrinHearts, FaMeh, FaFrown), AI icons, etc.  
 - **Progress**: 21 of 117 files remaining (~95% completion) 
 - **Coverage**: Prioritized high-traffic, frequently accessed components first
 - **Results**: Immediate bundle size reduction and faster load times active across the app

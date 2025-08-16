@@ -168,7 +168,6 @@ export const loadAllFallingIcons = async (): Promise<{
     ...POPULAR_FALLING_ICONS,
     
     // General (Additional)
-    { key: "skull", label: "Skull", icon: FaSkull, color: "text-gray-600", category: "General" },
     
     // Nature & Plants (Enhanced)
     { key: "snowflake", label: "Snowflake", icon: FaSnowflake, color: "text-blue-100", category: "Nature & Weather" },
@@ -231,7 +230,6 @@ export const loadAllFallingIcons = async (): Promise<{
     { key: "key", label: "Key", icon: FaKey, color: "text-yellow-600", category: "Tools & Objects" },
     { key: "anchor", label: "Anchor", icon: FaAnchor, color: "text-blue-700", category: "Tools & Objects" },
     { key: "lightbulb", label: "Lightbulb", icon: FaLightbulb, color: "text-yellow-400", category: "Tools & Objects" },
-    { key: "magic", label: "Magic", icon: FaMagic, color: "text-purple-500", category: "Tools & Objects" },
     { key: "rocket", label: "Rocket", icon: FaRocket, color: "text-red-500", category: "Tools & Objects" },
     { key: "cube", label: "Cube", icon: FaCube, color: "text-blue-500", category: "Tools & Objects" },
     { key: "atom", label: "Atom", icon: FaAtom, color: "text-purple-600", category: "Tools & Objects" },
@@ -247,7 +245,6 @@ export const loadAllFallingIcons = async (): Promise<{
     { key: "peace", label: "Peace", icon: FaPeace, color: "text-purple-500", category: "Universal Symbols" },
     { key: "globe", label: "Globe", icon: FaGlobe, color: "text-blue-500", category: "Universal Symbols" },
     { key: "flag", label: "Flag", icon: FaFlag, color: "text-red-500", category: "Universal Symbols" },
-    { key: "yinyang", label: "Yin Yang", icon: FaYinYang, color: "text-gray-700", category: "Universal Symbols" },
     
     // Entertainment & Media
     { key: "music", label: "Music", icon: FaMusic, color: "text-purple-500", category: "Entertainment & Media" },
@@ -275,7 +272,6 @@ export const loadAllFallingIcons = async (): Promise<{
     // Fashion & Accessories
     { key: "umbrella", label: "Umbrella", icon: FaUmbrella, color: "text-blue-500", category: "Fashion & Accessories" },
     { key: "tshirt", label: "T-Shirt", icon: FaTshirt, color: "text-gray-600", category: "Fashion & Accessories" },
-    { key: "hatwizard", label: "Wizard Hat", icon: FaHatWizard, color: "text-purple-600", category: "Fashion & Accessories" },
     { key: "socks", label: "Socks", icon: FaSocks, color: "text-gray-500", category: "Fashion & Accessories" },
     { key: "ring", label: "Ring", icon: FaRing, color: "text-yellow-500", category: "Fashion & Accessories" },
     { key: "bed", label: "Bed", icon: FaBed, color: "text-blue-600", category: "Fashion & Accessories" },
@@ -286,11 +282,21 @@ export const loadAllFallingIcons = async (): Promise<{
     { key: "dove", label: "Dove", icon: FaDove, color: "text-gray-400", category: "Animals & Nature" },
     { key: "fish", label: "Fish", icon: FaFish, color: "text-blue-500", category: "Animals & Nature" },
     { key: "frog", label: "Frog", icon: FaFrog, color: "text-green-500", category: "Animals & Nature" },
-    { key: "dragon", label: "Dragon", icon: FaDragon, color: "text-red-600", category: "Animals & Nature" },
-    { key: "ghost", label: "Ghost", icon: FaGhost, color: "text-gray-400", category: "Animals & Nature" },
-    { key: "robot", label: "Robot", icon: FaRobot, color: "text-blue-600", category: "Animals & Nature" },
-    { key: "bone", label: "Bone", icon: FaBone, color: "text-gray-400", category: "Animals & Nature" },
-    { key: "cannabis", label: "Cannabis Leaf", icon: FaCannabis, color: "text-green-600", category: "Animals & Nature" },
+        { key: "bone", label: "Bone", icon: FaBone, color: "text-gray-400", category: "Animals & Nature" },
+    
+    // Mythical & Fantasy
+    { key: "dragon", label: "Dragon", icon: FaDragon, color: "text-red-600", category: "Mythical & Fantasy" },
+    { key: "ghost", label: "Ghost", icon: FaGhost, color: "text-gray-400", category: "Mythical & Fantasy" },
+    { key: "magic", label: "Magic", icon: FaMagic, color: "text-purple-500", category: "Mythical & Fantasy" },
+    { key: "wizardhat", label: "Wizard Hat", icon: FaHatWizard, color: "text-purple-600", category: "Mythical & Fantasy" },
+    { key: "skull", label: "Skull", icon: FaSkull, color: "text-gray-600", category: "Mythical & Fantasy" },
+    { key: "yinyang", label: "Yin Yang", icon: FaYinYang, color: "text-gray-700", category: "Mythical & Fantasy" },
+    
+    // Technology & Innovation
+    { key: "robot", label: "Robot", icon: FaRobot, color: "text-blue-600", category: "Technology & Innovation" },
+    
+    // Nature & Weather
+    { key: "cannabis", label: "Cannabis Leaf", icon: FaCannabis, color: "text-green-600", category: "Nature & Weather" },
     
     // Time & Communication
     { key: "clock", label: "Clock", icon: FaClock, color: "text-gray-600", category: "Time & Communication" },

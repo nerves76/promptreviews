@@ -422,7 +422,7 @@ export default function ReviewManagement({ locations, isConnected }: ReviewManag
                           onClick={() => setShowingAiForEdit(review.reviewId)}
                           className="flex items-center space-x-2 text-sm text-purple-600 hover:text-purple-800 border border-purple-300 rounded px-3 py-1 hover:bg-purple-50"
                         >
-                          <Icon name="FaRobot" className="w-3 h-3 text-slate-blue" size={12} />
+                          <Icon name="prompty" className="w-3 h-3 text-slate-blue" size={12} />
                           <span>Improve with AI</span>
                         </button>
                       </div>
@@ -486,7 +486,7 @@ export default function ReviewManagement({ locations, isConnected }: ReviewManag
                           onClick={() => setShowingAiFor(review.reviewId)}
                           className="flex items-center space-x-2 text-sm text-purple-600 hover:text-purple-800 border border-purple-300 rounded px-3 py-1 hover:bg-purple-50"
                         >
-                          <Icon name="FaRobot" className="w-3 h-3 text-slate-blue" size={12} />
+                          <Icon name="prompty" className="w-3 h-3 text-slate-blue" size={12} />
                           <span>Generate with AI</span>
                         </button>
                       </div>
@@ -536,7 +536,7 @@ export default function ReviewManagement({ locations, isConnected }: ReviewManag
                         }}
                         className="flex items-center space-x-2 text-sm text-purple-600 hover:text-purple-800"
                       >
-                        <Icon name="FaRobot" className="w-3 h-3 text-slate-blue" size={12} />
+                        <Icon name="prompty" className="w-3 h-3 text-slate-blue" size={12} />
                         <span>Generate AI Response</span>
                       </button>
                     </div>

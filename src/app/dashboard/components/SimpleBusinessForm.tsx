@@ -38,7 +38,7 @@ function RobotTooltip({ text }: { text: string }) {
         <svg
           className="inline-block w-4 h-4 align-middle cursor-pointer"
         >
-          <use href="/icons-sprite.svg#FaRobot" />
+          <use href="/icons-sprite.svg#prompty" />
         </svg>
       </button>
       {show && (

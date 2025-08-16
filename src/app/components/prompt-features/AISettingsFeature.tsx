@@ -83,7 +83,7 @@ export default function AISettingsFeature({
       <div className="flex flex-row justify-between items-start px-2 py-2">
         <div className="flex flex-col">
           <div className="flex items-center gap-3">
-            <Icon name="prompty" className="w-7 h-7 text-slate-blue" size={28} />
+            <Icon name="prompty" className="w-8 h-8 text-slate-blue" size={32} />
             <span className="text-2xl font-bold text-[#1A237E]">
               Generate with AI
             </span>

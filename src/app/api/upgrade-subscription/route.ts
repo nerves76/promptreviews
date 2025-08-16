@@ -105,19 +105,35 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "No subscription item found" }, { status: 404 });
     }
 
+    // Check if admin account should get testing discount
+    const { isTestingAccount } = await import('@/lib/testing-mode');
+    const isAdmin = await isTestingAccount(account.email);
+    const isTestMode = process.env.STRIPE_SECRET_KEY?.startsWith('sk_test_');
+    
+    // Prepare update configuration
+    let updateConfig: any = {
+      items: [
+        {
+          id: subscriptionItem.id,
+          price: PRICE_IDS[plan]?.[billingPeriod] || PRICE_IDS[plan]?.monthly || '',
+        },
+      ],
+      // Prorate the difference
+      proration_behavior: "always_invoice",
+    };
+    
+    // Apply testing discount for admins in test mode
+    if (isAdmin && isTestMode) {
+      console.log('🧪 Admin testing mode: Applying 99% discount to subscription update');
+      updateConfig.discounts = [{
+        coupon: 'TESTDEV_99'
+      }];
+    }
+    
     // Update the subscription to the new plan
     const updatedSubscription = await stripe.subscriptions.update(
       activeSubscription.id,
-      {
-        items: [
-          {
-            id: subscriptionItem.id,
-            price: PRICE_IDS[plan]?.[billingPeriod] || PRICE_IDS[plan]?.monthly || '',
-          },
-        ],
-        // Prorate the difference
-        proration_behavior: "always_invoice",
-      }
+      updateConfig
     );
 
     // Update the plan and billing period in our database
