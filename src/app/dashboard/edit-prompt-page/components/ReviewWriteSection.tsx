@@ -296,7 +296,11 @@ const ReviewWriteSection: React.FC<ReviewWriteSectionProps> = ({
                       </>
                     ) : (
                       <>
-                        <Icon name="FaRobot" className="w-4 h-4 mr-2 text-slate-blue" size={16} />
+                        <img 
+                          src="/images/prompty-icon-prompt-reviews.png" 
+                          alt="Prompty" 
+                          className="w-4 h-4 mr-2 flex-shrink-0 object-contain"
+                        />
                         Generate with AI
                       </>
                     )}
