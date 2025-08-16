@@ -12,6 +12,7 @@
 
 "use client";
 import React, { useState, useEffect } from "react";
+import Icon from "@/components/Icon";
 
 export interface AISettingsFeatureProps {
   /** Whether AI generation is enabled */
@@ -82,16 +83,12 @@ export default function AISettingsFeature({
       <div className="flex flex-row justify-between items-start px-2 py-2">
         <div className="flex flex-col">
           <div className="flex items-center gap-3">
-            <img 
-              src="/images/prompty-icon-prompt-reviews.png" 
-              alt="Prompty" 
-              className="w-7 h-7 flex-shrink-0 object-contain"
-            />
+            <Icon name="prompty" className="w-7 h-7 text-slate-blue" size={28} />
             <span className="text-2xl font-bold text-[#1A237E]">
               Generate with AI
             </span>
           </div>
-          <div className="text-sm text-gray-700 mt-[3px] ml-9">
+          <div className="text-sm text-gray-700 mt-[3px] ml-10">
             {isAIEnabled
               ? 'Customers will see the "Generate with AI" button to help them write a review.'
               : "The AI review generation button will be hidden from customers on this prompt page."}
@@ -121,16 +118,12 @@ export default function AISettingsFeature({
       <div className="flex flex-row justify-between items-start px-2 py-2 border-t border-blue-200 pt-4">
         <div className="flex flex-col">
           <div className="flex items-center gap-3">
-            <img 
-              src="/images/prompty-icon-prompt-reviews.png" 
-              alt="Prompty" 
-              className="w-7 h-7 flex-shrink-0 object-contain"
-            />
+            <Icon name="FaCheck" className="w-7 h-7 text-slate-blue" size={28} />
             <span className="text-2xl font-bold text-[#1A237E]">
               Fix My Grammar
             </span>
           </div>
-          <div className="text-sm text-gray-700 mt-[3px] ml-9">
+          <div className="text-sm text-gray-700 mt-[3px] ml-10">
             {isGrammarEnabled
               ? 'Customers will see the "Fix My Grammar" button to improve their review writing.'
               : "The grammar fixing button will be hidden from customers on this prompt page."}
