@@ -12,7 +12,6 @@
 
 "use client";
 import React, { useState, useEffect } from "react";
-import Icon from "@/components/Icon";
 
 export interface AISettingsFeatureProps {
   /** Whether AI generation is enabled */
@@ -83,9 +82,11 @@ export default function AISettingsFeature({
       <div className="flex flex-row justify-between items-start px-2 py-2">
         <div className="flex flex-col">
           <div className="flex items-center gap-3">
-            <svg className="w-7 h-7" style={{ color: "#4F46E5" }}>
-              <use href="/icons-sprite.svg#prompty" />
-            </svg>
+            <img 
+              src="/images/prompty-icon-prompt-reviews.png" 
+              alt="Prompty" 
+              className="w-7 h-7 flex-shrink-0 object-contain"
+            />
             <span className="text-2xl font-bold text-[#1A237E]">
               Generate with AI
             </span>
@@ -120,7 +121,11 @@ export default function AISettingsFeature({
       <div className="flex flex-row justify-between items-start px-2 py-2 border-t border-blue-200 pt-4">
         <div className="flex flex-col">
           <div className="flex items-center gap-3">
-            <Icon name="FaCheck" className="w-7 h-7 text-slate-blue" size={28} />
+            <img 
+              src="/images/prompty-icon-prompt-reviews.png" 
+              alt="Prompty" 
+              className="w-7 h-7 flex-shrink-0 object-contain"
+            />
             <span className="text-2xl font-bold text-[#1A237E]">
               Fix My Grammar
             </span>
