@@ -13,14 +13,14 @@ export const Icon: React.FC<IconProps> = ({
   name, 
   size = 16, 
   className = '', 
-  color = 'currentColor',
+  color,
   style = {},
   onClick 
 }) => {
   const iconStyle = {
     width: size,
     height: size,
-    fill: color,
+    ...(color && { fill: color }),
     ...style
   };
 
@@ -30,6 +30,7 @@ export const Icon: React.FC<IconProps> = ({
     <svg 
       className={className}
       style={iconStyle}
+      fill="currentColor"
       onClick={onClick}
       role={onClick ? 'button' : 'img'}
       aria-hidden={!onClick}
