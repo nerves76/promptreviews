@@ -144,6 +144,44 @@ export async function PUT(
 
     // Insert new reviews if any provided
     if (reviews.length > 0) {
+      // First, try inserting a minimal test review to see what works
+      console.log('[WIDGET-REVIEWS] Testing with minimal review first...');
+      const testReview = {
+        widget_id: widgetId,
+        review_id: `test_${Date.now()}`,
+        review_content: 'Test',
+        first_name: 'Test',
+        last_name: 'User',
+        order_index: 0
+      };
+      
+      const { error: testError } = await supabaseAdmin
+        .from('widget_reviews')
+        .insert([testReview]);
+        
+      if (testError) {
+        console.error('[WIDGET-REVIEWS] Test review failed:', {
+          error: testError,
+          message: testError.message,
+          details: testError.details,
+          hint: testError.hint,
+          code: testError.code
+        });
+        return NextResponse.json({ 
+          error: 'Failed to insert test review - check column names',
+          details: testError.message,
+          hint: testError.hint
+        }, { status: 500 });
+      } else {
+        console.log('[WIDGET-REVIEWS] Test review succeeded, proceeding with actual reviews');
+        
+        // Delete the test review
+        await supabaseAdmin
+          .from('widget_reviews')
+          .delete()
+          .eq('review_id', testReview.review_id);
+      }
+      
       const reviewsToInsert = reviews.map((review, index) => {
         const finalRating = typeof review.star_rating === 'number' 
           ? Math.round(review.star_rating * 2) / 2 
@@ -157,7 +195,7 @@ export async function PUT(
         // Ensure review_id is valid
         const reviewId = review.review_id || `review_${widgetId}_${index}_${Date.now()}`;
         
-        return {
+        const reviewToInsert: any = {
           widget_id: widgetId,
           review_id: reviewId,
           review_content: review.review_content || '',
@@ -166,10 +204,18 @@ export async function PUT(
           reviewer_role: review.reviewer_role || '',
           platform: review.platform || 'custom',
           order_index: index,
-          star_rating: finalRating,
-          photo_url: review.photo_url || null,
-          created_at: new Date().toISOString()
+          star_rating: finalRating
+          // Removed created_at - let the database handle it
         };
+        
+        // Only add photo_url if it's provided (column might not exist)
+        if (review.photo_url) {
+          reviewToInsert.photo_url = review.photo_url;
+        }
+        
+        console.log(`[WIDGET-REVIEWS] Review ${index} to insert:`, reviewToInsert);
+        
+        return reviewToInsert;
       });
 
       console.log('[WIDGET-REVIEWS] Attempting to insert reviews:', {
