@@ -28,13 +28,22 @@ type Widget = {
 };
 
 interface WidgetEditorFormProps {
-  onSaveSuccess: () => void;
+  onSaveSuccess: (newWidget?: any) => void;
   onCancel: () => void;
   widgetToEdit: Widget | null;
   design: DesignState;
+  createWidget?: (name: string, widgetType: string, theme: any) => Promise<any>;
+  saveWidgetName?: (id: string, name: string) => Promise<any>;
 }
 
-export const WidgetEditorForm: React.FC<WidgetEditorFormProps> = ({ onSaveSuccess, onCancel, widgetToEdit, design }) => {
+export const WidgetEditorForm: React.FC<WidgetEditorFormProps> = ({ 
+  onSaveSuccess, 
+  onCancel, 
+  widgetToEdit, 
+  design,
+  createWidget,
+  saveWidgetName 
+}) => {
   const supabase = createClient();
   // Storage key for form data persistence
   const formStorageKey = `widgetEditorForm_${widgetToEdit?.id || 'new'}`;
@@ -112,12 +121,30 @@ export const WidgetEditorForm: React.FC<WidgetEditorFormProps> = ({ onSaveSucces
         updated_at: new Date().toISOString(),
       };
 
+      let newWidget = null;
+      
       if (widgetToEdit) {
-        const { error } = await supabase.from('widgets').update(widgetData).eq('id', widgetToEdit.id);
-        if (error) throw error;
+        // For editing, use saveWidgetName if only the name changed, otherwise update directly
+        if (saveWidgetName && widgetToEdit.name !== form.name.trim()) {
+          await saveWidgetName(widgetToEdit.id, form.name.trim());
+        } else {
+          const { error } = await supabase.from('widgets').update(widgetData).eq('id', widgetToEdit.id);
+          if (error) throw error;
+        }
       } else {
-        const { error } = await supabase.from('widgets').insert({ ...widgetData, created_at: new Date().toISOString() });
-        if (error) throw error;
+        // For creating, use the createWidget function if provided (which updates local state)
+        if (createWidget) {
+          newWidget = await createWidget(form.name.trim(), form.widgetType || 'multi', design);
+        } else {
+          // Fallback to direct insert if createWidget is not provided
+          const { data, error } = await supabase
+            .from('widgets')
+            .insert({ ...widgetData, created_at: new Date().toISOString() })
+            .select()
+            .single();
+          if (error) throw error;
+          newWidget = data;
+        }
       }
 
       // Clear saved form data on successful save
@@ -126,7 +153,7 @@ export const WidgetEditorForm: React.FC<WidgetEditorFormProps> = ({ onSaveSucces
         console.log('🗑️ Cleared widget editor form data from localStorage after successful save');
       }
       
-      onSaveSuccess();
+      onSaveSuccess(newWidget);
     } catch (error: any) {
       console.error('Widget save error:', error);
       alert(error.message || "An error occurred while saving the widget");

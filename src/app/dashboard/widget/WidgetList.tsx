@@ -188,10 +188,22 @@ export default function WidgetList({
         title={widgetToEdit ? 'Edit widget' : 'Create new widget'}
       >
         <WidgetEditorForm
-          onSaveSuccess={() => { setIsEditorOpen(false); /* fetchWidgets is called automatically */ }}
+          onSaveSuccess={async (newWidget?: any) => { 
+            setIsEditorOpen(false); 
+            
+            // If a new widget was created and returned, select it
+            if (newWidget && onSelectWidget) {
+              onSelectWidget(newWidget);
+            } else {
+              // Otherwise just refresh the list
+              await fetchWidgets();
+            }
+          }}
           onCancel={() => setIsEditorOpen(false)}
           widgetToEdit={widgetToEdit}
           design={design}
+          createWidget={createWidget}
+          saveWidgetName={saveWidgetName}
         />
       </DraggableModal>
 
