@@ -270,7 +270,7 @@
     
     const buttonStyle = `
       background-color: ${bgColor};
-      border: ${borderWidth}px solid ${borderColor};
+      ${design.border ? `border: ${borderWidth}px solid ${borderColor};` : 'border: none;'}
       opacity: ${bgOpacity};
     `;
 
@@ -319,7 +319,7 @@
         <a href="https://prompt.reviews/r/${businessSlug}" target="_blank" rel="noopener noreferrer" class="pr-submit-btn"
            style="
              background-color: ${bgColor};
-             border: ${borderWidth}px solid ${borderColor};
+             ${design.border ? `border: ${borderWidth}px solid ${borderColor};` : 'border: none;'}
              opacity: ${bgOpacity};
              color: ${accentColor};
              padding: 8px 16px;

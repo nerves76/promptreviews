@@ -300,7 +300,7 @@
     return `
       <div class="pr-photo-review-card" style="
         background-color: ${backgroundColorWithOpacity};
-        border: ${design.borderWidth || 2}px solid ${design.borderColor || '#cccccc'};
+        ${design.border ? `border: ${design.borderWidth || 2}px solid ${design.borderColor || '#cccccc'};` : 'border: none;'}
         border-radius: ${design.borderRadius || 16}px;
         color: ${design.textColor || '#22223b'};
         font-family: ${design.font || 'Inter'}, sans-serif;
