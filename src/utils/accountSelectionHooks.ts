@@ -194,8 +194,20 @@ export function useAccountSelection() {
       // Force page reload to refresh all data with new account context
       window.location.reload();
     } else {
-      // For widget page, let the components handle the account change gracefully
-      console.log('✅ useAccountSelection: Skipping reload on widget page - components will refresh');
+      // For widget page, clear widget-specific localStorage to prevent stale data
+      console.log('✅ useAccountSelection: On widget page - clearing widget localStorage and letting components refresh');
+      
+      // Clear any widget-specific localStorage data
+      const keysToRemove: string[] = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && (key.startsWith('widgetDesign_') || key.startsWith('widgetEditorForm_'))) {
+          keysToRemove.push(key);
+        }
+      }
+      keysToRemove.forEach(key => localStorage.removeItem(key));
+      
+      console.log(`🧹 useAccountSelection: Cleared ${keysToRemove.length} widget-related localStorage entries`);
     }
   };
 

@@ -83,19 +83,23 @@ export function useWidgets() {
     }
   }, [accountLoading, selectedAccount?.account_id, lastFetchTime]);
 
-  // Only fetch widgets once when component mounts and account is ready
+  // Fetch widgets when account changes
   useEffect(() => {
     // Add a flag to prevent multiple fetches
     let mounted = true;
     
     if (mounted && !accountLoading && selectedAccount?.account_id) {
-      fetchWidgets(true); // Force initial fetch
+      console.log('🔄 useWidgets: Account changed or loaded, fetching widgets for:', selectedAccount.account_id);
+      // Clear existing widgets when account changes
+      setWidgets([]);
+      setError(null);
+      fetchWidgets(true); // Force fetch for new account
     }
     
     return () => {
       mounted = false;
     };
-  }, [accountLoading, selectedAccount?.account_id]); // Remove fetchWidgets from deps to prevent re-fetching
+  }, [accountLoading, selectedAccount?.account_id, fetchWidgets]); // Include fetchWidgets in deps
   
   const createWidget = async (name: string, widgetType: string, theme: any) => {
     if (!selectedAccount?.account_id) {

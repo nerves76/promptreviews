@@ -41,6 +41,19 @@ export default function WidgetPage() {
     });
   }, [selectedWidgetFull]);
   
+  // Clear selected widget when widgets list changes (e.g., after account switch)
+  useEffect(() => {
+    if (selectedWidget && widgets.length > 0) {
+      // Check if the selected widget still exists in the current widgets list
+      const widgetStillExists = widgets.some(w => w.id === selectedWidget.id);
+      if (!widgetStillExists) {
+        console.log('🔄 WidgetPage: Selected widget no longer in list, clearing selection');
+        setSelectedWidget(null);
+        setSelectedWidgetFull(null);
+      }
+    }
+  }, [widgets]);
+  
   // Storage key for design state persistence
   const designStorageKey = `widgetDesign_${selectedWidget?.id || 'default'}`;
   
@@ -79,8 +92,15 @@ export default function WidgetPage() {
         reviews: fullWidgetData?.reviews
       });
       setSelectedWidgetFull(fullWidgetData);
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ WidgetPage: Error fetching full widget data:', error);
+      
+      // If we get a 403, it means the widget doesn't belong to the current account
+      if (error?.status === 403 || error?.message?.includes('403')) {
+        console.log('🔄 WidgetPage: Widget no longer accessible (likely due to account switch), clearing selection');
+        setSelectedWidget(null);
+        setSelectedWidgetFull(null);
+      }
     }
   }, []);
 
