@@ -338,7 +338,7 @@
               ">${review.reviewer_role}</div>` : ''}
               <div style="
                 color: ${design.roleTextColor || '#6b7280'};
-                font-size: ${design.attributionFontSize || 15}px;
+                font-size: 0.75rem;
                 margin-top: 0.125rem;
               ">${dateText}${platformText}</div>
             </div>
