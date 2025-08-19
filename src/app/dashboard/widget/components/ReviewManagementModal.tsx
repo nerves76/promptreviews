@@ -302,6 +302,19 @@ export function ReviewManagementModal({
       // Custom reviews should only appear in selected reviews, not in available reviews
       setAllReviews(mappedReviews);
       
+      // Merge original created_at dates from review_submissions into widget_reviews
+      // This fixes the issue where widget_reviews have incorrect dates
+      const mergedWidgetReviews = (widgetReviews || []).map(wr => {
+        // Find matching review from review_submissions to get original date
+        const originalReview = mappedReviews.find(mr => mr.review_id === wr.review_id);
+        if (originalReview) {
+          // Use original created_at from review_submissions
+          return { ...wr, created_at: originalReview.created_at };
+        }
+        // For custom reviews or reviews not found in submissions, keep existing date
+        return wr;
+      });
+      
       // Check if we have unsaved selected reviews in localStorage
       const savedSelected = localStorage.getItem(selectedReviewsKey);
       if (savedSelected && (!widgetReviews || widgetReviews.length === 0)) {
@@ -313,10 +326,10 @@ export function ReviewManagementModal({
           // Show a warning that there are unsaved selections
           setReviewError("You have unsaved review selections. Click Save to persist them or they will be lost.");
         } catch (e) {
-          setSelectedReviews(widgetReviews || []);
+          setSelectedReviews(mergedWidgetReviews);
         }
       } else {
-        setSelectedReviews(widgetReviews || []);
+        setSelectedReviews(mergedWidgetReviews);
         setHasUnsavedChanges(false);
       }
       
