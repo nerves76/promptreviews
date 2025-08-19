@@ -363,7 +363,12 @@
         console.log("🔍 Auto-initialization: Processing widget:", widgetId, "business slug:", businessSlug);
 
         try {
-          const response = await fetch(`/api/widgets/${widgetId}`);
+          // Use absolute URL for cross-domain embedding
+          const apiUrl = window.location.hostname === 'app.promptreviews.app' 
+            ? `/api/widgets/${widgetId}`
+            : `https://app.promptreviews.app/api/widgets/${widgetId}`;
+          
+          const response = await fetch(apiUrl);
           if (!response.ok) {
             throw new Error(`Failed to fetch widget data: ${response.statusText}`);
           }
