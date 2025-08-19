@@ -25,6 +25,16 @@ export default function WidgetPage() {
       console.log('🎯 WidgetPage: Component unmounting');
     };
   }, []);
+  
+  // Track when selectedWidgetFull changes
+  useEffect(() => {
+    console.log('🔄 WidgetPage: selectedWidgetFull changed:', {
+      hasWidget: !!selectedWidgetFull,
+      widgetId: selectedWidgetFull?.id,
+      reviewCount: selectedWidgetFull?.reviews?.length || 0,
+      widgetType: selectedWidgetFull?.type
+    });
+  }, [selectedWidgetFull]);
 
   const { widgets, loading, error, createWidget, deleteWidget, saveWidgetName, saveWidgetDesign, fetchWidgets } = useWidgets();
   const { protectedOperation } = useStableWidgetManager();
@@ -63,6 +73,11 @@ export default function WidgetPage() {
       // Use apiClient which handles auth automatically
       const fullWidgetData = await apiClient.get(`/widgets/${widgetId}`);
       console.log('✅ WidgetPage: Full widget data fetched:', fullWidgetData);
+      console.log('📊 WidgetPage: Reviews in fetched data:', {
+        hasReviews: !!fullWidgetData?.reviews,
+        reviewCount: fullWidgetData?.reviews?.length || 0,
+        reviews: fullWidgetData?.reviews
+      });
       setSelectedWidgetFull(fullWidgetData);
     } catch (error) {
       console.error('❌ WidgetPage: Error fetching full widget data:', error);
