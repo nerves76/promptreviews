@@ -231,6 +231,29 @@ const StyleForm: React.FC<StyleFormProps> = ({ design, onDesignChange, onSave, o
             </label>
           </div>
           
+          {/* Quote Size Slider - only show when quotes are enabled */}
+          {design.showQuotes && (
+            <div className="ml-6">
+              <label htmlFor="quoteSize" className="block text-sm text-gray-700 mb-1">
+                Quote Size: {(design.quoteSize || 1.5).toFixed(1)}rem
+              </label>
+              <input
+                type="range"
+                id="quoteSize"
+                min="0.5"
+                max="3"
+                step="0.1"
+                value={design.quoteSize || 1.5}
+                onChange={(e) => updateDesign({ quoteSize: parseFloat(e.target.value) })}
+                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+              />
+              <div className="flex justify-between text-xs text-gray-500 mt-1">
+                <span>Small</span>
+                <span>Large</span>
+              </div>
+            </div>
+          )}
+          
           <div className="flex items-center">
             <input
               type="checkbox"

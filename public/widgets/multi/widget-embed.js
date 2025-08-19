@@ -64,6 +64,7 @@
     const borderColor = design.borderColor || '#cccccc';
     const bgOpacity = design.bgOpacity !== undefined ? design.bgOpacity : 1;
     const font = design.font || 'Inter';
+    const quoteSize = design.quoteSize || 1.5; // Default quote size in rem
     
     let cardStyle = `
       background-color: ${bgColor};
@@ -76,8 +77,11 @@
       opacity: ${bgOpacity};
     `;
     
-    if (design.border) {
+    // Only add border if explicitly enabled
+    if (design.border === true) {
       cardStyle += `border: ${borderWidth}px solid ${borderColor};`;
+    } else {
+      cardStyle += `border: none;`;
     }
     
     if (design.shadow) {
@@ -86,8 +90,9 @@
       cardStyle += `box-shadow: inset 0 0 20px rgba(0, 0, 0, ${shadowIntensity});`;
     }
     
-    const openingQuote = design.showQuotes ? `<span class="decorative-quote-opening" style="color: ${accentColor}; font-size: 1.5rem; font-weight: bold; line-height: 1; opacity: 0.3; margin-bottom: 0.5rem; display: block; text-align: left; width: 100%;">"</span>` : '';
-    const closingQuote = design.showQuotes ? `<span class="decorative-quote-closing" style="color: ${accentColor}; font-size: 1.5rem; font-weight: bold; line-height: 1; opacity: 0.3; position: absolute; bottom: 1rem; right: 1rem;">"</span>` : '';
+    // Use curly quotes and apply quote size
+    const openingQuote = design.showQuotes ? `<span class="decorative-quote-opening" style="color: ${accentColor}; font-size: ${quoteSize}rem; font-weight: bold; line-height: 1; opacity: 0.3; margin-bottom: 0.5rem; display: block; text-align: left; width: 100%;">"</span>` : '';
+    const closingQuote = design.showQuotes ? `<span class="decorative-quote-closing" style="color: ${accentColor}; font-size: ${quoteSize}rem; font-weight: bold; line-height: 1; opacity: 0.3; position: absolute; bottom: 1rem; right: 1rem;">"</span>` : '';
     
     const starsHTML = review.star_rating ? `<div class="stars-row" style="margin-bottom: 0.75rem; display: flex; justify-content: center;">${renderStars(review.star_rating)}</div>` : '';
     const dateHTML = design.showRelativeDate && review.created_at ? `<div class="reviewer-date" style="font-size: 0.875rem; color: ${roleColor}; opacity: 0.65; margin-top: 0.5rem;">${getRelativeTime(review.created_at)}</div>` : '';

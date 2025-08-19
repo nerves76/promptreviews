@@ -16,6 +16,7 @@ export type DesignState = {
   borderWidth: number;
   lineSpacing: number;
   showQuotes: boolean;
+  quoteSize: number;
   showRelativeDate: boolean;
   showGrid: boolean;
   width: number;
@@ -66,6 +67,7 @@ export const DEFAULT_DESIGN: DesignState = {
   borderWidth: 2,
   lineSpacing: 1.4,
   showQuotes: false,
+  quoteSize: 1.5,
   showRelativeDate: false,
   showGrid: false,
   width: 1000,
