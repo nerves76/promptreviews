@@ -26,11 +26,12 @@ declare global {
 
 const MultiWidget: React.FC<MultiWidgetProps> = ({ data, design }) => {
   // Transform the database widget data to the expected format
+  // Always provide an empty array if reviews are missing
   const widgetData: WidgetData = useMemo(() => ({
     id: data.id,
     type: data.type as 'multi' | 'single' | 'photo',
     design: data.theme || {},
-    reviews: data.reviews || [],
+    reviews: Array.isArray(data.reviews) ? data.reviews : [],
     slug: data.slug || 'example-business'
   }), [data.id, data.type, data.theme, data.reviews, data.slug]);
 
@@ -189,7 +190,7 @@ const MultiWidget: React.FC<MultiWidgetProps> = ({ data, design }) => {
       }
     };
 
-    if (reviews && reviews.length > 0 && currentDesign && !initializedRef.current) {
+    if (reviews && currentDesign && !initializedRef.current) {
       retryCountRef.current = 0; // Reset retry count
       console.log('🚀 MultiWidget: Starting initialization with data:', {
         reviewsCount: reviews?.length,
@@ -198,7 +199,7 @@ const MultiWidget: React.FC<MultiWidgetProps> = ({ data, design }) => {
       });
       initializeWidget();
     } else {
-      console.log('⚠️ MultiWidget: Missing reviews or design data, or already initialized:', { 
+      console.log('⚠️ MultiWidget: Missing data or already initialized:', { 
         reviews: !!reviews, 
         reviewsCount: reviews?.length,
         design: !!currentDesign,
@@ -228,11 +229,13 @@ const MultiWidget: React.FC<MultiWidgetProps> = ({ data, design }) => {
     }
   }, [currentDesign, reviews, slug]);
 
-  if (!reviews || !currentDesign) {
+  if (!currentDesign) {
     return <div className="text-center p-4">Loading widget data...</div>;
   }
 
-  if (reviews.length === 0) {
+  // Remove the early return for empty reviews - let the widget handle empty state itself
+  /* Commented out to allow widget to render with empty reviews
+  if (!reviews || reviews.length === 0) {
     return (
       <div 
         className="flex items-center justify-center min-h-[200px] text-white text-lg w-full max-w-4xl mx-auto"
@@ -250,6 +253,7 @@ const MultiWidget: React.FC<MultiWidgetProps> = ({ data, design }) => {
       </div>
     );
   }
+  */
 
   return (
     <div 
