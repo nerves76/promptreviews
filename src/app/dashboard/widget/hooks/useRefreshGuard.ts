@@ -39,6 +39,11 @@ export function useRefreshGuard(componentName: string) {
   useEffect(() => {
     if (typeof window === 'undefined') return;
     
+    // Store router methods in refs to avoid dependency issues
+    let originalPush: any;
+    let originalReplace: any;
+    let originalRefresh: any;
+    
     // Intercept and log history changes
     const originalPushState = window.history.pushState;
     const originalReplaceState = window.history.replaceState;
@@ -87,42 +92,51 @@ export function useRefreshGuard(componentName: string) {
     window.addEventListener('popstate', handlePopState);
     document.addEventListener('visibilitychange', handleVisibilityChange);
     
-    // Monkey patch router methods to track navigation
-    const originalPush = router.push;
-    const originalReplace = router.replace;
-    const originalRefresh = router.refresh;
-    
-    (router as any).push = function(...args: any[]) {
-      console.log('🚀 Router.push intercepted:', args[0]);
-      console.trace('Stack trace for router.push');
-      return originalPush.apply(router, args);
-    };
-    
-    (router as any).replace = function(...args: any[]) {
-      console.log('🔁 Router.replace intercepted:', args[0]);
-      console.trace('Stack trace for router.replace');
-      return originalReplace.apply(router, args);
-    };
-    
-    (router as any).refresh = function(...args: any[]) {
-      console.log('🔄 Router.refresh intercepted');
-      console.trace('Stack trace for router.refresh');
-      return originalRefresh.apply(router, args);
-    };
+    // Defer router patching to avoid initialization issues
+    setTimeout(() => {
+      if (router) {
+        // Monkey patch router methods to track navigation
+        originalPush = router.push;
+        originalReplace = router.replace;
+        originalRefresh = router.refresh;
+        
+        (router as any).push = function(...args: any[]) {
+          console.log('🚀 Router.push intercepted:', args[0]);
+          console.trace('Stack trace for router.push');
+          return originalPush.apply(router, args);
+        };
+        
+        (router as any).replace = function(...args: any[]) {
+          console.log('🔁 Router.replace intercepted:', args[0]);
+          console.trace('Stack trace for router.replace');
+          return originalReplace.apply(router, args);
+        };
+        
+        (router as any).refresh = function(...args: any[]) {
+          console.log('🔄 Router.refresh intercepted');
+          console.trace('Stack trace for router.refresh');
+          return originalRefresh.apply(router, args);
+        };
+      }
+    }, 0);
     
     return () => {
       // Restore original methods
       window.history.pushState = originalPushState;
       window.history.replaceState = originalReplaceState;
-      (router as any).push = originalPush;
-      (router as any).replace = originalReplace;
-      (router as any).refresh = originalRefresh;
+      
+      // Restore router methods if they were patched
+      if (router && originalPush) {
+        (router as any).push = originalPush;
+        (router as any).replace = originalReplace;
+        (router as any).refresh = originalRefresh;
+      }
       
       window.removeEventListener('beforeunload', handleBeforeUnload);
       window.removeEventListener('popstate', handlePopState);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [componentName, router]);
+  }, [componentName, router]); // Keep router in deps but handle initialization properly
   
   return {
     renderCount: renderCountRef.current,
