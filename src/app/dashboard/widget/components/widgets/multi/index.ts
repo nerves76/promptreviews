@@ -18,6 +18,7 @@ export type DesignState = {
   showQuotes: boolean;
   quoteSize: number;
   showRelativeDate: boolean;
+  showPlatform: boolean;
   showGrid: boolean;
   width: number;
   sectionBgType: "none" | "custom";
@@ -47,6 +48,7 @@ export interface Review {
   star_rating: number;
   photo_url?: string;
   created_at: string;
+  platform?: string;
 }
 
 // Flat default design structure matching the rest of the dashboard
@@ -69,6 +71,7 @@ export const DEFAULT_DESIGN: DesignState = {
   showQuotes: false,
   quoteSize: 1.5,
   showRelativeDate: false,
+  showPlatform: false,
   showGrid: false,
   width: 1000,
   sectionBgType: 'none',

@@ -248,6 +248,7 @@
   function createReviewCard(review, design) {
     const reviewText = design.showQuotes ? `&#8220;${review.review_content}&#8221;` : review.review_content;
     const dateText = design.showRelativeDate ? getRelativeDate(review.created_at) : new Date(review.created_at).toLocaleDateString();
+    const platformText = design.showPlatform && review.platform ? ` via ${review.platform}` : '';
     
     // Use the new renderStars function
     const starsHTML = review.star_rating ? renderStars(review.star_rating, design) : '';
@@ -339,7 +340,7 @@
                 color: ${design.roleTextColor || '#6b7280'};
                 font-size: ${design.attributionFontSize || 15}px;
                 margin-top: 0.25rem;
-              ">${dateText}</div>
+              ">${dateText}${platformText}</div>
             </div>
           </div>
         </div>

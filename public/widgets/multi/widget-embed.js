@@ -96,6 +96,7 @@
     
     const starsHTML = review.star_rating ? `<div class="stars-row" style="margin-bottom: 0.75rem; display: flex; justify-content: center;">${renderStars(review.star_rating)}</div>` : '';
     const dateHTML = design.showRelativeDate && review.created_at ? `<div class="reviewer-date" style="font-size: 0.875rem; color: ${roleColor}; opacity: 0.65; margin-top: 0.5rem;">${getRelativeTime(review.created_at)}</div>` : '';
+    const platformHTML = design.showPlatform && review.platform ? `<div class="reviewer-platform" style="font-size: 0.8rem; color: ${roleColor}; opacity: 0.7; margin-top: 0.25rem;">via ${review.platform}</div>` : '';
 
     return `
       <div class="pr-review-card" style="${cardStyle}">
@@ -109,6 +110,7 @@
           <div class="reviewer-name" style="font-weight: bold; font-size: 0.9rem; color: ${nameColor};">${review.first_name || ''} ${review.last_name || ''}</div>
           ${review.reviewer_role ? `<div class="reviewer-role" style="font-size: 0.8rem; color: ${roleColor}; opacity: 0.65;">${review.reviewer_role}</div>` : ''}
           ${dateHTML}
+          ${platformHTML}
         </div>
       </div>
     `;
@@ -485,7 +487,8 @@
         .pr-carousel-item {
             flex-shrink: 0;
             width: calc(100% / 3 - 1rem * 2 / 3);
-            display: flex; 
+            display: flex;
+            padding-top: 8px; /* Space for hover lift effect */
         }
         
         /* Review Card Styles */
@@ -595,6 +598,7 @@
         @media (max-width: 1024px) {
             .pr-carousel-item {
                 width: calc(100% / 2 - 1rem * 1 / 2); /* Two cards */
+                padding-top: 8px; /* Maintain hover space */
             }
         }
         
@@ -602,6 +606,7 @@
             .pr-carousel-item {
                 width: 100%; /* One card */
                 gap: 0;
+                padding-top: 8px; /* Maintain hover space */
             }
             .pr-carousel-track {
               gap: 0;

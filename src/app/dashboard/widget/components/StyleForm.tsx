@@ -257,6 +257,32 @@ const StyleForm: React.FC<StyleFormProps> = ({ design, onDesignChange, onSave, o
           <div className="flex items-center">
             <input
               type="checkbox"
+              id="showRelativeDate"
+              checked={design.showRelativeDate || false}
+              onChange={(e) => updateDesign({ showRelativeDate: e.target.checked })}
+              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+            />
+            <label htmlFor="showRelativeDate" className="ml-2 block text-sm text-gray-700">
+              Show relative date (e.g., "2 days ago")
+            </label>
+          </div>
+          
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              id="showPlatform"
+              checked={design.showPlatform || false}
+              onChange={(e) => updateDesign({ showPlatform: e.target.checked })}
+              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+            />
+            <label htmlFor="showPlatform" className="ml-2 block text-sm text-gray-700">
+              Show platform source (e.g., "via Google")
+            </label>
+          </div>
+          
+          <div className="flex items-center">
+            <input
+              type="checkbox"
               id="showSubmitReviewButton"
               checked={design.showSubmitReviewButton !== false}
               onChange={(e) => updateDesign({ showSubmitReviewButton: e.target.checked })}
