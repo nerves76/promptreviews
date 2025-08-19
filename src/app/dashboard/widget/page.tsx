@@ -18,7 +18,7 @@ export default function WidgetPage() {
   // Enable refresh guard to monitor and prevent unwanted refreshes
   // useRefreshGuard('WidgetPage');
   
-  const { widgets, loading, error, createWidget, deleteWidget, saveWidgetName, saveWidgetDesign, fetchWidgets } = useWidgets();
+  const { widgets, loading, error, createWidget, deleteWidget, saveWidgetName, saveWidgetDesign, fetchWidgets, selectedAccount } = useWidgets();
   // const { protectedOperation } = useStableWidgetManager();
   const [selectedWidget, setSelectedWidget] = useState<any>(null);
   const [selectedWidgetFull, setSelectedWidgetFull] = useState<any>(null);
@@ -81,10 +81,15 @@ export default function WidgetPage() {
   // Function to fetch full widget data including reviews
   const fetchFullWidgetData = useCallback(async (widgetId: string) => {
     try {
-      console.log('🔍 WidgetPage: Fetching full widget data for:', widgetId);
+      console.log('🔍 WidgetPage: Fetching full widget data for:', widgetId, 'with account:', selectedAccount?.account_id);
       
-      // Use apiClient which handles auth automatically
-      const fullWidgetData = await apiClient.get(`/widgets/${widgetId}`);
+      // Pass the selected account ID as a header to ensure consistency
+      const fullWidgetData = await apiClient.get(`/widgets/${widgetId}`, {
+        headers: selectedAccount?.account_id ? {
+          'X-Selected-Account': selectedAccount.account_id
+        } : undefined
+      } as any);
+      
       console.log('✅ WidgetPage: Full widget data fetched:', fullWidgetData);
       console.log('📊 WidgetPage: Reviews in fetched data:', {
         hasReviews: !!fullWidgetData?.reviews,
@@ -102,7 +107,7 @@ export default function WidgetPage() {
         setSelectedWidgetFull(null);
       }
     }
-  }, []);
+  }, [selectedAccount?.account_id]);
 
   // Memoize fake reviews to prevent recreation on every render
   const fakeReviews = useMemo(() => [

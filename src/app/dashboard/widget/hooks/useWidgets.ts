@@ -215,5 +215,6 @@ export function useWidgets() {
     deleteWidget,
     saveWidgetName,
     saveWidgetDesign,
+    selectedAccount,
   };
 } 

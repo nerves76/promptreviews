@@ -75,8 +75,33 @@ export async function GET(
       
       userId = user.id;
       
-      // Get account ID for the user
-      const accountId = await getAccountIdForUser(userId, supabase);
+      // Check if client specified a selected account
+      const selectedAccountHeader = req.headers.get('x-selected-account');
+      let accountId: string | null = null;
+      
+      if (selectedAccountHeader) {
+        // Validate that the user has access to this account
+        const { data: accountUser } = await supabaseAdmin
+          .from('account_users')
+          .select('account_id')
+          .eq('user_id', userId)
+          .eq('account_id', selectedAccountHeader)
+          .single();
+        
+        if (accountUser) {
+          console.log(`[Widget API] Using client-selected account: ${selectedAccountHeader}`);
+          accountId = selectedAccountHeader;
+        } else {
+          console.warn(`[Widget API] User ${userId} doesn't have access to account ${selectedAccountHeader}, falling back to auto-selection`);
+        }
+      }
+      
+      // Fall back to automatic account selection if no valid header
+      if (!accountId) {
+        accountId = await getAccountIdForUser(userId, supabase);
+        console.log(`[Widget API] Using auto-selected account: ${accountId}`);
+      }
+      
       if (!accountId) {
         return NextResponse.json({ error: 'Account not found' }, { status: 404 });
       }
