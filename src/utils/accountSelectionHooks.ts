@@ -173,8 +173,15 @@ export function useAccountSelection() {
       selectedAccountId: accountId
     }));
 
-    // Force page reload to refresh all data with new account context
-    window.location.reload();
+    // Only reload if we're not on the widget page (to prevent data loss)
+    const currentPath = window.location.pathname;
+    if (!currentPath.includes('/dashboard/widget')) {
+      // Force page reload to refresh all data with new account context
+      window.location.reload();
+    } else {
+      // For widget page, let the components handle the account change gracefully
+      console.log('Account switched on widget page - components will refresh data');
+    }
   };
 
   // Get current selected account details (memoized to prevent unnecessary re-renders)

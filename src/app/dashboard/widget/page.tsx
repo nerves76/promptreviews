@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { apiClient } from "@/utils/apiClient";
 import WidgetList from "./WidgetList";
 import PageCard from "@/app/components/PageCard";
@@ -9,14 +9,17 @@ import { StyleModal } from "./components/StyleModal";
 import { ReviewManagementModal } from "./components/ReviewManagementModal";
 import { DEFAULT_DESIGN, DesignState } from "./components/widgets/multi";
 import { useWidgets } from "./hooks/useWidgets";
+import { useStableWidgetManager } from "./hooks/useStableWidgetManager";
+import { useRefreshGuard } from "./hooks/useRefreshGuard";
 // import { useRefreshPrevention } from "./hooks/useRefreshPrevention";
 
 export default function WidgetPage() {
   
-  // Disabled refresh prevention hook - causing rapid re-render issues
-  // useRefreshPrevention('WidgetPage');
+  // Enable refresh guard to monitor and prevent unwanted refreshes
+  useRefreshGuard('WidgetPage');
 
   const { widgets, loading, error, createWidget, deleteWidget, saveWidgetName, saveWidgetDesign, fetchWidgets } = useWidgets();
+  const { protectedOperation } = useStableWidgetManager();
   const [selectedWidget, setSelectedWidget] = useState<any>(null);
   const [selectedWidgetFull, setSelectedWidgetFull] = useState<any>(null);
   
@@ -45,7 +48,7 @@ export default function WidgetPage() {
   const [showStyleModal, setShowStyleModal] = useState(false);
 
   // Function to fetch full widget data including reviews
-  const fetchFullWidgetData = async (widgetId: string) => {
+  const fetchFullWidgetData = useCallback(async (widgetId: string) => {
     try {
       console.log('🔍 WidgetPage: Fetching full widget data for:', widgetId);
       
@@ -56,7 +59,7 @@ export default function WidgetPage() {
     } catch (error) {
       console.error('❌ WidgetPage: Error fetching full widget data:', error);
     }
-  };
+  }, []);
 
   // Memoize fake reviews to prevent recreation on every render
   const fakeReviews = useMemo(() => [
@@ -232,13 +235,18 @@ export default function WidgetPage() {
     setShowReviewModal(true);
   };
 
-  const handleSaveDesign = async () => {
+  const handleSaveDesign = useCallback(async () => {
     if (selectedWidget) {
-      await saveWidgetDesign(selectedWidget.id, design);
-      // Don't call fetchWidgets here - saveWidgetDesign already does it internally
-      setShowStyleModal(false);
+      await protectedOperation(
+        'saveDesign',
+        async () => {
+          await saveWidgetDesign(selectedWidget.id, design);
+          setShowStyleModal(false);
+        },
+        selectedWidget.id
+      );
     }
-  };
+  }, [selectedWidget, design, saveWidgetDesign, protectedOperation]);
 
   const handleResetDesign = () => {
     // Reset to default design
@@ -346,13 +354,17 @@ export default function WidgetPage() {
         isOpen={showReviewModal}
         onClose={() => setShowReviewModal(false)}
         widgetId={selectedWidget?.id}
-        onReviewsChange={() => {
+        onReviewsChange={useCallback(() => {
           // Only refresh the full widget data to update the preview
           // Don't call fetchWidgets as it's not needed for review changes
           if (selectedWidget?.id) {
-            fetchFullWidgetData(selectedWidget.id);
+            protectedOperation(
+              'fetchFullWidget',
+              () => fetchFullWidgetData(selectedWidget.id),
+              selectedWidget.id
+            );
           }
-        }}
+        }, [selectedWidget?.id, fetchFullWidgetData, protectedOperation])}
       />
 
       {showStyleModal && selectedWidget && (

@@ -11,6 +11,7 @@ import GoogleAnalytics from "./components/GoogleAnalytics";
 import { Providers } from "@/components/Providers";
 import BodyWrapper from "./components/BodyWrapper";
 import { inter, fontVariables } from "./fonts";
+import { GlobalRefreshMonitor } from "./components/GlobalRefreshMonitor";
 
 // Sentry is initialized in instrumentation.ts - no need to import here
 
@@ -57,6 +58,7 @@ export default function RootLayout({
       >
         <Providers>
           <BodyWrapper fontVariables={fontVariables}>
+            <GlobalRefreshMonitor />
             <ClientRoot>
               <AppMain>{children}</AppMain>
             </ClientRoot>

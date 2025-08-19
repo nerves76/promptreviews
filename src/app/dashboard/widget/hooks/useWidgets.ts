@@ -22,6 +22,7 @@ export function useWidgets() {
   const [widgets, setWidgets] = useState<Widget[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [lastFetchTime, setLastFetchTime] = useState<number>(0);
   
   // Debug logging for account selection
   console.log('🎨 useWidgets - Account Selection State:', {
@@ -31,11 +32,19 @@ export function useWidgets() {
     selectedAccountName: selectedAccount?.account_name
   });
 
-  const fetchWidgets = useCallback(async () => {
+  const fetchWidgets = useCallback(async (force = false) => {
+    // Debounce fetches - prevent fetching more than once per second unless forced
+    const now = Date.now();
+    if (!force && now - lastFetchTime < 1000) {
+      console.log('⏸️ useWidgets: Skipping fetch (debounced)');
+      return;
+    }
+    
     console.log('🔄 useWidgets: Starting fetchWidgets', {
       accountLoading,
       selectedAccountId: selectedAccount?.account_id,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      forced: force
     });
     
     // Wait for account selection to complete
@@ -45,6 +54,7 @@ export function useWidgets() {
     }
     
     setLoading(true);
+    setLastFetchTime(now);
     
     try {
       console.log('✅ useWidgets: Fetching widgets for account:', selectedAccount.account_id);
@@ -71,7 +81,7 @@ export function useWidgets() {
     } finally {
       setLoading(false);
     }
-  }, [accountLoading, selectedAccount?.account_id]);
+  }, [accountLoading, selectedAccount?.account_id, lastFetchTime]);
 
   // Only fetch widgets once when component mounts and account is ready
   useEffect(() => {
@@ -79,7 +89,7 @@ export function useWidgets() {
     let mounted = true;
     
     if (mounted && !accountLoading && selectedAccount?.account_id) {
-      fetchWidgets();
+      fetchWidgets(true); // Force initial fetch
     }
     
     return () => {
@@ -121,7 +131,9 @@ export function useWidgets() {
         trackWidgetCreated(widgetType, user.id);
       }
       
-      fetchWidgets(); // Refresh after creating
+      // Optimistically update the widgets list
+      setWidgets(prev => [data, ...prev]);
+      // Don't fetch immediately - let the UI update first
       return data;
     } catch (err) {
       console.error('❌ useWidgets: Error creating widget:', err);
@@ -148,7 +160,9 @@ export function useWidgets() {
         throw new Error(`Failed to update widget: ${updateError.message}`);
       }
       
-      fetchWidgets(); // Refresh after updating
+      // Optimistically update the widgets list
+      setWidgets(prev => prev.map(w => w.id === widgetId ? data : w));
+      // Don't fetch immediately - let the UI update first
       return data;
     } catch (err) {
       console.error('❌ useWidgets: Error updating widget:', err);
@@ -170,7 +184,9 @@ export function useWidgets() {
         throw new Error(`Failed to delete widget: ${deleteError.message}`);
       }
       
-      fetchWidgets(); // Refresh after deleting
+      // Optimistically remove from the widgets list
+      setWidgets(prev => prev.filter(w => w.id !== widgetId));
+      // Don't fetch immediately - let the UI update first
     } catch (err) {
       console.error('❌ useWidgets: Error deleting widget:', err);
       throw err;
