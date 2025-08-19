@@ -193,12 +193,18 @@ export async function PUT(
       }
       
       const reviewsToInsert = reviews.map((review, index) => {
-        const finalRating = typeof review.star_rating === 'number' 
-          ? Math.round(review.star_rating * 2) / 2 
-          : null;
+        // Convert star rating to support half-stars (database now accepts decimals)
+        let finalRating = 5; // Default to 5
+        if (typeof review.star_rating === 'number') {
+          // Round to nearest 0.5 (e.g., 3.3 -> 3.5, 3.7 -> 3.5, 3.8 -> 4.0)
+          finalRating = Math.round(review.star_rating * 2) / 2;
+          // Ensure rating is within valid range (1.0 to 5.0)
+          finalRating = Math.max(1, Math.min(5, finalRating));
+        }
         
         console.log(`[API] Star Rating for ${review.review_id}:`, {
           received: review.star_rating,
+          rounded: Math.round(review.star_rating * 2) / 2,
           final: finalRating
         });
         
