@@ -174,7 +174,25 @@ async function fetchWidgetData(widget: any, widgetId: string) {
     businessSlug: businessSlug,
   };
 
-  return NextResponse.json(response);
+  // Add CORS headers for cross-domain embedding
+  const jsonResponse = NextResponse.json(response);
+  jsonResponse.headers.set('Access-Control-Allow-Origin', '*');
+  jsonResponse.headers.set('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  jsonResponse.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+  return jsonResponse;
+}
+
+/**
+ * OPTIONS /api/widgets/[id]
+ * Handles CORS preflight requests for cross-domain embedding
+ */
+export async function OPTIONS() {
+  const response = new NextResponse(null, { status: 200 });
+  response.headers.set('Access-Control-Allow-Origin', '*');
+  response.headers.set('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  return response;
 }
 
 /**
