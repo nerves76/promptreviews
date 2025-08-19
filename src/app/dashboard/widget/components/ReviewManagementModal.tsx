@@ -490,7 +490,11 @@ export function ReviewManagementModal({
   };
 
   const handleSaveReviews = async () => {
-    if (!widgetId) return;
+    console.log('🎯 handleSaveReviews called', { widgetId, selectedReviewsCount: selectedReviews.length });
+    if (!widgetId) {
+      console.error('❌ No widgetId provided to handleSaveReviews');
+      return;
+    }
     
     // Check if any reviews exceed character limit and offer to trim
     const reviewsToTrim = [];
@@ -506,12 +510,14 @@ export function ReviewManagementModal({
     }
     
     if (reviewsToTrim.length > 0) {
+      console.log('📝 Reviews need trimming:', reviewsToTrim.length);
       setReviewsToTrim(reviewsToTrim);
       setShowTrimConfirmation(true);
       return;
     }
     
     // If no trimming needed, proceed with save
+    console.log('✅ No trimming needed, proceeding with save');
     await handleSaveReviewsInternal();
   };
 
@@ -599,7 +605,11 @@ export function ReviewManagementModal({
   };
 
   const handleSaveReviewsInternal = async (trimmedUpdates: { [id: string]: string } = {}) => {
-    if (!widgetId) return;
+    console.log('🎯 handleSaveReviewsInternal called', { widgetId, selectedReviewsCount: selectedReviews.length });
+    if (!widgetId) {
+      console.error('❌ No widgetId in handleSaveReviewsInternal');
+      return;
+    }
     
     // Clear any existing errors
     setReviewError("");
@@ -667,10 +677,11 @@ export function ReviewManagementModal({
       };
     });
 
+    console.log('📤 Saving reviews to API:', { widgetId, reviewsCount: reviewsToSave.length });
     try {
       // Use apiClient which handles auth automatically
       const result = await apiClient.put(`/widgets/${widgetId}/reviews`, { reviews: reviewsToSave });
-      console.log("Reviews saved successfully:", result);
+      console.log("✅ Reviews saved successfully:", result);
       
       // Clear saved form data on successful save
       if (typeof window !== 'undefined') {
@@ -680,10 +691,19 @@ export function ReviewManagementModal({
       }
       
       setHasUnsavedChanges(false);
+      
+      // Show success message temporarily
+      setReviewError(""); // Clear any errors
+      const successMsg = document.createElement('div');
+      successMsg.textContent = `Successfully saved ${reviewsToSave.length} reviews`;
+      successMsg.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded shadow-lg z-50';
+      document.body.appendChild(successMsg);
+      setTimeout(() => successMsg.remove(), 3000);
+      
       onClose();
       if (onReviewsChange) onReviewsChange();
     } catch (error) {
-      console.error("Error saving widget reviews:", error);
+      console.error("❌ Error saving widget reviews:", error);
       setReviewError("Failed to save reviews. Please try again.");
     }
   };
