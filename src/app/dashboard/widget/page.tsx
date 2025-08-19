@@ -10,13 +10,13 @@ import { ReviewManagementModal } from "./components/ReviewManagementModal";
 import { DEFAULT_DESIGN, DesignState } from "./components/widgets/multi";
 import { useWidgets } from "./hooks/useWidgets";
 import { useStableWidgetManager } from "./hooks/useStableWidgetManager";
-import { useRefreshGuard } from "./hooks/useRefreshGuard";
+// import { useRefreshGuard } from "./hooks/useRefreshGuard";
 // import { useRefreshPrevention } from "./hooks/useRefreshPrevention";
 
 export default function WidgetPage() {
   
   // Enable refresh guard to monitor and prevent unwanted refreshes
-  useRefreshGuard('WidgetPage');
+  // useRefreshGuard('WidgetPage');
   
   // Debug logging for component lifecycle
   useEffect(() => {
