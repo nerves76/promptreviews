@@ -75,15 +75,17 @@ export function GlobalRefreshMonitor() {
     }
     
     // Monitor window.location changes
-    const originalLocation = window.location.href;
+    let lastLocation = window.location.href;
     let checkInterval = setInterval(() => {
-      if (window.location.href !== originalLocation) {
+      const currentLocation = window.location.href;
+      if (currentLocation !== lastLocation) {
         (window as any).__refreshMonitor.logEvent('location_change', {
-          from: originalLocation,
-          to: window.location.href
+          from: lastLocation,
+          to: currentLocation
         });
+        lastLocation = currentLocation; // Update the last location after logging
       }
-    }, 100);
+    }, 500); // Check less frequently to reduce overhead
     
     // Try to intercept window.location methods (may fail in some browsers)
     try {
