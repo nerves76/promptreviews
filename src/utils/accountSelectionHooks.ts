@@ -38,6 +38,9 @@ export function useAccountSelection() {
   // Load user and accounts
   useEffect(() => {
     const loadAccountData = async () => {
+      console.log('🔄 useAccountSelection: Loading account data', {
+        pathname: typeof window !== 'undefined' ? window.location.pathname : 'SSR'
+      });
       try {
         const client = createClient();
         
@@ -159,6 +162,12 @@ export function useAccountSelection() {
 
   // Switch to a different account
   const switchAccount = (accountId: string) => {
+    console.log('🔄 useAccountSelection: switchAccount called', {
+      accountId,
+      currentPath: window.location.pathname,
+      currentAccountId: state.selectedAccountId
+    });
+    
     if (!currentUserId) return;
     
     const account = state.availableAccounts.find(acc => acc.account_id === accountId);
@@ -175,12 +184,18 @@ export function useAccountSelection() {
 
     // Only reload if we're not on the widget page (to prevent data loss)
     const currentPath = window.location.pathname;
+    console.log('🔄 useAccountSelection: Checking reload necessity', {
+      currentPath,
+      isWidgetPage: currentPath.includes('/dashboard/widget')
+    });
+    
     if (!currentPath.includes('/dashboard/widget')) {
+      console.log('⚠️ useAccountSelection: Triggering page reload for account switch');
       // Force page reload to refresh all data with new account context
       window.location.reload();
     } else {
       // For widget page, let the components handle the account change gracefully
-      console.log('Account switched on widget page - components will refresh data');
+      console.log('✅ useAccountSelection: Skipping reload on widget page - components will refresh');
     }
   };
 

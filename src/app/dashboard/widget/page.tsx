@@ -17,6 +17,14 @@ export default function WidgetPage() {
   
   // Enable refresh guard to monitor and prevent unwanted refreshes
   useRefreshGuard('WidgetPage');
+  
+  // Debug logging for component lifecycle
+  useEffect(() => {
+    console.log('🎯 WidgetPage: Component mounted');
+    return () => {
+      console.log('🎯 WidgetPage: Component unmounting');
+    };
+  }, []);
 
   const { widgets, loading, error, createWidget, deleteWidget, saveWidgetName, saveWidgetDesign, fetchWidgets } = useWidgets();
   const { protectedOperation } = useStableWidgetManager();
@@ -139,7 +147,11 @@ export default function WidgetPage() {
 
   // Auto-select logic
   React.useEffect(() => {
-    console.log('🔍 WidgetPage: Auto-select effect triggered', { loading, widgetsCount: widgets?.length });
+    console.log('🔍 WidgetPage: Auto-select effect triggered', { 
+      loading, 
+      widgetsCount: widgets?.length,
+      pathname: typeof window !== 'undefined' ? window.location.pathname : 'SSR'
+    });
     
     if (loading) {
       console.log('⏳ WidgetPage: Still loading, skipping auto-select');
@@ -148,7 +160,10 @@ export default function WidgetPage() {
     
     // Check if we already have a selected widget to avoid unnecessary re-selection
     if (selectedWidget && selectedWidget.id !== "fake-multi-widget") {
-      console.log('📌 WidgetPage: Already have a selected widget, skipping auto-select');
+      console.log('📌 WidgetPage: Already have a selected widget, skipping auto-select', {
+        widgetId: selectedWidget.id,
+        pathname: window.location.pathname
+      });
       return;
     }
     
