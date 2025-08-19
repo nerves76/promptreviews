@@ -479,6 +479,19 @@ export function ReviewManagementModal({
     setSelectedReviews(updated);
   };
 
+  const handleMoveReview = (index: number, direction: 'up' | 'down') => {
+    setSelectedReviews(prev => {
+      const newReviews = [...prev];
+      if (direction === 'up' && index > 0) {
+        [newReviews[index - 1], newReviews[index]] = [newReviews[index], newReviews[index - 1]];
+      } else if (direction === 'down' && index < newReviews.length - 1) {
+        [newReviews[index], newReviews[index + 1]] = [newReviews[index + 1], newReviews[index]];
+      }
+      return newReviews;
+    });
+    setHasUnsavedChanges(true);
+  };
+
   const handleReviewEdit = (id: string, value: string) => {
     setEditedReviews((prev) => ({ ...prev, [id]: value }));
   };
@@ -1026,8 +1039,38 @@ export function ReviewManagementModal({
                   </div>
                 ) : (
                   <div className="space-y-4 max-h-96 overflow-y-auto">
-                    {selectedReviews.map((review) => (
-                      <div key={review.review_id} className="p-4 bg-white rounded-lg border shadow-sm">
+                    {selectedReviews.map((review, index) => (
+                      <div key={review.review_id} className="p-4 bg-white rounded-lg border shadow-sm relative">
+                        {/* Move arrows */}
+                        <div className="absolute top-2 right-2 flex gap-1">
+                          <button
+                            onClick={() => handleMoveReview(index, 'up')}
+                            disabled={index === 0}
+                            className={`p-1 rounded ${index === 0 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-600 hover:bg-gray-100'}`}
+                            title="Move up"
+                          >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                            </svg>
+                          </button>
+                          <button
+                            onClick={() => handleMoveReview(index, 'down')}
+                            disabled={index === selectedReviews.length - 1}
+                            className={`p-1 rounded ${index === selectedReviews.length - 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-600 hover:bg-gray-100'}`}
+                            title="Move down"
+                          >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                            </svg>
+                          </button>
+                        </div>
+                        
+                        {/* Date and platform info */}
+                        <div className="text-xs text-gray-500 mb-2">
+                          Submitted {new Date(review.created_at).toLocaleDateString()} 
+                          {review.platform && ` via ${review.platform}`}
+                        </div>
+                        
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-2">
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
@@ -1111,9 +1154,6 @@ export function ReviewManagementModal({
                         )}
                         
                         <div className="flex justify-between items-center mt-2">
-                          <div className="text-sm text-gray-500">
-                            {characterCount(editedReviews[review.review_id] || "")}/{CHARACTER_LIMIT} characters
-                          </div>
                           <button
                             onClick={() => handleToggleReview(review)}
                             className="text-red-500 hover:text-red-700 text-sm font-semibold px-2 py-1 rounded border border-red-300 hover:bg-red-50"
