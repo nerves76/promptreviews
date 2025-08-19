@@ -40,15 +40,21 @@ export async function PUT(
   request: NextRequest,
   context: any
 ) {
-  const { id: widgetId } = await context.params;
-  
-  if (!widgetId) {
-    return NextResponse.json({ error: 'Missing widget ID' }, { status: 400 });
-  }
-
   try {
+    const { id: widgetId } = await context.params;
+    
+    if (!widgetId) {
+      return NextResponse.json({ error: 'Missing widget ID' }, { status: 400 });
+    }
+
     const body = await request.json();
     const { reviews } = body;
+    
+    console.log('[WIDGET-REVIEWS] PUT request received:', {
+      widgetId,
+      reviewCount: reviews?.length,
+      bodyKeys: Object.keys(body)
+    });
 
     if (!Array.isArray(reviews)) {
       return NextResponse.json({ error: 'Reviews must be an array' }, { status: 400 });
@@ -109,13 +115,16 @@ export async function PUT(
           final: finalRating
         });
         
+        // Ensure review_id is valid
+        const reviewId = review.review_id || `review_${widgetId}_${index}_${Date.now()}`;
+        
         return {
           widget_id: widgetId,
-          review_id: review.review_id,
-          review_content: review.review_content,
-          first_name: review.first_name,
-          last_name: review.last_name,
-          reviewer_role: review.reviewer_role,
+          review_id: reviewId,
+          review_content: review.review_content || '',
+          first_name: review.first_name || '',
+          last_name: review.last_name || '',
+          reviewer_role: review.reviewer_role || '',
           platform: review.platform || 'custom',
           order_index: index,
           star_rating: finalRating,
@@ -124,13 +133,28 @@ export async function PUT(
         };
       });
 
+      console.log('[WIDGET-REVIEWS] Attempting to insert reviews:', {
+        count: reviewsToInsert.length,
+        widgetId,
+        sample: reviewsToInsert[0]
+      });
+
       const { error: insertError } = await supabaseAdmin
         .from('widget_reviews')
         .insert(reviewsToInsert);
 
       if (insertError) {
-        console.error('[WIDGET-REVIEWS] Error inserting reviews:', insertError);
-        return NextResponse.json({ error: 'Failed to save reviews' }, { status: 500 });
+        console.error('[WIDGET-REVIEWS] Error inserting reviews:', {
+          error: insertError,
+          message: insertError.message,
+          details: insertError.details,
+          hint: insertError.hint,
+          code: insertError.code
+        });
+        return NextResponse.json({ 
+          error: 'Failed to save reviews', 
+          details: insertError.message 
+        }, { status: 500 });
       }
     }
 
@@ -139,9 +163,16 @@ export async function PUT(
       message: `Successfully updated ${reviews.length} reviews for widget` 
     });
 
-  } catch (error) {
-    console.error('[WIDGET-REVIEWS] Unexpected error:', error);
-    return NextResponse.json({ error: 'Server error' }, { status: 500 });
+  } catch (error: any) {
+    console.error('[WIDGET-REVIEWS] Unexpected error:', {
+      error,
+      message: error?.message,
+      stack: error?.stack
+    });
+    return NextResponse.json({ 
+      error: 'Server error',
+      details: error?.message || 'Unknown error'
+    }, { status: 500 });
   }
 }
 
