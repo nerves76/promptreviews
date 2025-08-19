@@ -70,7 +70,20 @@ class ApiClient {
         });
         
         if (!retryResponse.ok) {
-          throw new Error(`API request failed: ${retryResponse.statusText}`);
+          // Try to get error details from response body
+          let errorDetails = retryResponse.statusText;
+          try {
+            const errorBody = await retryResponse.json();
+            errorDetails = errorBody.details || errorBody.error || errorBody.message || retryResponse.statusText;
+            console.error('API Error Response (retry):', errorBody);
+          } catch (e) {
+            // Response body is not JSON
+          }
+          
+          const error = new Error(`API request failed: ${errorDetails}`);
+          (error as any).status = retryResponse.status;
+          (error as any).statusText = retryResponse.statusText;
+          throw error;
         }
         
         return retryResponse.json();
@@ -78,7 +91,20 @@ class ApiClient {
     }
     
     if (!response.ok) {
-      throw new Error(`API request failed: ${response.statusText}`);
+      // Try to get error details from response body
+      let errorDetails = response.statusText;
+      try {
+        const errorBody = await response.json();
+        errorDetails = errorBody.details || errorBody.error || errorBody.message || response.statusText;
+        console.error('API Error Response:', errorBody);
+      } catch (e) {
+        // Response body is not JSON
+      }
+      
+      const error = new Error(`API request failed: ${errorDetails}`);
+      (error as any).status = response.status;
+      (error as any).statusText = response.statusText;
+      throw error;
     }
     
     return response.json();

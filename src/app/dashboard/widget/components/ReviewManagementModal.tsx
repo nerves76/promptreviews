@@ -702,9 +702,19 @@ export function ReviewManagementModal({
       
       onClose();
       if (onReviewsChange) onReviewsChange();
-    } catch (error) {
+    } catch (error: any) {
       console.error("❌ Error saving widget reviews:", error);
-      setReviewError("Failed to save reviews. Please try again.");
+      // Try to extract more details from the error
+      if (error.response) {
+        console.error("❌ Error response:", error.response);
+      }
+      if (error.data) {
+        console.error("❌ Error data:", error.data);
+      }
+      if (error.message) {
+        console.error("❌ Error message:", error.message);
+      }
+      setReviewError(`Failed to save reviews: ${error.message || 'Unknown error'}`);
     }
   };
 
