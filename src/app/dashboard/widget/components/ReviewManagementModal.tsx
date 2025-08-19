@@ -9,7 +9,7 @@ import { getAccountIdForUser } from '@/auth/utils/accounts';
 import { apiClient } from '@/utils/apiClient';
 
 const CHARACTER_LIMIT = 250;
-const MAX_WIDGET_REVIEWS = 25;
+const MAX_WIDGET_REVIEWS = 50;
 
 function characterCount(str: string) {
   return str.trim().length;
