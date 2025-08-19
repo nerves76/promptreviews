@@ -20,8 +20,8 @@ export function useRefreshGuard(componentName: string) {
     // Log render information
     console.log(`🛡️ RefreshGuard [${componentName}]: Render #${renderCount} at ${timeSinceMount}ms`);
     
-    // Detect rapid re-renders (more than 5 in 1 second)
-    if (renderCount > 5 && timeSinceMount < 1000) {
+    // Detect rapid re-renders (more than 10 in 500ms - more reasonable threshold)
+    if (renderCount > 10 && timeSinceMount < 500) {
       console.error(`⚠️ RAPID RE-RENDERS DETECTED in ${componentName}!`);
       console.trace('Stack trace for rapid re-renders');
     }
