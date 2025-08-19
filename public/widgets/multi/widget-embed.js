@@ -385,7 +385,7 @@
 
     const submitReviewButton = design.showSubmitReviewButton ? `
       <div class="pr-submit-review-container">
-        <a href="https://prompt.reviews/r/${businessSlug}" target="_blank" rel="noopener noreferrer" class="pr-submit-btn"
+        <a href="https://promptreviews.app/r/${businessSlug}" target="_blank" rel="noopener noreferrer" class="pr-submit-btn"
            style="
              background-color: ${bgColor};
              ${design.border ? `border: ${borderWidth}px solid ${borderColor};` : 'border: none;'}

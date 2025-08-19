@@ -344,7 +344,7 @@
 
     const submitReviewHTML = `
       <div class="pr-single-submit-review-container">
-        <a href="/r/${businessSlug}?source=widget" target="_blank" class="pr-single-submit-btn">
+        <a href="https://promptreviews.app/r/${businessSlug}?source=widget" target="_blank" class="pr-single-submit-btn">
           Submit a Review
         </a>
       </div>

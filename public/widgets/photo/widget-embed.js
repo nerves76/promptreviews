@@ -497,7 +497,7 @@
 
     const submitReviewHTML = design.showSubmitReviewButton ? `
       <div class="pr-photo-submit-review-container">
-        <a href="/r/${businessSlug}?source=widget" target="_blank" class="pr-photo-submit-btn" style="${submitButtonStyle}">
+        <a href="https://promptreviews.app/r/${businessSlug}?source=widget" target="_blank" class="pr-photo-submit-btn" style="${submitButtonStyle}">
           Submit a Review
         </a>
       </div>
