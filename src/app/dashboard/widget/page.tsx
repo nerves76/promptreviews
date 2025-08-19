@@ -262,6 +262,10 @@ export default function WidgetPage() {
   };
 
   const handleManageReviews = () => {
+    console.log('🎯 Opening review modal with widget:', selectedWidget);
+    if (!selectedWidget?.id) {
+      console.error('❌ No widget selected when opening review modal!');
+    }
     setShowReviewModal(true);
   };
 

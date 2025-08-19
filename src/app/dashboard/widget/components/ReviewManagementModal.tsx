@@ -1111,7 +1111,10 @@ export function ReviewManagementModal({
             <button
               className="px-5 py-2 bg-slate-blue text-white rounded font-semibold shadow hover:bg-slate-700 transition"
               style={{ minWidth: 90 }}
-              onClick={handleSaveReviews}
+              onClick={() => {
+                console.log('🔘 Save button clicked!');
+                handleSaveReviews();
+              }}
             >
               Save
             </button>
