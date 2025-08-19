@@ -158,10 +158,16 @@ export const WidgetEditorForm: React.FC<WidgetEditorFormProps> = ({ onSaveSucces
             className="mt-1 block w-full border border-gray-300 focus:border-slate-600 focus:ring-2 focus:ring-slate-400 rounded-md px-3 py-2 shadow-sm"
             disabled={!!widgetToEdit || isLoading}
           >
-            <option value="multi">Multi-card carousel</option>
-            <option value="single">Single card</option>
+            <option value="single">Single</option>
+            <option value="multi">Multi</option>
             <option value="photo">Photo</option>
           </select>
+          {/* Widget type description */}
+          <p className="mt-2 text-sm text-gray-600">
+            {form.widgetType === 'single' && 'Shows reviews one-at-a-time in a carousel.'}
+            {form.widgetType === 'multi' && 'Shows 3 reviews at a time in a carousel.'}
+            {form.widgetType === 'photo' && 'Allows you to upload photos of reviewer (Photo + Testimonial Prompt Pages).'}
+          </p>
         </div>
       </div>
       <div className="flex justify-end gap-4 mt-6">
