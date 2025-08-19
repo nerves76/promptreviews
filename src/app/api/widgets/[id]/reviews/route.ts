@@ -99,21 +99,30 @@ export async function PUT(
 
     // Insert new reviews if any provided
     if (reviews.length > 0) {
-      const reviewsToInsert = reviews.map((review, index) => ({
-        widget_id: widgetId,
-        review_id: review.review_id,
-        review_content: review.review_content,
-        first_name: review.first_name,
-        last_name: review.last_name,
-        reviewer_role: review.reviewer_role,
-        platform: review.platform || 'custom',
-        order_index: index,
-        star_rating: typeof review.star_rating === 'number' 
+      const reviewsToInsert = reviews.map((review, index) => {
+        const finalRating = typeof review.star_rating === 'number' 
           ? Math.round(review.star_rating * 2) / 2 
-          : null,
-        photo_url: review.photo_url || null,
-        created_at: new Date().toISOString()
-      }));
+          : null;
+        
+        console.log(`[API] Star Rating for ${review.review_id}:`, {
+          received: review.star_rating,
+          final: finalRating
+        });
+        
+        return {
+          widget_id: widgetId,
+          review_id: review.review_id,
+          review_content: review.review_content,
+          first_name: review.first_name,
+          last_name: review.last_name,
+          reviewer_role: review.reviewer_role,
+          platform: review.platform || 'custom',
+          order_index: index,
+          star_rating: finalRating,
+          photo_url: review.photo_url || null,
+          created_at: new Date().toISOString()
+        };
+      });
 
       const { error: insertError } = await supabaseAdmin
         .from('widget_reviews')

@@ -639,18 +639,33 @@ export function ReviewManagementModal({
     }
     
     // Prepare reviews for API call (all reviews should now be within limits)
-    const reviewsToSave = selectedReviews.map((review, index) => ({
-      review_id: review.review_id,
-      review_content: trimmedUpdates[review.review_id] ?? editedReviews[review.review_id] ?? review.review_content,
-      first_name: (editedNames[review.review_id] ?? `${review.first_name || ''} ${review.last_name || ''}`.trim()).split(' ')[0],
-      last_name: (editedNames[review.review_id] ?? `${review.first_name || ''} ${review.last_name || ''}`.trim()).split(' ').slice(1).join(' '),
-      reviewer_role: editedRoles[review.review_id] ?? review.reviewer_role,
-      platform: review.platform,
-      star_rating: (editedRatings[review.review_id] !== undefined && editedRatings[review.review_id] !== null)
-        ? Math.round(editedRatings[review.review_id]! * 2) / 2
-        : (typeof review.star_rating === 'number' ? Math.round(review.star_rating * 2) / 2 : null),
-      photo_url: photoUploads[review.review_id] || null,
-    }));
+    const reviewsToSave = selectedReviews.map((review, index) => {
+      const rawRating = editedRatings[review.review_id] !== undefined 
+        ? editedRatings[review.review_id]
+        : review.star_rating;
+      
+      const finalRating = rawRating !== null && rawRating !== undefined
+        ? Math.round(rawRating * 2) / 2
+        : null;
+      
+      console.log(`🌟 Star Rating Debug for ${review.review_id}:`, {
+        original: review.star_rating,
+        edited: editedRatings[review.review_id],
+        raw: rawRating,
+        final: finalRating
+      });
+      
+      return {
+        review_id: review.review_id,
+        review_content: trimmedUpdates[review.review_id] ?? editedReviews[review.review_id] ?? review.review_content,
+        first_name: (editedNames[review.review_id] ?? `${review.first_name || ''} ${review.last_name || ''}`.trim()).split(' ')[0],
+        last_name: (editedNames[review.review_id] ?? `${review.first_name || ''} ${review.last_name || ''}`.trim()).split(' ').slice(1).join(' '),
+        reviewer_role: editedRoles[review.review_id] ?? review.reviewer_role,
+        platform: review.platform,
+        star_rating: finalRating,
+        photo_url: photoUploads[review.review_id] || null,
+      };
+    });
 
     try {
       // Use apiClient which handles auth automatically
