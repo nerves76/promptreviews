@@ -674,6 +674,7 @@ export function ReviewManagementModal({
         platform: review.platform,
         star_rating: finalRating,
         photo_url: photoUploads[review.review_id] || null,
+        created_at: review.created_at, // Preserve original submission date
       };
     });
 

@@ -228,8 +228,8 @@ export async function PUT(
           reviewer_role: review.reviewer_role || '',
           platform: review.platform || 'custom',
           order_index: index,
-          star_rating: finalRating
-          // Removed created_at - let the database handle it
+          star_rating: finalRating,
+          created_at: review.created_at || new Date().toISOString() // Use original date or current date as fallback
         };
         
         // Only add photo_url if it's provided (column might not exist)
