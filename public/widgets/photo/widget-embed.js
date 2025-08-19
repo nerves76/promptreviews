@@ -246,7 +246,7 @@
   }
 
   function createReviewCard(review, design) {
-    const reviewText = design.showQuotes ? `"${review.review_content}"` : review.review_content;
+    const reviewText = design.showQuotes ? `&#8220;${review.review_content}&#8221;` : review.review_content;
     const dateText = design.showRelativeDate ? getRelativeDate(review.created_at) : new Date(review.created_at).toLocaleDateString();
     
     // Use the new renderStars function
