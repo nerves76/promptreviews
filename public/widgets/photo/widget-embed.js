@@ -339,7 +339,7 @@
               <div style="
                 color: ${design.roleTextColor || '#6b7280'};
                 font-size: ${design.attributionFontSize || 15}px;
-                margin-top: 0.25rem;
+                margin-top: 0.125rem;
               ">${dateText}${platformText}</div>
             </div>
           </div>

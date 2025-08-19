@@ -143,7 +143,7 @@ export function createReviewCardHTML(review: Review, design: Design) {
   // Added justify-content: center to stars row
   const starsHTML = review.star_rating ? `<div class="stars-row" style="margin-bottom: 0.75rem; display: flex; justify-content: center;">${renderStars(review.star_rating)}</div>` : '';
   const dateHTML = design.showRelativeDate && review.created_at ? `<div class="reviewer-date" style="font-size: 0.875rem; color: ${roleColor}; margin-top: 0.5rem;">${getRelativeTime(review.created_at)}</div>` : '';
-  const platformHTML = design.showPlatform && review.platform ? `<div class="reviewer-platform" style="font-size: 0.8rem; color: ${roleColor}; opacity: 0.7; margin-top: 0.25rem;">via ${review.platform}</div>` : '';
+  const platformHTML = design.showPlatform && review.platform ? `<div class="reviewer-platform" style="font-size: 0.8rem; color: ${roleColor}; opacity: 0.7; margin-top: 0.125rem;">via ${review.platform}</div>` : '';
 
   return `
     <div class="pr-review-card" style="${cardStyle}">
