@@ -693,7 +693,7 @@
         if (!response.ok) {
           throw new Error(`Failed to fetch widget data: ${response.statusText}`);
         }
-        const { reviews, design } = await response.json();
+        const { reviews, design, businessSlug } = await response.json();
         
         if (reviews && reviews.length > 0) {
           widgetContainer.innerHTML = createCarouselHTML(widgetContainer.id, reviews, design, businessSlug);

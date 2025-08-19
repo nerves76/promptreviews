@@ -121,6 +121,13 @@ export async function GET(
  * Helper function to fetch widget data and reviews
  */
 async function fetchWidgetData(widget: any, widgetId: string) {
+  console.log(`[Widget ${widgetId}] Widget data:`, { 
+    id: widget.id, 
+    account_id: widget.account_id,
+    widget_type: widget.widget_type,
+    has_theme: !!widget.theme 
+  });
+  
   // Only fetch reviews that have been explicitly selected for this widget
   let reviews = [];
   const { data: widgetReviews, error: widgetReviewsError } = await supabaseAdmin
@@ -185,6 +192,8 @@ async function fetchWidgetData(widget: any, widgetId: string) {
   // Fetch the universal prompt page slug for the business
   let businessSlug = null;
   if (widget.account_id) {
+      console.log(`[Widget ${widgetId}] Fetching business slug for account_id: ${widget.account_id}`);
+      
       const { data: promptPageData, error: slugError } = await supabaseAdmin
           .from('prompt_pages')
           .select('slug')
@@ -195,9 +204,49 @@ async function fetchWidgetData(widget: any, widgetId: string) {
           .single();
 
       if (slugError) {
-          console.error('Error fetching business slug:', slugError.message);
+          console.error(`[Widget ${widgetId}] Error fetching business slug:`, slugError.message, slugError.code);
+          
+          // If single() fails because there are no rows, try without single()
+          if (slugError.code === 'PGRST116') {
+              console.log(`[Widget ${widgetId}] No universal prompt page found, trying without single()`);
+              const { data: promptPages, error: retryError } = await supabaseAdmin
+                  .from('prompt_pages')
+                  .select('slug')
+                  .eq('account_id', widget.account_id)
+                  .eq('is_universal', true);
+              
+              console.log(`[Widget ${widgetId}] Found ${promptPages?.length || 0} universal prompt pages`);
+              if (promptPages && promptPages.length > 0) {
+                  businessSlug = promptPages[0].slug;
+                  console.log(`[Widget ${widgetId}] Using business slug: ${businessSlug}`);
+              }
+          }
       } else if (promptPageData) {
           businessSlug = promptPageData.slug;
+          console.log(`[Widget ${widgetId}] Found business slug: ${businessSlug}`);
+      }
+  } else {
+      console.log(`[Widget ${widgetId}] No account_id on widget, cannot fetch business slug`);
+  }
+
+  // If we still don't have a businessSlug, try to get the account's default business slug
+  if (!businessSlug && widget.account_id) {
+      console.log(`[Widget ${widgetId}] No universal prompt page found, trying to get account's default business`);
+      
+      // Get the account's business name to use as a fallback slug
+      const { data: accountData, error: accountError } = await supabaseAdmin
+          .from('accounts')
+          .select('business_name')
+          .eq('id', widget.account_id)
+          .single();
+      
+      if (accountData && accountData.business_name) {
+          // Create a slug from the business name
+          businessSlug = accountData.business_name
+              .toLowerCase()
+              .replace(/[^a-z0-9]+/g, '-')
+              .replace(/^-+|-+$/g, '');
+          console.log(`[Widget ${widgetId}] Using fallback business slug from account: ${businessSlug}`);
       }
   }
 
