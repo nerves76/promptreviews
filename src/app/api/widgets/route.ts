@@ -5,7 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { getAccountIdForUser } from '@/auth/utils/accounts';
+import { getRequestAccountId } from '@/app/api/utils/getRequestAccountId';
 
 // Initialize Supabase client with service key for privileged operations
 const supabase = createClient(
@@ -50,8 +50,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get account ID for user
-    const accountId = await getAccountIdForUser(user.id, supabase);
+    // Get account ID respecting client selection if provided
+    const accountId = await getRequestAccountId(request, user.id, supabase);
     if (!accountId) {
       return NextResponse.json(
         { error: 'Account not found. Please ensure you have completed the signup process.' },
@@ -120,8 +120,8 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Get account ID for user
-    const accountId = await getAccountIdForUser(user.id, supabase);
+    // Get account ID respecting client selection if provided
+    const accountId = await getRequestAccountId(request, user.id, supabase);
     if (!accountId) {
       return NextResponse.json(
         { error: 'Account not found' },

@@ -11,6 +11,24 @@ import { tokenManager } from '@/auth/services/TokenManager';
 interface ApiRequestOptions extends RequestInit {
   skipAuth?: boolean;
   retryOnAuthError?: boolean;
+  includeSelectedAccount?: boolean; // Default true for account-scoped requests
+}
+
+// Helper to get selected account from localStorage
+function getSelectedAccountId(): string | null {
+  if (typeof window === 'undefined') return null;
+  
+  try {
+    // Try to get the user ID from the token manager to build the correct key
+    const storedUserId = localStorage.getItem('promptreviews_last_user_id');
+    if (!storedUserId) return null;
+    
+    const accountKey = `promptreviews_selected_account_${storedUserId}`;
+    return localStorage.getItem(accountKey);
+  } catch (error) {
+    console.error('Error reading selected account:', error);
+    return null;
+  }
 }
 
 class ApiClient {
@@ -20,7 +38,7 @@ class ApiClient {
     this.baseUrl = baseUrl;
   }
   
-  private async getHeaders(skipAuth?: boolean): Promise<HeadersInit> {
+  private async getHeaders(skipAuth?: boolean, includeSelectedAccount: boolean = true): Promise<HeadersInit> {
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
     };
@@ -29,6 +47,24 @@ class ApiClient {
       const token = await tokenManager.getAccessToken();
       if (token) {
         headers['Authorization'] = `Bearer ${token}`;
+        
+        // Also store the user ID for future reference when we have a token
+        try {
+          const payload = JSON.parse(atob(token.split('.')[1]));
+          if (payload.sub) {
+            localStorage.setItem('promptreviews_last_user_id', payload.sub);
+          }
+        } catch (e) {
+          // Token parsing failed, ignore
+        }
+      }
+    }
+    
+    // Include selected account header for authenticated requests
+    if (!skipAuth && includeSelectedAccount) {
+      const selectedAccountId = getSelectedAccountId();
+      if (selectedAccountId) {
+        headers['X-Selected-Account'] = selectedAccountId;
       }
     }
     
@@ -39,9 +75,9 @@ class ApiClient {
     url: string,
     options: ApiRequestOptions = {}
   ): Promise<T> {
-    const { skipAuth, retryOnAuthError = true, ...fetchOptions } = options;
+    const { skipAuth, retryOnAuthError = true, includeSelectedAccount = true, ...fetchOptions } = options;
     
-    const headers = await this.getHeaders(skipAuth);
+    const headers = await this.getHeaders(skipAuth, includeSelectedAccount);
     
     console.log(`🌐 API Request: ${fetchOptions.method || 'GET'} ${url}`);
     
@@ -64,7 +100,7 @@ class ApiClient {
       
       if (newToken) {
         // Retry with new token
-        const retryHeaders = await this.getHeaders(skipAuth);
+        const retryHeaders = await this.getHeaders(skipAuth, includeSelectedAccount);
         const retryResponse = await fetch(`${this.baseUrl}${url}`, {
           ...fetchOptions,
           headers: {
