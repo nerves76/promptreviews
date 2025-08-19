@@ -9,7 +9,7 @@ import { StyleModal } from "./components/StyleModal";
 import { ReviewManagementModal } from "./components/ReviewManagementModal";
 import { DEFAULT_DESIGN, DesignState } from "./components/widgets/multi";
 import { useWidgets } from "./hooks/useWidgets";
-import { useStableWidgetManager } from "./hooks/useStableWidgetManager";
+// import { useStableWidgetManager } from "./hooks/useStableWidgetManager";
 // import { useRefreshGuard } from "./hooks/useRefreshGuard";
 // import { useRefreshPrevention } from "./hooks/useRefreshPrevention";
 
@@ -37,7 +37,7 @@ export default function WidgetPage() {
   }, [selectedWidgetFull]);
 
   const { widgets, loading, error, createWidget, deleteWidget, saveWidgetName, saveWidgetDesign, fetchWidgets } = useWidgets();
-  const { protectedOperation } = useStableWidgetManager();
+  // const { protectedOperation } = useStableWidgetManager();
   const [selectedWidget, setSelectedWidget] = useState<any>(null);
   const [selectedWidgetFull, setSelectedWidgetFull] = useState<any>(null);
   
@@ -267,16 +267,10 @@ export default function WidgetPage() {
 
   const handleSaveDesign = useCallback(async () => {
     if (selectedWidget) {
-      await protectedOperation(
-        'saveDesign',
-        async () => {
-          await saveWidgetDesign(selectedWidget.id, design);
-          setShowStyleModal(false);
-        },
-        selectedWidget.id
-      );
+      await saveWidgetDesign(selectedWidget.id, design);
+      setShowStyleModal(false);
     }
-  }, [selectedWidget, design, saveWidgetDesign, protectedOperation]);
+  }, [selectedWidget, design, saveWidgetDesign]);
 
   const handleResetDesign = () => {
     // Reset to default design
@@ -388,13 +382,9 @@ export default function WidgetPage() {
           // Only refresh the full widget data to update the preview
           // Don't call fetchWidgets as it's not needed for review changes
           if (selectedWidget?.id) {
-            protectedOperation(
-              'fetchFullWidget',
-              () => fetchFullWidgetData(selectedWidget.id),
-              selectedWidget.id
-            );
+            fetchFullWidgetData(selectedWidget.id);
           }
-        }, [selectedWidget?.id, fetchFullWidgetData, protectedOperation])}
+        }, [selectedWidget?.id, fetchFullWidgetData])}
       />
 
       {showStyleModal && selectedWidget && (
