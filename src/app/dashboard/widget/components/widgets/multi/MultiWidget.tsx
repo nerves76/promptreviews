@@ -213,7 +213,20 @@ const MultiWidget: React.FC<MultiWidgetProps> = ({ data, design }) => {
       isMounted = false;
       initializedRef.current = false;
     };
-  }, [reviews?.length, slug, data.id, data.type]); // Removed currentDesign from deps to prevent re-initialization
+  }, [reviews?.length, slug, data.id, data.type]); // Keep deps minimal for initial load
+
+  // Separate effect to handle design updates after initialization
+  useEffect(() => {
+    if (initializedRef.current && window.PromptReviews?.initializeWidget && containerRef.current) {
+      console.log('🎨 MultiWidget: Design changed, re-initializing widget with new styles');
+      window.PromptReviews.initializeWidget(
+        containerRef.current.id,
+        reviews,
+        currentDesign,
+        slug || 'example-business'
+      );
+    }
+  }, [currentDesign, reviews, slug]);
 
   if (!reviews || !currentDesign) {
     return <div className="text-center p-4">Loading widget data...</div>;
