@@ -127,14 +127,49 @@ async function fetchWidgetData(widget: any, widgetId: string) {
     .from('widget_reviews')
     .select('*')
     .eq('widget_id', widgetId)
-    .order('created_at', { ascending: false });
+    .order('order_index', { ascending: true });
 
   if (widgetReviewsError) {
     console.error('Error fetching widget reviews:', widgetReviewsError);
   } else if (widgetReviews && widgetReviews.length > 0) {
-    // Use only the reviews that have been explicitly selected for this widget
-    reviews = widgetReviews;
-    console.log(`Found ${reviews.length} selected reviews for widget`);
+    // Fetch original reviews from review_submissions to get correct dates
+    const reviewIds = widgetReviews.map(wr => wr.review_id).filter(id => id);
+    
+    // Only fetch if we have review IDs to look up
+    if (reviewIds.length > 0) {
+      const { data: originalReviews, error: originalError } = await supabaseAdmin
+        .from('review_submissions')
+        .select('id, created_at')
+        .in('id', reviewIds);
+      
+      if (!originalError && originalReviews) {
+        // Create a map of original dates
+        const originalDatesMap = new Map(
+          originalReviews.map(r => [r.id, r.created_at])
+        );
+        
+        // Merge original dates into widget reviews
+        reviews = widgetReviews.map(wr => {
+          const originalDate = originalDatesMap.get(wr.review_id);
+          if (originalDate) {
+            // Use original created_at from review_submissions
+            return { ...wr, created_at: originalDate };
+          }
+          // For custom reviews or reviews not found, keep existing date
+          return wr;
+        });
+        
+        console.log(`Found ${reviews.length} selected reviews for widget with original dates merged`);
+      } else {
+        // Fallback to widget reviews if we can't fetch originals
+        reviews = widgetReviews;
+        console.log(`Found ${reviews.length} selected reviews for widget (could not merge dates)`);
+      }
+    } else {
+      // All reviews are custom (no review_ids)
+      reviews = widgetReviews;
+      console.log(`Found ${reviews.length} custom reviews for widget`);
+    }
   } else {
     // No reviews have been selected for this widget yet
     console.log('No reviews selected for this widget yet. Use "Manage Reviews" to select which reviews to display.');
