@@ -49,6 +49,12 @@ const MultiWidget: React.FC<MultiWidgetProps> = ({ data, design }) => {
   const isDevelopment = process.env.NODE_ENV === 'development';
 
   useEffect(() => {
+    console.log('🚀 MultiWidget: Starting initialization with data:', {
+      hasReviews: !!reviews,
+      reviewsCount: reviews?.length,
+      hasDesign: !!currentDesign,
+      widgetId: data.id
+    });
     
     // Add a cleanup flag to prevent initialization after unmount
     let isMounted = true;
@@ -56,7 +62,6 @@ const MultiWidget: React.FC<MultiWidgetProps> = ({ data, design }) => {
     // Load the CSS if not already loaded
     const loadWidgetCSS = (): Promise<void> => {
       if (document.querySelector('link[href="/widgets/multi/multi-widget.css"]')) {
-
         return Promise.resolve();
       }
 
@@ -66,7 +71,6 @@ const MultiWidget: React.FC<MultiWidgetProps> = ({ data, design }) => {
         link.rel = 'stylesheet';
         link.href = `/widgets/multi/multi-widget.css?v=${new Date().getTime()}`;
         link.onload = () => {
-
           resolve();
         };
         link.onerror = (error) => {
@@ -152,9 +156,10 @@ const MultiWidget: React.FC<MultiWidgetProps> = ({ data, design }) => {
         
         if (containerRef.current && window.PromptReviews?.initializeWidget) {
           console.log('🚀 MultiWidget: Using initializeWidget API');
+          // Always pass an array for reviews, even if empty
           window.PromptReviews.initializeWidget(
             containerRef.current.id,
-            reviews,
+            reviews || [],
             currentDesign,
             slug || 'example-business'
           );
@@ -190,22 +195,19 @@ const MultiWidget: React.FC<MultiWidgetProps> = ({ data, design }) => {
       }
     };
 
-    if (reviews && currentDesign && !initializedRef.current) {
+    // Initialize widget whenever we have the design (reviews can be empty)
+    if (currentDesign && !initializedRef.current) {
       retryCountRef.current = 0; // Reset retry count
-      console.log('🚀 MultiWidget: Starting initialization with data:', {
-        reviewsCount: reviews?.length,
+      console.log('🚀 MultiWidget: Initializing widget:', {
+        reviewsCount: reviews?.length || 0,
         designKeys: Object.keys(currentDesign || {}),
         containerId: `promptreviews-widget-container-${data.id}`
       });
       initializeWidget();
+    } else if (!currentDesign) {
+      console.log('⚠️ MultiWidget: Waiting for design data');
     } else {
-      console.log('⚠️ MultiWidget: Missing data or already initialized:', { 
-        reviews: !!reviews, 
-        reviewsCount: reviews?.length,
-        design: !!currentDesign,
-        designKeys: Object.keys(currentDesign || {}),
-        initialized: initializedRef.current 
-      });
+      console.log('⚠️ MultiWidget: Already initialized');
     }
 
     // Cleanup function
@@ -216,13 +218,16 @@ const MultiWidget: React.FC<MultiWidgetProps> = ({ data, design }) => {
     };
   }, [reviews?.length, slug, data.id, data.type]); // Keep deps minimal for initial load
 
-  // Separate effect to handle design updates after initialization
+  // Separate effect to handle updates after initialization (design or reviews change)
   useEffect(() => {
     if (initializedRef.current && window.PromptReviews?.initializeWidget && containerRef.current) {
-      console.log('🎨 MultiWidget: Design changed, re-initializing widget with new styles');
+      console.log('🔄 MultiWidget: Data changed, re-initializing widget:', {
+        reviewsCount: reviews?.length || 0,
+        hasDesign: !!currentDesign
+      });
       window.PromptReviews.initializeWidget(
         containerRef.current.id,
-        reviews,
+        reviews || [],
         currentDesign,
         slug || 'example-business'
       );

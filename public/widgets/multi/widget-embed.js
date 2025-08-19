@@ -382,6 +382,12 @@
     const prevBtn = widgetElement.querySelector('.pr-prev-btn');
     const nextBtn = widgetElement.querySelector('.pr-next-btn');
 
+    // Check if buttons exist before adding listeners (they won't exist when there are no reviews)
+    if (!prevBtn || !nextBtn) {
+      console.log('🔍 Widget: Navigation buttons not found (likely no reviews to display)');
+      return;
+    }
+
     prevBtn.addEventListener('click', () => {
       const state = carouselState[widgetId];
       moveToIndex(widgetId, state.currentIndex - 1);
