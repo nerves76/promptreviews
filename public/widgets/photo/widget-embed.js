@@ -361,6 +361,49 @@
     return `${Math.floor(diffDays / 365)} years ago`;
   }
 
+  function generateSchemaMarkup(reviews, businessName) {
+    if (!reviews || reviews.length === 0) return '';
+    
+    // Calculate aggregate rating
+    const totalRating = reviews.reduce((sum, review) => sum + (review.star_rating || 0), 0);
+    const averageRating = (totalRating / reviews.length).toFixed(1);
+    const reviewCount = reviews.length;
+    
+    // Get business name from the page or use a default
+    const name = businessName || document.title || 'Business';
+    
+    const schema = {
+      "@context": "https://schema.org",
+      "@type": "Product", // Can also use "LocalBusiness" or "Organization"
+      "name": name,
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": averageRating,
+        "bestRating": "5",
+        "worstRating": "1",
+        "ratingCount": reviewCount,
+        "reviewCount": reviewCount
+      },
+      "review": reviews.slice(0, 5).map(review => ({ // Google typically shows first 5
+        "@type": "Review",
+        "reviewRating": {
+          "@type": "Rating",
+          "ratingValue": review.star_rating || 5,
+          "bestRating": "5",
+          "worstRating": "1"
+        },
+        "author": {
+          "@type": "Person",
+          "name": `${review.first_name || ''} ${review.last_name || ''}`.trim() || "Anonymous"
+        },
+        "datePublished": review.created_at,
+        "reviewBody": review.review_content
+      }))
+    };
+    
+    return `<script type="application/ld+json">${JSON.stringify(schema)}</script>`;
+  }
+
   function createCarouselHTML(widgetId, reviews, design, businessSlug) {
     initCarouselState(widgetId, reviews, design);
     const state = carouselState[widgetId];
@@ -460,8 +503,12 @@
       </div>
     ` : '';
     
+    // Generate schema markup for SEO
+    const schemaMarkup = generateSchemaMarkup(reviews, null); // Will use document.title as fallback
+    
     // --- Final Widget HTML ---
     return `
+      ${schemaMarkup}
       ${embeddedStyles}
       <div class="pr-photo-carousel-container">
         <div class="pr-photo-carousel-track">
