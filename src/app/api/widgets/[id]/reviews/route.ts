@@ -92,15 +92,54 @@ export async function PUT(
       return NextResponse.json({ error: 'Widget not found or access denied' }, { status: 403 });
     }
 
+    // First, let's check if the table exists and what columns it has
+    console.log('[WIDGET-REVIEWS] Testing database connection...');
+    
+    // Try a simple select first
+    const { data: testSelect, error: testError } = await supabaseAdmin
+      .from('widget_reviews')
+      .select('*')
+      .limit(1);
+      
+    if (testError) {
+      console.error('[WIDGET-REVIEWS] Table access error:', {
+        error: testError,
+        message: testError.message,
+        details: testError.details,
+        hint: testError.hint,
+        code: testError.code
+      });
+      
+      // Check if it's a table not found error
+      if (testError.message?.includes('relation') && testError.message?.includes('does not exist')) {
+        return NextResponse.json({ 
+          error: 'Database table widget_reviews does not exist',
+          details: testError.message
+        }, { status: 500 });
+      }
+    } else {
+      console.log('[WIDGET-REVIEWS] Table exists, sample row:', testSelect?.[0]);
+    }
+    
     // Delete existing reviews for this widget
+    console.log('[WIDGET-REVIEWS] Deleting existing reviews for widget:', widgetId);
     const { error: deleteError } = await supabaseAdmin
       .from('widget_reviews')
       .delete()
       .eq('widget_id', widgetId);
 
     if (deleteError) {
-      console.error('[WIDGET-REVIEWS] Error deleting existing reviews:', deleteError);
-      return NextResponse.json({ error: 'Failed to update reviews' }, { status: 500 });
+      console.error('[WIDGET-REVIEWS] Error deleting existing reviews:', {
+        error: deleteError,
+        message: deleteError.message,
+        details: deleteError.details,
+        hint: deleteError.hint,
+        code: deleteError.code
+      });
+      return NextResponse.json({ 
+        error: 'Failed to delete existing reviews',
+        details: deleteError.message
+      }, { status: 500 });
     }
 
     // Insert new reviews if any provided
