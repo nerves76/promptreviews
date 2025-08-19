@@ -11,6 +11,15 @@ import { createServerClient } from '@supabase/ssr';
 // 🔧 CONSOLIDATION: Use centralized service role client
 const supabaseAdmin = createServiceRoleClient();
 
+// Helper function to generate UUID v4
+const generateUUID = () => {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0;
+    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+};
+
 // 🔧 CONSOLIDATION: Helper function for request-scoped auth client
 // Used ONLY for authenticated dashboard requests (PUT operations)
 function createAuthClient(authToken: string) {
@@ -146,9 +155,10 @@ export async function PUT(
     if (reviews.length > 0) {
       // First, try inserting a minimal test review to see what works
       console.log('[WIDGET-REVIEWS] Testing with minimal review first...');
+      
       const testReview = {
         widget_id: widgetId,
-        review_id: `test_${Date.now()}`,
+        review_id: generateUUID(),
         review_content: 'Test',
         first_name: 'Test',
         last_name: 'User',
@@ -192,8 +202,16 @@ export async function PUT(
           final: finalRating
         });
         
-        // Ensure review_id is valid
-        const reviewId = review.review_id || `review_${widgetId}_${index}_${Date.now()}`;
+        // Ensure review_id is a valid UUID
+        // If the review already has a valid UUID, use it; otherwise generate one
+        let reviewId = review.review_id;
+        
+        // Check if it's a valid UUID format
+        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+        if (!reviewId || !uuidRegex.test(reviewId)) {
+          // Generate a new UUID if invalid or missing
+          reviewId = generateUUID();
+        }
         
         const reviewToInsert: any = {
           widget_id: widgetId,
