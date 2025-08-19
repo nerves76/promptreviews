@@ -85,15 +85,23 @@ export function GlobalRefreshMonitor() {
       }
     }, 100);
     
-    // Intercept window.location methods
-    const originalReload = window.location.reload;
-    window.location.reload = function(...args: any) {
-      (window as any).__refreshMonitor.logEvent('location.reload', {
-        args,
-        caller: new Error().stack
+    // Try to intercept window.location methods (may fail in some browsers)
+    try {
+      const originalReload = window.location.reload.bind(window.location);
+      Object.defineProperty(window.location, 'reload', {
+        value: function(...args: any) {
+          (window as any).__refreshMonitor.logEvent('location.reload', {
+            args,
+            caller: new Error().stack
+          });
+          return originalReload(...args);
+        },
+        configurable: true
       });
-      return originalReload.apply(window.location, args);
-    };
+    } catch (e) {
+      // Some browsers don't allow overriding location.reload
+      console.log('Could not override location.reload - skipping');
+    }
     
     // Monitor MutationObserver for DOM replacements
     const observer = new MutationObserver((mutations) => {
@@ -120,7 +128,7 @@ export function GlobalRefreshMonitor() {
     
     return () => {
       clearInterval(checkInterval);
-      window.location.reload = originalReload;
+      // Don't try to restore reload as it may be read-only
       observer.disconnect();
     };
   }, []);
