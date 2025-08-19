@@ -18,6 +18,11 @@ export default function WidgetPage() {
   // Enable refresh guard to monitor and prevent unwanted refreshes
   // useRefreshGuard('WidgetPage');
   
+  const { widgets, loading, error, createWidget, deleteWidget, saveWidgetName, saveWidgetDesign, fetchWidgets } = useWidgets();
+  // const { protectedOperation } = useStableWidgetManager();
+  const [selectedWidget, setSelectedWidget] = useState<any>(null);
+  const [selectedWidgetFull, setSelectedWidgetFull] = useState<any>(null);
+  
   // Debug logging for component lifecycle
   useEffect(() => {
     console.log('🎯 WidgetPage: Component mounted');
@@ -35,11 +40,6 @@ export default function WidgetPage() {
       widgetType: selectedWidgetFull?.type
     });
   }, [selectedWidgetFull]);
-
-  const { widgets, loading, error, createWidget, deleteWidget, saveWidgetName, saveWidgetDesign, fetchWidgets } = useWidgets();
-  // const { protectedOperation } = useStableWidgetManager();
-  const [selectedWidget, setSelectedWidget] = useState<any>(null);
-  const [selectedWidgetFull, setSelectedWidgetFull] = useState<any>(null);
   
   // Storage key for design state persistence
   const designStorageKey = `widgetDesign_${selectedWidget?.id || 'default'}`;
