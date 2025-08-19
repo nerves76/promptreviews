@@ -2,7 +2,7 @@
 import React from "react";
 import Icon from "@/components/Icon";
 import { ChatBubbleLeftIcon } from "@heroicons/react/24/outline";
-import { CheckIcon, DocumentDuplicateIcon } from "@heroicons/react/24/outline";
+import { CheckIcon } from "@heroicons/react/24/outline";
 
 interface WidgetCardProps {
   widget: {
@@ -71,7 +71,7 @@ export function WidgetCard({
             {isCopied ? (
               <CheckIcon className="w-4 h-4 text-green-600" />
             ) : (
-              <DocumentDuplicateIcon className="w-4 h-4" />
+              <Icon name="FaCode" className="w-4 h-4" size={16} />
             )}
           </button>
           
