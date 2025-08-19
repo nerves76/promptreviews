@@ -43,6 +43,8 @@ class ApiClient {
     
     const headers = await this.getHeaders(skipAuth);
     
+    console.log(`🌐 API Request: ${fetchOptions.method || 'GET'} ${url}`);
+    
     const response = await fetch(`${this.baseUrl}${url}`, {
       ...fetchOptions,
       headers: {
@@ -50,6 +52,8 @@ class ApiClient {
         ...fetchOptions.headers,
       },
     });
+    
+    console.log(`🌐 API Response: ${response.status} ${response.statusText}`);
     
     // Handle auth errors with retry
     if (response.status === 401 && retryOnAuthError && !skipAuth) {
@@ -93,17 +97,28 @@ class ApiClient {
     if (!response.ok) {
       // Try to get error details from response body
       let errorDetails = response.statusText;
+      let errorBody: any = null;
+      
       try {
-        const errorBody = await response.json();
-        errorDetails = errorBody.details || errorBody.error || errorBody.message || response.statusText;
-        console.error('API Error Response:', errorBody);
+        const responseText = await response.text();
+        console.error('🔴 API Error - Raw Response:', responseText);
+        
+        try {
+          errorBody = JSON.parse(responseText);
+          errorDetails = errorBody.details || errorBody.error || errorBody.message || response.statusText;
+          console.error('🔴 API Error - Parsed:', errorBody);
+        } catch (parseError) {
+          // Response is not JSON
+          errorDetails = responseText || response.statusText;
+        }
       } catch (e) {
-        // Response body is not JSON
+        console.error('🔴 API Error - Could not read response body:', e);
       }
       
       const error = new Error(`API request failed: ${errorDetails}`);
       (error as any).status = response.status;
       (error as any).statusText = response.statusText;
+      (error as any).responseBody = errorBody;
       throw error;
     }
     
