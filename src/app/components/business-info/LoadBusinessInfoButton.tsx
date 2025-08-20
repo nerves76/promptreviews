@@ -8,6 +8,7 @@
 import { useState } from 'react';
 import Icon from '@/components/Icon';
 import { BusinessLocation } from '@/types/business';
+import { processGoogleServiceItem } from '@/utils/google-service-types';
 
 
 interface BusinessInfo {
@@ -279,35 +280,17 @@ export default function LoadBusinessInfoButton({
           ? rawServiceItems.map((item: any, index: number) => {
               console.log(`🔍 Processing service item ${index}:`, item);
               
-              // Handle different Google Business Profile service item structures
-              let name = '';
-              let description = '';
+              // Use the utility function to process Google service items
+              const processed = processGoogleServiceItem(item);
               
-              if (item?.structuredServiceItem) {
-                // Structured service item format (predefined Google services) - PRIORITY
-                name = item.structuredServiceItem.serviceTypeId || '';
-                description = item.structuredServiceItem.description || '';
-              } else if (item?.displayName) {
-                // Simple structure (direct displayName/description)
-                name = item.displayName || '';
-                description = item.description || '';
-              } else if (item?.freeFormServiceItem?.label) {
-                // Free-form service item format (user-defined services)
-                name = item.freeFormServiceItem.label.displayName || '';
-                description = item.freeFormServiceItem.label.description || '';
-              } else if (item?.serviceItem) {
-                // Legacy format (if it exists)
-                name = item.serviceItem.displayName || '';
-                description = item.serviceItem.description || '';
-              } else {
-                // Fallback to any available name/description properties
-                name = item?.name || '';
-                description = item?.description || '';
-              }
+              console.log(`✅ Processed service item ${index}:`, {
+                original: item,
+                processed: processed
+              });
               
               return {
-                name: name.trim(),
-                description: description.trim()
+                name: processed.name,
+                description: processed.description
               };
             })
           : [];

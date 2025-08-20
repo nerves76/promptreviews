@@ -12,6 +12,7 @@
 
 import React, { useState, useMemo } from 'react';
 import Icon from '@/components/Icon';
+import { isStructuredService } from '@/utils/google-service-types';
 
 interface ServiceItem {
   name: string;
@@ -184,13 +185,25 @@ export default function ServiceItemsEditor({
             <div key={index} className="bg-gray-50 border border-gray-200 rounded-lg p-4">
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <input
-                    type="text"
-                    value={service.name || ''}
-                    onChange={(e) => updateServiceItem(index, 'name', e.target.value)}
-                    placeholder="Service or product name"
-                    className="flex-1 border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent"
-                  />
+                  <div className="flex-1 flex items-center space-x-2">
+                    <input
+                      type="text"
+                      value={service.name || ''}
+                      onChange={(e) => updateServiceItem(index, 'name', e.target.value)}
+                      placeholder="Service or product name"
+                      className="flex-1 border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent"
+                    />
+                    {service.name && isStructuredService(service.name) && (
+                      <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-700 rounded-full" title="Google predefined service">
+                        Google
+                      </span>
+                    )}
+                    {service.name && !isStructuredService(service.name) && (
+                      <span className="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-600 rounded-full" title="Custom service">
+                        Custom
+                      </span>
+                    )}
+                  </div>
                   <button
                     type="button"
                     onClick={() => removeServiceItem(index)}
@@ -244,12 +257,18 @@ export default function ServiceItemsEditor({
         </div>
       )}
 
-      <p className="text-xs text-gray-500">
-        {selectedLocationCount === 1 
-          ? "List the main services or products you offer. This helps customers understand your business." 
-          : `Services will be applied to all ${selectedLocationCount} selected locations.`
-        }
-      </p>
+      <div className="space-y-1">
+        <p className="text-xs text-gray-500">
+          {selectedLocationCount === 1 
+            ? "List the main services or products you offer. This helps customers understand your business." 
+            : `Services will be applied to all ${selectedLocationCount} selected locations.`
+          }
+        </p>
+        <p className="text-xs text-gray-400">
+          <span className="font-medium">Google</span> services are predefined by Google for better search visibility. 
+          <span className="font-medium ml-2">Custom</span> services are your own unique offerings.
+        </p>
+      </div>
     </div>
   );
 } 
