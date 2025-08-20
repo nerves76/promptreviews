@@ -27,7 +27,7 @@ export default function ContactInfoEditor({
   return (
     <div className="space-y-4">
       <div>
-        <label className="block text-sm font-medium text-gray-300 mb-1">
+        <label className="block text-sm font-medium text-gray-700 mb-1">
           Primary Phone Number
         </label>
         <input
@@ -36,12 +36,12 @@ export default function ContactInfoEditor({
           onChange={(e) => handlePrimaryPhoneChange(e.target.value)}
           disabled={disabled}
           placeholder="+1 (555) 123-4567"
-          className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+          className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent disabled:opacity-50"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-300 mb-1">
+        <label className="block text-sm font-medium text-gray-700 mb-1">
           Website
         </label>
         <input
@@ -50,7 +50,7 @@ export default function ContactInfoEditor({
           onChange={(e) => onWebsiteChange(e.target.value)}
           disabled={disabled}
           placeholder="https://www.example.com"
-          className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+          className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent disabled:opacity-50"
         />
         <p className="mt-1 text-xs text-gray-500">
           Include the full URL starting with https://
