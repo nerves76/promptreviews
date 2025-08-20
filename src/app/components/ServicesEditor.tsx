@@ -297,20 +297,6 @@ export default function ServicesEditor({ locations, isConnected }: ServicesEdito
             )}
           </div>
 
-          {/* Load Business Info Button for single location */}
-          {selectedLocationIds.length === 1 && (
-            <div className="mt-4 flex justify-end">
-              <LoadBusinessInfoButton
-                selectedLocationIds={selectedLocationIds}
-                locations={locations}
-                detailsLoaded={detailsLoaded}
-                onBusinessInfoLoaded={handleBusinessInfoLoaded}
-                onLoadingStateChange={setIsLoadingDetails}
-                onDetailsLoadedChange={setDetailsLoaded}
-                onErrorChange={setDetailsError}
-              />
-            </div>
-          )}
         </div>
       </div>
 
@@ -321,11 +307,29 @@ export default function ServicesEditor({ locations, isConnected }: ServicesEdito
             <div className="bg-green-50 border border-green-200 rounded-lg p-4">
               <div className="flex items-start space-x-3">
                 <Icon name="FaCheck" className="w-5 h-5 text-green-600 mt-0.5" size={20} />
-                <div>
-                  <h4 className="text-sm font-medium text-green-900">Single location mode</h4>
-                  <p className="text-sm text-green-700 mt-1">
-                    Editing categories and services for {locations.find(loc => loc.id === selectedLocationIds[0])?.name}
-                  </p>
+                <div className="flex-1">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <h4 className="text-sm font-medium text-green-900">Single location mode</h4>
+                      <p className="text-sm text-green-700 mt-1">
+                        Editing categories and services for {locations.find(loc => loc.id === selectedLocationIds[0])?.name}.
+                        {detailsLoaded 
+                          ? ' Current categories and services have been loaded.'
+                          : ' Click the button to import your existing data.'}
+                      </p>
+                    </div>
+                    <div className="ml-4">
+                      <LoadBusinessInfoButton
+                        selectedLocationIds={selectedLocationIds}
+                        locations={locations}
+                        detailsLoaded={detailsLoaded}
+                        onBusinessInfoLoaded={handleBusinessInfoLoaded}
+                        onLoadingStateChange={setIsLoadingDetails}
+                        onDetailsLoadedChange={setDetailsLoaded}
+                        onErrorChange={setDetailsError}
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
