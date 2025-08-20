@@ -388,16 +388,88 @@ export default function ServicesEditor({ locations, isConnected }: ServicesEdito
           {!isLoadingDetails && (
             <>
               <div className="bg-white border border-gray-200 rounded-lg p-6">
-                <CategorySearch
-                  primaryCategory={businessInfo.primaryCategory}
-                  additionalCategories={businessInfo.additionalCategories}
-                  onPrimaryCategoryChange={(category) => handleInputChange('primaryCategory', category)}
-                  onAdditionalCategoriesChange={(categories) => handleInputChange('additionalCategories', categories)}
-                  selectedLocationCount={selectedLocationIds.length}
-                  detailsLoaded={detailsLoaded}
-                  isLoadingDetails={isLoadingDetails}
-                  detailsError={detailsError}
-                />
+                <h3 className="text-lg font-medium text-gray-900 mb-4">Business Categories</h3>
+                
+                {/* Primary Category */}
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {businessInfo.primaryCategory ? 'Change primary category' : 'Set primary category'}
+                  </label>
+                  <CategorySearch
+                    selectedCategory={businessInfo.primaryCategory}
+                    onCategorySelect={(category) => handleInputChange('primaryCategory', category)}
+                    placeholder="Search Google Business categories..."
+                    disabled={isLoadingDetails}
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Search from Google's 4,000+ business categories to ensure accuracy.
+                  </p>
+                </div>
+
+                {/* Additional Categories */}
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="text-sm font-medium text-gray-700">
+                      Additional categories (optional)
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const newCategories = [...businessInfo.additionalCategories, { categoryId: '', displayName: '' }];
+                        handleInputChange('additionalCategories', newCategories);
+                      }}
+                      disabled={businessInfo.additionalCategories.length >= 9}
+                      className={`text-sm flex items-center space-x-1 ${
+                        businessInfo.additionalCategories.length >= 9
+                          ? 'text-gray-400 cursor-not-allowed'
+                          : 'text-slate-blue hover:text-slate-blue-dark'
+                      }`}
+                    >
+                      <Icon name="FaPlus" className="w-3 h-3" size={12} />
+                      <span>Add category</span>
+                    </button>
+                  </div>
+                  
+                  {businessInfo.additionalCategories.length > 0 && (
+                    <div className="space-y-3">
+                      {businessInfo.additionalCategories.map((category, index) => (
+                        <div key={index} className="flex items-center space-x-2">
+                          <div className="flex-1">
+                            <CategorySearch
+                              selectedCategory={category.categoryId ? category : undefined}
+                              onCategorySelect={(selectedCategory) => {
+                                const updated = [...businessInfo.additionalCategories];
+                                if (selectedCategory) {
+                                  updated[index] = selectedCategory;
+                                } else {
+                                  updated.splice(index, 1);
+                                }
+                                handleInputChange('additionalCategories', updated);
+                              }}
+                              placeholder="Search for additional category..."
+                              disabled={isLoadingDetails}
+                            />
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const updated = businessInfo.additionalCategories.filter((_, i) => i !== index);
+                              handleInputChange('additionalCategories', updated);
+                            }}
+                            className="p-2 text-red-600 hover:bg-red-50 rounded-md"
+                            title="Remove category"
+                          >
+                            <Icon name="FaTimes" className="w-4 h-4" size={16} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  
+                  <p className="text-xs text-gray-500 mt-2">
+                    You can add up to 9 additional categories to help customers find your business.
+                  </p>
+                </div>
               </div>
 
               {/* Services Section */}
