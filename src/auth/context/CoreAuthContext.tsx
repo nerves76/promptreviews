@@ -284,8 +284,17 @@ export function CoreAuthProvider({ children }: { children: React.ReactNode }) {
         
         if (event === 'SIGNED_IN' && newSession?.user?.id === user?.id) {
           // SIGNED_IN with same user = likely a token refresh
-          // Update session but skip other state updates
-          setSession(newSession);
+          // Only update session if the access token actually changed
+          setSession(prev => {
+            // Check if the access token is different
+            if (prev?.access_token !== newSession?.access_token) {
+              console.log('🔄 Updating session with new access token (silent)');
+              return newSession;
+            }
+            // Same token, no update needed
+            console.log('🔇 Skipping session update - token unchanged');
+            return prev;
+          });
           return;
         }
         
