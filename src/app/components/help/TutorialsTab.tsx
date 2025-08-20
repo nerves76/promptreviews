@@ -22,12 +22,14 @@ interface TutorialsTabProps {
   pathname: string;
   contextKeywords: string[];
   pageName: string;
+  initialArticleId?: string;
 }
 
 export default function TutorialsTab({ 
   pathname, 
   contextKeywords,
-  pageName 
+  pageName,
+  initialArticleId
 }: TutorialsTabProps) {
   const { currentPlan } = useSubscription();
   const [tutorials, setTutorials] = useState<Tutorial[]>([]);
@@ -50,6 +52,19 @@ export default function TutorialsTab({
     });
   };
 
+  // Sort tutorials with priority for initial article
+  const sortTutorialsWithPriority = (tutorials: Tutorial[], priorityId?: string): Tutorial[] => {
+    if (!priorityId) return tutorials;
+    
+    return [...tutorials].sort((a, b) => {
+      // Put the priority article first
+      if (a.id === priorityId) return -1;
+      if (b.id === priorityId) return 1;
+      // Otherwise sort by relevance score
+      return (b.relevanceScore || 0) - (a.relevanceScore || 0);
+    });
+  };
+
   useEffect(() => {
     fetchTutorials();
     // Track page view for behavioral recommendations
@@ -60,7 +75,7 @@ export default function TutorialsTab({
       success: true,
       context: pageName
     });
-  }, [pathname, contextKeywords, pageName]);
+  }, [pathname, contextKeywords, pageName, initialArticleId]);
 
   const fetchTutorials = async () => {
     setLoadingTutorials(true);
@@ -92,19 +107,24 @@ export default function TutorialsTab({
         }));
         // Filter by plan
         const planFilteredTutorials = filterTutorialsByPlan(tutorialsWithScores);
-        setTutorials(planFilteredTutorials);
+        // Prioritize initial article if specified
+        const sortedTutorials = sortTutorialsWithPriority(planFilteredTutorials, initialArticleId);
+        setTutorials(sortedTutorials);
       } else {
         // Fallback to mock data if API not available
         const mockTutorials = getMockTutorials(allKeywords);
         const planFilteredTutorials = filterTutorialsByPlan(mockTutorials);
-        setTutorials(planFilteredTutorials);
+        // Prioritize initial article if specified
+        const sortedTutorials = sortTutorialsWithPriority(planFilteredTutorials, initialArticleId);
+        setTutorials(sortedTutorials);
       }
     } catch (error) {
       console.error('Error fetching tutorials:', error);
       // Fallback to mock data
       const mockTutorials = getMockTutorials(contextKeywords);
       const planFilteredTutorials = filterTutorialsByPlan(mockTutorials);
-      setTutorials(planFilteredTutorials);
+      const sortedTutorials = sortTutorialsWithPriority(planFilteredTutorials, initialArticleId);
+      setTutorials(sortedTutorials);
     } finally {
       setLoadingTutorials(false);
     }
@@ -164,6 +184,15 @@ export default function TutorialsTab({
         url: 'https://promptreviews.app/docs/google-business',
         category: 'integrations',
         tags: ['google', 'business-profile', 'integration'],
+        plans: ['builder', 'maven', 'enterprise'] // Builder+ only
+      },
+      {
+        id: 'bulk-update',
+        title: 'Bulk Business Information Updates',
+        description: 'Learn how to update multiple Google Business Profile locations simultaneously',
+        url: 'https://promptreviews.app/docs/bulk-business-info-update',
+        category: 'integrations',
+        tags: ['google', 'business-profile', 'bulk', 'update', 'multiple', 'locations', 'business-info'],
         plans: ['builder', 'maven', 'enterprise'] // Builder+ only
       },
       {

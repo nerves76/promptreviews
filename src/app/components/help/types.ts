@@ -21,6 +21,9 @@ export interface Tutorial {
 export interface HelpModalProps {
   isOpen: boolean;
   onClose: () => void;
+  initialArticleId?: string;
+  initialKeywords?: string[];
+  initialTab?: TabType;
 }
 
 export interface CategoryOption {

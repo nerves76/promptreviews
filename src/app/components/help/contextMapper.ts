@@ -46,9 +46,9 @@ const routeContextMap: Record<string, RouteContext> = {
     helpTopics: ['widget-types', 'embedding', 'customization']
   },
   '/dashboard/google-business': {
-    keywords: ['google', 'business-profile', 'integration', 'gmb', 'maps'],
+    keywords: ['google', 'business-profile', 'integration', 'gmb', 'maps', 'bulk', 'update', 'multiple', 'locations', 'business-info'],
     pageName: 'Google Business Profile',
-    helpTopics: ['connection', 'sync', 'reviews-import']
+    helpTopics: ['connection', 'sync', 'reviews-import', 'bulk-updates', 'location-management']
   },
   '/dashboard/reviews': {
     keywords: ['reviews', 'manage', 'verification', 'feedback', 'ratings'],

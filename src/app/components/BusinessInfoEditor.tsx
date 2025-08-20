@@ -1082,6 +1082,9 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
       <HelpModal 
         isOpen={showHelpModal}
         onClose={() => setShowHelpModal(false)}
+        initialArticleId="bulk-update"
+        initialKeywords={['bulk', 'update', 'multiple', 'locations', 'google', 'business-profile']}
+        initialTab="tutorials"
       />
     </div>
   );

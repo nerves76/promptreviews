@@ -15,15 +15,24 @@ import FAQsTab from './FAQsTab';
 import IssuesTab from './IssuesTab';
 import { trackEvent } from '../../../utils/analytics';
 
-export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
+export default function HelpModal({ 
+  isOpen, 
+  onClose, 
+  initialArticleId,
+  initialKeywords,
+  initialTab = 'tutorials'
+}: HelpModalProps) {
   const pathname = usePathname();
-  const [activeTab, setActiveTab] = useState<TabType>('tutorials');
+  const [activeTab, setActiveTab] = useState<TabType>(initialTab);
   
   // Debug logging
-  console.log('🎯 HelpModal rendered, isOpen:', isOpen);
+  console.log('🎯 HelpModal rendered, isOpen:', isOpen, 'initialArticleId:', initialArticleId);
   
-  // Get context information from current page
-  const { keywords, pageName, helpTopics } = getContextFromPath(pathname);
+  // Get context information from current page or use provided keywords
+  const pageContext = getContextFromPath(pathname);
+  const keywords = initialKeywords || pageContext.keywords;
+  const pageName = pageContext.pageName;
+  const helpTopics = pageContext.helpTopics;
 
   // Track modal open
   useEffect(() => {
@@ -150,6 +159,7 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
                   pathname={pathname}
                   contextKeywords={keywords}
                   pageName={pageName}
+                  initialArticleId={initialArticleId}
                 />
               )}
               
