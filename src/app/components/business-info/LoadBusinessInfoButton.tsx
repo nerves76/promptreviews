@@ -96,7 +96,7 @@ export default function LoadBusinessInfoButton({
         
         console.log('🏷️ Raw categories data from Google:', {
           hasCategories: !!data.location.categories,
-          categoriesStructure: data.location.categories,
+          categoriesStructure: JSON.stringify(data.location.categories, null, 2),
           primaryCategory: data.location.primaryCategory,
           additionalCategories: data.location.additionalCategories,
           hasPrimaryCategory: !!data.location.primaryCategory,
