@@ -58,10 +58,10 @@ const articleAssociations: ArticleAssociation[] = [
   },
   {
     appPage: '/dashboard/google-business',
-    articles: ['troubleshooting'],
-    keywords: ['google', 'integration', 'business-profile'],
+    articles: ['troubleshooting', 'bulk-business-info-update'],
+    keywords: ['google', 'integration', 'business-profile', 'bulk', 'update', 'multiple', 'locations'],
     priority: 'medium',
-    userActions: ['connect_google', 'page_view']
+    userActions: ['connect_google', 'page_view', 'bulk_update', 'update_business_info']
   },
   {
     appPage: '/dashboard/widget',

@@ -19,6 +19,7 @@ import LoadBusinessInfoButton from './business-info/LoadBusinessInfoButton';
 import BusinessDescriptionAnalyzer from './BusinessDescriptionAnalyzer';
 import AddressEditor from './business-info/AddressEditor';
 import ContactInfoEditor from './business-info/ContactInfoEditor';
+import HelpModal from './help/HelpModal';
 
 // Import shared types
 import { BusinessInfo, BusinessCategory, ServiceItem, Address, PhoneNumbers } from '@/types/business-info';
@@ -97,6 +98,7 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
   const [businessContext, setBusinessContext] = useState<any>(null);
   const [formDataBackup, setFormDataBackup] = useState<BusinessInfo | null>(null);
   const [showUnsavedWarning, setShowUnsavedWarning] = useState(false);
+  const [showHelpModal, setShowHelpModal] = useState(false);
 
   // Debug: Log when component mounts/unmounts
   useEffect(() => {
@@ -678,7 +680,14 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
                   </div>
                   <p className="text-sm text-orange-800">
                     ⚠️ Changes will be applied to ALL {selectedLocationIds.length} selected locations simultaneously. 
-                    Existing data will be overwritten. Use single location mode to preserve existing content.
+                    Empty fields will be skipped and remain the same.{' '}
+                    <button
+                      type="button"
+                      onClick={() => setShowHelpModal(true)}
+                      className="text-orange-900 font-semibold underline hover:text-orange-700 transition-colors"
+                    >
+                      Learn more
+                    </button>
                   </p>
                 </div>
               </div>
@@ -1068,6 +1077,12 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
           </div>
         </div>
       )}
+      
+      {/* Help Modal */}
+      <HelpModal 
+        isOpen={showHelpModal}
+        onClose={() => setShowHelpModal(false)}
+      />
     </div>
   );
 } 
