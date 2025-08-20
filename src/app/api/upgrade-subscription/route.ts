@@ -1,3 +1,9 @@
+/**
+ * ⚠️ TEMPORARY LIVE MODE ADMIN DISCOUNT ENABLED ⚠️
+ * Remove || isLiveMode from line 128 before production
+ * This currently applies 99% discount for admin accounts in both test and live modes
+ */
+
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { createClient } from "@supabase/supabase-js";
@@ -109,6 +115,7 @@ export async function POST(req: NextRequest) {
     const { isTestingAccount } = await import('@/lib/testing-mode');
     const isAdmin = await isTestingAccount(account.email);
     const isTestMode = process.env.STRIPE_SECRET_KEY?.startsWith('sk_test_');
+    const isLiveMode = process.env.STRIPE_SECRET_KEY?.startsWith('sk_live_');
     
     // Prepare update configuration
     let updateConfig: any = {
@@ -122,9 +129,11 @@ export async function POST(req: NextRequest) {
       proration_behavior: "always_invoice",
     };
     
-    // Apply testing discount for admins in test mode
-    if (isAdmin && isTestMode) {
+    // TEMPORARY: Apply testing discount for admins in both test AND live modes
+    // WARNING: Remove || isLiveMode before production
+    if (isAdmin && (isTestMode || isLiveMode)) {
       console.log('🧪 Admin testing mode: Applying 99% discount to subscription update');
+      console.log(`📍 Mode: ${isTestMode ? 'TEST' : 'LIVE'} - Admin discount enabled for upgrade/downgrade`);
       updateConfig.discounts = [{
         coupon: 'TESTDEV_99'
       }];
