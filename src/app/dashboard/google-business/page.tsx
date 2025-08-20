@@ -1585,7 +1585,7 @@ export default function SocialPostingDashboard() {
                 } ${(!isConnected || locations.length === 0) ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
                 <div className="flex items-center space-x-2">
-                  <Icon name="FaTags" className="w-4 h-4" size={16} />
+                  <Icon name="FaHandsHelping" className="w-4 h-4" size={16} />
                   <span>Services</span>
                 </div>
               </button>
@@ -1613,7 +1613,7 @@ export default function SocialPostingDashboard() {
                 } ${(!isConnected || locations.length === 0) ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
                 <div className="flex items-center space-x-2">
-                  <Icon name="FaCommentAlt" className="w-4 h-4" size={16} />
+                  <Icon name="FaImage" className="w-4 h-4" size={16} />
                   <span>Photos</span>
                 </div>
               </button>
@@ -1691,7 +1691,7 @@ export default function SocialPostingDashboard() {
                     }`}
                   >
                     <div className="flex items-center space-x-3">
-                      <Icon name="FaTags" className="w-4 h-4" size={16} />
+                      <Icon name="FaHandsHelping" className="w-4 h-4" size={16} />
                       <span>Services</span>
                     </div>
                   </button>
@@ -1723,7 +1723,7 @@ export default function SocialPostingDashboard() {
                     }`}
                   >
                     <div className="flex items-center space-x-3">
-                      <Icon name="FaCommentAlt" className="w-4 h-4" size={16} />
+                      <Icon name="FaImage" className="w-4 h-4" size={16} />
                       <span>Photos</span>
                     </div>
                   </button>
@@ -2570,7 +2570,7 @@ export default function SocialPostingDashboard() {
             <div className="space-y-6">
               {!isConnected ? (
                 <div className="text-center py-12">
-                  <Icon name="FaTags" className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <Icon name="FaHandsHelping" className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">Connect Google Business Profile</h3>
                   <p className="text-gray-600 mb-4">
                     Connect your Google Business Profile to manage categories and services.
