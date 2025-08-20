@@ -619,20 +619,6 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
           </div>
         )}
 
-        {/* Load Business Info Button - Inside business selector box, aligned right */}
-        {selectedLocationIds.length > 0 && (
-          <div className="mt-4 flex justify-end">
-            <LoadBusinessInfoButton
-              selectedLocationIds={selectedLocationIds}
-              locations={locations}
-              detailsLoaded={detailsLoaded}
-              onBusinessInfoLoaded={handleBusinessInfoLoaded}
-              onLoadingStateChange={setIsLoadingDetails}
-              onDetailsLoadedChange={setDetailsLoaded}
-              onErrorChange={setDetailsError}
-            />
-          </div>
-        )}
       </div>
 
 
@@ -649,14 +635,29 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
                   </div>
                 </div>
                 <div className="flex-1">
-                  <h4 className="text-sm font-medium text-green-900 mb-1">Single location edit</h4>
-                  <p className="text-sm text-green-700">
-                    Editing {locations.find(loc => loc.id === selectedLocationIds[0])?.name}. 
-                    {detailsLoaded 
-                      ? 'Current business information has been loaded from Google Business Profile.'
-                      : 'Click "Load Business Info" to import your existing data, or enter new information below.'
-                    }
-                  </p>
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <h4 className="text-sm font-medium text-green-900 mb-1">Single location edit</h4>
+                      <p className="text-sm text-green-700">
+                        Editing {locations.find(loc => loc.id === selectedLocationIds[0])?.name}. 
+                        {detailsLoaded 
+                          ? 'Current business information has been loaded from Google Business Profile.'
+                          : 'Click the button to import your existing data, or enter new information below.'
+                        }
+                      </p>
+                    </div>
+                    <div className="ml-4">
+                      <LoadBusinessInfoButton
+                        selectedLocationIds={selectedLocationIds}
+                        locations={locations}
+                        detailsLoaded={detailsLoaded}
+                        onBusinessInfoLoaded={handleBusinessInfoLoaded}
+                        onLoadingStateChange={setIsLoadingDetails}
+                        onDetailsLoadedChange={setDetailsLoaded}
+                        onErrorChange={setDetailsError}
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
