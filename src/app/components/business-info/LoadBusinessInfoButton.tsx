@@ -107,19 +107,51 @@ export default function LoadBusinessInfoButton({
         let primaryCategory = null;
         let additionalCategories = [];
         
-        // Check if categories are directly on the location object
-        if (data.location.primaryCategory) {
+        // Google's API can return categories in different structures depending on the endpoint
+        // Check multiple possible locations for the category data
+        
+        // Option 1: Nested under 'categories' object (most common)
+        if (data.location.categories) {
+          console.log('📋 Found categories object:', data.location.categories);
+          
+          // Check for primaryCategory or primary_category (Google uses both)
+          const primaryCat = data.location.categories.primaryCategory || 
+                            data.location.categories.primary_category;
+          
+          if (primaryCat) {
+            console.log('📋 Processing primary category from categories object:', primaryCat);
+            primaryCategory = {
+              categoryId: primaryCat.name || primaryCat.categoryId,
+              displayName: primaryCat.displayName
+            };
+          }
+          
+          // Check for additionalCategories or additional_categories
+          const additionalCats = data.location.categories.additionalCategories || 
+                                data.location.categories.additional_categories;
+          
+          if (additionalCats && Array.isArray(additionalCats)) {
+            console.log('📋 Processing additional categories from categories object:', additionalCats);
+            additionalCategories = additionalCats.map((cat: any) => ({
+              categoryId: cat.name || cat.categoryId,
+              displayName: cat.displayName
+            }));
+          }
+        }
+        
+        // Option 2: Directly on location object (less common but sometimes used)
+        if (!primaryCategory && data.location.primaryCategory) {
           console.log('📋 Processing primary category from data.location.primaryCategory:', data.location.primaryCategory);
           primaryCategory = {
-            categoryId: data.location.primaryCategory.name,
+            categoryId: data.location.primaryCategory.name || data.location.primaryCategory.categoryId,
             displayName: data.location.primaryCategory.displayName
           };
         }
         
-        if (data.location.additionalCategories) {
+        if (additionalCategories.length === 0 && data.location.additionalCategories) {
           console.log('📋 Processing additional categories from data.location.additionalCategories:', data.location.additionalCategories);
           additionalCategories = data.location.additionalCategories.map((cat: any) => ({
-            categoryId: cat.name,
+            categoryId: cat.name || cat.categoryId,
             displayName: cat.displayName
           }));
         }
