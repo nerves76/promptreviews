@@ -132,18 +132,15 @@ export default function ServiceItemsEditor({
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2">
           <Icon name="FaStore" className="w-5 h-5 text-slate-blue" size={20} />
-          <h4 className="text-md font-medium text-gray-900">Services & products</h4>
+          <h4 className="text-md font-medium text-gray-900">Services</h4>
         </div>
-        {/* Only show add button when details are loaded or for multi-location */}
-        {(detailsLoaded || selectedLocationCount > 1) && (
-          <button
-            type="button"
-            onClick={addServiceItem}
-            className="text-sm text-slate-blue hover:text-slate-blue-dark font-medium"
-          >
-            + Add service
-          </button>
-        )}
+        <button
+          type="button"
+          onClick={addServiceItem}
+          className="text-sm text-slate-blue hover:text-slate-blue-dark font-medium"
+        >
+          + Add service
+        </button>
       </div>
 
       {/* Services Content */}
