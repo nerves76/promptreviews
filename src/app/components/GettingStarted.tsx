@@ -233,7 +233,7 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
             id: "share",
             title: "Share with customers and clients!",
             description: "Start collecting reviews from your customers",
-            icon: <Icon name="FaHandsHelping" className="w-5 h-5" size={20} />,
+            icon: <Icon name="FaHandshake" className="w-5 h-5" size={20} />,
             completed: false
           }
         ];
