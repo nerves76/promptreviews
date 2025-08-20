@@ -12,8 +12,6 @@ import { createClient } from '@/auth/providers/supabase';
 import { getAccountIdForUser } from '@/auth/utils/accounts';
 
 // Import our modular components
-import CategorySearch from './business-info/CategorySearch';
-import ServiceItemsEditor from './business-info/ServiceItemsEditor';
 import BusinessHoursEditor from './business-info/BusinessHoursEditor';
 import LoadBusinessInfoButton from './business-info/LoadBusinessInfoButton';
 import BusinessDescriptionAnalyzer from './BusinessDescriptionAnalyzer';
@@ -920,12 +918,13 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         {businessInfo.primaryCategory ? 'Change primary category' : 'Set primary category'}
                       </label>
+                      {/* Moved to Services tab
                       <CategorySearch
                         selectedCategory={businessInfo.primaryCategory}
                         onCategorySelect={(category) => handleInputChange('primaryCategory', category)}
                         placeholder="Search Google Business categories..."
                         disabled={isLoadingDetails}
-                      />
+                      /> */}
                       <p className="text-xs text-gray-500 mt-1">
                         Search from Google's 4,000+ business categories to ensure accuracy.
                       </p>
@@ -952,6 +951,7 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
                           {businessInfo.additionalCategories.map((category, index) => (
                             <div key={index} className="flex items-center space-x-2">
                               <div className="flex-1">
+                                {/* Moved to Services tab
                                 <CategorySearch
                                   selectedCategory={category.categoryId ? category : undefined}
                                   onCategorySelect={(selectedCategory) => {
@@ -965,7 +965,7 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
                                   }}
                                   placeholder="Search for additional category..."
                                   disabled={isLoadingDetails}
-                                />
+                                /> */}
                               </div>
                               <button
                                 type="button"
@@ -995,8 +995,8 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
                 )}
               </div>
 
-              {/* Services & Products Section */}
-              <ServiceItemsEditor
+              {/* Services & Products Section - Moved to Services tab */}
+              {/* <ServiceItemsEditor
                 serviceItems={businessInfo.serviceItems}
                 onServiceItemsChange={(items) => {
                   handleInputChange('serviceItems', items);
@@ -1019,7 +1019,7 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
                   primaryCategory: businessInfo.primaryCategory?.displayName,
                   description: businessInfo.description
                 }}
-              />
+              /> */}
             </div>
           )}
 

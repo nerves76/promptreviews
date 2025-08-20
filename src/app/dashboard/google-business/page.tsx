@@ -12,6 +12,7 @@ import FiveStarSpinner from '@/app/components/FiveStarSpinner';
 import PhotoManagement from '@/app/components/PhotoManagement';
 import ReviewManagement from '@/app/components/ReviewManagement';
 import BusinessInfoEditor from '@/app/components/BusinessInfoEditor';
+import ServicesEditor from '@/app/components/ServicesEditor';
 import { createClient } from '@/utils/supabaseClient';
 import { useBusinessData, useAuthUser, useAccountData, useSubscriptionData } from '@/auth/hooks/granularAuthHooks';
 import UnrespondedReviewsWidget from '@/app/components/UnrespondedReviewsWidget';
@@ -188,12 +189,12 @@ export default function SocialPostingDashboard() {
   }, [imageUrls]);
 
   // Tab state with URL parameter support and dynamic default based on connection
-  const [activeTab, setActiveTab] = useState<'connect' | 'overview' | 'create-post' | 'photos' | 'business-info' | 'reviews'>(() => {
+  const [activeTab, setActiveTab] = useState<'connect' | 'overview' | 'create-post' | 'photos' | 'business-info' | 'services' | 'reviews'>(() => {
     // Initialize from URL parameter if available
     if (typeof window !== 'undefined') {
       const urlParams = new URLSearchParams(window.location.search);
-      const tabParam = urlParams.get('tab') as 'connect' | 'overview' | 'create-post' | 'photos' | 'business-info' | 'reviews';
-      if (tabParam && ['connect', 'overview', 'create-post', 'photos', 'business-info', 'reviews'].includes(tabParam)) {
+      const tabParam = urlParams.get('tab') as 'connect' | 'overview' | 'create-post' | 'photos' | 'business-info' | 'services' | 'reviews';
+      if (tabParam && ['connect', 'overview', 'create-post', 'photos', 'business-info', 'services', 'reviews'].includes(tabParam)) {
         return tabParam;
       }
     }
@@ -228,7 +229,7 @@ export default function SocialPostingDashboard() {
   }, [currentPlan]);
 
   // Update URL when tab changes
-  const changeTab = (newTab: 'connect' | 'overview' | 'create-post' | 'photos' | 'business-info' | 'reviews') => {
+  const changeTab = (newTab: 'connect' | 'overview' | 'create-post' | 'photos' | 'business-info' | 'services' | 'reviews') => {
     setActiveTab(newTab);
     setIsMobileMenuOpen(false); // Close mobile menu when tab changes
     
@@ -1521,6 +1522,7 @@ export default function SocialPostingDashboard() {
                 {activeTab === 'create-post' && 'Create Post'}
                 {activeTab === 'photos' && 'Photos'}
                 {activeTab === 'business-info' && 'Business Info'}
+                {activeTab === 'services' && 'Services'}
                 {activeTab === 'reviews' && 'Reviews'}
               </h3>
               <button
@@ -1571,6 +1573,20 @@ export default function SocialPostingDashboard() {
                 <div className="flex items-center space-x-2">
                   <Icon name="FaStore" className="w-4 h-4" size={16} />
                   <span>Business Info</span>
+                </div>
+              </button>
+              <button
+                onClick={() => changeTab('services')}
+                disabled={!isConnected || locations.length === 0}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'services' && isConnected && locations.length > 0
+                    ? 'border-slate-blue text-slate-blue'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                } ${(!isConnected || locations.length === 0) ? 'opacity-50 cursor-not-allowed' : ''}`}
+              >
+                <div className="flex items-center space-x-2">
+                  <Icon name="FaTags" className="w-4 h-4" size={16} />
+                  <span>Services</span>
                 </div>
               </button>
               <button
@@ -1661,6 +1677,22 @@ export default function SocialPostingDashboard() {
                     <div className="flex items-center space-x-3">
                       <Icon name="FaStore" className="w-4 h-4" size={16} />
                       <span>Business Info</span>
+                    </div>
+                  </button>
+                  <button
+                    onClick={() => changeTab('services')}
+                    disabled={!isConnected}
+                    className={`w-full text-left px-3 py-2 rounded-md text-sm font-medium ${
+                      activeTab === 'services' && isConnected
+                        ? 'bg-slate-blue text-white'
+                        : isConnected 
+                          ? 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                          : 'text-gray-400 cursor-not-allowed'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-3">
+                      <Icon name="FaTags" className="w-4 h-4" size={16} />
+                      <span>Services</span>
                     </div>
                   </button>
                   <button
@@ -2526,6 +2558,44 @@ export default function SocialPostingDashboard() {
               ) : (
                 <BusinessInfoEditor 
                   key="business-info-editor" 
+                  locations={locations}
+                  isConnected={isConnected}
+                />
+              )}
+            </div>
+          )}
+
+          {/* Services Tab */}
+          {activeTab === 'services' && (
+            <div className="space-y-6">
+              {!isConnected ? (
+                <div className="text-center py-12">
+                  <Icon name="FaTags" className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Connect Google Business Profile</h3>
+                  <p className="text-gray-600 mb-4">
+                    Connect your Google Business Profile to manage categories and services.
+                  </p>
+                  <button
+                    onClick={handleConnect}
+                    disabled={isLoading}
+                    className="px-6 py-2 bg-slate-600 text-white rounded-md hover:bg-slate-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center space-x-2 mx-auto"
+                  >
+                    {isLoading ? (
+                      <>
+                        <FiveStarSpinner />
+                        <span>Connecting...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Icon name="FaGoogle" className="w-4 h-4" />
+                        <span>Connect Google Business</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              ) : (
+                <ServicesEditor 
+                  key="services-editor" 
                   locations={locations}
                   isConnected={isConnected}
                 />
