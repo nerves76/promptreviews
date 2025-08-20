@@ -315,6 +315,41 @@ You can view and manage this communication in your dashboard.`;
               console.log(`📝 Updated prompt page ${originalCommunication.prompt_page_id} status to 'follow_up'`);
             }
           }
+          
+          // Create a notification record in communication_records for the business owner
+          // This will appear in their activity feed
+          const contactLink = `${process.env.NEXT_PUBLIC_APP_URL || 'https://app.promptreviews.app'}/dashboard/contacts?id=${contact.id}`;
+          const notificationMessage = `Reminder: You reached out to ${customerName} about a review ${timeFrame} ago. Did you verify a review was submitted? If not, give them a friendly reminder and share this link: ${contactLink}`;
+          
+          const { error: notificationError } = await supabase
+            .from('communication_records')
+            .insert({
+              account_id: reminder.account_id,
+              contact_id: reminder.contact_id,
+              prompt_page_id: originalCommunication?.prompt_page_id,
+              communication_type: 'notification',
+              subject: `Follow-up reminder: ${customerName}`,
+              message_content: notificationMessage,
+              sent_at: new Date().toISOString(),
+              sent_by: 'system',
+              metadata: {
+                type: 'follow_up_reminder',
+                original_communication_id: originalCommunication?.id,
+                reminder_id: reminder.id,
+                contact_details: {
+                  name: customerName,
+                  email: contact?.email,
+                  phone: contact?.phone
+                },
+                action_url: contactLink
+              }
+            });
+            
+          if (notificationError) {
+            console.warn(`⚠️ Failed to create notification record for reminder ${reminder.id}:`, notificationError);
+          } else {
+            console.log(`📝 Created activity record for business about ${customerName}`);
+          }
 
           console.log(`✅ Sent follow-up reminder to ${business.email} about customer ${customerName}`);
           processed++;
