@@ -183,41 +183,25 @@ export async function POST(request: NextRequest) {
         }
 
         // Address update - handle carefully for service area businesses
-        // Some categories (like personal_trainer) require an address even for service area businesses
-        const categoryRequiresAddress = updates.primaryCategory?.categoryId?.includes('personal_trainer') ||
-                                       updates.primaryCategory?.categoryId?.includes('trainer') ||
-                                       updates.primaryCategory?.categoryId?.includes('fitness');
-        
-        // Check if this is a service area business (no storefront address)
-        const isServiceAreaBusiness = currentLocationData?.serviceArea?.businessType === 'CUSTOMER_LOCATION_ONLY';
-        
+        // Only include address if we have one (either new or existing)
         if (updates.storefrontAddress || currentLocationData?.storefrontAddress) {
-          // We have an address (either new or existing)
           const address = updates.storefrontAddress || currentLocationData.storefrontAddress;
-          locationUpdate.storefrontAddress = {
-            addressLines: address.addressLines?.map((line: string) => cleanStringForGoogle(line)).filter(Boolean) || [],
-            locality: cleanStringForGoogle(address.locality),
-            administrativeArea: cleanStringForGoogle(address.administrativeArea),
-            postalCode: cleanStringForGoogle(address.postalCode),
-            regionCode: address.regionCode || 'US'
-          };
-          console.log('📍 Including address in update');
-        } else if (categoryRequiresAddress && !currentLocationData?.storefrontAddress) {
-          // Category requires address but we don't have one (service area business)
-          console.log('⚠️ Category requires address but none available (service area business)');
-          console.log('💡 User must provide an address for this category');
           
-          // Check if user provided an address in the updates
-          if (!updates.storefrontAddress) {
-            console.log('❌ Skipping location update - address required but not provided');
-            results.push({
-              locationId,
-              success: false,
-              error: 'This category requires a business address. Please add an address in the Business Address section.',
-              requiresAddress: true
-            });
-            continue; // Skip this location
+          // Only include if address has actual content
+          if (address && (address.addressLines?.length > 0 || address.locality || address.postalCode)) {
+            locationUpdate.storefrontAddress = {
+              addressLines: address.addressLines?.map((line: string) => cleanStringForGoogle(line)).filter(Boolean) || [],
+              locality: cleanStringForGoogle(address.locality),
+              administrativeArea: cleanStringForGoogle(address.administrativeArea),
+              postalCode: cleanStringForGoogle(address.postalCode),
+              regionCode: address.regionCode || 'US'
+            };
+            console.log('📍 Including address in update');
+          } else {
+            console.log('📍 Skipping empty address');
           }
+        } else {
+          console.log('📍 No address available (likely service area business)');
         }
 
         // Phone numbers update
@@ -414,9 +398,17 @@ export async function POST(request: NextRequest) {
         // Categories update - Google expects them nested under "categories" and using "name" not "categoryId"
         // Also uses snake_case field names: primary_category, additional_categories
         // Only include if we have valid category data to avoid sending empty objects
+        
+        // Check if primary category is actually changing
+        const currentPrimaryCategory = currentLocationData?.categories?.primaryCategory?.name || 
+                                       currentLocationData?.categories?.primary_category?.name;
+        const isPrimaryCategoryChanging = updates.primaryCategory?.categoryId && 
+                                          updates.primaryCategory.categoryId !== currentPrimaryCategory;
+        
         const hasValidPrimaryCategory = hasValue(updates.primaryCategory) && 
           hasValue(updates.primaryCategory.categoryId) && 
-          hasValue(updates.primaryCategory.displayName);
+          hasValue(updates.primaryCategory.displayName) &&
+          isPrimaryCategoryChanging; // Only update if actually changing
         
         const hasValidAdditionalCategories = hasValue(updates.additionalCategories) && 
           Array.isArray(updates.additionalCategories) &&
@@ -425,6 +417,12 @@ export async function POST(request: NextRequest) {
           );
 
         if (hasValidPrimaryCategory || hasValidAdditionalCategories) {
+          console.log('📊 Category update check:', {
+            currentPrimary: currentPrimaryCategory,
+            newPrimary: updates.primaryCategory?.categoryId,
+            isChanging: isPrimaryCategoryChanging,
+            willUpdate: hasValidPrimaryCategory
+          });
           locationUpdate.categories = {};
           
           if (hasValidPrimaryCategory) {

@@ -824,12 +824,6 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
                   address={businessInfo.storefrontAddress}
                   onChange={(address) => handleInputChange('storefrontAddress', address)}
                   disabled={isLoadingDetails}
-                  requiredForCategory={
-                    businessInfo.primaryCategory?.categoryId?.includes('personal_trainer') ||
-                    businessInfo.primaryCategory?.categoryId?.includes('trainer') ||
-                    businessInfo.primaryCategory?.categoryId?.includes('fitness')
-                  }
-                  categoryName={businessInfo.primaryCategory?.displayName}
                 />
                 <p className="mt-3 text-sm text-gray-500">
                   {selectedLocationIds.length === 1 
