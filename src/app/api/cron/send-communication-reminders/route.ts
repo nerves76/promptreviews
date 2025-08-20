@@ -230,9 +230,9 @@ export async function GET(request: NextRequest) {
     // Process each due reminder
     for (const reminder of dueReminders as unknown as ReminderData[]) {
       try {
-        // Skip if contact doesn't have an email
-        if (!reminder.contacts?.email) {
-          console.log(`⏭️ Skipping reminder ${reminder.id} - contact has no email`);
+        // Skip if business/account doesn't have an email (we send reminders to the business, not the customer)
+        if (!reminder.accounts?.email) {
+          console.log(`⏭️ Skipping reminder ${reminder.id} - business account has no email`);
           continue;
         }
 
@@ -243,42 +243,38 @@ export async function GET(request: NextRequest) {
 
         // Construct reminder email data
         const businessName = business?.business_name || `${business?.first_name || ''} ${business?.last_name || ''}`.trim() || 'Your Business';
-        const customerName = `${contact?.first_name || ''} ${contact?.last_name || ''}`.trim() || 'Valued Customer';
+        const businessOwnerName = `${business?.first_name || ''}`.trim() || 'Business Owner';
+        const customerName = `${contact?.first_name || ''} ${contact?.last_name || ''}`.trim() || 'Customer';
         
-        // Use custom message if provided, otherwise use default follow-up template
-        let reminderMessage = reminder.custom_message;
-        
-        if (!reminderMessage) {
-          // Generate default follow-up message based on reminder type
-          const timeFrame = getReminderTypeLabel(reminder.reminder_type);
-          reminderMessage = `Hi ${customerName},
+        // Create a reminder message for the BUSINESS OWNER, not the customer
+        const timeFrame = getReminderTypeLabel(reminder.reminder_type);
+        const reminderMessage = `Hi ${businessOwnerName},
 
-This is a friendly follow-up from ${businessName}.
+This is a reminder to follow up with ${customerName} about leaving a review.
 
-${timeFrame} ago, we reached out to you requesting feedback about your experience with us. We wanted to check if you had a moment to share your thoughts.
+${timeFrame} ago, you sent them ${originalCommunication?.communication_type === 'sms' ? 'an SMS' : 'an email'} requesting feedback. They haven't submitted a review yet, so it might be a good time to send a friendly follow-up.
 
-Your review means a lot to us and helps other customers discover our services.
+Customer details:
+• Name: ${customerName}
+${contact?.email ? `• Email: ${contact.email}` : ''}
+${contact?.phone ? `• Phone: ${contact.phone}` : ''}
 
-Thank you for your time!
+Original message you sent:
+"${originalCommunication?.message_content || 'No message content available'}"
 
-Best regards,
-${businessName} Team`;
+You can view and manage this communication in your dashboard.`;
 
-          const originalMessage = originalCommunication?.message_content || 'No message content available';
-          reminderMessage += `\n\n---\nOriginal message:\n${originalMessage}`;
-        }
-
-        // Send the follow-up email using the template system
+        // Send the follow-up reminder to the BUSINESS OWNER, not the customer
         const emailResult = await sendTemplatedEmail({
           templateName: 'communication-follow-up-reminder',
-          to: contact.email!,
+          to: business.email!, // Send to business owner
           variables: {
-            customer_name: customerName,
+            customer_name: businessOwnerName, // This is who we're addressing
             business_name: businessName,
-            original_subject: originalCommunication?.subject || 'Previous Communication',
+            original_subject: originalCommunication?.subject || `Review request for ${customerName}`,
             original_message: originalCommunication?.message_content || '',
             original_date: originalCommunication?.sent_at ? new Date(originalCommunication.sent_at).toLocaleDateString() : 'recently',
-            review_url: `${process.env.NEXT_PUBLIC_APP_URL || 'https://app.promptreviews.app'}/dashboard/reviews`
+            review_url: `${process.env.NEXT_PUBLIC_APP_URL || 'https://app.promptreviews.app'}/dashboard/contacts` // Link to contacts page to follow up
           },
           // Fallback content if template doesn't exist
           fallbackSubject: `Follow-up: ${originalCommunication?.subject || 'Previous Communication'}`,
@@ -320,14 +316,14 @@ ${businessName} Team`;
             }
           }
 
-          console.log(`✅ Sent follow-up reminder to ${contact.email} for ${businessName}`);
+          console.log(`✅ Sent follow-up reminder to ${business.email} about customer ${customerName}`);
           processed++;
         } else {
           console.error(`❌ Failed to send reminder ${reminder.id}:`, emailResult.error);
           failed++;
           failedReminders.push({
             id: reminder.id,
-            email: contact.email || 'unknown',
+            email: business.email || 'unknown',
             error: emailResult.error || 'Unknown error'
           });
           cronContext.errors.push({
