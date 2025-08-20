@@ -39,7 +39,7 @@ export interface BusinessLocation {
   title?: string;
   primaryPhone?: string;
   additionalPhones?: string[];
-  address: {
+  address?: {
     regionCode: string;
     languageCode?: string;
     postalCode?: string;
@@ -47,7 +47,8 @@ export interface BusinessLocation {
     locality?: string;
     addressLines: string[];
   };
-  primaryCategory: {
+  // Legacy fields for backwards compatibility
+  primaryCategory?: {
     categoryId: string;
     displayName: string;
   };
@@ -55,6 +56,30 @@ export interface BusinessLocation {
     categoryId: string;
     displayName: string;
   }>;
+  // New nested categories structure from Google API
+  categories?: {
+    primaryCategory?: {
+      name: string;
+      displayName: string;
+    };
+    additionalCategories?: Array<{
+      name: string;
+      displayName: string;
+    }>;
+  };
+  // Address fields that Google API uses
+  storefrontAddress?: {
+    regionCode: string;
+    languageCode?: string;
+    postalCode?: string;
+    administrativeArea?: string;
+    locality?: string;
+    addressLines: string[];
+  };
+  phoneNumbers?: {
+    primaryPhone?: string;
+    additionalPhones?: string[];
+  };
   websiteUri?: string;
   regularHours?: {
     periods: Array<{
@@ -128,6 +153,9 @@ export interface BusinessLocation {
     mapsUri: string;
     newReviewUri: string;
   };
+  // Additional fields that may be returned by the API
+  locationState?: string;
+  verificationState?: string;
 }
 
 // Post Types - Valid LocalPostTopicType values from Google Business Profile API
