@@ -257,7 +257,7 @@ ${timeFrame} ago, you sent them ${originalCommunication?.communication_type === 
 Customer details:
 • Name: ${customerName}
 ${contact?.email ? `• Email: ${contact.email}` : ''}
-${contact?.phone ? `• Phone: ${contact.phone}` : ''}
+${contact?.phone ? `• Phone: ${contact.phone} (send them a text)` : ''}
 
 Original message you sent:
 "${originalCommunication?.message_content || 'No message content available'}"
