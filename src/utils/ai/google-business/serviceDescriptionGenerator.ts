@@ -51,6 +51,10 @@ WRITING STYLE:
 - Include specific details about the service
 - End with next steps or value proposition
 - NO generic business jargon or fluff
+- IMPORTANT: Instead of starting every sentence with "We," lead with action, benefits, or the customer's perspective
+- Use strong verbs like Get, Experience, Build, Achieve to emphasize outcomes
+- Or use audience-driven openers like "Your business", "Customers", "Teams" to keep focus on who benefits
+- Mix verb-driven and customer-centric starters for engaging, varied, natural descriptions
 
 Return ONLY the service description text, no quotes or formatting.`;
 }
@@ -82,7 +86,7 @@ export async function generateServiceDescriptions(
           messages: [
             {
               role: "system",
-              content: "You are a professional business copywriter specializing in Google Business Profile optimization. Write compelling, SEO-friendly service descriptions that convert prospects into customers."
+              content: "You are a professional business copywriter specializing in Google Business Profile optimization. Write compelling, SEO-friendly service descriptions that convert prospects into customers. Avoid starting sentences with 'We' - instead use action verbs (Get, Experience, Build, Achieve) or customer-focused language (Your business, Customers, Teams) to create varied, engaging descriptions."
             },
             {
               role: "user",
