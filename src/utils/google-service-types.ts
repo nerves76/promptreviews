@@ -117,6 +117,66 @@ export function isStructuredService(serviceName: string): boolean {
 }
 
 /**
+ * Search Google's predefined services by name
+ */
+export function searchGoogleServices(query: string, limit: number = 10): Array<{ id: string; name: string }> {
+  if (!query || query.trim().length === 0) {
+    return [];
+  }
+  
+  const searchTerm = query.toLowerCase().trim();
+  const results: Array<{ id: string; name: string; score: number }> = [];
+  
+  for (const [id, name] of Object.entries(SERVICE_TYPE_LOOKUP)) {
+    const nameLower = name.toLowerCase();
+    let score = 0;
+    
+    // Exact match gets highest score
+    if (nameLower === searchTerm) {
+      score = 100;
+    }
+    // Starts with query gets high score
+    else if (nameLower.startsWith(searchTerm)) {
+      score = 90;
+    }
+    // Word starts with query gets medium-high score
+    else if (nameLower.split(' ').some(word => word.startsWith(searchTerm))) {
+      score = 70;
+    }
+    // Contains query gets medium score
+    else if (nameLower.includes(searchTerm)) {
+      score = 50;
+    }
+    // Individual words match
+    else {
+      const queryWords = searchTerm.split(' ');
+      const nameWords = nameLower.split(' ');
+      const matchCount = queryWords.filter(qWord => 
+        nameWords.some(nWord => nWord.includes(qWord))
+      ).length;
+      if (matchCount > 0) {
+        score = 30 * (matchCount / queryWords.length);
+      }
+    }
+    
+    if (score > 0) {
+      results.push({ id, name, score });
+    }
+  }
+  
+  // Sort by score (highest first) and then alphabetically
+  results.sort((a, b) => {
+    if (a.score !== b.score) {
+      return b.score - a.score;
+    }
+    return a.name.localeCompare(b.name);
+  });
+  
+  // Return top results without score
+  return results.slice(0, limit).map(({ id, name }) => ({ id, name }));
+}
+
+/**
  * Process service items from Google API response
  */
 export function processGoogleServiceItem(item: any): { 

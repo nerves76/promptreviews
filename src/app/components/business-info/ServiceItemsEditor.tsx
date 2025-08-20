@@ -10,9 +10,9 @@
 
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import Icon from '@/components/Icon';
-import { isStructuredService } from '@/utils/google-service-types';
+import { isStructuredService, searchGoogleServices } from '@/utils/google-service-types';
 
 interface ServiceItem {
   name: string;
@@ -46,6 +46,11 @@ export default function ServiceItemsEditor({
 }: ServiceItemsEditorProps) {
   
   const [generatingIndex, setGeneratingIndex] = useState<number | null>(null);
+  const [activeInputIndex, setActiveInputIndex] = useState<number | null>(null);
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [suggestions, setSuggestions] = useState<Array<{ id: string; name: string }>>([]);
+  const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState<number>(-1);
+  const inputRefs = useRef<{ [key: number]: HTMLInputElement | null }>({});
 
   // Ensure service items are properly structured and safe to use
   const safeServiceItems = useMemo(() => {
@@ -79,6 +84,57 @@ export default function ServiceItemsEditor({
     const updated = [...safeServiceItems];
     updated[index] = { ...updated[index], [field]: value };
     onServiceItemsChange(updated);
+    
+    // Update search suggestions if editing name
+    if (field === 'name') {
+      setSearchQuery(value);
+      if (value.trim().length > 0) {
+        const searchResults = searchGoogleServices(value, 8);
+        setSuggestions(searchResults);
+        setSelectedSuggestionIndex(-1);
+      } else {
+        setSuggestions([]);
+      }
+    }
+  };
+  
+  // Handle keyboard navigation for suggestions
+  const handleKeyDown = (e: React.KeyboardEvent, index: number) => {
+    if (suggestions.length === 0) return;
+    
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setSelectedSuggestionIndex(prev => 
+        prev < suggestions.length - 1 ? prev + 1 : prev
+      );
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setSelectedSuggestionIndex(prev => prev > -1 ? prev - 1 : -1);
+    } else if (e.key === 'Enter' && selectedSuggestionIndex >= 0) {
+      e.preventDefault();
+      selectSuggestion(index, suggestions[selectedSuggestionIndex]);
+    } else if (e.key === 'Escape') {
+      setSuggestions([]);
+      setActiveInputIndex(null);
+    }
+  };
+  
+  // Select a suggestion
+  const selectSuggestion = (index: number, suggestion: { id: string; name: string }) => {
+    updateServiceItem(index, 'name', suggestion.name);
+    setSuggestions([]);
+    setActiveInputIndex(null);
+    setSearchQuery('');
+    
+    // Focus on description field
+    setTimeout(() => {
+      const descriptionField = document.querySelector(
+        `[data-service-description="${index}"]`
+      ) as HTMLTextAreaElement;
+      if (descriptionField) {
+        descriptionField.focus();
+      }
+    }, 100);
   };
 
   const removeServiceItem = (index: number) => {
@@ -182,21 +238,65 @@ export default function ServiceItemsEditor({
             <div key={index} className="bg-gray-50 border border-gray-200 rounded-lg p-4">
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <div className="flex-1 flex items-center space-x-2">
-                    <input
-                      type="text"
-                      value={service.name || ''}
-                      onChange={(e) => updateServiceItem(index, 'name', e.target.value)}
-                      placeholder="Service or product name"
-                      className="flex-1 border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent"
-                    />
+                  <div className="flex-1 flex items-center space-x-2 relative">
+                    <div className="flex-1 relative">
+                      <input
+                        ref={el => inputRefs.current[index] = el}
+                        type="text"
+                        value={service.name || ''}
+                        onChange={(e) => updateServiceItem(index, 'name', e.target.value)}
+                        onFocus={() => {
+                          setActiveInputIndex(index);
+                          if (service.name && service.name.trim().length > 0) {
+                            const searchResults = searchGoogleServices(service.name, 8);
+                            setSuggestions(searchResults);
+                          }
+                        }}
+                        onBlur={() => {
+                          // Delay to allow clicking on suggestions
+                          setTimeout(() => {
+                            if (activeInputIndex === index) {
+                              setSuggestions([]);
+                              setActiveInputIndex(null);
+                            }
+                          }, 200);
+                        }}
+                        onKeyDown={(e) => handleKeyDown(e, index)}
+                        placeholder="Service or product name"
+                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent"
+                      />
+                      
+                      {/* Suggestions Dropdown */}
+                      {activeInputIndex === index && suggestions.length > 0 && (
+                        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto">
+                          <div className="p-2 text-xs text-gray-500 border-b">
+                            <Icon name="FaGoogle" className="w-3 h-3 inline mr-1" size={12} />
+                            Google's predefined services
+                          </div>
+                          {suggestions.map((suggestion, suggestionIndex) => (
+                            <button
+                              key={suggestion.id}
+                              type="button"
+                              onClick={() => selectSuggestion(index, suggestion)}
+                              className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-50 focus:bg-gray-50 focus:outline-none ${
+                                suggestionIndex === selectedSuggestionIndex ? 'bg-blue-50' : ''
+                              }`}
+                            >
+                              <div className="font-medium text-gray-900">{suggestion.name}</div>
+                              <div className="text-xs text-gray-500">Recommended by Google</div>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    
                     {service.name && isStructuredService(service.name) && (
-                      <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-700 rounded-full" title="Google predefined service">
+                      <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-700 rounded-full whitespace-nowrap" title="Google predefined service">
                         Google
                       </span>
                     )}
                     {service.name && !isStructuredService(service.name) && (
-                      <span className="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-600 rounded-full" title="Custom service">
+                      <span className="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-600 rounded-full whitespace-nowrap" title="Custom service">
                         Custom
                       </span>
                     )}
@@ -213,6 +313,7 @@ export default function ServiceItemsEditor({
                 <div className="space-y-2">
                   <div className="relative">
                     <textarea
+                      data-service-description={index}
                       value={service.description || ''}
                       onChange={(e) => updateServiceItem(index, 'description', e.target.value)}
                       placeholder="Description of this service or product (optional)"
