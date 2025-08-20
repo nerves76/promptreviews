@@ -182,8 +182,17 @@ export async function POST(request: NextRequest) {
           console.log('📝 Including description update');
         }
 
-        // Address update - include if provided OR if current location has it (required for some categories)
+        // Address update - handle carefully for service area businesses
+        // Some categories (like personal_trainer) require an address even for service area businesses
+        const categoryRequiresAddress = updates.primaryCategory?.categoryId?.includes('personal_trainer') ||
+                                       updates.primaryCategory?.categoryId?.includes('trainer') ||
+                                       updates.primaryCategory?.categoryId?.includes('fitness');
+        
+        // Check if this is a service area business (no storefront address)
+        const isServiceAreaBusiness = currentLocationData?.serviceArea?.businessType === 'CUSTOMER_LOCATION_ONLY';
+        
         if (updates.storefrontAddress || currentLocationData?.storefrontAddress) {
+          // We have an address (either new or existing)
           const address = updates.storefrontAddress || currentLocationData.storefrontAddress;
           locationUpdate.storefrontAddress = {
             addressLines: address.addressLines?.map((line: string) => cleanStringForGoogle(line)).filter(Boolean) || [],
@@ -193,6 +202,22 @@ export async function POST(request: NextRequest) {
             regionCode: address.regionCode || 'US'
           };
           console.log('📍 Including address in update');
+        } else if (categoryRequiresAddress && !currentLocationData?.storefrontAddress) {
+          // Category requires address but we don't have one (service area business)
+          console.log('⚠️ Category requires address but none available (service area business)');
+          console.log('💡 User must provide an address for this category');
+          
+          // Check if user provided an address in the updates
+          if (!updates.storefrontAddress) {
+            console.log('❌ Skipping location update - address required but not provided');
+            results.push({
+              locationId,
+              success: false,
+              error: 'This category requires a business address. Please add an address in the Business Address section.',
+              requiresAddress: true
+            });
+            continue; // Skip this location
+          }
         }
 
         // Phone numbers update
