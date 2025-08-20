@@ -90,6 +90,10 @@ export default function LoadBusinessInfoButton({
 
       if (response.ok && data.success && data.location) {
         console.log('✅ Loaded current business information:', data.location);
+        
+        // Deep inspection of the location object to find categories
+        console.log('🔍 FULL LOCATION OBJECT:', JSON.stringify(data.location, null, 2));
+        
         console.log('🏷️ Raw categories data from Google:', {
           hasCategories: !!data.location.categories,
           categoriesStructure: data.location.categories,
@@ -101,6 +105,25 @@ export default function LoadBusinessInfoButton({
           fullLocationKeys: Object.keys(data.location || {}),
           locationName: data.location.name,
           locationTitle: data.location.title
+        });
+        
+        // Check every possible field that might contain categories
+        console.log('🔍 Searching for categories in all possible locations:');
+        const possibleCategoryFields = [
+          'categories',
+          'category',
+          'primaryCategory',
+          'primary_category',
+          'businessCategories',
+          'business_categories',
+          'categoryList',
+          'category_list'
+        ];
+        
+        possibleCategoryFields.forEach(field => {
+          if (data.location[field]) {
+            console.log(`  ✅ Found field "${field}":`, data.location[field]);
+          }
         });
         
         // Handle different possible category structures from Google

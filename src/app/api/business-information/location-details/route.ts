@@ -143,6 +143,37 @@ export async function POST(request: NextRequest) {
       
       if (foundLocation) {
         console.log('✅ Location details fetched successfully');
+        console.log('🔍 Location data structure:', {
+          hasCategories: !!foundLocation.categories,
+          categoriesType: typeof foundLocation.categories,
+          categoriesKeys: foundLocation.categories ? Object.keys(foundLocation.categories) : [],
+          hasPrimaryCategory: !!foundLocation.primaryCategory,
+          primaryCategoryType: typeof foundLocation.primaryCategory,
+          fullLocationKeys: Object.keys(foundLocation)
+        });
+        
+        // If categories are missing, try to fetch the individual location with full details
+        if (!foundLocation.categories && !foundLocation.primaryCategory) {
+          console.log('⚠️ Categories missing from list response, fetching individual location details...');
+          try {
+            // Use the getLocationDetails method which might return more complete data
+            const detailedLocation = await gbpClient.getLocationDetails(foundLocation.name);
+            console.log('✅ Fetched detailed location data');
+            console.log('🔍 Detailed location categories:', {
+              hasCategories: !!detailedLocation.categories,
+              categories: detailedLocation.categories,
+              hasPrimaryCategory: !!detailedLocation.primaryCategory,
+              primaryCategory: detailedLocation.primaryCategory
+            });
+            
+            // Merge the detailed data with the list data
+            foundLocation = { ...foundLocation, ...detailedLocation };
+          } catch (detailError) {
+            console.log('⚠️ Could not fetch detailed location data:', detailError);
+            // Continue with the data we have
+          }
+        }
+        
         return NextResponse.json({
           success: true,
           location: foundLocation
