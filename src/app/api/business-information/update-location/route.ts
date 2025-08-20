@@ -8,6 +8,18 @@
  * - Proper PATCH method with updateMask
  */
 
+/**
+ * Clean string to meet Google Business Profile API requirements
+ * - Removes leading/trailing whitespace
+ * - Replaces multiple consecutive spaces with single space
+ * - Ensures no contiguous whitespace
+ */
+function cleanStringForGoogle(str: string | undefined): string | undefined {
+  if (!str) return undefined;
+  // Trim and replace multiple spaces with single space
+  return str.trim().replace(/\s+/g, ' ');
+}
+
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
@@ -148,14 +160,14 @@ export async function POST(request: NextRequest) {
 
         // Business name update - only if not empty
         if (hasValue(updates.locationName)) {
-          locationUpdate.title = updates.locationName.trim();
+          locationUpdate.title = cleanStringForGoogle(updates.locationName);
           console.log('📝 Including title update:', locationUpdate.title);
         }
 
         // Business description update - only if not empty
         if (hasValue(updates.description)) {
           locationUpdate.profile = {
-            description: updates.description.trim()
+            description: cleanStringForGoogle(updates.description)
           };
           console.log('📝 Including description update');
         }
@@ -296,8 +308,8 @@ export async function POST(request: NextRequest) {
               freeFormServiceItem: {
                 category: categoryId, // CRITICAL: Include category ID to match business categories
                 label: {
-                  displayName: service.name.trim(),
-                  description: service.description ? service.description.trim().substring(0, 300) : undefined,
+                  displayName: cleanStringForGoogle(service.name),
+                  description: service.description ? cleanStringForGoogle(service.description)?.substring(0, 300) : undefined,
                   languageCode: 'en'
                 }
               }
