@@ -269,12 +269,15 @@ You can view and manage this communication in your dashboard.`;
           templateName: 'communication-follow-up-reminder',
           to: business.email!, // Send to business owner
           variables: {
-            customer_name: businessOwnerName, // This is who we're addressing
+            business_owner_name: businessOwnerName, // Who we're addressing
+            customer_name: customerName, // The customer they need to follow up with
             business_name: businessName,
+            customer_email: contact?.email || '',
+            customer_phone: contact?.phone || '',
             original_subject: originalCommunication?.subject || `Review request for ${customerName}`,
             original_message: originalCommunication?.message_content || '',
             original_date: originalCommunication?.sent_at ? new Date(originalCommunication.sent_at).toLocaleDateString() : 'recently',
-            review_url: `${process.env.NEXT_PUBLIC_APP_URL || 'https://app.promptreviews.app'}/dashboard/contacts` // Link to contacts page to follow up
+            review_url: `${process.env.NEXT_PUBLIC_APP_URL || 'https://app.promptreviews.app'}/dashboard/contacts?id=${contact.id}` // Direct link to the contact
           },
           // Fallback content if template doesn't exist
           fallbackSubject: `Follow-up: ${originalCommunication?.subject || 'Previous Communication'}`,
