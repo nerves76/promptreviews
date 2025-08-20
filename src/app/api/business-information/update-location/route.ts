@@ -154,6 +154,16 @@ export async function POST(request: NextRequest) {
       try {
         console.log(`\n🔄 Processing location: ${locationId}`);
 
+        // First, fetch current location data to preserve required fields
+        let currentLocationData: any = null;
+        try {
+          console.log('🔍 Fetching current location data to preserve required fields...');
+          currentLocationData = await client.getLocation('', locationId);
+          console.log('✅ Current location data fetched, has address:', !!currentLocationData?.storefrontAddress);
+        } catch (fetchError) {
+          console.log('⚠️ Could not fetch current location data, proceeding with update anyway');
+        }
+
         // Convert our update format to Google Business Profile API v1 format
         // Only include fields that have meaningful values (not empty or whitespace-only)
         const locationUpdate: any = {};
@@ -170,6 +180,44 @@ export async function POST(request: NextRequest) {
             description: cleanStringForGoogle(updates.description)
           };
           console.log('📝 Including description update');
+        }
+
+        // Address update - include if provided OR if current location has it (required for some categories)
+        if (updates.storefrontAddress || currentLocationData?.storefrontAddress) {
+          const address = updates.storefrontAddress || currentLocationData.storefrontAddress;
+          locationUpdate.storefrontAddress = {
+            addressLines: address.addressLines?.map((line: string) => cleanStringForGoogle(line)).filter(Boolean) || [],
+            locality: cleanStringForGoogle(address.locality),
+            administrativeArea: cleanStringForGoogle(address.administrativeArea),
+            postalCode: cleanStringForGoogle(address.postalCode),
+            regionCode: address.regionCode || 'US'
+          };
+          console.log('📍 Including address in update');
+        }
+
+        // Phone numbers update
+        if (updates.phoneNumbers) {
+          locationUpdate.phoneNumbers = {
+            primaryPhone: cleanStringForGoogle(updates.phoneNumbers.primaryPhone),
+            additionalPhones: updates.phoneNumbers.additionalPhones?.map((phone: string) => cleanStringForGoogle(phone)).filter(Boolean) || []
+          };
+          console.log('📞 Including phone numbers update');
+        }
+
+        // Website update
+        if (hasValue(updates.websiteUri)) {
+          locationUpdate.websiteUri = cleanStringForGoogle(updates.websiteUri);
+          console.log('🌐 Including website update');
+        }
+
+        // Coordinates update (usually not editable by users but preserve if exists)
+        if (updates.latlng || currentLocationData?.latlng) {
+          const coords = updates.latlng || currentLocationData.latlng;
+          locationUpdate.latlng = {
+            latitude: coords.latitude,
+            longitude: coords.longitude
+          };
+          console.log('📍 Including coordinates');
         }
 
         // Business hours update - only if provided and has meaningful data

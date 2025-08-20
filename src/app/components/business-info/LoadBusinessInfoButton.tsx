@@ -183,6 +183,43 @@ export default function LoadBusinessInfoButton({
         const rawServiceItems = data.location.serviceItems || [];
         console.log('🔍 Raw service items from Google:', rawServiceItems);
         
+        // Process address if available
+        let loadedAddress = undefined;
+        if (data.location.storefrontAddress) {
+          loadedAddress = {
+            addressLines: data.location.storefrontAddress.addressLines || [],
+            locality: data.location.storefrontAddress.locality,
+            administrativeArea: data.location.storefrontAddress.administrativeArea,
+            postalCode: data.location.storefrontAddress.postalCode,
+            regionCode: data.location.storefrontAddress.regionCode
+          };
+          console.log('📍 Loaded address:', loadedAddress);
+        }
+
+        // Process phone numbers
+        let loadedPhoneNumbers = undefined;
+        if (data.location.phoneNumbers) {
+          loadedPhoneNumbers = {
+            primaryPhone: data.location.phoneNumbers.primaryPhone,
+            additionalPhones: data.location.phoneNumbers.additionalPhones || []
+          };
+          console.log('📞 Loaded phone numbers:', loadedPhoneNumbers);
+        }
+
+        // Process website
+        const loadedWebsite = data.location.websiteUri || '';
+        console.log('🌐 Loaded website:', loadedWebsite);
+
+        // Process coordinates
+        let loadedCoordinates = undefined;
+        if (data.location.latlng) {
+          loadedCoordinates = {
+            latitude: data.location.latlng.latitude,
+            longitude: data.location.latlng.longitude
+          };
+          console.log('📍 Loaded coordinates:', loadedCoordinates);
+        }
+
         const processedServiceItems = Array.isArray(rawServiceItems) 
           ? rawServiceItems.map((item: any, index: number) => {
               console.log(`🔍 Processing service item ${index}:`, item);
@@ -224,11 +261,16 @@ export default function LoadBusinessInfoButton({
 
         // Update business info with all available data
         const loadedBusinessInfo = {
+          locationName: data.location.title || '',
           description: data.location.profile?.description || '',
           regularHours: loadedHours,
           primaryCategory: primaryCategory || undefined,
           additionalCategories,
-          serviceItems: processedServiceItems
+          serviceItems: processedServiceItems,
+          storefrontAddress: loadedAddress,
+          phoneNumbers: loadedPhoneNumbers,
+          websiteUri: loadedWebsite || undefined,
+          latlng: loadedCoordinates
         };
 
         console.log('📦 Final loadedBusinessInfo being passed to component:', {

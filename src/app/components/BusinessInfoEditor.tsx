@@ -17,37 +17,17 @@ import ServiceItemsEditor from './business-info/ServiceItemsEditor';
 import BusinessHoursEditor from './business-info/BusinessHoursEditor';
 import LoadBusinessInfoButton from './business-info/LoadBusinessInfoButton';
 import BusinessDescriptionAnalyzer from './BusinessDescriptionAnalyzer';
+import AddressEditor from './business-info/AddressEditor';
+import ContactInfoEditor from './business-info/ContactInfoEditor';
+
+// Import shared types
+import { BusinessInfo, BusinessCategory, ServiceItem, Address, PhoneNumbers } from '@/types/business-info';
 
 interface BusinessLocation {
   id: string;
   name: string;
   address: string;
   status?: string; // Optional, not displayed
-}
-
-interface BusinessCategory {
-  categoryId: string;
-  displayName: string;
-}
-
-interface ServiceItem {
-  name: string;
-  description?: string;
-}
-
-interface BusinessInfo {
-  locationName: string; // Used only for display purposes, not editing
-  description: string;
-  regularHours: {
-    [key: string]: {
-      open: string;
-      close: string;
-      closed: boolean;
-    };
-  };
-  primaryCategory?: BusinessCategory;
-  additionalCategories: Array<BusinessCategory>;
-  serviceItems: Array<ServiceItem>;
 }
 
 interface BusinessInfoEditorProps {
@@ -98,7 +78,11 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
     },
     primaryCategory: undefined,
     additionalCategories: [],
-    serviceItems: []
+    serviceItems: [],
+    storefrontAddress: undefined,
+    phoneNumbers: undefined,
+    websiteUri: undefined,
+    latlng: undefined
     };
   });
   
@@ -829,6 +813,44 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
                     )}
                   </div>
                 </div>
+              </div>
+
+              {/* Address Section */}
+              <div className="bg-white border border-gray-200 rounded-lg p-6">
+                <h4 className="text-lg font-medium text-gray-900 mb-4">
+                  Business Address
+                </h4>
+                <AddressEditor
+                  address={businessInfo.storefrontAddress}
+                  onChange={(address) => handleInputChange('storefrontAddress', address)}
+                  disabled={isLoadingDetails}
+                />
+                <p className="mt-3 text-sm text-gray-500">
+                  {selectedLocationIds.length === 1 
+                    ? "Physical address for your business location."
+                    : `This address will be applied to all ${selectedLocationIds.length} selected locations.`
+                  }
+                </p>
+              </div>
+
+              {/* Contact Information */}
+              <div className="bg-white border border-gray-200 rounded-lg p-6">
+                <h4 className="text-lg font-medium text-gray-900 mb-4">
+                  Contact Information
+                </h4>
+                <ContactInfoEditor
+                  phoneNumbers={businessInfo.phoneNumbers}
+                  websiteUri={businessInfo.websiteUri}
+                  onPhoneChange={(phones) => handleInputChange('phoneNumbers', phones)}
+                  onWebsiteChange={(website) => handleInputChange('websiteUri', website)}
+                  disabled={isLoadingDetails}
+                />
+                <p className="mt-3 text-sm text-gray-500">
+                  {selectedLocationIds.length === 1 
+                    ? "Contact details for customers to reach your business."
+                    : `These contact details will be applied to all ${selectedLocationIds.length} selected locations.`
+                  }
+                </p>
               </div>
 
               {/* Business Hours */}

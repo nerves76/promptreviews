@@ -22,13 +22,37 @@ export interface BusinessHours {
   };
 }
 
+export interface Address {
+  addressLines?: string[];
+  locality?: string; // City
+  administrativeArea?: string; // State/Province
+  postalCode?: string;
+  regionCode?: string; // Country code
+}
+
+export interface PhoneNumbers {
+  primaryPhone?: string;
+  additionalPhones?: string[];
+}
+
+export interface WebsiteInfo {
+  websiteUri?: string;
+}
+
 export interface BusinessInfo {
-  locationName: string; // Used only for display purposes, not editing
+  locationName: string; // Business name
   description: string;
   regularHours: BusinessHours;
   primaryCategory?: BusinessCategory;
   additionalCategories: Array<BusinessCategory>;
   serviceItems: Array<ServiceItem>;
+  storefrontAddress?: Address;
+  phoneNumbers?: PhoneNumbers;
+  websiteUri?: string;
+  latlng?: {
+    latitude: number;
+    longitude: number;
+  };
 }
 
 export interface CategorySearchResponse {
@@ -43,8 +67,19 @@ export interface CategorySearchResponse {
 export interface LocationDetailsResponse {
   success: boolean;
   location?: {
+    title?: string; // Business name
     profile?: {
       description: string;
+    };
+    storefrontAddress?: Address;
+    phoneNumbers?: {
+      primaryPhone?: string;
+      additionalPhones?: string[];
+    };
+    websiteUri?: string;
+    latlng?: {
+      latitude: number;
+      longitude: number;
     };
     regularHours?: {
       periods: Array<{
