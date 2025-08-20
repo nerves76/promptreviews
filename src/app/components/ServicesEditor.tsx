@@ -177,7 +177,7 @@ export default function ServicesEditor({ locations, isConnected }: ServicesEdito
       if (response.ok && data.success) {
         setSaveResult({
           success: true,
-          message: data.message || 'Services updated successfully'
+          message: data.message || 'Services published to Google successfully'
         });
         setHasChanges(false);
         
@@ -520,7 +520,7 @@ export default function ServicesEditor({ locations, isConnected }: ServicesEdito
             </>
           )}
 
-          {/* Save/Reset Buttons */}
+          {/* Publish/Clear Buttons */}
           <div className="flex justify-end space-x-4">
             <button
               onClick={handleSave}
@@ -534,12 +534,12 @@ export default function ServicesEditor({ locations, isConnected }: ServicesEdito
               {isSaving ? (
                 <>
                   <Icon name="FaSpinner" className="w-4 h-4 animate-spin" size={16} />
-                  <span>Saving...</span>
+                  <span>Publishing...</span>
                 </>
               ) : (
                 <>
-                  <Icon name="FaSave" className="w-4 h-4" size={16} />
-                  <span>Save changes</span>
+                  <Icon name="FaUpload" className="w-4 h-4" size={16} />
+                  <span>Publish to Google</span>
                 </>
               )}
             </button>
@@ -552,8 +552,10 @@ export default function ServicesEditor({ locations, isConnected }: ServicesEdito
                   ? 'border-gray-300 text-gray-700 hover:bg-gray-50'
                   : 'border-gray-200 text-gray-400 cursor-not-allowed'
               }`}
+              title="Clear all form data and start over"
             >
-              <span>Reset</span>
+              <Icon name="FaUndo" className="w-4 h-4" size={16} />
+              <span>Clear form</span>
             </button>
           </div>
         </div>
