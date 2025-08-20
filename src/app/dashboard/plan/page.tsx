@@ -32,6 +32,7 @@ export default function PlanPage() {
   const [upgrading, setUpgrading] = useState(false);
   const [upgradingPlan, setUpgradingPlan] = useState<string>('');
   const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'annual'>('monthly');
+  const [isAdminAccount, setIsAdminAccount] = useState(false);
   const prevPlanRef = useRef<string | null>(null);
   const router = useRouter();
 
@@ -52,6 +53,13 @@ export default function PlanPage() {
       }
     };
     return priceMap[plan]?.[billing] || "";
+  };
+
+  // Helper function to calculate admin pricing (99% off)
+  const getAdminPrice = (regularPrice: string) => {
+    const price = parseFloat(regularPrice);
+    const discountedPrice = price * 0.01; // 99% off = 1% of original price
+    return discountedPrice.toFixed(2);
   };
 
   useEffect(() => {
@@ -93,6 +101,9 @@ export default function PlanPage() {
       setUserRole(accountUser?.role || null);
       setCurrentPlan(accountData?.plan || null);
       prevPlanRef.current = accountData?.plan || null;
+      
+      // Check if this is an admin account
+      setIsAdminAccount(accountData?.is_admin === true);
       
       // Set billing period from database if available
       if (accountData?.billing_period) {
@@ -490,6 +501,20 @@ export default function PlanPage() {
               }
             </p>
             
+            {/* Admin account notice */}
+            {isAdminAccount && (
+              <div className="mt-6 p-4 bg-green-900/30 border border-green-700 rounded-lg max-w-2xl mx-auto">
+                <div className="flex items-center justify-center space-x-2 text-green-300">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <p className="text-sm font-medium">
+                    Admin testing mode active: 99% discount will be applied at checkout (~$1-3 pricing)
+                  </p>
+                </div>
+              </div>
+            )}
+            
             {/* Permission messaging for non-owners */}
             {!canManageBilling && (
               <div className="mt-6 p-4 bg-blue-900/30 border border-blue-700 rounded-lg max-w-2xl mx-auto">
@@ -580,19 +605,52 @@ export default function PlanPage() {
                     {tier.name}
                   </h3>
                   <div className="mb-4">
-                    {billingPeriod === 'monthly' ? (
-                      <div className="text-3xl font-bold text-white">
-                        ${tier.priceMonthly}<span className="text-lg font-normal">/mo</span>
-                      </div>
+                    {isAdminAccount ? (
+                      // Show admin pricing
+                      billingPeriod === 'monthly' ? (
+                        <div>
+                          <div className="text-3xl font-bold text-white">
+                            ${getAdminPrice(tier.priceMonthly)}<span className="text-lg font-normal">/mo</span>
+                          </div>
+                          <div className="text-sm text-white/70 line-through">
+                            ${tier.priceMonthly}/mo
+                          </div>
+                          <div className="text-xs text-green-400 font-semibold">
+                            99% OFF - Admin Testing
+                          </div>
+                        </div>
+                      ) : (
+                        <div>
+                          <div className="text-3xl font-bold text-white">
+                            ${getAdminPrice(tier.priceAnnual)}<span className="text-lg font-normal">/mo</span>
+                          </div>
+                          <div className="text-sm text-white/70 mt-1">
+                            ${getAdminPrice(tier.annualTotal)}/year
+                          </div>
+                          <div className="text-sm text-white/70 line-through">
+                            ${tier.annualTotal}/year
+                          </div>
+                          <div className="text-xs text-green-400 font-semibold">
+                            99% OFF - Admin Testing
+                          </div>
+                        </div>
+                      )
                     ) : (
-                      <div>
+                      // Show regular pricing
+                      billingPeriod === 'monthly' ? (
                         <div className="text-3xl font-bold text-white">
-                          ${tier.priceAnnual}<span className="text-lg font-normal">/mo</span>
+                          ${tier.priceMonthly}<span className="text-lg font-normal">/mo</span>
                         </div>
-                        <div className="text-sm text-white/70 mt-1">
-                          ${tier.annualTotal}/year
+                      ) : (
+                        <div>
+                          <div className="text-3xl font-bold text-white">
+                            ${tier.priceAnnual}<span className="text-lg font-normal">/mo</span>
+                          </div>
+                          <div className="text-sm text-white/70 mt-1">
+                            ${tier.annualTotal}/year
+                          </div>
                         </div>
-                      </div>
+                      )
                     )}
                   </div>
                   <ul className="text-white/90 space-y-2 mb-6 flex-grow">

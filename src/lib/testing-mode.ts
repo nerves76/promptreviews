@@ -6,6 +6,10 @@
  * 
  * This is tied to the is_admin flag in the accounts table
  * rather than hardcoded emails for better security and flexibility
+ * 
+ * ⚠️ TEMPORARY LIVE MODE ENABLED - REMOVE BEFORE PRODUCTION ⚠️
+ * The coupon is currently applied in BOTH test and live modes.
+ * To disable live mode discounts, remove "|| isLiveMode" from line 92
  */
 
 import { createClient } from '@/auth/providers/supabase';
@@ -83,11 +87,15 @@ export async function applyTestingMode(sessionConfig: any, email: string, billin
   
   console.log('🧪 Admin testing mode activated for:', email);
   
-  // Only apply coupon in test mode (sk_test_*)
+  // Check Stripe mode
   const isTestMode = process.env.STRIPE_SECRET_KEY?.startsWith('sk_test_');
+  const isLiveMode = process.env.STRIPE_SECRET_KEY?.startsWith('sk_live_');
   
-  if (isTestMode) {
-    console.log('💰 Applying 99% discount (prices will be ~$1)');
+  // TEMPORARY: Apply coupon in both test AND live modes for admin testing
+  // WARNING: Remove this for production to prevent accidental discounts
+  if (isTestMode || isLiveMode) {
+    console.log('💰 Applying 99% discount for admin testing (prices will be ~$1)');
+    console.log(`📍 Mode: ${isTestMode ? 'TEST' : 'LIVE'} - Admin discount enabled`);
     
     // Apply 99% off coupon
     sessionConfig.discounts = [{
@@ -99,18 +107,19 @@ export async function applyTestingMode(sessionConfig: any, email: string, billin
       ...sessionConfig.metadata,
       testing_mode: 'true',
       admin_account: email,
-      discount_applied: '99_percent'
+      discount_applied: '99_percent',
+      stripe_mode: isTestMode ? 'test' : 'live',
+      warning: 'Admin testing discount applied'
     };
   } else {
-    console.log('⚠️ Testing coupons not available in live mode');
-    console.log('💡 Admin can use regular checkout or manual discount codes');
+    console.log('⚠️ Unknown Stripe mode - no discount applied');
     
     // Add metadata but no automatic discount
     sessionConfig.metadata = {
       ...sessionConfig.metadata,
       testing_mode: 'true',
       admin_account: email,
-      stripe_mode: 'live',
+      stripe_mode: 'unknown',
       note: 'Manual discount required'
     };
   }
