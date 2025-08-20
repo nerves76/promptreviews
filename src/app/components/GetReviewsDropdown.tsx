@@ -75,7 +75,11 @@ const GetReviewsDropdown: React.FC<GetReviewsDropdownProps> = ({
         disabled={businessLoading}
       >
         <span className="mr-1">Get reviews</span>
-        <Icon name="FaStar" className="w-4 h-4" size={16} />
+        <Icon 
+          name="FaStar" 
+          className={`w-4 h-4 transition-transform duration-300 ${isOpen ? 'animate-spin' : ''}`} 
+          size={16} 
+        />
       </button>
 
       {/* Render dropdown in portal to escape stacking context */}
