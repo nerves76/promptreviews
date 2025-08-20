@@ -60,9 +60,15 @@ export default function LoadBusinessInfoButton({
    * including description, hours, categories, and services
    */
   const loadCurrentBusinessInfo = async () => {
-    if (selectedLocationIds.length !== 1) {
-      onErrorChange('Business information loading only available for single locations');
+    if (selectedLocationIds.length === 0) {
+      onErrorChange('Please select at least one location');
       return;
+    }
+    
+    // Use the first selected location as reference for multiple selections
+    const referenceLocationId = selectedLocationIds[0];
+    if (selectedLocationIds.length > 1) {
+      console.log(`📍 Using ${locations.find(l => l.id === referenceLocationId)?.name} as reference for AI generation`);
     }
 
     setIsLoading(true);
@@ -70,11 +76,12 @@ export default function LoadBusinessInfoButton({
     onErrorChange(null);
 
     try {
-      const locationId = selectedLocationIds[0];
-      const selectedLocation = locations.find(loc => loc.id === locationId);
+      const selectedLocation = locations.find(loc => loc.id === referenceLocationId);
       console.log('🔍 Loading current business information for location:', {
-        requestedId: locationId,
+        requestedId: referenceLocationId,
         selectedLocation: selectedLocation,
+        isReference: selectedLocationIds.length > 1,
+        totalSelected: selectedLocationIds.length,
         allLocations: locations.map(loc => ({ id: loc.id, name: loc.name }))
       });
 
@@ -83,7 +90,7 @@ export default function LoadBusinessInfoButton({
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ locationId }),
+        body: JSON.stringify({ locationId: referenceLocationId }),
       });
 
       const data = await response.json();
@@ -342,12 +349,13 @@ export default function LoadBusinessInfoButton({
   return (
     <button
       onClick={loadCurrentBusinessInfo}
-      disabled={isLoading || selectedLocationIds.length > 1 || detailsLoaded}
+      disabled={isLoading || selectedLocationIds.length === 0 || detailsLoaded}
       className={`flex items-center space-x-2 px-4 py-2 text-sm rounded-md border relative overflow-hidden transition-all duration-300 ${
-        isLoading || selectedLocationIds.length > 1 || detailsLoaded
+        isLoading || selectedLocationIds.length === 0 || detailsLoaded
           ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
           : `bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100 ${!detailsLoaded && !isLoading ? 'shine-button' : ''}`
       }`}
+      title={selectedLocationIds.length > 1 ? `Will load data from ${locations.find(l => l.id === selectedLocationIds[0])?.name || 'first selected location'} as reference` : undefined}
     >
       {isLoading ? (
         <>
@@ -362,7 +370,7 @@ export default function LoadBusinessInfoButton({
       ) : (
         <>
           <Icon name="FaStore" className="w-4 h-4" size={16} />
-          <span>Load business info</span>
+          <span>{selectedLocationIds.length > 1 ? 'Load reference info' : 'Load business info'}</span>
         </>
       )}
     </button>

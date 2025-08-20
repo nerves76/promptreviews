@@ -125,6 +125,19 @@ export default function ServicesEditor({ locations, isConnected }: ServicesEdito
       return updated;
     });
     
+    // Set business context for AI generation
+    const referenceLocation = locations.find(loc => loc.id === selectedLocationIds[0]);
+    if (referenceLocation && loadedInfo) {
+      setBusinessContext({
+        businessName: referenceLocation.name || loadedInfo.locationName,
+        address: referenceLocation.address,
+        city: loadedInfo.storefrontAddress?.locality || '',
+        primaryCategory: loadedInfo.primaryCategory?.displayName || '',
+        description: loadedInfo.description || ''
+      });
+      console.log('🤖 Set business context for AI generation:', businessContext);
+    }
+    
     setHasChanges(false);
   };
 
@@ -337,11 +350,31 @@ export default function ServicesEditor({ locations, isConnected }: ServicesEdito
             <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
               <div className="flex items-start space-x-3">
                 <Icon name="FaExclamationTriangle" className="w-5 h-5 text-orange-600 mt-0.5" size={20} />
-                <div>
-                  <h4 className="text-sm font-medium text-orange-900">Bulk update mode</h4>
-                  <p className="text-sm text-orange-700 mt-1">
-                    Changes will be applied to {selectedLocationIds.length} locations. Services will replace existing ones.
-                  </p>
+                <div className="flex-1">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <h4 className="text-sm font-medium text-orange-900">Bulk update mode</h4>
+                      <p className="text-sm text-orange-700 mt-1">
+                        Changes will be applied to {selectedLocationIds.length} locations. Services will replace existing ones.
+                        {detailsLoaded && (
+                          <span className="block mt-1">
+                            Using <strong>{locations.find(loc => loc.id === selectedLocationIds[0])?.name}</strong> as reference for AI generation.
+                          </span>
+                        )}
+                      </p>
+                    </div>
+                    <div className="ml-4">
+                      <LoadBusinessInfoButton
+                        selectedLocationIds={selectedLocationIds}
+                        locations={locations}
+                        detailsLoaded={detailsLoaded}
+                        onBusinessInfoLoaded={handleBusinessInfoLoaded}
+                        onLoadingStateChange={setIsLoadingDetails}
+                        onDetailsLoadedChange={setDetailsLoaded}
+                        onErrorChange={setDetailsError}
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
