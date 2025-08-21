@@ -411,6 +411,335 @@ const articleContent: Record<string, string> = {
     
     <h3>Date Ranges</h3>
     <p>Adjust date ranges for all metrics to focus on specific time periods.</p>
+  `,
+
+  'google-products': `
+    <h1>Google Business Profile Products: A Complete Guide</h1>
+    
+    <h2>What Are Google Business Products?</h2>
+    
+    <p>Google Business Products are visual showcases of what you offer, appearing directly in your Google Business Profile listing. They display as cards with images, names, prices, and descriptions when customers find your business on Google Search and Maps.</p>
+    
+    <h2>Why Products Matter (Even for Service Businesses)</h2>
+    
+    <h3>🎯 Enhanced Visual Presence</h3>
+    <p>Products add rich visual content to your listing:</p>
+    <ul>
+      <li><strong>Eye-catching cards</strong> with images appear in your profile</li>
+      <li><strong>Increased engagement</strong> - listings with products get 42% more clicks</li>
+      <li><strong>Stand out from competitors</strong> who only list basic information</li>
+    </ul>
+    
+    <h3>🔍 Improved Search Visibility</h3>
+    <p>Products help you rank for specific searches:</p>
+    <ul>
+      <li>Each product is indexed separately</li>
+      <li>Customers searching for specific items can find you</li>
+      <li>Products appear in "Popular items" sections</li>
+    </ul>
+    
+    <h3>💰 Price Transparency Builds Trust</h3>
+    <p>Showing prices upfront:</p>
+    <ul>
+      <li>Reduces price-shopping phone calls</li>
+      <li>Pre-qualifies customers before they contact you</li>
+      <li>Builds trust through transparency</li>
+    </ul>
+    
+    <h2>How to Add Products to Your Profile</h2>
+    
+    <h3>Step 1: Access Your Google Business Profile</h3>
+    <ol>
+      <li>Go to business.google.com</li>
+      <li>Sign in with your Google account</li>
+      <li>Select your business location</li>
+    </ol>
+    
+    <h3>Step 2: Navigate to Products Section</h3>
+    <ol>
+      <li>Click on "Products" in the left menu</li>
+      <li>Click "Add product" or the "+" button</li>
+    </ol>
+    
+    <h3>Step 3: Add Product Details</h3>
+    <ul>
+      <li><strong>Product name</strong> (required) - Be specific and descriptive</li>
+      <li><strong>Product category</strong> - Select the most relevant category</li>
+      <li><strong>Price</strong> - Include currency and be exact</li>
+      <li><strong>Description</strong> - 1000 characters max, highlight benefits</li>
+      <li><strong>Photo</strong> - High-quality, well-lit image (minimum 250x250px)</li>
+      <li><strong>Product link</strong> (optional) - Direct link to purchase/learn more</li>
+    </ul>
+    
+    <h2>Productizing Services: The Secret Weapon</h2>
+    
+    <p>Service businesses can leverage products too! Here's how to "productize" your services:</p>
+    
+    <h3>For Consultants & Professionals</h3>
+    <p><strong>Traditional Service:</strong> "Business Consulting"</p>
+    <p><strong>Productized Versions:</strong></p>
+    <ul>
+      <li>"1-Hour Strategy Session - $299"</li>
+      <li>"Business Audit Package - $999"</li>
+      <li>"Monthly Coaching Program - $499/month"</li>
+      <li>"DIY Business Plan Template - $49"</li>
+    </ul>
+    
+    <h3>For Home Services</h3>
+    <p><strong>Traditional Service:</strong> "Plumbing Services"</p>
+    <p><strong>Productized Versions:</strong></p>
+    <ul>
+      <li>"Drain Cleaning Service - Starting at $149"</li>
+      <li>"Water Heater Installation - From $1,299"</li>
+      <li>"Annual Maintenance Package - $299/year"</li>
+      <li>"Emergency Call-Out - $99 + parts"</li>
+    </ul>
+    
+    <h3>For Creative Services</h3>
+    <p><strong>Traditional Service:</strong> "Web Design"</p>
+    <p><strong>Productized Versions:</strong></p>
+    <ul>
+      <li>"5-Page Website Package - $2,499"</li>
+      <li>"Logo Design Bundle - $599"</li>
+      <li>"Website Maintenance - $99/month"</li>
+      <li>"Rush Delivery Option - +50%"</li>
+    </ul>
+    
+    <h2>Best Practices for Product Success</h2>
+    <ul>
+      <li><strong>Use high-quality images</strong> - Professional photos convert better</li>
+      <li><strong>Be specific with pricing</strong> - Include "from" or "starting at" for variable pricing</li>
+      <li><strong>Update regularly</strong> - Keep seasonal items current</li>
+      <li><strong>Track performance</strong> - Monitor which products get the most views</li>
+      <li><strong>Respond to questions</strong> - Customers may ask about products in Q&A</li>
+    </ul>
+  `,
+
+  'google-services-seo': `
+    <h1>How Google Business Services Boost Your Local SEO</h1>
+    
+    <h2>Why Services Matter More Than You Think</h2>
+    
+    <p>Adding services to your Google Business Profile isn't just about listing what you do—it's a powerful SEO strategy that can significantly improve your local search visibility and rankings.</p>
+    
+    <h2>🎯 Keyword Relevance in Local Search</h2>
+    
+    <p>Services act as <strong>additional relevance signals</strong> that help you rank for specific queries beyond your primary category.</p>
+    
+    <h3>How It Works:</h3>
+    <ul>
+      <li>Your primary category (e.g., "Web Design Agency") gets you in the door</li>
+      <li>Your services (e.g., "Shopify Development", "WordPress Migration", "SEO Audits") open new ranking opportunities</li>
+      <li>Each service is an "extra hook" for searches your competitors might miss</li>
+    </ul>
+    
+    <h3>Real Example:</h3>
+    <p><strong>Primary Category:</strong> Plumber</p>
+    <p><strong>Services Added:</strong></p>
+    <ul>
+      <li>Emergency Water Heater Repair</li>
+      <li>Tankless Water Heater Installation</li>
+      <li>Drain Cleaning</li>
+      <li>Sewer Line Inspection</li>
+    </ul>
+    <p><strong>Result:</strong> Now ranking for "emergency water heater repair near me" (not just generic "plumber near me")</p>
+    
+    <h2>🔍 Better Match to User Intent</h2>
+    
+    <p>Google's #1 goal is serving the most precise answer to each query. Services help Google understand exactly what you offer.</p>
+    
+    <h3>The Precision Advantage:</h3>
+    <ul>
+      <li><strong>Broad:</strong> "Restaurant" (your category)</li>
+      <li><strong>Specific:</strong> "Gluten-Free Pizza", "Vegan Brunch", "Private Event Catering" (your services)</li>
+      <li><strong>Result:</strong> Higher chance of appearing in the 3-Pack for specific searches</li>
+    </ul>
+    
+    <p><strong>Pro Tip:</strong> Think like your customers. What specific problems are they trying to solve? Those are your service keywords.</p>
+    
+    <h2>📝 Content Indexing Within Google's Ecosystem</h2>
+    
+    <p>Your services and their descriptions are <strong>indexed as structured content</strong> directly within Google's platform.</p>
+    
+    <h3>Why This Matters:</h3>
+    <ul>
+      <li>It's like having on-page SEO within Google itself</li>
+      <li>Service descriptions reinforce your keywords</li>
+      <li>Google trusts its own data more than external sources</li>
+      <li>Clear, keyword-rich descriptions improve relevance matching</li>
+    </ul>
+    
+    <h3>Best Practice:</h3>
+    <p>Write service descriptions that are:</p>
+    <ul>
+      <li><strong>Specific:</strong> "24/7 Emergency HVAC Repair" not "Heating Services"</li>
+      <li><strong>Benefit-focused:</strong> Include what customers get, not just what you do</li>
+      <li><strong>Naturally keyword-rich:</strong> Use terms customers actually search for</li>
+    </ul>
+    
+    <h2>📊 Conversion Signals That Boost Rankings</h2>
+    
+    <p>While services primarily influence relevance, they also drive engagement metrics that Google monitors.</p>
+    
+    <h3>The Engagement Loop:</h3>
+    <ol>
+      <li>Customer searches for specific service</li>
+      <li>Sees exact match in your profile</li>
+      <li>More likely to click, call, or message</li>
+      <li>Higher engagement signals = Google trusts you more</li>
+      <li>Better trust = higher rankings</li>
+    </ol>
+    
+    <h3>Metrics That Matter:</h3>
+    <ul>
+      <li>Click-through rate from search results</li>
+      <li>"Call" button clicks</li>
+      <li>Direction requests</li>
+      <li>Website visits from GBP</li>
+    </ul>
+    
+    <h2>🛠️ How to Optimize Your Services for Maximum SEO Impact</h2>
+    
+    <h3>1. Audit Your Competitors</h3>
+    <p>Search for your main keywords and see what services top-ranking competitors list. Find gaps you can fill.</p>
+    
+    <h3>2. Use Long-Tail Service Names</h3>
+    <p>Instead of "Cleaning", use "Deep House Cleaning", "Move-Out Cleaning Service", "Post-Construction Cleanup"</p>
+    
+    <h3>3. Include Location Modifiers When Relevant</h3>
+    <p>"Downtown Austin Food Delivery" vs just "Food Delivery"</p>
+    
+    <h3>4. Update Seasonally</h3>
+    <p>Add seasonal services like "Holiday Light Installation" or "Spring AC Tune-Up" when relevant</p>
+    
+    <h3>5. Write Compelling Descriptions</h3>
+    <p>Each service can have a description. Use it to naturally include related keywords and benefits.</p>
+    
+    <h2>The Bottom Line</h2>
+    
+    <p>Services aren't just a list of what you do—they're powerful SEO assets that:</p>
+    <ul>
+      <li>Expand your keyword footprint</li>
+      <li>Match specific user intent</li>
+      <li>Build relevance signals within Google</li>
+      <li>Drive engagement metrics that boost rankings</li>
+    </ul>
+    
+    <p><strong>Action Step:</strong> Review your services list today. Are you missing opportunities to rank for specific, high-intent searches your customers are making?</p>
+  `,
+
+  'google-post-types': `
+    <h1>Google Business Post Types Guide</h1>
+    
+    <h2>Understanding Google Business Posts</h2>
+    
+    <p>Google Business posts are mini-advertisements that appear directly in your Business Profile. They're visible in Google Search and Maps, giving you prime real estate to communicate with potential customers.</p>
+    
+    <h2>Types of Posts and When to Use Them</h2>
+    
+    <h3>📢 Updates</h3>
+    <p><strong>Purpose:</strong> Share general news, announcements, or content</p>
+    <p><strong>Duration:</strong> Visible for 7 days</p>
+    <p><strong>Best for:</strong></p>
+    <ul>
+      <li>New product or service announcements</li>
+      <li>Business milestones or achievements</li>
+      <li>Seasonal reminders</li>
+      <li>Tips or educational content</li>
+    </ul>
+    
+    <h3>🎁 Offers</h3>
+    <p><strong>Purpose:</strong> Promote special deals and discounts</p>
+    <p><strong>Duration:</strong> Can set custom start/end dates</p>
+    <p><strong>Best for:</strong></p>
+    <ul>
+      <li>Limited-time discounts</li>
+      <li>Coupon codes</li>
+      <li>Buy-one-get-one deals</li>
+      <li>Seasonal promotions</li>
+    </ul>
+    <p><strong>Pro tip:</strong> Include a clear call-to-action and redemption instructions</p>
+    
+    <h3>📅 Events</h3>
+    <p><strong>Purpose:</strong> Promote upcoming events</p>
+    <p><strong>Duration:</strong> Visible until the event ends</p>
+    <p><strong>Best for:</strong></p>
+    <ul>
+      <li>Grand openings</li>
+      <li>Workshops or classes</li>
+      <li>Sales events</li>
+      <li>Community gatherings</li>
+    </ul>
+    <p><strong>Required info:</strong> Event title, start/end dates and times</p>
+    
+    <h3>🆕 Products (New!)</h3>
+    <p><strong>Purpose:</strong> Showcase specific products or services</p>
+    <p><strong>Duration:</strong> Permanent until you remove them</p>
+    <p><strong>Best for:</strong></p>
+    <ul>
+      <li>Featured items</li>
+      <li>New arrivals</li>
+      <li>Popular services</li>
+      <li>Seasonal offerings</li>
+    </ul>
+    
+    <h2>How Posts Boost Your SEO</h2>
+    
+    <h3>1. Fresh Content Signals</h3>
+    <p>Google loves fresh content. Regular posts show your business is active and engaged.</p>
+    
+    <h3>2. Keyword Optimization</h3>
+    <p>Posts are indexed and searchable. Use relevant keywords naturally in your post content.</p>
+    
+    <h3>3. Increased Engagement</h3>
+    <p>Posts with images get 2x more clicks. Higher engagement improves your local ranking.</p>
+    
+    <h3>4. Local Relevance</h3>
+    <p>Mentioning local events, neighborhoods, or landmarks increases local search visibility.</p>
+    
+    <h2>Creating Effective Posts</h2>
+    
+    <h3>Writing Compelling Content</h3>
+    <ul>
+      <li><strong>Hook in first 30 characters</strong> - This is what shows in preview</li>
+      <li><strong>Use action words</strong> - "Discover," "Save," "Join," "Experience"</li>
+      <li><strong>Include a clear CTA</strong> - Tell customers exactly what to do</li>
+      <li><strong>Keep it concise</strong> - 150-300 words is ideal</li>
+    </ul>
+    
+    <h3>Image Best Practices</h3>
+    <ul>
+      <li><strong>Size:</strong> 720x720px minimum (1200x900px recommended)</li>
+      <li><strong>Format:</strong> JPG or PNG</li>
+      <li><strong>Quality:</strong> High-resolution, well-lit photos</li>
+      <li><strong>Content:</strong> Show products, happy customers, or your team</li>
+    </ul>
+    
+    <h3>Posting Frequency</h3>
+    <ul>
+      <li><strong>Minimum:</strong> 1 post per week</li>
+      <li><strong>Ideal:</strong> 2-3 posts per week</li>
+      <li><strong>Maximum:</strong> 1 post per day (avoid appearing spammy)</li>
+    </ul>
+    
+    <h2>Measuring Success</h2>
+    
+    <p>Track these metrics in your Google Business Profile Insights:</p>
+    <ul>
+      <li><strong>Views:</strong> How many people saw your post</li>
+      <li><strong>Clicks:</strong> How many clicked your call-to-action</li>
+      <li><strong>Call clicks:</strong> Direct calls from the post</li>
+      <li><strong>Direction requests:</strong> Navigation requests from the post</li>
+    </ul>
+    
+    <h2>Pro Tips for Maximum Impact</h2>
+    <ol>
+      <li><strong>Plan ahead:</strong> Create a content calendar for consistent posting</li>
+      <li><strong>Test different types:</strong> See what resonates with your audience</li>
+      <li><strong>Respond to engagement:</strong> Reply to questions and comments quickly</li>
+      <li><strong>Cross-promote:</strong> Share posts on social media too</li>
+      <li><strong>Track competitors:</strong> See what's working for similar businesses</li>
+    </ol>
   `
 };
 

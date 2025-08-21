@@ -1594,20 +1594,6 @@ export default function SocialPostingDashboard() {
                 </div>
               </button>
               <button
-                onClick={() => changeTab('more')}
-                disabled={!isConnected || locations.length === 0}
-                className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === 'more' && isConnected && locations.length > 0
-                    ? 'border-slate-blue text-slate-blue'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                } ${(!isConnected || locations.length === 0) ? 'opacity-50 cursor-not-allowed' : ''}`}
-              >
-                <div className="flex items-center space-x-2">
-                  <Icon name="FaEllipsis" className="w-4 h-4" size={16} />
-                  <span>More</span>
-                </div>
-              </button>
-              <button
                 onClick={() => changeTab('create-post')}
                 disabled={!isConnected || locations.length === 0}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
@@ -1647,6 +1633,20 @@ export default function SocialPostingDashboard() {
                 <div className="flex items-center space-x-2">
                   <Icon name="FaStar" className="w-4 h-4" size={16} />
                   <span>Reviews</span>
+                </div>
+              </button>
+              <button
+                onClick={() => changeTab('more')}
+                disabled={!isConnected || locations.length === 0}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'more' && isConnected && locations.length > 0
+                    ? 'border-slate-blue text-slate-blue'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                } ${(!isConnected || locations.length === 0) ? 'opacity-50 cursor-not-allowed' : ''}`}
+              >
+                <div className="flex items-center space-x-2">
+                  <Icon name="FiMoreHorizontal" className="w-4 h-4" size={16} />
+                  <span>More</span>
                 </div>
               </button>
             </nav>
@@ -1725,7 +1725,7 @@ export default function SocialPostingDashboard() {
                     }`}
                   >
                     <div className="flex items-center space-x-3">
-                      <Icon name="FaEllipsis" className="w-4 h-4" size={16} />
+                      <Icon name="FiMoreHorizontal" className="w-4 h-4" size={16} />
                       <span>More</span>
                     </div>
                   </button>
@@ -2651,7 +2651,7 @@ export default function SocialPostingDashboard() {
             <div className="space-y-6">
               {!isConnected ? (
                 <div className="text-center py-12">
-                  <Icon name="FaEllipsis" className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <Icon name="FiMoreHorizontal" className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">Connect Google Business Profile</h3>
                   <p className="text-gray-600 mb-4">
                     Connect your Google Business Profile to learn about additional features.
@@ -2704,7 +2704,7 @@ export default function SocialPostingDashboard() {
                     </div>
                     
                     <p className="text-gray-700 mb-4">
-                      Showcase your products or services with images, prices, and descriptions. Great for both retail and service businesses.
+                      Showcase a photo, product description, and a link. If you are a service business that has productized services (e.g. brand design package, or moss removal and gutter cleaning), you can also create products.
                     </p>
 
                     <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4">

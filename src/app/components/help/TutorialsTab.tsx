@@ -77,6 +77,30 @@ export default function TutorialsTab({
     });
   }, [pathname, contextKeywords, pageName, initialArticleId]);
 
+  // Automatically open the initial article if specified
+  useEffect(() => {
+    if (initialArticleId && tutorials.length > 0 && !selectedArticle) {
+      const articleToOpen = tutorials.find(t => t.id === initialArticleId);
+      if (articleToOpen) {
+        console.log('🎯 Auto-opening article:', initialArticleId);
+        setSelectedArticle(articleToOpen);
+        // Track the auto-open
+        trackUserAction({
+          action: 'tutorial_auto_opened',
+          page: pathname,
+          timestamp: new Date(),
+          success: true,
+          context: articleToOpen.title
+        });
+        trackEvent('help_tutorial_auto_opened', {
+          tutorial_id: articleToOpen.id,
+          tutorial_title: articleToOpen.title,
+          context: pathname
+        });
+      }
+    }
+  }, [initialArticleId, tutorials, pathname]);
+
   const fetchTutorials = async () => {
     setLoadingTutorials(true);
     try {
