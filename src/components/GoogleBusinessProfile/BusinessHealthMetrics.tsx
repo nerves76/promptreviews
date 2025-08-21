@@ -528,7 +528,7 @@ export default function BusinessHealthMetrics({
                 <p className="text-sm text-gray-600">All optimizations complete!</p>
               </div>
             ) : (
-              optimizationOpportunities.slice(0, 4).map((opportunity, index) => (
+              optimizationOpportunities.map((opportunity, index) => (
                 <div 
                   key={opportunity.id}
                   className={`p-3 rounded-lg border-l-4 transform transition-all duration-[1200ms] ease-out ${
@@ -570,15 +570,6 @@ export default function BusinessHealthMetrics({
                 </div>
               ))
             )}
-          
-          {optimizationOpportunities.length > 4 && (
-            <button
-              onClick={() => setExpandedSection(expandedSection === 'opportunities' ? null : 'opportunities')}
-              className="w-full text-center text-slate-blue hover:text-slate-700 text-sm font-medium py-2"
-            >
-              {expandedSection === 'opportunities' ? 'Show Less' : `View ${optimizationOpportunities.length - 4} More`}
-            </button>
-          )}
         </div>
         )}
       </MetricCard>
