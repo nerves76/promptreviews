@@ -359,6 +359,25 @@ export function identifyOptimizationOpportunities(
     });
   }
 
+  // Services count recommendations based on SEO best practices
+  if (profileData.servicesCount < 5) {
+    opportunities.push({
+      id: 'add-services',
+      title: 'Add More Services',
+      description: `Add at least ${5 - profileData.servicesCount} more services (5-10 is a good baseline for local businesses)`,
+      priority: 'high',
+      actionUrl: '/dashboard/google-business?tab=services'
+    });
+  } else if (profileData.servicesCount < 10) {
+    opportunities.push({
+      id: 'add-services',
+      title: 'Expand Service Offerings',
+      description: `Consider adding more services (10-20 is ideal for competitive industries)`,
+      priority: 'medium',
+      actionUrl: '/dashboard/google-business?tab=services'
+    });
+  }
+
   if (engagementData.unansweredQuestions > 0) {
     opportunities.push({
       id: 'answer-questions',
@@ -374,7 +393,7 @@ export function identifyOptimizationOpportunities(
       title: 'Add Service Descriptions',
       description: `${profileData.servicesCount - profileData.servicesWithDescriptions} services need detailed descriptions`,
       priority: 'medium',
-      actionUrl: '/dashboard/google-business?tab=business-info'
+      actionUrl: '/dashboard/google-business?tab=services'
     });
   }
 

@@ -146,6 +146,19 @@ export default function BusinessHealthMetrics({
   const categoryCompletion = profileData?.categoriesUsed 
     ? Math.min((profileData.categoriesUsed / 5) * 100, 100)
     : 0;
+  
+  // For services count, based on SEO best practices:
+  // 5-10 services = good baseline (80%)
+  // 10-20 services = ideal (100%)
+  // More than 20 = still 100% (but only if meaningful)
+  const serviceCountScore = profileData?.servicesCount 
+    ? profileData.servicesCount < 5 
+      ? (profileData.servicesCount / 5) * 80  // 0-5 services = 0-80%
+      : profileData.servicesCount < 10 
+      ? 80 + ((profileData.servicesCount - 5) / 5) * 20  // 5-10 services = 80-100%
+      : 100  // 10+ services = 100%
+    : 0;
+    
   const serviceDescriptionCompletion = profileData?.servicesCount && profileData?.servicesCount > 0 
     ? (profileData.servicesWithDescriptions / profileData.servicesCount) * 100 
     : 0;
@@ -266,13 +279,31 @@ export default function BusinessHealthMetrics({
                 <span className="text-sm font-medium text-gray-700">Services</span>
                 <span className="text-sm text-gray-600">{profileData?.servicesCount || 0} total</span>
               </div>
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-xs text-gray-600">With descriptions</span>
-                <span className="text-xs text-gray-600">
-                  {profileData?.servicesWithDescriptions || 0}/{profileData?.servicesCount || 0}
-                </span>
+              <div className="space-y-2">
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs text-gray-600">Service count score</span>
+                    <span className="text-xs text-gray-600">
+                      {Math.round(serviceCountScore)}% {profileData?.servicesCount >= 10 ? '(Ideal)' : profileData?.servicesCount >= 5 ? '(Good)' : '(Add more)'}
+                    </span>
+                  </div>
+                  <ProgressBar percentage={serviceCountScore} className="bg-blue-500" animate={cardIsVisible} />
+                </div>
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs text-gray-600">With descriptions</span>
+                    <span className="text-xs text-gray-600">
+                      {profileData?.servicesWithDescriptions || 0}/{profileData?.servicesCount || 0}
+                    </span>
+                  </div>
+                  <ProgressBar percentage={serviceDescriptionCompletion} className="bg-green-500" animate={cardIsVisible} />
+                </div>
               </div>
-              <ProgressBar percentage={serviceDescriptionCompletion} className="bg-green-500" animate={cardIsVisible} />
+              {(profileData?.servicesCount || 0) < 5 && (
+                <div className="mt-2 p-2 bg-amber-50 border border-amber-200 rounded text-xs text-amber-700">
+                  💡 <strong>Tip:</strong> Add 5-10 services for good baseline visibility, 10-20 for competitive industries.
+                </div>
+              )}
             </div>
 
             {/* Business Description */}
