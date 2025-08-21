@@ -79,7 +79,15 @@ export default function ServiceItemsEditor({
       name: '',
       description: ''
     };
-    onServiceItemsChange([...safeServiceItems, newService]);
+    // Add new service at the beginning so users see it immediately
+    onServiceItemsChange([newService, ...safeServiceItems]);
+    
+    // Auto-focus the new service input after a brief delay
+    setTimeout(() => {
+      if (inputRefs.current[0]) {
+        inputRefs.current[0].focus();
+      }
+    }, 100);
   };
 
   const updateServiceItem = (index: number, field: 'name' | 'description', value: string) => {
@@ -312,7 +320,7 @@ export default function ServiceItemsEditor({
                     
                     {service.name && isStructuredService(service.name) && (
                       <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-700 rounded-full whitespace-nowrap" title="Google predefined service">
-                        Google
+                        Google Category
                       </span>
                     )}
                     {service.name && !isStructuredService(service.name) && (
