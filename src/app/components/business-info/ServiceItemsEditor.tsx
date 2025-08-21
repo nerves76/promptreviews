@@ -13,6 +13,7 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import Icon from '@/components/Icon';
 import { isStructuredService, searchGoogleServices } from '@/utils/google-service-types';
+import HelpModal from '@/app/components/help/HelpModal';
 
 interface ServiceItem {
   name: string;
@@ -50,6 +51,7 @@ export default function ServiceItemsEditor({
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [suggestions, setSuggestions] = useState<Array<{ id: string; name: string }>>([]);
   const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState<number>(-1);
+  const [showHelpModal, setShowHelpModal] = useState(false);
   const inputRefs = useRef<{ [key: number]: HTMLInputElement | null }>({});
 
   // Ensure service items are properly structured and safe to use
@@ -198,6 +200,24 @@ export default function ServiceItemsEditor({
           + Add service
         </button>
       </div>
+      
+      {/* SEO Help Link */}
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+        <div className="flex items-start space-x-2">
+          <Icon name="FaLightbulb" className="w-4 h-4 text-blue-600 mt-0.5" size={16} />
+          <div className="flex-1">
+            <p className="text-sm text-blue-800">
+              Services boost your local SEO by helping you rank for specific searches.
+              <button
+                onClick={() => setShowHelpModal(true)}
+                className="ml-1 font-medium underline hover:text-blue-900"
+              >
+                Learn how services improve your rankings →
+              </button>
+            </p>
+          </div>
+        </div>
+      </div>
 
       {/* Services Content */}
       {!isLoadingDetails && !detailsError && (
@@ -241,7 +261,7 @@ export default function ServiceItemsEditor({
                   <div className="flex-1 flex items-center space-x-2 relative">
                     <div className="flex-1 relative">
                       <input
-                        ref={el => inputRefs.current[index] = el}
+                        ref={el => { inputRefs.current[index] = el; }}
                         type="text"
                         value={service.name || ''}
                         onChange={(e) => updateServiceItem(index, 'name', e.target.value)}
@@ -367,6 +387,15 @@ export default function ServiceItemsEditor({
           <span className="font-medium ml-2">Custom</span> services are your own unique offerings.
         </p>
       </div>
+      
+      {/* Help Modal */}
+      <HelpModal 
+        isOpen={showHelpModal}
+        onClose={() => setShowHelpModal(false)}
+        initialArticleId="google-services-seo"
+        initialKeywords={['services', 'seo', 'google', 'business-profile', 'rankings']}
+        initialTab="tutorials"
+      />
     </div>
   );
 } 

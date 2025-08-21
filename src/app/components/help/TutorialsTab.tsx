@@ -187,6 +187,15 @@ export default function TutorialsTab({
         plans: ['builder', 'maven', 'enterprise'] // Builder+ only
       },
       {
+        id: 'google-services-seo',
+        title: 'How Google Business Services Boost Your SEO',
+        description: 'Learn how adding services to your Google Business Profile improves local search rankings and visibility',
+        url: '/docs/google-business-services-seo',
+        category: 'seo',
+        tags: ['google', 'business-profile', 'services', 'seo', 'local-search', 'rankings', 'optimization', 'keywords'],
+        plans: ['grower', 'builder', 'maven', 'enterprise'] // Available to all plans
+      },
+      {
         id: 'bulk-update',
         title: 'Bulk Business Information Updates',
         description: 'Learn how to update multiple Google Business Profile locations simultaneously',
