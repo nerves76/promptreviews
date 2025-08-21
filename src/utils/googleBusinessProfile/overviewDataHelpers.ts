@@ -443,7 +443,9 @@ export function identifyOptimizationOpportunities(
     });
   }
 
-  if (!location.primaryPhone) {
+  // Check for phone in both possible locations
+  const hasPhone = location.primaryPhone || location.phoneNumbers?.primaryPhone;
+  if (!hasPhone) {
     opportunities.push({
       id: 'add-phone',
       title: 'Add Phone Number',

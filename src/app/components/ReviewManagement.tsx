@@ -59,12 +59,14 @@ export default function ReviewManagement({ locations, isConnected }: ReviewManag
   const [isSubmittingReply, setIsSubmittingReply] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showingAiFor, setShowingAiFor] = useState<string | null>(null);
+  const [isGeneratingAi, setIsGeneratingAi] = useState<string | null>(null);
   
   // Edit reply state
   const [editingReply, setEditingReply] = useState<string | null>(null);
   const [editReplyText, setEditReplyText] = useState('');
   const [isUpdatingReply, setIsUpdatingReply] = useState(false);
   const [showingAiForEdit, setShowingAiForEdit] = useState<string | null>(null);
+  const [isGeneratingAiEdit, setIsGeneratingAiEdit] = useState<string | null>(null);
 
   // Auto-select first location if available
   useEffect(() => {
@@ -210,6 +212,73 @@ export default function ReviewManagement({ locations, isConnected }: ReviewManag
   const handleAiEditResponseGenerated = (response: string) => {
     setEditReplyText(response);
     setShowingAiForEdit(null);
+  };
+
+  // Direct AI generation without modal
+  const generateAiResponse = async (review: Review) => {
+    setIsGeneratingAi(review.reviewId);
+    setReplyingTo(review.reviewId);
+    setError(null);
+
+    try {
+      const response = await fetch('/api/ai/google-business/generate-review-response', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          reviewText: review.comment || '',
+          reviewRating: STAR_RATINGS[review.starRating],
+          reviewerName: review.reviewer.displayName,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        setReplyText(result.response);
+      } else {
+        setError(result.error || 'Failed to generate response');
+      }
+    } catch (err) {
+      setError('Failed to generate AI response. Please try again.');
+      console.error('AI generation error:', err);
+    } finally {
+      setIsGeneratingAi(null);
+    }
+  };
+
+  // Direct AI generation for editing
+  const generateAiEditResponse = async (review: Review) => {
+    setIsGeneratingAiEdit(review.reviewId);
+    setError(null);
+
+    try {
+      const response = await fetch('/api/ai/google-business/generate-review-response', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          reviewText: review.comment || '',
+          reviewRating: STAR_RATINGS[review.starRating],
+          reviewerName: review.reviewer.displayName,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        setEditReplyText(result.response);
+      } else {
+        setError(result.error || 'Failed to generate response');
+      }
+    } catch (err) {
+      setError('Failed to generate AI response. Please try again.');
+      console.error('AI generation error:', err);
+    } finally {
+      setIsGeneratingAiEdit(null);
+    }
   };
 
   const formatDate = (dateString: string) => {
@@ -419,11 +488,21 @@ export default function ReviewManagement({ locations, isConnected }: ReviewManag
                     ) : (
                       <div className="flex justify-start mb-4">
                         <button
-                          onClick={() => setShowingAiForEdit(review.reviewId)}
-                          className="flex items-center space-x-2 text-sm text-purple-600 hover:text-purple-800 border border-purple-300 rounded px-3 py-1 hover:bg-purple-50"
+                          onClick={() => generateAiEditResponse(review)}
+                          disabled={isGeneratingAiEdit === review.reviewId}
+                          className="flex items-center space-x-2 text-sm text-purple-600 hover:text-purple-800 border border-purple-300 rounded px-3 py-1 hover:bg-purple-50 disabled:opacity-50"
                         >
-                          <Icon name="prompty" className="w-3 h-3 text-slate-blue" size={12} />
-                          <span>Improve with AI</span>
+                          {isGeneratingAiEdit === review.reviewId ? (
+                            <>
+                              <Icon name="FaSpinner" className="w-3 h-3 animate-spin" />
+                              <span>Generating...</span>
+                            </>
+                          ) : (
+                            <>
+                              <Icon name="prompty" className="w-3 h-3 text-slate-blue" size={12} />
+                              <span>Improve with AI</span>
+                            </>
+                          )}
                         </button>
                       </div>
                     )}
@@ -483,11 +562,21 @@ export default function ReviewManagement({ locations, isConnected }: ReviewManag
                     ) : (
                       <div className="flex justify-start">
                         <button
-                          onClick={() => setShowingAiFor(review.reviewId)}
-                          className="flex items-center space-x-2 text-sm text-purple-600 hover:text-purple-800 border border-purple-300 rounded px-3 py-1 hover:bg-purple-50"
+                          onClick={() => generateAiResponse(review)}
+                          disabled={isGeneratingAi === review.reviewId}
+                          className="flex items-center space-x-2 text-sm text-purple-600 hover:text-purple-800 border border-purple-300 rounded px-3 py-1 hover:bg-purple-50 disabled:opacity-50"
                         >
-                          <Icon name="prompty" className="w-3 h-3 text-slate-blue" size={12} />
-                          <span>Generate with AI</span>
+                          {isGeneratingAi === review.reviewId ? (
+                            <>
+                              <Icon name="FaSpinner" className="w-3 h-3 animate-spin" />
+                              <span>Generating...</span>
+                            </>
+                          ) : (
+                            <>
+                              <Icon name="prompty" className="w-3 h-3 text-slate-blue" size={12} />
+                              <span>Generate with AI</span>
+                            </>
+                          )}
                         </button>
                       </div>
                     )}
@@ -530,14 +619,21 @@ export default function ReviewManagement({ locations, isConnected }: ReviewManag
                         <span>Reply to this review</span>
                       </button>
                       <button
-                        onClick={() => {
-                          setReplyingTo(review.reviewId);
-                          setShowingAiFor(review.reviewId);
-                        }}
-                        className="flex items-center space-x-2 text-sm text-purple-600 hover:text-purple-800"
+                        onClick={() => generateAiResponse(review)}
+                        disabled={isGeneratingAi === review.reviewId}
+                        className="flex items-center space-x-2 text-sm text-purple-600 hover:text-purple-800 disabled:opacity-50"
                       >
-                        <Icon name="prompty" className="w-3 h-3 text-slate-blue" size={12} />
-                        <span>Generate AI Response</span>
+                        {isGeneratingAi === review.reviewId ? (
+                          <>
+                            <Icon name="FaSpinner" className="w-3 h-3 animate-spin" />
+                            <span>Generating...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Icon name="prompty" className="w-3 h-3 text-slate-blue" size={12} />
+                            <span>Generate AI Response</span>
+                          </>
+                        )}
                       </button>
                     </div>
                   </div>
