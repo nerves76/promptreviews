@@ -289,6 +289,39 @@ const Dashboard = React.memo(function Dashboard() {
   // Add a ref to track if businessCreated param was handled
   const businessCreatedHandled = useRef(false);
 
+  // Ensure account exists for authenticated users
+  useEffect(() => {
+    const ensureAccount = async () => {
+      if (authLoading) return;
+      if (!isAuthenticated || !user) return;
+      if (account) return; // Account already exists
+      
+      // Account is missing for authenticated user - create it
+      console.log('🔧 Dashboard: Account missing for authenticated user, ensuring it exists...');
+      
+      try {
+        const response = await fetch('/api/auth/ensure-account', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          console.log('✅ Dashboard: Account ensured, refreshing auth...');
+          // Refresh auth context to load the new account
+          await refreshAuth();
+        } else {
+          console.error('❌ Dashboard: Failed to ensure account:', result.error);
+        }
+      } catch (error) {
+        console.error('❌ Dashboard: Error ensuring account:', error);
+      }
+    };
+    
+    ensureAccount();
+  }, [authLoading, isAuthenticated, user?.id, account?.id, refreshAuth]);
+
   // Load dashboard data when auth is ready
   useEffect(() => {
     if (authLoading || accountLoading) return;

@@ -1555,7 +1555,7 @@ export default function SocialPostingDashboard() {
               <h3 className="text-lg font-medium text-gray-900">
                 {activeTab === 'connect' && 'Connect'}
                 {activeTab === 'overview' && 'Overview'}
-                {activeTab === 'create-post' && 'Create Post'}
+                {activeTab === 'create-post' && 'Post'}
                 {activeTab === 'photos' && 'Photos'}
                 {activeTab === 'business-info' && 'Business Info'}
                 {activeTab === 'services' && 'Services'}
@@ -1571,7 +1571,7 @@ export default function SocialPostingDashboard() {
             </div>
 
             {/* Desktop Navigation */}
-            <nav className="hidden md:flex -mb-px space-x-8">
+            <nav className="hidden md:flex -mb-px space-x-4">
               <button
                 onClick={() => changeTab('connect')}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
@@ -1637,7 +1637,7 @@ export default function SocialPostingDashboard() {
               >
                 <div className="flex items-center space-x-2">
                   <Icon name="FaPlus" className="w-4 h-4" size={16} />
-                  <span>Create Post</span>
+                  <span>Post</span>
                 </div>
               </button>
               <button
@@ -1775,7 +1775,7 @@ export default function SocialPostingDashboard() {
                   >
                     <div className="flex items-center space-x-3">
                       <Icon name="FaPlus" className="w-4 h-4" size={16} />
-                      <span>Create Post</span>
+                      <span>Post</span>
                     </div>
                   </button>
                   <button
@@ -1990,7 +1990,7 @@ export default function SocialPostingDashboard() {
                             onClick={() => changeTab('create-post')}
                             className="px-4 py-2 bg-white text-green-700 border border-green-300 rounded-md hover:bg-green-50 transition-colors text-sm font-medium"
                           >
-                            Create Post
+                            Post
                           </button>
                           <button
                             onClick={() => changeTab('photos')}
@@ -2379,7 +2379,7 @@ export default function SocialPostingDashboard() {
                   {locations.length > 0 && (
                     <div className="bg-white rounded-lg border border-gray-200 p-6">
                       <div className="mb-4">
-                        <h3 className="text-lg font-semibold">Create Post</h3>
+                        <h3 className="text-lg font-semibold">Post</h3>
                         <p className="text-sm text-gray-600 mt-1">
                           Creating posts helps your SEO. 
                           <button
@@ -2720,7 +2720,7 @@ export default function SocialPostingDashboard() {
                           These features are not available through the API but can be managed directly in your Google Business Profile account. Each feature below includes instructions on how to use it effectively.
                         </p>
                         <p className="text-blue-700 text-xs italic">
-                          Note: Offer posts can be created through the API - use the "Create Post" tab to create special offers and promotions.
+                          Note: Offer posts can be created through the API - use the "Post" tab to create special offers and promotions.
                         </p>
                       </div>
                     </div>

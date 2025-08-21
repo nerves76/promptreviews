@@ -234,10 +234,18 @@ export default function CreateBusinessClient() {
           <h1 className="text-2xl font-bold text-red-600 mb-4">Setup Error</h1>
           <p className="text-gray-600 mb-6">{error}</p>
           <button 
-            onClick={() => window.location.reload()} 
+            onClick={() => {
+              // If it's an account setup issue, redirect to login
+              if (error === "Account setup required" || error === "Authentication required") {
+                router.push('/auth/sign-in');
+              } else {
+                // For other errors, try reloading
+                window.location.reload();
+              }
+            }} 
             className="bg-slate-blue text-white px-6 py-2 rounded-lg hover:bg-slate-blue/90"
           >
-            Try Again
+            {error === "Account setup required" || error === "Authentication required" ? "Go to Login" : "Try Again"}
           </button>
         </div>
       </div>
