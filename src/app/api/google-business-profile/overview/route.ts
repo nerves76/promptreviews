@@ -231,10 +231,16 @@ export async function GET(request: NextRequest) {
         { categoriesUsed: 0, maxCategories: 10, servicesCount: 0, servicesWithDescriptions: 0, businessDescriptionLength: 0, businessDescriptionMaxLength: 750, seoScore: 0, photosByCategory: {} };
 
       console.log('📊 Categories structure debug:', {
-        hasPrimaryCategory: !!locationData?.primaryCategory,
-        hasAdditionalCategories: !!locationData?.additionalCategories,
-        directCategories: {
-          primaryExists: !!locationData?.primaryCategory,
+        nestedStructure: {
+          hasPrimaryCategory: !!locationData?.categories?.primaryCategory,
+          hasAdditionalCategories: !!locationData?.categories?.additionalCategories,
+          primaryCategoryName: locationData?.categories?.primaryCategory?.displayName || 'none',
+          additionalCount: locationData?.categories?.additionalCategories?.length || 0
+        },
+        legacyStructure: {
+          hasPrimaryCategory: !!locationData?.primaryCategory,
+          hasAdditionalCategories: !!locationData?.additionalCategories,
+          primaryCategoryName: locationData?.primaryCategory?.displayName || 'none',
           additionalCount: locationData?.additionalCategories?.length || 0
         }
       });

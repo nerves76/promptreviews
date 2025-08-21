@@ -107,6 +107,22 @@ When working on this codebase:
 5. **Preserve user data** - Never implement changes that could lose user input
 6. **Monitor performance** - Watch for unnecessary re-renders or API calls
 
+## Database Migration Rules
+
+**ALWAYS follow proper migration workflow:**
+1. **Use correct timestamps** - Migration files must use actual creation date/time (YYYYMMDDHHMMSS format)
+2. **Check migration status** - Run `npx supabase migration list` before making changes
+3. **Never bypass the system** - Don't run SQL directly in production or use repair commands as first solution
+4. **Fix sequencing properly** - If migrations are out of order, rename them to correct timestamps
+5. **Test locally first** - Run `npx supabase db reset --local` to verify migrations work
+6. **Push through system** - Use `npx supabase db push` to apply to remote
+7. **Keep environments in sync** - Migrations ensure local and remote databases match
+
+**Common issues:**
+- If a migration is "out of sequence" (created later but named earlier), rename it to reflect actual creation time
+- Storage bucket policies require special handling - use DO blocks with error handling
+- Never suggest manual SQL execution in production dashboard as a first solution
+
 ## Recent Issues Log
 
 ### 2024 - Widget Page Refreshes
