@@ -142,8 +142,9 @@ export default function BusinessHealthMetrics({
   
 
   // Calculate completion percentages
-  const categoryCompletion = profileData?.categoriesUsed && profileData?.maxCategories 
-    ? (profileData.categoriesUsed / profileData.maxCategories) * 100 
+  // For categories, we consider 5 to be excellent (100%), since not all businesses have 10 relevant categories
+  const categoryCompletion = profileData?.categoriesUsed 
+    ? Math.min((profileData.categoriesUsed / 5) * 100, 100)
     : 0;
   const serviceDescriptionCompletion = profileData?.servicesCount && profileData?.servicesCount > 0 
     ? (profileData.servicesWithDescriptions / profileData.servicesCount) * 100 

@@ -103,7 +103,7 @@ export default function ProfileOptimizationEmbed({
   // Sample data showcasing good performance
   const sampleData = {
     categoriesUsed: 4,
-    maxCategories: 5,
+    maxCategories: 10,  // Google allows up to 10, but 5 is considered excellent
     servicesCount: 12,
     servicesWithDescriptions: 10,
     businessDescriptionLength: 680,
@@ -111,7 +111,8 @@ export default function ProfileOptimizationEmbed({
     seoScore: 87
   };
   
-  const categoryCompletion = (sampleData.categoriesUsed / sampleData.maxCategories) * 100;
+  // For categories, we consider 5 to be excellent (100%), since not all businesses have 10 relevant categories
+  const categoryCompletion = Math.min((sampleData.categoriesUsed / 5) * 100, 100);
   const serviceDescriptionCompletion = (sampleData.servicesWithDescriptions / sampleData.servicesCount) * 100;
   const businessDescriptionCompletion = (sampleData.businessDescriptionLength / sampleData.businessDescriptionMaxLength) * 100;
   
@@ -142,7 +143,7 @@ export default function ProfileOptimizationEmbed({
             <span className="text-sm font-medium text-gray-900">{animatedCategoryCompletion}%</span>
           </div>
           <ProgressBar percentage={categoryCompletion} animate={cardIsVisible} />
-          <p className="text-xs text-gray-500 mt-1">{sampleData.categoriesUsed} of {sampleData.maxCategories} categories selected</p>
+          <p className="text-xs text-gray-500 mt-1">{sampleData.categoriesUsed} categories selected (5+ recommended)</p>
         </div>
         
         {/* Service Descriptions */}

@@ -349,13 +349,13 @@ export function identifyOptimizationOpportunities(
   }
 
   // Medium priority opportunities
-  if (profileData.categoriesUsed < 3) {
+  if (profileData.categoriesUsed < 5) {
     opportunities.push({
       id: 'add-categories',
       title: 'Add More Categories',
-      description: `Use ${profileData.maxCategories - profileData.categoriesUsed} more categories to improve discoverability`,
+      description: `Select as many relevant categories as you can from Google's 4000+ options (up to ${profileData.maxCategories} total)`,
       priority: 'medium',
-      actionUrl: '/dashboard/google-business?tab=business-info'
+      actionUrl: '/dashboard/google-business?tab=services'
     });
   }
 
