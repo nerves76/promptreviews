@@ -1072,9 +1072,11 @@ export default function SocialPostingDashboard() {
               message: 'Image storage is not configured. Please contact support to enable image uploads, or post without images for now.' 
             });
           } else {
+            // Show more detailed error message
+            const errorMessage = uploadError?.message || uploadError?.error || JSON.stringify(uploadError) || 'Unknown error';
             setPostResult({ 
               success: false, 
-              message: `Failed to upload images: ${uploadError?.message || 'Unknown error'}` 
+              message: `Failed to upload images: ${errorMessage}` 
             });
           }
           setIsPosting(false);
@@ -1331,7 +1333,13 @@ export default function SocialPostingDashboard() {
 
         if (error) {
           console.error('Error uploading image:', error);
-          throw error;
+          // Make sure error has proper structure
+          const errorObj = {
+            message: error?.message || 'Failed to upload image',
+            error: error?.error || error?.message || 'Unknown error',
+            statusCode: error?.statusCode || error?.status || '400'
+          };
+          throw errorObj;
         }
 
         // Get public URL
@@ -1350,9 +1358,10 @@ export default function SocialPostingDashboard() {
     try {
       const uploadedUrls = await Promise.all(uploadPromises);
       return uploadedUrls;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Some images failed to upload:', error);
-      throw new Error('Failed to upload one or more images');
+      // Pass through the error with more details
+      throw error;
     }
   };
 
