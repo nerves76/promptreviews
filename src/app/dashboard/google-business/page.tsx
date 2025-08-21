@@ -413,7 +413,7 @@ export default function SocialPostingDashboard() {
     }
     
     // IMPORTANT: No automatic refresh after initial load to prevent form resets
-  }, [loadPlatforms]); // Add loadPlatforms to dependencies to ensure proper reference
+  }, []); // Empty dependencies - this should only run once on mount
 
   // Add effect to close dropdown when clicking outside
   useEffect(() => {
