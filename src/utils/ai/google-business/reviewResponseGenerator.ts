@@ -80,33 +80,83 @@ export function createReviewResponsePrompt(
   
   const guidance = responseGuidelines[sentiment];
   
+  // Add variation starters based on sentiment and context
+  const variationStarters = {
+    positive: [
+      `${reviewerGreeting} What a wonderful review to read!`,
+      `${reviewerGreeting} Your kind words made our day!`,
+      `${reviewerGreeting} We're absolutely thrilled you enjoyed`,
+      `${reviewerGreeting} Thank you for this amazing feedback!`,
+      `${reviewerGreeting} It's customers like you who make what we do so rewarding!`
+    ],
+    neutral: [
+      `${reviewerGreeting} Thank you for taking the time to share your experience.`,
+      `${reviewerGreeting} We appreciate your honest feedback.`,
+      `${reviewerGreeting} Thank you for your detailed review.`,
+      `${reviewerGreeting} We value your perspective on`
+    ],
+    negative: [
+      `${reviewerGreeting} We sincerely apologize that your experience didn't meet expectations.`,
+      `${reviewerGreeting} Thank you for bringing this to our attention.`,
+      `${reviewerGreeting} We're truly sorry to hear about your experience.`,
+      `${reviewerGreeting} Your feedback is important to us, and we apologize`
+    ]
+  };
+
+  const selectedStarter = variationStarters[sentiment][Math.floor(Math.random() * variationStarters[sentiment].length)];
+
+  // Build contextual details for more personalized responses
+  const contextualDetails = [];
+  if (brandContext.differentiators) {
+    contextualDetails.push(`Known for: ${brandContext.differentiators}`);
+  }
+  if (brandContext.websiteUrl) {
+    contextualDetails.push(`Website available for more info: ${brandContext.websiteUrl}`);
+  }
+  if (brandContext.phoneNumber && sentiment === 'negative') {
+    contextualDetails.push(`Direct contact available: ${brandContext.phoneNumber}`);
+  }
+  if (brandContext.taglines) {
+    contextualDetails.push(`Brand promise: ${brandContext.taglines}`);
+  }
+
   return `You are a seasoned local SEO expert writing Google Business Profile review responses that build trust and encourage future customers.
 
 ${brandInstructions}
 
+${contextualDetails.length > 0 ? `ADDITIONAL BUSINESS CONTEXT:\n${contextualDetails.join('\n')}\n` : ''}
+
 REVIEW TO RESPOND TO:
 Rating: ${starRating}/5 stars
 Review: "${reviewText}"
+Reviewer: ${reviewerName || 'Anonymous'}
 
 RESPONSE REQUIREMENTS:
 - Tone: ${tone} and authentic
 - Approach: ${guidance.approach}
 - Include these elements: ${guidance.elements.join(', ')}
-- Start with: "${reviewerGreeting}"
+- Suggested opening: "${selectedStarter}"
 - Length: 50-150 words
 - Professional but human, not corporate-speak
+- Be specific about what they mentioned in their review
+- Use varied language - avoid repetitive phrases
 
 GOOGLE BUSINESS PROFILE BEST PRACTICES:
-- Always thank the reviewer first
-- Address specific points they mentioned when possible
-- Include your business name naturally
-- ${sentiment === 'negative' ? 'Offer to resolve issues privately (phone/email)' : 'Subtly encourage others to visit'}
+- Always thank the reviewer personally
+- Reference specific details from their review to show you read it
+- Include your business name naturally (but not more than once)
+- ${sentiment === 'negative' ? `Offer to resolve issues privately${brandContext.phoneNumber ? ` at ${brandContext.phoneNumber}` : ' (phone/email)'}` : 'Subtly encourage others to visit'}
 - End on a positive, forward-looking note
-- NO generic templates - make it specific to this review
+- Make each response unique - NO generic templates
+- If they mention specific staff, products, or services, acknowledge them by name
 
-${sentiment === 'negative' ? 'NEGATIVE REVIEW STRATEGY:\n- Acknowledge their frustration\n- Take responsibility without making excuses\n- Offer specific next steps\n- Move conversation offline when appropriate' : ''}
+${sentiment === 'negative' ? 'NEGATIVE REVIEW STRATEGY:\n- Acknowledge their specific frustration points\n- Take responsibility without making excuses\n- Offer concrete next steps to resolve\n- Move conversation offline when appropriate\n- Show genuine empathy and concern' : ''}
 
-${sentiment === 'positive' ? 'POSITIVE REVIEW STRATEGY:\n- Highlight specific aspects they loved\n- Reinforce your business strengths\n- Welcome them back\n- Encourage others subtly' : ''}
+${sentiment === 'positive' ? 'POSITIVE REVIEW STRATEGY:\n- Highlight the specific aspects they loved\n- Reinforce what makes your business special\n- Welcome them back with enthusiasm\n- Subtly encourage others to have similar experiences\n- Express genuine gratitude' : ''}
+
+${sentiment === 'neutral' ? 'NEUTRAL REVIEW STRATEGY:\n- Acknowledge both positives and areas for improvement\n- Show you value balanced feedback\n- Demonstrate commitment to continuous improvement\n- Invite them to give you another chance\n- Be professional yet warm' : ''}
+
+IMPORTANT: Create a response that feels personal and specific to THIS review. Avoid generic phrases like "We appreciate your feedback" or "Thank you for your review" without context.
 
 Return ONLY the response text, no quotes or formatting.`;
 }

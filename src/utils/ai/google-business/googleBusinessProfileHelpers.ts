@@ -15,6 +15,10 @@ export interface AIBrandContext {
   aiDos?: string;
   aiDonts?: string;
   taglines?: string;
+  websiteUrl?: string;
+  phoneNumber?: string;
+  regularHours?: string;
+  specialHours?: string;
 }
 
 // Types for service description generation

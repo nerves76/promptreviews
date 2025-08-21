@@ -221,6 +221,36 @@ export default function ReviewManagement({ locations, isConnected }: ReviewManag
     setError(null);
 
     try {
+      // First, try to fetch Google Business Profile data for richer context
+      let businessContext = undefined;
+      try {
+        const profileResponse = await fetch(`/api/google-business-profile/business-information/location-details?locationId=${encodeURIComponent(selectedLocation)}`);
+        if (profileResponse.ok) {
+          const profileData = await profileResponse.json();
+          if (profileData.success && profileData.data) {
+            const location = profileData.data;
+            // Extract relevant business context from Google Business Profile
+            businessContext = {
+              businessName: location.title || location.locationName || '',
+              city: location.address?.locality || '',
+              industry: location.categories?.primaryCategory?.displayName ? 
+                [location.categories.primaryCategory.displayName] : 
+                (location.primaryCategory?.displayName ? [location.primaryCategory.displayName] : []),
+              companyValues: location.profile?.description || '',
+              differentiators: location.serviceItems?.map((s: any) => s.structuredServiceItem?.serviceName || s.freeFormServiceItem?.label?.displayName || '').filter(Boolean).join(', ') || '',
+              taglines: location.profile?.shortDescription || '',
+              websiteUrl: location.websiteUri || '',
+              phoneNumber: location.phoneNumbers?.primaryPhone || location.primaryPhone || '',
+              // Add more specific details that can help personalize responses
+              regularHours: location.regularHours ? 'mentioned' : undefined,
+              specialHours: location.specialHours ? 'has special hours' : undefined,
+            };
+          }
+        }
+      } catch (profileError) {
+        console.log('Could not fetch Google Business Profile data, using default context');
+      }
+
       const response = await fetch('/api/ai/google-business/generate-review-response', {
         method: 'POST',
         headers: {
@@ -230,6 +260,7 @@ export default function ReviewManagement({ locations, isConnected }: ReviewManag
           reviewText: review.comment || '',
           reviewRating: STAR_RATINGS[review.starRating],
           reviewerName: review.reviewer.displayName,
+          businessContext: businessContext,
         }),
       });
 
@@ -254,6 +285,36 @@ export default function ReviewManagement({ locations, isConnected }: ReviewManag
     setError(null);
 
     try {
+      // First, try to fetch Google Business Profile data for richer context
+      let businessContext = undefined;
+      try {
+        const profileResponse = await fetch(`/api/google-business-profile/business-information/location-details?locationId=${encodeURIComponent(selectedLocation)}`);
+        if (profileResponse.ok) {
+          const profileData = await profileResponse.json();
+          if (profileData.success && profileData.data) {
+            const location = profileData.data;
+            // Extract relevant business context from Google Business Profile
+            businessContext = {
+              businessName: location.title || location.locationName || '',
+              city: location.address?.locality || '',
+              industry: location.categories?.primaryCategory?.displayName ? 
+                [location.categories.primaryCategory.displayName] : 
+                (location.primaryCategory?.displayName ? [location.primaryCategory.displayName] : []),
+              companyValues: location.profile?.description || '',
+              differentiators: location.serviceItems?.map((s: any) => s.structuredServiceItem?.serviceName || s.freeFormServiceItem?.label?.displayName || '').filter(Boolean).join(', ') || '',
+              taglines: location.profile?.shortDescription || '',
+              websiteUrl: location.websiteUri || '',
+              phoneNumber: location.phoneNumbers?.primaryPhone || location.primaryPhone || '',
+              // Add more specific details that can help personalize responses
+              regularHours: location.regularHours ? 'mentioned' : undefined,
+              specialHours: location.specialHours ? 'has special hours' : undefined,
+            };
+          }
+        }
+      } catch (profileError) {
+        console.log('Could not fetch Google Business Profile data, using default context');
+      }
+
       const response = await fetch('/api/ai/google-business/generate-review-response', {
         method: 'POST',
         headers: {
@@ -263,6 +324,7 @@ export default function ReviewManagement({ locations, isConnected }: ReviewManag
           reviewText: review.comment || '',
           reviewRating: STAR_RATINGS[review.starRating],
           reviewerName: review.reviewer.displayName,
+          businessContext: businessContext,
         }),
       });
 
