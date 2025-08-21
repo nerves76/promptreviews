@@ -292,6 +292,10 @@ export default function SocialPostingDashboard() {
       return;
     }
     
+    // Mark initial load as completed IMMEDIATELY to prevent re-runs
+    initialLoadDone.current = true;
+    console.log('✅ Initial load marked as completed (early)');
+    
     // Check if we're coming back from OAuth
     console.log('📍 Current URL:', window.location.href);
     console.log('📍 Query string:', window.location.search);
@@ -408,12 +412,8 @@ export default function SocialPostingDashboard() {
       loadPlatforms();
     }
     
-    // Mark initial load as completed
-    initialLoadDone.current = true;
-    console.log('✅ Initial load marked as completed');
-    
     // IMPORTANT: No automatic refresh after initial load to prevent form resets
-  }, []);
+  }, [loadPlatforms]); // Add loadPlatforms to dependencies to ensure proper reference
 
   // Add effect to close dropdown when clicking outside
   useEffect(() => {

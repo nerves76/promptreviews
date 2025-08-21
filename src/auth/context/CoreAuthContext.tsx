@@ -135,8 +135,23 @@ export function CoreAuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       if (currentSession) {
-        setSession(currentSession);
-        setUser(currentSession.user);
+        // Only update if session has actually changed
+        setSession(prev => {
+          if (prev?.access_token !== currentSession.access_token || 
+              prev?.expires_at !== currentSession.expires_at) {
+            return currentSession;
+          }
+          return prev;
+        });
+        
+        // Only update user if it has changed
+        setUser(prev => {
+          if (prev?.id !== currentSession.user.id || 
+              prev?.email !== currentSession.user.email) {
+            return currentSession.user;
+          }
+          return prev;
+        });
         
         // Auto-refresh if expiring soon
         const expiresAt = new Date(currentSession.expires_at! * 1000);
