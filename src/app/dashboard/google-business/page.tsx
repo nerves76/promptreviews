@@ -1057,8 +1057,30 @@ export default function SocialPostingDashboard() {
       
       console.log(`📝 Posting to ${selectedLocations.length} Google Business Profile location(s)...`);
       
-      // Upload images to Supabase storage
-      const uploadedImageUrls = await uploadImagesToStorage(selectedImages);
+      // Upload images to Supabase storage (with error handling)
+      let uploadedImageUrls: string[] = [];
+      if (selectedImages.length > 0) {
+        try {
+          uploadedImageUrls = await uploadImagesToStorage(selectedImages);
+        } catch (uploadError: any) {
+          console.error('Image upload failed:', uploadError);
+          
+          // Check if it's a bucket not found error
+          if (uploadError?.message?.includes('Bucket not found') || uploadError?.error === 'Bucket not found') {
+            setPostResult({ 
+              success: false, 
+              message: 'Image storage is not configured. Please contact support to enable image uploads, or post without images for now.' 
+            });
+          } else {
+            setPostResult({ 
+              success: false, 
+              message: `Failed to upload images: ${uploadError?.message || 'Unknown error'}` 
+            });
+          }
+          setIsPosting(false);
+          return;
+        }
+      }
 
       // Post to each selected location individually
       const postPromises = selectedLocations.map(async (locationId) => {
@@ -1294,6 +1316,8 @@ export default function SocialPostingDashboard() {
   };
 
   // Upload images to Supabase storage
+  // NOTE: Requires 'post-images' bucket to exist in Supabase Storage
+  // Run scripts/create-post-images-bucket.js to create it
   const uploadImagesToStorage = async (images: File[]): Promise<string[]> => {
     if (images.length === 0) return [];
 
