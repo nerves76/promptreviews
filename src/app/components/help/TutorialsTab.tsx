@@ -196,6 +196,24 @@ export default function TutorialsTab({
         plans: ['grower', 'builder', 'maven', 'enterprise'] // Available to all plans
       },
       {
+        id: 'google-products',
+        title: 'Google Business Products: Complete Guide',
+        description: 'Master the products feature to showcase offerings, productize services, and increase visibility',
+        url: '/docs/google-business-products',
+        category: 'google-business',
+        tags: ['google', 'business-profile', 'products', 'productize', 'services', 'seo', 'visibility'],
+        plans: ['grower', 'builder', 'maven', 'enterprise'] // Available to all plans
+      },
+      {
+        id: 'google-post-types',
+        title: 'Google Business Post Types Guide',
+        description: 'Learn about different post types and how they boost your SEO and customer engagement',
+        url: '/docs/google-business-post-types',
+        category: 'google-business',
+        tags: ['google', 'business-profile', 'posts', 'seo', 'updates', 'offers', 'events', 'marketing'],
+        plans: ['grower', 'builder', 'maven', 'enterprise'] // Available to all plans
+      },
+      {
         id: 'bulk-update',
         title: 'Bulk Business Information Updates',
         description: 'Learn how to update multiple Google Business Profile locations simultaneously',
