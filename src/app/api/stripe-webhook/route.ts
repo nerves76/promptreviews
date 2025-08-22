@@ -42,6 +42,50 @@ export async function POST(req: NextRequest) {
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
   );
 
+  // Handle checkout session completed (for new subscriptions from checkout)
+  if (event.type === "checkout.session.completed") {
+    const session = event.data.object as Stripe.Checkout.Session;
+    console.log("✅ Checkout session completed:", session.id);
+    console.log("  Customer ID:", session.customer);
+    console.log("  Customer Email:", session.customer_email);
+    console.log("  Subscription ID:", session.subscription);
+    console.log("  Metadata:", session.metadata);
+    
+    // Extract metadata
+    const userId = session.metadata?.userId;
+    const plan = session.metadata?.plan;
+    const billingPeriod = session.metadata?.billingPeriod || 'monthly';
+    
+    if (userId && plan) {
+      console.log("📝 Updating account from checkout session");
+      console.log("  User ID:", userId);
+      console.log("  Plan:", plan);
+      console.log("  Billing Period:", billingPeriod);
+      
+      // Update the account with the new subscription info
+      const { data, error } = await supabase
+        .from("accounts")
+        .update({
+          stripe_customer_id: session.customer as string,
+          stripe_subscription_id: session.subscription as string,
+          plan: plan,
+          billing_period: billingPeriod,
+          subscription_status: 'active',
+          has_had_paid_plan: true,
+        })
+        .eq("id", userId)
+        .select();
+      
+      if (error) {
+        console.error("❌ Failed to update account from checkout:", error);
+      } else {
+        console.log("✅ Account updated successfully from checkout:", data);
+      }
+    } else {
+      console.warn("⚠️ Missing metadata in checkout session:", { userId, plan });
+    }
+  }
+
   // Handle subscription events
   if (
     event.type === "customer.subscription.created" ||

@@ -141,6 +141,7 @@ export async function POST(req: NextRequest) {
       metadata: { 
         userId, 
         plan,
+        billingPeriod: billingPeriod || 'monthly',
         userEmail: userEmail || "",
         changeType,
         isReactivation: isReactivation ? 'true' : 'false'

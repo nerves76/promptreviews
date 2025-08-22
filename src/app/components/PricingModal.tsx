@@ -90,24 +90,6 @@ interface PricingModalProps {
   isReactivation?: boolean;
 }
 
-function getButtonLabel(tierKey: string, currentPlan?: string) {
-  // Handle new users with no plan
-  if (!currentPlan || currentPlan === 'no_plan' || currentPlan === 'NULL') {
-    if (tierKey === "grower") return "Start Free Trial";
-    return "Get Started";
-  }
-  
-  if (tierKey === currentPlan) return "Your Plan";
-  if (currentPlan === "free") return "Choose";
-  
-  const current = tiers.find((t) => t.key === currentPlan);
-  const target = tiers.find((t) => t.key === tierKey);
-  if (!current || !target) return "Choose";
-  if (target.order > current.order) return "Upgrade";
-  if (target.order < current.order) return "Downgrade";
-  return "Choose";
-}
-
 const featureTooltips: Record<string, string> = {
   "Workflow management":
     "Automate and organize your review collection process.",
@@ -125,13 +107,14 @@ export default function PricingModal({
   onSelectTier,
   asModal = true,
   currentPlan,
+  currentBillingPeriod,
   hasHadPaidPlan = false,
   showCanceledMessage = false,
   onClose,
   isPlanSelectionRequired = false,
   reactivationOffer,
   isReactivation = false,
-}: PricingModalProps) {
+}: PricingModalProps & { currentBillingPeriod?: 'monthly' | 'annual' }) {
   const [tooltip, setTooltip] = useState<string | null>(null);
   const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(
     null,
@@ -352,9 +335,35 @@ export default function PricingModal({
                 <button
                   className={`w-full mt-auto py-3 rounded-lg font-semibold text-lg ${tier.button}`}
                   onClick={() => onSelectTier(tier.key, billingPeriod)}
-                  disabled={tier.key === currentPlan && !!currentPlan}
+                  disabled={tier.key === currentPlan && billingPeriod === currentBillingPeriod && !!currentPlan}
                 >
-                  {getButtonLabel(tier.key, currentPlan)}
+                  {(() => {
+                    // Handle new users with no plan
+                    if (!currentPlan || currentPlan === 'no_plan' || currentPlan === 'NULL') {
+                      if (tier.key === "grower") return "Start Free Trial";
+                      return "Get Started";
+                    }
+                    
+                    // Check if this is the current plan AND billing period
+                    const isCurrentPlanAndBilling = tier.key === currentPlan && billingPeriod === currentBillingPeriod;
+                    if (isCurrentPlanAndBilling) return "Your Plan";
+                    
+                    // If viewing different billing period than current
+                    const isViewingDifferentBilling = billingPeriod !== currentBillingPeriod && currentBillingPeriod;
+                    
+                    if (isViewingDifferentBilling) {
+                      // All buttons should say "Switch to Annual" or "Switch to Monthly"
+                      return billingPeriod === 'annual' ? "Switch to Annual" : "Switch to Monthly";
+                    }
+                    
+                    // Same billing period as current - show Upgrade/Downgrade
+                    const current = tiers.find((t) => t.key === currentPlan);
+                    const target = tiers.find((t) => t.key === tier.key);
+                    if (!current || !target) return "Choose";
+                    if (target.order > current.order) return "Upgrade";
+                    if (target.order < current.order) return "Downgrade";
+                    return "Choose";
+                  })()}
                 </button>
                 {/* Always render a div for consistent button row height */}
                 <div

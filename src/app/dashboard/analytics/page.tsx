@@ -9,7 +9,7 @@ import { getAccountIdForUser } from "@/auth/utils/accounts";
 import { isAdmin } from "@/utils/admin";
 import { EMOJI_SENTIMENT_LABELS, EMOJI_SENTIMENT_ICONS } from "@/app/components/prompt-modules/emojiSentimentConfig";
 import PageCard from "@/app/components/PageCard";
-import AppLoader from "@/app/components/AppLoader";
+import InlineLoader from "@/app/components/InlineLoader";
 import {
   LineChart,
   Line,
@@ -466,7 +466,7 @@ export default function AnalyticsPage() {
             <Icon name="FaChartLine" className="w-9 h-9 text-slate-blue" size={36} />
           </div>
           <div className="min-h-[400px] flex flex-col items-center justify-center">
-            <AppLoader />
+            <InlineLoader showText={true} />
           </div>
         </div>
       </div>

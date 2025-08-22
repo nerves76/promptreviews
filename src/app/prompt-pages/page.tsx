@@ -8,7 +8,7 @@ import Link from "next/link";
 import Icon from "@/components/Icon";
 import PageCard from "@/app/components/PageCard";
 
-import AppLoader from "@/app/components/AppLoader";
+import InlineLoader from "@/app/components/InlineLoader";
 import QRCodeGenerator, { QR_FRAME_SIZES } from "../dashboard/components/QRCodeGenerator";
 import dynamic from "next/dynamic";
 import PromptPagesTable from "@/app/components/PromptPagesTable";
@@ -613,7 +613,7 @@ function PromptPagesContent() {
       <div>
         <PageCard icon={<span className="text-3xl font-bold align-middle text-slate-blue" style={{ fontFamily: 'Inter, sans-serif' }}>[P]</span>}>
           <div className="min-h-[400px] flex flex-col items-center justify-center">
-            <AppLoader />
+            <InlineLoader showText={true} />
           </div>
         </PageCard>
       </div>

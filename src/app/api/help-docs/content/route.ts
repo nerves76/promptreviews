@@ -60,57 +60,80 @@ const articleContent: Record<string, string> = {
   `,
   
   'getting-started': `
-    <h1>Getting Started with Prompt Pages</h1>
+    <h1>Getting Started with Prompt Reviews</h1>
     
-    <p>Prompt pages are the heart of your review collection strategy. They're customizable landing pages designed to guide your customers through leaving reviews on the platforms that matter most to your business.</p>
+    <p>Welcome to Prompt Reviews! This guide will walk you through setting up your business and creating your Universal prompt page to start collecting reviews.</p>
     
-    <h2>Creating Your First Prompt Page</h2>
+    <h2>Step 1: Set Up Your Business Profile</h2>
     
-    <h3>Step 1: Navigate to Prompt Pages</h3>
-    <p>From your dashboard, click on "Prompt Pages" in the main navigation menu.</p>
+    <h3>Navigate to Business Profile</h3>
+    <p>From your dashboard, click on "Business Profile" in the main navigation menu.</p>
     
-    <h3>Step 2: Choose a Template</h3>
-    <p>We offer several pre-designed templates optimized for different industries:</p>
+    <h3>Enter Your Business Information</h3>
+    <p>Fill in the essential details:</p>
     <ul>
-      <li><strong>Restaurant:</strong> Perfect for cafes, restaurants, and food services</li>
-      <li><strong>Service Business:</strong> Ideal for contractors, consultants, and service providers</li>
-      <li><strong>Retail:</strong> Optimized for stores and e-commerce businesses</li>
-      <li><strong>Healthcare:</strong> Designed for medical and wellness practices</li>
+      <li><strong>Business Name:</strong> Your official business name</li>
+      <li><strong>Phone Number:</strong> Primary contact number</li>
+      <li><strong>Email:</strong> Customer service email</li>
+      <li><strong>Website:</strong> Your business website URL</li>
+      <li><strong>Address:</strong> Physical business location</li>
     </ul>
     
-    <h3>Step 3: Customize Your Page</h3>
-    <p>Make the page your own by customizing:</p>
+    <h3>Upload Your Logo</h3>
+    <p>Add your business logo for branding consistency. We recommend using a high-resolution image (at least 500x500px) in PNG or JPG format.</p>
+    
+    <h2>Step 2: Design Your Universal Prompt Page</h2>
+    
+    <h3>Access the Universal Prompt Page</h3>
+    <p>From your dashboard, navigate to "Get Reviews" → "Universal Prompt Page".</p>
+    
+    <h3>Customize Your Page Design</h3>
+    <p>The Universal prompt page is your main review collection tool. Customize it to match your brand:</p>
     <ul>
-      <li>Business name and logo</li>
-      <li>Welcome message</li>
-      <li>Review platform priorities</li>
-      <li>Colors and fonts</li>
-      <li>Thank you message</li>
+      <li><strong>Header:</strong> Add a welcoming headline for your customers</li>
+      <li><strong>Description:</strong> Write a brief message asking for reviews</li>
+      <li><strong>Brand Colors:</strong> Set colors that match your brand identity</li>
+      <li><strong>Review Platforms:</strong> Select and prioritize the platforms where you want reviews (Google, Facebook, etc.)</li>
     </ul>
     
-    <h3>Step 4: Set Up Review Routing</h3>
-    <p>Configure which review platforms to show and in what order. You can also set up intelligent routing based on customer satisfaction.</p>
+    <h3>Configure Review Platforms</h3>
+    <p>Add the review platforms most important to your business:</p>
+    <ol>
+      <li>Click "Add Platform"</li>
+      <li>Select from available platforms (Google Business, Facebook, Yelp, etc.)</li>
+      <li>Enter your business's direct review link for each platform</li>
+      <li>Drag to reorder platforms by priority</li>
+    </ol>
     
-    <h3>Step 5: Share Your Page</h3>
-    <p>Once your page is ready, share it via:</p>
+    <h3>Preview and Test</h3>
+    <p>Use the preview feature to see how your page looks on desktop and mobile devices. Test all review links to ensure they work correctly.</p>
+    
+    <h2>Step 3: Share Your Prompt Page</h2>
+    
+    <h3>Get Your Unique Link</h3>
+    <p>Once saved, you'll receive a unique URL for your prompt page (e.g., promptreviews.com/r/yourbusiness).</p>
+    
+    <h3>Ways to Share</h3>
     <ul>
-      <li>Email campaigns</li>
-      <li>SMS messages</li>
-      <li>QR codes</li>
-      <li>Social media</li>
-      <li>Receipt footers</li>
+      <li><strong>Email:</strong> Include the link in follow-up emails to customers</li>
+      <li><strong>SMS:</strong> Send via text message for higher engagement</li>
+      <li><strong>QR Code:</strong> Generate a QR code for physical locations</li>
+      <li><strong>Website:</strong> Add a "Leave a Review" button to your website</li>
     </ul>
     
-    <h2>Best Practices</h2>
+    <h2>Get Reviews Menu Options</h2>
     
-    <h3>Timing is Everything</h3>
-    <p>Send review requests when the experience is fresh - ideally within 24-48 hours of service.</p>
+    <h3>Universal Prompt Page</h3>
+    <p>Your main review collection page that works for all customers and platforms.</p>
     
-    <h3>Make it Personal</h3>
-    <p>Use customer names and reference specific services when possible.</p>
+    <h3>Service Prompt Pages</h3>
+    <p>Create specific pages for different services or customer segments.</p>
     
-    <h3>Follow Up (But Don't Spam)</h3>
-    <p>A gentle reminder after a week can increase response rates by 30%.</p>
+    <h3>Individual Requests</h3>
+    <p>Send personalized review invitations to individual customers.</p>
+    
+    <h3>Contacts</h3>
+    <p>Manage your customer database and import contacts for review campaigns.</p>
   `,
   
   'business-profile': `
@@ -366,7 +389,7 @@ const articleContent: Record<string, string> = {
     <p>Create and manage your review collection pages. See performance metrics for each page.</p>
     
     <h3>Reviews</h3>
-    <p>Central hub for all your reviews across platforms. Filter, search, and respond to reviews.</p>
+    <p>In reviews, you can view, verify, and delete reviews or download all of your reviews as an SVG.</p>
     
     <h3>Contacts</h3>
     <p>Manage your customer database and review invitation campaigns.</p>

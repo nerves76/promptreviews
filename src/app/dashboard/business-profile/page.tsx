@@ -13,7 +13,7 @@ import { getAccountIdForUser } from "@/auth/utils/accounts";
 import { isAdmin } from "@/utils/admin";
 import BusinessProfileForm from "../components/BusinessProfileForm";
 import DashboardCard from "../components/DashboardCard";
-import AppLoader from "@/app/components/AppLoader";
+import InlineLoader from "@/app/components/InlineLoader";
 import PageCard from "@/app/components/PageCard";
 import imageCompression from 'browser-image-compression';
 import FiveStarSpinner from "@/app/components/FiveStarSpinner";
@@ -846,7 +846,7 @@ export default function BusinessProfilePage() {
     return (
       <PageCard icon={<Icon name="FaStore" className="w-9 h-9 text-slate-blue" size={36} />}>
         <div className="min-h-[400px] flex flex-col items-center justify-center">
-          <AppLoader />
+          <InlineLoader showText={true} />
         </div>
       </PageCard>
     );

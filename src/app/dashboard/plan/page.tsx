@@ -108,7 +108,8 @@ export default function PlanPage() {
         console.log('✅ Restoring modal from sessionStorage on mount:', { savedAction });
         setLastAction(savedAction as any);
         setShowSuccessModal(true);
-        setStarAnimation(true);
+        // Don't show star animation for success modal
+        setStarAnimation(false);
         successModalShownRef.current = true;
       }
     }
@@ -145,7 +146,8 @@ export default function PlanPage() {
       }
       
       setShowSuccessModal(true);
-      setStarAnimation(true);
+      // Don't show star animation for success modal
+      setStarAnimation(false);
       
       // Clean up URL but keep modal data in sessionStorage
       setTimeout(() => {
@@ -695,17 +697,7 @@ export default function PlanPage() {
     }
   }, [showSuccessModal]);
 
-  // Auto-hide star animation after success modal shows
-  useEffect(() => {
-    if (showSuccessModal && starAnimation) {
-      // Hide the star animation after a short delay
-      const timer = setTimeout(() => {
-        setStarAnimation(false);
-      }, 1500); // 1.5 seconds should be enough for the animation
-      
-      return () => clearTimeout(timer);
-    }
-  }, [showSuccessModal, starAnimation]);
+  // Star animation is now disabled when success modal shows, so this is no longer needed
 
   // Confirm downgrade handler
   const handleConfirmDowngrade = async () => {
@@ -841,7 +833,8 @@ export default function PlanPage() {
                 
                 setShowDowngradeModal(false);
                 setLastAction("downgrade");
-                setStarAnimation(true);
+                // Don't show star animation for success modal
+                setStarAnimation(false);
                 setShowSuccessModal(true);
               }
             } catch (error) {
@@ -1109,13 +1102,24 @@ export default function PlanPage() {
   ) : null;
 
   if (isLoading) {
+    // If success modal is showing, don't show the loader
+    if (showSuccessModal) {
+      return (
+        <>
+          <div className="min-h-screen bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600 flex flex-col items-center justify-center">
+            {/* Empty background div to maintain the gradient */}
+          </div>
+          {successModalElement}
+          {/* Don't show star animation when success modal is showing */}
+        </>
+      );
+    }
+    
+    // Otherwise show the loader as normal
     return (
-      <>
-        <div className="min-h-screen bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600 flex flex-col items-center justify-center">
-          <AppLoader variant="centered" />
-        </div>
-        {successModalElement}
-      </>
+      <div className="min-h-screen bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600 flex flex-col items-center justify-center">
+        <AppLoader variant="centered" />
+      </div>
     );
   }
 
@@ -1307,16 +1311,27 @@ export default function PlanPage() {
                     }`}
                   >
                     {(() => {
-                      if (currentPlan === tier.key && billingPeriod === account?.billing_period) return "Current Plan";
-                      if (currentPlan === tier.key && billingPeriod !== account?.billing_period) {
-                        return billingPeriod === 'annual' ? "Switch to Annual" : "Switch to Monthly";
-                      }
+                      // If user can't manage billing
                       if (!canManageBilling) return "Contact Account Owner";
-                      if (isNewUser || !currentPlan || currentPlan === 'grower') {
+                      
+                      // For new users or users with no plan
+                      if (isNewUser || !currentPlan || currentPlan === 'no_plan' || currentPlan === 'NULL') {
                         return tier.key === "grower" ? "Start Free Trial" : "Get Started";
                       }
                       
-                      // For existing users, show upgrade/downgrade based on tier order
+                      // Check if this is the current plan AND billing period
+                      const isCurrentPlanAndBilling = currentPlan === tier.key && billingPeriod === account?.billing_period;
+                      if (isCurrentPlanAndBilling) return "Current Plan";
+                      
+                      // If viewing different billing period than current
+                      const isViewingDifferentBilling = billingPeriod !== account?.billing_period;
+                      
+                      if (isViewingDifferentBilling) {
+                        // All buttons should say "Switch to Annual" or "Switch to Monthly"
+                        return billingPeriod === 'annual' ? "Switch to Annual" : "Switch to Monthly";
+                      }
+                      
+                      // Same billing period as current - show Upgrade/Downgrade
                       const currentTier = tiers.find((t) => t.key === currentPlan);
                       const targetTier = tiers.find((t) => t.key === tier.key);
                       
@@ -1461,8 +1476,8 @@ export default function PlanPage() {
           </div>
         )}
 
-        {/* Star Animation Overlay */}
-        {starAnimation && (
+        {/* Star Animation Overlay - Only show if success modal is NOT showing */}
+        {starAnimation && !showSuccessModal && (
           <TopLoaderOverlay />
         )}
         

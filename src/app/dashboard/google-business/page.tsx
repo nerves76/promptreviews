@@ -8,7 +8,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import Icon from '@/components/Icon';
 import PageCard from '@/app/components/PageCard';
-import FiveStarSpinner from '@/app/components/FiveStarSpinner';
+import InlineLoader from '@/app/components/InlineLoader';
 import PhotoManagement from '@/app/components/PhotoManagement';
 import ReviewManagement from '@/app/components/ReviewManagement';
 import BusinessInfoEditor from '@/app/components/BusinessInfoEditor';
@@ -1506,10 +1506,10 @@ export default function SocialPostingDashboard() {
           topMargin="mt-0"
         >
           <div className="min-h-[400px] flex flex-col items-center justify-center">
-            <FiveStarSpinner />
-            <p className="mt-4 text-gray-600">
-              {isPostOAuthConnecting ? 'Connecting to Google Business Profile...' : 'Loading...'}
-            </p>
+            <InlineLoader 
+              showText={true} 
+              text={isPostOAuthConnecting ? 'Connecting to Google Business Profile...' : 'Loading...'} 
+            />
           </div>
         </PageCard>
       </div>

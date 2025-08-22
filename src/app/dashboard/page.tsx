@@ -16,7 +16,7 @@ import DashboardContent from "./DashboardContent";
 import PricingModal, { tiers } from "../components/PricingModal";
 import FiveStarSpinner from "../components/FiveStarSpinner";
 import PageCard from "../components/PageCard";
-import AppLoader from "../components/AppLoader";
+import InlineLoader from "@/app/components/InlineLoader";
 import TopLoaderOverlay from "../components/TopLoaderOverlay";
 import { Button } from "@/app/components/ui/button";
 import Link from "next/link";
@@ -723,7 +723,7 @@ const Dashboard = React.memo(function Dashboard() {
             topMargin="mt-0"
           >
             <div className="min-h-[400px] flex flex-col items-center justify-center">
-              <AppLoader />
+              <InlineLoader showText={true} />
             </div>
           </PageCard>
         </div>
@@ -732,7 +732,7 @@ const Dashboard = React.memo(function Dashboard() {
   }
   
   if (!isAuthenticated) {
-    return <AppLoader />; // Auth guard will handle redirect
+    return <InlineLoader showText={true} />; // Auth guard will handle redirect
   }
 
   if (error) {
@@ -1054,6 +1054,7 @@ const Dashboard = React.memo(function Dashboard() {
         <PricingModal
           onSelectTier={handleSelectTier}
           currentPlan={account?.plan}
+          currentBillingPeriod={account?.billing_period}
           hasHadPaidPlan={account?.has_had_paid_plan || false}
           showCanceledMessage={justCanceledStripe}
           onClose={handleClosePricingModal}

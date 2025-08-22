@@ -4,55 +4,39 @@
  * AppLoader Component
  * 
  * Global loading spinner component that displays a centered animated five-star spinner
- * and loading text. Positioned consistently about 200px below the header across all pages.
+ * and loading text. Always vertically centered for consistency.
  * 
  * @param size - Size of the spinner (default: 18)
- * @param variant - Layout variant for different page contexts
- *   - 'default' - Standard positioning about 200px below header
- *   - 'centered' - Vertically centered in viewport (for full-page loads)
- *   - 'compact' - Minimal top padding for pages with minimal headers
+ * @param variant - DEPRECATED - kept for backward compatibility but always uses centered
+ * @param showText - Whether to show "Loading..." text (default: true)
+ * @param className - Additional classes for the container
  */
 
 import FiveStarSpinner from "./FiveStarSpinner";
 
 interface AppLoaderProps {
   size?: number;
-  variant?: 'default' | 'centered' | 'compact';
+  variant?: 'default' | 'centered' | 'compact'; // Deprecated - always centered
+  showText?: boolean;
+  className?: string;
 }
 
-export default function AppLoader({ size = 18, variant = 'default' }: AppLoaderProps = {}) {
-  const getContainerClasses = () => {
-    const baseClasses = "transition-opacity duration-300 ease-in-out animate-fadeIn";
-    switch (variant) {
-      case 'centered':
-        return `min-h-screen flex flex-col items-center justify-center ${baseClasses}`;
-      case 'compact':
-        return `min-h-screen flex flex-col items-center pt-24 ${baseClasses}`;
-      case 'default':
-      default:
-        return `min-h-screen flex flex-col items-center pt-48 ${baseClasses}`;
-    }
-  };
+export default function AppLoader({ 
+  size = 18, 
+  variant = 'centered', // Always default to centered
+  showText = true,
+  className = ""
+}: AppLoaderProps = {}) {
+  // Always use centered variant for consistency
+  // Using Tailwind's built-in animate-pulse instead of custom fadeIn to avoid hydration issues
+  const containerClasses = `min-h-screen flex flex-col items-center justify-center transition-opacity duration-300 ease-in-out animate-pulse ${className}`;
 
   return (
-    <>
-      <style jsx>{`
-        @keyframes fadeIn {
-          from {
-            opacity: 0;
-          }
-          to {
-            opacity: 1;
-          }
-        }
-        .animate-fadeIn {
-          animation: fadeIn 0.3s ease-in-out;
-        }
-      `}</style>
-      <div className={getContainerClasses()}>
-        <FiveStarSpinner size={size} />
+    <div className={containerClasses}>
+      <FiveStarSpinner size={size} />
+      {showText && (
         <div className="mt-4 text-lg text-white font-semibold">Loading…</div>
-      </div>
-    </>
+      )}
+    </div>
   );
 }

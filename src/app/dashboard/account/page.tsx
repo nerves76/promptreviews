@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import Icon from "@/components/Icon";
 import Link from "next/link";
 import PageCard from "@/app/components/PageCard";
-import AppLoader from "@/app/components/AppLoader";
+import InlineLoader from "@/app/components/InlineLoader";
 import { trackEvent, GA_EVENTS } from "../../../utils/analytics";
 import { getAccountIdForUser } from "@/auth/utils/accounts";
 import { useAuthGuard } from "@/utils/authGuard";
@@ -345,7 +345,7 @@ export default function AccountPage() {
             <Icon name="FaUser" className="w-9 h-9 text-slate-blue" size={36} />
           </div>
           <div className="min-h-[400px] flex flex-col items-center justify-center">
-            <AppLoader />
+            <InlineLoader showText={true} />
           </div>
         </div>
       </div>

@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { createClient } from "@/utils/supabaseClient";
 import { getAccountIdForUser } from "@/auth/utils/accounts";
 import Icon, { IconName } from "@/components/Icon";
 import PageCard from "@/app/components/PageCard";
-import AppLoader from "@/app/components/AppLoader";
+import InlineLoader from "@/app/components/InlineLoader";
 import TopLoaderOverlay from "@/app/components/TopLoaderOverlay";
 import {
   EMOJI_SENTIMENT_LABELS,
@@ -630,7 +630,7 @@ export default function ReviewsPage() {
             <Icon name="FaStar" className="w-9 h-9 text-slate-blue" size={36} />
           </div>
           <div className="min-h-[400px] flex flex-col items-center justify-center">
-            <AppLoader />
+            <InlineLoader showText={true} />
           </div>
         </div>
       </div>
@@ -812,7 +812,7 @@ export default function ReviewsPage() {
           </div>
         ) : (
           filteredReviews.map((review) => {
-            const { icon: PlatformIcon, label: platformLabel } =
+            const { icon: platformIcon, label: platformLabel } =
               getPlatformIcon(review.platform);
             const isExpanded = expandedRows[review.id];
             return (
@@ -832,10 +832,18 @@ export default function ReviewsPage() {
                   aria-controls={`review-details-${review.id}`}
                 >
                   <div className="flex items-center gap-3">
-                    <PlatformIcon
-                      className="w-6 h-6 text-[#1A237E]"
-                      title={platformLabel}
-                    />
+                    {typeof platformIcon === 'string' ? (
+                      <Icon 
+                        name={platformIcon as IconName}
+                        className="w-6 h-6 text-[#1A237E]"
+                        size={24}
+                      />
+                    ) : (
+                      React.createElement(platformIcon, {
+                        className: "w-6 h-6 text-[#1A237E]",
+                        title: platformLabel
+                      })
+                    )}
                     <span className="font-semibold text-base text-gray-800">
                       {review.first_name} {review.last_name}
                     </span>

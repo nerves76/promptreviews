@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { getUserOrMock } from "@/utils/supabaseClient";
-import AppLoader from "@/app/components/AppLoader";
+import InlineLoader from "@/app/components/InlineLoader";
 import { DraggableModal } from './components/DraggableModal';
 import { WidgetEditorForm } from './components/WidgetEditorForm';
 import { ReviewManagementModal } from './components/ReviewManagementModal';
@@ -161,7 +161,7 @@ export default function WidgetList({
     }
   };
 
-  if (loading) return <AppLoader />;
+  if (loading) return <InlineLoader showText={true} text="Loading widgets..." />;
   if (error) return <div>Error: {error}</div>;
 
   return (
