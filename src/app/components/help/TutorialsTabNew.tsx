@@ -413,7 +413,7 @@ export default function TutorialsTabNew({
         
         {/* Article content with gradient background */}
         <div className="flex-1 overflow-y-auto">
-          <div className="bg-gradient-to-br from-indigo-100/50 via-white to-purple-100/50 min-h-full">
+          <div className="bg-gradient-to-br from-indigo-100 via-purple-50 to-pink-100 min-h-full">
             <div className="p-4 md:p-6 pt-2">
               {loadingContent ? (
                 <div className="flex justify-center py-8">
@@ -435,7 +435,7 @@ export default function TutorialsTabNew({
 
   // Main categories view
   return (
-    <div className="h-full flex flex-col p-4 md:p-6 bg-gradient-to-br from-indigo-100/40 via-white to-purple-100/40">
+    <div className="h-full flex flex-col p-4 md:p-6 bg-gradient-to-br from-indigo-50 via-white to-purple-50">
       {/* Featured Articles Section */}
       <div className="mb-4 md:mb-6">
         <h3 className="text-xs md:text-sm font-semibold text-gray-700 uppercase tracking-wider mb-3">

@@ -180,41 +180,9 @@ export default function HelpModal({
               )}
             </div>
             
-            {/* Footer (optional - for quick links) */}
+            {/* Footer - simplified */}
             <div className="bg-gradient-to-r from-indigo-600/10 via-purple-600/10 to-fuchsia-600/10 border-t border-white/20 px-4 md:px-6 py-3">
-              <div className="flex flex-col md:flex-row items-center justify-between text-xs text-gray-600">
-                <div className="flex items-center space-x-4 mb-2 md:mb-0">
-                  <a 
-                    href="https://promptreviews.app/docs/faq-comprehensive"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="hover:text-indigo-600 transition-colors flex items-center space-x-1"
-                    onClick={() => trackEvent('help_footer_faq_clicked')}
-                  >
-                    <Icon name="FaQuestionCircle" className="w-3 h-3" size={12} />
-                    <span>FAQ</span>
-                  </a>
-                  <a 
-                    href="https://promptreviews.app/docs"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="hover:text-indigo-600 transition-colors flex items-center space-x-1"
-                    onClick={() => trackEvent('help_footer_docs_clicked')}
-                  >
-                    <Icon name="FaFileAlt" className="w-3 h-3" size={12} />
-                    <span>Docs</span>
-                  </a>
-                  <a 
-                    href="https://promptreviews.app/contact"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="hover:text-indigo-600 transition-colors flex items-center space-x-1"
-                    onClick={() => trackEvent('help_footer_contact_clicked')}
-                  >
-                    <Icon name="FaEnvelope" className="w-3 h-3" size={12} />
-                    <span>Contact</span>
-                  </a>
-                </div>
+              <div className="flex items-center justify-center text-xs text-gray-600">
                 <div className="flex items-center space-x-1">
                   <Icon name="FaKey" className="w-3 h-3" size={12} />
                   <span>Press</span>
