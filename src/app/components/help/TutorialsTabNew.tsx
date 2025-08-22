@@ -394,9 +394,9 @@ export default function TutorialsTabNew({
   // Show article viewer if article is selected
   if (selectedArticle) {
     return (
-      <div className="h-full flex flex-col bg-slate-100">
+      <div className="h-full flex flex-col" style={{ backgroundColor: '#e2e8f0' }}>
         {/* Header with back button */}
-        <div className="p-4 md:p-6 pb-0 bg-slate-100">
+        <div className="p-4 md:p-6 pb-0" style={{ backgroundColor: '#e2e8f0' }}>
           <button
             onClick={handleBackToCategories}
             className="flex items-center space-x-2 text-indigo-600 hover:text-indigo-700 mb-4"
@@ -412,9 +412,9 @@ export default function TutorialsTabNew({
         </div>
         
         {/* Article content area */}
-        <div className="flex-1 overflow-y-auto bg-slate-100">
-          <div className="min-h-full">
-            <div className="p-4 md:p-6 pt-2">
+        <div className="flex-1 overflow-y-auto" style={{ backgroundColor: '#e2e8f0' }}>
+          <div className="min-h-full" style={{ backgroundColor: '#e2e8f0' }}>
+            <div className="p-4 md:p-6 pt-2" style={{ backgroundColor: '#e2e8f0' }}>
               {loadingContent ? (
                 <div className="flex justify-center py-8">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
@@ -422,8 +422,7 @@ export default function TutorialsTabNew({
               ) : (
                 <div 
                   ref={contentRef}
-                  className="prose prose-sm md:prose-base max-w-none prose-headings:text-gray-900 prose-p:text-gray-700 prose-li:text-gray-700 prose-strong:text-gray-900 prose-a:text-indigo-600 hover:prose-a:text-indigo-700 [&>*]:bg-transparent"
-                  style={{ backgroundColor: 'transparent' }}
+                  className="prose prose-sm md:prose-base max-w-none prose-headings:text-gray-900 prose-p:text-gray-700 prose-li:text-gray-700 prose-strong:text-gray-900 prose-a:text-indigo-600 hover:prose-a:text-indigo-700"
                   dangerouslySetInnerHTML={{ __html: articleContent }}
                 />
               )}
@@ -436,7 +435,7 @@ export default function TutorialsTabNew({
 
   // Main categories view
   return (
-    <div className="h-full flex flex-col p-4 md:p-6 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
+    <div className="h-full flex flex-col p-4 md:p-6" style={{ backgroundColor: '#f1f5f9' }}>
       {/* Featured Articles Section */}
       <div className="mb-4 md:mb-6">
         <h3 className="text-xs md:text-sm font-semibold text-gray-700 uppercase tracking-wider mb-3">
