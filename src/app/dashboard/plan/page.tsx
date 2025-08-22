@@ -380,13 +380,72 @@ export default function PlanPage() {
       if (isDowngrade) {
         setLastAction("downgrade");
         
-        // Show downgrade confirmation modal for all downgrades
+        // Show downgrade confirmation modal with proration preview
         const lostFeatures = (currentTier?.features || []).filter(
           (f) => !(targetTier?.features || []).includes(f),
         );
         setDowngradeTarget(tierKey);
         setDowngradeFeatures(lostFeatures);
-        setShowDowngradeModal(true);
+        
+        // Fetch proration preview for the downgrade
+        setShowConfirmModal(true);
+        setConfirmModalConfig({
+          title: 'Loading billing details...',
+          message: 'Calculating credit for your downgrade...',
+          confirmText: '',
+          cancelText: '',
+          loading: true,
+          onConfirm: () => {},
+        });
+        
+        try {
+          const previewRes = await fetch("/api/preview-billing-change", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              plan: tierKey,
+              userId: account.id,
+              billingPeriod: billing,
+            }),
+          });
+          
+          if (previewRes.ok) {
+            const { preview } = await previewRes.json();
+            
+            // Update modal with actual preview data
+            setConfirmModalConfig({
+              title: `Downgrade to ${targetTier.name}`,
+              message: preview.message,
+              confirmText: 'Confirm Downgrade',
+              cancelText: 'Keep Current Plan',
+              loading: false,
+              details: {
+                creditAmount: preview.creditAmount,
+                timeline: preview.timeline,
+                stripeEmail: preview.stripeEmail,
+                processingFeeNote: preview.processingFeeNote,
+              },
+              onConfirm: async () => {
+                setShowConfirmModal(false);
+                setShowDowngradeModal(true);
+              },
+              onCancel: () => {
+                setShowConfirmModal(false);
+                setDowngradeTarget(null);
+                setDowngradeFeatures([]);
+              }
+            });
+          } else {
+            // If preview fails, fall back to regular downgrade modal
+            console.error('Failed to fetch billing preview');
+            setShowConfirmModal(false);
+            setShowDowngradeModal(true);
+          }
+        } catch (error) {
+          console.error('Error fetching billing preview:', error);
+          setShowConfirmModal(false);
+          setShowDowngradeModal(true);
+        }
         return;
       }
       
@@ -483,7 +542,8 @@ export default function PlanPage() {
     
     try {
       // For customers with active Stripe subscriptions, use the upgrade API to downgrade
-      if (account.stripe_customer_id && currentPlan !== "grower") {
+      // This includes downgrades TO grower (which is a paid plan at $15/month)
+      if (account.stripe_customer_id) {
         const res = await fetch("/api/upgrade-subscription", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -556,7 +616,8 @@ export default function PlanPage() {
     
     try {
       // Check if user has a Stripe customer ID (existing customer vs new user)
-      const hasStripeCustomer = account.stripe_customer_id && currentPlan !== "grower";
+      // Users with stripe_customer_id are paying customers, even if on grower plan
+      const hasStripeCustomer = !!account.stripe_customer_id;
       
       if (hasStripeCustomer) {
         // Existing customer - use upgrade API

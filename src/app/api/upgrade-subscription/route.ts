@@ -79,11 +79,12 @@ export async function POST(req: NextRequest) {
       }, { status: 400 });
     }
 
-    // Check if user is on free trial or doesn't have a Stripe customer ID
-    const isFreeTrialUser = !account.stripe_customer_id || account.plan === "grower";
+    // Check if user is on free trial (only users without Stripe customer ID are on free trial)
+    // Users on grower plan with a stripe_customer_id are paying customers, not trial users
+    const isFreeTrialUser = !account.stripe_customer_id;
     
     if (isFreeTrialUser) {
-      // For free trial users, redirect them to create a checkout session
+      // For free trial users (no stripe customer), redirect them to create a checkout session
       // This should be handled by the frontend, but as a fallback, we'll return an error
       // that tells the frontend to use the checkout session API instead
       return NextResponse.json({ 
