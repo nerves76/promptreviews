@@ -10,7 +10,7 @@ import { usePathname } from 'next/navigation';
 import Icon from '@/components/Icon';
 import { TabType, HelpModalProps } from './types';
 import { getContextFromPath } from './contextMapper';
-import TutorialsTab from './TutorialsTab';
+import TutorialsTabNew from './TutorialsTabNew';
 import FAQsTab from './FAQsTab';
 import IssuesTab from './IssuesTab';
 import { trackEvent } from '../../../utils/analytics';
@@ -155,7 +155,7 @@ export default function HelpModal({
           <div className="bg-white/80 backdrop-blur-sm h-full flex flex-col rounded-b-2xl">
             <div className="flex-1">
               {activeTab === 'tutorials' && (
-                <TutorialsTab 
+                <TutorialsTabNew 
                   pathname={pathname}
                   contextKeywords={keywords}
                   pageName={pageName}
