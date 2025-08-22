@@ -431,7 +431,9 @@ export default function TutorialsTabNew({
 
   // Main categories view
   return (
-    <div className="h-full flex flex-col p-4 md:p-6" style={{ backgroundColor: '#f1f5f9' }}>
+    <div className="h-full flex flex-col p-4 md:p-6" style={{ 
+      background: 'linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 50%, #ddd6fe 100%)'
+    }}>
       {/* Featured Articles Section */}
       <div className="mb-4 md:mb-6">
         <h3 className="text-xs md:text-sm font-semibold text-gray-700 uppercase tracking-wider mb-3">
@@ -447,7 +449,7 @@ export default function TutorialsTabNew({
               <div className="flex-shrink-0">
                 <Icon 
                   name={featured.icon} 
-                  className="w-4 h-4 md:w-5 md:h-5 text-indigo-600 group-hover:text-indigo-700" 
+                  className="w-4 h-4 md:w-5 md:h-5 text-slate-600 group-hover:text-indigo-600" 
                   size={20} 
                 />
               </div>
@@ -484,12 +486,12 @@ export default function TutorialsTabNew({
               <button
                 key={category.id}
                 onClick={() => handleArticleClick(overviewArticle, category)}
-                className="flex items-center space-x-3 p-3 md:p-4 bg-white border border-gray-200 rounded-lg hover:border-indigo-300 hover:bg-indigo-50/50 transition-colors text-left group"
+                className="flex items-center space-x-3 p-3 md:p-4 bg-white/90 backdrop-blur-sm border border-gray-200 rounded-lg hover:border-indigo-300 hover:bg-indigo-50/50 transition-colors text-left group"
               >
-                <div className={`p-2 rounded-lg bg-${category.color}-100 flex-shrink-0`}>
+                <div className="flex-shrink-0">
                   <Icon 
                     name={category.icon} 
-                    className={`w-5 h-5 md:w-6 md:h-6 text-${category.color}-600`} 
+                    className="w-5 h-5 md:w-6 md:h-6 text-slate-600 group-hover:text-indigo-600" 
                     size={24} 
                   />
                 </div>

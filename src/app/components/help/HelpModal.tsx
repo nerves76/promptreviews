@@ -107,9 +107,13 @@ export default function HelpModal({
               onClick={() => handleTabChange('tutorials')}
               className={`flex-1 md:flex-initial px-3 md:px-4 py-2 text-sm font-medium rounded-t-md transition-all ${
                 activeTab === 'tutorials'
-                  ? 'bg-white text-indigo-600 border-b-2 border-white shadow-sm'
+                  ? 'text-indigo-700 shadow-sm'
                   : 'text-white/80 hover:text-white hover:bg-white/10'
               }`}
+              style={activeTab === 'tutorials' ? { 
+                background: 'linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 50%, #ddd6fe 100%)',
+                borderBottom: '2px solid #e0e7ff'
+              } : {}}
             >
               <div className="flex items-center justify-center md:justify-start space-x-2">
                 <Icon name="FaFileAlt" className="w-4 h-4" size={16} />
@@ -125,9 +129,13 @@ export default function HelpModal({
               onClick={() => handleTabChange('faqs')}
               className={`flex-1 md:flex-initial px-3 md:px-4 py-2 text-sm font-medium rounded-t-md transition-all ${
                 activeTab === 'faqs'
-                  ? 'bg-white text-indigo-600 border-b-2 border-white shadow-sm'
+                  ? 'text-indigo-700 shadow-sm'
                   : 'text-white/80 hover:text-white hover:bg-white/10'
               }`}
+              style={activeTab === 'faqs' ? { 
+                background: 'linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 50%, #ddd6fe 100%)',
+                borderBottom: '2px solid #e0e7ff'
+              } : {}}
             >
               <div className="flex items-center justify-center md:justify-start space-x-2">
                 <Icon name="FaQuestionCircle" className="w-4 h-4" size={16} />
@@ -138,9 +146,13 @@ export default function HelpModal({
               onClick={() => handleTabChange('issues')}
               className={`flex-1 md:flex-initial px-3 md:px-4 py-2 text-sm font-medium rounded-t-md transition-all ${
                 activeTab === 'issues'
-                  ? 'bg-white text-indigo-600 border-b-2 border-white shadow-sm'
+                  ? 'text-indigo-700 shadow-sm'
                   : 'text-white/80 hover:text-white hover:bg-white/10'
               }`}
+              style={activeTab === 'issues' ? { 
+                background: 'linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 50%, #ddd6fe 100%)',
+                borderBottom: '2px solid #e0e7ff'
+              } : {}}
             >
               <div className="flex items-center justify-center md:justify-start space-x-2">
                 <Icon name="FaCommentDots" className="w-4 h-4" size={16} />
