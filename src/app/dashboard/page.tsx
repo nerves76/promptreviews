@@ -441,9 +441,34 @@ const Dashboard = React.memo(function Dashboard() {
       businessCreated: params.get("businessCreated"),
       canceled: params.get("canceled"),
       success: params.get("success"),
+      portal_return: params.get("portal_return"),
       businessCreatedHandled: sessionStorage.getItem('businessCreatedHandled'),
       url: window.location.href
     });
+    
+    // Handle return from Stripe Customer Portal
+    if (params.get("portal_return") === "1") {
+      console.log('💳 User returned from Stripe Customer Portal');
+      
+      // Show a message that billing was updated
+      // Note: We can't know exactly what changed, but we can show a generic message
+      setShowSuccessModal(true);
+      setPaymentChangeType("billing_update");
+      
+      // Refresh account data to get any plan changes
+      if (user?.id) {
+        refreshAccount().catch(error => {
+          console.error("Error refreshing account after portal return:", error);
+        });
+      }
+      
+      // Clean up the URL
+      params.delete("portal_return");
+      const newUrl = window.location.pathname + (params.toString() ? `?${params.toString()}` : "");
+      window.history.replaceState({}, document.title, newUrl);
+      
+      return;
+    }
     
     // Handle reactivation flow
     if (params.get("reactivation") === "true") {

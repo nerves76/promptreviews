@@ -536,7 +536,22 @@ export default function PlanPage() {
 
   // Confirm downgrade handler
   const handleConfirmDowngrade = async () => {
-    if (!downgradeTarget || !account || !user) return;
+    console.log("🎯 handleConfirmDowngrade called!", {
+      downgradeTarget,
+      account: account?.id,
+      user: user?.id,
+      userRole,
+      currentPlan
+    });
+    
+    if (!downgradeTarget || !account || !user) {
+      console.error("❌ Missing required data for downgrade", {
+        downgradeTarget,
+        account: !!account,
+        user: !!user
+      });
+      return;
+    }
     
     // Additional permission check
     if (userRole !== 'owner') {
@@ -572,12 +587,15 @@ export default function PlanPage() {
           const data = await res.json();
           console.log("📉 Downgrade API response:", data);
           
-          // For now, always use local redirect to ensure it works
-          const redirectUrl = `/dashboard/plan?success=1&change=downgrade&plan=${downgradeTarget}&billing=${billingPeriod}`;
+          // Build full URL to ensure proper redirect
+          const baseUrl = window.location.origin;
+          const redirectUrl = `${baseUrl}/dashboard/plan?success=1&change=downgrade&plan=${downgradeTarget}&billing=${billingPeriod}`;
           console.log("🔄 Redirecting to:", redirectUrl);
+          console.log("📍 Current location before redirect:", window.location.href);
           
           // Add a small delay to ensure the database update completes
           setTimeout(() => {
+            console.log("🚀 Executing redirect now...");
             window.location.href = redirectUrl;
           }, 500);
           return;

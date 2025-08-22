@@ -745,18 +745,20 @@ const DashboardContent = React.memo(function DashboardContent({
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
-                {paymentChangeType === "downgrade" ? (
+                {paymentChangeType === "downgrade" || paymentChangeType === "billing_update" ? (
                   <>
                     <h2 className="text-2xl font-bold mb-4 text-gray-800 relative z-10">
-                      Plan Updated
+                      {paymentChangeType === "billing_update" ? "Billing Updated" : "Plan Updated"}
                     </h2>
                     <p className="mb-6 text-lg text-gray-700 relative z-10">
-                      Your plan has been updated to{" "}
-                      {account?.plan
-                        ? account.plan.charAt(0).toUpperCase() +
-                          account.plan.slice(1)
-                        : "your new plan"}
-                      .
+                      {paymentChangeType === "billing_update" 
+                        ? "Your billing settings have been updated successfully. Any changes to your subscription are now active."
+                        : `Your plan has been updated to ${
+                            account?.plan
+                              ? account.plan.charAt(0).toUpperCase() + account.plan.slice(1)
+                              : "your new plan"
+                          }.`
+                      }
                     </p>
                                          <button
                        onClick={handleCloseSuccessModal || (() => setShowSuccessModal(false))}

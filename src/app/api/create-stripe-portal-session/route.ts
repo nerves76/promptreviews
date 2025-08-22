@@ -67,11 +67,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "No Stripe customer ID found. Please contact support." }, { status: 400 });
     }
 
+    // Add success parameter to return URL so we can show a message when user returns
+    // from managing their subscription in Stripe portal
+    const returnUrl = process.env.NEXT_PUBLIC_PORTAL_RETURN_URL ||
+        `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?portal_return=1`;
+    
     const stripeSession = await stripe.billingPortal.sessions.create({
       customer: account.stripe_customer_id,
-      return_url:
-        process.env.NEXT_PUBLIC_PORTAL_RETURN_URL ||
-        `${process.env.NEXT_PUBLIC_APP_URL}/dashboard`,
+      return_url: returnUrl,
     });
 
     return NextResponse.json({ url: stripeSession.url });
