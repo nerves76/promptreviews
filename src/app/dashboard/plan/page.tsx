@@ -335,7 +335,19 @@ export default function PlanPage() {
             });
           } else {
             // If preview fails, show error details and fall back to regular modal
-            const errorData = await previewRes.json().catch(() => ({ error: 'Unknown error' }));
+            console.error('Billing preview failed with status:', previewRes.status);
+            
+            let errorData: any = { error: 'Unknown error' };
+            const responseText = await previewRes.text();
+            console.error('Response text:', responseText);
+            
+            try {
+              errorData = JSON.parse(responseText);
+            } catch (e) {
+              console.error('Failed to parse error response:', e);
+              errorData = { error: 'Server error', message: responseText || 'Unable to calculate billing changes' };
+            }
+            
             console.error('Failed to fetch billing preview:', errorData);
             
             // Show error message to user
@@ -471,7 +483,19 @@ export default function PlanPage() {
             });
           } else {
             // If preview fails, show error details and fall back to regular modal
-            const errorData = await previewRes.json().catch(() => ({ error: 'Unknown error' }));
+            console.error('Billing preview failed with status:', previewRes.status);
+            
+            let errorData: any = { error: 'Unknown error' };
+            const responseText = await previewRes.text();
+            console.error('Response text:', responseText);
+            
+            try {
+              errorData = JSON.parse(responseText);
+            } catch (e) {
+              console.error('Failed to parse error response:', e);
+              errorData = { error: 'Server error', message: responseText || 'Unable to calculate credit amount' };
+            }
+            
             console.error('Failed to fetch billing preview for downgrade:', errorData);
             
             // Show error message to user

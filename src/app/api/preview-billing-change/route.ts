@@ -25,18 +25,23 @@ const PRICE_IDS: Record<string, { monthly: string; annual: string }> = {
 
 export async function POST(req: NextRequest) {
   try {
+    const body = await req.json();
+    console.log('📊 Preview billing change request:', body);
+    
     const { plan, userId, billingPeriod = 'monthly' }: { 
       plan: string; 
       userId: string; 
       billingPeriod?: 'monthly' | 'annual' 
-    } = await req.json();
+    } = body;
     
     if (!plan || !PRICE_IDS[plan]) {
-      return NextResponse.json({ error: "Invalid plan" }, { status: 400 });
+      console.error('Invalid plan:', plan, 'Available plans:', Object.keys(PRICE_IDS));
+      return NextResponse.json({ error: "Invalid plan", message: `Plan "${plan}" is not valid` }, { status: 400 });
     }
 
     if (!userId) {
-      return NextResponse.json({ error: "User ID is required" }, { status: 400 });
+      console.error('No user ID provided');
+      return NextResponse.json({ error: "User ID is required", message: "User ID is required" }, { status: 400 });
     }
 
     // Fetch current account info including Stripe customer ID
@@ -53,13 +58,27 @@ export async function POST(req: NextRequest) {
       
     if (error || !account) {
       console.error("Error fetching account:", error);
-      return NextResponse.json({ error: "Account not found" }, { status: 404 });
+      return NextResponse.json({ 
+        error: "Account not found", 
+        message: "Unable to find your account information" 
+      }, { status: 404 });
     }
 
+    console.log('📊 Account found:', {
+      hasStripeCustomer: !!account.stripe_customer_id,
+      hasSubscription: !!account.stripe_subscription_id,
+      currentPlan: account.plan,
+      currentBilling: account.billing_period
+    });
+
     if (!account.stripe_customer_id || !account.stripe_subscription_id) {
+      console.error('No active subscription:', {
+        stripe_customer_id: account.stripe_customer_id,
+        stripe_subscription_id: account.stripe_subscription_id
+      });
       return NextResponse.json({ 
         error: "No active subscription",
-        message: "No subscription found to modify" 
+        message: "No subscription found to modify. Please contact support if you believe this is an error." 
       }, { status: 400 });
     }
 
