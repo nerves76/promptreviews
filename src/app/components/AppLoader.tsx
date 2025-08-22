@@ -27,12 +27,11 @@ export default function AppLoader({
   showText = true,
   className = ""
 }: AppLoaderProps = {}) {
-  // Always use centered variant for consistency
-  // Using Tailwind's built-in animate-pulse instead of custom fadeIn to avoid hydration issues
-  const containerClasses = `min-h-screen flex flex-col items-center justify-center transition-opacity duration-300 ease-in-out animate-pulse ${className}`;
-
+  // Use static classes to avoid hydration mismatches
+  // Don't use template literals or dynamic class construction
+  
   return (
-    <div className={containerClasses}>
+    <div className="min-h-screen flex flex-col items-center justify-center transition-opacity duration-300 ease-in-out animate-pulse">
       <FiveStarSpinner size={size} />
       {showText && (
         <div className="mt-4 text-lg text-white font-semibold">Loading…</div>
@@ -40,3 +39,4 @@ export default function AppLoader({
     </div>
   );
 }
+// Cache bust: 1755900095

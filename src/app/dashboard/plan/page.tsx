@@ -18,21 +18,26 @@ export default function PlanPage() {
       console.log('💥 PlanPage component unmounting!');
     };
   }, []);
+  
+  // Debug render cycles
+  console.log('🎨 PlanPage rendering...');
 
   const [account, setAccount] = useState<any>(null);
   const [user, setUser] = useState<any>(null);
   const [userRole, setUserRole] = useState<'owner' | 'member' | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [currentPlan, setCurrentPlan] = useState<string | null>(null);
-  // Initialize from sessionStorage if available
-  const [showSuccessModal, setShowSuccessModal] = useState(() => {
+  // Check for success state immediately
+  const [isLoading, setIsLoading] = useState(() => {
     if (typeof window !== 'undefined') {
-      const stored = sessionStorage.getItem('showPlanSuccessModal');
-      console.log('🎯 Initial modal state from sessionStorage:', stored);
-      return stored === 'true';
+      const urlParams = new URLSearchParams(window.location.search);
+      const hasSuccess = urlParams.get('success') === '1';
+      const hasSessionSuccess = sessionStorage.getItem('showPlanSuccessModal') === 'true';
+      return !hasSuccess && !hasSessionSuccess;
     }
-    return false;
+    return true;
   });
+  const [currentPlan, setCurrentPlan] = useState<string | null>(null);
+  // Don't initialize from sessionStorage to avoid hydration mismatch
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showDowngradeModal, setShowDowngradeModal] = useState(false);
   const [downgradeTarget, setDowngradeTarget] = useState<string | null>(null);
   const [downgradeFeatures, setDowngradeFeatures] = useState<string[]>([]);
@@ -98,81 +103,59 @@ export default function PlanPage() {
     return discountedPrice.toFixed(2);
   };
 
-  // Initialize success modal from sessionStorage on mount
+  // Combined effect for handling success modal from both URL and sessionStorage
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== 'undefined' && !successModalShownRef.current) {
+      const urlParams = new URLSearchParams(window.location.search);
+      const success = urlParams.get('success');
+      const change = urlParams.get('change');
+      const canceled = urlParams.get('canceled');
+      
       const shouldShowModal = sessionStorage.getItem('showPlanSuccessModal');
+      const savedAction = sessionStorage.getItem('planSuccessAction');
       
-      if (shouldShowModal === 'true' && !successModalShownRef.current) {
-        const savedAction = sessionStorage.getItem('planSuccessAction') || 'upgrade';
-        console.log('✅ Restoring modal from sessionStorage on mount:', { savedAction });
-        setLastAction(savedAction as any);
-        setShowSuccessModal(true);
-        // Don't show star animation for success modal
-        setStarAnimation(false);
+      // Check if we should show success modal from URL or session
+      if (success === '1' || shouldShowModal === 'true') {
+        console.log('📊 Success modal triggered:', { success, shouldShowModal, change, savedAction });
+        
+        // Mark that we've shown the modal
         successModalShownRef.current = true;
-      }
-    }
-  }, []); // Run only once on mount
-  
-  // Check for success parameter on page load
-  useEffect(() => {
-    const success = searchParams?.get('success');
-    const change = searchParams?.get('change');
-    const plan = searchParams?.get('plan');
-    const billing = searchParams?.get('billing');
-    const canceled = searchParams?.get('canceled');
-    
-    // Only process if we have success=1 and haven't shown the modal yet
-    if (success === '1' && !successModalShownRef.current) {
-      console.log('📊 Plan change success detected:', { change, plan, billing });
-      
-      // Mark that we've shown the modal to prevent re-showing
-      successModalShownRef.current = true;
-      
-      // Set the action type and show modal immediately
-      if (change === 'upgrade') {
-        setLastAction('upgrade');
-      } else if (change === 'downgrade') {
-        setLastAction('downgrade');
-      } else {
-        setLastAction('billing_period');
-      }
-      
-      // Save to sessionStorage to persist across re-renders
-      if (typeof window !== 'undefined') {
+        
+        // Set action type from URL or session
+        const action = change || savedAction || 'upgrade';
+        setLastAction(action);
+        
+        // Save to sessionStorage if not already there
         sessionStorage.setItem('showPlanSuccessModal', 'true');
-        sessionStorage.setItem('planSuccessAction', change || 'upgrade');
+        sessionStorage.setItem('planSuccessAction', action);
+        
+        // Show modal and hide loading immediately
+        setShowSuccessModal(true);
+        setStarAnimation(false);
+        setIsLoading(false);
+        
+        // Clean up URL if needed
+        if (success === '1') {
+          setTimeout(() => {
+            window.history.replaceState({}, '', window.location.pathname);
+          }, 100);
+        }
       }
       
-      setShowSuccessModal(true);
-      // Don't show star animation for success modal
-      setStarAnimation(false);
-      
-      // Clean up URL but keep modal data in sessionStorage
-      setTimeout(() => {
-        const newUrl = window.location.pathname;
-        window.history.replaceState({}, '', newUrl);
-      }, 100);
-    }
-    
-    // Handle canceled checkout
-    if (canceled === '1') {
-      console.log('🚫 User canceled checkout, resetting modal states');
-      setUpgradeProcessing(false);
-      setDowngradeProcessing(false);
-      setShowUpgradeModal(false);
-      setShowDowngradeModal(false);
-      
-      // Clean up the URL
-      const newUrl = window.location.pathname;
-      window.history.replaceState({}, '', newUrl);
+      // Handle canceled checkout
+      if (canceled === '1') {
+        console.log('🚫 User canceled checkout');
+        setUpgradeProcessing(false);
+        setDowngradeProcessing(false);
+        setShowUpgradeModal(false);
+        setShowDowngradeModal(false);
+        window.history.replaceState({}, '', window.location.pathname);
+      }
     }
   }, [searchParams]);
 
   useEffect(() => {
     const fetchAccount = async () => {
-      setIsLoading(true);
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         setIsLoading(false);
@@ -1042,8 +1025,8 @@ export default function PlanPage() {
 
   // Render success modal even when loading to prevent it from disappearing
   const successModalElement = showSuccessModal ? (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-8 max-w-md mx-4 text-center relative">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 animate-fadeIn">
+      <div className="bg-white rounded-lg p-8 max-w-md mx-4 text-center relative animate-scaleIn">
         {/* Standardized close button - breaching corner */}
         <button
           onClick={() => {
@@ -1074,8 +1057,8 @@ export default function PlanPage() {
           {lastAction === "new"
             ? "Welcome to Prompt Reviews!"
             : lastAction === "upgrade"
-            ? "Plan Upgraded Successfully!"
-            : "Plan Updated Successfully!"}
+            ? "Plan upgraded successfully!"
+            : "Plan updated successfully!"}
         </h2>
         <p className="text-gray-600 mb-6">
           {lastAction === "new"
@@ -1101,21 +1084,19 @@ export default function PlanPage() {
     </div>
   ) : null;
 
+  // Show success modal immediately if it should be shown
+  if (showSuccessModal) {
+    return (
+      <>
+        <div className="min-h-screen bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600 flex flex-col items-center justify-center">
+          {/* Background gradient */}
+        </div>
+        {successModalElement}
+      </>
+    );
+  }
+
   if (isLoading) {
-    // If success modal is showing, don't show the loader
-    if (showSuccessModal) {
-      return (
-        <>
-          <div className="min-h-screen bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600 flex flex-col items-center justify-center">
-            {/* Empty background div to maintain the gradient */}
-          </div>
-          {successModalElement}
-          {/* Don't show star animation when success modal is showing */}
-        </>
-      );
-    }
-    
-    // Otherwise show the loader as normal
     return (
       <div className="min-h-screen bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600 flex flex-col items-center justify-center">
         <AppLoader variant="centered" />
@@ -1164,6 +1145,39 @@ export default function PlanPage() {
                     You're viewing as a team member. Only account owners can change billing plans.
                   </p>
                 </div>
+              </div>
+            )}
+            
+            {/* Manual sync button for development */}
+            {process.env.NODE_ENV === 'development' && account && (
+              <div className="mt-4">
+                <button
+                  onClick={async () => {
+                    console.log('🔄 Triggering manual subscription sync...');
+                    try {
+                      const res = await fetch('/api/manual-sync-subscription', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ userId: account.id })
+                      });
+                      const data = await res.json();
+                      if (res.ok) {
+                        console.log('✅ Sync successful:', data);
+                        alert('Subscription synced! Refreshing page...');
+                        window.location.reload();
+                      } else {
+                        console.error('Sync failed:', data);
+                        alert('Sync failed: ' + (data.error || 'Unknown error'));
+                      }
+                    } catch (err) {
+                      console.error('Sync error:', err);
+                      alert('Failed to sync: ' + err);
+                    }
+                  }}
+                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
+                >
+                  🔄 Sync Subscription (Dev Only)
+                </button>
               </div>
             )}
           </div>

@@ -5,6 +5,28 @@ This file provides important context for AI assistants working on the PromptRevi
 ## Project Overview
 PromptReviews is a review management platform that allows businesses to collect, manage, and display customer reviews through customizable widgets.
 
+## Tech Stack
+
+### Frontend
+- **Framework:** Next.js 15.3.2 with React 19.1.0
+- **Language:** TypeScript 5.8.3
+- **CSS Framework:** Tailwind CSS 3.3.0
+- **UI Components:** 
+  - Headless UI 2.2.3
+  - Radix UI components
+  - Hero Icons 2.2.0
+  - Lucide React icons
+- **Package Manager:** npm (v0.1.0 in package.json)
+- **Node Version:** 18+ required
+
+### Backend & Infrastructure
+- **Database:** Supabase (PostgreSQL with RLS)
+- **Authentication:** Supabase Auth
+- **File Storage:** Supabase Storage
+- **Hosting:** Vercel (primary deployment platform)
+- **Edge Functions:** Vercel Functions (30s max duration)
+- **Cron Jobs:** Vercel Cron
+
 ## Recent Major Fixes
 
 ### Widget Page Refresh Issue (2024)
@@ -21,6 +43,45 @@ PromptReviews is a review management platform that allows businesses to collect,
 - `/src/app/dashboard/widget/components/ReviewManagementModal.tsx` - Has autosave logic
 - `/src/auth/context/CoreAuthContext.tsx` - Token refresh isolation
 - `/docs/WIDGET_REFRESH_FIX.md` - Detailed documentation
+
+## Third-Party Services
+
+### Payment Processing
+- **Stripe:** Full payment integration
+  - Checkout sessions for new subscriptions
+  - Portal sessions for billing management
+  - Webhook handling for subscription events
+  - Plans: grower, builder, maven
+  - Billing sync with retry logic
+
+### AI & Content Generation
+- **OpenAI API:** GPT-4 for review generation
+- AI-powered features:
+  - Review request generation
+  - Grammar fixing
+  - Service description generation
+  - Review response generation
+
+### Email Services
+- **Resend:** Transactional email service
+- **Mailgun:** Alternative email service (via mailgun.js)
+- Email templates stored in database
+
+### Analytics & Monitoring
+- **Sentry:** Error tracking and performance monitoring
+  - Client and server-side tracking
+  - Session replay (10% sampling)
+  - Release tracking
+  - Development mode suppression via DISABLE_SENTRY
+- **Google Analytics 4:** User behavior tracking
+  - Event tracking for all major interactions
+  - Custom events and parameters
+
+### Other Integrations
+- **Google OAuth:** For Google Business Profile integration
+- **QR Code Generation:** Using qrcode library
+- **Image Compression:** browser-image-compression
+- **PDF Generation:** jspdf
 
 ## Architecture Notes
 
@@ -48,23 +109,90 @@ PromptReviews is a review management platform that allows businesses to collect,
 3. **Always check for existing patterns** - The codebase has established patterns for common operations
 4. **Character limits are UI-only** - Backend may accept longer text, handle gracefully
 
+## API Structure
+
+### Route Organization
+- **Location:** `/src/app/api/` (Next.js 15 App Router pattern)
+- **File Convention:** `route.ts` files define API endpoints
+- **Authentication:** Most routes check session via Supabase
+- **Common Patterns:**
+  - GET/POST/PUT/DELETE methods exported from route.ts
+  - Supabase service client for bypassing RLS when needed
+  - Error handling with try/catch blocks
+  - CORS headers handled by Next.js
+
+### Key API Categories
+- `/api/auth/` - Authentication endpoints
+- `/api/stripe-webhook/` - Stripe webhook handling
+- `/api/widgets/` - Widget CRUD operations
+- `/api/businesses/` - Business management
+- `/api/team/` - Team invitation system
+- `/api/admin/` - Admin-only endpoints
+- `/api/cron/` - Scheduled task endpoints
+- `/api/ai/` - AI generation endpoints
+
+## Environment Variables
+
+### Required Variables
+```bash
+# Supabase (Required)
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_ROLE_KEY=
+
+# Stripe (Required for payments)
+STRIPE_SECRET_KEY=
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=
+STRIPE_WEBHOOK_SECRET=
+
+# Email (Required)
+RESEND_API_KEY=
+
+# AI (Required for AI features)
+OPENAI_API_KEY=
+
+# Google OAuth (Optional - for GBP integration)
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+GOOGLE_REDIRECT_URI=
+
+# Monitoring (Optional but recommended)
+NEXT_PUBLIC_SENTRY_DSN=
+NEXT_PUBLIC_GA_TRACKING_ID=
+
+# App URL
+NEXT_PUBLIC_APP_URL=http://localhost:3002
+
+# Development
+DISABLE_SENTRY=true  # For local dev
+CRON_SECRET_TOKEN=    # For cron jobs
+```
+
 ## Development Commands
 
 ```bash
 # Start development server
-npm run dev
+npm run dev                 # Port 3002 with Sentry disabled
+npm run dev:fast           # With Turbopack
+npm run dev:debug          # With Sentry enabled
 
-# Run tests (if configured)
-npm test
+# Build & Deploy
+npm run build              # Production build
+npm run build:widget       # Build widget scripts
+npm run watch:widget       # Watch widget changes
 
-# Type checking
-npm run typecheck
+# Database
+npm run migrations:check   # Check migration status
+npm run migrations:apply   # Apply migrations
+npx supabase db reset      # Reset local DB
 
-# Linting
-npm run lint
+# Testing & Debugging
+npm run lint               # Run linter
+npm run test:auth         # Test auth flow
+npm run performance:test  # Performance testing
 
-# Build for production
-npm run build
+# Cleanup
+npm run cleanup           # Clear Next.js cache
 ```
 
 ## Database Schema Notes
@@ -97,6 +225,106 @@ For questions about the codebase or architecture decisions, check:
 2. Git commit history for context
 3. Comments in complex code sections
 
+## Deployment & Hosting
+
+### Vercel Configuration
+- **Framework:** Next.js auto-detected
+- **Build Command:** `npm run build`
+- **Output Directory:** `.next`
+- **Install Command:** `npm install`
+- **Functions Timeout:** 30 seconds max
+- **Deployment Branches:** main, staging
+- **Cron Jobs:**
+  - Trial reminders: Daily at 9 AM UTC
+  - Review reminders: Monthly on 1st at 10 AM UTC
+
+### Production URLs
+- **Main App:** app.promptreviews.app
+- **Development:** localhost:3002
+
+## Component Structure
+
+### File Organization
+```
+src/app/
+├── components/          # Shared components
+│   ├── ui/             # Basic UI components (button, card, input)
+│   ├── business-info/  # Business-related components
+│   ├── help/           # Help system components
+│   └── prompt-features/# Prompt page features
+├── dashboard/          # Dashboard pages
+│   ├── widget/        # Widget management
+│   ├── business-profile/
+│   └── team/          # Team management
+├── api/               # API routes
+└── [page]/           # Public pages
+```
+
+### Component Conventions
+- **Naming:** PascalCase for components (e.g., `ReviewModal.tsx`)
+- **Styling:** Tailwind CSS classes, avoid inline styles
+- **Types:** TypeScript interfaces for all props
+- **Hooks:** Custom hooks in `hooks/` folders
+- **Utils:** Utility functions in `utils/` folders
+
+### Common Component Patterns
+```typescript
+// Component with TypeScript
+interface ComponentProps {
+  data: DataType;
+  onAction?: (id: string) => void;
+}
+
+export function Component({ data, onAction }: ComponentProps) {
+  // Implementation
+}
+```
+
+## Error Handling & Testing
+
+### Error Handling
+- **Sentry Integration:** Automatic error tracking
+- **Error Boundaries:** React Error Boundaries for component crashes
+- **API Error Format:**
+  ```json
+  {
+    "error": "Error message",
+    "details": "Additional context"
+  }
+  ```
+- **Try-Catch Patterns:** All async operations wrapped
+- **User-Friendly Messages:** Technical errors translated for users
+
+### Testing Approach
+- **Manual Testing:** Primary approach currently
+- **Test Commands:**
+  - `npm run test:auth` - Auth flow testing
+  - `npm run performance:test` - Performance monitoring
+- **Browser Testing:** Multiple viewport sizes tested
+- **API Testing:** Dedicated test endpoints in `/api/test-*`
+
+### Performance Monitoring
+- **Tools:**
+  - Sentry Performance Monitoring
+  - Custom performance scripts in `scripts/`
+  - Browser DevTools profiling
+- **Key Metrics:**
+  - Page load time
+  - API response times
+  - Bundle size optimization
+
+## Git Workflow
+
+### Branch Strategy
+- **main:** Production branch
+- **staging:** Staging environment
+- **Feature branches:** Named descriptively
+
+### Commit Conventions
+- Clear, descriptive messages
+- Reference issue numbers when applicable
+- Format: `type: description` (e.g., `fix: widget refresh issue`)
+
 ## AI Assistant Guidelines
 
 When working on this codebase:
@@ -106,6 +334,8 @@ When working on this codebase:
 4. **Document changes** - Update relevant documentation
 5. **Preserve user data** - Never implement changes that could lose user input
 6. **Monitor performance** - Watch for unnecessary re-renders or API calls
+7. **Check migrations** - Always verify database migrations are in sync
+8. **Use existing utilities** - Leverage existing helper functions and hooks
 
 ## Database Migration Rules
 
