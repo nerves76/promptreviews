@@ -131,10 +131,14 @@ export async function POST(req: NextRequest) {
       proration_date
     });
     
+    // Debug: Check what methods are available
+    console.log('📊 Available invoice methods:', Object.keys(stripe.invoices));
+    
     // Preview the upcoming invoice with the changes
     let upcomingInvoice;
     try {
-      upcomingInvoice = await stripe.invoices.upcoming({
+      // Try using retrieveUpcoming for older Stripe versions
+      upcomingInvoice = await (stripe.invoices as any).retrieveUpcoming({
         customer: account.stripe_customer_id,
         subscription: subscription.id,
         subscription_items: [
