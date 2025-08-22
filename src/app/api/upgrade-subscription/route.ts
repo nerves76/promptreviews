@@ -155,10 +155,18 @@ export async function POST(req: NextRequest) {
       })
       .eq("id", userId);
 
+    // Determine if this was an upgrade or downgrade
+    const planOrder = ['grower', 'builder', 'maven'];
+    const oldPlanIndex = planOrder.indexOf(currentPlan?.toLowerCase() || '');
+    const newPlanIndex = planOrder.indexOf(plan.toLowerCase());
+    const changeType = newPlanIndex > oldPlanIndex ? 'upgrade' : 
+                      newPlanIndex < oldPlanIndex ? 'downgrade' : 
+                      'billing_period';
+    
     return NextResponse.json({ 
       success: true, 
       subscriptionId: updatedSubscription.id,
-      redirectUrl: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/plan?success=1&change=upgrade&plan=${plan}&billing=${billingPeriod}`
+      redirectUrl: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/plan?success=1&change=${changeType}&plan=${plan}&billing=${billingPeriod}`
     });
   } catch (error: any) {
     console.error("Stripe upgrade error:", error);

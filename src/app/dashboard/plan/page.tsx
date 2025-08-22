@@ -493,6 +493,13 @@ export default function PlanPage() {
       setShowSuccessModal(true);
       setLastAction(changeType as "new" | "upgrade" | "downgrade");
       
+      console.log("🎉 Plan change successful!", {
+        changeType,
+        planName,
+        billingType,
+        currentUrl: window.location.href
+      });
+      
       // Show specific message based on change type
       if (changeType === "upgrade" && planName) {
         const tierName = tiers.find(t => t.key === planName)?.name || planName;
@@ -556,8 +563,18 @@ export default function PlanPage() {
         });
         
         if (res.ok) {
-          // Redirect to success page
-          window.location.href = `/dashboard/plan?success=1&change=downgrade&plan=${downgradeTarget}`;
+          const data = await res.json();
+          console.log("📉 Downgrade API response:", data);
+          // Use the redirect URL from the API response if available
+          if (data.redirectUrl) {
+            console.log("🔄 Redirecting to:", data.redirectUrl);
+            window.location.href = data.redirectUrl;
+          } else {
+            // Fallback to constructed URL
+            const fallbackUrl = `/dashboard/plan?success=1&change=downgrade&plan=${downgradeTarget}`;
+            console.log("🔄 Using fallback redirect:", fallbackUrl);
+            window.location.href = fallbackUrl;
+          }
           return;
         } else {
           const errorData = await res.json();
@@ -633,8 +650,14 @@ export default function PlanPage() {
         });
         
         if (res.ok) {
-          // Redirect to success page
-          window.location.href = `/dashboard/plan?success=1&change=upgrade&plan=${upgradeTarget}&billing=${billingPeriod}`;
+          const data = await res.json();
+          // Use the redirect URL from the API response if available
+          if (data.redirectUrl) {
+            window.location.href = data.redirectUrl;
+          } else {
+            // Fallback to constructed URL
+            window.location.href = `/dashboard/plan?success=1&change=upgrade&plan=${upgradeTarget}&billing=${billingPeriod}`;
+          }
           return;
         } else {
           const errorData = await res.json();
