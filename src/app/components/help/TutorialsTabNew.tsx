@@ -394,39 +394,45 @@ export default function TutorialsTabNew({
   // Show article viewer if article is selected
   if (selectedArticle) {
     return (
-      <div className="h-full flex flex-col" style={{ backgroundColor: '#e2e8f0' }}>
+      <div className="h-full flex flex-col" style={{ 
+        background: 'linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 50%, #ddd6fe 100%)'
+      }}>
         {/* Header with back button */}
-        <div className="p-4 md:p-6 pb-0" style={{ backgroundColor: '#e2e8f0' }}>
+        <div className="p-4 md:p-6 pb-0">
           <button
             onClick={handleBackToCategories}
-            className="flex items-center space-x-2 text-indigo-600 hover:text-indigo-700 mb-4"
+            className="flex items-center space-x-2 text-indigo-700 hover:text-indigo-900 font-medium mb-4"
           >
             <Icon name="FaArrowLeft" className="w-4 h-4" size={16} />
             <span>Back to Help</span>
           </button>
           
-          <h2 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">{selectedArticle.title}</h2>
-          <div className="text-sm text-gray-600 mb-4">
+          <h2 className="text-lg md:text-xl font-bold text-gray-900 mb-2">{selectedArticle.title}</h2>
+          <div className="text-sm text-gray-800 font-medium mb-4">
             From: {selectedCategory.title}
           </div>
         </div>
         
         {/* Article content area */}
-        <div className="flex-1 overflow-y-auto" style={{ backgroundColor: '#e2e8f0' }}>
-          <div className="min-h-full" style={{ backgroundColor: '#e2e8f0' }}>
-            <div className="p-4 md:p-6 pt-2" style={{ backgroundColor: '#e2e8f0' }}>
-              {loadingContent ? (
-                <div className="flex justify-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
-                </div>
-              ) : (
-                <div 
-                  ref={contentRef}
-                  className="prose prose-sm md:prose-base max-w-none prose-headings:text-gray-900 prose-p:text-gray-700 prose-li:text-gray-700 prose-strong:text-gray-900 prose-a:text-indigo-600 hover:prose-a:text-indigo-700"
-                  dangerouslySetInnerHTML={{ __html: articleContent }}
-                />
-              )}
-            </div>
+        <div className="flex-1 overflow-y-auto">
+          <div className="min-h-full p-4 md:p-6 pt-2">
+            {loadingContent ? (
+              <div className="flex justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+              </div>
+            ) : (
+              <div 
+                ref={contentRef}
+                className="prose prose-sm md:prose-base max-w-none 
+                  prose-headings:text-gray-900 prose-headings:font-bold
+                  prose-p:text-gray-800 prose-p:font-medium
+                  prose-li:text-gray-800 prose-li:font-medium
+                  prose-strong:text-gray-900 prose-strong:font-bold
+                  prose-a:text-indigo-700 prose-a:font-semibold hover:prose-a:text-indigo-900
+                  [&_*]:text-gray-800"
+                dangerouslySetInnerHTML={{ __html: articleContent }}
+              />
+            )}
           </div>
         </div>
       </div>
