@@ -233,21 +233,33 @@ export default function TutorialsTabNew({
           const htmlContent = data.content
             .split('\n\n')
             .map(paragraph => {
+              // Process markdown links [text](url)
+              let processed = paragraph.replace(
+                /\[([^\]]+)\]\(([^)]+)\)/g,
+                (match, text, url) => {
+                  // Convert relative URLs to docs site
+                  const absoluteUrl = url.startsWith('http') 
+                    ? url 
+                    : `https://promptreviews.app/docs${url.startsWith('/') ? url : '/' + url}`;
+                  return `<a href="${absoluteUrl}" target="_blank" rel="noopener noreferrer" class="text-indigo-600 hover:text-indigo-700 underline">${text}</a>`;
+                }
+              );
+              
               // Check for headers
-              if (paragraph.startsWith('# ')) {
-                return `<h1 class="text-2xl font-bold mb-4">${paragraph.substring(2)}</h1>`;
-              } else if (paragraph.startsWith('## ')) {
-                return `<h2 class="text-xl font-semibold mb-3">${paragraph.substring(3)}</h2>`;
-              } else if (paragraph.startsWith('### ')) {
-                return `<h3 class="text-lg font-medium mb-2">${paragraph.substring(4)}</h3>`;
-              } else if (paragraph.startsWith('- ') || paragraph.startsWith('* ')) {
+              if (processed.startsWith('# ')) {
+                return `<h1 class="text-2xl font-bold mb-4">${processed.substring(2)}</h1>`;
+              } else if (processed.startsWith('## ')) {
+                return `<h2 class="text-xl font-semibold mb-3">${processed.substring(3)}</h2>`;
+              } else if (processed.startsWith('### ')) {
+                return `<h3 class="text-lg font-medium mb-2">${processed.substring(4)}</h3>`;
+              } else if (processed.startsWith('- ') || processed.startsWith('* ')) {
                 // Handle lists
-                const items = paragraph.split('\n').map(item => 
+                const items = processed.split('\n').map(item => 
                   `<li>${item.replace(/^[*-]\s/, '')}</li>`
                 ).join('');
                 return `<ul class="list-disc pl-6 mb-4">${items}</ul>`;
-              } else if (paragraph.trim()) {
-                return `<p class="mb-4">${paragraph}</p>`;
+              } else if (processed.trim()) {
+                return `<p class="mb-4">${processed}</p>`;
               }
               return '';
             })
@@ -332,7 +344,7 @@ export default function TutorialsTabNew({
         
         {/* Article content with gradient background */}
         <div className="flex-1 overflow-y-auto">
-          <div className="bg-gradient-to-br from-indigo-50 via-white to-purple-50 min-h-full">
+          <div className="bg-gradient-to-br from-indigo-100/50 via-white to-purple-100/50 min-h-full">
             <div className="p-4 md:p-6 pt-2">
               {loadingContent ? (
                 <div className="flex justify-center py-8">
@@ -353,7 +365,7 @@ export default function TutorialsTabNew({
 
   // Main categories view
   return (
-    <div className="h-full flex flex-col p-4 md:p-6 bg-gradient-to-br from-indigo-50/30 via-white to-purple-50/30">
+    <div className="h-full flex flex-col p-4 md:p-6 bg-gradient-to-br from-indigo-100/40 via-white to-purple-100/40">
       {/* Featured Articles Section */}
       <div className="mb-4 md:mb-6">
         <h3 className="text-xs md:text-sm font-semibold text-gray-700 uppercase tracking-wider mb-3">

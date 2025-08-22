@@ -5,7 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 
-const DOCS_BASE_URL = process.env.DOCS_URL || 'https://docs.promptreviews.app';
+const DOCS_BASE_URL = process.env.DOCS_URL || 'https://promptreviews.app/docs';
 
 export async function POST(req: NextRequest) {
   try {
@@ -97,6 +97,26 @@ export async function POST(req: NextRequest) {
         .replace(/<nav\b[^<]*(?:(?!<\/nav>)<[^<]*)*<\/nav>/gi, '')
         .replace(/<footer\b[^<]*(?:(?!<\/footer>)<[^<]*)*<\/footer>/gi, '')
         .replace(/<header\b[^<]*(?:(?!<\/header>)<[^<]*)*<\/header>/gi, '');
+      
+      // Fix relative links to point to docs site or convert to text
+      content = content.replace(
+        /href="([^"]+)"/gi,
+        (match, url) => {
+          // If it's a relative URL (doesn't start with http)
+          if (!url.startsWith('http') && !url.startsWith('mailto:') && !url.startsWith('#')) {
+            // Convert to absolute URL pointing to docs site
+            const absoluteUrl = url.startsWith('/') 
+              ? `${DOCS_BASE_URL}${url}`
+              : `${DOCS_BASE_URL}/${url}`;
+            return `href="${absoluteUrl}" target="_blank" rel="noopener noreferrer"`;
+          }
+          // For external links, add target="_blank"
+          if (url.startsWith('http')) {
+            return `href="${url}" target="_blank" rel="noopener noreferrer"`;
+          }
+          return match;
+        }
+      );
       
       return NextResponse.json({
         content,
