@@ -66,8 +66,25 @@ export async function POST(req: NextRequest) {
     // Fetch the current subscription
     const subscription = await stripe.subscriptions.retrieve(account.stripe_subscription_id);
     
+    // Check if subscription has items
+    if (!subscription.items || !subscription.items.data || subscription.items.data.length === 0) {
+      console.error("Subscription has no items:", subscription.id);
+      return NextResponse.json({ 
+        error: "Invalid subscription state",
+        message: "Your subscription appears to be in an invalid state. Please contact support." 
+      }, { status: 400 });
+    }
+    
     // Get the new price ID
     const newPriceId = PRICE_IDS[plan]?.[billingPeriod] || PRICE_IDS[plan]?.monthly;
+    
+    if (!newPriceId) {
+      console.error("Invalid price ID for plan:", plan, billingPeriod);
+      return NextResponse.json({ 
+        error: "Invalid plan configuration",
+        message: "The selected plan is not properly configured. Please try again or contact support." 
+      }, { status: 400 });
+    }
     
     // Create a preview of the proration
     const proration_date = Math.floor(Date.now() / 1000);

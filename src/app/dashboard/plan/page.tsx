@@ -334,15 +334,49 @@ export default function PlanPage() {
               }
             });
           } else {
-            // If preview fails, fall back to regular upgrade modal
-            console.error('Failed to fetch billing preview');
-            setShowConfirmModal(false);
-            setShowUpgradeModal(true);
+            // If preview fails, show error details and fall back to regular modal
+            const errorData = await previewRes.json().catch(() => ({ error: 'Unknown error' }));
+            console.error('Failed to fetch billing preview:', errorData);
+            
+            // Show error message to user
+            setConfirmModalConfig({
+              title: 'Unable to Calculate Billing',
+              message: errorData.message || 'Unable to calculate billing changes. You can still proceed with the upgrade.',
+              confirmText: 'Continue Anyway',
+              cancelText: 'Cancel',
+              loading: false,
+              onConfirm: () => {
+                setShowConfirmModal(false);
+                setShowUpgradeModal(true);
+              },
+              onCancel: () => {
+                setShowConfirmModal(false);
+                setUpgradeTarget(null);
+                setUpgradeFeatures([]);
+              }
+            });
           }
         } catch (error) {
           console.error('Error fetching billing preview:', error);
-          setShowConfirmModal(false);
-          setShowUpgradeModal(true);
+          
+          // Show error message to user
+          setConfirmModalConfig({
+            title: 'Connection Error',
+            message: 'Unable to connect to billing service. Please try again.',
+            confirmText: 'Try Again',
+            cancelText: 'Cancel',
+            loading: false,
+            onConfirm: () => {
+              setShowConfirmModal(false);
+              // Retry by calling handleSelectTier again
+              handleSelectTier(tierKey, billing);
+            },
+            onCancel: () => {
+              setShowConfirmModal(false);
+              setUpgradeTarget(null);
+              setUpgradeFeatures([]);
+            }
+          });
         }
         return;
       }
@@ -436,15 +470,49 @@ export default function PlanPage() {
               }
             });
           } else {
-            // If preview fails, fall back to regular downgrade modal
-            console.error('Failed to fetch billing preview');
-            setShowConfirmModal(false);
-            setShowDowngradeModal(true);
+            // If preview fails, show error details and fall back to regular modal
+            const errorData = await previewRes.json().catch(() => ({ error: 'Unknown error' }));
+            console.error('Failed to fetch billing preview for downgrade:', errorData);
+            
+            // Show error message to user
+            setConfirmModalConfig({
+              title: 'Unable to Calculate Credit',
+              message: errorData.message || 'Unable to calculate your credit amount. You can still proceed with the downgrade.',
+              confirmText: 'Continue Anyway',
+              cancelText: 'Cancel',
+              loading: false,
+              onConfirm: () => {
+                setShowConfirmModal(false);
+                setShowDowngradeModal(true);
+              },
+              onCancel: () => {
+                setShowConfirmModal(false);
+                setDowngradeTarget(null);
+                setDowngradeFeatures([]);
+              }
+            });
           }
         } catch (error) {
-          console.error('Error fetching billing preview:', error);
-          setShowConfirmModal(false);
-          setShowDowngradeModal(true);
+          console.error('Error fetching billing preview for downgrade:', error);
+          
+          // Show error message to user
+          setConfirmModalConfig({
+            title: 'Connection Error',
+            message: 'Unable to connect to billing service. Please try again.',
+            confirmText: 'Try Again',
+            cancelText: 'Cancel',
+            loading: false,
+            onConfirm: () => {
+              setShowConfirmModal(false);
+              // Retry by calling handleSelectTier again
+              handleSelectTier(tierKey, billing);
+            },
+            onCancel: () => {
+              setShowConfirmModal(false);
+              setDowngradeTarget(null);
+              setDowngradeFeatures([]);
+            }
+          });
         }
         return;
       }
