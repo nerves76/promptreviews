@@ -394,9 +394,9 @@ export default function TutorialsTabNew({
   // Show article viewer if article is selected
   if (selectedArticle) {
     return (
-      <div className="h-full flex flex-col">
+      <div className="h-full flex flex-col bg-slate-100">
         {/* Header with back button */}
-        <div className="p-4 md:p-6 pb-0">
+        <div className="p-4 md:p-6 pb-0 bg-slate-100">
           <button
             onClick={handleBackToCategories}
             className="flex items-center space-x-2 text-indigo-600 hover:text-indigo-700 mb-4"
@@ -411,8 +411,8 @@ export default function TutorialsTabNew({
           </div>
         </div>
         
-        {/* Article content with gradient background */}
-        <div className="flex-1 overflow-y-auto bg-gradient-to-br from-blue-100 via-purple-100 to-pink-100">
+        {/* Article content area */}
+        <div className="flex-1 overflow-y-auto bg-slate-100">
           <div className="min-h-full">
             <div className="p-4 md:p-6 pt-2">
               {loadingContent ? (
@@ -422,7 +422,8 @@ export default function TutorialsTabNew({
               ) : (
                 <div 
                   ref={contentRef}
-                  className="prose prose-sm md:prose-base max-w-none prose-headings:text-gray-900 prose-p:text-gray-700 prose-li:text-gray-700 prose-strong:text-gray-900 prose-a:text-indigo-600 hover:prose-a:text-indigo-700"
+                  className="prose prose-sm md:prose-base max-w-none prose-headings:text-gray-900 prose-p:text-gray-700 prose-li:text-gray-700 prose-strong:text-gray-900 prose-a:text-indigo-600 hover:prose-a:text-indigo-700 [&>*]:bg-transparent"
+                  style={{ backgroundColor: 'transparent' }}
                   dangerouslySetInnerHTML={{ __html: articleContent }}
                 />
               )}
