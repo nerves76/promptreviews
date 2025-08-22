@@ -313,33 +313,39 @@ export default function TutorialsTabNew({
   // Show article viewer if article is selected
   if (selectedArticle) {
     return (
-      <div className="h-full flex flex-col p-4 md:p-6">
-        {/* Back button */}
-        <button
-          onClick={handleBackToCategories}
-          className="flex items-center space-x-2 text-primary-600 hover:text-primary-700 mb-4"
-        >
-          <Icon name="FaArrowLeft" className="w-4 h-4" size={16} />
-          <span>Back to Help</span>
-        </button>
-        
-        {/* Article content */}
-        <div className="flex-1 overflow-y-auto">
-          <h2 className="text-lg md:text-xl font-semibold mb-2">{selectedArticle.title}</h2>
+      <div className="h-full flex flex-col">
+        {/* Header with back button */}
+        <div className="p-4 md:p-6 pb-0">
+          <button
+            onClick={handleBackToCategories}
+            className="flex items-center space-x-2 text-indigo-600 hover:text-indigo-700 mb-4"
+          >
+            <Icon name="FaArrowLeft" className="w-4 h-4" size={16} />
+            <span>Back to Help</span>
+          </button>
+          
+          <h2 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">{selectedArticle.title}</h2>
           <div className="text-sm text-gray-600 mb-4">
             From: {selectedCategory.title}
           </div>
-          
-          {loadingContent ? (
-            <div className="flex justify-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+        </div>
+        
+        {/* Article content with gradient background */}
+        <div className="flex-1 overflow-y-auto">
+          <div className="bg-gradient-to-br from-indigo-50 via-white to-purple-50 min-h-full">
+            <div className="p-4 md:p-6 pt-2">
+              {loadingContent ? (
+                <div className="flex justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+                </div>
+              ) : (
+                <div 
+                  className="prose prose-sm md:prose-base max-w-none prose-headings:text-gray-900 prose-p:text-gray-700 prose-li:text-gray-700 prose-strong:text-gray-900 prose-a:text-indigo-600 hover:prose-a:text-indigo-700"
+                  dangerouslySetInnerHTML={{ __html: articleContent }}
+                />
+              )}
             </div>
-          ) : (
-            <div 
-              className="prose prose-sm max-w-none"
-              dangerouslySetInnerHTML={{ __html: articleContent }}
-            />
-          )}
+          </div>
         </div>
       </div>
     );
@@ -347,7 +353,7 @@ export default function TutorialsTabNew({
 
   // Main categories view
   return (
-    <div className="h-full flex flex-col p-4 md:p-6">
+    <div className="h-full flex flex-col p-4 md:p-6 bg-gradient-to-br from-indigo-50/30 via-white to-purple-50/30">
       {/* Featured Articles Section */}
       <div className="mb-4 md:mb-6">
         <h3 className="text-xs md:text-sm font-semibold text-gray-700 uppercase tracking-wider mb-3">
@@ -358,12 +364,12 @@ export default function TutorialsTabNew({
             <button
               key={featured.id}
               onClick={() => handleFeaturedClick(featured)}
-              className="flex items-center space-x-2 md:space-x-3 p-2.5 md:p-3 bg-white border border-gray-200 rounded-lg hover:border-primary-300 hover:bg-primary-50 transition-colors text-left group"
+              className="flex items-center space-x-2 md:space-x-3 p-2.5 md:p-3 bg-white/90 backdrop-blur-sm border border-gray-200 rounded-lg hover:border-indigo-300 hover:bg-indigo-50/50 transition-colors text-left group"
             >
               <div className="flex-shrink-0">
                 <Icon 
                   name={featured.icon} 
-                  className="w-4 h-4 md:w-5 md:h-5 text-primary-600 group-hover:text-primary-700" 
+                  className="w-4 h-4 md:w-5 md:h-5 text-indigo-600 group-hover:text-indigo-700" 
                   size={20} 
                 />
               </div>
@@ -374,7 +380,7 @@ export default function TutorialsTabNew({
               </div>
               <Icon 
                 name="FaChevronRight" 
-                className="w-3 h-3 md:w-4 md:h-4 text-gray-400 group-hover:text-primary-600 flex-shrink-0" 
+                className="w-3 h-3 md:w-4 md:h-4 text-gray-400 group-hover:text-indigo-600 flex-shrink-0" 
                 size={16} 
               />
             </button>
@@ -426,9 +432,9 @@ export default function TutorialsTabNew({
                     <button
                       key={article.id}
                       onClick={() => handleArticleClick(article, category)}
-                      className="w-full flex items-center justify-between px-8 md:px-12 py-2 hover:bg-white transition-colors text-left"
+                      className="w-full flex items-center justify-between px-8 md:px-12 py-2 hover:bg-white transition-colors text-left group"
                     >
-                      <span className="text-xs md:text-sm text-gray-700 hover:text-primary-600 truncate pr-2">
+                      <span className="text-xs md:text-sm text-gray-700 group-hover:text-indigo-600 truncate pr-2">
                         {article.title}
                       </span>
                       <Icon 

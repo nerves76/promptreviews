@@ -96,17 +96,17 @@ export default function QuoteDisplay({
 
   return (
     <div className={`relative ${className}`}>
-      {/* Navigation Arrows - Desktop: far outside, Mobile: below */}
+      {/* Navigation Arrows - Desktop: further outside, Mobile: below */}
       <button
         onClick={previousQuote}
-        className="absolute left-0 md:left-auto md:-left-20 top-1/2 md:top-1/2 transform -translate-y-1/2 -translate-x-8 md:-translate-x-0 p-2.5 text-white/90 hover:text-white transition-all duration-200 z-10 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg hover:bg-white/15 hover:scale-105 hidden md:block"
+        className="absolute left-0 top-1/2 transform -translate-y-1/2 -translate-x-8 md:-translate-x-20 p-2.5 text-white/90 hover:text-white transition-all duration-200 z-10 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg hover:bg-white/15 hover:scale-105 hidden md:block"
         aria-label="Previous quote"
       >
                     <Icon name="FaChevronLeft" className="h-5 w-5" size={20} />
       </button>
       <button
         onClick={nextQuote}
-        className="absolute right-0 md:right-auto md:-right-20 top-1/2 md:top-1/2 transform -translate-y-1/2 translate-x-8 md:translate-x-0 p-2.5 text-white/90 hover:text-white transition-all duration-200 z-10 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg hover:bg-white/15 hover:scale-105 hidden md:block"
+        className="absolute right-0 top-1/2 transform -translate-y-1/2 translate-x-8 md:translate-x-20 p-2.5 text-white/90 hover:text-white transition-all duration-200 z-10 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg hover:bg-white/15 hover:scale-105 hidden md:block"
         aria-label="Next quote"
       >
                     <Icon name="FaChevronRight" className="h-5 w-5" size={20} />
