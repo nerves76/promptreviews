@@ -284,7 +284,7 @@ export default function TutorialsTabNew({
   // Show article viewer if article is selected
   if (selectedArticle) {
     return (
-      <div className="h-full flex flex-col">
+      <div className="h-full flex flex-col p-4 md:p-6">
         {/* Back button */}
         <button
           onClick={handleBackToCategories}
@@ -296,7 +296,7 @@ export default function TutorialsTabNew({
         
         {/* Article content */}
         <div className="flex-1 overflow-y-auto">
-          <h2 className="text-xl font-semibold mb-2">{selectedArticle.title}</h2>
+          <h2 className="text-lg md:text-xl font-semibold mb-2">{selectedArticle.title}</h2>
           <div className="text-sm text-gray-600 mb-4">
             From: {selectedCategory.title}
           </div>
@@ -318,10 +318,10 @@ export default function TutorialsTabNew({
 
   // Main categories view
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col p-4 md:p-6">
       {/* Featured Articles Section */}
-      <div className="mb-6">
-        <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wider mb-3">
+      <div className="mb-4 md:mb-6">
+        <h3 className="text-xs md:text-sm font-semibold text-gray-700 uppercase tracking-wider mb-3">
           Suggested for this page
         </h3>
         <div className="grid gap-2">
@@ -329,23 +329,23 @@ export default function TutorialsTabNew({
             <button
               key={featured.id}
               onClick={() => handleFeaturedClick(featured)}
-              className="flex items-center space-x-3 p-3 bg-white border border-gray-200 rounded-lg hover:border-primary-300 hover:bg-primary-50 transition-colors text-left group"
+              className="flex items-center space-x-2 md:space-x-3 p-2.5 md:p-3 bg-white border border-gray-200 rounded-lg hover:border-primary-300 hover:bg-primary-50 transition-colors text-left group"
             >
               <div className="flex-shrink-0">
                 <Icon 
                   name={featured.icon} 
-                  className="w-5 h-5 text-primary-600 group-hover:text-primary-700" 
+                  className="w-4 h-4 md:w-5 md:h-5 text-primary-600 group-hover:text-primary-700" 
                   size={20} 
                 />
               </div>
-              <div className="flex-1">
-                <h4 className="font-medium text-gray-900 group-hover:text-primary-700">
+              <div className="flex-1 min-w-0">
+                <h4 className="font-medium text-sm md:text-base text-gray-900 group-hover:text-primary-700 truncate">
                   {featured.title}
                 </h4>
               </div>
               <Icon 
                 name="FaChevronRight" 
-                className="w-4 h-4 text-gray-400 group-hover:text-primary-600" 
+                className="w-3 h-3 md:w-4 md:h-4 text-gray-400 group-hover:text-primary-600 flex-shrink-0" 
                 size={16} 
               />
             </button>
@@ -354,38 +354,38 @@ export default function TutorialsTabNew({
       </div>
 
       {/* Divider */}
-      <div className="border-t border-gray-200 my-4"></div>
+      <div className="border-t border-gray-200 my-3 md:my-4"></div>
 
       {/* All Categories Section */}
-      <div className="flex-1 overflow-y-auto">
-        <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wider mb-3">
+      <div className="flex-1 overflow-y-auto -mx-4 md:-mx-6 px-4 md:px-6">
+        <h3 className="text-xs md:text-sm font-semibold text-gray-700 uppercase tracking-wider mb-3">
           Browse all help topics
         </h3>
         
-        <div className="space-y-2">
+        <div className="space-y-2 pb-4">
           {helpCategories.map((category) => (
             <div key={category.id} className="border border-gray-200 rounded-lg overflow-hidden">
               {/* Category Header */}
               <button
                 onClick={() => toggleCategory(category.id)}
-                className="w-full flex items-center justify-between p-3 hover:bg-gray-50 transition-colors"
+                className="w-full flex items-center justify-between p-2.5 md:p-3 hover:bg-gray-50 transition-colors"
               >
-                <div className="flex items-center space-x-3">
-                  <div className={`p-2 rounded-lg bg-${category.color}-100`}>
+                <div className="flex items-center space-x-2 md:space-x-3">
+                  <div className={`p-1.5 md:p-2 rounded-lg bg-${category.color}-100`}>
                     <Icon 
                       name={category.icon} 
-                      className={`w-5 h-5 text-${category.color}-600`} 
+                      className={`w-4 h-4 md:w-5 md:h-5 text-${category.color}-600`} 
                       size={20} 
                     />
                   </div>
-                  <div className="text-left">
-                    <h4 className="font-medium text-gray-900">{category.title}</h4>
-                    <p className="text-xs text-gray-500">{category.description}</p>
+                  <div className="text-left flex-1 min-w-0">
+                    <h4 className="font-medium text-sm md:text-base text-gray-900">{category.title}</h4>
+                    <p className="text-xs text-gray-500 hidden md:block">{category.description}</p>
                   </div>
                 </div>
                 <Icon 
                   name={expandedCategories.includes(category.id) ? "FaChevronUp" : "FaChevronDown"} 
-                  className="w-4 h-4 text-gray-400" 
+                  className="w-3 h-3 md:w-4 md:h-4 text-gray-400 flex-shrink-0" 
                   size={16} 
                 />
               </button>
@@ -397,14 +397,14 @@ export default function TutorialsTabNew({
                     <button
                       key={article.id}
                       onClick={() => handleArticleClick(article, category)}
-                      className="w-full flex items-center justify-between px-12 py-2 hover:bg-white transition-colors text-left"
+                      className="w-full flex items-center justify-between px-8 md:px-12 py-2 hover:bg-white transition-colors text-left"
                     >
-                      <span className="text-sm text-gray-700 hover:text-primary-600">
+                      <span className="text-xs md:text-sm text-gray-700 hover:text-primary-600 truncate pr-2">
                         {article.title}
                       </span>
                       <Icon 
                         name="FaExternalLinkAlt" 
-                        className="w-3 h-3 text-gray-400" 
+                        className="w-3 h-3 text-gray-400 flex-shrink-0" 
                         size={12} 
                       />
                     </button>

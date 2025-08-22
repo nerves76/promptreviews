@@ -86,8 +86,14 @@ export default function DashboardLayout({
     }
   }, [isInitialized, user, isClient, router]);
 
+  // Check if we're on plan page with success parameter (to avoid flash)
+  const isPlanPageSuccess = typeof window !== 'undefined' && 
+    window.location.pathname === '/dashboard/plan' && 
+    (window.location.search.includes('success=1') || 
+     sessionStorage.getItem('showPlanSuccessModal') === 'true');
+
   // Show loading while AuthContext initializes or during transitions
-  if (!isInitialized || isTransitioning) {
+  if ((!isInitialized || isTransitioning) && !isPlanPageSuccess) {
     if (process.env.NODE_ENV === 'development') {
       console.log('🔄 Dashboard: Loading state', { isInitialized, isTransitioning });
     }
@@ -102,9 +108,10 @@ export default function DashboardLayout({
   if (isInitialized && !user && isClient) {
     return null;
   }
-
+  
   // Show loading while user data or account data is still loading
-  if (isLoading || accountLoading) {
+  // BUT skip if we're showing plan success modal
+  if ((isLoading || accountLoading) && !isPlanPageSuccess) {
     if (process.env.NODE_ENV === 'development') {
       console.log('🔄 Dashboard: Loading user or account data...');
     }

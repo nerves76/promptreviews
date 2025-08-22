@@ -19,9 +19,6 @@ export default function PlanPage() {
     };
   }, []);
   
-  // Debug render cycles
-  console.log('🎨 PlanPage rendering...');
-
   const [account, setAccount] = useState<any>(null);
   const [user, setUser] = useState<any>(null);
   const [userRole, setUserRole] = useState<'owner' | 'member' | null>(null);
@@ -31,13 +28,22 @@ export default function PlanPage() {
       const urlParams = new URLSearchParams(window.location.search);
       const hasSuccess = urlParams.get('success') === '1';
       const hasSessionSuccess = sessionStorage.getItem('showPlanSuccessModal') === 'true';
-      return !hasSuccess && !hasSessionSuccess;
+      const shouldLoad = !hasSuccess && !hasSessionSuccess;
+      console.log('🔍 Initial loading state:', { hasSuccess, hasSessionSuccess, shouldLoad });
+      return shouldLoad;
     }
     return true;
   });
   const [currentPlan, setCurrentPlan] = useState<string | null>(null);
   // Don't initialize from sessionStorage to avoid hydration mismatch
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  
+  // Debug render cycles with state
+  console.log('🎨 PlanPage render:', { 
+    isLoading, 
+    showSuccessModal, 
+    hasAccount: !!account 
+  });
   const [showDowngradeModal, setShowDowngradeModal] = useState(false);
   const [downgradeTarget, setDowngradeTarget] = useState<string | null>(null);
   const [downgradeFeatures, setDowngradeFeatures] = useState<string[]>([]);
@@ -104,35 +110,35 @@ export default function PlanPage() {
   };
 
   // Combined effect for handling success modal from both URL and sessionStorage
+  // Use specific search param values as dependencies instead of the whole object
+  const success = searchParams?.get('success');
+  const change = searchParams?.get('change');
+  const canceled = searchParams?.get('canceled');
+  
   useEffect(() => {
-    if (typeof window !== 'undefined' && !successModalShownRef.current) {
-      const urlParams = new URLSearchParams(window.location.search);
-      const success = urlParams.get('success');
-      const change = urlParams.get('change');
-      const canceled = urlParams.get('canceled');
-      
+    if (typeof window !== 'undefined') {
       const shouldShowModal = sessionStorage.getItem('showPlanSuccessModal');
       const savedAction = sessionStorage.getItem('planSuccessAction');
       
       // Check if we should show success modal from URL or session
-      if (success === '1' || shouldShowModal === 'true') {
+      if ((success === '1' || shouldShowModal === 'true') && !successModalShownRef.current) {
         console.log('📊 Success modal triggered:', { success, shouldShowModal, change, savedAction });
         
-        // Mark that we've shown the modal
+        // Mark that we've shown the modal BEFORE setting state to prevent re-runs
         successModalShownRef.current = true;
         
         // Set action type from URL or session
         const action = change || savedAction || 'upgrade';
+        
+        // Batch all state updates together
         setLastAction(action);
+        setShowSuccessModal(true);
+        setStarAnimation(false);
+        setIsLoading(false);
         
         // Save to sessionStorage if not already there
         sessionStorage.setItem('showPlanSuccessModal', 'true');
         sessionStorage.setItem('planSuccessAction', action);
-        
-        // Show modal and hide loading immediately
-        setShowSuccessModal(true);
-        setStarAnimation(false);
-        setIsLoading(false);
         
         // Clean up URL if needed
         if (success === '1') {
@@ -152,7 +158,7 @@ export default function PlanPage() {
         window.history.replaceState({}, '', window.location.pathname);
       }
     }
-  }, [searchParams]);
+  }, [success, change, canceled]); // Only re-run when these specific values change
 
   useEffect(() => {
     const fetchAccount = async () => {
@@ -755,8 +761,14 @@ export default function PlanPage() {
             processingFeeNote: preview.processingFeeNote,
           },
           onConfirm: async () => {
-            // Proceed with the actual downgrade
-            setShowConfirmModal(false);
+            // Show loading state in the modal
+            setConfirmModalConfig(prev => ({
+              ...prev!,
+              loading: true,
+              title: 'Processing downgrade...',
+              message: 'Please wait while we update your subscription.'
+            }));
+            
             setDowngradeProcessing(true);
             
             try {
@@ -783,6 +795,9 @@ export default function PlanPage() {
                   const redirectUrl = `${baseUrl}/dashboard/plan?success=1&change=downgrade&plan=${downgradeTarget}&billing=${billingPeriod}`;
                   console.log("🔄 Redirecting to:", redirectUrl);
                   console.log("📍 Current location before redirect:", window.location.href);
+                  
+                  // Close modal and redirect
+                  setShowConfirmModal(false);
                   
                   // Add a small delay to ensure the database update completes
                   setTimeout(() => {
@@ -819,10 +834,21 @@ export default function PlanPage() {
                 // Don't show star animation for success modal
                 setStarAnimation(false);
                 setShowSuccessModal(true);
+                setShowConfirmModal(false);
               }
             } catch (error) {
               console.error("Downgrade error:", error);
-              alert("Failed to downgrade. Please try again.");
+              // Show error in modal instead of alert
+              setConfirmModalConfig({
+                title: 'Downgrade Failed',
+                message: 'There was an error processing your downgrade. Please try again.',
+                confirmText: 'Close',
+                cancelText: '',
+                loading: false,
+                onConfirm: () => {
+                  setShowConfirmModal(false);
+                }
+              });
             } finally {
               setDowngradeProcessing(false);
             }

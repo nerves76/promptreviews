@@ -9,6 +9,7 @@
 import { useState, useEffect } from "react";
 import { createClient } from "@/utils/supabaseClient";
 import { getActiveAnnouncement } from "@/utils/admin";
+import Icon from "@/components/Icon";
 
 interface Announcement {
   id: string;
@@ -81,25 +82,18 @@ export default function AnnouncementBanner() {
   }
 
   return (
-    <div className="bg-blue-50 border-b border-blue-200 relative">
-      <div className="max-w-7xl mx-auto py-3 px-3 sm:px-6 lg:px-8">
+    <div className="relative backdrop-blur-xl bg-white/10 border-b border-white/30 overflow-hidden">
+      {/* Subtle gradient overlay */}
+      <div className="absolute inset-0 bg-gradient-to-r from-white/5 via-transparent to-white/5 pointer-events-none"></div>
+      
+      <div className="relative max-w-7xl mx-auto py-3 px-3 sm:px-6 lg:px-8 z-10">
         <div className="flex items-center justify-between">
           <div className="flex items-center flex-1 pr-8">
-            <span className="flex p-1 rounded-lg bg-blue-50">
-              <svg
-                className="h-10 w-10 text-yellow-400"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="currentColor"
-                viewBox="0 0 24 24"
-                style={{ filter: 'drop-shadow(0 0 4px #FFD700)' }}
-              >
-                <path
-                  d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
-                />
-              </svg>
+            <span className="flex p-2 rounded-lg bg-white/15 backdrop-blur-md border border-white/20">
+              <Icon name="FaMegaphone" className="text-white/90" size={24} />
             </span>
             <div className="ml-3">
-              <p className="text-sm font-medium text-slate-blue">
+              <p className="text-sm font-medium text-white/95 drop-shadow-[0_1px_2px_rgba(0,0,0,0.1)]">
                 {announcement.message}
               </p>
               {announcement.button_text && announcement.button_url && (
@@ -107,7 +101,7 @@ export default function AnnouncementBanner() {
                   href={announcement.button_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-xs text-slate-blue hover:text-slate-blue/80 underline mt-1 inline-block"
+                  className="text-xs text-white/80 hover:text-white underline mt-1 inline-block transition-colors duration-200"
                 >
                   {announcement.button_text}
                 </a>
@@ -116,9 +110,9 @@ export default function AnnouncementBanner() {
           </div>
           <button
             onClick={handleDismiss}
-            className="flex-shrink-0 text-slate-blue hover:text-slate-blue/80 transition-colors"
+            className="flex-shrink-0 p-1.5 text-white/70 hover:text-white/90 transition-all duration-200 bg-white/10 backdrop-blur-md border border-white/20 rounded-full hover:bg-white/15"
           >
-            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
             </svg>
           </button>
