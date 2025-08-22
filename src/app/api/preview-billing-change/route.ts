@@ -83,7 +83,21 @@ export async function POST(req: NextRequest) {
     }
 
     // Fetch the current subscription
-    const subscription = await stripe.subscriptions.retrieve(account.stripe_subscription_id);
+    let subscription;
+    try {
+      subscription = await stripe.subscriptions.retrieve(account.stripe_subscription_id);
+      console.log('📊 Subscription retrieved:', {
+        id: subscription.id,
+        status: subscription.status,
+        itemCount: subscription.items?.data?.length || 0
+      });
+    } catch (stripeError: any) {
+      console.error("Failed to retrieve subscription from Stripe:", stripeError);
+      return NextResponse.json({ 
+        error: "Subscription not found",
+        message: "Unable to retrieve your subscription. It may have been canceled or is invalid." 
+      }, { status: 400 });
+    }
     
     // Check if subscription has items
     if (!subscription.items || !subscription.items.data || subscription.items.data.length === 0) {
@@ -108,18 +122,55 @@ export async function POST(req: NextRequest) {
     // Create a preview of the proration
     const proration_date = Math.floor(Date.now() / 1000);
     
-    // Preview the upcoming invoice with the changes
-    const upcomingInvoice = await stripe.invoices.retrieveUpcoming({
+    console.log('📊 Attempting to preview invoice with:', {
       customer: account.stripe_customer_id,
       subscription: subscription.id,
-      subscription_items: [
-        {
-          id: subscription.items.data[0].id,
-          price: newPriceId,
-        },
-      ],
-      subscription_proration_date: proration_date,
+      currentItemId: subscription.items.data[0].id,
+      currentPrice: subscription.items.data[0].price.id,
+      newPrice: newPriceId,
+      proration_date
     });
+    
+    // Preview the upcoming invoice with the changes
+    let upcomingInvoice;
+    try {
+      upcomingInvoice = await stripe.invoices.retrieveUpcoming({
+        customer: account.stripe_customer_id,
+        subscription: subscription.id,
+        subscription_items: [
+          {
+            id: subscription.items.data[0].id,
+            price: newPriceId,
+          },
+        ],
+        subscription_proration_date: proration_date,
+      });
+    } catch (stripeError: any) {
+      console.error("Failed to retrieve upcoming invoice from Stripe:", stripeError);
+      
+      // Check if it's because the prices are the same
+      if (stripeError.message?.includes('no change') || stripeError.message?.includes('same price')) {
+        return NextResponse.json({
+          preview: {
+            currentPlan: `${account.plan} (${account.billing_period})`,
+            newPlan: `${plan} (${billingPeriod})`,
+            creditAmount: "0.00",
+            chargeAmount: "0.00",
+            netAmount: "0.00",
+            isCredit: false,
+            message: "No price change. You're already on this plan.",
+            timeline: "No changes will be made.",
+            stripeEmail: null,
+            processingFeeNote: null
+          }
+        });
+      }
+      
+      return NextResponse.json({ 
+        error: "Unable to calculate billing",
+        message: `Unable to preview billing changes: ${stripeError.message || 'Unknown error'}` 
+      }, { status: 400 });
+    }
 
     // Calculate the credit/charge
     const currentAmount = upcomingInvoice.lines.data
@@ -166,8 +217,28 @@ export async function POST(req: NextRequest) {
 
   } catch (error: any) {
     console.error("Error previewing billing change:", error);
+    console.error("Error stack:", error.stack);
+    
+    // Check for specific error types
+    if (error.message?.includes('STRIPE_SECRET_KEY')) {
+      return NextResponse.json(
+        { error: "Configuration error", message: "Stripe is not properly configured. Please contact support." },
+        { status: 500 }
+      );
+    }
+    
+    if (error.message?.includes('SUPABASE')) {
+      return NextResponse.json(
+        { error: "Database error", message: "Unable to access account information. Please try again." },
+        { status: 500 }
+      );
+    }
+    
     return NextResponse.json(
-      { error: error.message || "Failed to preview billing change" },
+      { 
+        error: "Server error", 
+        message: error.message || "An unexpected error occurred while previewing billing changes. Please try again." 
+      },
       { status: 500 }
     );
   }
