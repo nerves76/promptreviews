@@ -35,6 +35,24 @@ export default function PlanPage() {
   const [isAdminAccount, setIsAdminAccount] = useState(false);
   const prevPlanRef = useRef<string | null>(null);
   const router = useRouter();
+  
+  // Confirmation modal state
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [confirmModalConfig, setConfirmModalConfig] = useState<{
+    title: string;
+    message: string;
+    confirmText: string;
+    cancelText: string;
+    onConfirm: () => void;
+    onCancel?: () => void;
+    loading?: boolean;
+    details?: {
+      creditAmount?: string;
+      timeline?: string;
+      stripeEmail?: string;
+      processingFeeNote?: string;
+    };
+  } | null>(null);
 
   // Helper function to get price ID for a plan
   const getPriceId = (plan: string, billing: 'monthly' | 'annual' = 'monthly') => {
@@ -147,41 +165,114 @@ export default function PlanPage() {
 
       // Handle billing period change (monthly to annual or vice versa)
       if (isBillingPeriodChange && account.stripe_customer_id) {
-        const confirmMessage = billing === 'annual' 
-          ? `Switch to annual billing and save 15%? Your next charge will be prorated.`
-          : `Switch to monthly billing? You'll lose the 15% annual discount. Any unused time will be credited.`;
+        const isToAnnual = billing === 'annual';
         
-        if (confirm(confirmMessage)) {
-          setUpgrading(true);
-          setUpgradingPlan('Updating billing period...');
+        // Show loading modal while fetching preview
+        setConfirmModalConfig({
+          title: 'Calculating changes...',
+          message: 'Please wait while we calculate your billing adjustment.',
+          confirmText: '',
+          cancelText: '',
+          loading: true,
+          onConfirm: () => {},
+        });
+        setShowConfirmModal(true);
+        
+        try {
+          // Fetch the billing change preview
+          const previewRes = await fetch("/api/preview-billing-change", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              plan: tierKey,
+              userId: account.id,
+              billingPeriod: billing,
+            }),
+          });
           
-          try {
-            const res = await fetch("/api/upgrade-subscription", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                plan: tierKey,
-                userId: account.id,
-                currentPlan: currentPlan,
-                billingPeriod: billing,
-              }),
-            });
+          if (previewRes.ok) {
+            const { preview } = await previewRes.json();
             
-            if (res.ok) {
-              // Redirect to success page
-              window.location.href = `/dashboard?success=1&change=billing_period&plan=${tierKey}`;
-              return;
-            } else {
-              const errorData = await res.json();
-              throw new Error(errorData.message || 'Billing period change failed');
+            // Update modal with actual preview data
+            setConfirmModalConfig({
+              title: isToAnnual ? 'Switch to Annual Billing' : 'Switch to Monthly Billing',
+              message: preview.message,
+              confirmText: isToAnnual ? 'Switch to Annual' : 'Switch to Monthly',
+              cancelText: 'Keep Current Plan',
+              loading: false,
+              details: {
+                creditAmount: preview.creditAmount,
+                timeline: preview.timeline,
+                stripeEmail: preview.stripeEmail,
+                processingFeeNote: preview.processingFeeNote,
+              },
+              onConfirm: async () => {
+            setShowConfirmModal(false);
+            setUpgrading(true);
+            setUpgradingPlan('Updating billing period...');
+            
+            try {
+              const res = await fetch("/api/upgrade-subscription", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  plan: tierKey,
+                  userId: account.id,
+                  currentPlan: currentPlan,
+                  billingPeriod: billing,
+                }),
+              });
+              
+              if (res.ok) {
+                // Redirect to success page
+                window.location.href = `/dashboard?success=1&change=billing_period&plan=${tierKey}`;
+                return;
+              } else {
+                const errorData = await res.json();
+                throw new Error(errorData.message || 'Billing period change failed');
+              }
+            } catch (error) {
+              console.error("Billing period change error:", error);
+              // Use modal for error too
+              setConfirmModalConfig({
+                title: 'Error',
+                message: 'Failed to change billing period. Please try again.',
+                confirmText: 'OK',
+                cancelText: '',
+                onConfirm: () => setShowConfirmModal(false)
+              });
+              setShowConfirmModal(true);
+            } finally {
+              setUpgrading(false);
+              setUpgradingPlan('');
             }
-          } catch (error) {
-            console.error("Billing period change error:", error);
-            alert("Failed to change billing period. Please try again.");
-          } finally {
-            setUpgrading(false);
-            setUpgradingPlan('');
+              },
+              onCancel: () => {
+                setShowConfirmModal(false);
+              }
+            });
+          } else {
+            // Error fetching preview
+            const errorData = await previewRes.json();
+            setConfirmModalConfig({
+              title: 'Error',
+              message: errorData.message || 'Unable to calculate billing changes. Please try again.',
+              confirmText: 'OK',
+              cancelText: '',
+              loading: false,
+              onConfirm: () => setShowConfirmModal(false)
+            });
           }
+        } catch (error) {
+          console.error("Error fetching billing preview:", error);
+          setConfirmModalConfig({
+            title: 'Error',
+            message: 'Unable to calculate billing changes. Please try again.',
+            confirmText: 'OK',
+            cancelText: '',
+            loading: false,
+            onConfirm: () => setShowConfirmModal(false)
+          });
         }
         return;
       }
@@ -890,6 +981,90 @@ export default function PlanPage() {
               <p className="text-gray-600 text-sm">
                 Please wait while we update your billing...
               </p>
+            </div>
+          </div>
+        )}
+        
+        {/* Confirmation Modal */}
+        {showConfirmModal && confirmModalConfig && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center">
+            {/* Backdrop */}
+            <div 
+              className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+              onClick={!confirmModalConfig.loading ? confirmModalConfig.onCancel : undefined}
+            />
+            
+            {/* Modal */}
+            <div className="relative bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 border-2 border-white">
+              {/* Header */}
+              <div className="p-6 border-b border-gray-200">
+                <h2 className="text-xl font-semibold text-gray-900">{confirmModalConfig.title}</h2>
+              </div>
+              
+              {/* Content */}
+              <div className="p-6">
+                {confirmModalConfig.loading ? (
+                  <div className="flex items-center justify-center py-4">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-blue"></div>
+                  </div>
+                ) : (
+                  <>
+                    <p className="text-gray-600">{confirmModalConfig.message}</p>
+                    
+                    {/* Additional details for billing changes */}
+                    {confirmModalConfig.details && (
+                      <div className="mt-4 space-y-3 p-4 bg-gray-50 rounded-lg">
+                        {confirmModalConfig.details.timeline && (
+                          <div className="flex items-start space-x-2">
+                            <svg className="w-5 h-5 text-green-500 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <p className="text-sm text-gray-600">{confirmModalConfig.details.timeline}</p>
+                          </div>
+                        )}
+                        {confirmModalConfig.details.stripeEmail && (
+                          <div className="flex items-start space-x-2">
+                            <svg className="w-5 h-5 text-blue-500 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                            </svg>
+                            <p className="text-sm text-gray-600">{confirmModalConfig.details.stripeEmail}</p>
+                          </div>
+                        )}
+                        {confirmModalConfig.details.processingFeeNote && (
+                          <div className="flex items-start space-x-2">
+                            <svg className="w-5 h-5 text-amber-500 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <p className="text-sm text-gray-500">{confirmModalConfig.details.processingFeeNote}</p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+              
+              {/* Footer */}
+              {!confirmModalConfig.loading && (
+                <div className="p-6 border-t border-gray-200 flex justify-end space-x-3">
+                  {confirmModalConfig.cancelText && (
+                    <button
+                      onClick={confirmModalConfig.onCancel}
+                      className="px-5 py-2 text-gray-600 hover:text-gray-800 font-medium rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors"
+                    >
+                      {confirmModalConfig.cancelText}
+                    </button>
+                  )}
+                  {confirmModalConfig.confirmText && (
+                    <button
+                      onClick={confirmModalConfig.onConfirm}
+                      className="px-5 py-2 bg-slate-blue text-white font-medium rounded-lg hover:bg-slate-blue/90 transition-colors"
+                    >
+                      {confirmModalConfig.confirmText}
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         )}
