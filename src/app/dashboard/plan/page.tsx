@@ -546,11 +546,17 @@ export default function PlanPage() {
     }
     
     setDowngradeProcessing(true);
+    console.log("🔽 Starting downgrade process", {
+      from: currentPlan,
+      to: downgradeTarget,
+      hasStripeCustomer: !!account.stripe_customer_id
+    });
     
     try {
       // For customers with active Stripe subscriptions, use the upgrade API to downgrade
       // This includes downgrades TO grower (which is a paid plan at $15/month)
       if (account.stripe_customer_id) {
+        console.log("📡 Calling upgrade-subscription API for downgrade...");
         const res = await fetch("/api/upgrade-subscription", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -565,16 +571,15 @@ export default function PlanPage() {
         if (res.ok) {
           const data = await res.json();
           console.log("📉 Downgrade API response:", data);
-          // Use the redirect URL from the API response if available
-          if (data.redirectUrl) {
-            console.log("🔄 Redirecting to:", data.redirectUrl);
-            window.location.href = data.redirectUrl;
-          } else {
-            // Fallback to constructed URL
-            const fallbackUrl = `/dashboard/plan?success=1&change=downgrade&plan=${downgradeTarget}`;
-            console.log("🔄 Using fallback redirect:", fallbackUrl);
-            window.location.href = fallbackUrl;
-          }
+          
+          // For now, always use local redirect to ensure it works
+          const redirectUrl = `/dashboard/plan?success=1&change=downgrade&plan=${downgradeTarget}&billing=${billingPeriod}`;
+          console.log("🔄 Redirecting to:", redirectUrl);
+          
+          // Add a small delay to ensure the database update completes
+          setTimeout(() => {
+            window.location.href = redirectUrl;
+          }, 500);
           return;
         } else {
           const errorData = await res.json();
@@ -651,13 +656,16 @@ export default function PlanPage() {
         
         if (res.ok) {
           const data = await res.json();
-          // Use the redirect URL from the API response if available
-          if (data.redirectUrl) {
-            window.location.href = data.redirectUrl;
-          } else {
-            // Fallback to constructed URL
-            window.location.href = `/dashboard/plan?success=1&change=upgrade&plan=${upgradeTarget}&billing=${billingPeriod}`;
-          }
+          console.log("📈 Upgrade API response:", data);
+          
+          // For now, always use local redirect to ensure it works
+          const redirectUrl = `/dashboard/plan?success=1&change=upgrade&plan=${upgradeTarget}&billing=${billingPeriod}`;
+          console.log("🔄 Redirecting to:", redirectUrl);
+          
+          // Add a small delay to ensure the database update completes
+          setTimeout(() => {
+            window.location.href = redirectUrl;
+          }, 500);
           return;
         } else {
           const errorData = await res.json();

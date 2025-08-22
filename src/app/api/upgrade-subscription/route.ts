@@ -163,10 +163,19 @@ export async function POST(req: NextRequest) {
                       newPlanIndex < oldPlanIndex ? 'downgrade' : 
                       'billing_period';
     
+    const redirectUrl = `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/plan?success=1&change=${changeType}&plan=${plan}&billing=${billingPeriod}`;
+    
+    console.log('🔄 Subscription update complete:', {
+      from: currentPlan,
+      to: plan,
+      changeType,
+      redirectUrl
+    });
+    
     return NextResponse.json({ 
       success: true, 
       subscriptionId: updatedSubscription.id,
-      redirectUrl: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/plan?success=1&change=${changeType}&plan=${plan}&billing=${billingPeriod}`
+      redirectUrl
     });
   } catch (error: any) {
     console.error("Stripe upgrade error:", error);
