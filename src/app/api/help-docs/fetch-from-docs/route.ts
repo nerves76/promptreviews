@@ -98,20 +98,20 @@ export async function POST(req: NextRequest) {
         .replace(/<footer\b[^<]*(?:(?!<\/footer>)<[^<]*)*<\/footer>/gi, '')
         .replace(/<header\b[^<]*(?:(?!<\/header>)<[^<]*)*<\/header>/gi, '');
       
-      // Fix relative links to point to docs site or convert to text
+      // Fix relative links to point to docs site but keep them internal
       content = content.replace(
         /href="([^"]+)"/gi,
         (match, url) => {
           // If it's a relative URL (doesn't start with http)
           if (!url.startsWith('http') && !url.startsWith('mailto:') && !url.startsWith('#')) {
-            // Convert to absolute URL pointing to docs site
+            // Convert to absolute URL pointing to docs site for consistency
             const absoluteUrl = url.startsWith('/') 
               ? `${DOCS_BASE_URL}${url}`
               : `${DOCS_BASE_URL}/${url}`;
-            return `href="${absoluteUrl}" target="_blank" rel="noopener noreferrer"`;
+            return `href="${absoluteUrl}"`;
           }
-          // For external links, add target="_blank"
-          if (url.startsWith('http')) {
+          // For external links (non-docs), add target="_blank"
+          if (url.startsWith('http') && !url.includes('promptreviews.app/docs')) {
             return `href="${url}" target="_blank" rel="noopener noreferrer"`;
           }
           return match;

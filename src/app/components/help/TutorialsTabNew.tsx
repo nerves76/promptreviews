@@ -4,7 +4,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Icon from '@/components/Icon';
 import { Tutorial } from './types';
 import { calculateRelevanceScore } from './contextMapper';
@@ -164,6 +164,7 @@ export default function TutorialsTabNew({
   const [loadingContent, setLoadingContent] = useState(false);
   const [articleContent, setArticleContent] = useState<string>('');
   const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
+  const contentRef = useRef<HTMLDivElement>(null);
 
   // Get featured articles based on current page context
   useEffect(() => {
@@ -241,7 +242,9 @@ export default function TutorialsTabNew({
                   const absoluteUrl = url.startsWith('http') 
                     ? url 
                     : `https://promptreviews.app/docs${url.startsWith('/') ? url : '/' + url}`;
-                  return `<a href="${absoluteUrl}" target="_blank" rel="noopener noreferrer" class="text-indigo-600 hover:text-indigo-700 underline">${text}</a>`;
+                  // Only add target="_blank" for external non-docs links
+                  const target = absoluteUrl.includes('promptreviews.app/docs') ? '' : ' target="_blank" rel="noopener noreferrer"';
+                  return `<a href="${absoluteUrl}"${target} class="text-indigo-600 hover:text-indigo-700 underline cursor-pointer">${text}</a>`;
                 }
               );
               
@@ -322,6 +325,72 @@ export default function TutorialsTabNew({
     setArticleContent('');
   };
 
+  // Handle clicks on links within article content
+  useEffect(() => {
+    if (!contentRef.current || !articleContent) return;
+
+    const handleLinkClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      
+      // Check if clicked element is a link
+      if (target.tagName === 'A' && target.getAttribute('href')) {
+        e.preventDefault();
+        const href = target.getAttribute('href') || '';
+        
+        // Extract path from URL
+        let path = '';
+        if (href.includes('promptreviews.app/docs')) {
+          path = href.replace(/^https?:\/\/[^\/]+\/docs/, '');
+        } else if (href.startsWith('/')) {
+          path = href;
+        } else {
+          // For relative links
+          path = '/' + href;
+        }
+        
+        // Try to find matching article in our categories
+        let foundArticle = null;
+        let foundCategory = null;
+        
+        for (const category of helpCategories) {
+          const article = category.articles.find(art => 
+            art.path === path || 
+            art.path === `/docs${path}` ||
+            art.path.endsWith(path)
+          );
+          if (article) {
+            foundArticle = article;
+            foundCategory = category;
+            break;
+          }
+        }
+        
+        if (foundArticle && foundCategory) {
+          // Load the article within the modal
+          handleArticleClick(foundArticle, foundCategory);
+        } else {
+          // If article not found in our categories, try to load it anyway
+          const newArticle = {
+            id: path.replace(/\//g, '-'),
+            title: target.textContent || 'Documentation',
+            path: path
+          };
+          const category = helpCategories[0]; // Use first category as fallback
+          handleArticleClick(newArticle, category);
+        }
+      }
+    };
+
+    // Add click listener to content
+    contentRef.current.addEventListener('click', handleLinkClick);
+    
+    return () => {
+      if (contentRef.current) {
+        contentRef.current.removeEventListener('click', handleLinkClick);
+      }
+    };
+  }, [articleContent]);
+
   // Show article viewer if article is selected
   if (selectedArticle) {
     return (
@@ -352,6 +421,7 @@ export default function TutorialsTabNew({
                 </div>
               ) : (
                 <div 
+                  ref={contentRef}
                   className="prose prose-sm md:prose-base max-w-none prose-headings:text-gray-900 prose-p:text-gray-700 prose-li:text-gray-700 prose-strong:text-gray-900 prose-a:text-indigo-600 hover:prose-a:text-indigo-700"
                   dangerouslySetInnerHTML={{ __html: articleContent }}
                 />
