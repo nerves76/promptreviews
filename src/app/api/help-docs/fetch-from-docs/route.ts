@@ -98,6 +98,45 @@ export async function POST(req: NextRequest) {
         .replace(/<footer\b[^<]*(?:(?!<\/footer>)<[^<]*)*<\/footer>/gi, '')
         .replace(/<header\b[^<]*(?:(?!<\/header>)<[^<]*)*<\/header>/gi, '');
       
+      // Remove navigation sections (Previous/Next buttons)
+      content = content
+        // Remove divs with navigation classes
+        .replace(/<div[^>]*class="[^"]*navigation[^"]*"[^>]*>[\s\S]*?<\/div>/gi, '')
+        .replace(/<div[^>]*class="[^"]*nav-links[^"]*"[^>]*>[\s\S]*?<\/div>/gi, '')
+        .replace(/<div[^>]*class="[^"]*pagination[^"]*"[^>]*>[\s\S]*?<\/div>/gi, '')
+        .replace(/<div[^>]*class="[^"]*post-navigation[^"]*"[^>]*>[\s\S]*?<\/div>/gi, '')
+        .replace(/<div[^>]*class="[^"]*article-navigation[^"]*"[^>]*>[\s\S]*?<\/div>/gi, '')
+        // Remove Previous/Next link patterns
+        .replace(/<a[^>]*>[\s]*(?:Previous|Next|←|→|‹|›|«|»)[\s]*<\/a>/gi, '')
+        // Remove divs that contain only navigation links
+        .replace(/<div[^>]*>[\s]*<a[^>]*>[\s]*(?:Previous|←|‹|«)[\s\S]*?<\/a>[\s\S]*?<a[^>]*>[\s]*(?:Next|→|›|»)[\s\S]*?<\/a>[\s]*<\/div>/gi, '');
+      
+      // Remove FAQ sections
+      content = content
+        // Remove FAQ headings and their content
+        .replace(/<h[1-6][^>]*>[\s]*(?:Frequently Asked Questions|FAQs?|Common Questions)[\s]*<\/h[1-6]>[\s\S]*?(?=<h[1-6]|$)/gi, '')
+        // Remove divs with FAQ classes
+        .replace(/<div[^>]*class="[^"]*faq[^"]*"[^>]*>[\s\S]*?<\/div>/gi, '')
+        .replace(/<section[^>]*class="[^"]*faq[^"]*"[^>]*>[\s\S]*?<\/section>/gi, '')
+        // Remove accordion/collapsible FAQ elements
+        .replace(/<details[^>]*>[\s\S]*?<\/details>/gi, '');
+      
+      // Remove feedback and rating sections
+      content = content
+        // Remove "Was this helpful?" sections
+        .replace(/<div[^>]*>[\s\S]*?(?:Was this helpful|Rate this|Did this help|Found this useful)[\s\S]*?<\/div>/gi, '')
+        // Remove feedback forms
+        .replace(/<form[^>]*class="[^"]*feedback[^"]*"[^>]*>[\s\S]*?<\/form>/gi, '')
+        // Remove rating widgets
+        .replace(/<div[^>]*class="[^"]*rating[^"]*"[^>]*>[\s\S]*?<\/div>/gi, '');
+      
+      // Remove related articles and see also sections  
+      content = content
+        // Remove Related Articles/See Also headings and their content
+        .replace(/<h[1-6][^>]*>[\s]*(?:Related Articles?|See Also|Learn More|Additional Resources?)[\s]*<\/h[1-6]>[\s\S]*?(?=<h[1-6]|$)/gi, '')
+        // Remove divs with related/see-also classes
+        .replace(/<div[^>]*class="[^"]*(?:related|see-also)[^"]*"[^>]*>[\s\S]*?<\/div>/gi, '');
+      
       // Fix relative links to point to docs site but keep them internal
       content = content.replace(
         /href="([^"]+)"/gi,
