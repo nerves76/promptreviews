@@ -157,7 +157,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ 
       success: true, 
       subscriptionId: updatedSubscription.id,
-      redirectUrl: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?success=1&change=upgrade&plan=${plan}`
+      redirectUrl: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/plan?success=1&change=upgrade&plan=${plan}&billing=${billingPeriod}`
     });
   } catch (error: any) {
     console.error("Stripe upgrade error:", error);

@@ -225,7 +225,7 @@ export default function PlanPage() {
               
               if (res.ok) {
                 // Redirect to success page
-                window.location.href = `/dashboard?success=1&change=billing_period&plan=${tierKey}`;
+                window.location.href = `/dashboard/plan?success=1&change=billing_period&plan=${tierKey}&billing=${billing}`;
                 return;
               } else {
                 const errorData = await res.json();
@@ -278,13 +278,72 @@ export default function PlanPage() {
       }
       
       if (isUpgrade) {
-        // Show upgrade confirmation modal
+        // Show upgrade confirmation modal with proration preview
         const gainedFeatures = targetTier.features.filter(feature => 
           !currentTier?.features.includes(feature)
         );
         setUpgradeTarget(tierKey);
         setUpgradeFeatures(gainedFeatures);
-        setShowUpgradeModal(true);
+        
+        // Fetch proration preview for the upgrade
+        setShowConfirmModal(true);
+        setConfirmModalConfig({
+          title: 'Loading billing details...',
+          message: 'Calculating proration for your upgrade...',
+          confirmText: '',
+          cancelText: '',
+          loading: true,
+          onConfirm: () => {},
+        });
+        
+        try {
+          const previewRes = await fetch("/api/preview-billing-change", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              plan: tierKey,
+              userId: account.id,
+              billingPeriod: billing,
+            }),
+          });
+          
+          if (previewRes.ok) {
+            const { preview } = await previewRes.json();
+            
+            // Update modal with actual preview data
+            setConfirmModalConfig({
+              title: `Upgrade to ${targetTier.name}`,
+              message: preview.message,
+              confirmText: 'Confirm Upgrade',
+              cancelText: 'Cancel',
+              loading: false,
+              details: {
+                creditAmount: preview.creditAmount,
+                timeline: preview.timeline,
+                stripeEmail: preview.stripeEmail,
+                processingFeeNote: preview.processingFeeNote,
+              },
+              onConfirm: async () => {
+                setShowConfirmModal(false);
+                setShowUpgradeModal(true);
+              },
+              onCancel: () => {
+                setShowConfirmModal(false);
+                setUpgradeTarget(null);
+                setUpgradeFeatures([]);
+              }
+            });
+          } else {
+            // If preview fails, fall back to regular upgrade modal
+            console.error('Failed to fetch billing preview');
+            setShowConfirmModal(false);
+            setShowUpgradeModal(true);
+          }
+        } catch (error) {
+          console.error('Error fetching billing preview:', error);
+          setShowConfirmModal(false);
+          setShowUpgradeModal(true);
+        }
         return;
       }
       
@@ -367,12 +426,29 @@ export default function PlanPage() {
     
     // Only show success modal if returning from successful Stripe payment
     if (params.get("success") === "1") {
+      const changeType = params.get("change") || "upgrade";
+      const planName = params.get("plan");
+      const billingType = params.get("billing");
+      
       setStarAnimation(true);
       setShowSuccessModal(true);
-      setLastAction("upgrade");
+      setLastAction(changeType as "new" | "upgrade" | "downgrade");
+      
+      // Show specific message based on change type
+      if (changeType === "upgrade" && planName) {
+        const tierName = tiers.find(t => t.key === planName)?.name || planName;
+        const billingText = billingType === 'annual' ? ' (Annual)' : ' (Monthly)';
+        console.log(`✅ Successfully upgraded to ${tierName}${billingText}. Any unused time from your previous plan has been credited.`);
+      } else if (changeType === "billing_period") {
+        const billingText = billingType === 'annual' ? 'annual' : 'monthly';
+        console.log(`✅ Successfully switched to ${billingText} billing. Proration has been applied.`);
+      }
       
       // Clean up the URL
       params.delete("success");
+      params.delete("change");
+      params.delete("plan");
+      params.delete("billing");
       const newUrl = window.location.pathname + (params.toString() ? `?${params.toString()}` : "");
       window.history.replaceState({}, document.title, newUrl);
     }
@@ -421,7 +497,7 @@ export default function PlanPage() {
         
         if (res.ok) {
           // Redirect to success page
-          window.location.href = `/dashboard?success=1&change=downgrade&plan=${downgradeTarget}`;
+          window.location.href = `/dashboard/plan?success=1&change=downgrade&plan=${downgradeTarget}`;
           return;
         } else {
           const errorData = await res.json();
@@ -497,7 +573,7 @@ export default function PlanPage() {
         
         if (res.ok) {
           // Redirect to success page
-          window.location.href = `/dashboard?success=1&change=upgrade&plan=${upgradeTarget}`;
+          window.location.href = `/dashboard/plan?success=1&change=upgrade&plan=${upgradeTarget}&billing=${billingPeriod}`;
           return;
         } else {
           const errorData = await res.json();
@@ -823,8 +899,8 @@ export default function PlanPage() {
                 {lastAction === "new"
                   ? "Your account has been created and you're ready to start collecting reviews!"
                   : lastAction === "upgrade"
-                  ? "You now have access to all the features in your new plan."
-                  : "Your plan has been updated successfully."}
+                  ? "You now have access to all the features in your new plan. Any unused time from your previous subscription has been automatically credited to your account."
+                  : "Your plan has been updated successfully. Proration has been automatically applied to your account."}
               </p>
               <button
                 onClick={() => {
