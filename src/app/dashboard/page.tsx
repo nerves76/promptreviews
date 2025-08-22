@@ -504,6 +504,12 @@ const Dashboard = React.memo(function Dashboard() {
       
       setPaymentChangeType(changeType);
       
+      // Clear any pending modal timeout to prevent it from re-showing
+      if (modalTimeoutRef.current) {
+        clearTimeout(modalTimeoutRef.current);
+        modalTimeoutRef.current = null;
+      }
+      
       // Close pricing modal and refresh account data after successful payment
       setShowPricingModal(false);
       setPlanSelectionRequired(false);
@@ -584,11 +590,21 @@ const Dashboard = React.memo(function Dashboard() {
       
       // Delay showing pricing modal to let page fully render
       console.log('🎯 Setting timeout to show pricing modal in 2 seconds');
-      setTimeout(() => {
-        console.log('🎯 Showing pricing modal after business creation');
-        setIsPendingPricingModal(false);
-        setShowPricingModal(true);
-        setPlanSelectionRequired(true); // Make it required so user can't dismiss
+      modalTimeoutRef.current = setTimeout(() => {
+        // Double-check that user still needs to select a plan
+        // (in case they completed Stripe checkout in the meantime)
+        const params = new URLSearchParams(window.location.search);
+        const hasJustPaid = params.get('success') === '1';
+        
+        if (!hasJustPaid) {
+          console.log('🎯 Showing pricing modal after business creation');
+          setIsPendingPricingModal(false);
+          setShowPricingModal(true);
+          setPlanSelectionRequired(true); // Make it required so user can't dismiss
+        } else {
+          console.log('💳 User already completed payment, not showing modal');
+          setIsPendingPricingModal(false);
+        }
       }, 2000); // Wait 2 seconds for page to fully load
       
       // Clean up the URL immediately

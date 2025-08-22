@@ -16,8 +16,8 @@ const tiers = [
     button: "bg-slate-blue hover:bg-slate-blue/90 text-white",
     features: [
       "**14-day free trial*",
-      "Universal prompt page",
-      "3 custom prompt pages",
+      "Universal Prompt Page",
+      "3 custom Prompt Pages",
       "Cannot upload contacts",
       "Review widget",
       "Analytics",
@@ -39,8 +39,8 @@ const tiers = [
     features: [
       "3 team members",
       "Workflow management",
-      "Universal prompt page",
-      "50 prompt pages",
+      "Universal Prompt Page",
+      "50 Prompt Pages",
       "1000 contacts",
       "Review widget",
       "Analytics",
@@ -62,9 +62,9 @@ const tiers = [
     button: "bg-slate-blue hover:bg-slate-blue/90 text-white",
     features: [
       "5 team members",
-      "Up to 10 Business Locations",
+      "Up to 10 business locations",
       "Workflow management",
-      "500 prompt pages",
+      "500 Prompt Pages",
       "10,000 contacts",
       "Review widget",
       "Analytics",

@@ -1,50 +1,23 @@
-/**
- * ⚠️ TEMPORARY LIVE MODE ADMIN DISCOUNT ENABLED ⚠️
- * Remove || isLiveMode from line 128 before production
- * This currently applies 99% discount for admin accounts in both test and live modes
- */
-
 import { NextRequest, NextResponse } from "next/server";
-import Stripe from "stripe";
 import { createClient } from "@supabase/supabase-js";
+import { 
+  createStripeClient, 
+  PRICE_IDS, 
+  SUPABASE_CONFIG,
+  getPlanChangeType,
+  isValidPlan,
+  getPriceId,
+  BILLING_URLS
+} from "@/lib/billing/config";
+import { logPlanChange } from "@/lib/billing/audit";
 
-const stripeSecretKey = process.env.STRIPE_SECRET_KEY!;
-if (!stripeSecretKey) {
-  throw new Error("STRIPE_SECRET_KEY is not set");
-}
-const stripe = new Stripe(stripeSecretKey, { apiVersion: "2025-06-30.basil" });
-
-const builderPriceId = process.env.STRIPE_PRICE_ID_BUILDER!;
-const mavenPriceId = process.env.STRIPE_PRICE_ID_MAVEN!;
-const growerPriceId = process.env.STRIPE_PRICE_ID_GROWER!;
-const builderAnnualPriceId = process.env.STRIPE_PRICE_ID_BUILDER_ANNUAL;
-const mavenAnnualPriceId = process.env.STRIPE_PRICE_ID_MAVEN_ANNUAL;
-const growerAnnualPriceId = process.env.STRIPE_PRICE_ID_GROWER_ANNUAL;
-
-if (!builderPriceId || !mavenPriceId || !growerPriceId) {
-  throw new Error("Stripe price IDs are not set");
-}
-
-const PRICE_IDS: Record<string, { monthly: string; annual: string }> = {
-  grower: {
-    monthly: growerPriceId,
-    annual: growerAnnualPriceId || growerPriceId,
-  },
-  builder: {
-    monthly: builderPriceId,
-    annual: builderAnnualPriceId || builderPriceId,
-  },
-  maven: {
-    monthly: mavenPriceId,
-    annual: mavenAnnualPriceId || mavenPriceId,
-  },
-};
+const stripe = createStripeClient();
 
 export async function POST(req: NextRequest) {
   try {
     const { plan, userId, currentPlan, billingPeriod = 'monthly' }: { plan: string; userId: string; currentPlan: string; billingPeriod?: 'monthly' | 'annual' } = await req.json();
     
-    if (!plan || !PRICE_IDS[plan]) {
+    if (!plan || !isValidPlan(plan)) {
       return NextResponse.json({ error: "Invalid plan" }, { status: 400 });
     }
 
@@ -54,13 +27,13 @@ export async function POST(req: NextRequest) {
 
     // Fetch current account info including Stripe customer ID
     const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      SUPABASE_CONFIG.URL,
+      SUPABASE_CONFIG.SERVICE_ROLE_KEY,
     );
     
     const { data: account, error } = await supabase
       .from("accounts")
-      .select("stripe_customer_id, plan, email, is_free_account, free_plan_level")
+      .select("stripe_customer_id, plan, email, is_free_account, free_plan_level, billing_period")
       .eq("id", userId)
       .single();
       
@@ -112,39 +85,43 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "No subscription item found" }, { status: 404 });
     }
 
-    // Check if admin account should get testing discount
-    const { isTestingAccount } = await import('@/lib/testing-mode');
-    const isAdmin = await isTestingAccount(account.email);
-    const isTestMode = process.env.STRIPE_SECRET_KEY?.startsWith('sk_test_');
-    const isLiveMode = process.env.STRIPE_SECRET_KEY?.startsWith('sk_live_');
+    // Get the correct price ID
+    const targetPriceId = getPriceId(plan, billingPeriod) || '';
+    
+    console.log('🔄 Subscription update details:', {
+      subscriptionId: activeSubscription.id,
+      currentItemId: subscriptionItem.id,
+      currentPriceId: subscriptionItem.price.id,
+      targetPlan: plan,
+      targetBillingPeriod: billingPeriod,
+      targetPriceId: targetPriceId,
+    });
     
     // Prepare update configuration
-    let updateConfig: any = {
+    const updateConfig = {
       items: [
         {
           id: subscriptionItem.id,
-          price: PRICE_IDS[plan]?.[billingPeriod] || PRICE_IDS[plan]?.monthly || '',
+          price: targetPriceId,
         },
       ],
       // Prorate the difference
-      proration_behavior: "always_invoice",
+      proration_behavior: "always_invoice" as const,
     };
-    
-    // TEMPORARY: Apply testing discount for admins in both test AND live modes
-    // WARNING: Remove || isLiveMode before production
-    if (isAdmin && (isTestMode || isLiveMode)) {
-      console.log('🧪 Admin testing mode: Applying 99% discount to subscription update');
-      console.log(`📍 Mode: ${isTestMode ? 'TEST' : 'LIVE'} - Admin discount enabled for upgrade/downgrade`);
-      updateConfig.discounts = [{
-        coupon: 'TESTDEV_99'
-      }];
-    }
     
     // Update the subscription to the new plan
     const updatedSubscription = await stripe.subscriptions.update(
       activeSubscription.id,
       updateConfig
     );
+    
+    console.log('✅ Stripe subscription updated:', {
+      subscriptionId: updatedSubscription.id,
+      newItemId: updatedSubscription.items.data[0]?.id,
+      newPriceId: updatedSubscription.items.data[0]?.price.id,
+      newProductId: updatedSubscription.items.data[0]?.price.product,
+      status: updatedSubscription.status,
+    });
 
     // Update the plan and billing period in our database
     await supabase
@@ -155,15 +132,26 @@ export async function POST(req: NextRequest) {
       })
       .eq("id", userId);
 
+    // Log the plan change
+    await logPlanChange({
+      accountId: userId,
+      oldPlan: currentPlan || account.plan,
+      newPlan: plan,
+      oldBilling: account.billing_period,
+      newBilling: billingPeriod,
+      source: 'api',
+      stripeSubscriptionId: updatedSubscription.id,
+      metadata: {
+        stripe_price_id: targetPriceId,
+        proration_behavior: 'always_invoice',
+      }
+    });
+
     // Determine if this was an upgrade or downgrade
-    const planOrder = ['grower', 'builder', 'maven'];
-    const oldPlanIndex = planOrder.indexOf(currentPlan?.toLowerCase() || '');
-    const newPlanIndex = planOrder.indexOf(plan.toLowerCase());
-    const changeType = newPlanIndex > oldPlanIndex ? 'upgrade' : 
-                      newPlanIndex < oldPlanIndex ? 'downgrade' : 
-                      'billing_period';
+    const changeType = currentPlan ? getPlanChangeType(currentPlan, plan) : 'new';
+    const finalChangeType = changeType === 'same' ? 'billing_period' : changeType;
     
-    const redirectUrl = `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/plan?success=1&change=${changeType}&plan=${plan}&billing=${billingPeriod}`;
+    const redirectUrl = BILLING_URLS.SUCCESS_URL(finalChangeType, plan, billingPeriod);
     
     console.log('🔄 Subscription update complete:', {
       from: currentPlan,

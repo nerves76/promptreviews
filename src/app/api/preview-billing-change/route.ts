@@ -1,27 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
-import Stripe from "stripe";
 import { createClient } from "@supabase/supabase-js";
+import { 
+  createStripeClient,
+  PRICE_IDS,
+  SUPABASE_CONFIG,
+  isValidPlan,
+  getPriceId,
+  getPlanOrder
+} from "@/lib/billing/config";
 
-const stripeSecretKey = process.env.STRIPE_SECRET_KEY!;
-if (!stripeSecretKey) {
-  throw new Error("STRIPE_SECRET_KEY is not set");
-}
-const stripe = new Stripe(stripeSecretKey, { apiVersion: "2025-06-30.basil" });
-
-const PRICE_IDS: Record<string, { monthly: string; annual: string }> = {
-  grower: {
-    monthly: process.env.STRIPE_PRICE_ID_GROWER!,
-    annual: process.env.STRIPE_PRICE_ID_GROWER_ANNUAL || process.env.STRIPE_PRICE_ID_GROWER!,
-  },
-  builder: {
-    monthly: process.env.STRIPE_PRICE_ID_BUILDER!,
-    annual: process.env.STRIPE_PRICE_ID_BUILDER_ANNUAL || process.env.STRIPE_PRICE_ID_BUILDER!,
-  },
-  maven: {
-    monthly: process.env.STRIPE_PRICE_ID_MAVEN!,
-    annual: process.env.STRIPE_PRICE_ID_MAVEN_ANNUAL || process.env.STRIPE_PRICE_ID_MAVEN!,
-  },
-};
+const stripe = createStripeClient();
 
 export async function POST(req: NextRequest) {
   try {
@@ -34,7 +22,7 @@ export async function POST(req: NextRequest) {
       billingPeriod?: 'monthly' | 'annual' 
     } = body;
     
-    if (!plan || !PRICE_IDS[plan]) {
+    if (!plan || !isValidPlan(plan)) {
       console.error('Invalid plan:', plan, 'Available plans:', Object.keys(PRICE_IDS));
       return NextResponse.json({ error: "Invalid plan", message: `Plan "${plan}" is not valid` }, { status: 400 });
     }
@@ -46,8 +34,8 @@ export async function POST(req: NextRequest) {
 
     // Fetch current account info including Stripe customer ID
     const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      SUPABASE_CONFIG.URL,
+      SUPABASE_CONFIG.SERVICE_ROLE_KEY,
     );
     
     const { data: account, error } = await supabase
@@ -109,7 +97,7 @@ export async function POST(req: NextRequest) {
     }
     
     // Get the new price ID
-    const newPriceId = PRICE_IDS[plan]?.[billingPeriod] || PRICE_IDS[plan]?.monthly;
+    const newPriceId = getPriceId(plan, billingPeriod);
     
     if (!newPriceId) {
       console.error("Invalid price ID for plan:", plan, billingPeriod);
@@ -122,32 +110,69 @@ export async function POST(req: NextRequest) {
     // Create a preview of the proration
     const proration_date = Math.floor(Date.now() / 1000);
     
+    // Check for data inconsistency between database and Stripe
+    const currentStripePrice = subscription.items.data[0].price.id;
+    const expectedPrices = PRICE_IDS[account.plan];
+    const isStripePriceConsistent = expectedPrices && (
+      currentStripePrice === expectedPrices.monthly || 
+      currentStripePrice === expectedPrices.annual
+    );
+    
+    if (!isStripePriceConsistent) {
+      console.warn('⚠️ Data inconsistency detected:', {
+        databasePlan: account.plan,
+        databaseBilling: account.billing_period,
+        stripePriceId: currentStripePrice,
+        expectedPrices
+      });
+    }
+    
+    // Determine actual billing period from Stripe price ID
+    // This is the source of truth, not the database
+    let actualBillingPeriod = account.billing_period;
+    let actualPlan = account.plan;
+    
+    // Check all plans to find which one matches the Stripe price
+    for (const [planKey, prices] of Object.entries(PRICE_IDS)) {
+      if (currentStripePrice === prices.annual) {
+        actualBillingPeriod = 'annual';
+        actualPlan = planKey;
+        break;
+      } else if (currentStripePrice === prices.monthly) {
+        actualBillingPeriod = 'monthly';
+        actualPlan = planKey;
+        break;
+      }
+    }
+    
     console.log('📊 Attempting to preview invoice with:', {
       customer: account.stripe_customer_id,
       subscription: subscription.id,
       currentItemId: subscription.items.data[0].id,
-      currentPrice: subscription.items.data[0].price.id,
+      currentPrice: currentStripePrice,
       newPrice: newPriceId,
-      proration_date
+      proration_date,
+      detectedBilling: actualBillingPeriod,
+      databaseBilling: account.billing_period
     });
-    
-    // Debug: Check what methods are available
-    console.log('📊 Available invoice methods:', Object.keys(stripe.invoices));
     
     // Preview the upcoming invoice with the changes
     let upcomingInvoice;
     try {
-      // Try using retrieveUpcoming for older Stripe versions
-      upcomingInvoice = await (stripe.invoices as any).retrieveUpcoming({
+      // Use createPreview for Stripe SDK v18+
+      upcomingInvoice = await stripe.invoices.createPreview({
         customer: account.stripe_customer_id,
         subscription: subscription.id,
-        subscription_items: [
-          {
-            id: subscription.items.data[0].id,
-            price: newPriceId,
-          },
-        ],
-        subscription_proration_date: proration_date,
+        subscription_details: {
+          items: [
+            {
+              id: subscription.items.data[0].id,
+              price: newPriceId,
+            },
+          ],
+          proration_date: proration_date,
+          proration_behavior: 'create_prorations',
+        },
       });
     } catch (stripeError: any) {
       console.error("Failed to retrieve upcoming invoice from Stripe:", stripeError);
@@ -176,44 +201,118 @@ export async function POST(req: NextRequest) {
       }, { status: 400 });
     }
 
-    // Calculate the credit/charge
-    const currentAmount = upcomingInvoice.lines.data
-      .filter(line => line.amount < 0)
-      .reduce((sum, line) => sum + Math.abs(line.amount), 0);
+    // Debug: Log what we're getting from Stripe
+    console.log('📊 Invoice lines from Stripe:', upcomingInvoice.lines.data.map(line => ({
+      description: line.description,
+      amount: line.amount / 100,
+      proration: line.proration,
+      type: line.type,
+      period: line.period ? {
+        start: new Date(line.period.start * 1000).toISOString(),
+        end: new Date(line.period.end * 1000).toISOString()
+      } : null
+    })));
     
-    const newAmount = upcomingInvoice.lines.data
-      .filter(line => line.amount > 0)
-      .reduce((sum, line) => sum + line.amount, 0);
-
-    const creditAmount = currentAmount / 100; // Convert from cents
-    const chargeAmount = newAmount / 100; // Convert from cents
-    const netAmount = (newAmount - currentAmount) / 100; // What they'll actually pay/receive
-
-    // Determine if this is a downgrade (results in credit) or upgrade (results in charge)
-    const isDowngrade = account.billing_period === 'annual' && billingPeriod === 'monthly';
-    const isUpgrade = account.billing_period === 'monthly' && billingPeriod === 'annual';
+    // Identify if this is an upgrade or downgrade based on plan comparison
+    // Use the ACTUAL plan from Stripe, not what the database says
+    const isDowngrade = getPlanOrder(plan) < getPlanOrder(actualPlan);
+    const isUpgrade = getPlanOrder(plan) > getPlanOrder(actualPlan);
+    
+    // Calculate credits and charges
+    let creditAmount = 0;
+    let chargeAmount = 0;
+    
+    // Process invoice lines
+    for (const line of upcomingInvoice.lines.data) {
+      // Skip future renewal charges (next year's subscription)
+      if (line.period && new Date(line.period.start * 1000) > new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)) {
+        continue; // Skip lines that start more than 30 days in the future
+      }
+      
+      if (line.amount < 0) {
+        // Negative amounts are credits
+        creditAmount += Math.abs(line.amount) / 100;
+      } else if (line.amount > 0) {
+        // Positive amounts are charges (for prorated new plan or remaining time)
+        // This includes "Remaining time on X" and "1 × Plan (at $X / period)" lines
+        chargeAmount += line.amount / 100;
+      }
+    }
+    
+    // For downgrades, the net should be negative (credit)
+    // For upgrades, the net should be positive (charge)
+    const netAmount = chargeAmount - creditAmount;
+    
+    console.log('📊 Calculated amounts:', { 
+      creditAmount, 
+      chargeAmount, 
+      netAmount,
+      isDowngrade,
+      isUpgrade,
+      lineCount: upcomingInvoice.lines.data.length 
+    });
 
     return NextResponse.json({
       preview: {
-        currentPlan: `${account.plan} (${account.billing_period})`,
+        currentPlan: `${actualPlan} (${actualBillingPeriod})`,
         newPlan: `${plan} (${billingPeriod})`,
         creditAmount: creditAmount.toFixed(2),
         chargeAmount: chargeAmount.toFixed(2),
         netAmount: netAmount.toFixed(2),
         isCredit: netAmount < 0,
-        message: netAmount < 0 
-          ? `You'll receive a credit of $${Math.abs(netAmount).toFixed(2)} for the unused time on your current plan. This credit will be applied to future invoices.`
-          : netAmount > 0
-          ? `You'll be charged $${netAmount.toFixed(2)} for the prorated difference.`
-          : `No additional charge. The plans are the same price.`,
+        message: (() => {
+          // Use the actual billing period detected from Stripe, not the database
+          const isFromAnnual = actualBillingPeriod === 'annual';
+          const isToMonthly = billingPeriod === 'monthly';
+          const isBillingSwitch = isFromAnnual !== (billingPeriod === 'annual');
+          
+          if (isDowngrade) {
+            // Downgrade - user should receive credit
+            if (netAmount < 0) {
+              if (isFromAnnual && isToMonthly) {
+                return `You'll receive a credit of $${Math.abs(netAmount).toFixed(2)} from your unused annual ${actualPlan} subscription. This credit will cover multiple months of your new ${plan} plan.`;
+              }
+              return `You'll receive a credit of $${Math.abs(netAmount).toFixed(2)} for the unused time on your ${actualPlan} plan. This credit will be applied to future invoices.`;
+            } else {
+              // Downgrade but still costs money (can happen when switching billing periods)
+              return `You'll be charged $${netAmount.toFixed(2)} for the plan change.`;
+            }
+          } else if (isUpgrade) {
+            // Upgrade - user should be charged (usually)
+            if (netAmount > 0) {
+              return `You'll be charged $${netAmount.toFixed(2)} for the prorated difference.`;
+            } else if (netAmount < 0) {
+              // Upgrade but getting credit (e.g., annual to monthly upgrade)
+              if (isFromAnnual && isToMonthly) {
+                return `You'll receive a credit of $${Math.abs(netAmount).toFixed(2)} from your unused annual ${actualPlan} subscription. This credit will cover your ${plan} monthly fees for several months.`;
+              }
+              return `You'll receive a credit of $${Math.abs(netAmount).toFixed(2)}. Your existing credit covers the upgrade and will be applied to future invoices.`;
+            } else {
+              return `No additional charge. Your existing credit covers the upgrade.`;
+            }
+          } else {
+            // Same plan, different billing period
+            if (netAmount > 0) {
+              return `You'll be charged $${netAmount.toFixed(2)} for the billing period change.`;
+            } else if (netAmount < 0) {
+              return `You'll receive a credit of $${Math.abs(netAmount).toFixed(2)} for the billing period change.`;
+            } else {
+              return `No additional charge for the billing period change.`;
+            }
+          }
+        })(),
         timeline: netAmount < 0
           ? "The credit will appear on your account immediately and will be automatically applied to your next invoice."
-          : "The charge will be processed immediately.",
+          : netAmount > 0
+          ? "The charge will be processed immediately."
+          : "The change will take effect immediately.",
         stripeEmail: netAmount < 0
           ? "You'll receive an email receipt from Stripe confirming the credit."
-          : "You'll receive an email receipt from Stripe confirming the charge.",
+          : netAmount > 0
+          ? "You'll receive an email receipt from Stripe confirming the charge."
+          : "You'll receive an email confirmation from Stripe.",
         // Note about processing fees - important for transparency
-        processingFeeNote: netAmount < 0
+        processingFeeNote: netAmount < 0 && isDowngrade
           ? "Note: This is the full credit amount you'll receive. Stripe's original processing fees are non-refundable per their policy."
           : null
       }

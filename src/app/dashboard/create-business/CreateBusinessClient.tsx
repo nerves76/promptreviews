@@ -230,7 +230,11 @@ export default function CreateBusinessClient() {
   console.log('🔍 CreateBusinessClient: Render state - loading:', loading);
 
   if (loading) {
-    return <AppLoader />;
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600">
+        <AppLoader />
+      </div>
+    );
   }
 
   if (error) {

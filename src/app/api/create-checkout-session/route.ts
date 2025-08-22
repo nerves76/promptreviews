@@ -1,60 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import Stripe from "stripe";
 import { createClient } from "@supabase/supabase-js";
+import {
+  createStripeClient,
+  PRICE_IDS,
+  SUPABASE_CONFIG,
+  BILLING_URLS,
+  isValidPlan,
+  getPriceId,
+  getPlanChangeType
+} from "@/lib/billing/config";
 
-// Validate environment variables
-const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const appUrl = process.env.NEXT_PUBLIC_APP_URL;
-const builderPriceId = process.env.STRIPE_PRICE_ID_BUILDER;
-const mavenPriceId = process.env.STRIPE_PRICE_ID_MAVEN;
-const growerPriceId = process.env.STRIPE_PRICE_ID_GROWER;
-const builderAnnualPriceId = process.env.STRIPE_PRICE_ID_BUILDER_ANNUAL;
-const mavenAnnualPriceId = process.env.STRIPE_PRICE_ID_MAVEN_ANNUAL;
-const growerAnnualPriceId = process.env.STRIPE_PRICE_ID_GROWER_ANNUAL;
-
-if (!stripeSecretKey || !supabaseUrl || !supabaseServiceKey || !appUrl || !builderPriceId || !mavenPriceId || !growerPriceId) {
-  console.error("❌ Missing required environment variables");
-  console.error("Environment check:", {
-    stripeSecretKey: !!stripeSecretKey,
-    supabaseUrl: !!supabaseUrl,
-    supabaseServiceKey: !!supabaseServiceKey,
-    appUrl: !!appUrl,
-    builderPriceId: !!builderPriceId,
-    mavenPriceId: !!mavenPriceId,
-    growerPriceId: !!growerPriceId
-  });
-  throw new Error("Missing required environment variables");
-}
-
-// Assert types after validation
-const validatedEnvVars = {
-  stripeSecretKey: stripeSecretKey as string,
-  supabaseUrl: supabaseUrl as string,
-  supabaseServiceKey: supabaseServiceKey as string,
-  appUrl: appUrl as string,
-  builderPriceId: builderPriceId as string,
-  mavenPriceId: mavenPriceId as string,
-  growerPriceId: growerPriceId as string,
-};
-
-const stripe = new Stripe(validatedEnvVars.stripeSecretKey, { apiVersion: "2025-06-30.basil" });
-
-const PRICE_IDS: Record<string, { monthly: string; annual: string }> = {
-  grower: {
-    monthly: validatedEnvVars.growerPriceId,
-    annual: growerAnnualPriceId || validatedEnvVars.growerPriceId,
-  },
-  builder: {
-    monthly: validatedEnvVars.builderPriceId,
-    annual: builderAnnualPriceId || validatedEnvVars.builderPriceId,
-  },
-  maven: {
-    monthly: validatedEnvVars.mavenPriceId,
-    annual: mavenAnnualPriceId || validatedEnvVars.mavenPriceId,
-  },
-};
+const stripe = createStripeClient();
 
 export async function POST(req: NextRequest) {
   try {
@@ -87,7 +43,7 @@ export async function POST(req: NextRequest) {
     console.log("📊 Request:", { plan, userId, email: email ? "provided" : "missing", billingPeriod });
     
     // Validate required fields
-    if (!plan || !PRICE_IDS[plan]) {
+    if (!plan || !isValidPlan(plan)) {
       console.error("❌ Invalid plan:", plan);
       return NextResponse.json({ error: "Invalid plan specified" }, { status: 400 });
     }
@@ -100,7 +56,7 @@ export async function POST(req: NextRequest) {
     // Initialize Supabase client
     let supabase;
     try {
-      supabase = createClient(validatedEnvVars.supabaseUrl, validatedEnvVars.supabaseServiceKey);
+      supabase = createClient(SUPABASE_CONFIG.URL, SUPABASE_CONFIG.SERVICE_ROLE_KEY);
     } catch (supabaseError) {
       console.error("❌ Failed to create Supabase client:", supabaseError);
       return NextResponse.json({ error: "Database connection failed" }, { status: 500 });
@@ -121,14 +77,10 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "Account not found" }, { status: 404 });
       }
       
-      // Check if this is a free account
+      // Allow free accounts to upgrade if they choose to
       if (account.is_free_account) {
-        console.log("🆓 Free account detected, blocking checkout");
-        return NextResponse.json({ 
-          error: "FREE_ACCOUNT", 
-          message: "Free accounts cannot create checkout sessions. Your account has been configured with free access.",
-          free_plan_level: account.free_plan_level 
-        }, { status: 400 });
+        console.log("🆓 Free account detected, allowing upgrade from free to paid");
+        // Free accounts can upgrade to paid plans
       }
       
       accountData = account;
@@ -157,20 +109,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Determine change type
-    const planOrder = { free: 0, grower: 1, builder: 2, maven: 3 };
-    const currentPlanOrder = planOrder[currentPlan as keyof typeof planOrder] || 0;
-    const targetPlanOrder = planOrder[plan as keyof typeof planOrder] || 0;
-    
-    let changeType = "new";
-    if (currentPlan) {
-      if (targetPlanOrder > currentPlanOrder) {
-        changeType = "upgrade";
-      } else if (targetPlanOrder < currentPlanOrder) {
-        changeType = "downgrade";
-      } else {
-        changeType = "same";
-      }
-    }
+    const changeType = currentPlan ? getPlanChangeType(currentPlan, plan) : 'new';
 
     // Create checkout session
     console.log("🛒 Creating checkout session");
@@ -189,10 +128,16 @@ export async function POST(req: NextRequest) {
     }
     
     // Debug configuration
+    const priceId = getPriceId(plan, billingPeriod);
+    if (!priceId) {
+      console.error("❌ No price ID found for plan:", plan, billingPeriod);
+      return NextResponse.json({ error: "Invalid plan configuration" }, { status: 400 });
+    }
+
     let sessionConfig = {
       payment_method_types: ["card" as const],
       mode: "subscription" as const,
-      line_items: [{ price: PRICE_IDS[plan]?.[billingPeriod] || PRICE_IDS[plan]?.monthly, quantity: 1 }],
+      line_items: [{ price: priceId, quantity: 1 }],
       metadata: { 
         userId, 
         plan,
@@ -200,8 +145,8 @@ export async function POST(req: NextRequest) {
         changeType,
         isReactivation: isReactivation ? 'true' : 'false'
       },
-      success_url: `${validatedEnvVars.appUrl}/dashboard?success=1&change=${changeType}&plan=${plan}`,
-      cancel_url: `${validatedEnvVars.appUrl}/dashboard?canceled=1`,
+      success_url: BILLING_URLS.SUCCESS_URL(changeType, plan),
+      cancel_url: BILLING_URLS.CANCEL_URL,
       // Use valid customer ID if available, otherwise use email
       ...(validCustomerId 
         ? { customer: validCustomerId }
@@ -233,24 +178,14 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // ============================================
-    // TESTING MODE: Apply testing discounts for admin accounts
-    // ============================================
-    const { isTestingAccount, applyTestingMode } = await import('@/lib/testing-mode');
-    const isAdmin = await isTestingAccount(userEmail);
-    if (isAdmin) {
-      console.log('🧪 Admin detected, applying testing mode for:', userEmail);
-      sessionConfig = await applyTestingMode(sessionConfig, userEmail, billingPeriod);
-    }
 
     console.log("📋 Session config:", {
-      priceId: PRICE_IDS[plan]?.[billingPeriod] || PRICE_IDS[plan]?.monthly,
+      priceId: getPriceId(plan, billingPeriod),
       billingPeriod,
       hasValidCustomer: !!validCustomerId,
       usingCustomerEmail: !validCustomerId,
       customerEmail: userEmail,
-      metadata: sessionConfig.metadata,
-      hasAdminTestingMode: isAdmin
+      metadata: sessionConfig.metadata
     });
 
     let checkoutSession;

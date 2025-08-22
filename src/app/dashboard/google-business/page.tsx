@@ -373,13 +373,13 @@ export default function SocialPostingDashboard() {
       setIsPostOAuthConnecting(true); // Show "Finalizing connection..." state
       setIsLoading(true);
       
-      // Show success message from OAuth
+      // Show initial connecting message
       const message = urlParams.get('message');
       if (message) {
         setPostResult({ success: true, message: decodeURIComponent(message) });
       } else {
-        // Default success message if none provided
-        setPostResult({ success: true, message: 'Successfully connected! Finalizing setup...' });
+        // Show connecting message, not success yet
+        setPostResult({ success: true, message: 'Connecting to Google Business Profile...' });
       }
       
       /**
@@ -395,17 +395,21 @@ export default function SocialPostingDashboard() {
       const cleanUrl = tabParam ? `${window.location.pathname}?tab=${tabParam}` : window.location.pathname;
       window.history.replaceState({}, '', cleanUrl);
       
-      // Set connected state optimistically since OAuth succeeded
-      setIsConnected(true);
+      // Don't set connected state yet - wait for actual data
+      // setIsConnected(true); // Removed - wait for actual connection confirmation
       
       // Give the database a moment to save the tokens, then load platforms
       console.log('🔄 Post-OAuth: Waiting for database to sync before loading platforms...');
-      setTimeout(() => {
+      setTimeout(async () => {
         console.log('🔄 Post-OAuth: Loading platforms to refresh connection state');
-        loadPlatforms().finally(() => {
+        try {
+          await loadPlatforms();
+          // Success message will be shown after platforms are actually loaded
+          // and locations are fetched (handled in loadPlatforms)
+        } finally {
           setIsPostOAuthConnecting(false); // Clear the connecting state
-        });
-      }, 2000); // 2 second delay to ensure database is updated
+        }
+      }, 1000); // Reduced to 1 second - balance between safety and speed
     } else {
       // Load platforms on page load (normal page load)
       console.log('🔄 Initial page load: Loading platforms');
@@ -637,6 +641,21 @@ export default function SocialPostingDashboard() {
           if (transformedLocations.length > 0) {
             setHasAttemptedFetch(false);
             localStorage.removeItem('google-business-fetch-attempted');
+            
+            // Show success message when we actually have the data
+            // Only show if we're in post-OAuth flow (not regular page load)
+            if (isPostOAuthConnecting) {
+              setPostResult({ 
+                success: true, 
+                message: `Successfully connected! Found ${transformedLocations.length} business location${transformedLocations.length !== 1 ? 's' : ''}.` 
+              });
+            }
+          } else if (isPostOAuthConnecting) {
+            // Connected but no locations found yet
+            setPostResult({ 
+              success: true, 
+              message: 'Successfully connected! Click "Fetch Business Locations" to load your businesses.' 
+            });
           }
         } else {
           setIsConnected(false);

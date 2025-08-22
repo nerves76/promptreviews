@@ -3,7 +3,7 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { createClient } from "@/utils/supabaseClient";
 import PricingModal from "../../components/PricingModal";
 import AppLoader from "@/app/components/AppLoader";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { tiers } from "../../components/PricingModal";
 import TopLoaderOverlay from "@/app/components/TopLoaderOverlay";
 import { getAccountIdForUser } from "@/auth/utils/accounts";
@@ -11,12 +11,28 @@ import { getAccountIdForUser } from "@/auth/utils/accounts";
 export default function PlanPage() {
   const supabase = createClient();
 
+  // Log when component mounts/unmounts
+  useEffect(() => {
+    console.log('🚀 PlanPage component mounted');
+    return () => {
+      console.log('💥 PlanPage component unmounting!');
+    };
+  }, []);
+
   const [account, setAccount] = useState<any>(null);
   const [user, setUser] = useState<any>(null);
   const [userRole, setUserRole] = useState<'owner' | 'member' | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [currentPlan, setCurrentPlan] = useState<string | null>(null);
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  // Initialize from sessionStorage if available
+  const [showSuccessModal, setShowSuccessModal] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const stored = sessionStorage.getItem('showPlanSuccessModal');
+      console.log('🎯 Initial modal state from sessionStorage:', stored);
+      return stored === 'true';
+    }
+    return false;
+  });
   const [showDowngradeModal, setShowDowngradeModal] = useState(false);
   const [downgradeTarget, setDowngradeTarget] = useState<string | null>(null);
   const [downgradeFeatures, setDowngradeFeatures] = useState<string[]>([]);
@@ -34,7 +50,9 @@ export default function PlanPage() {
   const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'annual'>('monthly');
   const [isAdminAccount, setIsAdminAccount] = useState(false);
   const prevPlanRef = useRef<string | null>(null);
+  const successModalShownRef = useRef(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
   
   // Confirmation modal state
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -80,6 +98,76 @@ export default function PlanPage() {
     return discountedPrice.toFixed(2);
   };
 
+  // Initialize success modal from sessionStorage on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const shouldShowModal = sessionStorage.getItem('showPlanSuccessModal');
+      
+      if (shouldShowModal === 'true' && !successModalShownRef.current) {
+        const savedAction = sessionStorage.getItem('planSuccessAction') || 'upgrade';
+        console.log('✅ Restoring modal from sessionStorage on mount:', { savedAction });
+        setLastAction(savedAction as any);
+        setShowSuccessModal(true);
+        setStarAnimation(true);
+        successModalShownRef.current = true;
+      }
+    }
+  }, []); // Run only once on mount
+  
+  // Check for success parameter on page load
+  useEffect(() => {
+    const success = searchParams?.get('success');
+    const change = searchParams?.get('change');
+    const plan = searchParams?.get('plan');
+    const billing = searchParams?.get('billing');
+    const canceled = searchParams?.get('canceled');
+    
+    // Only process if we have success=1 and haven't shown the modal yet
+    if (success === '1' && !successModalShownRef.current) {
+      console.log('📊 Plan change success detected:', { change, plan, billing });
+      
+      // Mark that we've shown the modal to prevent re-showing
+      successModalShownRef.current = true;
+      
+      // Set the action type and show modal immediately
+      if (change === 'upgrade') {
+        setLastAction('upgrade');
+      } else if (change === 'downgrade') {
+        setLastAction('downgrade');
+      } else {
+        setLastAction('billing_period');
+      }
+      
+      // Save to sessionStorage to persist across re-renders
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('showPlanSuccessModal', 'true');
+        sessionStorage.setItem('planSuccessAction', change || 'upgrade');
+      }
+      
+      setShowSuccessModal(true);
+      setStarAnimation(true);
+      
+      // Clean up URL but keep modal data in sessionStorage
+      setTimeout(() => {
+        const newUrl = window.location.pathname;
+        window.history.replaceState({}, '', newUrl);
+      }, 100);
+    }
+    
+    // Handle canceled checkout
+    if (canceled === '1') {
+      console.log('🚫 User canceled checkout, resetting modal states');
+      setUpgradeProcessing(false);
+      setDowngradeProcessing(false);
+      setShowUpgradeModal(false);
+      setShowDowngradeModal(false);
+      
+      // Clean up the URL
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, '', newUrl);
+    }
+  }, [searchParams]);
+
   useEffect(() => {
     const fetchAccount = async () => {
       setIsLoading(true);
@@ -100,20 +188,14 @@ export default function PlanPage() {
         return;
       }
 
-      // Get account data
-      const { data: accountData } = await supabase
-        .from("accounts")
-        .select("*")
-        .eq("id", accountId)
-        .single();
+      // Parallelize database queries for better performance
+      const [accountResult, userRoleResult] = await Promise.all([
+        supabase.from("accounts").select("*").eq("id", accountId).single(),
+        supabase.from("account_users").select("role").eq("account_id", accountId).eq("user_id", user.id).single()
+      ]);
 
-      // Get user's role in this account
-      const { data: accountUser } = await supabase
-        .from("account_users")
-        .select("role")
-        .eq("account_id", accountId)
-        .eq("user_id", user.id)
-        .single();
+      const accountData = accountResult.data;
+      const accountUser = userRoleResult.data;
 
       setAccount(accountData);
       setUserRole(accountUser?.role || null);
@@ -134,7 +216,37 @@ export default function PlanPage() {
       const isTrialExpired = trialEnd && now > trialEnd && accountData?.plan === "grower" && accountData?.has_had_paid_plan === false;
       setIsExpired(Boolean(isTrialExpired));
       
+      // Stop showing loader immediately - page can render now
       setIsLoading(false);
+      
+      // Sync with Stripe in background (non-blocking)
+      if (accountData?.stripe_subscription_id) {
+        fetch('/api/sync-subscription', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: accountId })
+        })
+        .then(syncRes => {
+          if (syncRes.ok) {
+            return syncRes.json();
+          }
+          throw new Error('Sync failed');
+        })
+        .then(syncData => {
+          if (syncData.currentPlan && syncData.currentBilling) {
+            // Update local state if sync changed the values
+            if (syncData.currentPlan !== accountData.plan || syncData.currentBilling !== accountData.billing_period) {
+              console.log('📊 Synced with Stripe:', syncData);
+              setCurrentPlan(syncData.currentPlan);
+              setBillingPeriod(syncData.currentBilling as 'monthly' | 'annual');
+              prevPlanRef.current = syncData.currentPlan;
+            }
+          }
+        })
+        .catch(err => {
+          console.warn('Failed to sync with Stripe:', err);
+        });
+      }
     };
     fetchAccount();
   }, [router, supabase]);
@@ -285,36 +397,73 @@ export default function PlanPage() {
         setUpgradeTarget(tierKey);
         setUpgradeFeatures(gainedFeatures);
         
-        // Fetch proration preview for the upgrade
-        setShowConfirmModal(true);
-        setConfirmModalConfig({
-          title: 'Loading billing details...',
-          message: 'Calculating proration for your upgrade...',
-          confirmText: '',
-          cancelText: '',
-          loading: true,
-          onConfirm: () => {},
+        // Check if user needs checkout (trial/free) or upgrade (existing customer)
+        const needsCheckout = !account.stripe_customer_id || account.is_free_account;
+        
+        console.log('🔍 Checking user type for upgrade:', {
+          hasStripeCustomer: !!account.stripe_customer_id,
+          isFreeAccount: account.is_free_account,
+          needsCheckout,
+          accountId: account.id
         });
         
-        try {
-          const previewRes = await fetch("/api/preview-billing-change", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              plan: tierKey,
-              userId: account.id,
-              billingPeriod: billing,
-            }),
-          });
+        if (needsCheckout) {
+          // For trial/free users, go directly to checkout (no proration needed)
+          console.log('🆓 Trial or free user detected, going to checkout for new subscription');
+          setUpgrading(true);
+          setUpgradingPlan(`Setting up ${targetTier.name} plan...`);
           
+          try {
+            const res = await fetch("/api/create-checkout-session", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                priceId: getPriceId(tierKey, billing),
+                plan: tierKey,
+                billingPeriod: billing,
+                userId: account.id,
+              }),
+            });
+            
+            if (res.ok) {
+              const data = await res.json();
+              window.location.href = data.url;
+              return;
+            } else {
+              const errorData = await res.json();
+              throw new Error(errorData.message || 'Checkout failed');
+            }
+          } catch (error) {
+            console.error("Checkout error:", error);
+            alert("Failed to create checkout session. Please try again.");
+          } finally {
+            setUpgrading(false);
+            setUpgradingPlan('');
+          }
+          return;
+        }
+        
+        // Show upgrade confirmation first
+        setShowUpgradeModal(true);
+        
+        // Fetch proration preview in the background
+        fetch("/api/preview-billing-change", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            plan: tierKey,
+            userId: account.id,
+            billingPeriod: billing,
+          }),
+        }).then(async (previewRes) => {
           if (previewRes.ok) {
             const { preview } = await previewRes.json();
             
-            // Update modal with actual preview data
+            // Store the proration info to show after upgrade confirmation
             setConfirmModalConfig({
-              title: `Upgrade to ${targetTier.name}`,
-              message: preview.message,
-              confirmText: 'Confirm Upgrade',
+              title: `Billing Details for ${targetTier.name}`,
+              message: `You'll be charged $${preview.netAmount} for the prorated difference.`,
+              confirmText: 'Proceed with Upgrade',
               cancelText: 'Cancel',
               loading: false,
               details: {
@@ -324,8 +473,36 @@ export default function PlanPage() {
                 processingFeeNote: preview.processingFeeNote,
               },
               onConfirm: async () => {
+                // Actually perform the upgrade
                 setShowConfirmModal(false);
-                setShowUpgradeModal(true);
+                setUpgrading(true);
+                setUpgradingPlan(`Upgrading to ${targetTier.name}...`);
+                
+                try {
+                  const res = await fetch("/api/upgrade-subscription", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      plan: tierKey,
+                      userId: account.id,
+                      currentPlan: currentPlan,
+                      billingPeriod: billing,
+                    }),
+                  });
+                  
+                  if (res.ok) {
+                    const data = await res.json();
+                    window.location.href = data.redirectUrl || `/dashboard/plan?success=1&change=upgrade&plan=${tierKey}&billing=${billing}`;
+                  } else {
+                    throw new Error('Upgrade failed');
+                  }
+                } catch (error) {
+                  console.error("Upgrade error:", error);
+                  alert("Failed to upgrade. Please try again.");
+                } finally {
+                  setUpgrading(false);
+                  setUpgradingPlan('');
+                }
               },
               onCancel: () => {
                 setShowConfirmModal(false);
@@ -334,7 +511,7 @@ export default function PlanPage() {
               }
             });
           } else {
-            // If preview fails, show error details and fall back to regular modal
+            // If preview fails, just proceed without proration details
             console.error('Billing preview failed with status:', previewRes.status);
             
             let errorData: any = { error: 'Unknown error' };
@@ -368,7 +545,7 @@ export default function PlanPage() {
               }
             });
           }
-        } catch (error) {
+        }).catch((error) => {
           console.error('Error fetching billing preview:', error);
           
           // Show error message to user
@@ -389,7 +566,7 @@ export default function PlanPage() {
               setUpgradeFeatures([]);
             }
           });
-        }
+        });
         return;
       }
       
@@ -433,103 +610,49 @@ export default function PlanPage() {
         setDowngradeTarget(tierKey);
         setDowngradeFeatures(lostFeatures);
         
-        // Fetch proration preview for the downgrade
-        setShowConfirmModal(true);
-        setConfirmModalConfig({
-          title: 'Loading billing details...',
-          message: 'Calculating credit for your downgrade...',
-          confirmText: '',
-          cancelText: '',
-          loading: true,
-          onConfirm: () => {},
-        });
+        // Check if user is on trial or free account (no Stripe customer)
+        const needsCheckout = !account.stripe_customer_id || account.is_free_account;
         
-        try {
-          const previewRes = await fetch("/api/preview-billing-change", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              plan: tierKey,
-              userId: account.id,
-              billingPeriod: billing,
-            }),
-          });
+        if (needsCheckout) {
+          // For trial/free users, they need to set up payment first even for "downgrades"
+          console.log('🆓 Trial or free user detected - need to set up payment first');
           
-          if (previewRes.ok) {
-            const { preview } = await previewRes.json();
-            
-            // Update modal with actual preview data
-            setConfirmModalConfig({
-              title: `Downgrade to ${targetTier.name}`,
-              message: preview.message,
-              confirmText: 'Confirm Downgrade',
-              cancelText: 'Keep Current Plan',
-              loading: false,
-              details: {
-                creditAmount: preview.creditAmount,
-                timeline: preview.timeline,
-                stripeEmail: preview.stripeEmail,
-                processingFeeNote: preview.processingFeeNote,
-              },
-              onConfirm: async () => {
-                setShowConfirmModal(false);
-                setShowDowngradeModal(true);
-              },
-              onCancel: () => {
-                setShowConfirmModal(false);
-                setDowngradeTarget(null);
-                setDowngradeFeatures([]);
-              }
-            });
-          } else {
-            // If preview fails, show error details and fall back to regular modal
-            console.error('Billing preview failed with status:', previewRes.status);
-            
-            let errorData: any = { error: 'Unknown error' };
-            const responseText = await previewRes.text();
-            console.error('Response text:', responseText);
-            
-            try {
-              errorData = JSON.parse(responseText);
-            } catch (e) {
-              console.error('Failed to parse error response:', e);
-              errorData = { error: 'Server error', message: responseText || 'Unable to calculate credit amount' };
-            }
-            
-            console.error('Failed to fetch billing preview for downgrade:', errorData);
-            
-            // Show error message to user
-            setConfirmModalConfig({
-              title: 'Unable to Calculate Credit',
-              message: errorData.message || 'Unable to calculate your credit amount. You can still proceed with the downgrade.',
-              confirmText: 'Continue Anyway',
-              cancelText: 'Cancel',
-              loading: false,
-              onConfirm: () => {
-                setShowConfirmModal(false);
-                setShowDowngradeModal(true);
-              },
-              onCancel: () => {
-                setShowConfirmModal(false);
-                setDowngradeTarget(null);
-                setDowngradeFeatures([]);
-              }
-            });
-          }
-        } catch (error) {
-          console.error('Error fetching billing preview for downgrade:', error);
-          
-          // Show error message to user
+          // Show a message that they need to set up payment
           setConfirmModalConfig({
-            title: 'Connection Error',
-            message: 'Unable to connect to billing service. Please try again.',
-            confirmText: 'Try Again',
+            title: 'Payment Setup Required',
+            message: 'To change your plan, you need to set up payment information first. Would you like to proceed?',
+            confirmText: 'Set Up Payment',
             cancelText: 'Cancel',
             loading: false,
-            onConfirm: () => {
+            onConfirm: async () => {
               setShowConfirmModal(false);
-              // Retry by calling handleSelectTier again
-              handleSelectTier(tierKey, billing);
+              setUpgrading(true);
+              setUpgradingPlan(`Setting up ${targetTier.name} plan...`);
+              
+              try {
+                const res = await fetch("/api/create-checkout-session", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    priceId: getPriceId(tierKey, billing),
+                    plan: tierKey,
+                    billingPeriod: billing,
+                    userId: account.id,
+                  }),
+                });
+                
+                if (res.ok) {
+                  const data = await res.json();
+                  window.location.href = data.url;
+                } else {
+                  throw new Error('Failed to create checkout session');
+                }
+              } catch (error) {
+                console.error("Checkout error:", error);
+                alert("Failed to create checkout session. Please try again.");
+                setUpgrading(false);
+                setUpgradingPlan('');
+              }
             },
             onCancel: () => {
               setShowConfirmModal(false);
@@ -537,94 +660,52 @@ export default function PlanPage() {
               setDowngradeFeatures([]);
             }
           });
+          setShowConfirmModal(true);
+          return;
         }
+        
+        // First show the downgrade confirmation modal
+        setShowDowngradeModal(true);
         return;
+        
       }
       
-      // Safety check: Never allow direct database updates for paid plans
-      if (tierKey === 'builder' || tierKey === 'maven') {
-        console.error(`🚨 CRITICAL: Attempted to directly update database with paid plan ${tierKey}. This should go through Stripe!`);
-        alert('Error: Paid plans must be processed through Stripe. Please try again.');
-        return;
-      }
-      
-      // For same plan (should only be grower plan at this point), just reload
-      await supabase
-        .from("accounts")
-        .update({ plan: tierKey })
-        .eq("id", account.id);
-      // Show stars and success modal for new user, upgrade, or downgrade
-      if (isNewUser || (prevPlan === "grower" && tierKey !== "grower")) {
-        setLastAction(isNewUser ? "new" : "upgrade");
-        setStarAnimation(true);
-        setShowSuccessModal(true);
-      } else {
-        // For same plan, just reload
-        window.location.reload();
-      }
+      // Rest of the downgrade flow was moved to handleConfirmDowngrade
+      return;
     },
     [account, isNewUser, userRole, currentPlan, user, supabase],
   );
 
-  // Show success modal after successful Stripe payment or handle canceled checkout
+  // Clean up any leftover localStorage flags on mount
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    
-    // Clean up any leftover localStorage flags that might cause false popups
     localStorage.removeItem("showPlanSuccess");
-    
-    const params = new URLSearchParams(window.location.search);
-    
-    // Only show success modal if returning from successful Stripe payment
-    if (params.get("success") === "1") {
-      const changeType = params.get("change") || "upgrade";
-      const planName = params.get("plan");
-      const billingType = params.get("billing");
-      
-      setStarAnimation(true);
-      setShowSuccessModal(true);
-      setLastAction(changeType as "new" | "upgrade" | "downgrade");
-      
-      console.log("🎉 Plan change successful!", {
-        changeType,
-        planName,
-        billingType,
-        currentUrl: window.location.href
-      });
-      
-      // Show specific message based on change type
-      if (changeType === "upgrade" && planName) {
-        const tierName = tiers.find(t => t.key === planName)?.name || planName;
-        const billingText = billingType === 'annual' ? ' (Annual)' : ' (Monthly)';
-        console.log(`✅ Successfully upgraded to ${tierName}${billingText}. Any unused time from your previous plan has been credited.`);
-      } else if (changeType === "billing_period") {
-        const billingText = billingType === 'annual' ? 'annual' : 'monthly';
-        console.log(`✅ Successfully switched to ${billingText} billing. Proration has been applied.`);
-      }
-      
-      // Clean up the URL
-      params.delete("success");
-      params.delete("change");
-      params.delete("plan");
-      params.delete("billing");
-      const newUrl = window.location.pathname + (params.toString() ? `?${params.toString()}` : "");
-      window.history.replaceState({}, document.title, newUrl);
-    }
-    
-    // Handle canceled checkout - reset any processing states
-    if (params.get("canceled") === "1") {
-      console.log("🚫 User canceled checkout, resetting modal states");
-      setUpgradeProcessing(false);
-      setDowngradeProcessing(false);
-      setShowUpgradeModal(false);
-      setShowDowngradeModal(false);
-      
-      // Clean up the URL
-      params.delete("canceled");
-      const newUrl = window.location.pathname + (params.toString() ? `?${params.toString()}` : "");
-      window.history.replaceState({}, document.title, newUrl);
-    }
   }, []);
+  
+  // Debug: Track success modal state changes
+  useEffect(() => {
+    console.log('🔍 Success modal state changed:', { 
+      showSuccessModal, 
+      successModalShownRef: successModalShownRef.current,
+      sessionStorage: typeof window !== 'undefined' ? sessionStorage.getItem('showPlanSuccessModal') : 'N/A'
+    });
+    
+    // Update ref to track current state
+    if (showSuccessModal) {
+      successModalShownRef.current = true;
+    }
+  }, [showSuccessModal]);
+
+  // Auto-hide star animation after success modal shows
+  useEffect(() => {
+    if (showSuccessModal && starAnimation) {
+      // Hide the star animation after a short delay
+      const timer = setTimeout(() => {
+        setStarAnimation(false);
+      }, 1500); // 1.5 seconds should be enough for the animation
+      
+      return () => clearTimeout(timer);
+    }
+  }, [showSuccessModal, starAnimation]);
 
   // Confirm downgrade handler
   const handleConfirmDowngrade = async () => {
@@ -652,79 +733,187 @@ export default function PlanPage() {
       return;
     }
     
-    setDowngradeProcessing(true);
-    console.log("🔽 Starting downgrade process", {
-      from: currentPlan,
-      to: downgradeTarget,
-      hasStripeCustomer: !!account.stripe_customer_id
+    // Close the downgrade modal first
+    setShowDowngradeModal(false);
+    
+    // Get the target tier info
+    const targetTier = tiers.find(t => t.key === downgradeTarget);
+    if (!targetTier) return;
+    
+    // Show loading modal while fetching billing preview
+    setShowConfirmModal(true);
+    setConfirmModalConfig({
+      title: 'Loading billing details...',
+      message: 'Calculating credit for your downgrade...',
+      confirmText: '',
+      cancelText: '',
+      loading: true,
+      onConfirm: () => {},
     });
     
     try {
-      // For customers with active Stripe subscriptions, use the upgrade API to downgrade
-      // This includes downgrades TO grower (which is a paid plan at $15/month)
-      if (account.stripe_customer_id) {
-        console.log("📡 Calling upgrade-subscription API for downgrade...");
-        const res = await fetch("/api/upgrade-subscription", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            plan: downgradeTarget,
-            userId: account.id,
-            currentPlan: currentPlan,
-            billingPeriod: billingPeriod,
-          }),
+      // Fetch proration preview
+      const previewRes = await fetch("/api/preview-billing-change", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          plan: downgradeTarget,
+          userId: account.id,
+          billingPeriod: billingPeriod,
+        }),
+      });
+      
+      if (previewRes.ok) {
+        const { preview } = await previewRes.json();
+        
+        // Update modal with actual preview data
+        setConfirmModalConfig({
+          title: `Downgrade to ${targetTier.name}`,
+          message: preview.message,
+          confirmText: 'Confirm Downgrade',
+          cancelText: 'Cancel',
+          loading: false,
+          details: {
+            creditAmount: preview.creditAmount,
+            timeline: preview.timeline,
+            stripeEmail: preview.stripeEmail,
+            processingFeeNote: preview.processingFeeNote,
+          },
+          onConfirm: async () => {
+            // Proceed with the actual downgrade
+            setShowConfirmModal(false);
+            setDowngradeProcessing(true);
+            
+            try {
+              // For customers with active Stripe subscriptions, use the upgrade API to downgrade
+              if (account.stripe_customer_id) {
+                console.log("📡 Calling upgrade-subscription API for downgrade...");
+                const res = await fetch("/api/upgrade-subscription", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    plan: downgradeTarget,
+                    userId: account.id,
+                    currentPlan: currentPlan,
+                    billingPeriod: billingPeriod,
+                  }),
+                });
+                
+                if (res.ok) {
+                  const data = await res.json();
+                  console.log("📉 Downgrade API response:", data);
+                  
+                  // Build full URL to ensure proper redirect
+                  const baseUrl = window.location.origin;
+                  const redirectUrl = `${baseUrl}/dashboard/plan?success=1&change=downgrade&plan=${downgradeTarget}&billing=${billingPeriod}`;
+                  console.log("🔄 Redirecting to:", redirectUrl);
+                  console.log("📍 Current location before redirect:", window.location.href);
+                  
+                  // Add a small delay to ensure the database update completes
+                  setTimeout(() => {
+                    console.log("🚀 Executing redirect now...");
+                    window.location.href = redirectUrl;
+                  }, 500);
+                  return;
+                } else {
+                  const errorData = await res.json();
+                  throw new Error(errorData.message || 'Downgrade failed');
+                }
+              } else {
+                // For free/trial users, update the database directly
+                await supabase
+                  .from("accounts")
+                  .update({ plan: downgradeTarget })
+                  .eq("id", account.id);
+                
+                // Refetch account data after downgrade
+                const { data: updatedAccount } = await supabase
+                  .from("accounts")
+                  .select("*")
+                  .eq("id", account.id)
+                  .single();
+                
+                if (updatedAccount) {
+                  setAccount(updatedAccount);
+                  setCurrentPlan(updatedAccount.plan);
+                  prevPlanRef.current = updatedAccount.plan;
+                }
+                
+                setShowDowngradeModal(false);
+                setLastAction("downgrade");
+                setStarAnimation(true);
+                setShowSuccessModal(true);
+              }
+            } catch (error) {
+              console.error("Downgrade error:", error);
+              alert("Failed to downgrade. Please try again.");
+            } finally {
+              setDowngradeProcessing(false);
+            }
+          },
+          onCancel: () => {
+            setShowConfirmModal(false);
+            setDowngradeTarget(null);
+            setDowngradeFeatures([]);
+          }
         });
-        
-        if (res.ok) {
-          const data = await res.json();
-          console.log("📉 Downgrade API response:", data);
-          
-          // Build full URL to ensure proper redirect
-          const baseUrl = window.location.origin;
-          const redirectUrl = `${baseUrl}/dashboard/plan?success=1&change=downgrade&plan=${downgradeTarget}&billing=${billingPeriod}`;
-          console.log("🔄 Redirecting to:", redirectUrl);
-          console.log("📍 Current location before redirect:", window.location.href);
-          
-          // Add a small delay to ensure the database update completes
-          setTimeout(() => {
-            console.log("🚀 Executing redirect now...");
-            window.location.href = redirectUrl;
-          }, 500);
-          return;
-        } else {
-          const errorData = await res.json();
-          throw new Error(errorData.message || 'Downgrade failed');
-        }
       } else {
-        // For free/trial users, update the database directly
-        await supabase
-          .from("accounts")
-          .update({ plan: downgradeTarget })
-          .eq("id", account.id);
+        // If preview fails, show error and allow proceeding anyway
+        console.error('Billing preview failed');
         
-        // Refetch account data after downgrade
-        const { data: updatedAccount } = await supabase
-          .from("accounts")
-          .select("*")
-          .eq("id", account.id)
-          .single();
-        
-        if (updatedAccount) {
-          setAccount(updatedAccount);
-          setCurrentPlan(updatedAccount.plan);
-          prevPlanRef.current = updatedAccount.plan;
-        }
-        
-        setShowDowngradeModal(false);
-        setLastAction("downgrade");
-        setStarAnimation(true);
-        setShowSuccessModal(true);
+        setConfirmModalConfig({
+          title: 'Unable to Calculate Credit',
+          message: 'Unable to calculate your credit amount. You can still proceed with the downgrade.',
+          confirmText: 'Continue Anyway',
+          cancelText: 'Cancel',
+          loading: false,
+          onConfirm: async () => {
+            // Proceed with downgrade without preview
+            setShowConfirmModal(false);
+            setDowngradeProcessing(true);
+            
+            try {
+              if (account.stripe_customer_id) {
+                const res = await fetch("/api/upgrade-subscription", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    plan: downgradeTarget,
+                    userId: account.id,
+                    currentPlan: currentPlan,
+                    billingPeriod: billingPeriod,
+                  }),
+                });
+                
+                if (res.ok) {
+                  const data = await res.json();
+                  const redirectUrl = `/dashboard/plan?success=1&change=downgrade&plan=${downgradeTarget}&billing=${billingPeriod}`;
+                  setTimeout(() => {
+                    window.location.href = redirectUrl;
+                  }, 500);
+                } else {
+                  throw new Error('Downgrade failed');
+                }
+              }
+            } catch (error) {
+              console.error("Downgrade error:", error);
+              alert("Failed to downgrade. Please try again.");
+            } finally {
+              setDowngradeProcessing(false);
+            }
+          },
+          onCancel: () => {
+            setShowConfirmModal(false);
+            setDowngradeTarget(null);
+            setDowngradeFeatures([]);
+          }
+        });
       }
     } catch (error) {
-      console.error("Downgrade error:", error);
-      alert("Failed to downgrade. Please try again.");
+      console.error('Error fetching billing preview:', error);
+      setShowConfirmModal(false);
+      alert('Failed to fetch billing information. Please try again.');
     }
-    setDowngradeProcessing(false);
   };
   const handleCancelDowngrade = () => {
     setShowDowngradeModal(false);
@@ -744,27 +933,34 @@ export default function PlanPage() {
       return;
     }
     
-    setUpgradeProcessing(true);
+    // Close the upgrade modal
+    setShowUpgradeModal(false);
     
-    try {
-      // Check if user has a Stripe customer ID (existing customer vs new user)
-      // Users with stripe_customer_id are paying customers, even if on grower plan
-      const hasStripeCustomer = !!account.stripe_customer_id;
+    // Show the proration confirmation modal if we have the config ready
+    if (confirmModalConfig && confirmModalConfig.title) {
+      setShowConfirmModal(true);
+    } else {
+      // If no proration info, proceed directly with upgrade
+      setUpgradeProcessing(true);
       
-      if (hasStripeCustomer) {
-        // Existing customer - use upgrade API
-        const res = await fetch("/api/upgrade-subscription", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            plan: upgradeTarget,
-            userId: account.id,
-            currentPlan: currentPlan,
-            billingPeriod: billingPeriod,
-          }),
-        });
+      try {
+        // Check if user has a Stripe customer ID (existing customer vs new user)
+        const hasStripeCustomer = !!account.stripe_customer_id;
         
-        if (res.ok) {
+        if (hasStripeCustomer) {
+          // Existing customer - use upgrade API
+          const res = await fetch("/api/upgrade-subscription", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              plan: upgradeTarget,
+              userId: account.id,
+              currentPlan: currentPlan,
+              billingPeriod: billingPeriod,
+            }),
+          });
+          
+          if (res.ok) {
           const data = await res.json();
           console.log("📈 Upgrade API response:", data);
           
@@ -832,11 +1028,12 @@ export default function PlanPage() {
           throw new Error(errorData.message || 'Checkout failed');
         }
       }
-    } catch (error) {
-      console.error("Upgrade error:", error);
-      alert("Failed to upgrade. Please try again.");
+      } catch (error) {
+        console.error("Upgrade error:", error);
+        alert("Failed to upgrade. Please try again.");
+      }
+      setUpgradeProcessing(false);
     }
-    setUpgradeProcessing(false);
   };
 
   const handleCancelUpgrade = () => {
@@ -846,29 +1043,97 @@ export default function PlanPage() {
     setUpgradeProcessing(false);
   };
 
-  if (isLoading) {
-    return <AppLoader />;
-  }
-
   // Helper to check if user can manage billing
   const isOwner = userRole === 'owner';
   const canManageBilling = isOwner;
+
+  // Render success modal even when loading to prevent it from disappearing
+  const successModalElement = showSuccessModal ? (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg p-8 max-w-md mx-4 text-center relative">
+        {/* Standardized close button - breaching corner */}
+        <button
+          onClick={() => {
+            console.log('✅ User clicked close button on success modal');
+            sessionStorage.removeItem('showPlanSuccessModal');
+            sessionStorage.removeItem('planSuccessAction');
+            successModalShownRef.current = false;
+            setShowSuccessModal(false);
+            setStarAnimation(false); // Also hide star animation
+          }}
+          className="absolute -top-3 -right-3 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-shadow duration-200 z-10"
+          aria-label="Close modal"
+        >
+          <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+        
+        {/* Crompty Image */}
+        <div className="mb-6 flex justify-center">
+          <img
+            src="https://ltneloufqjktdplodvao.supabase.co/storage/v1/object/public/logos/prompt-assets/small-prompty-success.png"
+            alt="Crompty Success"
+            className="w-24 h-24 object-contain"
+          />
+        </div>
+        <h2 className="text-2xl font-bold text-gray-900 mb-4">
+          {lastAction === "new"
+            ? "Welcome to Prompt Reviews!"
+            : lastAction === "upgrade"
+            ? "Plan Upgraded Successfully!"
+            : "Plan Updated Successfully!"}
+        </h2>
+        <p className="text-gray-600 mb-6">
+          {lastAction === "new"
+            ? "Your account has been created and you're ready to start collecting reviews!"
+            : lastAction === "upgrade"
+            ? "You now have access to all the features in your new plan. Any unused time from your previous subscription has been automatically credited to your account."
+            : "Your plan has been updated successfully. Proration has been automatically applied to your account."}
+        </p>
+        <button
+          onClick={() => {
+            setShowSuccessModal(false);
+            successModalShownRef.current = false;
+            sessionStorage.removeItem('showPlanSuccessModal');
+            sessionStorage.removeItem('planSuccessAction');
+            setStarAnimation(false); // Also hide star animation
+            router.push("/dashboard");
+          }}
+          className="bg-slate-blue text-white px-6 py-2 rounded-lg hover:bg-slate-blue/90 transition-colors"
+        >
+          Continue to Dashboard
+        </button>
+      </div>
+    </div>
+  ) : null;
+
+  if (isLoading) {
+    return (
+      <>
+        <div className="min-h-screen bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600 flex flex-col items-center justify-center">
+          <AppLoader variant="centered" />
+        </div>
+        {successModalElement}
+      </>
+    );
+  }
 
   return (
     <>
       <div className="min-h-screen text-white flex flex-col">
         {/* Header */}
         <div className="max-w-6xl mx-auto w-full px-6 pt-12">
-          <div className="text-center mb-12">
-            <h1 className="text-5xl font-bold mb-4 text-white">
-              Choose your plan
-            </h1>
-            <p className="text-xl text-gray-300 max-w-2xl mx-auto">
-              {currentPlan === "grower" || !currentPlan 
-                ? "Select the perfect plan to start collecting more reviews."
-                : `You're currently on the ${tiers.find(t => t.key === currentPlan)?.name || currentPlan} plan${account?.billing_period === 'annual' ? ' (Annual billing)' : account?.billing_period === 'monthly' ? ' (Monthly billing)' : ''}.`
-              }
-            </p>
+              <div className="text-center mb-12">
+                <h1 className="text-5xl font-bold mb-4 text-white">
+                  Choose your plan
+                </h1>
+                <p className="text-xl text-gray-300 max-w-2xl mx-auto">
+                  {currentPlan === "grower" || !currentPlan 
+                    ? "Select the perfect plan to start collecting more reviews."
+                    : `You're currently on the ${tiers.find(t => t.key === currentPlan)?.name || currentPlan} plan${account?.billing_period === 'annual' ? ' (Annual billing)' : account?.billing_period === 'monthly' ? ' (Monthly billing)' : ''}.`
+                  }
+                </p>
             
             {/* Admin account notice */}
             {isAdminAccount && (
@@ -1024,9 +1289,9 @@ export default function PlanPage() {
                   </div>
                   <ul className="text-white/90 space-y-2 mb-6 flex-grow">
                     {tier.features.map((feature, index) => (
-                      <li key={index} className="flex items-center">
-                        <span className="text-green-400 mr-2">✓</span>
-                        {feature}
+                      <li key={index} className="flex items-start">
+                        <span className="text-green-400 mr-2 mt-0.5">✓</span>
+                        <span className="text-left">{feature}</span>
                       </li>
                     ))}
                   </ul>
@@ -1067,55 +1332,8 @@ export default function PlanPage() {
           </div>
         </div>
 
-        {/* Success Modal */}
-        {showSuccessModal && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-8 max-w-md mx-4 text-center relative">
-              {/* Standardized close button - breaching corner */}
-              <button
-                onClick={() => setShowSuccessModal(false)}
-                className="absolute -top-3 -right-3 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-shadow duration-200 z-10"
-                aria-label="Close modal"
-              >
-                <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-              
-              {/* Crompty Image */}
-              <div className="mb-6 flex justify-center">
-                <img
-                  src="https://ltneloufqjktdplodvao.supabase.co/storage/v1/object/public/logos/prompt-assets/small-prompty-success.png"
-                  alt="Crompty Success"
-                  className="w-24 h-24 object-contain"
-                />
-              </div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                {lastAction === "new"
-                  ? "Welcome to Prompt Reviews!"
-                  : lastAction === "upgrade"
-                  ? "Plan Upgraded Successfully!"
-                  : "Plan Updated Successfully!"}
-              </h2>
-              <p className="text-gray-600 mb-6">
-                {lastAction === "new"
-                  ? "Your account has been created and you're ready to start collecting reviews!"
-                  : lastAction === "upgrade"
-                  ? "You now have access to all the features in your new plan. Any unused time from your previous subscription has been automatically credited to your account."
-                  : "Your plan has been updated successfully. Proration has been automatically applied to your account."}
-              </p>
-              <button
-                onClick={() => {
-                  setShowSuccessModal(false);
-                  router.push("/dashboard");
-                }}
-                className="bg-slate-blue text-white px-6 py-2 rounded-lg hover:bg-slate-blue/90 transition-colors"
-              >
-                Continue to Dashboard
-              </button>
-            </div>
-          </div>
-        )}
+        {/* Success Modal is rendered at the top level to prevent unmounting */}
+        {successModalElement}
 
         {/* Downgrade Confirmation Modal */}
         {showDowngradeModal && (

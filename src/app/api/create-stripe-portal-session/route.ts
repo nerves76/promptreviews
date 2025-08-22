@@ -1,13 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import Stripe from "stripe";
 import { createServerSupabaseClient } from "@/utils/supabaseClient";
 import { getAccountIdForUser } from "@/auth/utils/accounts";
+import { createStripeClient, BILLING_URLS } from "@/lib/billing/config";
 
-const stripeSecretKey = process.env.STRIPE_SECRET_KEY!;
-if (!stripeSecretKey) {
-  throw new Error("STRIPE_SECRET_KEY is not set");
-}
-const stripe = new Stripe(stripeSecretKey);
+const stripe = createStripeClient();
 
 export async function POST(req: NextRequest) {
   try {
@@ -69,8 +65,7 @@ export async function POST(req: NextRequest) {
 
     // Add success parameter to return URL so we can show a message when user returns
     // from managing their subscription in Stripe portal
-    const returnUrl = process.env.NEXT_PUBLIC_PORTAL_RETURN_URL ||
-        `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?portal_return=1`;
+    const returnUrl = BILLING_URLS.PORTAL_RETURN_URL;
     
     const stripeSession = await stripe.billingPortal.sessions.create({
       customer: account.stripe_customer_id,

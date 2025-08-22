@@ -92,8 +92,8 @@ export default function DashboardLayout({
       console.log('🔄 Dashboard: Loading state', { isInitialized, isTransitioning });
     }
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center">
-        <AppLoader variant="compact" />
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600">
+        <AppLoader variant="centered" />
       </div>
     );
   }
@@ -109,8 +109,8 @@ export default function DashboardLayout({
       console.log('🔄 Dashboard: Loading user or account data...');
     }
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center">
-        <AppLoader variant="compact" />
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600">
+        <AppLoader variant="centered" />
       </div>
     );
   }
