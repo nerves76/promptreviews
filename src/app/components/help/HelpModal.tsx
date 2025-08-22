@@ -151,8 +151,8 @@ export default function HelpModal({
         </div>
 
         {/* Content Area */}
-        <div className="flex-1 overflow-y-auto bg-gradient-to-br from-indigo-50/50 via-white to-purple-50/50 rounded-b-2xl">
-          <div className="bg-white/80 backdrop-blur-sm h-full flex flex-col rounded-b-2xl">
+        <div className="flex-1 overflow-y-auto rounded-b-2xl">
+          <div className="h-full flex flex-col rounded-b-2xl">
             <div className="flex-1">
               {activeTab === 'tutorials' && (
                 <TutorialsTabNew 
