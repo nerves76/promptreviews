@@ -134,7 +134,7 @@ export async function POST(req: NextRequest) {
     // Preview the upcoming invoice with the changes
     let upcomingInvoice;
     try {
-      upcomingInvoice = await stripe.invoices.retrieveUpcoming({
+      upcomingInvoice = await stripe.invoices.upcoming({
         customer: account.stripe_customer_id,
         subscription: subscription.id,
         subscription_items: [
