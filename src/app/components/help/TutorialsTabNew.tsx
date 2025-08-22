@@ -163,7 +163,6 @@ export default function TutorialsTabNew({
   const [selectedArticle, setSelectedArticle] = useState<any>(null);
   const [loadingContent, setLoadingContent] = useState(false);
   const [articleContent, setArticleContent] = useState<string>('');
-  const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
   const contentRef = useRef<HTMLDivElement>(null);
 
   // Get featured articles based on current page context
@@ -307,15 +306,6 @@ export default function TutorialsTabNew({
     if (article && category) {
       await handleArticleClick(article, category);
     }
-  };
-
-  // Toggle category expansion
-  const toggleCategory = (categoryId: string) => {
-    setExpandedCategories(prev => 
-      prev.includes(categoryId) 
-        ? prev.filter(id => id !== categoryId)
-        : [...prev, categoryId]
-    );
   };
 
   // Back to categories
@@ -485,57 +475,40 @@ export default function TutorialsTabNew({
           Browse all help topics
         </h3>
         
-        <div className="space-y-2 pb-4">
-          {helpCategories.map((category) => (
-            <div key={category.id} className="border border-gray-200 rounded-lg overflow-hidden">
-              {/* Category Header */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 pb-4">
+          {helpCategories.map((category) => {
+            // Get the overview article (first article in the category)
+            const overviewArticle = category.articles[0];
+            
+            return (
               <button
-                onClick={() => toggleCategory(category.id)}
-                className="w-full flex items-center justify-between p-2.5 md:p-3 hover:bg-gray-50 transition-colors"
+                key={category.id}
+                onClick={() => handleArticleClick(overviewArticle, category)}
+                className="flex items-center space-x-3 p-3 md:p-4 bg-white border border-gray-200 rounded-lg hover:border-indigo-300 hover:bg-indigo-50/50 transition-colors text-left group"
               >
-                <div className="flex items-center space-x-2 md:space-x-3">
-                  <div className={`p-1.5 md:p-2 rounded-lg bg-${category.color}-100`}>
-                    <Icon 
-                      name={category.icon} 
-                      className={`w-4 h-4 md:w-5 md:h-5 text-${category.color}-600`} 
-                      size={20} 
-                    />
-                  </div>
-                  <div className="text-left flex-1 min-w-0">
-                    <h4 className="font-medium text-sm md:text-base text-gray-900">{category.title}</h4>
-                    <p className="text-xs text-gray-500 hidden md:block">{category.description}</p>
-                  </div>
+                <div className={`p-2 rounded-lg bg-${category.color}-100 flex-shrink-0`}>
+                  <Icon 
+                    name={category.icon} 
+                    className={`w-5 h-5 md:w-6 md:h-6 text-${category.color}-600`} 
+                    size={24} 
+                  />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h4 className="font-medium text-sm md:text-base text-gray-900 group-hover:text-indigo-700">
+                    {category.title}
+                  </h4>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    {category.description}
+                  </p>
                 </div>
                 <Icon 
-                  name={expandedCategories.includes(category.id) ? "FaChevronUp" : "FaChevronDown"} 
-                  className="w-3 h-3 md:w-4 md:h-4 text-gray-400 flex-shrink-0" 
+                  name="FaChevronRight" 
+                  className="w-4 h-4 text-gray-400 group-hover:text-indigo-600 flex-shrink-0" 
                   size={16} 
                 />
               </button>
-              
-              {/* Category Articles */}
-              {expandedCategories.includes(category.id) && (
-                <div className="border-t border-gray-200 bg-gray-50">
-                  {category.articles.map((article) => (
-                    <button
-                      key={article.id}
-                      onClick={() => handleArticleClick(article, category)}
-                      className="w-full flex items-center justify-between px-8 md:px-12 py-2 hover:bg-white transition-colors text-left group"
-                    >
-                      <span className="text-xs md:text-sm text-gray-700 group-hover:text-indigo-600 truncate pr-2">
-                        {article.title}
-                      </span>
-                      <Icon 
-                        name="FaExternalLinkAlt" 
-                        className="w-3 h-3 text-gray-400 flex-shrink-0" 
-                        size={12} 
-                      />
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>
