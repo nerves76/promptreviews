@@ -35,6 +35,12 @@ export default function CreateBusinessClient() {
   
   // Ref to trigger form submission from top button
   const formRef = useRef<HTMLFormElement>(null);
+  
+  // Preload welcome image to prevent loading delay
+  useEffect(() => {
+    const img = new Image();
+    img.src = "https://ltneloufqjktdplodvao.supabase.co/storage/v1/object/public/logos/prompt-assets/prompty-telescope-capturing-reviews.png";
+  }, []);
 
   // Memoize router functions to prevent infinite loops
   const redirectToDashboard = useCallback(() => {

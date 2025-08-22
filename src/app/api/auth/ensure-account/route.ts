@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/utils/supabaseServer';
+import { createServerSupabaseClient, createServiceRoleClient } from '@/auth/providers/supabase';
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createClient();
-    
-    // Get current user
+    // Get the authenticated user from the server-side client - updated
+    const supabase = await createServerSupabaseClient();
     const { data: { user }, error: userError } = await supabase.auth.getUser();
     
     if (userError || !user) {
@@ -17,8 +16,11 @@ export async function POST(request: NextRequest) {
     
     console.log('🔧 Ensuring account exists for user:', user.id);
     
+    // Use service role client for database operations
+    const supabaseAdmin = createServiceRoleClient();
+    
     // Check if account exists
-    const { data: existingAccount, error: checkError } = await supabase
+    const { data: existingAccount, error: checkError } = await supabaseAdmin
       .from('accounts')
       .select('id')
       .eq('id', user.id)
@@ -36,7 +38,7 @@ export async function POST(request: NextRequest) {
     // Create account if it doesn't exist
     console.log('🔧 Creating account for user:', user.id);
     
-    const { data: newAccount, error: createError } = await supabase
+    const { data: newAccount, error: createError } = await supabaseAdmin
       .from('accounts')
       .insert({
         id: user.id,
@@ -64,7 +66,7 @@ export async function POST(request: NextRequest) {
     }
     
     // Create account_users link
-    const { error: linkError } = await supabase
+    const { error: linkError } = await supabaseAdmin
       .from('account_users')
       .insert({
         account_id: user.id,

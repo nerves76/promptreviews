@@ -72,6 +72,12 @@ export default function BusinessProfilePage() {
   // Track if we've loaded at least once to prevent showing loading state on refreshes
   const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
+  
+  // Preload welcome image to prevent loading delay
+  useEffect(() => {
+    const img = new Image();
+    img.src = "https://ltneloufqjktdplodvao.supabase.co/storage/v1/object/public/logos/prompt-assets/prompty-telescope-capturing-reviews.png";
+  }, []);
 
   useAuthGuard();
   const { user } = useAuthUser();

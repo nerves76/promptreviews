@@ -14,6 +14,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import Icon from '@/components/Icon';
+import Image from 'next/image';
 
 interface WelcomePopupProps {
   isOpen: boolean;
@@ -140,9 +141,17 @@ Here's your first tip: [icon] <— click here`;
                         ref={tooltipRef}
                         className="absolute z-30 left-1/2 -translate-x-1/2 bottom-full mb-2 w-80 p-4 bg-white border border-gray-200 rounded-lg shadow-lg text-sm text-gray-700"
                       >
-                        <span className="block mb-2">
-                          Whenever you see me <Icon name="prompty" className="inline w-5 h-5 text-slate-blue align-middle" size={20} />, it means this field will help me learn about your business and create review templates for your customers or clients. But using Prompty AI is also totally optional!
-                        </span>
+                        <div className="space-y-2">
+                          <p>
+                            Whenever you see me <Icon name="prompty" className="inline w-5 h-5 text-slate-blue align-middle" size={20} />, it means this field will help me learn about your business.
+                          </p>
+                          <p>
+                            This will come in handy when you are responding to reviews or updating your Google Business Profile and need some copywriting help. It's also how I create review templates for your customers or clients.
+                          </p>
+                          <p>
+                            Just remember, using Prompty AI is also totally optional and you have complete control of when and how to use it.
+                          </p>
+                        </div>
                         <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-200"></div>
                       </div>
                     )}
@@ -212,9 +221,12 @@ Here's your first tip: [icon] <— click here`;
         <div className="flex-1 bg-gray-50 p-8 rounded-r-xl flex items-center justify-center overflow-hidden relative">
           {imageUrl || !userName ? (
             <div className="w-full h-full flex items-center justify-center">
-              <img 
+              <Image 
                 src={imageUrl || "/images/prompty-catching-stars.png"} 
                 alt={imageAlt} 
+                width={400}
+                height={300}
+                priority
                 className="w-full h-auto max-w-md mx-auto rounded-lg shadow-sm"
               />
             </div>

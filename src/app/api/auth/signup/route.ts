@@ -109,7 +109,20 @@ export async function POST(request: NextRequest) {
         
         if (accountError) {
           console.error('❌ Account creation error:', accountError);
-          // Continue anyway - user is created even if account record fails
+          
+          // If it's a unique constraint error, the account might already exist
+          if (accountError.code === '23505') {
+            console.log('Account may already exist, continuing...');
+          } else {
+            // For other errors, we should fail the signup
+            // Delete the user since account creation failed
+            await supabase.auth.admin.deleteUser(userId);
+            
+            return NextResponse.json(
+              { error: 'Failed to create account. Please try again.' },
+              { status: 500 }
+            );
+          }
         } else {
           console.log('✅ Account created manually');
           

@@ -53,8 +53,8 @@ const Dashboard = React.memo(function Dashboard() {
     accountLoading,
     hasBusiness,
     signOut,
-    refreshAuth,
-    refreshAccountDetails
+    refreshSession,
+    refreshAccount
   } = useAuth();
   
   // Remove auth guard - authentication is handled by dashboard layout
@@ -289,6 +289,14 @@ const Dashboard = React.memo(function Dashboard() {
   // Add a ref to track if businessCreated param was handled
   const businessCreatedHandled = useRef(false);
 
+  // Redirect to sign-in if not authenticated
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      console.log('🔒 Dashboard: User not authenticated, redirecting to sign-in');
+      router.push('/auth/sign-in');
+    }
+  }, [authLoading, isAuthenticated, router]);
+
   // Ensure account exists for authenticated users
   useEffect(() => {
     const ensureAccount = async () => {
@@ -307,10 +315,17 @@ const Dashboard = React.memo(function Dashboard() {
         
         const result = await response.json();
         
+        if (response.status === 401) {
+          // User is not actually authenticated - redirect to sign-in
+          console.log('🔒 Dashboard: User not authenticated (401), redirecting to sign-in');
+          router.push('/auth/sign-in');
+          return;
+        }
+        
         if (result.success) {
           console.log('✅ Dashboard: Account ensured, refreshing auth...');
           // Refresh auth context to load the new account
-          await refreshAuth();
+          await refreshSession();
         } else {
           console.error('❌ Dashboard: Failed to ensure account:', result.error);
         }
@@ -320,7 +335,7 @@ const Dashboard = React.memo(function Dashboard() {
     };
     
     ensureAccount();
-  }, [authLoading, isAuthenticated, user?.id, account?.id, refreshAuth]);
+  }, [authLoading, isAuthenticated, user?.id, account?.id, refreshSession, router]);
 
   // Load dashboard data when auth is ready
   useEffect(() => {
@@ -476,7 +491,7 @@ const Dashboard = React.memo(function Dashboard() {
       
       // Refresh account data to get updated plan
       if (user?.id) {
-        refreshAccountDetails().then(() => {
+        refreshAccount().then(() => {
           // Reset the flag after account data is refreshed
           setTimeout(() => setJustCompletedPayment(false), 1000);
         }).catch(error => {
@@ -753,13 +768,14 @@ const Dashboard = React.memo(function Dashboard() {
     }
   };
 
-  const handleSelectTier = async (tierKey: string) => {
+  const handleSelectTier = async (tierKey: string, billingPeriod: 'monthly' | 'annual' = 'monthly') => {
     try {
       setShowTopLoader(true);
       
       // Track the plan selection
       await trackEvent(GA_EVENTS.PLAN_SELECTED, {
         plan: tierKey,
+        billing_period: billingPeriod,
         source: 'dashboard_modal'
       });
       
@@ -769,11 +785,12 @@ const Dashboard = React.memo(function Dashboard() {
           throw new Error("Account not found");
         }
         
-        // Update account to grower plan with trial dates
+        // Update account to grower plan with trial dates and billing period
         const { error: updateError } = await supabase
           .from("accounts")
           .update({ 
             plan: tierKey,
+            billing_period: billingPeriod,
             trial_start: new Date().toISOString(),
             trial_end: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString()
           })
@@ -797,8 +814,8 @@ const Dashboard = React.memo(function Dashboard() {
         
         // Instead of window.location.reload(), reload data and update state
         await Promise.all([
-          refreshAuth(),
-          refreshAccountDetails(),
+          refreshSession(),
+          refreshAccount(),
           loadDashboardSpecificData()
         ]);
         setShowTopLoader(false);
@@ -814,6 +831,7 @@ const Dashboard = React.memo(function Dashboard() {
         plan: tierKey,
         userId: account.id,
         email: user?.email,
+        billingPeriod: billingPeriod,
       };
       
       console.log(`💳 Creating Stripe checkout session for:`, checkoutData);
@@ -923,8 +941,8 @@ const Dashboard = React.memo(function Dashboard() {
         
         // Refresh all auth context data
         await Promise.all([
-          refreshAuth(),
-          refreshAccountDetails(),
+          refreshSession(),
+          refreshAccount(),
           loadDashboardSpecificData()
         ]);
         
