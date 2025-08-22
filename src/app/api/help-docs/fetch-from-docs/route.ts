@@ -54,33 +54,49 @@ export async function POST(req: NextRequest) {
       fetchUrl = `${DOCS_BASE_URL}${mappedPath}`;
     }
 
-    // Fetch the content from the docs site
-    // Append .txt to get plain text version
-    const response = await fetch(`${fetchUrl}/index.txt`, {
+    // Try to fetch HTML version first for better formatting
+    const htmlResponse = await fetch(fetchUrl, {
       headers: {
         'User-Agent': 'PromptReviews-HelpModal/1.0',
       },
     });
 
-    if (!response.ok) {
-      // Fallback to HTML if txt not available
-      const htmlResponse = await fetch(fetchUrl, {
-        headers: {
-          'User-Agent': 'PromptReviews-HelpModal/1.0',
-        },
-      });
+    if (htmlResponse.ok) {
+      const html = await htmlResponse.text();
       
-      if (!htmlResponse.ok) {
-        return NextResponse.json(
-          { error: 'Failed to fetch content from docs site' },
-          { status: response.status }
-        );
+      // Extract content from the main section
+      // Look for the article content within the HTML
+      let content = '';
+      
+      // Try to extract the main content area
+      const mainMatch = html.match(/<main[^>]*>([\s\S]*?)<\/main>/);
+      if (mainMatch) {
+        content = mainMatch[1];
+      } else {
+        // Try article tag
+        const articleMatch = html.match(/<article[^>]*>([\s\S]*?)<\/article>/);
+        if (articleMatch) {
+          content = articleMatch[1];
+        } else {
+          // Try content div
+          const contentMatch = html.match(/<div[^>]*class="[^"]*content[^"]*"[^>]*>([\s\S]*?)<\/div>/);
+          if (contentMatch) {
+            content = contentMatch[1];
+          } else {
+            // Fallback to body content
+            const bodyMatch = html.match(/<body[^>]*>([\s\S]*?)<\/body>/);
+            content = bodyMatch ? bodyMatch[1] : html;
+          }
+        }
       }
       
-      const html = await htmlResponse.text();
-      // Extract content from HTML (you may need to parse this better)
-      const contentMatch = html.match(/<main[^>]*>([\s\S]*?)<\/main>/);
-      const content = contentMatch ? contentMatch[1] : html;
+      // Clean up the content - remove scripts, styles, nav, footer, etc.
+      content = content
+        .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+        .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '')
+        .replace(/<nav\b[^<]*(?:(?!<\/nav>)<[^<]*)*<\/nav>/gi, '')
+        .replace(/<footer\b[^<]*(?:(?!<\/footer>)<[^<]*)*<\/footer>/gi, '')
+        .replace(/<header\b[^<]*(?:(?!<\/header>)<[^<]*)*<\/header>/gi, '');
       
       return NextResponse.json({
         content,
@@ -89,13 +105,26 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const content = await response.text();
-
-    return NextResponse.json({
-      content,
-      source: 'docs-site',
-      url: fetchUrl,
+    // Fallback to plain text version
+    const txtResponse = await fetch(`${fetchUrl}/index.txt`, {
+      headers: {
+        'User-Agent': 'PromptReviews-HelpModal/1.0',
+      },
     });
+
+    if (txtResponse.ok) {
+      const content = await txtResponse.text();
+      return NextResponse.json({
+        content,
+        source: 'docs-site',
+        url: fetchUrl,
+      });
+    }
+
+    return NextResponse.json(
+      { error: 'Failed to fetch content from docs site' },
+      { status: 404 }
+    );
 
   } catch (error) {
     console.error('Error fetching from docs site:', error);

@@ -227,7 +227,36 @@ export default function TutorialsTabNew({
       
       if (response.ok) {
         const data = await response.json();
-        setArticleContent(data.content);
+        // Check if content is plain text/markdown and needs conversion
+        if (data.source === 'docs-site' && !data.content.includes('<')) {
+          // It's plain text/markdown, convert to simple HTML
+          const htmlContent = data.content
+            .split('\n\n')
+            .map(paragraph => {
+              // Check for headers
+              if (paragraph.startsWith('# ')) {
+                return `<h1 class="text-2xl font-bold mb-4">${paragraph.substring(2)}</h1>`;
+              } else if (paragraph.startsWith('## ')) {
+                return `<h2 class="text-xl font-semibold mb-3">${paragraph.substring(3)}</h2>`;
+              } else if (paragraph.startsWith('### ')) {
+                return `<h3 class="text-lg font-medium mb-2">${paragraph.substring(4)}</h3>`;
+              } else if (paragraph.startsWith('- ') || paragraph.startsWith('* ')) {
+                // Handle lists
+                const items = paragraph.split('\n').map(item => 
+                  `<li>${item.replace(/^[*-]\s/, '')}</li>`
+                ).join('');
+                return `<ul class="list-disc pl-6 mb-4">${items}</ul>`;
+              } else if (paragraph.trim()) {
+                return `<p class="mb-4">${paragraph}</p>`;
+              }
+              return '';
+            })
+            .join('');
+          setArticleContent(htmlContent);
+        } else {
+          // It's already HTML
+          setArticleContent(data.content);
+        }
       } else {
         setArticleContent('<p>Failed to load article content. Please try again.</p>');
       }
