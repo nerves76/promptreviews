@@ -939,21 +939,21 @@ export function ReviewManagementModal({
                   </div>
                 )}
                 <div className="flex justify-between items-center">
-                  <h3 className="text-lg font-medium text-gray-800">Selected Reviews ({selectedReviews.length}/{MAX_WIDGET_REVIEWS})</h3>
+                  <h3 className="text-lg font-medium text-gray-800">Selected reviews ({selectedReviews.length}/{MAX_WIDGET_REVIEWS})</h3>
                   <button
                     onClick={() => setShowAddCustomReview(true)}
                     className="px-4 py-2 bg-blue-100 text-blue-800 rounded-md hover:bg-blue-200"
                   >
-                    Add Custom Review
+                    Add custom review
                   </button>
                 </div>
 
                 {showAddCustomReview ? (
                   <div className="p-4 bg-gray-50 rounded-lg border">
-                    <h4 className="font-semibold mb-3">Add New Custom Review</h4>
+                    <h4 className="font-semibold mb-3">Add new custom review</h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">First Name</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">First name</label>
                         <input
                           type="text"
                           placeholder="First Name"
@@ -963,7 +963,7 @@ export function ReviewManagementModal({
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Last name</label>
                         <input
                           type="text"
                           placeholder="Last Name"
@@ -973,7 +973,7 @@ export function ReviewManagementModal({
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Reviewer Role</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Reviewer role</label>
                         <input
                           type="text"
                           placeholder="e.g. 'Verified Customer'"
@@ -983,7 +983,7 @@ export function ReviewManagementModal({
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Star Rating</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Star rating</label>
                         <input
                           type="number"
                           placeholder="1-5"
@@ -1003,7 +1003,7 @@ export function ReviewManagementModal({
                       </div>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Review Content</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Review content</label>
                       <textarea
                         placeholder="Write the review content here..."
                         value={newCustomReview.review_content}
@@ -1073,7 +1073,7 @@ export function ReviewManagementModal({
                         
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-2">
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Full name</label>
                             <input
                               type="text"
                               placeholder="Full Name"
@@ -1083,7 +1083,7 @@ export function ReviewManagementModal({
                             />
                           </div>
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Reviewer Role</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Reviewer role</label>
                             <input
                               type="text"
                               placeholder="e.g. 'Verified Customer'"
@@ -1093,7 +1093,7 @@ export function ReviewManagementModal({
                             />
                           </div>
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Star Rating</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Star rating</label>
                             <input
                               type="number"
                               placeholder="1-5"
@@ -1108,7 +1108,7 @@ export function ReviewManagementModal({
                         </div>
 
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Review Content</label>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Review content</label>
                           <textarea
                             value={editedReviews[review.review_id] || ""}
                             onChange={(e) => handleReviewEdit(review.review_id, e.target.value)}

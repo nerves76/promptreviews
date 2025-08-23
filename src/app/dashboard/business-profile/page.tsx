@@ -856,7 +856,7 @@ export default function BusinessProfilePage() {
     return (
       <div className="min-h-screen flex justify-center items-center">
         <div className="bg-white rounded-2xl shadow-lg p-8 max-w-2xl w-full">
-          <h1 className="text-2xl font-bold mb-4">No Business Found</h1>
+          <h1 className="text-2xl font-bold mb-4">No business found</h1>
           <p className="mb-4">You don't have a business yet.</p>
           <a
             href="/dashboard/create-business"

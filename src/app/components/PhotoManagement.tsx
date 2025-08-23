@@ -1,5 +1,5 @@
 /**
- * Google Business Profiles Component
+ * Google Business Profile Optimization Component
  * Handles bulk photo uploads and management across multiple Google Business Profile locations
  */
 
@@ -325,10 +325,10 @@ export default function PhotoManagement({ locations, isConnected }: PhotoManagem
       {/* Header */}
       <div>
         <h2 className="text-2xl font-bold text-slate-blue mb-2">
-          Google Business Profiles
+          Google Business Profile Optimization
         </h2>
         <p className="text-gray-600">
-          Optimize your Google Business Profiles with Prompty power! Update regularly for best results.
+          Optimize your Google Business Profile with Prompty power! Update regularly for best results.
         </p>
       </div>
 

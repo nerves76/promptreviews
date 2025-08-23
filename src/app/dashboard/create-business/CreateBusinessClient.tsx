@@ -241,7 +241,7 @@ export default function CreateBusinessClient() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-red-600 mb-4">Setup Error</h1>
+          <h1 className="text-2xl font-bold text-red-600 mb-4">Setup error</h1>
           <p className="text-gray-600 mb-6">{error}</p>
           <button 
             onClick={() => {
@@ -286,7 +286,7 @@ export default function CreateBusinessClient() {
                   <svg className="w-4 h-4 text-white fill-current">
                     <use href="/icons-sprite.svg#FaPlus" />
                   </svg>
-                  Create Business
+                  Create business
                 </>
               )}
             </button>
@@ -328,7 +328,7 @@ export default function CreateBusinessClient() {
                       <svg className="w-4 h-4 text-white fill-current">
                         <use href="/icons-sprite.svg#FaPlus" />
                       </svg>
-                      Create Business
+                      Create business
                     </>
                   )}
                 </button>

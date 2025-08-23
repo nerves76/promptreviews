@@ -18,6 +18,8 @@ import { useBusinessData, useAuthUser, useAccountData, useSubscriptionData } fro
 import UnrespondedReviewsWidget from '@/app/components/UnrespondedReviewsWidget';
 import { safeTransformLocations, validateTransformedLocations } from '@/lib/google-business/safe-transformer';
 import LocationSelector from '@/components/GoogleBusinessProfile/LocationSelector';
+// Using V2 to force webpack to reload
+import LocationSelectionModal from '@/components/GoogleBusinessProfile/LocationSelectionModalV2';
 import OverviewStats from '@/components/GoogleBusinessProfile/OverviewStats';
 import BusinessHealthMetrics from '@/components/GoogleBusinessProfile/BusinessHealthMetrics';
 import HelpModal from '@/app/components/help/HelpModal';
@@ -160,6 +162,8 @@ export default function SocialPostingDashboard() {
   const [showFetchConfirmModal, setShowFetchConfirmModal] = useState(false);
   const [showProductsHelpModal, setShowProductsHelpModal] = useState(false);
   const [showPostTypesHelpModal, setShowPostTypesHelpModal] = useState(false);
+  const [showLocationSelectionModal, setShowLocationSelectionModal] = useState(false);
+  const [pendingLocations, setPendingLocations] = useState<GoogleBusinessLocation[]>([]);
   
   // Plan access state for Growers
   const [hasGBPAccess, setHasGBPAccess] = useState(true);
@@ -1005,26 +1009,34 @@ export default function SocialPostingDashboard() {
       
       // Update local state with fetched locations
       if (result.locations && result.locations.length > 0) {
-        setLocations(result.locations);
-        localStorage.setItem('google-business-locations', JSON.stringify(result.locations));
-        setHasAttemptedFetch(false); // Clear the flag since we have locations now
+        // Validate and transform locations to ensure proper structure
+        const validLocations = result.locations.map((loc: any) => ({
+          id: loc.id || loc.location_id || '',
+          name: loc.name || loc.location_name || '',
+          address: loc.address || ''
+        }));
         
-        // Auto-select first location if none selected
-        if (!selectedLocationId && result.locations.length > 0) {
-          setSelectedLocationId(result.locations[0].id);
-        }
+        console.log('Setting pending locations:', validLocations);
+        
+        // Show location selection modal for initial setup
+        setPendingLocations(validLocations);
+        setShowLocationSelectionModal(true);
+        
+        // Show initial success message
+        const demoNote = result.isDemoMode ? ' (Demo Mode - Using test data due to Google rate limits)' : '';
+        setPostResult({ 
+          success: true, 
+          message: `Found ${result.locations?.length || 0} business locations!${demoNote} Please select which ones to manage.` 
+        });
       } else {
         // Only mark as attempted if we got a response but no locations
         setHasAttemptedFetch(true);
         localStorage.setItem('google-business-fetch-attempted', 'true');
+        setPostResult({ 
+          success: false, 
+          message: 'No business locations found. Please check your Google Business Profile access.' 
+        });
       }
-      
-      // Show success message with demo mode indicator
-      const demoNote = result.isDemoMode ? ' (Demo Mode - Using test data due to Google rate limits)' : '';
-      setPostResult({ 
-        success: true, 
-        message: `Successfully fetched ${result.locations?.length || 0} business locations!${demoNote}` 
-      });
       
       // Don't call loadPlatforms here as it causes duplicate messages
       // The state is already updated above
@@ -1052,6 +1064,90 @@ export default function SocialPostingDashboard() {
     } finally {
       setFetchingLocations(null);
     }
+  };
+
+  // Handle location selection confirmation
+  const handleLocationSelectionConfirm = async (selectedIds: string[]) => {
+    try {
+      console.log('Confirming location selection:', { selectedIds, pendingLocations });
+      
+      // Filter locations to only selected ones
+      const selectedLocs = pendingLocations.filter(loc => selectedIds.includes(loc.id));
+      
+      console.log('Selected locations:', selectedLocs);
+      
+      // Validate selected locations
+      if (!selectedLocs || selectedLocs.length === 0) {
+        throw new Error('No valid locations selected');
+      }
+      
+      // Save to database
+      const response = await fetch('/api/social-posting/platforms/google-business-profile/save-selected-locations', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          locations: selectedLocs.map(loc => ({
+            id: loc.id || '',
+            name: loc.name || '',
+            address: loc.address || ''
+          }))
+        })
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to save locations');
+      }
+
+      const result = await response.json();
+      console.log('✅ Saved selected locations to database:', result);
+      
+      // Save selected locations to state and localStorage
+      setLocations(selectedLocs);
+      localStorage.setItem('google-business-locations', JSON.stringify(selectedLocs));
+      setHasAttemptedFetch(false);
+      
+      // Auto-select first location if none selected
+      if (!selectedLocationId && selectedLocs.length > 0) {
+        setSelectedLocationId(selectedLocs[0].id);
+      }
+      
+      setShowLocationSelectionModal(false);
+      setPendingLocations([]);
+      
+      // Show success message
+      setPostResult({ 
+        success: true, 
+        message: `Successfully configured ${selectedLocs.length} location${selectedLocs.length !== 1 ? 's' : ''} for management!` 
+      });
+      
+      // Switch to overview tab
+      setActiveTab('overview');
+    } catch (error) {
+      console.error('Error saving location selection:', error);
+      setPostResult({ 
+        success: false, 
+        message: error instanceof Error ? error.message : 'Failed to save location selection. Please try again.' 
+      });
+    }
+  };
+  
+  // Handle location selection cancel
+  const handleLocationSelectionCancel = () => {
+    // Clear pending locations and close modal
+    setPendingLocations([]);
+    setShowLocationSelectionModal(false);
+    
+    // Mark as attempted so user can try again
+    setHasAttemptedFetch(true);
+    localStorage.setItem('google-business-fetch-attempted', 'true');
+    
+    setPostResult({ 
+      success: false, 
+      message: 'Location selection cancelled. You can select locations later from the settings.' 
+    });
   };
 
   const handlePost = async () => {
@@ -1529,10 +1625,10 @@ export default function SocialPostingDashboard() {
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between space-y-4 sm:space-y-0">
             <div className="text-left">
               <h1 className="text-3xl font-bold text-slate-blue mb-2">
-                Google Business Profiles
+                Google Business Profile Optimization
               </h1>
               <p className="text-gray-600">
-                Optimize your Google Business Profiles with Prompty power! Update regularly for best results.
+                Optimize your Google Business Profile with Prompty power! Update regularly for best results.
               </p>
               {/* Connection Status Indicator */}
               {isConnected && (
@@ -1997,9 +2093,9 @@ export default function SocialPostingDashboard() {
                           Setup Complete!
                         </h4>
                         <p className="text-sm text-green-700 mb-3">
-                          Found {locations.length} business location{locations.length !== 1 ? 's' : ''}. Your Google Business Profile is ready!
+                          Managing {locations.length} business location{locations.length !== 1 ? 's' : ''}. Your Google Business Profile is ready!
                         </p>
-                        <div className="flex space-x-2">
+                        <div className="flex flex-wrap gap-2">
                           <button
                             onClick={() => changeTab('overview')}
                             className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm font-medium"
@@ -2007,16 +2103,11 @@ export default function SocialPostingDashboard() {
                             View Overview →
                           </button>
                           <button
-                            onClick={() => changeTab('create-post')}
-                            className="px-4 py-2 bg-white text-green-700 border border-green-300 rounded-md hover:bg-green-50 transition-colors text-sm font-medium"
+                            onClick={handleFetchLocations}
+                            className="px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors text-sm font-medium flex items-center space-x-1"
                           >
-                            Post
-                          </button>
-                          <button
-                            onClick={() => changeTab('photos')}
-                            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm font-medium"
-                          >
-                            View Photos →
+                            <Icon name="FaCog" className="w-3 h-3" />
+                            <span>Change Locations</span>
                           </button>
                         </div>
                       </div>
@@ -2135,21 +2226,23 @@ export default function SocialPostingDashboard() {
                     </div>
                   )}
 
-                  {/* Overview Stats - Always show with dummy data when not connected */}
-                  <OverviewStats
-                    totalReviews={overviewData?.reviewTrends.totalReviews || 247}
-                    reviewTrend={overviewData?.reviewTrends.reviewTrend || 12.5}
-                    averageRating={overviewData?.reviewTrends.averageRating || 4.8}
-                    monthlyReviewData={overviewData?.reviewTrends.monthlyReviewData || [
-                      { month: 'Jan', fiveStar: 45, fourStar: 12, threeStar: 3, twoStar: 1, oneStar: 2, noRating: 5 },
-                      { month: 'Feb', fiveStar: 52, fourStar: 8, threeStar: 2, twoStar: 1, oneStar: 1, noRating: 3 },
-                      { month: 'Mar', fiveStar: 38, fourStar: 15, threeStar: 4, twoStar: 2, oneStar: 1, noRating: 7 },
-                      { month: 'Apr', fiveStar: 61, fourStar: 11, threeStar: 2, twoStar: 0, oneStar: 1, noRating: 4 },
-                      { month: 'May', fiveStar: 49, fourStar: 13, threeStar: 5, twoStar: 2, oneStar: 2, noRating: 6 },
-                      { month: 'Jun', fiveStar: 55, fourStar: 9, threeStar: 3, twoStar: 1, oneStar: 0, noRating: 2 }
-                    ]}
-                    isLoading={overviewLoading}
-                  />
+                  {/* Overview Stats - Show actual data or zero state for errors */}
+                  {!overviewError && (
+                    <OverviewStats
+                      totalReviews={overviewData?.reviewTrends?.totalReviews || 0}
+                      reviewTrend={overviewData?.reviewTrends?.reviewTrend || 0}
+                      averageRating={overviewData?.reviewTrends?.averageRating || 0}
+                      monthlyReviewData={overviewData?.reviewTrends?.monthlyReviewData || [
+                        { month: 'Jan', fiveStar: 0, fourStar: 0, threeStar: 0, twoStar: 0, oneStar: 0, noRating: 0 },
+                        { month: 'Feb', fiveStar: 0, fourStar: 0, threeStar: 0, twoStar: 0, oneStar: 0, noRating: 0 },
+                        { month: 'Mar', fiveStar: 0, fourStar: 0, threeStar: 0, twoStar: 0, oneStar: 0, noRating: 0 },
+                        { month: 'Apr', fiveStar: 0, fourStar: 0, threeStar: 0, twoStar: 0, oneStar: 0, noRating: 0 },
+                        { month: 'May', fiveStar: 0, fourStar: 0, threeStar: 0, twoStar: 0, oneStar: 0, noRating: 0 },
+                        { month: 'Jun', fiveStar: 0, fourStar: 0, threeStar: 0, twoStar: 0, oneStar: 0, noRating: 0 }
+                      ]}
+                      isLoading={overviewLoading}
+                    />
+                  )}
 
                   <BusinessHealthMetrics
                     locationId={selectedLocationId || 'demo'}
@@ -3305,6 +3398,17 @@ export default function SocialPostingDashboard() {
         initialKeywords={['posts', 'google', 'business-profile', 'seo', 'updates', 'offers']}
         initialTab="tutorials"
       />
+      
+      {/* Location Selection Modal */}
+      {showLocationSelectionModal && (
+        <LocationSelectionModal
+          locations={pendingLocations}
+          planLimit={currentPlan === 'maven' ? 10 : 5}
+          planName={currentPlan === 'maven' ? 'Maven' : 'Builder'}
+          onConfirm={handleLocationSelectionConfirm}
+          onCancel={handleLocationSelectionCancel}
+        />
+      )}
     </div>
   );
 } 

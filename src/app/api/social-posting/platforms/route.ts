@@ -282,28 +282,66 @@ export async function GET(request: NextRequest) {
     // Check for Google Business Profile locations (only if connected)
     let locations = [];
     if (isGoogleConnected) {
-      const { data: locationData, error: locationsError } = await supabase
-        .from('google_business_locations')
-        .select('*')
-        .eq('user_id', user.id);
+      // First get the account ID for the user
+      const accountId = accountsData?.[0]?.account_id;
+      
+      if (accountId) {
+        // For now, skip selected locations and just fetch all
+        // TODO: Re-enable once selected_gbp_locations table is created
+        const skipSelectedLocations = true;
+        
+        if (skipSelectedLocations) {
+          // Temporarily fetch all locations
+          const { data: locationData, error: locationsError } = await supabase
+            .from('google_business_locations')
+            .select('*')
+            .eq('user_id', user.id);
 
-      if (locationsError) {
-        console.error('❌ Error fetching locations:', {
-          error: locationsError.message,
-          code: locationsError.code,
-          userId: user.id
-        });
-      } else {
-        console.log(`✅ Found ${locationData?.length || 0} locations for user:`, user.id);
-        if (locationData && locationData.length > 0) {
-          console.log('📍 Location details:', locationData.map(loc => ({
-            id: loc.location_id,
-            name: loc.location_name,
+          if (locationsError) {
+            console.error('❌ Error fetching locations:', {
+              error: locationsError.message,
+              code: locationsError.code,
+              userId: user.id
+            });
+          } else {
+            console.log(`✅ Found ${locationData?.length || 0} locations for user:`, user.id);
+            if (locationData && locationData.length > 0) {
+              console.log('📍 Location details:', locationData.map(loc => ({
+                id: loc.location_id,
+                name: loc.location_name,
             status: loc.status,
             lastFetched: loc.updated_at
           })));
+            }
+            locations = locationData || [];
+          }
+        } else if (selectedLocationData && selectedLocationData.length > 0) {
+          // Map selected locations to the expected format
+          locations = selectedLocationData.map(loc => ({
+            location_id: loc.location_id,
+            location_name: loc.location_name,
+            address: loc.address,
+            user_id: user.id
+          }));
+          console.log(`✅ Found ${locations.length} selected locations for account ${accountId}`);
+        } else {
+          // No selected locations yet - return empty array to prompt selection
+          console.log('ℹ️ No locations selected yet for account:', accountId);
+          locations = [];
         }
-        locations = locationData || [];
+      } else {
+        // No account found, fallback to all locations
+        const { data: locationData, error: locationsError } = await supabase
+          .from('google_business_locations')
+          .select('*')
+          .eq('user_id', user.id);
+
+        if (locationsError) {
+          console.error('❌ Error fetching locations (no account):', locationsError);
+        } else {
+          console.log(`✅ Found ${locationData?.length || 0} locations for user (no account):`, user.id);
+          locations = locationData || [];
+        }
       }
     }
 

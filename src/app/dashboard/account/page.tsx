@@ -371,7 +371,7 @@ export default function AccountPage() {
       <div className="max-w-4xl mx-auto">
         <div className="flex items-start justify-between mt-2 mb-4">
           <div className="flex flex-col mt-0 md:mt-[3px]">
-            <h1 className="text-4xl font-bold text-slate-blue mt-0 mb-2">Account Settings</h1>
+            <h1 className="text-4xl font-bold text-slate-blue mt-0 mb-2">Account settings</h1>
             <p className="text-gray-600 text-base max-w-md mt-0 mb-10">Manage your account preferences and security settings</p>
           </div>
         </div>
@@ -379,7 +379,7 @@ export default function AccountPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Account Information */}
           <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Account Information</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Account information</h3>
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700">Email</label>
@@ -411,18 +411,18 @@ export default function AccountPage() {
 
           {/* Notification Settings */}
           <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Notification Settings</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Notification settings</h3>
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Review Notifications</label>
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1">
+                  <label className="block text-sm font-medium text-gray-700">Review notifications</label>
                   <p className="mt-1 text-sm text-gray-500">Get email notifications when customers submit reviews</p>
                 </div>
                 <button
                   type="button"
                   onClick={handleNotifToggle}
                   disabled={notifSaving}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2 disabled:opacity-50 ${
+                  className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2 disabled:opacity-50 ${
                     account?.review_notifications_enabled ? "bg-slate-blue" : "bg-gray-200"
                   }`}
                   aria-pressed={account?.review_notifications_enabled}
@@ -446,16 +446,18 @@ export default function AccountPage() {
                 </p>
               </div>
 
-              <div className="flex items-center justify-between">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Google Business Profile Review Reminders</label>
-                  <p className="mt-1 text-sm text-gray-500">Get email reminders to request reviews from your Google Business Profile</p>
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1">
+                  <label className="block text-sm font-medium text-gray-700">Monthly GBP insights</label>
+                  <p className="mt-1 text-sm text-gray-500">
+                    Get monthly email reports for your selected Google Business Profile locations
+                  </p>
                 </div>
                 <button
                   type="button"
                   onClick={handleGbpReminderToggle}
                   disabled={gbpReminderSaving}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2 disabled:opacity-50 ${
+                  className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2 disabled:opacity-50 ${
                     gbpReminderSettings?.enabled ? "bg-slate-blue" : "bg-gray-200"
                   }`}
                   aria-pressed={gbpReminderSettings?.enabled}
@@ -474,8 +476,13 @@ export default function AccountPage() {
                 <p>
                   <strong>Status:</strong> {gbpReminderSettings?.enabled ? "Enabled" : "Disabled"}
                 </p>
+                {gbpReminderSettings?.enabled && (
+                  <p className="mt-1 text-xs">
+                    ℹ️ You must <a href="/dashboard/google-business" className="text-slate-blue hover:underline">connect and select GBP locations</a> to receive insights
+                  </p>
+                )}
                 <p className="mt-1">
-                  When enabled, you'll receive email reminders at <strong>{user?.email}</strong> to request reviews from your Google Business Profile.
+                  Monthly insights will be sent to <strong>{user?.email}</strong> on the 1st of each month.
                 </p>
               </div>
             </div>
@@ -505,14 +512,14 @@ export default function AccountPage() {
                 onClick={() => router.push("/dashboard/plan")}
                 className="w-full flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
               >
-                {account?.plan === 'grower' || account?.plan === 'free' || !account?.plan ? 'View Plans' : 'Change Plan'}
+                {account?.plan === 'grower' || account?.plan === 'free' || !account?.plan ? 'View plans' : 'Change plan'}
               </button>
               
               <button
                 onClick={() => router.push("/dashboard")}
                 className="w-full flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-slate-blue hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-blue"
               >
-                Back to Dashboard
+                Back to dashboard
               </button>
               
               <button
@@ -529,7 +536,7 @@ export default function AccountPage() {
                     Sending Reset Email...
                   </>
                 ) : (
-                  'Reset Password'
+                  'Reset password'
                 )}
               </button>
               
@@ -537,7 +544,7 @@ export default function AccountPage() {
                 onClick={handleSignOut}
                 className="w-full flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-blue"
               >
-                Sign Out
+                Sign out
               </button>
 
               <button
@@ -554,7 +561,7 @@ export default function AccountPage() {
                     Opening Payment Portal...
                   </>
                 ) : (
-                  'Manage Billing & Payment'
+                  'Manage billing & payment'
                 )}
               </button>
 
@@ -577,7 +584,7 @@ export default function AccountPage() {
                     className="w-full flex items-center justify-center px-4 py-2 border border-slate-blue rounded-md shadow-sm text-sm font-medium text-slate-blue bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-blue"
                   >
                     <Icon name="FaPlus" className="w-4 h-4 mr-2" />
-                    Create New Account
+                    Create new account
                   </button>
                 </div>
               )}
@@ -587,7 +594,7 @@ export default function AccountPage() {
                   onClick={() => setShowCancelModal(true)}
                   className="w-full flex items-center justify-center px-4 py-2 border border-red-300 rounded-md shadow-sm text-sm font-medium text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
                 >
-                  Cancel Account
+                  Cancel account
                 </button>
                 <p className="text-xs text-gray-500 mt-2 text-center">
                   Data retained for 90 days
@@ -604,7 +611,7 @@ export default function AccountPage() {
           <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
             <div className="p-6">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold text-gray-900">Cancel Account</h2>
+                <h2 className="text-xl font-semibold text-gray-900">Cancel account</h2>
                 <button
                   onClick={() => {
                     setShowCancelModal(false);
@@ -697,7 +704,7 @@ export default function AccountPage() {
                   disabled={cancelLoading || cancelConfirmText !== 'DELETE'}
                   className="flex-1 px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {cancelLoading ? 'Cancelling...' : 'Cancel Account'}
+                  {cancelLoading ? 'Cancelling...' : 'Cancel account'}
                 </button>
               </div>
             </div>

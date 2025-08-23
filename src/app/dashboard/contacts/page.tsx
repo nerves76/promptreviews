@@ -1158,7 +1158,7 @@ export default function UploadContactsPage() {
                 className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 font-semibold shadow"
                 onClick={() => setShowDeleteModal(true)}
               >
-                Delete Selected ({selectedContactIds.length})
+                Delete selected ({selectedContactIds.length})
               </button>
               <button
                 className="px-4 py-2 bg-slate-blue text-white rounded hover:bg-slate-blue/90 font-semibold shadow flex items-center gap-2"
@@ -1169,7 +1169,7 @@ export default function UploadContactsPage() {
                 disabled={bulkCreating}
               >
                 <Icon name="FaHandshake" className="w-4 h-4" size={16} />
-                {bulkCreating ? 'Creating...' : `Bulk Create Prompt Pages (${selectedContactIds.length})`}
+                {bulkCreating ? 'Creating...' : `Bulk create Prompt Pages (${selectedContactIds.length})`}
               </button>
               <span className="text-sm text-gray-600">
                 {selectedContactIds.length} selected
@@ -1517,7 +1517,7 @@ export default function UploadContactsPage() {
                       onClick={handleUpload}
                       className="px-6 py-2 bg-indigo text-white rounded-lg hover:bg-indigo/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo transition-colors"
                     >
-                      Upload Contacts
+                      Upload contacts
                     </button>
                   </div>
                 )}
@@ -1554,7 +1554,7 @@ export default function UploadContactsPage() {
                 <Icon name="FaTimes" className="w-5 h-5 text-red-600" />
               </button>
               <Dialog.Title className="text-lg font-bold mb-2">
-                Edit Contact
+                Edit contact
               </Dialog.Title>
               
               {/* Tab Navigation */}
@@ -2025,7 +2025,7 @@ export default function UploadContactsPage() {
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
             <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full">
               <h3 className="text-lg font-bold mb-4 text-red-600">
-                Delete Contacts
+                Delete contacts
               </h3>
               <p className="mb-4 text-gray-600">
                 You are about to delete {selectedContactIds.length} contact
