@@ -6,6 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
+import { getAccountIdForUser } from '@/auth/utils/accounts';
 
 export async function POST(request: NextRequest) {
   try {
@@ -42,38 +43,30 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get account directly using the user ID (simpler approach for API routes)
-    const { data: accountData, error: accountError } = await supabase
+    // Get the account ID for the user using the proper utility
+    const accountId = await getAccountIdForUser(user.id, supabase);
+    
+    if (!accountId) {
+      console.error('No account found for user:', user.id);
+      return NextResponse.json(
+        { error: 'No account found for user' },
+        { status: 404 }
+      );
+    }
+    
+    // Get account details including plan and max_gbp_locations
+    const { data: account, error: accountError } = await supabase
       .from('accounts')
       .select('id, plan, max_gbp_locations')
-      .eq('id', user.id)
+      .eq('id', accountId)
       .single();
-
-    let account: any;
-    let accountId: string;
     
-    if (accountError || !accountData) {
-      // Try to get account through account_users table
-      const { data: accountUser, error: accountUserError } = await supabase
-        .from('account_users')
-        .select('account_id, accounts(id, plan, max_gbp_locations)')
-        .eq('user_id', user.id)
-        .single();
-      
-      if (accountUserError || !accountUser || !accountUser.accounts) {
-        console.error('Error fetching account:', accountUserError || accountError);
-        return NextResponse.json(
-          { error: 'No account found for user' },
-          { status: 404 }
-        );
-      }
-      
-      // Use the account from account_users relation
-      account = accountUser.accounts;
-      accountId = accountUser.account_id;
-    } else {
-      account = accountData;
-      accountId = accountData.id;
+    if (accountError || !account) {
+      console.error('Error fetching account details:', accountError);
+      return NextResponse.json(
+        { error: 'Failed to fetch account details' },
+        { status: 500 }
+      );
     }
 
     // Use database value if available, otherwise fall back to plan defaults
