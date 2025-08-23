@@ -301,29 +301,6 @@ export default function AIReviewsPage() {
           </ul>
         </div>
 
-        {/* Getting Started */}
-        <div className="callout info">
-          <h3 className="text-lg font-semibold mb-3">Ready to Meet Prompty?</h3>
-          <p className="mb-4">
-            Prompty is included with every Prompt Reviews plan. Start creating personalized review requests 
-            that actually work.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-3">
-            <Link
-              href="/getting-started"
-              className="inline-flex items-center space-x-2 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors font-medium no-underline"
-            >
-              <span>Get Started</span>
-              <ArrowRight className="w-4 h-4" />
-            </Link>
-            <Link
-              href="/prompt-pages"
-              className="inline-flex items-center space-x-2 border border-purple-400 text-purple-300 px-4 py-2 rounded-lg hover:bg-white/10/20 transition-colors font-medium no-underline"
-            >
-              <span>Learn About Prompt Pages</span>
-            </Link>
-          </div>
-        </div>
 
         {/* Related Articles */}
         <h2>Related Articles</h2>

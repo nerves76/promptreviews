@@ -137,19 +137,7 @@ const helpCategories = [
       { id: 'team', title: 'Team Management', path: '/team' },
       { id: 'advanced', title: 'Advanced Settings', path: '/advanced' },
     ]
-  },
-  {
-    id: 'help',
-    title: 'Help & Support',
-    description: 'FAQs and troubleshooting',
-    icon: 'FaQuestionCircle',
-    color: 'red',
-    articles: [
-      { id: 'faq', title: 'Quick FAQs', path: '/faq' },
-      { id: 'faq-comprehensive', title: 'All FAQs', path: '/faq-comprehensive' },
-      { id: 'troubleshooting', title: 'Troubleshooting', path: '/troubleshooting' },
-    ]
-  },
+  }
 ];
 
 export default function TutorialsTabNew({ 
@@ -180,8 +168,7 @@ export default function TutorialsTabNew({
       } else if (pathname.includes('plan')) {
         featured.push(
           { id: 'quickstart-choosing-plan', title: 'Choosing the Right Plan', category: 'getting-started', icon: 'FaCheckCircle' },
-          { id: 'billing', title: 'Billing Information', category: 'settings', icon: 'FaCreditCard' },
-          { id: 'faq', title: 'Pricing FAQs', category: 'help', icon: 'FaQuestionCircle' }
+          { id: 'billing', title: 'Billing Information', category: 'settings', icon: 'FaCreditCard' }
         );
       } else if (pathname.includes('google-business')) {
         featured.push(
@@ -204,8 +191,8 @@ export default function TutorialsTabNew({
         // Default featured articles
         featured.push(
           { id: 'quickstart-overview', title: 'Getting Started Guide', category: 'getting-started', icon: 'FaCheckCircle' },
-          { id: 'faq', title: 'Frequently Asked Questions', category: 'help', icon: 'FaQuestionCircle' },
-          { id: 'prompt-overview', title: 'Understanding Prompt Pages', category: 'prompt-pages', icon: 'PromptPageIcon' }
+          { id: 'prompt-overview', title: 'Understanding Prompt Pages', category: 'prompt-pages', icon: 'PromptPageIcon' },
+          { id: 'reviews-dashboard', title: 'Reviews Dashboard', category: 'reviews-management', icon: 'FaStar' }
         );
       }
       

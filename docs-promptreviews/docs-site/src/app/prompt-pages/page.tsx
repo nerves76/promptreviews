@@ -435,32 +435,6 @@ export default function PromptPagesPage() {
           pageUrl="https://docs.promptreviews.com/prompt-pages"
         />
 
-        {/* Next Steps */}
-        <div className="text-center">
-          <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-8">
-            <h2 className="text-2xl font-bold text-white mb-4">Ready to Create Your First Prompt Page?</h2>
-            <p className="text-white/90 mb-6 max-w-2xl mx-auto">
-              Join thousands of businesses collecting better reviews with personalized prompt pages.
-            </p>
-            
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link
-                href="/getting-started"
-                className="inline-flex items-center space-x-2 bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700 transition-colors font-medium"
-              >
-                <span>Get Started</span>
-                <ArrowRight className="w-4 h-4" />
-              </Link>
-              
-              <Link
-                href="/prompt-pages/types"
-                className="inline-flex items-center space-x-2 border border-white/30 text-white px-6 py-3 rounded-lg hover:bg-white/10 transition-colors font-medium backdrop-blur-sm"
-              >
-                <span>Explore Page Types</span>
-              </Link>
-            </div>
-          </div>
-        </div>
       </div>
 
       {/* JSON-LD Script */}

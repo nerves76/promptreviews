@@ -355,30 +355,6 @@ export default function PromptPageTypes() {
         </div>
 
         {/* Next Steps */}
-        <div className="mt-16 bg-gradient-to-r from-slate-blue to-indigo-600 rounded-lg p-8 text-center">
-          <h2 className="text-2xl font-bold text-white mb-4">
-            Ready to Get Started?
-          </h2>
-          <p className="text-white/90 mb-6 max-w-2xl mx-auto">
-            Choose the prompt page type that best fits your business and start collecting better reviews today.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a
-              href="https://promptreviews.app/dashboard/create-prompt-page"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center px-6 py-3 bg-white/20 text-white font-medium rounded-lg hover:bg-white/30 backdrop-blur-sm transition-colors"
-            >
-              Create Your First Prompt Page
-            </a>
-            <a
-              href="/prompt-pages/features"
-              className="inline-flex items-center px-6 py-3 border border-white text-white font-medium rounded-lg hover:bg-white/10 transition-colors"
-            >
-              Learn About Features
-            </a>
-          </div>
-        </div>
       </div>
 
       {/* JSON-LD Script */}

@@ -88,7 +88,7 @@ const pageJsonLd = {
 const steps = [
   {
     title: 'Account Setup & Business Profile',
-    description: 'Create your account and complete your business information to get started with Prompt Reviews.',
+    description: 'Complete your business information to use Prompt Reviews effectively.',
     href: '/getting-started/account-setup',
     time: '5 minutes',
     difficulty: 'Easy',

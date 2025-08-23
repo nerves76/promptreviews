@@ -69,7 +69,7 @@ const pageJsonLd = {
       name: 'How do I get started with Prompt Reviews?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Sign up for an account, complete your business profile, create your first prompt page, and start collecting reviews in under 30 minutes.'
+        text: 'Complete your business profile and create your first prompt page. Most businesses are up and running in under 30 minutes.'
       }
     }
   ]
@@ -83,7 +83,7 @@ const faqCategories = [
     questions: [
       {
         question: 'How do I get started with Prompt Reviews?',
-        answer: 'Getting started is easy! Sign up for an account, complete your business profile, create your first prompt page, and start collecting reviews. Most businesses are up and running in under 30 minutes.',
+        answer: 'Complete your business profile and create your first prompt page. Most businesses are up and running in under 30 minutes.',
         related: ['/getting-started', 'Account Setup']
       },
       {
