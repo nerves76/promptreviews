@@ -201,16 +201,24 @@ export default function AccountPage() {
           updated_at: new Date().toISOString()
         });
 
-      if (!error) {
+      if (error) {
+        console.error('Error updating GBP reminder settings:', {
+          message: error.message,
+          code: error.code,
+          details: error.details,
+          hint: error.hint
+        });
+        // Show user-friendly error
+        alert('Failed to update notification settings. Please try again.');
+      } else {
         setGbpReminderSettings((prev: any) => ({
           ...prev,
           enabled: newEnabled
         }));
-      } else {
-        console.error('Error updating GBP reminder settings:', error);
       }
     } catch (error) {
       console.error('Error toggling GBP reminders:', error);
+      alert('An unexpected error occurred. Please try again.');
     } finally {
       setGbpReminderSaving(false);
     }
@@ -447,27 +455,29 @@ export default function AccountPage() {
               </div>
 
               <div className="flex items-start justify-between gap-4">
-                <div className="flex-1">
+                <div className="flex-1 min-w-0">
                   <label className="block text-sm font-medium text-gray-700">Monthly GBP insights</label>
                   <p className="mt-1 text-sm text-gray-500">
                     Get monthly email reports for your selected Google Business Profile locations
                   </p>
                 </div>
-                <button
-                  type="button"
-                  onClick={handleGbpReminderToggle}
-                  disabled={gbpReminderSaving}
-                  className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2 disabled:opacity-50 ${
-                    gbpReminderSettings?.enabled ? "bg-slate-blue" : "bg-gray-200"
-                  }`}
-                  aria-pressed={gbpReminderSettings?.enabled}
-                >
-                  <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
-                      gbpReminderSettings?.enabled ? "translate-x-6" : "translate-x-1"
+                <div className="flex-shrink-0">
+                  <button
+                    type="button"
+                    onClick={handleGbpReminderToggle}
+                    disabled={gbpReminderSaving}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2 disabled:opacity-50 ${
+                      gbpReminderSettings?.enabled ? "bg-slate-blue" : "bg-gray-200"
                     }`}
-                  />
-                </button>
+                    aria-pressed={gbpReminderSettings?.enabled}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+                        gbpReminderSettings?.enabled ? "translate-x-6" : "translate-x-1"
+                      }`}
+                    />
+                  </button>
+                </div>
               </div>
               {gbpReminderSaving && (
                 <div className="text-sm text-gray-500">Saving...</div>
