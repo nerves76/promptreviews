@@ -194,12 +194,11 @@ export default function HelpModal({
             
             {/* Footer - simplified */}
             <div className="bg-gradient-to-r from-indigo-600/10 via-purple-600/10 to-fuchsia-600/10 border-t border-white/20 px-4 md:px-6 py-3">
-              <div className="flex items-center justify-center text-xs text-gray-600">
+              <div className="flex items-center justify-center text-xs text-white">
                 <div className="flex items-center space-x-1">
-                  <Icon name="FaKey" className="w-3 h-3" size={12} />
-                  <span>Press</span>
+                  <span>Just press</span>
                   <kbd className="px-1.5 py-0.5 bg-white/50 border border-white/30 rounded text-xs backdrop-blur-sm">?</kbd>
-                  <span>for help</span>
+                  <span>to open this modal anywhere in app</span>
                 </div>
               </div>
             </div>

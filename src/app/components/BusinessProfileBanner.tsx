@@ -82,7 +82,7 @@ export default function BusinessProfileBanner({
           </div>
           <div className="flex-1">
             <h3 className="text-lg font-bold text-blue-900">
-              Complete Your Business Profile First!
+              Complete your business profile first!
             </h3>
             <p className="text-blue-800 text-sm">
               To get the most out of PromptReviews, please fill out your business information. 
@@ -95,7 +95,7 @@ export default function BusinessProfileBanner({
             href="/dashboard/business-profile"
             className="inline-flex items-center gap-2 bg-slate-blue text-white hover:bg-slate-blue/90 font-semibold py-2 px-4 rounded-lg transition-colors shadow-md"
           >
-            Complete Profile
+            Complete profile
                           <Icon name="FaArrowRight" className="h-4 w-4" size={16} />
           </Link>
         </div>

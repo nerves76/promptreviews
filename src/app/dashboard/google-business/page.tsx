@@ -21,6 +21,7 @@ import LocationSelector from '@/components/GoogleBusinessProfile/LocationSelecto
 import OverviewStats from '@/components/GoogleBusinessProfile/OverviewStats';
 import BusinessHealthMetrics from '@/components/GoogleBusinessProfile/BusinessHealthMetrics';
 import HelpModal from '@/app/components/help/HelpModal';
+import FiveStarSpinner from '@/app/components/FiveStarSpinner';
 // Using built-in alert for notifications instead of react-toastify
 
 interface GoogleBusinessLocation {
