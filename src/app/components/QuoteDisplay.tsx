@@ -131,7 +131,7 @@ export default function QuoteDisplay({
       </div>
 
       {/* Quote Box - Enhanced glassmorphic styling */}
-      <div className="relative backdrop-blur-xl bg-white/10 border border-white/30 rounded-2xl p-8 shadow-2xl w-full md:min-w-[800px] md:max-w-[800px] before:absolute before:inset-0 before:rounded-2xl before:bg-gradient-to-br before:from-white/5 before:to-transparent before:pointer-events-none overflow-hidden">
+      <div className="relative backdrop-blur-xl bg-white/10 border border-white/30 rounded-2xl p-8 shadow-lg w-full md:min-w-[800px] md:max-w-[800px] before:absolute before:inset-0 before:rounded-2xl before:bg-gradient-to-br before:from-white/5 before:to-transparent before:pointer-events-none overflow-hidden">
         {/* Subtle gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-b from-white/5 via-transparent to-white/5 pointer-events-none"></div>
         

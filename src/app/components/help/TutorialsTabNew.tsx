@@ -40,7 +40,7 @@ const helpCategories = [
     id: 'prompt-pages',
     title: 'Prompt Pages',
     description: 'Create and manage review collection pages',
-    icon: 'FaStickyNote',
+    icon: 'PromptPageIcon',
     color: 'blue',
     articles: [
       { id: 'prompt-overview', title: 'Overview', path: '/prompt-pages' },
@@ -174,7 +174,7 @@ export default function TutorialsTabNew({
       if (pathname.includes('dashboard')) {
         featured.push(
           { id: 'quickstart-overview', title: 'Getting Started Guide', category: 'getting-started', icon: 'FaCheckCircle' },
-          { id: 'prompt-universal', title: 'Create Universal Prompt Page', category: 'prompt-pages', icon: 'FaStickyNote' },
+          { id: 'prompt-universal', title: 'Create Universal Prompt Page', category: 'prompt-pages', icon: 'PromptPageIcon' },
           { id: 'reviews-dashboard', title: 'Managing Reviews', category: 'reviews', icon: 'FaStar' }
         );
       } else if (pathname.includes('plan')) {
@@ -205,7 +205,7 @@ export default function TutorialsTabNew({
         featured.push(
           { id: 'quickstart-overview', title: 'Getting Started Guide', category: 'getting-started', icon: 'FaCheckCircle' },
           { id: 'faq', title: 'Frequently Asked Questions', category: 'help', icon: 'FaQuestionCircle' },
-          { id: 'prompt-overview', title: 'Understanding Prompt Pages', category: 'prompt-pages', icon: 'FaStickyNote' }
+          { id: 'prompt-overview', title: 'Understanding Prompt Pages', category: 'prompt-pages', icon: 'PromptPageIcon' }
         );
       }
       
