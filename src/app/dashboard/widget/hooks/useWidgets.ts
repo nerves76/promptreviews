@@ -81,7 +81,7 @@ export function useWidgets() {
     } finally {
       setLoading(false);
     }
-  }, [accountLoading, selectedAccount?.account_id, lastFetchTime]);
+  }, [accountLoading, selectedAccount?.account_id]); // Removed lastFetchTime to prevent infinite loop
 
   // Fetch widgets when account changes
   useEffect(() => {
