@@ -193,34 +193,54 @@ export default function AccountPage() {
       const newEnabled = !gbpReminderSettings?.enabled;
       
       // First check if settings exist
-      const { data: existing } = await supabase
+      const { data: existing, error: checkError } = await supabase
         .from('review_reminder_settings')
         .select('id')
         .eq('user_id', user.id)
         .single();
       
+      // PGRST116 means no rows found, which is fine for first time
+      if (checkError && checkError.code !== 'PGRST116') {
+        console.error('Error checking existing settings:', checkError);
+      }
+      
       let error;
+      
+      console.log('GBP Settings Debug:', {
+        userId: user.id,
+        existingRecord: !!existing,
+        newEnabled,
+        currentSettings: gbpReminderSettings
+      });
       
       if (existing) {
         // Update existing settings
-        const { error: updateError } = await supabase
+        console.log('Updating existing settings...');
+        const { error: updateError, data: updateData } = await supabase
           .from('review_reminder_settings')
           .update({
             enabled: newEnabled,
             frequency: 'monthly',
             updated_at: new Date().toISOString()
           })
-          .eq('user_id', user.id);
+          .eq('user_id', user.id)
+          .select();
+        
+        console.log('Update result:', { error: updateError, data: updateData });
         error = updateError;
       } else {
         // Insert new settings
-        const { error: insertError } = await supabase
+        console.log('Inserting new settings...');
+        const { error: insertError, data: insertData } = await supabase
           .from('review_reminder_settings')
           .insert({
             user_id: user.id,
             enabled: newEnabled,
             frequency: 'monthly'
-          });
+          })
+          .select();
+        
+        console.log('Insert result:', { error: insertError, data: insertData });
         error = insertError;
       }
 
