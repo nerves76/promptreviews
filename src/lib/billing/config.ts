@@ -121,6 +121,21 @@ export const PLAN_DISPLAY = {
 };
 
 /**
+ * Portal Configuration IDs
+ * These ensure customers see the Prompt Reviews-specific portal
+ */
+export const PORTAL_CONFIG = {
+  // Test mode configuration
+  TEST: 'bpc_1RzJ9bLqwlpgZPtwU6KEsJUN',
+  // Live mode configuration - update this after creating live config
+  LIVE: process.env.STRIPE_PORTAL_CONFIG_LIVE || '',
+  // Helper to get the right config based on mode
+  get CURRENT() {
+    return STRIPE_CONFIG.IS_TEST_MODE ? this.TEST : this.LIVE;
+  }
+};
+
+/**
  * URLs for redirects
  */
 export const BILLING_URLS = {

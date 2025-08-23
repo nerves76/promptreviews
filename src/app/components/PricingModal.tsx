@@ -45,6 +45,7 @@ const tiers = [
       "Review widget",
       "Analytics",
       "Google Business Profile management",
+      "Up to 5 Google Business Profiles",
     ],
   },
   {
@@ -62,7 +63,7 @@ const tiers = [
     button: "bg-slate-blue hover:bg-slate-blue/90 text-white",
     features: [
       "5 team members",
-      "Up to 10 business locations",
+      "Up to 10 Google Business Profiles",
       "Workflow management",
       "500 Prompt Pages",
       "10,000 contacts",
@@ -88,6 +89,7 @@ interface PricingModalProps {
     message?: string;
   };
   isReactivation?: boolean;
+  hadPreviousTrial?: boolean;
 }
 
 const featureTooltips: Record<string, string> = {
@@ -114,6 +116,7 @@ export default function PricingModal({
   isPlanSelectionRequired = false,
   reactivationOffer,
   isReactivation = false,
+  hadPreviousTrial = false,
 }: PricingModalProps & { currentBillingPeriod?: 'monthly' | 'annual' }) {
   const [tooltip, setTooltip] = useState<string | null>(null);
   const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(
@@ -269,11 +272,12 @@ export default function PricingModal({
                 </div>
                 <ul className="flex-grow text-lg text-gray-800 space-y-2 mb-8">
                   {tier.features.map((f) => {
-                    // Hide the 14-day free trial feature if user is already subscribed or has had a paid plan
+                    // Hide the 14-day free trial feature if user is already subscribed, has had a paid plan, or already had a trial
                     if (
                       isGrower &&
                       f.includes("14-day free trial") &&
                       (hasHadPaidPlan ||
+                        hadPreviousTrial ||
                         (currentPlan &&
                           currentPlan !== "grower" &&
                           currentPlan !== "free" &&
@@ -340,7 +344,11 @@ export default function PricingModal({
                   {(() => {
                     // Handle new users with no plan
                     if (!currentPlan || currentPlan === 'no_plan' || currentPlan === 'NULL') {
-                      if (tier.key === "grower") return "Start Free Trial";
+                      if (tier.key === "grower") {
+                        // If they already had a trial, show regular purchase option
+                        if (hadPreviousTrial) return "Get Started";
+                        return "Start Free Trial";
+                      }
                       return "Get Started";
                     }
                     

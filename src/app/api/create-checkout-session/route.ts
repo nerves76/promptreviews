@@ -68,7 +68,7 @@ export async function POST(req: NextRequest) {
     try {
       const { data: account, error } = await supabase
         .from("accounts")
-        .select("stripe_customer_id, plan, email, is_free_account, free_plan_level")
+        .select("stripe_customer_id, plan, email, is_free_account, free_plan_level, trial_start, trial_end, has_had_paid_plan")
         .eq("id", userId)
         .single();
       
@@ -134,7 +134,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invalid plan configuration" }, { status: 400 });
     }
 
-    let sessionConfig = {
+    // Check if user already had a trial
+    const hadPreviousTrial = accountData.trial_start && (accountData.has_had_paid_plan || currentPlan !== 'grower');
+    
+    // Configure session - add trial period only for grower plan if user hasn't had a trial
+    const shouldGetTrial = plan === 'grower' && !hadPreviousTrial && !currentPlan;
+    
+    let sessionConfig: any = {
       payment_method_types: ["card" as const],
       mode: "subscription" as const,
       line_items: [{ price: priceId, quantity: 1 }],
@@ -144,7 +150,8 @@ export async function POST(req: NextRequest) {
         billingPeriod: billingPeriod || 'monthly',
         userEmail: userEmail || "",
         changeType,
-        isReactivation: isReactivation ? 'true' : 'false'
+        isReactivation: isReactivation ? 'true' : 'false',
+        hadPreviousTrial: hadPreviousTrial ? 'true' : 'false'
       },
       success_url: BILLING_URLS.SUCCESS_URL(changeType, plan),
       cancel_url: BILLING_URLS.CANCEL_URL,
@@ -154,6 +161,16 @@ export async function POST(req: NextRequest) {
         : { customer_email: userEmail }
       )
     };
+
+    // Add trial period for grower plan if eligible
+    if (shouldGetTrial) {
+      console.log('🎁 Adding 14-day free trial for new grower plan subscriber');
+      sessionConfig.subscription_data = {
+        trial_period_days: 14
+      };
+    } else if (plan === 'grower' && hadPreviousTrial) {
+      console.log('⚠️ User already had trial - grower plan will be charged immediately');
+    }
 
     // ============================================
     // CRITICAL: Apply reactivation offer if eligible (Simplified)

@@ -48,6 +48,7 @@ export default function PlanPage() {
   const [downgradeTarget, setDowngradeTarget] = useState<string | null>(null);
   const [downgradeFeatures, setDowngradeFeatures] = useState<string[]>([]);
   const [downgradeProcessing, setDowngradeProcessing] = useState(false);
+  const [hadPreviousTrial, setHadPreviousTrial] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [upgradeTarget, setUpgradeTarget] = useState<string | null>(null);
   const [upgradeFeatures, setUpgradeFeatures] = useState<string[]>([]);
@@ -204,8 +205,13 @@ export default function PlanPage() {
       // Check if account has expired
       const now = new Date();
       const trialEnd = accountData?.trial_end ? new Date(accountData.trial_end) : null;
+      const trialStart = accountData?.trial_start ? new Date(accountData.trial_start) : null;
       const isTrialExpired = trialEnd && now > trialEnd && accountData?.plan === "grower" && accountData?.has_had_paid_plan === false;
       setIsExpired(Boolean(isTrialExpired));
+      
+      // Check if user already had a trial (trial_start exists and is in the past)
+      const hadTrial = trialStart && trialStart < now && (accountData?.plan !== 'grower' || isTrialExpired || accountData?.has_had_paid_plan);
+      setHadPreviousTrial(Boolean(hadTrial));
       
       // Stop showing loader immediately - page can render now
       setIsLoading(false);
@@ -1356,7 +1362,12 @@ export default function PlanPage() {
                       
                       // For new users or users with no plan
                       if (isNewUser || !currentPlan || currentPlan === 'no_plan' || currentPlan === 'NULL') {
-                        return tier.key === "grower" ? "Start Free Trial" : "Get Started";
+                        if (tier.key === "grower") {
+                          // If they already had a trial, show regular purchase option
+                          if (hadPreviousTrial) return "Get Started";
+                          return "Start Free Trial";
+                        }
+                        return "Get Started";
                       }
                       
                       // Check if this is the current plan AND billing period

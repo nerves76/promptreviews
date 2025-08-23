@@ -3,14 +3,22 @@
  * 
  * Implements soft-deletion for 90-day retention policy.
  * Sets deleted_at timestamp instead of permanently deleting the account.
+ * 
+ * Security:
+ * - Only account owners can delete their accounts
+ * - Automatically cancels Stripe subscriptions
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/auth/providers/supabase';
+import { createServerSupabaseClient } from '@/utils/supabaseClient';
+import { getAccountIdForUser } from '@/auth/utils/accounts';
+import { createStripeClientWithRetry, STRIPE_CONFIG } from '@/lib/billing/config';
+
+const stripeWithRetry = createStripeClientWithRetry();
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createClient();
+    const supabase = await createServerSupabaseClient();
 
     // Check authentication
     const { data: { session }, error: sessionError } = await supabase.auth.getSession();
@@ -29,14 +37,44 @@ export async function POST(request: NextRequest) {
 
     console.log(`🗑️ Account cancellation requested for user: ${userId}`);
 
-    // Get the user's account
-    const { data: account, error: accountError } = await supabase
-      .from('accounts')
-      .select('id, email, deleted_at')
-      .eq('id', userId)
+    // Get the user's account ID using the utility function
+    const accountId = await getAccountIdForUser(userId, supabase);
+    
+    if (!accountId) {
+      console.error(`No account found for user: ${userId}`);
+      return NextResponse.json({ error: 'Account not found' }, { status: 404 });
+    }
+
+    // Check if user is the owner of the account
+    const { data: accountUser, error: accountUserError } = await supabase
+      .from('account_users')
+      .select('role')
+      .eq('account_id', accountId)
+      .eq('user_id', userId)
       .single();
 
-    if (accountError) {
+    if (accountUserError || !accountUser) {
+      console.error('Error checking account ownership:', accountUserError);
+      return NextResponse.json({ error: 'Not authorized to delete this account' }, { status: 403 });
+    }
+
+    // Only owners can delete accounts
+    if (accountUser.role !== 'owner') {
+      console.error(`User ${userId} attempted to delete account ${accountId} but is not owner (role: ${accountUser.role})`);
+      return NextResponse.json({ 
+        error: 'Only account owners can delete accounts',
+        userRole: accountUser.role 
+      }, { status: 403 });
+    }
+
+    // Get the account details including Stripe info
+    const { data: account, error: accountError } = await supabase
+      .from('accounts')
+      .select('id, email, deleted_at, stripe_subscription_id, stripe_customer_id, plan')
+      .eq('id', accountId)
+      .single();
+
+    if (accountError || !account) {
       console.error('Error fetching account:', accountError);
       return NextResponse.json({ error: 'Account not found' }, { status: 404 });
     }
@@ -49,68 +87,115 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
+    // ============================================
+    // CRITICAL: Cancel Stripe subscription FIRST
+    // We MUST prevent continued billing
+    // ============================================
+    let stripeSubscriptionCancelled = false;
+    let stripeError = null;
+    
+    if (account.stripe_subscription_id) {
+      console.log(`🎯 Account has Stripe subscription ID: ${account.stripe_subscription_id}`);
+      
+      try {
+        // First, try to retrieve the subscription to check if it exists and is active
+        let subscription;
+        try {
+          subscription = await stripeWithRetry.retrieveSubscription(account.stripe_subscription_id);
+          console.log(`📊 Retrieved subscription with status: ${subscription.status}`);
+        } catch (retrieveError: any) {
+          console.warn(`⚠️ Could not retrieve subscription: ${retrieveError.message}`);
+          subscription = null;
+        }
+        
+        // Check subscription status
+        if (!subscription) {
+          // Subscription doesn't exist in Stripe - safe to delete account
+          console.log(`ℹ️ Subscription doesn't exist in Stripe - safe to proceed`);
+          stripeSubscriptionCancelled = true;
+        } else if (subscription.status === 'canceled' || subscription.status === 'incomplete_expired') {
+          // Already cancelled - safe to delete account
+          console.log(`ℹ️ Subscription already cancelled (status: ${subscription.status}) - safe to proceed`);
+          stripeSubscriptionCancelled = true;
+        } else {
+          // Active subscription - MUST cancel it
+          console.log(`⚠️ Active subscription found (status: ${subscription.status}) - attempting to cancel...`);
+          
+          try {
+            const updatedSubscription = await stripeWithRetry.updateSubscription(
+              account.stripe_subscription_id,
+              {
+                cancel_at_period_end: true,
+                metadata: {
+                  cancelled_by: userId,
+                  cancelled_at: new Date().toISOString(),
+                  reason: 'account_deletion'
+                }
+              }
+            );
+            
+            console.log(`✅ Stripe subscription cancelled successfully`);
+            stripeSubscriptionCancelled = true;
+            
+            // Note: We successfully cancelled the subscription in Stripe
+            // The account will be soft-deleted below
+              
+          } catch (cancelError: any) {
+            // CRITICAL: Could not cancel active subscription
+            console.error(`❌ CRITICAL: Could not cancel active subscription: ${cancelError.message}`);
+            stripeError = cancelError.message;
+            stripeSubscriptionCancelled = false;
+          }
+        }
+      } catch (error: any) {
+        // Unexpected error - treat as failure to be safe
+        console.error(`❌ Unexpected error handling Stripe subscription: ${error.message}`);
+        stripeError = error.message;
+        stripeSubscriptionCancelled = false;
+      }
+      
+      // If we couldn't cancel an active subscription, we MUST NOT delete the account
+      if (!stripeSubscriptionCancelled) {
+        console.error('❌ Cannot delete account - active subscription could not be cancelled');
+        return NextResponse.json({ 
+          error: 'Cannot delete account while subscription is active. Please cancel your subscription first or contact support.',
+          details: stripeError,
+          action_required: 'cancel_subscription_first'
+        }, { status: 400 });
+      }
+    } else {
+      console.log('ℹ️ No Stripe subscription ID found - safe to proceed with deletion');
+    }
+
     // Soft delete the account - set deleted_at and reset plan
-    const { data: updateData, error: updateError } = await supabase
+    const { error: updateError } = await supabase
       .from('accounts')
       .update({ 
         deleted_at: new Date().toISOString(),
         plan: 'no_plan'  // Reset plan so they see plan selection if they return
+        // Note: Stripe IDs are kept for reference and potential restoration
       })
-      .eq('id', userId);
+      .eq('id', accountId);
 
     if (updateError) {
       console.error('Error soft-deleting account:', updateError);
       return NextResponse.json({ error: 'Failed to cancel account' }, { status: 500 });
     }
 
-    console.log(`✅ Account soft-deleted successfully: ${account.email}`);
+    console.log(`✅ Account soft-deleted successfully: ${account.email} (ID: ${accountId})`);
 
-    // ============================================
-    // CRITICAL FIX: Actually cancel Stripe subscription
-    // This prevents continued billing after account deletion
-    // ============================================
-    try {
-      const { data: accountData } = await supabase
-        .from('accounts')
-        .select('stripe_subscription_id, stripe_customer_id')
-        .eq('id', userId)
-        .single();
-
-      if (accountData?.stripe_subscription_id) {
-        console.log(`🎯 Cancelling Stripe subscription: ${accountData.stripe_subscription_id}`);
-        
-        // Call our new dedicated cancellation endpoint
-        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3002';
-        const response = await fetch(`${baseUrl}/api/cancel-subscription`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Cookie': request.headers.get('cookie') || '', // Pass auth cookies
-          }
-        });
-
-        if (response.ok) {
-          const result = await response.json();
-          console.log('✅ Stripe subscription cancelled:', result);
-        } else {
-          console.error('⚠️ Failed to cancel Stripe subscription:', await response.text());
-          // Continue with account deletion even if Stripe fails
-          // User won't be charged as account is marked deleted
-        }
-      }
-    } catch (stripeError) {
-      console.error('⚠️ Error handling Stripe cancellation:', stripeError);
-      // Don't fail the whole operation if Stripe handling fails
-      // The soft delete will prevent access regardless
-    }
+    // Optional: Sign out the user
+    await supabase.auth.signOut();
 
     return NextResponse.json({ 
       success: true, 
       message: 'Account cancelled successfully. Your data will be retained for 90 days.',
       details: {
+        accountId: accountId,
         deletedAt: new Date().toISOString(),
         permanentDeletionDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(),
         planReset: true,
+        billingCancelled: !!account.stripe_subscription_id,
         note: 'If you return during the 90-day period, you\'ll need to select a plan to access your data.'
       }
     }, { status: 200 });
@@ -122,4 +207,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-} 
+}

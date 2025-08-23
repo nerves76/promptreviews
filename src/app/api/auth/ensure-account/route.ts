@@ -19,14 +19,46 @@ export async function POST(request: NextRequest) {
     // Use service role client for database operations
     const supabaseAdmin = createServiceRoleClient();
     
-    // Check if account exists
+    // Check if account exists (including soft-deleted ones)
     const { data: existingAccount, error: checkError } = await supabaseAdmin
       .from('accounts')
-      .select('id')
+      .select('id, deleted_at, plan, stripe_customer_id, trial_start, trial_end')
       .eq('id', user.id)
       .single();
     
     if (existingAccount) {
+      // Check if account was previously deleted
+      if (existingAccount.deleted_at) {
+        console.log('🔄 Reactivating previously deleted account:', existingAccount.id);
+        
+        // Reactivate the account but don't give a new trial
+        const { error: reactivateError } = await supabaseAdmin
+          .from('accounts')
+          .update({
+            deleted_at: null,
+            plan: 'no_plan', // Force them to select a paid plan
+            // Keep original trial dates - no new trial!
+            // Don't update trial_start or trial_end
+          })
+          .eq('id', user.id);
+          
+        if (reactivateError) {
+          console.error('❌ Error reactivating account:', reactivateError);
+          return NextResponse.json(
+            { error: 'Failed to reactivate account' },
+            { status: 500 }
+          );
+        }
+        
+        return NextResponse.json({ 
+          success: true, 
+          message: 'Account reactivated (no trial available)',
+          accountId: existingAccount.id,
+          isReactivation: true,
+          hadPreviousTrial: true
+        });
+      }
+      
       console.log('✅ Account already exists:', existingAccount.id);
       return NextResponse.json({ 
         success: true, 
