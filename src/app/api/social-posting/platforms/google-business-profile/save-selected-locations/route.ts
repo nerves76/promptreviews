@@ -54,15 +54,41 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    // Get account details including plan and max_gbp_locations
-    const { data: account, error: accountError } = await supabase
+    console.log('Found account ID:', accountId, 'for user:', user.id);
+    
+    // Get account details - try with max_gbp_locations first, fall back without if column doesn't exist
+    let account: any;
+    let accountError: any;
+    
+    // First try with max_gbp_locations column
+    const result = await supabase
       .from('accounts')
       .select('id, plan, max_gbp_locations')
       .eq('id', accountId)
       .single();
     
+    if (result.error?.message?.includes('max_gbp_locations')) {
+      // Column doesn't exist yet, try without it
+      console.log('max_gbp_locations column not found, falling back to basic query');
+      const fallbackResult = await supabase
+        .from('accounts')
+        .select('id, plan')
+        .eq('id', accountId)
+        .single();
+      
+      account = fallbackResult.data;
+      accountError = fallbackResult.error;
+    } else {
+      account = result.data;
+      accountError = result.error;
+    }
+    
     if (accountError || !account) {
-      console.error('Error fetching account details:', accountError);
+      console.error('Error fetching account details:', {
+        error: accountError,
+        accountId,
+        userId: user.id
+      });
       return NextResponse.json(
         { error: 'Failed to fetch account details' },
         { status: 500 }
@@ -71,6 +97,14 @@ export async function POST(request: NextRequest) {
 
     // Use database value if available, otherwise fall back to plan defaults
     const maxLocations = account.max_gbp_locations || (account.plan === 'maven' ? 10 : 5);
+    
+    console.log('Account details:', {
+      accountId,
+      plan: account.plan,
+      max_gbp_locations: account.max_gbp_locations,
+      calculatedMaxLocations: maxLocations,
+      requestedLocations: locations.length
+    });
     
     // Check if user is trying to select too many locations
     if (locations.length > maxLocations) {
