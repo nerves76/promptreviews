@@ -1018,16 +1018,45 @@ export default function SocialPostingDashboard() {
         
         console.log('Setting pending locations:', validLocations);
         
-        // Show location selection modal for initial setup
-        setPendingLocations(validLocations);
-        setShowLocationSelectionModal(true);
-        
-        // Show initial success message
-        const demoNote = result.isDemoMode ? ' (Demo Mode - Using test data due to Google rate limits)' : '';
-        setPostResult({ 
-          success: true, 
-          message: `Found ${result.locations?.length || 0} business locations!${demoNote} Please select which ones to manage.` 
-        });
+        // If only one location, auto-select it and skip the modal
+        if (validLocations.length === 1) {
+          console.log('Only one location found, auto-selecting:', validLocations[0]);
+          
+          // Auto-select the single location
+          const singleLocation = validLocations[0];
+          setLocations([singleLocation]);
+          setSelectedLocations([singleLocation.id]);
+          setSelectedLocationId(singleLocation.id);
+          
+          // Save to localStorage
+          localStorage.setItem('google-business-locations', JSON.stringify([singleLocation]));
+          localStorage.setItem('google-business-selected-locations', JSON.stringify([singleLocation.id]));
+          
+          // Mark as fetched
+          setHasAttemptedFetch(true);
+          localStorage.setItem('google-business-fetch-attempted', 'true');
+          
+          // Show success message
+          const demoNote = result.isDemoMode ? ' (Demo Mode - Using test data due to Google rate limits)' : '';
+          setPostResult({ 
+            success: true, 
+            message: `Connected to ${singleLocation.name}!${demoNote} Your business location is ready to manage.` 
+          });
+          
+          // Automatically switch to overview tab for single location
+          changeTab('overview');
+        } else {
+          // Multiple locations - show selection modal
+          setPendingLocations(validLocations);
+          setShowLocationSelectionModal(true);
+          
+          // Show initial success message
+          const demoNote = result.isDemoMode ? ' (Demo Mode - Using test data due to Google rate limits)' : '';
+          setPostResult({ 
+            success: true, 
+            message: `Found ${result.locations?.length || 0} business locations!${demoNote} Please select which ones to manage.` 
+          });
+        }
       } else {
         // Only mark as attempted if we got a response but no locations
         setHasAttemptedFetch(true);
