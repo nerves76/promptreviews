@@ -206,41 +206,26 @@ export default function AccountPage() {
       
       let error;
       
-      console.log('GBP Settings Debug:', {
-        userId: user.id,
-        existingRecord: !!existing,
-        newEnabled,
-        currentSettings: gbpReminderSettings
-      });
-      
       if (existing) {
         // Update existing settings
-        console.log('Updating existing settings...');
-        const { error: updateError, data: updateData } = await supabase
+        const { error: updateError } = await supabase
           .from('review_reminder_settings')
           .update({
             enabled: newEnabled,
             frequency: 'monthly',
             updated_at: new Date().toISOString()
           })
-          .eq('user_id', user.id)
-          .select();
-        
-        console.log('Update result:', { error: updateError, data: updateData });
+          .eq('user_id', user.id);
         error = updateError;
       } else {
         // Insert new settings
-        console.log('Inserting new settings...');
-        const { error: insertError, data: insertData } = await supabase
+        const { error: insertError } = await supabase
           .from('review_reminder_settings')
           .insert({
             user_id: user.id,
             enabled: newEnabled,
             frequency: 'monthly'
-          })
-          .select();
-        
-        console.log('Insert result:', { error: insertError, data: insertData });
+          });
         error = insertError;
       }
 
