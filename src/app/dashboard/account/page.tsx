@@ -524,14 +524,6 @@ export default function AccountPage() {
               >
                 {account?.plan === 'grower' || account?.plan === 'free' || !account?.plan ? 'View plans' : 'Change plan'}
               </button>
-              
-              <button
-                onClick={() => router.push("/dashboard")}
-                className="w-full flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-slate-blue hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-blue"
-              >
-                Back to dashboard
-              </button>
-              
               <button
                 onClick={handlePasswordReset}
                 disabled={resetPasswordLoading}
