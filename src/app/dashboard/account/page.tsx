@@ -192,24 +192,48 @@ export default function AccountPage() {
     try {
       const newEnabled = !gbpReminderSettings?.enabled;
       
-      const { error } = await supabase
+      // First check if settings exist
+      const { data: existing } = await supabase
         .from('review_reminder_settings')
-        .upsert({
-          user_id: user.id,
-          enabled: newEnabled,
-          frequency: 'monthly',
-          updated_at: new Date().toISOString()
-        });
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+      
+      let error;
+      
+      if (existing) {
+        // Update existing settings
+        const { error: updateError } = await supabase
+          .from('review_reminder_settings')
+          .update({
+            enabled: newEnabled,
+            frequency: 'monthly',
+            updated_at: new Date().toISOString()
+          })
+          .eq('user_id', user.id);
+        error = updateError;
+      } else {
+        // Insert new settings
+        const { error: insertError } = await supabase
+          .from('review_reminder_settings')
+          .insert({
+            user_id: user.id,
+            enabled: newEnabled,
+            frequency: 'monthly'
+          });
+        error = insertError;
+      }
 
       if (error) {
         console.error('Error updating GBP reminder settings:', {
           message: error.message,
           code: error.code,
           details: error.details,
-          hint: error.hint
+          hint: error.hint,
+          operation: existing ? 'update' : 'insert'
         });
-        // Show user-friendly error
-        alert('Failed to update notification settings. Please try again.');
+        // Show user-friendly error with more context
+        alert(`Failed to ${existing ? 'update' : 'save'} notification settings. Error: ${error.message || 'Unknown error'}`);
       } else {
         setGbpReminderSettings((prev: any) => ({
           ...prev,
