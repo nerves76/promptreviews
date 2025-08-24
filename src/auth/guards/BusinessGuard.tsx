@@ -205,14 +205,19 @@ function BusinessGuard({ children }: BusinessGuardProps) {
     // They should use the dashboard normally even without a business
     
     if (!hasBusiness && pathname !== '/dashboard/create-business' && account) {
-      // Check if user is the owner of this account
-      const isAccountOwner = account.id === user?.id; // In this system, account ID equals user ID for owners
+      // Calculate account age once to use for multiple checks
+      const accountAge = account.created_at ? Date.now() - new Date(account.created_at).getTime() : Infinity;
+      const isVeryNewAccount = accountAge < 5 * 60 * 1000; // Less than 5 minutes old
+      const isNewAccount = accountAge < 24 * 60 * 60 * 1000; // Less than 24 hours old
+      
+      // If it's a very new account, assume they're the owner
+      const isAccountOwner = isVeryNewAccount ? true : true; // For now, allow all users to be redirected if they have no business
       
       // Check if this account has NEVER had a business
       // We check localStorage for the business creation flag
       const hasCreatedBusiness = typeof window !== 'undefined' ? 
         localStorage.getItem(`hasCreatedBusiness_${account.id}`) === 'true' : false;
-      const hasNeverHadBusiness = !hasCreatedBusiness && isAccountOwner;
+      const hasNeverHadBusiness = !hasCreatedBusiness;
       
       // Also check if account has a paid plan - paid accounts should have businesses
       const hasPaidPlan = account.plan && account.plan !== 'free' && account.plan !== 'no_plan';
@@ -227,6 +232,9 @@ function BusinessGuard({ children }: BusinessGuardProps) {
         userId: user?.id,
         plan: account.plan,
         pathname,
+        accountAge: accountAge / 1000 / 60 / 60, // in hours
+        isVeryNewAccount,
+        isNewAccount,
         timestamp: new Date().toISOString()
       });
       
@@ -235,8 +243,6 @@ function BusinessGuard({ children }: BusinessGuardProps) {
       // 2. Account has never had a business (no localStorage flag)
       // 3. Account doesn't have a paid plan (paid plans shouldn't need redirect)
       // 4. Account is less than 24 hours old (grace period for existing accounts)
-      const accountAge = account.created_at ? Date.now() - new Date(account.created_at).getTime() : Infinity;
-      const isNewAccount = accountAge < 24 * 60 * 60 * 1000; // 24 hours
       
       if (isAccountOwner && hasNeverHadBusiness && !hasPaidPlan && isNewAccount) {
         console.log('🔄 BusinessGuard: Account owner without business (never created one), will redirect after delay', {

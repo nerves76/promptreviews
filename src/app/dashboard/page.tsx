@@ -737,13 +737,13 @@ const Dashboard = React.memo(function Dashboard() {
 
   if (error) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Error loading dashboard</h2>
-          <p className="text-gray-600 mb-4">{error}</p>
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600">
+        <div className="text-center bg-white/10 backdrop-blur-md rounded-lg p-8">
+          <h2 className="text-2xl font-bold text-white mb-2">Error loading dashboard</h2>
+          <p className="text-white/90 mb-4">{error}</p>
           <Button 
             onClick={() => window.location.reload()} 
-            className="bg-slate-700 hover:bg-slate-800"
+            className="bg-white/20 hover:bg-white/30 text-white border border-white/30"
           >
             Try again
           </Button>
@@ -757,10 +757,10 @@ const Dashboard = React.memo(function Dashboard() {
   // Also show loading when pricing modal is pending after business creation
   if (!account || businessesLoading || (account && !businessData) || isPendingPricingModal) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600">
         <div className="text-center">
           <FiveStarSpinner />
-          <p className="mt-4 text-gray-600">
+          <p className="mt-4 text-white">
             {isPendingPricingModal ? "Setting up your account..." : "Loading your dashboard..."}
           </p>
         </div>
@@ -780,10 +780,10 @@ const Dashboard = React.memo(function Dashboard() {
     if (!businessJustCreated && !businessCreationInProgress) {
       console.log('🔄 Dashboard: No business detected, waiting for BusinessGuard redirect...');
       return (
-        <div className="flex items-center justify-center min-h-screen bg-gray-50">
+        <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600">
           <div className="text-center">
             <FiveStarSpinner />
-            <p className="mt-4 text-gray-600">Setting up your account...</p>
+            <p className="mt-4 text-white">Setting up your account...</p>
           </div>
         </div>
       );
