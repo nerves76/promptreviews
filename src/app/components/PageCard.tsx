@@ -37,7 +37,7 @@ interface BottomImage {
   maxHeight?: number;
 }
 
-export default function PageCard({
+const PageCard = React.memo(function PageCard({
   icon,
   children,
   className = "",
@@ -158,4 +158,6 @@ export default function PageCard({
       </div>
     </div>
   );
-}
+});
+
+export default PageCard;

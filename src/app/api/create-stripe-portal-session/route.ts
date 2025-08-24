@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/utils/supabaseClient";
 import { getAccountIdForUser } from "@/auth/utils/accounts";
-import { createStripeClient, BILLING_URLS } from "@/lib/billing/config";
+import { createStripeClient, BILLING_URLS, PORTAL_CONFIG } from "@/lib/billing/config";
 
 const stripe = createStripeClient();
 
@@ -67,10 +67,24 @@ export async function POST(req: NextRequest) {
     // from managing their subscription in Stripe portal
     const returnUrl = BILLING_URLS.PORTAL_RETURN_URL;
     
-    const stripeSession = await stripe.billingPortal.sessions.create({
+    // Create portal session with Prompt Reviews-specific configuration
+    // This ensures users only see options relevant to their Prompt Reviews subscription
+    const portalConfig = PORTAL_CONFIG.CURRENT;
+    
+    const sessionParams: any = {
       customer: account.stripe_customer_id,
       return_url: returnUrl,
-    });
+    };
+    
+    // Only add configuration if we have one (for live mode, needs to be set in env)
+    if (portalConfig) {
+      sessionParams.configuration = portalConfig;
+      console.log(`🎯 Portal API: Using configuration ${portalConfig}`);
+    } else {
+      console.warn('⚠️ Portal API: No configuration specified, using default');
+    }
+    
+    const stripeSession = await stripe.billingPortal.sessions.create(sessionParams);
 
     return NextResponse.json({ url: stripeSession.url });
   } catch (error) {

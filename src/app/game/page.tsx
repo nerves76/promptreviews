@@ -10,10 +10,14 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/auth";
 import FiveStarSpinner from "../components/FiveStarSpinner";
+import { useCancelledAccountGuard } from "@/utils/useCancelledAccountGuard";
 
 export default function GamePage() {
   const { user, isLoading: authLoading } = useAuth();
   const [gameLoaded, setGameLoaded] = useState(false);
+  
+  // Block cancelled accounts from accessing the game
+  const { isBlocked } = useCancelledAccountGuard();
 
   useEffect(() => {
     // Initialize game after component mounts

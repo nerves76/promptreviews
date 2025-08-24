@@ -86,6 +86,23 @@ export default function DashboardLayout({
     }
   }, [isInitialized, user, isClient, router]);
 
+  // Check for cancelled accounts and redirect to dashboard (which will show pricing modal)
+  useEffect(() => {
+    if (isInitialized && account && isClient) {
+      const isCancelled = account.deleted_at !== null && account.deleted_at !== undefined;
+      const hasNoPlan = !account.plan || account.plan === 'no_plan' || account.plan === 'NULL';
+      
+      // Allow access to /dashboard and /dashboard/plan for reactivation
+      const currentPath = window.location.pathname;
+      const isAllowedPath = currentPath === '/dashboard' || currentPath === '/dashboard/plan';
+      
+      if ((isCancelled || hasNoPlan) && !isAllowedPath) {
+        console.log('🚫 Cancelled account detected, redirecting to dashboard for reactivation');
+        router.push('/dashboard?reactivation=true');
+      }
+    }
+  }, [isInitialized, account, isClient, router]);
+
   // Check if we're on plan page with success parameter (to avoid flash)
   const isPlanPageSuccess = typeof window !== 'undefined' && 
     window.location.pathname === '/dashboard/plan' && 
@@ -122,6 +139,29 @@ export default function DashboardLayout({
     );
   }
 
+
+  // Final check: Block access if account is cancelled (except for allowed paths)
+  const isCancelled = account?.deleted_at !== null && account?.deleted_at !== undefined;
+  const hasNoPlan = !account?.plan || account?.plan === 'no_plan' || account?.plan === 'NULL';
+  const currentPath = typeof window !== 'undefined' ? window.location.pathname : '';
+  const isAllowedPath = currentPath === '/dashboard' || currentPath === '/dashboard/plan';
+  
+  if ((isCancelled || hasNoPlan) && !isAllowedPath) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600">
+        <div className="text-center text-white p-8">
+          <h1 className="text-3xl font-bold mb-4">Account Reactivation Required</h1>
+          <p className="mb-6">Your account needs to be reactivated to continue.</p>
+          <button 
+            onClick={() => router.push('/dashboard?reactivation=true')}
+            className="bg-white text-purple-700 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100"
+          >
+            Reactivate Account
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600 pb-16 md:pb-24 lg:pb-32">

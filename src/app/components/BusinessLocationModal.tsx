@@ -13,8 +13,8 @@ import {
   AISettingsFeature
 } from "./prompt-features";
 import ReviewPlatformsSection, { ReviewPlatformLink } from '../dashboard/edit-prompt-page/components/ReviewPlatformsSection';
-import QRCodeModal from './QRCodeModal';
-import Cropper from 'react-easy-crop';
+const QRCodeModal = React.lazy(() => import('./QRCodeModal'));
+const Cropper = React.lazy(() => import('react-easy-crop'));
 import type { Area } from 'react-easy-crop';
 import imageCompression from 'browser-image-compression';
 import RobotTooltip from './RobotTooltip';
@@ -806,7 +806,8 @@ export default function BusinessLocationModal({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 overflow-y-auto">
           <div className="bg-white/90 backdrop-blur-sm p-6 rounded-2xl shadow-2xl relative max-w-2xl w-full border-2 border-white">
             <div className="w-full h-96 relative mb-8">
-              <Cropper
+              <React.Suspense fallback={<div className="flex items-center justify-center h-full">Loading...</div>}>
+                <Cropper
                 image={locationPhotoUrl || businessLogoUrl || ''}
                 crop={crop}
                 zoom={zoom}
@@ -815,6 +816,7 @@ export default function BusinessLocationModal({
                 onZoomChange={setZoom}
                 onCropComplete={onCropComplete}
               />
+              </React.Suspense>
             </div>
             <div className="flex justify-end gap-2">
               <button
@@ -837,14 +839,16 @@ export default function BusinessLocationModal({
       )}
 
       {/* QR Code Modal */}
-      <QRCodeModal
-        isOpen={qrModal?.open || false}
-        onClose={() => setQrModal(null)}
-        url={qrModal?.url || ""}
-        clientName={qrModal?.clientName || ""}
-        logoUrl={qrModal?.logoUrl}
-        showNfcText={qrModal?.showNfcText}
-      />
+      <React.Suspense fallback={null}>
+        <QRCodeModal
+          isOpen={qrModal?.open || false}
+          onClose={() => setQrModal(null)}
+          url={qrModal?.url || ""}
+          clientName={qrModal?.clientName || ""}
+          logoUrl={qrModal?.logoUrl}
+          showNfcText={qrModal?.showNfcText}
+        />
+      </React.Suspense>
     </div>
   );
 } 

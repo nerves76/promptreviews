@@ -22,7 +22,7 @@ interface TutorialsTabProps {
 const helpCategories = [
   {
     id: 'getting-started',
-    title: 'Getting Started',
+    title: 'Getting started',
     description: 'Complete guide to setting up your account',
     icon: 'FaCheckCircle',
     color: 'green',
@@ -38,7 +38,7 @@ const helpCategories = [
   },
   {
     id: 'prompt-pages',
-    title: 'Prompt Pages',
+    title: 'Prompt pages',
     description: 'Create and manage review collection pages',
     icon: 'PromptPageIcon',
     color: 'blue',
@@ -56,9 +56,9 @@ const helpCategories = [
   },
   {
     id: 'ai-reviews',
-    title: 'AI Assisted Reviews',
+    title: 'AI assisted reviews',
     description: 'AI-powered review generation and management',
-    icon: 'Prompty',
+    icon: 'prompty',
     color: 'purple',
     articles: [
       { id: 'ai-overview', title: 'AI Features Overview', path: '/ai-reviews' },
@@ -79,7 +79,7 @@ const helpCategories = [
   },
   {
     id: 'reviews-management',
-    title: 'Reviews & Analytics',
+    title: 'Reviews & analytics',
     description: 'View, manage, and analyze your reviews',
     icon: 'FaStar',
     color: 'orange',
@@ -90,7 +90,7 @@ const helpCategories = [
   },
   {
     id: 'widgets',
-    title: 'Review Widgets',
+    title: 'Review widgets',
     description: 'Embed reviews on your website',
     icon: 'FaCode',
     color: 'indigo',
@@ -101,7 +101,7 @@ const helpCategories = [
   },
   {
     id: 'contacts',
-    title: 'Contact Management',
+    title: 'Contact management',
     description: 'Manage your customer database',
     icon: 'FaUsers',
     color: 'teal',
@@ -111,7 +111,7 @@ const helpCategories = [
   },
   {
     id: 'strategies',
-    title: 'Review Strategies',
+    title: 'Review strategies',
     description: 'Best practices for collecting reviews',
     icon: 'FaLightbulb',
     color: 'pink',
@@ -127,7 +127,7 @@ const helpCategories = [
   },
   {
     id: 'settings',
-    title: 'Settings & Configuration',
+    title: 'Settings & configuration',
     description: 'Account and business settings',
     icon: 'FaCog',
     color: 'gray',

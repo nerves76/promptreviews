@@ -300,8 +300,8 @@ export class AccountReactivationSystem {
       return {
         hasOffer: true,
         offerType: 'welcome_back',
-        discount: 50, // Monthly discount
-        message: 'Welcome back! Get 50% off your first month or save 20% on annual.'
+        discount: 20, // Monthly discount
+        message: 'Welcome back! Get 20% off your first 3 months or 20% off annual.'
       };
 
     } catch (error) {

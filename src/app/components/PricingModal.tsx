@@ -118,6 +118,13 @@ export default function PricingModal({
   isReactivation = false,
   hadPreviousTrial = false,
 }: PricingModalProps & { currentBillingPeriod?: 'monthly' | 'annual' }) {
+  console.log('🎯 PricingModal props:', {
+    currentPlan,
+    hasHadPaidPlan,
+    isReactivation,
+    hadPreviousTrial,
+    reactivationOffer
+  });
   const [tooltip, setTooltip] = useState<string | null>(null);
   const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(
     null,
@@ -145,16 +152,16 @@ export default function PricingModal({
         
         {/* Show reactivation offer if available */}
         {isReactivation && reactivationOffer?.hasOffer && (
-          <div className="mb-6 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg p-6 max-w-2xl w-full text-white shadow-xl">
+          <div className="mb-6 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg p-6 max-w-2xl w-full text-white shadow-xl animate-pulse-slow">
             <div className="text-center">
-              <h3 className="text-xl font-bold mb-2">
-                Welcome Back!
+              <h3 className="text-2xl font-bold mb-2">
+                🎉 Welcome Back! Special Offer Just for You 🎉
               </h3>
-              <p className="text-lg">
-                Get <span className="font-bold">50% off</span> your first month
+              <p className="text-xl font-semibold">
+                Get <span className="text-3xl font-bold text-yellow-200">{reactivationOffer.discount}% OFF</span> your first 3 months
               </p>
-              <p className="text-sm mt-1 opacity-90">
-                or save <span className="font-bold">20%</span> on annual (instead of 15%)
+              <p className="text-sm mt-2 opacity-90">
+                Plus: Annual plans get an extra 5% discount (20% total savings instead of 15%)
               </p>
             </div>
           </div>
@@ -254,19 +261,53 @@ export default function PricingModal({
                 <h3 className={`text-3xl font-bold mb-2 ${tier.text}`}>
                   {tier.name}
                 </h3>
+                {/* Show discount badge for reactivation */}
+                {isReactivation && reactivationOffer?.hasOffer && (
+                  <div className="absolute -top-5 right-4 bg-red-500 text-white font-bold px-3 py-1 rounded-full text-sm shadow-lg z-10 animate-bounce">
+                    {reactivationOffer.discount}% OFF
+                  </div>
+                )}
                 <div className={`mb-4 ${tier.text}`}>
                   {billingPeriod === 'monthly' ? (
                     <div>
-                      <span className="text-2xl font-semibold">${tier.priceMonthly}</span>
+                      {isReactivation && reactivationOffer?.hasOffer ? (
+                        <>
+                          <span className="text-lg line-through opacity-60">${tier.priceMonthly}</span>
+                          <span className="text-2xl font-semibold ml-2">
+                            ${(parseFloat(tier.priceMonthly) * (1 - reactivationOffer.discount / 100)).toFixed(2)}
+                          </span>
+                        </>
+                      ) : (
+                        <span className="text-2xl font-semibold">${tier.priceMonthly}</span>
+                      )}
                       <span className="text-lg"> / month</span>
                     </div>
                   ) : (
                     <div>
-                      <span className="text-2xl font-semibold">${tier.priceAnnual}</span>
-                      <span className="text-lg"> / month</span>
-                      <div className="text-sm mt-1">
-                        ${tier.annualTotal}/year - Save ${tier.savings}
-                      </div>
+                      {isReactivation && reactivationOffer?.hasOffer ? (
+                        <>
+                          <span className="text-lg line-through opacity-60">${tier.priceAnnual}</span>
+                          <span className="text-2xl font-semibold ml-2">
+                            ${(parseFloat(tier.priceAnnual) * 0.80).toFixed(2)}
+                          </span>
+                          <span className="text-lg"> / month</span>
+                          <div className="text-sm mt-1">
+                            <span className="line-through opacity-60">${tier.annualTotal}/year</span>
+                            <span className="ml-2 font-semibold">
+                              ${(parseFloat(tier.annualTotal) * 0.80).toFixed(0)}/year
+                            </span>
+                            <span className="text-green-600 font-bold ml-2">Save 20%!</span>
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <span className="text-2xl font-semibold">${tier.priceAnnual}</span>
+                          <span className="text-lg"> / month</span>
+                          <div className="text-sm mt-1">
+                            ${tier.annualTotal}/year - Save ${tier.savings}
+                          </div>
+                        </>
+                      )}
                     </div>
                   )}
                 </div>
@@ -275,7 +316,7 @@ export default function PricingModal({
                     // Hide the 14-day free trial feature if user is already subscribed, has had a paid plan, or already had a trial
                     if (
                       isGrower &&
-                      f.includes("14-day free trial") &&
+                      f.toLowerCase().includes("free trial") &&
                       (hasHadPaidPlan ||
                         hadPreviousTrial ||
                         (currentPlan &&
@@ -345,8 +386,18 @@ export default function PricingModal({
                     // Handle new users with no plan
                     if (!currentPlan || currentPlan === 'no_plan' || currentPlan === 'NULL') {
                       if (tier.key === "grower") {
-                        // If they already had a trial, show regular purchase option
-                        if (hadPreviousTrial) return "Get Started";
+                        console.log('🔍 Grower button check:', { 
+                          hadPreviousTrial, 
+                          isReactivation, 
+                          hasHadPaidPlan,
+                          shouldShowTrial: !hadPreviousTrial && !isReactivation && !hasHadPaidPlan
+                        });
+                        // If they already had a trial, are reactivating, or had a paid plan, no trial
+                        if (hadPreviousTrial === true || isReactivation === true || hasHadPaidPlan === true) {
+                          console.log('✅ Showing "Get Started" for Grower (no trial)');
+                          return "Get Started";
+                        }
+                        console.log('🆓 Showing "Start Free Trial" for Grower');
                         return "Start Free Trial";
                       }
                       return "Get Started";

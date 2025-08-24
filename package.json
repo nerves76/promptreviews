@@ -5,8 +5,8 @@
   "scripts": {
     "start": "next start",
     "predev": "node scripts/check-migrations.js",
-    "dev": "DISABLE_SENTRY=true next dev -p 3002",
-    "dev:fast": "DISABLE_SENTRY=true next dev --turbo -p 3002",
+    "dev": "DISABLE_SENTRY=true next dev --turbo -p 3002",
+    "dev:webpack": "DISABLE_SENTRY=true next dev -p 3002",
     "dev:debug": "next dev -p 3002",
     "dev:clean": "npm run safety:full-audit && npm run dev",
     "cleanup": "rm -rf .next && rm -rf node_modules/.cache",

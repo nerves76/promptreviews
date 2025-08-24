@@ -16,6 +16,100 @@ A modern, customizable review widget system built with Next.js, TypeScript, and 
 - ⏰ **Automatic trial reminder system**
 - ✅ **Persistent onboarding tasks system**
 - 🚀 **Improved development experience**
+- 🏢 **Google Business Profile location management**
+- 📝 **Configurable logging system**
+
+## Google Business Profile Location Selection
+
+The application includes a powerful location selection system for agencies and businesses managing multiple Google Business Profile locations.
+
+### Features
+- **Plan-Based Limits**: Different subscription tiers have different location limits
+  - Builder Plan: 5 locations
+  - Maven Plan: 10 locations
+  - Admin Override: Database configurable limits via `max_gbp_locations` column
+- **Auto-Selection**: Single location businesses skip the selection modal
+- **Search & Filter**: Search locations by name or address
+- **Persistent Selection**: Selected locations are saved to the database
+- **Agency Support**: Perfect for agencies managing multiple client GBP accounts
+
+### How It Works
+1. **First Time Setup**: When accessing GBP features, users select which locations to track
+2. **Plan Enforcement**: System enforces plan-based limits with clear messaging
+3. **Auto-Skip**: Users with single locations bypass selection entirely
+4. **Database Storage**: Selections persist across sessions in `selected_gbp_locations` table
+
+### Database Configuration
+Administrators can override default limits per account:
+```sql
+-- Set custom limit for specific account
+UPDATE accounts 
+SET max_gbp_locations = 20 
+WHERE id = 'account_id_here';
+```
+
+## Configurable Logging System
+
+The application includes a sophisticated logging utility that allows real-time control of console output verbosity, perfect for debugging without cluttering the console.
+
+### Features
+- **Multiple Log Levels**: `silent`, `error`, `warn`, `info`, `debug`
+- **Browser Console Control**: Change log levels without restarting the app
+- **Persistent Settings**: Log level persists in localStorage
+- **Context-Specific Loggers**: Special loggers for auth, business, account, and navigation contexts
+- **Visual Indicators**: Each log type has its own emoji for easy scanning
+
+### Usage
+
+#### Setting Log Level in Browser Console
+```javascript
+// Reduce console noise to only errors
+setLogLevel('error')
+
+// Enable verbose debugging
+setLogLevel('debug')
+
+// Completely silence all logs
+setLogLevel('silent')
+
+// Check current log level
+getLogLevel()
+```
+
+#### Setting via Environment Variable
+```bash
+# In .env.local
+NEXT_PUBLIC_LOG_LEVEL=info
+```
+
+#### Using in Code
+```typescript
+import logger from '@/utils/logger';
+
+// Standard logging
+logger.error('Critical error occurred', error);
+logger.warn('This might be a problem');
+logger.info('User completed action');
+logger.debug('Detailed debug info', data);
+
+// Context-specific logging
+logger.auth('User authenticated', userId);
+logger.business('Business profile updated', businessId);
+logger.account('Account settings changed', accountId);
+logger.nav('Navigation to dashboard');
+```
+
+### Log Levels Explained
+- **silent**: No output at all
+- **error**: Only critical errors (❌)
+- **warn**: Errors and warnings (⚠️)
+- **info**: Errors, warnings, and informational messages (ℹ️) - Default
+- **debug**: Everything including detailed debug logs (🔍)
+
+### Default Behavior
+- **Production**: Defaults to `error` level
+- **Development**: Defaults to `info` level
+- **Override**: Can be changed anytime via browser console
 
 ## Quick Start
 
@@ -129,6 +223,11 @@ window.location.reload();
 Create a `.env.local` file with the following variables:
 
 ```bash
+# Logging Configuration
+# Options: silent, error, warn, info, debug
+# Default: info (development), error (production)
+NEXT_PUBLIC_LOG_LEVEL=info
+
 # Supabase Configuration
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url_here
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key_here

@@ -115,6 +115,7 @@ export default function PlanPage() {
   const success = searchParams?.get('success');
   const change = searchParams?.get('change');
   const canceled = searchParams?.get('canceled');
+  const isReactivation = searchParams?.get('reactivation') === 'true';
   
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -419,6 +420,7 @@ export default function PlanPage() {
                 plan: tierKey,
                 billingPeriod: billing,
                 userId: account.id,
+                isReactivation: isReactivation,
               }),
             });
             
@@ -578,6 +580,7 @@ export default function PlanPage() {
               userId: account.id,
               email: user.email,
               billingPeriod: billing,
+              isReactivation: isReactivation,
             }),
           });
           

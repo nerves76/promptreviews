@@ -1,10 +1,10 @@
 {
-  "timestamp": "2025-07-28T23:10:47.318Z",
+  "timestamp": "2025-08-23T20:14:52.717Z",
   "summary": {
-    "totalIssues": 423,
-    "highSeverity": 24,
-    "mediumSeverity": 392,
-    "lowSeverity": 7
+    "totalIssues": 666,
+    "highSeverity": 32,
+    "mediumSeverity": 622,
+    "lowSeverity": 12
   },
   "issues": [
     {
@@ -100,7 +100,7 @@
     {
       "type": "LARGE_FILE",
       "file": "/Users/chris/promptreviews/src/app/admin/metadata-templates/page.tsx",
-      "lines": 519,
+      "lines": 521,
       "severity": "MEDIUM",
       "recommendation": "Split page.tsx into smaller components"
     },
@@ -160,6 +160,24 @@
       "recommendation": "Consider using React.memo for expensive components"
     },
     {
+      "type": "USE_EFFECT_NO_DEPS",
+      "file": "/Users/chris/promptreviews/src/app/admin/webhook-manager/page.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Add dependency array to useEffect or use useCallback"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/admin/webhook-manager/page.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/api/accounts/create-additional/route.ts",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
       "type": "MISSING_MEMOIZATION",
       "file": "/Users/chris/promptreviews/src/app/api/admin/account-cleanup/route.ts",
       "severity": "MEDIUM",
@@ -191,6 +209,24 @@
     },
     {
       "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/api/ai/google-business/integrate-keywords/route.ts",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/api/auth/ensure-account/route.ts",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/api/auth/fix-account/route.ts",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
       "file": "/Users/chris/promptreviews/src/app/api/auth/google/callback/route.ts",
       "severity": "MEDIUM",
       "recommendation": "Consider using React.memo for expensive components"
@@ -215,6 +251,12 @@
     },
     {
       "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/api/auth/signup/route.ts",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
       "file": "/Users/chris/promptreviews/src/app/api/business-information/categories/route.ts",
       "severity": "MEDIUM",
       "recommendation": "Consider using React.memo for expensive components"
@@ -228,7 +270,7 @@
     {
       "type": "LARGE_FILE",
       "file": "/Users/chris/promptreviews/src/app/api/business-information/update-location/route.ts",
-      "lines": 530,
+      "lines": 613,
       "severity": "MEDIUM",
       "recommendation": "Split route.ts into smaller components"
     },
@@ -270,6 +312,12 @@
     },
     {
       "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/api/cancel-subscription/route.ts",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
       "file": "/Users/chris/promptreviews/src/app/api/check-admin/route.ts",
       "severity": "MEDIUM",
       "recommendation": "Consider using React.memo for expensive components"
@@ -294,13 +342,49 @@
     },
     {
       "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/api/communication/records/route.ts",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/api/communication/reminders/route.ts",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
       "file": "/Users/chris/promptreviews/src/app/api/contacts/bulk-create-prompt-pages/route.ts",
       "severity": "MEDIUM",
       "recommendation": "Consider using React.memo for expensive components"
     },
     {
       "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/api/contacts/create/route.ts",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/api/contacts/create-from-prompt-page/route.ts",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
       "file": "/Users/chris/promptreviews/src/app/api/contacts/export/route.ts",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/api/contacts/find-duplicates/route.ts",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/api/contacts/merge/route.ts",
       "severity": "MEDIUM",
       "recommendation": "Consider using React.memo for expensive components"
     },
@@ -330,13 +414,43 @@
     },
     {
       "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/api/cron/send-communication-reminders/route.ts",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
       "file": "/Users/chris/promptreviews/src/app/api/cron/send-invitation-reminders/route.ts",
       "severity": "MEDIUM",
       "recommendation": "Consider using React.memo for expensive components"
     },
     {
       "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/api/cron/send-monthly-insights/route.ts",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/api/cron/send-review-reminders/route.ts",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
       "file": "/Users/chris/promptreviews/src/app/api/cron/send-trial-reminders/route.ts",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/api/debug-account/route.ts",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/api/debug-auth/route.ts",
       "severity": "MEDIUM",
       "recommendation": "Consider using React.memo for expensive components"
     },
@@ -372,7 +486,31 @@
     },
     {
       "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/api/fix-account/route.ts",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
       "file": "/Users/chris/promptreviews/src/app/api/fix-grammar/route.ts",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/api/game/leaderboard/route.ts",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/api/game/save-score/route.ts",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/api/game/submit-score/route.ts",
       "severity": "MEDIUM",
       "recommendation": "Consider using React.memo for expensive components"
     },
@@ -390,6 +528,18 @@
     },
     {
       "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/api/google-business-profile/import-reviews/route.ts",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/api/google-business-profile/overview/route.ts",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
       "file": "/Users/chris/promptreviews/src/app/api/health/ai-generation/route.ts",
       "severity": "MEDIUM",
       "recommendation": "Consider using React.memo for expensive components"
@@ -401,8 +551,45 @@
       "recommendation": "Consider using React.memo for expensive components"
     },
     {
+      "type": "LARGE_FILE",
+      "file": "/Users/chris/promptreviews/src/app/api/help-docs/content/route.ts",
+      "lines": 796,
+      "severity": "MEDIUM",
+      "recommendation": "Split route.ts into smaller components"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/api/help-docs/content/route.ts",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/api/help-docs/faqs/route.ts",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/api/help-docs/fetch-from-docs/route.ts",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/api/help-docs/tutorials/route.ts",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
       "type": "MISSING_MEMOIZATION",
       "file": "/Users/chris/promptreviews/src/app/api/initialize-onboarding-tasks/route.ts",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/api/manual-sync-subscription/route.ts",
       "severity": "MEDIUM",
       "recommendation": "Consider using React.memo for expensive components"
     },
@@ -432,6 +619,18 @@
     },
     {
       "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/api/onboarding-tasks/route.ts",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/api/preview-billing-change/route.ts",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
       "file": "/Users/chris/promptreviews/src/app/api/prompt-pages/[slug]/route.ts",
       "severity": "MEDIUM",
       "recommendation": "Consider using React.memo for expensive components"
@@ -445,6 +644,24 @@
     {
       "type": "MISSING_MEMOIZATION",
       "file": "/Users/chris/promptreviews/src/app/api/prompt-pages/route.ts",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/api/prompt-pages/update-status/route.ts",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/api/rate-limit-status/route.ts",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/api/recent-reviews/[promptPageId]/route.ts",
       "severity": "MEDIUM",
       "recommendation": "Consider using React.memo for expensive components"
     },
@@ -475,6 +692,18 @@
     {
       "type": "MISSING_MEMOIZATION",
       "file": "/Users/chris/promptreviews/src/app/api/reviews-management/respond-review/route.ts",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/api/reviews-management/unresponded-reviews/route.ts",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/api/reviews-management/update-review-reply/route.ts",
       "severity": "MEDIUM",
       "recommendation": "Consider using React.memo for expensive components"
     },
@@ -516,7 +745,19 @@
     },
     {
       "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/api/social-posting/photos/fetch/route.ts",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
       "file": "/Users/chris/promptreviews/src/app/api/social-posting/photos/upload/route.ts",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/api/social-posting/platforms/google-business-profile/disconnect/route.ts",
       "severity": "MEDIUM",
       "recommendation": "Consider using React.memo for expensive components"
     },
@@ -529,6 +770,18 @@
     {
       "type": "MISSING_MEMOIZATION",
       "file": "/Users/chris/promptreviews/src/app/api/social-posting/platforms/google-business-profile/locations/route.ts",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/api/social-posting/platforms/google-business-profile/revoke/route.ts",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/api/social-posting/platforms/google-business-profile/save-selected-locations/route.ts",
       "severity": "MEDIUM",
       "recommendation": "Consider using React.memo for expensive components"
     },
@@ -559,6 +812,18 @@
     {
       "type": "MISSING_MEMOIZATION",
       "file": "/Users/chris/promptreviews/src/app/api/stripe-webhook/route.ts",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/api/sync-billing/route.ts",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/api/sync-subscription/route.ts",
       "severity": "MEDIUM",
       "recommendation": "Consider using React.memo for expensive components"
     },
@@ -605,6 +870,13 @@
       "recommendation": "Consider using React.memo for expensive components"
     },
     {
+      "type": "LARGE_FILE",
+      "file": "/Users/chris/promptreviews/src/app/api/team/members/route.ts",
+      "lines": 516,
+      "severity": "MEDIUM",
+      "recommendation": "Split route.ts into smaller components"
+    },
+    {
       "type": "MISSING_MEMOIZATION",
       "file": "/Users/chris/promptreviews/src/app/api/team/members/route.ts",
       "severity": "MEDIUM",
@@ -631,6 +903,12 @@
     {
       "type": "MISSING_MEMOIZATION",
       "file": "/Users/chris/promptreviews/src/app/api/test-google-oauth-bypass/route.ts",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/api/test-rls/route.ts",
       "severity": "MEDIUM",
       "recommendation": "Consider using React.memo for expensive components"
     },
@@ -713,6 +991,13 @@
       "recommendation": "Consider using React.memo for expensive components"
     },
     {
+      "type": "LARGE_FILE",
+      "file": "/Users/chris/promptreviews/src/app/auth/callback/route.ts",
+      "lines": 678,
+      "severity": "MEDIUM",
+      "recommendation": "Split route.ts into smaller components"
+    },
+    {
       "type": "MISSING_MEMOIZATION",
       "file": "/Users/chris/promptreviews/src/app/auth/callback/route.ts",
       "severity": "MEDIUM",
@@ -749,6 +1034,12 @@
       "recommendation": "Consider using React.memo for expensive components"
     },
     {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/auth/loading.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
       "type": "USE_EFFECT_NO_DEPS",
       "file": "/Users/chris/promptreviews/src/app/auth/sign-in/page.tsx",
       "severity": "MEDIUM",
@@ -763,7 +1054,7 @@
     {
       "type": "LARGE_FILE",
       "file": "/Users/chris/promptreviews/src/app/auth/sign-up/page.tsx",
-      "lines": 588,
+      "lines": 550,
       "severity": "MEDIUM",
       "recommendation": "Split page.tsx into smaller components"
     },
@@ -805,6 +1096,18 @@
     },
     {
       "type": "USE_EFFECT_NO_DEPS",
+      "file": "/Users/chris/promptreviews/src/app/components/AnimatedInfographic.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Add dependency array to useEffect or use useCallback"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/components/AnimatedInfographic.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "USE_EFFECT_NO_DEPS",
       "file": "/Users/chris/promptreviews/src/app/components/AnnouncementBanner.tsx",
       "severity": "MEDIUM",
       "recommendation": "Add dependency array to useEffect or use useCallback"
@@ -824,6 +1127,37 @@
     {
       "type": "MISSING_MEMOIZATION",
       "file": "/Users/chris/promptreviews/src/app/components/AppMain.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "LARGE_FILE",
+      "file": "/Users/chris/promptreviews/src/app/components/BasePromptPageForm.tsx",
+      "lines": 644,
+      "severity": "MEDIUM",
+      "recommendation": "Split BasePromptPageForm.tsx into smaller components"
+    },
+    {
+      "type": "USE_EFFECT_NO_DEPS",
+      "file": "/Users/chris/promptreviews/src/app/components/BasePromptPageForm.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Add dependency array to useEffect or use useCallback"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/components/BasePromptPageForm.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "USE_EFFECT_NO_DEPS",
+      "file": "/Users/chris/promptreviews/src/app/components/BodyWrapper.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Add dependency array to useEffect or use useCallback"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/components/BodyWrapper.tsx",
       "severity": "MEDIUM",
       "recommendation": "Consider using React.memo for expensive components"
     },
@@ -848,7 +1182,7 @@
     {
       "type": "LARGE_FILE",
       "file": "/Users/chris/promptreviews/src/app/components/BusinessInfoEditor.tsx",
-      "lines": 919,
+      "lines": 967,
       "severity": "MEDIUM",
       "recommendation": "Split BusinessInfoEditor.tsx into smaller components"
     },
@@ -867,7 +1201,7 @@
     {
       "type": "LARGE_FILE",
       "file": "/Users/chris/promptreviews/src/app/components/BusinessLocationModal.tsx",
-      "lines": 789,
+      "lines": 850,
       "severity": "MEDIUM",
       "recommendation": "Split BusinessLocationModal.tsx into smaller components"
     },
@@ -888,6 +1222,24 @@
       "file": "/Users/chris/promptreviews/src/app/components/BusinessLocationModal.tsx",
       "severity": "MEDIUM",
       "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "USE_EFFECT_NO_DEPS",
+      "file": "/Users/chris/promptreviews/src/app/components/BusinessProfileBanner.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Add dependency array to useEffect or use useCallback"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/components/BusinessProfileBanner.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "USE_EFFECT_NO_DEPS",
+      "file": "/Users/chris/promptreviews/src/app/components/ContactMergeModal.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Add dependency array to useEffect or use useCallback"
     },
     {
       "type": "USE_EFFECT_NO_DEPS",
@@ -935,7 +1287,7 @@
     {
       "type": "LARGE_FILE",
       "file": "/Users/chris/promptreviews/src/app/components/EventPromptPageForm.tsx",
-      "lines": 703,
+      "lines": 684,
       "severity": "MEDIUM",
       "recommendation": "Split EventPromptPageForm.tsx into smaller components"
     },
@@ -950,6 +1302,12 @@
       "file": "/Users/chris/promptreviews/src/app/components/EventPromptPageForm.tsx",
       "severity": "MEDIUM",
       "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "USE_EFFECT_NO_DEPS",
+      "file": "/Users/chris/promptreviews/src/app/components/FeedbackBubble.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Add dependency array to useEffect or use useCallback"
     },
     {
       "type": "MISSING_MEMOIZATION",
@@ -989,9 +1347,27 @@
     },
     {
       "type": "USE_EFFECT_NO_DEPS",
+      "file": "/Users/chris/promptreviews/src/app/components/GetReviewsDropdown.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Add dependency array to useEffect or use useCallback"
+    },
+    {
+      "type": "USE_EFFECT_NO_DEPS",
       "file": "/Users/chris/promptreviews/src/app/components/GettingStarted.tsx",
       "severity": "MEDIUM",
       "recommendation": "Add dependency array to useEffect or use useCallback"
+    },
+    {
+      "type": "USE_EFFECT_NO_DEPS",
+      "file": "/Users/chris/promptreviews/src/app/components/GlobalRefreshMonitor.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Add dependency array to useEffect or use useCallback"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/components/GlobalRefreshMonitor.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
     },
     {
       "type": "USE_EFFECT_NO_DEPS",
@@ -1008,7 +1384,7 @@
     {
       "type": "LARGE_FILE",
       "file": "/Users/chris/promptreviews/src/app/components/Header.tsx",
-      "lines": 915,
+      "lines": 935,
       "severity": "MEDIUM",
       "recommendation": "Split Header.tsx into smaller components"
     },
@@ -1039,6 +1415,43 @@
     {
       "type": "MISSING_MEMOIZATION",
       "file": "/Users/chris/promptreviews/src/app/components/IndustrySelector.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/components/InlineLoader.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/components/LocationCard.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "LARGE_FILE",
+      "file": "/Users/chris/promptreviews/src/app/components/ManualContactForm.tsx",
+      "lines": 783,
+      "severity": "MEDIUM",
+      "recommendation": "Split ManualContactForm.tsx into smaller components"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/components/ManualContactForm.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "USE_EFFECT_NO_DEPS",
+      "file": "/Users/chris/promptreviews/src/app/components/NavigationDebugger.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Add dependency array to useEffect or use useCallback"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/components/NavigationDebugger.tsx",
       "severity": "MEDIUM",
       "recommendation": "Consider using React.memo for expensive components"
     },
@@ -1075,7 +1488,7 @@
     {
       "type": "LARGE_FILE",
       "file": "/Users/chris/promptreviews/src/app/components/PhotoManagement.tsx",
-      "lines": 634,
+      "lines": 717,
       "severity": "MEDIUM",
       "recommendation": "Split PhotoManagement.tsx into smaller components"
     },
@@ -1106,7 +1519,7 @@
     {
       "type": "LARGE_FILE",
       "file": "/Users/chris/promptreviews/src/app/components/ProductPromptPageForm.tsx",
-      "lines": 702,
+      "lines": 743,
       "severity": "MEDIUM",
       "recommendation": "Split ProductPromptPageForm.tsx into smaller components"
     },
@@ -1119,7 +1532,7 @@
     {
       "type": "LARGE_FILE",
       "file": "/Users/chris/promptreviews/src/app/components/PromptPageForm.tsx",
-      "lines": 601,
+      "lines": 592,
       "severity": "MEDIUM",
       "recommendation": "Split PromptPageForm.tsx into smaller components"
     },
@@ -1144,7 +1557,7 @@
     {
       "type": "LARGE_FILE",
       "file": "/Users/chris/promptreviews/src/app/components/QRCodeModal.tsx",
-      "lines": 855,
+      "lines": 921,
       "severity": "MEDIUM",
       "recommendation": "Split QRCodeModal.tsx into smaller components"
     },
@@ -1171,6 +1584,37 @@
       "file": "/Users/chris/promptreviews/src/app/components/QuoteDisplay.tsx",
       "severity": "MEDIUM",
       "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "USE_EFFECT_NO_DEPS",
+      "file": "/Users/chris/promptreviews/src/app/components/RecentReviewsButton.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Add dependency array to useEffect or use useCallback"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/components/RecentReviewsButton.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "USE_EFFECT_NO_DEPS",
+      "file": "/Users/chris/promptreviews/src/app/components/RecentReviewsModal.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Add dependency array to useEffect or use useCallback"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/components/RecentReviewsModal.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "LARGE_FILE",
+      "file": "/Users/chris/promptreviews/src/app/components/ReviewManagement.tsx",
+      "lines": 719,
+      "severity": "MEDIUM",
+      "recommendation": "Split ReviewManagement.tsx into smaller components"
     },
     {
       "type": "USE_EFFECT_NO_DEPS",
@@ -1205,7 +1649,7 @@
     {
       "type": "LARGE_FILE",
       "file": "/Users/chris/promptreviews/src/app/components/ServicePromptPageForm.tsx",
-      "lines": 514,
+      "lines": 779,
       "severity": "MEDIUM",
       "recommendation": "Split ServicePromptPageForm.tsx into smaller components"
     },
@@ -1218,6 +1662,37 @@
     {
       "type": "MISSING_MEMOIZATION",
       "file": "/Users/chris/promptreviews/src/app/components/ServicePromptPageForm.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "USE_EFFECT_NO_DEPS",
+      "file": "/Users/chris/promptreviews/src/app/components/ServicePromptPageFormRefactored.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Add dependency array to useEffect or use useCallback"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/components/ServicePromptPageFormRefactored.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "LARGE_FILE",
+      "file": "/Users/chris/promptreviews/src/app/components/ServicesEditor.tsx",
+      "lines": 565,
+      "severity": "MEDIUM",
+      "recommendation": "Split ServicesEditor.tsx into smaller components"
+    },
+    {
+      "type": "USE_EFFECT_NO_DEPS",
+      "file": "/Users/chris/promptreviews/src/app/components/ServicesEditor.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Add dependency array to useEffect or use useCallback"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/components/ServicesEditor.tsx",
       "severity": "MEDIUM",
       "recommendation": "Consider using React.memo for expensive components"
     },
@@ -1258,6 +1733,30 @@
       "recommendation": "Consider using React.memo for expensive components"
     },
     {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/components/UnifiedPromptTypeSelectModal.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/components/UniversalPromptPageForm.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "USE_EFFECT_NO_DEPS",
+      "file": "/Users/chris/promptreviews/src/app/components/UnrespondedReviewsWidget.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Add dependency array to useEffect or use useCallback"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/components/UnrespondedReviewsWidget.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
       "type": "USE_EFFECT_NO_DEPS",
       "file": "/Users/chris/promptreviews/src/app/components/WelcomePopup.tsx",
       "severity": "MEDIUM",
@@ -1272,6 +1771,12 @@
     {
       "type": "MISSING_MEMOIZATION",
       "file": "/Users/chris/promptreviews/src/app/components/WpHeader.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/components/business-info/AddressEditor.tsx",
       "severity": "MEDIUM",
       "recommendation": "Consider using React.memo for expensive components"
     },
@@ -1295,6 +1800,12 @@
     },
     {
       "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/components/business-info/ContactInfoEditor.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
       "file": "/Users/chris/promptreviews/src/app/components/business-info/LoadBusinessInfoButton.tsx",
       "severity": "MEDIUM",
       "recommendation": "Consider using React.memo for expensive components"
@@ -1306,14 +1817,281 @@
       "recommendation": "Consider using React.memo for expensive components"
     },
     {
-      "type": "LARGE_IMPORTS",
-      "file": "/Users/chris/promptreviews/src/app/components/prompt-modules/fallingStarsConfig.ts",
-      "severity": "HIGH",
-      "recommendation": "Use dynamic imports for large libraries"
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/components/communication/CommunicationButtons.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "USE_EFFECT_NO_DEPS",
+      "file": "/Users/chris/promptreviews/src/app/components/communication/CommunicationHistory.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Add dependency array to useEffect or use useCallback"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/components/communication/CommunicationHistory.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "USE_EFFECT_NO_DEPS",
+      "file": "/Users/chris/promptreviews/src/app/components/communication/CommunicationProcessIndicator.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Add dependency array to useEffect or use useCallback"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/components/communication/CommunicationProcessIndicator.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "USE_EFFECT_NO_DEPS",
+      "file": "/Users/chris/promptreviews/src/app/components/communication/CommunicationTrackingModal.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Add dependency array to useEffect or use useCallback"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/components/communication/CommunicationTrackingModal.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/components/communication/IntegrationExample.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "USE_EFFECT_NO_DEPS",
+      "file": "/Users/chris/promptreviews/src/app/components/communication/UpcomingReminders.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Add dependency array to useEffect or use useCallback"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/components/communication/UpcomingReminders.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "USE_EFFECT_NO_DEPS",
+      "file": "/Users/chris/promptreviews/src/app/components/help/ArticleViewer.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Add dependency array to useEffect or use useCallback"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/components/help/ArticleViewer.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "USE_EFFECT_NO_DEPS",
+      "file": "/Users/chris/promptreviews/src/app/components/help/FAQsTab.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Add dependency array to useEffect or use useCallback"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/components/help/FAQsTab.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "USE_EFFECT_NO_DEPS",
+      "file": "/Users/chris/promptreviews/src/app/components/help/HelpModal.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Add dependency array to useEffect or use useCallback"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/components/help/HelpModal.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/components/help/IssuesTab.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "USE_EFFECT_NO_DEPS",
+      "file": "/Users/chris/promptreviews/src/app/components/help/TutorialsTab.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Add dependency array to useEffect or use useCallback"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/components/help/TutorialsTab.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "LARGE_FILE",
+      "file": "/Users/chris/promptreviews/src/app/components/help/TutorialsTabNew.tsx",
+      "lines": 505,
+      "severity": "MEDIUM",
+      "recommendation": "Split TutorialsTabNew.tsx into smaller components"
+    },
+    {
+      "type": "USE_EFFECT_NO_DEPS",
+      "file": "/Users/chris/promptreviews/src/app/components/help/TutorialsTabNew.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Add dependency array to useEffect or use useCallback"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/components/help/TutorialsTabNew.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/components/help/config.ts",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/components/photos/LoadPhotosButton.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "USE_EFFECT_NO_DEPS",
+      "file": "/Users/chris/promptreviews/src/app/components/prompt-features/AISettingsFeature.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Add dependency array to useEffect or use useCallback"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/components/prompt-features/AISettingsFeature.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "USE_EFFECT_NO_DEPS",
+      "file": "/Users/chris/promptreviews/src/app/components/prompt-features/EmojiSentimentFeature.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Add dependency array to useEffect or use useCallback"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/components/prompt-features/EmojiSentimentFeature.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "USE_EFFECT_NO_DEPS",
+      "file": "/Users/chris/promptreviews/src/app/components/prompt-features/FallingStarsFeature.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Add dependency array to useEffect or use useCallback"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/components/prompt-features/FallingStarsFeature.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "LARGE_FILE",
+      "file": "/Users/chris/promptreviews/src/app/components/prompt-features/KickstartersFeature.tsx",
+      "lines": 580,
+      "severity": "MEDIUM",
+      "recommendation": "Split KickstartersFeature.tsx into smaller components"
+    },
+    {
+      "type": "USE_EFFECT_NO_DEPS",
+      "file": "/Users/chris/promptreviews/src/app/components/prompt-features/KickstartersFeature.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Add dependency array to useEffect or use useCallback"
+    },
+    {
+      "type": "INLINE_STYLES",
+      "file": "/Users/chris/promptreviews/src/app/components/prompt-features/KickstartersFeature.tsx",
+      "severity": "LOW",
+      "recommendation": "Move inline styles to CSS classes"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/components/prompt-features/KickstartersFeature.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "LARGE_FILE",
+      "file": "/Users/chris/promptreviews/src/app/components/prompt-features/KickstartersManagementModal.tsx",
+      "lines": 535,
+      "severity": "MEDIUM",
+      "recommendation": "Split KickstartersManagementModal.tsx into smaller components"
+    },
+    {
+      "type": "USE_EFFECT_NO_DEPS",
+      "file": "/Users/chris/promptreviews/src/app/components/prompt-features/KickstartersManagementModal.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Add dependency array to useEffect or use useCallback"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/components/prompt-features/KickstartersManagementModal.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "USE_EFFECT_NO_DEPS",
+      "file": "/Users/chris/promptreviews/src/app/components/prompt-features/OfferFeature.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Add dependency array to useEffect or use useCallback"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/components/prompt-features/OfferFeature.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "USE_EFFECT_NO_DEPS",
+      "file": "/Users/chris/promptreviews/src/app/components/prompt-features/PersonalizedNoteFeature.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Add dependency array to useEffect or use useCallback"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/components/prompt-features/PersonalizedNoteFeature.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "USE_EFFECT_NO_DEPS",
+      "file": "/Users/chris/promptreviews/src/app/components/prompt-features/RecentReviewsFeature.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Add dependency array to useEffect or use useCallback"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/components/prompt-features/RecentReviewsFeature.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "USE_EFFECT_NO_DEPS",
+      "file": "/Users/chris/promptreviews/src/app/components/prompt-features/ReviewPlatformsFeature.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Add dependency array to useEffect or use useCallback"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/components/prompt-features/ReviewPlatformsFeature.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
     },
     {
       "type": "LARGE_IMPORTS",
-      "file": "/Users/chris/promptreviews/src/app/components/prompt-modules/offerConfig.ts",
+      "file": "/Users/chris/promptreviews/src/app/components/prompt-modules/fallingStarsConfig.ts",
       "severity": "HIGH",
       "recommendation": "Use dynamic imports for large libraries"
     },
@@ -1350,7 +2128,7 @@
     {
       "type": "LARGE_FILE",
       "file": "/Users/chris/promptreviews/src/app/create-prompt-page/CreatePromptPageClient.tsx",
-      "lines": 1465,
+      "lines": 1786,
       "severity": "HIGH",
       "recommendation": "Split CreatePromptPageClient.tsx into smaller components"
     },
@@ -1381,7 +2159,7 @@
     {
       "type": "LARGE_FILE",
       "file": "/Users/chris/promptreviews/src/app/dashboard/DashboardContent.tsx",
-      "lines": 1037,
+      "lines": 1039,
       "severity": "HIGH",
       "recommendation": "Split DashboardContent.tsx into smaller components"
     },
@@ -1392,15 +2170,15 @@
       "recommendation": "Add dependency array to useEffect or use useCallback"
     },
     {
-      "type": "MISSING_MEMOIZATION",
+      "type": "INLINE_STYLES",
       "file": "/Users/chris/promptreviews/src/app/dashboard/DashboardContent.tsx",
-      "severity": "MEDIUM",
-      "recommendation": "Consider using React.memo for expensive components"
+      "severity": "LOW",
+      "recommendation": "Move inline styles to CSS classes"
     },
     {
       "type": "LARGE_FILE",
       "file": "/Users/chris/promptreviews/src/app/dashboard/account/page.tsx",
-      "lines": 707,
+      "lines": 901,
       "severity": "MEDIUM",
       "recommendation": "Split page.tsx into smaller components"
     },
@@ -1419,7 +2197,7 @@
     {
       "type": "LARGE_FILE",
       "file": "/Users/chris/promptreviews/src/app/dashboard/analytics/page.tsx",
-      "lines": 743,
+      "lines": 819,
       "severity": "MEDIUM",
       "recommendation": "Split page.tsx into smaller components"
     },
@@ -1438,8 +2216,8 @@
     {
       "type": "LARGE_FILE",
       "file": "/Users/chris/promptreviews/src/app/dashboard/business-profile/page.tsx",
-      "lines": 871,
-      "severity": "MEDIUM",
+      "lines": 1012,
+      "severity": "HIGH",
       "recommendation": "Split page.tsx into smaller components"
     },
     {
@@ -1481,7 +2259,7 @@
     {
       "type": "LARGE_FILE",
       "file": "/Users/chris/promptreviews/src/app/dashboard/components/BusinessProfileForm.tsx",
-      "lines": 950,
+      "lines": 997,
       "severity": "MEDIUM",
       "recommendation": "Split BusinessProfileForm.tsx into smaller components"
     },
@@ -1512,8 +2290,8 @@
     {
       "type": "LARGE_FILE",
       "file": "/Users/chris/promptreviews/src/app/dashboard/components/QRCodeGenerator.tsx",
-      "lines": 985,
-      "severity": "MEDIUM",
+      "lines": 1158,
+      "severity": "HIGH",
       "recommendation": "Split QRCodeGenerator.tsx into smaller components"
     },
     {
@@ -1537,9 +2315,15 @@
     {
       "type": "LARGE_FILE",
       "file": "/Users/chris/promptreviews/src/app/dashboard/components/SimpleBusinessForm.tsx",
-      "lines": 625,
+      "lines": 671,
       "severity": "MEDIUM",
       "recommendation": "Split SimpleBusinessForm.tsx into smaller components"
+    },
+    {
+      "type": "USE_EFFECT_NO_DEPS",
+      "file": "/Users/chris/promptreviews/src/app/dashboard/components/SimpleBusinessForm.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Add dependency array to useEffect or use useCallback"
     },
     {
       "type": "MISSING_MEMOIZATION",
@@ -1550,7 +2334,7 @@
     {
       "type": "LARGE_FILE",
       "file": "/Users/chris/promptreviews/src/app/dashboard/contacts/page.tsx",
-      "lines": 1217,
+      "lines": 2226,
       "severity": "HIGH",
       "recommendation": "Split page.tsx into smaller components"
     },
@@ -1575,6 +2359,12 @@
     {
       "type": "MISSING_MEMOIZATION",
       "file": "/Users/chris/promptreviews/src/app/dashboard/create-business/CreateBusinessClient.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/dashboard/create-business/loading.tsx",
       "severity": "MEDIUM",
       "recommendation": "Consider using React.memo for expensive components"
     },
@@ -1593,7 +2383,7 @@
     {
       "type": "LARGE_FILE",
       "file": "/Users/chris/promptreviews/src/app/dashboard/edit-prompt-page/[slug]/page.tsx",
-      "lines": 1343,
+      "lines": 1449,
       "severity": "HIGH",
       "recommendation": "Split page.tsx into smaller components"
     },
@@ -1604,22 +2394,16 @@
       "recommendation": "Add dependency array to useEffect or use useCallback"
     },
     {
-      "type": "LARGE_IMPORTS",
+      "type": "INLINE_STYLES",
       "file": "/Users/chris/promptreviews/src/app/dashboard/edit-prompt-page/[slug]/page.tsx",
-      "severity": "HIGH",
-      "recommendation": "Use dynamic imports for large libraries"
+      "severity": "LOW",
+      "recommendation": "Move inline styles to CSS classes"
     },
     {
       "type": "MISSING_MEMOIZATION",
       "file": "/Users/chris/promptreviews/src/app/dashboard/edit-prompt-page/[slug]/page.tsx",
       "severity": "MEDIUM",
       "recommendation": "Consider using React.memo for expensive components"
-    },
-    {
-      "type": "LARGE_IMPORTS",
-      "file": "/Users/chris/promptreviews/src/app/dashboard/edit-prompt-page/components/ReviewPlatformsSection.tsx",
-      "severity": "HIGH",
-      "recommendation": "Use dynamic imports for large libraries"
     },
     {
       "type": "MISSING_MEMOIZATION",
@@ -1640,6 +2424,13 @@
       "recommendation": "Consider using React.memo for expensive components"
     },
     {
+      "type": "LARGE_FILE",
+      "file": "/Users/chris/promptreviews/src/app/dashboard/edit-prompt-page/universal/page.tsx",
+      "lines": 639,
+      "severity": "MEDIUM",
+      "recommendation": "Split page.tsx into smaller components"
+    },
+    {
       "type": "USE_EFFECT_NO_DEPS",
       "file": "/Users/chris/promptreviews/src/app/dashboard/edit-prompt-page/universal/page.tsx",
       "severity": "MEDIUM",
@@ -1654,7 +2445,7 @@
     {
       "type": "LARGE_FILE",
       "file": "/Users/chris/promptreviews/src/app/dashboard/google-business/page.tsx",
-      "lines": 1375,
+      "lines": 3443,
       "severity": "HIGH",
       "recommendation": "Split page.tsx into smaller components"
     },
@@ -1695,61 +2486,55 @@
       "recommendation": "Consider using React.memo for expensive components"
     },
     {
-      "type": "LARGE_FILE",
-      "file": "/Users/chris/promptreviews/src/app/dashboard/page.tsx",
-      "lines": 876,
-      "severity": "MEDIUM",
-      "recommendation": "Split page.tsx into smaller components"
-    },
-    {
-      "type": "USE_EFFECT_NO_DEPS",
-      "file": "/Users/chris/promptreviews/src/app/dashboard/page.tsx",
-      "severity": "MEDIUM",
-      "recommendation": "Add dependency array to useEffect or use useCallback"
-    },
-    {
       "type": "MISSING_MEMOIZATION",
-      "file": "/Users/chris/promptreviews/src/app/dashboard/page.tsx",
+      "file": "/Users/chris/promptreviews/src/app/dashboard/loading.tsx",
       "severity": "MEDIUM",
       "recommendation": "Consider using React.memo for expensive components"
     },
     {
       "type": "LARGE_FILE",
-      "file": "/Users/chris/promptreviews/src/app/dashboard/plan/page.tsx",
-      "lines": 719,
-      "severity": "MEDIUM",
-      "recommendation": "Split page.tsx into smaller components"
-    },
-    {
-      "type": "USE_EFFECT_NO_DEPS",
-      "file": "/Users/chris/promptreviews/src/app/dashboard/plan/page.tsx",
-      "severity": "MEDIUM",
-      "recommendation": "Add dependency array to useEffect or use useCallback"
-    },
-    {
-      "type": "MISSING_MEMOIZATION",
-      "file": "/Users/chris/promptreviews/src/app/dashboard/plan/page.tsx",
-      "severity": "MEDIUM",
-      "recommendation": "Consider using React.memo for expensive components"
-    },
-    {
-      "type": "LARGE_FILE",
-      "file": "/Users/chris/promptreviews/src/app/dashboard/reviews/page.tsx",
-      "lines": 863,
-      "severity": "MEDIUM",
-      "recommendation": "Split page.tsx into smaller components"
-    },
-    {
-      "type": "USE_EFFECT_NO_DEPS",
-      "file": "/Users/chris/promptreviews/src/app/dashboard/reviews/page.tsx",
-      "severity": "MEDIUM",
-      "recommendation": "Add dependency array to useEffect or use useCallback"
-    },
-    {
-      "type": "LARGE_IMPORTS",
-      "file": "/Users/chris/promptreviews/src/app/dashboard/reviews/page.tsx",
+      "file": "/Users/chris/promptreviews/src/app/dashboard/page.tsx",
+      "lines": 1082,
       "severity": "HIGH",
-      "recommendation": "Use dynamic imports for large libraries"
+      "recommendation": "Split page.tsx into smaller components"
+    },
+    {
+      "type": "USE_EFFECT_NO_DEPS",
+      "file": "/Users/chris/promptreviews/src/app/dashboard/page.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Add dependency array to useEffect or use useCallback"
+    },
+    {
+      "type": "LARGE_FILE",
+      "file": "/Users/chris/promptreviews/src/app/dashboard/plan/page.tsx",
+      "lines": 1637,
+      "severity": "HIGH",
+      "recommendation": "Split page.tsx into smaller components"
+    },
+    {
+      "type": "USE_EFFECT_NO_DEPS",
+      "file": "/Users/chris/promptreviews/src/app/dashboard/plan/page.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Add dependency array to useEffect or use useCallback"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/dashboard/plan/page.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "LARGE_FILE",
+      "file": "/Users/chris/promptreviews/src/app/dashboard/reviews/page.tsx",
+      "lines": 1007,
+      "severity": "HIGH",
+      "recommendation": "Split page.tsx into smaller components"
+    },
+    {
+      "type": "USE_EFFECT_NO_DEPS",
+      "file": "/Users/chris/promptreviews/src/app/dashboard/reviews/page.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Add dependency array to useEffect or use useCallback"
     },
     {
       "type": "MISSING_MEMOIZATION",
@@ -1760,7 +2545,7 @@
     {
       "type": "LARGE_FILE",
       "file": "/Users/chris/promptreviews/src/app/dashboard/style/StyleModalPage.tsx",
-      "lines": 635,
+      "lines": 655,
       "severity": "MEDIUM",
       "recommendation": "Split StyleModalPage.tsx into smaller components"
     },
@@ -1797,7 +2582,7 @@
     {
       "type": "LARGE_FILE",
       "file": "/Users/chris/promptreviews/src/app/dashboard/team/page.tsx",
-      "lines": 1117,
+      "lines": 1224,
       "severity": "HIGH",
       "recommendation": "Split page.tsx into smaller components"
     },
@@ -1816,7 +2601,7 @@
     {
       "type": "LARGE_FILE",
       "file": "/Users/chris/promptreviews/src/app/dashboard/testimonials/page.tsx",
-      "lines": 697,
+      "lines": 676,
       "severity": "MEDIUM",
       "recommendation": "Split page.tsx into smaller components"
     },
@@ -1825,12 +2610,6 @@
       "file": "/Users/chris/promptreviews/src/app/dashboard/testimonials/page.tsx",
       "severity": "MEDIUM",
       "recommendation": "Add dependency array to useEffect or use useCallback"
-    },
-    {
-      "type": "LARGE_IMPORTS",
-      "file": "/Users/chris/promptreviews/src/app/dashboard/testimonials/page.tsx",
-      "severity": "HIGH",
-      "recommendation": "Use dynamic imports for large libraries"
     },
     {
       "type": "MISSING_MEMOIZATION",
@@ -1841,7 +2620,7 @@
     {
       "type": "LARGE_FILE",
       "file": "/Users/chris/promptreviews/src/app/dashboard/upload-contacts/page.tsx",
-      "lines": 620,
+      "lines": 612,
       "severity": "MEDIUM",
       "recommendation": "Split page.tsx into smaller components"
     },
@@ -1884,8 +2663,8 @@
     {
       "type": "LARGE_FILE",
       "file": "/Users/chris/promptreviews/src/app/dashboard/widget/components/ReviewManagementModal.tsx",
-      "lines": 775,
-      "severity": "MEDIUM",
+      "lines": 1230,
+      "severity": "HIGH",
       "recommendation": "Split ReviewManagementModal.tsx into smaller components"
     },
     {
@@ -1962,6 +2741,36 @@
     },
     {
       "type": "USE_EFFECT_NO_DEPS",
+      "file": "/Users/chris/promptreviews/src/app/dashboard/widget/hooks/useRefreshGuard.ts",
+      "severity": "MEDIUM",
+      "recommendation": "Add dependency array to useEffect or use useCallback"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/dashboard/widget/hooks/useRefreshGuard.ts",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "USE_EFFECT_NO_DEPS",
+      "file": "/Users/chris/promptreviews/src/app/dashboard/widget/hooks/useRefreshPrevention.ts",
+      "severity": "MEDIUM",
+      "recommendation": "Add dependency array to useEffect or use useCallback"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/dashboard/widget/hooks/useRefreshPrevention.ts",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/dashboard/widget/hooks/useStableWidgetManager.ts",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "USE_EFFECT_NO_DEPS",
       "file": "/Users/chris/promptreviews/src/app/dashboard/widget/hooks/useWidgets.ts",
       "severity": "MEDIUM",
       "recommendation": "Add dependency array to useEffect or use useCallback"
@@ -1998,6 +2807,18 @@
     },
     {
       "type": "USE_EFFECT_NO_DEPS",
+      "file": "/Users/chris/promptreviews/src/app/debug-friendly-note/page.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Add dependency array to useEffect or use useCallback"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/debug-friendly-note/page.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "USE_EFFECT_NO_DEPS",
       "file": "/Users/chris/promptreviews/src/app/debug-nav/page.tsx",
       "severity": "MEDIUM",
       "recommendation": "Add dependency array to useEffect or use useCallback"
@@ -2005,6 +2826,96 @@
     {
       "type": "MISSING_MEMOIZATION",
       "file": "/Users/chris/promptreviews/src/app/debug-nav/page.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/demo/google-metrics/page.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/demo/layout.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "USE_EFFECT_NO_DEPS",
+      "file": "/Users/chris/promptreviews/src/app/demo/multi-business-posting/page.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Add dependency array to useEffect or use useCallback"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/demo/multi-business-posting/page.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "USE_EFFECT_NO_DEPS",
+      "file": "/Users/chris/promptreviews/src/app/demo/multi-business-posting-embed/page.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Add dependency array to useEffect or use useCallback"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/demo/multi-business-posting-embed/page.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/demo/review-trends-tablet/page.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/docs/google-business-post-types/route.ts",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/docs/google-business-products/route.ts",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/docs/google-business-services-seo/route.ts",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "USE_EFFECT_NO_DEPS",
+      "file": "/Users/chris/promptreviews/src/app/embed/review-dashboard/page.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Add dependency array to useEffect or use useCallback"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/embed/review-dashboard/page.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/emoji-sentiment-demo/page.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "USE_EFFECT_NO_DEPS",
+      "file": "/Users/chris/promptreviews/src/app/game/page.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Add dependency array to useEffect or use useCallback"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/game/page.tsx",
       "severity": "MEDIUM",
       "recommendation": "Consider using React.memo for expensive components"
     },
@@ -2013,6 +2924,24 @@
       "file": "/Users/chris/promptreviews/src/app/global-error.tsx",
       "severity": "MEDIUM",
       "recommendation": "Add dependency array to useEffect or use useCallback"
+    },
+    {
+      "type": "USE_EFFECT_NO_DEPS",
+      "file": "/Users/chris/promptreviews/src/app/icon-demo/page.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Add dependency array to useEffect or use useCallback"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/icon-demo/page.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/infographic/page.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
     },
     {
       "type": "MISSING_MEMOIZATION",
@@ -2047,7 +2976,7 @@
     {
       "type": "LARGE_FILE",
       "file": "/Users/chris/promptreviews/src/app/prompt-pages/individual/page.tsx",
-      "lines": 715,
+      "lines": 714,
       "severity": "MEDIUM",
       "recommendation": "Split page.tsx into smaller components"
     },
@@ -2072,7 +3001,7 @@
     {
       "type": "LARGE_FILE",
       "file": "/Users/chris/promptreviews/src/app/prompt-pages/page.tsx",
-      "lines": 1110,
+      "lines": 1271,
       "severity": "HIGH",
       "recommendation": "Split page.tsx into smaller components"
     },
@@ -2095,10 +3024,22 @@
       "recommendation": "Consider using React.memo for expensive components"
     },
     {
+      "type": "INLINE_STYLES",
+      "file": "/Users/chris/promptreviews/src/app/r/[slug]/components/BusinessInfoCard.tsx",
+      "severity": "LOW",
+      "recommendation": "Move inline styles to CSS classes"
+    },
+    {
       "type": "MISSING_MEMOIZATION",
       "file": "/Users/chris/promptreviews/src/app/r/[slug]/components/BusinessInfoCard.tsx",
       "severity": "MEDIUM",
       "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "USE_EFFECT_NO_DEPS",
+      "file": "/Users/chris/promptreviews/src/app/r/[slug]/components/FallingAnimation.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Add dependency array to useEffect or use useCallback"
     },
     {
       "type": "LARGE_IMPORTS",
@@ -2109,6 +3050,36 @@
     {
       "type": "MISSING_MEMOIZATION",
       "file": "/Users/chris/promptreviews/src/app/r/[slug]/components/FallingAnimation.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "USE_EFFECT_NO_DEPS",
+      "file": "/Users/chris/promptreviews/src/app/r/[slug]/components/KickstartersCarousel.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Add dependency array to useEffect or use useCallback"
+    },
+    {
+      "type": "INLINE_STYLES",
+      "file": "/Users/chris/promptreviews/src/app/r/[slug]/components/KickstartersCarousel.tsx",
+      "severity": "LOW",
+      "recommendation": "Move inline styles to CSS classes"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/r/[slug]/components/KickstartersCarousel.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "USE_EFFECT_NO_DEPS",
+      "file": "/Users/chris/promptreviews/src/app/r/[slug]/components/ProcessIndicator.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Add dependency array to useEffect or use useCallback"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/r/[slug]/components/ProcessIndicator.tsx",
       "severity": "MEDIUM",
       "recommendation": "Consider using React.memo for expensive components"
     },
@@ -2117,12 +3088,6 @@
       "file": "/Users/chris/promptreviews/src/app/r/[slug]/components/ProductModule.tsx",
       "severity": "MEDIUM",
       "recommendation": "Consider using React.memo for expensive components"
-    },
-    {
-      "type": "LARGE_IMPORTS",
-      "file": "/Users/chris/promptreviews/src/app/r/[slug]/components/ReviewPlatformCard.tsx",
-      "severity": "HIGH",
-      "recommendation": "Use dynamic imports for large libraries"
     },
     {
       "type": "INLINE_STYLES",
@@ -2163,7 +3128,7 @@
     {
       "type": "LARGE_FILE",
       "file": "/Users/chris/promptreviews/src/app/r/[slug]/page-client.tsx",
-      "lines": 2647,
+      "lines": 2838,
       "severity": "HIGH",
       "recommendation": "Split page-client.tsx into smaller components"
     },
@@ -2198,12 +3163,6 @@
       "recommendation": "Consider using React.memo for expensive components"
     },
     {
-      "type": "LARGE_IMPORTS",
-      "file": "/Users/chris/promptreviews/src/app/r/[slug]/utils/helperFunctions.ts",
-      "severity": "HIGH",
-      "recommendation": "Use dynamic imports for large libraries"
-    },
-    {
       "type": "MISSING_MEMOIZATION",
       "file": "/Users/chris/promptreviews/src/app/r/[slug]/utils/helperFunctions.ts",
       "severity": "MEDIUM",
@@ -2217,6 +3176,18 @@
     },
     {
       "type": "USE_EFFECT_NO_DEPS",
+      "file": "/Users/chris/promptreviews/src/app/reactivate/page.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Add dependency array to useEffect or use useCallback"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/reactivate/page.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "USE_EFFECT_NO_DEPS",
       "file": "/Users/chris/promptreviews/src/app/reset-password/page.tsx",
       "severity": "MEDIUM",
       "recommendation": "Add dependency array to useEffect or use useCallback"
@@ -2248,6 +3219,18 @@
     {
       "type": "MISSING_MEMOIZATION",
       "file": "/Users/chris/promptreviews/src/app/team/accept/page.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "USE_EFFECT_NO_DEPS",
+      "file": "/Users/chris/promptreviews/src/app/test-auth/page.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Add dependency array to useEffect or use useCallback"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/test-auth/page.tsx",
       "severity": "MEDIUM",
       "recommendation": "Consider using React.memo for expensive components"
     },
@@ -2312,20 +3295,355 @@
       "recommendation": "Consider using React.memo for expensive components"
     },
     {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/app/test-mobile/page.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
       "type": "USE_EFFECT_NO_DEPS",
-      "file": "/Users/chris/promptreviews/src/components/BusinessGuard.tsx",
+      "file": "/Users/chris/promptreviews/src/app/test-widget/page.tsx",
       "severity": "MEDIUM",
       "recommendation": "Add dependency array to useEffect or use useCallback"
     },
     {
       "type": "MISSING_MEMOIZATION",
-      "file": "/Users/chris/promptreviews/src/components/BusinessGuard.tsx",
+      "file": "/Users/chris/promptreviews/src/app/test-widget/page.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "USE_EFFECT_NO_DEPS",
+      "file": "/Users/chris/promptreviews/src/auth/context/AccountContext.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Add dependency array to useEffect or use useCallback"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/auth/context/AccountContext.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "USE_EFFECT_NO_DEPS",
+      "file": "/Users/chris/promptreviews/src/auth/context/AdminContext.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Add dependency array to useEffect or use useCallback"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/auth/context/AdminContext.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "LARGE_FILE",
+      "file": "/Users/chris/promptreviews/src/auth/context/AuthContext.ORIGINAL.tsx",
+      "lines": 1198,
+      "severity": "HIGH",
+      "recommendation": "Split AuthContext.ORIGINAL.tsx into smaller components"
+    },
+    {
+      "type": "USE_EFFECT_NO_DEPS",
+      "file": "/Users/chris/promptreviews/src/auth/context/AuthContext.ORIGINAL.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Add dependency array to useEffect or use useCallback"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/auth/context/AuthContext.ORIGINAL.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/auth/context/AuthContext.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "USE_EFFECT_NO_DEPS",
+      "file": "/Users/chris/promptreviews/src/auth/context/BusinessContext.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Add dependency array to useEffect or use useCallback"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/auth/context/BusinessContext.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/auth/context/CompositeAuthProvider.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "USE_EFFECT_NO_DEPS",
+      "file": "/Users/chris/promptreviews/src/auth/context/CoreAuthContext.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Add dependency array to useEffect or use useCallback"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/auth/context/CoreAuthContext.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "USE_EFFECT_NO_DEPS",
+      "file": "/Users/chris/promptreviews/src/auth/context/OptimizedCoreAuthContext.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Add dependency array to useEffect or use useCallback"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/auth/context/OptimizedCoreAuthContext.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/auth/context/SharedAccountState.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "USE_EFFECT_NO_DEPS",
+      "file": "/Users/chris/promptreviews/src/auth/context/SubscriptionContext.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Add dependency array to useEffect or use useCallback"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/auth/context/SubscriptionContext.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "USE_EFFECT_NO_DEPS",
+      "file": "/Users/chris/promptreviews/src/auth/debug/AuthDebugger.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Add dependency array to useEffect or use useCallback"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/auth/debug/AuthDebugger.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "USE_EFFECT_NO_DEPS",
+      "file": "/Users/chris/promptreviews/src/auth/guards/BusinessGuard.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Add dependency array to useEffect or use useCallback"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/auth/guards/BusinessGuard.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/auth/hooks/granularAuthHooks.ts",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "USE_EFFECT_NO_DEPS",
+      "file": "/Users/chris/promptreviews/src/auth/hooks/useAuth.ts",
+      "severity": "MEDIUM",
+      "recommendation": "Add dependency array to useEffect or use useCallback"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/auth/hooks/useAuth.ts",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/auth/providers/supabase.ts",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/auth/services/TokenManager.ts",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "LARGE_FILE",
+      "file": "/Users/chris/promptreviews/src/auth/utils/accounts.ts",
+      "lines": 676,
+      "severity": "MEDIUM",
+      "recommendation": "Split accounts.ts into smaller components"
+    },
+    {
+      "type": "LARGE_FILE",
+      "file": "/Users/chris/promptreviews/src/auth/utils/admin.ts",
+      "lines": 726,
+      "severity": "MEDIUM",
+      "recommendation": "Split admin.ts into smaller components"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/auth/utils/admin.ts",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "USE_EFFECT_NO_DEPS",
+      "file": "/Users/chris/promptreviews/src/components/AccountReactivation.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Add dependency array to useEffect or use useCallback"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/components/AccountReactivation.tsx",
       "severity": "MEDIUM",
       "recommendation": "Consider using React.memo for expensive components"
     },
     {
       "type": "MISSING_MEMOIZATION",
       "file": "/Users/chris/promptreviews/src/components/ErrorBoundary.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "LARGE_FILE",
+      "file": "/Users/chris/promptreviews/src/components/GoogleBusinessProfile/BusinessHealthMetrics.tsx",
+      "lines": 579,
+      "severity": "MEDIUM",
+      "recommendation": "Split BusinessHealthMetrics.tsx into smaller components"
+    },
+    {
+      "type": "USE_EFFECT_NO_DEPS",
+      "file": "/Users/chris/promptreviews/src/components/GoogleBusinessProfile/BusinessHealthMetrics.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Add dependency array to useEffect or use useCallback"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/components/GoogleBusinessProfile/BusinessHealthMetrics.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/components/GoogleBusinessProfile/LocationSelectionModal.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/components/GoogleBusinessProfile/LocationSelectionModalV2.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "USE_EFFECT_NO_DEPS",
+      "file": "/Users/chris/promptreviews/src/components/GoogleBusinessProfile/LocationSelector.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Add dependency array to useEffect or use useCallback"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/components/GoogleBusinessProfile/LocationSelector.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "LARGE_FILE",
+      "file": "/Users/chris/promptreviews/src/components/GoogleBusinessProfile/OverviewStats.tsx",
+      "lines": 510,
+      "severity": "MEDIUM",
+      "recommendation": "Split OverviewStats.tsx into smaller components"
+    },
+    {
+      "type": "USE_EFFECT_NO_DEPS",
+      "file": "/Users/chris/promptreviews/src/components/GoogleBusinessProfile/OverviewStats.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Add dependency array to useEffect or use useCallback"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/components/GoogleBusinessProfile/OverviewStats.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "USE_EFFECT_NO_DEPS",
+      "file": "/Users/chris/promptreviews/src/components/GoogleBusinessProfile/embeds/BusinessPerformanceEmbed.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Add dependency array to useEffect or use useCallback"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/components/GoogleBusinessProfile/embeds/BusinessPerformanceEmbed.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "USE_EFFECT_NO_DEPS",
+      "file": "/Users/chris/promptreviews/src/components/GoogleBusinessProfile/embeds/CustomerEngagementEmbed.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Add dependency array to useEffect or use useCallback"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/components/GoogleBusinessProfile/embeds/CustomerEngagementEmbed.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "USE_EFFECT_NO_DEPS",
+      "file": "/Users/chris/promptreviews/src/components/GoogleBusinessProfile/embeds/OptimizationOpportunitiesEmbed.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Add dependency array to useEffect or use useCallback"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/components/GoogleBusinessProfile/embeds/OptimizationOpportunitiesEmbed.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "USE_EFFECT_NO_DEPS",
+      "file": "/Users/chris/promptreviews/src/components/GoogleBusinessProfile/embeds/OverviewStatsEmbed.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Add dependency array to useEffect or use useCallback"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/components/GoogleBusinessProfile/embeds/OverviewStatsEmbed.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "USE_EFFECT_NO_DEPS",
+      "file": "/Users/chris/promptreviews/src/components/GoogleBusinessProfile/embeds/ProfileOptimizationEmbed.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Add dependency array to useEffect or use useCallback"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/components/GoogleBusinessProfile/embeds/ProfileOptimizationEmbed.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "USE_EFFECT_NO_DEPS",
+      "file": "/Users/chris/promptreviews/src/components/GoogleBusinessProfile/embeds/ReviewTrendsEmbed.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Add dependency array to useEffect or use useCallback"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/components/GoogleBusinessProfile/embeds/ReviewTrendsEmbed.tsx",
       "severity": "MEDIUM",
       "recommendation": "Consider using React.memo for expensive components"
     },
@@ -2349,6 +3667,30 @@
     },
     {
       "type": "USE_EFFECT_NO_DEPS",
+      "file": "/Users/chris/promptreviews/src/components/SpriteLoader.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Add dependency array to useEffect or use useCallback"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/components/SpriteLoader.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/components/billing/PlanTransitionModal.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/components/billing/SuccessModal.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "USE_EFFECT_NO_DEPS",
       "file": "/Users/chris/promptreviews/src/contexts/AdminContext.tsx",
       "severity": "MEDIUM",
       "recommendation": "Add dependency array to useEffect or use useCallback"
@@ -2361,20 +3703,20 @@
     },
     {
       "type": "LARGE_FILE",
-      "file": "/Users/chris/promptreviews/src/contexts/AuthContext.tsx",
-      "lines": 908,
-      "severity": "MEDIUM",
-      "recommendation": "Split AuthContext.tsx into smaller components"
+      "file": "/Users/chris/promptreviews/src/contexts/AuthContext.old.tsx",
+      "lines": 1219,
+      "severity": "HIGH",
+      "recommendation": "Split AuthContext.old.tsx into smaller components"
     },
     {
       "type": "USE_EFFECT_NO_DEPS",
-      "file": "/Users/chris/promptreviews/src/contexts/AuthContext.tsx",
+      "file": "/Users/chris/promptreviews/src/contexts/AuthContext.old.tsx",
       "severity": "MEDIUM",
       "recommendation": "Add dependency array to useEffect or use useCallback"
     },
     {
       "type": "MISSING_MEMOIZATION",
-      "file": "/Users/chris/promptreviews/src/contexts/AuthContext.tsx",
+      "file": "/Users/chris/promptreviews/src/contexts/AuthContext.old.tsx",
       "severity": "MEDIUM",
       "recommendation": "Consider using React.memo for expensive components"
     },
@@ -2387,6 +3729,19 @@
     {
       "type": "MISSING_MEMOIZATION",
       "file": "/Users/chris/promptreviews/src/contexts/ReviewerContext.tsx",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "LARGE_FILE",
+      "file": "/Users/chris/promptreviews/src/examples/prisma-examples.ts",
+      "lines": 664,
+      "severity": "MEDIUM",
+      "recommendation": "Split prisma-examples.ts into smaller components"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/examples/prisma-examples.ts",
       "severity": "MEDIUM",
       "recommendation": "Consider using React.memo for expensive components"
     },
@@ -2400,9 +3755,93 @@
     {
       "type": "LARGE_FILE",
       "file": "/Users/chris/promptreviews/src/features/social-posting/platforms/google-business-profile/googleBusinessProfileClient.ts",
-      "lines": 772,
-      "severity": "MEDIUM",
+      "lines": 1300,
+      "severity": "HIGH",
       "recommendation": "Split googleBusinessProfileClient.ts into smaller components"
+    },
+    {
+      "type": "LARGE_FILE",
+      "file": "/Users/chris/promptreviews/src/generated/prisma/edge.js",
+      "lines": 1270,
+      "severity": "HIGH",
+      "recommendation": "Split edge.js into smaller components"
+    },
+    {
+      "type": "LARGE_FILE",
+      "file": "/Users/chris/promptreviews/src/generated/prisma/index-browser.js",
+      "lines": 1256,
+      "severity": "HIGH",
+      "recommendation": "Split index-browser.js into smaller components"
+    },
+    {
+      "type": "LARGE_FILE",
+      "file": "/Users/chris/promptreviews/src/generated/prisma/index.d.ts",
+      "lines": 119243,
+      "severity": "HIGH",
+      "recommendation": "Split index.d.ts into smaller components"
+    },
+    {
+      "type": "LARGE_FILE",
+      "file": "/Users/chris/promptreviews/src/generated/prisma/index.js",
+      "lines": 1291,
+      "severity": "HIGH",
+      "recommendation": "Split index.js into smaller components"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/generated/prisma/runtime/edge-esm.js",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/generated/prisma/runtime/edge.js",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/generated/prisma/runtime/index-browser.js",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "LARGE_FILE",
+      "file": "/Users/chris/promptreviews/src/generated/prisma/runtime/library.d.ts",
+      "lines": 3698,
+      "severity": "HIGH",
+      "recommendation": "Split library.d.ts into smaller components"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/generated/prisma/runtime/library.js",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/generated/prisma/runtime/react-native.js",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/generated/prisma/runtime/wasm-compiler-edge.js",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/generated/prisma/runtime/wasm-engine-edge.js",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "LARGE_FILE",
+      "file": "/Users/chris/promptreviews/src/generated/prisma/wasm.js",
+      "lines": 1256,
+      "severity": "HIGH",
+      "recommendation": "Split wasm.js into smaller components"
     },
     {
       "type": "MISSING_MEMOIZATION",
@@ -2413,6 +3852,24 @@
     {
       "type": "MISSING_MEMOIZATION",
       "file": "/Users/chris/promptreviews/src/instrumentation.ts",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/lib/account-reactivation.ts",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/lib/google-business/integration-example.ts",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/lib/payment-errors.ts",
       "severity": "MEDIUM",
       "recommendation": "Consider using React.memo for expensive components"
     },
@@ -2454,15 +3911,15 @@
     },
     {
       "type": "LARGE_FILE",
-      "file": "/Users/chris/promptreviews/src/utils/accountUtils.ts",
-      "lines": 531,
+      "file": "/Users/chris/promptreviews/src/utils/accountUtils-old.ts",
+      "lines": 541,
       "severity": "MEDIUM",
-      "recommendation": "Split accountUtils.ts into smaller components"
+      "recommendation": "Split accountUtils-old.ts into smaller components"
     },
     {
       "type": "LARGE_FILE",
       "file": "/Users/chris/promptreviews/src/utils/admin.ts",
-      "lines": 732,
+      "lines": 726,
       "severity": "MEDIUM",
       "recommendation": "Split admin.ts into smaller components"
     },
@@ -2475,7 +3932,7 @@
     {
       "type": "LARGE_FILE",
       "file": "/Users/chris/promptreviews/src/utils/adminDelete.ts",
-      "lines": 568,
+      "lines": 552,
       "severity": "MEDIUM",
       "recommendation": "Split adminDelete.ts into smaller components"
     },
@@ -2511,6 +3968,12 @@
     },
     {
       "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/utils/communication.ts",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
       "file": "/Users/chris/promptreviews/src/utils/database.ts",
       "severity": "MEDIUM",
       "recommendation": "Consider using React.memo for expensive components"
@@ -2524,6 +3987,19 @@
     {
       "type": "MISSING_MEMOIZATION",
       "file": "/Users/chris/promptreviews/src/utils/dynamicFontLoader.ts",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "LARGE_FILE",
+      "file": "/Users/chris/promptreviews/src/utils/googleBusinessProfile/overviewDataHelpers.ts",
+      "lines": 767,
+      "severity": "MEDIUM",
+      "recommendation": "Split overviewDataHelpers.ts into smaller components"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/utils/localAuthBypass.ts",
       "severity": "MEDIUM",
       "recommendation": "Consider using React.memo for expensive components"
     },
@@ -2548,6 +4024,12 @@
     {
       "type": "MISSING_MEMOIZATION",
       "file": "/Users/chris/promptreviews/src/utils/resend.ts",
+      "severity": "MEDIUM",
+      "recommendation": "Consider using React.memo for expensive components"
+    },
+    {
+      "type": "MISSING_MEMOIZATION",
+      "file": "/Users/chris/promptreviews/src/utils/reviewRateLimit.ts",
       "severity": "MEDIUM",
       "recommendation": "Consider using React.memo for expensive components"
     },

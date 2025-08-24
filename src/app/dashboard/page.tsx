@@ -1059,6 +1059,16 @@ const Dashboard = React.memo(function Dashboard() {
           showCanceledMessage={justCanceledStripe}
           onClose={handleClosePricingModal}
           isPlanSelectionRequired={planSelectionRequired}
+          isReactivation={account?.deleted_at !== null || account?.plan === 'no_plan'}
+          hadPreviousTrial={account?.has_had_paid_plan || account?.trial_end !== null}
+          reactivationOffer={
+            (account?.deleted_at || account?.plan === 'no_plan') ? {
+              hasOffer: true,
+              offerType: 'percentage',
+              discount: 20,
+              message: 'Welcome back! Enjoy 20% off'
+            } : undefined
+          }
         />
       )}
       

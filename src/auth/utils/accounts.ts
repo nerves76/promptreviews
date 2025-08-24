@@ -102,7 +102,7 @@ export async function getUserAccounts(
   // Now fetch the account details
   const { data: accounts, error: accountsError } = await supabase
     .from('accounts')
-    .select('id, business_name, first_name, last_name, email, created_at')
+    .select('id, business_name, first_name, last_name, email, created_at, deleted_at')
     .in('id', accountIds);
 
   if (accountsError) {
@@ -537,7 +537,7 @@ async function _getAccountIdForUserInternal(userId: string, supabaseClient?: any
       
       const { data: accounts, error: accountsError } = await client
         .from("accounts")
-        .select("id, plan, first_name, last_name")
+        .select("id, plan, first_name, last_name, deleted_at")
         .in("id", accountIds);
       
       if (accountsError) {

@@ -46,7 +46,7 @@ const CowboyUserIcon = () => {
   );
 };
 
-export default function Header() {
+const Header = React.memo(function Header() {
   const supabase = createClient();
 
   const router = useRouter();
@@ -932,4 +932,6 @@ export default function Header() {
       </nav>
     </header>
   );
-} 
+});
+
+export default Header; 

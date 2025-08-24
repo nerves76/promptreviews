@@ -13,6 +13,7 @@ import { canCreateAccounts } from "@/config/adminConfig";
 import PricingModal from "@/app/components/PricingModal";
 
 export default function AccountPage() {
+  console.log('🚀 AccountPage component rendering');
   const supabase = createClient();
 
   useAuthGuard();
@@ -77,10 +78,33 @@ export default function AccountPage() {
           return;
         }
 
+        console.log('📊 Account data loaded:', {
+          id: accountData.id,
+          email: accountData.email,
+          plan: accountData.plan,
+          deleted_at: accountData.deleted_at,
+          has_deleted_at: !!accountData.deleted_at
+        });
+
         // Note: Onboarding logic is now handled by the dashboard layout
         // This page should only load account data without redirecting for onboarding
 
         setAccount(accountData);
+        
+        // Check if account is already cancelled (deleted_at is set)
+        if (accountData.deleted_at) {
+          console.log('🔴 Account is cancelled, showing reactivation offer');
+          console.log('🔴 Deleted at:', accountData.deleted_at);
+          setAccountCancelled(true);
+          // Show pricing modal after a short delay
+          setTimeout(() => {
+            console.log('🔴 Opening pricing modal for cancelled account');
+            setShowPricingModal(true);
+          }, 1500);
+        } else {
+          console.log('✅ Account is active (no deleted_at)');
+        }
+        
         setIsLoading(false);
       } catch (error) {
         console.error("Error loading account data:", error);
@@ -343,6 +367,15 @@ export default function AccountPage() {
       />
     </div>
   );
+
+  // Check if account is cancelled and show reactivation immediately
+  useEffect(() => {
+    if (!isLoading && account?.deleted_at && !accountCancelled) {
+      console.log('🔴 Detected cancelled account, triggering reactivation modal');
+      setAccountCancelled(true);
+      setShowPricingModal(true);
+    }
+  }, [isLoading, account?.deleted_at, accountCancelled]);
 
   if (isLoading) {
     return (
@@ -845,6 +878,7 @@ export default function AccountPage() {
           currentPlan={account?.plan || 'no_plan'}
           isReactivation={true}
           hadPreviousTrial={true} // They deleted their account, so they already had a trial
+          hasHadPaidPlan={account?.has_had_paid_plan || true} // Pass the actual value from account
           reactivationOffer={{
             hasOffer: true,
             offerType: 'percentage',

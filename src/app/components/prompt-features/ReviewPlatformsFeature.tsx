@@ -173,7 +173,7 @@ export default function ReviewPlatformsFeature({
             <div key={idx} className="border border-gray-200 rounded-lg p-4">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center space-x-3">
-                  <Icon name={PlatformIcon as any} className={`w-5 h-5 ${color}`} size={20} />
+                  <Icon name={PlatformIcon as any} className={`w-5 h-5 ${color} flex-shrink-0`} size={20} />
                   <h4 className="font-medium text-gray-900">
                     Platform {idx + 1}
                   </h4>

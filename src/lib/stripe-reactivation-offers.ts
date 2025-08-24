@@ -2,7 +2,7 @@
  * Stripe Reactivation Offers (Simplified)
  * 
  * CRITICAL: Manages Stripe coupons for returning customers
- * Simple offer: 50% off monthly or 20% off annual
+ * Simple offer: 20% off for 3 months (monthly) or 20% off once (annual)
  * 
  * @description No time-based tiers, just a welcome back discount
  */
@@ -34,20 +34,21 @@ export interface ReactivationOffer {
 // Simple, clean offer structure
 const REACTIVATION_COUPONS = {
   monthly: {
-    id: 'PR_WELCOME_BACK_MONTHLY',
-    percentOff: 50,
-    duration: 'once' as const,
-    name: 'Welcome Back - 50% Off First Month',
+    id: 'COMEBACK20_MONTHLY',
+    percentOff: 20,
+    duration: 'repeating' as const,
+    durationInMonths: 3,
+    name: 'Comeback Offer - 20% off for 3 months',
     metadata: {
       type: 'reactivation',
       billing: 'monthly'
     }
   },
   annual: {
-    id: 'PR_WELCOME_BACK_ANNUAL', 
+    id: 'COMEBACK20_ANNUAL', 
     percentOff: 20,
     duration: 'once' as const,
-    name: 'Welcome Back - 20% Off First Year',
+    name: 'Comeback Offer - 20% off annual plan',
     metadata: {
       type: 'reactivation',
       billing: 'annual'
@@ -133,9 +134,9 @@ export async function getReactivationOffer(
   
   return {
     isEligible: true,
-    monthlyDiscount: 50,
+    monthlyDiscount: 20,
     annualDiscount: 20,
-    message: 'Welcome back! Get 50% off your first month or 20% off your first year.',
+    message: 'Welcome back! Get 20% off your first 3 months (monthly) or 20% off your first year (annual).',
     monthlyCouponCode: REACTIVATION_COUPONS.monthly.id,
     annualCouponCode: REACTIVATION_COUPONS.annual.id
   };
@@ -172,7 +173,8 @@ export async function applyReactivationOffer(
       ...sessionConfig.metadata,
       reactivation_offer: 'true',
       reactivation_billing: billingPeriod,
-      reactivation_discount: billingPeriod === 'annual' ? '20' : '50'
+      reactivation_discount: '20',
+      discount_duration: billingPeriod === 'annual' ? 'once' : '3_months'
     }
   };
 }

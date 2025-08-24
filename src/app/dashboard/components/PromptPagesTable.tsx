@@ -362,7 +362,7 @@ export default function PromptPagesTable({
                       }}
                       className="inline-flex items-center gap-1 px-3 py-1.5 bg-amber-100 text-amber-800 rounded hover:bg-amber-200 text-sm font-medium shadow h-9 align-middle whitespace-nowrap"
                     >
-                      <Icon name="MdDownload" size={22} color="#b45309" />
+                      <Icon name="FaQrcode" className="w-4 h-4" />
                       QR code
                     </button>
                   </div>
