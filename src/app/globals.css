@@ -2,6 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Prevent white flash on initial load */
+html {
+  background: linear-gradient(to bottom right, #4338ca, #9333ea, #db2777);
+  min-height: 100vh;
+}
+
 :root {
   --foreground-rgb: 0, 0, 0;
   --background-start-rgb: 214, 219, 220;

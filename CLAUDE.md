@@ -2,6 +2,11 @@
 
 This file provides important context for AI assistants working on the PromptReviews codebase.
 
+## ⚠️ IMPORTANT: Known Issues
+- **Turbopack is currently broken** - DO NOT use the `--turbo` flag with Next.js dev server
+- The `npm run dev` command has been modified to run WITHOUT Turbopack
+- If server fails to load pages properly, ensure Turbopack is disabled
+
 ## Project Overview
 PromptReviews is a review management platform that allows businesses to collect, manage, and display customer reviews through customizable widgets.
 
@@ -172,8 +177,8 @@ CRON_SECRET_TOKEN=    # For cron jobs
 
 ```bash
 # Start development server
-npm run dev                 # Port 3002 with Sentry disabled
-npm run dev:fast           # With Turbopack
+npm run dev                 # Port 3002 with Sentry disabled (DO NOT USE --turbo flag)
+npm run dev:fast           # With Turbopack (CURRENTLY BROKEN - DO NOT USE)
 npm run dev:debug          # With Sentry enabled
 
 # Build & Deploy

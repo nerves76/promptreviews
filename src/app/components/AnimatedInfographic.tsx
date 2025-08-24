@@ -255,7 +255,7 @@ export default function AnimatedInfographic() {
       `}</style>
       <div className="relative w-full max-w-7xl mx-auto p-4 lg:p-8 min-h-screen">
         {/* Background */}
-        <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute inset-0 bg-gradient-to-br from-indigo-950 via-purple-900 to-pink-950" />
           <div className="absolute inset-0 bg-gradient-to-tr from-blue-600/10 via-purple-600/10 to-pink-600/10" />
           <div className="absolute top-20 left-20 w-72 h-72 bg-purple-500 rounded-full blur-3xl opacity-10 animate-pulse" />
@@ -561,10 +561,11 @@ export default function AnimatedInfographic() {
                 borderRadius: '9999px',
                 width: '100px',
                 height: '430px',
-                background: 'transparent'
+                background: 'transparent',
+                left: '-18px'  // Move left to connect with straight beam
               }}
             >
-              {/* Outer ring container */}
+              {/* Outer ring container - same structure as straight beam but in ring form */}
               <div 
                 className="absolute overflow-hidden"
                 style={{
@@ -573,16 +574,17 @@ export default function AnimatedInfographic() {
                   boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.3), 0 0 20px rgba(147, 51, 234, 0.3)'
                 }}
               >
-                {/* Groove effect - dark outer ring */}
+                {/* Groove effect - creates the tube appearance */}
                 <div 
                   className="absolute"
                   style={{
                     inset: '0',
                     borderRadius: '9999px',
-                    background: 'linear-gradient(to bottom, rgba(128, 128, 128, 0.16), rgba(31, 41, 55, 0.24))'
+                    background: 'rgb(31, 41, 55)',
+                    boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.5)'
                   }}
                 >
-                  {/* Hollow center */}
+                  {/* Inner cutout to make it a ring */}
                   <div 
                     className="absolute"
                     style={{
@@ -593,7 +595,27 @@ export default function AnimatedInfographic() {
                   />
                 </div>
                 
-                {/* Light tube - colored gradient ring */}
+                {/* Light tube - the glowing gradient that forms the ring */}
+                <div 
+                  className="absolute"
+                  style={{
+                    inset: '1px',
+                    borderRadius: '9999px',
+                    background: 'linear-gradient(to bottom, rgba(236, 72, 153, 0.6), rgba(147, 51, 234, 0.6), rgba(236, 72, 153, 0.6))'
+                  }}
+                >
+                  {/* Inner cutout */}
+                  <div 
+                    className="absolute"
+                    style={{
+                      inset: '4px',
+                      borderRadius: '9999px',
+                      background: 'transparent'
+                    }}
+                  />
+                </div>
+                
+                {/* Blurred glow layer */}
                 <div 
                   className="absolute blur-sm"
                   style={{
@@ -602,13 +624,13 @@ export default function AnimatedInfographic() {
                     background: 'linear-gradient(to bottom, rgba(236, 72, 153, 0.6), rgba(147, 51, 234, 0.6), rgba(236, 72, 153, 0.6))'
                   }}
                 >
-                  {/* Hollow center */}
+                  {/* Inner cutout */}
                   <div 
                     className="absolute"
                     style={{
-                      inset: '5px',
+                      inset: '4px',
                       borderRadius: '9999px',
-                      background: 'rgb(31, 41, 55)'
+                      background: 'transparent'
                     }}
                   />
                 </div>
@@ -622,13 +644,13 @@ export default function AnimatedInfographic() {
                     background: 'linear-gradient(to bottom, rgba(236, 72, 153, 1), rgba(147, 51, 234, 1), rgba(236, 72, 153, 1))'
                   }}
                 >
-                  {/* Hollow center */}
+                  {/* Inner cutout */}
                   <div 
                     className="absolute"
                     style={{
-                      inset: '5px',
+                      inset: '4px',
                       borderRadius: '9999px',
-                      background: 'rgb(31, 41, 55)'
+                      background: 'transparent'
                     }}
                   />
                 </div>
