@@ -164,6 +164,53 @@ export default function AnimatedInfographic() {
           }
         }
         
+        @keyframes fadeInFloatUp {
+          0% {
+            transform: translateX(-50%) translateY(0);
+            opacity: 0;
+          }
+          20% {
+            opacity: 1;
+          }
+          80% {
+            opacity: 1;
+          }
+          100% {
+            transform: translateX(-50%) translateY(-50px);
+            opacity: 0;
+          }
+        }
+        
+        @keyframes platformGlow {
+          0% {
+            opacity: 0;
+          }
+          20% {
+            opacity: 1;
+          }
+          80% {
+            opacity: 1;
+          }
+          100% {
+            opacity: 0;
+          }
+        }
+        
+        @keyframes iconGlow {
+          0% {
+            filter: brightness(1);
+          }
+          20% {
+            filter: brightness(1.5) drop-shadow(0 0 10px rgba(251, 191, 36, 0.8));
+          }
+          80% {
+            filter: brightness(1.3) drop-shadow(0 0 8px rgba(251, 191, 36, 0.6));
+          }
+          100% {
+            filter: brightness(1);
+          }
+        }
+        
         @keyframes flowRight {
           0% {
             transform: translateX(-100%);
@@ -196,18 +243,27 @@ export default function AnimatedInfographic() {
             opacity: 0;
           }
         }
+        
+        @keyframes flowAroundPill {
+          0% {
+            transform: translateY(-100%);
+          }
+          100% {
+            transform: translateY(500%);
+          }
+        }
       `}</style>
       <div className="relative w-full max-w-7xl mx-auto p-4 lg:p-8 min-h-screen">
-      {/* Background */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-indigo-950 via-purple-900 to-pink-950" />
-        <div className="absolute inset-0 bg-gradient-to-tr from-blue-600/10 via-purple-600/10 to-pink-600/10" />
-        <div className="absolute top-20 left-20 w-72 h-72 bg-purple-500 rounded-full blur-3xl opacity-10 animate-pulse" />
-        <div className="absolute bottom-20 right-20 w-72 h-72 bg-blue-500 rounded-full blur-3xl opacity-10 animate-pulse" />
-      </div>
+        {/* Background */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-indigo-950 via-purple-900 to-pink-950" />
+          <div className="absolute inset-0 bg-gradient-to-tr from-blue-600/10 via-purple-600/10 to-pink-600/10" />
+          <div className="absolute top-20 left-20 w-72 h-72 bg-purple-500 rounded-full blur-3xl opacity-10 animate-pulse" />
+          <div className="absolute bottom-20 right-20 w-72 h-72 bg-blue-500 rounded-full blur-3xl opacity-10 animate-pulse" />
+        </div>
 
-      {/* Main Container */}
-      <div className="relative z-10">
+        {/* Main Container */}
+        <div className="relative z-10">
         
         {/* Title */}
         <div className="text-center mb-8">
@@ -225,8 +281,8 @@ export default function AnimatedInfographic() {
           {/* Main beam and splitting beams */}
           {mounted && (
             <>
-              {/* Single continuous beam: Starting 5px from Customer through Prompt Page to split point */}
-              <div className="hidden lg:block absolute left-[90px] h-3 z-5 pointer-events-none overflow-hidden rounded-full" style={{ top: 'calc(50% - 20px)', width: 'calc(50% + 148px)', boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.3), 0 0 20px rgba(147, 51, 234, 0.3)' }}>
+              {/* Single continuous beam: Starting away from Customer through Prompt Page to platforms */}
+              <div className="hidden lg:block absolute left-[110px] h-3 z-5 pointer-events-none overflow-hidden rounded-full" style={{ top: 'calc(50% - 20px)', width: 'calc(100% - 250px)', boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.3), 0 0 20px rgba(147, 51, 234, 0.3)' }}>
                 {/* Groove effect */}
                 <div className="absolute inset-0 bg-gradient-to-b from-gray-800/40 to-gray-900/60 rounded-full"></div>
                 {/* Light tube - continuous gradient */}
@@ -253,60 +309,25 @@ export default function AnimatedInfographic() {
                       filter: 'blur(2px)'
                     }}
                   />
-                </>}
-              </div>
-              
-              {/* Splitting beams from end of main beam to platforms - adjusted position to connect properly */}
-              <div className="hidden lg:block absolute pointer-events-none z-10" style={{ left: 'calc(50% + 236px)', top: 'calc(50% - 20px)' }}>
-                {reviewPlatforms.map((_, index) => {
-                  const totalPlatforms = reviewPlatforms.length;
-                  const spreadAngle = 60; // Total spread angle
-                  const startAngle = -spreadAngle / 2;
-                  const angleStep = spreadAngle / (totalPlatforms - 1);
-                  const angle = startAngle + (index * angleStep);
-                  const length = 250;
-                  
-                  return (
-                    <div
-                      key={index}
-                      className="absolute origin-left h-3 overflow-hidden rounded-full"
-                      style={{
-                        width: `${length}px`,
-                        transform: `rotate(${angle}deg)`,
-                        boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.3), 0 0 15px rgba(236, 72, 153, 0.3)'
-                      }}
-                    >
-                      {/* Groove effect */}
-                      <div className="absolute inset-0 bg-gradient-to-b from-gray-800/40 to-gray-900/60 rounded-full"></div>
-                      {/* Light tube - consistent purple to pink gradient */}
-                      <div className="absolute inset-x-1 inset-y-0.5 bg-gradient-to-r from-purple-500/60 via-purple-400/60 to-pink-500/60 rounded-full blur-sm"></div>
-                      {/* Always active split beam lights */}
-                      <>
-                        <div className="absolute inset-x-1 inset-y-0.5 bg-gradient-to-r from-purple-500 via-purple-400 to-pink-500 animate-pulse rounded-full" />
-                        {/* Slower flowing light animation for split beams */}
-                        <div 
-                          className="absolute inset-y-0 w-32 rounded-full"
-                          style={{
-                            background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.8), rgba(236, 72, 153, 0.8), transparent)',
-                            animation: 'flowRightBeam 5s linear infinite',
-                            animationDelay: `${index * 0.4}s`,
-                            filter: 'blur(2px)'
-                          }}
-                        />
-                      </>
-                    </div>
-                  )
-                })}
+                </>
               </div>
             </>
           )}
           
           {/* Connection method icons on pill-shaped glass background */}
-          <div className="hidden lg:block absolute top-1/2 -translate-y-1/2 z-30" style={{ left: '120px' }}>
-            {/* Glass pill background */}
-            <div className="relative backdrop-blur-xl bg-white/10 border border-white/30 rounded-full px-6 py-3 shadow-lg before:absolute before:inset-0 before:rounded-full before:bg-gradient-to-br before:from-white/10 before:to-transparent before:pointer-events-none">
-              {/* Subtle gradient overlay */}
-              <div className="absolute inset-0 bg-gradient-to-b from-white/5 via-transparent to-white/5 pointer-events-none rounded-full"></div>
+          <div className="hidden lg:block absolute z-30" style={{ left: '160px', top: 'calc(50% - 10px)', transform: 'translateY(-50%)' }}>
+            {/* Glass pill background - using css.glass effect */}
+            <div 
+              className="relative px-6 py-3"
+              style={{
+                background: 'rgba(255, 255, 255, 0.04)',
+                borderRadius: '9999px',
+                boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
+                backdropFilter: 'blur(4.1px)',
+                WebkitBackdropFilter: 'blur(4.1px)',
+                border: '1px solid rgba(255, 255, 255, 0.09)'
+              }}
+            >
               
               {/* Icons container */}
               <div className="relative flex items-center gap-6">
@@ -393,8 +414,8 @@ export default function AnimatedInfographic() {
           <div className="relative flex-grow flex justify-center">
             <div className="relative w-[500px] h-[500px] lg:w-[600px] lg:h-[600px]">
               
-              {/* Central Prompt Page - more translucent to show light passing behind */}
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20">
+              {/* Central Prompt Page - glass effect from css.glass */}
+              <div className="absolute left-1/2 -translate-x-1/2 z-20" style={{ top: 'calc(50% - 17px)', transform: 'translateX(-50%) translateY(-50%)' }}>
                 <div className="relative">
                   {/* Always active pulse effect */}
                   <div 
@@ -405,7 +426,17 @@ export default function AnimatedInfographic() {
                     }}
                   />
                   <div className="absolute inset-0 rounded-2xl blur-xl bg-gradient-to-br from-purple-400/20 to-pink-400/20" />
-                  <div className="relative backdrop-blur-md bg-gradient-to-br from-white/10 to-white/5 rounded-2xl border-2 border-white/20 p-4 lg:p-6 shadow-2xl">
+                  <div 
+                    className="relative p-4 lg:p-6"
+                    style={{
+                      background: 'rgba(255, 255, 255, 0.04)',
+                      borderRadius: '16px',
+                      boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
+                      backdropFilter: 'blur(4.1px)',
+                      WebkitBackdropFilter: 'blur(4.1px)',
+                      border: '1px solid rgba(255, 255, 255, 0.09)'
+                    }}
+                  >
                     <DocumentTextIcon className="w-10 h-10 lg:w-12 lg:h-12 text-white/90 mb-2" />
                     <h3 className="text-white/95 font-bold text-base lg:text-lg">Prompt Page</h3>
                     <p className="text-gray-200/90 text-xs">Create • Copy • Post</p>
@@ -427,64 +458,44 @@ export default function AnimatedInfographic() {
                       onMouseLeave={() => setHoveredTool(null)}
                     >
                       <div className="flex flex-col items-center">
-                        {/* Premium glass effect container */}
+                        {/* Glass effect container - using css.glass effect */}
                         <div className="relative group">
-                          {/* Ambient glow */}
+                          {/* Ambient glow on hover */}
                           <div className={`absolute -inset-1 rounded-full transition-all duration-500 ${
                             hoveredTool === catIndex * 10 + toolIndex 
-                              ? 'bg-gradient-to-r from-purple-400/30 via-pink-400/30 to-purple-400/30 blur-xl opacity-100' 
-                              : 'bg-white/10 blur-md opacity-50'
+                              ? 'bg-gradient-to-r from-purple-400/20 via-pink-400/20 to-purple-400/20 blur-xl opacity-100' 
+                              : 'opacity-0'
                           }`} />
                           
-                          {/* Main glass icon - using Tailwind classes with before: pseudo-element */}
-                          <div className={`
-                            relative w-14 h-14 lg:w-16 lg:h-16 rounded-full 
-                            backdrop-blur-xl bg-white/10 
-                            border border-white/30 
-                            shadow-lg
-                            before:absolute before:inset-0 before:rounded-full 
-                            before:bg-gradient-to-br before:from-white/10 before:to-transparent 
-                            before:pointer-events-none
-                            after:absolute after:inset-0 after:rounded-full
-                            after:bg-gradient-to-t after:from-transparent after:via-white/5 after:to-white/10
-                            after:pointer-events-none
-                            transition-all duration-300
-                            flex items-center justify-center 
-                            overflow-hidden
-                            ${hoveredTool === catIndex * 10 + toolIndex 
-                              ? 'scale-110 bg-white/15 border-white/40 shadow-2xl' 
-                              : 'hover:bg-white/12'
-                            }
-                          `}>
-                            {/* Subtle inner gradient overlay for depth */}
-                            <div className="absolute inset-0 bg-gradient-to-b from-white/5 via-transparent to-white/5 pointer-events-none rounded-full" />
-                            
-                            {/* Extra shine on hover */}
-                            {hoveredTool === catIndex * 10 + toolIndex && (
-                              <div 
-                                className="absolute inset-0 rounded-full pointer-events-none"
-                                style={{
-                                  background: 'radial-gradient(circle at 30% 30%, rgba(255,255,255,0.3) 0%, transparent 50%)',
-                                }}
-                              />
-                            )}
-                            
-                            {/* Icon with enhanced styling */}
+                          {/* Main glass icon - css.glass effect */}
+                          <div 
+                            className={`
+                              relative w-14 h-14 lg:w-16 lg:h-16 
+                              flex items-center justify-center 
+                              transition-all duration-300
+                              ${hoveredTool === catIndex * 10 + toolIndex 
+                                ? 'scale-110' 
+                                : ''
+                              }
+                            `}
+                            style={{
+                              background: 'rgba(255, 255, 255, 0.04)',
+                              borderRadius: '50%',
+                              boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
+                              backdropFilter: 'blur(4.1px)',
+                              WebkitBackdropFilter: 'blur(4.1px)',
+                              border: '1px solid rgba(255, 255, 255, 0.09)'
+                            }}
+                          >
+                            {/* Icon */}
                             <Icon 
                               name={tool.iconName} 
                               size={28} 
-                              className={`relative z-10 transition-all duration-300 ${
+                              className={`transition-all duration-300 ${
                                 hoveredTool === catIndex * 10 + toolIndex 
                                   ? 'text-white scale-105' 
-                                  : 'text-white/95'
+                                  : 'text-white/90'
                               }`}
-                              style={{ 
-                                filter: `drop-shadow(0 2px 4px rgba(0,0,0,0.3)) ${
-                                  hoveredTool === catIndex * 10 + toolIndex 
-                                    ? 'drop-shadow(0 0 8px rgba(255,255,255,0.5))' 
-                                    : ''
-                                }`
-                              }} 
                             />
                           </div>
                         </div>
@@ -496,7 +507,7 @@ export default function AnimatedInfographic() {
                         
                         {/* Popup on hover */}
                         {hoveredTool === catIndex * 10 + toolIndex && (
-                          <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 z-50 w-64">
+                          <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 z-[100] w-64">
                             <div className="backdrop-blur-md bg-gray-900/90 rounded-lg border border-white/20 p-4">
                               <p className="text-white font-semibold text-sm mb-1">{tool.name}</p>
                               <p className="text-purple-400 text-xs mb-2">Human emotion: {category.category}</p>
@@ -524,22 +535,182 @@ export default function AnimatedInfographic() {
           </div>
 
           {/* STOP 3: Review Platforms (Right - Vertical) */}
-          <div className="relative flex-shrink-0">
-            <div className="flex flex-col justify-between" style={{ height: '400px' }}>
+          <div className="relative flex-shrink-0 flex items-center justify-center">
+            {/* Curved beam continuation - connects to straight beam */}
+            <div 
+              className="absolute z-2 h-3 overflow-hidden rounded-full"
+              style={{ 
+                left: '-18px',
+                top: 'calc(50% - 20px)',
+                width: '18px',
+                boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.3), 0 0 20px rgba(147, 51, 234, 0.3)'
+              }}
+            >
+              {/* Groove effect */}
+              <div className="absolute inset-0 bg-gradient-to-b from-gray-800/40 to-gray-900/60 rounded-full"></div>
+              {/* Light tube - matching straight beam gradient */}
+              <div className="absolute inset-x-1 inset-y-0.5 bg-gradient-to-r from-pink-500/60 via-purple-500/60 to-pink-500/60 rounded-full blur-sm"></div>
+              {/* Always active light */}
+              <div className="absolute inset-x-1 inset-y-0.5 bg-gradient-to-r from-pink-500 via-purple-500 to-pink-500 animate-pulse rounded-full"></div>
+            </div>
+            
+            {/* Curved beam that forms a pill shape - hollow pill with beam ring */}
+            <div 
+              className="absolute z-2"
+              style={{
+                borderRadius: '9999px',
+                width: '100px',
+                height: '430px',
+                background: 'transparent'
+              }}
+            >
+              {/* Outer ring container */}
+              <div 
+                className="absolute overflow-hidden"
+                style={{
+                  inset: '0',
+                  borderRadius: '9999px',
+                  boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.3), 0 0 20px rgba(147, 51, 234, 0.3)'
+                }}
+              >
+                {/* Groove effect - dark outer ring */}
+                <div 
+                  className="absolute"
+                  style={{
+                    inset: '0',
+                    borderRadius: '9999px',
+                    background: 'linear-gradient(to bottom, rgba(128, 128, 128, 0.16), rgba(31, 41, 55, 0.24))'
+                  }}
+                >
+                  {/* Hollow center */}
+                  <div 
+                    className="absolute"
+                    style={{
+                      inset: '6px',
+                      borderRadius: '9999px',
+                      background: 'transparent'
+                    }}
+                  />
+                </div>
+                
+                {/* Light tube - colored gradient ring */}
+                <div 
+                  className="absolute blur-sm"
+                  style={{
+                    inset: '1px',
+                    borderRadius: '9999px',
+                    background: 'linear-gradient(to bottom, rgba(236, 72, 153, 0.6), rgba(147, 51, 234, 0.6), rgba(236, 72, 153, 0.6))'
+                  }}
+                >
+                  {/* Hollow center */}
+                  <div 
+                    className="absolute"
+                    style={{
+                      inset: '5px',
+                      borderRadius: '9999px',
+                      background: 'rgb(31, 41, 55)'
+                    }}
+                  />
+                </div>
+                
+                {/* Active pulsing light ring */}
+                <div 
+                  className="absolute animate-pulse"
+                  style={{
+                    inset: '1px',
+                    borderRadius: '9999px',
+                    background: 'linear-gradient(to bottom, rgba(236, 72, 153, 1), rgba(147, 51, 234, 1), rgba(236, 72, 153, 1))'
+                  }}
+                >
+                  {/* Hollow center */}
+                  <div 
+                    className="absolute"
+                    style={{
+                      inset: '5px',
+                      borderRadius: '9999px',
+                      background: 'rgb(31, 41, 55)'
+                    }}
+                  />
+                </div>
+                
+                {/* Flowing light animation */}
+                <div 
+                  className="absolute"
+                  style={{
+                    top: '0',
+                    right: '45px',
+                    width: '40px',
+                    height: '10px',
+                    background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.9), rgba(147, 51, 234, 0.9), rgba(236, 72, 153, 0.8), transparent)',
+                    animation: 'flowAroundPill 6s linear infinite',
+                    filter: 'blur(2px)',
+                    borderRadius: '9999px',
+                    transform: 'rotate(90deg)'
+                  }}
+                />
+                
+                {/* Second flowing light with delay */}
+                <div 
+                  className="absolute"
+                  style={{
+                    top: '0',
+                    right: '45px',
+                    width: '40px',
+                    height: '10px',
+                    background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.7), rgba(147, 51, 234, 0.7), rgba(236, 72, 153, 0.6), transparent)',
+                    animation: 'flowAroundPill 6s linear infinite',
+                    animationDelay: '3s',
+                    filter: 'blur(2px)',
+                    borderRadius: '9999px',
+                    transform: 'rotate(90deg)'
+                  }}
+                />
+              </div>
+            </div>
+            
+            {/* Tall pill container for platforms - glass effect on top */}
+            <div 
+              className="absolute z-5"
+              style={{
+                background: 'rgba(255, 255, 255, 0.04)',
+                borderRadius: '9999px',
+                boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
+                backdropFilter: 'blur(4.1px)',
+                WebkitBackdropFilter: 'blur(4.1px)',
+                border: '1px solid rgba(255, 255, 255, 0.09)',
+                width: '90px',
+                height: '420px'
+              }}
+            />
+            <div className="relative flex flex-col justify-between z-10 px-2" style={{ height: '400px' }}>
               {reviewPlatforms.map((platform, index) => (
                 <div
                   key={platform.name}
                   className="relative"
                 >
                   {/* Platform icon */}
-                  <div className="flex flex-col items-center">
+                  <div className="flex flex-col items-center relative">
+                    {/* Gradient glow effect that appears before stars */}
+                    {activePlatforms.includes(index) && index < 4 && (
+                      <div 
+                        className="absolute inset-0 rounded-full pointer-events-none"
+                        style={{
+                          background: 'radial-gradient(circle, rgba(251, 191, 36, 0.6), rgba(251, 191, 36, 0.3), transparent)',
+                          animation: 'platformGlow 2.5s ease-out forwards',
+                          filter: 'blur(8px)',
+                          transform: 'scale(1.5)'
+                        }}
+                      />
+                    )}
+                    
                     {/* Stars animation container - positioned to start from icon */}
-                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-20 h-12 pointer-events-none">
+                    <div className="absolute -top-8 left-1/2 -translate-x-1/2 w-20 h-16 pointer-events-none">
                       {activePlatforms.includes(index) && index < 4 && (
                         <div 
                           className="absolute left-1/2 -translate-x-1/2 flex gap-0.5 bottom-0"
                           style={{
-                            animation: 'floatUp 2.5s ease-out forwards'
+                            animation: 'fadeInFloatUp 2.5s ease-out forwards',
+                            animationDelay: '0.3s'
                           }}
                         >
                           {platformStars[index] === 5 ? (
@@ -567,10 +738,21 @@ export default function AnimatedInfographic() {
                       )}
                     </div>
                     {/* Icon container */}
-                    <div className="p-2">
-                      <Icon name={platform.iconName} size={platform.name === 'And more!' ? 24 : 32} className="text-white" />
+                    <div className="p-2 relative z-10">
+                      <Icon 
+                        name={platform.iconName} 
+                        size={platform.name === 'And more!' ? 24 : 32} 
+                        className={`transition-all duration-500 ${
+                          activePlatforms.includes(index) && index < 4 
+                            ? 'text-yellow-300' 
+                            : 'text-white'
+                        }`}
+                        style={{
+                          animation: activePlatforms.includes(index) && index < 4 ? 'iconGlow 2.5s ease-out forwards' : ''
+                        }}
+                      />
                     </div>
-                    <p className="text-white text-xs font-medium mt-1">{platform.name}</p>
+                    <p className="text-white text-xs font-medium mt-1 relative z-10">{platform.name}</p>
                   </div>
                 </div>
               ))}
