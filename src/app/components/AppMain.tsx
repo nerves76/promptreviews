@@ -23,7 +23,7 @@ export default function AppMain({
     return <main>{children}</main>;
   }
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600">
+    <div className="min-h-screen">
       <main>
         {!isAuth && <Header />}
         {!isAuth && <AnnouncementBanner />}

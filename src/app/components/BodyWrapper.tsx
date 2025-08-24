@@ -4,11 +4,9 @@ import { usePathname } from 'next/navigation';
 import { useEffect } from 'react';
 
 export default function BodyWrapper({ 
-  children,
-  fontVariables 
+  children
 }: { 
   children: React.ReactNode;
-  fontVariables: string;
 }) {
   const pathname = usePathname();
   
@@ -16,18 +14,20 @@ export default function BodyWrapper({
   const isEmbed = pathname.startsWith('/demo/') || pathname.startsWith('/embed/');
   
   useEffect(() => {
-    // Apply or remove background classes based on route
+    // Only modify styles, not classes to avoid hydration issues
     if (isEmbed) {
-      document.body.className = `${fontVariables} font-sans`;
+      // Set transparent background for embeds
       document.body.style.background = 'transparent';
-      // Also set HTML background to transparent
       document.documentElement.style.background = 'transparent';
+      // Remove min-height for embeds
+      document.body.style.minHeight = 'auto';
     } else {
-      document.body.className = `${fontVariables} font-sans min-h-screen bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600`;
-      document.body.style.background = '';
-      document.documentElement.style.background = '';
+      // Remove inline styles to let CSS handle the gradient
+      document.body.style.removeProperty('background');
+      document.documentElement.style.removeProperty('background');
+      document.body.style.removeProperty('min-height');
     }
-  }, [pathname, isEmbed, fontVariables]);
+  }, [pathname, isEmbed]);
   
   return <>{children}</>;
 }

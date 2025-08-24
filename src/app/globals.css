@@ -2,11 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Prevent white flash on initial load */
-html {
-  background: linear-gradient(to bottom right, #4338ca, #9333ea, #db2777);
-  min-height: 100vh;
-}
+/* Prevent white flash on initial load - removed, handled below */
 
 :root {
   --foreground-rgb: 0, 0, 0;
@@ -63,29 +59,65 @@ html {
 
 html,
 body {
-  height: 100%;
+  min-height: 100vh;
   width: 100%;
   margin: 0;
   padding: 0;
 }
 
 html {
-  background: transparent !important;
   box-sizing: border-box;
+  min-height: 100vh;
+  height: 100%;
+  /* Extend background color beyond viewport for overscroll */
+  background-color: rgb(145, 74, 174);
+  /* Force immediate paint with will-change */
+  will-change: scroll-position;
 }
 
 body {
   @apply min-h-screen;
   box-sizing: border-box;
+  min-height: 100vh;
+  /* Apply gradient with fixed attachment for smooth scrolling */
   background: linear-gradient(
     to bottom,
     rgb(82, 125, 231) 0%,
     rgb(120, 100, 200) 50%,
     rgb(145, 74, 174) 100%
-  ) !important;
-  background-size: 100% 5000px !important;
+  ) fixed !important;
+  /* Remove explicit size to let gradient cover full document height */
+  background-attachment: fixed !important;
   background-repeat: no-repeat !important;
+  /* Prevent overscroll bounce on iOS */
+  position: relative;
+  overflow-x: hidden;
+  /* Force GPU acceleration */
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
+
+/* Backup gradient using pseudo-element to prevent white flashes */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: -1;
+  background: linear-gradient(
+    to bottom,
+    rgb(82, 125, 231) 0%,
+    rgb(120, 100, 200) 50%,
+    rgb(145, 74, 174) 100%
+  );
+  pointer-events: none;
+}
+
+/* Let dashboard components use their original designs */
 
 .animate-slideup {
   opacity: 0;

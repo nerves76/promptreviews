@@ -115,7 +115,7 @@ export default function DashboardLayout({
       console.log('🔄 Dashboard: Loading state', { isInitialized, isTransitioning });
     }
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600">
+      <div className="min-h-screen flex flex-col items-center justify-center">
         <AppLoader variant="centered" />
       </div>
     );
@@ -133,7 +133,7 @@ export default function DashboardLayout({
       console.log('🔄 Dashboard: Loading user or account data...');
     }
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600">
+      <div className="min-h-screen flex flex-col items-center justify-center">
         <AppLoader variant="centered" />
       </div>
     );
@@ -148,7 +148,7 @@ export default function DashboardLayout({
   
   if ((isCancelled || hasNoPlan) && !isAllowedPath) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600">
+      <div className="min-h-screen flex flex-col items-center justify-center">
         <div className="text-center text-white p-8">
           <h1 className="text-3xl font-bold mb-4">Account Reactivation Required</h1>
           <p className="mb-6">Your account needs to be reactivated to continue.</p>
@@ -164,7 +164,7 @@ export default function DashboardLayout({
   }
 
   return (
-    <div className="w-full bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600 pb-16 md:pb-24 lg:pb-32">
+    <div className="w-full min-h-screen pb-16 md:pb-24 lg:pb-32">
       <TrialBanner accountData={account} />
       {children}
     </div>

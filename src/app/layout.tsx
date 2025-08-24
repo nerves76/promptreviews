@@ -54,11 +54,11 @@ export default function RootLayout({
         <meta httpEquiv="x-dns-prefetch-control" content="on" />
       </head>
       <body 
-        className={`${fontVariables} font-sans`}
+        className={`${fontVariables} font-sans min-h-screen`}
         suppressHydrationWarning={true}
       >
         <Providers>
-          <BodyWrapper fontVariables={fontVariables}>
+          <BodyWrapper>
             <GlobalRefreshMonitor />
             <NavigationDebugger />
             <ClientRoot>
