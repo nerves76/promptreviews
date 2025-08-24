@@ -69,8 +69,8 @@ html {
   box-sizing: border-box;
   min-height: 100vh;
   height: 100%;
-  /* Extend background color beyond viewport for overscroll */
-  background-color: rgb(145, 74, 174);
+  /* Extend background color beyond viewport for overscroll - match top gradient color */
+  background-color: rgb(82, 125, 231);
   /* Force immediate paint with will-change */
   will-change: scroll-position;
 }
