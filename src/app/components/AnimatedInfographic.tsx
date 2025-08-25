@@ -14,11 +14,64 @@ export default function AnimatedInfographic() {
   const [activePlatforms, setActivePlatforms] = useState<number[]>([])
   const [platformStars, setPlatformStars] = useState<{[key: number]: number}>({})
   const [mounted, setMounted] = useState(false)
+  const [beamPosition, setBeamPosition] = useState(0) // 0-100 percentage
+  const [showEffects, setShowEffects] = useState(false)
+  const [showPlatformEffects, setShowPlatformEffects] = useState(false)
+  const [promptPageStep, setPromptPageStep] = useState(0) // 0: idle, 1: left button, 2: fill fields, 3: right button
+  const [reviewFormStep, setReviewFormStep] = useState(0) // 0: idle, 1: content filled, 2: button lit, 3: success
 
   // Set mounted state to avoid hydration issues
   useEffect(() => {
     setMounted(true)
   }, [])
+
+  // Single master timer for all animations - two separate beams
+  useEffect(() => {
+    if (!mounted) return
+    
+    const interval = setInterval(() => {
+      setBeamPosition(prev => {
+        const next = (prev + 0.4) % 100 // Complete cycle every 25 seconds (100/0.4 = 250 frames at 100ms) - much slower
+        
+        // First beam: Customer to Prompt Page - more time for each step
+        if (next >= 20 && next < 25) {
+          setShowEffects(true)
+          setPromptPageStep(0) // Just the prompt page lights up
+        } else if (next >= 25 && next < 30) {
+          setShowEffects(true)
+          setPromptPageStep(1) // Left button lights up after delay (5% = 800ms)
+        } else if (next >= 30 && next < 38) {
+          setPromptPageStep(2) // Fill fields (8% = 1.28s)
+        } else if (next >= 38 && next < 45) {
+          setPromptPageStep(3) // Right button lights up (7% = 1.12s)
+        } else if (next < 20 || next > 95) {
+          setShowEffects(false)
+          setPromptPageStep(0)
+        }
+        
+        // Second beam: Prompt Page to Review Platforms - fixed timing
+        if (next >= 50 && next < 60) {
+          setShowPlatformEffects(true)  // Beam travels for full 10% = 1.6s
+        } else if (next >= 60 && next < 65) {
+          setShowPlatformEffects(false)  // Beam effect ends
+          setReviewFormStep(1) // Start paste animation after beam arrives
+        } else if (next >= 65 && next < 72) {
+          setReviewFormStep(2) // Light up submit button
+        } else if (next >= 72 && next < 85) {
+          setReviewFormStep(3) // Show success
+        } else if (next < 50) {
+          setShowPlatformEffects(false)
+          setReviewFormStep(0)
+        } else if (next >= 85) {
+          setReviewFormStep(0)
+        }
+        
+        return next
+      })
+    }, 100) // Update every 100ms for smooth animation
+    
+    return () => clearInterval(interval)
+  }, [mounted])
 
   // Randomly show stars on platforms
   useEffect(() => {
@@ -55,18 +108,18 @@ export default function AnimatedInfographic() {
       category: 'Reciprocity',
       tools: [
         { 
-          name: 'Special Offer', 
-          iconName: 'FaGift' as const,
-          description: 'Incentivize reviews by offering exclusive deals or discounts. Customers appreciate the value exchange and are more likely to share their experience.',
-          learnMore: null,
-          position: { top: '18%', left: '10%' } // Above beam - far left
+          name: 'AI Generate', 
+          iconName: 'prompty' as const,
+          description: 'Uses AI to help create authentic, personalized reviews based on customer input. Makes writing effortless.',
+          learnMore: 'https://promptreviews.app/ai-assistance',
+          position: { top: '8%', left: '5%' } // Above beam - far left
         },
         { 
           name: 'Friendly Note', 
           iconName: 'FaStickyNote' as const,
           description: 'Add a personal message that creates a human connection. This warm touch makes customers feel valued and more willing to help.',
           learnMore: null,
-          position: { top: '12%', left: '27%' } // Above beam - left
+          position: { top: '3%', left: '22%' } // Above beam - left
         }
       ]
     },
@@ -78,21 +131,21 @@ export default function AnimatedInfographic() {
           iconName: 'FaClock' as const,
           description: 'Show examples of other customer reviews to inspire and guide. Social proof reduces friction and shows what to write about.',
           learnMore: null,
-          position: { top: '8%', left: '50%', transform: 'translateX(-50%)' } // Above beam - center
+          position: { top: '-2%', left: '50%', transform: 'translateX(-50%)' } // Above beam - center
         },
         { 
           name: 'Kickstarters', 
           iconName: 'FaLightbulb' as const,
           description: 'Provide conversation prompts and questions to overcome writer\'s block. Makes it easy to know what aspects to review.',
           learnMore: null,
-          position: { top: '12%', right: '27%' } // Above beam - right
+          position: { top: '3%', right: '22%' } // Above beam - right
         },
         {
           name: 'Review Template',
           iconName: 'FaFeather' as const,
           description: 'Pre-written templates that customers can customize. Simplifies the review process while maintaining authenticity.',
           learnMore: null,
-          position: { top: '18%', right: '10%' } // Above beam - far right
+          position: { top: '8%', right: '5%' } // Above beam - far right
         }
       ]
     },
@@ -100,18 +153,18 @@ export default function AnimatedInfographic() {
       category: 'Ease-of-use',
       tools: [
         { 
-          name: 'AI Generate', 
-          iconName: 'prompty' as const,
-          description: 'Uses AI to help create authentic, personalized reviews based on customer input. Makes writing effortless.',
-          learnMore: 'https://promptreviews.app/ai-assistance',
-          position: { bottom: '18%', left: '18%' } // Below beam - left
+          name: 'Special Offer', 
+          iconName: 'FaGift' as const,
+          description: 'Incentivize reviews by offering exclusive deals or discounts. Customers appreciate the value exchange and are more likely to share their experience.',
+          learnMore: null,
+          position: { bottom: '-8%', left: '12%' } // Below beam - left - moved down 50px
         },
         { 
           name: 'Grammar Fix', 
           iconName: 'FaCheck' as const,
           description: 'Automatically corrects spelling and grammar errors. Helps customers feel confident their review looks professional.',
           learnMore: 'https://promptreviews.app/ai-assistance',
-          position: { bottom: '12%', left: '36%' } // Below beam - center-left
+          position: { bottom: '-13%', left: '32%' } // Below beam - center-left - moved down 50px
         }
       ]
     },
@@ -123,14 +176,14 @@ export default function AnimatedInfographic() {
           iconName: 'FaStar' as const,
           description: 'Celebratory animations when reviews are submitted. Creates a moment of joy and positive reinforcement.',
           learnMore: null,
-          position: { bottom: '12%', right: '36%' } // Below beam - center-right
+          position: { bottom: '-13%', right: '32%' } // Below beam - center-right - moved down 50px
         },
         { 
           name: 'Branded Design', 
           iconName: 'FaPalette' as const,
           description: 'Match your brand colors and style for a cohesive experience. Builds trust through professional presentation.',
           learnMore: null,
-          position: { bottom: '18%', right: '18%' } // Below beam - right
+          position: { bottom: '-8%', right: '12%' } // Below beam - right - moved down 50px
         }
       ]
     }
@@ -141,7 +194,7 @@ export default function AnimatedInfographic() {
     { name: 'Facebook', iconName: 'FaFacebook' as const },
     { name: 'Yelp', iconName: 'FaYelp' as const },
     { name: 'TripAdvisor', iconName: 'FaTripadvisor' as const },
-    { name: 'And more!', iconName: 'FaPlus' as const }
+    { name: 'More', iconName: 'FaPlus' as const }
   ]
 
   return (
@@ -166,17 +219,19 @@ export default function AnimatedInfographic() {
         
         @keyframes fadeInFloatUp {
           0% {
-            transform: translateX(-50%) translateY(0);
+            transform: translateX(-50%) translateY(-420px);
             opacity: 0;
           }
           20% {
+            transform: translateX(-50%) translateY(-360px);
             opacity: 1;
           }
           80% {
+            transform: translateX(-50%) translateY(-60px);
             opacity: 1;
           }
           100% {
-            transform: translateX(-50%) translateY(-50px);
+            transform: translateX(-50%) translateY(0px);
             opacity: 0;
           }
         }
@@ -201,10 +256,10 @@ export default function AnimatedInfographic() {
             filter: brightness(1);
           }
           20% {
-            filter: brightness(1.5) drop-shadow(0 0 10px rgba(251, 191, 36, 0.8));
+            filter: brightness(1.8) drop-shadow(0 0 15px rgba(255, 255, 255, 0.8));
           }
           80% {
-            filter: brightness(1.3) drop-shadow(0 0 8px rgba(251, 191, 36, 0.6));
+            filter: brightness(1.5) drop-shadow(0 0 12px rgba(255, 255, 255, 0.6));
           }
           100% {
             filter: brightness(1);
@@ -252,6 +307,89 @@ export default function AnimatedInfographic() {
             transform: translateY(500%);
           }
         }
+        
+        @keyframes starFloat {
+          0% {
+            transform: translateY(0) scale(0);
+            opacity: 0;
+          }
+          5% {
+            transform: translateY(-10px) scale(1);
+            opacity: 1;
+          }
+          95% {
+            transform: translateY(-80px) scale(1);
+            opacity: 1;
+          }
+          100% {
+            transform: translateY(-90px) scale(0.9);
+            opacity: 0;
+          }
+        }
+        
+        @keyframes pillGlowCycle {
+          0%, 84% {
+            filter: drop-shadow(0 0 10px rgba(147, 51, 234, 0.2));
+          }
+          85% {
+            filter: drop-shadow(0 0 25px rgba(147, 51, 234, 0.6)) drop-shadow(0 0 15px rgba(236, 72, 153, 0.4));
+          }
+          90% {
+            filter: drop-shadow(0 0 30px rgba(147, 51, 234, 0.7)) drop-shadow(0 0 20px rgba(236, 72, 153, 0.5));
+          }
+          95% {
+            filter: drop-shadow(0 0 20px rgba(147, 51, 234, 0.5)) drop-shadow(0 0 10px rgba(236, 72, 153, 0.3));
+          }
+          96%, 100% {
+            filter: drop-shadow(0 0 10px rgba(147, 51, 234, 0.2));
+          }
+        }
+        
+        @keyframes iconPulseCycle {
+          0%, 84% {
+            filter: brightness(1) drop-shadow(0 0 0px rgba(147, 51, 234, 0));
+            transform: scale(1);
+          }
+          87% {
+            filter: brightness(1.3) drop-shadow(0 0 8px rgba(147, 51, 234, 0.6));
+            transform: scale(1.05);
+          }
+          90% {
+            filter: brightness(1.4) drop-shadow(0 0 10px rgba(147, 51, 234, 0.7));
+            transform: scale(1.08);
+          }
+          93% {
+            filter: brightness(1.3) drop-shadow(0 0 8px rgba(147, 51, 234, 0.5));
+            transform: scale(1.05);
+          }
+          96%, 100% {
+            filter: brightness(1) drop-shadow(0 0 0px rgba(147, 51, 234, 0));
+            transform: scale(1);
+          }
+        }
+        
+        @keyframes pillStrokeCycle {
+          0%, 84% {
+            stroke: transparent;
+            stroke-width: 16;
+          }
+          85% {
+            stroke: rgba(147, 51, 234, 0.4);
+            stroke-width: 18;
+          }
+          90% {
+            stroke: rgba(147, 51, 234, 0.6);
+            stroke-width: 20;
+          }
+          95% {
+            stroke: rgba(147, 51, 234, 0.3);
+            stroke-width: 18;
+          }
+          96%, 100% {
+            stroke: transparent;
+            stroke-width: 16;
+          }
+        }
       `}</style>
       <div className="relative w-full max-w-7xl mx-auto p-4 lg:p-8 min-h-screen">
         {/* Background */}
@@ -278,108 +416,80 @@ export default function AnimatedInfographic() {
         {/* Main Layout - 3 Stop Journey */}
         <div className="relative flex flex-col lg:flex-row items-center justify-between gap-8 lg:gap-12">
           
-          {/* Main beam and splitting beams */}
+          {/* Two separate beams */}
           {mounted && (
             <>
-              {/* Single continuous beam: Starting away from Customer through Prompt Page to platforms */}
-              <div className="hidden lg:block absolute left-[110px] h-3 z-5 pointer-events-none overflow-hidden rounded-full" style={{ top: 'calc(50% - 20px)', width: 'calc(100% - 250px)', boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.3), 0 0 20px rgba(147, 51, 234, 0.3)' }}>
+              {/* First Beam: Customer to Prompt Page socket */}
+              <div className="hidden lg:block absolute z-5 pointer-events-none overflow-hidden rounded-full" 
+                style={{ 
+                  left: '180px', // Moved 20px left to extend left side
+                  top: 'calc(50% - 20px)', 
+                  width: 'calc(50% - 280px)', // Extended 15px more on right
+                  height: '12px', 
+                  boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.3), 0 0 20px rgba(147, 51, 234, 0.3)' 
+                }}>
                 {/* Groove effect */}
                 <div className="absolute inset-0 bg-gradient-to-b from-gray-800/40 to-gray-900/60 rounded-full"></div>
                 {/* Light tube - continuous gradient */}
-                <div className="absolute inset-x-1 inset-y-0.5 bg-gradient-to-r from-blue-400/60 via-purple-500/60 via-purple-500/60 to-pink-500/60 rounded-full blur-sm"></div>
-                {/* Always active light - no conditional */}
-                <>
-                  <div className="absolute inset-x-1 inset-y-0.5 bg-gradient-to-r from-blue-400 via-purple-500 via-purple-500 to-pink-500 animate-pulse rounded-full"></div>
-                  {/* Slower, less frequent light pulses */}
+                <div className="absolute inset-x-1 inset-y-0.5 bg-gradient-to-r from-blue-400/60 via-purple-500/60 to-pink-500/60 rounded-full blur-sm"></div>
+                {/* Always active light */}
+                <div className="absolute inset-x-1 inset-y-0.5 bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 animate-pulse rounded-full opacity-30"></div>
+                {/* First beam pulse - only shows during first half of cycle */}
+                {beamPosition < 45 && (
                   <div 
                     className="absolute inset-y-0 w-40"
                     style={{
                       background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.9), rgba(147, 51, 234, 0.9), rgba(236, 72, 153, 0.8), transparent)',
-                      animation: 'flowRightBeam 6s linear infinite',
-                      filter: 'blur(2px)'
+                      transform: `translateX(${beamPosition * 20}%)`,
+                      filter: 'blur(2px)',
+                      left: '-160px'
                     }}
                   />
-                  {/* Second light pulse with longer delay */}
+                )}
+              </div>
+              
+              {/* Second Beam: Prompt Page socket to Review Platforms socket */}
+              <div className="hidden lg:block absolute z-5 pointer-events-none overflow-hidden rounded-full" 
+                style={{ 
+                  left: 'calc(50% + 134px)', // Keep same position
+                  top: 'calc(50% - 20px)', 
+                  width: 'calc(50% - 313px)', // Extended 15px more on right
+                  height: '12px', 
+                  boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.3), 0 0 20px rgba(147, 51, 234, 0.3)' 
+                }}>
+                {/* Groove effect */}
+                <div className="absolute inset-0 bg-gradient-to-b from-gray-800/40 to-gray-900/60 rounded-full"></div>
+                {/* Light tube - continuous gradient */}
+                <div className="absolute inset-x-1 inset-y-0.5 bg-gradient-to-r from-purple-500/60 via-purple-500/60 to-pink-500/60 rounded-full blur-sm"></div>
+                {/* Always active light */}
+                <div className="absolute inset-x-1 inset-y-0.5 bg-gradient-to-r from-purple-500 via-purple-500 to-pink-500 animate-pulse rounded-full opacity-30"></div>
+                {/* Second beam pulse - only shows during second half of cycle */}
+                {beamPosition >= 50 && beamPosition < 80 && (
                   <div 
                     className="absolute inset-y-0 w-40"
                     style={{
-                      background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.7), rgba(147, 51, 234, 0.7), rgba(236, 72, 153, 0.6), transparent)',
-                      animation: 'flowRightBeam 6s linear infinite',
-                      animationDelay: '3s',
-                      filter: 'blur(2px)'
+                      background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.9), rgba(147, 51, 234, 0.9), rgba(236, 72, 153, 0.8), transparent)',
+                      transform: `translateX(${Math.min((beamPosition - 50) * 10, 100)}%)`,  // Beam takes full 10% to reach destination (100/10 = 10)
+                      filter: 'blur(2px)',
+                      left: '-160px'
                     }}
                   />
-                </>
+                )}
               </div>
             </>
           )}
           
-          {/* Connection method icons on pill-shaped glass background */}
-          <div className="hidden lg:block absolute z-30" style={{ left: '160px', top: 'calc(50% - 10px)', transform: 'translateY(-50%)' }}>
-            {/* Glass pill background - using css.glass effect */}
-            <div 
-              className="relative px-6 py-3"
-              style={{
-                background: 'rgba(255, 255, 255, 0.04)',
-                borderRadius: '9999px',
-                boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
-                backdropFilter: 'blur(4.1px)',
-                WebkitBackdropFilter: 'blur(4.1px)',
-                border: '1px solid rgba(255, 255, 255, 0.09)'
-              }}
-            >
-              
-              {/* Icons container */}
-              <div className="relative flex items-center gap-6">
-                {[
-                  { id: 'qr', icon: 'FaQrcode', label: 'QR', description: 'Customers scan a QR code with their phone camera to instantly access your review prompt page.' },
-                  { id: 'link', icon: 'FaLink', label: 'Link', description: 'Share a direct link through any channel - website, social media, or messaging apps.' },
-                  { id: 'sms', icon: 'FaCommentAlt', label: 'SMS', description: 'Send personalized text messages with a link to your review prompt page.' },
-                  { id: 'email', icon: 'FaEnvelope', label: 'Email', description: 'Include the prompt page link in email signatures or follow-up messages.' },
-                  { id: 'nfc', icon: 'FaMobile', label: 'NFC', description: 'Customers tap their phone on an NFC tag to open the review page automatically.' }
-                ].map((method) => (
-                  <div 
-                    key={method.id}
-                    className="relative flex flex-col items-center cursor-pointer transition-transform hover:scale-110"
-                    onMouseEnter={() => setHoveredConnection(method.id)}
-                    onMouseLeave={() => setHoveredConnection(null)}
-                  >
-                    <Icon 
-                      name={method.icon as any} 
-                      size={18} 
-                      className={`transition-all ${
-                        hoveredConnection === method.id ? 'text-white' : 'text-white/80'
-                      }`} 
-                    />
-                    <span className={`text-[9px] mt-1 transition-all ${
-                      hoveredConnection === method.id ? 'text-white' : 'text-white/70'
-                    }`}>{method.label}</span>
-                    
-                    {/* Popup on hover */}
-                    {hoveredConnection === method.id && (
-                      <div className="absolute top-full mt-3 z-50 w-48">
-                        <div className="backdrop-blur-md bg-gray-900/90 rounded-lg border border-white/20 p-3">
-                          <p className="text-white font-semibold text-sm mb-1">{method.label}</p>
-                          <p className="text-gray-300 text-xs">{method.description}</p>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
           
           {/* STOP 1: Customer (Left) - z-30 to be above beam */}
-          <div className="relative flex-shrink-0 z-30">
-            <div className="flex flex-col items-center">
+          <div className="relative flex-shrink-0 z-30" style={{ marginTop: '125px' }}>
+            <div className="relative">
               {/* Larger customer icon with gradient effect */}
               <div className="relative">
                 {/* Subtle glow behind icon */}
                 <div className="absolute inset-0 blur-3xl bg-gradient-to-r from-yellow-300/30 via-pink-300/30 to-purple-300/30 scale-125" />
                 
-                {/* Customer SVG with gradient fill */}
-                <svg width="160" height="160" viewBox="0 0 107.4084 230.4448" className="relative" style={{ filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.2))' }}>
+                {/* Customer SVG with gradient fill - 50% bigger (30% + 20%) */}
+                <svg width="250" height="250" viewBox="0 0 107.4084 230.4448" className="relative" style={{ filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.2))', marginTop: '20px' }}>
                   <defs>
                     <linearGradient id="customerGradient" x1="0%" y1="0%" x2="100%" y2="100%">
                       <stop offset="0%" stopColor="#fde047" />
@@ -404,9 +514,15 @@ export default function AnimatedInfographic() {
                 </svg>
               </div>
               
-              <p className="text-white font-semibold text-center text-base lg:text-lg mt-3 bg-gradient-to-r from-yellow-300 via-pink-300 to-purple-300 bg-clip-text text-transparent">
-                Customer
-              </p>
+              {/* Label with proper spacing below customer icon */}
+              <div className="text-center" style={{ marginTop: '50px' }}>
+                <h3 className="text-white/95 font-bold text-base lg:text-lg bg-gradient-to-r from-yellow-300 via-pink-300 to-purple-300 bg-clip-text text-transparent">
+                  Customer
+                </h3>
+                <p className="text-gray-200/90 text-xs text-center mt-1 max-w-[200px] mx-auto">
+                  Share Prompt Pages by QR Code, SMS, Email, or NFC chip.
+                </p>
+              </div>
             </div>
           </div>
 
@@ -414,8 +530,8 @@ export default function AnimatedInfographic() {
           <div className="relative flex-grow flex justify-center">
             <div className="relative w-[500px] h-[500px] lg:w-[600px] lg:h-[600px]">
               
-              {/* Central Prompt Page - glass effect from css.glass */}
-              <div className="absolute left-1/2 -translate-x-1/2 z-20" style={{ top: 'calc(50% - 17px)', transform: 'translateX(-50%) translateY(-50%)' }}>
+              {/* Central Prompt Page - looks like actual prompt page structure */}
+              <div className="absolute left-1/2 -translate-x-1/2 z-20" style={{ top: 'calc(50% + 20px)', transform: 'translateX(-50%) translateY(-50%)' }}>
                 <div className="relative">
                   {/* Always active pulse effect */}
                   <div 
@@ -426,20 +542,275 @@ export default function AnimatedInfographic() {
                     }}
                   />
                   <div className="absolute inset-0 rounded-2xl blur-xl bg-gradient-to-br from-purple-400/20 to-pink-400/20" />
+                  
+                  {/* Left socket for beam */}
                   <div 
-                    className="relative p-4 lg:p-6"
+                    className="absolute z-25 pointer-events-none"
                     style={{
-                      background: 'rgba(255, 255, 255, 0.04)',
-                      borderRadius: '16px',
-                      boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
-                      backdropFilter: 'blur(4.1px)',
-                      WebkitBackdropFilter: 'blur(4.1px)',
-                      border: '1px solid rgba(255, 255, 255, 0.09)'
+                      left: '-10px',
+                      top: 'calc(50% - 41px)',
+                      width: '10px',
+                      height: '12px',
+                      background: showEffects 
+                        ? 'linear-gradient(to right, rgb(147, 51, 234), rgb(236, 72, 153))'
+                        : 'rgba(147, 51, 234, 0.6)',
+                      boxShadow: showEffects 
+                        ? 'inset 0 2px 4px rgba(0,0,0,0.3), 0 0 15px rgba(147, 51, 234, 0.6)'
+                        : 'inset 0 2px 4px rgba(0,0,0,0.3), 0 0 10px rgba(147, 51, 234, 0.3)',
+                      borderRadius: '2px',
+                      transition: 'all 0.3s ease-out'
+                    }}
+                  />
+                  
+                  {/* Right socket for beam */}
+                  <div 
+                    className="absolute z-25 pointer-events-none"
+                    style={{
+                      right: '-10px',
+                      top: 'calc(50% - 41px)',
+                      width: '10px',
+                      height: '12px',
+                      background: showEffects 
+                        ? 'linear-gradient(to left, rgb(236, 72, 153), rgb(147, 51, 234))'
+                        : 'rgba(236, 72, 153, 0.6)',
+                      boxShadow: showEffects 
+                        ? 'inset 0 2px 4px rgba(0,0,0,0.3), 0 0 15px rgba(236, 72, 153, 0.6)'
+                        : 'inset 0 2px 4px rgba(0,0,0,0.3), 0 0 10px rgba(236, 72, 153, 0.3)',
+                      borderRadius: '2px',
+                      transition: 'all 0.3s ease-out'
+                    }}
+                  />
+                  
+                  {/* Main prompt page container - bigger */}
+                  <div 
+                    className="relative w-52 lg:w-64"
+                    style={{
+                      borderRadius: '24px',
+                      padding: '6px'
                     }}
                   >
-                    <DocumentTextIcon className="w-10 h-10 lg:w-12 lg:h-12 text-white/90 mb-2" />
+                    {/* Beam-style border - groove effect */}
+                    <div 
+                      className="absolute inset-0 rounded-3xl pointer-events-none"
+                      style={{
+                        background: 'rgba(31, 41, 55, 0.4)',
+                        boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.3), 0 0 20px rgba(147, 51, 234, 0.3)',
+                        borderRadius: '24px'
+                      }}
+                    />
+                    
+                    {/* Beam-style border - light tube */}
+                    <div 
+                      className="absolute inset-[3px] pointer-events-none transition-all duration-300"
+                      style={{
+                        background: showEffects
+                          ? 'linear-gradient(135deg, rgb(96, 165, 250), rgb(147, 51, 234), rgb(236, 72, 153))'
+                          : 'linear-gradient(135deg, rgba(96, 165, 250, 0.3), rgba(147, 51, 234, 0.3), rgba(236, 72, 153, 0.3))',
+                        filter: showEffects ? 'blur(0.5px)' : 'blur(0px)',
+                        opacity: showEffects ? 1 : 0.6,
+                        borderRadius: '21px'
+                      }}
+                    />
+                    
+                    {/* Glowing effect when active */}
+                    {showEffects && (
+                      <div 
+                        className="absolute inset-[-2px] pointer-events-none animate-pulse"
+                        style={{
+                          background: 'transparent',
+                          border: '3px solid rgba(147, 51, 234, 0.4)',
+                          filter: 'blur(4px)',
+                          borderRadius: '26px'
+                        }}
+                      />
+                    )}
+                    
+                    {/* Inner content container */}
+                    <div 
+                      className="relative p-4 lg:p-5"
+                      style={{
+                        background: 'rgba(255, 255, 255, 0.06)',
+                        borderRadius: '18px',
+                        backdropFilter: 'blur(4.1px)',
+                        WebkitBackdropFilter: 'blur(4.1px)'
+                      }}
+                    >
+                    
+                    <div className="relative z-10">
+                    {/* Business card with logo - narrower and taller */}
+                    <div className="flex justify-center mb-3">
+                      <div 
+                        className="relative w-28 lg:w-32 rounded-lg px-3 py-3"
+                        style={{
+                          background: 'rgba(255, 255, 255, 0.08)',
+                          border: '1px solid rgba(255, 255, 255, 0.15)'
+                        }}
+                      >
+                        {/* Logo circle overlapping top edge */}
+                        <div 
+                          className="absolute -top-4 left-1/2 -translate-x-1/2 w-8 h-8 lg:w-9 lg:h-9 rounded-full"
+                          style={{
+                            background: 'linear-gradient(135deg, rgba(147,51,234,0.5), rgba(236,72,153,0.5))',
+                            border: '2px solid rgba(255, 255, 255, 0.3)'
+                          }}
+                        />
+                        {/* Business name placeholder */}
+                        <div className="h-1 lg:h-1.5 bg-gray-400/30 rounded-full w-3/4 mx-auto mt-2" />
+                        {/* Business tagline */}
+                        <div className="h-0.5 lg:h-1 bg-gray-400/20 rounded-full w-1/2 mx-auto mt-1.5" />
+                      </div>
+                    </div>
+                    
+                    {/* Review forms */}
+                    <div className="space-y-2">
+                      {/* First review form - Google - with full detail */}
+                      <div 
+                        className="rounded-lg p-3"
+                        style={{
+                          background: 'rgba(255, 255, 255, 0.05)',
+                          border: '1px solid rgba(255, 255, 255, 0.08)'
+                        }}
+                      >
+                        {/* Platform icon and name */}
+                        <div className="flex items-center gap-2 mb-2.5">
+                          <div className="w-4 h-4 lg:w-5 lg:h-5 rounded-full bg-blue-500/40" />
+                          <div className="h-1 bg-gray-400/20 rounded-full w-16" />
+                        </div>
+                        
+                        {/* Name inputs */}
+                        <div className="flex gap-1.5 mb-2">
+                          <div className="flex-1 h-4 lg:h-5 rounded bg-gray-700/20 relative overflow-hidden">
+                            <div 
+                              className="absolute inset-0 bg-gray-400/30 transition-all duration-1000"
+                              style={{
+                                width: promptPageStep >= 2 ? '70%' : '0%',
+                                transitionDelay: promptPageStep >= 2 ? '300ms' : '0ms'
+                              }}
+                            />
+                          </div>
+                          <div className="flex-1 h-4 lg:h-5 rounded bg-gray-700/20 relative overflow-hidden">
+                            <div 
+                              className="absolute inset-0 bg-gray-400/30 transition-all duration-1000"
+                              style={{
+                                width: promptPageStep >= 2 ? '80%' : '0%',
+                                transitionDelay: promptPageStep >= 2 ? '600ms' : '0ms'
+                              }}
+                            />
+                          </div>
+                        </div>
+                        
+                        {/* Review text area */}
+                        <div className="h-7 lg:h-8 rounded bg-gray-700/20 mb-2 relative overflow-hidden">
+                          <div className="absolute inset-0 p-1">
+                            <div 
+                              className="h-0.5 bg-gray-400/40 rounded-full mb-0.5 transition-all duration-700"
+                              style={{
+                                width: promptPageStep >= 2 ? '90%' : '0%',
+                                transitionDelay: promptPageStep >= 2 ? '600ms' : '0ms'
+                              }}
+                            />
+                            <div 
+                              className="h-0.5 bg-gray-400/40 rounded-full mb-0.5 transition-all duration-700"
+                              style={{
+                                width: promptPageStep >= 2 ? '85%' : '0%',
+                                transitionDelay: promptPageStep >= 2 ? '700ms' : '0ms'
+                              }}
+                            />
+                            <div 
+                              className="h-0.5 bg-gray-400/40 rounded-full transition-all duration-700"
+                              style={{
+                                width: promptPageStep >= 2 ? '60%' : '0%',
+                                transitionDelay: promptPageStep >= 2 ? '800ms' : '0ms'
+                              }}
+                            />
+                          </div>
+                        </div>
+                        
+                        {/* Action buttons */}
+                        <div className="flex gap-2">
+                          <div 
+                            className="h-5 lg:h-6 rounded-lg flex-1 transition-all duration-700 relative overflow-hidden flex items-center justify-center"
+                            style={{
+                              background: promptPageStep >= 1 
+                                ? 'linear-gradient(135deg, rgba(147,51,234,0.8), rgba(236,72,153,0.8))'
+                                : 'rgba(147,51,234,0.2)',
+                              boxShadow: promptPageStep >= 1
+                                ? '0 0 20px rgba(147,51,234,0.7), inset 0 0 10px rgba(255,255,255,0.3)'
+                                : 'none',
+                              transform: promptPageStep >= 1 ? 'scale(1.05)' : 'scale(1)'
+                            }}
+                          >
+                            {promptPageStep >= 1 && (
+                              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-pulse" />
+                            )}
+                            <span 
+                              className="text-[9px] lg:text-[10px] font-medium relative z-10 transition-colors duration-700"
+                              style={{
+                                color: promptPageStep >= 1 ? 'rgba(255, 255, 255, 0.9)' : 'rgba(156, 163, 175, 0.5)'
+                              }}
+                            >
+                              Generate
+                            </span>
+                          </div>
+                          <div 
+                            className="h-5 lg:h-6 rounded-lg flex-1 transition-all duration-700 relative overflow-hidden flex items-center justify-center"
+                            style={{
+                              background: promptPageStep >= 3
+                                ? 'linear-gradient(135deg, rgba(139,92,246,0.8), rgba(167,139,250,0.8))'
+                                : 'rgba(139,92,246,0.2)',
+                              boxShadow: promptPageStep >= 3
+                                ? '0 0 20px rgba(139,92,246,0.7), inset 0 0 10px rgba(255,255,255,0.3)'
+                                : 'none',
+                              transform: promptPageStep >= 3 ? 'scale(1.05)' : 'scale(1)',
+                              transitionDelay: '200ms'
+                            }}
+                          >
+                            {promptPageStep >= 3 && (
+                              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-pulse" />
+                            )}
+                            <span 
+                              className="text-[9px] lg:text-[10px] font-medium relative z-10 transition-colors duration-700"
+                              style={{
+                                color: promptPageStep >= 3 ? 'rgba(255, 255, 255, 0.9)' : 'rgba(156, 163, 175, 0.5)'
+                              }}
+                            >
+                              Copy & submit
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Second review form - Facebook - partial view */}
+                      <div 
+                        className="rounded-t-lg p-3 pb-1"
+                        style={{
+                          background: 'rgba(255, 255, 255, 0.05)',
+                          borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+                          borderLeft: '1px solid rgba(255, 255, 255, 0.08)',
+                          borderRight: '1px solid rgba(255, 255, 255, 0.08)'
+                        }}
+                      >
+                        {/* Platform icon and name */}
+                        <div className="flex items-center gap-2 mb-1.5">
+                          <div className="w-4 h-4 lg:w-5 lg:h-5 rounded-full bg-indigo-500/40" />
+                          <div className="h-1 bg-gray-400/20 rounded-full w-16" />
+                        </div>
+                        
+                        {/* Partial form elements */}
+                        <div className="flex gap-1.5">
+                          <div className="flex-1 h-3 rounded bg-gray-700/15" />
+                          <div className="flex-1 h-3 rounded bg-gray-700/15" />
+                        </div>
+                      </div>
+                    </div>
+                    </div>
+                    </div>
+                  </div>
+                  
+                  {/* Label below the form */}
+                  <div className="absolute -bottom-20 left-1/2 -translate-x-1/2 text-center">
                     <h3 className="text-white/95 font-bold text-base lg:text-lg">Prompt Page</h3>
-                    <p className="text-gray-200/90 text-xs">Create • Copy • Post</p>
+                    <p className="text-gray-200/90 text-xs">Create • Customize • Share</p>
                   </div>
                 </div>
               </div>
@@ -491,11 +862,18 @@ export default function AnimatedInfographic() {
                             <Icon 
                               name={tool.iconName} 
                               size={28} 
-                              className={`transition-all duration-300 ${
-                                hoveredTool === catIndex * 10 + toolIndex 
-                                  ? 'text-white scale-105' 
-                                  : 'text-white/90'
-                              }`}
+                              className="transition-all duration-300"
+                              style={{
+                                color: hoveredTool === catIndex * 10 + toolIndex 
+                                  ? '#f9a8d4' // Pink middle color from gradient
+                                  : 'rgba(255, 255, 255, 0.9)',
+                                filter: hoveredTool === catIndex * 10 + toolIndex
+                                  ? 'drop-shadow(0 0 8px #fde047) drop-shadow(0 0 4px #c084fc)' // Yellow and purple glow
+                                  : 'none',
+                                transform: hoveredTool === catIndex * 10 + toolIndex 
+                                  ? 'scale(1.05)' 
+                                  : 'scale(1)'
+                              }}
                             />
                           </div>
                         </div>
@@ -534,266 +912,270 @@ export default function AnimatedInfographic() {
 
           </div>
 
-          {/* STOP 3: Review Platforms (Right - Vertical) */}
+          {/* STOP 3: Review Form (Right) */}
           <div className="relative flex-shrink-0 flex items-center justify-center">
-            {/* Curved beam continuation - connects to straight beam */}
-            <div 
-              className="absolute z-2 h-3 overflow-hidden rounded-full"
-              style={{ 
-                left: '-18px',
-                top: 'calc(50% - 20px)',
-                width: '18px',
-                boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.3), 0 0 20px rgba(147, 51, 234, 0.3)'
-              }}
-            >
-              {/* Groove effect */}
-              <div className="absolute inset-0 bg-gradient-to-b from-gray-800/40 to-gray-900/60 rounded-full"></div>
-              {/* Light tube - matching straight beam gradient */}
-              <div className="absolute inset-x-1 inset-y-0.5 bg-gradient-to-r from-pink-500/60 via-purple-500/60 to-pink-500/60 rounded-full blur-sm"></div>
-              {/* Always active light */}
-              <div className="absolute inset-x-1 inset-y-0.5 bg-gradient-to-r from-pink-500 via-purple-500 to-pink-500 animate-pulse rounded-full"></div>
-            </div>
             
-            {/* Curved beam that forms a pill shape - hollow pill with beam ring */}
+            {/* T-connector where beam meets form - aligned with beam */}
             <div 
-              className="absolute z-2"
+              className="absolute z-20 pointer-events-none"
               style={{
-                borderRadius: '9999px',
-                width: '100px',
-                height: '430px',
-                background: 'transparent',
-                left: '-18px'  // Move left to connect with straight beam
+                left: '-10px',
+                top: 'calc(50% - 20px)', // Adjusted to align with actual beam position
+                width: '10px',
+                height: '12px',
+                background: showPlatformEffects 
+                  ? 'linear-gradient(to right, rgb(147, 51, 234), rgb(236, 72, 153))'
+                  : 'rgba(147, 51, 234, 0.6)',
+                boxShadow: showPlatformEffects 
+                  ? 'inset 0 2px 4px rgba(0,0,0,0.3), 0 0 15px rgba(147, 51, 234, 0.6)'
+                  : 'inset 0 2px 4px rgba(0,0,0,0.3), 0 0 10px rgba(147, 51, 234, 0.3)',
+                borderRadius: '2px',
+                transition: 'all 0.3s ease-out'
+              }}
+            />
+            
+            {/* Review Form Container - similar to prompt page */}
+            <div 
+              className="relative w-52 lg:w-64"
+              style={{
+                borderRadius: '24px',
+                padding: '6px'
               }}
             >
-              {/* Outer ring container - same structure as straight beam but in ring form */}
+              {/* Beam-style border - groove effect */}
               <div 
-                className="absolute overflow-hidden"
+                className="absolute inset-0 rounded-3xl pointer-events-none"
                 style={{
-                  inset: '0',
-                  borderRadius: '9999px',
-                  boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.3), 0 0 20px rgba(147, 51, 234, 0.3)'
+                  background: 'rgba(31, 41, 55, 0.4)',
+                  boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.3), 0 0 20px rgba(147, 51, 234, 0.3)',
+                  borderRadius: '24px'
+                }}
+              />
+              
+              {/* Beam-style border - light tube */}
+              <div 
+                className="absolute inset-[3px] pointer-events-none transition-all duration-300"
+                style={{
+                  background: showPlatformEffects
+                    ? 'linear-gradient(135deg, rgb(96, 165, 250), rgb(147, 51, 234), rgb(236, 72, 153))'
+                    : 'linear-gradient(135deg, rgba(96, 165, 250, 0.3), rgba(147, 51, 234, 0.3), rgba(236, 72, 153, 0.3))',
+                  filter: showPlatformEffects ? 'blur(0.5px)' : 'blur(0px)',
+                  opacity: showPlatformEffects ? 1 : 0.6,
+                  borderRadius: '21px'
+                }}
+              />
+              
+              {/* Glowing effect when active */}
+              {showPlatformEffects && (
+                <div 
+                  className="absolute inset-[-2px] pointer-events-none animate-pulse"
+                  style={{
+                    background: 'transparent',
+                    border: '3px solid rgba(147, 51, 234, 0.4)',
+                    filter: 'blur(4px)',
+                    borderRadius: '26px'
+                  }}
+                />
+              )}
+              
+              {/* Inner content container */}
+              <div 
+                className="relative p-4 lg:p-5"
+                style={{
+                  background: 'rgba(255, 255, 255, 0.06)',
+                  borderRadius: '18px',
+                  backdropFilter: 'blur(4.1px)',
+                  WebkitBackdropFilter: 'blur(4.1px)'
                 }}
               >
-                {/* Groove effect - creates the tube appearance */}
-                <div 
-                  className="absolute"
-                  style={{
-                    inset: '0',
-                    borderRadius: '9999px',
-                    background: 'rgb(31, 41, 55)',
-                    boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.5)'
-                  }}
-                >
-                  {/* Inner cutout to make it a ring */}
-                  <div 
-                    className="absolute"
-                    style={{
-                      inset: '6px',
-                      borderRadius: '9999px',
-                      background: 'transparent'
-                    }}
-                  />
+                {/* Form Title */}
+                <div className="text-center mb-4">
+                  <div className="h-1.5 bg-gray-400/30 rounded-full w-3/4 mx-auto" />
                 </div>
                 
-                {/* Light tube - the glowing gradient that forms the ring */}
+                {/* Star Rating Section */}
                 <div 
-                  className="absolute"
+                  className="mb-4 transition-all duration-700"
                   style={{
-                    inset: '1px',
-                    borderRadius: '9999px',
-                    background: 'linear-gradient(to bottom, rgba(236, 72, 153, 0.6), rgba(147, 51, 234, 0.6), rgba(236, 72, 153, 0.6))'
+                    opacity: reviewFormStep >= 3 ? 0 : 1,
+                    transform: reviewFormStep >= 3 ? 'scale(0.8)' : 'scale(1)',
+                    transitionDelay: reviewFormStep >= 3 ? '100ms' : '0ms'
                   }}
                 >
-                  {/* Inner cutout */}
-                  <div 
-                    className="absolute"
-                    style={{
-                      inset: '4px',
-                      borderRadius: '9999px',
-                      background: 'transparent'
-                    }}
-                  />
+                  <div className="flex justify-center gap-1">
+                    {[...Array(5)].map((_, i) => (
+                      <StarIcon 
+                        key={i} 
+                        className={`w-6 h-6 transition-all duration-300 ${
+                          reviewFormStep >= 1 && i <= 3
+                            ? 'text-yellow-400 fill-yellow-400 drop-shadow-[0_0_6px_rgba(250,204,21,0.6)]' 
+                            : 'text-gray-600/50 fill-gray-600/50'
+                        }`}
+                        style={{
+                          transitionDelay: reviewFormStep >= 1 ? `${4500 + (i * 200)}ms` : '0ms'  // Much later, after all content fills
+                        }}
+                      />
+                    ))}
+                  </div>
                 </div>
                 
-                {/* Blurred glow layer */}
+                {/* Comment Input Field - animates like typing */}
                 <div 
-                  className="absolute blur-sm"
+                  className="rounded-lg px-3 py-3 mb-4 relative transition-all duration-500"
                   style={{
-                    inset: '1px',
-                    borderRadius: '9999px',
-                    background: 'linear-gradient(to bottom, rgba(236, 72, 153, 0.6), rgba(147, 51, 234, 0.6), rgba(236, 72, 153, 0.6))'
+                    background: 'rgba(255, 255, 255, 0.08)',
+                    border: '1px solid rgba(255, 255, 255, 0.15)',
+                    minHeight: '60px',
+                    opacity: reviewFormStep >= 3 ? 0 : 1,
+                    transform: reviewFormStep >= 3 ? 'scale(0.8)' : 'scale(1)'
                   }}
                 >
-                  {/* Inner cutout */}
+                  {/* Paste indicator - centered */}
                   <div 
-                    className="absolute"
+                    className="absolute inset-0 flex items-center justify-center pointer-events-none"
                     style={{
-                      inset: '4px',
-                      borderRadius: '9999px',
-                      background: 'transparent'
+                      opacity: reviewFormStep >= 1 ? 1 : 0,
+                      transition: 'opacity 0.2s ease-out',
+                      transitionDelay: reviewFormStep >= 1 ? '500ms' : '0ms'  // Delayed paste appearance
                     }}
-                  />
+                  >
+                    <div 
+                      className="text-xs text-purple-300 font-medium bg-purple-500/20 px-3 py-1 rounded-full border border-purple-400/30"
+                      style={{
+                        opacity: reviewFormStep >= 1 ? 0 : 1,
+                        transition: 'opacity 0.3s ease-out',
+                        transitionDelay: reviewFormStep >= 1 ? '2000ms' : '0ms'  // Paste stays much longer
+                      }}
+                    >
+                      paste
+                    </div>
+                  </div>
+                  
+                  {/* Animated text lines - appear instantly after paste disappears */}
+                  <div className="space-y-1">
+                    <div 
+                      className="h-0.5 bg-gray-400/40 rounded-full transition-all duration-700"
+                      style={{
+                        width: reviewFormStep >= 1 ? '95%' : '0%',
+                        transitionDelay: reviewFormStep >= 1 ? '2800ms' : '0ms'  // Much later after paste
+                      }}
+                    />
+                    <div 
+                      className="h-0.5 bg-gray-400/40 rounded-full transition-all duration-700"
+                      style={{
+                        width: reviewFormStep >= 1 ? '88%' : '0%',
+                        transitionDelay: reviewFormStep >= 1 ? '3200ms' : '0ms'
+                      }}
+                    />
+                    <div 
+                      className="h-0.5 bg-gray-400/40 rounded-full transition-all duration-700"
+                      style={{
+                        width: reviewFormStep >= 1 ? '92%' : '0%',
+                        transitionDelay: reviewFormStep >= 1 ? '3600ms' : '0ms'
+                      }}
+                    />
+                    <div 
+                      className="h-0.5 bg-gray-400/40 rounded-full transition-all duration-700"
+                      style={{
+                        width: reviewFormStep >= 1 ? '70%' : '0%',
+                        transitionDelay: reviewFormStep >= 1 ? '4000ms' : '0ms'
+                      }}
+                    />
+                  </div>
                 </div>
                 
-                {/* Active pulsing light ring */}
+                {/* Submit Button */}
+                <div className="flex justify-center mb-4">
+                  <div 
+                    className="rounded-lg px-4 py-1.5 text-center transition-all duration-700 relative overflow-hidden"
+                    style={{
+                      background: reviewFormStep >= 2
+                        ? 'linear-gradient(135deg, rgba(139,92,246,0.8), rgba(167,139,250,0.8))'
+                        : 'linear-gradient(135deg, rgba(139,92,246,0.2), rgba(167,139,250,0.2))',
+                      border: reviewFormStep >= 2
+                        ? '1px solid rgba(139,92,246,0.6)'
+                        : '1px solid rgba(139,92,246,0.3)',
+                      boxShadow: reviewFormStep >= 2
+                        ? '0 0 35px rgba(139,92,246,0.9), inset 0 0 15px rgba(255,255,255,0.5)'
+                        : 'none',
+                      opacity: reviewFormStep >= 3 ? 0 : 1,
+                      transform: reviewFormStep >= 3 ? 'scale(0.8)' : reviewFormStep >= 2 ? 'scale(1.2)' : 'scale(1)'
+                    }}
+                  >
+                    {reviewFormStep >= 2 && (
+                      <>
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent animate-pulse" />
+                        <div className="absolute inset-0 animate-ping" 
+                          style={{
+                            background: 'radial-gradient(circle, rgba(139,92,246,0.4), transparent)',
+                            animationDuration: '1.5s'
+                          }}
+                        />
+                      </>
+                    )}
+                    <span 
+                      className="text-xs font-medium relative z-10 transition-colors duration-700"
+                      style={{
+                        color: reviewFormStep >= 2 ? 'rgba(255, 255, 255, 0.8)' : 'rgba(156, 163, 175, 0.5)'
+                      }}
+                    >
+                      Submit
+                    </span>
+                  </div>
+                </div>
+                
+                {/* Success Message */}
                 <div 
-                  className="absolute animate-pulse"
+                  className="absolute inset-x-4 top-1/3 -translate-y-1/2 transition-all duration-1000"
                   style={{
-                    inset: '1px',
-                    borderRadius: '9999px',
-                    background: 'linear-gradient(to bottom, rgba(236, 72, 153, 1), rgba(147, 51, 234, 1), rgba(236, 72, 153, 1))'
+                    opacity: reviewFormStep >= 3 ? 1 : 0,
+                    transform: reviewFormStep >= 3 ? 'translateY(-50%) scale(1)' : 'translateY(-50%) scale(0.8)',
+                    pointerEvents: 'none',
+                    transitionDelay: reviewFormStep >= 3 ? '500ms' : '0ms'  // More delay before success
                   }}
                 >
-                  {/* Inner cutout */}
-                  <div 
-                    className="absolute"
-                    style={{
-                      inset: '4px',
-                      borderRadius: '9999px',
-                      background: 'transparent'
-                    }}
-                  />
+                  <div className="bg-green-500/20 border border-green-400/40 rounded-lg px-4 py-3 text-center backdrop-blur-sm">
+                    <div className="text-green-400 text-sm font-semibold mb-1">✓ Success!</div>
+                    <div className="text-green-300/80 text-xs">Review Posted</div>
+                  </div>
                 </div>
                 
-                {/* Flowing light animation */}
+                {/* Platform List */}
                 <div 
-                  className="absolute"
+                  className="space-y-2 transition-all duration-500"
                   style={{
-                    top: '0',
-                    right: '45px',
-                    width: '40px',
-                    height: '10px',
-                    background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.9), rgba(147, 51, 234, 0.9), rgba(236, 72, 153, 0.8), transparent)',
-                    animation: 'flowAroundPill 6s linear infinite',
-                    filter: 'blur(2px)',
-                    borderRadius: '9999px',
-                    transform: 'rotate(90deg)'
+                    opacity: reviewFormStep >= 3 ? 0 : 1,
+                    transform: reviewFormStep >= 3 ? 'scale(0.8)' : 'scale(1)'
                   }}
-                />
-                
-                {/* Second flowing light with delay */}
-                <div 
-                  className="absolute"
-                  style={{
-                    top: '0',
-                    right: '45px',
-                    width: '40px',
-                    height: '10px',
-                    background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.7), rgba(147, 51, 234, 0.7), rgba(236, 72, 153, 0.6), transparent)',
-                    animation: 'flowAroundPill 6s linear infinite',
-                    animationDelay: '3s',
-                    filter: 'blur(2px)',
-                    borderRadius: '9999px',
-                    transform: 'rotate(90deg)'
-                  }}
-                />
+                >
+                  <div className="h-0.5 bg-gray-500/20 rounded-full w-full" />
+                  <div className="flex justify-center gap-3">
+                    {reviewPlatforms.slice(0, 4).map((platform, index) => (
+                      <div 
+                        key={platform.name}
+                        className="transition-all duration-300"
+                        style={{
+                          opacity: showPlatformEffects ? 1 : 0.5,
+                          transform: showPlatformEffects ? 'scale(1)' : 'scale(0.8)',
+                          transitionDelay: showPlatformEffects ? `${1600 + (index * 100)}ms` : '0ms'
+                        }}
+                      >
+                        <div className="w-4 h-4 rounded-full bg-gradient-to-br from-purple-500/30 to-pink-500/30" />
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
             
-            {/* Tall pill container for platforms - glass effect on top */}
-            <div 
-              className="absolute z-5"
-              style={{
-                background: 'rgba(255, 255, 255, 0.04)',
-                borderRadius: '9999px',
-                boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
-                backdropFilter: 'blur(4.1px)',
-                WebkitBackdropFilter: 'blur(4.1px)',
-                border: '1px solid rgba(255, 255, 255, 0.09)',
-                width: '90px',
-                height: '420px'
-              }}
-            />
-            <div className="relative flex flex-col justify-between z-10 px-2" style={{ height: '400px' }}>
-              {reviewPlatforms.map((platform, index) => (
-                <div
-                  key={platform.name}
-                  className="relative"
-                >
-                  {/* Platform icon */}
-                  <div className="flex flex-col items-center relative">
-                    {/* Gradient glow effect that appears before stars */}
-                    {activePlatforms.includes(index) && index < 4 && (
-                      <div 
-                        className="absolute inset-0 rounded-full pointer-events-none"
-                        style={{
-                          background: 'radial-gradient(circle, rgba(251, 191, 36, 0.6), rgba(251, 191, 36, 0.3), transparent)',
-                          animation: 'platformGlow 2.5s ease-out forwards',
-                          filter: 'blur(8px)',
-                          transform: 'scale(1.5)'
-                        }}
-                      />
-                    )}
-                    
-                    {/* Stars animation container - positioned to start from icon */}
-                    <div className="absolute -top-8 left-1/2 -translate-x-1/2 w-20 h-16 pointer-events-none">
-                      {activePlatforms.includes(index) && index < 4 && (
-                        <div 
-                          className="absolute left-1/2 -translate-x-1/2 flex gap-0.5 bottom-0"
-                          style={{
-                            animation: 'fadeInFloatUp 2.5s ease-out forwards',
-                            animationDelay: '0.3s'
-                          }}
-                        >
-                          {platformStars[index] === 5 ? (
-                            [...Array(5)].map((_, i) => (
-                              <StarIcon 
-                                key={i} 
-                                className="w-3 h-3 text-yellow-400"
-                              />
-                            ))
-                          ) : (
-                            <>
-                              {[...Array(4)].map((_, i) => (
-                                <StarIcon 
-                                  key={i} 
-                                  className="w-3 h-3 text-yellow-400"
-                                />
-                              ))}
-                              <div className="relative">
-                                <StarOutline className="w-3 h-3 text-yellow-400" />
-                                <StarIcon className="w-3 h-3 text-yellow-400 absolute top-0 left-0" style={{ clipPath: 'inset(0 50% 0 0)' }} />
-                              </div>
-                            </>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                    {/* Icon container */}
-                    <div className="p-2 relative z-10">
-                      <Icon 
-                        name={platform.iconName} 
-                        size={platform.name === 'And more!' ? 24 : 32} 
-                        className={`transition-all duration-500 ${
-                          activePlatforms.includes(index) && index < 4 
-                            ? 'text-yellow-300' 
-                            : 'text-white'
-                        }`}
-                        style={{
-                          animation: activePlatforms.includes(index) && index < 4 ? 'iconGlow 2.5s ease-out forwards' : ''
-                        }}
-                      />
-                    </div>
-                    <p className="text-white text-xs font-medium mt-1 relative z-10">{platform.name}</p>
-                  </div>
-                </div>
-              ))}
+            {/* Label below the form */}
+            <div className="absolute -bottom-20 left-1/2 -translate-x-1/2 text-center">
+              <h3 className="text-white/95 font-bold text-base lg:text-lg">Review platforms</h3>
+              <p className="text-gray-200/90 text-xs whitespace-nowrap">Google • Facebook • Yelp • More</p>
             </div>
           </div>
         </div>
 
-        {/* Bottom Journey Indicator */}
-        <div className="mt-8 lg:mt-12 text-center">
-          <div className="inline-flex items-center gap-3 lg:gap-4 backdrop-blur-md bg-white/10 rounded-full px-4 lg:px-6 py-2 lg:py-3 border border-white/20">
-            <span className="text-xs lg:text-sm text-gray-300">Create</span>
-            <span className="text-purple-400">→</span>
-            <span className="text-xs lg:text-sm text-gray-300">Customize</span>
-            <span className="text-yellow-400">→</span>
-            <span className="text-xs lg:text-sm text-gray-300">Copy</span>
-            <span className="text-green-400">→</span>
-            <span className="text-xs lg:text-sm text-gray-300">Post</span>
-          </div>
-        </div>
       </div>
     </div>
     </>
