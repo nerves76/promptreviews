@@ -20,10 +20,21 @@ export default function AnimatedInfographic() {
   const [showPlatformEffects, setShowPlatformEffects] = useState(false)
   const [promptPageStep, setPromptPageStep] = useState(0) // 0: idle, 1: left button, 2: fill fields, 3: right button
   const [reviewFormStep, setReviewFormStep] = useState(0) // 0: idle, 1: content filled, 2: button lit, 3: success
+  const [scale, setScale] = useState(1)
 
-  // Set mounted state to avoid hydration issues
+  // Set mounted state and handle responsive scaling
   useEffect(() => {
     setMounted(true)
+    
+    const handleResize = () => {
+      const width = window.innerWidth
+      // Keep everything full size - no scaling needed
+      setScale(1)
+    }
+    
+    handleResize()
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
   }, [])
 
   // Click outside to close popups
@@ -50,23 +61,25 @@ export default function AnimatedInfographic() {
         const next = (prev + 0.4) % 95 // Complete cycle every 23.75 seconds (95/0.4 = 237.5 frames at 100ms) - reduced pause
         
         // First beam: Customer to Prompt Page (20-50% of cycle)
-        if (next >= 20 && next < 29) {
-          // Beam traveling, no animations yet
+        // Beam travels from 20-30%, reaching end at 30%
+        // Light up when beam completes at 100% (at ~30%)
+        if (next >= 20 && next < 30) {
+          // Beam traveling
           setShowEffects(false)
           setPromptPageStep(0)
-        } else if (next >= 29 && next < 30) {
-          // Light arrives, initial light up - very brief
+        } else if (next >= 30 && next < 34) {
+          // Light up when beam completes - at 30%
           setShowEffects(true)
           setPromptPageStep(0)
-        } else if (next >= 30 && next < 34) {
+        } else if (next >= 34 && next < 38) {
           // Button 1 lights up
           setShowEffects(true)
           setPromptPageStep(1)
-        } else if (next >= 34 && next < 40) {
+        } else if (next >= 38 && next < 44) {
           // Fields fill in
           setShowEffects(true)
           setPromptPageStep(2)
-        } else if (next >= 40 && next < 50) {
+        } else if (next >= 44 && next < 50) {
           // Button 2 lights up and stays lit until second beam
           setShowEffects(true)
           setPromptPageStep(3)
@@ -77,24 +90,26 @@ export default function AnimatedInfographic() {
         }
         
         // Second beam: Prompt Page to Review Platforms (50-90% of cycle)
+        // Beam travels from 50-60%, reaching end at 60%
+        // Light up when beam completes at 100% (at ~60%)
         if (next >= 50 && next < 60) {
-          // Beam traveling, no animations yet
+          // Beam traveling
           setShowPlatformEffects(false)
           setReviewFormStep(0)
         } else if (next >= 60 && next < 90) {
-          // Keep platform lit for entire sequence
+          // Light up when beam completes - at 60%
           setShowPlatformEffects(true)
           
           // Determine which step based on timing
-          if (next < 60.5) {
-            setReviewFormStep(0)  // Initial light up - very brief
-          } else if (next < 64) {
-            setReviewFormStep(1)  // Paste animation - starts almost immediately
-          } else if (next < 68) {
+          if (next < 63) {
+            setReviewFormStep(0)  // Initial light up
+          } else if (next < 66) {
+            setReviewFormStep(1)  // Paste animation - with delay after light up
+          } else if (next < 70) {
             setReviewFormStep(2)  // Content fills
-          } else if (next < 72) {
+          } else if (next < 74) {
             setReviewFormStep(3)  // Stars fill
-          } else if (next < 76) {
+          } else if (next < 78) {
             setReviewFormStep(4)  // Submit button lights
           } else if (next < 85) {
             setReviewFormStep(5)  // Success message - lingers much longer
@@ -151,7 +166,8 @@ export default function AnimatedInfographic() {
         { 
           name: 'AI Generate', 
           iconName: 'prompty' as const,
-          description: 'Uses AI to help create authentic, personalized reviews based on customer input. Makes writing effortless.',
+          description: 'Armed with deep info on your business the AI Generate button can create a keyword enhanced review that customers can edit, copy, and post on any platform.',
+          highlight: 'Sparks curiosity',
           learnMore: 'https://promptreviews.app/ai-assistance',
           position: { top: '8%', left: '5%' } // Above beam - far left
         }
@@ -163,7 +179,8 @@ export default function AnimatedInfographic() {
         { 
           name: 'Friendly Note', 
           iconName: 'FaStickyNote' as const,
-          description: 'Add a personal message that creates a human connection. This warm touch makes customers feel valued and more willing to help.',
+          description: 'Create a personalized note popup for your customer to make them feel special before creating a review.',
+          highlight: 'Shows thoughtfulness',
           learnMore: null,
           position: { top: '3%', left: '22%' } // Above beam - left
         }
@@ -175,21 +192,24 @@ export default function AnimatedInfographic() {
         { 
           name: 'Recent Reviews', 
           iconName: 'FaCommentDots' as const,
-          description: 'Show examples of other customer reviews to inspire and guide. Social proof reduces friction and shows what to write about.',
+          description: 'Showcase recent reviews so customers can gain inspiration from what others have said.',
+          highlight: 'Powers social influence',
           learnMore: null,
           position: { top: '-2%', left: '50%', transform: 'translateX(-50%)' } // Above beam - center
         },
         { 
           name: 'Kickstarters', 
           iconName: 'FaLightbulb' as const,
-          description: 'Provide conversation prompts and questions to overcome writer\'s block. Makes it easy to know what aspects to review.',
+          description: 'Kickstarters are presented as a carousel of questions that can inspire reviews.',
+          highlight: 'Inspires creativity',
           learnMore: null,
           position: { top: '3%', right: '22%' } // Above beam - right
         },
         {
           name: 'Review Template',
           iconName: 'FaFeather' as const,
-          description: 'Pre-written templates that customers can customize. Simplifies the review process while maintaining authenticity.',
+          description: 'Write your own review template that your customers can use or modify before posting.',
+          highlight: 'Reduces friction',
           learnMore: null,
           position: { top: '8%', right: '5%' } // Above beam - far right
         }
@@ -201,14 +221,16 @@ export default function AnimatedInfographic() {
         { 
           name: 'Special Offer', 
           iconName: 'FaGift' as const,
-          description: 'Incentivize reviews by offering exclusive deals or discounts. Customers appreciate the value exchange and are more likely to share their experience.',
+          description: 'Offer a special discount or deal to your customer.',
+          highlight: 'Inspires reciprocity',
           learnMore: null,
           position: { bottom: '-8%', left: '12%' } // Below beam - left - moved down 50px
         },
         { 
           name: 'Grammar Fix', 
           iconName: 'FaCheck' as const,
-          description: 'Automatically corrects spelling and grammar errors. Helps customers feel confident their review looks professional.',
+          description: 'Your customers won\'t have to worry about typos or misspellings.',
+          highlight: 'Builds confidence',
           learnMore: 'https://promptreviews.app/ai-assistance',
           position: { bottom: '-13%', left: '32%' } // Below beam - center-left - moved down 50px
         }
@@ -220,14 +242,16 @@ export default function AnimatedInfographic() {
         { 
           name: 'Falling Stars', 
           iconName: 'FaStar' as const,
-          description: 'Celebratory animations when reviews are submitted. Creates a moment of joy and positive reinforcement.',
+          description: 'Choose a celebratory icon to rain down from the sky when someone visits your prompt page.',
+          highlight: 'Evokes delight',
           learnMore: null,
           position: { bottom: '-13%', right: '32%' } // Below beam - center-right - moved down 50px
         },
         { 
           name: 'Branded Design', 
           iconName: 'FaPalette' as const,
-          description: 'Match your brand colors and style for a cohesive experience. Builds trust through professional presentation.',
+          description: 'Design your Prompt Pages to match your brand look and feel.',
+          highlight: 'Establishes continuity',
           learnMore: null,
           position: { bottom: '-8%', right: '12%' } // Below beam - right - moved down 50px
         }
@@ -245,7 +269,7 @@ export default function AnimatedInfographic() {
 
   return (
     <>
-      <style jsx>{`
+      <style>{`
         @keyframes pulse {
         0%, 100% {
           transform: scale(1);
@@ -470,34 +494,39 @@ export default function AnimatedInfographic() {
           }
         }
       `}</style>
-      <div className="relative w-full max-w-7xl mx-auto p-4 lg:p-8 min-h-screen">
+      <div className="relative w-full min-h-screen">
+        {/* Content wrapper - uses available width */}
+        <div 
+          className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10"
+        >
         {/* Removed background - uses site's gradient */}
 
         {/* Main Container */}
         <div className="relative z-10">
         
         {/* Title */}
-        <div className="text-center" style={{ marginBottom: '-40px' }}>
+        <div className="text-center mt-12 md:mt-0" style={{ marginBottom: '-75px' }}>
           <h1 className="text-3xl lg:text-4xl font-bold mb-2">
             <span className="bg-gradient-to-r from-yellow-300 via-pink-300 to-purple-300 bg-clip-text text-transparent">
               The Prompt Page System
             </span>
           </h1>
-          <p className="text-gray-300 text-sm lg:text-base">Human-Powered Reviews with Smart Assistance</p>
+          <p className="text-gray-300 text-sm lg:text-base">Human-powered reviews with smart assistance</p>
         </div>
 
         {/* Main Layout - 3 Stop Journey */}
-        <div className="relative flex flex-col lg:flex-row items-center justify-between gap-8 lg:gap-12">
+        <div className="relative flex flex-col md:flex-row items-center justify-between gap-8 md:gap-6 lg:gap-12 pb-8 md:pb-64">
           
           {/* Two separate beams */}
           {mounted && (
             <>
-              {/* First Beam: Customer to Prompt Page socket */}
-              <div className="hidden lg:block absolute z-5 pointer-events-none overflow-hidden rounded-full" 
+              {/* First Beam: Customer to Prompt Page socket (horizontal on desktop) */}
+              <div className="hidden md:block absolute z-5 pointer-events-none overflow-hidden rounded-full" 
                 style={{ 
-                  left: '180px', // Moved 20px left to extend left side
-                  top: 'calc(50%)', // Moved down 20px
-                  width: 'calc(50% - 289px)', // Cut 15px from right (274 + 15 = 289)
+                  left: '15.5%',
+                  width: '24%',
+                  top: 'calc(50% - 128px)',  // Align beam with socket
+                  transform: 'translateY(0px)',
                   height: '12px', 
                   boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.3), 0 0 20px rgba(147, 51, 234, 0.3)' 
                 }}>
@@ -522,11 +551,12 @@ export default function AnimatedInfographic() {
               </div>
               
               {/* Second Beam: Prompt Page socket to Review Platforms socket */}
-              <div className="hidden lg:block absolute z-5 pointer-events-none overflow-hidden rounded-full" 
+              <div className="hidden md:block absolute z-5 pointer-events-none overflow-hidden rounded-full" 
                 style={{ 
-                  left: 'calc(50% + 129px)', // Moved 5px left (134 - 5 = 129)
-                  top: 'calc(50%)', // Moved down 20px
-                  width: 'calc(50% - 369px)', // Cut 6px from right (363 + 6 = 369)
+                  left: '57.5%',
+                  width: '21%',
+                  top: 'calc(50% - 128px)',  // Align beam with socket
+                  transform: 'translateY(0px)',
                   height: '12px', 
                   boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.3), 0 0 20px rgba(147, 51, 234, 0.3)' 
                 }}>
@@ -549,13 +579,14 @@ export default function AnimatedInfographic() {
                   />
                 )}
               </div>
+              
             </>
           )}
           
           
           {/* STOP 1: Customer (Left) - z-30 to be above beam */}
           <div className="relative flex-shrink-0 z-30" style={{ marginTop: '125px' }}>
-            <div className="relative">
+            <div className="relative md:mt-8">
               
               {/* Phone with notification - transparent and close to customer */}
               {mounted && (
@@ -652,7 +683,7 @@ export default function AnimatedInfographic() {
               </div>
               
               {/* Label with proper spacing below customer icon */}
-              <div className="text-center" style={{ marginTop: '50px' }}>
+              <div className="text-center mt-5 md:mt-20">
                 <h3 className="text-white/95 font-bold text-base lg:text-lg bg-gradient-to-r from-yellow-300 via-pink-300 to-purple-300 bg-clip-text text-transparent">
                   Customer
                 </h3>
@@ -663,8 +694,30 @@ export default function AnimatedInfographic() {
             </div>
           </div>
 
+          {/* Mobile Beam 1: Between Customer and Prompt Page */}
+          <div className="md:hidden relative w-3 h-16 mx-auto rounded-full overflow-hidden z-5" 
+            style={{ 
+              background: 'linear-gradient(to b, rgba(31, 41, 55, 0.5), rgba(31, 41, 55, 0.3))',
+              boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.3), 0 0 20px rgba(147, 51, 234, 0.3)'
+            }}>
+            <div className="absolute inset-0 bg-gradient-to-b from-gray-800/40 to-gray-900/60 rounded-full"></div>
+            <div className="absolute inset-x-0.5 inset-y-1 bg-gradient-to-b from-blue-400/60 via-purple-500/60 to-pink-500/60 rounded-full blur-sm"></div>
+            <div className="absolute inset-x-0.5 inset-y-1 bg-gradient-to-b from-blue-400 via-purple-500 to-pink-500 animate-pulse rounded-full opacity-30"></div>
+            {beamPosition >= 20 && beamPosition < 45 && (
+              <div 
+                className="absolute inset-x-0 h-8"
+                style={{
+                  background: 'linear-gradient(180deg, transparent, rgba(255,255,255,0.9), rgba(147, 51, 234, 0.9), rgba(236, 72, 153, 0.8), transparent)',
+                  transform: `translateY(${Math.min((beamPosition - 20) / 10 * 300, 300)}%)`,
+                  filter: 'blur(2px)',
+                  top: '-8px'
+                }}
+              />
+            )}
+          </div>
+
           {/* STOP 2: Prompt Page with Tools (Center) */}
-          <div className="relative flex-grow flex justify-center">
+          <div className="relative flex-grow flex justify-center -mt-32 md:mt-0">
             <div className="relative w-[500px] h-[500px] lg:w-[600px] lg:h-[600px]">
               
               {/* Central Prompt Page - looks like actual prompt page structure */}
@@ -680,9 +733,9 @@ export default function AnimatedInfographic() {
                   />
                   <div className="absolute inset-0 rounded-2xl blur-xl bg-gradient-to-br from-purple-400/20 to-pink-400/20" />
                   
-                  {/* Left socket for beam */}
+                  {/* Left socket for beam - hidden on mobile */}
                   <div 
-                    className="absolute z-25 pointer-events-none"
+                    className="hidden md:block absolute z-25 pointer-events-none"
                     style={{
                       left: '-10px',
                       top: 'calc(50% - 22px)', // Moved up 1px (from -21px to -22px)
@@ -699,9 +752,9 @@ export default function AnimatedInfographic() {
                     }}
                   />
                   
-                  {/* Right socket for beam */}
+                  {/* Right socket for beam - hidden on mobile */}
                   <div 
-                    className="absolute z-25 pointer-events-none"
+                    className="hidden md:block absolute z-25 pointer-events-none"
                     style={{
                       right: '-10px',
                       top: 'calc(50% - 22px)', // Moved up 1px (from -21px to -22px)
@@ -816,18 +869,18 @@ export default function AnimatedInfographic() {
                         
                         {/* Name inputs */}
                         <div className="flex gap-1.5 mb-2">
-                          <div className="flex-1 h-4 lg:h-5 rounded bg-gray-700/20 relative overflow-hidden">
+                          <div className="flex-1 h-4 lg:h-5 rounded bg-gray-700/20 relative overflow-hidden flex items-center px-1">
                             <div 
-                              className="absolute inset-0 bg-gray-400/30 transition-all duration-1000"
+                              className="h-0.5 bg-gray-300 rounded-full transition-all duration-1000"
                               style={{
                                 width: promptPageStep >= 2 ? '70%' : '0%',
                                 transitionDelay: promptPageStep >= 2 ? '300ms' : '0ms'
                               }}
                             />
                           </div>
-                          <div className="flex-1 h-4 lg:h-5 rounded bg-gray-700/20 relative overflow-hidden">
+                          <div className="flex-1 h-4 lg:h-5 rounded bg-gray-700/20 relative overflow-hidden flex items-center px-1">
                             <div 
-                              className="absolute inset-0 bg-gray-400/30 transition-all duration-1000"
+                              className="h-0.5 bg-gray-300 rounded-full transition-all duration-1000"
                               style={{
                                 width: promptPageStep >= 2 ? '80%' : '0%',
                                 transitionDelay: promptPageStep >= 2 ? '600ms' : '0ms'
@@ -840,21 +893,21 @@ export default function AnimatedInfographic() {
                         <div className="h-7 lg:h-8 rounded bg-gray-700/20 mb-2 relative overflow-hidden">
                           <div className="absolute inset-0 p-1">
                             <div 
-                              className="h-0.5 bg-gray-400/40 rounded-full mb-0.5 transition-all duration-700"
+                              className="h-0.5 bg-gray-300 rounded-full mb-0.5 transition-all duration-700"
                               style={{
                                 width: promptPageStep >= 2 ? '90%' : '0%',
                                 transitionDelay: promptPageStep >= 2 ? '600ms' : '0ms'
                               }}
                             />
                             <div 
-                              className="h-0.5 bg-gray-400/40 rounded-full mb-0.5 transition-all duration-700"
+                              className="h-0.5 bg-gray-300 rounded-full mb-0.5 transition-all duration-700"
                               style={{
                                 width: promptPageStep >= 2 ? '85%' : '0%',
                                 transitionDelay: promptPageStep >= 2 ? '700ms' : '0ms'
                               }}
                             />
                             <div 
-                              className="h-0.5 bg-gray-400/40 rounded-full transition-all duration-700"
+                              className="h-0.5 bg-gray-300 rounded-full transition-all duration-700"
                               style={{
                                 width: promptPageStep >= 2 ? '60%' : '0%',
                                 transitionDelay: promptPageStep >= 2 ? '800ms' : '0ms'
@@ -946,93 +999,121 @@ export default function AnimatedInfographic() {
                     </div>
                   </div>
                   
-                  {/* Label below the form */}
-                  <div className="absolute -bottom-20 left-1/2 -translate-x-1/2 text-center">
+                  {/* Label below the form - match customer spacing */}
+                  <div className="absolute -bottom-16 md:-bottom-20 left-1/2 -translate-x-1/2 text-center">
                     <h3 className="text-white/95 font-bold text-base lg:text-lg">Prompt Page</h3>
                     <p className="text-gray-200/90 text-xs whitespace-nowrap mt-1">Create • Copy • Post</p>
                   </div>
                 </div>
               </div>
 
-              {/* All Tools in Single Bottom Pill */}
-              <div 
-                className="absolute left-1/2 -translate-x-1/2 flex items-center gap-6 px-7 py-4 z-30"
-                style={{
-                  bottom: '-15%',
-                  background: 'rgba(255, 255, 255, 0.04)',
-                  borderRadius: '9999px',
-                  boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
-                  backdropFilter: 'blur(4.1px)',
-                  WebkitBackdropFilter: 'blur(4.1px)',
-                  border: '1px solid rgba(255, 255, 255, 0.09)',
-                  overflow: 'visible'
-                }}
-              >
-                {toolCategories.flatMap(category => category.tools).map((tool, toolIndex) => (
-                  <div
-                    key={toolIndex}
-                    className="relative flex flex-col items-center cursor-pointer tool-icon-container"
-                    onMouseEnter={() => setHoveredTool(toolIndex)}
-                    onMouseLeave={() => setHoveredTool(null)}
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      setClickedTool(clickedTool === toolIndex ? null : toolIndex)
-                    }}
-                  >
-                    {/* Icon */}
-                    <Icon 
-                      name={tool.iconName} 
-                      size={23} 
-                      className="transition-all duration-300"
-                      style={{
-                        color: '#fdb5a6',  // More peach/coral color
-                        filter: hoveredTool === toolIndex
-                          ? 'drop-shadow(0 0 3px rgba(253, 224, 71, 0.5)) drop-shadow(0 0 2px rgba(192, 132, 252, 0.5))'
-                          : 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3))',
-                        transform: hoveredTool === toolIndex ? 'scale(1.1)' : 'scale(1)'
+              
+              {/* Desktop Features - absolute positioned */}
+              <div className="hidden md:flex absolute left-1/2 -translate-x-1/2 z-30 flex-col items-center bottom-[-190px]">
+                {/* Features Container */}
+                <div 
+                  className="flex flex-nowrap items-center justify-center gap-3 lg:gap-6 px-5 lg:px-7 py-3 lg:py-4 rounded-full"
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.04)',
+                    boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
+                    backdropFilter: 'blur(4.1px)',
+                    WebkitBackdropFilter: 'blur(4.1px)',
+                    border: '1px solid rgba(255, 255, 255, 0.09)',
+                    overflow: 'visible'
+                  }}
+                >
+                  {toolCategories.flatMap(category => category.tools).map((tool, toolIndex) => (
+                    <div
+                      key={toolIndex}
+                      className="relative flex flex-col items-center cursor-pointer tool-icon-container"
+                      onMouseEnter={() => setHoveredTool(toolIndex)}
+                      onMouseLeave={() => setHoveredTool(null)}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setClickedTool(clickedTool === toolIndex ? null : toolIndex)
                       }}
-                    />
-                    
-                    {/* Tool label */}
-                    <p className="text-white text-[9px] font-medium mt-2 text-center whitespace-nowrap">
-                      {tool.name}
-                    </p>
-                    
-                    {/* Popup on click only */}
-                    {clickedTool === toolIndex && (
-                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-8 w-64 pointer-events-none" style={{
-                        zIndex: 99999
-                      }}>
-                        <div className="backdrop-blur-md bg-gray-900/95 rounded-lg border border-white/30 p-4 pointer-events-auto shadow-2xl">
-                          <p className="text-white font-semibold text-sm mb-1">{tool.name}</p>
-                          <p className="text-purple-400 text-xs mb-2">Human emotion: {toolCategories.find(cat => cat.tools.includes(tool))?.category}</p>
-                          <p className="text-gray-300 text-xs mb-2">{tool.description}</p>
-                          {tool.learnMore && (
-                            <a 
-                              href={tool.learnMore}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-blue-400 hover:text-blue-300 text-xs font-medium"
-                            >
-                              Learn More →
-                            </a>
-                          )}
+                    >
+                      {/* Icon */}
+                      <Icon 
+                        name={tool.iconName} 
+                        size={28} 
+                        className="transition-all duration-300"
+                        style={{
+                          color: '#fdb5a6',  // More peach/coral color
+                          filter: hoveredTool === toolIndex
+                            ? 'drop-shadow(0 0 3px rgba(253, 224, 71, 0.5)) drop-shadow(0 0 2px rgba(192, 132, 252, 0.5))'
+                            : 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3))',
+                          transform: hoveredTool === toolIndex ? 'scale(1.1)' : 'scale(1)'
+                        }}
+                      />
+                      
+                      {/* Tool label */}
+                      <p className="text-white text-[9px] font-medium mt-2 text-center whitespace-nowrap">
+                        {tool.name}
+                      </p>
+                      
+                      {/* Popup on click only - always centered */}
+                      {clickedTool === toolIndex && (
+                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-8 w-64 pointer-events-none z-[99999]">
+                          <div className="backdrop-blur-md bg-gray-900/95 rounded-lg border border-white/30 p-4 pointer-events-auto shadow-2xl">
+                            <p className="text-white font-semibold text-sm mb-1">{tool.name}</p>
+                            {tool.highlight && (
+                              <p className="text-purple-400 text-xs mb-2">{tool.highlight}</p>
+                            )}
+                            <p className="text-gray-300 text-xs mb-2">{tool.description}</p>
+                            {tool.learnMore && (
+                              <a 
+                                href={tool.learnMore}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-400 hover:text-blue-300 text-xs font-medium"
+                              >
+                                Learn More →
+                              </a>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    )}
-                  </div>
-                ))}
+                      )}
+                    </div>
+                  ))}
+                </div>
+                
+                {/* Features Header - below the icons on desktop */}
+                <h3 className="text-white/95 font-bold text-base lg:text-lg mt-6">Helpful features</h3>
+                <p className="text-gray-200/90 text-xs text-center mt-1">Help your customers write impactful reviews</p>
               </div>
             </div>
 
           </div>
 
+          {/* Mobile Beam 2: Between Prompt Page and Review Platforms */}
+          <div className="md:hidden relative w-3 h-16 mx-auto rounded-full overflow-hidden z-5 -mt-5" 
+            style={{ 
+              background: 'linear-gradient(to b, rgba(31, 41, 55, 0.5), rgba(31, 41, 55, 0.3))',
+              boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.3), 0 0 20px rgba(147, 51, 234, 0.3)'
+            }}>
+            <div className="absolute inset-0 bg-gradient-to-b from-gray-800/40 to-gray-900/60 rounded-full"></div>
+            <div className="absolute inset-x-0.5 inset-y-1 bg-gradient-to-b from-purple-500/60 via-purple-500/60 to-pink-500/60 rounded-full blur-sm"></div>
+            <div className="absolute inset-x-0.5 inset-y-1 bg-gradient-to-b from-purple-500 via-purple-500 to-pink-500 animate-pulse rounded-full opacity-30"></div>
+            {beamPosition >= 50 && beamPosition < 90 && (
+              <div 
+                className="absolute inset-x-0 h-8"
+                style={{
+                  background: 'linear-gradient(180deg, transparent, rgba(255,255,255,0.9), rgba(147, 51, 234, 0.9), rgba(236, 72, 153, 0.8), transparent)',
+                  transform: `translateY(${Math.min((beamPosition - 50) / 10 * 300, 300)}%)`,
+                  filter: 'blur(2px)',
+                  top: '-8px'
+                }}
+              />
+            )}
+          </div>
+
           {/* STOP 3: Review Form (Right) */}
-          <div className="relative flex-shrink-0 flex items-center justify-center">
+          <div className="relative flex-shrink-0 flex items-center justify-center -mt-4 md:mt-0">
             
-            {/* T-connector where beam meets form - aligned with beam */}
+            {/* T-connector where beam meets form - aligned with beam - hidden on mobile */}
             <div 
-              className="absolute z-20 pointer-events-none"
+              className="hidden md:block absolute z-20 pointer-events-none"
               style={{
                 left: '-10px',
                 top: 'calc(50% - 2px)', // Adjusted for taller socket
@@ -1104,11 +1185,6 @@ export default function AnimatedInfographic() {
                   WebkitBackdropFilter: 'blur(4.1px)'
                 }}
               >
-                {/* Form Title */}
-                <div className="text-center mb-4">
-                  <div className="h-1.5 bg-gray-400/30 rounded-full w-3/4 mx-auto" />
-                </div>
-                
                 {/* Star Rating Section */}
                 <div 
                   className="mb-4 transition-all duration-700"
@@ -1155,7 +1231,15 @@ export default function AnimatedInfographic() {
                       transition: 'opacity 0.3s ease-out'
                     }}
                   >
-                    <div className="text-xs text-purple-300 font-medium bg-purple-500/20 px-3 py-1 rounded-full border border-purple-400/30">
+                    <div 
+                      className="text-xs font-medium px-3 py-1 rounded-full"
+                      style={{
+                        background: 'linear-gradient(135deg, rgba(139,92,246,0.8), rgba(167,139,250,0.8))',
+                        color: 'rgba(255, 255, 255, 0.9)',
+                        border: '1px solid rgba(139,92,246,0.6)',
+                        boxShadow: '0 0 15px rgba(139,92,246,0.5), inset 0 0 5px rgba(255,255,255,0.2)'
+                      }}
+                    >
                       paste
                     </div>
                   </div>
@@ -1163,7 +1247,7 @@ export default function AnimatedInfographic() {
                   {/* Animated text lines - appear instantly after paste disappears */}
                   <div className="space-y-1">
                     <div 
-                      className="h-0.5 bg-gray-400/40 rounded-full"
+                      className="h-0.5 bg-gray-300 rounded-full"
                       style={{
                         width: reviewFormStep >= 2 ? '95%' : '0%',
                         transition: 'width 0.5s ease-out',
@@ -1171,7 +1255,7 @@ export default function AnimatedInfographic() {
                       }}
                     />
                     <div 
-                      className="h-0.5 bg-gray-400/40 rounded-full"
+                      className="h-0.5 bg-gray-300 rounded-full"
                       style={{
                         width: reviewFormStep >= 2 ? '88%' : '0%',
                         transition: 'width 0.5s ease-out',
@@ -1179,7 +1263,7 @@ export default function AnimatedInfographic() {
                       }}
                     />
                     <div 
-                      className="h-0.5 bg-gray-400/40 rounded-full"
+                      className="h-0.5 bg-gray-300 rounded-full"
                       style={{
                         width: reviewFormStep >= 2 ? '92%' : '0%',
                         transition: 'width 0.5s ease-out',
@@ -1187,7 +1271,7 @@ export default function AnimatedInfographic() {
                       }}
                     />
                     <div 
-                      className="h-0.5 bg-gray-400/40 rounded-full"
+                      className="h-0.5 bg-gray-300 rounded-full"
                       style={{
                         width: reviewFormStep >= 2 ? '70%' : '0%',
                         transition: 'width 0.5s ease-out',
@@ -1281,14 +1365,90 @@ export default function AnimatedInfographic() {
               </div>
             </div>
             
-            {/* Label below the form */}
-            <div className="absolute left-1/2 -translate-x-1/2 text-center" style={{ bottom: '-105px' }}>
+            {/* Label below the form - match customer spacing */}
+            <div className="absolute left-1/2 -translate-x-1/2 text-center -bottom-16 md:-bottom-[133px]">
               <h3 className="text-white/95 font-bold text-base lg:text-lg">Review platforms</h3>
-              <p className="text-gray-200/90 text-xs whitespace-nowrap mt-2">Google • Facebook • Yelp • More</p>
+              <p className="text-gray-200/90 text-xs whitespace-nowrap mt-1">Google • Facebook • Yelp • More</p>
             </div>
           </div>
         </div>
+        
+        {/* Mobile Features - positioned after all content */}
+        <div className="md:hidden mt-24 flex flex-col items-center z-30 relative">
+          {/* Centered Popup - appears above entire features container */}
+          {clickedTool !== null && (
+            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-8 w-64 pointer-events-none z-[99999]">
+              <div className="backdrop-blur-md bg-gray-900/95 rounded-lg border border-white/30 p-4 pointer-events-auto shadow-2xl">
+                <p className="text-white font-semibold text-sm mb-1">{toolCategories.flatMap(cat => cat.tools)[clickedTool].name}</p>
+                {toolCategories.flatMap(cat => cat.tools)[clickedTool].highlight && (
+                  <p className="text-purple-400 text-xs mb-2">{toolCategories.flatMap(cat => cat.tools)[clickedTool].highlight}</p>
+                )}
+                <p className="text-gray-300 text-xs mb-2">{toolCategories.flatMap(cat => cat.tools)[clickedTool].description}</p>
+                {toolCategories.flatMap(cat => cat.tools)[clickedTool].learnMore && (
+                  <a 
+                    href={toolCategories.flatMap(cat => cat.tools)[clickedTool].learnMore}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-400 hover:text-blue-300 text-xs font-medium"
+                  >
+                    Learn More →
+                  </a>
+                )}
+              </div>
+            </div>
+          )}
+          
+          {/* Features Container */}
+          <div 
+            className="grid grid-cols-3 gap-3 px-4 py-4 w-[280px] rounded-2xl"
+            style={{
+              background: 'rgba(255, 255, 255, 0.04)',
+              boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
+              backdropFilter: 'blur(4.1px)',
+              WebkitBackdropFilter: 'blur(4.1px)',
+              border: '1px solid rgba(255, 255, 255, 0.09)',
+              overflow: 'visible'
+            }}
+          >
+            {toolCategories.flatMap(category => category.tools).map((tool, toolIndex) => (
+              <div
+                key={toolIndex}
+                className="flex flex-col items-center cursor-pointer tool-icon-container"
+                onMouseEnter={() => setHoveredTool(toolIndex)}
+                onMouseLeave={() => setHoveredTool(null)}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setClickedTool(clickedTool === toolIndex ? null : toolIndex)
+                }}
+              >
+                {/* Icon */}
+                <Icon 
+                  name={tool.iconName} 
+                  size={25} 
+                  className="transition-all duration-300"
+                  style={{
+                    color: '#fdb5a6',  // More peach/coral color
+                    filter: hoveredTool === toolIndex
+                      ? 'drop-shadow(0 0 3px rgba(253, 224, 71, 0.5)) drop-shadow(0 0 2px rgba(192, 132, 252, 0.5))'
+                      : 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3))',
+                    transform: hoveredTool === toolIndex ? 'scale(1.1)' : 'scale(1)'
+                  }}
+                />
+                
+                {/* Tool label */}
+                <p className="text-white text-[9px] font-medium mt-2 text-center whitespace-nowrap">
+                  {tool.name}
+                </p>
+              </div>
+            ))}
+          </div>
+          
+          {/* Features Header - now below the icons */}
+          <h3 className="text-white/95 font-bold text-base lg:text-lg mt-6">Helpful features</h3>
+          <p className="text-gray-200/90 text-xs text-center mt-1">Help your customers write impactful reviews</p>
+        </div>
 
+      </div>
       </div>
     </div>
     </>

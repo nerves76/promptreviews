@@ -28,6 +28,19 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next();
   }
   
+  // Allow embedding for infographic embed page
+  if (req.nextUrl.pathname.startsWith('/infographic/embed')) {
+    const res = NextResponse.next();
+    // Remove X-Frame-Options to allow embedding in iframes
+    res.headers.delete('X-Frame-Options');
+    // Set permissive frame-ancestors for embedding
+    res.headers.set(
+      'Content-Security-Policy',
+      "frame-ancestors 'self' http://localhost:* https://localhost:* http://*.promptreviews.app https://*.promptreviews.app *;"
+    );
+    return res;
+  }
+  
   const res = NextResponse.next();
   
   // Handle /docs routes - proxy to the docs site
