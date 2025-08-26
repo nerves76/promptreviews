@@ -10,9 +10,10 @@ import { StarIcon as StarOutline } from '@heroicons/react/24/outline'
 
 export default function AnimatedInfographic() {
   const [hoveredTool, setHoveredTool] = useState<number | null>(null)
+  const [clickedTool, setClickedTool] = useState<number | null>(null)
   const [hoveredConnection, setHoveredConnection] = useState<string | null>(null)
   const [activePlatforms, setActivePlatforms] = useState<number[]>([])
-  const [platformStars, setPlatformStars] = useState<{[key: number]: number}>({})
+  const [platformStars, setPlatformStars] = useState<{[key: number]: number}>({})  
   const [mounted, setMounted] = useState(false)
   const [beamPosition, setBeamPosition] = useState(0) // 0-100 percentage
   const [showEffects, setShowEffects] = useState(false)
@@ -25,44 +26,84 @@ export default function AnimatedInfographic() {
     setMounted(true)
   }, [])
 
+  // Click outside to close popups
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement
+      if (!target.closest('.tool-icon-container')) {
+        setClickedTool(null)
+      }
+    }
+
+    if (clickedTool !== null) {
+      document.addEventListener('click', handleClickOutside)
+      return () => document.removeEventListener('click', handleClickOutside)
+    }
+  }, [clickedTool])
+
   // Single master timer for all animations - two separate beams
   useEffect(() => {
     if (!mounted) return
     
     const interval = setInterval(() => {
       setBeamPosition(prev => {
-        const next = (prev + 0.4) % 100 // Complete cycle every 25 seconds (100/0.4 = 250 frames at 100ms) - much slower
+        const next = (prev + 0.4) % 95 // Complete cycle every 23.75 seconds (95/0.4 = 237.5 frames at 100ms) - reduced pause
         
-        // First beam: Customer to Prompt Page - more time for each step
-        if (next >= 20 && next < 25) {
+        // First beam: Customer to Prompt Page (20-50% of cycle)
+        if (next >= 20 && next < 29) {
+          // Beam traveling, no animations yet
+          setShowEffects(false)
+          setPromptPageStep(0)
+        } else if (next >= 29 && next < 30) {
+          // Light arrives, initial light up - very brief
           setShowEffects(true)
-          setPromptPageStep(0) // Just the prompt page lights up
-        } else if (next >= 25 && next < 30) {
+          setPromptPageStep(0)
+        } else if (next >= 30 && next < 34) {
+          // Button 1 lights up
           setShowEffects(true)
-          setPromptPageStep(1) // Left button lights up after delay (5% = 800ms)
-        } else if (next >= 30 && next < 38) {
-          setPromptPageStep(2) // Fill fields (8% = 1.28s)
-        } else if (next >= 38 && next < 45) {
-          setPromptPageStep(3) // Right button lights up (7% = 1.12s)
-        } else if (next < 20 || next > 95) {
+          setPromptPageStep(1)
+        } else if (next >= 34 && next < 40) {
+          // Fields fill in
+          setShowEffects(true)
+          setPromptPageStep(2)
+        } else if (next >= 40 && next < 50) {
+          // Button 2 lights up and stays lit until second beam
+          setShowEffects(true)
+          setPromptPageStep(3)
+        } else if (next < 20 || next >= 50) {
+          // Turn off when second beam starts
           setShowEffects(false)
           setPromptPageStep(0)
         }
         
-        // Second beam: Prompt Page to Review Platforms - fixed timing
+        // Second beam: Prompt Page to Review Platforms (50-90% of cycle)
         if (next >= 50 && next < 60) {
-          setShowPlatformEffects(true)  // Beam travels for full 10% = 1.6s
-        } else if (next >= 60 && next < 65) {
-          setShowPlatformEffects(false)  // Beam effect ends
-          setReviewFormStep(1) // Start paste animation after beam arrives
-        } else if (next >= 65 && next < 72) {
-          setReviewFormStep(2) // Light up submit button
-        } else if (next >= 72 && next < 85) {
-          setReviewFormStep(3) // Show success
-        } else if (next < 50) {
+          // Beam traveling, no animations yet
           setShowPlatformEffects(false)
           setReviewFormStep(0)
-        } else if (next >= 85) {
+        } else if (next >= 60 && next < 90) {
+          // Keep platform lit for entire sequence
+          setShowPlatformEffects(true)
+          
+          // Determine which step based on timing
+          if (next < 60.5) {
+            setReviewFormStep(0)  // Initial light up - very brief
+          } else if (next < 64) {
+            setReviewFormStep(1)  // Paste animation - starts almost immediately
+          } else if (next < 68) {
+            setReviewFormStep(2)  // Content fills
+          } else if (next < 72) {
+            setReviewFormStep(3)  // Stars fill
+          } else if (next < 76) {
+            setReviewFormStep(4)  // Submit button lights
+          } else if (next < 85) {
+            setReviewFormStep(5)  // Success message - lingers much longer
+          } else {
+            setReviewFormStep(5)  // Keep success visible
+          }
+        } else if (next >= 90 || next < 20) {
+          // Turn off when outside the window
+          setShowPlatformEffects(false)
           setReviewFormStep(0)
         }
         
@@ -105,7 +146,7 @@ export default function AnimatedInfographic() {
   // Position icons: 5 above beam, 4 below beam - evenly spaced
   const toolCategories = [
     {
-      category: 'Reciprocity',
+      category: 'Curiosity',
       tools: [
         { 
           name: 'AI Generate', 
@@ -113,7 +154,12 @@ export default function AnimatedInfographic() {
           description: 'Uses AI to help create authentic, personalized reviews based on customer input. Makes writing effortless.',
           learnMore: 'https://promptreviews.app/ai-assistance',
           position: { top: '8%', left: '5%' } // Above beam - far left
-        },
+        }
+      ]
+    },
+    {
+      category: 'Reciprocity',
+      tools: [
         { 
           name: 'Friendly Note', 
           iconName: 'FaStickyNote' as const,
@@ -128,7 +174,7 @@ export default function AnimatedInfographic() {
       tools: [
         { 
           name: 'Recent Reviews', 
-          iconName: 'FaClock' as const,
+          iconName: 'FaCommentDots' as const,
           description: 'Show examples of other customer reviews to inspire and guide. Social proof reduces friction and shows what to write about.',
           learnMore: null,
           position: { top: '-2%', left: '50%', transform: 'translateX(-50%)' } // Above beam - center
@@ -200,7 +246,40 @@ export default function AnimatedInfographic() {
   return (
     <>
       <style jsx>{`
-        @keyframes floatUp {
+        @keyframes pulse {
+        0%, 100% {
+          transform: scale(1);
+          opacity: 1;
+        }
+        50% {
+          transform: scale(1.1);
+          opacity: 0.8;
+        }
+      }
+      
+      @keyframes phonePulse {
+        0%, 100% {
+          transform: scale(1);
+          filter: brightness(1);
+        }
+        50% {
+          transform: scale(1.05);
+          filter: brightness(1.3);
+        }
+      }
+      
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(-5px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      
+      @keyframes floatUp {
           0% {
             transform: translateX(-50%) translateY(0);
             opacity: 0;
@@ -392,19 +471,13 @@ export default function AnimatedInfographic() {
         }
       `}</style>
       <div className="relative w-full max-w-7xl mx-auto p-4 lg:p-8 min-h-screen">
-        {/* Background */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute inset-0 bg-gradient-to-br from-indigo-950 via-purple-900 to-pink-950" />
-          <div className="absolute inset-0 bg-gradient-to-tr from-blue-600/10 via-purple-600/10 to-pink-600/10" />
-          <div className="absolute top-20 left-20 w-72 h-72 bg-purple-500 rounded-full blur-3xl opacity-10 animate-pulse" />
-          <div className="absolute bottom-20 right-20 w-72 h-72 bg-blue-500 rounded-full blur-3xl opacity-10 animate-pulse" />
-        </div>
+        {/* Removed background - uses site's gradient */}
 
         {/* Main Container */}
         <div className="relative z-10">
         
         {/* Title */}
-        <div className="text-center mb-8">
+        <div className="text-center" style={{ marginBottom: '-40px' }}>
           <h1 className="text-3xl lg:text-4xl font-bold mb-2">
             <span className="bg-gradient-to-r from-yellow-300 via-pink-300 to-purple-300 bg-clip-text text-transparent">
               The Prompt Page System
@@ -423,8 +496,8 @@ export default function AnimatedInfographic() {
               <div className="hidden lg:block absolute z-5 pointer-events-none overflow-hidden rounded-full" 
                 style={{ 
                   left: '180px', // Moved 20px left to extend left side
-                  top: 'calc(50% - 20px)', 
-                  width: 'calc(50% - 280px)', // Extended 15px more on right
+                  top: 'calc(50%)', // Moved down 20px
+                  width: 'calc(50% - 289px)', // Cut 15px from right (274 + 15 = 289)
                   height: '12px', 
                   boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.3), 0 0 20px rgba(147, 51, 234, 0.3)' 
                 }}>
@@ -434,13 +507,13 @@ export default function AnimatedInfographic() {
                 <div className="absolute inset-x-1 inset-y-0.5 bg-gradient-to-r from-blue-400/60 via-purple-500/60 to-pink-500/60 rounded-full blur-sm"></div>
                 {/* Always active light */}
                 <div className="absolute inset-x-1 inset-y-0.5 bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 animate-pulse rounded-full opacity-30"></div>
-                {/* First beam pulse - only shows during first half of cycle */}
-                {beamPosition < 45 && (
+                {/* First beam pulse - shows during entire prompt page sequence */}
+                {beamPosition >= 20 && beamPosition < 45 && (
                   <div 
                     className="absolute inset-y-0 w-40"
                     style={{
                       background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.9), rgba(147, 51, 234, 0.9), rgba(236, 72, 153, 0.8), transparent)',
-                      transform: `translateX(${beamPosition * 20}%)`,
+                      transform: `translateX(${Math.min((beamPosition - 20) / 10 * 800, 800)}%)`,  // Travels in first 10% (20-30% of cycle) - even slower
                       filter: 'blur(2px)',
                       left: '-160px'
                     }}
@@ -451,9 +524,9 @@ export default function AnimatedInfographic() {
               {/* Second Beam: Prompt Page socket to Review Platforms socket */}
               <div className="hidden lg:block absolute z-5 pointer-events-none overflow-hidden rounded-full" 
                 style={{ 
-                  left: 'calc(50% + 134px)', // Keep same position
-                  top: 'calc(50% - 20px)', 
-                  width: 'calc(50% - 313px)', // Extended 15px more on right
+                  left: 'calc(50% + 129px)', // Moved 5px left (134 - 5 = 129)
+                  top: 'calc(50%)', // Moved down 20px
+                  width: 'calc(50% - 369px)', // Cut 6px from right (363 + 6 = 369)
                   height: '12px', 
                   boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.3), 0 0 20px rgba(147, 51, 234, 0.3)' 
                 }}>
@@ -463,13 +536,13 @@ export default function AnimatedInfographic() {
                 <div className="absolute inset-x-1 inset-y-0.5 bg-gradient-to-r from-purple-500/60 via-purple-500/60 to-pink-500/60 rounded-full blur-sm"></div>
                 {/* Always active light */}
                 <div className="absolute inset-x-1 inset-y-0.5 bg-gradient-to-r from-purple-500 via-purple-500 to-pink-500 animate-pulse rounded-full opacity-30"></div>
-                {/* Second beam pulse - only shows during second half of cycle */}
-                {beamPosition >= 50 && beamPosition < 80 && (
+                {/* Second beam pulse - shows during entire review platform sequence */}
+                {beamPosition >= 50 && beamPosition < 90 && (
                   <div 
                     className="absolute inset-y-0 w-40"
                     style={{
                       background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.9), rgba(147, 51, 234, 0.9), rgba(236, 72, 153, 0.8), transparent)',
-                      transform: `translateX(${Math.min((beamPosition - 50) * 10, 100)}%)`,  // Beam takes full 10% to reach destination (100/10 = 10)
+                      transform: `translateX(${Math.min((beamPosition - 50) / 10 * 800, 800)}%)`,  // Travels in first 10% (50-60% of cycle) - even slower
                       filter: 'blur(2px)',
                       left: '-160px'
                     }}
@@ -483,6 +556,70 @@ export default function AnimatedInfographic() {
           {/* STOP 1: Customer (Left) - z-30 to be above beam */}
           <div className="relative flex-shrink-0 z-30" style={{ marginTop: '125px' }}>
             <div className="relative">
+              
+              {/* Phone with notification - transparent and close to customer */}
+              {mounted && (
+                <div 
+                  className="absolute transition-opacity duration-500"
+                  style={{
+                    right: '50px',  // More to the left
+                    top: '10px',    // Higher up
+                    zIndex: 10,
+                    transform: 'rotate(-10deg)',
+                    opacity: beamPosition >= 10 && beamPosition < 20 ? 1 : 0.3  // More visible when active
+                  }}
+                >
+                  {/* Phone frame - lights up with gradient when message arrives */}
+                  <div 
+                    className="relative"
+                    style={{
+                      width: '28px',
+                      height: '48px',
+                      background: beamPosition >= 12 && beamPosition < 20 
+                        ? 'linear-gradient(135deg, #fde047, #f9a8d4, #c084fc)'  // Full gradient when active
+                        : 'rgba(253, 224, 71, 0.15)',  // Very transparent when inactive
+                      borderRadius: '4px',
+                      border: beamPosition >= 12 && beamPosition < 20
+                        ? '1px solid rgba(249, 168, 212, 0.8)'
+                        : '1px solid rgba(249, 168, 212, 0.2)',
+                      backdropFilter: 'blur(2px)',
+                      boxShadow: beamPosition >= 12 && beamPosition < 20
+                        ? '0 0 15px rgba(249, 168, 212, 0.5)'
+                        : 'none',
+                      animation: beamPosition >= 12 && beamPosition < 20
+                        ? 'phonePulse 1s ease-in-out 2'  // Pulse twice
+                        : 'none'
+                    }}
+                  >
+                    {/* Screen */}
+                    <div 
+                      style={{
+                        position: 'absolute',
+                        inset: '2px',
+                        background: 'rgba(0, 0, 0, 0.2)',
+                        borderRadius: '2px'
+                      }}
+                    />
+                    
+                    {/* SMS text bubble shape at bottom of screen */}
+                    {beamPosition >= 14 && beamPosition < 20 && (
+                      <div 
+                        className="absolute"
+                        style={{
+                          bottom: '4px',  // At bottom like real SMS
+                          left: '3px',
+                          right: '3px',
+                          height: '8px',
+                          background: 'rgba(249, 168, 212, 0.8)',  // Peach/pink color from gradient
+                          borderRadius: '5px 5px 5px 2px',  // SMS bubble shape
+                          animation: 'fadeIn 0.3s ease-out',
+                          boxShadow: '0 1px 2px rgba(0,0,0,0.1)'
+                        }}
+                      />
+                    )}
+                  </div>
+                </div>
+              )}
               {/* Larger customer icon with gradient effect */}
               <div className="relative">
                 {/* Subtle glow behind icon */}
@@ -548,12 +685,12 @@ export default function AnimatedInfographic() {
                     className="absolute z-25 pointer-events-none"
                     style={{
                       left: '-10px',
-                      top: 'calc(50% - 41px)',
+                      top: 'calc(50% - 22px)', // Moved up 1px (from -21px to -22px)
                       width: '10px',
-                      height: '12px',
+                      height: '16px', // Made 4px taller (from 12px to 16px)
                       background: showEffects 
                         ? 'linear-gradient(to right, rgb(147, 51, 234), rgb(236, 72, 153))'
-                        : 'rgba(147, 51, 234, 0.6)',
+                        : 'rgb(107, 33, 168)',
                       boxShadow: showEffects 
                         ? 'inset 0 2px 4px rgba(0,0,0,0.3), 0 0 15px rgba(147, 51, 234, 0.6)'
                         : 'inset 0 2px 4px rgba(0,0,0,0.3), 0 0 10px rgba(147, 51, 234, 0.3)',
@@ -567,12 +704,12 @@ export default function AnimatedInfographic() {
                     className="absolute z-25 pointer-events-none"
                     style={{
                       right: '-10px',
-                      top: 'calc(50% - 41px)',
+                      top: 'calc(50% - 22px)', // Moved up 1px (from -21px to -22px)
                       width: '10px',
-                      height: '12px',
+                      height: '16px', // Made 4px taller (from 12px to 16px)
                       background: showEffects 
                         ? 'linear-gradient(to left, rgb(236, 72, 153), rgb(147, 51, 234))'
-                        : 'rgba(236, 72, 153, 0.6)',
+                        : 'rgb(107, 33, 168)',  // Same purple as left socket
                       boxShadow: showEffects 
                         ? 'inset 0 2px 4px rgba(0,0,0,0.3), 0 0 15px rgba(236, 72, 153, 0.6)'
                         : 'inset 0 2px 4px rgba(0,0,0,0.3), 0 0 10px rgba(236, 72, 153, 0.3)',
@@ -589,26 +726,26 @@ export default function AnimatedInfographic() {
                       padding: '6px'
                     }}
                   >
-                    {/* Beam-style border - groove effect */}
+                    {/* Beam-style border - groove effect (thinner) */}
                     <div 
                       className="absolute inset-0 rounded-3xl pointer-events-none"
                       style={{
-                        background: 'rgba(31, 41, 55, 0.4)',
-                        boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.3), 0 0 20px rgba(147, 51, 234, 0.3)',
+                        background: 'rgba(31, 41, 55, 0.3)',
+                        boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.2), 0 0 15px rgba(147, 51, 234, 0.2)',
                         borderRadius: '24px'
                       }}
                     />
                     
-                    {/* Beam-style border - light tube */}
+                    {/* Beam-style border - light tube (thinner) */}
                     <div 
-                      className="absolute inset-[3px] pointer-events-none transition-all duration-300"
+                      className="absolute inset-[2px] pointer-events-none transition-all duration-300"
                       style={{
                         background: showEffects
                           ? 'linear-gradient(135deg, rgb(96, 165, 250), rgb(147, 51, 234), rgb(236, 72, 153))'
                           : 'linear-gradient(135deg, rgba(96, 165, 250, 0.3), rgba(147, 51, 234, 0.3), rgba(236, 72, 153, 0.3))',
-                        filter: showEffects ? 'blur(0.5px)' : 'blur(0px)',
-                        opacity: showEffects ? 1 : 0.6,
-                        borderRadius: '21px'
+                        filter: showEffects ? 'blur(0.3px)' : 'blur(0px)',
+                        opacity: showEffects ? 1 : 0.5,
+                        borderRadius: '22px'
                       }}
                     />
                     
@@ -731,22 +868,24 @@ export default function AnimatedInfographic() {
                           <div 
                             className="h-5 lg:h-6 rounded-lg flex-1 transition-all duration-700 relative overflow-hidden flex items-center justify-center"
                             style={{
-                              background: promptPageStep >= 1 
+                              background: promptPageStep === 1 
                                 ? 'linear-gradient(135deg, rgba(147,51,234,0.8), rgba(236,72,153,0.8))'
+                                : promptPageStep >= 2
+                                ? 'rgba(147,51,234,0.15)'  // Goes dark after clicking
                                 : 'rgba(147,51,234,0.2)',
-                              boxShadow: promptPageStep >= 1
+                              boxShadow: promptPageStep === 1
                                 ? '0 0 20px rgba(147,51,234,0.7), inset 0 0 10px rgba(255,255,255,0.3)'
                                 : 'none',
-                              transform: promptPageStep >= 1 ? 'scale(1.05)' : 'scale(1)'
+                              transform: promptPageStep === 1 ? 'scale(1.05)' : 'scale(1)'
                             }}
                           >
-                            {promptPageStep >= 1 && (
+                            {promptPageStep === 1 && (
                               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-pulse" />
                             )}
                             <span 
                               className="text-[9px] lg:text-[10px] font-medium relative z-10 transition-colors duration-700"
                               style={{
-                                color: promptPageStep >= 1 ? 'rgba(255, 255, 255, 0.9)' : 'rgba(156, 163, 175, 0.5)'
+                                color: promptPageStep === 1 ? 'rgba(255, 255, 255, 0.9)' : 'rgba(156, 163, 175, 0.5)'
                               }}
                             >
                               Generate
@@ -810,104 +949,80 @@ export default function AnimatedInfographic() {
                   {/* Label below the form */}
                   <div className="absolute -bottom-20 left-1/2 -translate-x-1/2 text-center">
                     <h3 className="text-white/95 font-bold text-base lg:text-lg">Prompt Page</h3>
-                    <p className="text-gray-200/90 text-xs">Create • Customize • Share</p>
+                    <p className="text-gray-200/90 text-xs whitespace-nowrap mt-1">Create • Copy • Post</p>
                   </div>
                 </div>
               </div>
 
-              {/* Static Tools - Positioned individually around center */}
-              {toolCategories.map((category, catIndex) => (
-                <React.Fragment key={category.category}>
-                  {category.tools.map((tool, toolIndex) => (
-                    <div
-                      key={`${catIndex}-${toolIndex}`}
-                      className="absolute"
+              {/* All Tools in Single Bottom Pill */}
+              <div 
+                className="absolute left-1/2 -translate-x-1/2 flex items-center gap-6 px-7 py-4 z-30"
+                style={{
+                  bottom: '-15%',
+                  background: 'rgba(255, 255, 255, 0.04)',
+                  borderRadius: '9999px',
+                  boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
+                  backdropFilter: 'blur(4.1px)',
+                  WebkitBackdropFilter: 'blur(4.1px)',
+                  border: '1px solid rgba(255, 255, 255, 0.09)',
+                  overflow: 'visible'
+                }}
+              >
+                {toolCategories.flatMap(category => category.tools).map((tool, toolIndex) => (
+                  <div
+                    key={toolIndex}
+                    className="relative flex flex-col items-center cursor-pointer tool-icon-container"
+                    onMouseEnter={() => setHoveredTool(toolIndex)}
+                    onMouseLeave={() => setHoveredTool(null)}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setClickedTool(clickedTool === toolIndex ? null : toolIndex)
+                    }}
+                  >
+                    {/* Icon */}
+                    <Icon 
+                      name={tool.iconName} 
+                      size={23} 
+                      className="transition-all duration-300"
                       style={{
-                        ...tool.position
+                        color: '#fdb5a6',  // More peach/coral color
+                        filter: hoveredTool === toolIndex
+                          ? 'drop-shadow(0 0 3px rgba(253, 224, 71, 0.5)) drop-shadow(0 0 2px rgba(192, 132, 252, 0.5))'
+                          : 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3))',
+                        transform: hoveredTool === toolIndex ? 'scale(1.1)' : 'scale(1)'
                       }}
-                      onMouseEnter={() => setHoveredTool(catIndex * 10 + toolIndex)}
-                      onMouseLeave={() => setHoveredTool(null)}
-                    >
-                      <div className="flex flex-col items-center">
-                        {/* Glass effect container - using css.glass effect */}
-                        <div className="relative group">
-                          {/* Ambient glow on hover */}
-                          <div className={`absolute -inset-1 rounded-full transition-all duration-500 ${
-                            hoveredTool === catIndex * 10 + toolIndex 
-                              ? 'bg-gradient-to-r from-purple-400/20 via-pink-400/20 to-purple-400/20 blur-xl opacity-100' 
-                              : 'opacity-0'
-                          }`} />
-                          
-                          {/* Main glass icon - css.glass effect */}
-                          <div 
-                            className={`
-                              relative w-14 h-14 lg:w-16 lg:h-16 
-                              flex items-center justify-center 
-                              transition-all duration-300
-                              ${hoveredTool === catIndex * 10 + toolIndex 
-                                ? 'scale-110' 
-                                : ''
-                              }
-                            `}
-                            style={{
-                              background: 'rgba(255, 255, 255, 0.04)',
-                              borderRadius: '50%',
-                              boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
-                              backdropFilter: 'blur(4.1px)',
-                              WebkitBackdropFilter: 'blur(4.1px)',
-                              border: '1px solid rgba(255, 255, 255, 0.09)'
-                            }}
-                          >
-                            {/* Icon */}
-                            <Icon 
-                              name={tool.iconName} 
-                              size={28} 
-                              className="transition-all duration-300"
-                              style={{
-                                color: hoveredTool === catIndex * 10 + toolIndex 
-                                  ? '#f9a8d4' // Pink middle color from gradient
-                                  : 'rgba(255, 255, 255, 0.9)',
-                                filter: hoveredTool === catIndex * 10 + toolIndex
-                                  ? 'drop-shadow(0 0 8px #fde047) drop-shadow(0 0 4px #c084fc)' // Yellow and purple glow
-                                  : 'none',
-                                transform: hoveredTool === catIndex * 10 + toolIndex 
-                                  ? 'scale(1.05)' 
-                                  : 'scale(1)'
-                              }}
-                            />
-                          </div>
+                    />
+                    
+                    {/* Tool label */}
+                    <p className="text-white text-[9px] font-medium mt-2 text-center whitespace-nowrap">
+                      {tool.name}
+                    </p>
+                    
+                    {/* Popup on click only */}
+                    {clickedTool === toolIndex && (
+                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-8 w-64 pointer-events-none" style={{
+                        zIndex: 99999
+                      }}>
+                        <div className="backdrop-blur-md bg-gray-900/95 rounded-lg border border-white/30 p-4 pointer-events-auto shadow-2xl">
+                          <p className="text-white font-semibold text-sm mb-1">{tool.name}</p>
+                          <p className="text-purple-400 text-xs mb-2">Human emotion: {toolCategories.find(cat => cat.tools.includes(tool))?.category}</p>
+                          <p className="text-gray-300 text-xs mb-2">{tool.description}</p>
+                          {tool.learnMore && (
+                            <a 
+                              href={tool.learnMore}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-400 hover:text-blue-300 text-xs font-medium"
+                            >
+                              Learn More →
+                            </a>
+                          )}
                         </div>
-                        
-                        {/* Tool label only */}
-                        <p className="text-white text-[10px] font-medium mt-1 text-center">
-                          {tool.name}
-                        </p>
-                        
-                        {/* Popup on hover */}
-                        {hoveredTool === catIndex * 10 + toolIndex && (
-                          <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 z-[100] w-64">
-                            <div className="backdrop-blur-md bg-gray-900/90 rounded-lg border border-white/20 p-4">
-                              <p className="text-white font-semibold text-sm mb-1">{tool.name}</p>
-                              <p className="text-purple-400 text-xs mb-2">Human emotion: {category.category}</p>
-                              <p className="text-gray-300 text-xs mb-2">{tool.description}</p>
-                              {tool.learnMore && (
-                                <a 
-                                  href={tool.learnMore}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-blue-400 hover:text-blue-300 text-xs font-medium"
-                                >
-                                  Learn More →
-                                </a>
-                              )}
-                            </div>
-                          </div>
-                        )}
                       </div>
-                    </div>
-                  ))}
-                </React.Fragment>
-              ))}
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
 
           </div>
@@ -920,12 +1035,12 @@ export default function AnimatedInfographic() {
               className="absolute z-20 pointer-events-none"
               style={{
                 left: '-10px',
-                top: 'calc(50% - 20px)', // Adjusted to align with actual beam position
+                top: 'calc(50% - 2px)', // Adjusted for taller socket
                 width: '10px',
-                height: '12px',
+                height: '16px', // Made 4px taller (from 12px to 16px)
                 background: showPlatformEffects 
                   ? 'linear-gradient(to right, rgb(147, 51, 234), rgb(236, 72, 153))'
-                  : 'rgba(147, 51, 234, 0.6)',
+                  : 'rgb(107, 33, 168)',
                 boxShadow: showPlatformEffects 
                   ? 'inset 0 2px 4px rgba(0,0,0,0.3), 0 0 15px rgba(147, 51, 234, 0.6)'
                   : 'inset 0 2px 4px rgba(0,0,0,0.3), 0 0 10px rgba(147, 51, 234, 0.3)',
@@ -939,29 +1054,30 @@ export default function AnimatedInfographic() {
               className="relative w-52 lg:w-64"
               style={{
                 borderRadius: '24px',
-                padding: '6px'
+                padding: '6px',
+                marginTop: '12px'  // Move box down 12px
               }}
             >
-              {/* Beam-style border - groove effect */}
+              {/* Beam-style border - groove effect (thinner) */}
               <div 
                 className="absolute inset-0 rounded-3xl pointer-events-none"
                 style={{
-                  background: 'rgba(31, 41, 55, 0.4)',
-                  boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.3), 0 0 20px rgba(147, 51, 234, 0.3)',
+                  background: 'rgba(31, 41, 55, 0.3)',
+                  boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.2), 0 0 15px rgba(147, 51, 234, 0.2)',
                   borderRadius: '24px'
                 }}
               />
               
-              {/* Beam-style border - light tube */}
+              {/* Beam-style border - light tube (thinner) */}
               <div 
-                className="absolute inset-[3px] pointer-events-none transition-all duration-300"
+                className="absolute inset-[2px] pointer-events-none transition-all duration-300"
                 style={{
                   background: showPlatformEffects
                     ? 'linear-gradient(135deg, rgb(96, 165, 250), rgb(147, 51, 234), rgb(236, 72, 153))'
                     : 'linear-gradient(135deg, rgba(96, 165, 250, 0.3), rgba(147, 51, 234, 0.3), rgba(236, 72, 153, 0.3))',
-                  filter: showPlatformEffects ? 'blur(0.5px)' : 'blur(0px)',
-                  opacity: showPlatformEffects ? 1 : 0.6,
-                  borderRadius: '21px'
+                  filter: showPlatformEffects ? 'blur(0.3px)' : 'blur(0px)',
+                  opacity: showPlatformEffects ? 1 : 0.5,
+                  borderRadius: '22px'
                 }}
               />
               
@@ -997,22 +1113,23 @@ export default function AnimatedInfographic() {
                 <div 
                   className="mb-4 transition-all duration-700"
                   style={{
-                    opacity: reviewFormStep >= 3 ? 0 : 1,
-                    transform: reviewFormStep >= 3 ? 'scale(0.8)' : 'scale(1)',
-                    transitionDelay: reviewFormStep >= 3 ? '100ms' : '0ms'
+                    opacity: reviewFormStep >= 5 ? 0 : 1,
+                    transform: reviewFormStep >= 5 ? 'scale(0.8)' : 'scale(1)',
+                    transitionDelay: reviewFormStep >= 5 ? '100ms' : '0ms'
                   }}
                 >
                   <div className="flex justify-center gap-1">
                     {[...Array(5)].map((_, i) => (
                       <StarIcon 
                         key={i} 
-                        className={`w-6 h-6 transition-all duration-300 ${
-                          reviewFormStep >= 1 && i <= 3
+                        className={`w-6 h-6 ${
+                          reviewFormStep >= 3 && i <= 4
                             ? 'text-yellow-400 fill-yellow-400 drop-shadow-[0_0_6px_rgba(250,204,21,0.6)]' 
                             : 'text-gray-600/50 fill-gray-600/50'
                         }`}
                         style={{
-                          transitionDelay: reviewFormStep >= 1 ? `${4500 + (i * 200)}ms` : '0ms'  // Much later, after all content fills
+                          transition: 'all 0.3s ease-out',
+                          transitionDelay: reviewFormStep >= 3 ? `${(i * 0.15)}s` : '0s'
                         }}
                       />
                     ))}
@@ -1026,27 +1143,19 @@ export default function AnimatedInfographic() {
                     background: 'rgba(255, 255, 255, 0.08)',
                     border: '1px solid rgba(255, 255, 255, 0.15)',
                     minHeight: '60px',
-                    opacity: reviewFormStep >= 3 ? 0 : 1,
-                    transform: reviewFormStep >= 3 ? 'scale(0.8)' : 'scale(1)'
+                    opacity: reviewFormStep >= 5 ? 0 : 1,
+                    transform: reviewFormStep >= 5 ? 'scale(0.8)' : 'scale(1)'
                   }}
                 >
                   {/* Paste indicator - centered */}
                   <div 
                     className="absolute inset-0 flex items-center justify-center pointer-events-none"
                     style={{
-                      opacity: reviewFormStep >= 1 ? 1 : 0,
-                      transition: 'opacity 0.2s ease-out',
-                      transitionDelay: reviewFormStep >= 1 ? '500ms' : '0ms'  // Delayed paste appearance
+                      opacity: reviewFormStep === 1 ? 1 : 0,
+                      transition: 'opacity 0.3s ease-out'
                     }}
                   >
-                    <div 
-                      className="text-xs text-purple-300 font-medium bg-purple-500/20 px-3 py-1 rounded-full border border-purple-400/30"
-                      style={{
-                        opacity: reviewFormStep >= 1 ? 0 : 1,
-                        transition: 'opacity 0.3s ease-out',
-                        transitionDelay: reviewFormStep >= 1 ? '2000ms' : '0ms'  // Paste stays much longer
-                      }}
-                    >
+                    <div className="text-xs text-purple-300 font-medium bg-purple-500/20 px-3 py-1 rounded-full border border-purple-400/30">
                       paste
                     </div>
                   </div>
@@ -1054,31 +1163,35 @@ export default function AnimatedInfographic() {
                   {/* Animated text lines - appear instantly after paste disappears */}
                   <div className="space-y-1">
                     <div 
-                      className="h-0.5 bg-gray-400/40 rounded-full transition-all duration-700"
+                      className="h-0.5 bg-gray-400/40 rounded-full"
                       style={{
-                        width: reviewFormStep >= 1 ? '95%' : '0%',
-                        transitionDelay: reviewFormStep >= 1 ? '2800ms' : '0ms'  // Much later after paste
+                        width: reviewFormStep >= 2 ? '95%' : '0%',
+                        transition: 'width 0.5s ease-out',
+                        transitionDelay: '0.1s'
                       }}
                     />
                     <div 
-                      className="h-0.5 bg-gray-400/40 rounded-full transition-all duration-700"
+                      className="h-0.5 bg-gray-400/40 rounded-full"
                       style={{
-                        width: reviewFormStep >= 1 ? '88%' : '0%',
-                        transitionDelay: reviewFormStep >= 1 ? '3200ms' : '0ms'
+                        width: reviewFormStep >= 2 ? '88%' : '0%',
+                        transition: 'width 0.5s ease-out',
+                        transitionDelay: '0.3s'
                       }}
                     />
                     <div 
-                      className="h-0.5 bg-gray-400/40 rounded-full transition-all duration-700"
+                      className="h-0.5 bg-gray-400/40 rounded-full"
                       style={{
-                        width: reviewFormStep >= 1 ? '92%' : '0%',
-                        transitionDelay: reviewFormStep >= 1 ? '3600ms' : '0ms'
+                        width: reviewFormStep >= 2 ? '92%' : '0%',
+                        transition: 'width 0.5s ease-out',
+                        transitionDelay: '0.5s'
                       }}
                     />
                     <div 
-                      className="h-0.5 bg-gray-400/40 rounded-full transition-all duration-700"
+                      className="h-0.5 bg-gray-400/40 rounded-full"
                       style={{
-                        width: reviewFormStep >= 1 ? '70%' : '0%',
-                        transitionDelay: reviewFormStep >= 1 ? '4000ms' : '0ms'
+                        width: reviewFormStep >= 2 ? '70%' : '0%',
+                        transition: 'width 0.5s ease-out',
+                        transitionDelay: '0.7s'
                       }}
                     />
                   </div>
@@ -1089,20 +1202,20 @@ export default function AnimatedInfographic() {
                   <div 
                     className="rounded-lg px-4 py-1.5 text-center transition-all duration-700 relative overflow-hidden"
                     style={{
-                      background: reviewFormStep >= 2
+                      background: reviewFormStep >= 4
                         ? 'linear-gradient(135deg, rgba(139,92,246,0.8), rgba(167,139,250,0.8))'
                         : 'linear-gradient(135deg, rgba(139,92,246,0.2), rgba(167,139,250,0.2))',
-                      border: reviewFormStep >= 2
+                      border: reviewFormStep >= 4
                         ? '1px solid rgba(139,92,246,0.6)'
                         : '1px solid rgba(139,92,246,0.3)',
-                      boxShadow: reviewFormStep >= 2
+                      boxShadow: reviewFormStep >= 4
                         ? '0 0 35px rgba(139,92,246,0.9), inset 0 0 15px rgba(255,255,255,0.5)'
                         : 'none',
-                      opacity: reviewFormStep >= 3 ? 0 : 1,
-                      transform: reviewFormStep >= 3 ? 'scale(0.8)' : reviewFormStep >= 2 ? 'scale(1.2)' : 'scale(1)'
+                      opacity: reviewFormStep >= 5 ? 0 : 1,
+                      transform: reviewFormStep >= 5 ? 'scale(0.8)' : reviewFormStep >= 4 ? 'scale(1.2)' : 'scale(1)'
                     }}
                   >
-                    {reviewFormStep >= 2 && (
+                    {reviewFormStep >= 4 && (
                       <>
                         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent animate-pulse" />
                         <div className="absolute inset-0 animate-ping" 
@@ -1116,7 +1229,7 @@ export default function AnimatedInfographic() {
                     <span 
                       className="text-xs font-medium relative z-10 transition-colors duration-700"
                       style={{
-                        color: reviewFormStep >= 2 ? 'rgba(255, 255, 255, 0.8)' : 'rgba(156, 163, 175, 0.5)'
+                        color: reviewFormStep >= 4 ? 'rgba(255, 255, 255, 0.8)' : 'rgba(156, 163, 175, 0.5)'
                       }}
                     >
                       Submit
@@ -1128,15 +1241,15 @@ export default function AnimatedInfographic() {
                 <div 
                   className="absolute inset-x-4 top-1/3 -translate-y-1/2 transition-all duration-1000"
                   style={{
-                    opacity: reviewFormStep >= 3 ? 1 : 0,
-                    transform: reviewFormStep >= 3 ? 'translateY(-50%) scale(1)' : 'translateY(-50%) scale(0.8)',
+                    opacity: reviewFormStep >= 5 ? 1 : 0,
+                    transform: reviewFormStep >= 5 ? 'translateY(-50%) scale(1)' : 'translateY(-50%) scale(0.8)',
                     pointerEvents: 'none',
-                    transitionDelay: reviewFormStep >= 3 ? '500ms' : '0ms'  // More delay before success
+                    transitionDelay: reviewFormStep >= 5 ? '500ms' : '0ms'  // Success shows in step 5
                   }}
                 >
                   <div className="bg-green-500/20 border border-green-400/40 rounded-lg px-4 py-3 text-center backdrop-blur-sm">
                     <div className="text-green-400 text-sm font-semibold mb-1">✓ Success!</div>
-                    <div className="text-green-300/80 text-xs">Review Posted</div>
+                    <div className="text-green-300/80 text-xs">Review posted!</div>
                   </div>
                 </div>
                 
@@ -1144,8 +1257,8 @@ export default function AnimatedInfographic() {
                 <div 
                   className="space-y-2 transition-all duration-500"
                   style={{
-                    opacity: reviewFormStep >= 3 ? 0 : 1,
-                    transform: reviewFormStep >= 3 ? 'scale(0.8)' : 'scale(1)'
+                    opacity: reviewFormStep >= 5 ? 0 : 1,
+                    transform: reviewFormStep >= 5 ? 'scale(0.8)' : 'scale(1)'
                   }}
                 >
                   <div className="h-0.5 bg-gray-500/20 rounded-full w-full" />
@@ -1169,9 +1282,9 @@ export default function AnimatedInfographic() {
             </div>
             
             {/* Label below the form */}
-            <div className="absolute -bottom-20 left-1/2 -translate-x-1/2 text-center">
+            <div className="absolute left-1/2 -translate-x-1/2 text-center" style={{ bottom: '-105px' }}>
               <h3 className="text-white/95 font-bold text-base lg:text-lg">Review platforms</h3>
-              <p className="text-gray-200/90 text-xs whitespace-nowrap">Google • Facebook • Yelp • More</p>
+              <p className="text-gray-200/90 text-xs whitespace-nowrap mt-2">Google • Facebook • Yelp • More</p>
             </div>
           </div>
         </div>
