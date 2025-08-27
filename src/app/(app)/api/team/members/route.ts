@@ -246,6 +246,11 @@ async function processTeamMembers(supabase: any, supabaseAdmin: any, user: any, 
     // Debug logging
     console.log('Team API - Account data:', accountData);
     console.log('Team API - Raw account from DB:', account);
+    console.log('Team API - Members returned:', members.map(m => ({ 
+      email: m.email, 
+      role: m.role,
+      user_id: m.user_id 
+    })));
 
     return NextResponse.json({
       members,
