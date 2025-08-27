@@ -18,15 +18,22 @@ export default function EmbedInfographicPage() {
     const nav = document.querySelector('nav');
     if (nav) nav.style.display = 'none';
     
-    // Find and remove gradient background
+    // FORCE remove gradient with highest specificity inline styles
+    document.body.style.setProperty('background', 'transparent', 'important');
+    document.body.style.setProperty('background-image', 'none', 'important');
+    document.body.style.setProperty('background-color', 'transparent', 'important');
+    
+    // Find and remove gradient background from wrapper
     const minHScreen = document.querySelector('.min-h-screen');
     if (minHScreen) {
-      minHScreen.style.background = 'transparent';
-      minHScreen.style.backgroundImage = 'none';
+      minHScreen.style.setProperty('background', 'transparent', 'important');
+      minHScreen.style.setProperty('background-image', 'none', 'important');
     }
     
     // Apply styles to hide chrome after component mounts
     const style = document.createElement('style')
+    // Add ID to ensure our styles come AFTER globals.css
+    style.id = 'embed-override-styles'
     style.innerHTML = `
       /* Kill ALL background images but keep transparent */
       * {

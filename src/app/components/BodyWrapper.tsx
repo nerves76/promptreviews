@@ -11,7 +11,7 @@ export default function BodyWrapper({
   const pathname = usePathname();
   
   // Check if this is a demo/embed page that should have transparent background
-  const isEmbed = pathname.startsWith('/demo/') || pathname.startsWith('/embed/');
+  const isEmbed = pathname.startsWith('/demo/') || pathname.startsWith('/embed/') || pathname === '/infographic/embed';
   
   useEffect(() => {
     // Only modify styles, not classes to avoid hydration issues
