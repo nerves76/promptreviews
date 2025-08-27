@@ -1,3 +1,5 @@
+'use client'
+
 export default function EmbedInstructionsPage() {
   const embedCode = `<!-- PromptReviews Animated Infographic -->
 <div id="promptreviews-infographic"></div>
