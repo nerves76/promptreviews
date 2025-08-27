@@ -416,15 +416,19 @@ export default function AnimatedInfographic({ isEmbed = false }: { isEmbed?: boo
         @keyframes twoPulses {
           0%, 100% {
             opacity: 1;
+            transform: scale(1);
           }
           25% {
-            opacity: 0.4;
+            opacity: 0.3;
+            transform: scale(1.02);
           }
           50% {
             opacity: 1;
+            transform: scale(1);
           }
           75% {
-            opacity: 0.4;
+            opacity: 0.3;
+            transform: scale(1.02);
           }
         }
         
@@ -844,16 +848,15 @@ export default function AnimatedInfographic({ isEmbed = false }: { isEmbed?: boo
                       }}
                     />
                     
-                    {/* Glowing effect when active - two pulses only */}
+                    {/* Glowing effect when active */}
                     {showEffects && (
                       <div 
-                        className="absolute inset-[-2px] pointer-events-none"
+                        className="absolute inset-[-2px] pointer-events-none animate-pulse"
                         style={{
                           background: 'transparent',
                           border: '3px solid rgba(147, 51, 234, 0.4)',
                           filter: 'blur(4px)',
-                          borderRadius: '26px',
-                          animation: 'twoPulses 2s ease-in-out'
+                          borderRadius: '26px'
                         }}
                       />
                     )}
@@ -1205,16 +1208,15 @@ export default function AnimatedInfographic({ isEmbed = false }: { isEmbed?: boo
                 }}
               />
               
-              {/* Glowing effect when active - two pulses only */}
+              {/* Glowing effect when active */}
               {showPlatformEffects && (
                 <div 
-                  className="absolute inset-[-2px] pointer-events-none"
+                  className="absolute inset-[-2px] pointer-events-none animate-pulse"
                   style={{
                     background: 'transparent',
                     border: '3px solid rgba(147, 51, 234, 0.4)',
                     filter: 'blur(4px)',
-                    borderRadius: '26px',
-                    animation: 'twoPulses 2s ease-in-out'
+                    borderRadius: '26px'
                   }}
                 />
               )}
