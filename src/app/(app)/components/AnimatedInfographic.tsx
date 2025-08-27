@@ -630,7 +630,7 @@ export default function AnimatedInfographic({ isEmbed = false }: { isEmbed?: boo
           
           
           {/* STOP 1: Customer (Left) - z-30 to be above beam */}
-          <div className="relative flex-shrink-0 z-30" style={{ marginTop: '125px' }}>
+          <div className="relative flex-shrink-0 z-30" style={{ marginTop: '160px' }}>
             <div className="relative md:mt-8">
               
               {/* Phone with notification - transparent and close to customer */}
