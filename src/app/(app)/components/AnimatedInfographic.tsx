@@ -542,7 +542,8 @@ export default function AnimatedInfographic({ isEmbed = false }: { isEmbed?: boo
       <div className="relative w-full" ref={containerRef}>
         {/* Content wrapper - uses available width */}
         <div 
-          className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10"
+          className="relative mx-auto px-4 sm:px-6 lg:px-8 py-10"
+          style={{ width: isEmbed ? '1200px' : 'auto', maxWidth: isEmbed ? '1200px' : '80rem' }}
         >
         {/* Removed background - uses site's gradient */}
 
@@ -568,10 +569,10 @@ export default function AnimatedInfographic({ isEmbed = false }: { isEmbed?: boo
               {/* First Beam: Customer to Prompt Page socket (horizontal on desktop) - Updated positioning */}
               <div className="hidden md:block absolute z-5 pointer-events-none overflow-hidden rounded-full" 
                 style={{ 
-                  left: 'calc(15.5% + 2px)',  // Moved 2px right
-                  width: '24%',
-                  top: '50%',
-                  transform: 'translateY(-147px)',  // Moved down 3px (was -150px)
+                  left: isEmbed ? '190px' : 'calc(15.5% + 4px)',  // Fixed pixels when embedded
+                  width: isEmbed ? '288px' : '24%',  // Fixed width when embedded (24% of 1200px)
+                  top: '314px',  // Moved down 1px more
+                  transform: 'translateY(0)',  // No transform needed
                   height: '12px', 
                   boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.3), 0 0 20px rgba(147, 51, 234, 0.3)' 
                 }}>
@@ -598,10 +599,10 @@ export default function AnimatedInfographic({ isEmbed = false }: { isEmbed?: boo
               {/* Second Beam: Prompt Page socket to Review Platforms socket */}
               <div className="hidden md:block absolute z-5 pointer-events-none overflow-hidden rounded-full" 
                 style={{ 
-                  left: 'calc(58.5% + 37px)',  // Moved 3px more left (was +40px, now +37px)
-                  width: '21%',  // Extended to reach moved Review Platforms
-                  top: '50%',
-                  transform: 'translateY(-147px)',  // Moved down 3px (was -150px)
+                  left: isEmbed ? '724px' : 'calc(58.5% + 34px)',  // Moved 6px more left when embedded
+                  width: isEmbed ? '252px' : '21%',  // Fixed width when embedded (21% of 1200px)
+                  top: '314px',  // Moved down 1px more
+                  transform: 'translateY(0)',  // No transform needed
                   height: '12px', 
                   boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.3), 0 0 20px rgba(147, 51, 234, 0.3)' 
                 }}>
@@ -1162,7 +1163,7 @@ export default function AnimatedInfographic({ isEmbed = false }: { isEmbed?: boo
               className="hidden md:block absolute z-0 pointer-events-none"
               style={{
                 left: '-6px',  // Moved further into card to cover beam end
-                top: 'calc(50% - 8px)', // Socket position for review platform
+                top: 'calc(50% - 7px)', // Socket position for review platform - moved down 1px
                 width: '16px',  // Made wider to cover beam fully
                 height: '16px', // Made 4px taller (from 12px to 16px)
                 background: showPlatformEffects 
