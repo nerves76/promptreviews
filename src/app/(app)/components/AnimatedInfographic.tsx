@@ -1140,7 +1140,7 @@ export default function AnimatedInfographic({ isEmbed = false }: { isEmbed?: boo
             
             {/* T-connector where beam meets form - aligned with beam - hidden on mobile */}
             <div 
-              className="hidden md:block absolute z-20 pointer-events-none"
+              className="hidden md:block absolute z-0 pointer-events-none"
               style={{
                 left: '-6px',  // Moved further into card to cover beam end
                 top: 'calc(50% - 2px)', // Adjusted for taller socket
