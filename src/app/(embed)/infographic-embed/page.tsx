@@ -42,9 +42,9 @@ export default function EmbedInfographicPage() {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      padding: '16px',
+      padding: '40px 16px 16px 16px',
       background: 'transparent',
-      overflow: 'hidden'
+      overflow: 'visible'
     }}>
       <div style={{ 
         transform: 'scale(0.85)', 
