@@ -143,7 +143,8 @@ export async function POST(request: NextRequest) {
         role: 'support'
       });
       
-      const { error: addUserError } = await supabase
+      // Use admin client to bypass RLS policies
+      const { error: addUserError } = await supabaseAdmin
         .from('account_users')
         .insert({
           account_id: accountUser.account_id,
