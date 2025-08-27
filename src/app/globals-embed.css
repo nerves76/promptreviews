@@ -2,23 +2,31 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Minimal styles for embed - TEMPORARY DARK BACKGROUND FOR DEBUGGING */
+/* Minimal styles for embed - transparent background */
 html {
   height: 100%;
-  background: #1a1a2e; /* TEMPORARY: Dark blue for debugging */
+  background: transparent !important;
 }
 
 body {
   margin: 0;
   padding: 0;
-  background: #1a1a2e !important; /* TEMPORARY: Dark blue for debugging */
+  background: transparent !important;
   min-height: auto !important;
 }
 
-/* Don't remove ALL background images - some are needed for the infographic */
-/* Only remove the body gradient */
-body > div.min-h-screen {
+/* Force remove ALL gradient backgrounds from any divs */
+body > div,
+body > div > div {
   background-image: none !important;
+  background: transparent !important;
+}
+
+/* But preserve the infographic's internal gradients */
+.bg-gradient-to-r,
+.bg-gradient-to-b,
+.bg-gradient-to-br {
+  background-image: initial !important;
 }
 
 /* Support for animations in the infographic */

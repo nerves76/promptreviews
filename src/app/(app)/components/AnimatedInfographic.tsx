@@ -1065,9 +1065,9 @@ export default function AnimatedInfographic() {
                         size={32} 
                         className="transition-all duration-300"
                         style={{
-                          color: hoveredTool === toolIndex ? '#ec4899' : '#fdb5a6',  // Pink on hover, peach normally
+                          color: hoveredTool === toolIndex ? '#f9a8d4' : '#fdb5a6',  // Soft pink on hover, peach normally
                           filter: hoveredTool === toolIndex
-                            ? 'drop-shadow(0 0 8px rgba(236, 72, 153, 0.6)) drop-shadow(0 0 4px rgba(236, 72, 153, 0.4))'
+                            ? 'drop-shadow(0 0 8px rgba(249, 168, 212, 0.5)) drop-shadow(0 0 4px rgba(249, 168, 212, 0.3))'
                             : 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3))',
                           transform: hoveredTool === toolIndex ? 'scale(1.1)' : 'scale(1)'
                         }}
@@ -1453,9 +1453,9 @@ export default function AnimatedInfographic() {
                   size={29} 
                   className="transition-all duration-300"
                   style={{
-                    color: hoveredTool === toolIndex ? '#ec4899' : '#fdb5a6',  // Pink on hover, peach normally
+                    color: hoveredTool === toolIndex ? '#f9a8d4' : '#fdb5a6',  // Soft pink on hover, peach normally
                     filter: hoveredTool === toolIndex
-                      ? 'drop-shadow(0 0 8px rgba(236, 72, 153, 0.6)) drop-shadow(0 0 4px rgba(236, 72, 153, 0.4))'
+                      ? 'drop-shadow(0 0 8px rgba(249, 168, 212, 0.5)) drop-shadow(0 0 4px rgba(249, 168, 212, 0.3))'
                       : 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3))',
                     transform: hoveredTool === toolIndex ? 'scale(1.1)' : 'scale(1)'
                   }}
