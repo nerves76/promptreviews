@@ -625,11 +625,15 @@ export default function TeamPage() {
       const data = await response.json();
       console.log('Response:', response.status, data);
 
-      if (!response.ok) {
+      if (!response.ok && !data.already_member) {
         throw new Error(data.error || 'Failed to add Chris for support');
       }
 
-      setSuccess('Chris has been added for development and support assistance! 🎉');
+      if (data.already_member) {
+        setSuccess('Chris is already a member of this account! 👍');
+      } else {
+        setSuccess('Chris has been added for development and support assistance! 🎉');
+      }
       await fetchTeamData(); // Refresh data
       
       // Clear success message after 8 seconds
@@ -1193,7 +1197,10 @@ export default function TeamPage() {
       )}
 
       {/* Add Chris for Support (Owners Only) - Moved to bottom */}
-      {isOwner && !members.some(member => member.email === 'chris@diviner.agency') && (
+      {isOwner && !members.some(member => 
+        member.email === 'chris@diviner.agency' || 
+        member.email === 'nerves76@gmail.com'
+      ) && (
         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6 mt-8">
           <div className="flex items-center justify-between">
             <div>

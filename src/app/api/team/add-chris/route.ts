@@ -153,6 +153,15 @@ export async function POST(request: NextRequest) {
         });
 
       if (addUserError) {
+        // Check if it's a duplicate key error (Chris already in account)
+        if (addUserError.code === '23505' || addUserError.message?.includes('duplicate key')) {
+          console.log('Chris is already a member of this account');
+          return NextResponse.json({
+            message: 'Chris is already a member of this account',
+            already_member: true
+          });
+        }
+        
         console.error('Error adding Chris to account:', {
           error: addUserError,
           account_id: accountUser.account_id,
