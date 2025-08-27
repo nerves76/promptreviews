@@ -679,8 +679,8 @@ export default function AnimatedInfographic({ isEmbed = false }: { isEmbed?: boo
               )}
               {/* Larger customer icon with gradient effect */}
               <div className="relative">
-                {/* Subtle glow behind icon */}
-                <div className="absolute inset-0 blur-3xl bg-gradient-to-r from-yellow-300/30 via-pink-300/30 to-purple-300/30 scale-125" />
+                {/* Subtle glow behind icon - smaller and fading to transparent */}
+                <div className="absolute inset-0 blur-2xl bg-gradient-to-r from-yellow-300/20 via-pink-300/20 to-purple-300/20 scale-105" />
                 
                 {/* Customer SVG with gradient fill - 50% bigger (30% + 20%) */}
                 <svg width="250" height="250" viewBox="0 0 107.4084 230.4448" className="relative" style={{ filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.2))', marginTop: '20px' }}>
@@ -1035,7 +1035,7 @@ export default function AnimatedInfographic({ isEmbed = false }: { isEmbed?: boo
 
               
               {/* Desktop Features - absolute positioned */}
-              <div className={`hidden md:flex ${isEmbed ? 'relative mt-8' : 'absolute bottom-[-230px]'} left-1/2 -translate-x-1/2 z-30 flex-col items-center`}>
+              <div className="hidden md:flex absolute left-1/2 -translate-x-1/2 z-30 flex-col items-center bottom-[-230px]">
                 {/* Features Container */}
                 <div 
                   className="flex flex-nowrap items-center justify-center gap-3 lg:gap-6 px-5 lg:px-7 py-3 lg:py-4 rounded-full"
