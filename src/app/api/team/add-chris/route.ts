@@ -37,6 +37,10 @@ export async function POST(request: NextRequest) {
   const supabaseAdmin = createServiceRoleClient();
 
   try {
+    // Get request body for account_id if provided
+    const body = await request.json().catch(() => ({}));
+    const { account_id } = body;
+
     // Get the current user
     const { data: { user }, error: userError } = await supabase.auth.getUser();
     
@@ -48,7 +52,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get the user's account and business information
-    const { data: accountUser, error: accountError } = await supabase
+    let accountQuery = supabase
       .from('account_users')
       .select(`
         account_id,
@@ -61,15 +65,25 @@ export async function POST(request: NextRequest) {
           max_users
         )
       `)
-      .eq('user_id', user.id)
-      .single();
+      .eq('user_id', user.id);
 
-    if (accountError || !accountUser) {
+    // If account_id is provided, filter by it
+    if (account_id) {
+      accountQuery = accountQuery.eq('account_id', account_id);
+    }
+
+    const { data: accountUsers, error: accountError } = await accountQuery;
+
+    if (accountError || !accountUsers || accountUsers.length === 0) {
+      console.error('Account fetch error:', accountError);
       return NextResponse.json(
         { error: 'Account not found' },
         { status: 404 }
       );
     }
+
+    // Get the first account (or the specified one)
+    const accountUser = accountUsers[0];
 
     // Check if user is an owner
     if (accountUser.role !== 'owner') {

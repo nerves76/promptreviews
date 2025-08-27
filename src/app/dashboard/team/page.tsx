@@ -617,6 +617,9 @@ export default function TeamPage() {
       const response = await fetch('/api/team/add-chris', {
         method: 'POST',
         headers,
+        body: JSON.stringify({
+          account_id: selectedAccount?.account_id || teamData?.account?.id
+        }),
       });
 
       const data = await response.json();

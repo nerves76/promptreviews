@@ -21,30 +21,30 @@ export default function EmbedInfographicPage() {
     // Find and remove gradient background
     const minHScreen = document.querySelector('.min-h-screen');
     if (minHScreen) {
-      minHScreen.style.background = 'white';
+      minHScreen.style.background = 'transparent';
       minHScreen.style.backgroundImage = 'none';
     }
     
     // Apply styles to hide chrome after component mounts
     const style = document.createElement('style')
     style.innerHTML = `
-      /* NUCLEAR OPTION - Override everything */
+      /* Kill ALL background images but keep transparent */
       * {
         background-image: none !important;
       }
       
       html, body {
-        background: white !important;
-        background-color: white !important;
+        background: transparent !important;
+        background-color: transparent !important;
         background-image: none !important;
       }
       
-      /* Kill the gradient wrapper */
+      /* Kill the gradient wrapper but keep transparent */
       body > div,
       body > div > div,
       .min-h-screen {
-        background: white !important;
-        background-color: white !important;
+        background: transparent !important;
+        background-color: transparent !important;
         background-image: none !important;
         min-height: auto !important;
       }
@@ -72,10 +72,10 @@ export default function EmbedInfographicPage() {
         display: block !important;
       }
       
-      /* Clean main */
+      /* Clean main with transparent background */
       main {
         padding: 0 !important;
-        background: white !important;
+        background: transparent !important;
       }
       
       /* Hide help components */
