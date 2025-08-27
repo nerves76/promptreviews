@@ -11,6 +11,9 @@ const AnimatedInfographic = dynamic(() => import('../../components/AnimatedInfog
 
 export default function EmbedInfographicPage() {
   useEffect(() => {
+    // NUCLEAR OPTION: Remove the min-h-screen class that triggers the gradient
+    document.body.classList.remove('min-h-screen');
+    
     // IMMEDIATELY hide navigation before anything renders
     const header = document.querySelector('header');
     if (header) header.style.display = 'none';
@@ -22,12 +25,19 @@ export default function EmbedInfographicPage() {
     document.body.style.setProperty('background', 'transparent', 'important');
     document.body.style.setProperty('background-image', 'none', 'important');
     document.body.style.setProperty('background-color', 'transparent', 'important');
+    document.body.style.setProperty('min-height', 'auto', 'important');
+    
+    // Also remove gradient from HTML element
+    document.documentElement.style.setProperty('background', 'transparent', 'important');
+    document.documentElement.style.setProperty('background-image', 'none', 'important');
     
     // Find and remove gradient background from wrapper
     const minHScreen = document.querySelector('.min-h-screen');
     if (minHScreen) {
+      minHScreen.classList.remove('min-h-screen');
       minHScreen.style.setProperty('background', 'transparent', 'important');
       minHScreen.style.setProperty('background-image', 'none', 'important');
+      minHScreen.style.setProperty('min-height', 'auto', 'important');
     }
     
     // Apply styles to hide chrome after component mounts
@@ -35,12 +45,22 @@ export default function EmbedInfographicPage() {
     // Add ID to ensure our styles come AFTER globals.css
     style.id = 'embed-override-styles'
     style.innerHTML = `
-      /* Kill ALL background images but keep transparent */
+      /* Override the exact gradient from globals.css */
+      body {
+        background: transparent !important;
+        background-color: transparent !important;
+        background-image: none !important;
+        background-attachment: initial !important;
+        background-repeat: initial !important;
+        min-height: auto !important;
+      }
+      
+      /* Ensure no gradient on any element */
       * {
         background-image: none !important;
       }
       
-      html, body {
+      html {
         background: transparent !important;
         background-color: transparent !important;
         background-image: none !important;
