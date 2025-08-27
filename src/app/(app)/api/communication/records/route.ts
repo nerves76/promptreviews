@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerSupabaseClient } from '../@/utils/supabaseClient';
-import { createCommunicationRecord, getCommunicationHistory } from '../@/utils/communication';
+import { createServerSupabaseClient } from '@/utils/supabaseClient';
+import { createCommunicationRecord, getCommunicationHistory } from '@/utils/communication';
 
 export async function POST(request: NextRequest) {
   try {

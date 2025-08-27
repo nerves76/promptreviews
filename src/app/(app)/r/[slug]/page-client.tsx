@@ -19,7 +19,7 @@ import ReviewSubmissionForm from "@/components/ReviewSubmissionForm";
 import { useReviewer } from "@/contexts/ReviewerContext";
 import AppLoader from "@/app/(app)/components/AppLoader";
 import FiveStarSpinner from "@/app/(app)/components/FiveStarSpinner";
-import PromptReviewsLogo from "@/app/dashboard/components/PromptReviewsLogo";
+import PromptReviewsLogo from "@/app/(app)/dashboard/components/PromptReviewsLogo";
 import PageCard from "@/app/(app)/components/PageCard";
 import imageCompression from 'browser-image-compression';
 import { getAccessibleColor, applyCardTransparency } from "@/utils/colorUtils";

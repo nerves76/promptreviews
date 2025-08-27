@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { getFallingIcon } from '@/app/components/prompt-modules/fallingStarsConfig';
+import { getFallingIcon } from '@/app/(app)/components/prompt-modules/fallingStarsConfig';
 
 interface UseFallingStarsOptions {
   initialIcon?: string;

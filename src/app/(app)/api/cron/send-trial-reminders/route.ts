@@ -9,7 +9,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { sendTrialReminderEmail } from '../@/utils/emailTemplates';
+import { sendTrialReminderEmail } from '@/utils/emailTemplates';
 
 export async function GET(request: NextRequest) {
   try {

@@ -9,7 +9,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceRoleClient } from '@/auth/providers/supabase';
-import { sendTemplatedEmail } from '../@/utils/emailTemplates';
+import { sendTemplatedEmail } from '@/utils/emailTemplates';
 import { captureError, captureMessage, setContext } from '@/utils/sentry';
 import { resend } from '@/utils/resend';
 
