@@ -16,9 +16,11 @@ body {
 }
 
 /* Force remove gradient from min-h-screen class which is used by infographic */
-.min-h-screen {
+.min-h-screen,
+div.min-h-screen {
   background: transparent !important;
   background-image: none !important;
+  background-color: transparent !important;
 }
 
 /* Force remove ALL gradient backgrounds from any divs */
