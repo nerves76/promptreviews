@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import Icon from '@/components/Icon'
 import { 
   StarIcon,
@@ -21,6 +21,8 @@ export default function AnimatedInfographic() {
   const [promptPageStep, setPromptPageStep] = useState(0) // 0: idle, 1: left button, 2: fill fields, 3: right button
   const [reviewFormStep, setReviewFormStep] = useState(0) // 0: idle, 1: content filled, 2: button lit, 3: success
   const [scale, setScale] = useState(1)
+  const [isVisible, setIsVisible] = useState(false)
+  const containerRef = useRef<HTMLDivElement>(null)
 
   // Set mounted state and handle responsive scaling
   useEffect(() => {
@@ -35,6 +37,30 @@ export default function AnimatedInfographic() {
     handleResize()
     window.addEventListener('resize', handleResize)
     return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
+  // Intersection Observer to detect when component is visible
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsVisible(entry.isIntersecting)
+      },
+      { 
+        threshold: 0.1, // Trigger when 10% of the component is visible
+        rootMargin: '50px' // Start animations slightly before component is fully visible
+      }
+    )
+    
+    const element = containerRef.current
+    if (element) {
+      observer.observe(element)
+    }
+    
+    return () => {
+      if (element) {
+        observer.unobserve(element)
+      }
+    }
   }, [])
 
   // Click outside to close popups
@@ -54,7 +80,7 @@ export default function AnimatedInfographic() {
 
   // Single master timer for all animations - two separate beams
   useEffect(() => {
-    if (!mounted) return
+    if (!mounted || !isVisible) return
     
     const interval = setInterval(() => {
       setBeamPosition(prev => {
@@ -127,11 +153,11 @@ export default function AnimatedInfographic() {
     }, 100) // Update every 100ms for smooth animation
     
     return () => clearInterval(interval)
-  }, [mounted])
+  }, [mounted, isVisible])
 
   // Randomly show stars on platforms
   useEffect(() => {
-    if (!mounted) return
+    if (!mounted || !isVisible) return
     
     let counter = 0
     const interval = setInterval(() => {
@@ -156,7 +182,7 @@ export default function AnimatedInfographic() {
       setPlatformStars(stars)
     }, 6000) // Much slower interval - 6 seconds
     return () => clearInterval(interval)
-  }, [mounted])
+  }, [mounted, isVisible])
 
   // Position icons: 5 above beam, 4 below beam - evenly spaced
   const toolCategories = [
@@ -494,7 +520,7 @@ export default function AnimatedInfographic() {
           }
         }
       `}</style>
-      <div className="relative w-full min-h-screen">
+      <div className="relative w-full min-h-screen" ref={containerRef}>
         {/* Content wrapper - uses available width */}
         <div 
           className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10"
@@ -773,7 +799,7 @@ export default function AnimatedInfographic() {
                   
                   {/* Main prompt page container - bigger */}
                   <div 
-                    className="relative w-52 lg:w-64"
+                    className="relative w-64 lg:w-64"
                     style={{
                       borderRadius: '24px',
                       padding: '6px'
@@ -1132,7 +1158,7 @@ export default function AnimatedInfographic() {
             
             {/* Review Form Container - similar to prompt page */}
             <div 
-              className="relative w-52 lg:w-64"
+              className="relative w-64 lg:w-64"
               style={{
                 borderRadius: '24px',
                 padding: '6px',
