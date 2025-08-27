@@ -3,14 +3,14 @@
  * This layout initializes Sentry for global error tracking and GA4 for analytics
  */
 
-import "./globals.css";
+import "../globals.css";
 import type { Metadata } from "next";
-import ClientRoot from "./ClientRoot";
+import ClientRoot from "../ClientRoot";
 import AppMain from "./components/AppMain";
 import GoogleAnalytics from "./components/GoogleAnalytics";
 import { Providers } from "@/components/Providers";
 import BodyWrapper from "./components/BodyWrapper";
-import { inter, fontVariables } from "./fonts";
+import { inter, fontVariables } from "../fonts";
 import { GlobalRefreshMonitor } from "./components/GlobalRefreshMonitor";
 import { NavigationDebugger } from "./components/NavigationDebugger";
 

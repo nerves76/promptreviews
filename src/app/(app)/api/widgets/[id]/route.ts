@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createServiceRoleClient } from '@/auth/providers/supabase';
-import { getRequestAccountId } from '@/app/api/utils/getRequestAccountId';
+import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
 import { getAccountIdForUser } from '@/auth/utils/accounts';
 import { createServerClient } from '@supabase/ssr';
 
