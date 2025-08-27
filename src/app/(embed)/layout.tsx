@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 // Import only the Tailwind base styles, not the full globals.css with gradient
 import '../globals-embed.css';
+import IconSpriteInjector from './components/IconSpriteInjector';
 
 export const metadata: Metadata = {
   title: "PromptReviews Infographic",
@@ -16,6 +17,7 @@ export default function EmbedRootLayout({
   return (
     <html lang="en">
       <body style={{ margin: 0, padding: 0, background: 'transparent' }}>
+        <IconSpriteInjector />
         {children}
       </body>
     </html>

@@ -11,30 +11,6 @@ const AnimatedInfographic = dynamic(() => import('../../(app)/components/Animate
 
 export default function EmbedInfographicPage() {
   useEffect(() => {
-    // Load the icon sprite for the infographic
-    const loadIconSprite = async () => {
-      try {
-        const response = await fetch('/icons-sprite.svg');
-        const svgText = await response.text();
-        
-        // Create a container for the sprite if it doesn't exist
-        if (!document.getElementById('icon-sprite-container')) {
-          const div = document.createElement('div');
-          div.id = 'icon-sprite-container';
-          div.style.position = 'absolute';
-          div.style.width = '0';
-          div.style.height = '0';
-          div.style.overflow = 'hidden';
-          div.innerHTML = svgText;
-          document.body.appendChild(div);
-        }
-      } catch (error) {
-        console.error('Failed to load icon sprite:', error);
-      }
-    };
-    
-    loadIconSprite();
-    
     // Send height to parent window for iframe resizing
     const sendHeight = () => {
       const height = document.documentElement.scrollHeight
