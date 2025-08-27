@@ -1047,7 +1047,7 @@ export default function AnimatedInfographic({ isEmbed = false }: { isEmbed?: boo
                   
                   {/* Label below the form - match customer spacing */}
                   <div className="absolute -bottom-16 md:-bottom-20 left-1/2 -translate-x-1/2 text-center">
-                    <h3 className="text-white/95 font-bold text-lg lg:text-xl">Prompt Page</h3>
+                    <h3 className="text-white/95 font-bold text-lg lg:text-xl bg-gradient-to-r from-yellow-300 via-pink-300 to-purple-300 bg-clip-text text-transparent">Prompt Page</h3>
                     <p className="text-gray-200/90 text-sm whitespace-nowrap mt-1">Create • Copy • Post</p>
                   </div>
                 </div>
@@ -1125,7 +1125,7 @@ export default function AnimatedInfographic({ isEmbed = false }: { isEmbed?: boo
                 </div>
                 
                 {/* Features Header - below the icons on desktop */}
-                <h3 className="text-white/95 font-bold text-lg lg:text-xl mt-10">Helpful features</h3>
+                <h3 className="text-white/95 font-bold text-lg lg:text-xl mt-10 bg-gradient-to-r from-yellow-300 via-pink-300 to-purple-300 bg-clip-text text-transparent">Helpful features</h3>
                 <p className="text-gray-200/90 text-sm text-center mt-1">Help your customers write impactful reviews</p>
               </div>
             </div>
@@ -1413,7 +1413,7 @@ export default function AnimatedInfographic({ isEmbed = false }: { isEmbed?: boo
             
             {/* Label below the form - match customer spacing */}
             <div className="absolute left-1/2 -translate-x-1/2 text-center -bottom-16 md:-bottom-[133px]">
-              <h3 className="text-white/95 font-bold text-lg lg:text-xl">Review platforms</h3>
+              <h3 className="text-white/95 font-bold text-lg lg:text-xl bg-gradient-to-r from-yellow-300 via-pink-300 to-purple-300 bg-clip-text text-transparent">Review platforms</h3>
               <p className="text-gray-200/90 text-sm whitespace-nowrap mt-1">Google • Facebook • Yelp • More</p>
             </div>
           </div>
@@ -1490,7 +1490,7 @@ export default function AnimatedInfographic({ isEmbed = false }: { isEmbed?: boo
           </div>
           
           {/* Features Header - now below the icons */}
-          <h3 className="text-white/95 font-bold text-lg lg:text-xl mt-10">Helpful features</h3>
+          <h3 className="text-white/95 font-bold text-lg lg:text-xl mt-10 bg-gradient-to-r from-yellow-300 via-pink-300 to-purple-300 bg-clip-text text-transparent">Helpful features</h3>
           <p className="text-gray-200/90 text-sm text-center mt-1">Help your customers write impactful reviews</p>
         </div>
 
