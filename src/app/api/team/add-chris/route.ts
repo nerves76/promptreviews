@@ -115,16 +115,21 @@ export async function POST(request: NextRequest) {
     const chrisUser = usersList.users.find(u => u.email === CHRIS_EMAIL);
     const chrisUserId = chrisUser?.id;
 
+    console.log('Looking for Chris:', {
+      chrisEmail: CHRIS_EMAIL,
+      found: !!chrisUserId,
+      userId: chrisUserId
+    });
+
     if (chrisUserId) {
       // Check if Chris is already a member
-      const { data: existingMember, error: memberCheckError } = await supabase
+      const { data: existingMembers, error: memberCheckError } = await supabase
         .from('account_users')
         .select('user_id, role')
         .eq('account_id', accountUser.account_id)
-        .eq('user_id', chrisUserId)
-        .single();
+        .eq('user_id', chrisUserId);
 
-      if (existingMember) {
+      if (existingMembers && existingMembers.length > 0) {
         return NextResponse.json(
           { error: 'Chris is already a member of this account' },
           { status: 400 }
@@ -132,6 +137,12 @@ export async function POST(request: NextRequest) {
       }
 
       // Add Chris directly as a support member (bypassing user limits)
+      console.log('Adding Chris to account:', {
+        account_id: accountUser.account_id,
+        user_id: chrisUserId,
+        role: 'support'
+      });
+      
       const { error: addUserError } = await supabase
         .from('account_users')
         .insert({
@@ -141,9 +152,13 @@ export async function POST(request: NextRequest) {
         });
 
       if (addUserError) {
-        console.error('Error adding Chris to account:', addUserError);
+        console.error('Error adding Chris to account:', {
+          error: addUserError,
+          account_id: accountUser.account_id,
+          user_id: chrisUserId
+        });
         return NextResponse.json(
-          { error: 'Failed to add Chris to account' },
+          { error: 'Failed to add Chris to account', details: addUserError.message },
           { status: 500 }
         );
       }
