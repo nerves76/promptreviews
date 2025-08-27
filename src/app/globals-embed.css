@@ -9,10 +9,20 @@ html {
 }
 
 body {
-  margin: 0;
-  padding: 0;
+  margin: 0 !important;
+  padding: 0 !important;
   background: transparent !important;
+  background-image: none !important;
+  background-color: transparent !important;
+  background-attachment: initial !important;
   min-height: auto !important;
+}
+
+/* Remove the gradient pseudo-element */
+body:before {
+  display: none !important;
+  content: none !important;
+  background: none !important;
 }
 
 /* Force remove gradient from min-h-screen class which is used by infographic */
