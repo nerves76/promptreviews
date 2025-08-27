@@ -22,7 +22,7 @@ import { Button } from "@/app/(app)/components/ui/button";
 import Link from "next/link";
 import QuoteDisplay from "../components/QuoteDisplay";
 import StarfallCelebration from "../components/StarfallCelebration";
-import { trackEvent, GA_EVENTS } from "../../utils/analytics";
+import { trackEvent, GA_EVENTS } from "@/utils/analytics";
 import { useAuth } from "@/auth";
 import { checkAccountLimits } from "@/utils/accountLimits";
 import React from "react";

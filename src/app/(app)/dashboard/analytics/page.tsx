@@ -20,7 +20,7 @@ import {
   CartesianGrid,
 } from "recharts";
 import { format } from "date-fns";
-import { trackEvent, GA_EVENTS } from "../../../utils/analytics";
+import { trackEvent, GA_EVENTS } from "@/utils/analytics";
 import { useRouter } from "next/navigation";
 
 interface PromptPage {

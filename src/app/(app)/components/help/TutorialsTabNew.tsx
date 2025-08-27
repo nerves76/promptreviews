@@ -8,7 +8,7 @@ import { useState, useEffect, useRef } from 'react';
 import Icon from '@/components/Icon';
 import { Tutorial } from './types';
 import { calculateRelevanceScore } from './contextMapper';
-import { trackEvent } from '../../../utils/analytics';
+import { trackEvent } from '@/utils/analytics';
 import ArticleViewer from './ArticleViewer';
 
 interface TutorialsTabProps {

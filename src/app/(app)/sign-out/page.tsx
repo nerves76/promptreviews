@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { createClient } from "@/utils/supabaseClient";
-import { trackEvent, GA_EVENTS } from "../../utils/analytics";
+import { trackEvent, GA_EVENTS } from "@/utils/analytics";
 
 export default function SignOut() {
   const supabase = createClient();

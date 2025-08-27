@@ -17,7 +17,7 @@ import InlineLoader from "@/app/(app)/components/InlineLoader";
 import PageCard from "@/app/(app)/components/PageCard";
 import imageCompression from 'browser-image-compression';
 import FiveStarSpinner from "@/app/(app)/components/FiveStarSpinner";
-import { trackEvent, GA_EVENTS } from "../../../utils/analytics";
+import { trackEvent, GA_EVENTS } from "@/utils/analytics";
 import { markTaskAsCompleted } from "@/utils/onboardingTasks";
 import WelcomePopup from "@/app/(app)/components/WelcomePopup";
 

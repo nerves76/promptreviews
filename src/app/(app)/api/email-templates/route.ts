@@ -6,7 +6,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/auth/providers/supabase';
-import { getAllEmailTemplates, updateEmailTemplate } from '../../../utils/emailTemplates';
+import { getAllEmailTemplates, updateEmailTemplate } from '@/utils/emailTemplates';
 import { isAdmin } from '@/auth/utils/admin';
 
 export async function GET(request: NextRequest) {

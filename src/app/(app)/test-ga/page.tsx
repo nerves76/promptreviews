@@ -14,7 +14,7 @@ import {
   trackAdminAction,
   trackError,
   GA_EVENTS 
-} from '../../utils/analytics';
+} from '@/utils/analytics';
 
 export default function TestGAPage() {
   const [testResults, setTestResults] = useState<string[]>([]);

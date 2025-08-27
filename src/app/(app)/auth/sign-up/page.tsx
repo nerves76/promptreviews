@@ -4,8 +4,8 @@ import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import SimpleMarketingNav from "@/app/(app)/components/SimpleMarketingNav";
-import { trackSignUp } from '../../../utils/analytics';
-import { createClient } from '../../../auth/providers/supabase';
+import { trackSignUp } from '@/utils/analytics';
+import { createClient } from '@/auth/providers/supabase';
 
 function SignUpContent() {
   const searchParams = useSearchParams();

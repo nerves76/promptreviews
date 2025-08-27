@@ -8,7 +8,7 @@ import Icon from "@/components/Icon";
 import { createPortal } from "react-dom";
 import { createClient, getUserOrMock } from "@/utils/supabaseClient";
 import { useAuth } from "@/auth";
-import { trackEvent, GA_EVENTS } from '../../utils/analytics';
+import { trackEvent, GA_EVENTS } from '@/utils/analytics';
 import { fetchOnboardingTasks } from "@/utils/onboardingTasks";
 import PromptReviewsLogo from "@/app/dashboard/components/PromptReviewsLogo";
 import { AccountSwitcher } from './AccountSwitcher';

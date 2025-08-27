@@ -9,7 +9,7 @@ import { useState, useEffect } from 'react';
 import Icon from '@/components/Icon';
 import { FAQ, PlanType } from './types';
 import { useSubscription } from '@/auth';
-import { trackEvent } from '../../../utils/analytics';
+import { trackEvent } from '@/utils/analytics';
 
 interface FAQsTabProps {
   pathname: string;

@@ -13,7 +13,7 @@ import { getContextFromPath } from './contextMapper';
 import TutorialsTabNew from './TutorialsTabNew';
 import FAQsTab from './FAQsTab';
 import IssuesTab from './IssuesTab';
-import { trackEvent } from '../../../utils/analytics';
+import { trackEvent } from '@/utils/analytics';
 
 export default function HelpModal({ 
   isOpen, 

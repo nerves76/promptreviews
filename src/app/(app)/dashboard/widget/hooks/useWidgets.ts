@@ -5,7 +5,7 @@ import { useAccountSelection } from "@/utils/accountSelectionHooks";
 import { apiClient } from "@/utils/apiClient";
 
 const supabase = createClient();
-import { trackWidgetCreated } from "../../../../utils/analytics";
+import { trackWidgetCreated } from "@/utils/analytics";
 
 export interface Widget {
   id: string;

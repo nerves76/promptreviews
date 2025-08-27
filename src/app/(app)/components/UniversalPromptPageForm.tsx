@@ -26,7 +26,7 @@ import {
   RecentReviewsFeature,
   type ReviewPlatform
 } from "./prompt-features";
-import { generateContextualReview } from "../../utils/aiReviewGeneration";
+import { generateContextualReview } from "@/utils/aiReviewGeneration";
 import Icon from "@/components/Icon";
 
 /**

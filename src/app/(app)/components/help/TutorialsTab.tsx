@@ -14,7 +14,7 @@ import {
   getRecommendedArticles,
   getPageKeywords 
 } from './articleAssociation';
-import { trackEvent } from '../../../utils/analytics';
+import { trackEvent } from '@/utils/analytics';
 import ArticleViewer from './ArticleViewer';
 import { useSubscription } from '@/auth';
 
