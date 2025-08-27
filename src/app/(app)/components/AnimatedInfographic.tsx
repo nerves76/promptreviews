@@ -1035,7 +1035,7 @@ export default function AnimatedInfographic({ isEmbed = false }: { isEmbed?: boo
 
               
               {/* Desktop Features - absolute positioned */}
-              <div className={`hidden md:flex absolute left-1/2 -translate-x-1/2 z-30 flex-col items-center ${isEmbed ? 'top-[650px]' : 'bottom-[-230px]'}`}>
+              <div className={`hidden md:flex ${isEmbed ? 'relative mt-8' : 'absolute bottom-[-230px]'} left-1/2 -translate-x-1/2 z-30 flex-col items-center`}>
                 {/* Features Container */}
                 <div 
                   className="flex flex-nowrap items-center justify-center gap-3 lg:gap-6 px-5 lg:px-7 py-3 lg:py-4 rounded-full"
