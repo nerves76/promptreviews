@@ -560,7 +560,7 @@ export default function AnimatedInfographic({ isEmbed = false }: { isEmbed?: boo
         </div>
 
         {/* Main Layout - 3 Stop Journey */}
-        <div className="relative flex flex-col md:flex-row items-center justify-between gap-8 md:gap-6 lg:gap-12 pb-8 md:pb-64">
+        <div className="relative flex flex-col md:flex-row items-center justify-between gap-8 md:gap-6 lg:gap-12 pb-8 md:pb-80">
           
           {/* Two separate beams */}
           {mounted && (
@@ -1055,7 +1055,7 @@ export default function AnimatedInfographic({ isEmbed = false }: { isEmbed?: boo
 
               
               {/* Desktop Features - absolute positioned */}
-              <div className="hidden md:flex absolute left-1/2 -translate-x-1/2 z-30 flex-col items-center bottom-[-230px]">
+              <div className="hidden md:flex absolute left-1/2 -translate-x-1/2 z-30 flex-col items-center bottom-[-280px]">
                 {/* Features Container */}
                 <div 
                   className="flex flex-nowrap items-center justify-center gap-3 lg:gap-6 px-5 lg:px-7 py-3 lg:py-4 rounded-full"

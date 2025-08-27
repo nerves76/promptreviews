@@ -1252,6 +1252,9 @@ The documentation uses a modern design system with:
 - **Glassmorphism**: Semi-transparent backgrounds with backdrop blur
 - **Responsive Design**: Mobile-first approach
 - **SEO Optimization**: Proper metadata and structured data
+- **Typography**: Consistent font size hierarchy with Tailwind CSS
+
+For complete typography scale, font weights, and design guidelines, see [DESIGN_GUIDELINES.md](./DESIGN_GUIDELINES.md#6-typography)
 
 ## [2024-06-08] Dashboard Widget Preview: Swiper Global Loading Fix
 
@@ -1532,4 +1535,7 @@ The documentation uses a modern design system with:
 - **Gradient Backgrounds**: Beautiful indigo-to-purple-to-fuchsia gradients
 - **Glassmorphism**: Semi-transparent backgrounds with backdrop blur
 - **Responsive Design**: Mobile-first approach
-- **SEO Optimization**: Proper metadata and structured data 
+- **SEO Optimization**: Proper metadata and structured data
+- **Typography**: Consistent font size hierarchy with Tailwind CSS
+
+For complete typography scale, font weights, and design guidelines, see [DESIGN_GUIDELINES.md](./DESIGN_GUIDELINES.md#6-typography) 
