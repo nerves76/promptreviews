@@ -543,7 +543,7 @@ export default function AnimatedInfographic({ isEmbed = false }: { isEmbed?: boo
         {/* Content wrapper - uses available width */}
         <div 
           className="relative mx-auto px-4 sm:px-6 lg:px-8 py-10"
-          style={{ width: isEmbed ? '1200px' : 'auto', maxWidth: isEmbed ? '1200px' : '80rem' }}
+          style={{ width: isEmbed ? '1000px' : 'auto', maxWidth: isEmbed ? '1000px' : '80rem' }}
         >
         {/* Removed background - uses site's gradient */}
 
@@ -569,8 +569,8 @@ export default function AnimatedInfographic({ isEmbed = false }: { isEmbed?: boo
               {/* First Beam: Customer to Prompt Page socket (horizontal on desktop) - Updated positioning */}
               <div className="hidden md:block absolute z-5 pointer-events-none overflow-hidden rounded-full" 
                 style={{ 
-                  left: isEmbed ? '190px' : 'calc(15.5% + 4px)',  // Fixed pixels when embedded
-                  width: isEmbed ? '288px' : '24%',  // Fixed width when embedded (24% of 1200px)
+                  left: isEmbed ? '205px' : 'calc(15.5% + 4px)',  // Force update with new position
+                  width: isEmbed ? '240px' : '24%',  // Fixed width when embedded (24% of 1000px)
                   top: '314px',  // Moved down 1px more
                   transform: 'translateY(0)',  // No transform needed
                   height: '12px', 
@@ -599,8 +599,8 @@ export default function AnimatedInfographic({ isEmbed = false }: { isEmbed?: boo
               {/* Second Beam: Prompt Page socket to Review Platforms socket */}
               <div className="hidden md:block absolute z-5 pointer-events-none overflow-hidden rounded-full" 
                 style={{ 
-                  left: isEmbed ? '724px' : 'calc(58.5% + 34px)',  // Moved 6px more left when embedded
-                  width: isEmbed ? '252px' : '21%',  // Fixed width when embedded (21% of 1200px)
+                  left: isEmbed ? '669px' : 'calc(58.5% + 34px)',  // Force update with new position
+                  width: isEmbed ? '210px' : '21%',  // Fixed width when embedded (21% of 1000px)
                   top: '314px',  // Moved down 1px more
                   transform: 'translateY(0)',  // No transform needed
                   height: '12px', 

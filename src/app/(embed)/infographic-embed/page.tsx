@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import dynamic from 'next/dynamic'
 
 // Dynamically import to avoid SSR issues
@@ -10,6 +10,12 @@ const AnimatedInfographic = dynamic(() => import('../../(app)/components/Animate
 })
 
 export default function EmbedInfographicPage() {
+  const [mounted, setMounted] = useState(false)
+  
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+  
   useEffect(() => {
     // Send height to parent window for iframe resizing
     const sendHeight = () => {
@@ -35,19 +41,16 @@ export default function EmbedInfographicPage() {
     }
   }, [])
 
+  if (!mounted) {
+    return (
+      <div className="w-full min-h-screen flex flex-col items-center justify-start py-10 overflow-auto">
+        <div>Loading infographic...</div>
+      </div>
+    )
+  }
+  
   return (
-    <div style={{ 
-      width: '100%',
-      minHeight: '100vh',
-      background: 'transparent',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'flex-start',
-      padding: '40px 20px',
-      boxSizing: 'border-box',
-      overflow: 'auto'
-    }}>
+    <div className="w-full min-h-screen flex flex-col items-center justify-start py-10 overflow-auto">
       <AnimatedInfographic isEmbed={true} />
     </div>
   )
