@@ -15,6 +15,12 @@ body {
   min-height: auto !important;
 }
 
+/* Force remove gradient from min-h-screen class which is used by infographic */
+.min-h-screen {
+  background: transparent !important;
+  background-image: none !important;
+}
+
 /* Force remove ALL gradient backgrounds from any divs */
 body > div,
 body > div > div {
