@@ -537,7 +537,7 @@ export default function AnimatedInfographic({ isEmbed = false }: { isEmbed?: boo
               The Prompt Page System
             </span>
           </h1>
-          <p className="text-gray-300 text-base lg:text-lg">Human-powered reviews with smart assistance</p>
+          <p className="text-white text-base lg:text-lg">Human-powered reviews with smart assistance</p>
         </div>
 
         {/* Main Layout - 3 Stop Journey */}
