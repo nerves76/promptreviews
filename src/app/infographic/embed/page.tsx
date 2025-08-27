@@ -1,10 +1,49 @@
 'use client'
 
 import { useEffect } from 'react'
-import AnimatedInfographic from '../../components/AnimatedInfographic'
+import dynamic from 'next/dynamic'
+
+// Dynamically import to avoid SSR issues
+const AnimatedInfographic = dynamic(() => import('../../components/AnimatedInfographic'), {
+  ssr: false,
+  loading: () => <div>Loading infographic...</div>
+})
 
 export default function EmbedInfographicPage() {
   useEffect(() => {
+    // Apply styles to hide chrome after component mounts
+    const style = document.createElement('style')
+    style.innerHTML = `
+      /* Hide gradient background */
+      body {
+        background: transparent !important;
+        background-image: none !important;
+      }
+      
+      .min-h-screen {
+        background: transparent !important;
+        background-image: none !important;
+        min-height: auto !important;
+      }
+      
+      /* Hide navigation */
+      header, nav {
+        display: none !important;
+      }
+      
+      /* Hide help bubble */
+      button[aria-label*="Help"] {
+        display: none !important;
+      }
+      
+      /* Clean main */
+      main {
+        padding: 0 !important;
+        background: transparent !important;
+      }
+    `
+    document.head.appendChild(style)
+    
     // Send height to parent window for iframe resizing
     const sendHeight = () => {
       const height = document.documentElement.scrollHeight
@@ -30,73 +69,13 @@ export default function EmbedInfographicPage() {
   }, [])
 
   return (
-    <>
-      <style dangerouslySetInnerHTML={{ __html: `
-        /* Critical: Hide ALL app wrapper elements */
-        body > div:first-child > div.min-h-screen {
-          min-height: auto !important;
-          background: transparent !important;
-        }
-        
-        /* Remove ALL navigation, headers, help components */
-        header, nav, [role="navigation"],
-        .min-h-screen > main > header,
-        body > div > div > main > header,
-        [aria-label*="Help"],
-        [aria-label*="help"],
-        button[aria-label*="Help"],
-        div[class*="help"],
-        div[class*="Help"],
-        div[id*="help"],
-        div[id*="Help"],
-        [class*="FeedbackBubble"],
-        [class*="feedback-bubble"],
-        [class*="HelpModal"],
-        [class*="help-modal"] {
-          display: none !important;
-        }
-        
-        /* Ensure transparent background */
-        html, body, body > div, body > div > div {
-          background: transparent !important;
-          background-color: transparent !important;
-          background-image: none !important;
-        }
-        
-        /* Remove main padding/margins */
-        main {
-          padding: 0 !important;
-          margin: 0 !important;
-          background: transparent !important;
-        }
-        
-        /* Hide any floating/fixed positioned elements */
-        body > div:not(:first-child),
-        div[style*="position: fixed"],
-        div[style*="position: absolute"]:not([id="icon-sprite-container"]) {
-          display: none !important;
-        }
-        
-        /* Ensure infographic container is clean */
-        .w-full.min-h-screen {
-          background: transparent !important;
-          padding: 0 !important;
-          margin: 0 !important;
-        }
-      `}} />
-      
-      <div className="w-full flex items-center justify-center" style={{ 
-        background: 'transparent',
-        minHeight: 'auto',
-        padding: '20px 0'
+    <div className="w-full flex items-center justify-center p-4">
+      <div style={{ 
+        transform: 'scale(0.85)', 
+        transformOrigin: 'center center'
       }}>
-        <div style={{ 
-          transform: 'scale(0.85)', 
-          transformOrigin: 'center center'
-        }}>
-          <AnimatedInfographic />
-        </div>
+        <AnimatedInfographic />
       </div>
-    </>
+    </div>
   )
 }

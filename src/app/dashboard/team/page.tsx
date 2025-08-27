@@ -604,6 +604,7 @@ export default function TeamPage() {
 
   // Add Chris for support
   const addChris = async () => {
+    console.log('Add Chris button clicked');
     try {
       setAddingChris(true);
       setError(null);
@@ -612,12 +613,14 @@ export default function TeamPage() {
       // Get authentication headers
       const headers = await getAuthHeaders();
 
+      console.log('Calling /api/team/add-chris');
       const response = await fetch('/api/team/add-chris', {
         method: 'POST',
         headers,
       });
 
       const data = await response.json();
+      console.log('Response:', response.status, data);
 
       if (!response.ok) {
         throw new Error(data.error || 'Failed to add Chris for support');
@@ -629,12 +632,14 @@ export default function TeamPage() {
       // Clear success message after 8 seconds
       setTimeout(() => setSuccess(null), 8000);
     } catch (err) {
+      console.error('Error in addChris:', err);
       const errorMessage = err instanceof Error ? err.message : 'Failed to add Chris';
       setError(errorMessage);
       // Clear error message after 5 seconds
       setTimeout(() => setError(null), 5000);
     } finally {
       setAddingChris(false);
+      console.log('addChris finished');
     }
   };
 
