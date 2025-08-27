@@ -2,21 +2,22 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Minimal styles for embed - NO GRADIENT! */
+/* Minimal styles for embed - TEMPORARY DARK BACKGROUND FOR DEBUGGING */
 html {
   height: 100%;
-  background: transparent;
+  background: #1a1a2e; /* TEMPORARY: Dark blue for debugging */
 }
 
 body {
   margin: 0;
   padding: 0;
-  background: transparent !important;
+  background: #1a1a2e !important; /* TEMPORARY: Dark blue for debugging */
   min-height: auto !important;
 }
 
-/* Ensure no gradient leaks through */
-* {
+/* Don't remove ALL background images - some are needed for the infographic */
+/* Only remove the body gradient */
+body > div.min-h-screen {
   background-image: none !important;
 }
 
