@@ -3,29 +3,7 @@
 import { useEffect } from 'react'
 import AnimatedInfographic from '../../components/AnimatedInfographic'
 
-// Override default layout by returning raw HTML structure
 export default function EmbedInfographicPage() {
-  useEffect(() => {
-    // Load the SVG sprite inline for the embed context
-    const spriteContainer = document.getElementById('icon-sprite-container')
-    if (!spriteContainer) {
-      const div = document.createElement('div')
-      div.id = 'icon-sprite-container'
-      div.style.position = 'absolute'
-      div.style.width = '0'
-      div.style.height = '0'
-      div.style.overflow = 'hidden'
-      // Fetch and inject the sprite
-      fetch('/icons-sprite.svg')
-        .then(res => res.text())
-        .then(svg => {
-          div.innerHTML = svg
-          document.body.appendChild(div)
-        })
-        .catch(err => console.error('Failed to load icons:', err))
-    }
-  }, [])
-  
   useEffect(() => {
     // Send height to parent window for iframe resizing
     const sendHeight = () => {
@@ -54,38 +32,64 @@ export default function EmbedInfographicPage() {
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: `
-        /* Transparent background for embed */
-        html, body {
+        /* Critical: Hide ALL app wrapper elements */
+        body > div:first-child > div.min-h-screen {
+          min-height: auto !important;
           background: transparent !important;
         }
         
-        /* Hide all navigation and header elements */
-        header, nav, [role="navigation"], 
+        /* Remove ALL navigation, headers, help components */
+        header, nav, [role="navigation"],
         .min-h-screen > main > header,
-        body > div > div > main > header {
+        body > div > div > main > header,
+        [aria-label*="Help"],
+        [aria-label*="help"],
+        button[aria-label*="Help"],
+        div[class*="help"],
+        div[class*="Help"],
+        div[id*="help"],
+        div[id*="Help"],
+        [class*="FeedbackBubble"],
+        [class*="feedback-bubble"],
+        [class*="HelpModal"],
+        [class*="help-modal"] {
           display: none !important;
         }
         
-        /* Remove wrapper padding/margins */
-        .min-h-screen {
-          min-height: auto !important;
+        /* Ensure transparent background */
+        html, body, body > div, body > div > div {
+          background: transparent !important;
+          background-color: transparent !important;
+          background-image: none !important;
         }
         
-        .min-h-screen > main {
+        /* Remove main padding/margins */
+        main {
+          padding: 0 !important;
+          margin: 0 !important;
+          background: transparent !important;
+        }
+        
+        /* Hide any floating/fixed positioned elements */
+        body > div:not(:first-child),
+        div[style*="position: fixed"],
+        div[style*="position: absolute"]:not([id="icon-sprite-container"]) {
+          display: none !important;
+        }
+        
+        /* Ensure infographic container is clean */
+        .w-full.min-h-screen {
+          background: transparent !important;
           padding: 0 !important;
           margin: 0 !important;
         }
-        
-        /* Remove default padding/margins for embed */
-        .relative.max-w-7xl {
-          max-width: none !important;
-          padding-left: 0 !important;
-          padding-right: 0 !important;
-          margin-left: auto !important;
-          margin-right: auto !important;
-        }
       `}} />
-      <div className="w-full min-h-screen flex items-center justify-center overflow-hidden" style={{ background: 'transparent' }}>
+      
+      <div className="w-full flex items-center justify-center" style={{ 
+        background: 'transparent',
+        minHeight: 'auto',
+        padding: '20px 0'
+      }}>
         <div style={{ 
           transform: 'scale(0.85)', 
           transformOrigin: 'center center'

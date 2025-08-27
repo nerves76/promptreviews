@@ -1,11 +1,4 @@
-import '@/app/globals.css'
-
-export const metadata = {
-  title: 'PromptReviews Infographic',
-  description: 'How PromptReviews helps businesses get more reviews',
-}
-
-// This layout completely replaces the root layout for the embed page
+// Minimal layout for embed - bypasses all app wrappers
 export default function EmbedLayout({
   children,
 }: {
