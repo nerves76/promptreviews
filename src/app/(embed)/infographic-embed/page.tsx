@@ -4,7 +4,7 @@ import { useEffect } from 'react'
 import dynamic from 'next/dynamic'
 
 // Dynamically import to avoid SSR issues
-const AnimatedInfographic = dynamic(() => import('../../components/AnimatedInfographic'), {
+const AnimatedInfographic = dynamic(() => import('../../(app)/components/AnimatedInfographic'), {
   ssr: false,
   loading: () => <div>Loading infographic...</div>
 })
