@@ -13,7 +13,7 @@ export async function GET() {
 
     // Create iframe
     var iframe = document.createElement('iframe');
-    iframe.src = '${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3002'}/infographic/embed';
+    iframe.src = '${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3002'}/infographic-embed';
     iframe.style.width = '100%';
     iframe.style.minHeight = '800px';
     iframe.style.border = 'none';

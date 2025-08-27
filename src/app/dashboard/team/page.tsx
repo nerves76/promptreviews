@@ -1196,43 +1196,76 @@ export default function TeamPage() {
         </div>
       )}
 
-      {/* Add Chris for Support (Owners Only) - Moved to bottom */}
-      {isOwner && !members.some(member => 
-        member.email === 'chris@diviner.agency' || 
-        member.email === 'nerves76@gmail.com'
-      ) && (
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6 mt-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-lg font-semibold text-blue-900 mb-2">
-                🛠️ Need Development Support?
-              </h3>
-              <p className="text-blue-800 mb-2">
-                Add Chris for development assistance, bug fixes, and technical support. (Also, tell him about your problem first.)
-              </p>
-              <p className="text-sm text-blue-600">
-                <strong>Note:</strong> Support members don't count against your team member limits.
-              </p>
+      {/* Development Support Section - Always visible for owners */}
+      {isOwner && (
+        (() => {
+          const chrisMember = members.find(member => 
+            member.email === 'chris@diviner.agency' || 
+            member.email === 'nerves76@gmail.com'
+          );
+          const hasChris = !!chrisMember;
+          
+          return (
+            <div className={`border rounded-lg p-6 mt-8 ${
+              hasChris 
+                ? 'bg-gradient-to-r from-green-50 to-emerald-50 border-green-200' 
+                : 'bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200'
+            }`}>
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className={`text-lg font-semibold mb-2 ${
+                    hasChris ? 'text-green-900' : 'text-blue-900'
+                  }`}>
+                    {hasChris ? '✅ Development Support Active' : '🛠️ Need Development Support?'}
+                  </h3>
+                  {hasChris ? (
+                    <>
+                      <p className="text-green-700 mb-2">
+                        Chris has been added to your team for development assistance, bug fixes, and technical support.
+                      </p>
+                      {chrisMember.role === 'support' && (
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                          Support Role
+                        </span>
+                      )}
+                      <p className="text-sm text-green-600 mt-2">
+                        <strong>Note:</strong> Support members don't count against your team member limits.
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-blue-800 mb-2">
+                        Add Chris for development assistance, bug fixes, and technical support. (Also, tell him about your problem first.)
+                      </p>
+                      <p className="text-sm text-blue-600">
+                        <strong>Note:</strong> Support members don't count against your team member limits.
+                      </p>
+                    </>
+                  )}
+                </div>
+                {!hasChris && (
+                  <button
+                    onClick={addChris}
+                    disabled={addingChris}
+                    className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 font-medium"
+                  >
+                    {addingChris ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        Adding Chris...
+                      </>
+                    ) : (
+                      <>
+                        <PlusIcon className="w-5 h-5" />
+                        Add Chris
+                      </>
+                    )}
+                  </button>
+                )}
+              </div>
             </div>
-            <button
-              onClick={addChris}
-              disabled={addingChris}
-              className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 font-medium"
-            >
-              {addingChris ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  Adding Chris...
-                </>
-              ) : (
-                <>
-                  <PlusIcon className="w-5 h-5" />
-                  Add Chris
-                </>
-              )}
-            </button>
-          </div>
-        </div>
+          );
+        })()
       )}
     </div>
   );
