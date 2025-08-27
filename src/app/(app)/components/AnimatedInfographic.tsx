@@ -749,12 +749,13 @@ export default function AnimatedInfographic({ isEmbed = false }: { isEmbed?: boo
               {/* Central Prompt Page - looks like actual prompt page structure */}
               <div className="absolute left-1/2 -translate-x-1/2 z-20" style={{ top: 'calc(50% + 20px)', transform: 'translateX(-50%) translateY(-50%)' }}>
                 <div className="relative">
-                  {/* Always active pulse effect */}
+                  {/* Subtle glow effect - static for better performance */}
                   <div 
                     className="absolute inset-0 rounded-2xl"
                     style={{
-                      background: 'radial-gradient(circle, rgba(147,51,234,0.3), transparent)',
-                      animation: 'pulseAroundCenter 3s ease-out infinite'
+                      background: 'radial-gradient(circle, rgba(147,51,234,0.2), transparent)',
+                      transform: 'scale(1.3)',
+                      opacity: 0.6
                     }}
                   />
                   <div className="absolute inset-0 rounded-2xl blur-xl bg-gradient-to-br from-purple-400/20 to-pink-400/20" />
