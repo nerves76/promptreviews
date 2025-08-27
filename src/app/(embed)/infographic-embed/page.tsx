@@ -38,11 +38,13 @@ export default function EmbedInfographicPage() {
   return (
     <div style={{ 
       width: '100%',
+      minHeight: '100vh',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
       padding: '16px',
-      background: 'transparent'
+      background: 'transparent',
+      overflow: 'hidden'
     }}>
       <div style={{ 
         transform: 'scale(0.85)', 

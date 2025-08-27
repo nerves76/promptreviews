@@ -520,7 +520,7 @@ export default function AnimatedInfographic() {
           }
         }
       `}</style>
-      <div className="relative w-full" style={{ minHeight: '100vh' }} ref={containerRef}>
+      <div className="relative w-full" ref={containerRef}>
         {/* Content wrapper - uses available width */}
         <div 
           className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10"

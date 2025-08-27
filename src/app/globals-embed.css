@@ -33,18 +33,29 @@ div.min-h-screen {
   background-color: transparent !important;
 }
 
-/* Force remove ALL gradient backgrounds from any divs */
-body > div,
-body > div > div {
+/* Force remove gradient backgrounds ONLY from wrapper divs, not from elements with inline styles */
+body > div:not([style*="background"]),
+body > div > div:not([style*="background"]) {
   background-image: none !important;
   background: transparent !important;
 }
 
-/* But preserve the infographic's internal gradients */
+/* But preserve the infographic's internal gradients and text gradients */
 .bg-gradient-to-r,
 .bg-gradient-to-b,
-.bg-gradient-to-br {
+.bg-gradient-to-br,
+.bg-gradient-to-l {
   background-image: initial !important;
+}
+
+/* Preserve gradient text effects */
+.bg-clip-text {
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+}
+
+.text-transparent {
+  color: transparent !important;
 }
 
 /* Support for animations in the infographic */
