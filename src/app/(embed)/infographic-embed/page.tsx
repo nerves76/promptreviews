@@ -42,13 +42,16 @@ export default function EmbedInfographicPage() {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      padding: '40px 16px 16px 16px',
+      padding: '80px 16px 16px 16px',
       background: 'transparent',
-      overflow: 'visible'
+      overflow: 'hidden',
+      overflowX: 'hidden',
+      position: 'relative'
     }}>
       <div style={{ 
         transform: 'scale(0.85)', 
-        transformOrigin: 'center center'
+        transformOrigin: 'center top',
+        marginTop: '-50px'
       }}>
         <AnimatedInfographic />
       </div>
