@@ -41,11 +41,17 @@ body > div > div:not([style*="background"]) {
 }
 
 /* But preserve the infographic's internal gradients and text gradients */
-.bg-gradient-to-r,
-.bg-gradient-to-b,
-.bg-gradient-to-br,
+.bg-gradient-to-r {
+  background-image: linear-gradient(to right, var(--tw-gradient-stops)) !important;
+}
+.bg-gradient-to-b {
+  background-image: linear-gradient(to bottom, var(--tw-gradient-stops)) !important;
+}
+.bg-gradient-to-br {
+  background-image: linear-gradient(to bottom right, var(--tw-gradient-stops)) !important;
+}
 .bg-gradient-to-l {
-  background-image: initial !important;
+  background-image: linear-gradient(to left, var(--tw-gradient-stops)) !important;
 }
 
 /* Preserve gradient text effects */
