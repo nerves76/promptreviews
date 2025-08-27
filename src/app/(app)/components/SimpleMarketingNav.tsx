@@ -1,7 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import Icon from "@/components/Icon";
-import PromptReviewsLogo from "@/app/dashboard/components/PromptReviewsLogo";
+import PromptReviewsLogo from "@/app/(app)/dashboard/components/PromptReviewsLogo";
 import { usePathname } from "next/navigation";
 
 export default function SimpleMarketingNav() {

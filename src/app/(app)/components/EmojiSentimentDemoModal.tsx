@@ -6,7 +6,7 @@
  */
 
 import React from "react";
-import { DraggableModal } from "@/app/dashboard/widget/components/DraggableModal";
+import { DraggableModal } from "@/app/(app)/dashboard/widget/components/DraggableModal";
 
 interface EmojiSentimentDemoModalProps {
   isOpen: boolean;

@@ -10,7 +10,7 @@ import { createClient, getUserOrMock } from "@/utils/supabaseClient";
 import { useAuth } from "@/auth";
 import { trackEvent, GA_EVENTS } from '@/utils/analytics';
 import { fetchOnboardingTasks } from "@/utils/onboardingTasks";
-import PromptReviewsLogo from "@/app/dashboard/components/PromptReviewsLogo";
+import PromptReviewsLogo from "@/app/(app)/dashboard/components/PromptReviewsLogo";
 import { AccountSwitcher } from './AccountSwitcher';
 import { getAccountIdForUser } from "@/auth/utils/accounts";
 import GetReviewsDropdown from './GetReviewsDropdown';
