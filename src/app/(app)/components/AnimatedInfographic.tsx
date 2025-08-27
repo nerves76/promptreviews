@@ -22,11 +22,104 @@ export default function AnimatedInfographic({ isEmbed = false }: { isEmbed?: boo
   const [reviewFormStep, setReviewFormStep] = useState(0) // 0: idle, 1: content filled, 2: button lit, 3: success
   const [scale, setScale] = useState(1)
   const [isVisible, setIsVisible] = useState(false)
+  const [beamStyles, setBeamStyles] = useState({ beam1: {}, beam2: {} })
   const containerRef = useRef<HTMLDivElement>(null)
+  const customerRef = useRef<HTMLDivElement>(null)
+  const promptPageRef = useRef<HTMLDivElement>(null)
+  const reviewPlatformRef = useRef<HTMLDivElement>(null)
+  const promptPageCardRef = useRef<HTMLDivElement>(null)
+  const reviewPlatformCardRef = useRef<HTMLDivElement>(null)
 
   // Set mounted state and handle responsive scaling
   useEffect(() => {
     setMounted(true)
+    
+    // Calculate beam positions based on actual element positions
+    const calculateBeamPositions = () => {
+      console.log('calculateBeamPositions called')
+      console.log('Refs:', {
+        customer: !!customerRef.current,
+        container: !!containerRef.current,
+        promptPageCard: !!promptPageCardRef.current,
+        promptPage: !!promptPageRef.current,
+        reviewPlatformCard: !!reviewPlatformCardRef.current,
+        reviewPlatform: !!reviewPlatformRef.current
+      })
+      
+      if (!customerRef.current || !containerRef.current) {
+        console.log('Missing customer or container ref')
+        return
+      }
+      
+      // Use the card ref if available, otherwise use the wrapper
+      const promptPageElement = promptPageCardRef.current || promptPageRef.current
+      const reviewPlatformElement = reviewPlatformCardRef.current || reviewPlatformRef.current
+      
+      if (!promptPageElement || !reviewPlatformElement) {
+        console.log('Missing prompt page or review platform element')
+        return
+      }
+      
+      const container = containerRef.current.getBoundingClientRect()
+      const customer = customerRef.current.getBoundingClientRect()
+      const promptPage = promptPageElement.getBoundingClientRect()
+      const reviewPlatform = reviewPlatformElement.getBoundingClientRect()
+      
+      // Calculate vertical position (center of cards minus socket offset)
+      const customerCenter = (customer.top + customer.height / 2) - container.top - 8
+      const promptPageCenter = (promptPage.top + promptPage.height / 2) - container.top - 8
+      const reviewPlatformCenter = (reviewPlatform.top + reviewPlatform.height / 2) - container.top - 7 // Review platform socket is 1px lower
+      
+      // Calculate beam 1: customer right socket to prompt page left socket
+      const beam1Start = (customer.right - container.left) - 6
+      const beam1End = (promptPage.left - container.left) + 6
+      const beam1Top = (customerCenter + promptPageCenter) / 2 // Average height between the two
+      
+      // Calculate beam 2: prompt page right socket to review platform left socket  
+      const beam2Start = (promptPage.right - container.left) - 6
+      const beam2End = (reviewPlatform.left - container.left) + 6
+      const beam2Top = (promptPageCenter + reviewPlatformCenter) / 2 // Average height between the two
+      
+      // Debug logging
+      console.log('Beam positions calculated:', {
+        customer: { right: customer.right - container.left },
+        promptPage: { left: promptPage.left - container.left, right: promptPage.right - container.left },
+        reviewPlatform: { left: reviewPlatform.left - container.left },
+        beam1: { start: beam1Start, end: beam1End, width: beam1End - beam1Start },
+        beam2: { start: beam2Start, end: beam2End, width: beam2End - beam2Start }
+      })
+      
+      setBeamStyles({
+        beam1: {
+          left: `${beam1Start}px`,
+          width: `${beam1End - beam1Start}px`,
+          top: `${beam1Top}px`,
+          height: '12px'
+        },
+        beam2: {
+          left: `${beam2Start}px`,
+          width: `${beam2End - beam2Start}px`,
+          top: `${beam2Top}px`, 
+          height: '12px'
+        }
+      })
+    }
+    
+    // Wait for layout to settle, then calculate
+    const timers = [
+      setTimeout(calculateBeamPositions, 100),
+      setTimeout(calculateBeamPositions, 300),
+      setTimeout(calculateBeamPositions, 500),
+      setTimeout(calculateBeamPositions, 1000)
+    ]
+    
+    // Recalculate on resize
+    window.addEventListener('resize', calculateBeamPositions)
+    
+    return () => {
+      window.removeEventListener('resize', calculateBeamPositions)
+      timers.forEach(timer => clearTimeout(timer))
+    }
     
     const handleResize = () => {
       const width = window.innerWidth
@@ -543,7 +636,7 @@ export default function AnimatedInfographic({ isEmbed = false }: { isEmbed?: boo
         {/* Content wrapper - uses available width */}
         <div 
           className="relative mx-auto px-4 sm:px-6 lg:px-8 py-10"
-          style={{ width: isEmbed ? '1000px' : 'auto', maxWidth: isEmbed ? '1000px' : '80rem' }}
+          style={{ width: 'auto', maxWidth: '80rem' }}
         >
         {/* Removed background - uses site's gradient */}
 
@@ -569,11 +662,7 @@ export default function AnimatedInfographic({ isEmbed = false }: { isEmbed?: boo
               {/* First Beam: Customer to Prompt Page socket (horizontal on desktop) - Updated positioning */}
               <div className="hidden md:block absolute z-5 pointer-events-none overflow-hidden rounded-full" 
                 style={{ 
-                  left: isEmbed ? '205px' : 'calc(15.5% + 4px)',  // Force update with new position
-                  width: isEmbed ? '240px' : '24%',  // Fixed width when embedded (24% of 1000px)
-                  top: '314px',  // Moved down 1px more
-                  transform: 'translateY(0)',  // No transform needed
-                  height: '12px', 
+                  ...beamStyles.beam1,
                   boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.3), 0 0 20px rgba(147, 51, 234, 0.3)' 
                 }}>
                 {/* Groove effect */}
@@ -599,11 +688,7 @@ export default function AnimatedInfographic({ isEmbed = false }: { isEmbed?: boo
               {/* Second Beam: Prompt Page socket to Review Platforms socket */}
               <div className="hidden md:block absolute z-5 pointer-events-none overflow-hidden rounded-full" 
                 style={{ 
-                  left: isEmbed ? '669px' : 'calc(58.5% + 34px)',  // Force update with new position
-                  width: isEmbed ? '210px' : '21%',  // Fixed width when embedded (21% of 1000px)
-                  top: '314px',  // Moved down 1px more
-                  transform: 'translateY(0)',  // No transform needed
-                  height: '12px', 
+                  ...beamStyles.beam2,
                   boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.3), 0 0 20px rgba(147, 51, 234, 0.3)' 
                 }}>
                 {/* Groove effect */}
@@ -631,7 +716,7 @@ export default function AnimatedInfographic({ isEmbed = false }: { isEmbed?: boo
           
           
           {/* STOP 1: Customer (Left) - z-30 to be above beam */}
-          <div className="relative flex-shrink-0 z-30" style={{ marginTop: '160px' }}>
+          <div ref={customerRef} className="relative flex-shrink-0 z-30" style={{ marginTop: '160px' }}>
             <div className="relative md:mt-8">
               
               {/* Phone with notification - transparent and close to customer */}
@@ -763,12 +848,12 @@ export default function AnimatedInfographic({ isEmbed = false }: { isEmbed?: boo
           </div>
 
           {/* STOP 2: Prompt Page with Tools (Center) */}
-          <div className="relative flex-grow flex justify-center -mt-32 md:mt-0">
+          <div ref={promptPageRef} className="relative flex-grow flex justify-center -mt-32 md:mt-0">
             <div className="relative w-[500px] h-[500px] lg:w-[600px] lg:h-[600px]">
               
               {/* Central Prompt Page - looks like actual prompt page structure */}
               <div className="absolute left-1/2 -translate-x-1/2 z-20" style={{ top: 'calc(50% + 20px)', transform: 'translateX(-50%) translateY(-50%)' }}>
-                <div className="relative">
+                <div ref={promptPageCardRef} className="relative">
                   {/* Subtle glow effect - static for better performance */}
                   <div 
                     className="absolute inset-0 rounded-2xl"
@@ -1156,7 +1241,7 @@ export default function AnimatedInfographic({ isEmbed = false }: { isEmbed?: boo
           </div>
 
           {/* STOP 3: Review Form (Right) */}
-          <div className="relative flex-shrink-0 flex items-center justify-center md:ml-4" style={{ marginTop: mounted && typeof window !== 'undefined' && window.innerWidth >= 768 ? '37px' : '-16px' }}>
+          <div ref={reviewPlatformRef} className="relative flex-shrink-0 flex items-center justify-center md:ml-4" style={{ marginTop: mounted && typeof window !== 'undefined' && window.innerWidth >= 768 ? '37px' : '-16px' }}>
             
             {/* T-connector where beam meets form - aligned with beam - hidden on mobile */}
             <div 
