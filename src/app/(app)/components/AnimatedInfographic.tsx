@@ -65,28 +65,38 @@ export default function AnimatedInfographic({ isEmbed = false }: { isEmbed?: boo
       const promptPage = promptPageElement.getBoundingClientRect()
       const reviewPlatform = reviewPlatformElement.getBoundingClientRect()
       
-      // Calculate vertical position (center of cards minus socket offset)
-      const customerCenter = (customer.top + customer.height / 2) - container.top - 8
-      const promptPageCenter = (promptPage.top + promptPage.height / 2) - container.top - 8
-      const reviewPlatformCenter = (reviewPlatform.top + reviewPlatform.height / 2) - container.top - 7 // Review platform socket is 1px lower
+      // Calculate vertical position - sockets are at 50% of card height minus 8px
+      // But we need to account for where the cards are positioned in the container
+      const customerVerticalCenter = customer.top + (customer.height / 2) - container.top - 8
+      const promptPageVerticalCenter = promptPage.top + (promptPage.height / 2) - container.top - 8
+      const reviewPlatformVerticalCenter = reviewPlatform.top + (reviewPlatform.height / 2) - container.top - 7
       
-      // Calculate beam 1: customer right socket to prompt page left socket
-      const beam1Start = (customer.right - container.left) - 6
+      // Calculate the actual vertical center of the prompt page for beam alignment
+      // Add 5px total to move beams down to correct position
+      const socketVerticalPosition = promptPageVerticalCenter + 5
+      
+      // Calculate beam 1: ACTUALLY connect customer to prompt page
+      // Customer right edge is at ~440px, we want to start a bit before that
+      const beam1Start = (customer.right - container.left) - 10  // Just slightly into customer
+      // Prompt page left is at ~660px, socket is 6px into the card
       const beam1End = (promptPage.left - container.left) + 6
-      const beam1Top = (customerCenter + promptPageCenter) / 2 // Average height between the two
       
-      // Calculate beam 2: prompt page right socket to review platform left socket  
+      // Calculate beam 2: ACTUALLY connect prompt page to review platform
+      // Prompt page right is at ~915px, socket is 6px before edge
       const beam2Start = (promptPage.right - container.left) - 6
+      // Review platform left is at ~1151px, socket is 6px into the card  
       const beam2End = (reviewPlatform.left - container.left) + 6
-      const beam2Top = (promptPageCenter + reviewPlatformCenter) / 2 // Average height between the two
       
-      // Debug logging
-      console.log('Beam positions calculated:', {
-        customer: { right: customer.right - container.left },
-        promptPage: { left: promptPage.left - container.left, right: promptPage.right - container.left },
-        reviewPlatform: { left: reviewPlatform.left - container.left },
+      // Both beams should be at the same height - aligned with the sockets
+      const beam1Top = socketVerticalPosition
+      const beam2Top = socketVerticalPosition
+      
+      // Log for debugging resize issues
+      console.log('Beam recalculated on resize:', {
+        containerWidth: container.width,
         beam1: { start: beam1Start, end: beam1End, width: beam1End - beam1Start },
-        beam2: { start: beam2Start, end: beam2End, width: beam2End - beam2Start }
+        beam2: { start: beam2Start, end: beam2End, width: beam2End - beam2Start },
+        verticalPos: socketVerticalPosition
       })
       
       setBeamStyles({
@@ -113,12 +123,21 @@ export default function AnimatedInfographic({ isEmbed = false }: { isEmbed?: boo
       setTimeout(calculateBeamPositions, 1000)
     ]
     
-    // Recalculate on resize
-    window.addEventListener('resize', calculateBeamPositions)
+    // Recalculate on resize with debounce
+    let resizeTimeout: NodeJS.Timeout
+    const handleBeamResize = () => {
+      clearTimeout(resizeTimeout)
+      resizeTimeout = setTimeout(() => {
+        console.log('Window resized, recalculating beams...')
+        calculateBeamPositions()
+      }, 50)  // Faster response to resize
+    }
+    window.addEventListener('resize', handleBeamResize)
     
     return () => {
-      window.removeEventListener('resize', calculateBeamPositions)
+      window.removeEventListener('resize', handleBeamResize)
       timers.forEach(timer => clearTimeout(timer))
+      clearTimeout(resizeTimeout)
     }
     
     const handleResize = () => {
@@ -662,7 +681,10 @@ export default function AnimatedInfographic({ isEmbed = false }: { isEmbed?: boo
               {/* First Beam: Customer to Prompt Page socket (horizontal on desktop) - Updated positioning */}
               <div className="hidden md:block absolute z-5 pointer-events-none overflow-hidden rounded-full" 
                 style={{ 
-                  ...beamStyles.beam1,
+                  left: '16%',
+                  width: '34%',
+                  top: '265px',  // Moved up 25px more
+                  height: '12px',
                   boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.3), 0 0 20px rgba(147, 51, 234, 0.3)' 
                 }}>
                 {/* Groove effect */}
@@ -688,7 +710,10 @@ export default function AnimatedInfographic({ isEmbed = false }: { isEmbed?: boo
               {/* Second Beam: Prompt Page socket to Review Platforms socket */}
               <div className="hidden md:block absolute z-5 pointer-events-none overflow-hidden rounded-full" 
                 style={{ 
-                  ...beamStyles.beam2,
+                  left: '50%',
+                  width: '34%',
+                  top: '265px',  // Moved up 25px more
+                  height: '12px',
                   boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.3), 0 0 20px rgba(147, 51, 234, 0.3)' 
                 }}>
                 {/* Groove effect */}
