@@ -203,12 +203,12 @@ export default function AnimatedInfographic() {
       category: 'Reciprocity',
       tools: [
         { 
-          name: 'Friendly Note', 
-          iconName: 'FaStickyNote' as const,
-          description: 'Create a personalized note popup for your customer to make them feel special before creating a review.',
-          highlight: 'Shows thoughtfulness',
+          name: 'Falling Stars', 
+          iconName: 'FaStar' as const,
+          description: 'Choose a celebratory icon to rain down from the sky when someone visits your prompt page.',
+          highlight: 'Evokes delight',
           learnMore: null,
-          position: { top: '3%', left: '22%' } // Above beam - left
+          position: { top: '3%', left: '22%' } // Swapped with Friendly Note position
         }
       ]
     },
@@ -266,12 +266,12 @@ export default function AnimatedInfographic() {
       category: 'Delight',
       tools: [
         { 
-          name: 'Falling Stars', 
-          iconName: 'FaStar' as const,
-          description: 'Choose a celebratory icon to rain down from the sky when someone visits your prompt page.',
-          highlight: 'Evokes delight',
+          name: 'Friendly Note', 
+          iconName: 'FaStickyNote' as const,
+          description: 'Create a personalized note popup for your customer to make them feel special before creating a review.',
+          highlight: 'Shows thoughtfulness',
           learnMore: null,
-          position: { bottom: '-13%', right: '32%' } // Below beam - center-right - moved down 50px
+          position: { bottom: '-13%', right: '32%' } // Swapped with Falling Stars position
         },
         { 
           name: 'Branded Design', 
@@ -532,12 +532,12 @@ export default function AnimatedInfographic() {
         
         {/* Title */}
         <div className="text-center mt-12 md:mt-0" style={{ marginBottom: '-75px' }}>
-          <h1 className="text-3xl lg:text-4xl font-bold mb-2">
+          <h1 className="text-4xl lg:text-5xl font-bold mb-2">
             <span className="bg-gradient-to-r from-yellow-300 via-pink-300 to-purple-300 bg-clip-text text-transparent">
               The Prompt Page System
             </span>
           </h1>
-          <p className="text-gray-300 text-sm lg:text-base">Human-powered reviews with smart assistance</p>
+          <p className="text-gray-300 text-base lg:text-lg">Human-powered reviews with smart assistance</p>
         </div>
 
         {/* Main Layout - 3 Stop Journey */}
@@ -570,7 +570,7 @@ export default function AnimatedInfographic() {
                       background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.9), rgba(147, 51, 234, 0.9), rgba(236, 72, 153, 0.8), transparent)',
                       transform: `translateX(${Math.min((beamPosition - 20) / 10 * 800, 800)}%)`,  // Travels in first 10% (20-30% of cycle) - even slower
                       filter: 'blur(2px)',
-                      left: '-160px'
+                      left: '-140px'  // Reduced from -160px to trim 20px off the left
                     }}
                   />
                 )}
@@ -579,8 +579,8 @@ export default function AnimatedInfographic() {
               {/* Second Beam: Prompt Page socket to Review Platforms socket */}
               <div className="hidden md:block absolute z-5 pointer-events-none overflow-hidden rounded-full" 
                 style={{ 
-                  left: '57.5%',
-                  width: '21%',
+                  left: '58.5%',  // Moved right by 1% to trim left side
+                  width: '21%',  // Extended to reach moved Review Platforms
                   top: 'calc(50% - 128px)',  // Align beam with socket
                   transform: 'translateY(0px)',
                   height: '12px', 
@@ -600,7 +600,7 @@ export default function AnimatedInfographic() {
                       background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.9), rgba(147, 51, 234, 0.9), rgba(236, 72, 153, 0.8), transparent)',
                       transform: `translateX(${Math.min((beamPosition - 50) / 10 * 800, 800)}%)`,  // Travels in first 10% (50-60% of cycle) - even slower
                       filter: 'blur(2px)',
-                      left: '-160px'
+                      left: '-140px'  // Reduced from -160px to trim 20px off the left
                     }}
                   />
                 )}
@@ -710,10 +710,10 @@ export default function AnimatedInfographic() {
               
               {/* Label with proper spacing below customer icon */}
               <div className="text-center mt-5 md:mt-20">
-                <h3 className="text-white/95 font-bold text-base lg:text-lg bg-gradient-to-r from-yellow-300 via-pink-300 to-purple-300 bg-clip-text text-transparent">
+                <h3 className="text-white/95 font-bold text-lg lg:text-xl bg-gradient-to-r from-yellow-300 via-pink-300 to-purple-300 bg-clip-text text-transparent">
                   Customer
                 </h3>
-                <p className="text-gray-200/90 text-xs text-center mt-1 max-w-[200px] mx-auto">
+                <p className="text-gray-200/90 text-sm text-center mt-1 max-w-[240px] mx-auto">
                   Share Prompt Pages by QR Code, SMS, Email, or NFC chip.
                 </p>
               </div>
@@ -763,9 +763,9 @@ export default function AnimatedInfographic() {
                   <div 
                     className="hidden md:block absolute z-25 pointer-events-none"
                     style={{
-                      left: '-10px',
+                      left: '-6px',  // Moved further into card to cover beam end
                       top: 'calc(50% - 22px)', // Moved up 1px (from -21px to -22px)
-                      width: '10px',
+                      width: '16px',  // Made wider to cover beam fully
                       height: '16px', // Made 4px taller (from 12px to 16px)
                       background: showEffects 
                         ? 'linear-gradient(to right, rgb(147, 51, 234), rgb(236, 72, 153))'
@@ -782,9 +782,9 @@ export default function AnimatedInfographic() {
                   <div 
                     className="hidden md:block absolute z-25 pointer-events-none"
                     style={{
-                      right: '-10px',
+                      right: '-6px',  // Moved further into card to cover beam end
                       top: 'calc(50% - 22px)', // Moved up 1px (from -21px to -22px)
-                      width: '10px',
+                      width: '16px',  // Made wider to cover beam fully
                       height: '16px', // Made 4px taller (from 12px to 16px)
                       background: showEffects 
                         ? 'linear-gradient(to left, rgb(236, 72, 153), rgb(147, 51, 234))'
@@ -1027,15 +1027,15 @@ export default function AnimatedInfographic() {
                   
                   {/* Label below the form - match customer spacing */}
                   <div className="absolute -bottom-16 md:-bottom-20 left-1/2 -translate-x-1/2 text-center">
-                    <h3 className="text-white/95 font-bold text-base lg:text-lg">Prompt Page</h3>
-                    <p className="text-gray-200/90 text-xs whitespace-nowrap mt-1">Create • Copy • Post</p>
+                    <h3 className="text-white/95 font-bold text-lg lg:text-xl">Prompt Page</h3>
+                    <p className="text-gray-200/90 text-sm whitespace-nowrap mt-1">Create • Copy • Post</p>
                   </div>
                 </div>
               </div>
 
               
               {/* Desktop Features - absolute positioned */}
-              <div className="hidden md:flex absolute left-1/2 -translate-x-1/2 z-30 flex-col items-center bottom-[-190px]">
+              <div className="hidden md:flex absolute left-1/2 -translate-x-1/2 z-30 flex-col items-center bottom-[-230px]">
                 {/* Features Container */}
                 <div 
                   className="flex flex-nowrap items-center justify-center gap-3 lg:gap-6 px-5 lg:px-7 py-3 lg:py-4 rounded-full"
@@ -1062,19 +1062,19 @@ export default function AnimatedInfographic() {
                       {/* Icon */}
                       <Icon 
                         name={tool.iconName} 
-                        size={28} 
+                        size={32} 
                         className="transition-all duration-300"
                         style={{
-                          color: '#fdb5a6',  // More peach/coral color
+                          color: hoveredTool === toolIndex ? '#ec4899' : '#fdb5a6',  // Pink on hover, peach normally
                           filter: hoveredTool === toolIndex
-                            ? 'drop-shadow(0 0 3px rgba(253, 224, 71, 0.5)) drop-shadow(0 0 2px rgba(192, 132, 252, 0.5))'
+                            ? 'drop-shadow(0 0 8px rgba(236, 72, 153, 0.6)) drop-shadow(0 0 4px rgba(236, 72, 153, 0.4))'
                             : 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3))',
                           transform: hoveredTool === toolIndex ? 'scale(1.1)' : 'scale(1)'
                         }}
                       />
                       
                       {/* Tool label */}
-                      <p className="text-white text-[9px] font-medium mt-2 text-center whitespace-nowrap">
+                      <p className="text-white text-xs font-medium mt-2 text-center whitespace-nowrap">
                         {tool.name}
                       </p>
                       
@@ -1082,17 +1082,17 @@ export default function AnimatedInfographic() {
                       {clickedTool === toolIndex && (
                         <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-8 w-64 pointer-events-none z-[99999]">
                           <div className="backdrop-blur-md bg-gray-900/95 rounded-lg border border-white/30 p-4 pointer-events-auto shadow-2xl">
-                            <p className="text-white font-semibold text-sm mb-1">{tool.name}</p>
+                            <p className="text-white font-semibold text-base mb-1">{tool.name}</p>
                             {tool.highlight && (
-                              <p className="text-purple-400 text-xs mb-2">{tool.highlight}</p>
+                              <p className="text-purple-400 text-sm mb-2">{tool.highlight}</p>
                             )}
-                            <p className="text-gray-300 text-xs mb-2">{tool.description}</p>
+                            <p className="text-gray-300 text-sm mb-2">{tool.description}</p>
                             {tool.learnMore && (
                               <a 
                                 href={tool.learnMore}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-blue-400 hover:text-blue-300 text-xs font-medium"
+                                className="text-blue-400 hover:text-blue-300 text-sm font-medium"
                               >
                                 Learn More →
                               </a>
@@ -1105,8 +1105,8 @@ export default function AnimatedInfographic() {
                 </div>
                 
                 {/* Features Header - below the icons on desktop */}
-                <h3 className="text-white/95 font-bold text-base lg:text-lg mt-6">Helpful features</h3>
-                <p className="text-gray-200/90 text-xs text-center mt-1">Help your customers write impactful reviews</p>
+                <h3 className="text-white/95 font-bold text-lg lg:text-xl mt-10">Helpful features</h3>
+                <p className="text-gray-200/90 text-sm text-center mt-1">Help your customers write impactful reviews</p>
               </div>
             </div>
 
@@ -1135,15 +1135,15 @@ export default function AnimatedInfographic() {
           </div>
 
           {/* STOP 3: Review Form (Right) */}
-          <div className="relative flex-shrink-0 flex items-center justify-center -mt-4 md:mt-0">
+          <div className="relative flex-shrink-0 flex items-center justify-center -mt-4 md:mt-0 md:ml-4">
             
             {/* T-connector where beam meets form - aligned with beam - hidden on mobile */}
             <div 
               className="hidden md:block absolute z-20 pointer-events-none"
               style={{
-                left: '-10px',
+                left: '-6px',  // Moved further into card to cover beam end
                 top: 'calc(50% - 2px)', // Adjusted for taller socket
-                width: '10px',
+                width: '16px',  // Made wider to cover beam fully
                 height: '16px', // Made 4px taller (from 12px to 16px)
                 background: showPlatformEffects 
                   ? 'linear-gradient(to right, rgb(147, 51, 234), rgb(236, 72, 153))'
@@ -1258,7 +1258,7 @@ export default function AnimatedInfographic() {
                     }}
                   >
                     <div 
-                      className="text-xs font-medium px-3 py-1 rounded-full"
+                      className="text-sm font-medium px-3 py-1 rounded-full"
                       style={{
                         background: 'linear-gradient(135deg, rgba(139,92,246,0.8), rgba(167,139,250,0.8))',
                         color: 'rgba(255, 255, 255, 0.9)',
@@ -1337,7 +1337,7 @@ export default function AnimatedInfographic() {
                       </>
                     )}
                     <span 
-                      className="text-xs font-medium relative z-10 transition-colors duration-700"
+                      className="text-sm font-medium relative z-10 transition-colors duration-700"
                       style={{
                         color: reviewFormStep >= 4 ? 'rgba(255, 255, 255, 0.8)' : 'rgba(156, 163, 175, 0.5)'
                       }}
@@ -1358,8 +1358,8 @@ export default function AnimatedInfographic() {
                   }}
                 >
                   <div className="bg-green-500/20 border border-green-400/40 rounded-lg px-4 py-3 text-center backdrop-blur-sm">
-                    <div className="text-green-400 text-sm font-semibold mb-1">✓ Success!</div>
-                    <div className="text-green-300/80 text-xs">Review posted!</div>
+                    <div className="text-green-400 text-base font-semibold mb-1">✓ Success!</div>
+                    <div className="text-green-300/80 text-sm">Review posted!</div>
                   </div>
                 </div>
                 
@@ -1393,29 +1393,29 @@ export default function AnimatedInfographic() {
             
             {/* Label below the form - match customer spacing */}
             <div className="absolute left-1/2 -translate-x-1/2 text-center -bottom-16 md:-bottom-[133px]">
-              <h3 className="text-white/95 font-bold text-base lg:text-lg">Review platforms</h3>
-              <p className="text-gray-200/90 text-xs whitespace-nowrap mt-1">Google • Facebook • Yelp • More</p>
+              <h3 className="text-white/95 font-bold text-lg lg:text-xl">Review platforms</h3>
+              <p className="text-gray-200/90 text-sm whitespace-nowrap mt-1">Google • Facebook • Yelp • More</p>
             </div>
           </div>
         </div>
         
         {/* Mobile Features - positioned after all content */}
-        <div className="md:hidden mt-24 flex flex-col items-center z-30 relative">
+        <div className="md:hidden mt-32 flex flex-col items-center z-30 relative">
           {/* Centered Popup - appears above entire features container */}
           {clickedTool !== null && (
             <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-8 w-64 pointer-events-none z-[99999]">
               <div className="backdrop-blur-md bg-gray-900/95 rounded-lg border border-white/30 p-4 pointer-events-auto shadow-2xl">
-                <p className="text-white font-semibold text-sm mb-1">{toolCategories.flatMap(cat => cat.tools)[clickedTool].name}</p>
+                <p className="text-white font-semibold text-base mb-1">{toolCategories.flatMap(cat => cat.tools)[clickedTool].name}</p>
                 {toolCategories.flatMap(cat => cat.tools)[clickedTool].highlight && (
-                  <p className="text-purple-400 text-xs mb-2">{toolCategories.flatMap(cat => cat.tools)[clickedTool].highlight}</p>
+                  <p className="text-purple-400 text-sm mb-2">{toolCategories.flatMap(cat => cat.tools)[clickedTool].highlight}</p>
                 )}
-                <p className="text-gray-300 text-xs mb-2">{toolCategories.flatMap(cat => cat.tools)[clickedTool].description}</p>
+                <p className="text-gray-300 text-sm mb-2">{toolCategories.flatMap(cat => cat.tools)[clickedTool].description}</p>
                 {toolCategories.flatMap(cat => cat.tools)[clickedTool].learnMore && (
                   <a 
                     href={toolCategories.flatMap(cat => cat.tools)[clickedTool].learnMore}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-blue-400 hover:text-blue-300 text-xs font-medium"
+                    className="text-blue-400 hover:text-blue-300 text-sm font-medium"
                   >
                     Learn More →
                   </a>
@@ -1450,19 +1450,19 @@ export default function AnimatedInfographic() {
                 {/* Icon */}
                 <Icon 
                   name={tool.iconName} 
-                  size={25} 
+                  size={29} 
                   className="transition-all duration-300"
                   style={{
-                    color: '#fdb5a6',  // More peach/coral color
+                    color: hoveredTool === toolIndex ? '#ec4899' : '#fdb5a6',  // Pink on hover, peach normally
                     filter: hoveredTool === toolIndex
-                      ? 'drop-shadow(0 0 3px rgba(253, 224, 71, 0.5)) drop-shadow(0 0 2px rgba(192, 132, 252, 0.5))'
+                      ? 'drop-shadow(0 0 8px rgba(236, 72, 153, 0.6)) drop-shadow(0 0 4px rgba(236, 72, 153, 0.4))'
                       : 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3))',
                     transform: hoveredTool === toolIndex ? 'scale(1.1)' : 'scale(1)'
                   }}
                 />
                 
                 {/* Tool label */}
-                <p className="text-white text-[9px] font-medium mt-2 text-center whitespace-nowrap">
+                <p className="text-white text-xs font-medium mt-2 text-center whitespace-nowrap">
                   {tool.name}
                 </p>
               </div>
@@ -1470,8 +1470,8 @@ export default function AnimatedInfographic() {
           </div>
           
           {/* Features Header - now below the icons */}
-          <h3 className="text-white/95 font-bold text-base lg:text-lg mt-6">Helpful features</h3>
-          <p className="text-gray-200/90 text-xs text-center mt-1">Help your customers write impactful reviews</p>
+          <h3 className="text-white/95 font-bold text-lg lg:text-xl mt-10">Helpful features</h3>
+          <p className="text-gray-200/90 text-sm text-center mt-1">Help your customers write impactful reviews</p>
         </div>
 
       </div>
