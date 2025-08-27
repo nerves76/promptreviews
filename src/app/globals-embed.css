@@ -1,0 +1,42 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Minimal styles for embed - NO GRADIENT! */
+html {
+  height: 100%;
+  background: transparent;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background: transparent !important;
+  min-height: auto !important;
+}
+
+/* Ensure no gradient leaks through */
+* {
+  background-image: none !important;
+}
+
+/* Support for animations in the infographic */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideIn {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
