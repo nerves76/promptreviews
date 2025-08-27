@@ -565,13 +565,13 @@ export default function AnimatedInfographic({ isEmbed = false }: { isEmbed?: boo
           {/* Two separate beams */}
           {mounted && (
             <>
-              {/* First Beam: Customer to Prompt Page socket (horizontal on desktop) */}
+              {/* First Beam: Customer to Prompt Page socket (horizontal on desktop) - Updated positioning */}
               <div className="hidden md:block absolute z-5 pointer-events-none overflow-hidden rounded-full" 
                 style={{ 
-                  left: '15.5%',
+                  left: 'calc(15.5% + 2px)',  // Moved 2px right
                   width: '24%',
-                  top: 'calc(50% - 128px)',  // Align beam with socket
-                  transform: 'translateY(0px)',
+                  top: '50%',
+                  transform: 'translateY(-147px)',  // Moved down 3px (was -150px)
                   height: '12px', 
                   boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.3), 0 0 20px rgba(147, 51, 234, 0.3)' 
                 }}>
@@ -598,10 +598,10 @@ export default function AnimatedInfographic({ isEmbed = false }: { isEmbed?: boo
               {/* Second Beam: Prompt Page socket to Review Platforms socket */}
               <div className="hidden md:block absolute z-5 pointer-events-none overflow-hidden rounded-full" 
                 style={{ 
-                  left: '58.5%',  // Moved right by 1% to trim left side
+                  left: 'calc(58.5% + 37px)',  // Moved 3px more left (was +40px, now +37px)
                   width: '21%',  // Extended to reach moved Review Platforms
-                  top: 'calc(50% - 128px)',  // Align beam with socket
-                  transform: 'translateY(0px)',
+                  top: '50%',
+                  transform: 'translateY(-147px)',  // Moved down 3px (was -150px)
                   height: '12px', 
                   boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.3), 0 0 20px rgba(147, 51, 234, 0.3)' 
                 }}>
@@ -729,7 +729,7 @@ export default function AnimatedInfographic({ isEmbed = false }: { isEmbed?: boo
               
               {/* Label with proper spacing below customer icon */}
               <div className="text-center mt-5 md:mt-20">
-                <h3 className="text-white/95 font-bold text-lg lg:text-xl bg-gradient-to-r from-yellow-300 via-pink-300 to-purple-300 bg-clip-text text-transparent">
+                <h3 className="text-white/95 font-bold text-lg lg:text-xl">
                   Customer
                 </h3>
                 <p className="text-gray-200/90 text-sm text-center mt-1 max-w-[240px] mx-auto">
@@ -784,7 +784,7 @@ export default function AnimatedInfographic({ isEmbed = false }: { isEmbed?: boo
                     className="hidden md:block absolute z-25 pointer-events-none"
                     style={{
                       left: '-6px',  // Moved further into card to cover beam end
-                      top: 'calc(50% - 22px)', // Moved up 1px (from -21px to -22px)
+                      top: 'calc(50% - 8px)', // Socket position relative to card center
                       width: '16px',  // Made wider to cover beam fully
                       height: '16px', // Made 4px taller (from 12px to 16px)
                       background: showEffects 
@@ -803,7 +803,7 @@ export default function AnimatedInfographic({ isEmbed = false }: { isEmbed?: boo
                     className="hidden md:block absolute z-25 pointer-events-none"
                     style={{
                       right: '-6px',  // Moved further into card to cover beam end
-                      top: 'calc(50% - 22px)', // Moved up 1px (from -21px to -22px)
+                      top: 'calc(50% - 8px)', // Socket position relative to card center
                       width: '16px',  // Made wider to cover beam fully
                       height: '16px', // Made 4px taller (from 12px to 16px)
                       background: showEffects 
@@ -1047,7 +1047,7 @@ export default function AnimatedInfographic({ isEmbed = false }: { isEmbed?: boo
                   
                   {/* Label below the form - match customer spacing */}
                   <div className="absolute -bottom-16 md:-bottom-20 left-1/2 -translate-x-1/2 text-center">
-                    <h3 className="text-white/95 font-bold text-lg lg:text-xl bg-gradient-to-r from-yellow-300 via-pink-300 to-purple-300 bg-clip-text text-transparent">Prompt Page</h3>
+                    <h3 className="text-white/95 font-bold text-lg lg:text-xl">Prompt Page</h3>
                     <p className="text-gray-200/90 text-sm whitespace-nowrap mt-1">Create • Copy • Post</p>
                   </div>
                 </div>
@@ -1125,7 +1125,7 @@ export default function AnimatedInfographic({ isEmbed = false }: { isEmbed?: boo
                 </div>
                 
                 {/* Features Header - below the icons on desktop */}
-                <h3 className="text-white/95 font-bold text-lg lg:text-xl mt-10 bg-gradient-to-r from-yellow-300 via-pink-300 to-purple-300 bg-clip-text text-transparent">Helpful features</h3>
+                <h3 className="text-white/95 font-bold text-lg lg:text-xl mt-10">Helpful features</h3>
                 <p className="text-gray-200/90 text-sm text-center mt-1">Help your customers write impactful reviews</p>
               </div>
             </div>
@@ -1155,14 +1155,14 @@ export default function AnimatedInfographic({ isEmbed = false }: { isEmbed?: boo
           </div>
 
           {/* STOP 3: Review Form (Right) */}
-          <div className="relative flex-shrink-0 flex items-center justify-center -mt-4 md:mt-0 md:ml-4">
+          <div className="relative flex-shrink-0 flex items-center justify-center md:ml-4" style={{ marginTop: mounted && typeof window !== 'undefined' && window.innerWidth >= 768 ? '37px' : '-16px' }}>
             
             {/* T-connector where beam meets form - aligned with beam - hidden on mobile */}
             <div 
               className="hidden md:block absolute z-0 pointer-events-none"
               style={{
                 left: '-6px',  // Moved further into card to cover beam end
-                top: 'calc(50% - 2px)', // Adjusted for taller socket
+                top: 'calc(50% - 8px)', // Socket position for review platform
                 width: '16px',  // Made wider to cover beam fully
                 height: '16px', // Made 4px taller (from 12px to 16px)
                 background: showPlatformEffects 
@@ -1413,7 +1413,7 @@ export default function AnimatedInfographic({ isEmbed = false }: { isEmbed?: boo
             
             {/* Label below the form - match customer spacing */}
             <div className="absolute left-1/2 -translate-x-1/2 text-center -bottom-16 md:-bottom-[133px]">
-              <h3 className="text-white/95 font-bold text-lg lg:text-xl bg-gradient-to-r from-yellow-300 via-pink-300 to-purple-300 bg-clip-text text-transparent">Review platforms</h3>
+              <h3 className="text-white/95 font-bold text-lg lg:text-xl">Review platforms</h3>
               <p className="text-gray-200/90 text-sm whitespace-nowrap mt-1">Google • Facebook • Yelp • More</p>
             </div>
           </div>
@@ -1490,7 +1490,7 @@ export default function AnimatedInfographic({ isEmbed = false }: { isEmbed?: boo
           </div>
           
           {/* Features Header - now below the icons */}
-          <h3 className="text-white/95 font-bold text-lg lg:text-xl mt-10 bg-gradient-to-r from-yellow-300 via-pink-300 to-purple-300 bg-clip-text text-transparent">Helpful features</h3>
+          <h3 className="text-white/95 font-bold text-lg lg:text-xl mt-10">Helpful features</h3>
           <p className="text-gray-200/90 text-sm text-center mt-1">Help your customers write impactful reviews</p>
         </div>
 
