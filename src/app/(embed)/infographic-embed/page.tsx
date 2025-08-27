@@ -38,19 +38,20 @@ export default function EmbedInfographicPage() {
   return (
     <div style={{ 
       width: '100%',
-      minHeight: '100vh',
+      height: '100vh',
       background: 'transparent',
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
-      paddingTop: '20px',
-      paddingBottom: '20px',
+      justifyContent: 'center',
+      padding: '20px',
       boxSizing: 'border-box',
-      overflow: 'auto'
+      overflow: 'hidden'
     }}>
       <div style={{ 
-        transform: 'scale(0.85)', 
-        transformOrigin: 'top center'
+        transform: 'scale(0.75)', 
+        transformOrigin: 'center center',
+        flexShrink: 0
       }}>
         <AnimatedInfographic isEmbed={true} />
       </div>

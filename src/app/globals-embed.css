@@ -6,6 +6,7 @@
 html {
   height: 100%;
   background: transparent !important;
+  overflow: hidden !important;
 }
 
 body {
@@ -16,6 +17,8 @@ body {
   background-color: transparent !important;
   background-attachment: initial !important;
   min-height: auto !important;
+  height: 100% !important;
+  overflow: hidden !important;
 }
 
 /* Remove the gradient pseudo-element */
