@@ -5,26 +5,26 @@ import { generateContextualReview } from "@/utils/aiReviewGeneration";
 import Icon from "@/components/Icon";
 import Link from "next/link";
 import { getAccountIdForUser } from "@/auth/utils/accounts";
-import IndustrySelector from "@/app/components/IndustrySelector";
-import PromptPageForm from "@/app/components/PromptPageForm";
-import PhotoPromptPageForm from "@/app/components/PhotoPromptPageForm";
-import EmployeePromptPageForm from "@/app/components/EmployeePromptPageForm";
-import EventPromptPageForm from "@/app/components/EventPromptPageForm";
-import PageCard from "@/app/components/PageCard";
+import IndustrySelector from "@/app/(app)/components/IndustrySelector";
+import PromptPageForm from "@/app/(app)/components/PromptPageForm";
+import PhotoPromptPageForm from "@/app/(app)/components/PhotoPromptPageForm";
+import EmployeePromptPageForm from "@/app/(app)/components/EmployeePromptPageForm";
+import EventPromptPageForm from "@/app/(app)/components/EventPromptPageForm";
+import PageCard from "@/app/(app)/components/PageCard";
 import { 
   OfferFeature,
   EmojiSentimentFeature,
   FallingStarsFeature,
   AISettingsFeature
-} from "@/app/components/prompt-features";
+} from "@/app/(app)/components/prompt-features";
 import ReviewWriteSection, { ReviewWritePlatform } from "../components/ReviewWriteSection";
 import ServicePromptPageForm, {
   ServicePromptFormState,
 } from "./ServicePromptPageForm";
-import ProductPromptPageForm from "@/app/components/ProductPromptPageForm";
+import ProductPromptPageForm from "@/app/(app)/components/ProductPromptPageForm";
 import React from "react";
-import AppLoader from "@/app/components/AppLoader";
-import RobotTooltip from "@/app/components/RobotTooltip";
+import AppLoader from "@/app/(app)/components/AppLoader";
+import RobotTooltip from "@/app/(app)/components/RobotTooltip";
 import { createClient } from "@/utils/supabaseClient";
 
 interface ReviewPlatformLink {

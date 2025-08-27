@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/auth";
 import { trackEvent, GA_EVENTS } from '../../../utils/analytics';
-import SimpleMarketingNav from "@/app/components/SimpleMarketingNav";
+import SimpleMarketingNav from "@/app/(app)/components/SimpleMarketingNav";
 
 export default function SignIn() {
   const { signIn, error: authError, clearError, isAuthenticated, isInitialized } = useAuth();

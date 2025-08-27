@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/auth";
 import { useRouter } from "next/navigation";
-import AppLoader from "@/app/components/AppLoader";
+import AppLoader from "@/app/(app)/components/AppLoader";
 import { trackEvent, GA_EVENTS } from "../../utils/analytics";
 import TrialBanner from "../components/TrialBanner";
 import Header from "../components/Header";

@@ -4,13 +4,13 @@ import { useEffect, useState } from "react";
 import { createClient, getUserOrMock } from "@/utils/supabaseClient";
 import { useRouter } from "next/navigation";
 import Icon from "@/components/Icon";
-import PageCard from "@/app/components/PageCard";
-import InlineLoader from "@/app/components/InlineLoader";
+import PageCard from "@/app/(app)/components/PageCard";
+import InlineLoader from "@/app/(app)/components/InlineLoader";
 import { trackEvent, GA_EVENTS } from "../../../utils/analytics";
 import { getAccountIdForUser } from "@/auth/utils/accounts";
 import { useAuthGuard } from "@/utils/authGuard";
 import { canCreateAccounts } from "@/config/adminConfig";
-import PricingModal from "@/app/components/PricingModal";
+import PricingModal from "@/app/(app)/components/PricingModal";
 
 export default function AccountPage() {
   console.log('🚀 AccountPage component rendering');

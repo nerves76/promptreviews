@@ -11,13 +11,13 @@ import QRCodeModal from "../components/QRCodeModal";
 import QuoteDisplay from "../components/QuoteDisplay";
 import GettingStarted from "../components/GettingStarted";
 import { useRouter } from "next/navigation";
-import AppLoader from "@/app/components/AppLoader";
-import StarfallCelebration from "@/app/components/StarfallCelebration";
+import AppLoader from "@/app/(app)/components/AppLoader";
+import StarfallCelebration from "@/app/(app)/components/StarfallCelebration";
 import { getAccountIdForUser } from "@/auth/utils/accounts";
-import BusinessLocationModal from "@/app/components/BusinessLocationModal";
+import BusinessLocationModal from "@/app/(app)/components/BusinessLocationModal";
 import { BusinessLocation } from "@/types/business";
 import { hasLocationAccess, formatLocationAddress, getLocationDisplayName } from "@/utils/locationUtils";
-import EmojiEmbedButton from "@/app/components/EmojiEmbedButton";
+import EmojiEmbedButton from "@/app/(app)/components/EmojiEmbedButton";
 import { promptTypes } from "@/config/promptTypes";
 
 interface DashboardContentProps {

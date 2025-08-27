@@ -12,7 +12,7 @@ import { useState } from "react";
 import { Dialog } from "@headlessui/react";
 import Icon from "@/components/Icon";
 import { createClient } from "@/utils/supabaseClient";
-import { platformOptions } from "@/app/components/prompt-features/ReviewPlatformsFeature";
+import { platformOptions } from "@/app/(app)/components/prompt-features/ReviewPlatformsFeature";
 
 interface ManualContactFormProps {
   isOpen: boolean;

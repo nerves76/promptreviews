@@ -14,10 +14,10 @@ import {
   FallingStarsFeature,
   AISettingsFeature
 } from "./prompt-features";
-import { Input } from "@/app/components/ui/input";
-import { Textarea } from "@/app/components/ui/textarea";
+import { Input } from "@/app/(app)/components/ui/input";
+import { Textarea } from "@/app/(app)/components/ui/textarea";
 import { useFallingStars } from "@/hooks/useFallingStars";
-import { getFallingIcon } from "@/app/components/prompt-modules/fallingStarsConfig";
+import { getFallingIcon } from "@/app/(app)/components/prompt-modules/fallingStarsConfig";
 import RobotTooltip from "./RobotTooltip";
 import SectionHeader from "./SectionHeader";
 import ServicePromptPageForm from "./ServicePromptPageForm";

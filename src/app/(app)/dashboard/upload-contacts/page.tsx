@@ -8,7 +8,7 @@ import { useAccountSelection } from "@/utils/accountSelectionHooks";
 import Icon from "@/components/Icon";
 import { Dialog } from "@headlessui/react";
 import { useRouter } from "next/navigation";
-import AppLoader from "@/app/components/AppLoader";
+import AppLoader from "@/app/(app)/components/AppLoader";
 
 export default function UploadContactsPage() {
   const supabase = createClient();

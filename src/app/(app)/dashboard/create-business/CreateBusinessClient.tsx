@@ -8,12 +8,12 @@ const supabase = createClient();
 // Remove the AuthContext import since DashboardLayout already handles auth
 // import { useAuth } from "@/auth";
 import SimpleBusinessForm from "../components/SimpleBusinessForm";
-import AppLoader from "@/app/components/AppLoader";
-import PageCard from "@/app/components/PageCard";
-import WelcomePopup from "@/app/components/WelcomePopup";
+import AppLoader from "@/app/(app)/components/AppLoader";
+import PageCard from "@/app/(app)/components/PageCard";
+import WelcomePopup from "@/app/(app)/components/WelcomePopup";
 import Icon from "@/components/Icon";
 import { ensureAccountExists, getAccountIdForUser } from "@/auth/utils/accounts";
-import { OptimizedSpinner } from "@/app/components/OptimizedComponents";
+import { OptimizedSpinner } from "@/app/(app)/components/OptimizedComponents";
 
 
 export default function CreateBusinessClient() {

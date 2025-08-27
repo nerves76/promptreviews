@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Button } from "@/app/components/ui/button";
+import { Button } from "@/app/(app)/components/ui/button";
 import Icon from "@/components/Icon";
 import CommunicationTrackingModal from "./CommunicationTrackingModal";
 

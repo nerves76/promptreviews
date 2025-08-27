@@ -5,15 +5,15 @@ import {
   EmojiSentimentFeature,
   FallingStarsFeature,
   AISettingsFeature
-} from "@/app/components/prompt-features";
+} from "@/app/(app)/components/prompt-features";
 import ReviewWriteSection, {
   ReviewWritePlatform,
 } from "../components/ReviewWriteSection";
-import { Input } from "@/app/components/ui/input";
-import { Textarea } from "@/app/components/ui/textarea";
+import { Input } from "@/app/(app)/components/ui/input";
+import { Textarea } from "@/app/(app)/components/ui/textarea";
 import Icon from "@/components/Icon";
 import { useFallingStars } from "@/hooks/useFallingStars";
-import RobotTooltip from "@/app/components/RobotTooltip";
+import RobotTooltip from "@/app/(app)/components/RobotTooltip";
 
 export interface ServicePromptFormState {
   offerEnabled: boolean;

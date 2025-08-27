@@ -13,13 +13,13 @@ import { getAccountIdForUser } from "@/auth/utils/accounts";
 import { isAdmin } from "@/utils/admin";
 import BusinessProfileForm from "../components/BusinessProfileForm";
 import DashboardCard from "../components/DashboardCard";
-import InlineLoader from "@/app/components/InlineLoader";
-import PageCard from "@/app/components/PageCard";
+import InlineLoader from "@/app/(app)/components/InlineLoader";
+import PageCard from "@/app/(app)/components/PageCard";
 import imageCompression from 'browser-image-compression';
-import FiveStarSpinner from "@/app/components/FiveStarSpinner";
+import FiveStarSpinner from "@/app/(app)/components/FiveStarSpinner";
 import { trackEvent, GA_EVENTS } from "../../../utils/analytics";
 import { markTaskAsCompleted } from "@/utils/onboardingTasks";
-import WelcomePopup from "@/app/components/WelcomePopup";
+import WelcomePopup from "@/app/(app)/components/WelcomePopup";
 
 function Tooltip({ text }: { text: string }) {
   const [show, setShow] = useState(false);

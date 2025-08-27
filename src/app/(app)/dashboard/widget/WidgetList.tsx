@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { getUserOrMock } from "@/utils/supabaseClient";
-import InlineLoader from "@/app/components/InlineLoader";
+import InlineLoader from "@/app/(app)/components/InlineLoader";
 import { DraggableModal } from './components/DraggableModal';
 import { WidgetEditorForm } from './components/WidgetEditorForm';
 import { ReviewManagementModal } from './components/ReviewManagementModal';

@@ -2,10 +2,10 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { createClient } from "@/utils/supabaseClient";
 import PricingModal from "../../components/PricingModal";
-import AppLoader from "@/app/components/AppLoader";
+import AppLoader from "@/app/(app)/components/AppLoader";
 import { useRouter, useSearchParams } from "next/navigation";
 import { tiers } from "../../components/PricingModal";
-import TopLoaderOverlay from "@/app/components/TopLoaderOverlay";
+import TopLoaderOverlay from "@/app/(app)/components/TopLoaderOverlay";
 import { getAccountIdForUser } from "@/auth/utils/accounts";
 
 export default function PlanPage() {

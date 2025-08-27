@@ -7,9 +7,9 @@ import { useAccountSelection } from "@/utils/accountSelectionHooks";
 import Icon from "@/components/Icon";
 import { getAccountIdForUser } from "@/auth/utils/accounts";
 import { isAdmin } from "@/utils/admin";
-import { EMOJI_SENTIMENT_LABELS, EMOJI_SENTIMENT_ICONS } from "@/app/components/prompt-modules/emojiSentimentConfig";
-import PageCard from "@/app/components/PageCard";
-import InlineLoader from "@/app/components/InlineLoader";
+import { EMOJI_SENTIMENT_LABELS, EMOJI_SENTIMENT_ICONS } from "@/app/(app)/components/prompt-modules/emojiSentimentConfig";
+import PageCard from "@/app/(app)/components/PageCard";
+import InlineLoader from "@/app/(app)/components/InlineLoader";
 import {
   LineChart,
   Line,

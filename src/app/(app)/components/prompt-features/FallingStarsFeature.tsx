@@ -17,12 +17,12 @@ import React, { useState, useEffect } from "react";
 import { Dialog } from "@headlessui/react";
 import { XMarkIcon, ChevronDownIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
 import Image from "next/image";
-import SectionHeader from "@/app/components/SectionHeader";
+import SectionHeader from "@/app/(app)/components/SectionHeader";
 import {
   POPULAR_FALLING_ICONS,
   loadAllFallingIcons,
   getFallingIcon,
-} from "@/app/components/prompt-modules/fallingStarsConfig";
+} from "@/app/(app)/components/prompt-modules/fallingStarsConfig";
 import Icon from "@/components/Icon";
 
 // Mapping of Tailwind color classes to hex values for the color picker

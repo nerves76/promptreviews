@@ -8,7 +8,7 @@
 import { useState, useRef, useCallback } from 'react';
 import Icon from '@/components/Icon';
 import { createClient } from '@/auth/providers/supabase';
-import LoadPhotosButton from '@/app/components/photos/LoadPhotosButton';
+import LoadPhotosButton from '@/app/(app)/components/photos/LoadPhotosButton';
 
 interface GoogleBusinessLocation {
   id: string;

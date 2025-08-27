@@ -6,29 +6,29 @@ import { useRef } from "react";
 import { createClient, getUserOrMock } from "@/utils/supabaseClient";
 import Link from "next/link";
 import Icon from "@/components/Icon";
-import PageCard from "@/app/components/PageCard";
+import PageCard from "@/app/(app)/components/PageCard";
 
-import InlineLoader from "@/app/components/InlineLoader";
+import InlineLoader from "@/app/(app)/components/InlineLoader";
 import QRCodeGenerator, { QR_FRAME_SIZES } from "../dashboard/components/QRCodeGenerator";
 import dynamic from "next/dynamic";
-import PromptPagesTable from "@/app/components/PromptPagesTable";
-import PublicPromptPagesTable from "@/app/components/PublicPromptPagesTable";
-import PromptTypeSelectModal from "@/app/components/PromptTypeSelectModal";
+import PromptPagesTable from "@/app/(app)/components/PromptPagesTable";
+import PublicPromptPagesTable from "@/app/(app)/components/PublicPromptPagesTable";
+import PromptTypeSelectModal from "@/app/(app)/components/PromptTypeSelectModal";
 
 import { useRouter, useSearchParams } from "next/navigation";
 import QRCodeModal from "../components/QRCodeModal";
-import StarfallCelebration from "@/app/components/StarfallCelebration";
+import StarfallCelebration from "@/app/(app)/components/StarfallCelebration";
 import { promptTypesWithDarkIcons as promptTypes } from "@/config/promptTypes";
 import { getAccountIdForUser } from "@/auth/utils/accounts";
-import BusinessLocationModal from "@/app/components/BusinessLocationModal";
-import LocationCard from "@/app/components/LocationCard";
+import BusinessLocationModal from "@/app/(app)/components/BusinessLocationModal";
+import LocationCard from "@/app/(app)/components/LocationCard";
 import { BusinessLocation, LocationWithPromptPage } from "@/types/business";
 import { hasLocationAccess, formatLocationAddress, getLocationDisplayName } from "@/utils/locationUtils";
-import CommunicationButtons from "@/app/components/communication/CommunicationButtons";
+import CommunicationButtons from "@/app/(app)/components/communication/CommunicationButtons";
 
-import EmojiEmbedButton from "@/app/components/EmojiEmbedButton";
-import FiveStarSpinner from "@/app/components/FiveStarSpinner";
-import BusinessProfileBanner from "@/app/components/BusinessProfileBanner";
+import EmojiEmbedButton from "@/app/(app)/components/EmojiEmbedButton";
+import FiveStarSpinner from "@/app/(app)/components/FiveStarSpinner";
+import BusinessProfileBanner from "@/app/(app)/components/BusinessProfileBanner";
 import { useBusinessData, useAuthUser, useAccountData, useAuthLoading } from "@/auth/hooks/granularAuthHooks";
 
 const StylePage = dynamic(() => import("../dashboard/style/StyleModalPage"), { ssr: false });

@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import Icon from '@/components/Icon';
-import PageCard from '@/app/components/PageCard';
-import AppLoader from '@/app/components/AppLoader';
+import PageCard from '@/app/(app)/components/PageCard';
+import AppLoader from '@/app/(app)/components/AppLoader';
 
 interface MetadataTemplate {
   id: string;

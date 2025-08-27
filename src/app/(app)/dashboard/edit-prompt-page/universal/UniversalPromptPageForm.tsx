@@ -3,7 +3,7 @@ import React, { useState, useEffect, forwardRef, useCallback } from "react";
 import ReviewPlatformsSection, {
   ReviewPlatformLink,
 } from "../components/ReviewPlatformsSection";
-import { Input } from "@/app/components/ui/input";
+import { Input } from "@/app/(app)/components/ui/input";
 import { 
   OfferFeature,
   EmojiSentimentFeature,
@@ -12,9 +12,9 @@ import {
   PersonalizedNoteFeature,
   KickstartersFeature,
   RecentReviewsFeature
-} from "@/app/components/prompt-features";
+} from "@/app/(app)/components/prompt-features";
 import { useFallingStars } from "@/hooks/useFallingStars";
-import SectionHeader from "@/app/components/SectionHeader";
+import SectionHeader from "@/app/(app)/components/SectionHeader";
 import Icon from "@/components/Icon";
 
 export interface UniversalPromptFormState {

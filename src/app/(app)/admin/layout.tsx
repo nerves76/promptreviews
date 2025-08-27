@@ -15,8 +15,8 @@ import { createClient, getUserOrMock } from "@/utils/supabaseClient";
 const supabase = createClient();
 import { isAdmin } from "@/utils/admin";
 import { useRouter } from "next/navigation";
-import AppLoader from "@/app/components/AppLoader";
-import PageCard from "@/app/components/PageCard";
+import AppLoader from "@/app/(app)/components/AppLoader";
+import PageCard from "@/app/(app)/components/PageCard";
 
 export default function AdminLayout({
   children,

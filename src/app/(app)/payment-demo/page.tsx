@@ -8,8 +8,8 @@
 'use client';
 
 import { useAuth } from '@/auth';
-import PaymentStatus, { PaymentStateExamples } from '@/app/components/PaymentStatus';
-import FiveStarSpinner from '@/app/components/FiveStarSpinner';
+import PaymentStatus, { PaymentStateExamples } from '@/app/(app)/components/PaymentStatus';
+import FiveStarSpinner from '@/app/(app)/components/FiveStarSpinner';
 
 export default function PaymentDemoPage() {
   const authData = useAuth();

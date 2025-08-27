@@ -7,7 +7,7 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import AppLoader from '@/app/components/AppLoader';
+import AppLoader from '@/app/(app)/components/AppLoader';
 
 export default function GoogleBusinessProfileRedirect() {
   const router = useRouter();

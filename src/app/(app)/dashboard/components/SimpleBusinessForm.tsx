@@ -9,11 +9,11 @@
 
 import React, { useState, forwardRef, useEffect, useCallback } from "react";
 import Icon from "@/components/Icon";
-import IndustrySelector from "@/app/components/IndustrySelector";
+import IndustrySelector from "@/app/(app)/components/IndustrySelector";
 import { createClient } from "@/utils/supabaseClient";
 import { useRouter } from "next/navigation";
 import { slugify } from "@/utils/slugify";
-import { OptimizedSpinner } from "@/app/components/OptimizedComponents";
+import { OptimizedSpinner } from "@/app/(app)/components/OptimizedComponents";
 
 interface SimpleBusinessFormProps {
   user: any;

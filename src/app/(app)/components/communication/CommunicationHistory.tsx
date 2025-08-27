@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { Card } from "@/app/components/ui/card";
+import { Card } from "@/app/(app)/components/ui/card";
 import Icon, { IconName } from "@/components/Icon";
 import { formatDistanceToNow, format } from "date-fns";
 

@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { apiClient } from "@/utils/apiClient";
 import WidgetList from "./WidgetList";
-import PageCard from "@/app/components/PageCard";
+import PageCard from "@/app/(app)/components/PageCard";
 import Icon from "@/components/Icon";
 import { WidgetPreview } from "./components/WidgetPreview";
 import { StyleModal } from "./components/StyleModal";

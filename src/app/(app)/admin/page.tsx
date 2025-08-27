@@ -12,7 +12,7 @@ import { useState, useEffect } from 'react';
 import { createClient, getUserOrMock } from "@/utils/supabaseClient";
 import { isAdmin } from "@/utils/admin";
 import { useRouter } from "next/navigation";
-import AppLoader from "@/app/components/AppLoader";
+import AppLoader from "@/app/(app)/components/AppLoader";
 
 interface UserInfo {
   id: string;

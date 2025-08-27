@@ -4,16 +4,16 @@ import { useState, useEffect } from "react";
 import { useAuthGuard } from "@/utils/authGuard";
 import { createClient, getSessionOrMock } from "@/utils/supabaseClient";
 import Icon from "@/components/Icon";
-import AppLoader from "@/app/components/AppLoader";
-import PageCard from "@/app/components/PageCard";
+import AppLoader from "@/app/(app)/components/AppLoader";
+import PageCard from "@/app/(app)/components/PageCard";
 import { Dialog } from "@headlessui/react";
 import { useRouter } from "next/navigation";
 
-import UnifiedPromptTypeSelectModal from "@/app/components/UnifiedPromptTypeSelectModal";
-import ManualContactForm from "@/app/components/ManualContactForm";
-import ContactMergeModal from "@/app/components/ContactMergeModal";
-import CommunicationHistory from "@/app/components/communication/CommunicationHistory";
-import UpcomingReminders from "@/app/components/communication/UpcomingReminders";
+import UnifiedPromptTypeSelectModal from "@/app/(app)/components/UnifiedPromptTypeSelectModal";
+import ManualContactForm from "@/app/(app)/components/ManualContactForm";
+import ContactMergeModal from "@/app/(app)/components/ContactMergeModal";
+import CommunicationHistory from "@/app/(app)/components/communication/CommunicationHistory";
+import UpcomingReminders from "@/app/(app)/components/communication/UpcomingReminders";
 import { checkAccountLimits } from "@/utils/accountLimits";
 
 export default function UploadContactsPage() {

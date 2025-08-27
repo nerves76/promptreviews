@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 // 🔧 CONSOLIDATED: Single import from supabaseClient module
 import { createClient, getUserOrMock } from "@/utils/supabaseClient";
-import AppLoader from "@/app/components/AppLoader";
+import AppLoader from "@/app/(app)/components/AppLoader";
 
 // Use the singleton Supabase client instead of creating a new instance
 // This prevents "Multiple GoTrueClient instances" warnings and ensures proper session persistence

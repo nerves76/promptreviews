@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import CreatePromptPageClient from "./CreatePromptPageClient";
-import FiveStarSpinner from "@/app/components/FiveStarSpinner";
+import FiveStarSpinner from "@/app/(app)/components/FiveStarSpinner";
 
 export default function CreatePromptPage() {
   return (

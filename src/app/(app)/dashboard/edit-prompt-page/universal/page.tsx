@@ -10,10 +10,10 @@ import React, { useRef, useState } from "react";
 import UniversalPromptPageForm, {
   UniversalPromptFormState,
 } from "./UniversalPromptPageForm";
-import PromptPageForm from "@/app/components/PromptPageForm";
+import PromptPageForm from "@/app/(app)/components/PromptPageForm";
 import Icon from "@/components/Icon";
-import PageCard from "@/app/components/PageCard";
-import offerConfig from "@/app/components/prompt-modules/offerConfig";
+import PageCard from "@/app/(app)/components/PageCard";
+import offerConfig from "@/app/(app)/components/prompt-modules/offerConfig";
 import { createClient } from "@/utils/supabaseClient";
 import Link from "next/link";
 import { markTaskAsCompleted } from "@/utils/onboardingTasks";

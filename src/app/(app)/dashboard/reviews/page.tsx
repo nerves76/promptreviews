@@ -4,14 +4,14 @@ import React, { useEffect, useState, useRef } from "react";
 import { createClient } from "@/utils/supabaseClient";
 import { getAccountIdForUser } from "@/auth/utils/accounts";
 import Icon, { IconName } from "@/components/Icon";
-import PageCard from "@/app/components/PageCard";
-import InlineLoader from "@/app/components/InlineLoader";
-import TopLoaderOverlay from "@/app/components/TopLoaderOverlay";
+import PageCard from "@/app/(app)/components/PageCard";
+import InlineLoader from "@/app/(app)/components/InlineLoader";
+import TopLoaderOverlay from "@/app/(app)/components/TopLoaderOverlay";
 import {
   EMOJI_SENTIMENT_LABELS,
   EMOJI_SENTIMENT_ICONS,
-} from "@/app/components/prompt-modules/emojiSentimentConfig";
-import { platformOptions } from "@/app/components/prompt-features/ReviewPlatformsFeature";
+} from "@/app/(app)/components/prompt-modules/emojiSentimentConfig";
+import { platformOptions } from "@/app/(app)/components/prompt-features/ReviewPlatformsFeature";
 
 interface Review {
   id: string;

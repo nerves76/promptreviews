@@ -10,7 +10,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/auth/providers/supabase';
-import { isAdmin } from '../../../auth/utils/admin';
+import { isAdmin } from '@/auth/utils/admin';
 import Icon from '@/components/Icon';
 
 // Using singleton Supabase client from supabaseClient.ts

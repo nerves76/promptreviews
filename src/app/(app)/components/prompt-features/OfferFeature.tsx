@@ -14,7 +14,7 @@
 
 "use client";
 import React, { useState, useEffect } from "react";
-import { Input } from "@/app/components/ui/input";
+import { Input } from "@/app/(app)/components/ui/input";
 import Icon from "@/components/Icon";
 
 export interface OfferFeatureProps {

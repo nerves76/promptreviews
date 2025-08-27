@@ -7,23 +7,23 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import Icon from '@/components/Icon';
-import PageCard from '@/app/components/PageCard';
-import InlineLoader from '@/app/components/InlineLoader';
-import PhotoManagement from '@/app/components/PhotoManagement';
-import ReviewManagement from '@/app/components/ReviewManagement';
-import BusinessInfoEditor from '@/app/components/BusinessInfoEditor';
-import ServicesEditor from '@/app/components/ServicesEditor';
+import PageCard from '@/app/(app)/components/PageCard';
+import InlineLoader from '@/app/(app)/components/InlineLoader';
+import PhotoManagement from '@/app/(app)/components/PhotoManagement';
+import ReviewManagement from '@/app/(app)/components/ReviewManagement';
+import BusinessInfoEditor from '@/app/(app)/components/BusinessInfoEditor';
+import ServicesEditor from '@/app/(app)/components/ServicesEditor';
 import { createClient } from '@/utils/supabaseClient';
 import { useBusinessData, useAuthUser, useAccountData, useSubscriptionData } from '@/auth/hooks/granularAuthHooks';
-import UnrespondedReviewsWidget from '@/app/components/UnrespondedReviewsWidget';
+import UnrespondedReviewsWidget from '@/app/(app)/components/UnrespondedReviewsWidget';
 import { safeTransformLocations, validateTransformedLocations } from '@/lib/google-business/safe-transformer';
 import LocationSelector from '@/components/GoogleBusinessProfile/LocationSelector';
 // Using V2 to force webpack to reload
 import LocationSelectionModal from '@/components/GoogleBusinessProfile/LocationSelectionModalV2';
 import OverviewStats from '@/components/GoogleBusinessProfile/OverviewStats';
 import BusinessHealthMetrics from '@/components/GoogleBusinessProfile/BusinessHealthMetrics';
-import HelpModal from '@/app/components/help/HelpModal';
-import FiveStarSpinner from '@/app/components/FiveStarSpinner';
+import HelpModal from '@/app/(app)/components/help/HelpModal';
+import FiveStarSpinner from '@/app/(app)/components/FiveStarSpinner';
 // Using built-in alert for notifications instead of react-toastify
 
 interface GoogleBusinessLocation {

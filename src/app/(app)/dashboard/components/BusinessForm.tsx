@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import Cropper from "react-easy-crop";
 import type { Area } from "react-easy-crop";
 import Icon from "@/components/Icon";
-import IndustrySelector from "@/app/components/IndustrySelector";
+import IndustrySelector from "@/app/(app)/components/IndustrySelector";
 
 interface Platform {
   name: string;

@@ -3,9 +3,9 @@
 import React, { useState, useEffect } from "react";
 import { Dialog } from "@headlessui/react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
-import { Button } from "@/app/components/ui/button";
-import { Textarea } from "@/app/components/ui/textarea";
-import { Card } from "@/app/components/ui/card";
+import { Button } from "@/app/(app)/components/ui/button";
+import { Textarea } from "@/app/(app)/components/ui/textarea";
+import { Card } from "@/app/(app)/components/ui/card";
 import Icon from "@/components/Icon";
 import CommunicationProcessIndicator from "./CommunicationProcessIndicator";
 

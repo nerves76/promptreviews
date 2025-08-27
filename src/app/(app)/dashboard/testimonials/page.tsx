@@ -3,9 +3,9 @@
 import { useEffect, useState, useRef } from "react";
 import { createClient } from "@/utils/supabaseClient";
 import Icon, { IconName } from "@/components/Icon";
-import PageCard from "@/app/components/PageCard";
-import AppLoader from "@/app/components/AppLoader";
-import TopLoaderOverlay from "@/app/components/TopLoaderOverlay";
+import PageCard from "@/app/(app)/components/PageCard";
+import AppLoader from "@/app/(app)/components/AppLoader";
+import TopLoaderOverlay from "@/app/(app)/components/TopLoaderOverlay";
 
 interface Review {
   id: string;

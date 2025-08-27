@@ -24,8 +24,8 @@ import {
   RecentReviewsFeature
 } from "./prompt-features";
 import { useFallingStars } from "@/hooks/useFallingStars";
-import { Input } from "@/app/components/ui/input";
-import { Textarea } from "@/app/components/ui/textarea";
+import { Input } from "@/app/(app)/components/ui/input";
+import { Textarea } from "@/app/(app)/components/ui/textarea";
 import SectionHeader from "./SectionHeader";
 import { TopNavigation, BottomNavigation } from "./sections/StepNavigation";
 import { generateContextualReview } from "../../utils/aiReviewGeneration";

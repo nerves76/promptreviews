@@ -15,8 +15,8 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import Icon from "@/components/Icon";
-import { Input } from "@/app/components/ui/input";
-import { Textarea } from "@/app/components/ui/textarea";
+import { Input } from "@/app/(app)/components/ui/input";
+import { Textarea } from "@/app/(app)/components/ui/textarea";
 
 export interface ReviewPlatform {
   name: string;

@@ -8,37 +8,37 @@ import {
   useCallback,
 } from "react";
 import { useRouter, useParams, useSearchParams } from "next/navigation";
-import SocialMediaIcons from "@/app/components/SocialMediaIcons";
-import { Button } from "@/app/components/ui/button";
-import { Textarea } from "@/app/components/ui/textarea";
-import { Card } from "@/app/components/ui/card";
+import SocialMediaIcons from "@/app/(app)/components/SocialMediaIcons";
+import { Button } from "@/app/(app)/components/ui/button";
+import { Textarea } from "@/app/(app)/components/ui/textarea";
+import { Card } from "@/app/(app)/components/ui/card";
 // ⚡ PERFORMANCE: Using optimized SVG sprite system (90% bundle reduction)
 import Icon from "@/components/Icon";
 import { IconName } from "@/components/Icon";
 import ReviewSubmissionForm from "@/components/ReviewSubmissionForm";
 import { useReviewer } from "@/contexts/ReviewerContext";
-import AppLoader from "@/app/components/AppLoader";
-import FiveStarSpinner from "@/app/components/FiveStarSpinner";
+import AppLoader from "@/app/(app)/components/AppLoader";
+import FiveStarSpinner from "@/app/(app)/components/FiveStarSpinner";
 import PromptReviewsLogo from "@/app/dashboard/components/PromptReviewsLogo";
-import PageCard from "@/app/components/PageCard";
+import PageCard from "@/app/(app)/components/PageCard";
 import imageCompression from 'browser-image-compression';
 import { getAccessibleColor, applyCardTransparency } from "@/utils/colorUtils";
-import { getFallingIcon, getFallingIconColor } from "@/app/components/prompt-modules/fallingStarsConfig";
+import { getFallingIcon, getFallingIconColor } from "@/app/(app)/components/prompt-modules/fallingStarsConfig";
 import dynamic from "next/dynamic";
 // 🔧 CONSOLIDATED: Single import from supabaseClient module
 import { createClient, getUserOrMock } from "@/utils/supabaseClient";
 import { getAccountIdForUser } from "@/auth/utils/accounts";
-import offerConfig from "@/app/components/prompt-modules/offerConfig";
+import offerConfig from "@/app/(app)/components/prompt-modules/offerConfig";
 
 // ⚡ PERFORMANCE: Dynamic imports for heavy React components only
 const OfferCard = dynamic(() => import("../../components/OfferCard"), { 
   ssr: false,
   loading: () => <div className="h-32 bg-gray-100 animate-pulse rounded-lg" />
 });
-const EmojiSentimentModal = dynamic(() => import("@/app/components/EmojiSentimentModal"), { 
+const EmojiSentimentModal = dynamic(() => import("@/app/(app)/components/EmojiSentimentModal"), { 
   ssr: false 
 });
-const RecentReviewsModal = dynamic(() => import("@/app/components/RecentReviewsModal"), { 
+const RecentReviewsModal = dynamic(() => import("@/app/(app)/components/RecentReviewsModal"), { 
   ssr: false 
 });
 const StyleModalPage = dynamic(() => import("../../dashboard/style/StyleModalPage"), { 
@@ -68,7 +68,7 @@ import FontLoader from "../../components/FontLoader";
 import { getFontClass } from "./utils/fontUtils";
 import { getPlatformIcon, splitName, sendAnalyticsEvent, isOffWhiteOrCream } from "./utils/helperFunctions";
 import { sentimentOptions } from "./utils/sentimentConfig";
-import { EMOJI_SENTIMENT_ICONS } from "@/app/components/prompt-modules/emojiSentimentConfig";
+import { EMOJI_SENTIMENT_ICONS } from "@/app/(app)/components/prompt-modules/emojiSentimentConfig";
 
 interface StyleSettings {
   name: string;

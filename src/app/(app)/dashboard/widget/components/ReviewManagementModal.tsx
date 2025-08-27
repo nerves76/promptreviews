@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { ChatBubbleLeftIcon } from "@heroicons/react/24/outline";
 import { DraggableModal } from './DraggableModal';
-import AppLoader from "@/app/components/AppLoader";
+import AppLoader from "@/app/(app)/components/AppLoader";
 import { PhotoUpload } from './PhotoUpload';
 import { createClient } from '@/auth/providers/supabase';
 import { getAccountIdForUser } from '@/auth/utils/accounts';

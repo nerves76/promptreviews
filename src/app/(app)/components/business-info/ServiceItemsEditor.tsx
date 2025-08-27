@@ -13,7 +13,7 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import Icon from '@/components/Icon';
 import { isStructuredService, searchGoogleServices } from '@/utils/google-service-types';
-import HelpModal from '@/app/components/help/HelpModal';
+import HelpModal from '@/app/(app)/components/help/HelpModal';
 
 interface ServiceItem {
   name: string;

@@ -13,7 +13,7 @@
 
 "use client";
 import React, { useState, useEffect } from "react";
-import { Textarea } from "@/app/components/ui/textarea";
+import { Textarea } from "@/app/(app)/components/ui/textarea";
 import Icon from "@/components/Icon";
 
 export interface PersonalizedNoteFeatureProps {
