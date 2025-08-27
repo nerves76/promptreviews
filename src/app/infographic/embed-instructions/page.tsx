@@ -6,7 +6,7 @@ export default function EmbedInstructionsPage() {
 <script src="${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3002'}/api/infographic-widget"></script>`
 
   const iframeCode = `<iframe 
-  src="${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3002'}/infographic/embed"
+  src="${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3002'}/infographic-embed"
   width="100%" 
   height="800" 
   frameborder="0"
@@ -68,7 +68,7 @@ export default function EmbedInstructionsPage() {
           <h2 className="text-xl font-semibold mb-4">Preview</h2>
           <div className="border-2 border-gray-300 rounded-lg p-4">
             <iframe 
-              src="/infographic/embed"
+              src="/infographic-embed"
               width="100%" 
               height="800" 
               frameBorder="0"

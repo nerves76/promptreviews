@@ -3,6 +3,7 @@
 import { useEffect } from 'react'
 import AnimatedInfographic from '../../components/AnimatedInfographic'
 
+// Override default layout by returning raw HTML structure
 export default function EmbedInfographicPage() {
   useEffect(() => {
     // Load the SVG sprite inline for the embed context
@@ -52,11 +53,29 @@ export default function EmbedInfographicPage() {
 
   return (
     <>
-      <style jsx global>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         /* Transparent background for embed */
         html, body {
           background: transparent !important;
         }
+        
+        /* Hide all navigation and header elements */
+        header, nav, [role="navigation"], 
+        .min-h-screen > main > header,
+        body > div > div > main > header {
+          display: none !important;
+        }
+        
+        /* Remove wrapper padding/margins */
+        .min-h-screen {
+          min-height: auto !important;
+        }
+        
+        .min-h-screen > main {
+          padding: 0 !important;
+          margin: 0 !important;
+        }
+        
         /* Remove default padding/margins for embed */
         .relative.max-w-7xl {
           max-width: none !important;
@@ -65,7 +84,7 @@ export default function EmbedInfographicPage() {
           margin-left: auto !important;
           margin-right: auto !important;
         }
-      `}</style>
+      `}} />
       <div className="w-full min-h-screen flex items-center justify-center overflow-hidden" style={{ background: 'transparent' }}>
         <div style={{ 
           transform: 'scale(0.85)', 

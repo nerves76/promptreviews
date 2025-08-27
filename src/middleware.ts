@@ -29,7 +29,7 @@ export async function middleware(req: NextRequest) {
   }
   
   // Allow embedding for infographic embed page
-  if (req.nextUrl.pathname.startsWith('/infographic/embed')) {
+  if (req.nextUrl.pathname.startsWith('/infographic-embed') || req.nextUrl.pathname.startsWith('/infographic/embed')) {
     const res = NextResponse.next();
     // Remove X-Frame-Options to allow embedding in iframes
     res.headers.delete('X-Frame-Options');
