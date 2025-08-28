@@ -685,7 +685,7 @@ export default function AnimatedInfographic({ isEmbed = false }: { isEmbed?: boo
           }
         }
       `}</style>
-      <div className="relative w-full" ref={containerRef} style={{ minHeight: '100vh' }}>
+      <div className="relative w-full" ref={containerRef} style={{ minHeight: isEmbed ? 'auto' : '100vh' }}>
         {/* Content wrapper - uses available width */}
         <div 
           className="relative mx-auto px-0 sm:px-0 [@media(min-width:1024px)]:px-0 [@media(min-width:1200px)]:px-0.5 [@media(min-width:1270px)]:px-1.5 [@media(min-width:1440px)]:px-3 py-1 [@media(min-width:1200px)]:py-2 [@media(min-width:1440px)]:py-6"

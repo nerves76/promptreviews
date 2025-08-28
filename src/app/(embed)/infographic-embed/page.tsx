@@ -57,14 +57,14 @@ export default function EmbedInfographicPage() {
 
   if (!mounted) {
     return (
-      <div className="w-full min-h-screen flex flex-col items-center justify-start py-10 overflow-auto">
+      <div className="w-full flex flex-col items-center justify-start py-10">
         <div>Loading infographic...</div>
       </div>
     )
   }
   
   return (
-    <div className="w-full min-h-screen flex flex-col items-center justify-start py-10 overflow-auto">
+    <div className="w-full flex flex-col items-center justify-start py-10">
       <AnimatedInfographic isEmbed={true} />
     </div>
   )
