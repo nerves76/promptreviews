@@ -8,7 +8,7 @@ import {
 } from '@heroicons/react/24/solid'
 import { StarIcon as StarOutline } from '@heroicons/react/24/outline'
 
-export default function AnimatedInfographic({ isEmbed = false }: { isEmbed?: boolean }) {
+export default function AnimatedInfographic({ isEmbed = false, debug = false }: { isEmbed?: boolean, debug?: boolean }) {
   const [hoveredTool, setHoveredTool] = useState<number | null>(null)
   const [clickedTool, setClickedTool] = useState<number | null>(null)
   const [hoveredConnection, setHoveredConnection] = useState<string | null>(null)
@@ -23,6 +23,7 @@ export default function AnimatedInfographic({ isEmbed = false }: { isEmbed?: boo
   const [scale, setScale] = useState(1)
   const [isVisible, setIsVisible] = useState(false)
   const [beamStyles, setBeamStyles] = useState({ beam1: {}, beam2: {} })
+  const [viewportWidth, setViewportWidth] = useState(0)
   const containerRef = useRef<HTMLDivElement>(null)
   const customerRef = useRef<HTMLDivElement>(null)
   const promptPageRef = useRef<HTMLDivElement>(null)
@@ -33,6 +34,7 @@ export default function AnimatedInfographic({ isEmbed = false }: { isEmbed?: boo
   // Set mounted state and handle responsive scaling
   useEffect(() => {
     setMounted(true)
+    setViewportWidth(window.innerWidth)
     
     // Calculate beam positions based on actual element positions
     const calculateBeamPositions = () => {
@@ -136,6 +138,7 @@ export default function AnimatedInfographic({ isEmbed = false }: { isEmbed?: boo
     
     const handleResize = () => {
       const width = window.innerWidth
+      setViewportWidth(width)
       // Keep everything full size - no scaling needed
       setScale(1)
     }
@@ -686,6 +689,22 @@ export default function AnimatedInfographic({ isEmbed = false }: { isEmbed?: boo
         }
       `}</style>
       <div className="relative w-full" ref={containerRef} style={{ minHeight: isEmbed ? 'auto' : '100vh' }}>
+        {/* Debug overlay */}
+        {debug && (
+          <div className="fixed top-0 left-0 z-50 bg-black/80 text-white p-2 text-xs font-mono">
+            <div>Viewport: {viewportWidth}px</div>
+            <div>Breakpoint: {
+              viewportWidth < 960 ? 'Mobile (<960)' :
+              viewportWidth < 1024 ? '960-1023' :
+              viewportWidth < 1200 ? '1024-1199' :
+              viewportWidth < 1270 ? '1200-1269' :
+              viewportWidth < 1440 ? '1270-1439' :
+              '1440+'
+            }</div>
+            <div>isEmbed: {isEmbed ? 'true' : 'false'}</div>
+          </div>
+        )}
+        
         {/* Content wrapper - uses available width */}
         <div 
           className="relative mx-auto px-0 sm:px-0 [@media(min-width:1024px)]:px-0 [@media(min-width:1200px)]:px-0.5 [@media(min-width:1270px)]:px-1.5 [@media(min-width:1440px)]:px-3 py-1 [@media(min-width:1200px)]:py-2 [@media(min-width:1440px)]:py-6"
