@@ -34,7 +34,17 @@ export default function EmbedInfographicPage() {
     
     // Send height to parent window for iframe resizing
     const sendHeight = () => {
-      const height = document.documentElement.scrollHeight
+      // Get the maximum of different height measurements to ensure we capture everything
+      const body = document.body
+      const html = document.documentElement
+      const height = Math.max(
+        body.scrollHeight,
+        body.offsetHeight,
+        html.clientHeight,
+        html.scrollHeight,
+        html.offsetHeight
+      )
+      
       // Only send if height actually changed
       if (Math.abs(height - lastHeight) > 5) {
         lastHeight = height
@@ -52,18 +62,22 @@ export default function EmbedInfographicPage() {
       resizeTimeout = setTimeout(sendHeight, 250)
     }
 
-    // Send initial height after a small delay to ensure content is rendered
+    // Send height multiple times to catch all rendering stages
     setTimeout(sendHeight, 100)
+    setTimeout(sendHeight, 500)
+    setTimeout(sendHeight, 1000)
+    setTimeout(sendHeight, 2000)
+    setTimeout(sendHeight, 3000)
 
     // Send height on window resize with debounce
     window.addEventListener('resize', debouncedSendHeight)
-
-    // Send height after animations load
-    const timer = setTimeout(sendHeight, 2000)
+    
+    // Also send on load completion
+    window.addEventListener('load', sendHeight)
 
     return () => {
       window.removeEventListener('resize', debouncedSendHeight)
-      clearTimeout(timer)
+      window.removeEventListener('load', sendHeight)
       clearTimeout(resizeTimeout)
     }
   }, [])
