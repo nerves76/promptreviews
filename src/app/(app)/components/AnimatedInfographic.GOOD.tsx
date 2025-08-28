@@ -408,34 +408,6 @@ export default function AnimatedInfographic({ isEmbed = false }: { isEmbed?: boo
   return (
     <>
       <style>{`
-        /* Beam visibility control */
-        [data-beam] { display: none; }
-        @media (min-width: 960px) and (max-width: 1023px) {
-          [data-beam="md-first"], [data-beam="md-second"] {
-            display: block !important;
-          }
-        }
-        @media (min-width: 1024px) and (max-width: 1199px) {
-          [data-beam="lg-first"], [data-beam="lg-second"] {
-            display: block !important;
-          }
-        }
-        @media (min-width: 1200px) and (max-width: 1269px) {
-          [data-beam="medium-first"], [data-beam="medium-second"] {
-            display: block !important;
-          }
-        }
-        @media (min-width: 1270px) and (max-width: 1439px) {
-          [data-beam="xl-first"], [data-beam="xl-second"] {
-            display: block !important;
-          }
-        }
-        @media (min-width: 1440px) {
-          [data-beam="xxl-first"], [data-beam="xxl-second"] {
-            display: block !important;
-          }
-        }
-        
         @keyframes pulse {
         0%, 100% {
           transform: scale(1);
@@ -679,10 +651,10 @@ export default function AnimatedInfographic({ isEmbed = false }: { isEmbed?: boo
           }
         }
       `}</style>
-      <div className="relative w-full" ref={containerRef} style={{ backgroundColor: '#0f1419', minHeight: '100vh' }}>
+      <div className="relative w-full" ref={containerRef}>
         {/* Content wrapper - uses available width */}
         <div 
-          className="relative mx-auto px-0 sm:px-0 [@media(min-width:1024px)]:px-0 [@media(min-width:1200px)]:px-0.5 [@media(min-width:1270px)]:px-1.5 [@media(min-width:1440px)]:px-3 py-1 [@media(min-width:1200px)]:py-2 [@media(min-width:1440px)]:py-6"
+          className="relative mx-auto px-4 sm:px-6 lg:px-8 py-10"
           style={{ width: 'auto', maxWidth: '80rem' }}
         >
         {/* Removed background - uses site's gradient */}
@@ -691,7 +663,7 @@ export default function AnimatedInfographic({ isEmbed = false }: { isEmbed?: boo
         <div className="relative z-10">
         
         {/* Title */}
-        <div className="text-center mt-12 [@media(min-width:960px)]:mt-0" style={{ marginBottom: '-75px' }}>
+        <div className="text-center mt-12 md:mt-0" style={{ marginBottom: '-75px' }}>
           <h1 className="text-4xl lg:text-5xl font-bold mb-2">
             <span className="bg-gradient-to-r from-yellow-300 via-pink-300 to-purple-300 bg-clip-text text-transparent">
               The Prompt Page System
@@ -701,114 +673,19 @@ export default function AnimatedInfographic({ isEmbed = false }: { isEmbed?: boo
         </div>
 
         {/* Main Layout - 3 Stop Journey */}
-        <div className="relative flex flex-col [@media(min-width:960px)]:flex-row items-center justify-center gap-8 [@media(min-width:960px)]:gap-6 lg:gap-12 [@media(max-width:1023px)]:scale-90 [@media(min-width:1270px)]:gap-4 [@media(min-width:1440px)]:gap-12 [@media(min-width:1440px)]:justify-between pb-1 [@media(min-width:1024px)]:pb-2 [@media(min-width:1200px)]:pb-8 [@media(min-width:1440px)]:pb-40">
+        <div className="relative flex flex-col md:flex-row items-center justify-between gap-8 md:gap-6 lg:gap-12 pb-8 md:pb-80">
           
-          {/* Two separate beams with responsive breakpoints */}
+          {/* Two separate beams */}
           {mounted && (
             <>
-              {/* First Beam - MD screens (960-1024px) - now using LG settings */}
-              <div className="absolute pointer-events-none rounded-full" data-beam="md-first" 
+              {/* First Beam: Customer to Prompt Page socket (horizontal on desktop) - Updated positioning */}
+              <div className="hidden md:block absolute z-5 pointer-events-none overflow-hidden rounded-full" 
                 style={{ 
-                  left: '17%',  // Added 80px total to left side
-                  width: '22.5%',  // Adjusted to maintain end point (ends at 39.5%)
-                  top: '313px',  // Moved up 2px
+                  left: '16%',
+                  width: '34%',
+                  top: '265px',  // Moved up 25px more
                   height: '12px',
-                  zIndex: 1,  // Behind customer (z-30)
-                  overflow: 'hidden',  // Clip the animation
-                  boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.3), 0 0 20px rgba(147, 51, 234, 0.3)'
-                }}>
-                {/* Groove effect */}
-                <div className="absolute inset-0 bg-gradient-to-b from-gray-800/40 to-gray-900/60 rounded-full"></div>
-                {/* Light tube - continuous gradient */}
-                <div className="absolute inset-x-1 inset-y-0.5 bg-gradient-to-r from-blue-400/60 via-purple-500/60 to-pink-500/60 rounded-full blur-sm"></div>
-                {/* Always active light */}
-                <div className="absolute inset-x-1 inset-y-0.5 bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 animate-pulse rounded-full opacity-30"></div>
-                {/* First beam pulse */}
-                {beamPosition >= 20 && beamPosition < 45 && (
-                  <div 
-                    className="absolute inset-y-0 w-40"
-                    style={{
-                      background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.9), rgba(147, 51, 234, 0.9), rgba(236, 72, 153, 0.8), transparent)',
-                      transform: `translateX(${Math.min((beamPosition - 20) / 10 * 800, 800)}%)`,
-                      filter: 'blur(2px)',
-                      left: '-140px'
-                    }}
-                  />
-                )}
-              </div>
-
-              {/* First Beam - LG screens (1024-1200px) - now using MD settings */}
-              <div className="absolute pointer-events-none rounded-full" data-beam="lg-first" 
-                style={{ 
-                  left: '24%',  // Removed 10px from left side
-                  width: '15%',  // Adjusted to maintain end point (ends at 39%)
-                  top: '315px',
-                  height: '12px',
-                  zIndex: 1,  // Behind customer
-                  overflow: 'hidden',  // Clip the animation
-                  boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.3), 0 0 20px rgba(147, 51, 234, 0.3)'
-                }}>
-                {/* Groove effect */}
-                <div className="absolute inset-0 bg-gradient-to-b from-gray-800/40 to-gray-900/60 rounded-full"></div>
-                {/* Light tube - continuous gradient */}
-                <div className="absolute inset-x-1 inset-y-0.5 bg-gradient-to-r from-blue-400/60 via-purple-500/60 to-pink-500/60 rounded-full blur-sm"></div>
-                {/* Always active light */}
-                <div className="absolute inset-x-1 inset-y-0.5 bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 animate-pulse rounded-full opacity-30"></div>
-                {/* First beam pulse */}
-                {beamPosition >= 20 && beamPosition < 45 && (
-                  <div 
-                    className="absolute inset-y-0 w-40"
-                    style={{
-                      background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.9), rgba(147, 51, 234, 0.9), rgba(236, 72, 153, 0.8), transparent)',
-                      transform: `translateX(${Math.min((beamPosition - 20) / 10 * 800, 800)}%)`,
-                      filter: 'blur(2px)',
-                      left: '-140px'
-                    }}
-                  />
-                )}
-              </div>
-
-              {/* First Beam - Medium screens (1200-1270px) */}
-              <div className="absolute pointer-events-none rounded-full" data-beam="medium-first" 
-                style={{ 
-                  left: '24.5%',  // Cut 20px off left side
-                  width: '16%',  // Adjusted to maintain end point (ends at 40.5%)
-                  top: '315px',
-                  height: '12px',
-                  zIndex: 1,  // Behind customer
-                  overflow: 'hidden',
-                  boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.3), 0 0 20px rgba(147, 51, 234, 0.3)'
-                }}>
-                {/* Groove effect */}
-                <div className="absolute inset-0 bg-gradient-to-b from-gray-800/40 to-gray-900/60 rounded-full"></div>
-                {/* Light tube - continuous gradient */}
-                <div className="absolute inset-x-1 inset-y-0.5 bg-gradient-to-r from-blue-400/60 via-purple-500/60 to-pink-500/60 rounded-full blur-sm"></div>
-                {/* Always active light */}
-                <div className="absolute inset-x-1 inset-y-0.5 bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 animate-pulse rounded-full opacity-30"></div>
-                {/* First beam pulse */}
-                {beamPosition >= 20 && beamPosition < 45 && (
-                  <div 
-                    className="absolute inset-y-0 w-40"
-                    style={{
-                      background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.9), rgba(147, 51, 234, 0.9), rgba(236, 72, 153, 0.8), transparent)',
-                      transform: `translateX(${Math.min((beamPosition - 20) / 10 * 800, 800)}%)`,
-                      filter: 'blur(2px)',
-                      left: '-140px'
-                    }}
-                  />
-                )}
-              </div>
-
-              {/* First Beam - XL screens (1270-1439px) - compact for ~1000px */}
-              <div className="absolute pointer-events-none rounded-full" data-beam="xl-first" 
-                style={{ 
-                  left: '20%',  // Closer to center for compact layout
-                  width: '20%',  // Removed 30px from right (ends at 40%)
-                  top: '315px',
-                  height: '12px',
-                  zIndex: 1,  // Behind customer
-                  overflow: 'hidden',  // Clip the animation
-                  boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.3), 0 0 20px rgba(147, 51, 234, 0.3)'
+                  boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.3), 0 0 20px rgba(147, 51, 234, 0.3)' 
                 }}>
                 {/* Groove effect */}
                 <div className="absolute inset-0 bg-gradient-to-b from-gray-800/40 to-gray-900/60 rounded-full"></div>
@@ -830,109 +707,14 @@ export default function AnimatedInfographic({ isEmbed = false }: { isEmbed?: boo
                 )}
               </div>
               
-              {/* Second Beam - MD screens (960-1024px) - now using LG settings */}
-              <div className="absolute pointer-events-none rounded-full" data-beam="md-second" 
+              {/* Second Beam: Prompt Page socket to Review Platforms socket */}
+              <div className="hidden md:block absolute z-5 pointer-events-none overflow-hidden rounded-full" 
                 style={{ 
-                  left: '58.5%',  // Moved 30px left
-                  width: '23%',  // Added 105px total to right side (ends at 81.5%)
-                  top: '313px',  // Moved up 2px
+                  left: '50%',
+                  width: '34%',
+                  top: '265px',  // Moved up 25px more
                   height: '12px',
-                  zIndex: 1,
-                  overflow: 'hidden',  // Clip the animation
-                  boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.3), 0 0 20px rgba(147, 51, 234, 0.3)'
-                }}>
-                {/* Groove effect */}
-                <div className="absolute inset-0 bg-gradient-to-b from-gray-800/40 to-gray-900/60 rounded-full"></div>
-                {/* Light tube - continuous gradient */}
-                <div className="absolute inset-x-1 inset-y-0.5 bg-gradient-to-r from-purple-500/60 via-purple-500/60 to-pink-500/60 rounded-full blur-sm"></div>
-                {/* Always active light */}
-                <div className="absolute inset-x-1 inset-y-0.5 bg-gradient-to-r from-purple-500 via-purple-500 to-pink-500 animate-pulse rounded-full opacity-30"></div>
-                {/* Second beam pulse */}
-                {beamPosition >= 50 && beamPosition < 90 && (
-                  <div 
-                    className="absolute inset-y-0 w-40"
-                    style={{
-                      background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.9), rgba(147, 51, 234, 0.9), rgba(236, 72, 153, 0.8), transparent)',
-                      transform: `translateX(${Math.min((beamPosition - 50) / 10 * 800, 800)}%)`,
-                      filter: 'blur(2px)',
-                      left: '-140px'
-                    }}
-                  />
-                )}
-              </div>
-
-              {/* Second Beam - LG screens (1024-1200px) - now using MD settings */}
-              <div className="absolute pointer-events-none rounded-full" data-beam="lg-second" 
-                style={{ 
-                  left: '59%',  // Cut 60px off left side
-                  width: '13%',  // Removed 30px from right side (ends at 72%)
-                  top: '315px',
-                  height: '12px',
-                  zIndex: 1,
-                  overflow: 'hidden',  // Clip the animation
-                  boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.3), 0 0 20px rgba(147, 51, 234, 0.3)'
-                }}>
-                {/* Groove effect */}
-                <div className="absolute inset-0 bg-gradient-to-b from-gray-800/40 to-gray-900/60 rounded-full"></div>
-                {/* Light tube - continuous gradient */}
-                <div className="absolute inset-x-1 inset-y-0.5 bg-gradient-to-r from-purple-500/60 via-purple-500/60 to-pink-500/60 rounded-full blur-sm"></div>
-                {/* Always active light */}
-                <div className="absolute inset-x-1 inset-y-0.5 bg-gradient-to-r from-purple-500 via-purple-500 to-pink-500 animate-pulse rounded-full opacity-30"></div>
-                {/* Second beam pulse */}
-                {beamPosition >= 50 && beamPosition < 90 && (
-                  <div 
-                    className="absolute inset-y-0 w-40"
-                    style={{
-                      background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.9), rgba(147, 51, 234, 0.9), rgba(236, 72, 153, 0.8), transparent)',
-                      transform: `translateX(${Math.min((beamPosition - 50) / 10 * 800, 800)}%)`,
-                      filter: 'blur(2px)',
-                      left: '-140px'
-                    }}
-                  />
-                )}
-              </div>
-
-              {/* Second Beam - Medium screens (1200-1270px) */}
-              <div className="absolute pointer-events-none rounded-full" data-beam="medium-second" 
-                style={{ 
-                  left: '58%',  // Cut 25px off left side
-                  width: '13%',  // Cut 25px off right side (ends at 71%)
-                  top: '315px',
-                  height: '12px',
-                  zIndex: 1,
-                  overflow: 'hidden',
-                  boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.3), 0 0 20px rgba(147, 51, 234, 0.3)'
-                }}>
-                {/* Groove effect */}
-                <div className="absolute inset-0 bg-gradient-to-b from-gray-800/40 to-gray-900/60 rounded-full"></div>
-                {/* Light tube - continuous gradient */}
-                <div className="absolute inset-x-1 inset-y-0.5 bg-gradient-to-r from-purple-500/60 via-purple-500/60 to-pink-500/60 rounded-full blur-sm"></div>
-                {/* Always active light */}
-                <div className="absolute inset-x-1 inset-y-0.5 bg-gradient-to-r from-purple-500 via-purple-500 to-pink-500 animate-pulse rounded-full opacity-30"></div>
-                {/* Second beam pulse */}
-                {beamPosition >= 50 && beamPosition < 90 && (
-                  <div 
-                    className="absolute inset-y-0 w-40"
-                    style={{
-                      background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.9), rgba(147, 51, 234, 0.9), rgba(236, 72, 153, 0.8), transparent)',
-                      transform: `translateX(${Math.min((beamPosition - 50) / 10 * 800, 800)}%)`,
-                      filter: 'blur(2px)',
-                      left: '-140px'
-                    }}
-                  />
-                )}
-              </div>
-
-              {/* Second Beam - XL screens (1270-1439px) - compact for ~1000px */}
-              <div className="absolute pointer-events-none rounded-full" data-beam="xl-second" 
-                style={{ 
-                  left: '58%',  // Closer for compact layout
-                  width: '17%',  // Added 20px to right (ends at 75%)
-                  top: '315px',
-                  height: '12px',
-                  zIndex: 1,
-                  overflow: 'hidden',  // Clip the animation
-                  boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.3), 0 0 20px rgba(147, 51, 234, 0.3)'
+                  boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.3), 0 0 20px rgba(147, 51, 234, 0.3)' 
                 }}>
                 {/* Groove effect */}
                 <div className="absolute inset-0 bg-gradient-to-b from-gray-800/40 to-gray-900/60 rounded-full"></div>
@@ -953,76 +735,14 @@ export default function AnimatedInfographic({ isEmbed = false }: { isEmbed?: boo
                   />
                 )}
               </div>
-
-              {/* First Beam - XXL screens (1440px+) - wider spacing */}
-              <div className="absolute pointer-events-none rounded-full" data-beam="xxl-first" 
-                style={{ 
-                  left: '15.5%',  // Original wider position
-                  width: '24%',  // Original wider width (ends at 39.5%)
-                  top: '315px',
-                  height: '12px',
-                  zIndex: 1,
-                  overflow: 'hidden',
-                  boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.3), 0 0 20px rgba(147, 51, 234, 0.3)'
-                }}>
-                {/* Groove effect */}
-                <div className="absolute inset-0 bg-gradient-to-b from-gray-800/40 to-gray-900/60 rounded-full"></div>
-                {/* Light tube - continuous gradient */}
-                <div className="absolute inset-x-1 inset-y-0.5 bg-gradient-to-r from-blue-400/60 via-purple-500/60 to-pink-500/60 rounded-full blur-sm"></div>
-                {/* Always active light */}
-                <div className="absolute inset-x-1 inset-y-0.5 bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 animate-pulse rounded-full opacity-30"></div>
-                {/* First beam pulse */}
-                {beamPosition >= 20 && beamPosition < 50 && (
-                  <div 
-                    className="absolute inset-y-0 w-40"
-                    style={{
-                      background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.9), rgba(59, 130, 246, 0.9), rgba(147, 51, 234, 0.8), transparent)',
-                      transform: `translateX(${Math.min((beamPosition - 20) / 10 * 800, 800)}%)`,
-                      filter: 'blur(2px)',
-                      left: '-140px'
-                    }}
-                  />
-                )}
-              </div>
-
-              {/* Second Beam - XXL screens (1440px+) - wider spacing */}
-              <div className="absolute pointer-events-none rounded-full" data-beam="xxl-second" 
-                style={{ 
-                  left: '59.5%',  // Moved 6px left from 60%
-                  width: '20.5%',  // Added 6px to compensate (ends at 80%)
-                  top: '315px',
-                  height: '12px',
-                  zIndex: 1,
-                  overflow: 'hidden',
-                  boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.3), 0 0 20px rgba(147, 51, 234, 0.3)'
-                }}>
-                {/* Groove effect */}
-                <div className="absolute inset-0 bg-gradient-to-b from-gray-800/40 to-gray-900/60 rounded-full"></div>
-                {/* Light tube - continuous gradient */}
-                <div className="absolute inset-x-1 inset-y-0.5 bg-gradient-to-r from-purple-500/60 via-purple-500/60 to-pink-500/60 rounded-full blur-sm"></div>
-                {/* Always active light */}
-                <div className="absolute inset-x-1 inset-y-0.5 bg-gradient-to-r from-purple-500 via-purple-500 to-pink-500 animate-pulse rounded-full opacity-30"></div>
-                {/* Second beam pulse */}
-                {beamPosition >= 50 && beamPosition < 90 && (
-                  <div 
-                    className="absolute inset-y-0 w-40"
-                    style={{
-                      background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.9), rgba(147, 51, 234, 0.9), rgba(236, 72, 153, 0.8), transparent)',
-                      transform: `translateX(${Math.min((beamPosition - 50) / 10 * 800, 800)}%)`,
-                      filter: 'blur(2px)',
-                      left: '-140px'
-                    }}
-                  />
-                )}
-              </div>
               
             </>
           )}
           
           
           {/* STOP 1: Customer (Left) - z-30 to be above beam */}
-          <div ref={customerRef} className="relative flex-shrink-0 z-30 [@media(min-width:1024px)]:translate-x-28 [@media(min-width:1270px)]:translate-x-16 [@media(min-width:1440px)]:translate-x-0" style={{ marginTop: '160px' }}>
-            <div className="relative [@media(min-width:960px)]:mt-8">
+          <div ref={customerRef} className="relative flex-shrink-0 z-30" style={{ marginTop: '160px' }}>
+            <div className="relative md:mt-8">
               
               {/* Phone with notification - transparent and close to customer */}
               {mounted && (
@@ -1089,8 +809,8 @@ export default function AnimatedInfographic({ isEmbed = false }: { isEmbed?: boo
               )}
               {/* Larger customer icon with gradient effect */}
               <div className="relative">
-                {/* Much subtler oval glow behind icon */}
-                <div className="absolute top-1/4 left-1/4 w-1/2 h-1/2 blur-lg bg-gradient-to-r from-yellow-300/8 via-pink-300/8 to-purple-300/8 rounded-full scale-150" />
+                {/* Subtle glow behind icon - smaller and fading to transparent */}
+                <div className="absolute inset-0 blur-2xl bg-gradient-to-r from-yellow-300/20 via-pink-300/20 to-purple-300/20 scale-105" />
                 
                 {/* Customer SVG with gradient fill - 50% bigger (30% + 20%) */}
                 <svg width="250" height="250" viewBox="0 0 107.4084 230.4448" className="relative" style={{ filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.2))', marginTop: '20px' }}>
@@ -1119,7 +839,7 @@ export default function AnimatedInfographic({ isEmbed = false }: { isEmbed?: boo
               </div>
               
               {/* Label with proper spacing below customer icon */}
-              <div className="text-center mt-8 [@media(min-width:960px)]:mt-20">
+              <div className="text-center mt-5 md:mt-20">
                 <h3 className="text-white/95 font-bold text-lg lg:text-xl">
                   Customer
                 </h3>
@@ -1131,7 +851,7 @@ export default function AnimatedInfographic({ isEmbed = false }: { isEmbed?: boo
           </div>
 
           {/* Mobile Beam 1: Between Customer and Prompt Page */}
-          <div className="[@media(min-width:960px)]:hidden relative w-3 h-16 mx-auto rounded-full overflow-hidden z-5" 
+          <div className="md:hidden relative w-3 h-16 mx-auto rounded-full overflow-hidden z-5" 
             style={{ 
               background: 'linear-gradient(to b, rgba(31, 41, 55, 0.5), rgba(31, 41, 55, 0.3))',
               boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.3), 0 0 20px rgba(147, 51, 234, 0.3)'
@@ -1153,27 +873,26 @@ export default function AnimatedInfographic({ isEmbed = false }: { isEmbed?: boo
           </div>
 
           {/* STOP 2: Prompt Page with Tools (Center) */}
-          <div ref={promptPageRef} className="relative flex-grow flex justify-center -mt-32 [@media(min-width:960px)]:mt-0">
+          <div ref={promptPageRef} className="relative flex-grow flex justify-center -mt-32 md:mt-0">
             <div className="relative w-[500px] h-[500px] lg:w-[600px] lg:h-[600px]">
               
               {/* Central Prompt Page - looks like actual prompt page structure */}
               <div className="absolute left-1/2 -translate-x-1/2 z-20" style={{ top: 'calc(50% + 20px)', transform: 'translateX(-50%) translateY(-50%)' }}>
-                <div ref={promptPageCardRef} className="relative" style={{ zIndex: 25 }}>
+                <div ref={promptPageCardRef} className="relative">
                   {/* Subtle glow effect - static for better performance */}
                   <div 
                     className="absolute inset-0 rounded-2xl"
                     style={{
                       background: 'radial-gradient(circle, rgba(147,51,234,0.2), transparent)',
                       transform: 'scale(1.3)',
-                      opacity: 0.6,
-                      zIndex: -1
+                      opacity: 0.6
                     }}
                   />
                   <div className="absolute inset-0 rounded-2xl blur-xl bg-gradient-to-br from-purple-400/20 to-pink-400/20" />
                   
                   {/* Left socket for beam - hidden on mobile */}
                   <div 
-                    className="hidden [@media(min-width:960px)]:block absolute z-25 pointer-events-none"
+                    className="hidden md:block absolute z-25 pointer-events-none"
                     style={{
                       left: '-6px',  // Moved further into card to cover beam end
                       top: 'calc(50% - 8px)', // Socket position relative to card center
@@ -1192,7 +911,7 @@ export default function AnimatedInfographic({ isEmbed = false }: { isEmbed?: boo
                   
                   {/* Right socket for beam - hidden on mobile */}
                   <div 
-                    className="hidden [@media(min-width:960px)]:block absolute z-25 pointer-events-none"
+                    className="hidden md:block absolute z-25 pointer-events-none"
                     style={{
                       right: '-6px',  // Moved further into card to cover beam end
                       top: 'calc(50% - 8px)', // Socket position relative to card center
@@ -1214,8 +933,7 @@ export default function AnimatedInfographic({ isEmbed = false }: { isEmbed?: boo
                     className="relative w-64 lg:w-64"
                     style={{
                       borderRadius: '24px',
-                      padding: '6px',
-                      zIndex: 30  // Higher than beams
+                      padding: '6px'
                     }}
                   >
                     {/* Beam-style border - groove effect (thinner) */}
@@ -1439,7 +1157,7 @@ export default function AnimatedInfographic({ isEmbed = false }: { isEmbed?: boo
                   </div>
                   
                   {/* Label below the form - match customer spacing */}
-                  <div className="absolute -bottom-16 [@media(min-width:960px)]:-bottom-20 left-1/2 -translate-x-1/2 text-center">
+                  <div className="absolute -bottom-16 md:-bottom-20 left-1/2 -translate-x-1/2 text-center">
                     <h3 className="text-white/95 font-bold text-lg lg:text-xl">Prompt Page</h3>
                     <p className="text-gray-200/90 text-sm whitespace-nowrap mt-1">Create • Copy • Post</p>
                   </div>
@@ -1448,8 +1166,8 @@ export default function AnimatedInfographic({ isEmbed = false }: { isEmbed?: boo
 
               
               {/* Desktop Features - absolute positioned */}
-              <div className="hidden [@media(min-width:960px)]:flex absolute left-1/2 -translate-x-1/2 z-30 flex-col items-center bottom-[-280px]">
-                {/* Features Container - Horizontal bar for desktop */}
+              <div className="hidden md:flex absolute left-1/2 -translate-x-1/2 z-30 flex-col items-center bottom-[-280px]">
+                {/* Features Container */}
                 <div 
                   className="flex flex-nowrap items-center justify-center gap-3 lg:gap-6 px-5 lg:px-7 py-3 lg:py-4 rounded-full"
                   style={{
@@ -1518,7 +1236,7 @@ export default function AnimatedInfographic({ isEmbed = false }: { isEmbed?: boo
                 </div>
                 
                 {/* Features Header - below the icons on desktop */}
-                <h3 className="text-white/95 font-bold text-lg lg:text-xl mt-8">Helpful features</h3>
+                <h3 className="text-white/95 font-bold text-lg lg:text-xl mt-10">Helpful features</h3>
                 <p className="text-gray-200/90 text-sm text-center mt-1">Help your customers write impactful reviews</p>
               </div>
             </div>
@@ -1526,7 +1244,7 @@ export default function AnimatedInfographic({ isEmbed = false }: { isEmbed?: boo
           </div>
 
           {/* Mobile Beam 2: Between Prompt Page and Review Platforms */}
-          <div className="[@media(min-width:960px)]:hidden relative w-3 h-16 mx-auto rounded-full overflow-hidden z-5 -mt-5" 
+          <div className="md:hidden relative w-3 h-16 mx-auto rounded-full overflow-hidden z-5 -mt-5" 
             style={{ 
               background: 'linear-gradient(to b, rgba(31, 41, 55, 0.5), rgba(31, 41, 55, 0.3))',
               boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.3), 0 0 20px rgba(147, 51, 234, 0.3)'
@@ -1548,11 +1266,11 @@ export default function AnimatedInfographic({ isEmbed = false }: { isEmbed?: boo
           </div>
 
           {/* STOP 3: Review Form (Right) */}
-          <div ref={reviewPlatformRef} className="relative flex-shrink-0 flex items-center justify-center [@media(min-width:960px)]:ml-4 z-30 [@media(min-width:1024px)]:-translate-x-28 [@media(min-width:1270px)]:-translate-x-16 [@media(min-width:1440px)]:translate-x-0" style={{ marginTop: mounted && typeof window !== 'undefined' && window.innerWidth >= 960 ? '37px' : '-16px' }}>
+          <div ref={reviewPlatformRef} className="relative flex-shrink-0 flex items-center justify-center md:ml-4" style={{ marginTop: mounted && typeof window !== 'undefined' && window.innerWidth >= 768 ? '37px' : '-16px' }}>
             
             {/* T-connector where beam meets form - aligned with beam - hidden on mobile */}
             <div 
-              className="hidden [@media(min-width:960px)]:block absolute z-[25] pointer-events-none"
+              className="hidden md:block absolute z-0 pointer-events-none"
               style={{
                 left: '-6px',  // Moved further into card to cover beam end
                 top: 'calc(50% - 7px)', // Socket position for review platform - moved down 1px
@@ -1575,8 +1293,7 @@ export default function AnimatedInfographic({ isEmbed = false }: { isEmbed?: boo
               style={{
                 borderRadius: '24px',
                 padding: '6px',
-                marginTop: '12px',  // Move box down 12px
-                zIndex: 30  // Higher than beams
+                marginTop: '12px'  // Move box down 12px
               }}
             >
               {/* Beam-style border - groove effect (thinner) */}
@@ -1806,7 +1523,7 @@ export default function AnimatedInfographic({ isEmbed = false }: { isEmbed?: boo
             </div>
             
             {/* Label below the form - match customer spacing */}
-            <div className="absolute left-1/2 -translate-x-1/2 text-center -bottom-16 [@media(min-width:960px)]:-bottom-[133px]">
+            <div className="absolute left-1/2 -translate-x-1/2 text-center -bottom-16 md:-bottom-[133px]">
               <h3 className="text-white/95 font-bold text-lg lg:text-xl">Review platforms</h3>
               <p className="text-gray-200/90 text-sm whitespace-nowrap mt-1">Google • Facebook • Yelp • More</p>
             </div>
@@ -1814,7 +1531,7 @@ export default function AnimatedInfographic({ isEmbed = false }: { isEmbed?: boo
         </div>
         
         {/* Mobile Features - positioned after all content */}
-        <div className="[@media(min-width:960px)]:hidden mt-12 flex flex-col items-center z-30 relative">
+        <div className="md:hidden mt-32 flex flex-col items-center z-30 relative">
           {/* Centered Popup - appears above entire features container */}
           {clickedTool !== null && (
             <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-8 w-64 pointer-events-none z-[99999]">
@@ -1884,7 +1601,7 @@ export default function AnimatedInfographic({ isEmbed = false }: { isEmbed?: boo
           </div>
           
           {/* Features Header - now below the icons */}
-          <h3 className="text-white/95 font-bold text-lg lg:text-xl mt-8">Helpful features</h3>
+          <h3 className="text-white/95 font-bold text-lg lg:text-xl mt-10">Helpful features</h3>
           <p className="text-gray-200/90 text-sm text-center mt-1">Help your customers write impactful reviews</p>
         </div>
 
