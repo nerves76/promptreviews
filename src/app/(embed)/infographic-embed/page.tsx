@@ -14,11 +14,18 @@ const LoadingSkeleton = () => (
   </div>
 )
 
-// Import with SSR enabled for faster initial load
-const AnimatedInfographic = dynamic(() => import('../../(app)/components/AnimatedInfographic'), {
-  ssr: true,
-  loading: () => <LoadingSkeleton />
-})
+// Import with SSR enabled and preload for faster initial load
+const AnimatedInfographic = dynamic(
+  () => import(
+    /* webpackPreload: true */
+    /* webpackChunkName: "animated-infographic" */
+    '../../(app)/components/AnimatedInfographic'
+  ), 
+  {
+    ssr: true,
+    loading: () => <LoadingSkeleton />
+  }
+)
 
 export default function EmbedInfographicPage() {
   
