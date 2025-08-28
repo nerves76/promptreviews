@@ -17,27 +17,41 @@ export default function EmbedInfographicPage() {
   }, [])
   
   useEffect(() => {
+    let lastHeight = 0
+    
     // Send height to parent window for iframe resizing
     const sendHeight = () => {
       const height = document.documentElement.scrollHeight
-      window.parent.postMessage(
-        { type: 'infographic-resize', height },
-        '*'
-      )
+      // Only send if height actually changed
+      if (Math.abs(height - lastHeight) > 5) {
+        lastHeight = height
+        window.parent.postMessage(
+          { type: 'infographic-resize', height },
+          '*'
+        )
+      }
     }
 
-    // Send initial height
-    sendHeight()
+    // Debounced version for resize events
+    let resizeTimeout: NodeJS.Timeout
+    const debouncedSendHeight = () => {
+      clearTimeout(resizeTimeout)
+      resizeTimeout = setTimeout(sendHeight, 250)
+    }
 
-    // Send height on resize
-    window.addEventListener('resize', sendHeight)
+    // Send initial height after a small delay to ensure content is rendered
+    setTimeout(sendHeight, 100)
+
+    // Send height on window resize with debounce
+    window.addEventListener('resize', debouncedSendHeight)
 
     // Send height after animations load
-    const timer = setTimeout(sendHeight, 1000)
+    const timer = setTimeout(sendHeight, 2000)
 
     return () => {
-      window.removeEventListener('resize', sendHeight)
+      window.removeEventListener('resize', debouncedSendHeight)
       clearTimeout(timer)
+      clearTimeout(resizeTimeout)
     }
   }, [])
 
