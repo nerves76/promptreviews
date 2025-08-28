@@ -50,7 +50,7 @@ export default function EmbedInfographicPage() {
   }
   
   return (
-    <div className="w-full min-h-screen flex flex-col items-center justify-start py-10 overflow-auto">
+    <div className="w-full min-h-screen flex flex-col items-center justify-start py-10 overflow-auto" style={{ backgroundColor: '#0f1419' }}>
       <AnimatedInfographic isEmbed={true} />
     </div>
   )
