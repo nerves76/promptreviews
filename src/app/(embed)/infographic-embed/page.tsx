@@ -1,20 +1,26 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import dynamic from 'next/dynamic'
 
-// Dynamically import to avoid SSR issues
+// Loading skeleton that matches the infographic dimensions
+const LoadingSkeleton = () => (
+  <div className="w-full flex items-center justify-center" style={{ height: '750px' }}>
+    <div className="animate-pulse flex space-x-8">
+      <div className="rounded-lg bg-gray-200 h-40 w-40"></div>
+      <div className="rounded-lg bg-gray-200 h-40 w-40"></div>
+      <div className="rounded-lg bg-gray-200 h-40 w-40"></div>
+    </div>
+  </div>
+)
+
+// Import with SSR enabled for faster initial load
 const AnimatedInfographic = dynamic(() => import('../../(app)/components/AnimatedInfographic'), {
-  ssr: false,
-  loading: () => <div>Loading infographic...</div>
+  ssr: true,
+  loading: () => <LoadingSkeleton />
 })
 
 export default function EmbedInfographicPage() {
-  const [mounted, setMounted] = useState(false)
-  
-  useEffect(() => {
-    setMounted(true)
-  }, [])
   
   useEffect(() => {
     let lastHeight = 0
@@ -54,14 +60,6 @@ export default function EmbedInfographicPage() {
       clearTimeout(resizeTimeout)
     }
   }, [])
-
-  if (!mounted) {
-    return (
-      <div className="w-full flex flex-col items-center justify-start py-10">
-        <div>Loading infographic...</div>
-      </div>
-    )
-  }
   
   return (
     <div className="w-full flex flex-col items-center justify-start py-10">
