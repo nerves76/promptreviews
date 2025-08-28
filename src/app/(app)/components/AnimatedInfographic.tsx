@@ -765,8 +765,8 @@ export default function AnimatedInfographic({ isEmbed = false, debug = false }: 
               {/* First Beam - LG screens (1024-1200px) - now using MD settings */}
               <div className="absolute pointer-events-none rounded-full" data-beam="lg-first" 
                 style={{ 
-                  left: '24%',  // Removed 10px from left side
-                  width: '15%',  // Adjusted to maintain end point (ends at 39%)
+                  left: '25%',  // Reduced by 15px more from left side
+                  width: '14%',  // Adjusted to maintain end point (ends at 39%)
                   top: '315px',
                   height: '12px',
                   zIndex: 1,  // Behind customer
@@ -890,7 +890,7 @@ export default function AnimatedInfographic({ isEmbed = false, debug = false }: 
               <div className="absolute pointer-events-none rounded-full" data-beam="lg-second" 
                 style={{ 
                   left: '59%',  // Cut 60px off left side
-                  width: '13%',  // Removed 30px from right side (ends at 72%)
+                  width: '11.5%',  // Trimmed 20px more from right side (ends at 70.5%)
                   top: '315px',
                   height: '12px',
                   zIndex: 1,
