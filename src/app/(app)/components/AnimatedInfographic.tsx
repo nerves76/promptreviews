@@ -153,6 +153,12 @@ export default function AnimatedInfographic({ isEmbed = false }: { isEmbed?: boo
 
   // Intersection Observer to detect when component is visible
   useEffect(() => {
+    // For embedded version, immediately set as visible to ensure animations work
+    if (isEmbed) {
+      setIsVisible(true)
+      return
+    }
+    
     const observer = new IntersectionObserver(
       ([entry]) => {
         setIsVisible(entry.isIntersecting)
@@ -173,7 +179,7 @@ export default function AnimatedInfographic({ isEmbed = false }: { isEmbed?: boo
         observer.unobserve(element)
       }
     }
-  }, [])
+  }, [isEmbed])
 
   // Click outside to close popups
   useEffect(() => {
