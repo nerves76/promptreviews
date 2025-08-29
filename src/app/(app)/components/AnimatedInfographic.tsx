@@ -772,11 +772,11 @@ export default function AnimatedInfographic({ isEmbed = false, debug = false }: 
                 )}
               </div>
 
-              {/* First Beam - LG screens (1024-1200px) - now using MD settings */}
+              {/* First Beam - LG screens (1024-1029px) - adjusted closer to customer */}
               <div className="absolute pointer-events-none rounded-full" data-beam="lg-first" 
                 style={{ 
-                  left: '25%',  // Reduced by 15px more from left side
-                  width: '14%',  // Adjusted to maintain end point (ends at 39%)
+                  left: '23.5%',  // Moved ~25px closer to customer
+                  width: '15.5%',  // Slightly longer to maintain connection
                   top: '315px',
                   height: '12px',
                   zIndex: 1,  // Behind customer
