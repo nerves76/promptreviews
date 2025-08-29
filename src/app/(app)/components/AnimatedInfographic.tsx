@@ -958,11 +958,11 @@ export default function AnimatedInfographic({ isEmbed = false, debug = false }: 
                 )}
               </div>
 
-              {/* Second Beam - LG screens (1024-1200px) - now using MD settings */}
+              {/* Second Beam - LG screens (1024-1029px) - adjusted to connect */}
               <div className="absolute pointer-events-none rounded-full" data-beam="lg-second" 
                 style={{ 
                   left: '59%',  // Cut 60px off left side
-                  width: '11.5%',  // Trimmed 20px more from right side (ends at 70.5%)
+                  width: '12%',  // Extended ~8px to connect to review platform (ends at 71%)
                   top: '315px',
                   height: '12px',
                   zIndex: 1,
