@@ -424,8 +424,18 @@ export default function AnimatedInfographic({ isEmbed = false, debug = false }: 
             display: block !important;
           }
         }
-        @media (min-width: 1024px) and (max-width: 1199px) {
+        @media (min-width: 1024px) and (max-width: 1029px) {
           [data-beam="lg-first"], [data-beam="lg-second"] {
+            display: block !important;
+          }
+        }
+        @media (min-width: 1030px) and (max-width: 1130px) {
+          [data-beam="lg-mid-first"], [data-beam="lg-mid-second"] {
+            display: block !important;
+          }
+        }
+        @media (min-width: 1131px) and (max-width: 1199px) {
+          [data-beam="lg-wide-first"], [data-beam="lg-wide-second"] {
             display: block !important;
           }
         }
@@ -793,6 +803,68 @@ export default function AnimatedInfographic({ isEmbed = false, debug = false }: 
                 )}
               </div>
 
+              {/* First Beam - LG-Mid screens (1030-1130px) - adjusted for awkward gap */}
+              <div className="absolute pointer-events-none rounded-full" data-beam="lg-mid-first" 
+                style={{ 
+                  left: '24%',  // Slightly closer to customer
+                  width: '15%',  // Connect properly
+                  top: '315px',
+                  height: '12px',
+                  zIndex: 1,
+                  overflow: 'hidden',
+                  boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.3), 0 0 20px rgba(147, 51, 234, 0.3)'
+                }}>
+                {/* Groove effect */}
+                <div className="absolute inset-0 bg-gradient-to-b from-gray-800/40 to-gray-900/60 rounded-full"></div>
+                {/* Light tube - continuous gradient */}
+                <div className="absolute inset-x-1 inset-y-0.5 bg-gradient-to-r from-blue-400/60 via-purple-500/60 to-pink-500/60 rounded-full blur-sm"></div>
+                {/* Always active light */}
+                <div className="absolute inset-x-1 inset-y-0.5 bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 animate-pulse rounded-full opacity-30"></div>
+                {/* First beam pulse */}
+                {beamPosition >= 20 && beamPosition < 45 && (
+                  <div 
+                    className="absolute inset-y-0 w-40"
+                    style={{
+                      background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.9), rgba(147, 51, 234, 0.9), rgba(236, 72, 153, 0.8), transparent)',
+                      transform: `translateX(${Math.min((beamPosition - 20) / 10 * 800, 800)}%)`,
+                      filter: 'blur(2px)',
+                      left: '-140px'
+                    }}
+                  />
+                )}
+              </div>
+
+              {/* First Beam - LG-Wide screens (1131-1199px) */}
+              <div className="absolute pointer-events-none rounded-full" data-beam="lg-wide-first" 
+                style={{ 
+                  left: '23%',  // Adjusted position
+                  width: '16%',  // Slightly wider
+                  top: '315px',
+                  height: '12px',
+                  zIndex: 1,
+                  overflow: 'hidden',
+                  boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.3), 0 0 20px rgba(147, 51, 234, 0.3)'
+                }}>
+                {/* Groove effect */}
+                <div className="absolute inset-0 bg-gradient-to-b from-gray-800/40 to-gray-900/60 rounded-full"></div>
+                {/* Light tube - continuous gradient */}
+                <div className="absolute inset-x-1 inset-y-0.5 bg-gradient-to-r from-blue-400/60 via-purple-500/60 to-pink-500/60 rounded-full blur-sm"></div>
+                {/* Always active light */}
+                <div className="absolute inset-x-1 inset-y-0.5 bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 animate-pulse rounded-full opacity-30"></div>
+                {/* First beam pulse */}
+                {beamPosition >= 20 && beamPosition < 45 && (
+                  <div 
+                    className="absolute inset-y-0 w-40"
+                    style={{
+                      background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.9), rgba(147, 51, 234, 0.9), rgba(236, 72, 153, 0.8), transparent)',
+                      transform: `translateX(${Math.min((beamPosition - 20) / 10 * 800, 800)}%)`,
+                      filter: 'blur(2px)',
+                      left: '-140px'
+                    }}
+                  />
+                )}
+              </div>
+
               {/* First Beam - Medium screens (1200-1270px) */}
               <div className="absolute pointer-events-none rounded-full" data-beam="medium-first" 
                 style={{ 
@@ -895,6 +967,68 @@ export default function AnimatedInfographic({ isEmbed = false, debug = false }: 
                   height: '12px',
                   zIndex: 1,
                   overflow: 'hidden',  // Clip the animation
+                  boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.3), 0 0 20px rgba(147, 51, 234, 0.3)'
+                }}>
+                {/* Groove effect */}
+                <div className="absolute inset-0 bg-gradient-to-b from-gray-800/40 to-gray-900/60 rounded-full"></div>
+                {/* Light tube - continuous gradient */}
+                <div className="absolute inset-x-1 inset-y-0.5 bg-gradient-to-r from-purple-500/60 via-purple-500/60 to-pink-500/60 rounded-full blur-sm"></div>
+                {/* Always active light */}
+                <div className="absolute inset-x-1 inset-y-0.5 bg-gradient-to-r from-purple-500 via-purple-500 to-pink-500 animate-pulse rounded-full opacity-30"></div>
+                {/* Second beam pulse */}
+                {beamPosition >= 50 && beamPosition < 90 && (
+                  <div 
+                    className="absolute inset-y-0 w-40"
+                    style={{
+                      background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.9), rgba(147, 51, 234, 0.9), rgba(236, 72, 153, 0.8), transparent)',
+                      transform: `translateX(${Math.min((beamPosition - 50) / 10 * 800, 800)}%)`,
+                      filter: 'blur(2px)',
+                      left: '-140px'
+                    }}
+                  />
+                )}
+              </div>
+
+              {/* Second Beam - LG-Mid screens (1030-1130px) - adjusted for awkward gap */}
+              <div className="absolute pointer-events-none rounded-full" data-beam="lg-mid-second" 
+                style={{ 
+                  left: '60%',  // Adjusted to connect properly
+                  width: '12%',  // Shorter to avoid overflow
+                  top: '315px',
+                  height: '12px',
+                  zIndex: 1,
+                  overflow: 'hidden',
+                  boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.3), 0 0 20px rgba(147, 51, 234, 0.3)'
+                }}>
+                {/* Groove effect */}
+                <div className="absolute inset-0 bg-gradient-to-b from-gray-800/40 to-gray-900/60 rounded-full"></div>
+                {/* Light tube - continuous gradient */}
+                <div className="absolute inset-x-1 inset-y-0.5 bg-gradient-to-r from-purple-500/60 via-purple-500/60 to-pink-500/60 rounded-full blur-sm"></div>
+                {/* Always active light */}
+                <div className="absolute inset-x-1 inset-y-0.5 bg-gradient-to-r from-purple-500 via-purple-500 to-pink-500 animate-pulse rounded-full opacity-30"></div>
+                {/* Second beam pulse */}
+                {beamPosition >= 50 && beamPosition < 90 && (
+                  <div 
+                    className="absolute inset-y-0 w-40"
+                    style={{
+                      background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.9), rgba(147, 51, 234, 0.9), rgba(236, 72, 153, 0.8), transparent)',
+                      transform: `translateX(${Math.min((beamPosition - 50) / 10 * 800, 800)}%)`,
+                      filter: 'blur(2px)',
+                      left: '-140px'
+                    }}
+                  />
+                )}
+              </div>
+
+              {/* Second Beam - LG-Wide screens (1131-1199px) */}
+              <div className="absolute pointer-events-none rounded-full" data-beam="lg-wide-second" 
+                style={{ 
+                  left: '61%',  // Adjusted position
+                  width: '12%',  // Consistent width
+                  top: '315px',
+                  height: '12px',
+                  zIndex: 1,
+                  overflow: 'hidden',
                   boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.3), 0 0 20px rgba(147, 51, 234, 0.3)'
                 }}>
                 {/* Groove effect */}
