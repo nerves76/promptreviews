@@ -1976,7 +1976,7 @@ export default function AnimatedInfographic({ isEmbed = false, debug = false }: 
         </div>
         
         {/* Mobile Features - positioned after all content */}
-        <div className="[@media(min-width:960px)]:hidden mt-20 flex flex-col items-center z-30 relative">
+        <div className="[@media(min-width:960px)]:hidden mt-32 flex flex-col items-center z-30 relative">
           {/* Centered Popup - appears above entire features container */}
           {clickedTool !== null && (
             <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-8 w-64 pointer-events-none z-[99999]">
