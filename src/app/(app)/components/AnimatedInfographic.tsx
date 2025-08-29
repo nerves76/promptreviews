@@ -837,8 +837,8 @@ export default function AnimatedInfographic({ isEmbed = false, debug = false }: 
               {/* First Beam - LG-Wide screens (1131-1199px) */}
               <div className="absolute pointer-events-none rounded-full" data-beam="lg-wide-first" 
                 style={{ 
-                  left: '23%',  // Adjusted position
-                  width: '16%',  // Slightly wider
+                  left: '24.5%',  // Move right to avoid intersecting customer
+                  width: '14.5%',  // Shorter to compensate
                   top: '315px',
                   height: '12px',
                   zIndex: 1,
