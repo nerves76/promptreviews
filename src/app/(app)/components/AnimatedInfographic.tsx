@@ -736,7 +736,7 @@ export default function AnimatedInfographic({ isEmbed = false, debug = false }: 
         </div>
 
         {/* Main Layout - 3 Stop Journey */}
-        <div className="relative flex flex-col [@media(min-width:960px)]:flex-row items-center justify-center gap-8 [@media(min-width:960px)]:gap-6 lg:gap-12 [@media(max-width:1023px)]:scale-90 [@media(min-width:1270px)]:gap-4 [@media(min-width:1440px)]:gap-12 [@media(min-width:1440px)]:justify-between pb-1 [@media(min-width:1024px)]:pb-2 [@media(min-width:1200px)]:pb-8 [@media(min-width:1440px)]:pb-40">
+        <div className="relative flex flex-col [@media(min-width:960px)]:flex-row items-center justify-center gap-8 [@media(min-width:960px)]:gap-6 lg:gap-12 [@media(min-width:960px)_and_(max-width:1023px)]:scale-90 [@media(min-width:960px)_and_(max-width:1023px)]:mx-auto [@media(min-width:1270px)]:gap-4 [@media(min-width:1440px)]:gap-12 [@media(min-width:1440px)]:justify-between pb-1 [@media(min-width:1024px)]:pb-2 [@media(min-width:1200px)]:pb-8 [@media(min-width:1440px)]:pb-40">
           
           {/* Two separate beams with responsive breakpoints */}
           {mounted && (
