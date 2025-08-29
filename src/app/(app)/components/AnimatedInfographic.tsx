@@ -214,20 +214,20 @@ export default function AnimatedInfographic({ isEmbed = false, debug = false }: 
           // Beam traveling
           setShowEffects(false)
           setPromptPageStep(0)
-        } else if (next >= 30 && next < 32) {
-          // Light up when beam completes - at 30% (reduced from 34%)
+        } else if (next >= 30 && next < 31) {
+          // Light up immediately when beam completes - at 30%
           setShowEffects(true)
           setPromptPageStep(0)
-        } else if (next >= 32 && next < 36) {
-          // Button 1 lights up (shifted earlier)
+        } else if (next >= 31 && next < 34) {
+          // Button 1 lights up (very quick after arrival)
           setShowEffects(true)
           setPromptPageStep(1)
-        } else if (next >= 36 && next < 42) {
-          // Fields fill in (shifted earlier)
+        } else if (next >= 34 && next < 40) {
+          // Fields fill in
           setShowEffects(true)
           setPromptPageStep(2)
-        } else if (next >= 42 && next < 50) {
-          // Button 2 lights up and stays lit until second beam (shifted earlier)
+        } else if (next >= 40 && next < 50) {
+          // Button 2 lights up and stays lit until second beam
           setShowEffects(true)
           setPromptPageStep(3)
         } else if (next < 20 || next >= 50) {
@@ -247,17 +247,17 @@ export default function AnimatedInfographic({ isEmbed = false, debug = false }: 
           // Light up when beam completes - at 60%
           setShowPlatformEffects(true)
           
-          // Determine which step based on timing (reduced delays)
-          if (next < 61) {
-            setReviewFormStep(0)  // Initial light up (reduced from 63)
-          } else if (next < 64) {
-            setReviewFormStep(1)  // Paste animation - with delay after light up (reduced from 66)
-          } else if (next < 68) {
-            setReviewFormStep(2)  // Content fills (reduced from 70)
-          } else if (next < 72) {
-            setReviewFormStep(3)  // Stars fill (reduced from 74)
-          } else if (next < 76) {
-            setReviewFormStep(4)  // Submit button lights (reduced from 78)
+          // Determine which step based on timing (much faster)
+          if (next < 60.5) {
+            setReviewFormStep(0)  // Initial light up - almost instant
+          } else if (next < 62) {
+            setReviewFormStep(1)  // Paste animation - very quick
+          } else if (next < 65) {
+            setReviewFormStep(2)  // Content fills
+          } else if (next < 69) {
+            setReviewFormStep(3)  // Stars fill
+          } else if (next < 73) {
+            setReviewFormStep(4)  // Submit button lights
           } else if (next < 85) {
             setReviewFormStep(5)  // Success message - lingers much longer
           } else {
