@@ -992,8 +992,8 @@ export default function AnimatedInfographic({ isEmbed = false, debug = false }: 
               {/* Second Beam - LG-Mid screens (1030-1130px) - adjusted for awkward gap */}
               <div className="absolute pointer-events-none rounded-full" data-beam="lg-mid-second" 
                 style={{ 
-                  left: '60%',  // Adjusted to connect properly
-                  width: '12%',  // Shorter to avoid overflow
+                  left: '59.5%',  // Move left to stay connected to prompt page
+                  width: '11.5%',  // Shorter to avoid overflow
                   top: '315px',
                   height: '12px',
                   zIndex: 1,
@@ -1023,8 +1023,8 @@ export default function AnimatedInfographic({ isEmbed = false, debug = false }: 
               {/* Second Beam - LG-Wide screens (1131-1199px) */}
               <div className="absolute pointer-events-none rounded-full" data-beam="lg-wide-second" 
                 style={{ 
-                  left: '61%',  // Adjusted position
-                  width: '12%',  // Consistent width
+                  left: '59%',  // Keep connected to prompt page
+                  width: '12.5%',  // Slightly longer
                   top: '315px',
                   height: '12px',
                   zIndex: 1,
