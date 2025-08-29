@@ -699,11 +699,12 @@ export default function AnimatedInfographic({ isEmbed = false, debug = false }: 
         }
       `}</style>
       <div 
-        className="relative w-full" 
+        className={`relative w-full ${!isEmbed ? 'bg-gradient-to-br from-[#0f1419] via-[#1a1f2e] to-[#0f1419]' : ''}`}
         ref={containerRef} 
         style={{ 
           minHeight: isEmbed ? 'auto' : '100vh',
-          background: isEmbed ? 'transparent' : 'linear-gradient(135deg, #0f1419 0%, #1a1f2e 50%, #0f1419 100%)'
+          backgroundColor: isEmbed ? 'transparent' : '#0f1419',
+          backgroundImage: isEmbed ? 'none' : 'linear-gradient(135deg, #0f1419 0%, #1a1f2e 50%, #0f1419 100%)'
         }}
       >
         {/* Debug overlay */}
@@ -1187,7 +1188,7 @@ export default function AnimatedInfographic({ isEmbed = false, debug = false }: 
           
           
           {/* STOP 1: Customer (Left) - z-30 to be above beam */}
-          <div ref={customerRef} className="relative flex-shrink-0 z-30 [@media(min-width:1024px)]:translate-x-28 [@media(min-width:1270px)]:translate-x-16 [@media(min-width:1440px)]:translate-x-0" style={{ marginTop: '175px' }}>
+          <div ref={customerRef} className="relative flex-shrink-0 z-30 [@media(min-width:1024px)]:translate-x-28 [@media(min-width:1270px)]:translate-x-16 [@media(min-width:1440px)]:translate-x-0" style={{ marginTop: '155px' }}>
             <div className="relative [@media(min-width:960px)]:mt-8">
               
               {/* Phone with notification - transparent and close to customer */}
@@ -1286,7 +1287,7 @@ export default function AnimatedInfographic({ isEmbed = false, debug = false }: 
               
               {/* Label with proper spacing below customer icon */}
               <div className="text-center mt-8 [@media(min-width:960px)]:mt-8">
-                <h3 className="text-white/95 font-bold text-lg lg:text-xl">
+                <h3 className="text-white/95 font-bold text-lg lg:text-xl mt-[55px]">
                   Customer
                 </h3>
                 <p className="text-gray-200/90 text-sm text-center mt-1 max-w-[240px] mx-auto">
@@ -1714,7 +1715,7 @@ export default function AnimatedInfographic({ isEmbed = false, debug = false }: 
           </div>
 
           {/* STOP 3: Review Form (Right) */}
-          <div ref={reviewPlatformRef} className="relative flex-shrink-0 flex items-center justify-center [@media(min-width:960px)]:ml-4 z-30 [@media(min-width:1024px)]:-translate-x-28 [@media(min-width:1270px)]:-translate-x-16 [@media(min-width:1440px)]:translate-x-0 -mt-4 [@media(min-width:960px)]:mt-0" style={{ marginTop: '52px' }}>
+          <div ref={reviewPlatformRef} className="relative flex-shrink-0 flex items-center justify-center [@media(min-width:960px)]:ml-4 z-30 [@media(min-width:1024px)]:-translate-x-28 [@media(min-width:1270px)]:-translate-x-16 [@media(min-width:1440px)]:translate-x-0 -mt-4 [@media(min-width:960px)]:mt-0" style={{ marginTop: '39px' }}>
             
             {/* T-connector where beam meets form - aligned with beam - hidden on mobile */}
             <div 
@@ -1972,7 +1973,7 @@ export default function AnimatedInfographic({ isEmbed = false, debug = false }: 
             </div>
             
             {/* Label below the form - match customer spacing */}
-            <div className="absolute left-1/2 -translate-x-1/2 text-center -bottom-16 [@media(min-width:960px)]:-bottom-[105px]">
+            <div className="absolute left-1/2 -translate-x-1/2 text-center -bottom-16 [@media(min-width:960px)]:-bottom-[115px]">
               <h3 className="text-white/95 font-bold text-lg lg:text-xl">Review platforms</h3>
               <p className="text-gray-200/90 text-sm whitespace-nowrap mt-1">Google • Facebook • Yelp • More</p>
             </div>
