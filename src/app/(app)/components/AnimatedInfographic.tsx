@@ -1281,7 +1281,7 @@ export default function AnimatedInfographic({ isEmbed = false, debug = false }: 
               </div>
               
               {/* Label with proper spacing below customer icon */}
-              <div className="text-center mt-8 [@media(min-width:960px)]:mt-20">
+              <div className="text-center mt-8 [@media(min-width:960px)]:mt-8">
                 <h3 className="text-white/95 font-bold text-lg lg:text-xl">
                   Customer
                 </h3>
@@ -1601,7 +1601,7 @@ export default function AnimatedInfographic({ isEmbed = false, debug = false }: 
                   </div>
                   
                   {/* Label below the form - match customer spacing */}
-                  <div className="absolute -bottom-16 [@media(min-width:960px)]:-bottom-20 left-1/2 -translate-x-1/2 text-center">
+                  <div className="absolute -bottom-16 [@media(min-width:960px)]:-bottom-12 left-1/2 -translate-x-1/2 text-center">
                     <h3 className="text-white/95 font-bold text-lg lg:text-xl">Prompt Page</h3>
                     <p className="text-gray-200/90 text-sm whitespace-nowrap mt-1">Create • Copy • Post</p>
                   </div>
@@ -1968,7 +1968,7 @@ export default function AnimatedInfographic({ isEmbed = false, debug = false }: 
             </div>
             
             {/* Label below the form - match customer spacing */}
-            <div className="absolute left-1/2 -translate-x-1/2 text-center -bottom-16 [@media(min-width:960px)]:-bottom-20">
+            <div className="absolute left-1/2 -translate-x-1/2 text-center -bottom-16 [@media(min-width:960px)]:-bottom-[105px]">
               <h3 className="text-white/95 font-bold text-lg lg:text-xl">Review platforms</h3>
               <p className="text-gray-200/90 text-sm whitespace-nowrap mt-1">Google • Facebook • Yelp • More</p>
             </div>
