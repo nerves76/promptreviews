@@ -1183,7 +1183,7 @@ export default function AnimatedInfographic({ isEmbed = false, debug = false }: 
           
           
           {/* STOP 1: Customer (Left) - z-30 to be above beam */}
-          <div ref={customerRef} className="relative flex-shrink-0 z-30 [@media(min-width:1024px)]:translate-x-28 [@media(min-width:1270px)]:translate-x-16 [@media(min-width:1440px)]:translate-x-0" style={{ marginTop: '100px' }}>
+          <div ref={customerRef} className="relative flex-shrink-0 z-30 [@media(min-width:1024px)]:translate-x-28 [@media(min-width:1270px)]:translate-x-16 [@media(min-width:1440px)]:translate-x-0" style={{ marginTop: '160px' }}>
             <div className="relative [@media(min-width:960px)]:mt-8">
               
               {/* Phone with notification - transparent and close to customer */}
@@ -1315,7 +1315,7 @@ export default function AnimatedInfographic({ isEmbed = false, debug = false }: 
           </div>
 
           {/* STOP 2: Prompt Page with Tools (Center) */}
-          <div ref={promptPageRef} className="relative flex-grow flex justify-center -mt-32 [@media(min-width:960px)]:mt-24">
+          <div ref={promptPageRef} className="relative flex-grow flex justify-center -mt-32 [@media(min-width:960px)]:mt-0">
             <div className="relative w-[500px] h-[500px] lg:w-[600px] lg:h-[600px]">
               
               {/* Central Prompt Page - looks like actual prompt page structure */}
@@ -1710,7 +1710,7 @@ export default function AnimatedInfographic({ isEmbed = false, debug = false }: 
           </div>
 
           {/* STOP 3: Review Form (Right) */}
-          <div ref={reviewPlatformRef} className="relative flex-shrink-0 flex items-center justify-center [@media(min-width:960px)]:ml-4 z-30 [@media(min-width:1024px)]:-translate-x-28 [@media(min-width:1270px)]:-translate-x-16 [@media(min-width:1440px)]:translate-x-0" style={{ marginTop: mounted && typeof window !== 'undefined' && window.innerWidth >= 960 ? '100px' : '-16px' }}>
+          <div ref={reviewPlatformRef} className="relative flex-shrink-0 flex items-center justify-center [@media(min-width:960px)]:ml-4 z-30 [@media(min-width:1024px)]:-translate-x-28 [@media(min-width:1270px)]:-translate-x-16 [@media(min-width:1440px)]:translate-x-0" style={{ marginTop: mounted && typeof window !== 'undefined' && window.innerWidth >= 960 ? '37px' : '-16px' }}>
             
             {/* T-connector where beam meets form - aligned with beam - hidden on mobile */}
             <div 
