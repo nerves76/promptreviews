@@ -739,7 +739,7 @@ export default function AnimatedInfographic({ isEmbed = false, debug = false }: 
         </div>
 
         {/* Main Layout - 3 Stop Journey */}
-        <div className="relative flex flex-col [@media(min-width:960px)]:flex-row items-center justify-center gap-8 [@media(min-width:960px)]:gap-6 lg:gap-12 [@media(min-width:960px)_and_(max-width:1023px)]:scale-90 [@media(min-width:960px)_and_(max-width:1023px)]:mx-auto [@media(min-width:1270px)]:gap-4 [@media(min-width:1440px)]:gap-12 [@media(min-width:1440px)]:justify-between pb-1 [@media(min-width:1024px)]:pb-2 [@media(min-width:1200px)]:pb-8 [@media(min-width:1440px)]:pb-40">
+        <div className="relative flex flex-col [@media(min-width:960px)]:flex-row items-center justify-center gap-8 [@media(min-width:960px)]:gap-6 lg:gap-12 [@media(min-width:960px)_and_(max-width:1023px)]:scale-90 [@media(min-width:960px)_and_(max-width:1023px)]:mx-auto [@media(min-width:1270px)]:gap-4 [@media(min-width:1440px)]:gap-12 [@media(min-width:1440px)]:justify-between pb-1 [@media(min-width:1024px)]:pb-2 [@media(min-width:1200px)]:pb-8 [@media(min-width:1440px)]:pb-12">
           
           {/* Two separate beams with responsive breakpoints */}
           {mounted && (
@@ -1976,7 +1976,7 @@ export default function AnimatedInfographic({ isEmbed = false, debug = false }: 
         </div>
         
         {/* Mobile Features - positioned after all content */}
-        <div className="[@media(min-width:960px)]:hidden mt-12 flex flex-col items-center z-30 relative">
+        <div className="[@media(min-width:960px)]:hidden mt-20 flex flex-col items-center z-30 relative">
           {/* Centered Popup - appears above entire features container */}
           {clickedTool !== null && (
             <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-8 w-64 pointer-events-none z-[99999]">
