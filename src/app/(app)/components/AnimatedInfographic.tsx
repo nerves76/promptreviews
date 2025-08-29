@@ -698,10 +698,14 @@ export default function AnimatedInfographic({ isEmbed = false, debug = false }: 
           }
         }
       `}</style>
-      <div className="relative w-full" ref={containerRef} style={{ 
-        minHeight: isEmbed ? 'auto' : '100vh',
-        background: isEmbed ? 'transparent' : 'linear-gradient(135deg, #0f1419 0%, #1a1f2e 50%, #0f1419 100%)'
-      }}>
+      <div 
+        className="relative w-full" 
+        ref={containerRef} 
+        style={{ 
+          minHeight: isEmbed ? 'auto' : '100vh',
+          background: isEmbed ? 'transparent' : 'linear-gradient(135deg, #0f1419 0%, #1a1f2e 50%, #0f1419 100%)'
+        }}
+      >
         {/* Debug overlay */}
         {debug && (
           <div className="fixed top-0 left-0 z-50 bg-black/80 text-white p-2 text-xs font-mono">
@@ -1710,7 +1714,7 @@ export default function AnimatedInfographic({ isEmbed = false, debug = false }: 
           </div>
 
           {/* STOP 3: Review Form (Right) */}
-          <div ref={reviewPlatformRef} className="relative flex-shrink-0 flex items-center justify-center [@media(min-width:960px)]:ml-4 z-30 [@media(min-width:1024px)]:-translate-x-28 [@media(min-width:1270px)]:-translate-x-16 [@media(min-width:1440px)]:translate-x-0" style={{ marginTop: mounted && typeof window !== 'undefined' && window.innerWidth >= 960 ? '37px' : '-16px' }}>
+          <div ref={reviewPlatformRef} className="relative flex-shrink-0 flex items-center justify-center [@media(min-width:960px)]:ml-4 z-30 [@media(min-width:1024px)]:-translate-x-28 [@media(min-width:1270px)]:-translate-x-16 [@media(min-width:1440px)]:translate-x-0 -mt-4 [@media(min-width:960px)]:mt-0" style={{ marginTop: '37px' }}>
             
             {/* T-connector where beam meets form - aligned with beam - hidden on mobile */}
             <div 

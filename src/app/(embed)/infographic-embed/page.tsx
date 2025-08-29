@@ -14,7 +14,7 @@ const LoadingSkeleton = () => (
   </div>
 )
 
-// Import with SSR enabled and preload for faster initial load
+// Import with SSR disabled to avoid hydration mismatches
 const AnimatedInfographic = dynamic(
   () => import(
     /* webpackPreload: true */
@@ -22,7 +22,7 @@ const AnimatedInfographic = dynamic(
     '../../(app)/components/AnimatedInfographic'
   ), 
   {
-    ssr: true,
+    ssr: false,
     loading: () => <LoadingSkeleton />
   }
 )
