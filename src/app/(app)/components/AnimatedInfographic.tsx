@@ -698,7 +698,10 @@ export default function AnimatedInfographic({ isEmbed = false, debug = false }: 
           }
         }
       `}</style>
-      <div className="relative w-full" ref={containerRef} style={{ minHeight: isEmbed ? 'auto' : '100vh' }}>
+      <div className="relative w-full" ref={containerRef} style={{ 
+        minHeight: isEmbed ? 'auto' : '100vh',
+        background: isEmbed ? 'transparent' : 'linear-gradient(135deg, #0f1419 0%, #1a1f2e 50%, #0f1419 100%)'
+      }}>
         {/* Debug overlay */}
         {debug && (
           <div className="fixed top-0 left-0 z-50 bg-black/80 text-white p-2 text-xs font-mono">
