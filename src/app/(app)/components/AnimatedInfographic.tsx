@@ -1601,7 +1601,7 @@ export default function AnimatedInfographic({ isEmbed = false, debug = false }: 
                   </div>
                   
                   {/* Label below the form - match customer spacing */}
-                  <div className="absolute -bottom-16 [@media(min-width:960px)]:-bottom-12 left-1/2 -translate-x-1/2 text-center">
+                  <div className="absolute -bottom-16 [@media(min-width:960px)]:-bottom-20 left-1/2 -translate-x-1/2 text-center">
                     <h3 className="text-white/95 font-bold text-lg lg:text-xl">Prompt Page</h3>
                     <p className="text-gray-200/90 text-sm whitespace-nowrap mt-1">Create • Copy • Post</p>
                   </div>
