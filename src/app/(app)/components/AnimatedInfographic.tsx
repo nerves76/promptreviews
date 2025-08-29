@@ -762,11 +762,11 @@ export default function AnimatedInfographic({ isEmbed = false, debug = false }: 
                 )}
               </div>
 
-              {/* First Beam - LG screens (1024-1200px) */}
+              {/* First Beam - LG screens (1024-1200px) - components don't move in this range */}
               <div className="absolute pointer-events-none rounded-full" data-beam="lg-first" 
                 style={{ 
-                  left: '26%',  // Start after customer moves right
-                  width: '13%',  // Connect to prompt page
+                  left: '20.5%',  // Fixed position for non-moving components
+                  width: '20.5%',  // Longer beam to connect non-compressed components
                   top: '315px',
                   height: '12px',
                   zIndex: 1,  // Behind customer
@@ -886,11 +886,11 @@ export default function AnimatedInfographic({ isEmbed = false, debug = false }: 
                 )}
               </div>
 
-              {/* Second Beam - LG screens (1024-1200px) */}
+              {/* Second Beam - LG screens (1024-1200px) - components don't move in this range */}
               <div className="absolute pointer-events-none rounded-full" data-beam="lg-second" 
                 style={{ 
-                  left: '61%',  // Start after prompt page
-                  width: '13%',  // Connect to review platform
+                  left: '59%',  // Fixed position for non-moving components
+                  width: '20.5%',  // Longer beam to connect non-compressed components
                   top: '315px',
                   height: '12px',
                   zIndex: 1,
@@ -1046,7 +1046,7 @@ export default function AnimatedInfographic({ isEmbed = false, debug = false }: 
           
           
           {/* STOP 1: Customer (Left) - z-30 to be above beam */}
-          <div ref={customerRef} className="relative flex-shrink-0 z-30 [@media(min-width:1024px)]:translate-x-28 [@media(min-width:1270px)]:translate-x-16 [@media(min-width:1440px)]:translate-x-0" style={{ marginTop: '160px' }}>
+          <div ref={customerRef} className="relative flex-shrink-0 z-30 [@media(min-width:1200px)]:translate-x-28 [@media(min-width:1270px)]:translate-x-16 [@media(min-width:1440px)]:translate-x-0" style={{ marginTop: '160px' }}>
             <div className="relative [@media(min-width:960px)]:mt-8">
               
               {/* Phone with notification - transparent and close to customer */}
@@ -1573,7 +1573,7 @@ export default function AnimatedInfographic({ isEmbed = false, debug = false }: 
           </div>
 
           {/* STOP 3: Review Form (Right) */}
-          <div ref={reviewPlatformRef} className="relative flex-shrink-0 flex items-center justify-center [@media(min-width:960px)]:ml-4 z-30 [@media(min-width:1024px)]:-translate-x-28 [@media(min-width:1270px)]:-translate-x-16 [@media(min-width:1440px)]:translate-x-0" style={{ marginTop: mounted && typeof window !== 'undefined' && window.innerWidth >= 960 ? '37px' : '-16px' }}>
+          <div ref={reviewPlatformRef} className="relative flex-shrink-0 flex items-center justify-center [@media(min-width:960px)]:ml-4 z-30 [@media(min-width:1200px)]:-translate-x-28 [@media(min-width:1270px)]:-translate-x-16 [@media(min-width:1440px)]:translate-x-0" style={{ marginTop: mounted && typeof window !== 'undefined' && window.innerWidth >= 960 ? '37px' : '-16px' }}>
             
             {/* T-connector where beam meets form - aligned with beam - hidden on mobile */}
             <div 
