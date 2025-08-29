@@ -6,7 +6,7 @@
 'use client';
 
 import { useSearchParams } from 'next/navigation';
-import { useEffect, Suspense } from 'react';
+import { useEffect, useState, useRef, Suspense } from 'react';
 import ProfileOptimizationEmbed from '@/components/GoogleBusinessProfile/embeds/ProfileOptimizationEmbed';
 import CustomerEngagementEmbed from '@/components/GoogleBusinessProfile/embeds/CustomerEngagementEmbed';
 import OptimizationOpportunitiesEmbed from '@/components/GoogleBusinessProfile/embeds/OptimizationOpportunitiesEmbed';
@@ -15,6 +15,9 @@ import SpriteLoader from '@/components/SpriteLoader';
 
 function EmbedReviewDashboardContent() {
   const searchParams = useSearchParams();
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [showTopFade, setShowTopFade] = useState(false);
+  const [showBottomFade, setShowBottomFade] = useState(true);
   
   // Parse parameters
   const theme = searchParams.get('theme') || 'light';
@@ -51,37 +54,93 @@ function EmbedReviewDashboardContent() {
     }
   }, [theme]);
   
+  // Handle scroll detection for fade indicators
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!scrollContainerRef.current) return;
+      
+      const { scrollTop, scrollHeight, clientHeight } = scrollContainerRef.current;
+      const isScrollable = scrollHeight > clientHeight;
+      
+      // Show top fade if scrolled down
+      setShowTopFade(isScrollable && scrollTop > 10);
+      
+      // Show bottom fade if not at bottom
+      setShowBottomFade(isScrollable && scrollTop < scrollHeight - clientHeight - 10);
+    };
+    
+    const container = scrollContainerRef.current;
+    if (container) {
+      container.addEventListener('scroll', handleScroll);
+      // Initial check
+      handleScroll();
+    }
+    
+    return () => {
+      if (container) {
+        container.removeEventListener('scroll', handleScroll);
+      }
+    };
+  }, [components]); // Re-run when components change
+  
   const componentMap: Record<string, JSX.Element> = {
     overview: (
       <div key="overview">
-        {showHeader && <h2 className="text-xl font-bold text-gray-900 mb-4">Review Trends Overview</h2>}
+        {showHeader && <h2 className={`text-xl font-bold mb-4 ${theme === 'dark' ? 'text-white' : 'text-white'}`}>Review Trends Overview</h2>}
         <OverviewStatsEmbed />
       </div>
     ),
     optimization: (
       <div key="optimization">
-        {showHeader && <h2 className="text-xl font-bold text-gray-900 mb-4">Profile Optimization Score</h2>}
+        {showHeader && <h2 className={`text-xl font-bold mb-4 ${theme === 'dark' ? 'text-white' : 'text-white'}`}>Profile Optimization Score</h2>}
         <ProfileOptimizationEmbed />
       </div>
     ),
     engagement: (
       <div key="engagement">
-        {showHeader && <h2 className="text-xl font-bold text-gray-900 mb-4">Customer Engagement Metrics</h2>}
+        {showHeader && <h2 className={`text-xl font-bold mb-4 ${theme === 'dark' ? 'text-white' : 'text-white'}`}>Customer Engagement Metrics</h2>}
         <CustomerEngagementEmbed />
       </div>
     ),
     recommendations: (
       <div key="recommendations">
-        {showHeader && <h2 className="text-xl font-bold text-gray-900 mb-4">AI-Powered Recommendations</h2>}
+        {showHeader && <h2 className={`text-xl font-bold mb-4 ${theme === 'dark' ? 'text-white' : 'text-white'}`}>AI-Powered Recommendations</h2>}
         <OptimizationOpportunitiesEmbed />
       </div>
     )
   };
   
   return (
-    <div className={`min-h-screen ${theme === 'dark' ? 'bg-gray-900' : 'bg-white'}`}>
-      <div className="p-6 space-y-8">
-        {components.map(component => componentMap[component] || null)}
+    <div className={`relative min-h-screen ${theme === 'dark' ? 'bg-gray-900' : 'bg-white'}`}>
+      {/* Fixed border container */}
+      <div className={`fixed inset-0 pointer-events-none border-4 ${theme === 'dark' ? 'border-gray-700/50' : 'border-gray-200/50'} rounded-lg z-10`}></div>
+      
+      {/* Top scroll fade indicator */}
+      <div className={`fixed top-0 left-0 right-0 h-16 pointer-events-none z-20 transition-opacity duration-300 ${
+        showTopFade ? 'opacity-100' : 'opacity-0'
+      } ${
+        theme === 'dark' 
+          ? 'bg-gradient-to-b from-gray-900 via-gray-900/90 to-transparent' 
+          : 'bg-gradient-to-b from-white via-white/90 to-transparent'
+      }`}></div>
+      
+      {/* Bottom scroll fade indicator */}
+      <div className={`fixed bottom-0 left-0 right-0 h-16 pointer-events-none z-20 transition-opacity duration-300 ${
+        showBottomFade ? 'opacity-100' : 'opacity-0'
+      } ${
+        theme === 'dark'
+          ? 'bg-gradient-to-t from-gray-900 via-gray-900/90 to-transparent'
+          : 'bg-gradient-to-t from-white via-white/90 to-transparent'
+      }`}></div>
+      
+      {/* Scrollable content */}
+      <div 
+        ref={scrollContainerRef}
+        className="h-screen overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent"
+      >
+        <div className="p-6 space-y-8 pt-8 pb-20">
+          {components.map(component => componentMap[component] || null)}
+        </div>
       </div>
     </div>
   );
