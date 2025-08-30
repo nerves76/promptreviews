@@ -1259,11 +1259,13 @@ export default function TeamPage() {
       {/* Development Support Section - Always visible for owners */}
       {isOwner && (
         (() => {
+          console.log('🔍 Checking for Chris in members:', members.map(m => ({ email: m.email, role: m.role })));
           const chrisMember = members.find(member => 
             member.email === 'chris@diviner.agency' || 
             member.email === 'nerves76@gmail.com'
           );
           const hasChris = !!chrisMember;
+          console.log('🔍 Chris found?', hasChris, 'Chris member:', chrisMember);
           
           return (
             <div className={`border rounded-lg p-6 mt-8 ${
