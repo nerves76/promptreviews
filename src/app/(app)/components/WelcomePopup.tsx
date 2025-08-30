@@ -181,9 +181,9 @@ Here's your first tip: [icon] <— click here`;
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-black bg-opacity-40">
-      <div className="flex min-h-full items-center justify-center p-4">
-        <div className="relative max-w-4xl w-full max-h-[90vh]">
+    <div className="fixed inset-0 z-50 bg-black bg-opacity-40 flex items-center justify-center">
+      <div className="w-full max-w-4xl max-h-[85vh] mx-4 my-auto flex items-center justify-center">
+        <div className="relative w-full max-h-[85vh] overflow-hidden">
         {/* Standardized circular close button */}
         <button
           className="absolute -top-3 -right-3 bg-white border border-gray-200 rounded-full shadow-lg flex items-center justify-center hover:bg-gray-100 focus:outline-none z-20 transition-colors"
@@ -196,7 +196,7 @@ Here's your first tip: [icon] <— click here`;
           </svg>
         </button>
         
-        <div className="bg-white/90 backdrop-blur-sm shadow-2xl flex flex-col md:flex-row gap-8 text-left rounded-2xl overflow-hidden border-2 border-white">
+        <div className="bg-white/90 backdrop-blur-sm shadow-2xl flex flex-col md:flex-row gap-8 text-left rounded-2xl overflow-hidden border-2 border-white max-h-[85vh]">
         
         {/* Left side: Content */}
         <div className="flex-1 space-y-4 py-6 px-8 overflow-y-auto">
