@@ -678,22 +678,20 @@ export default function TeamPage() {
   // Show loading spinner while auth is loading or team data is loading
   if (authLoading || loading || !user) {
     return (
-      <div className="max-w-6xl mx-auto p-6">
-        <div className="flex items-center justify-center min-h-[400px]">
-          <FiveStarSpinner />
-        </div>
+      <div className="min-h-screen flex flex-col items-center justify-center">
+        <FiveStarSpinner />
       </div>
     );
   }
 
   if (!teamData) {
     return (
-      <div className="max-w-6xl mx-auto p-6">
+      <div className="min-h-screen flex flex-col items-center justify-center">
         <div className="text-center">
-          <p className="text-gray-500">Failed to load team data</p>
+          <p className="text-gray-500 mb-4">Failed to load team data</p>
           <button 
             onClick={fetchTeamData}
-            className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+            className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
           >
             Try Again
           </button>
@@ -712,12 +710,12 @@ export default function TeamPage() {
   // Additional safety check for account data
   if (!account) {
     return (
-      <div className="max-w-6xl mx-auto p-6">
+      <div className="min-h-screen flex flex-col items-center justify-center">
         <div className="text-center">
-          <p className="text-gray-500">Account data not available</p>
+          <p className="text-gray-500 mb-4">Account data not available</p>
           <button 
             onClick={fetchTeamData}
-            className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+            className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
           >
             Refresh
           </button>
