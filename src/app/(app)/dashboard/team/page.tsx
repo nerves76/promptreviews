@@ -1005,7 +1005,11 @@ export default function TeamPage() {
                   </div>
                   <div>
                     <p className="font-medium text-gray-900">
-                      {member.first_name} {member.last_name}
+                      {member.first_name || member.last_name ? (
+                        `${member.first_name} ${member.last_name}`.trim()
+                      ) : (
+                        member.role === 'support' ? 'Support Team' : 'Team Member'
+                      )}
                       {member.is_current_user && (
                         <span className="ml-2 text-sm text-gray-500">(You)</span>
                       )}
@@ -1019,14 +1023,13 @@ export default function TeamPage() {
                 
                 <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
                   {/* Role Display/Selector */}
-                  {isOwner && !member.is_current_user && member.role !== 'owner' ? (
+                  {isOwner && !member.is_current_user && member.role !== 'owner' && member.role !== 'support' ? (
                     <select
                       value={member.role}
                       onChange={(e) => changeMemberRole(member.user_id, member.email, e.target.value)}
                       className="px-2 py-1 text-xs font-medium rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent self-start sm:self-auto"
                     >
                       <option value="member">Member</option>
-                      <option value="support">🛠️ Support</option>
                     </select>
                   ) : (
                     <span className={`px-2 py-1 text-xs font-medium rounded-full ${
@@ -1041,7 +1044,7 @@ export default function TeamPage() {
                   )}
                   
                   {/* Remove Member Button */}
-                  {isOwner && !member.is_current_user && member.role !== 'owner' && (
+                  {isOwner && !member.is_current_user && member.role !== 'owner' && member.role !== 'support' && (
                     <button
                       onClick={() => removeMember(member.user_id, member.email)}
                       className="text-red-600 hover:text-red-800 p-1 rounded"

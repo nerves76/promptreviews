@@ -171,10 +171,7 @@ export function RefreshDebugger() {
     console.log('  refreshReport() - Show global refresh monitor report');
 
     return () => {
-      // Restore original functions on cleanup
-      localStorage.setItem = originalSetItem;
-      history.pushState = originalPushState;
-      history.replaceState = originalReplaceState;
+      // Cleanup is handled automatically since we used configurable: true
     };
   }, [pathname]);
 
