@@ -543,51 +543,75 @@ const Header = React.memo(function Header() {
                 {accountMenuOpen && typeof window !== 'undefined' && createPortal(
                   <div 
                     ref={accountMenuRef}
-                    className="fixed"
+                    className="fixed bg-white/85 backdrop-blur-md rounded-lg shadow-2xl border-2 border-white/30 py-2"
                     style={{ 
                       zIndex: 2147483647,
                       top: accountButtonRef.current ? accountButtonRef.current.getBoundingClientRect().bottom + 8 : 0,
-                      right: window.innerWidth - (accountButtonRef.current ? accountButtonRef.current.getBoundingClientRect().right : 0)
+                      right: window.innerWidth - (accountButtonRef.current ? accountButtonRef.current.getBoundingClientRect().right : 0),
+                      width: '256px'
                     }}
                   >
-                    <div className="w-56 rounded-md shadow-lg bg-white/85 backdrop-blur-md ring-1 ring-black ring-opacity-5">
-                      <div className="py-1">
-                        <Link href="/dashboard/account" className="block px-4 py-2 text-sm text-gray-700 hover:bg-slate-blue/10 hover:text-slate-blue" onClick={() => setAccountMenuOpen(false)}>
-                          Account details
-                        </Link>
-                        <Link href="/dashboard/analytics" className="block px-4 py-2 text-sm text-gray-700 hover:bg-slate-blue/10 hover:text-slate-blue" onClick={() => setAccountMenuOpen(false)}>
-                          Analytics
-                        </Link>
-                        <Link href="/dashboard/plan" className="block px-4 py-2 text-sm text-gray-700 hover:bg-slate-blue/10 hover:text-slate-blue" onClick={() => setAccountMenuOpen(false)}>
-                          Plan
-                        </Link>
-                        <Link href="/dashboard/team" className="block px-4 py-2 text-sm text-gray-700 hover:bg-slate-blue/10 hover:text-slate-blue" onClick={() => setAccountMenuOpen(false)}>
-                          Team
-                        </Link>
-                        {isAdminUser && (
-                          <Link href="/admin" className="block px-4 py-2 text-sm font-medium text-purple-600 hover:bg-purple-50 hover:text-purple-700" onClick={() => setAccountMenuOpen(false)}>
-                            Admin panel
-                          </Link>
-                        )}
-                        {/* Game link hidden on mobile due to compatibility issues */}
-                        <Link href="/game" className="hidden md:block px-4 py-2 text-sm text-gray-700 hover:bg-slate-blue/10 hover:text-slate-blue" onClick={() => setAccountMenuOpen(false)}>
-                          <span className="mr-2">🎮</span>
-                          Get Found Online: The Game
-                        </Link>
-                        <div className="border-t border-gray-100 my-1" />
-                        <button
-                          onClick={async () => {
-                            trackEvent(GA_EVENTS.SIGN_OUT, { timestamp: new Date().toISOString() });
-                            await supabase.auth.signOut();
-                            router.push("/auth/sign-in");
-                            setAccountMenuOpen(false);
-                          }}
-                          className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 hover:text-red-700"
-                        >
-                          Sign out
-                        </button>
+                    <Link href="/dashboard/account" className="flex items-center px-4 py-3 text-gray-700 hover:bg-slate-blue/10 hover:text-slate-blue transition-colors duration-200" onClick={() => setAccountMenuOpen(false)}>
+                      <Icon name="FaUser" className="w-5 h-5 mr-3" size={20} />
+                      <div className="flex-1">
+                        <div className="font-medium">Account details</div>
+                        <div className="text-sm text-gray-500">Manage your profile</div>
                       </div>
-                    </div>
+                    </Link>
+                    <Link href="/dashboard/analytics" className="flex items-center px-4 py-3 text-gray-700 hover:bg-slate-blue/10 hover:text-slate-blue transition-colors duration-200" onClick={() => setAccountMenuOpen(false)}>
+                      <Icon name="FaChartBar" className="w-5 h-5 mr-3" size={20} />
+                      <div className="flex-1">
+                        <div className="font-medium">Analytics</div>
+                        <div className="text-sm text-gray-500">View performance metrics</div>
+                      </div>
+                    </Link>
+                    <Link href="/dashboard/plan" className="flex items-center px-4 py-3 text-gray-700 hover:bg-slate-blue/10 hover:text-slate-blue transition-colors duration-200" onClick={() => setAccountMenuOpen(false)}>
+                      <Icon name="FaRocket" className="w-5 h-5 mr-3" size={20} />
+                      <div className="flex-1">
+                        <div className="font-medium">Plan</div>
+                        <div className="text-sm text-gray-500">Manage subscription</div>
+                      </div>
+                    </Link>
+                    <Link href="/dashboard/team" className="flex items-center px-4 py-3 text-gray-700 hover:bg-slate-blue/10 hover:text-slate-blue transition-colors duration-200" onClick={() => setAccountMenuOpen(false)}>
+                      <Icon name="FaUsers" className="w-5 h-5 mr-3" size={20} />
+                      <div className="flex-1">
+                        <div className="font-medium">Team</div>
+                        <div className="text-sm text-gray-500">Invite team members</div>
+                      </div>
+                    </Link>
+                    {isAdminUser && (
+                      <Link href="/admin" className="flex items-center px-4 py-3 text-purple-600 hover:bg-purple-50 hover:text-purple-700 transition-colors duration-200" onClick={() => setAccountMenuOpen(false)}>
+                        <Icon name="FaShieldAlt" className="w-5 h-5 mr-3" size={20} />
+                        <div className="flex-1">
+                          <div className="font-medium">Admin panel</div>
+                          <div className="text-sm text-purple-500">System administration</div>
+                        </div>
+                      </Link>
+                    )}
+                    {/* Game link hidden on mobile due to compatibility issues */}
+                    <Link href="/game" className="hidden md:flex items-center px-4 py-3 text-gray-700 hover:bg-slate-blue/10 hover:text-slate-blue transition-colors duration-200" onClick={() => setAccountMenuOpen(false)}>
+                      <span className="mr-3 text-xl">🎮</span>
+                      <div className="flex-1">
+                        <div className="font-medium">Get Found Online: The Game</div>
+                        <div className="text-sm text-gray-500">Play and learn</div>
+                      </div>
+                    </Link>
+                    <div className="border-t border-gray-200/50 my-2" />
+                    <button
+                      onClick={async () => {
+                        trackEvent(GA_EVENTS.SIGN_OUT, { timestamp: new Date().toISOString() });
+                        await supabase.auth.signOut();
+                        router.push("/auth/sign-in");
+                        setAccountMenuOpen(false);
+                      }}
+                      className="flex items-center w-full px-4 py-3 text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors duration-200"
+                    >
+                      <Icon name="FaSignOutAlt" className="w-5 h-5 mr-3" size={20} />
+                      <div className="flex-1 text-left">
+                        <div className="font-medium">Sign out</div>
+                        <div className="text-sm text-red-400">End your session</div>
+                      </div>
+                    </button>
                   </div>,
                   document.body
                 )}
