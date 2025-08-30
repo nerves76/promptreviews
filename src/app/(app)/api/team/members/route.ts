@@ -192,6 +192,8 @@ async function processTeamMembers(supabase: any, supabaseAdmin: any, user: any, 
     // Get user IDs from account_users
     const userIds = accountUsers.map((au: any) => au.user_id);
     
+    console.log(`📋 Found ${accountUsers.length} team members for account ${accountUser.account_id}`);
+    
     // Fetch user details for each user_id individually
     const membersWithDetails = await Promise.all(
       accountUsers.map(async (accountUserEntry: any) => {
@@ -204,6 +206,8 @@ async function processTeamMembers(supabase: any, supabaseAdmin: any, user: any, 
           if (authError) {
             console.warn(`Could not fetch auth details for user ${accountUserEntry.user_id}:`, authError);
           }
+          
+          console.log(`👤 User ${accountUserEntry.user_id}: email=${authUser?.email}, role=${accountUserEntry.role}`);
           
           return {
             user_id: accountUserEntry.user_id,

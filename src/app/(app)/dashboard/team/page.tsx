@@ -243,6 +243,16 @@ export default function TeamPage() {
         }
       }
 
+      console.log('📊 Team Data Received:', {
+        members: membersData.members?.map((m: any) => ({
+          email: m.email,
+          role: m.role,
+          user_id: m.user_id
+        })),
+        accountId: membersData.account?.id,
+        currentUserRole: membersData.current_user_role
+      });
+      
       setTeamData({
         ...membersData,
         invitations: invitationsData.invitations
