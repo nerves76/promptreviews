@@ -392,10 +392,13 @@ export default function BusinessProfilePage() {
         }
 
         // Check if this is the first time visiting the business profile page
+        // TEMPORARILY DISABLED due to positioning issues
         if (typeof window !== 'undefined') {
           const hasSeenBusinessWelcome = localStorage.getItem('hasSeenBusinessWelcome');
           if (!hasSeenBusinessWelcome) {
-            setShowWelcomePopup(true);
+            // setShowWelcomePopup(true); // DISABLED TEMPORARILY
+            // Auto-mark as seen to prevent future popups until issue is fixed
+            localStorage.setItem('hasSeenBusinessWelcome', 'true');
           }
         }
 
