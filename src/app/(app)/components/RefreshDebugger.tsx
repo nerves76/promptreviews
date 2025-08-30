@@ -91,38 +91,49 @@ export function RefreshDebugger() {
       }
     } catch (e) {}
 
-    // Monitor auth state changes
-    const originalSetItem = localStorage.setItem;
-    localStorage.setItem = function(key: string, value: string) {
-      if (key.includes('auth') || key.includes('account') || key.includes('session')) {
-        (window as any).__refreshDebugger.logSuspiciousEvent('localStorage_auth_change', {
-          key,
-          valueLength: value?.length,
-          preview: value?.substring(0, 100)
-        });
-      }
-      return originalSetItem.call(localStorage, key, value);
-    };
+    // Monitor auth state changes safely
+    try {
+      const originalSetItem = localStorage.setItem.bind(localStorage);
+      Object.defineProperty(localStorage, 'setItem', {
+        value: function(key: string, value: string) {
+          if (key.includes('auth') || key.includes('account') || key.includes('session')) {
+            (window as any).__refreshDebugger.logSuspiciousEvent('localStorage_auth_change', {
+              key,
+              valueLength: value?.length,
+              preview: value?.substring(0, 100)
+            });
+          }
+          return originalSetItem(key, value);
+        },
+        configurable: true
+      });
+    } catch (e) {
+      console.log('Could not monitor localStorage - skipping');
+    }
 
-    // Monitor history changes
-    const originalPushState = history.pushState;
-    const originalReplaceState = history.replaceState;
-    
-    history.pushState = function(...args) {
-      (window as any).__refreshDebugger.logSuspiciousEvent('history.pushState', {
-        url: args[2],
-        state: args[0]
-      });
-      return originalPushState.apply(history, args);
-    };
-    
-    history.replaceState = function(...args) {
-      (window as any).__refreshDebugger.logSuspiciousEvent('history.replaceState', {
-        url: args[2],
-        state: args[0]
-      });
-      return originalReplaceState.apply(history, args);
-    };
+    // Monitor history changes safely
+    try {
+      const originalPushState = history.pushState.bind(history);
+      const originalReplaceState = history.replaceState.bind(history);
+      
+      history.pushState = function(...args: any[]) {
+        (window as any).__refreshDebugger.logSuspiciousEvent('history.pushState', {
+          url: args[2],
+          state: args[0]
+        });
+        return originalPushState.apply(history, args);
+      };
+      
+      history.replaceState = function(...args: any[]) {
+        (window as any).__refreshDebugger.logSuspiciousEvent('history.replaceState', {
+          url: args[2],
+          state: args[0]
+        });
+        return originalReplaceState.apply(history, args);
+      };
+    } catch (e) {
+      console.log('Could not monitor history API - skipping');
+    }
 
     // Monitor popstate (browser back/forward)
     window.addEventListener('popstate', (event) => {

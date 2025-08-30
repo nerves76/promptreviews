@@ -166,7 +166,8 @@ export async function GET(request: NextRequest) {
 async function processTeamMembers(supabase: any, supabaseAdmin: any, user: any, accountUser: any) {
   try {
     // Get all team members for this account (without auth_users join)
-    const { data: accountUsers, error: accountUsersError } = await supabase
+    // Use admin client to bypass RLS and ensure we get ALL team members including support
+    const { data: accountUsers, error: accountUsersError } = await supabaseAdmin
       .from('account_users')
       .select(`
         user_id,
