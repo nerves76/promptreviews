@@ -198,66 +198,66 @@ Here's your first tip: [icon] <— click here`;
     <div className="fixed inset-0 z-50 bg-black bg-opacity-40 overflow-y-auto">
       <div className="min-h-full flex items-center justify-center p-4">
         <div className="relative w-full max-w-4xl">
-        {/* Standardized circular close button */}
-        <button
-          className="absolute -top-3 -right-3 bg-white border border-gray-200 rounded-full shadow-lg flex items-center justify-center hover:bg-gray-100 focus:outline-none z-20 transition-colors"
-          style={{ width: 40, height: 40 }}
-          onClick={onClose}
-          aria-label="Close modal"
-        >
-          <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
-        
-        <div className="bg-white/90 backdrop-blur-sm shadow-2xl flex flex-col md:flex-row gap-8 text-left rounded-2xl overflow-hidden border-2 border-white">
-        
-        {/* Left side: Content */}
-        <div className="flex-1 space-y-4 py-6 px-8 overflow-y-auto">
-          <div>
-            <h2 className="text-2xl font-bold text-slate-blue mb-4">
-              {welcomeTitle}
-            </h2>
-            <div className="text-gray-700 leading-relaxed space-y-2">
-              {renderMessage(welcomeMessage)}
-            </div>
-            
-            {/* Call to action button */}
-            <button
-              onClick={onButtonClick || onClose}
-              className="w-full mt-8 bg-slate-blue text-white py-3 px-6 rounded-lg hover:bg-slate-blue/90 transition-colors font-semibold text-base"
-            >
-              {buttonText}
-            </button>
-          </div>
-        </div>
-
-        {/* Right side: Image */}
-        <div className="flex-1 bg-gray-50 p-8 rounded-r-xl flex items-center justify-center overflow-hidden relative">
-          {imageUrl || !userName ? (
-            <div className="w-full h-full flex items-center justify-center">
-              <Image 
-                src={imageUrl || "/images/prompty-catching-stars.png"} 
-                alt={imageAlt} 
-                width={400}
-                height={300}
-                priority
-                className="w-full h-auto max-w-md mx-auto rounded-lg shadow-sm"
-              />
-            </div>
-          ) : (
-            <div className="flex items-center justify-center h-full">
-              <div className="text-center">
-                <div className="w-32 h-32 bg-gray-200 rounded-lg mx-auto mb-4 flex items-center justify-center">
-                  <svg className="w-16 h-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                  </svg>
+          {/* Standardized circular close button */}
+          <button
+            className="absolute -top-3 -right-3 bg-white border border-gray-200 rounded-full shadow-lg flex items-center justify-center hover:bg-gray-100 focus:outline-none z-20 transition-colors"
+            style={{ width: 40, height: 40 }}
+            onClick={onClose}
+            aria-label="Close modal"
+          >
+            <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+          
+          <div className="bg-white/90 backdrop-blur-sm shadow-2xl flex flex-col md:flex-row gap-8 text-left rounded-2xl overflow-hidden border-2 border-white">
+            {/* Left side: Content */}
+            <div className="flex-1 space-y-4 py-6 px-8 overflow-y-auto">
+              <div>
+                <h2 className="text-2xl font-bold text-slate-blue mb-4">
+                  {welcomeTitle}
+                </h2>
+                <div className="text-gray-700 leading-relaxed space-y-2">
+                  {renderMessage(welcomeMessage)}
                 </div>
-                <p className="text-gray-500">Welcome image</p>
+                
+                {/* Call to action button */}
+                <button
+                  onClick={onButtonClick || onClose}
+                  className="w-full mt-8 bg-slate-blue text-white py-3 px-6 rounded-lg hover:bg-slate-blue/90 transition-colors font-semibold text-base"
+                >
+                  {buttonText}
+                </button>
               </div>
             </div>
-          )}
-        </div>
+
+            {/* Right side: Image */}
+            <div className="flex-1 bg-gray-50 p-8 rounded-r-xl flex items-center justify-center overflow-hidden relative">
+              {imageUrl || !userName ? (
+                <div className="w-full h-full flex items-center justify-center">
+                  <Image 
+                    src={imageUrl || "/images/prompty-catching-stars.png"} 
+                    alt={imageAlt} 
+                    width={400}
+                    height={300}
+                    priority
+                    className="w-full h-auto max-w-md mx-auto rounded-lg shadow-sm"
+                  />
+                </div>
+              ) : (
+                <div className="flex items-center justify-center h-full">
+                  <div className="text-center">
+                    <div className="w-32 h-32 bg-gray-200 rounded-lg mx-auto mb-4 flex items-center justify-center">
+                      <svg className="w-16 h-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                      </svg>
+                    </div>
+                    <p className="text-gray-500">Welcome image</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </div>
