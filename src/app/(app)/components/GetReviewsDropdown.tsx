@@ -114,7 +114,7 @@ const GetReviewsDropdown: React.FC<GetReviewsDropdownProps> = ({
               )}
               <div className="flex-1">
                 <div className="font-medium">{item.label}</div>
-                <div className="text-sm text-slate-blue/70">{item.description}</div>
+                <div className="text-sm text-slate-blue">{item.description}</div>
               </div>
             </Link>
           ))}
