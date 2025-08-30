@@ -771,6 +771,14 @@ function PromptPagesContent() {
                   <Icon name="FaPalette" className="w-5 h-5" size={20} />
                   Style
                 </button>
+                <button
+                  type="button"
+                  className="bg-blue-100 text-slate-blue rounded font-semibold px-4 py-2 hover:bg-blue-200 transition whitespace-nowrap flex items-center gap-2 flex-shrink-0"
+                  onClick={() => console.log('Settings clicked')}
+                >
+                  <Icon name="FaCog" className="w-5 h-5" size={20} />
+                  Settings
+                </button>
               </div>
             </div>
             
