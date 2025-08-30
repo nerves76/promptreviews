@@ -63,19 +63,33 @@ export default function WelcomePopup({
     };
   }, [showTooltip]);
 
-  // Prevent body scroll when modal is open
+  // Handle escape key to close modal
   useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
+        onClose();
+      }
+    };
+    
     if (isOpen) {
+      document.addEventListener('keydown', handleEscape);
+      // Save current scroll position
+      const scrollY = window.scrollY;
       document.body.style.overflow = 'hidden';
+      // Ensure we're at a visible position
+      if (scrollY > 100) {
+        window.scrollTo({ top: 0, behavior: 'instant' });
+      }
     } else {
       document.body.style.overflow = 'unset';
     }
 
-    // Cleanup on unmount
+    // Cleanup
     return () => {
+      document.removeEventListener('keydown', handleEscape);
       document.body.style.overflow = 'unset';
     };
-  }, [isOpen]);
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
@@ -181,9 +195,9 @@ Here's your first tip: [icon] <— click here`;
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black bg-opacity-40 flex items-center justify-center">
-      <div className="w-full max-w-4xl max-h-[85vh] mx-4 my-auto flex items-center justify-center">
-        <div className="relative w-full max-h-[85vh] overflow-hidden">
+    <div className="fixed inset-0 z-50 bg-black bg-opacity-40 overflow-y-auto">
+      <div className="min-h-full flex items-center justify-center p-4">
+        <div className="relative w-full max-w-4xl">
         {/* Standardized circular close button */}
         <button
           className="absolute -top-3 -right-3 bg-white border border-gray-200 rounded-full shadow-lg flex items-center justify-center hover:bg-gray-100 focus:outline-none z-20 transition-colors"
@@ -196,7 +210,7 @@ Here's your first tip: [icon] <— click here`;
           </svg>
         </button>
         
-        <div className="bg-white/90 backdrop-blur-sm shadow-2xl flex flex-col md:flex-row gap-8 text-left rounded-2xl overflow-hidden border-2 border-white max-h-[85vh]">
+        <div className="bg-white/90 backdrop-blur-sm shadow-2xl flex flex-col md:flex-row gap-8 text-left rounded-2xl overflow-hidden border-2 border-white">
         
         {/* Left side: Content */}
         <div className="flex-1 space-y-4 py-6 px-8 overflow-y-auto">
@@ -245,7 +259,6 @@ Here's your first tip: [icon] <— click here`;
           )}
         </div>
         </div>
-      </div>
       </div>
     </div>
   );
