@@ -555,28 +555,28 @@ const Header = React.memo(function Header() {
                       <Icon name="FaUser" className="w-5 h-5 mr-3" size={20} />
                       <div className="flex-1">
                         <div className="font-medium">Account details</div>
-                        <div className="text-sm text-gray-500">Manage your profile</div>
+                        <div className="text-sm text-slate-blue/70">Manage your profile</div>
                       </div>
                     </Link>
                     <Link href="/dashboard/analytics" className="flex items-center px-4 py-3 text-gray-700 hover:bg-slate-blue/10 hover:text-slate-blue transition-colors duration-200" onClick={() => setAccountMenuOpen(false)}>
                       <Icon name="FaChartBar" className="w-5 h-5 mr-3" size={20} />
                       <div className="flex-1">
                         <div className="font-medium">Analytics</div>
-                        <div className="text-sm text-gray-500">View performance metrics</div>
+                        <div className="text-sm text-slate-blue/70">View performance metrics</div>
                       </div>
                     </Link>
                     <Link href="/dashboard/plan" className="flex items-center px-4 py-3 text-gray-700 hover:bg-slate-blue/10 hover:text-slate-blue transition-colors duration-200" onClick={() => setAccountMenuOpen(false)}>
                       <Icon name="FaRocket" className="w-5 h-5 mr-3" size={20} />
                       <div className="flex-1">
                         <div className="font-medium">Plan</div>
-                        <div className="text-sm text-gray-500">Manage subscription</div>
+                        <div className="text-sm text-slate-blue/70">Manage subscription</div>
                       </div>
                     </Link>
                     <Link href="/dashboard/team" className="flex items-center px-4 py-3 text-gray-700 hover:bg-slate-blue/10 hover:text-slate-blue transition-colors duration-200" onClick={() => setAccountMenuOpen(false)}>
                       <Icon name="FaUsers" className="w-5 h-5 mr-3" size={20} />
                       <div className="flex-1">
                         <div className="font-medium">Team</div>
-                        <div className="text-sm text-gray-500">Invite team members</div>
+                        <div className="text-sm text-slate-blue/70">Invite team members</div>
                       </div>
                     </Link>
                     {isAdminUser && (
@@ -593,7 +593,7 @@ const Header = React.memo(function Header() {
                       <span className="mr-3 text-xl">🎮</span>
                       <div className="flex-1">
                         <div className="font-medium">Get Found Online: The Game</div>
-                        <div className="text-sm text-gray-500">Play and learn</div>
+                        <div className="text-sm text-slate-blue/70">Play and learn</div>
                       </div>
                     </Link>
                     <div className="border-t border-gray-200/50 my-2" />

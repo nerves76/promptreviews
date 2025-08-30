@@ -633,19 +633,9 @@ export default function BusinessProfileForm({
         </div>
       </div>
 
-      {/* Inherited Prompt Page Settings Header */}
-      <div className="mb-8 mt-12">
-        <hr className="border-gray-300 mb-8" />
-        <h2 className="text-3xl font-bold text-slate-blue mb-3">
-          Inherited Prompt Page Settings
-        </h2>
-        <p className="text-gray-600 text-sm leading-relaxed">
-          These settings affect all Prompt Pages and can speed up prompt page creation but most can also be overridden and adjusted at the Prompt Page level.
-        </p>
-      </div>
-
       {/* Social Media Section */}
-      <div className="mb-16">
+      <div className="mb-16 mt-12">
+        <hr className="border-gray-300 mb-8" />
         <h2 className="mt-4 mb-2 text-2xl font-bold text-slate-blue flex items-center gap-3">
           <Icon name="FaShare" className="w-7 h-7 text-slate-blue" size={28} />
           Social media
@@ -746,6 +736,17 @@ export default function BusinessProfileForm({
             />
           </div>
         </div>
+      </div>
+
+      {/* Inherited Prompt Page Settings Header */}
+      <div className="mb-8 mt-12">
+        <hr className="border-gray-300 mb-8" />
+        <h2 className="text-3xl font-bold text-slate-blue mb-3">
+          Inherited Prompt Page Settings
+        </h2>
+        <p className="text-gray-600 text-sm leading-relaxed">
+          These settings affect all Prompt Pages and can speed up prompt page creation but most can also be overridden and adjusted at the Prompt Page level.
+        </p>
       </div>
 
 
