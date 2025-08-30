@@ -141,26 +141,29 @@ export default function DashboardLayout({
 
 
   // Final check: Block access if account is cancelled (except for allowed paths)
-  const isCancelled = account?.deleted_at !== null && account?.deleted_at !== undefined;
-  const hasNoPlan = !account?.plan || account?.plan === 'no_plan' || account?.plan === 'NULL';
-  const currentPath = typeof window !== 'undefined' ? window.location.pathname : '';
-  const isAllowedPath = currentPath === '/dashboard' || currentPath === '/dashboard/plan';
-  
-  if ((isCancelled || hasNoPlan) && !isAllowedPath) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center">
-        <div className="text-center text-white p-8">
-          <h1 className="text-3xl font-bold mb-4">Account Reactivation Required</h1>
-          <p className="mb-6">Your account needs to be reactivated to continue.</p>
-          <button 
-            onClick={() => router.push('/dashboard?reactivation=true')}
-            className="bg-white text-purple-700 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100"
-          >
-            Reactivate Account
-          </button>
+  // Important: Only check this if account data is fully loaded to prevent flash
+  if (account && !accountLoading) {
+    const isCancelled = account.deleted_at !== null && account.deleted_at !== undefined;
+    const hasNoPlan = !account.plan || account.plan === 'no_plan' || account.plan === 'NULL';
+    const currentPath = typeof window !== 'undefined' ? window.location.pathname : '';
+    const isAllowedPath = currentPath === '/dashboard' || currentPath === '/dashboard/plan';
+    
+    if ((isCancelled || hasNoPlan) && !isAllowedPath) {
+      return (
+        <div className="min-h-screen flex flex-col items-center justify-center">
+          <div className="text-center text-white p-8">
+            <h1 className="text-3xl font-bold mb-4">Account Reactivation Required</h1>
+            <p className="mb-6">Your account needs to be reactivated to continue.</p>
+            <button 
+              onClick={() => router.push('/dashboard?reactivation=true')}
+              className="bg-white text-purple-700 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100"
+            >
+              Reactivate Account
+            </button>
+          </div>
         </div>
-      </div>
-    );
+      );
+    }
   }
 
   return (

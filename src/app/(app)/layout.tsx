@@ -13,6 +13,7 @@ import BodyWrapper from "./components/BodyWrapper";
 import { inter, fontVariables } from "../fonts";
 import { GlobalRefreshMonitor } from "./components/GlobalRefreshMonitor";
 import { NavigationDebugger } from "./components/NavigationDebugger";
+import { RefreshDebugger } from "./components/RefreshDebugger";
 
 // Sentry is initialized in instrumentation.ts - no need to import here
 
@@ -61,6 +62,7 @@ export default function RootLayout({
           <BodyWrapper>
             <GlobalRefreshMonitor />
             <NavigationDebugger />
+            <RefreshDebugger />
             <ClientRoot>
               <AppMain>{children}</AppMain>
             </ClientRoot>
