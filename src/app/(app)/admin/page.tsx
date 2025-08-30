@@ -23,12 +23,14 @@ interface UserInfo {
 
 interface AdminAnalytics {
   totalUsers: number;
+  totalAccounts: number;
   totalBusinesses: number;
   totalReviews: number;
   totalPromptPages: number;
   reviewsThisMonth: number;
   reviewsThisWeek: number;
   newUsersThisMonth: number;
+  newAccountsThisMonth: number;
   newBusinessesThisMonth: number;
 }
 
@@ -408,14 +410,14 @@ export default function AdminPage() {
         </div>
 
         <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">Businesses</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Accounts</h3>
           <p className="text-3xl font-bold text-slate-blue">
-            {analyticsLoading ? '...' : analytics?.totalBusinesses || 0}
+            {analyticsLoading ? '...' : analytics?.totalAccounts || 0}
           </p>
-          <p className="text-sm text-gray-600">Total businesses</p>
+          <p className="text-sm text-gray-600">Total accounts</p>
           {analytics && !analyticsLoading && (
             <p className="text-sm text-green-600 mt-1">
-              +{analytics.newBusinessesThisMonth} this month
+              +{analytics.newAccountsThisMonth} this month
             </p>
           )}
         </div>

@@ -78,12 +78,14 @@ export async function GET(request: NextRequest) {
     // Process analytics data
     const analyticsData = {
       totalUsers: accounts?.length || 0,
+      totalAccounts: accounts?.length || 0,  // Count of accounts (not businesses)
       totalBusinesses: businesses?.length || 0,
       totalReviews: reviews?.length || 0,
       totalPromptPages: promptPages?.length || 0,
       reviewsThisMonth: reviews?.filter(r => new Date(r.created_at) >= monthAgo).length || 0,
       reviewsThisWeek: reviews?.filter(r => new Date(r.created_at) >= weekAgo).length || 0,
       newUsersThisMonth: accounts?.filter(u => new Date(u.created_at) >= monthAgo).length || 0,
+      newAccountsThisMonth: accounts?.filter(a => new Date(a.created_at) >= monthAgo).length || 0,
       newBusinessesThisMonth: businesses?.filter(b => new Date(b.created_at) >= monthAgo).length || 0,
       topPlatforms: [] as { platform: string; count: number }[],
       recentActivity: [] as { date: string; reviews: number; users: number }[],
