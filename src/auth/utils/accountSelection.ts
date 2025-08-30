@@ -9,7 +9,7 @@ const SELECTED_ACCOUNT_KEY = 'promptreviews_selected_account';
 
 export interface UserAccount {
   account_id: string;
-  role: 'owner' | 'admin' | 'member';
+  role: 'owner' | 'admin' | 'member' | 'support';
   account_name?: string;
   plan?: string;
   first_name?: string;

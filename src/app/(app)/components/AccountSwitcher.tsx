@@ -76,6 +76,7 @@ export function AccountSwitcher() {
       case 'owner': return 'text-blue-600 bg-blue-50';
       case 'admin': return 'text-purple-600 bg-purple-50';
       case 'member': return 'text-green-600 bg-green-50';
+      case 'support': return 'text-indigo-600 bg-indigo-50';
       default: return 'text-gray-600 bg-gray-50';
     }
   };
@@ -209,13 +210,6 @@ export function AccountSwitcher() {
             ))}
           </div>
 
-          {/* Footer */}
-          <div className="px-4 py-3 bg-gradient-to-r from-indigo-600/10 via-purple-600/10 to-fuchsia-600/10 border-t border-white/20">
-            <p className="text-xs text-gray-600">
-              💡 <strong>Customer Support:</strong> When customers invite you to their account, 
-              you'll be able to switch to their account here to help them debug issues.
-            </p>
-          </div>
         </div>,
         document.body
       )}
