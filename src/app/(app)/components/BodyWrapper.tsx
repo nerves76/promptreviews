@@ -22,10 +22,10 @@ export default function BodyWrapper({
       // Remove min-height for embeds
       document.body.style.minHeight = 'auto';
     } else {
-      // Remove inline styles to let CSS handle the gradient
-      document.body.style.removeProperty('background');
-      document.documentElement.style.removeProperty('background');
-      document.body.style.removeProperty('min-height');
+      // Apply gradient background for non-embed pages
+      document.body.style.background = 'linear-gradient(to bottom, rgb(82, 125, 231) 0%, rgb(120, 100, 200) 50%, rgb(145, 74, 174) 100%) fixed';
+      document.documentElement.style.backgroundColor = 'rgb(82, 125, 231)';
+      document.body.style.minHeight = '100vh';
     }
   }, [pathname, isEmbed]);
   
