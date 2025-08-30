@@ -73,12 +73,37 @@ export default function BusinessProfilePage() {
   const [pageState, setPageState] = useState<'initial' | 'loading' | 'ready' | 'no-profile'>('initial');
   const mountedRef = useRef(true);
   
+  // Debug logging for account selection (moved after state initialization)
+  useEffect(() => {
+    console.log('🔍 BusinessProfile: Account selection state', {
+      selectedAccount: selectedAccount?.account_id,
+      accountLoading,
+      availableAccountsCount: availableAccounts?.length,
+      pageState
+    });
+  }, [selectedAccount, accountLoading, availableAccounts, pageState]);
+  
   // Cleanup on unmount
   useEffect(() => {
     return () => {
       mountedRef.current = false;
     };
   }, []);
+  
+  // Add timeout to prevent infinite loading
+  useEffect(() => {
+    if (pageState === 'initial' || pageState === 'loading') {
+      const timeout = setTimeout(() => {
+        console.error('⚠️ BusinessProfile: Loading timeout - forcing ready state');
+        if (mountedRef.current) {
+          setPageState('ready');
+          setError('Loading timeout - please refresh the page');
+        }
+      }, 10000); // 10 second timeout
+      
+      return () => clearTimeout(timeout);
+    }
+  }, [pageState]);
   
   // Preload welcome image to prevent loading delay
   useEffect(() => {
@@ -233,8 +258,26 @@ export default function BusinessProfilePage() {
     const loadBusinessProfile = async () => {
       try {
         // Wait for account selection to complete
-        if (accountLoading || !selectedAccount) {
-          console.log('Waiting for account selection to complete...');
+        if (accountLoading) {
+          console.log('⏳ BusinessProfile: Account is still loading, waiting...', {
+            accountLoading,
+            selectedAccount: selectedAccount?.account_id,
+            pageState
+          });
+          return;
+        }
+        
+        if (!selectedAccount) {
+          console.log('⚠️ BusinessProfile: No selected account available', {
+            accountLoading,
+            availableAccounts: availableAccounts?.length,
+            pageState
+          });
+          // If we have no selected account and loading is done, set to ready to prevent infinite loading
+          if (!accountLoading && mountedRef.current) {
+            setPageState('ready');
+            setNoProfile(true);
+          }
           return;
         }
 
