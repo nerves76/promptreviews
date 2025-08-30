@@ -1303,7 +1303,15 @@ export default function TeamPage() {
                     </>
                   )}
                 </div>
-                {!hasChris && (
+                {hasChris ? (
+                  <button
+                    disabled
+                    className="bg-gray-300 text-gray-600 px-6 py-3 rounded-lg cursor-not-allowed flex items-center gap-2 font-medium"
+                  >
+                    <span className="text-green-600">✓</span>
+                    Already Added
+                  </button>
+                ) : (
                   <button
                     onClick={addChris}
                     disabled={addingChris}
