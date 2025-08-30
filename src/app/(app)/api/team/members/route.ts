@@ -190,52 +190,48 @@ async function processTeamMembers(supabase: any, supabaseAdmin: any, user: any, 
       );
     }
 
-    // Get user IDs from account_users
-    const userIds = accountUsers.map((au: any) => au.user_id);
-    
     console.log(`📋 Found ${accountUsers.length} team members for account ${accountUser.account_id}`);
     
-    // Fetch user details for each user_id individually
-    const membersWithDetails = await Promise.all(
-      accountUsers.map(async (accountUserEntry: any) => {
-        try {
-          // Try to get user details from auth.admin
-          const { data: authUser, error: authError } = await supabaseAdmin.auth.admin.getUserById(
-            accountUserEntry.user_id
-          );
-          
-          if (authError) {
-            console.warn(`Could not fetch auth details for user ${accountUserEntry.user_id}:`, authError);
-          }
-          
-          console.log(`👤 User ${accountUserEntry.user_id}: email=${authUser?.email}, role=${accountUserEntry.role}`);
-          
-          return {
-            user_id: accountUserEntry.user_id,
-            role: accountUserEntry.role,
-            email: authUser?.email || '',
-            first_name: accountUserEntry.accounts?.[0]?.first_name || '',
-            last_name: accountUserEntry.accounts?.[0]?.last_name || '',
-            business_name: accountUserEntry.accounts?.[0]?.business_name || '',
-            created_at: accountUserEntry.created_at,
-            is_current_user: accountUserEntry.user_id === user.id
-          };
-        } catch (error) {
-          console.error(`Error fetching user details for ${accountUserEntry.user_id}:`, error);
-          // Return user without email if fetch fails
-          return {
-            user_id: accountUserEntry.user_id,
-            role: accountUserEntry.role,
-            email: '',
-            first_name: accountUserEntry.accounts?.[0]?.first_name || '',
-            last_name: accountUserEntry.accounts?.[0]?.last_name || '',
-            business_name: accountUserEntry.accounts?.[0]?.business_name || '',
-            created_at: accountUserEntry.created_at,
-            is_current_user: accountUserEntry.user_id === user.id
-          };
-        }
-      })
-    );
+    // Get all user IDs we need to fetch
+    const userIds = accountUsers.map((au: any) => au.user_id);
+    console.log(`🔍 Fetching details for user IDs:`, userIds);
+    
+    // Fetch all users and create a map
+    const { data: authUsersData, error: listError } = await supabaseAdmin.auth.admin.listUsers({
+      page: 1,
+      perPage: 1000
+    });
+    
+    if (listError) {
+      console.error('Error fetching users list:', listError);
+    }
+    
+    // Create a map of user_id to email
+    const userEmailMap = new Map();
+    if (authUsersData?.users) {
+      authUsersData.users.forEach((u: any) => {
+        userEmailMap.set(u.id, u.email);
+      });
+      console.log(`📧 Found emails for ${userEmailMap.size} users`);
+    }
+    
+    // Map the account users with their emails
+    const membersWithDetails = accountUsers.map((accountUserEntry: any) => {
+      const email = userEmailMap.get(accountUserEntry.user_id) || '';
+      
+      console.log(`👤 User ${accountUserEntry.user_id}: email=${email}, role=${accountUserEntry.role}`);
+      
+      return {
+        user_id: accountUserEntry.user_id,
+        role: accountUserEntry.role,
+        email: email,
+        first_name: accountUserEntry.accounts?.[0]?.first_name || '',
+        last_name: accountUserEntry.accounts?.[0]?.last_name || '',
+        business_name: accountUserEntry.accounts?.[0]?.business_name || '',
+        created_at: accountUserEntry.created_at,
+        is_current_user: accountUserEntry.user_id === user.id
+      };
+    });
 
     const members = membersWithDetails;
 
