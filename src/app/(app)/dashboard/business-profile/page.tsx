@@ -75,12 +75,14 @@ export default function BusinessProfilePage() {
   
   // Debug logging for account selection (moved after state initialization)
   useEffect(() => {
-    console.log('🔍 BusinessProfile: Account selection state', {
-      selectedAccount: selectedAccount?.account_id,
-      accountLoading,
-      availableAccountsCount: availableAccounts?.length,
-      pageState
-    });
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🔍 BusinessProfile: Account selection state', {
+        selectedAccount: selectedAccount?.account_id,
+        accountLoading,
+        availableAccountsCount: availableAccounts?.length,
+        pageState
+      });
+    }
   }, [selectedAccount, accountLoading, availableAccounts, pageState]);
   
   // Cleanup on unmount
@@ -444,6 +446,9 @@ export default function BusinessProfilePage() {
           setPlatformErrors(loadedPlatforms.map(() => ""));
           setLogoUrl(businessData.logo_url || null);
           setNoProfile(false);
+          
+          // Set page to ready immediately when business data is loaded
+          setPageState('ready');
         }
 
         // Check if this is the first time visiting the business profile page
@@ -458,9 +463,6 @@ export default function BusinessProfilePage() {
         }
 
         setLoading(false);
-        if (mountedRef.current) {
-          setPageState('ready');
-        }
       } catch (error) {
         console.error("Error loading business profile:", error);
         setError("Failed to load business profile");
@@ -1039,8 +1041,8 @@ export default function BusinessProfilePage() {
         </div>
       )}
 
-      {/* Welcome Popup for first-time visitors */}
-      <WelcomePopup
+      {/* Welcome Popup for first-time visitors - TEMPORARILY DISABLED */}
+      {/* <WelcomePopup
         isOpen={showWelcomePopup}
         onClose={handleWelcomeClose}
         title={`Hello again${selectedAccount?.first_name ? `, ${selectedAccount.first_name}` : ''}!`}
@@ -1059,7 +1061,7 @@ You can update your don'ts over time by testing outputs and reviewing what gets 
         imageUrl="https://ltneloufqjktdplodvao.supabase.co/storage/v1/object/public/logos/prompt-assets/prompty-teaching-about-your-business.png"
         imageAlt="Prompty teaching about your business"
         buttonText="Got it, let's go!"
-      />
+      /> */}
     </PageCard>
   );
 }
