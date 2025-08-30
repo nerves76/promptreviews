@@ -360,6 +360,18 @@ When working on this codebase:
 
 ## Recent Issues Log
 
+### 2025-08 - Automatic Page Refreshes (Timer-based)
+- **Issue:** All pages refresh automatically on a timer (~55 minutes)
+- **Symptoms:** Page reloads without user interaction, happens across all dashboard pages
+- **Root Cause:** Under investigation - likely related to auth token refresh cycle
+- **Status:** ACTIVE ISSUE - Debugging tools deployed
+- **Debugging:** RefreshDebugger component added to track source
+- **Console Commands:**
+  - `refreshDebugReport()` - Show suspicious events
+  - `clearRefreshDebug()` - Clear event history  
+  - `refreshReport()` - Show global refresh monitor
+- **Workaround:** Save work frequently, autosave is active on most forms
+
 ### 2024 - Widget Page Refreshes
 - **Issue:** Form data loss, PageCard flickering
 - **Root Cause:** Duplicate fetches, token refresh side effects
