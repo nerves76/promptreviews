@@ -705,6 +705,10 @@ export default function TeamPage() {
   const { members, invitations, account, current_user_role } = teamData;
   const isOwner = current_user_role === 'owner';
   
+  // Separate support members from regular team members
+  const supportMembers = members.filter(m => m.role === 'support');
+  const regularMembers = members.filter(m => m.role !== 'support');
+  
   // Additional safety check for account data
   if (!account) {
     return (
@@ -987,14 +991,14 @@ export default function TeamPage() {
       {/* Team Members */}
       <div className="bg-white border border-gray-200 rounded-lg p-6 mb-8">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">
-          Team Members ({members.length})
+          Team Members ({regularMembers.length})
         </h2>
         
-        {members.length === 0 ? (
+        {regularMembers.length === 0 ? (
           <p className="text-gray-500">No team members yet.</p>
         ) : (
           <div className="space-y-3">
-            {members.map((member) => (
+            {regularMembers.map((member) => (
               <div
                 key={member.user_id}
                 className="flex items-center justify-between p-4 border border-gray-200 rounded-lg"
@@ -1008,7 +1012,7 @@ export default function TeamPage() {
                       {member.first_name || member.last_name ? (
                         `${member.first_name} ${member.last_name}`.trim()
                       ) : (
-                        member.role === 'support' ? 'Support Team' : 'Team Member'
+                        member.role === 'support' ? 'Chris @ Prompt Reviews' : 'Team Member'
                       )}
                       {member.is_current_user && (
                         <span className="ml-2 text-sm text-gray-500">(You)</span>
@@ -1059,6 +1063,49 @@ export default function TeamPage() {
           </div>
         )}
       </div>
+
+      {/* Support Section */}
+      {supportMembers.length > 0 && (
+        <div className="bg-white border border-gray-200 rounded-lg p-6 mb-8">
+          <h2 className="text-lg font-semibold text-gray-900 mb-2">
+            Support
+          </h2>
+          <p className="text-sm text-gray-600 mb-4">
+            Support team members provide technical assistance and don't count against your team member limits.
+          </p>
+          
+          <div className="space-y-3">
+            {supportMembers.map((member) => (
+              <div
+                key={member.user_id}
+                className="flex items-center justify-between p-4 border border-gray-200 rounded-lg bg-gray-50"
+              >
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center">
+                    <span className="text-xl">🛠️</span>
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-900">
+                      Chris @ Prompt Reviews
+                      {member.is_current_user && (
+                        <span className="ml-2 text-sm text-gray-500">(You)</span>
+                      )}
+                    </p>
+                    <p className="text-sm text-gray-500">{member.email}</p>
+                    <p className="text-xs text-gray-400 mt-1">Development & Technical Support</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center">
+                  <span className="px-3 py-1 text-xs font-medium rounded-full bg-indigo-100 text-indigo-800">
+                    🛠️ Support Team
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Pending Invitations (Owners Only) */}
       {isOwner && invitations.length > 0 && (
