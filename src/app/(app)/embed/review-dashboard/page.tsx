@@ -112,33 +112,37 @@ function EmbedReviewDashboardContent() {
   
   return (
     <div className={`relative min-h-screen ${theme === 'dark' ? 'bg-gray-900' : 'bg-white'}`}>
-      {/* Fixed border container */}
-      <div className={`fixed inset-0 pointer-events-none border-4 ${theme === 'dark' ? 'border-gray-700/50' : 'border-gray-200/50'} rounded-lg z-10`}></div>
+      {/* Fixed border container - moved inside scrollable area to prevent clipping */}
+      <div className={`absolute inset-0 pointer-events-none border-4 ${theme === 'dark' ? 'border-gray-700/30' : 'border-gray-200/30'} rounded-lg`}></div>
       
-      {/* Top scroll fade indicator */}
-      <div className={`fixed top-0 left-0 right-0 h-16 pointer-events-none z-20 transition-opacity duration-300 ${
+      {/* Top scroll fade indicator - more subtle glassmorphic effect */}
+      <div className={`fixed top-0 left-0 right-0 h-12 pointer-events-none z-20 transition-opacity duration-300 ${
         showTopFade ? 'opacity-100' : 'opacity-0'
-      } ${
-        theme === 'dark' 
-          ? 'bg-gradient-to-b from-gray-900 via-gray-900/90 to-transparent' 
-          : 'bg-gradient-to-b from-white via-white/90 to-transparent'
-      }`}></div>
+      }`}>
+        <div className={`h-full ${
+          theme === 'dark' 
+            ? 'bg-gradient-to-b from-gray-900/80 via-gray-900/40 to-transparent backdrop-blur-sm' 
+            : 'bg-gradient-to-b from-white/80 via-white/40 to-transparent backdrop-blur-sm'
+        }`}></div>
+      </div>
       
-      {/* Bottom scroll fade indicator */}
-      <div className={`fixed bottom-0 left-0 right-0 h-16 pointer-events-none z-20 transition-opacity duration-300 ${
+      {/* Bottom scroll fade indicator - more subtle glassmorphic effect */}
+      <div className={`fixed bottom-0 left-0 right-0 h-12 pointer-events-none z-20 transition-opacity duration-300 ${
         showBottomFade ? 'opacity-100' : 'opacity-0'
-      } ${
-        theme === 'dark'
-          ? 'bg-gradient-to-t from-gray-900 via-gray-900/90 to-transparent'
-          : 'bg-gradient-to-t from-white via-white/90 to-transparent'
-      }`}></div>
+      }`}>
+        <div className={`h-full ${
+          theme === 'dark'
+            ? 'bg-gradient-to-t from-gray-900/80 via-gray-900/40 to-transparent backdrop-blur-sm'
+            : 'bg-gradient-to-t from-white/80 via-white/40 to-transparent backdrop-blur-sm'
+        }`}></div>
+      </div>
       
       {/* Scrollable content */}
       <div 
         ref={scrollContainerRef}
-        className="h-screen overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent"
+        className="h-screen overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent relative"
       >
-        <div className="p-6 space-y-8 pt-8 pb-20">
+        <div className="p-6 space-y-8 pt-8 pb-16">
           {components.map(component => componentMap[component] || null)}
         </div>
       </div>
