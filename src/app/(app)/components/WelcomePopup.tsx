@@ -181,8 +181,9 @@ Here's your first tip: [icon] <— click here`;
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 p-4">
-      <div className="relative max-w-4xl w-full max-h-[90vh]">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-black bg-opacity-40">
+      <div className="flex min-h-full items-center justify-center p-4">
+        <div className="relative max-w-4xl w-full max-h-[90vh]">
         {/* Standardized circular close button */}
         <button
           className="absolute -top-3 -right-3 bg-white border border-gray-200 rounded-full shadow-lg flex items-center justify-center hover:bg-gray-100 focus:outline-none z-20 transition-colors"
@@ -244,6 +245,7 @@ Here's your first tip: [icon] <— click here`;
           )}
         </div>
         </div>
+      </div>
       </div>
     </div>
   );
