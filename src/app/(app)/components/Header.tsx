@@ -479,7 +479,7 @@ const Header = React.memo(function Header() {
                 {showNotifications && typeof window !== 'undefined' && createPortal(
                   <div
                     ref={menuRef}
-                    className="fixed w-80 bg-white/95 backdrop-blur-sm rounded-lg shadow-lg border border-white/20"
+                    className="fixed w-80 bg-white/85 backdrop-blur-md rounded-lg shadow-lg border border-white/30"
                     style={{
                       maxHeight: '400px',
                       overflowY: 'auto',
@@ -550,7 +550,7 @@ const Header = React.memo(function Header() {
                       right: window.innerWidth - (accountButtonRef.current ? accountButtonRef.current.getBoundingClientRect().right : 0)
                     }}
                   >
-                    <div className="w-56 rounded-md shadow-lg bg-white/95 backdrop-blur-sm ring-1 ring-black ring-opacity-5">
+                    <div className="w-56 rounded-md shadow-lg bg-white/85 backdrop-blur-md ring-1 ring-black ring-opacity-5">
                       <div className="py-1">
                         <Link href="/dashboard/account" className="block px-4 py-2 text-sm text-gray-700 hover:bg-slate-blue/10 hover:text-slate-blue" onClick={() => setAccountMenuOpen(false)}>
                           Account details
