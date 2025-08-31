@@ -14,6 +14,8 @@ interface OfferCardProps {
   businessProfile?: any;
   offerTitle?: string;
   offerDescription?: string;
+  isTimelockActive?: boolean;
+  timelockCountdown?: number;
 }
 
 const OfferCard: React.FC<OfferCardProps> = ({
@@ -28,6 +30,8 @@ const OfferCard: React.FC<OfferCardProps> = ({
   businessProfile,
   offerTitle,
   offerDescription,
+  isTimelockActive = false,
+  timelockCountdown = 0,
 }) => {
   const getFontClass = (font: string) => {
     // Implement your logic to determine the appropriate font class based on the font name
@@ -43,6 +47,31 @@ const OfferCard: React.FC<OfferCardProps> = ({
         return "font-inter";
     }
   };
+
+  // Format countdown timer
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  if (isTimelockActive) {
+    // Show countdown timer
+    return (
+      <div className="bg-yellow-200 rounded-lg flex flex-col items-center justify-center w-full min-h-[32px] h-auto px-2 pt-0 pb-0 sm:pt-2 sm:pb-1 animate-slideup">
+        <div className="flex flex-col sm:flex-row items-center justify-center w-full text-center">
+          <Icon 
+            name="FaClock"
+            className="w-8 h-8 sm:w-10 sm:h-10 text-yellow-700 mb-1 sm:mb-0 sm:mr-2 flex-shrink-0 animate-pulse" 
+            size={32}
+          />
+          <span className="text-yellow-900 mx-0 sm:mx-2 text-center text-sm sm:text-base mb-0 font-semibold">
+            Special offer available in: <strong className="text-lg text-yellow-900">{formatTime(timelockCountdown)}</strong>
+          </span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-yellow-200 rounded-lg flex flex-col items-center justify-center w-full min-h-[32px] h-auto px-2 pt-0 pb-0 sm:pt-2 sm:pb-1 animate-slideup">

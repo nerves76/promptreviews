@@ -22,8 +22,9 @@ interface KickstartersManagementModalProps {
   isOpen: boolean;
   onClose: () => void;
   selectedKickstarters: string[];
+  customKickstarters?: Kickstarter[];
   businessName: string;
-  onSave: (selected: string[]) => void;
+  onSave: (selected: string[], customKickstarters: Kickstarter[]) => void;
   allKickstarters: Kickstarter[];
   loading: boolean;
   onRefreshKickstarters?: () => void;
@@ -36,6 +37,7 @@ export default function KickstartersManagementModal({
   isOpen,
   onClose,
   selectedKickstarters,
+  customKickstarters = [],
   businessName,
   onSave,
   allKickstarters,
@@ -49,63 +51,99 @@ export default function KickstartersManagementModal({
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
   const [searchTerm, setSearchTerm] = useState('');
   const [selected, setSelected] = useState<string[]>(selectedKickstarters);
+  const [localCustomKickstarters, setLocalCustomKickstarters] = useState<Kickstarter[]>(customKickstarters || []);
   const [showAddCustom, setShowAddCustom] = useState(false);
   const [customQuestion, setCustomQuestion] = useState('');
-  const [customCategory, setCustomCategory] = useState<'PROCESS' | 'EXPERIENCE' | 'OUTCOMES' | 'PEOPLE'>('EXPERIENCE');
-  const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // Draggable modal state
+  const [modalPos, setModalPos] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
     setSelected(selectedKickstarters);
   }, [selectedKickstarters]);
 
-  // Handle modal click outside
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
-        onClose();
+    setLocalCustomKickstarters(customKickstarters || []);
+  }, [customKickstarters]);
+
+  // Reset modal position when opened
+  useEffect(() => {
+    if (isOpen) {
+      setModalPos({ x: 0, y: 0 });
+    }
+  }, [isOpen]);
+
+  // Handle dragging
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (isDragging) {
+        setModalPos({
+          x: e.clientX - dragOffset.x,
+          y: e.clientY - dragOffset.y,
+        });
       }
     };
 
+    const handleMouseUp = () => {
+      setIsDragging(false);
+    };
+
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDragging, dragOffset]);
+
+  // Handle modal click outside (removed since we don't have a backdrop)
+  useEffect(() => {
     if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
       document.body.style.overflow = 'hidden';
     }
 
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
       document.body.style.overflow = 'unset';
     };
-  }, [isOpen, onClose]);
+  }, [isOpen]);
 
   const categories = [
     { key: 'ALL', label: 'All Categories' },
     { key: 'PROCESS', label: 'Process' },
     { key: 'EXPERIENCE', label: 'Experience' },
     { key: 'OUTCOMES', label: 'Outcomes' },
-    { key: 'PEOPLE', label: 'People' }
+    { key: 'PEOPLE', label: 'People' },
+    { key: 'CUSTOM', label: 'Custom' }
   ];
 
   const getFilteredKickstarters = () => {
-    let filtered = allKickstarters;
+    // Combine default kickstarters with custom ones
+    let combined = [...allKickstarters, ...localCustomKickstarters];
 
     // Filter by category
     if (selectedCategory !== 'ALL') {
-      filtered = filtered.filter(k => k.category === selectedCategory);
+      combined = combined.filter(k => k.category === selectedCategory);
     }
 
     // Filter by search term
     if (searchTerm) {
-      filtered = filtered.filter(k => 
+      combined = combined.filter(k => 
         k.question.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
-    return filtered;
+    return combined;
   };
 
   const getSelectedKickstarters = () => {
-    return allKickstarters.filter(k => selected.includes(k.id));
+    const combined = [...allKickstarters, ...localCustomKickstarters];
+    return combined.filter(k => selected.includes(k.id));
   };
 
   const replaceBusinessName = (question: string) => {
@@ -127,56 +165,71 @@ export default function KickstartersManagementModal({
     });
   };
 
-  const handleAddCustomKickstarter = async () => {
-    if (!customQuestion.trim()) {
+  const handleAddCustomKickstarter = () => {
+    // Validate input
+    const trimmedQuestion = customQuestion.trim();
+    if (!trimmedQuestion) {
       setError('Please enter a question.');
       return;
     }
 
-    if (customQuestion.length > MAX_KICKSTARTER_LENGTH) {
+    if (trimmedQuestion.length > MAX_KICKSTARTER_LENGTH) {
       setError(`Question must be ${MAX_KICKSTARTER_LENGTH} characters or less.`);
       return;
     }
 
-    setSaving(true);
+    // Clear any previous errors
     setError(null);
 
-    try {
-      const { data, error: insertError } = await supabase
-        .from('kickstarters')
-        .insert({
-          question: customQuestion.trim(),
-          category: customCategory,
-          is_default: false
-        })
-        .select()
-        .single();
+    // Generate a unique ID for the custom kickstarter
+    const timestamp = Date.now();
+    const randomStr = Math.random().toString(36).substring(2, 11);
+    const customId = `custom_${timestamp}_${randomStr}`;
+    
+    // Create a custom kickstarter object - always use CUSTOM category
+    const newCustomKickstarter: Kickstarter = {
+      id: customId,
+      question: trimmedQuestion,
+      category: 'CUSTOM',
+      is_default: false
+    };
 
-      if (insertError) throw insertError;
-
-      // Add to selected automatically
-      setSelected(prev => [...prev, data.id]);
-      
-      // Reset form
-      setCustomQuestion('');
-      setShowAddCustom(false);
-      
-      // Refresh the kickstarters list from parent
-      if (onRefreshKickstarters) {
-        onRefreshKickstarters();
-      }
-      
-      setError(null);
-    } catch (error: any) {
-      console.error('Error creating custom kickstarter:', error);
-      setError('Failed to create custom kickstarter. Please try again.');
-    } finally {
-      setSaving(false);
-    }
+    // Add to the local custom kickstarters state
+    setLocalCustomKickstarters(prevList => {
+      const updatedList = [...prevList, newCustomKickstarter];
+      return updatedList;
+    });
+    
+    // Add to selected automatically
+    setSelected(prevSelected => {
+      const updatedSelected = [...prevSelected, customId];
+      return updatedSelected;
+    });
+    
+    // Reset form and close
+    setCustomQuestion('');
+    setShowAddCustom(false);
+    
+    // Log success for debugging (will remove later)
+    console.log('Custom kickstarter added successfully:', newCustomKickstarter);
   };
 
   const handleSave = () => {
-    onSave(selected);
+    onSave(selected, localCustomKickstarters);
+  };
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    // Stop propagation to prevent other modals from also responding
+    e.stopPropagation();
+    
+    // Only start dragging if clicking directly on the kickstarters modal header
+    if (e.target instanceof HTMLElement && e.target.closest('.kickstarters-modal-header')) {
+      setIsDragging(true);
+      setDragOffset({
+        x: e.clientX - modalPos.x,
+        y: e.clientY - modalPos.y,
+      });
+    }
   };
 
   const getCategoryStats = () => {
@@ -195,13 +248,32 @@ export default function KickstartersManagementModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 flex items-center justify-center z-[100] pointer-events-none">
       <div 
         ref={modalRef}
-        className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-2xl max-w-4xl w-full h-[90vh] flex flex-col overflow-hidden border-2 border-white"
+        className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-2xl max-w-4xl w-full relative flex flex-col pointer-events-auto"
+        style={{
+          left: modalPos.x,
+          top: modalPos.y,
+          transform: 'none',
+          maxHeight: '70vh',
+          height: 'auto',
+        }}
+        onMouseDown={handleMouseDown}
+        onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+        {/* Circular close button that exceeds modal borders */}
+        <button
+          className="absolute -top-2 -right-2 bg-white border border-gray-200 rounded-full shadow-md flex items-center justify-center hover:bg-gray-100 focus:outline-none z-20 transition-colors p-2"
+          style={{ width: 32, height: 32 }}
+          onClick={onClose}
+          aria-label="Close kickstarters modal"
+        >
+          <Icon name="FaTimes" className="w-4 h-4 text-gray-600" size={16} />
+        </button>
+
+        {/* Draggable header - unique class name to prevent interference */}
+        <div className="kickstarters-modal-header flex items-center justify-between p-4 border-b cursor-move bg-slate-100 rounded-t-2xl">
           <div className="flex items-center gap-3">
             <Icon name="FaLightbulb" className="text-slate-blue text-xl" size={20} />
             <h2 className="text-xl font-bold text-gray-900">Manage kickstarters</h2>
@@ -216,13 +288,6 @@ export default function KickstartersManagementModal({
               className="px-4 py-2 bg-slate-blue text-white rounded-lg hover:bg-slate-blue-dark focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2 transition-colors"
             >
               Save selection
-            </button>
-            <button
-              type="button"
-              onClick={onClose}
-              className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-gray-300"
-            >
-              <Icon name="FaTimes" className="w-4 h-4 text-gray-600" size={16} />
             </button>
           </div>
         </div>
@@ -265,7 +330,7 @@ export default function KickstartersManagementModal({
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-hidden" style={{ height: 'calc(90vh - 200px)' }}>
+        <div className="flex-1 overflow-hidden">
           {activeTab === 'browse' && (
             <div className="p-6 h-full flex flex-col min-h-0">
               {/* Controls */}
@@ -302,21 +367,6 @@ export default function KickstartersManagementModal({
                   <div className="space-y-3">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Category
-                      </label>
-                      <select
-                        value={customCategory}
-                        onChange={(e) => setCustomCategory(e.target.value as any)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      >
-                        <option value="PROCESS">Process</option>
-                        <option value="EXPERIENCE">Experience</option>
-                        <option value="OUTCOMES">Outcomes</option>
-                        <option value="PEOPLE">People</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
                         Question ({customQuestion.length}/{MAX_KICKSTARTER_LENGTH})
                       </label>
                       <textarea
@@ -337,10 +387,10 @@ export default function KickstartersManagementModal({
                       <button
                         type="button"
                         onClick={handleAddCustomKickstarter}
-                        disabled={saving || !customQuestion.trim()}
+                        disabled={!customQuestion.trim()}
                         className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        {saving ? 'Adding...' : 'Add question'}
+                        Add question
                       </button>
                       <button
                         type="button"
@@ -359,7 +409,7 @@ export default function KickstartersManagementModal({
               )}
 
               {/* Questions List */}
-              <div className="flex-1 overflow-y-auto pr-2" style={{ maxHeight: 'calc(90vh - 350px)' }}>
+              <div className="flex-1 overflow-y-auto pr-2">
                 {loading ? (
                   <div className="flex items-center justify-center h-32">
                     <div className="text-gray-500">Loading questions...</div>
@@ -383,7 +433,8 @@ export default function KickstartersManagementModal({
                                 kickstarter.category === 'PROCESS' ? 'bg-green-100 text-green-800' :
                                 kickstarter.category === 'EXPERIENCE' ? 'bg-blue-100 text-blue-800' :
                                 kickstarter.category === 'OUTCOMES' ? 'bg-purple-100 text-purple-800' :
-                                'bg-orange-100 text-orange-800'
+                                kickstarter.category === 'PEOPLE' ? 'bg-orange-100 text-orange-800' :
+                                'bg-gray-100 text-gray-800'
                               }`}>
                                 {kickstarter.category}
                               </span>
@@ -436,20 +487,73 @@ export default function KickstartersManagementModal({
                 </div>
               </div>
 
-              {/* Add Custom Button */}
-              <div className="mb-4">
-                <button
-                  type="button"
-                  onClick={() => setShowAddCustom(true)}
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
-                >
-                  <Icon name="FaPlus" className="w-4 h-4" size={16} />
-                  Add custom question
-                </button>
-              </div>
+              {/* Add Custom Form */}
+              {showAddCustom && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Icon name="FaPlus" className="text-blue-600" size={16} />
+                    <h3 className="font-medium text-blue-900">Add custom kickstarter</h3>
+                  </div>
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Question ({customQuestion.length}/{MAX_KICKSTARTER_LENGTH})
+                      </label>
+                      <textarea
+                        value={customQuestion}
+                        onChange={(e) => setCustomQuestion(e.target.value)}
+                        placeholder="Enter your custom question... Use [Business Name] for dynamic replacement."
+                        rows={3}
+                        maxLength={MAX_KICKSTARTER_LENGTH}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                      />
+                      {customQuestion.includes('[Business Name]') && (
+                        <p className="text-xs text-gray-600 mt-1">
+                          Preview: "{replaceBusinessName(customQuestion)}"
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={handleAddCustomKickstarter}
+                        disabled={!customQuestion.trim()}
+                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        Add kickstarter
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowAddCustom(false);
+                          setCustomQuestion('');
+                          setError(null);
+                        }}
+                        className="px-4 py-2 text-gray-600 hover:text-gray-800"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Add Custom Button - Only show when form is not visible */}
+              {!showAddCustom && (
+                <div className="mb-4">
+                  <button
+                    type="button"
+                    onClick={() => setShowAddCustom(true)}
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+                  >
+                    <Icon name="FaPlus" className="w-4 h-4" size={16} />
+                    Add custom question
+                  </button>
+                </div>
+              )}
 
               {/* Selected Questions */}
-              <div className="flex-1 overflow-y-auto pr-2" style={{ maxHeight: 'calc(90vh - 350px)' }}>
+              <div className="flex-1 overflow-y-auto pr-2">
                 {selected.length === 0 ? (
                   <div className="text-center py-8 text-gray-500">
                     No kickstarters selected yet. Switch to the "Browse Questions" tab to select some.
@@ -466,7 +570,8 @@ export default function KickstartersManagementModal({
                                 kickstarter.category === 'PROCESS' ? 'bg-green-100 text-green-800' :
                                 kickstarter.category === 'EXPERIENCE' ? 'bg-blue-100 text-blue-800' :
                                 kickstarter.category === 'OUTCOMES' ? 'bg-purple-100 text-purple-800' :
-                                'bg-orange-100 text-orange-800'
+                                kickstarter.category === 'PEOPLE' ? 'bg-orange-100 text-orange-800' :
+                                'bg-gray-100 text-gray-800'
                               }`}>
                                 {kickstarter.category}
                               </span>

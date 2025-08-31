@@ -58,12 +58,6 @@ function Tooltip({ text }: { text: string }) {
   );
 }
 
-interface Platform {
-  name: string;
-  url: string;
-  wordCount: number;
-  customPlatform?: string;
-}
 
 export default function BusinessProfilePage() {
   const supabase = createClient();
@@ -173,6 +167,7 @@ export default function BusinessProfilePage() {
     ai_donts: "",
     kickstarters_enabled: false,
     selected_kickstarters: [],
+    custom_kickstarters: [],
     kickstarters_background_design: false,
     };
   });
@@ -195,19 +190,6 @@ export default function BusinessProfilePage() {
     return [""];
   });
   
-  // Restore platforms from localStorage
-  const [platforms, setPlatforms] = useState<Platform[]>(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('businessProfilePlatforms');
-      if (saved) {
-        try {
-          return JSON.parse(saved);
-        } catch (e) {}
-      }
-    }
-    return [{ name: "", url: "", wordCount: 200 }];
-  });
-  const [platformErrors, setPlatformErrors] = useState<string[]>([]);
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPrintFile, setLogoPrintFile] = useState<File | null>(null);
@@ -244,17 +226,16 @@ export default function BusinessProfilePage() {
     return () => clearTimeout(saveTimeout);
   }, [form, formStorageKey]);
 
-  // Also save platforms and services separately
+  // Also save services separately
   useEffect(() => {
     const saveTimeout = setTimeout(() => {
       if (typeof window !== 'undefined') {
-        localStorage.setItem('businessProfilePlatforms', JSON.stringify(platforms));
         localStorage.setItem('businessProfileServices', JSON.stringify(services));
       }
     }, 1000);
     
     return () => clearTimeout(saveTimeout);
-  }, [platforms, services]);
+  }, [services]);
 
   useEffect(() => {
     const loadBusinessProfile = async () => {
@@ -397,8 +378,6 @@ export default function BusinessProfilePage() {
             kickstarters_background_design: false,
           });
           setServices([""]);
-          setPlatforms([{ name: "", url: "", wordCount: 200 }]);
-          setPlatformErrors([""]);
           setLogoUrl(null);
           setNoProfile(true);
         } else if (businessData) {
@@ -418,6 +397,7 @@ export default function BusinessProfilePage() {
             ai_donts: businessData.ai_donts || "",
             kickstarters_enabled: businessData.kickstarters_enabled || false,
             selected_kickstarters: businessData.selected_kickstarters || [],
+            custom_kickstarters: businessData.custom_kickstarters || [],
             kickstarters_background_design: businessData.kickstarters_background_design ?? false,
           });
           setServices(
@@ -437,13 +417,6 @@ export default function BusinessProfilePage() {
                   : businessData.services_offered.split("\n")
                 : [],
           );
-          // Initialize platforms from JSON or fallback
-          let loadedPlatforms = [{ name: "", url: "", wordCount: 200 }];
-          if (Array.isArray(businessData.review_platforms)) {
-            loadedPlatforms = businessData.review_platforms;
-          }
-          setPlatforms(loadedPlatforms);
-          setPlatformErrors(loadedPlatforms.map(() => ""));
           setLogoUrl(businessData.logo_url || null);
           setNoProfile(false);
           
@@ -474,7 +447,7 @@ export default function BusinessProfilePage() {
     };
 
     loadBusinessProfile();
-  }, [router, supabase, selectedAccount?.account_id, accountLoading]);
+  }, [router, supabase, selectedAccount?.account_id, accountLoading, availableAccounts?.length, loading, pageState, selectedAccount]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -493,29 +466,6 @@ export default function BusinessProfilePage() {
   const removeService = (idx: number) =>
     setServices(services.filter((_, i) => i !== idx));
 
-  const handlePlatformChange = (
-    idx: number,
-    field: "name" | "url" | "customPlatform" | "wordCount",
-    value: string
-  ) => {
-    const newPlatforms = [...platforms];
-    if (field === "wordCount") {
-      newPlatforms[idx] = { ...newPlatforms[idx], wordCount: parseInt(value) || 200 };
-    } else if (field === "customPlatform") {
-      newPlatforms[idx] = { ...newPlatforms[idx], customPlatform: value };
-    } else {
-      newPlatforms[idx] = { ...newPlatforms[idx], [field]: value };
-    }
-    setPlatforms(newPlatforms);
-  };
-
-  const addPlatform = () => {
-    setPlatforms([...platforms, { name: "", url: "", wordCount: 200 }]);
-  };
-
-  const removePlatform = (idx: number) => {
-    setPlatforms(platforms.filter((_, i) => i !== idx));
-  };
 
   // Helper to get cropped image as a blob
   const getCroppedImg = async (imageSrc: string, cropPixels: any) => {
@@ -775,7 +725,7 @@ export default function BusinessProfilePage() {
         taglines: form.taglines,
         keywords: form.keywords,
         team_info: form.team_info,
-        review_platforms: platforms,
+        review_platforms: form.review_platforms || [],
         platform_word_counts: form.platform_word_counts,
         logo_url: uploadedLogoUrl,
         facebook_url: form.facebook_url,
@@ -802,6 +752,7 @@ export default function BusinessProfilePage() {
         ai_donts: form.ai_donts,
         kickstarters_enabled: form.kickstarters_enabled,
         selected_kickstarters: form.selected_kickstarters,
+        custom_kickstarters: form.custom_kickstarters,
         kickstarters_background_design: form.kickstarters_background_design,
         services_offered: services,
       });
@@ -818,7 +769,7 @@ export default function BusinessProfilePage() {
           keywords: form.keywords,
           team_info: form.team_info,
           about_us: form.about_us,
-          review_platforms: platforms,
+          review_platforms: form.review_platforms || [],
           platform_word_counts: form.platform_word_counts,
           logo_url: uploadedLogoUrl,
           logo_print_url: uploadedLogoPrintUrl,
@@ -976,10 +927,6 @@ export default function BusinessProfilePage() {
         setForm={setForm}
         services={services}
         setServices={setServices}
-        platforms={platforms}
-        setPlatforms={setPlatforms}
-        platformErrors={platformErrors}
-        setPlatformErrors={setPlatformErrors}
         logoUrl={logoUrl}
         setLogoUrl={setLogoUrl}
         logoFile={logoFile}
@@ -1009,16 +956,13 @@ export default function BusinessProfilePage() {
         handleServiceChange={handleServiceChange}
         addService={addService}
         removeService={removeService}
-        handlePlatformChange={handlePlatformChange}
-        addPlatform={addPlatform}
-        removePlatform={removePlatform}
         handleLogoChange={handleLogoChange}
         handleCropConfirm={handleCropConfirm}
         handleCropCancel={handleCropCancel}
         formId="business-profile-form"
       />
       {/* Bottom right Save button */}
-      <div className="flex justify-end mt-8 pr-4 md:pr-6">
+      <div className="flex justify-end mt-8">
         <button
           type="submit"
           form="business-profile-form"

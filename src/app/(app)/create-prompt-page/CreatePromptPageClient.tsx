@@ -42,6 +42,7 @@ interface BusinessProfile {
   default_offer_enabled?: boolean;
   default_offer_title?: string;
   default_offer_body?: string;
+  default_offer_timelock?: boolean;
   gradient_start?: string;
   gradient_middle?: string;
   gradient_end?: string;
@@ -78,6 +79,7 @@ const initialFormData = {
   offer_title: "Special Offer",
   offer_body: 'Use this code "1234" to get a discount on your next purchase.',
   offer_url: "",
+  offer_timelock: false,
   review_type: "service",
   campaign_type: typeof window !== 'undefined' ? localStorage.getItem('campaign_type') || 'individual' : 'individual',
   video_recipient: "",
@@ -164,12 +166,63 @@ export default function CreatePromptPageClient({
     const initialData = {
       ...initialFormData,
       review_type: initialReviewType,
-      campaign_type: campaignType
+      campaign_type: campaignType,
+      // Initialize missing fields that should be in formData
+      falling_icon_color: '#FFD700',
+      recent_reviews_enabled: false,
+      recent_reviews_scope: 'current_page'
     };
     return initialData;
   });
   const [businessProfile, setBusinessProfile] =
-    useState<BusinessProfile | null>(null);
+    useState<BusinessProfile | null>(() => {
+      // Initialize with a default profile to avoid null issues
+      return {
+        business_name: "Your Business",
+        services_offered: [],
+        company_values: "",
+        differentiators: "",
+        years_in_business: 0,
+        industries_served: "",
+        taglines: "",
+        team_founder_info: "",
+        keywords: "",
+        default_offer_enabled: false,
+        default_offer_title: "",
+        default_offer_body: "",
+        default_offer_url: "",
+        default_offer_timelock: false,
+        gradient_start: "",
+        gradient_middle: "",
+        gradient_end: "",
+        background_type: "",
+        background_color: "",
+        text_color: "",
+        header_color: "",
+        // Add all new default fields
+        kickstarters_enabled: true,
+        selected_kickstarters: [],
+        kickstarters_background_design: false,
+        emoji_sentiment_enabled: false,
+        emoji_sentiment_question: "How was your experience?",
+        emoji_feedback_message: "Please tell us more about your experience",
+        emoji_thank_you_message: "Thank you for your feedback!",
+        emoji_feedback_popup_header: "How can we improve?",
+        emoji_feedback_page_header: "Your feedback helps us grow",
+        falling_enabled: true,
+        falling_icon: "star",
+        falling_icon_color: "#FFD700",
+        show_friendly_note: false,
+        friendly_note: "",
+        recent_reviews_enabled: false,
+        recent_reviews_scope: "current_page",
+        ai_button_enabled: false,
+        fix_grammar_enabled: false,
+        ai_dos: "",
+        ai_donts: "",
+        review_platforms: [],
+      };
+    });
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [generatingReview, setGeneratingReview] = useState<number | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -268,7 +321,46 @@ export default function CreatePromptPageClient({
           
                   const result = await supabase
           .from("businesses")
-          .select("name, services_offered, default_offer_enabled, default_offer_title, default_offer_body, review_platforms, facebook_url, instagram_url, bluesky_url, tiktok_url, youtube_url, linkedin_url, pinterest_url, created_at, updated_at")
+          .select(`
+            name, 
+            services_offered, 
+            default_offer_enabled, 
+            default_offer_title, 
+            default_offer_body, 
+            default_offer_url,
+            default_offer_timelock,
+            review_platforms, 
+            facebook_url, 
+            instagram_url, 
+            bluesky_url, 
+            tiktok_url, 
+            youtube_url, 
+            linkedin_url, 
+            pinterest_url, 
+            created_at, 
+            updated_at,
+            kickstarters_enabled,
+            selected_kickstarters,
+            kickstarters_background_design,
+            emoji_sentiment_enabled,
+            emoji_sentiment_question,
+            emoji_feedback_message,
+            emoji_thank_you_message,
+            emoji_feedback_popup_header,
+            emoji_feedback_page_header,
+            falling_enabled,
+            falling_icon,
+            falling_icon_color,
+            show_friendly_note,
+            friendly_note,
+            recent_reviews_enabled,
+            recent_reviews_scope,
+            ai_button_enabled,
+            fix_grammar_enabled,
+            keywords,
+            ai_dos,
+            ai_donts
+          `)
           .eq("account_id", accountId)
           .maybeSingle();
             
@@ -292,14 +384,12 @@ export default function CreatePromptPageClient({
           console.error("🎯 Error toString:", String(businessError));
           
           // Let's also check if account_users query worked
-          console.log("🔍 Account ID:", accountId);
           
           // Use default business profile on error
         }
         
         if (!businessData) {
           console.warn("🎯 No business found for account ID:", accountId);
-          console.log("🔍 This is normal if the user hasn't created a business yet");
           // Use default business profile when no business exists
           setBusinessProfile({
             business_name: "Your Business",
@@ -314,6 +404,8 @@ export default function CreatePromptPageClient({
             default_offer_enabled: false,
             default_offer_title: "",
             default_offer_body: "",
+            default_offer_url: "",
+            default_offer_timelock: false,
             gradient_start: "",
             gradient_middle: "",
             gradient_end: "",
@@ -321,6 +413,28 @@ export default function CreatePromptPageClient({
             background_color: "",
             text_color: "",
             header_color: "",
+            // Add all new default fields
+            kickstarters_enabled: true,
+            selected_kickstarters: [],
+            kickstarters_background_design: false,
+            emoji_sentiment_enabled: false,
+            emoji_sentiment_question: "How was your experience?",
+            emoji_feedback_message: "Please tell us more about your experience",
+            emoji_thank_you_message: "Thank you for your feedback!",
+            emoji_feedback_popup_header: "",
+            emoji_feedback_page_header: "",
+            falling_enabled: true,
+            falling_icon: "star",
+            falling_icon_color: "#FFD700",
+            show_friendly_note: false,
+            friendly_note: "",
+            recent_reviews_enabled: false,
+            recent_reviews_scope: "current_page",
+            ai_button_enabled: false,
+            fix_grammar_enabled: false,
+            ai_dos: "",
+            ai_donts: "",
+            review_platforms: [],
           });
           setIsLoadingBusinessProfile(false);
           return;
@@ -340,6 +454,8 @@ export default function CreatePromptPageClient({
             default_offer_enabled: false,
             default_offer_title: "",
             default_offer_body: "",
+            default_offer_url: "",
+            default_offer_timelock: false,
             gradient_start: "",
             gradient_middle: "",
             gradient_end: "",
@@ -347,6 +463,28 @@ export default function CreatePromptPageClient({
             background_color: "",
             text_color: "",
             header_color: "",
+            // Add all new default fields
+            kickstarters_enabled: true,
+            selected_kickstarters: [],
+            kickstarters_background_design: false,
+            emoji_sentiment_enabled: false,
+            emoji_sentiment_question: "How was your experience?",
+            emoji_feedback_message: "Please tell us more about your experience",
+            emoji_thank_you_message: "Thank you for your feedback!",
+            emoji_feedback_popup_header: "",
+            emoji_feedback_page_header: "",
+            falling_enabled: true,
+            falling_icon: "star",
+            falling_icon_color: "#FFD700",
+            show_friendly_note: false,
+            friendly_note: "",
+            recent_reviews_enabled: false,
+            recent_reviews_scope: "current_page",
+            ai_button_enabled: false,
+            fix_grammar_enabled: false,
+            ai_dos: "",
+            ai_donts: "",
+            review_platforms: [],
           });
           setIsLoadingBusinessProfile(false);
           return;
@@ -369,6 +507,8 @@ export default function CreatePromptPageClient({
             default_offer_enabled: false,
             default_offer_title: "",
             default_offer_body: "",
+            default_offer_url: "",
+            default_offer_timelock: false,
             gradient_start: "",
             gradient_middle: "",
             gradient_end: "",
@@ -376,6 +516,28 @@ export default function CreatePromptPageClient({
             background_color: "",
             text_color: "",
             header_color: "",
+            // Add all new default fields
+            kickstarters_enabled: true,
+            selected_kickstarters: [],
+            kickstarters_background_design: false,
+            emoji_sentiment_enabled: false,
+            emoji_sentiment_question: "How was your experience?",
+            emoji_feedback_message: "Please tell us more about your experience",
+            emoji_thank_you_message: "Thank you for your feedback!",
+            emoji_feedback_popup_header: "",
+            emoji_feedback_page_header: "",
+            falling_enabled: true,
+            falling_icon: "star",
+            falling_icon_color: "#FFD700",
+            show_friendly_note: false,
+            friendly_note: "",
+            recent_reviews_enabled: false,
+            recent_reviews_scope: "current_page",
+            ai_button_enabled: false,
+            fix_grammar_enabled: false,
+            ai_dos: "",
+            ai_donts: "",
+            review_platforms: [],
           });
           setIsLoadingBusinessProfile(false);
           return;
@@ -398,11 +560,23 @@ export default function CreatePromptPageClient({
             services: [] as string[]
           };
           
-          // Process offer data
-          if (businessData.default_offer_enabled) {
-            updates.formDataUpdates.offer_enabled = true;
-            updates.formDataUpdates.offer_title = businessData.default_offer_title || "Special Offer";
-            updates.formDataUpdates.offer_body = businessData.default_offer_body || 'Use this code "1234" to get a discount on your next purchase.';
+          // Process offer data - always apply all offer settings from business
+          if (businessData.default_offer_enabled !== null && businessData.default_offer_enabled !== undefined) {
+            updates.formDataUpdates.offer_enabled = businessData.default_offer_enabled;
+          }
+          if (businessData.default_offer_title) {
+            updates.formDataUpdates.offer_title = businessData.default_offer_title;
+          }
+          if (businessData.default_offer_body) {
+            updates.formDataUpdates.offer_body = businessData.default_offer_body;
+          }
+          if (businessData.default_offer_url) {
+            updates.formDataUpdates.offer_url = businessData.default_offer_url;
+          }
+          // Timelock setting - handle boolean properly
+          if (businessData.default_offer_timelock !== null && businessData.default_offer_timelock !== undefined) {
+            updates.formDataUpdates.offer_timelock = businessData.default_offer_timelock;
+            updates.formDataUpdates.offerTimelock = businessData.default_offer_timelock; // Add camelCase version
           }
           
           // Process review platforms
@@ -455,18 +629,173 @@ export default function CreatePromptPageClient({
             updates.formDataUpdates.linkedin_url = businessData.linkedin_url || "";
             updates.formDataUpdates.pinterest_url = businessData.pinterest_url || "";
           }
+
+          // Apply ALL default settings from business profile
+          // Emoji Sentiment settings
+          if (businessData.emoji_sentiment_enabled !== null && businessData.emoji_sentiment_enabled !== undefined) {
+            updates.formDataUpdates.emoji_sentiment_enabled = businessData.emoji_sentiment_enabled;
+            updates.formDataUpdates.emojiSentimentEnabled = businessData.emoji_sentiment_enabled;
+            setEmojiSentimentEnabled(businessData.emoji_sentiment_enabled);
+          }
+          if (businessData.emoji_sentiment_question) {
+            updates.formDataUpdates.emojiSentimentQuestion = businessData.emoji_sentiment_question;
+            updates.formDataUpdates.emoji_sentiment_question = businessData.emoji_sentiment_question;
+            setEmojiSentimentQuestion(businessData.emoji_sentiment_question);
+          }
+          if (businessData.emoji_feedback_message) {
+            updates.formDataUpdates.emojiFeedbackMessage = businessData.emoji_feedback_message;
+            updates.formDataUpdates.emoji_feedback_message = businessData.emoji_feedback_message;
+            setEmojiFeedbackMessage(businessData.emoji_feedback_message);
+          }
+          if (businessData.emoji_thank_you_message) {
+            updates.formDataUpdates.emojiThankYouMessage = businessData.emoji_thank_you_message;
+            updates.formDataUpdates.emoji_thank_you_message = businessData.emoji_thank_you_message;
+            setEmojiThankYouMessage(businessData.emoji_thank_you_message);
+          }
+          if (businessData.emoji_feedback_popup_header) {
+            updates.formDataUpdates.emojiFeedbackPopupHeader = businessData.emoji_feedback_popup_header;
+            updates.formDataUpdates.emoji_feedback_popup_header = businessData.emoji_feedback_popup_header;
+          }
+          if (businessData.emoji_feedback_page_header) {
+            updates.formDataUpdates.emojiFeedbackPageHeader = businessData.emoji_feedback_page_header;
+            updates.formDataUpdates.emoji_feedback_page_header = businessData.emoji_feedback_page_header;
+          }
+          if (businessData.emoji_labels) {
+            updates.formDataUpdates.emojiLabels = businessData.emoji_labels;
+            updates.formDataUpdates.emoji_labels = businessData.emoji_labels;
+          }
+
+          // Falling stars settings
+          if (businessData.falling_enabled !== null && businessData.falling_enabled !== undefined) {
+            updates.formDataUpdates.fallingEnabled = businessData.falling_enabled;
+            updates.formDataUpdates.falling_enabled = businessData.falling_enabled;
+          }
+          
+          if (businessData.falling_icon) {
+            updates.formDataUpdates.falling_icon = businessData.falling_icon;
+            updates.formDataUpdates.fallingIcon = businessData.falling_icon;
+          }
+          
+          if (businessData.falling_icon_color) {
+            updates.formDataUpdates.falling_icon_color = businessData.falling_icon_color;
+            updates.formDataUpdates.fallingIconColor = businessData.falling_icon_color;
+          }
+
+          // Friendly note settings
+          if (businessData.show_friendly_note !== null && businessData.show_friendly_note !== undefined) {
+            updates.formDataUpdates.showFriendlyNote = businessData.show_friendly_note;
+          }
+          if (businessData.friendly_note) {
+            updates.formDataUpdates.friendly_note = businessData.friendly_note;
+          }
+
+          // Recent reviews settings
+          if (businessData.recent_reviews_enabled !== null && businessData.recent_reviews_enabled !== undefined) {
+            updates.formDataUpdates.recent_reviews_enabled = businessData.recent_reviews_enabled;
+            updates.formDataUpdates.recentReviewsEnabled = businessData.recent_reviews_enabled;
+          }
+          if (businessData.recent_reviews_scope) {
+            updates.formDataUpdates.recentReviewsScope = businessData.recent_reviews_scope;
+            updates.formDataUpdates.recent_reviews_scope = businessData.recent_reviews_scope;
+          }
+
+          // AI settings
+          if (businessData.ai_button_enabled !== null && businessData.ai_button_enabled !== undefined) {
+            updates.formDataUpdates.aiButtonEnabled = businessData.ai_button_enabled;
+            updates.formDataUpdates.ai_button_enabled = businessData.ai_button_enabled;
+          }
+          if (businessData.fix_grammar_enabled !== null && businessData.fix_grammar_enabled !== undefined) {
+            updates.formDataUpdates.fixGrammarEnabled = businessData.fix_grammar_enabled;
+            updates.formDataUpdates.fix_grammar_enabled = businessData.fix_grammar_enabled;
+          }
+          if (businessData.nfc_text_enabled !== null && businessData.nfc_text_enabled !== undefined) {
+            updates.formDataUpdates.nfcTextEnabled = businessData.nfc_text_enabled;
+            updates.formDataUpdates.nfc_text_enabled = businessData.nfc_text_enabled;
+          }
+
+          // Kickstarters settings
+          if (businessData.kickstarters_enabled !== null && businessData.kickstarters_enabled !== undefined) {
+            updates.formDataUpdates.kickstarters_enabled = businessData.kickstarters_enabled;
+            updates.formDataUpdates.kickstartersEnabled = businessData.kickstarters_enabled;
+          }
+          if (businessData.selected_kickstarters) {
+            updates.formDataUpdates.selectedKickstarters = businessData.selected_kickstarters;
+            updates.formDataUpdates.selected_kickstarters = businessData.selected_kickstarters;
+          }
+          if (businessData.custom_kickstarters) {
+            updates.formDataUpdates.customKickstarters = businessData.custom_kickstarters;
+            updates.formDataUpdates.custom_kickstarters = businessData.custom_kickstarters;
+          }
+          if (businessData.kickstarters_background_design !== null && businessData.kickstarters_background_design !== undefined) {
+            updates.formDataUpdates.kickstartersBackgroundDesign = businessData.kickstarters_background_design;
+          }
           
           // Apply all updates in batch
           setBusinessProfile(updates.businessProfile);
           setServices(updates.services);
-          setFormData((prev) => ({
-            ...prev,
-            ...updates.formDataUpdates
-          }));
+          
+          
+          setFormData((prev) => {
+            const newFormData = {
+              ...prev,
+              ...updates.formDataUpdates
+            };
+            return newFormData;
+          });
         }
       } catch (err) {
         console.error("Error loading business profile:", err);
       } finally {
+        // Ensure businessProfile is never null after loading
+        setBusinessProfile((current) => {
+          if (!current) {
+            return {
+              business_name: "Your Business",
+              services_offered: [],
+              company_values: "",
+              differentiators: "",
+              years_in_business: 0,
+              industries_served: "",
+              taglines: "",
+              team_founder_info: "",
+              keywords: "",
+              default_offer_enabled: false,
+              default_offer_title: "",
+              default_offer_body: "",
+              default_offer_url: "",
+              gradient_start: "",
+              gradient_middle: "",
+              gradient_end: "",
+              background_type: "",
+              background_color: "",
+              text_color: "",
+              header_color: "",
+              // Add all new default fields
+              kickstarters_enabled: true,
+              selected_kickstarters: [],
+              kickstarters_background_design: false,
+              emoji_sentiment_enabled: false,
+              emoji_sentiment_question: "How was your experience?",
+              emoji_feedback_message: "Please tell us more about your experience",
+              emoji_thank_you_message: "Thank you for your feedback!",
+              emoji_feedback_popup_header: "",
+              emoji_feedback_page_header: "",
+              falling_enabled: true,
+              falling_icon: "star",
+              falling_icon_color: "#FFD700",
+              show_friendly_note: false,
+              friendly_note: "",
+              recent_reviews_enabled: false,
+              recent_reviews_scope: "current_page",
+              ai_button_enabled: false,
+              fix_grammar_enabled: false,
+              ai_dos: "",
+              ai_donts: "",
+              review_platforms: [],
+            };
+          }
+          return current;
+        });
         setIsLoadingBusinessProfile(false);
       }
     };
@@ -818,11 +1147,6 @@ export default function CreatePromptPageClient({
         ? localStorage.getItem('campaign_type') || 'individual'
         : 'individual');
       
-      console.log('🔍 Campaign type resolution:', {
-        from_formData: formData.campaign_type,
-        from_localStorage: typeof window !== 'undefined' ? localStorage.getItem('campaign_type') : null,
-        final_value: campaignType
-      });
 
       // Prepare the data for insertion
       let insertData = {
@@ -948,17 +1272,8 @@ export default function CreatePromptPageClient({
         }
         
         // Auto-create contact for individual prompt pages
-        console.log('🎯 Contact creation check:', {
-          campaign_type_from_formData: formData.campaign_type,
-          campaign_type_from_insertData: data.campaign_type,
-          has_first_name: !!formData.first_name,
-          first_name: formData.first_name,
-          should_create_contact: formData.campaign_type === 'individual' && formData.first_name
-        });
-        
         if (formData.campaign_type === 'individual' && formData.first_name) {
           try {
-            console.log('🔍 Creating contact for prompt page:', data.id);
             
             const contactResponse = await fetch('/api/contacts/create-from-prompt-page', {
               method: 'POST',
@@ -1070,8 +1385,11 @@ export default function CreatePromptPageClient({
     });
   };
 
-  const handleServicePageSubmit = async (formData: any) => {
+  const handleServicePageSubmit = async (formDataFromForm: any) => {
     // Service page submission handler
+    // Merge the form's data with our component's formData to ensure all fields are included
+    const mergedFormData = { ...formData, ...formDataFromForm };
+    
     setSaveError(null);
     setSaveSuccess(null);
     setIsSaving(true);
@@ -1157,83 +1475,106 @@ export default function CreatePromptPageClient({
       const campaignType = typeof window !== 'undefined' 
         ? localStorage.getItem('campaign_type') || 'individual'
         : 'individual';
+      
+      // Debug logging to see what's in formData
+      
       const insertData = {
         account_id: accountId,
         // Note: business_name column doesn't exist - removed
-        review_type: formData.review_type || "service", // Use the review_type from form data
+        review_type: mergedFormData.review_type || "service", // Use the review_type from form data
         status: "draft", // Start as draft for individual prompt pages
         campaign_type: campaignType,
-        falling_icon_color: "#fbbf24",
         // Include only valid prompt_pages fields from formData
-        name: formData.name || '',
-        notes: formData.description || '', // Using 'notes' instead of 'description'
-        services_offered: formData.services_offered || [],
+        name: mergedFormData.name || '',
+        notes: mergedFormData.description || '', // Using 'notes' instead of 'description'
+        services_offered: mergedFormData.services_offered || [],
         // features_or_benefits column doesn't exist in database
-        product_description: formData.product_description || '',
-        review_platforms: formData.review_platforms || [],
-        falling_enabled: formData.fallingEnabled ?? false,
-        falling_icon: formData.falling_icon || 'star',
-        offer_enabled: formData.offer_enabled ?? false,
-        offer_title: formData.offer_title || '',
-        offer_body: formData.offer_body || '',
-        offer_url: formData.offer_url || '',
-        emoji_sentiment_enabled: formData.emojiSentimentEnabled ?? false,
-        emoji_sentiment_question: formData.emojiSentimentQuestion || 'How was your experience?',
-        emoji_feedback_message: formData.emojiFeedbackMessage || 'We value your feedback! Let us know how we can do better.',
-        emoji_thank_you_message: formData.emojiThankYouMessage || 'Thank you for your feedback!',
-        emoji_labels: formData.emojiLabels || ['Excellent', 'Satisfied', 'Neutral', 'Unsatisfied', 'Frustrated'],
+        product_description: mergedFormData.product_description || '',
+        review_platforms: mergedFormData.review_platforms || [],
+        falling_enabled: mergedFormData.falling_enabled ?? mergedFormData.fallingEnabled ?? true,
+        falling_icon: mergedFormData.falling_icon || mergedFormData.fallingIcon || 'star',
+        // Be explicit about the color - don't use empty string
+        falling_icon_color: (mergedFormData.falling_icon_color && mergedFormData.falling_icon_color.trim() !== '') 
+          ? mergedFormData.falling_icon_color 
+          : (mergedFormData.fallingIconColor && mergedFormData.fallingIconColor.trim() !== '') 
+            ? mergedFormData.fallingIconColor 
+            : '#FFD700',
+        offer_enabled: mergedFormData.offer_enabled ?? false,
+        offer_title: mergedFormData.offer_title || '',
+        offer_body: mergedFormData.offer_body || '',
+        offer_url: mergedFormData.offer_url || '',
+        offer_timelock: mergedFormData.offer_timelock ?? mergedFormData.offerTimelock ?? false,
+        emoji_sentiment_enabled: mergedFormData.emojiSentimentEnabled ?? mergedFormData.emoji_sentiment_enabled ?? false,
+        emoji_sentiment_question: mergedFormData.emojiSentimentQuestion || mergedFormData.emoji_sentiment_question || 'How was your experience?',
+        emoji_feedback_message: mergedFormData.emojiFeedbackMessage || mergedFormData.emoji_feedback_message || 'We value your feedback! Let us know how we can do better.',
+        emoji_feedback_popup_header: mergedFormData.emojiFeedbackPopupHeader || mergedFormData.emoji_feedback_popup_header || 'How can we improve?',
+        emoji_feedback_page_header: mergedFormData.emojiFeedbackPageHeader || mergedFormData.emoji_feedback_page_header || 'Please share your feedback',
+        emoji_thank_you_message: mergedFormData.emojiThankYouMessage || mergedFormData.emoji_thank_you_message || 'Thank you for your feedback!',
+        emoji_labels: mergedFormData.emojiLabels || mergedFormData.emoji_labels || ['Excellent', 'Satisfied', 'Neutral', 'Unsatisfied', 'Frustrated'],
+        // Recent Reviews settings
+        recent_reviews_enabled: mergedFormData.recent_reviews_enabled ?? mergedFormData.recentReviewsEnabled ?? false,
+        recent_reviews_scope: mergedFormData.recent_reviews_scope || mergedFormData.recentReviewsScope || 'current_page',
+        // Kickstarters settings
+        kickstarters_enabled: mergedFormData.kickstartersEnabled ?? mergedFormData.kickstarters_enabled ?? false,
+        selected_kickstarters: mergedFormData.selectedKickstarters || mergedFormData.selected_kickstarters || [],
+        // Other features
+        ai_button_enabled: mergedFormData.aiButtonEnabled ?? mergedFormData.ai_button_enabled ?? true,
+        fix_grammar_enabled: mergedFormData.fixGrammarEnabled ?? mergedFormData.fix_grammar_enabled ?? false,
+        nfc_text_enabled: mergedFormData.nfcTextEnabled ?? mergedFormData.nfc_text_enabled ?? false,
+        show_friendly_note: mergedFormData.showFriendlyNote ?? mergedFormData.show_friendly_note ?? false,
+        friendly_note: mergedFormData.friendlyNote || mergedFormData.friendly_note || '',
         // Social media URLs inherited from business profile
-        facebook_url: formData.facebook_url || '',
-        instagram_url: formData.instagram_url || '',
-        bluesky_url: formData.bluesky_url || '',
-        tiktok_url: formData.tiktok_url || '',
-        youtube_url: formData.youtube_url || '',
-        linkedin_url: formData.linkedin_url || '',
-        pinterest_url: formData.pinterest_url || ''
+        facebook_url: mergedFormData.facebook_url || '',
+        instagram_url: mergedFormData.instagram_url || '',
+        bluesky_url: mergedFormData.bluesky_url || '',
+        tiktok_url: mergedFormData.tiktok_url || '',
+        youtube_url: mergedFormData.youtube_url || '',
+        linkedin_url: mergedFormData.linkedin_url || '',
+        pinterest_url: mergedFormData.pinterest_url || ''
       };
 
       // Only include customer fields for individual campaigns
       if (campaignType === 'individual') {
-        (insertData as any).first_name = (formData as any).first_name || '';
-        (insertData as any).last_name = (formData as any).last_name || '';
-        (insertData as any).email = (formData as any).email || '';
-        (insertData as any).phone = (formData as any).phone || '';
-        (insertData as any).role = (formData as any).role || '';
+        (insertData as any).first_name = (mergedFormData as any).first_name || '';
+        (insertData as any).last_name = (mergedFormData as any).last_name || '';
+        (insertData as any).email = (mergedFormData as any).email || '';
+        (insertData as any).phone = (mergedFormData as any).phone || '';
+        (insertData as any).role = (mergedFormData as any).role || '';
       }
 
       // Add Employee-specific fields for employee pages
-      if (formData.review_type === 'employee') {
-        (insertData as any).emp_first_name = (formData as any).emp_first_name || '';
-        (insertData as any).emp_last_name = (formData as any).emp_last_name || '';
-        (insertData as any).emp_pronouns = (formData as any).emp_pronouns || '';
-        (insertData as any).emp_headshot_url = (formData as any).emp_headshot_url || '';
-        (insertData as any).emp_position = (formData as any).emp_position || '';
-        (insertData as any).emp_location = (formData as any).emp_location || '';
-        (insertData as any).emp_years_at_business = (formData as any).emp_years_at_business || '';
-        (insertData as any).emp_bio = (formData as any).emp_bio || '';
-        (insertData as any).emp_fun_facts = (formData as any).emp_fun_facts || [];
-        (insertData as any).emp_skills = (formData as any).emp_skills || [];
-        (insertData as any).emp_review_guidance = (formData as any).emp_review_guidance || '';
+      if (mergedFormData.review_type === 'employee') {
+        (insertData as any).emp_first_name = (mergedFormData as any).emp_first_name || '';
+        (insertData as any).emp_last_name = (mergedFormData as any).emp_last_name || '';
+        (insertData as any).emp_pronouns = (mergedFormData as any).emp_pronouns || '';
+        (insertData as any).emp_headshot_url = (mergedFormData as any).emp_headshot_url || '';
+        (insertData as any).emp_position = (mergedFormData as any).emp_position || '';
+        (insertData as any).emp_location = (mergedFormData as any).emp_location || '';
+        (insertData as any).emp_years_at_business = (mergedFormData as any).emp_years_at_business || '';
+        (insertData as any).emp_bio = (mergedFormData as any).emp_bio || '';
+        (insertData as any).emp_fun_facts = (mergedFormData as any).emp_fun_facts || [];
+        (insertData as any).emp_skills = (mergedFormData as any).emp_skills || [];
+        (insertData as any).emp_review_guidance = (mergedFormData as any).emp_review_guidance || '';
       }
 
       // Add Service-specific fields for service pages
-      if (formData.review_type === 'service') {
-        (insertData as any).service_name = (formData as any).service_name || (formData.services_offered && formData.services_offered[0]) || '';
-        (insertData as any).service_description = (formData as any).service_description || '';
+      if (mergedFormData.review_type === 'service') {
+        (insertData as any).service_name = (mergedFormData as any).service_name || (mergedFormData.services_offered && mergedFormData.services_offered[0]) || '';
+        (insertData as any).service_description = (mergedFormData as any).service_description || '';
       }
 
       // Add Event-specific fields for event pages
-      if (formData.review_type === 'event') {
-        (insertData as any).eve_name = (formData as any).eve_name || '';
-        (insertData as any).eve_type = (formData as any).eve_type || '';
-        (insertData as any).eve_date = (formData as any).eve_date || null;
-        (insertData as any).eve_location = (formData as any).eve_location || '';
-        (insertData as any).eve_description = (formData as any).eve_description || '';
-        (insertData as any).eve_duration = (formData as any).eve_duration || '';
-        (insertData as any).eve_capacity = (formData as any).eve_capacity || null;
-        (insertData as any).eve_organizer = (formData as any).eve_organizer || '';
-        (insertData as any).eve_special_features = (formData as any).eve_special_features || [];
-        (insertData as any).eve_review_guidance = (formData as any).eve_review_guidance || '';
+      if (mergedFormData.review_type === 'event') {
+        (insertData as any).eve_name = (mergedFormData as any).eve_name || '';
+        (insertData as any).eve_type = (mergedFormData as any).eve_type || '';
+        (insertData as any).eve_date = (mergedFormData as any).eve_date || null;
+        (insertData as any).eve_location = (mergedFormData as any).eve_location || '';
+        (insertData as any).eve_description = (mergedFormData as any).eve_description || '';
+        (insertData as any).eve_duration = (mergedFormData as any).eve_duration || '';
+        (insertData as any).eve_capacity = (mergedFormData as any).eve_capacity || null;
+        (insertData as any).eve_organizer = (mergedFormData as any).eve_organizer || '';
+        (insertData as any).eve_special_features = (mergedFormData as any).eve_special_features || [];
+        (insertData as any).eve_review_guidance = (mergedFormData as any).eve_review_guidance || '';
       }
 
       // Generate slug
@@ -1241,13 +1582,15 @@ export default function CreatePromptPageClient({
       (insertData as any).slug = slugify(
         businessName +
           "-" +
-          (formData.name || formData.first_name || "service") +
+          (mergedFormData.name || mergedFormData.first_name || "service") +
           "-prompt",
         typeof window !== "undefined" 
           ? Date.now() + "-" + Math.random().toString(36).substring(2, 8)
           : "temp-id",
       );
 
+      // Log what we're about to insert
+      
       // Save to database
       
       let data, error;
@@ -1268,11 +1611,12 @@ export default function CreatePromptPageClient({
         console.error("Database insert error:", error);
         throw error;
       }
+      
 
       // Auto-create contact for individual prompt pages
       // This ensures contacts are created for all individual campaign types (service, product, photo, employee, event)
       // The contact creation API handles account limits and RLS policies
-      if (campaignType === 'individual' && formData.first_name) {
+      if (campaignType === 'individual' && mergedFormData.first_name) {
         try {
           const contactResponse = await fetch('/api/contacts/create-from-prompt-page', {
             method: 'POST',
@@ -1282,20 +1626,20 @@ export default function CreatePromptPageClient({
             },
             body: JSON.stringify({
               promptPageData: {
-                first_name: formData.first_name,
-                last_name: formData.last_name,
-                email: formData.email,
-                phone: formData.phone,
-                business_name: formData.business_name,
-                role: formData.role,
-                address_line1: formData.address_line1,
-                address_line2: formData.address_line2,
-                city: formData.city,
-                state: formData.state,
-                postal_code: formData.postal_code,
-                country: formData.country,
-                category: formData.category,
-                notes: formData.notes,
+                first_name: mergedFormData.first_name,
+                last_name: mergedFormData.last_name,
+                email: mergedFormData.email,
+                phone: mergedFormData.phone,
+                business_name: mergedFormData.business_name,
+                role: mergedFormData.role,
+                address_line1: mergedFormData.address_line1,
+                address_line2: mergedFormData.address_line2,
+                city: mergedFormData.city,
+                state: mergedFormData.state,
+                postal_code: mergedFormData.postal_code,
+                country: mergedFormData.country,
+                category: mergedFormData.category,
+                notes: mergedFormData.notes,
               },
               promptPageId: data.id
             }),
@@ -1342,10 +1686,6 @@ export default function CreatePromptPageClient({
       }
       // If campaign_type is 'public' or anything else, use default /prompt-pages
       
-      console.log('🔍 Redirecting after save:', { 
-        campaign_type: data.campaign_type || formData.campaign_type,
-        redirectUrl 
-      });
       
       router.push(redirectUrl);
       return data;
@@ -1448,9 +1788,16 @@ export default function CreatePromptPageClient({
             email: formData.email
           }),
         );
-        // Success - redirecting to prompt pages with appropriate tab
-        const hasIndividualInfo = formData.first_name || formData.email || formData.phone;
-        const redirectUrl = hasIndividualInfo ? '/prompt-pages?tab=individual' : '/prompt-pages?tab=locations';
+        // Success - redirecting to prompt pages with appropriate tab based on campaign type
+        let redirectUrl = '/prompt-pages'; // Default to main page (public tab)
+        
+        if (formData.campaign_type === 'individual') {
+          redirectUrl = '/prompt-pages?tab=individual';
+        } else if (formData.campaign_type === 'locations') {
+          redirectUrl = '/prompt-pages?tab=locations';
+        }
+        // If campaign_type is 'public' or anything else, use default /prompt-pages
+        
         router.push(redirectUrl);
 
         // Show success message and redirect
@@ -1501,6 +1848,7 @@ export default function CreatePromptPageClient({
 
   // Get the appropriate form component based on review type
   const getFormComponent = () => {
+    
     if (formData.review_type === "service") {
       // Ensure all required fields for service are present
       const serviceInitialData = {
@@ -1509,6 +1857,16 @@ export default function CreatePromptPageClient({
         review_type: "service",
         // Use the already correctly determined campaign type from formData
         campaign_type: formData.campaign_type,
+        // CRITICAL: Include falling star and other settings explicitly
+        falling_icon_color: formData.falling_icon_color || formData.fallingIconColor || '#FFD700',
+        falling_icon: formData.falling_icon || formData.fallingIcon || 'star',
+        falling_enabled: formData.falling_enabled ?? formData.fallingEnabled ?? true,
+        offer_timelock: formData.offer_timelock ?? formData.offerTimelock ?? false,
+        offerTimelock: formData.offer_timelock ?? formData.offerTimelock ?? false, // Add camelCase version
+        recent_reviews_scope: formData.recent_reviews_scope || formData.recentReviewsScope || 'current_page',
+        recentReviewsScope: formData.recent_reviews_scope || formData.recentReviewsScope || 'current_page', // Add camelCase version
+        recent_reviews_enabled: formData.recent_reviews_enabled ?? formData.recentReviewsEnabled ?? false,
+        recentReviewsEnabled: formData.recent_reviews_enabled ?? formData.recentReviewsEnabled ?? false, // Add camelCase version
         // Ensure all required fields for PromptPageForm are present
         offer_enabled: formData.offer_enabled ?? false,
         offer_title: formData.offer_title ?? "",
@@ -1531,10 +1889,16 @@ export default function CreatePromptPageClient({
         ],
         review_platforms: formData.review_platforms ?? [],
         fallingEnabled: formData.fallingEnabled ?? initialFormData.fallingEnabled,
-        fallingIcon: formData.falling_icon ?? "star",
-        falling_icon_color: "#fbbf24", // Default color
+        fallingIcon: formData.falling_icon || formData.fallingIcon || "star",
+        falling_icon_color: formData.falling_icon_color || formData.fallingIconColor || "#FFD700",
         aiButtonEnabled: formData.aiButtonEnabled ?? true,
+        // Add kickstarters fields
+        kickstartersEnabled: formData.kickstartersEnabled ?? formData.kickstarters_enabled ?? true,
+        kickstarters_enabled: formData.kickstarters_enabled ?? formData.kickstartersEnabled ?? true,
+        selectedKickstarters: formData.selectedKickstarters || formData.selected_kickstarters || [],
+        selected_kickstarters: formData.selected_kickstarters || formData.selectedKickstarters || [],
       };
+      
 
               // Service form submission handler
       return (
@@ -1592,8 +1956,15 @@ export default function CreatePromptPageClient({
                 email: formData.email
               }),
             );
-            const hasIndividualInfo = formData.first_name || formData.email || formData.phone;
-            const redirectUrl = hasIndividualInfo ? '/prompt-pages?tab=individual' : '/prompt-pages?tab=locations';
+            let redirectUrl = '/prompt-pages'; // Default to main page (public tab)
+            
+            if (formData.campaign_type === 'individual') {
+              redirectUrl = '/prompt-pages?tab=individual';
+            } else if (formData.campaign_type === 'locations') {
+              redirectUrl = '/prompt-pages?tab=locations';
+            }
+            // If campaign_type is 'public' or anything else, use default /prompt-pages
+            
             router.push(redirectUrl);
           }}
           campaignType={formData.campaign_type || 'individual'}
@@ -1624,8 +1995,15 @@ export default function CreatePromptPageClient({
                 email: formData.email
               }),
             );
-            const hasIndividualInfo = formData.first_name || formData.email || formData.phone;
-            const redirectUrl = hasIndividualInfo ? '/prompt-pages?tab=individual' : '/prompt-pages?tab=locations';
+            let redirectUrl = '/prompt-pages'; // Default to main page (public tab)
+            
+            if (formData.campaign_type === 'individual') {
+              redirectUrl = '/prompt-pages?tab=individual';
+            } else if (formData.campaign_type === 'locations') {
+              redirectUrl = '/prompt-pages?tab=locations';
+            }
+            // If campaign_type is 'public' or anything else, use default /prompt-pages
+            
             router.push(redirectUrl);
           }}
           campaignType={formData.campaign_type || 'individual'}
@@ -1656,8 +2034,15 @@ export default function CreatePromptPageClient({
                 email: formData.email
               }),
             );
-            const hasIndividualInfo = formData.first_name || formData.email || formData.phone;
-            const redirectUrl = hasIndividualInfo ? '/prompt-pages?tab=individual' : '/prompt-pages?tab=locations';
+            let redirectUrl = '/prompt-pages'; // Default to main page (public tab)
+            
+            if (formData.campaign_type === 'individual') {
+              redirectUrl = '/prompt-pages?tab=individual';
+            } else if (formData.campaign_type === 'locations') {
+              redirectUrl = '/prompt-pages?tab=locations';
+            }
+            // If campaign_type is 'public' or anything else, use default /prompt-pages
+            
             router.push(redirectUrl);
           }}
           campaignType={formData.campaign_type || 'individual'}

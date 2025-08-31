@@ -30,6 +30,7 @@ import EmojiEmbedButton from "@/app/(app)/components/EmojiEmbedButton";
 import FiveStarSpinner from "@/app/(app)/components/FiveStarSpinner";
 import BusinessProfileBanner from "@/app/(app)/components/BusinessProfileBanner";
 import { useBusinessData, useAuthUser, useAccountData, useAuthLoading } from "@/auth/hooks/granularAuthHooks";
+import PromptPageSettingsModal from "@/app/(app)/components/PromptPageSettingsModal";
 
 const StylePage = dynamic(() => import("../dashboard/style/StyleModalPage"), { ssr: false });
 
@@ -89,6 +90,7 @@ function PromptPagesContent() {
   );
   const [isNavigating, setIsNavigating] = useState(false); // Add navigation loading state
   const [showBusinessRequiredModal, setShowBusinessRequiredModal] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
 
   // Check if user has access to individual prompt pages (exclude grower plan)
   const hasIndividualAccess = (plan?: string): boolean => {
@@ -98,10 +100,13 @@ function PromptPagesContent() {
 
   // Handle tab changes and update URL
   const handleTabChange = (newTab: 'public' | 'individual' | 'locations') => {
-    setPromptPagesTab(newTab);
-    const params = new URLSearchParams(searchParams);
-    params.set('tab', newTab);
-    router.push(`/prompt-pages?${params.toString()}`, { scroll: false });
+    // Only navigate if the tab is actually changing
+    if (newTab !== promptPagesTab) {
+      setPromptPagesTab(newTab);
+      const params = new URLSearchParams(searchParams);
+      params.set('tab', newTab);
+      router.push(`/prompt-pages?${params.toString()}`, { scroll: false });
+    }
   };
 
   // Prevent background scroll when modal is open
@@ -123,11 +128,14 @@ function PromptPagesContent() {
     };
   }, []);
 
-  // Update tab state when URL changes
+  // Update tab state when URL changes (but avoid loops)
   useEffect(() => {
     const tabFromUrl = searchParams.get('tab') as 'public' | 'individual' | 'locations';
     if (tabFromUrl && ['public', 'individual', 'locations'].includes(tabFromUrl)) {
-      setPromptPagesTab(tabFromUrl);
+      // Only update if it's actually different to avoid triggering unnecessary re-renders
+      if (tabFromUrl !== promptPagesTab) {
+        setPromptPagesTab(tabFromUrl);
+      }
     }
   }, [searchParams]);
 
@@ -170,7 +178,11 @@ function PromptPagesContent() {
       setError(null);
       try {
         // Use auth context user and accountId instead of direct Supabase call
-        if (!authUser) throw new Error("Not signed in");
+        if (!authUser) {
+          console.log('No authenticated user, redirecting to sign-in');
+          router.push('/auth/sign-in');
+          return;
+        }
         
         // If no account ID, user might be new - handle gracefully
         if (!authAccountId) {
@@ -239,6 +251,11 @@ function PromptPagesContent() {
           return;
         }
         
+        console.log('[DEBUG] Setting business:', {
+          id: businessProfile.id,
+          account_id: businessProfile.account_id,
+          name: businessProfile.name
+        });
         setBusiness(businessProfile);
         
         // DEVELOPMENT MODE BYPASS - Use mock universal prompt page
@@ -582,7 +599,35 @@ function PromptPagesContent() {
     }
   };
 
+  // Handle settings save
+  const handleSettingsSave = async (settingsData: any) => {
+    if (!authAccountId || !business) {
+      throw new Error('Business data not available');
+    }
 
+    try {
+      // Use authAccountId directly since that's the account we're authenticated as
+      const response = await fetch(`/api/businesses/${authAccountId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(settingsData),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save settings');
+      }
+
+      const updatedBusiness = await response.json();
+      setBusiness(updatedBusiness);
+      
+      // Don't show success message here - it's shown in the modal
+    } catch (error) {
+      console.error('Error saving settings:', error);
+      throw error;
+    }
+  };
 
   function handlePromptTypeSelect(typeKey: string) {
     console.log('[DEBUG] handlePromptTypeSelect called with:', typeKey);
@@ -665,7 +710,7 @@ function PromptPagesContent() {
        
        {/* Pill navigation at the top of the PageCard */}
        <div className="flex justify-center w-full mt-0 mb-0 z-20 px-4">
-        <div className="flex bg-white/10 backdrop-blur-sm border-2 border-white rounded-full p-1 shadow-lg w-full max-w-md">
+        <div className="flex bg-white/10 backdrop-blur-sm border border-white rounded-full p-1 shadow-lg w-full max-w-md">
           <button
             type="button"
             onClick={() => handleTabChange('public')}
@@ -774,7 +819,7 @@ function PromptPagesContent() {
                 <button
                   type="button"
                   className="bg-blue-100 text-slate-blue rounded font-semibold px-4 py-2 hover:bg-blue-200 transition whitespace-nowrap flex items-center gap-2 flex-shrink-0"
-                  onClick={() => console.log('Settings clicked')}
+                  onClick={() => setShowSettingsModal(true)}
                 >
                   <Icon name="FaCog" className="w-5 h-5" size={20} />
                   Settings
@@ -1239,6 +1284,63 @@ function PromptPagesContent() {
           </div>
         </div>
       )}
+
+      {/* Settings Modal */}
+      <PromptPageSettingsModal
+        isOpen={showSettingsModal}
+        onClose={() => setShowSettingsModal(false)}
+        onSave={handleSettingsSave}
+        initialSettings={{
+          // Review Platforms
+          review_platforms: business?.review_platforms || [],
+          
+          // Keywords
+          keywords: business?.keywords || '',
+          
+          // AI Dos and Don'ts
+          ai_dos: business?.ai_dos || '',
+          ai_donts: business?.ai_donts || '',
+          
+          // Special Offer
+          default_offer_enabled: business?.default_offer_enabled || false,
+          default_offer_title: business?.default_offer_title || 'Special Offer',
+          default_offer_body: business?.default_offer_body || '',
+          default_offer_url: business?.default_offer_url || '',
+          default_offer_timelock: business?.default_offer_timelock || false,
+          
+          // AI Settings
+          ai_button_enabled: business?.ai_button_enabled || false,
+          fix_grammar_enabled: business?.fix_grammar_enabled || false,
+          
+          // Emoji Sentiment
+          emoji_sentiment_enabled: business?.emoji_sentiment_enabled || false,
+          emoji_sentiment_question: business?.emoji_sentiment_question || 'How was your experience?',
+          emoji_feedback_message: business?.emoji_feedback_message || 'Please tell us more about your experience',
+          emoji_thank_you_message: business?.emoji_thank_you_message || 'Thank you for your feedback!',
+          emoji_feedback_popup_header: business?.emoji_feedback_popup_header || 'How can we improve?',
+          emoji_feedback_page_header: business?.emoji_feedback_page_header || 'Your feedback helps us grow',
+          
+          // Falling Stars (corrected field names)
+          falling_enabled: business?.falling_enabled !== undefined ? business.falling_enabled : true,
+          falling_icon: business?.falling_icon || 'star',
+          falling_icon_color: business?.falling_icon_color || '#FFD700',
+          
+          // Friendly Note (corrected field names)
+          show_friendly_note: business?.show_friendly_note || false,
+          friendly_note: business?.friendly_note || '',
+          
+          // Recent Reviews
+          recent_reviews_enabled: business?.recent_reviews_enabled || false,
+          recent_reviews_scope: business?.recent_reviews_scope || 'current_page',
+          
+          // Kickstarters
+          kickstarters_enabled: business?.kickstarters_enabled !== undefined ? business.kickstarters_enabled : true,
+          selected_kickstarters: business?.selected_kickstarters || [],
+          custom_kickstarters: business?.custom_kickstarters || [],
+          kickstarters_background_design: business?.kickstarters_background_design || false,
+        }}
+        businessName={business?.name || businessName}
+      />
 
     </div>
   );

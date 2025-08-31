@@ -20,7 +20,7 @@ import KickstartersManagementModal from "./KickstartersManagementModal";
 export interface Kickstarter {
   id: string;
   question: string;
-  category: 'PROCESS' | 'EXPERIENCE' | 'OUTCOMES' | 'PEOPLE';
+  category: 'PROCESS' | 'EXPERIENCE' | 'OUTCOMES' | 'PEOPLE' | 'CUSTOM';
   is_default: boolean;
 }
 
@@ -29,6 +29,8 @@ export interface KickstartersFeatureProps {
   enabled: boolean;
   /** Array of selected kickstarter IDs */
   selectedKickstarters: string[];
+  /** Array of custom kickstarters */
+  customKickstarters?: Kickstarter[];
   /** Background design option: true for background, false for no background */
   backgroundDesign?: boolean;
   /** Business name for dynamic replacement */
@@ -39,12 +41,15 @@ export interface KickstartersFeatureProps {
   businessSettings?: {
     enabled: boolean;
     selectedKickstarters: string[];
+    customKickstarters?: Kickstarter[];
     backgroundDesign?: boolean;
   };
   /** Callback when the enabled state changes */
   onEnabledChange: (enabled: boolean) => void;
   /** Callback when selected kickstarters change */
   onKickstartersChange: (kickstarters: string[]) => void;
+  /** Callback when custom kickstarters change */
+  onCustomKickstartersChange?: (customKickstarters: Kickstarter[]) => void;
   /** Callback when background design changes (updates global business setting) */
   onBackgroundDesignChange?: (backgroundDesign: boolean) => void;
   /** Initial values for the component */
@@ -73,12 +78,14 @@ export interface KickstartersFeatureProps {
 export default function KickstartersFeature({
   enabled,
   selectedKickstarters = [],
+  customKickstarters = [],
   backgroundDesign = false,
   businessName = "Business Name",
   isInherited = false,
   businessSettings,
   onEnabledChange,
   onKickstartersChange,
+  onCustomKickstartersChange,
   onBackgroundDesignChange,
   initialData,
   disabled = false,
@@ -191,9 +198,12 @@ export default function KickstartersFeature({
     setShowModal(true);
   };
 
-  const handleSaveKickstarters = (newSelected: string[]) => {
+  const handleSaveKickstarters = (newSelected: string[], newCustomKickstarters?: Kickstarter[]) => {
     setSelected(newSelected);
     onKickstartersChange(newSelected);
+    if (newCustomKickstarters && onCustomKickstartersChange) {
+      onCustomKickstartersChange(newCustomKickstarters);
+    }
     setShowModal(false);
   };
 
@@ -514,6 +524,7 @@ export default function KickstartersFeature({
           isOpen={showModal}
           onClose={() => setShowModal(false)}
           selectedKickstarters={selected}
+          customKickstarters={customKickstarters}
           businessName={businessName}
           onSave={handleSaveKickstarters}
           allKickstarters={allKickstarters}
