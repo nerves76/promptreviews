@@ -247,6 +247,7 @@ export async function initializeDefaultTasks(userId: string): Promise<boolean> {
 
     const defaultTasks = [
       'business-profile',
+      'prompt-page-settings',
       'style-prompt-pages', 
       'customize-universal',
       'create-prompt-page',

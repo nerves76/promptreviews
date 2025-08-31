@@ -21,6 +21,8 @@
 import React, { useState, useEffect } from 'react';
 import Icon from "@/components/Icon";
 import RobotTooltip from './RobotTooltip';
+import { markTaskAsCompleted } from '@/utils/onboardingTasks';
+import { useAuthUser } from '@/auth/hooks/granularAuthHooks';
 
 // Import all the existing prompt feature modules
 import {
@@ -49,6 +51,7 @@ export default function PromptPageSettingsModal({
   initialSettings = {},
   businessName = ''
 }: PromptPageSettingsModalProps) {
+  const { user } = useAuthUser();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -173,6 +176,14 @@ export default function PromptPageSettingsModal({
     setErrors({}); // Clear any previous errors
     try {
       await onSave(formData);
+      
+      // Check if prompt-page-settings task should be completed
+      // The task is complete if keywords and either AI dos or don'ts are filled in
+      if (user?.id && formData.keywords?.trim() && (formData.ai_dos?.trim() || formData.ai_donts?.trim())) {
+        // Mark the onboarding task as complete
+        await markTaskAsCompleted(user.id, 'prompt-page-settings');
+      }
+      
       // Show success message in the modal instead of closing
       setErrors({ success: 'Settings saved successfully!' });
       // Clear success message after 3 seconds

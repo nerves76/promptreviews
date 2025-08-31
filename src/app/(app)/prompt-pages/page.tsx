@@ -139,6 +139,18 @@ function PromptPagesContent() {
     }
   }, [searchParams]);
 
+  // Auto-open Settings modal when openSettings=true is in URL
+  useEffect(() => {
+    if (searchParams.get('openSettings') === 'true' && !loading && business) {
+      setShowSettingsModal(true);
+      // Remove the query parameter after opening to avoid reopening on refresh
+      const params = new URLSearchParams(searchParams);
+      params.delete('openSettings');
+      const newUrl = params.toString() ? `/prompt-pages?${params.toString()}` : '/prompt-pages';
+      router.replace(newUrl, { scroll: false });
+    }
+  }, [searchParams, loading, business, router]);
+
   // Set minimum load time to prevent quick flashes
   useEffect(() => {
     const timer = setTimeout(() => {
