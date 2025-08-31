@@ -28,6 +28,7 @@ export default function CreateBusinessClient() {
   const [error, setError] = useState("");
   const [showWelcomePopup, setShowWelcomePopup] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   const [user, setUser] = useState<any>(null);
   const [accountId, setAccountId] = useState<string | null>(null);
@@ -150,6 +151,7 @@ export default function CreateBusinessClient() {
     console.log("✅ CreateBusinessClient: Business created successfully, refreshing...");
     console.log("✅ CreateBusinessClient: handleBusinessCreated called at:", new Date().toISOString());
     setIsSubmitting(false);
+    setIsRedirecting(true); // Set redirecting state to show loading screen
     
     // Set a flag to prevent BusinessGuard interference during redirect
     if (typeof window !== 'undefined') {
@@ -227,9 +229,9 @@ export default function CreateBusinessClient() {
     return 'there';
   };
 
-  console.log('🔍 CreateBusinessClient: Render state - loading:', loading);
+  console.log('🔍 CreateBusinessClient: Render state - loading:', loading, 'isRedirecting:', isRedirecting);
 
-  if (loading) {
+  if (loading || isRedirecting) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600">
         <AppLoader />
