@@ -243,8 +243,8 @@ export function PaymentErrorDisplay({ error }: { error: any }) {
       ${paymentError.showSupport ? `
         <div class="payment-error-support">
           <p>Need help? Contact our support team:</p>
-          <a href="mailto:support@promptreviews.com" class="support-link">
-            support@promptreviews.com
+          <a href="mailto:support@promptreviews.app" class="support-link">
+            support@promptreviews.app
           </a>
         </div>
       ` : ''}

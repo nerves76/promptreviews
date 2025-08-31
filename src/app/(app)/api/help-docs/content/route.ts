@@ -111,7 +111,7 @@ const articleContent: Record<string, string> = {
     <h2>Step 3: Share Your Prompt Page</h2>
     
     <h3>Get Your Unique Link</h3>
-    <p>Once saved, you'll receive a unique URL for your prompt page (e.g., promptreviews.com/r/yourbusiness).</p>
+    <p>Once saved, you'll receive a unique URL for your prompt page (e.g., app.promptreviews.app/r/yourbusiness).</p>
     
     <h3>Ways to Share</h3>
     <ul>

@@ -26,6 +26,8 @@ export interface OfferFeatureProps {
   description: string;
   /** The offer URL */
   url: string;
+  /** Whether to add a 3-minute timer to the offer banner */
+  timelock?: boolean;
   /** Callback when the enabled state changes */
   onEnabledChange?: (enabled: boolean) => void;
   /** Alternative callback for toggle (same as onEnabledChange) */
@@ -36,12 +38,15 @@ export interface OfferFeatureProps {
   onDescriptionChange: (description: string) => void;
   /** Callback when the URL changes */
   onUrlChange: (url: string) => void;
+  /** Callback when the timelock changes */
+  onTimelockChange?: (timelock: boolean) => void;
   /** Initial values for the component */
   initialData?: {
     offer_enabled?: boolean;
     offer_title?: string;
     offer_body?: string;
     offer_url?: string;
+    offer_timelock?: boolean;
   };
   /** Whether the component is disabled */
   disabled?: boolean;
@@ -56,11 +61,13 @@ export default function OfferFeature({
   title,
   description,
   url,
+  timelock = false,
   onEnabledChange,
   onToggle,
   onTitleChange,
   onDescriptionChange,
   onUrlChange,
+  onTimelockChange,
   initialData,
   disabled = false,
 }: OfferFeatureProps) {
@@ -69,6 +76,7 @@ export default function OfferFeature({
   const [offerTitle, setOfferTitle] = useState(title);
   const [offerDescription, setOfferDescription] = useState(description);
   const [offerUrl, setOfferUrl] = useState(url);
+  const [offerTimelock, setOfferTimelock] = useState(timelock);
 
   // Update state when props change
   useEffect(() => {
@@ -87,6 +95,10 @@ export default function OfferFeature({
     setOfferUrl(url);
   }, [url]);
 
+  useEffect(() => {
+    setOfferTimelock(timelock);
+  }, [timelock]);
+
   // Initialize from initialData if provided
   useEffect(() => {
     if (initialData) {
@@ -101,6 +113,9 @@ export default function OfferFeature({
       }
       if (initialData.offer_url !== undefined) {
         setOfferUrl(initialData.offer_url);
+      }
+      if (initialData.offer_timelock !== undefined) {
+        setOfferTimelock(initialData.offer_timelock);
       }
     }
   }, [initialData]);
@@ -214,6 +229,29 @@ export default function OfferFeature({
             <div className="text-xs text-gray-400 text-right mt-1">
               {(offerUrl || '').length}/{URL_MAX}
             </div>
+          </div>
+          
+          <div className="mb-2">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={offerTimelock}
+                onChange={(e) => {
+                  const newTimelock = e.target.checked;
+                  setOfferTimelock(newTimelock);
+                  onTimelockChange?.(newTimelock);
+                }}
+                disabled={disabled}
+                className="w-4 h-4 text-slate-blue bg-gray-100 border-gray-300 rounded focus:ring-slate-blue focus:ring-2"
+              />
+              <Icon name="FaClock" className="w-4 h-4 text-slate-blue" size={16} />
+              <span className="text-sm font-medium text-gray-700">
+                Timelock
+              </span>
+              <span className="text-xs text-gray-500">
+                Add a 3-minute before your offer is revealed. Your customers will see a countdown on the banner. This gives users time to write a review.
+              </span>
+            </label>
           </div>
         </div>
       )}

@@ -94,6 +94,8 @@ export default function ProductPromptPageForm({
     initialData?.offer_body || "Use this code \"1234\" to get a discount on your next purchase."
   );
   const [offerUrl, setOfferUrl] = useState(initialData?.offer_url || "");
+  // Handle both snake_case and camelCase for offer_timelock
+  const [offerTimelock, setOfferTimelock] = useState(initialData?.offer_timelock ?? initialData?.offerTimelock ?? false);
   const [aiReviewEnabled, setAiReviewEnabled] = useState(initialData?.ai_button_enabled ?? true);
   const [fixGrammarEnabled, setFixGrammarEnabled] = useState(initialData?.fix_grammar_enabled ?? true);
   const [notePopupEnabled, setNotePopupEnabled] = useState(initialData?.show_friendly_note ?? false);
@@ -119,6 +121,8 @@ export default function ProductPromptPageForm({
   const [fallingEnabled, setFallingEnabled] = useState(initialData?.falling_enabled ?? true);
   const [kickstartersEnabled, setKickstartersEnabled] = useState(initialData?.kickstarters_enabled ?? false);
   const [recentReviewsEnabled, setRecentReviewsEnabled] = useState(initialData?.recent_reviews_enabled ?? false);
+  // Handle both snake_case and camelCase for recent_reviews_scope
+  const [recentReviewsScope, setRecentReviewsScope] = useState(initialData?.recent_reviews_scope || initialData?.recentReviewsScope || "current_page");
   const [selectedKickstarters, setSelectedKickstarters] = useState<string[]>(initialData?.selected_kickstarters ?? []);
 
 
@@ -373,6 +377,7 @@ export default function ProductPromptPageForm({
         offerTitle,
         offerBody,
         offerUrl,
+        offer_timelock: offerTimelock,
         emojiSentimentEnabled,
         emojiSentimentQuestion,
         emojiFeedbackMessage,
@@ -387,7 +392,8 @@ export default function ProductPromptPageForm({
         notePopupEnabled,
         nfcTextEnabled,
         friendlyNote: formData.friendly_note || "",
-        recentReviewsEnabled
+        recentReviewsEnabled,
+        recent_reviews_scope: recentReviewsScope
       };
       
       console.log(`🔥 Save data being sent:`, saveData);
@@ -411,6 +417,7 @@ export default function ProductPromptPageForm({
     offerTitle,
     offerBody,
     offerUrl,
+    offerTimelock,
     emojiSentimentEnabled,
     emojiSentimentQuestion,
     emojiFeedbackMessage,
@@ -424,6 +431,7 @@ export default function ProductPromptPageForm({
     notePopupEnabled,
     nfcTextEnabled,
     recentReviewsEnabled,
+    recentReviewsScope,
     handleProductPhotoUpload,
     validateForm // Add validateForm to dependencies
   ]);
@@ -564,8 +572,11 @@ export default function ProductPromptPageForm({
         <RecentReviewsFeature
           enabled={recentReviewsEnabled}
           onEnabledChange={(enabled) => setRecentReviewsEnabled(enabled)}
+          scope={recentReviewsScope}
+          onScopeChange={(scope) => setRecentReviewsScope(scope)}
           initialData={{
             recent_reviews_enabled: recentReviewsEnabled,
+            recent_reviews_scope: recentReviewsScope,
           }}
           editMode={true}
         />
@@ -580,6 +591,8 @@ export default function ProductPromptPageForm({
               onDescriptionChange={setOfferBody}
               url={offerUrl}
               onUrlChange={setOfferUrl}
+              timelock={offerTimelock}
+              onTimelockChange={setOfferTimelock}
             />
 
             {/* Personalized Note Pop-up Section */}

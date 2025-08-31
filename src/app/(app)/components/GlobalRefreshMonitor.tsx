@@ -96,7 +96,7 @@ export function GlobalRefreshMonitor() {
             args,
             caller: new Error().stack
           });
-          return originalReload(...args);
+          return originalReload.apply(location, args as any);
         },
         configurable: true
       });

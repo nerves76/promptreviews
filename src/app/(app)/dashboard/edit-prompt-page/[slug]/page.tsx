@@ -123,6 +123,7 @@ function mapToDbColumns(formData: any): any {
   insertData["offer_title"] = formData.offerTitle;
   insertData["offer_body"] = formData.offerBody;
   insertData["offer_url"] = formData.offerUrl;
+  insertData["offer_timelock"] = formData.offerTimelock;
   
   // Handle falling stars properly
   if (formData.fallingIcon) {
@@ -200,6 +201,7 @@ export default function EditPromptPage() {
   const [offerTitle, setOfferTitle] = useState("Special Offer");
   const [offerBody, setOfferBody] = useState("");
   const [offerUrl, setOfferUrl] = useState("");
+  const [offerTimelock, setOfferTimelock] = useState(false);
   const [analytics, setAnalytics] = useState<any>(null);
   const [analyticsLoading, setAnalyticsLoading] = useState(true);
   const [selectedTab, setSelectedTab] = useState<
@@ -362,6 +364,7 @@ export default function EditPromptPage() {
       setOfferBody(promptData.custom_incentive || "");
       setOfferTitle(promptData.offer_title || "Special Offer");
       setOfferUrl(promptData.offer_url || "");
+      setOfferTimelock(!!promptData.offer_timelock);
       setFallingEnabled(!!promptData.falling_icon);
       setFallingIcon(promptData.falling_icon || "star");
       setLastIcon(promptData.falling_icon || "star");
@@ -646,6 +649,7 @@ export default function EditPromptPage() {
           offer_title: data.offer_title,
           offer_body: data.offer_body,
           offer_url: data.offer_url,
+          offer_timelock: data.offer_timelock,
           emoji_sentiment_enabled: data.emoji_sentiment_enabled,
           emoji_feedback_message: data.emoji_feedback_message,
           emoji_sentiment_question: data.emoji_sentiment_question,
@@ -658,6 +662,7 @@ export default function EditPromptPage() {
           offer_title: offerTitle,
           offer_body: offerBody,
           offer_url: offerUrl || null,
+          offer_timelock: offerTimelock,
           status: (formData.status || "in_queue") as
             | "in_queue"
             | "in_progress"
@@ -729,6 +734,7 @@ export default function EditPromptPage() {
         "offer_title",
         "offer_body",
         "offer_url",
+        "offer_timelock",
         "emoji_sentiment_enabled",
         "emoji_sentiment_question",
         "emoji_feedback_message",
@@ -863,6 +869,7 @@ export default function EditPromptPage() {
         "offer_title",
         "offer_body",
         "offer_url",
+        "offer_timelock",
         "emoji_sentiment_enabled",
         "emoji_sentiment_question",
         "emoji_feedback_message",
@@ -961,9 +968,8 @@ export default function EditPromptPage() {
     }
   };
 
-  const handleStep2Save = async (formState: any) => {
-    // This is now only for service pages
-    console.log("[DEBUG] handleStep2Save called with formState:", formState);
+  const handleGeneralSave = async (formState: any) => {
+    console.log("[DEBUG] handleGeneralSave called with formState:", formState);
     console.log('🔄 SAVE HANDLER: Setting loading state and starting save operation');
     setIsLoading(true);
     setError(null);
@@ -984,49 +990,95 @@ export default function EditPromptPage() {
       if (fetchError) throw fetchError;
       if (!promptPage) throw new Error("Prompt page not found");
       
-      // For service pages, formState contains the form data directly
-      // Extract the step 2 fields from the form data
+      // Map all fields from formState, including camelCase to snake_case conversions
       const updateData = {
-        // Step 2 fields - these come from the form state
-        offer_enabled: formState.offer_enabled || false,
-        offer_title: formState.offer_title || "",
-        offer_body: formState.offer_body || "",
-        offer_url: formState.offer_url || "",
-        emoji_sentiment_enabled: formState.emoji_sentiment_enabled || false,
-        emoji_sentiment_question: formState.emoji_sentiment_question || "How was your experience?",
-        emoji_feedback_message: formState.emoji_feedback_message || "We value your feedback! Let us know how we can do better.",
-        emoji_feedback_popup_header: formState.emoji_feedback_popup_header || "How can we improve?",
-        emoji_feedback_page_header: formState.emoji_feedback_page_header || "Please share your feedback",
-        emoji_thank_you_message: formState.emoji_thank_you_message || "Thank you for your feedback! We appreciate you taking the time to help us improve.",
-        review_platforms: formState.review_platforms || [],
-        falling_icon: formState.falling_icon || null,
-        ai_button_enabled: formState.ai_button_enabled !== false, // Default to true
-        show_friendly_note: formState.show_friendly_note || false,
+        // Basic fields
+        first_name: formState.first_name || null,
+        last_name: formState.last_name || null,
+        email: formState.email || null,
+        phone: formState.phone || null,
+        role: formState.role || null,
         friendly_note: formState.friendly_note || "",
-        // Kickstarters fields - CRITICAL FIX
-        kickstarters_enabled: formState.kickstarters_enabled || false,
-        selected_kickstarters: formState.selected_kickstarters || null,
+        
+        // Product/Service fields
+        product_name: formState.product_name || null,
+        product_description: formState.product_description || null,
+        product_photo: formState.product_photo || null,
+        services_offered: formState.services_offered || formState.servicesOffered || null,
+        features_or_benefits: formState.features_or_benefits || formState.featuresOrBenefits || null,
+        
+        // Offer fields
+        offer_enabled: formState.offer_enabled ?? formState.offerEnabled ?? false,
+        offer_title: formState.offer_title || formState.offerTitle || "Special Offer",
+        offer_body: formState.offer_body || formState.offerBody || "",
+        offer_url: formState.offer_url || formState.offerUrl || "",
+        offer_timelock: formState.offer_timelock ?? formState.offerTimelock ?? false,
+        
+        // Emoji sentiment fields
+        emoji_sentiment_enabled: formState.emoji_sentiment_enabled ?? formState.emojiSentimentEnabled ?? false,
+        emoji_sentiment_question: formState.emoji_sentiment_question || formState.emojiSentimentQuestion || "How was your experience?",
+        emoji_feedback_message: formState.emoji_feedback_message || formState.emojiFeedbackMessage || "We value your feedback! Let us know how we can do better.",
+        emoji_feedback_popup_header: formState.emoji_feedback_popup_header || formState.emojiFeedbackPopupHeader || "How can we improve?",
+        emoji_feedback_page_header: formState.emoji_feedback_page_header || formState.emojiFeedbackPageHeader || "Please share your feedback",
+        emoji_thank_you_message: formState.emoji_thank_you_message || formState.emojiThankYouMessage || "Thank you for your feedback!",
+        emoji_labels: formState.emoji_labels || formState.emojiLabels || null,
+        
+        // Falling icons
+        falling_enabled: formState.falling_enabled ?? formState.fallingEnabled ?? false,
+        falling_icon: formState.falling_icon || formState.fallingIcon || null,
+        falling_icon_color: formState.falling_icon_color || formState.fallingIconColor || null,
+        
+        // Review platforms
+        review_platforms: formState.review_platforms || formState.reviewPlatforms || [],
+        
+        // Other features
+        ai_button_enabled: formState.ai_button_enabled ?? formState.aiButtonEnabled ?? true,
+        fix_grammar_enabled: formState.fix_grammar_enabled ?? formState.fixGrammarEnabled ?? false,
+        nfc_text_enabled: formState.nfc_text_enabled ?? formState.nfcTextEnabled ?? false,
+        note_popup_enabled: formState.note_popup_enabled ?? formState.notePopupEnabled ?? false,
+        show_friendly_note: formState.show_friendly_note ?? formState.showFriendlyNote ?? false,
+        kickstarters_enabled: formState.kickstarters_enabled ?? formState.kickstartersEnabled ?? false,
+        selected_kickstarters: formState.selected_kickstarters || formState.selectedKickstarters || null,
+        recent_reviews_enabled: formState.recent_reviews_enabled ?? formState.recentReviewsEnabled ?? false,
       };
       
       // Only include valid columns in the payload
       const validColumns = [
+        "first_name",
+        "last_name",
+        "email",
+        "phone",
+        "role",
+        "friendly_note",
+        "product_name",
+        "product_description",
+        "product_photo",
+        "services_offered",
+        "features_or_benefits",
         "offer_enabled",
         "offer_title",
         "offer_body",
         "offer_url",
+        "offer_timelock",
         "emoji_sentiment_enabled",
         "emoji_sentiment_question",
         "emoji_feedback_message",
         "emoji_feedback_popup_header",
         "emoji_feedback_page_header",
         "emoji_thank_you_message",
-        "review_platforms",
+        "emoji_labels",
+        "falling_enabled",
         "falling_icon",
+        "falling_icon_color",
+        "review_platforms",
         "ai_button_enabled",
+        "fix_grammar_enabled",
+        "nfc_text_enabled",
+        "note_popup_enabled",
         "show_friendly_note",
-        "friendly_note",
         "kickstarters_enabled",
         "selected_kickstarters",
+        "recent_reviews_enabled",
       ];
       const payload = Object.fromEntries(
         Object.entries(updateData).filter(([key]) =>
@@ -1034,9 +1086,8 @@ export default function EditPromptPage() {
         ),
       );
       // Debug logs for troubleshooting
-      console.log("[DEBUG] Service Save formState:", formState);
-
-      console.log("[DEBUG] Service Save payload:", payload);
+      console.log("[DEBUG] General Save updateData:", updateData);
+      console.log("[DEBUG] General Save payload:", payload);
       // Update the prompt page
       const { data: updatedPromptPage, error: updateError } = await supabase
         .from("prompt_pages")
@@ -1091,9 +1142,21 @@ export default function EditPromptPage() {
       console.log('✅ SAVE COMPLETED: Data saved successfully to database');
       console.log('🔍 Navigating to prompt-pages to show success modal');
       
-      // Determine the appropriate tab based on the form data
-      const hasIndividualInfo = formData.first_name || formData.email || formData.phone;
-      const redirectUrl = hasIndividualInfo ? '/prompt-pages?tab=individual' : '/prompt-pages?tab=locations';
+      // Redirect based on campaign type
+      let redirectUrl = '/prompt-pages'; // Default to main page (public tab)
+      
+      if (promptPage.campaign_type === 'individual') {
+        redirectUrl = '/prompt-pages?tab=individual';
+      } else if (promptPage.campaign_type === 'locations') {
+        redirectUrl = '/prompt-pages?tab=locations';
+      }
+      // If campaign_type is 'public' or anything else, use default /prompt-pages
+      
+      console.log('🔍 Redirecting after save:', { 
+        campaign_type: promptPage.campaign_type,
+        redirectUrl 
+      });
+      
       router.push(redirectUrl);
       
       // Return the result object for proper callback handling
@@ -1108,12 +1171,16 @@ export default function EditPromptPage() {
     }
   };
 
+  // Keep the old handleStep2Save for backward compatibility
+  const handleStep2Save = handleGeneralSave;
+
   const handleFormSave = async (formState: ServicePromptFormState | any) => {
     // Check for name changes if this is an individual prompt page
     console.log("[DEBUG] handleFormSave - originalFormData:", originalFormData);
     console.log("[DEBUG] handleFormSave - contact_id:", originalFormData?.contact_id);
     console.log("[DEBUG] handleFormSave - formState names:", formState.first_name, formState.last_name);
     console.log("[DEBUG] handleFormSave - original names:", originalFormData?.first_name, originalFormData?.last_name);
+    console.log("[DEBUG] handleFormSave - Full formState:", formState);
     
     if (originalFormData && originalFormData.contact_id) {
       const nameChanged = 
@@ -1133,8 +1200,13 @@ export default function EditPromptPage() {
       console.log("[DEBUG] No contact_id found, skipping name change check");
     }
     
-    // No name change or no contact, proceed with normal save
-    return handleStep2Save(formState);
+    // For product pages, use the specialized handler
+    if (formState.review_type === "product" || formData.type === "product") {
+      return handleProductSave(formState);
+    }
+    
+    // For all other types, use the general save handler
+    return handleGeneralSave(formState);
   };
 
   const handleFormPublish = (data: any) => {
@@ -1347,7 +1419,20 @@ export default function EditPromptPage() {
     <PageCard icon={getPageIcon()}>
       <PromptPageForm
         mode="edit"
-        initialData={formData}
+        initialData={{
+          ...formData,
+          offer_enabled: offerEnabled,
+          offer_title: offerTitle,
+          offer_body: offerBody,
+          offer_url: offerUrl,
+          offer_timelock: offerTimelock,
+          emoji_sentiment_enabled: emojiSentimentEnabled,
+          emoji_feedback_message: emojiFeedbackMessage,
+          emoji_sentiment_question: emojiSentimentQuestion,
+          emoji_thank_you_message: emojiThankYouMessage,
+          falling_icon: fallingIcon,
+          show_friendly_note: notePopupEnabled,
+        }}
         onSave={handleFormSave}
         pageTitle={getPageTitle()}
         supabase={supabase}

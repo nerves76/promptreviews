@@ -81,6 +81,8 @@ export default function UniversalPromptPageForm({
     offer_title: initialData?.offer_title || businessProfile?.default_offer_title || "",
     offer_body: initialData?.offer_body || businessProfile?.default_offer_body || "",
     offer_url: initialData?.offer_url || businessProfile?.default_offer_url || "",
+    // Handle both snake_case and camelCase for offer_timelock
+    offer_timelock: initialData?.offer_timelock ?? initialData?.offerTimelock ?? businessProfile?.default_offer_timelock ?? false,
     
     emoji_sentiment_enabled: initialData?.emoji_sentiment_enabled ?? businessProfile?.default_emoji_sentiment_enabled ?? false,
     emoji_sentiment_question: initialData?.emoji_sentiment_question || businessProfile?.default_emoji_sentiment_question || "How was your experience?",
@@ -176,15 +178,6 @@ export default function UniversalPromptPageForm({
     setIsSaving(true);
     setFormError(null);
     
-    // Debug: Log current form data before save
-    console.log('🔍 FORM DEBUG: Current form data before save:', formData);
-    console.log('🔍 FORM DEBUG: Offer fields:', {
-      offer_enabled: formData.offer_enabled,
-      offer_title: formData.offer_title,
-      offer_body: formData.offer_body,
-      offer_url: formData.offer_url,
-    });
-    
     try {
       await onSave(formData);
     } catch (error) {
@@ -253,23 +246,23 @@ export default function UniversalPromptPageForm({
       <OfferFeature
         enabled={formData.offer_enabled}
         onEnabledChange={(enabled) => {
-          console.log('🔍 OFFER DEBUG: Setting offer_enabled to:', enabled);
           setFormData((prev: any) => ({ ...prev, offer_enabled: enabled }));
         }}
         title={formData.offer_title}
         onTitleChange={(title) => {
-          console.log('🔍 OFFER DEBUG: Setting offer_title to:', title);
           setFormData((prev: any) => ({ ...prev, offer_title: title }));
         }}
         description={formData.offer_body}
         onDescriptionChange={(description) => {
-          console.log('🔍 OFFER DEBUG: Setting offer_body to:', description);
           setFormData((prev: any) => ({ ...prev, offer_body: description }));
         }}
         url={formData.offer_url}
         onUrlChange={(url) => {
-          console.log('🔍 OFFER DEBUG: Setting offer_url to:', url);
           setFormData((prev: any) => ({ ...prev, offer_url: url }));
+        }}
+        timelock={formData.offer_timelock}
+        onTimelockChange={(timelock) => {
+          setFormData((prev: any) => ({ ...prev, offer_timelock: timelock }));
         }}
         initialData={initialData}
       />

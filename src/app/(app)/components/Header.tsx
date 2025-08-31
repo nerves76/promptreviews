@@ -554,7 +554,7 @@ const Header = React.memo(function Header() {
                     <Link href="/dashboard/account" className="flex items-center px-4 py-3 text-gray-700 hover:bg-slate-blue/10 hover:text-slate-blue transition-colors duration-200" onClick={() => setAccountMenuOpen(false)}>
                       <Icon name="FaUser" className="w-5 h-5 mr-3" size={20} />
                       <div className="flex-1">
-                        <div className="font-medium">Account details</div>
+                        <div className="font-medium">Account</div>
                         <div className="text-sm text-slate-blue">Manage your profile</div>
                       </div>
                     </Link>

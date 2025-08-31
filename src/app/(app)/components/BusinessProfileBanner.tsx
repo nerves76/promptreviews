@@ -85,8 +85,7 @@ export default function BusinessProfileBanner({
               Complete your business profile first!
             </h3>
             <p className="text-blue-800 text-sm">
-              To get the most out of PromptReviews, please fill out your business information. 
-              This helps us create better prompts and widgets for you.
+              To get the most out of Prompt Reviews, make sure to fill out your business information first.
             </p>
           </div>
         </div>

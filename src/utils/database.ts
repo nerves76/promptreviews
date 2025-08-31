@@ -86,9 +86,11 @@ export function getPoolStats() {
   };
 }
 
-export default {
+const databaseUtils = {
   query,
   transaction,
   healthCheck,
   getPoolStats,
-}; 
+};
+
+export default databaseUtils; 

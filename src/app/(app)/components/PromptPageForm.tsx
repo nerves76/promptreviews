@@ -126,6 +126,7 @@ export default function PromptPageForm({
     setOfferTitle(initialData.offer_title ?? initialData.offerTitle ?? "");
     setOfferBody(initialData.offer_body ?? initialData.offerBody ?? "");
     setOfferUrl(initialData.offer_url ?? initialData.offerUrl ?? "");
+    setOfferTimelock(initialData.offer_timelock ?? initialData.offerTimelock ?? false);
     setEmojiSentimentEnabled(
       initialData.emoji_sentiment_enabled ??
         initialData.emojiSentimentEnabled ??
@@ -244,6 +245,9 @@ export default function PromptPageForm({
   );
   const [offerUrl, setOfferUrl] = useState(
     initialData.offer_url ?? initialData.offerUrl ?? "",
+  );
+  const [offerTimelock, setOfferTimelock] = useState(
+    initialData.offer_timelock ?? initialData.offerTimelock ?? false,
   );
 
   const [notePopupEnabled, setNotePopupEnabled] = useState(
@@ -434,8 +438,25 @@ export default function PromptPageForm({
       }
     }
 
-    // Call onSave to save step 1 data
-    onSave(formData);
+    // Call onSave to save step 1 data - include all fields from initialData
+    const dataToSave = {
+      ...initialData,  // Include all original fields
+      ...formData,     // Override with form's updates
+      // Explicitly include critical fields that might be getting lost
+      offer_timelock: offerTimelock,
+      offer_enabled: offerEnabled,
+      offer_title: offerTitle,
+      offer_body: offerBody,
+      offer_url: offerUrl,
+      falling_icon: fallingIcon,
+      falling_icon_color: fallingIconColor,
+      falling_enabled: fallingEnabled,
+      recent_reviews_scope: initialData.recent_reviews_scope || initialData.recentReviewsScope,
+      recent_reviews_enabled: initialData.recent_reviews_enabled || initialData.recentReviewsEnabled,
+      kickstarters_enabled: initialData.kickstarters_enabled || initialData.kickstartersEnabled,
+      selected_kickstarters: initialData.selected_kickstarters || initialData.selectedKickstarters,
+    };
+    onSave(dataToSave);
   };
 
   const handleToggleFalling = () => {

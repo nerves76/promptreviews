@@ -335,7 +335,7 @@ const Dashboard = React.memo(function Dashboard() {
     };
     
     ensureAccount();
-  }, [authLoading, isAuthenticated, user?.id, account?.id, refreshSession, router]);
+  }, [authLoading, isAuthenticated, user?.id, account?.id]);
 
   // Load dashboard data when auth is ready
   useEffect(() => {
@@ -656,7 +656,7 @@ const Dashboard = React.memo(function Dashboard() {
       console.log('📊 Loading dashboard data immediately (not waiting for pricing modal)');
       loadDashboardSpecificData();
     }
-  }, [dashboardData, businessData, isDashboardLoading, account?.id, loadDashboardSpecificData]);
+  }, [dashboardData, businessData, isDashboardLoading, account]);
 
   // Loading state
   const isLoading = authLoading || accountLoading || isDashboardLoading;
@@ -732,7 +732,14 @@ const Dashboard = React.memo(function Dashboard() {
   }
   
   if (!isAuthenticated) {
-    return <InlineLoader showText={true} />; // Auth guard will handle redirect
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600">
+        <div className="text-center">
+          <FiveStarSpinner />
+          <p className="mt-4 text-white">Loading...</p>
+        </div>
+      </div>
+    ); // Auth guard will handle redirect
   }
 
   if (error) {
@@ -760,9 +767,7 @@ const Dashboard = React.memo(function Dashboard() {
       <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600">
         <div className="text-center">
           <FiveStarSpinner />
-          <p className="mt-4 text-white">
-            {isPendingPricingModal ? "Setting up your account..." : "Loading your dashboard..."}
-          </p>
+          <p className="mt-4 text-white">Loading...</p>
         </div>
       </div>
     );
@@ -783,7 +788,7 @@ const Dashboard = React.memo(function Dashboard() {
         <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600">
           <div className="text-center">
             <FiveStarSpinner />
-            <p className="mt-4 text-white">Setting up your account...</p>
+            <p className="mt-4 text-white">Loading...</p>
           </div>
         </div>
       );

@@ -44,22 +44,11 @@ function Tooltip({ text }: { text: string }) {
   );
 }
 
-interface Platform {
-  name: string;
-  url: string;
-  wordCount: number;
-  customPlatform?: string;
-}
-
 interface BusinessProfileFormProps {
   form: any;
   setForm: (form: any) => void;
   services: string[];
   setServices: (services: string[]) => void;
-  platforms: Platform[];
-  setPlatforms: (platforms: Platform[]) => void;
-  platformErrors: string[];
-  setPlatformErrors: (errors: string[]) => void;
   logoUrl: string | null;
   setLogoUrl: (url: string | null) => void;
   logoFile: File | null;
@@ -89,9 +78,6 @@ interface BusinessProfileFormProps {
   handleServiceChange: (idx: number, value: string) => void;
   addService: () => void;
   removeService: (idx: number) => void;
-  handlePlatformChange: (idx: number, field: "name" | "url" | "customPlatform" | "wordCount", value: string) => void;
-  addPlatform: () => void;
-  removePlatform: (idx: number) => void;
   handleLogoChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handleCropConfirm: () => void;
   handleCropCancel: () => void;
@@ -103,10 +89,6 @@ export default function BusinessProfileForm({
   setForm,
   services,
   setServices,
-  platforms,
-  setPlatforms,
-  platformErrors,
-  setPlatformErrors,
   logoUrl,
   setLogoUrl,
   logoFile,
@@ -136,9 +118,6 @@ export default function BusinessProfileForm({
   handleServiceChange,
   addService,
   removeService,
-  handlePlatformChange,
-  addPlatform,
-  removePlatform,
   handleLogoChange,
   handleCropConfirm,
   handleCropCancel,
@@ -585,52 +564,6 @@ export default function BusinessProfileForm({
             placeholder="e.g., 'Quality you can trust'"
           />
         </div>
-        <div className="mb-4">
-          <label className="block font-semibold text-sm text-gray-500 mb-1 flex items-center">
-            Keywords (comma separated)
-            <RobotTooltip text="Made available for AI prompt generation." />
-          </label>
-          <textarea
-            name="keywords"
-            className="w-full border px-3 py-2 rounded min-h-[80px]"
-            value={
-              typeof form.keywords === "string"
-                ? form.keywords
-                : Array.isArray(form.keywords)
-                  ? form.keywords.join(", ")
-                  : ""
-            }
-            onChange={handleChange}
-            placeholder="best therapist in Portland, amazing ADHD therapist, group sessions, works with most insurance companies, compassionate"
-            rows={4}
-          />
-        </div>
-        <div className="mb-4">
-          <label className="block font-semibold text-sm text-gray-500 mb-1 flex items-center">
-            AI Dos
-            <RobotTooltip text="Made available for AI prompt generation." />
-          </label>
-          <textarea
-            name="ai_dos"
-            className="w-full border px-3 py-2 rounded"
-            value={form.ai_dos || ""}
-            onChange={handleChange}
-            placeholder="e.g., Mention our 24/7 customer support, Highlight our eco-friendly practices"
-          />
-        </div>
-        <div className="mb-4">
-          <label className="block font-semibold text-sm text-gray-500 mb-1 flex items-center">
-            AI Don'ts
-            <RobotTooltip text="Made available for AI prompt generation." />
-          </label>
-          <textarea
-            name="ai_donts"
-            className="w-full border px-3 py-2 rounded"
-            value={form.ai_donts || ""}
-            onChange={handleChange}
-            placeholder="e.g., Don't mention our old location, Don't mention discontinued products"
-          />
-        </div>
       </div>
 
       {/* Social Media Section */}
@@ -738,249 +671,6 @@ export default function BusinessProfileForm({
         </div>
       </div>
 
-      {/* Inherited Prompt Page Settings Header */}
-      <div className="mb-8 mt-12">
-        <hr className="border-gray-300 mb-8" />
-        <h2 className="text-3xl font-bold text-slate-blue mb-3">
-          Inherited Prompt Page Settings
-        </h2>
-        <p className="text-gray-600 text-sm leading-relaxed">
-          These settings affect all Prompt Pages and can speed up prompt page creation but most can also be overridden and adjusted at the Prompt Page level.
-        </p>
-      </div>
-
-
-
-      {/* Review Platforms Section */}
-      <div className="mb-16">
-        <h2 className="mt-4 mb-2 text-2xl font-bold text-slate-blue flex items-center gap-3">
-          <Icon name="FaStar" className="w-7 h-7 text-slate-blue" size={28} />
-          Review platforms
-        </h2>
-        <div className="text-sm text-gray-600 mb-4">
-          Get reviews where it matters most. Set up your review platforms here, and they will be made available for any Prompt Page.
-        </div>
-        <div className="space-y-4">
-          {platforms.map((platform, idx) => (
-            <div key={idx} className="space-y-2">
-              <div className="flex gap-2 items-start">
-                <div className="flex flex-col w-1/3">
-                  <label className="text-xs font-semibold text-gray-500 mb-1">
-                    Platform Name
-                  </label>
-                  <select
-                    className="w-full border px-3 py-2 rounded-lg bg-white"
-                    value={platform.name || ""}
-                    onChange={(e) =>
-                      handlePlatformChange(idx, "name", e.target.value)
-                    }
-                  >
-                    <option value="">Select a platform</option>
-                    <option value="Google Business Profile">
-                      Google Business Profile
-                    </option>
-                    <option value="Yelp">Yelp</option>
-                    <option value="Facebook">Facebook</option>
-                    <option value="TripAdvisor">TripAdvisor</option>
-                    <option value="G2">G2</option>
-                    <option value="BBB">BBB</option>
-                    <option value="Thumbtack">Thumbtack</option>
-                    <option value="Clutch">Clutch</option>
-                    <option value="Capterra">Capterra</option>
-                    <option value="Angi">Angi</option>
-                    <option value="Houzz">Houzz</option>
-                    <option value="HomeAdvisor">HomeAdvisor</option>
-                    <option value="Trustpilot">Trustpilot</option>
-                    <option value="Other">Other</option>
-                  </select>
-                  {platform.name === "Other" && (
-                    <input
-                      type="text"
-                      className="w-full border px-3 py-2 rounded-lg bg-white mt-1"
-                      placeholder="Custom platform name"
-                      value={platform.customPlatform || ""}
-                      onChange={(e) =>
-                        handlePlatformChange(idx, "customPlatform", e.target.value)
-                      }
-                    />
-                  )}
-                </div>
-                <div className="flex flex-col w-1/2">
-                  <label className="text-xs font-semibold text-gray-500 mb-1">
-                    Platform URL
-                  </label>
-                  <input
-                    type="url"
-                    className="w-full border px-3 py-2 rounded-lg bg-white"
-                    placeholder="Review URL"
-                    value={platform.url || ""}
-                    onChange={(e) =>
-                      handlePlatformChange(idx, "url", e.target.value)
-                    }
-                  />
-                </div>
-                <div className="flex flex-col w-1/6">
-                  <label className="text-xs font-semibold text-gray-500 mb-1">
-                    Word Count
-                  </label>
-                  <input
-                    type="number"
-                    className="w-full border px-3 py-2 rounded-lg bg-white"
-                    placeholder="200"
-                    value={platform.wordCount || ""}
-                    onChange={(e) =>
-                      handlePlatformChange(idx, "wordCount", e.target.value)
-                    }
-                    min={50}
-                    max={1000}
-                  />
-                </div>
-                {platforms.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => removePlatform(idx)}
-                    className="text-red-600 font-bold text-xl mt-6"
-                  >
-                    &times;
-                  </button>
-                )}
-              </div>
-              {platformErrors[idx] && (
-                <span className="text-red-500 text-xs">
-                  {platformErrors[idx]}
-                </span>
-              )}
-            </div>
-          ))}
-          <button
-            type="button"
-            onClick={addPlatform}
-            className="text-blue-600 underline mt-2"
-          >
-            + Add Platform
-          </button>
-        </div>
-      </div>
-
-      {/* Special Offer Section */}
-      <div className="mb-16">
-        <h2 className="mt-4 mb-2 text-2xl font-bold text-slate-blue flex items-center gap-3">
-          <Icon name="FaGift" className="w-7 h-7 text-slate-blue" size={28} />
-          Special offer
-        </h2>
-        <div className="text-sm text-gray-600 mt-0 mb-4">
-          This is a global setting for a special offer. You can also set this at
-          the prompt page level.
-        </div>
-        <div className="mb-4">
-          <div className="flex items-center justify-between mb-2">
-            <label className="block text-lg font-semibold text-indigo-800 flex items-center">
-              Enable Special Offer
-            </label>
-            <button
-              type="button"
-              onClick={() =>
-                setForm((f: any) => ({
-                  ...f,
-                  default_offer_enabled: !f.default_offer_enabled,
-                }))
-              }
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${form.default_offer_enabled ? "bg-slate-blue" : "bg-gray-300"}`}
-              aria-pressed={!!form.default_offer_enabled}
-            >
-              <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${form.default_offer_enabled ? "translate-x-5" : "translate-x-1"}`}
-              />
-            </button>
-          </div>
-          <div
-            className={`border border-indigo-200 p-4 ${!form.default_offer_enabled ? "opacity-60" : ""}`}
-          >
-            <input
-              type="text"
-              name="default_offer_title"
-              value={form.default_offer_title || "Special Offer"}
-              onChange={(e) =>
-                setForm((f: any) => ({
-                  ...f,
-                  default_offer_title: e.target.value,
-                }))
-              }
-              placeholder="Offer Title (e.g., Special Offer)"
-              className="block w-full rounded-md border border-indigo-200 bg-white focus:ring-2 focus:ring-indigo-300 focus:outline-none sm:text-sm py-2 px-3 mb-2 font-semibold"
-              disabled={!form.default_offer_enabled}
-            />
-            <textarea
-              name="default_offer_body"
-              value={form.default_offer_body || ""}
-              onChange={(e) =>
-                setForm((f: any) => ({
-                  ...f,
-                  default_offer_body: e.target.value,
-                }))
-              }
-              placeholder="Get 10% off your next visit"
-              className="block w-full rounded-md border border-indigo-200 bg-white focus:ring-2 focus:ring-indigo-300 focus:outline-none sm:text-sm py-3 px-4"
-              rows={2}
-              disabled={!form.default_offer_enabled}
-            />
-            <input
-              type="url"
-              name="default_offer_url"
-              value={form.default_offer_url || ""}
-              onChange={(e) =>
-                setForm((f: any) => ({
-                  ...f,
-                  default_offer_url: e.target.value,
-                }))
-              }
-              placeholder="Offer URL (e.g., https://yourbusiness.com/claim-reward)"
-              className="block w-full rounded-md border border-indigo-200 bg-white focus:ring-2 focus:ring-indigo-300 focus:outline-none sm:text-sm py-2 px-3 mt-2"
-              disabled={!form.default_offer_enabled}
-            />
-          </div>
-          <div className="text-xs text-gray-500 mt-2">
-            Note: Services like Google and Yelp have policies against providing
-            rewards in exchange for reviews, so it's best not to promise a
-            reward for "x" number of reviews, etc.
-          </div>
-        </div>
-      </div>
-
-      {/* Kickstarters Section */}
-      <div className="mb-16">
-        <KickstartersFeature
-          enabled={form.kickstarters_enabled}
-          selectedKickstarters={form.selected_kickstarters}
-          backgroundDesign={form.kickstarters_background_design}
-          businessName={form.name || "Business Name"}
-          onEnabledChange={(enabled) => 
-            setForm((f: any) => ({ ...f, kickstarters_enabled: enabled }))
-          }
-          onKickstartersChange={(kickstarters) => 
-            setForm((f: any) => ({ ...f, selected_kickstarters: kickstarters }))
-          }
-          onBackgroundDesignChange={(backgroundDesign) => 
-            setForm((f: any) => ({ ...f, kickstarters_background_design: backgroundDesign }))
-          }
-          initialData={{
-            kickstarters_enabled: form.kickstarters_enabled,
-            selected_kickstarters: form.selected_kickstarters,
-            kickstarters_background_design: form.kickstarters_background_design,
-          }}
-          editMode={true}
-          businessProfile={{
-            primary_color: form.primary_color,
-            card_bg: form.card_bg,
-            card_text: form.card_text,
-            card_transparency: form.card_transparency,
-            background_type: form.background_type,
-            gradient_start: form.gradient_start,
-            gradient_end: form.gradient_end,
-            background_color: form.background_color,
-          }}
-        />
-      </div>
 
       {/* Error/Success Messages */}
       {error && (

@@ -101,6 +101,7 @@ export interface BaseFormState {
   offer_title: string;
   offer_body: string;
   offer_url: string;
+  offer_timelock: boolean;
   
   // Review Platforms
   review_platforms: ReviewPlatform[];
@@ -163,39 +164,40 @@ export default function BasePromptPageForm({
     
     // Fall back to initial data
     return {
-    // Personalized Note
-    show_friendly_note: initialData?.show_friendly_note ?? false,
-    friendly_note: initialData?.friendly_note ?? "",
+    // Personalized Note - Use business defaults if no initialData
+    show_friendly_note: initialData?.show_friendly_note ?? businessProfile?.show_friendly_note ?? false,
+    friendly_note: initialData?.friendly_note ?? businessProfile?.friendly_note ?? "",
     
-    // Emoji Sentiment
-    emoji_sentiment_enabled: initialData?.emoji_sentiment_enabled ?? false,
-    emoji_sentiment_question: initialData?.emoji_sentiment_question ?? "How was your experience?",
-    emoji_feedback_message: initialData?.emoji_feedback_message ?? "How can we improve?",
-    emoji_thank_you_message: initialData?.emoji_thank_you_message ?? "Thank you for your feedback!",
-    emoji_feedback_popup_header: initialData?.emoji_feedback_popup_header ?? "",
-    emoji_feedback_page_header: initialData?.emoji_feedback_page_header ?? "",
+    // Emoji Sentiment - Use business defaults if no initialData
+    emoji_sentiment_enabled: initialData?.emoji_sentiment_enabled ?? businessProfile?.emoji_sentiment_enabled ?? false,
+    emoji_sentiment_question: initialData?.emoji_sentiment_question ?? businessProfile?.emoji_sentiment_question ?? "How was your experience?",
+    emoji_feedback_message: initialData?.emoji_feedback_message ?? businessProfile?.emoji_feedback_message ?? "How can we improve?",
+    emoji_thank_you_message: initialData?.emoji_thank_you_message ?? businessProfile?.emoji_thank_you_message ?? "Thank you for your feedback!",
+    emoji_feedback_popup_header: initialData?.emoji_feedback_popup_header ?? businessProfile?.emoji_feedback_popup_header ?? "How can we improve?",
+    emoji_feedback_page_header: initialData?.emoji_feedback_page_header ?? businessProfile?.emoji_feedback_page_header ?? "Your feedback helps us grow",
     
-    // Falling Stars
-    falling_enabled: initialData?.falling_enabled ?? true,
-    falling_icon: initialData?.falling_icon ?? "star",
-    falling_icon_color: initialData?.falling_icon_color ?? "#fbbf24",
+    // Falling Stars - Use business defaults if no initialData
+    falling_enabled: initialData?.falling_enabled ?? businessProfile?.falling_enabled ?? true,
+    falling_icon: initialData?.falling_icon ?? businessProfile?.falling_icon ?? "star",
+    falling_icon_color: initialData?.falling_icon_color ?? businessProfile?.falling_icon_color ?? "#fbbf24",
     
-    // AI Settings
-    ai_button_enabled: initialData?.ai_button_enabled ?? true,
-    fix_grammar_enabled: initialData?.fix_grammar_enabled ?? true,
+    // AI Settings - Use business defaults if no initialData
+    ai_button_enabled: initialData?.ai_button_enabled ?? businessProfile?.ai_button_enabled ?? true,
+    fix_grammar_enabled: initialData?.fix_grammar_enabled ?? businessProfile?.fix_grammar_enabled ?? true,
     
-    // Offer
-    offer_enabled: initialData?.offer_enabled ?? false,
-    offer_title: initialData?.offer_title ?? "",
-    offer_body: initialData?.offer_body ?? "",
-    offer_url: initialData?.offer_url ?? "",
+    // Offer - Use business defaults if no initialData
+    offer_enabled: initialData?.offer_enabled ?? businessProfile?.default_offer_enabled ?? false,
+    offer_title: initialData?.offer_title ?? businessProfile?.default_offer_title ?? "",
+    offer_body: initialData?.offer_body ?? businessProfile?.default_offer_body ?? "",
+    offer_url: initialData?.offer_url ?? businessProfile?.default_offer_url ?? "",
+    offer_timelock: initialData?.offer_timelock ?? businessProfile?.default_offer_timelock ?? false,
     
-    // Review Platforms
-    review_platforms: initialData?.review_platforms ?? [],
+    // Review Platforms - Use business defaults if no initialData
+    review_platforms: initialData?.review_platforms ?? businessProfile?.review_platforms ?? [],
     
-    // Kickstarters
-    kickstarters_enabled: initialData?.kickstarters_enabled ?? false,
-    selected_kickstarters: initialData?.selected_kickstarters ?? [],
+    // Kickstarters - Use business defaults if no initialData
+    kickstarters_enabled: initialData?.kickstarters_enabled ?? businessProfile?.kickstarters_enabled ?? true,
+    selected_kickstarters: initialData?.selected_kickstarters ?? businessProfile?.selected_kickstarters ?? [],
     
     // Common fields
     slug: initialData?.slug,
@@ -335,11 +337,12 @@ export default function BasePromptPageForm({
   };
 
   // Handle offer changes
-  const handleOfferChange = (enabled: boolean, title: string, body: string, url: string) => {
+  const handleOfferChange = (enabled: boolean, title: string, body: string, url: string, timelock: boolean) => {
     updateFormData('offer_enabled', enabled);
     updateFormData('offer_title', title);
     updateFormData('offer_body', body);
     updateFormData('offer_url', url);
+    updateFormData('offer_timelock', timelock);
   };
 
   // Handle review platforms changes
@@ -542,15 +545,18 @@ export default function BasePromptPageForm({
           title={formData.offer_title}
           description={formData.offer_body}
           url={formData.offer_url}
-          onEnabledChange={(enabled) => handleOfferChange(enabled, formData.offer_title, formData.offer_body, formData.offer_url)}
-          onTitleChange={(title) => handleOfferChange(formData.offer_enabled, title, formData.offer_body, formData.offer_url)}
-          onDescriptionChange={(body) => handleOfferChange(formData.offer_enabled, formData.offer_title, body, formData.offer_url)}
-          onUrlChange={(url) => handleOfferChange(formData.offer_enabled, formData.offer_title, formData.offer_body, url)}
+          timelock={formData.offer_timelock}
+          onEnabledChange={(enabled) => handleOfferChange(enabled, formData.offer_title, formData.offer_body, formData.offer_url, formData.offer_timelock)}
+          onTitleChange={(title) => handleOfferChange(formData.offer_enabled, title, formData.offer_body, formData.offer_url, formData.offer_timelock)}
+          onDescriptionChange={(body) => handleOfferChange(formData.offer_enabled, formData.offer_title, body, formData.offer_url, formData.offer_timelock)}
+          onUrlChange={(url) => handleOfferChange(formData.offer_enabled, formData.offer_title, formData.offer_body, url, formData.offer_timelock)}
+          onTimelockChange={(timelock) => handleOfferChange(formData.offer_enabled, formData.offer_title, formData.offer_body, formData.offer_url, timelock)}
           initialData={{
             offer_enabled: initialData?.offer_enabled,
             offer_title: initialData?.offer_title,
             offer_body: initialData?.offer_body,
             offer_url: initialData?.offer_url,
+            offer_timelock: initialData?.offer_timelock,
           }}
           disabled={disabled}
         />

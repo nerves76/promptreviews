@@ -6,6 +6,7 @@ import {
   useRef,
   useLayoutEffect,
   useCallback,
+  useMemo,
 } from "react";
 import { useRouter, useParams, useSearchParams } from "next/navigation";
 import SocialMediaIcons from "@/app/(app)/components/SocialMediaIcons";
@@ -129,6 +130,7 @@ interface BusinessProfile {
   default_offer_enabled?: boolean;
   default_offer_title?: string;
   default_offer_body?: string;
+  default_offer_timelock?: boolean;
   business_website?: string;
   default_offer_url?: string;
   address_city?: string;
@@ -171,6 +173,14 @@ interface PromptPageProps {
 export default function PromptPage({ initialData }: PromptPageProps = {}) {
   // Force re-deployment to clear cached React error #130 - 2025-01-30
   const supabase = createClient();
+  
+  console.log('🔍 [CLIENT] Received prompt page data:', {
+    slug: initialData?.promptPage?.slug,
+    offer_timelock: initialData?.promptPage?.offer_timelock,
+    recent_reviews_scope: initialData?.promptPage?.recent_reviews_scope,
+    offer_enabled: initialData?.promptPage?.offer_enabled,
+    recent_reviews_enabled: initialData?.promptPage?.recent_reviews_enabled
+  });
 
   const router = useRouter();
   const params = useParams();
@@ -246,6 +256,8 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [testimonial, setTestimonial] = useState("");
   const [photoSubmitting, setPhotoSubmitting] = useState(false);
+  const [timelockCountdown, setTimelockCountdown] = useState<number>(180); // 3 minutes in seconds
+  const [isTimelockActive, setIsTimelockActive] = useState(false);
   const [photoSuccess, setPhotoSuccess] = useState(false);
   const [photoError, setPhotoError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -523,6 +535,35 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
     }
   }, [promptPage, businessProfile]);
 
+  // Merge logic: use promptPage value if set, otherwise businessProfile default
+  // Using useMemo to avoid initialization errors
+  const mergedOfferEnabled = useMemo(() => 
+    promptPage?.offer_enabled ?? businessProfile?.default_offer_enabled ?? false,
+    [promptPage, businessProfile]
+  );
+  
+  const mergedOfferTimelock = useMemo(() =>
+    promptPage?.offer_timelock ?? businessProfile?.default_offer_timelock ?? false,
+    [promptPage, businessProfile]
+  );
+  
+  const mergedOfferTitle = useMemo(() =>
+    promptPage?.offer_title ||
+    businessProfile?.default_offer_title ||
+    "Special offer",
+    [promptPage, businessProfile]
+  );
+  
+  const mergedOfferBody = useMemo(() =>
+    promptPage?.offer_body || businessProfile?.default_offer_body || "",
+    [promptPage, businessProfile]
+  );
+  
+  const mergedOfferUrl = useMemo(() =>
+    promptPage?.offer_url || businessProfile?.default_offer_url || "",
+    [promptPage, businessProfile]
+  );
+
   // Initialize prompt page fields from prompt page data
   useEffect(() => {
     if (promptPage) {
@@ -545,6 +586,33 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
       }
     }
   }, [promptPage]);
+
+  // Timer countdown effect for offer timelock
+  useEffect(() => {
+    // Only activate timelock if the feature is enabled and offer is enabled
+    const timelockEnabled = promptPage?.offer_timelock ?? businessProfile?.default_offer_timelock ?? false;
+    const offerEnabled = promptPage?.offer_enabled ?? businessProfile?.default_offer_enabled ?? false;
+    
+    if (timelockEnabled && offerEnabled) {
+      setIsTimelockActive(true);
+      setTimelockCountdown(180); // Reset to 3 minutes
+      
+      const interval = setInterval(() => {
+        setTimelockCountdown((prev) => {
+          if (prev <= 1) {
+            setIsTimelockActive(false);
+            clearInterval(interval);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+      
+      return () => clearInterval(interval);
+    } else {
+      setIsTimelockActive(false);
+    }
+  }, [promptPage?.offer_timelock, businessProfile?.default_offer_timelock, promptPage?.offer_enabled, businessProfile?.default_offer_enabled]);
 
   // Track page view (exclude logged-in users)
   useEffect(() => {
@@ -1308,17 +1376,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
     }
   }, [promptPage, searchParams]);
 
-  // Merge logic: use promptPage value if set, otherwise businessProfile default
-  const mergedOfferEnabled =
-    promptPage?.offer_enabled ?? businessProfile?.default_offer_enabled;
-  const mergedOfferTitle =
-    promptPage?.offer_title ||
-    businessProfile?.default_offer_title ||
-    "Special offer";
-  const mergedOfferBody =
-    promptPage?.offer_body || businessProfile?.default_offer_body || "";
-  const mergedOfferUrl =
-    promptPage?.offer_url || businessProfile?.default_offer_url || "";
+  // Merge logic: remaining variables (offer variables moved earlier to avoid hoisting issues)
   const mergedReviewPlatforms =
     promptPage?.review_platforms && promptPage.review_platforms.length
       ? promptPage.review_platforms
@@ -1548,6 +1606,8 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
             buttonText={offerLearnMoreUrl ? "Learn More" : undefined}
             learnMoreUrl={offerLearnMoreUrl || undefined}
             iconColor="#facc15"
+            isTimelockActive={isTimelockActive}
+            timelockCountdown={timelockCountdown}
           />
           <button
             className="absolute top-2 right-2 text-yellow-900 text-lg font-bold hover:text-yellow-600 focus:outline-none"

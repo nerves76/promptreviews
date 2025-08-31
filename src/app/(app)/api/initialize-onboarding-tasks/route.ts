@@ -94,8 +94,8 @@ export async function POST(request: NextRequest) {
     // Define default tasks
     const defaultTasks = [
       'business-profile',
-      'prompt-page-settings',
-      'style-prompt-pages', 
+      'style-prompt-pages',
+      'prompt-page-settings', 
       'customize-universal',
       'create-prompt-page',
       'share'

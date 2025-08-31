@@ -41,6 +41,7 @@ export interface FormData {
   offer_title?: string;
   offer_body?: string;
   offer_url?: string;
+  offer_timelock?: boolean;
   friendly_note?: string;
   
   // Product/Service specific
@@ -95,6 +96,7 @@ export interface DatabaseRow {
   offer_title?: string;
   offer_body?: string;
   offer_url?: string;
+  offer_timelock?: boolean;
   friendly_note?: string;
   nfc_text_enabled?: boolean;
   note_popup_enabled?: boolean;
@@ -125,7 +127,7 @@ export function mapFormDataToDatabase(formData: FormData): DatabaseRow {
     'first_name', 'last_name', 'email', 'phone', 'role', 'slug',
     'review_platforms', 'product_name', 'product_description', 'product_photo',
     'features_or_benefits', 'falling_icon', 'falling_icon_color',
-    'offer_title', 'offer_body', 'offer_url', 'friendly_note', 'emoji_labels',
+    'offer_title', 'offer_body', 'offer_url', 'offer_timelock', 'friendly_note', 'emoji_labels',
     'emoji_sentiment_question', 'emoji_feedback_message', 
     'emoji_feedback_popup_header', 'emoji_feedback_page_header', 'emoji_thank_you_message',
     'selected_kickstarters',

@@ -2151,7 +2151,7 @@ export default function CreatePromptPageClient({
         </div>
       )}
 
-      <div className="min-h-screen flex justify-center items-start px-4 sm:px-0">
+      <div className="min-h-screen flex justify-center items-start">
         <PageCard icon={getPageIcon(formData.review_type)}>
           {isLoadingBusinessProfile ? (
             <div className="flex items-center justify-center min-h-[400px]">

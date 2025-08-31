@@ -53,7 +53,7 @@ export function NavigationDebugger() {
           // Check for A->B->A pattern
           if (paths[paths.length-1] === paths[paths.length-3] &&
               paths[paths.length-2] === paths[paths.length-4]) {
-            console.error('🚨 NAVIGATION LOOP DETECTED!', {
+            console.warn('⚠️ NAVIGATION LOOP DETECTED!', {
               pattern: paths.slice(-4).join(' → '),
               entries: pathChanges.slice(-4)
             });

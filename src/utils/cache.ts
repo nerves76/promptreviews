@@ -173,11 +173,13 @@ export function getCacheStats() {
   return cache.getStats();
 }
 
-export default {
+const cacheUtils = {
   generateCacheKey,
   withCache,
   cacheMiddleware,
   setCacheHeaders,
   invalidateCache,
   getCacheStats,
-}; 
+};
+
+export default cacheUtils; 

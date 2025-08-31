@@ -68,8 +68,7 @@ export default function WebhookManagerPage() {
     }
 
     // Check if user is admin (you'll need to implement this)
-    const isAdmin = account?.email?.includes('@promptreviews.com') || 
-                    account?.role === 'admin';
+    const isAdmin = account?.email?.includes('@promptreviews.app');
     
     if (!isAdmin) {
       alert('Admin access required');

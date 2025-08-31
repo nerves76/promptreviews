@@ -155,13 +155,6 @@ export async function GET(
       promptPageIds = [promptPageId];
     }
     
-    console.log('DEBUG Recent Reviews:', {
-      promptPageId,
-      accountId,
-      reviewScope,
-      promptPageIds,
-      promptPageIdsCount: promptPageIds.length
-    });
 
     // Count total eligible reviews for this account
     const { count, error: countError } = await supabase
@@ -172,7 +165,6 @@ export async function GET(
       .not('review_content', 'is', null)
       .not('review_content', 'eq', '');
 
-    console.log('DEBUG Count Result:', { count, countError });
 
     if (countError) {
       console.error('Error counting reviews:', countError);
@@ -181,7 +173,6 @@ export async function GET(
 
     // Only proceed if we have 3+ reviews
     if (!count || count < 3) {
-      console.log('DEBUG Not enough reviews:', { count, hasEnoughReviews: false });
       return NextResponse.json({
         hasEnoughReviews: false,
         reviews: [],

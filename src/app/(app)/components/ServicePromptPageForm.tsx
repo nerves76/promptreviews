@@ -94,6 +94,8 @@ export default function ServicePromptPageForm({
     offer_title: initialData?.offer_title || "",
     offer_body: initialData?.offer_body || "",
     offer_url: initialData?.offer_url || "",
+    // Handle both snake_case and camelCase for offer_timelock
+    offer_timelock: initialData?.offer_timelock ?? initialData?.offerTimelock ?? false,
     aiButtonEnabled: initialData?.aiButtonEnabled ?? true,
     falling_enabled: initialData?.falling_enabled ?? true,
     falling_icon: initialData?.falling_icon || "star",
@@ -101,6 +103,8 @@ export default function ServicePromptPageForm({
     kickstarters_enabled: initialData?.kickstarters_enabled ?? false,
     selected_kickstarters: Array.isArray(initialData?.selected_kickstarters) ? initialData.selected_kickstarters : [],
     recent_reviews_enabled: initialData?.recent_reviews_enabled ?? false,
+    // Handle both snake_case and camelCase for recent_reviews_scope
+    recent_reviews_scope: initialData?.recent_reviews_scope || initialData?.recentReviewsScope || "current_page",
     slug: initialData?.slug || "",
     service_name: initialData?.service_name || "",
     product_description: initialData?.product_description || "",
@@ -595,8 +599,11 @@ export default function ServicePromptPageForm({
         <RecentReviewsFeature
           enabled={formData.recent_reviews_enabled}
           onEnabledChange={(enabled) => updateFormData('recent_reviews_enabled', enabled)}
+          scope={formData.recent_reviews_scope || formData.recentReviewsScope || 'current_page'}
+          onScopeChange={(scope) => updateFormData('recent_reviews_scope', scope)}
           initialData={{
-            recent_reviews_enabled: initialData?.recent_reviews_enabled,
+            recent_reviews_enabled: initialData?.recent_reviews_enabled || initialData?.recentReviewsEnabled,
+            recent_reviews_scope: initialData?.recent_reviews_scope || initialData?.recentReviewsScope,
           }}
           editMode={true}
         />
@@ -611,6 +618,8 @@ export default function ServicePromptPageForm({
           onDescriptionChange={(body) => updateFormData('offer_body', body)}
           url={formData.offer_url}
           onUrlChange={(url) => updateFormData('offer_url', url)}
+          timelock={formData.offer_timelock}
+          onTimelockChange={(timelock) => updateFormData('offer_timelock', timelock)}
         />
         
         {/* Personalized note section */}

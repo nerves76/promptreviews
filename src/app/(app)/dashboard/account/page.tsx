@@ -230,7 +230,6 @@ export default function AccountPage() {
     const businessName = formData.get('businessName') as string;
     const contactName = formData.get('contactName') as string;
     const phoneNumber = formData.get('phoneNumber') as string;
-    const businessCategory = formData.get('businessCategory') as string;
 
     try {
       const response = await fetch('/api/admin/create-account', {
@@ -242,7 +241,6 @@ export default function AccountPage() {
           businessName,
           contactName,
           phoneNumber,
-          businessCategory,
         }),
       });
 
@@ -397,6 +395,12 @@ export default function AccountPage() {
 
   return (
     <PageCard icon={<CowboyIcon />}>
+      {/* Page Title */}
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-gray-900">Account</h1>
+        <p className="text-gray-600 mt-1">Manage your account settings and preferences</p>
+      </div>
+
       {/* Success/Error Messages */}
       {resetPasswordMessage && (
         <div className="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg text-sm mb-6">
@@ -494,13 +498,6 @@ export default function AccountPage() {
             </div>
           </div>
 
-          {/* Create New Account - Admin Only */}
-          {createAccountSuccess && (
-            <div className="p-3 bg-green-50 border border-green-200 rounded-md">
-              <p className="text-sm text-green-800">{createAccountSuccess}</p>
-            </div>
-          )}
-
           <div className="pt-4 border-t border-gray-200">
             <div className="flex flex-wrap gap-3">
               <button
@@ -527,16 +524,6 @@ export default function AccountPage() {
                   'Update billing info'
                 )}
               </button>
-
-              {canCreateAccounts(user?.email || '') && (
-                <button
-                  onClick={() => setShowCreateAccountModal(true)}
-                  className="px-4 py-2 border border-slate-blue rounded-md shadow-sm text-sm font-medium text-slate-blue bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-blue"
-                >
-                  <Icon name="FaPlus" className="w-4 h-4 mr-2 inline" />
-                  Create new account
-                </button>
-              )}
             </div>
           </div>
         </div>
@@ -617,6 +604,39 @@ export default function AccountPage() {
                 `}
               />
             </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Linked Accounts Section */}
+      <div className="mb-8">
+        <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+          <Icon name="FaLink" className="text-slate-blue" />
+          Linked accounts
+        </h2>
+        <div className="bg-white border border-gray-200 rounded-lg p-6">
+          <p className="text-sm text-gray-600 mb-4">
+            This is for creating additional accounts under the same email address that you can easily toggle between. 
+            Great if you are an agency or have multiple businesses.
+          </p>
+          
+          {/* Success message for account creation */}
+          {createAccountSuccess && (
+            <div className="p-3 bg-green-50 border border-green-200 rounded-md mb-4">
+              <p className="text-sm text-green-800">{createAccountSuccess}</p>
+            </div>
+          )}
+          
+          <div className="flex justify-start">
+            {canCreateAccounts(user?.email || '') && (
+              <button
+                onClick={() => setShowCreateAccountModal(true)}
+                className="px-4 py-2 border border-slate-blue rounded-md shadow-sm text-sm font-medium text-slate-blue bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-blue"
+              >
+                <Icon name="FaPlus" className="w-4 h-4 mr-2 inline" />
+                Create new account
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -780,32 +800,6 @@ export default function AccountPage() {
                   />
                 </div>
                 
-                <div>
-                  <label htmlFor="businessCategory" className="block text-sm font-medium text-gray-700 mb-1">
-                    Business category
-                  </label>
-                  <select
-                    id="businessCategory"
-                    name="businessCategory"
-                    required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-slate-blue"
-                  >
-                    <option value="">Select a category</option>
-                    <option value="Retail">Retail</option>
-                    <option value="Restaurant">Restaurant</option>
-                    <option value="Professional Services">Professional Services</option>
-                    <option value="Healthcare">Healthcare</option>
-                    <option value="Home Services">Home Services</option>
-                    <option value="Automotive">Automotive</option>
-                    <option value="Beauty & Wellness">Beauty & Wellness</option>
-                    <option value="Education">Education</option>
-                    <option value="Entertainment">Entertainment</option>
-                    <option value="Real Estate">Real Estate</option>
-                    <option value="Technology">Technology</option>
-                    <option value="Other">Other</option>
-                  </select>
-                </div>
-
                 <div className="flex gap-3 mt-6">
                   <button
                     type="button"

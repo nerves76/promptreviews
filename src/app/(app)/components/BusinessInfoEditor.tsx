@@ -649,7 +649,7 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
                     <div className="ml-4">
                       <LoadBusinessInfoButton
                         selectedLocationIds={selectedLocationIds}
-                        locations={locations}
+                        locations={locations as any}
                         detailsLoaded={detailsLoaded}
                         onBusinessInfoLoaded={handleBusinessInfoLoaded}
                         onLoadingStateChange={setIsLoadingDetails}

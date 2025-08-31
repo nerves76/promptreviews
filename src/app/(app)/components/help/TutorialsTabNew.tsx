@@ -5,7 +5,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import Icon from '@/components/Icon';
+import Icon, { IconName } from '@/components/Icon';
 import { Tutorial } from './types';
 import { calculateRelevanceScore } from './contextMapper';
 import { trackEvent } from '@/utils/analytics';
@@ -219,11 +219,11 @@ export default function TutorialsTabNew({
           // It's plain text/markdown, convert to simple HTML
           const htmlContent = data.content
             .split('\n\n')
-            .map(paragraph => {
+            .map((paragraph: string) => {
               // Process markdown links [text](url)
               let processed = paragraph.replace(
                 /\[([^\]]+)\]\(([^)]+)\)/g,
-                (match, text, url) => {
+                (match: string, text: string, url: string) => {
                   // Convert relative URLs to docs site
                   const absoluteUrl = url.startsWith('http') 
                     ? url 
@@ -243,7 +243,7 @@ export default function TutorialsTabNew({
                 return `<h3 class="text-lg font-medium mb-2">${processed.substring(4)}</h3>`;
               } else if (processed.startsWith('- ') || processed.startsWith('* ')) {
                 // Handle lists
-                const items = processed.split('\n').map(item => 
+                const items = processed.split('\n').map((item: string) => 
                   `<li>${item.replace(/^[*-]\s/, '')}</li>`
                 ).join('');
                 return `<ul class="list-disc pl-6 mb-4">${items}</ul>`;
@@ -477,7 +477,7 @@ export default function TutorialsTabNew({
               >
                 <div className="flex-shrink-0">
                   <Icon 
-                    name={category.icon} 
+                    name={category.icon as IconName} 
                     className="w-5 h-5 md:w-6 md:h-6 text-slate-600 group-hover:text-indigo-600" 
                     size={24} 
                   />

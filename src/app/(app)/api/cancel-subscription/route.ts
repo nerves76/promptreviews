@@ -19,7 +19,7 @@ if (!stripeSecretKey) {
 }
 
 const stripe = stripeSecretKey ? new Stripe(stripeSecretKey, { 
-  apiVersion: "2025-06-30.basil" 
+  apiVersion: "2025-07-30.basil" 
 }) : null;
 
 export async function POST(request: NextRequest) {
@@ -97,13 +97,13 @@ export async function POST(request: NextRequest) {
             reason: 'user_requested'
           }
         }
-      );
+      ) as Stripe.Subscription;
 
       console.log('✅ Stripe subscription marked for cancellation:', {
         id: canceledSubscription.id,
         status: canceledSubscription.status,
         cancel_at_period_end: canceledSubscription.cancel_at_period_end,
-        current_period_end: new Date(canceledSubscription.current_period_end * 1000).toISOString()
+        current_period_end: canceledSubscription.current_period_end ? new Date(canceledSubscription.current_period_end * 1000).toISOString() : 'N/A'
       });
 
       // ============================================
@@ -113,7 +113,7 @@ export async function POST(request: NextRequest) {
         .from('accounts')
         .update({
           subscription_status: 'canceling',
-          subscription_cancel_at: new Date(canceledSubscription.current_period_end * 1000).toISOString(),
+          subscription_cancel_at: canceledSubscription.current_period_end ? new Date(canceledSubscription.current_period_end * 1000).toISOString() : null,
           updated_at: new Date().toISOString()
         })
         .eq('id', userId);
@@ -132,7 +132,7 @@ export async function POST(request: NextRequest) {
         details: {
           subscription_id: canceledSubscription.id,
           status: canceledSubscription.status,
-          access_until: new Date(canceledSubscription.current_period_end * 1000).toISOString(),
+          access_until: canceledSubscription.current_period_end ? new Date(canceledSubscription.current_period_end * 1000).toISOString() : 'N/A',
           immediate: false,
           note: 'You will retain access until the end of your current billing period'
         }

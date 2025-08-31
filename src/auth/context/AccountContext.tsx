@@ -247,7 +247,7 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
    * Not passing the client causes new client creation without auth.
    */
   useEffect(() => {
-    console.log('🔄 AccountContext: Auth state changed, isAuthenticated:', isAuthenticated, 'userId:', user?.id);
+    // console.log('🔄 AccountContext: useEffect running, isAuthenticated:', isAuthenticated, 'userId:', user?.id, 'accountId:', accountId);
     
     // Don't do anything if we already have an account ID
     if (accountId && isAuthenticated && user?.id) {

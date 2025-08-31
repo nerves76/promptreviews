@@ -160,20 +160,20 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
             completed: taskStatus["business-profile"] || false
           },
           {
-            id: "prompt-page-settings",
-            title: "Add keywords and AI guidelines",
-            description: "Set keywords, dos and don'ts for better AI responses",
-            link: "/prompt-pages?openSettings=true",
-            icon: <Icon name="FaCog" className="w-5 h-5" size={20} />,
-            completed: taskStatus["prompt-page-settings"] || false
-          },
-          {
             id: "style-prompt-pages",
             title: "Style your prompt pages",
             description: "Match your brand with custom styling",
             link: "/dashboard/style",
             icon: <Icon name="FaPalette" className="w-5 h-5" size={20} />,
             completed: taskStatus["style-prompt-pages"] || false
+          },
+          {
+            id: "prompt-page-settings",
+            title: "Add keywords and AI guidelines",
+            description: "Set keywords, dos and don'ts for better AI responses",
+            link: "/prompt-pages?openSettings=true",
+            icon: <Icon name="FaCog" className="w-5 h-5" size={20} />,
+            completed: taskStatus["prompt-page-settings"] || false
           },
           {
             id: "customize-universal",
@@ -214,19 +214,19 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
             completed: false
           },
           {
-            id: "prompt-page-settings",
-            title: "Add keywords and AI guidelines",
-            description: "Set keywords, dos and don'ts for better AI responses",
-            link: "/prompt-pages?openSettings=true",
-            icon: <Icon name="FaCog" className="w-5 h-5" size={20} />,
-            completed: false
-          },
-          {
             id: "style-prompt-pages",
             title: "Style your prompt pages",
             description: "Match your brand with custom styling",
             link: "/dashboard/style",
             icon: <Icon name="FaPalette" className="w-5 h-5" size={20} />,
+            completed: false
+          },
+          {
+            id: "prompt-page-settings",
+            title: "Add keywords and AI guidelines",
+            description: "Set keywords, dos and don'ts for better AI responses",
+            link: "/prompt-pages?openSettings=true",
+            icon: <Icon name="FaCog" className="w-5 h-5" size={20} />,
             completed: false
           },
           {

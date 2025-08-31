@@ -315,19 +315,30 @@ export async function GET(request: NextRequest) {
             }
             locations = locationData || [];
           }
-        } else if (selectedLocationData && selectedLocationData.length > 0) {
-          // Map selected locations to the expected format
-          locations = selectedLocationData.map(loc => ({
-            location_id: loc.location_id,
-            location_name: loc.location_name,
-            address: loc.address,
-            user_id: user.id
-          }));
-          console.log(`✅ Found ${locations.length} selected locations for account ${accountId}`);
         } else {
-          // No selected locations yet - return empty array to prompt selection
-          console.log('ℹ️ No locations selected yet for account:', accountId);
-          locations = [];
+          // Fetch selected locations from database
+          const { data: selectedLocationData, error: selectedError } = await supabase
+            .from('selected_gbp_locations')
+            .select('*')
+            .eq('account_id', accountId);
+
+          if (selectedError) {
+            console.error('❌ Error fetching selected locations:', selectedError);
+            locations = [];
+          } else if (selectedLocationData && selectedLocationData.length > 0) {
+            // Map selected locations to the expected format
+            locations = selectedLocationData.map((loc: any) => ({
+              location_id: loc.location_id,
+              location_name: loc.location_name,
+              address: loc.address,
+              user_id: user.id
+            }));
+            console.log(`✅ Found ${locations.length} selected locations for account ${accountId}`);
+          } else {
+            // No selected locations yet - return empty array to prompt selection
+            console.log('ℹ️ No locations selected yet for account:', accountId);
+            locations = [];
+          }
         }
       } else {
         // No account found, fallback to all locations

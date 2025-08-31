@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, useRef } from 'react'
-import Icon from '@/components/Icon'
+import Icon, { IconName } from '@/components/Icon'
 import { 
   StarIcon,
   DocumentTextIcon
@@ -305,8 +305,25 @@ export default function AnimatedInfographic({ isEmbed = false, debug = false }: 
     return () => clearInterval(interval)
   }, [mounted, isVisible])
 
+  // Type definitions for tools
+  type ToolIconName = 'prompty' | 'FaStar' | IconName;
+  
+  interface Tool {
+    name: string;
+    iconName: ToolIconName;
+    description: string;
+    highlight: string;
+    learnMore: string | null;
+    position: { top: string; left: string };
+  }
+  
+  interface ToolCategory {
+    category: string;
+    tools: Tool[];
+  }
+
   // Position icons: 5 above beam, 4 below beam - evenly spaced
-  const toolCategories = [
+  const toolCategories: ToolCategory[] = [
     {
       category: 'Curiosity',
       tools: [

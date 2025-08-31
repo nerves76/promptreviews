@@ -792,7 +792,7 @@ export default function BusinessLocationModal({
               Contact us if you need more locations for your business.
             </p>
             <a
-              href="mailto:support@promptreviews.com?subject=Need more than 10 business locations"
+              href="mailto:support@promptreviews.app?subject=Need more than 10 business locations"
               className="inline-block px-4 py-2 bg-slate-blue text-white rounded-lg font-medium hover:bg-slate-blue/90 transition mb-2 w-full text-center"
             >
               Contact us

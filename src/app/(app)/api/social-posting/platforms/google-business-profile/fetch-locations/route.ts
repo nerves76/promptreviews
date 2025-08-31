@@ -443,9 +443,9 @@ export async function POST(request: NextRequest) {
        
        // Log the full error for debugging
        console.error('❌ Unhandled API error:', {
-         name: apiError?.name,
-         message: apiError?.message,
-         stack: apiError?.stack
+         name: (apiError as any)?.name,
+         message: (apiError as any)?.message,
+         stack: (apiError as any)?.stack
        });
        
        return NextResponse.json(errorResponse, { status: 500 });

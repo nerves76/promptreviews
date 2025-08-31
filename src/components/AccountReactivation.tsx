@@ -287,7 +287,7 @@ export default function AccountReactivation({ onReactivated, onSkip }: Reactivat
           {/* Help Text */}
           <div className="mt-6 pt-6 border-t border-gray-200">
             <p className="text-xs text-gray-500 text-center">
-              Need help? Contact support at support@promptreviews.com
+              Need help? Contact support at support@promptreviews.app
             </p>
           </div>
         </div>

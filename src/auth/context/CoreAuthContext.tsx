@@ -353,7 +353,7 @@ export function CoreAuthProvider({ children }: { children: React.ReactNode }) {
         clearInterval(sessionCheckInterval.current);
       }
     };
-  }, [checkSession, router]);
+  }, [checkSession, router, user?.id]);
 
   // Memoize the entire context value to prevent unnecessary re-renders
   const value = useMemo<CoreAuthContextType>(() => ({

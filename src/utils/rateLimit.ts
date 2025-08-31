@@ -209,8 +209,10 @@ setInterval(() => {
   rateLimiter.cleanup();
 }, 60000); // Every minute
 
-export default {
+const rateLimitUtils = {
   rateLimitMiddleware,
   withRateLimit,
   getStats: () => rateLimiter.getStats(),
-}; 
+};
+
+export default rateLimitUtils; 

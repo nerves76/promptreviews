@@ -961,14 +961,14 @@ export default function UploadContactsPage() {
             <button
               onClick={handleFindDuplicates}
               disabled={findingDuplicates || contacts.length < 2}
-              className={`px-4 py-2 rounded-lg font-semibold shadow flex items-center gap-2 ${
+              className={`px-3 py-1.5 rounded-lg text-sm flex items-center gap-2 ${
                 !findingDuplicates && contacts.length >= 2
-                  ? 'bg-purple-600 text-white hover:bg-purple-700'
-                  : 'bg-gray-400 text-gray-200 cursor-not-allowed'
+                  ? 'border-2 border-purple-600 text-purple-600 hover:bg-purple-50'
+                  : 'border-2 border-gray-300 text-gray-400 cursor-not-allowed'
               }`}
             >
               <Icon name="FaSearch" className="w-4 h-4" />
-              {findingDuplicates ? 'Finding...' : 'Find Duplicates'}
+              {findingDuplicates ? 'Finding...' : 'Find dupes'}
             </button>
             <button
               onClick={async () => {
@@ -999,18 +999,18 @@ export default function UploadContactsPage() {
                   alert('Failed to export contacts. Please try again.');
                 }
               }}
-              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-semibold shadow flex items-center gap-2"
+              className="px-3 py-1.5 border-2 border-green-600 text-green-600 rounded-lg hover:bg-green-50 text-sm flex items-center gap-2"
             >
               <Icon name="MdDownload" className="w-4 h-4" />
-              Export CSV
+              Export
             </button>
             <button
               onClick={() => canAddContacts ? setShowManualContactForm(true) : router.push('/dashboard/plan')}
               disabled={!canAddContacts}
-              className={`px-4 py-2 rounded-lg font-semibold shadow flex items-center gap-2 ${
+              className={`px-3 py-1.5 rounded-lg text-sm flex items-center gap-2 ${
                 canAddContacts
-                  ? 'bg-blue-600 text-white hover:bg-blue-700'
-                  : 'bg-gray-400 text-gray-200 cursor-not-allowed'
+                  ? 'border-2 border-blue-600 text-blue-600 hover:bg-blue-50'
+                  : 'border-2 border-gray-300 text-gray-400 cursor-not-allowed'
               }`}
             >
               <Icon name="FaPlus" className="w-4 h-4" />
@@ -1019,7 +1019,7 @@ export default function UploadContactsPage() {
             <button
               onClick={() => canAddContacts ? setShowUploadModal(true) : router.push('/dashboard/plan')}
               disabled={!canAddContacts}
-              className={`px-4 py-2 rounded-lg font-semibold shadow flex items-center gap-2 ${
+              className={`px-3 py-1.5 rounded-lg text-sm shadow flex items-center gap-2 ${
                 canAddContacts
                   ? 'bg-slate-blue text-white hover:bg-slate-blue/90'
                   : 'bg-gray-400 text-gray-200 cursor-not-allowed'

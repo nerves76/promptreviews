@@ -31,7 +31,7 @@ export default function AppLoader({
   // Don't use template literals or dynamic class construction
   
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center transition-opacity duration-300 ease-in-out animate-pulse">
+    <div className="min-h-screen flex flex-col items-center justify-center transition-opacity duration-300 ease-in-out">
       <FiveStarSpinner size={size} />
       {showText && (
         <div className="mt-4 text-lg text-white font-semibold">Loading…</div>

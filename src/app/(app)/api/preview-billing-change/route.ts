@@ -205,8 +205,8 @@ export async function POST(req: NextRequest) {
     console.log('📊 Invoice lines from Stripe:', upcomingInvoice.lines.data.map(line => ({
       description: line.description,
       amount: line.amount / 100,
-      proration: line.proration,
-      type: line.type,
+      proration: (line as any).proration,
+      type: (line as any).type,
       period: line.period ? {
         start: new Date(line.period.start * 1000).toISOString(),
         end: new Date(line.period.end * 1000).toISOString()

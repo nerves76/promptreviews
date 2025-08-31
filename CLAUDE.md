@@ -2,6 +2,12 @@
 
 This file provides important context for AI assistants working on the PromptReviews codebase.
 
+## ⚠️ CRITICAL: Domain Information
+- **The correct domain is promptreviews.app** (NOT .com)
+- All email addresses should use @promptreviews.app
+- Support email: support@promptreviews.app
+- Main application URL: app.promptreviews.app
+
 ## ⚠️ IMPORTANT: Known Issues
 - **Turbopack is currently broken** - DO NOT use the `--turbo` flag with Next.js dev server
 - The `npm run dev` command has been modified to run WITHOUT Turbopack
