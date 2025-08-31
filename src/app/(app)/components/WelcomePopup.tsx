@@ -195,9 +195,9 @@ Here's your first tip: [icon] <— click here`;
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black bg-opacity-40 overflow-y-auto">
-      <div className="min-h-full flex items-center justify-center p-4">
-        <div className="relative w-full max-w-4xl">
+    <div className="fixed inset-0 z-50 overflow-y-auto pointer-events-none">
+      <div className="min-h-full flex items-start justify-center p-4 pt-20">
+        <div className="relative w-full max-w-4xl pointer-events-auto">
           {/* Standardized circular close button */}
           <button
             className="absolute -top-3 -right-3 bg-white border border-gray-200 rounded-full shadow-lg flex items-center justify-center hover:bg-gray-100 focus:outline-none z-20 transition-colors"
