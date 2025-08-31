@@ -104,8 +104,8 @@ export interface LocationWithPromptPage extends BusinessLocation {
 // Location tier limits configuration
 export const LOCATION_LIMITS_BY_PLAN = {
   maven: 10,
-  builder: 0,
-  grower: 0,
+  builder: 3,
+  grower: 1,
   starter: 0,
   free: 0,
 } as const;

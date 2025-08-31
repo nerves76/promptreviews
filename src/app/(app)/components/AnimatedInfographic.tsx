@@ -7,6 +7,7 @@ import {
   DocumentTextIcon
 } from '@heroicons/react/24/solid'
 import { StarIcon as StarOutline } from '@heroicons/react/24/outline'
+import { FaGrinHearts } from 'react-icons/fa'
 
 export default function AnimatedInfographic({ isEmbed = false, debug = false }: { isEmbed?: boolean, debug?: boolean }) {
   const [hoveredTool, setHoveredTool] = useState<number | null>(null)
@@ -306,7 +307,7 @@ export default function AnimatedInfographic({ isEmbed = false, debug = false }: 
   }, [mounted, isVisible])
 
   // Type definitions for tools
-  type ToolIconName = 'prompty' | 'FaStar' | IconName;
+  type ToolIconName = 'prompty' | 'FaStar' | 'FaGrinHearts' | IconName;
   
   interface Tool {
     name: string;
@@ -364,7 +365,7 @@ export default function AnimatedInfographic({ isEmbed = false, debug = false }: 
         { 
           name: 'Kickstarters', 
           iconName: 'FaLightbulb' as const,
-          description: 'Kickstarters are presented as a carousel of questions that can inspire reviews.',
+          description: 'Kickstarters are writing prompts designed to inspire customers to leave more thoughtful reviews. Choose from our library or create your own. They appear in a browsable carousel on your account page.',
           highlight: 'Inspires creativity',
           learnMore: null,
           position: { top: '3%', right: '22%' } // Above beam - right
@@ -385,7 +386,7 @@ export default function AnimatedInfographic({ isEmbed = false, debug = false }: 
         { 
           name: 'Special Offer', 
           iconName: 'FaGift' as const,
-          description: 'Offer a special discount or deal to your customer.',
+          description: 'While some review platforms discourage offering incentives for reviews, the special offer banner can be offered alongside a review request. You can even set a 3-minute countdown timer giving users time to submit a review before your offer is revealed.',
           highlight: 'Inspires reciprocity',
           learnMore: null,
           position: { bottom: '-8%', left: '12%' } // Below beam - left - moved down 50px
@@ -418,6 +419,19 @@ export default function AnimatedInfographic({ isEmbed = false, debug = false }: 
           highlight: 'Establishes continuity',
           learnMore: null,
           position: { bottom: '-8%', right: '12%' } // Below beam - right - moved down 50px
+        }
+      ]
+    },
+    {
+      category: 'Thoughtfulness',
+      tools: [
+        { 
+          name: 'Emoji Flow', 
+          iconName: 'FaGrinHearts' as const,
+          description: 'Emoji sentiment flow is an optional popup that allows users express an emotion related to their experience, from \'excellent\' to \'frustrated.\' Users who are feeling negative about their experience are given the choice to provide private feedback instead of a public review.',
+          highlight: 'Provokes thought',
+          learnMore: null,
+          position: { bottom: '-18%', left: '50%', transform: 'translateX(-50%)' } // Below beam - center
         }
       ]
     }
@@ -1657,21 +1671,35 @@ export default function AnimatedInfographic({ isEmbed = false, debug = false }: 
                       }}
                     >
                       {/* Icon */}
-                      <Icon 
-                        name={tool.iconName} 
-                        size={32} 
-                        className="transition-all duration-300"
-                        style={{
-                          color: hoveredTool === toolIndex ? '#f9a8d4' : '#fdb5a6',  // Soft pink on hover, peach normally
-                          filter: hoveredTool === toolIndex
-                            ? 'drop-shadow(0 0 8px rgba(249, 168, 212, 0.5)) drop-shadow(0 0 4px rgba(249, 168, 212, 0.3))'
-                            : 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3))',
-                          transform: hoveredTool === toolIndex ? 'scale(1.1)' : 'scale(1)'
-                        }}
-                      />
+                      {tool.iconName === 'FaGrinHearts' ? (
+                        <FaGrinHearts
+                          size={32}
+                          className="transition-all duration-300"
+                          style={{
+                            color: hoveredTool === toolIndex ? '#f9a8d4' : '#fdb5a6',  // Soft pink on hover, peach normally
+                            filter: hoveredTool === toolIndex
+                              ? 'drop-shadow(0 0 8px rgba(249, 168, 212, 0.5)) drop-shadow(0 0 4px rgba(249, 168, 212, 0.3))'
+                              : 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3))',
+                            transform: hoveredTool === toolIndex ? 'scale(1.1)' : 'scale(1)'
+                          }}
+                        />
+                      ) : (
+                        <Icon 
+                          name={tool.iconName as IconName} 
+                          size={32} 
+                          className="transition-all duration-300"
+                          style={{
+                            color: hoveredTool === toolIndex ? '#f9a8d4' : '#fdb5a6',  // Soft pink on hover, peach normally
+                            filter: hoveredTool === toolIndex
+                              ? 'drop-shadow(0 0 8px rgba(249, 168, 212, 0.5)) drop-shadow(0 0 4px rgba(249, 168, 212, 0.3))'
+                              : 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3))',
+                            transform: hoveredTool === toolIndex ? 'scale(1.1)' : 'scale(1)'
+                          }}
+                        />
+                      )}
                       
                       {/* Tool label */}
-                      <p className="text-white text-xs font-medium mt-2 text-center whitespace-nowrap">
+                      <p className="text-white text-[10px] [@media(min-width:960px)]:text-xs font-medium mt-1 [@media(min-width:960px)]:mt-2 text-center leading-tight">
                         {tool.name}
                       </p>
                       
@@ -2024,7 +2052,7 @@ export default function AnimatedInfographic({ isEmbed = false, debug = false }: 
           
           {/* Features Container */}
           <div 
-            className="grid grid-cols-3 gap-3 px-4 py-4 w-[280px] rounded-2xl"
+            className="grid grid-cols-4 [@media(min-width:960px)]:grid-cols-3 gap-2 [@media(min-width:960px)]:gap-3 px-3 [@media(min-width:960px)]:px-4 py-4 w-[320px] [@media(min-width:960px)]:w-[280px] rounded-2xl"
             style={{
               background: 'rgba(255, 255, 255, 0.04)',
               boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
@@ -2046,21 +2074,35 @@ export default function AnimatedInfographic({ isEmbed = false, debug = false }: 
                 }}
               >
                 {/* Icon */}
-                <Icon 
-                  name={tool.iconName} 
-                  size={29} 
-                  className="transition-all duration-300"
-                  style={{
-                    color: hoveredTool === toolIndex ? '#f9a8d4' : '#fdb5a6',  // Soft pink on hover, peach normally
-                    filter: hoveredTool === toolIndex
-                      ? 'drop-shadow(0 0 8px rgba(249, 168, 212, 0.5)) drop-shadow(0 0 4px rgba(249, 168, 212, 0.3))'
-                      : 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3))',
-                    transform: hoveredTool === toolIndex ? 'scale(1.1)' : 'scale(1)'
-                  }}
-                />
+                {tool.iconName === 'FaGrinHearts' ? (
+                  <FaGrinHearts
+                    size={24}
+                    className="transition-all duration-300 [@media(min-width:960px)]:w-[29px] [@media(min-width:960px)]:h-[29px]"
+                    style={{
+                      color: hoveredTool === toolIndex ? '#f9a8d4' : '#fdb5a6',  // Soft pink on hover, peach normally
+                      filter: hoveredTool === toolIndex
+                        ? 'drop-shadow(0 0 8px rgba(249, 168, 212, 0.5)) drop-shadow(0 0 4px rgba(249, 168, 212, 0.3))'
+                        : 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3))',
+                      transform: hoveredTool === toolIndex ? 'scale(1.1)' : 'scale(1)'
+                    }}
+                  />
+                ) : (
+                  <Icon 
+                    name={tool.iconName as IconName} 
+                    size={24} 
+                    className="transition-all duration-300 [@media(min-width:960px)]:text-[29px]"
+                    style={{
+                      color: hoveredTool === toolIndex ? '#f9a8d4' : '#fdb5a6',  // Soft pink on hover, peach normally
+                      filter: hoveredTool === toolIndex
+                        ? 'drop-shadow(0 0 8px rgba(249, 168, 212, 0.5)) drop-shadow(0 0 4px rgba(249, 168, 212, 0.3))'
+                        : 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3))',
+                      transform: hoveredTool === toolIndex ? 'scale(1.1)' : 'scale(1)'
+                    }}
+                  />
+                )}
                 
                 {/* Tool label */}
-                <p className="text-white text-xs font-medium mt-2 text-center whitespace-nowrap">
+                <p className="text-white text-[10px] [@media(min-width:960px)]:text-xs font-medium mt-1 [@media(min-width:960px)]:mt-2 text-center leading-tight">
                   {tool.name}
                 </p>
               </div>

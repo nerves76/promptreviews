@@ -86,19 +86,18 @@ export default function DashboardLayout({
     }
   }, [isInitialized, user, isClient, router]);
 
-  // Check for cancelled accounts and redirect to dashboard (which will show pricing modal)
+  // Check for accounts without plans and redirect to plan selection
   useEffect(() => {
     if (isInitialized && account && isClient) {
-      const isCancelled = account.deleted_at !== null && account.deleted_at !== undefined;
       const hasNoPlan = !account.plan || account.plan === 'no_plan' || account.plan === 'NULL';
       
-      // Allow access to /dashboard and /dashboard/plan for reactivation
+      // Allow access to /dashboard and /dashboard/plan for plan selection
       const currentPath = window.location.pathname;
       const isAllowedPath = currentPath === '/dashboard' || currentPath === '/dashboard/plan';
       
-      if ((isCancelled || hasNoPlan) && !isAllowedPath) {
-        console.log('🚫 Cancelled account detected, redirecting to dashboard for reactivation');
-        router.push('/dashboard?reactivation=true');
+      if (hasNoPlan && !isAllowedPath) {
+        console.log('📋 No plan detected, redirecting to dashboard for plan selection');
+        router.push('/dashboard');
       }
     }
   }, [isInitialized, account, isClient, router]);
@@ -140,31 +139,8 @@ export default function DashboardLayout({
   }
 
 
-  // Final check: Block access if account is cancelled (except for allowed paths)
-  // Important: Only check this if account data is fully loaded to prevent flash
-  if (account && !accountLoading) {
-    const isCancelled = account.deleted_at !== null && account.deleted_at !== undefined;
-    const hasNoPlan = !account.plan || account.plan === 'no_plan' || account.plan === 'NULL';
-    const currentPath = typeof window !== 'undefined' ? window.location.pathname : '';
-    const isAllowedPath = currentPath === '/dashboard' || currentPath === '/dashboard/plan';
-    
-    if ((isCancelled || hasNoPlan) && !isAllowedPath) {
-      return (
-        <div className="min-h-screen flex flex-col items-center justify-center">
-          <div className="text-center text-white p-8">
-            <h1 className="text-3xl font-bold mb-4">Account Reactivation Required</h1>
-            <p className="mb-6">Your account needs to be reactivated to continue.</p>
-            <button 
-              onClick={() => router.push('/dashboard?reactivation=true')}
-              className="bg-white text-purple-700 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100"
-            >
-              Reactivate Account
-            </button>
-          </div>
-        </div>
-      );
-    }
-  }
+  // If account has no plan and not on allowed paths, the useEffect above will redirect
+  // No need to show any special UI here
 
   return (
     <div className="w-full min-h-screen pb-16 md:pb-24 lg:pb-32">

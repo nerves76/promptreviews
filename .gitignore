@@ -58,3 +58,4 @@ docs-promptreviews/docs-site/build/
 
 # database exports that may contain sensitive data
 pg_policies
+accounts

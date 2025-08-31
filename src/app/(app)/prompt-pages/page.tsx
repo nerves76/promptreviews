@@ -663,9 +663,17 @@ function PromptPagesContent() {
     return props;
   }, []);
 
+  // Check authentication first - redirect if not authenticated
+  useEffect(() => {
+    if (authInitialized && !authUser) {
+      console.log('No authenticated user, redirecting to sign-in');
+      router.push('/auth/sign-in');
+    }
+  }, [authInitialized, authUser, router]);
+
   // Show loader while auth is initializing or data is being fetched
   // Using dataLoaded and minLoadTimeElapsed to ensure smooth loading experience
-  if (!authInitialized || !dataLoaded || !minLoadTimeElapsed) {
+  if (!authInitialized || !dataLoaded || !minLoadTimeElapsed || authLoading) {
     return (
       <div>
         <PageCard icon={<span className="text-3xl font-bold align-middle text-slate-blue" style={{ fontFamily: 'Inter, sans-serif' }}>[P]</span>}>
@@ -675,6 +683,11 @@ function PromptPagesContent() {
         </PageCard>
       </div>
     );
+  }
+
+  // If auth is initialized but no user, show nothing while redirecting
+  if (authInitialized && !authUser) {
+    return null;
   }
 
   return (

@@ -76,11 +76,11 @@ export const PLAN_LIMITS = {
     promptPages: 3,
     contacts: 0,
     hasWorkflow: false,
-    hasGoogleBusiness: false,
+    hasGoogleBusiness: true,
   },
   builder: {
     maxUsers: 3,
-    maxLocations: 1,
+    maxLocations: 3,
     promptPages: 50,
     contacts: 1000,
     hasWorkflow: true,

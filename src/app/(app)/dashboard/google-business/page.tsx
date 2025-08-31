@@ -171,13 +171,9 @@ export default function SocialPostingDashboard() {
   
   // Check if user has Google Business Profile access
   const checkGBPAccess = () => {
-    if (currentPlan === 'grower') {
-      setHasGBPAccess(false);
-      setGbpAccessMessage("Google Business Profile integration is available on Builder and Maven plans.");
-    } else {
-      setHasGBPAccess(true);
-      setGbpAccessMessage("");
-    }
+    // All plans now have access to Google Business Profile
+    setHasGBPAccess(true);
+    setGbpAccessMessage("");
   };
   const loadingRef = useRef(false); // More persistent loading prevention
   const initialLoadDone = useRef(false); // Track if initial load has been completed

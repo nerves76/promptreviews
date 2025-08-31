@@ -92,9 +92,9 @@ body {
   /* Prevent overscroll bounce on iOS */
   position: relative;
   overflow-x: hidden;
-  /* Force GPU acceleration */
-  transform: translateZ(0);
-  -webkit-transform: translateZ(0);
+  /* Removed transform properties that can interfere with fixed positioning */
+  /* transform: translateZ(0); */
+  /* -webkit-transform: translateZ(0); */
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
 }
@@ -115,6 +115,53 @@ body::before {
     rgb(145, 74, 174) 100%
   );
   pointer-events: none;
+}
+
+/* Fix for modal positioning issues */
+/* When body has overflow-x: hidden, fixed elements can be offset */
+/* This ensures modals with fixed positioning center correctly */
+/* Note: We use :not([style*="transform"]) to exclude draggable modals that set inline transform */
+.fixed[class*="inset-0"]:not([style*="transform"]):not([style*="left"]):not([style*="top"]) {
+  /* Reset any transforms that might affect positioning */
+  transform: none !important;
+  -webkit-transform: none !important;
+}
+
+/* Ensure flex centering works properly for non-draggable modals */
+/* Draggable modals have inline styles with position values, so we exclude them */
+.fixed.inset-0.flex.items-center.justify-center:not([style*="left"]):not([style*="top"]) {
+  /* Use absolute centering as fallback */
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  /* Ensure the modal container takes full viewport */
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  /* Override any parent transforms */
+  position: fixed !important;
+}
+
+/* Ensure modals and fixed positioned elements work correctly */
+.fixed {
+  position: fixed !important;
+}
+
+/* Ensure modals center properly */
+.fixed.inset-0 {
+  top: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  left: 0 !important;
+}
+
+/* Force body to not interfere with modal positioning */
+/* This is especially important on game pages or pages with unusual body styles */
+body:has(.fixed.inset-0) {
+  /* Reset any display flex/grid that might affect fixed children */
+  align-items: initial !important;
+  justify-content: initial !important;
 }
 
 /* Let dashboard components use their original designs */
