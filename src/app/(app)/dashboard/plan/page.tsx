@@ -129,8 +129,17 @@ export default function PlanPage() {
         // Mark that we've shown the modal BEFORE setting state to prevent re-runs
         successModalShownRef.current = true;
         
-        // Set action type from URL or session
-        const action = change || savedAction || 'upgrade';
+        // Determine if this is a first payment (from no_plan or expired trial)
+        const isFirstPayment = account && (
+          !account.has_had_paid_plan || 
+          (account.trial_end && new Date(account.trial_end) < new Date() && !account.stripe_subscription_id)
+        );
+        
+        // Set action type from URL or session, considering first payment
+        let action = change || savedAction || 'upgrade';
+        if (isFirstPayment && action === 'upgrade') {
+          action = 'first_payment';
+        }
         
         // Batch all state updates together
         setLastAction(action);
@@ -1091,6 +1100,8 @@ export default function PlanPage() {
         <h2 className="text-2xl font-bold text-gray-900 mb-4">
           {lastAction === "new"
             ? "Welcome to Prompt Reviews!"
+            : lastAction === "first_payment"
+            ? "Payment successful!"
             : lastAction === "upgrade"
             ? "Plan upgraded successfully!"
             : "Plan updated successfully!"}
@@ -1098,6 +1109,8 @@ export default function PlanPage() {
         <p className="text-gray-600 mb-6">
           {lastAction === "new"
             ? "Your account has been created and you're ready to start collecting reviews!"
+            : lastAction === "first_payment"
+            ? "Your payment was successful! You now have full access to all plan features."
             : lastAction === "upgrade"
             ? "You now have access to all the features in your new plan. Any unused time from your previous subscription has been automatically credited to your account."
             : "Your plan has been updated successfully. Proration has been automatically applied to your account."}

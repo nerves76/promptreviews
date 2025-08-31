@@ -96,28 +96,18 @@ export function AccountSwitcher() {
       <button
         ref={buttonRef}
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2 transition-colors"
+        className="flex items-center gap-2 px-3 py-2 text-sm text-white hover:text-gray-300 focus:outline-none transition-colors"
         aria-label="Switch account"
         aria-expanded={isOpen}
       >
-        {/* Account Icon */}
-        <div className="w-6 h-6 bg-slate-blue text-white rounded-full flex items-center justify-center text-xs font-medium">
-          {getAccountDisplayName(selectedAccount).charAt(0).toUpperCase()}
-        </div>
-        
         {/* Account Name */}
-        <span className="font-medium text-gray-900 max-w-32 truncate">
+        <span className="font-medium max-w-32 truncate">
           {getAccountDisplayName(selectedAccount)}
-        </span>
-        
-        {/* Role Badge */}
-        <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${getRoleColor(selectedAccount.role)}`}>
-          {selectedAccount.role}
         </span>
         
         {/* Dropdown Arrow */}
         <svg 
-          className={`w-4 h-4 text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+          className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`}
           fill="none" 
           stroke="currentColor" 
           viewBox="0 0 24 24"
@@ -130,7 +120,7 @@ export function AccountSwitcher() {
       {isOpen && typeof window !== 'undefined' && createPortal(
         <div
           ref={dropdownRef}
-          className="fixed w-80 bg-white/90 backdrop-blur-sm border-2 border-white rounded-lg shadow-2xl overflow-hidden"
+          className="fixed w-80 bg-gradient-to-r from-indigo-600 via-purple-600 to-fuchsia-600 backdrop-blur-sm border-2 border-purple-500 rounded-lg shadow-2xl overflow-hidden"
           style={{
             zIndex: 2147483648, // One higher than other header elements
             top: buttonRef.current ? buttonRef.current.getBoundingClientRect().bottom + 8 : 0,
@@ -138,15 +128,20 @@ export function AccountSwitcher() {
           }}
         >
           {/* Header */}
-          <div className="px-4 py-3 bg-gradient-to-r from-indigo-600 via-purple-600 to-fuchsia-600">
-            <h3 className="text-sm font-medium text-white">Switch Account</h3>
-            <p className="text-xs text-white/80 mt-1">
+          <div className="px-4 py-3">
+            <div className="flex items-center gap-2">
+              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+              </svg>
+              <h3 className="text-sm font-medium text-white">Switch account</h3>
+            </div>
+            <p className="text-xs text-white/80 mt-1 ml-6">
               Select which account you want to work with
             </p>
           </div>
 
           {/* Account List */}
-          <div className="max-h-64 overflow-y-auto">
+          <div className="max-h-64 overflow-y-auto bg-black/20">
             {availableAccounts.map((account) => (
               <button
                 key={account.account_id}
@@ -156,31 +151,26 @@ export function AccountSwitcher() {
                   }
                   setIsOpen(false);
                 }}
-                className={`w-full px-4 py-3 text-left hover:bg-gray-50 focus:outline-none focus:bg-gray-50 transition-colors ${
+                className={`w-full px-4 py-3 text-left hover:bg-white/10 focus:outline-none focus:bg-white/10 transition-colors ${
                   account.account_id === selectedAccount.account_id 
-                    ? 'bg-blue-50 border-l-4 border-blue-500' 
+                    ? 'bg-white/20 border-l-4 border-white' 
                     : ''
                 }`}
               >
                 <div className="flex items-center gap-3">
-                  {/* Account Icon */}
-                  <div className="w-8 h-8 bg-slate-blue text-white rounded-full flex items-center justify-center text-sm font-medium flex-shrink-0">
-                    {getAccountDisplayName(account).charAt(0).toUpperCase()}
-                  </div>
-                  
                   <div className="flex-1 min-w-0">
                     {/* Account Name */}
                     <div className="flex items-center gap-2">
-                      <span className="font-medium text-gray-900 truncate">
+                      <span className="font-medium text-slate-900 truncate">
                         {getAccountDisplayName(account)}
                       </span>
                       {account.is_primary && (
-                        <span className="px-2 py-0.5 text-xs font-medium text-blue-600 bg-blue-100 rounded-full">
+                        <span className="px-2 py-0.5 text-xs font-medium text-purple-900 bg-white/80 rounded-full">
                           Default
                         </span>
                       )}
                       {account.account_id === selectedAccount.account_id && (
-                        <span className="px-2 py-0.5 text-xs font-medium text-green-600 bg-green-100 rounded-full">
+                        <span className="px-2 py-0.5 text-xs font-medium text-green-900 bg-white/80 rounded-full">
                           Current
                         </span>
                       )}
@@ -188,11 +178,11 @@ export function AccountSwitcher() {
                     
                     {/* Account Details */}
                     <div className="flex items-center gap-2 mt-1">
-                      <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${getRoleColor(account.role)}`}>
+                      <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-slate-900/20 text-slate-700">
                         {account.role}
                       </span>
                       {account.plan && account.plan !== 'no_plan' && (
-                        <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${getPlanColor(account.plan)}`}>
+                        <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-slate-900/20 text-slate-700">
                           {account.plan}
                         </span>
                       )}
@@ -201,7 +191,7 @@ export function AccountSwitcher() {
                   
                   {/* Selected Indicator */}
                   {account.account_id === selectedAccount.account_id && (
-                    <svg className="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                    <svg className="w-5 h-5 text-slate-900" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                     </svg>
                   )}

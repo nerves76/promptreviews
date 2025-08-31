@@ -21,6 +21,7 @@ const tiers = [
       "Cannot upload contacts",
       "Review widget",
       "Analytics",
+      "Manage 1 Google Business Profile",
     ],
   },
   {
@@ -44,8 +45,7 @@ const tiers = [
       "1000 contacts",
       "Review widget",
       "Analytics",
-      "Google Business Profile management",
-      "Up to 5 Google Business Profiles",
+      "Manage up to 3 Google Business Profiles",
     ],
   },
   {
@@ -63,13 +63,12 @@ const tiers = [
     button: "bg-slate-blue hover:bg-slate-blue/90 text-white",
     features: [
       "5 team members",
-      "Up to 10 Google Business Profiles",
       "Workflow management",
       "500 Prompt Pages",
       "10,000 contacts",
       "Review widget",
       "Analytics",
-      "Google Business Profile management",
+      "Manage up to 10 Google Business Profiles",
     ],
   },
 ];
@@ -123,7 +122,8 @@ export default function PricingModal({
     hasHadPaidPlan,
     isReactivation,
     hadPreviousTrial,
-    reactivationOffer
+    reactivationOffer,
+    showTrialBadge: !hasHadPaidPlan && !hadPreviousTrial && (!currentPlan || currentPlan === "grower" || currentPlan === "free" || currentPlan === "none" || currentPlan === "no_plan")
   });
   const [tooltip, setTooltip] = useState<string | null>(null);
   const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(
@@ -220,6 +220,7 @@ export default function PricingModal({
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full">
           {tiers.map((tier) => {
             const isGrower = tier.key === "grower";
+            const isBuilder = tier.key === "builder";
             return (
               <div
                 key={tier.key}
@@ -228,14 +229,8 @@ export default function PricingModal({
                   (tier.key === currentPlan
                     ? " border border-4 border-solid border-indigo-700"
                     : "") +
-                  (isGrower &&
-                  !hasHadPaidPlan &&
-                  (!currentPlan ||
-                    currentPlan === "grower" ||
-                    currentPlan === "free" ||
-                    currentPlan === "none" ||
-                    currentPlan === "no_plan")
-                    ? " ring-2 ring-yellow-400"
+                  (isBuilder
+                    ? " ring-4 ring-yellow-400"
                     : "")
                 }
                 style={{
@@ -244,20 +239,7 @@ export default function PricingModal({
                   borderColor: tier.key === currentPlan ? "#4338ca" : undefined,
                 }}
               >
-                {/* Show gold banner only if user has NOT had a paid plan and is NOT currently subscribed */}
-                {isGrower &&
-                  !hasHadPaidPlan &&
-                  (!currentPlan ||
-                    currentPlan === "grower" ||
-                    currentPlan === "free" ||
-                    currentPlan === "none" ||
-                    currentPlan === "no_plan") && (
-                    <>
-                      <span className="absolute -top-5 left-1/2 -translate-x-1/2 bg-yellow-400 text-slate-900 font-bold px-4 py-1 rounded-full text-xs shadow-lg z-10 border border-yellow-300">
-                        14-day Free Trial
-                      </span>
-                    </>
-                  )}
+                {/* Removed the free trial banner */}
                 <h3 className={`text-3xl font-bold mb-2 ${tier.text}`}>
                   {tier.name}
                 </h3>
@@ -380,49 +362,9 @@ export default function PricingModal({
                 <button
                   className={`w-full mt-auto py-3 rounded-lg font-semibold text-lg ${tier.button}`}
                   onClick={() => onSelectTier(tier.key, billingPeriod)}
-                  disabled={tier.key === currentPlan && billingPeriod === currentBillingPeriod && !!currentPlan}
+                  disabled={false}
                 >
-                  {(() => {
-                    // Handle new users with no plan
-                    if (!currentPlan || currentPlan === 'no_plan' || currentPlan === 'NULL') {
-                      if (tier.key === "grower") {
-                        console.log('🔍 Grower button check:', { 
-                          hadPreviousTrial, 
-                          isReactivation, 
-                          hasHadPaidPlan,
-                          shouldShowTrial: !hadPreviousTrial && !isReactivation && !hasHadPaidPlan
-                        });
-                        // If they already had a trial, are reactivating, or had a paid plan, no trial
-                        if (hadPreviousTrial === true || isReactivation === true || hasHadPaidPlan === true) {
-                          console.log('✅ Showing "Get Started" for Grower (no trial)');
-                          return "Get Started";
-                        }
-                        console.log('🆓 Showing "Start Free Trial" for Grower');
-                        return "Start Free Trial";
-                      }
-                      return "Get Started";
-                    }
-                    
-                    // Check if this is the current plan AND billing period
-                    const isCurrentPlanAndBilling = tier.key === currentPlan && billingPeriod === currentBillingPeriod;
-                    if (isCurrentPlanAndBilling) return "Your Plan";
-                    
-                    // If viewing different billing period than current
-                    const isViewingDifferentBilling = billingPeriod !== currentBillingPeriod && currentBillingPeriod;
-                    
-                    if (isViewingDifferentBilling) {
-                      // All buttons should say "Switch to Annual" or "Switch to Monthly"
-                      return billingPeriod === 'annual' ? "Switch to Annual" : "Switch to Monthly";
-                    }
-                    
-                    // Same billing period as current - show Upgrade/Downgrade
-                    const current = tiers.find((t) => t.key === currentPlan);
-                    const target = tiers.find((t) => t.key === tier.key);
-                    if (!current || !target) return "Choose";
-                    if (target.order > current.order) return "Upgrade";
-                    if (target.order < current.order) return "Downgrade";
-                    return "Choose";
-                  })()}
+                  Choose
                 </button>
                 {/* Always render a div for consistent button row height */}
                 <div
@@ -431,6 +373,7 @@ export default function PricingModal({
                 >
                   {tier.key === "grower" &&
                     !hasHadPaidPlan &&
+                    !hadPreviousTrial &&
                     "*No credit card necessary"}
                 </div>
               </div>

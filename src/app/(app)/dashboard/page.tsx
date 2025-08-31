@@ -762,7 +762,8 @@ const Dashboard = React.memo(function Dashboard() {
   // Show loading screen while essential data loads to prevent dashboard flash
   // This prevents briefly showing dashboard before redirect to create-business
   // Also show loading when pricing modal is pending after business creation
-  if (!account || businessesLoading || (account && !businessData) || isPendingPricingModal) {
+  // Note: We only check businessesLoading, not !businessData, because businessData can be null while loading
+  if (!account || businessesLoading || isPendingPricingModal) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600">
         <div className="text-center">
@@ -825,47 +826,58 @@ const Dashboard = React.memo(function Dashboard() {
         source: 'dashboard_modal'
       });
       
-      // Handle grower plan (free trial) - update directly without Stripe
+      // Handle grower plan (free trial) - update directly without Stripe ONLY if eligible for trial
       if (tierKey === "grower") {
         if (!account?.id) {
           throw new Error("Account not found");
         }
         
-        // Update account to grower plan with trial dates and billing period
-        const { error: updateError } = await supabase
-          .from("accounts")
-          .update({ 
+        // Check if this account is eligible for a trial
+        const isEligibleForTrial = !account.has_had_paid_plan && !account.trial_end && !account.trial_start;
+        
+        // If eligible for trial, handle locally without Stripe
+        if (isEligibleForTrial) {
+          // Update account to grower plan with trial dates
+          const updateData = { 
             plan: tierKey,
             billing_period: billingPeriod,
             trial_start: new Date().toISOString(),
             trial_end: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString()
-          })
-          .eq("id", account.id);
-        
-        if (updateError) {
-          throw updateError;
+          };
+          
+          const { error: updateError } = await supabase
+            .from("accounts")
+            .update(updateData)
+            .eq("id", account.id);
+          
+          if (updateError) {
+            throw updateError;
+          }
+          
+          // Close modal and show celebration
+          setShowPricingModal(false);
+          setPlanSelectionRequired(false);
+          setShowStarfallCelebration(true);
+          
+          // Clear any dismissal flags since user now has a valid plan
+          if (typeof window !== "undefined") {
+            sessionStorage.removeItem('pricingModalDismissed');
+            sessionStorage.removeItem('businessCreatedHandled');
+            console.log("🧹 Cleared modal dismissal flag after grower plan selection");
+          }
+          
+          // Instead of window.location.reload(), reload data and update state
+          await Promise.all([
+            refreshSession(),
+            refreshAccount(),
+            loadDashboardSpecificData()
+          ]);
+          setShowTopLoader(false);
+          return;
         }
         
-        // Close modal and show celebration
-        setShowPricingModal(false);
-        setPlanSelectionRequired(false);
-        setShowStarfallCelebration(true);
-        
-        // Clear any dismissal flags since user now has a valid plan
-        if (typeof window !== "undefined") {
-          sessionStorage.removeItem('pricingModalDismissed');
-          sessionStorage.removeItem('businessCreatedHandled');
-          console.log("🧹 Cleared modal dismissal flag after grower plan selection");
-        }
-        
-        // Instead of window.location.reload(), reload data and update state
-        await Promise.all([
-          refreshSession(),
-          refreshAccount(),
-          loadDashboardSpecificData()
-        ]);
-        setShowTopLoader(false);
-        return;
+        // If NOT eligible for trial (expired trial or had paid plan), go through Stripe for payment
+        console.log("📊 Grower plan selected but trial not eligible, proceeding to Stripe checkout");
       }
       
       // For paid plans, use Stripe checkout
@@ -1064,10 +1076,10 @@ const Dashboard = React.memo(function Dashboard() {
           showCanceledMessage={justCanceledStripe}
           onClose={handleClosePricingModal}
           isPlanSelectionRequired={planSelectionRequired}
-          isReactivation={account?.deleted_at !== null || account?.plan === 'no_plan'}
-          hadPreviousTrial={account?.has_had_paid_plan || account?.trial_end !== null}
+          isReactivation={account?.deleted_at !== null || (account?.plan === 'no_plan' && account?.has_had_paid_plan)}
+          hadPreviousTrial={account?.has_had_paid_plan || (account?.trial_end !== null && account?.trial_start !== null)}
           reactivationOffer={
-            (account?.deleted_at || account?.plan === 'no_plan') ? {
+            (account?.deleted_at || (account?.plan === 'no_plan' && account?.has_had_paid_plan)) ? {
               hasOffer: true,
               offerType: 'percentage',
               discount: 20,

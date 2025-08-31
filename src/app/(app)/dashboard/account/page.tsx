@@ -227,20 +227,22 @@ export default function AccountPage() {
     setCreateAccountSuccess(null);
 
     const formData = new FormData(e.target as HTMLFormElement);
+    const firstName = formData.get('firstName') as string;
+    const lastName = formData.get('lastName') as string;
+    const email = formData.get('email') as string;
     const businessName = formData.get('businessName') as string;
-    const contactName = formData.get('contactName') as string;
-    const phoneNumber = formData.get('phoneNumber') as string;
 
     try {
-      const response = await fetch('/api/admin/create-account', {
+      const response = await fetch('/api/accounts/create-additional', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
+          firstName,
+          lastName,
+          email,
           businessName,
-          contactName,
-          phoneNumber,
         }),
       });
 
@@ -250,16 +252,21 @@ export default function AccountPage() {
         throw new Error(result.error || 'Failed to create account');
       }
 
-      setCreateAccountSuccess(`Account created successfully! Business: ${businessName}`);
+      setCreateAccountSuccess(`Account created successfully for ${firstName} ${lastName}! You can now switch to this account from the account selector.`);
       setShowCreateAccountModal(false);
       
       // Reset form
       (e.target as HTMLFormElement).reset();
       
-      // Keep success message visible
+      // Keep success message visible and optionally refresh
       setTimeout(() => {
         setCreateAccountSuccess(null);
-      }, 5000);
+      }, 7000);
+      
+      // Refresh the page to potentially show new account in lists
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
 
     } catch (error: any) {
       console.error('Error creating account:', error);
@@ -758,6 +765,63 @@ export default function AccountPage() {
                   </div>
                 )}
                 
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-1">
+                      First name
+                    </label>
+                    <input
+                      type="text"
+                      id="firstName"
+                      name="firstName"
+                      required
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-slate-blue"
+                      placeholder="First name"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-1">
+                      Last name
+                    </label>
+                    <input
+                      type="text"
+                      id="lastName"
+                      name="lastName"
+                      required
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-slate-blue"
+                      placeholder="Last name"
+                    />
+                  </div>
+                </div>
+                
+                <div>
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
+                    Email
+                    <div className="relative group">
+                      <Icon name="FaQuestionCircle" className="text-gray-400 hover:text-gray-600 cursor-help" size={14} />
+                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block z-50 w-64">
+                        <div className="bg-gray-900 text-white text-xs rounded-lg py-2 px-3 shadow-lg">
+                          <div className="font-semibold mb-1">Different Email Addresses</div>
+                          <div>You can use a different email if you're creating this account for a client or separate business. All accounts will still be accessible through your main login.</div>
+                          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-full">
+                            <div className="border-4 border-transparent border-t-gray-900"></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </label>
+                  <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    required
+                    defaultValue={user?.email || ''}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-slate-blue"
+                    placeholder="Email address"
+                  />
+                </div>
+                
                 <div>
                   <label htmlFor="businessName" className="block text-sm font-medium text-gray-700 mb-1">
                     Business name
@@ -768,36 +832,14 @@ export default function AccountPage() {
                     name="businessName"
                     required
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-slate-blue"
-                    placeholder="Enter business name"
+                    placeholder="Business or account name"
                   />
                 </div>
                 
-                <div>
-                  <label htmlFor="contactName" className="block text-sm font-medium text-gray-700 mb-1">
-                    Contact name
-                  </label>
-                  <input
-                    type="text"
-                    id="contactName"
-                    name="contactName"
-                    required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-slate-blue"
-                    placeholder="Enter contact name"
-                  />
-                </div>
-                
-                <div>
-                  <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700 mb-1">
-                    Phone number
-                  </label>
-                  <input
-                    type="tel"
-                    id="phoneNumber"
-                    name="phoneNumber"
-                    required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-slate-blue"
-                    placeholder="Enter phone number"
-                  />
+                <div className="bg-blue-50 border border-blue-200 rounded-md p-3 mt-4">
+                  <p className="text-sm text-blue-800">
+                    <span className="font-medium">Note:</span> Once created, a dropdown account switcher will appear in your nav. Once selected, you will need to choose a plan and set up billing for your new account.
+                  </p>
                 </div>
                 
                 <div className="flex gap-3 mt-6">
