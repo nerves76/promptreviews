@@ -1,35 +1,18 @@
 'use client'
 
-import { useEffect } from 'react'
-import dynamic from 'next/dynamic'
-
-// Loading skeleton that matches the infographic dimensions
-const LoadingSkeleton = () => (
-  <div className="w-full flex items-center justify-center" style={{ height: '750px' }}>
-    <div className="animate-pulse flex space-x-8">
-      <div className="rounded-lg bg-gray-200 h-40 w-40"></div>
-      <div className="rounded-lg bg-gray-200 h-40 w-40"></div>
-      <div className="rounded-lg bg-gray-200 h-40 w-40"></div>
-    </div>
-  </div>
-)
-
-// Import with SSR disabled to avoid hydration mismatches
-const AnimatedInfographic = dynamic(
-  () => import(
-    /* webpackPreload: true */
-    /* webpackChunkName: "animated-infographic" */
-    '../../(app)/components/AnimatedInfographic'
-  ), 
-  {
-    ssr: false,
-    loading: () => <LoadingSkeleton />
-  }
-)
+import { useEffect, useState } from 'react'
+import AnimatedInfographic from '../../(app)/components/AnimatedInfographic'
 
 export default function EmbedInfographicPage() {
+  const [isClient, setIsClient] = useState(false)
   
   useEffect(() => {
+    setIsClient(true)
+  }, [])
+  
+  useEffect(() => {
+    if (!isClient) return
+    
     let lastHeight = 0
     
     // Send height to parent window for iframe resizing
@@ -80,7 +63,12 @@ export default function EmbedInfographicPage() {
       window.removeEventListener('load', sendHeight)
       clearTimeout(resizeTimeout)
     }
-  }, [])
+  }, [isClient])
+  
+  // Don't render anything on the server
+  if (!isClient) {
+    return null
+  }
   
   return (
     <div className="w-full flex flex-col items-center justify-start py-10">

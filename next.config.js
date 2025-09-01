@@ -117,6 +117,18 @@ const nextConfig = {
   // Headers for performance and caching
   async headers() {
     return [
+      // Prevent caching for embed routes in development
+      {
+        source: '/infographic-embed',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: process.env.NODE_ENV === 'development' 
+              ? 'no-store, no-cache, must-revalidate' 
+              : 'public, max-age=3600',
+          },
+        ],
+      },
       // CRITICAL: Ensure correct MIME types for ALL CSS files (including chunked CSS)
       {
         source: '/_next/static/css/:path*.css',
