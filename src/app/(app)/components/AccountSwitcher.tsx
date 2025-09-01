@@ -120,7 +120,7 @@ export function AccountSwitcher() {
       {isOpen && typeof window !== 'undefined' && createPortal(
         <div
           ref={dropdownRef}
-          className="fixed w-80 bg-white/70 backdrop-blur-md rounded-lg shadow-2xl border-2 border-white/30 py-2 overflow-hidden"
+          className="fixed w-80 bg-white/90 backdrop-blur-md rounded-lg shadow-2xl border-2 border-white/50 py-2 overflow-hidden"
           style={{
             zIndex: 2147483648, // One higher than other header elements
             top: buttonRef.current ? buttonRef.current.getBoundingClientRect().bottom + 8 : 0,
@@ -135,7 +135,7 @@ export function AccountSwitcher() {
               </svg>
               <h3 className="text-sm font-medium text-gray-900">Switch account</h3>
             </div>
-            <p className="text-xs text-gray-500 mt-1 ml-6">
+            <p className="text-xs text-slate-blue mt-1 ml-6">
               Select which account you want to work with
             </p>
           </div>
@@ -177,20 +177,9 @@ export function AccountSwitcher() {
                       <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-gray-100 text-gray-600">
                         {account.role}
                       </span>
-                      {account.plan && account.plan !== 'no_plan' && (
-                        <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-gray-100 text-gray-600">
-                          {account.plan}
-                        </span>
-                      )}
                     </div>
                   </div>
                   
-                  {/* Selected Indicator */}
-                  {account.account_id === selectedAccount.account_id && (
-                    <svg className="w-5 h-5 text-slate-blue" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                    </svg>
-                  )}
                 </div>
               </button>
             ))}
