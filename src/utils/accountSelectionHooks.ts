@@ -182,6 +182,19 @@ export function useAccountSelection() {
       selectedAccountId: accountId
     }));
 
+    // Emit custom event for account switch
+    const accountSwitchEvent = new CustomEvent('accountSwitched', { 
+      detail: { 
+        previousAccountId: state.selectedAccountId,
+        newAccountId: accountId 
+      } 
+    });
+    window.dispatchEvent(accountSwitchEvent);
+    console.log('📢 useAccountSelection: Emitted accountSwitched event', {
+      previousAccountId: state.selectedAccountId,
+      newAccountId: accountId
+    });
+
     // Only reload if we're not on the widget page (to prevent data loss)
     const currentPath = window.location.pathname;
     console.log('🔄 useAccountSelection: Checking reload necessity', {

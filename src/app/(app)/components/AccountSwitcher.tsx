@@ -120,7 +120,7 @@ export function AccountSwitcher() {
       {isOpen && typeof window !== 'undefined' && createPortal(
         <div
           ref={dropdownRef}
-          className="fixed w-80 bg-white/85 backdrop-blur-md rounded-lg shadow-2xl border-2 border-white/30 py-2 overflow-hidden"
+          className="fixed w-80 bg-white/70 backdrop-blur-md rounded-lg shadow-2xl border-2 border-white/30 py-2 overflow-hidden"
           style={{
             zIndex: 2147483648, // One higher than other header elements
             top: buttonRef.current ? buttonRef.current.getBoundingClientRect().bottom + 8 : 0,
@@ -151,11 +151,7 @@ export function AccountSwitcher() {
                   }
                   setIsOpen(false);
                 }}
-                className={`w-full px-4 py-3 text-left hover:bg-gray-100 focus:outline-none focus:bg-gray-100 transition-colors ${
-                  account.account_id === selectedAccount.account_id 
-                    ? 'bg-gray-50 border-l-4 border-slate-blue' 
-                    : ''
-                }`}
+                className="w-full px-4 py-3 text-left hover:bg-slate-blue/10 hover:text-slate-blue focus:outline-none focus:bg-slate-blue/10 transition-colors"
               >
                 <div className="flex items-center gap-3">
                   <div className="flex-1 min-w-0">

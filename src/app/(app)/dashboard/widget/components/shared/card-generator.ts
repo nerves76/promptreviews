@@ -22,6 +22,7 @@ interface Design {
   borderRadius?: number;
   borderWidth?: number;
   borderColor?: string;
+  borderOpacity?: number;
   bgOpacity?: number;
   font?: string;
   border?: boolean;
@@ -32,6 +33,8 @@ interface Design {
   quoteSize?: number;
   showRelativeDate?: boolean;
   showPlatform?: boolean;
+  glassmorphism?: boolean;
+  backdropBlur?: number;
 }
 
 // TODO: Move the createReviewCard function here. 
@@ -107,33 +110,93 @@ export function createReviewCardHTML(review: Review, design: Design) {
   const borderRadius = design.borderRadius || 16;
   const borderWidth = design.borderWidth || 2;
   const borderColor = design.borderColor || '#cccccc';
+  const borderOpacity = design.borderOpacity !== undefined ? design.borderOpacity : 1;
   const bgOpacity = design.bgOpacity !== undefined ? design.bgOpacity : 1;
   const font = design.font || 'Inter';
   const quoteSize = design.quoteSize || 1.5; // Default quote size in rem
   
   // Card style without height: 100%
   let cardStyle = `
-    background-color: ${bgColor};
-    color: ${textColor};
     border-radius: ${borderRadius}px;
     padding: 1.25rem;
     display: flex;
     flex-direction: column;
     font-family: ${font}, sans-serif;
-    opacity: ${bgOpacity};
   `;
   
-  // Only add border if explicitly enabled
+  // Convert hex color to rgba with opacity if needed
+  let backgroundColorWithOpacity = bgColor;
+  if (bgOpacity < 1 && bgColor.startsWith('#')) {
+    const r = parseInt(bgColor.slice(1, 3), 16);
+    const g = parseInt(bgColor.slice(3, 5), 16);
+    const b = parseInt(bgColor.slice(5, 7), 16);
+    backgroundColorWithOpacity = `rgba(${r}, ${g}, ${b}, ${bgOpacity})`;
+  }
+  
+  // Convert border color to rgba with opacity if needed
+  let borderColorWithOpacity = borderColor;
+  if (borderOpacity < 1 && borderColor.startsWith('#')) {
+    const r = parseInt(borderColor.slice(1, 3), 16);
+    const g = parseInt(borderColor.slice(3, 5), 16);
+    const b = parseInt(borderColor.slice(5, 7), 16);
+    borderColorWithOpacity = `rgba(${r}, ${g}, ${b}, ${borderOpacity})`;
+  }
+  
+  // Apply backdrop blur and styles
+  const backdropBlur = design.backdropBlur || 10;
+  
+  cardStyle += `
+    background-color: ${backgroundColorWithOpacity};
+    backdrop-filter: blur(${backdropBlur}px);
+    -webkit-backdrop-filter: blur(${backdropBlur}px);
+    color: ${textColor};
+  `;
+  
+  // Apply border settings
   if (design.border === true) {
-    cardStyle += `border: ${borderWidth}px solid ${borderColor};`;
+    cardStyle += `border: ${borderWidth}px solid ${borderColorWithOpacity};`;
   } else {
     cardStyle += `border: none;`;
   }
   
+  // Handle both outer shadow and inner shadow
+  let shadows = [];
+  
   if (design.shadow) {
     const shadowColor = design.shadowColor || '#222222';
     const shadowIntensity = design.shadowIntensity || 0.2;
-    cardStyle += `box-shadow: inset 0 0 20px rgba(0, 0, 0, ${shadowIntensity});`;
+    
+    // Convert hex shadow color to rgba
+    let shadowRgba = `rgba(0, 0, 0, ${shadowIntensity})`;
+    if (shadowColor.startsWith('#')) {
+      const r = parseInt(shadowColor.slice(1, 3), 16);
+      const g = parseInt(shadowColor.slice(3, 5), 16);
+      const b = parseInt(shadowColor.slice(5, 7), 16);
+      shadowRgba = `rgba(${r}, ${g}, ${b}, ${shadowIntensity})`;
+    }
+    
+    shadows.push(`0 4px 6px -1px ${shadowRgba}`);
+  }
+  
+  // Add inner shadow for frosty glass effect
+  if (design.innerShadow) {
+    const innerShadowColor = design.innerShadowColor || '#FFFFFF';
+    const innerShadowOpacity = design.innerShadowOpacity || 0.5;
+    
+    // Convert hex to rgba for inner shadow
+    let innerShadowRgba = `rgba(255, 255, 255, ${innerShadowOpacity})`;
+    if (innerShadowColor.startsWith('#')) {
+      const r = parseInt(innerShadowColor.slice(1, 3), 16);
+      const g = parseInt(innerShadowColor.slice(3, 5), 16);
+      const b = parseInt(innerShadowColor.slice(5, 7), 16);
+      innerShadowRgba = `rgba(${r}, ${g}, ${b}, ${innerShadowOpacity})`;
+    }
+    
+    shadows.push(`inset 0 1px 3px ${innerShadowRgba}`);
+  }
+  
+  if (shadows.length > 0) {
+    cardStyle += `box-shadow: ${shadows.join(', ')};`;
   }
   
   // Use curly quotes and apply quote size

@@ -358,11 +358,61 @@ When working on this codebase:
 5. **Test locally first** - Run `npx supabase db reset --local` to verify migrations work
 6. **Push through system** - Use `npx supabase db push` to apply to remote
 7. **Keep environments in sync** - Migrations ensure local and remote databases match
+8. **Update Prisma schema** - After migrations, sync Prisma types (see Prisma workflow below)
 
 **Common issues:**
 - If a migration is "out of sequence" (created later but named earlier), rename it to reflect actual creation time
 - Storage bucket policies require special handling - use DO blocks with error handling
 - Never suggest manual SQL execution in production dashboard as a first solution
+
+## Prisma Integration & Workflow
+
+This project uses a **dual approach** for database management:
+- **Supabase migrations** handle schema changes (DDL)
+- **Prisma** provides type-safe queries and TypeScript types
+
+### Prisma Setup
+- **Schema location:** `/prisma/schema.prisma` (54+ models)
+- **Generated types:** `/src/generated/prisma/`
+- **Client instance:** `/src/lib/prisma.ts`
+- **Configuration:** Uses DATABASE_URL from `.env.local`
+
+### Database Workflow After Schema Changes
+
+**IMPORTANT:** After applying any Supabase migrations, you MUST sync Prisma:
+
+```bash
+# 1. Apply Supabase migrations
+npx supabase migration list        # Check status
+npx supabase db push               # Apply to remote
+
+# 2. Sync Prisma schema with database
+npx prisma db pull                 # Pull latest schema from database
+npx prisma generate                # Generate new TypeScript types
+
+# 3. Verify the changes
+git diff prisma/schema.prisma     # Review schema changes
+git diff src/generated/prisma/    # Review type changes
+```
+
+### Using Prisma in Code
+
+```typescript
+// Import the configured client
+import prisma from '@/lib/prisma'
+
+// Example: Type-safe queries
+const accounts = await prisma.accounts.findMany({
+  where: { status: 'active' },
+  include: { businesses: true }
+})
+```
+
+### Key Points
+- **Never use** `prisma migrate` commands - use Supabase migrations
+- **Always run** `prisma db pull` after database changes
+- **Generated types** provide full TypeScript support
+- **Both approaches work together** - Supabase for migrations, Prisma for queries
 
 ## Recent Issues Log
 

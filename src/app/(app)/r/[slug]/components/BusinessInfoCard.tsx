@@ -83,7 +83,7 @@ export default function BusinessInfoCard({ businessProfile, reviewType, promptPa
         style={{ pointerEvents: "none", top: "-100px" }}
       >
         <div 
-          className="rounded-full p-1 shadow-lg flex items-center justify-center w-full h-full aspect-square"
+          className="rounded-full p-0.5 shadow-lg flex items-center justify-center w-full h-full aspect-square"
           style={{ backgroundColor: businessProfile?.card_bg || '#ffffff' }}
         >
           {businessProfile?.logo_url ? (

@@ -16,6 +16,7 @@ import {
   FaMoon,
 } from "react-icons/fa";
 import { IconType } from "react-icons";
+import PromptyIcon from "./PromptyIcon";
 
 export const FALLING_STARS_TITLE = "Falling star animation";
 
@@ -294,6 +295,7 @@ export const loadAllFallingIcons = async (): Promise<{
     
     // Technology & Innovation
     { key: "robot", label: "Robot", icon: FaRobot, color: "text-blue-600", category: "Technology & Innovation" },
+    { key: "prompty", label: "Prompty (AI Assistant)", icon: PromptyIcon, color: "text-purple-600", category: "Technology & Innovation" },
     
     // Nature & Weather
     { key: "cannabis", label: "Cannabis Leaf", icon: FaCannabis, color: "text-green-600", category: "Nature & Weather" },

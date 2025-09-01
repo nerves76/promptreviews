@@ -202,6 +202,11 @@ export function useWidgets() {
   };
 
   const saveWidgetDesign = async (id: string, theme: any) => {
+    // Check if this is a demo widget
+    if (id === 'fake-multi-widget' || id?.startsWith('fake-')) {
+      throw new Error("You can't save changes to the demo widget. Create a new widget to save your design.");
+    }
+    
     return updateWidget(id, { theme });
   };
 

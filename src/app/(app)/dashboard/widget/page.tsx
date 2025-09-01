@@ -43,8 +43,14 @@ export default function WidgetPage() {
   
   // Clear selected widget when widgets list changes (e.g., after account switch)
   useEffect(() => {
-    if (selectedWidget && widgets.length > 0) {
-      // Check if the selected widget still exists in the current widgets list
+    // If widgets array is empty (e.g., during account switch), clear selection
+    if (widgets.length === 0 && selectedWidget) {
+      console.log('🔄 WidgetPage: Widgets list empty (account switch?), clearing selection');
+      setSelectedWidget(null);
+      setSelectedWidgetFull(null);
+    } 
+    // If we have widgets, check if selected widget still exists
+    else if (selectedWidget && widgets.length > 0) {
       const widgetStillExists = widgets.some(w => w.id === selectedWidget.id);
       if (!widgetStillExists) {
         console.log('🔄 WidgetPage: Selected widget no longer in list, clearing selection');
@@ -53,12 +59,44 @@ export default function WidgetPage() {
       }
     }
   }, [widgets]);
+
+  // Listen for account switch events and clear widget selection
+  useEffect(() => {
+    const handleAccountSwitch = (event: CustomEvent) => {
+      console.log('🔄 WidgetPage: Account switched, clearing widget selection', event.detail);
+      setSelectedWidget(null);
+      setSelectedWidgetFull(null);
+      
+      // Also clear any widget-related localStorage
+      const keysToRemove: string[] = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && (key.includes('widget') || key.includes('review'))) {
+          keysToRemove.push(key);
+        }
+      }
+      keysToRemove.forEach(key => {
+        localStorage.removeItem(key);
+        console.log('🗑️ Cleared localStorage key:', key);
+      });
+    };
+
+    window.addEventListener('accountSwitched', handleAccountSwitch as EventListener);
+    return () => {
+      window.removeEventListener('accountSwitched', handleAccountSwitch as EventListener);
+    };
+  }, []);
   
   // Storage key for design state persistence
   const designStorageKey = `widgetDesign_${selectedWidget?.id || 'default'}`;
   
   const [design, setDesign] = useState<DesignState>(() => {
-    // Try to restore design from localStorage
+    // For demo widget, always use the default design
+    if (selectedWidget?.id === 'fake-multi-widget') {
+      return DEFAULT_DESIGN;
+    }
+    
+    // Try to restore design from localStorage for real widgets
     if (typeof window !== 'undefined') {
       const savedDesign = localStorage.getItem(designStorageKey);
       if (savedDesign) {
@@ -221,13 +259,16 @@ export default function WidgetPage() {
       };
       setSelectedWidget(fakeWidget);
       setSelectedWidgetFull(fakeWidget);
+      // Reset design to use the new DEFAULT_DESIGN for demo widget
+      setDesign(DEFAULT_DESIGN);
     }
   }, [loading, widgets?.length]); // Removed fakeReviews from deps since it's memoized
 
-  // Auto-save design state to localStorage
+  // Auto-save design state to localStorage (but not for demo widget)
   React.useEffect(() => {
     const saveTimeout = setTimeout(() => {
-      if (typeof window !== 'undefined' && design && selectedWidget?.id) {
+      // Don't save demo widget design to localStorage
+      if (typeof window !== 'undefined' && design && selectedWidget?.id && selectedWidget.id !== 'fake-multi-widget') {
         localStorage.setItem(designStorageKey, JSON.stringify(design));
         console.log('💾 Auto-saved widget design to localStorage');
       }
@@ -306,8 +347,18 @@ export default function WidgetPage() {
   const handleWidgetSelect = (widget: any) => {
     console.log('🔍 WidgetPage: Widget selected from list:', widget);
     setSelectedWidget(widget);
+    // Always fetch fresh data, even if the same widget is selected
+    // This ensures updates from review changes are reflected
     fetchFullWidgetData(widget.id);
   };
+  
+  // Function to refresh the currently selected widget's data
+  const refreshSelectedWidget = useCallback(() => {
+    if (selectedWidget?.id && selectedWidget.id !== 'fake-multi-widget') {
+      console.log('🔄 WidgetPage: Refreshing selected widget data');
+      fetchFullWidgetData(selectedWidget.id);
+    }
+  }, [selectedWidget?.id, fetchFullWidgetData]);
 
   const isCopied = copiedWidgetId === selectedWidget?.id;
 
@@ -315,7 +366,7 @@ export default function WidgetPage() {
     <div className="p-4 md:p-8 lg:p-12">
       {/* Top Section: Widget Preview */}
       <div className="mb-8">
-        <div className="relative w-full max-w-4xl mx-auto" style={{ minHeight: '600px' }}>
+        <div className="relative w-full max-w-7xl mx-auto px-4">
           <div className="text-center mb-12">
             <div className="flex items-center justify-center gap-4 mb-2">
               <h2 className="text-2xl font-bold text-white">Widget preview</h2>
@@ -324,33 +375,33 @@ export default function WidgetPage() {
               <div className="flex gap-4">
                 <button
                   onClick={handleEditStyle}
-                  className="p-2 bg-white/40 backdrop-blur-sm rounded-full shadow-lg hover:bg-white/50 transition-all duration-200 group"
+                  className="p-2 bg-white/10 backdrop-blur-sm rounded-full shadow-sm hover:bg-white/20 transition-all duration-200 group border border-white/30"
                   title="Edit Style"
                 >
-                  <Icon name="FaPalette" className="w-4 h-4 text-slate-blue group-hover:text-slate-blue/80 transition-colors" size={16} />
+                  <Icon name="FaPalette" className="w-4 h-4 text-white group-hover:text-white/90 transition-colors" size={16} />
                 </button>
                 
                 <button
                   onClick={handleManageReviews}
-                  className="p-2 bg-white/40 backdrop-blur-sm rounded-full shadow-lg hover:bg-white/50 transition-all duration-200 group"
+                  className="p-2 bg-white/10 backdrop-blur-sm rounded-full shadow-sm hover:bg-white/20 transition-all duration-200 group border border-white/30"
                   title="Manage Reviews"
                 >
-                  <Icon name="FaCommentDots" className="w-4 h-4 text-slate-blue group-hover:text-slate-blue/80 transition-colors" size={16} />
+                  <Icon name="FaCommentDots" className="w-4 h-4 text-white group-hover:text-white/90 transition-colors" size={16} />
                 </button>
                 
                 <button
                   onClick={handleCopyEmbedCode}
-                  className={`p-2 rounded-full shadow-lg transition-all duration-200 group ${
+                  className={`p-2 rounded-full shadow-sm transition-all duration-200 group border ${
                     isCopied 
-                      ? 'bg-green-500/40 backdrop-blur-sm hover:bg-green-500/50' 
-                      : 'bg-white/40 backdrop-blur-sm hover:bg-white/50'
+                      ? 'bg-green-500/20 backdrop-blur-sm hover:bg-green-500/30 border-green-400/30' 
+                      : 'bg-white/10 backdrop-blur-sm hover:bg-white/20 border-white/30'
                   }`}
                   title={isCopied ? "Copied!" : "Copy Embed Code"}
                 >
                   {isCopied ? (
-                    <Icon name="FaCheck" className="w-4 h-4 text-green-500" size={16} />
+                    <Icon name="FaCheck" className="w-4 h-4 text-white" size={16} />
                   ) : (
-                    <Icon name="FaCode" className="w-4 h-4 text-slate-blue group-hover:text-slate-blue/80 transition-colors" size={16} />
+                    <Icon name="FaCode" className="w-4 h-4 text-white group-hover:text-white/90 transition-colors" size={16} />
                   )}
                 </button>
               </div>
@@ -359,7 +410,9 @@ export default function WidgetPage() {
               {selectedWidget ? `Editing: ${selectedWidget.name}` : ''}
             </p>
           </div>
-          <WidgetPreview widget={selectedWidgetFull} design={design} />
+          <div className="w-full">
+            <WidgetPreview widget={selectedWidgetFull} design={design} />
+          </div>
         </div>
       </div>
 
@@ -394,6 +447,7 @@ export default function WidgetPage() {
             saveWidgetName={saveWidgetName}
             saveWidgetDesign={saveWidgetDesign}
             fetchWidgets={fetchWidgets}
+            onRefreshWidget={refreshSelectedWidget}
           />
         </PageCard>
       </div>
@@ -403,6 +457,7 @@ export default function WidgetPage() {
         isOpen={showReviewModal}
         onClose={() => setShowReviewModal(false)}
         widgetId={selectedWidget?.id}
+        design={design}
         onReviewsChange={useCallback(() => {
           // Only refresh the full widget data to update the preview
           // Don't call fetchWidgets as it's not needed for review changes

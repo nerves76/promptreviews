@@ -74,23 +74,70 @@
     // Set CSS variables for theming on the specific widget container
     const a = (color, fallback) => design[color] || fallback;
     
-    container.style.setProperty('--pr-card-bg', a('bgColor', '#ffffff'));
+    // Convert hex color to rgba with opacity
+    const hexToRgba = (hex, opacity) => {
+      const r = parseInt(hex.slice(1, 3), 16);
+      const g = parseInt(hex.slice(3, 5), 16);
+      const b = parseInt(hex.slice(5, 7), 16);
+      return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+    };
+    
+    // Handle background color with opacity
+    const bgColor = a('bgColor', '#ffffff');
+    const bgOpacity = design.bgOpacity !== undefined ? design.bgOpacity : 1;
+    const backgroundWithOpacity = bgOpacity < 1 && bgColor.startsWith('#') 
+      ? hexToRgba(bgColor, bgOpacity)
+      : bgColor;
+    
+    // Handle border color with opacity
+    const borderColor = a('borderColor', '#cccccc');
+    const borderOpacity = design.borderOpacity !== undefined ? design.borderOpacity : 1;
+    const borderWithOpacity = borderOpacity < 1 && borderColor.startsWith('#')
+      ? hexToRgba(borderColor, borderOpacity)
+      : borderColor;
+    
+    container.style.setProperty('--pr-card-bg', backgroundWithOpacity);
     container.style.setProperty('--pr-text-color', a('textColor', '#22223b'));
     container.style.setProperty('--pr-accent-color', a('accentColor', '#4f46e5'));
     container.style.setProperty('--pr-name-text-color', a('nameTextColor', '#1a237e'));
     container.style.setProperty('--pr-role-text-color', a('roleTextColor', '#6b7280'));
 
     container.style.setProperty('--pr-card-border-width', `${design.borderWidth || 2}px`);
-    container.style.setProperty('--pr-card-border-color', a('borderColor', '#cccccc'));
+    container.style.setProperty('--pr-card-border-color', borderWithOpacity);
     container.style.setProperty('--pr-card-radius', `${design.borderRadius || 16}px`);
     
-    container.style.setProperty('--pr-card-opacity', design.bgOpacity !== undefined ? design.bgOpacity : 1);
+    // Remove opacity property - we handle it in the colors themselves
+    container.style.setProperty('--pr-card-opacity', '1');
     container.style.setProperty('--pr-font-family', design.font || 'Inter, sans-serif');
     container.style.setProperty('--pr-line-spacing', design.lineSpacing || 1.4);
     
-    const shadowIntensity = design.shadowIntensity || 0.2;
-    const shadow = design.shadow ? `0 4px 6px -1px rgba(0, 0, 0, ${shadowIntensity})` : 'none';
-    container.style.setProperty('--pr-card-shadow', shadow);
+    // Handle both outer shadow and inner shadow
+    let shadows = [];
+    
+    if (design.shadow) {
+      const shadowColor = design.shadowColor || '#000000';
+      const shadowIntensity = design.shadowIntensity || 0.2;
+      const shadowColorWithOpacity = shadowColor.startsWith('#') 
+        ? hexToRgba(shadowColor, shadowIntensity)
+        : `rgba(0, 0, 0, ${shadowIntensity})`;
+      shadows.push(`0 4px 6px -1px ${shadowColorWithOpacity}`);
+    }
+    
+    // Add inner shadow for frosty glass effect
+    if (design.innerShadow) {
+      const innerShadowColor = design.innerShadowColor || '#FFFFFF';
+      const innerShadowOpacity = design.innerShadowOpacity || 0.5;
+      const innerShadowRgba = innerShadowColor.startsWith('#')
+        ? hexToRgba(innerShadowColor, innerShadowOpacity)
+        : `rgba(255, 255, 255, ${innerShadowOpacity})`;
+      shadows.push(`inset 0 1px 3px ${innerShadowRgba}`);
+    }
+    
+    container.style.setProperty('--pr-card-shadow', shadows.length > 0 ? shadows.join(', ') : 'none');
+    
+    // Always apply backdrop blur
+    const backdropBlur = design.backdropBlur || 10;
+    container.style.setProperty('--pr-backdrop-blur', `${backdropBlur}px`);
     
     container.style.setProperty('--pr-attribution-font-size', `${design.attributionFontSize || 15}px`);
   }

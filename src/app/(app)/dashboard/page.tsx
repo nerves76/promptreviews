@@ -16,7 +16,7 @@ import DashboardContent from "./DashboardContent";
 import PricingModal, { tiers } from "../components/PricingModal";
 import FiveStarSpinner from "../components/FiveStarSpinner";
 import PageCard from "../components/PageCard";
-import InlineLoader from "@/app/(app)/components/InlineLoader";
+import PageLoader from "@/app/(app)/components/PageLoader";
 import TopLoaderOverlay from "../components/TopLoaderOverlay";
 import { Button } from "@/app/(app)/components/ui/button";
 import Link from "next/link";
@@ -717,16 +717,7 @@ const Dashboard = React.memo(function Dashboard() {
         <div className="h-96 flex justify-center items-center pt-0 -mt-2">
           <QuoteDisplay />
         </div>
-        <div className="flex justify-center items-start pt-0 pb-8 -mt-10">
-          <PageCard
-            icon={<Icon name="FaHome" className="w-8 h-8 text-slate-blue" size={32} />}
-            topMargin="mt-0"
-          >
-            <div className="min-h-[400px] flex flex-col items-center justify-center">
-              <InlineLoader showText={true} />
-            </div>
-          </PageCard>
-        </div>
+        <PageLoader showText={true} text="Loading dashboard..." />
       </div>
     );
   }

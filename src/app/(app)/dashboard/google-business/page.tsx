@@ -8,7 +8,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import Icon from '@/components/Icon';
 import PageCard from '@/app/(app)/components/PageCard';
-import InlineLoader from '@/app/(app)/components/InlineLoader';
+import PageLoader from '@/app/(app)/components/PageLoader';
 import PhotoManagement from '@/app/(app)/components/PhotoManagement';
 import ReviewManagement from '@/app/(app)/components/ReviewManagement';
 import BusinessInfoEditor from '@/app/(app)/components/BusinessInfoEditor';
@@ -1622,19 +1622,10 @@ export default function SocialPostingDashboard() {
   
   if (isLoading || isPostOAuthConnecting || isLoadingPlatforms || isStillLoadingLocations) {
     return (
-      <div className="w-full mx-auto px-4 sm:px-6 md:px-8 lg:px-12 mt-12 md:mt-16 lg:mt-20 mb-16 flex justify-center items-start">
-        <PageCard
-          icon={<Icon name="FaGoogle" className="w-8 h-8 text-slate-blue" size={32} />}
-          topMargin="mt-0"
-        >
-          <div className="min-h-[400px] flex flex-col items-center justify-center">
-            <InlineLoader 
-              showText={true} 
-              text={isPostOAuthConnecting ? 'Connecting to Google Business Profile...' : 'Loading...'} 
-            />
-          </div>
-        </PageCard>
-      </div>
+      <PageLoader 
+        showText={true} 
+        text={isPostOAuthConnecting ? 'Connecting to Google Business Profile...' : 'Loading Google Business...'} 
+      />
     );
   }
 

@@ -19,7 +19,7 @@
 import React, { useState, useEffect } from "react";
 import { Input } from "@/app/(app)/components/ui/input";
 import { Textarea } from "@/app/(app)/components/ui/textarea";
-import { FaSmile, FaArrowRight, FaCodeBranch } from "react-icons/fa";
+import { FaGrinHearts, FaArrowRight, FaCodeBranch } from "react-icons/fa";
 import EmojiSentimentDemoModal from "../EmojiSentimentDemoModal";
 import EmojiEmbedButton from "../EmojiEmbedButton";
 import { EMOJI_SENTIMENT_LABELS, EMOJI_SENTIMENT_ICONS } from "../prompt-modules/emojiSentimentConfig";
@@ -201,7 +201,7 @@ export default function EmojiSentimentFeature({
       <div className={`${editMode ? 'flex flex-row justify-between items-start px-2 py-2' : 'flex items-center justify-between mb-4'}`}>
         <div className="flex flex-col">
           <div className="flex items-center gap-3">
-            <FaSmile className={`${editMode ? 'w-7 h-7 text-slate-blue' : 'text-slate-blue text-lg'}`} />
+            <FaGrinHearts className={`${editMode ? 'w-7 h-7 text-pink-400' : 'text-pink-400 text-lg'}`} />
             <h3 className={`${editMode ? 'text-2xl font-bold text-[#1A237E]' : 'text-lg font-semibold text-gray-900'}`}>
               Emoji Sentiment Flow
             </h3>

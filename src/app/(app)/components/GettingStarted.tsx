@@ -180,7 +180,7 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
             title: "Customize your universal prompt options",
             description: "Configure your universal prompt page settings",
             link: "/dashboard/edit-prompt-page/universal",
-            icon: <Icon name="FaCog" className="w-5 h-5" size={20} />,
+            icon: <Icon name="FaGlobe" className="w-5 h-5" size={20} />,
             completed: taskStatus["customize-universal"] || false
           },
           {
@@ -234,7 +234,7 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
             title: "Customize your universal prompt options",
             description: "Configure your universal prompt page settings",
             link: "/dashboard/edit-prompt-page/universal",
-            icon: <Icon name="FaWrench" className="w-5 h-5" size={20} />,
+            icon: <Icon name="FaGlobe" className="w-5 h-5" size={20} />,
             completed: false
           },
           {

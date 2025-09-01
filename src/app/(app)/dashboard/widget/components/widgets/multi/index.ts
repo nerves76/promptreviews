@@ -26,8 +26,14 @@ export type DesignState = {
   shadowIntensity: number;
   shadowColor: string;
   borderColor: string;
+  borderOpacity: number;
   font: string;
   showSubmitReviewButton: boolean;
+  glassmorphism: boolean;
+  backdropBlur: number;
+  innerShadow: boolean;
+  innerShadowColor: string;
+  innerShadowOpacity: number;
 };
 
 export interface WidgetData {
@@ -54,19 +60,19 @@ export interface Review {
 // Flat default design structure matching the rest of the dashboard
 export const DEFAULT_DESIGN: DesignState = {
   bgType: 'solid',
-  bgColor: '#FDFBF2',
-  textColor: '#22223b',
-  accentColor: 'slateblue',
-  nameTextColor: '#1a237e',
-  roleTextColor: '#6b7280',
+  bgColor: '#FFFFFF',  // White background for glassmorphism
+  textColor: '#FFFFFF',  // White text for better contrast on glassmorphic background
+  accentColor: '#FFFFFF',  // White for maximum contrast on glassmorphic surfaces
+  nameTextColor: '#FFFFFF',  // White for names
+  roleTextColor: '#F0F0F0',  // Slightly dimmer white for roles
   attributionFontSize: 15,
   borderRadius: 16,
-  shadow: true,
-  bgOpacity: 1,
+  shadow: false,  // Turn off shadow for cleaner glassmorphic look
+  bgOpacity: 0.3,  // 30% opacity as suggested
   autoAdvance: false,
   slideshowSpeed: 4,
   border: true,
-  borderWidth: 2,
+  borderWidth: 0.5,  // Thin border for glassmorphic effect
   lineSpacing: 1.4,
   showQuotes: false,
   quoteSize: 1.5,
@@ -78,9 +84,15 @@ export const DEFAULT_DESIGN: DesignState = {
   sectionBgColor: '#ffffff',
   shadowIntensity: 0.2,
   shadowColor: '#222222',
-  borderColor: '#cccccc',
+  borderColor: '#FFFFFF',  // White border
+  borderOpacity: 0.3,  // Semi-transparent border for glassmorphic effect
   font: 'Inter',
   showSubmitReviewButton: true,
+  glassmorphism: true,  // Enable glassmorphism by default
+  backdropBlur: 10,  // Medium blur for glassmorphic effect
+  innerShadow: true,  // Enable inner shadow for frosty effect
+  innerShadowColor: '#FFFFFF',  // White inner shadow
+  innerShadowOpacity: 0.5,  // 50% opacity for subtle frost
 };
 
 export const getDesignWithDefaults = (design: Partial<DesignState> = {}): DesignState => {

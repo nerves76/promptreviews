@@ -14,6 +14,7 @@ import { inter, fontVariables } from "../fonts";
 import { GlobalRefreshMonitor } from "./components/GlobalRefreshMonitor";
 import { NavigationDebugger } from "./components/NavigationDebugger";
 import { RefreshDebugger } from "./components/RefreshDebugger";
+import IconSpriteInjector from "./components/IconSpriteInjector";
 
 // Sentry is initialized in instrumentation.ts - no need to import here
 
@@ -64,6 +65,7 @@ export default function RootLayout({
             <NavigationDebugger />
             <RefreshDebugger />
             <ClientRoot>
+              <IconSpriteInjector />
               <AppMain>{children}</AppMain>
             </ClientRoot>
           </BodyWrapper>

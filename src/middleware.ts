@@ -43,6 +43,18 @@ export async function middleware(req: NextRequest) {
   
   const res = NextResponse.next();
   
+  // Add security headers to all responses (except widget embeds and API)
+  if (!req.nextUrl.pathname.startsWith('/infographic-embed') && 
+      !req.nextUrl.pathname.startsWith('/api/widgets/')) {
+    // Security headers that won't break anything
+    res.headers.set('X-Content-Type-Options', 'nosniff');
+    res.headers.set('X-DNS-Prefetch-Control', 'on');
+    res.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+    res.headers.set('X-XSS-Protection', '1; mode=block');
+    res.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+    res.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  }
+  
   // Handle /docs routes - proxy to the docs site
   if (req.nextUrl.pathname.startsWith('/docs')) {
     const docsPath = req.nextUrl.pathname.replace('/docs', '') || '/';

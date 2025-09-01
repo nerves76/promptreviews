@@ -260,12 +260,13 @@ const MultiWidget: React.FC<MultiWidgetProps> = ({ data, design }) => {
   }
   */
 
+
   return (
     <div 
       id={`promptreviews-widget-container-${data.id}`}
       ref={containerRef}
-      className="pr-widget-container pr-multi-widget w-full max-w-4xl mx-auto"
-      style={{ minHeight: '200px', maxWidth: '800px' }}
+      className="pr-widget-container pr-multi-widget w-full max-w-5xl mx-auto"
+      style={{ maxWidth: '1000px' }}
       data-widget-id={data.id}
     />
   );

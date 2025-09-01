@@ -13,6 +13,11 @@ import {
 const stripe = createStripeClient();
 
 export async function POST(req: NextRequest) {
+  // CSRF Protection - Check origin for payment operations
+  const { requireValidOrigin } = await import('@/lib/csrf-protection');
+  const csrfError = requireValidOrigin(req);
+  if (csrfError) return csrfError;
+  
   try {
     console.log("🚀 Processing checkout session request");
     

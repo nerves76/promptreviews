@@ -182,6 +182,11 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<Pa
 }
 
 export async function DELETE(request: NextRequest, { params }: { params: Promise<Params> }) {
+  // CSRF Protection - Check origin for delete operations
+  const { requireValidOrigin } = await import('@/lib/csrf-protection');
+  const csrfError = requireValidOrigin(request);
+  if (csrfError) return csrfError;
+  
   try {
     const supabase = await createServerSupabaseClient();
     const locationId = (await params).id;

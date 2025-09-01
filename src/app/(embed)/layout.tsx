@@ -15,7 +15,7 @@ export default function EmbedRootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" className="">
       <body style={{ margin: 0, padding: 0, background: 'transparent' }}>
         <IconSpriteInjector />
         {children}

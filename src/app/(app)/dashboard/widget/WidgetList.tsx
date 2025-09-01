@@ -1,11 +1,11 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { getUserOrMock } from "@/utils/supabaseClient";
-import InlineLoader from "@/app/(app)/components/InlineLoader";
+import PageLoader from "@/app/(app)/components/PageLoader";
 import { DraggableModal } from './components/DraggableModal';
 import { WidgetEditorForm } from './components/WidgetEditorForm';
 import { ReviewManagementModal } from './components/ReviewManagementModal';
-import { WidgetCard } from './components/WidgetCard';
+import { WidgetTable } from './components/WidgetTable';
 import { StyleModal } from './components/StyleModal';
 import { DEFAULT_DESIGN, DesignState } from './components/widgets/multi';
 
@@ -22,6 +22,7 @@ export default function WidgetList({
   saveWidgetName,
   saveWidgetDesign,
   fetchWidgets,
+  onRefreshWidget,
 }: {
   onSelectWidget?: (widget: any) => void;
   selectedWidgetId?: string;
@@ -35,6 +36,7 @@ export default function WidgetList({
   saveWidgetName: (id: string, name: string) => Promise<any>;
   saveWidgetDesign: (id: string, theme: any) => Promise<any>;
   fetchWidgets: () => Promise<void>;
+  onRefreshWidget?: () => void;
 }) {
   const [copiedWidgetId, setCopiedWidgetId] = useState<string | null>(null);
   const [widgetToEdit, setWidgetToEdit] = useState<any>(null);
@@ -81,6 +83,56 @@ export default function WidgetList({
       }
     }
   }, [selectedWidgetId, widgets, onDesignChange]);
+
+  // Clear selected widget for reviews when widgets list changes (e.g., account switch)
+  useEffect(() => {
+    if (selectedWidgetForReviews && widgets.length > 0) {
+      const widgetStillExists = widgets.some(w => w.id === selectedWidgetForReviews);
+      if (!widgetStillExists) {
+        console.log('🔄 WidgetList: Selected widget for reviews no longer exists, clearing');
+        setSelectedWidgetForReviews(null);
+        if (showReviewModal) {
+          setShowReviewModal(false);
+        }
+      }
+    }
+    // Also clear if widgets list is empty
+    if (widgets.length === 0 && selectedWidgetForReviews) {
+      console.log('🔄 WidgetList: Widgets list empty, clearing selected widget for reviews');
+      setSelectedWidgetForReviews(null);
+      if (showReviewModal) {
+        setShowReviewModal(false);
+      }
+    }
+  }, [widgets]);
+
+  // Listen for account switch events and close any open modals
+  useEffect(() => {
+    const handleAccountSwitch = (event: CustomEvent) => {
+      console.log('🔄 WidgetList: Account switched, closing any open modals', event.detail);
+      
+      // Close all modals
+      if (showReviewModal) {
+        setShowReviewModal(false);
+      }
+      if (showStyleModal) {
+        setShowStyleModal(false);
+      }
+      if (isEditorOpen) {
+        setIsEditorOpen(false);
+      }
+      
+      // Clear selected widgets
+      setSelectedWidgetForReviews(null);
+      setSelectedWidgetForStyle(null);
+      setWidgetToEdit(null);
+    };
+
+    window.addEventListener('accountSwitched', handleAccountSwitch as EventListener);
+    return () => {
+      window.removeEventListener('accountSwitched', handleAccountSwitch as EventListener);
+    };
+  }, [showReviewModal, showStyleModal, isEditorOpen]);
 
   const handleCopyEmbed = async (widgetId: string) => {
     const widget = widgets.find(w => w.id === widgetId);
@@ -147,6 +199,14 @@ export default function WidgetList({
   };
 
   const handleManageReviews = (widgetId: string) => {
+    // Validate that the widget exists in the current widgets list
+    const widgetExists = widgets.some(w => w.id === widgetId);
+    if (!widgetExists) {
+      console.error('❌ Widget not found in current widgets list:', widgetId);
+      alert('This widget is not available. Please refresh the page or select a different widget.');
+      return;
+    }
+    
     setSelectedWidgetForReviews(widgetId);
     setShowReviewModal(true);
   };
@@ -161,26 +221,21 @@ export default function WidgetList({
     }
   };
 
-  if (loading) return <InlineLoader showText={true} text="Loading widgets..." />;
+  if (loading) return <PageLoader showText={true} text="Loading widgets..." />;
   if (error) return <div>Error: {error}</div>;
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {widgets.map((widget) => (
-          <WidgetCard
-            key={widget.id}
-            widget={widget}
-            isSelected={selectedWidgetId === widget.id}
-            onSelect={() => onSelectWidget?.(widget)}
-            onCopyEmbed={() => handleCopyEmbed(widget.id)}
-            onEditStyle={() => handleEditStyle(widget)}
-            onManageReviews={() => handleManageReviews(widget.id)}
-            onDelete={() => handleDeleteWidget(widget.id)}
-            copiedWidgetId={copiedWidgetId}
-          />
-        ))}
-      </div>
+      <WidgetTable
+        widgets={widgets}
+        selectedWidgetId={selectedWidgetId}
+        onSelect={(widget) => onSelectWidget?.(widget)}
+        onCopyEmbed={handleCopyEmbed}
+        onEditStyle={handleEditStyle}
+        onManageReviews={handleManageReviews}
+        onDelete={handleDeleteWidget}
+        copiedWidgetId={copiedWidgetId}
+      />
 
       <DraggableModal 
         isOpen={isEditorOpen} 
@@ -214,7 +269,25 @@ export default function WidgetList({
           setSelectedWidgetForReviews(null);
         }}
         widgetId={selectedWidgetForReviews}
-        onReviewsChange={() => { /* No need to fetch widgets for review changes */ }}
+        design={design}
+        onReviewsChange={() => {
+          // If this widget is currently selected in preview, refresh its data
+          if (selectedWidgetForReviews && selectedWidgetId === selectedWidgetForReviews) {
+            console.log('🔄 WidgetList: Refreshing selected widget after review changes');
+            // Use the dedicated refresh function which will fetch fresh data
+            if (onRefreshWidget) {
+              onRefreshWidget();
+            }
+          }
+          // Optionally, auto-select the widget after editing reviews to show the changes
+          else if (selectedWidgetForReviews && onSelectWidget) {
+            const widget = widgets.find(w => w.id === selectedWidgetForReviews);
+            if (widget) {
+              console.log('🔄 WidgetList: Auto-selecting widget after review changes to show updates');
+              onSelectWidget(widget);
+            }
+          }
+        }}
       />
 
       {showStyleModal && selectedWidgetForStyle && (

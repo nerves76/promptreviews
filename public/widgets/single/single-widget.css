@@ -61,7 +61,6 @@
     background: var(--pr-card-bg, #fff);
     border: var(--pr-card-border-width, 2px) solid var(--pr-card-border-color, #cccccc);
     border-radius: var(--pr-card-radius, 16px);
-    opacity: var(--pr-card-opacity, 1);
     color: var(--pr-text-color, #22223b);
     font-family: var(--pr-font-family, 'Inter', sans-serif);
     line-height: var(--pr-line-spacing, 1.4);
@@ -75,6 +74,8 @@
     min-height: 300px;
     box-sizing: border-box;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
+    backdrop-filter: blur(var(--pr-backdrop-blur, 0));
+    -webkit-backdrop-filter: blur(var(--pr-backdrop-blur, 0));
 }
 
 .pr-widget-container.pr-single-widget .pr-single-review-card:hover {

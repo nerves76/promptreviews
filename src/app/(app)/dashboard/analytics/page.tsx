@@ -291,8 +291,8 @@ export default function AnalyticsPage() {
         const timelineMap: Record<string, number> = {};
 
         filteredEvents.forEach((event: any) => {
-          // Count by platform
-          if (event.platform) {
+          // Count by platform - only count non-view events for platform distribution
+          if (event.platform && event.event_type !== "view") {
             analyticsData.clicksByPlatform[event.platform] =
               (analyticsData.clicksByPlatform[event.platform] || 0) + 1;
           }
@@ -311,6 +311,15 @@ export default function AnalyticsPage() {
 
           // Count event types
           switch (event.event_type) {
+            case "view":
+              // Count page views
+              analyticsData.views++;
+              // Also count web platform views for the "Prompt Page Visits" metric
+              if (event.platform === "web") {
+                analyticsData.clicksByPlatform["web"] = 
+                  (analyticsData.clicksByPlatform["web"] || 0) + 1;
+              }
+              break;
             case "generate_with_ai":
               analyticsData.aiGenerations++;
               analyticsData.aiEvents.push({
@@ -486,7 +495,7 @@ export default function AnalyticsPage() {
   }
 
   return (
-          <PageCard icon={<Icon name="FaChartLine" className="w-9 h-9 text-slate-blue" size={36} />}>
+          <PageCard icon={<Icon name="FaChartBar" className="w-9 h-9 text-slate-blue" size={36} />}>
       <div className="flex items-center justify-between mt-2 mb-8">
         <div className="flex flex-col mt-0 md:mt-[-2px]">
           <h1 className="text-4xl font-bold text-slate-blue mt-0 mb-2">
@@ -516,7 +525,7 @@ export default function AnalyticsPage() {
         </select>
       </div>
 
-      <div className="filter-container">
+      <div className="filter-container mb-8" style={{ maxWidth: '300px' }}>
         <label htmlFor="filter" className="block text-sm font-medium text-gray-700">
           Filter by:
         </label>

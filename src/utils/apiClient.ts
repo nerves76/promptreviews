@@ -137,15 +137,27 @@ class ApiClient {
       
       try {
         const responseText = await response.text();
-        console.error('🔴 API Error - Raw Response:', responseText);
         
         try {
           errorBody = JSON.parse(responseText);
           errorDetails = errorBody.details || errorBody.error || errorBody.message || response.statusText;
-          console.error('🔴 API Error - Parsed:', errorBody);
+          
+          // Only log as error if it's an unexpected error (5xx or no error message)
+          if (response.status >= 500 || !errorBody.error) {
+            console.error('🔴 API Error - Raw Response:', responseText);
+            console.error('🔴 API Error - Parsed:', errorBody);
+          } else {
+            // For expected errors (4xx with error message), just log as warning
+            console.warn('⚠️ API Request Failed:', {
+              status: response.status,
+              error: errorBody.error,
+              details: errorBody.details
+            });
+          }
         } catch (parseError) {
           // Response is not JSON
           errorDetails = responseText || response.statusText;
+          console.error('🔴 API Error - Raw Response:', responseText);
         }
       } catch (e) {
         console.error('🔴 API Error - Could not read response body:', e);

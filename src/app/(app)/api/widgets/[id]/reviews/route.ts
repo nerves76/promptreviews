@@ -49,6 +49,11 @@ export async function PUT(
   request: NextRequest,
   context: any
 ) {
+  // CSRF Protection - Check origin for widget review updates
+  const { requireValidOrigin } = await import('@/lib/csrf-protection');
+  const csrfError = requireValidOrigin(request);
+  if (csrfError) return csrfError;
+  
   try {
     const { id: widgetId } = await context.params;
     
@@ -86,8 +91,15 @@ export async function PUT(
     // Get account ID for the user
     const accountId = await getAccountIdForUser(user.id, supabase);
     if (!accountId) {
+      console.error('[WIDGET-REVIEWS] Account not found for user:', user.id);
       return NextResponse.json({ error: 'Account not found' }, { status: 404 });
     }
+
+    console.log('[WIDGET-REVIEWS] Verifying widget ownership:', {
+      widgetId,
+      accountId,
+      userId: user.id
+    });
 
     // Verify widget ownership using admin client
     const { data: widget, error: widgetError } = await supabaseAdmin
@@ -98,7 +110,26 @@ export async function PUT(
       .single();
 
     if (widgetError || !widget) {
-      return NextResponse.json({ error: 'Widget not found or access denied' }, { status: 403 });
+      console.error('[WIDGET-REVIEWS] Widget access denied:', {
+        widgetId,
+        accountId,
+        error: widgetError,
+        widget,
+        userId: user.id
+      });
+      
+      // Provide more specific error message
+      if (widgetError?.code === 'PGRST116') {
+        return NextResponse.json({ 
+          error: 'Widget not found. It may have been deleted or does not belong to your current account.',
+          details: 'Please refresh the page or switch to the correct account.'
+        }, { status: 404 });
+      }
+      
+      return NextResponse.json({ 
+        error: 'Access denied. This widget belongs to a different account.',
+        details: 'Please switch to the correct account or select a different widget.'
+      }, { status: 403 });
     }
 
     // First, let's check if the table exists and what columns it has
@@ -226,7 +257,7 @@ export async function PUT(
           first_name: review.first_name || '',
           last_name: review.last_name || '',
           reviewer_role: review.reviewer_role || '',
-          platform: review.platform || 'custom',
+          platform: review.platform || null,
           order_index: index,
           star_rating: finalRating,
           created_at: review.created_at || new Date().toISOString() // Use original date or current date as fallback

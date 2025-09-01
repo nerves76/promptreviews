@@ -23,6 +23,11 @@ const stripe = stripeSecretKey ? new Stripe(stripeSecretKey, {
 }) : null;
 
 export async function POST(request: NextRequest) {
+  // CSRF Protection - Check origin for this critical action
+  const { requireValidOrigin } = await import('@/lib/csrf-protection');
+  const csrfError = requireValidOrigin(request);
+  if (csrfError) return csrfError;
+  
   try {
     // ============================================
     // STEP 1: Verify Stripe is configured
@@ -176,6 +181,11 @@ export async function POST(request: NextRequest) {
  * This endpoint forces immediate cancellation instead of waiting for period end
  */
 export async function DELETE(request: NextRequest) {
+  // CSRF Protection - Check origin for this critical action
+  const { requireValidOrigin } = await import('@/lib/csrf-protection');
+  const csrfError = requireValidOrigin(request);
+  if (csrfError) return csrfError;
+  
   try {
     if (!stripe) {
       return NextResponse.json({ 

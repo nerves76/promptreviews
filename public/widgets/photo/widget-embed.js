@@ -278,6 +278,13 @@
     
     const backgroundColorWithOpacity = hexToRgba(bgColor, bgOpacity);
     
+    // Handle border color with opacity
+    const borderColor = design.borderColor || '#cccccc';
+    const borderOpacity = design.borderOpacity !== undefined ? design.borderOpacity : 1;
+    const borderWithOpacity = borderOpacity < 1 && borderColor.startsWith('#')
+      ? hexToRgba(borderColor, borderOpacity)
+      : borderColor;
+    
     // Create photo HTML if available - now fills the full left side
     const photoHTML = hasPhoto ? `
       <div class="pr-photo-review-image" style="
@@ -298,15 +305,44 @@
       </div>
     ` : '';
 
+    // Handle both outer shadow and inner shadow
+    let shadows = [];
+    
+    if (design.shadow) {
+      const shadowColor = design.shadowColor || '#000000';
+      const shadowIntensity = design.shadowIntensity || 0.2;
+      const shadowColorWithOpacity = shadowColor.startsWith('#') 
+        ? hexToRgba(shadowColor, shadowIntensity)
+        : `rgba(0, 0, 0, ${shadowIntensity})`;
+      shadows.push(`0 4px 6px -1px ${shadowColorWithOpacity}`);
+    }
+    
+    // Add inner shadow for frosty glass effect
+    if (design.innerShadow) {
+      const innerShadowColor = design.innerShadowColor || '#FFFFFF';
+      const innerShadowOpacity = design.innerShadowOpacity || 0.5;
+      const innerShadowRgba = innerShadowColor.startsWith('#')
+        ? hexToRgba(innerShadowColor, innerShadowOpacity)
+        : `rgba(255, 255, 255, ${innerShadowOpacity})`;
+      shadows.push(`inset 0 1px 3px ${innerShadowRgba}`);
+    }
+    
+    const shadow = shadows.length > 0 ? shadows.join(', ') : 'none';
+    
+    // Always apply backdrop blur
+    const backdropBlur = design.backdropBlur || 10;
+    const backdropFilter = `backdrop-filter: blur(${backdropBlur}px); -webkit-backdrop-filter: blur(${backdropBlur}px);`;
+    
     return `
       <div class="pr-photo-review-card" style="
         background-color: ${backgroundColorWithOpacity};
-        ${design.border ? `border: ${design.borderWidth || 2}px solid ${design.borderColor || '#cccccc'};` : 'border: none;'}
+        ${design.border ? `border: ${design.borderWidth || 2}px solid ${borderWithOpacity};` : 'border: none;'}
         border-radius: ${design.borderRadius || 16}px;
         color: ${design.textColor || '#22223b'};
         font-family: ${design.font || 'Inter'}, sans-serif;
         line-height: ${design.lineSpacing || 1.4};
-        box-shadow: ${design.shadow ? `0 4px 6px -1px rgba(0, 0, 0, ${design.shadowIntensity || 0.2})` : 'none'};
+        box-shadow: ${shadow};
+        ${backdropFilter}
         padding: 0;
         position: relative;
         overflow: hidden;
@@ -420,21 +456,37 @@
     const borderColor = design.borderColor || '#cccccc';
     const borderWidth = design.borderWidth || 2;
     const bgOpacity = design.bgOpacity !== undefined ? design.bgOpacity : 1;
+    const borderOpacity = design.borderOpacity !== undefined ? design.borderOpacity : 1;
     const accentColor = design.accentColor || '#4f46e5';
+    
+    // Helper function to convert hex to rgba
+    const hexToRgba = (hex, opacity) => {
+      const r = parseInt(hex.slice(1, 3), 16);
+      const g = parseInt(hex.slice(3, 5), 16);
+      const b = parseInt(hex.slice(5, 7), 16);
+      return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+    };
+    
+    const borderWithOpacity = borderOpacity < 1 && borderColor.startsWith('#')
+      ? hexToRgba(borderColor, borderOpacity)
+      : borderColor;
+    
+    // Convert background color to rgba for buttons
+    const backgroundWithOpacity = bgOpacity < 1 && bgColor.startsWith('#')
+      ? hexToRgba(bgColor, bgOpacity)
+      : bgColor;
     
     // Base style for arrow buttons
     const buttonStyle = `
-      background-color: ${bgColor};
-      border: ${borderWidth}px solid ${borderColor};
-      opacity: ${bgOpacity};
+      background-color: ${backgroundWithOpacity};
+      border: ${borderWidth}px solid ${borderWithOpacity};
     `;
 
     // Style for the "Submit a Review" button
     const submitButtonStyle = `
-      background-color: ${bgColor};
-      border: ${borderWidth}px solid ${borderColor};
+      background-color: ${backgroundWithOpacity};
+      border: ${borderWidth}px solid ${borderWithOpacity};
       border-radius: ${design.buttonBorderRadius || 8}px;
-      opacity: ${bgOpacity};
       color: ${accentColor};
     `;
     

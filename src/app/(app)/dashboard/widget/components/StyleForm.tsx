@@ -102,12 +102,33 @@ const StyleForm: React.FC<StyleFormProps> = ({ design, onDesignChange, onSave, o
               <label className="block text-sm font-medium text-gray-700 mb-2">Border Width</label>
               <input
                 type="number"
-                min="1"
+                min="0.5"
                 max="10"
+                step="0.5"
                 value={design.borderWidth || 2}
-                onChange={(e) => updateDesign({ borderWidth: parseInt(e.target.value) })}
+                onChange={(e) => updateDesign({ borderWidth: parseFloat(e.target.value) })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
+            </div>
+            <div className="col-span-2">
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                Border Transparency: {Math.round((design.borderOpacity || 1) * 100)}%
+              </label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="range"
+                  min="0.1"
+                  max="1"
+                  step="0.1"
+                  value={design.borderOpacity || 1}
+                  onChange={(e) => updateDesign({ borderOpacity: parseFloat(e.target.value) })}
+                  className="flex-1"
+                />
+              </div>
+              <div className="flex justify-between text-xs text-gray-500 mt-1">
+                <span>More transparent</span>
+                <span>Fully opaque</span>
+              </div>
             </div>
           </div>
         )}
@@ -156,7 +177,7 @@ const StyleForm: React.FC<StyleFormProps> = ({ design, onDesignChange, onSave, o
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Accent Color (Stars, Buttons)</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Accent Color (Buttons, Navigation)</label>
           <input
             type="color"
             value={design.accentColor || '#6a5acd'}
@@ -329,6 +350,48 @@ const StyleForm: React.FC<StyleFormProps> = ({ design, onDesignChange, onSave, o
             </div>
           </div>
         )}
+      </div>
+
+      {/* Backdrop Blur Effect */}
+      <div className="space-y-4">
+        <h3 className="text-sm font-semibold text-gray-900 border-b pb-2">Backdrop Blur</h3>
+        
+        <div className="space-y-3">
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">
+              Blur Intensity
+            </label>
+            <div className="flex items-center gap-2">
+              <input
+                type="range"
+                min="0"
+                max="20"
+                step="1"
+                value={design.backdropBlur || 10}
+                onChange={(e) => updateDesign({ backdropBlur: parseInt(e.target.value) })}
+                className="flex-1"
+              />
+              <span className="text-xs text-gray-500 w-12">{design.backdropBlur || 10}px</span>
+            </div>
+            <div className="flex justify-between text-xs text-gray-500 mt-1">
+              <span>No blur</span>
+              <span>Maximum blur</span>
+            </div>
+          </div>
+          
+          <div className="p-3 bg-gray-50 rounded-md">
+            <p className="text-xs text-gray-600">
+              💡 <strong>Creating a glassmorphic effect:</strong>
+            </p>
+            <ul className="text-xs text-gray-600 mt-2 space-y-1 ml-4">
+              <li>• Set <strong>Background Opacity</strong> to 20-70%</li>
+              <li>• Use <strong>Backdrop Blur</strong> at 8-12px</li>
+              <li>• Add a thin <strong>Border</strong> (0.5-1px)</li>
+              <li>• Set <strong>Border Opacity</strong> to 30-50%</li>
+              <li>• Works best over colorful or patterned backgrounds</li>
+            </ul>
+          </div>
+        </div>
       </div>
       
       {/* Bottom action buttons */}

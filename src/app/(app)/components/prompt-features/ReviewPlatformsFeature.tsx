@@ -143,15 +143,15 @@ export default function ReviewPlatformsFeature({
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
       <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center space-x-3">
-          <Icon name="FaStar" className="text-slate-blue text-lg" size={18} />
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900">
+        <div className="flex flex-col">
+          <div className="flex items-center gap-3">
+            <Icon name="FaStar" className="w-7 h-7 text-yellow-500" size={28} />
+            <span className="text-2xl font-bold text-slate-blue">
               Review Platforms
-            </h3>
-            <p className="text-sm text-gray-600">
-              Configure where customers can leave reviews
-            </p>
+            </span>
+          </div>
+          <div className="text-sm text-gray-700 mt-[3px] ml-10">
+            Configure where customers can leave reviews
           </div>
         </div>
         <button
@@ -160,7 +160,7 @@ export default function ReviewPlatformsFeature({
           disabled={disabled}
           className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-slate-blue hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-blue disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          <Icon name="FaPlus" className="mr-2 h-4 w-4 text-slate-blue" size={16} />
+          <Icon name="FaPlus" className="mr-2 h-4 w-4 text-white" size={16} />
           Add Platform
         </button>
       </div>

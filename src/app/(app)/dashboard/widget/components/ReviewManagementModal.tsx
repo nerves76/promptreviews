@@ -20,13 +20,15 @@ interface ReviewManagementModalProps {
   onClose: () => void;
   widgetId: string | null;
   onReviewsChange?: () => void;
+  design?: any; // Design configuration with showPlatform setting
 }
 
 export function ReviewManagementModal({ 
   isOpen, 
   onClose, 
   widgetId, 
-  onReviewsChange 
+  onReviewsChange,
+  design
 }: ReviewManagementModalProps) {
   const supabase = createClient();
   
@@ -115,6 +117,21 @@ export function ReviewManagementModal({
     }
     return {};
   });
+  
+  const [editedPlatforms, setEditedPlatforms] = useState<{ [id: string]: string }>(() => {
+    if (typeof window !== 'undefined') {
+      const savedData = localStorage.getItem(formStorageKey);
+      if (savedData) {
+        try {
+          const parsed = JSON.parse(savedData);
+          return parsed.editedPlatforms || {};
+        } catch (e) {
+          // Ignore
+        }
+      }
+    }
+    return {};
+  });
   const [reviewError, setReviewError] = useState("");
   const [reviewSort, setReviewSort] = useState<"recent" | "alphabetical">("recent");
   const [reviewSearch, setReviewSearch] = useState("");
@@ -124,20 +141,6 @@ export function ReviewManagementModal({
   const [reviewModalDragging, setReviewModalDragging] = useState(false);
   const reviewModalDragStart = useRef<{ x: number; y: number } | null>(null);
   const reviewModalRef = useRef<HTMLDivElement>(null);
-  const [showAddCustomReview, setShowAddCustomReview] = useState(false);
-  const [newCustomReview, setNewCustomReview] = useState<{
-    review_content: string;
-    first_name: string;
-    last_name: string;
-    reviewer_role: string;
-    star_rating: number | null;
-  }>({
-    review_content: "",
-    first_name: "",
-    last_name: "",
-    reviewer_role: "",
-    star_rating: null,
-  });
   const [photoUploads, setPhotoUploads] = useState<{ [id: string]: string }>({});
   const [photoUploadProgress, setPhotoUploadProgress] = useState<{ [id: string]: boolean }>({});
   const [photoUploadErrors, setPhotoUploadErrors] = useState<{ [id: string]: string }>({});
@@ -156,12 +159,14 @@ export function ReviewManagementModal({
           (Object.keys(editedReviews).length > 0 || 
            Object.keys(editedNames).length > 0 || 
            Object.keys(editedRoles).length > 0 || 
-           Object.keys(editedRatings).length > 0)) {
+           Object.keys(editedRatings).length > 0 ||
+           Object.keys(editedPlatforms).length > 0)) {
         const dataToSave = {
           editedReviews, // Full text preserved, even if over 250 chars
           editedNames,
           editedRoles,
           editedRatings,
+          editedPlatforms,
           timestamp: Date.now(),
           widgetId, // Include widgetId to ensure we restore to correct widget
           version: 2 // Version to handle future changes
@@ -172,7 +177,7 @@ export function ReviewManagementModal({
     }, 1000); // Debounce for 1 second
 
     return () => clearTimeout(saveTimeout);
-  }, [editedReviews, editedNames, editedRoles, editedRatings, formStorageKey, widgetId]);
+  }, [editedReviews, editedNames, editedRoles, editedRatings, editedPlatforms, formStorageKey, widgetId]);
 
   // Auto-save selected reviews to localStorage
   useEffect(() => {
@@ -198,44 +203,59 @@ export function ReviewManagementModal({
     setReviewError("");
     
     try {
-      console.log('🔍 ReviewManagementModal: Fetching widget type...');
-      // First, fetch the widget to determine its type
-      const { data: widgetData, error: widgetError } = await supabase
-        .from('widgets')
-        .select('type')
-        .eq('id', widgetId)
-        .single();
-
-      if (widgetError) {
-        console.error('[DEBUG] Error fetching widget type:', widgetError);
-      } else {
-        console.log('✅ ReviewManagementModal: Widget type fetched:', widgetData?.type);
-        setWidgetType(widgetData?.type || null);
-      }
-
-      console.log('🔍 ReviewManagementModal: Fetching review_submissions...');
-      
-      // Get the current user's account ID
+      // Get the current user first
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         console.error('❌ ReviewManagementModal: No authenticated user found');
-        setReviewError("Authentication required");
+        setReviewError("Authentication required. Please refresh the page and try again.");
         setLoadingReviews(false);
         return;
       }
 
-      // Get account ID using the proper utility function
-      // This handles multiple account_user records correctly
+      // Get account ID for the user
       const accountId = await getAccountIdForUser(user.id, supabase);
-
       if (!accountId) {
         console.error('❌ ReviewManagementModal: No account found for user');
-        setReviewError("No account found for user");
+        setReviewError("No account found. Please refresh the page and try again.");
         setLoadingReviews(false);
         return;
       }
 
-      console.log('✅ ReviewManagementModal: Found account ID:', accountId);
+      console.log('🔍 ReviewManagementModal: Validating widget access for account:', accountId);
+      
+      // Validate that the widget belongs to the current account
+      const { data: widgetData, error: widgetError } = await supabase
+        .from('widgets')
+        .select('id, type, account_id')
+        .eq('id', widgetId)
+        .eq('account_id', accountId)
+        .single();
+
+      if (widgetError || !widgetData) {
+        console.error('❌ ReviewManagementModal: Widget validation failed:', {
+          widgetId,
+          accountId,
+          error: widgetError,
+          widgetData
+        });
+        
+        // Clear the invalid widget selection
+        setReviewError("This widget is not accessible with the current account. Please select a different widget or switch accounts.");
+        setLoadingReviews(false);
+        
+        // Trigger modal close after a brief delay to show the error
+        setTimeout(() => {
+          onClose();
+        }, 3000);
+        
+        return;
+      }
+
+      console.log('✅ ReviewManagementModal: Widget validated successfully:', widgetData);
+      setWidgetType(widgetData.type || null);
+
+      console.log('🔍 ReviewManagementModal: Fetching review_submissions...');
+      // We already have accountId from the validation above
 
       // Fetch reviews from review_submissions for this account by joining with prompt_pages
       const { data: reviews, error: reviewsError } = await supabase
@@ -360,6 +380,7 @@ export function ReviewManagementModal({
       const editedNamesObj: { [id: string]: string } = {};
       const editedRolesObj: { [id: string]: string } = {};
       const editedRatingsObj: { [id: string]: number | null } = {};
+      const editedPlatformsObj: { [id: string]: string } = {};
       const photoUploadsObj: { [id: string]: string } = {};
       
       (widgetReviews || []).forEach((r) => {
@@ -368,6 +389,7 @@ export function ReviewManagementModal({
         editedNamesObj[r.review_id] = restoredData?.editedNames?.[r.review_id] ?? `${r.first_name} ${r.last_name}`;
         editedRolesObj[r.review_id] = restoredData?.editedRoles?.[r.review_id] ?? r.reviewer_role;
         editedRatingsObj[r.review_id] = restoredData?.editedRatings?.[r.review_id] ?? r.star_rating ?? null;
+        editedPlatformsObj[r.review_id] = restoredData?.editedPlatforms?.[r.review_id] ?? r.platform ?? '';
         if (r.photo_url) {
           photoUploadsObj[r.review_id] = r.photo_url;
         }
@@ -396,12 +418,18 @@ export function ReviewManagementModal({
             editedRatingsObj[reviewId] = restoredData.editedRatings[reviewId];
           }
         });
+        Object.keys(restoredData.editedPlatforms || {}).forEach(reviewId => {
+          if (!editedPlatformsObj[reviewId]) {
+            editedPlatformsObj[reviewId] = restoredData.editedPlatforms[reviewId];
+          }
+        });
       }
       
       setEditedReviews(editedReviewsObj);
       setEditedNames(editedNamesObj);
       setEditedRoles(editedRolesObj);
       setEditedRatings(editedRatingsObj);
+      setEditedPlatforms(editedPlatformsObj);
       setPhotoUploads(photoUploadsObj);
       
       // If we restored data, show a notification
@@ -449,6 +477,10 @@ export function ReviewManagementModal({
         const { [review.review_id]: _, ...rest } = prev;
         return rest;
       });
+      setEditedPlatforms((prev) => {
+        const { [review.review_id]: _, ...rest } = prev;
+        return rest;
+      });
       setPhotoUploads((prev) => {
         const { [review.review_id]: _, ...rest } = prev;
         return rest;
@@ -474,6 +506,10 @@ export function ReviewManagementModal({
       setEditedRatings((prev) => ({
         ...prev,
         [review.review_id]: review.star_rating ?? null,
+      }));
+      setEditedPlatforms((prev) => ({
+        ...prev,
+        [review.review_id]: review.platform || "",
       }));
     }
     setSelectedReviews(updated);
@@ -506,6 +542,10 @@ export function ReviewManagementModal({
 
   const handleRatingEdit = (id: string, value: number | null) => {
     setEditedRatings((prev) => ({ ...prev, [id]: value }));
+  };
+
+  const handlePlatformEdit = (id: string, value: string) => {
+    setEditedPlatforms((prev) => ({ ...prev, [id]: value }));
   };
 
   const handlePhotoUpload = (reviewId: string, photoUrl: string) => {
@@ -634,48 +674,60 @@ export function ReviewManagementModal({
     console.log('🎯 handleSaveReviewsInternal called', { widgetId, selectedReviewsCount: selectedReviews.length });
     if (!widgetId) {
       console.error('❌ No widgetId in handleSaveReviewsInternal');
+      setReviewError("No widget selected. Please select a widget and try again.");
       return;
     }
     
     // Clear any existing errors
     setReviewError("");
     
-    // Add new custom review if it exists and is valid
-    if (
-      newCustomReview.review_content?.trim() &&
-      newCustomReview.first_name?.trim() &&
-      newCustomReview.star_rating !== null
-    ) {
-      const customReview = {
-        review_id: crypto.randomUUID(),
-        first_name: newCustomReview.first_name.trim(),
-        last_name: newCustomReview.last_name?.trim() || '',
-        reviewer_role: newCustomReview.reviewer_role?.trim() || '',
-        review_content: newCustomReview.review_content.trim(),
-        star_rating: newCustomReview.star_rating,
-        platform: 'custom',
-        created_at: new Date().toISOString(),
-      };
+    // Validate widget access before attempting to save
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setReviewError("Your session has expired. Please refresh the page and try again.");
+        return;
+      }
       
-      selectedReviews.unshift(customReview);
-      setEditedNames(prev => ({ ...prev, [customReview.review_id]: `${customReview.first_name} ${customReview.last_name}`.trim() }));
-      setEditedRoles(prev => ({ ...prev, [customReview.review_id]: customReview.reviewer_role }));
-      setEditedReviews(prev => ({ ...prev, [customReview.review_id]: customReview.review_content }));
-      setEditedRatings(prev => ({ ...prev, [customReview.review_id]: customReview.star_rating }));
+      const accountId = await getAccountIdForUser(user.id, supabase);
+      if (!accountId) {
+        setReviewError("Account not found. Please refresh the page and try again.");
+        return;
+      }
       
-      // Reset the custom review form
-      setNewCustomReview({
-        review_content: "",
-        first_name: "",
-        last_name: "",
-        reviewer_role: "",
-        star_rating: null,
-      });
-      setShowAddCustomReview(false);
+      // Quick validation check to ensure widget is still accessible
+      const { data: widgetCheck, error: checkError } = await supabase
+        .from('widgets')
+        .select('id')
+        .eq('id', widgetId)
+        .eq('account_id', accountId)
+        .single();
+        
+      if (checkError || !widgetCheck) {
+        console.error('❌ Widget validation failed before save:', {
+          widgetId,
+          accountId,
+          error: checkError
+        });
+        setReviewError("This widget is no longer accessible. Please close this dialog and select a different widget.");
+        
+        // Close modal after showing error
+        setTimeout(() => {
+          onClose();
+        }, 3000);
+        return;
+      }
+    } catch (validationError) {
+      console.error('❌ Error validating widget access:', validationError);
+      setReviewError("Unable to verify widget access. Please refresh the page and try again.");
+      return;
     }
     
+    // Use selectedReviews directly - they already contain all reviews including custom ones
+    const reviewsToProcess = [...selectedReviews];
+    
     // Prepare reviews for API call (all reviews should now be within limits)
-    const reviewsToSave = selectedReviews.map((review, index) => {
+    const reviewsToSave = reviewsToProcess.map((review, index) => {
       const rawRating = editedRatings[review.review_id] !== undefined 
         ? editedRatings[review.review_id]
         : review.star_rating;
@@ -697,7 +749,7 @@ export function ReviewManagementModal({
         first_name: (editedNames[review.review_id] ?? `${review.first_name || ''} ${review.last_name || ''}`.trim()).split(' ')[0],
         last_name: (editedNames[review.review_id] ?? `${review.first_name || ''} ${review.last_name || ''}`.trim()).split(' ').slice(1).join(' '),
         reviewer_role: editedRoles[review.review_id] ?? review.reviewer_role,
-        platform: review.platform,
+        platform: editedPlatforms[review.review_id] ?? review.platform,
         star_rating: finalRating,
         photo_url: photoUploads[review.review_id] || null,
         created_at: review.created_at, // Preserve original submission date
@@ -731,43 +783,36 @@ export function ReviewManagementModal({
       if (onReviewsChange) onReviewsChange();
     } catch (error: any) {
       console.error("❌ Error saving widget reviews:", error);
-      // Try to extract more details from the error
+      
+      // Provide user-friendly error messages based on error type
+      let errorMessage = "Failed to save reviews. ";
+      
+      if (error.message?.includes('403') || error.message?.includes('access denied')) {
+        errorMessage = "This widget is not accessible with the current account. Please refresh the page or switch to the correct account.";
+      } else if (error.message?.includes('401') || error.message?.includes('unauthorized')) {
+        errorMessage = "Your session has expired. Please refresh the page and try again.";
+      } else if (error.message?.includes('404') || error.message?.includes('not found')) {
+        errorMessage = "Widget not found. It may have been deleted. Please refresh the page.";
+      } else if (error.message?.includes('network') || error.message?.includes('fetch')) {
+        errorMessage = "Network error. Please check your connection and try again.";
+      } else if (error.message) {
+        errorMessage = `Failed to save reviews: ${error.message}`;
+      } else {
+        errorMessage = "An unexpected error occurred. Please try again or contact support if the issue persists.";
+      }
+      
+      // Log detailed error info for debugging
       if (error.response) {
         console.error("❌ Error response:", error.response);
       }
       if (error.data) {
         console.error("❌ Error data:", error.data);
       }
-      if (error.message) {
-        console.error("❌ Error message:", error.message);
-      }
-      setReviewError(`Failed to save reviews: ${error.message || 'Unknown error'}`);
+      
+      setReviewError(errorMessage);
     }
   };
 
-  const handleAddCustomReview = () => {
-    const newReview = {
-      review_id: crypto.randomUUID(),
-      first_name: '',
-      last_name: '',
-      reviewer_role: '',
-      review_content: '',
-      star_rating: null,
-      platform: 'custom',
-      created_at: new Date().toISOString(),
-      isCustom: true,
-    };
-    
-    // Add custom review only to selected reviews (right side)
-    // Custom reviews should NOT appear in available reviews (left side)
-    setSelectedReviews([newReview, ...selectedReviews]);
-    
-    // Initialize edited fields
-    setEditedNames(prev => ({ ...prev, [newReview.review_id]: '' }));
-    setEditedRoles(prev => ({ ...prev, [newReview.review_id]: '' }));
-    setEditedReviews(prev => ({ ...prev, [newReview.review_id]: '' }));
-    setEditedRatings(prev => ({ ...prev, [newReview.review_id]: null }));
-  };
 
   const { reviews, totalPages, totalReviews } = getFilteredAndSortedReviews();
 
@@ -836,15 +881,15 @@ export function ReviewManagementModal({
         </div>
       ) : (
         <>
-          <div className="border-b border-gray-200">
-            <nav className="-mb-px flex space-x-8" aria-label="Tabs">
+          <div className="bg-white/70 backdrop-blur-sm rounded-xl p-3 mb-4 border border-white/30">
+            <nav className="flex space-x-8" aria-label="Tabs">
               <button
                 onClick={() => setActiveTab('import')}
                 className={`${
                   activeTab === 'import'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+                    ? 'bg-blue-500 text-white'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                } whitespace-nowrap py-2 px-3 rounded-lg font-medium text-sm transition-colors`}
               >
                 Available reviews
               </button>
@@ -852,18 +897,18 @@ export function ReviewManagementModal({
                 onClick={() => setActiveTab('edit')}
                 className={`${
                   activeTab === 'edit'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+                    ? 'bg-blue-500 text-white'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                } whitespace-nowrap py-2 px-3 rounded-lg font-medium text-sm transition-colors`}
               >
                 Selected reviews ({selectedReviews.length}/{MAX_WIDGET_REVIEWS})
               </button>
             </nav>
           </div>
 
-          <div className="mt-6">
+          <div className="mt-2">
             {activeTab === 'import' && (
-              <div className="space-y-4">
+              <div className="bg-white/70 backdrop-blur-sm rounded-xl p-5 border border-white/30 space-y-4">
                 <div className="flex justify-between items-center">
                   <input
                     type="text"
@@ -930,7 +975,7 @@ export function ReviewManagementModal({
             )}
             
             {activeTab === 'edit' && (
-              <div className="space-y-4">
+              <div className="bg-white/70 backdrop-blur-sm rounded-xl p-5 border border-white/30 space-y-4">
                 {widgetType === 'photo' && (
                   <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
                     <p className="text-sm text-blue-800">
@@ -941,14 +986,37 @@ export function ReviewManagementModal({
                 <div className="flex justify-between items-center">
                   <h3 className="text-lg font-medium text-gray-800">Selected reviews ({selectedReviews.length}/{MAX_WIDGET_REVIEWS})</h3>
                   <button
-                    onClick={() => setShowAddCustomReview(true)}
+                    onClick={() => {
+                      // Just add a blank custom review to the selected list
+                      const customReview = {
+                        review_id: crypto.randomUUID(),
+                        first_name: '',
+                        last_name: '',
+                        reviewer_role: '',
+                        review_content: '',
+                        star_rating: 5,
+                        platform: '',
+                        created_at: new Date().toISOString(),
+                        isCustom: true,
+                      };
+                      
+                      // Add to selected reviews at the beginning
+                      setSelectedReviews([customReview, ...selectedReviews]);
+                      setEditedNames(prev => ({ ...prev, [customReview.review_id]: '' }));
+                      setEditedRoles(prev => ({ ...prev, [customReview.review_id]: '' }));
+                      setEditedReviews(prev => ({ ...prev, [customReview.review_id]: '' }));
+                      setEditedRatings(prev => ({ ...prev, [customReview.review_id]: 5 }));
+                      setEditedPlatforms(prev => ({ ...prev, [customReview.review_id]: '' }));
+                      setHasUnsavedChanges(true);
+                    }}
                     className="px-4 py-2 bg-blue-100 text-blue-800 rounded-md hover:bg-blue-200"
+                    disabled={selectedReviews.length >= MAX_WIDGET_REVIEWS}
                   >
                     Add custom review
                   </button>
                 </div>
 
-                {showAddCustomReview ? (
+                {false ? (
                   <div className="p-4 bg-gray-50 rounded-lg border">
                     <h4 className="font-semibold mb-3">Add new custom review</h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
@@ -1068,12 +1136,12 @@ export function ReviewManagementModal({
                         {/* Date and platform info */}
                         <div className="text-xs text-gray-500 mb-2">
                           Submitted {new Date(review.created_at).toLocaleDateString()} 
-                          {review.platform && ` via ${review.platform}`}
+                          {design?.showPlatform && review.platform && ` via ${review.platform}`}
                         </div>
                         
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-2">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-2">
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Full name</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Full name <span className="text-red-500">*</span></label>
                             <input
                               type="text"
                               placeholder="Full Name"
@@ -1105,10 +1173,20 @@ export function ReviewManagementModal({
                               className="p-2 border rounded-md w-full"
                             />
                           </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Platform</label>
+                            <input
+                              type="text"
+                              placeholder="e.g. 'Google', 'Yelp', 'Facebook'"
+                              value={editedPlatforms[review.review_id] || ''}
+                              onChange={(e) => handlePlatformEdit(review.review_id, e.target.value)}
+                              className="p-2 border rounded-md w-full"
+                            />
+                          </div>
                         </div>
 
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Review content</label>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Review content <span className="text-red-500">*</span></label>
                           <textarea
                             value={editedReviews[review.review_id] || ""}
                             onChange={(e) => handleReviewEdit(review.review_id, e.target.value)}

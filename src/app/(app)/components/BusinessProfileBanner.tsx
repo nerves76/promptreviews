@@ -75,16 +75,16 @@ export default function BusinessProfileBanner({
 
   return (
     <div className={`bg-gradient-to-r from-blue-50 to-indigo-100 border border-blue-200 rounded-lg p-4 mb-6 shadow-lg ${className}`}>
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-3">
-          <div className="flex-shrink-0">
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex items-start space-x-3 flex-1">
+          <div className="flex-shrink-0 mt-0.5">
             <Icon name="FaExclamationTriangle" className="h-6 w-6 text-blue-600 animate-pulse" size={24} />
           </div>
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             <h3 className="text-lg font-bold text-blue-900">
               Complete your business profile first!
             </h3>
-            <p className="text-blue-800 text-sm">
+            <p className="text-blue-800 text-sm mt-1">
               To get the most out of Prompt Reviews, make sure to fill out your business information first.
             </p>
           </div>
@@ -92,10 +92,10 @@ export default function BusinessProfileBanner({
         <div className="flex-shrink-0">
           <Link
             href="/dashboard/business-profile"
-            className="inline-flex items-center gap-2 bg-slate-blue text-white hover:bg-slate-blue/90 font-semibold py-2 px-4 rounded-lg transition-colors shadow-md"
+            className="inline-flex items-center gap-2 bg-slate-blue text-white hover:bg-slate-blue/90 font-semibold py-2 px-4 rounded-lg transition-colors shadow-md whitespace-nowrap"
           >
             Complete profile
-                          <Icon name="FaArrowRight" className="h-4 w-4" size={16} />
+            <Icon name="FaArrowRight" className="h-4 w-4" size={16} />
           </Link>
         </div>
       </div>

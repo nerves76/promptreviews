@@ -13,7 +13,7 @@ import { getAccountIdForUser } from "@/auth/utils/accounts";
 import { isAdmin } from "@/utils/admin";
 import BusinessProfileForm from "../components/BusinessProfileForm";
 import DashboardCard from "../components/DashboardCard";
-import InlineLoader from "@/app/(app)/components/InlineLoader";
+import PageLoader from "@/app/(app)/components/PageLoader";
 import PageCard from "@/app/(app)/components/PageCard";
 import imageCompression from 'browser-image-compression';
 import FiveStarSpinner from "@/app/(app)/components/FiveStarSpinner";
@@ -856,13 +856,7 @@ export default function BusinessProfilePage() {
 
   // Show loading state only during initial load
   if (pageState === 'initial' || pageState === 'loading') {
-    return (
-      <PageCard icon={<Icon name="FaStore" className="w-9 h-9 text-slate-blue" size={36} />}>
-        <div className="min-h-[400px] flex flex-col items-center justify-center">
-          <InlineLoader showText={true} />
-        </div>
-      </PageCard>
-    );
+    return <PageLoader showText={true} text="Loading business profile..." />;
   }
 
   if (noProfile) {

@@ -18,6 +18,11 @@ const supabase = createClient(
  * Creates a new widget for the authenticated user
  */
 export async function POST(request: NextRequest) {
+  // CSRF Protection - Check origin for widget creation
+  const { requireValidOrigin } = await import('@/lib/csrf-protection');
+  const csrfError = requireValidOrigin(request);
+  if (csrfError) return csrfError;
+  
   try {
     const body = await request.json();
     const { name, type, theme } = body;
