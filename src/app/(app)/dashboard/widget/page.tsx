@@ -448,6 +448,7 @@ export default function WidgetPage() {
             saveWidgetDesign={saveWidgetDesign}
             fetchWidgets={fetchWidgets}
             onRefreshWidget={refreshSelectedWidget}
+            selectedAccount={selectedAccount}
           />
         </PageCard>
       </div>
@@ -457,6 +458,7 @@ export default function WidgetPage() {
         isOpen={showReviewModal}
         onClose={() => setShowReviewModal(false)}
         widgetId={selectedWidget?.id}
+        accountId={selectedAccount?.account_id}
         design={design}
         onReviewsChange={useCallback(() => {
           // Only refresh the full widget data to update the preview

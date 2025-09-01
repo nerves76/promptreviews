@@ -3,6 +3,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { createClient } from "@/utils/supabaseClient";
 import { getAccountIdForUser } from "@/auth/utils/accounts";
+import { useAccountSelection } from "@/utils/accountSelectionHooks";
 import Icon, { IconName } from "@/components/Icon";
 import PageCard from "@/app/(app)/components/PageCard";
 import InlineLoader from "@/app/(app)/components/InlineLoader";
@@ -267,6 +268,7 @@ function getSentimentIcon(sentiment: string) {
 
 export default function ReviewsPage() {
   const supabase = createClient();
+  const { selectedAccount } = useAccountSelection();
 
   const [reviews, setReviews] = useState<Review[]>([]);
   const [grouped, setGrouped] = useState<ReviewerGroup[]>([]);
@@ -300,31 +302,16 @@ export default function ReviewsPage() {
 
   // Using singleton Supabase client from supabaseClient.ts
 
-  // Get current account ID first
+  // Get current account ID from account selection
   useEffect(() => {
-    const getCurrentAccount = async () => {
-      try {
-        const { data: { user }, error: userError } = await supabase.auth.getUser();
-        if (userError || !user) {
-          setError("Authentication required");
-          return;
-        }
-
-        const currentAccountId = await getAccountIdForUser(user.id, supabase);
-        if (!currentAccountId) {
-          setError("No account found");
-          return;
-        }
-
-        setAccountId(currentAccountId);
-      } catch (err) {
-        console.error("Error getting account:", err);
-        setError("Failed to get account information");
-      }
-    };
-
-    getCurrentAccount();
-  }, [supabase]);
+    if (selectedAccount?.account_id) {
+      setAccountId(selectedAccount.account_id);
+      setError(null);
+    } else {
+      setError("No account selected");
+      setAccountId(null);
+    }
+  }, [selectedAccount]);
 
   useEffect(() => {
     const fetchReviews = async () => {

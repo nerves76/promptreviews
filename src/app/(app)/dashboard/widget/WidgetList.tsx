@@ -23,6 +23,7 @@ export default function WidgetList({
   saveWidgetDesign,
   fetchWidgets,
   onRefreshWidget,
+  selectedAccount,
 }: {
   onSelectWidget?: (widget: any) => void;
   selectedWidgetId?: string;
@@ -37,6 +38,7 @@ export default function WidgetList({
   saveWidgetDesign: (id: string, theme: any) => Promise<any>;
   fetchWidgets: () => Promise<void>;
   onRefreshWidget?: () => void;
+  selectedAccount?: any;
 }) {
   const [copiedWidgetId, setCopiedWidgetId] = useState<string | null>(null);
   const [widgetToEdit, setWidgetToEdit] = useState<any>(null);
@@ -269,6 +271,7 @@ export default function WidgetList({
           setSelectedWidgetForReviews(null);
         }}
         widgetId={selectedWidgetForReviews}
+        accountId={selectedAccount?.account_id}
         design={design}
         onReviewsChange={() => {
           // If this widget is currently selected in preview, refresh its data

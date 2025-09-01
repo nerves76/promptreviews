@@ -19,6 +19,7 @@ interface ReviewManagementModalProps {
   isOpen: boolean;
   onClose: () => void;
   widgetId: string | null;
+  accountId?: string; // Account ID from parent component
   onReviewsChange?: () => void;
   design?: any; // Design configuration with showPlatform setting
 }
@@ -26,7 +27,8 @@ interface ReviewManagementModalProps {
 export function ReviewManagementModal({ 
   isOpen, 
   onClose, 
-  widgetId, 
+  widgetId,
+  accountId, 
   onReviewsChange,
   design
 }: ReviewManagementModalProps) {
@@ -212,23 +214,23 @@ export function ReviewManagementModal({
         return;
       }
 
-      // Get account ID for the user
-      const accountId = await getAccountIdForUser(user.id, supabase);
-      if (!accountId) {
-        console.error('❌ ReviewManagementModal: No account found for user');
+      // Use account ID from prop if provided, otherwise fall back to getAccountIdForUser
+      const currentAccountId = accountId || await getAccountIdForUser(user.id, supabase);
+      if (!currentAccountId) {
+        console.error('❌ ReviewManagementModal: No account found');
         setReviewError("No account found. Please refresh the page and try again.");
         setLoadingReviews(false);
         return;
       }
 
-      console.log('🔍 ReviewManagementModal: Validating widget access for account:', accountId);
+      console.log('🔍 ReviewManagementModal: Validating widget access for account:', currentAccountId);
       
       // Validate that the widget belongs to the current account
       const { data: widgetData, error: widgetError } = await supabase
         .from('widgets')
         .select('id, type, account_id')
         .eq('id', widgetId)
-        .eq('account_id', accountId)
+        .eq('account_id', currentAccountId)
         .single();
 
       if (widgetError || !widgetData) {
@@ -689,8 +691,9 @@ export function ReviewManagementModal({
         return;
       }
       
-      const accountId = await getAccountIdForUser(user.id, supabase);
-      if (!accountId) {
+      // Use account ID from prop if provided, otherwise fall back to getAccountIdForUser
+      const currentAccountId = accountId || await getAccountIdForUser(user.id, supabase);
+      if (!currentAccountId) {
         setReviewError("Account not found. Please refresh the page and try again.");
         return;
       }
@@ -700,7 +703,7 @@ export function ReviewManagementModal({
         .from('widgets')
         .select('id')
         .eq('id', widgetId)
-        .eq('account_id', accountId)
+        .eq('account_id', currentAccountId)
         .single();
         
       if (checkError || !widgetCheck) {

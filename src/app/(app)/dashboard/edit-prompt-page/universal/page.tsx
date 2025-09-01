@@ -18,6 +18,7 @@ import { createClient } from "@/utils/supabaseClient";
 import Link from "next/link";
 import { markTaskAsCompleted } from "@/utils/onboardingTasks";
 import { getAccountIdForUser } from "@/auth/utils/accounts";
+import { useAuth } from "@/auth";
 
 // Helper to normalize platform names to match dropdown options
 const normalizePlatformName = (name: string): string => {
@@ -39,6 +40,7 @@ const normalizePlatforms = (platforms: any[] | null | undefined = []) =>
 
 export default function UniversalEditPromptPage() {
   const supabase = createClient();
+  const { user, account } = useAuth();
 
   // Feature flag for testing new standardized form
   const useStandardizedForm = false; // Set to true to use new form, false for old form
@@ -63,41 +65,18 @@ export default function UniversalEditPromptPage() {
         setIsLoading(true);
         setError(null);
         
-        // DEVELOPMENT MODE BYPASS - Check for dev bypass flag
-        let user = null;
-        if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined') {
-          const devBypass = localStorage.getItem('dev_auth_bypass');
-          if (devBypass === 'true') {
-            console.log('🔧 DEV MODE: Universal page using authentication bypass');
-            user = {
-              id: '12345678-1234-5678-9abc-123456789012',
-              email: 'test@example.com',
-              user_metadata: {
-                first_name: 'Dev',
-                last_name: 'User'
-              }
-            };
-          }
-        }
-        
-        // Get current user (if not using dev bypass)
-        if (!user) {
-          const {
-            data: { user: realUser },
-          } = await supabase.auth.getUser();
-          user = realUser;
-        }
-        
-        if (!user) {
-          setError("You must be signed in to access this page.");
+        // Use account from auth context if available
+        if (!user || !account?.id) {
+          console.log("Waiting for auth context to load...");
           setIsLoading(false);
           return;
         }
         
         console.log("Current user:", user.id, user.email);
+        console.log("Current account from context:", account.id);
         
-        // Get correct account ID
-        const accountId = await getAccountIdForUser(user.id, supabase);
+        // Use the account ID from the auth context (respects account switcher)
+        const accountId = account.id;
         console.log("Account ID result:", accountId);
         
         if (!accountId) {
@@ -110,42 +89,11 @@ export default function UniversalEditPromptPage() {
         console.log("Fetching data for account:", accountId);
         
         // Fetch business profile
-        let businessProfile = null;
-        let businessError = null;
-        
-        // DEVELOPMENT MODE BYPASS - Use mock business data
-        if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined' && localStorage.getItem('dev_auth_bypass') === 'true' && accountId === '12345678-1234-5678-9abc-123456789012') {
-          console.log('🔧 DEV MODE: Using mock business profile data');
-          businessProfile = {
-            id: '6762c76a-8677-4c7f-9a0f-f444024961a2',
-            account_id: '12345678-1234-5678-9abc-123456789012',
-            name: 'Chris Bolton',
-            business_email: 'chris@diviner.agency',
-            address_street: '2652 SE 89th Ave',
-            address_city: 'Portland',
-            address_state: 'Oregon',
-            address_zip: '97266',
-            address_country: 'United States',
-            phone: '',
-            business_website: '',
-            review_platforms: [],
-            default_offer_enabled: false,
-            default_offer_title: 'Review Rewards',
-            default_offer_body: '',
-            default_offer_url: '',
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          };
-        } else {
-          const { data: dbBusinessProfile, error: dbBusinessError } = await supabase
-            .from("businesses")
-            .select("*")
-            .eq("account_id", accountId)
-            .single();
-          
-          businessProfile = dbBusinessProfile;
-          businessError = dbBusinessError;
-        }
+        const { data: businessProfile, error: businessError } = await supabase
+          .from("businesses")
+          .select("*")
+          .eq("account_id", accountId)
+          .single();
           
         if (businessError) {
           console.error("Business fetch error:", businessError);
@@ -154,59 +102,14 @@ export default function UniversalEditPromptPage() {
         console.log("Business profile:", businessProfile);
         
         // Fetch universal prompt page
-        let universalPage = null;
-        let universalError = null;
-        
-        // DEVELOPMENT MODE BYPASS - Use mock universal prompt page data
-        if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined' && localStorage.getItem('dev_auth_bypass') === 'true' && accountId === '12345678-1234-5678-9abc-123456789012') {
-          console.log('🔧 DEV MODE: Using mock universal prompt page data');
-          universalPage = {
-            id: '0f1ba885-07d6-4698-9e94-a63d990c65e0',
-            account_id: '12345678-1234-5678-9abc-123456789012',
-            slug: 'universal-mdwd0peh',
-            is_universal: true,
-            campaign_type: 'public',
-            type: 'service',
-            status: 'complete',
-            recent_reviews_enabled: true,
-            recent_reviews_scope: 'current_page',
-            review_platforms: [],
-            offer_enabled: false,
-            offer_title: '',
-            offer_body: '',
-            offer_url: '',
-            emoji_sentiment_enabled: false,
-            emoji_sentiment_question: 'How was your experience?',
-            emoji_feedback_message: 'We value your feedback! Let us know how we can do better.',
-            emoji_thank_you_message: 'Thank you for your feedback!',
-            emoji_feedback_popup_header: 'How can we improve?',
-            emoji_feedback_page_header: 'How was your experience?',
-            falling_enabled: true,
-            falling_icon: 'star',
-            falling_icon_color: '#fbbf24',
-            ai_button_enabled: true,
-            fix_grammar_enabled: true,
-            note_popup_enabled: false,
-            show_friendly_note: false,
-            friendly_note: '',
-            kickstarters_enabled: false,
-            selected_kickstarters: [],
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          };
-        } else {
-          const { data: dbUniversalPage, error: dbUniversalError } = await supabase
-            .from("prompt_pages")
-            .select("*")
-            .eq("account_id", accountId)
-            .eq("is_universal", true)
-            .order("created_at", { ascending: false })
-            .limit(1)
-            .single();
-          
-          universalPage = dbUniversalPage;
-          universalError = dbUniversalError;
-        }
+        const { data: universalPage, error: universalError } = await supabase
+          .from("prompt_pages")
+          .select("*")
+          .eq("account_id", accountId)
+          .eq("is_universal", true)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .single();
           
         if (universalError) {
           console.error("Universal page fetch error:", universalError);
@@ -280,7 +183,7 @@ export default function UniversalEditPromptPage() {
       }
     }
     fetchData();
-  }, []);
+  }, [user, account?.id]); // Re-fetch when account changes
 
   const handleSave = () => {
     console.log('🔍 handleSave called');

@@ -5,6 +5,7 @@ import { generateContextualReview } from "@/utils/aiReviewGeneration";
 import Icon from "@/components/Icon";
 import Link from "next/link";
 import { getAccountIdForUser } from "@/auth/utils/accounts";
+import { useAuth } from "@/auth";
 import IndustrySelector from "@/app/(app)/components/IndustrySelector";
 import PromptPageForm from "@/app/(app)/components/PromptPageForm";
 import PhotoPromptPageForm from "@/app/(app)/components/PhotoPromptPageForm";
@@ -159,6 +160,7 @@ function mapToDbColumns(formData: any): any {
 
 export default function EditPromptPage() {
   const supabase = createClient();
+  const { user, account } = useAuth();
 
   const router = useRouter();
   const params = useParams();
@@ -242,20 +244,18 @@ export default function EditPromptPage() {
     try {
       setIsLoading(true);
       setError(null);
-      // Use the singleton Supabase client for session/auth (matches Universal Prompt page)
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      if (userError) {
-        setError("Error fetching user session.");
+      
+      // Use account from auth context
+      if (!user || !account?.id) {
+        console.log("Waiting for auth context to load...");
         setIsLoading(false);
         return;
       }
-      if (!user) {
-        setError("You must be signed in to access this page.");
-        setIsLoading(false);
-        return;
-      }
-      // Get account ID for user (same as Universal)
-      const accountId = await getAccountIdForUser(user.id, supabase);
+      
+      // Use the account ID from the auth context (respects account switcher)
+      const accountId = account.id;
+      console.log("Using account from context:", accountId);
+      
       if (!accountId) {
         setError("No account found for user.");
         setIsLoading(false);
@@ -383,10 +383,10 @@ export default function EditPromptPage() {
   };
 
   useEffect(() => {
-    if (params.slug) {
+    if (params.slug && user && account?.id) {
       loadData();
     }
-  }, [params.slug, supabase]);
+  }, [params.slug, user, account?.id]); // Re-fetch when account changes
 
   useEffect(() => {
     if (offerEnabled) {

@@ -342,11 +342,43 @@ When working on this codebase:
 1. **Read before writing** - Always read existing code first
 2. **Follow patterns** - Match existing code style and patterns
 3. **Test thoroughly** - Consider edge cases and user experience
-4. **Document changes** - Update relevant documentation
+4. **Document changes** - Update relevant documentation AND local CHANGELOG.md files
 5. **Preserve user data** - Never implement changes that could lose user input
 6. **Monitor performance** - Watch for unnecessary re-renders or API calls
 7. **Check migrations** - Always verify database migrations are in sync
 8. **Use existing utilities** - Leverage existing helper functions and hooks
+
+## Changelog Convention (Token-Saving Strategy)
+
+**IMPORTANT:** We use local CHANGELOG.md files per directory to save tokens and provide breadcrumbs for AI assistants.
+
+### Directory-Level Changelogs
+Maintain CHANGELOG.md files in these directories:
+- `/src/app/(app)/dashboard/CHANGELOG.md` - Dashboard features and pages
+- `/src/app/(app)/api/CHANGELOG.md` - API endpoints and webhooks  
+- `/src/components/CHANGELOG.md` - Shared components
+- `/src/auth/CHANGELOG.md` - Authentication system
+- `/supabase/migrations/CHANGELOG.md` - Database migrations
+
+### Format
+```markdown
+## [YYYY-MM-DD]
+### Added
+- New features or components
+
+### Changed  
+- Modifications to existing functionality
+
+### Fixed
+- Bug fixes and corrections
+```
+
+### When to Update
+- After completing work in that directory
+- Before context window limit
+- For breaking changes or major fixes
+
+This saves tokens by letting AI quickly understand recent changes without reading all files.
 
 ## Database Migration Rules
 
@@ -415,6 +447,20 @@ const accounts = await prisma.accounts.findMany({
 - **Both approaches work together** - Supabase for migrations, Prisma for queries
 
 ## Recent Issues Log
+
+### 2025-09-01 - Critical Account Isolation Breach
+- **Issue:** Dashboard pages showing data from wrong accounts when using account switcher
+- **Symptoms:** Prompt pages, reviews, and widgets displaying data from user's first account regardless of selection
+- **Root Cause:** `getAccountIdForUser()` function bypasses account switcher, always returns first account
+- **Status:** RESOLVED
+- **Files Fixed:**
+  - `/dashboard/edit-prompt-page/universal/page.tsx` - Now uses `useAuth` hook
+  - `/dashboard/edit-prompt-page/[slug]/page.tsx` - Now uses `useAuth` hook
+  - `/dashboard/widget/components/ReviewManagementModal.tsx` - Added accountId prop
+  - `/dashboard/reviews/page.tsx` - Now uses `useAccountSelection` hook
+  - Parent components updated to pass selectedAccount prop
+- **Solution:** Replace `getAccountIdForUser()` with auth context hooks throughout dashboard
+- **Verification:** API endpoints checked - no issues found
 
 ### 2025-08 - Automatic Page Refreshes (Timer-based)
 - **Issue:** All pages refresh automatically on a timer (~55 minutes)
