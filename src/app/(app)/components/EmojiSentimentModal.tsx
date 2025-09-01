@@ -27,6 +27,9 @@ interface EmojiSentimentModalProps {
   fontFamily?: string;
   promptPageId?: string;
   onEmojiEmbed?: (emoji: string, sentiment: string) => void;
+  cardBg?: string;
+  cardTransparency?: number;
+  cardText?: string;
 }
 
 const EmojiSentimentModal: React.FC<EmojiSentimentModalProps> = ({
@@ -42,6 +45,9 @@ const EmojiSentimentModal: React.FC<EmojiSentimentModalProps> = ({
   fontFamily = "Inter",
   promptPageId,
   onEmojiEmbed,
+  cardBg = "#FFFFFF",
+  cardTransparency = 1,
+  cardText = "#1A1A1A",
 }) => {
   const [selected, setSelected] = useState<number | null>(0);
   const [feedback, setFeedback] = useState("");
@@ -54,11 +60,17 @@ const EmojiSentimentModal: React.FC<EmojiSentimentModalProps> = ({
   if (!open) return null;
 
   // Modal overlay and card
+  const cardOpacity = Math.round(cardTransparency * 100);
+  
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90 animate-fadein">
       <div
-        className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-2xl p-10 max-w-lg w-full relative animate-slideup border-2 border-white"
-        style={{ fontFamily }}
+        className="backdrop-blur-sm rounded-2xl shadow-2xl p-10 max-w-lg w-full relative animate-slideup border-2 border-white"
+        style={{ 
+          fontFamily,
+          backgroundColor: `${cardBg}${Math.round(cardTransparency * 255).toString(16).padStart(2, '0')}`,
+          color: cardText
+        }}
       >
         <div
           className="mb-8 text-3xl font-bold text-center"

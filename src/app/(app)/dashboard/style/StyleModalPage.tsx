@@ -56,21 +56,7 @@ const fontOptions = [
   { name: "Garamond", class: "font-garamond" },
 ];
 
-const cardBgOptions = [
-  { name: "Pure White", value: "#FFFFFF" },
-  { name: "Off-White", value: "#F7FAFC" },
-  { name: "Distinction", value: "#F3F4F6" },
-  { name: "Pale Blue", value: "#F0F6FF" },
-  { name: "Cream", value: "#FFFBEA" },
-];
-
-const textColorOptions = [
-  { name: "Black", value: "#1A1A1A" },
-  { name: "Charcoal", value: "#22292F" },
-  { name: "Dark Gray", value: "#2D3748" },
-  { name: "Navy", value: "#1A237E" },
-  { name: "Dark Brown", value: "#3E2723" },
-];
+// Color preset options are no longer needed since we're using color pickers
 
 // Helper to get font class from fontOptions
 function getFontClass(fontName: string) {
@@ -81,9 +67,10 @@ function getFontClass(fontName: string) {
 interface StylePageProps {
   onClose?: () => void;
   onStyleUpdate?: (newStyles: any) => void;
+  accountId?: string; // Account ID to use for saving styles
 }
 
-export default function StylePage({ onClose, onStyleUpdate }: StylePageProps) {
+export default function StylePage({ onClose, onStyleUpdate, accountId: propAccountId }: StylePageProps) {
 
   // Draggable modal state
   const [modalPos, setModalPos] = React.useState({ x: 0, y: 0 });
@@ -179,8 +166,8 @@ export default function StylePage({ onClose, onStyleUpdate }: StylePageProps) {
         return;
       }
 
-      // Get the account ID for the user
-      const accountId = await getAccountIdForUser(user.id, supabase);
+      // Use prop accountId if provided, otherwise fall back to getAccountIdForUser
+      const accountId = propAccountId || await getAccountIdForUser(user.id, supabase);
       if (!accountId) {
         console.log("No account found for user");
         setLoading(false);
@@ -277,8 +264,8 @@ export default function StylePage({ onClose, onStyleUpdate }: StylePageProps) {
         return;
       }
 
-      // Get the account ID for the user
-      const accountId = await getAccountIdForUser(user.id, supabase);
+      // Use prop accountId if provided, otherwise fall back to getAccountIdForUser
+      const accountId = propAccountId || await getAccountIdForUser(user.id, supabase);
       if (!accountId) {
         alert("No account found for user");
         setSaving(false);
@@ -361,12 +348,13 @@ export default function StylePage({ onClose, onStyleUpdate }: StylePageProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      {/* Backdrop */}
+    <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
+      {/* Transparent backdrop - no blur or dark overlay */}
       <div 
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        className="absolute inset-0"
         onClick={onClose || (() => window.history.back())}
         aria-label="Close modal"
+        style={{ pointerEvents: 'auto' }}
       />
       
       {/* Modal */}
@@ -379,6 +367,7 @@ export default function StylePage({ onClose, onStyleUpdate }: StylePageProps) {
           transform: 'none',
           maxHeight: '90vh',
           height: 'auto',
+          pointerEvents: 'auto',
         }}
         onMouseDown={handleMouseDown}
       >
@@ -557,6 +546,19 @@ export default function StylePage({ onClose, onStyleUpdate }: StylePageProps) {
                 <label><input type="radio" name="background_type" value="solid" checked={settings.background_type === "solid"} onChange={() => setSettings(s => ({ ...s, background_type: "solid" }))} /><span className="ml-2">Solid</span></label>
                 <label><input type="radio" name="background_type" value="gradient" checked={settings.background_type === "gradient"} onChange={() => setSettings(s => ({ ...s, background_type: "gradient" }))} /><span className="ml-2">Gradient</span></label>
           </div>
+          {settings.background_type === "solid" && (
+            <div className="mt-3">
+              <label className="block text-xs text-gray-500 mb-1">Background Color</label>
+              <input type="color" value={settings.background_color} onChange={e => setSettings(s => ({ ...s, background_color: e.target.value }))} className="w-full h-10 rounded cursor-pointer" />
+              <input 
+                type="text" 
+                value={settings.background_color} 
+                onChange={e => handleHexInputChange('background_color', e.target.value)}
+                className="w-full mt-1 px-2 py-1 text-xs border rounded bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent" 
+                placeholder="#FFFFFF"
+              />
+            </div>
+          )}
           {settings.background_type === "gradient" && (
             <div className="flex gap-4 mt-3">
               <div className="flex-1">
@@ -584,6 +586,18 @@ export default function StylePage({ onClose, onStyleUpdate }: StylePageProps) {
             </div>
           )}
         </div>
+        {/* Card background - moved up and with color picker */}
+        <div className="bg-white/70 backdrop-blur-sm rounded-xl p-5 border border-white/30">
+          <label className="block text-sm font-medium text-gray-700 mb-3">Card Background</label>
+          <input type="color" value={settings.card_bg} onChange={e => setSettings(s => ({ ...s, card_bg: e.target.value }))} className="w-full h-10 rounded cursor-pointer" />
+          <input 
+            type="text" 
+            value={settings.card_bg} 
+            onChange={e => handleHexInputChange('card_bg', e.target.value)}
+            className="w-full mt-2 px-2 py-1 text-xs border rounded bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent" 
+            placeholder="#FFFFFF"
+          />
+        </div>
             {/* Secondary color */}
             <div className="bg-white/70 backdrop-blur-sm rounded-xl p-5 border border-white/30">
               <label className="block text-sm font-medium text-gray-700 mb-3">Secondary Color</label>
@@ -596,18 +610,16 @@ export default function StylePage({ onClose, onStyleUpdate }: StylePageProps) {
                   placeholder="#000000"
                 />
             </div>
-        {/* Card background and text color options */}
-          <div className="bg-white/70 backdrop-blur-sm rounded-xl p-5 border border-white/30">
-              <label className="block text-sm font-medium text-gray-700 mb-3">Card Background</label>
-              <select value={settings.card_bg} onChange={e => setSettings(s => ({ ...s, card_bg: e.target.value }))} className="block w-full rounded-md border-gray-300 shadow-sm">
-                {cardBgOptions.map(opt => (<option key={opt.value} value={opt.value}>{opt.name}</option>))}
-            </select>
-          </div>
           <div className="bg-white/70 backdrop-blur-sm rounded-xl p-5 border border-white/30">
               <label className="block text-sm font-medium text-gray-700 mb-3">Card Text Color</label>
-              <select value={settings.card_text} onChange={e => setSettings(s => ({ ...s, card_text: e.target.value }))} className="block w-full rounded-md border-gray-300 shadow-sm">
-                {textColorOptions.map(opt => (<option key={opt.value} value={opt.value}>{opt.name}</option>))}
-            </select>
+              <input type="color" value={settings.card_text} onChange={e => setSettings(s => ({ ...s, card_text: e.target.value }))} className="w-full h-10 rounded cursor-pointer" />
+              <input 
+                type="text" 
+                value={settings.card_text} 
+                onChange={e => handleHexInputChange('card_text', e.target.value)}
+                className="w-full mt-2 px-2 py-1 text-xs border rounded bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent" 
+                placeholder="#1A1A1A"
+              />
             </div>
           </div>
         </div>
@@ -762,14 +774,14 @@ export default function StylePage({ onClose, onStyleUpdate }: StylePageProps) {
         {/* Bottom action buttons row */}
         <div className="flex justify-end gap-4 mt-10">
           <button
-            className="px-4 py-1 border border-slate-300 bg-white text-slate-blue rounded-md font-semibold shadow-sm hover:bg-slate-50 transition text-sm"
+            className="px-4 py-2 bg-white/20 backdrop-blur-sm text-white rounded-lg font-semibold hover:bg-white/30 transition text-sm border border-white/30"
             onClick={handleReset}
             disabled={saving}
           >
             Reset
           </button>
           <button
-            className="px-5 py-2 bg-slate-blue text-white rounded font-semibold shadow hover:bg-slate-700 transition"
+            className="px-4 py-2 bg-white/20 backdrop-blur-sm text-white rounded-lg font-semibold hover:bg-white/30 transition text-sm border border-white/30"
             style={{ minWidth: 90 }}
             onClick={handleSave}
             disabled={saving}

@@ -2491,7 +2491,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                 
                 return (hasWebsite || hasSocialLinks) && (
                   <div className="mb-8 rounded-2xl shadow p-8 animate-slideup relative" style={{
-                    background: businessProfile?.card_bg || "#F9FAFB",
+                    background: applyCardTransparency(businessProfile?.card_bg || "#F9FAFB", businessProfile?.card_transparency ?? 1.0),
                     color: businessProfile?.card_text || "#1A1A1A"
                   }}>
                     {businessProfile?.card_inner_shadow && (
@@ -2732,6 +2732,9 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
           question={mergedEmojiSentimentQuestion}
           feedbackMessage={mergedEmojiFeedbackMessage}
           thankYouMessage={mergedEmojiThankYouMessage}
+          cardBg={businessProfile?.card_bg}
+          cardTransparency={businessProfile?.card_transparency}
+          cardText={businessProfile?.card_text}
           onPositive={(sentimentValue) => {
             setShowSentimentModal(false);
             
@@ -2876,10 +2879,11 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
 
 
       {/* Style Modal */}
-      {showStyleModal && (
+      {showStyleModal && promptPage?.account_id && (
         <StyleModalPage 
           onClose={() => setShowStyleModal(false)} 
           onStyleUpdate={handleStyleUpdate}
+          accountId={promptPage.account_id}
         />
       )}
 
