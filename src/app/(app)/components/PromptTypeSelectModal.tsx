@@ -24,26 +24,42 @@ const PromptTypeSelectModal: React.FC<PromptTypeSelectModalProps> = ({
 }) => {
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-50 flex justify-center items-center bg-black bg-opacity-40">
-              <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-2xl p-8 max-w-4xl w-full text-center relative my-8 flex flex-col border-2 border-white" style={{ width: '100%', maxWidth: '56rem' }}>
+    <div className="fixed inset-0 z-50 flex justify-center items-center">
+      {/* Backdrop */}
+      <div 
+        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        onClick={onClose}
+        aria-label="Close modal"
+      />
+      
+      {/* Modal */}
+      <div className="bg-gradient-to-br from-indigo-50 via-white to-purple-50 rounded-2xl shadow-2xl max-w-4xl w-full relative my-8 flex flex-col border border-white/20 backdrop-blur-sm" style={{ width: '100%', maxWidth: '56rem' }}>
+        {/* Header */}
+        <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-fuchsia-600 rounded-t-2xl p-6">
+          <h2 className="text-2xl font-bold text-white text-center">
+            Select prompt page type
+          </h2>
+        </div>
+        
+        {/* Close button */}
         <button
-          className="absolute -top-4 -right-4 bg-white border border-gray-200 rounded-full shadow-lg z-20 flex items-center justify-center hover:bg-gray-100 focus:outline-none"
-          style={{ width: 40, height: 40 }}
+          className="absolute -top-3 -right-3 bg-white/70 backdrop-blur-sm border border-white/40 rounded-full shadow-lg flex items-center justify-center hover:bg-white/90 focus:outline-none z-20 transition-colors p-2"
+          style={{ width: 36, height: 36 }}
           onClick={onClose}
           aria-label="Close modal"
         >
-          <Icon name="FaTimes" className="w-5 h-5 text-red-600" size={20} />
+          <Icon name="FaTimes" className="w-4 h-4 text-red-600" size={16} />
         </button>
-        <h2 className="text-2xl font-bold text-slate-blue mb-6 sticky top-0 bg-white z-10 pt-2 pb-4">
-          Select prompt page type
-        </h2>
-        <div className="overflow-y-auto max-h-[70vh]">
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-            {promptTypes.map((type) => (
-              <button
-                key={type.key}
-                onClick={() => !type.comingSoon && onSelectType(type.key)}
-                className={`flex flex-col items-center gap-2 rounded-lg border border-gray-200 hover:border-indigo-400 shadow-sm hover:shadow-md transition-all bg-gray-50 hover:bg-indigo-50 focus:outline-none w-full ${type.comingSoon ? "opacity-60 cursor-not-allowed relative" : ""}`}
+        
+        {/* Content */}
+        <div className="p-6 overflow-y-auto max-h-[70vh]">
+          <div className="bg-white/70 backdrop-blur-sm rounded-xl p-6 border border-white/30">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+              {promptTypes.map((type) => (
+                <button
+                  key={type.key}
+                  onClick={() => !type.comingSoon && onSelectType(type.key)}
+                  className={`flex flex-col items-center gap-2 rounded-xl border border-white/50 hover:border-indigo-400 shadow-sm hover:shadow-md transition-all bg-white/80 hover:bg-indigo-50/80 focus:outline-none w-full backdrop-blur-sm ${type.comingSoon ? "opacity-60 cursor-not-allowed relative" : ""}`}
                 style={{
                   minHeight: '140px',
                   maxHeight: '200px',
@@ -68,6 +84,7 @@ const PromptTypeSelectModal: React.FC<PromptTypeSelectModalProps> = ({
                 )}
               </button>
             ))}
+            </div>
           </div>
         </div>
       </div>

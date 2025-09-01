@@ -248,36 +248,47 @@ export default function KickstartersManagementModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center z-[100] pointer-events-none">
+    <div className="fixed inset-0 flex items-center justify-center z-[100]">
+      {/* Backdrop */}
+      <div 
+        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        onClick={onClose}
+        aria-label="Close modal"
+      />
+      
+      {/* Modal */}
       <div 
         ref={modalRef}
-        className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-2xl max-w-4xl w-full relative flex flex-col pointer-events-auto"
+        className="bg-gradient-to-br from-indigo-50 via-white to-purple-50 rounded-2xl shadow-2xl max-w-4xl w-full relative flex flex-col border border-white/20 backdrop-blur-sm"
         style={{
+          position: 'absolute',
           left: modalPos.x,
           top: modalPos.y,
           transform: 'none',
-          maxHeight: '70vh',
-          height: 'auto',
+          height: '85vh',
+          maxHeight: '85vh',
         }}
         onMouseDown={handleMouseDown}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Circular close button that exceeds modal borders */}
         <button
-          className="absolute -top-2 -right-2 bg-white border border-gray-200 rounded-full shadow-md flex items-center justify-center hover:bg-gray-100 focus:outline-none z-20 transition-colors p-2"
-          style={{ width: 32, height: 32 }}
+          className="absolute -top-3 -right-3 bg-white/70 backdrop-blur-sm border border-white/40 rounded-full shadow-lg flex items-center justify-center hover:bg-white/90 focus:outline-none z-20 transition-colors p-2"
+          style={{ width: 36, height: 36 }}
           onClick={onClose}
           aria-label="Close kickstarters modal"
         >
-          <Icon name="FaTimes" className="w-4 h-4 text-gray-600" size={16} />
+          <Icon name="FaTimes" className="w-4 h-4 text-red-600" size={16} />
         </button>
 
         {/* Draggable header - unique class name to prevent interference */}
-        <div className="kickstarters-modal-header flex items-center justify-between p-4 border-b cursor-move bg-slate-100 rounded-t-2xl">
+        <div className="kickstarters-modal-header flex items-center justify-between p-4 cursor-move bg-gradient-to-r from-indigo-600 via-purple-600 to-fuchsia-600 rounded-t-2xl">
           <div className="flex items-center gap-3">
-            <Icon name="FaLightbulb" className="text-slate-blue text-xl" size={20} />
-            <h2 className="text-xl font-bold text-gray-900">Manage kickstarters</h2>
-            <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+            <div className="bg-white/20 backdrop-blur-sm rounded-lg p-2">
+              <Icon name="FaLightbulb" className="text-white text-xl" size={20} />
+            </div>
+            <h2 className="text-xl font-bold text-white">Manage kickstarters</h2>
+            <span className="text-sm text-white/70 bg-white/20 backdrop-blur-sm px-2 py-1 rounded-full">
               AKA Prompts
             </span>
           </div>
@@ -285,7 +296,7 @@ export default function KickstartersManagementModal({
             <button
               type="button"
               onClick={handleSave}
-              className="px-4 py-2 bg-slate-blue text-white rounded-lg hover:bg-slate-blue-dark focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2 transition-colors"
+              className="px-4 py-2 bg-white/20 backdrop-blur-sm text-white border border-white/30 rounded-lg hover:bg-white/30 focus:outline-none focus:ring-2 focus:ring-white/50 focus:ring-offset-2 transition-colors font-semibold"
             >
               Save selection
             </button>
@@ -300,9 +311,9 @@ export default function KickstartersManagementModal({
         )}
 
         {/* Tab Navigation */}
-        <div className="px-6 pt-4">
-          <div className="border-b border-gray-200">
-            <nav className="-mb-px flex space-x-8">
+        <div className="px-6 pt-4 pb-2">
+          <div className="bg-white/70 backdrop-blur-sm rounded-xl p-3 border border-white/30">
+            <nav className="flex space-x-6">
               <button
                 type="button"
                 onClick={() => setActiveTab('browse')}
@@ -330,9 +341,9 @@ export default function KickstartersManagementModal({
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-hidden">
+        <div className="flex-1 overflow-hidden px-6 pb-6 min-h-0">
           {activeTab === 'browse' && (
-            <div className="p-6 h-full flex flex-col min-h-0">
+            <div className="bg-white/70 backdrop-blur-sm rounded-xl p-6 h-full flex flex-col overflow-hidden border border-white/30">
               {/* Controls */}
               <div className="flex items-center gap-4 mb-4">
                 <div className="flex-1 relative">
@@ -447,11 +458,6 @@ export default function KickstartersManagementModal({
                             <p className="text-sm text-gray-700">
                               {replaceBusinessName(kickstarter.question)}
                             </p>
-                            {kickstarter.question !== replaceBusinessName(kickstarter.question) && (
-                              <p className="text-xs text-gray-500 mt-1">
-                                Original: {kickstarter.question}
-                              </p>
-                            )}
                           </div>
                           {selected.includes(kickstarter.id) && (
                             <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center text-white ml-3">
@@ -473,7 +479,7 @@ export default function KickstartersManagementModal({
           )}
 
           {activeTab === 'selected' && (
-            <div className="p-6 h-full flex flex-col min-h-0">
+            <div className="bg-white/70 backdrop-blur-sm rounded-xl p-6 h-full flex flex-col overflow-hidden border border-white/30">
               {/* Category Stats */}
               <div className="mb-4">
                 <h3 className="text-sm font-medium text-gray-900 mb-2">Selection by category</h3>
@@ -603,31 +609,31 @@ export default function KickstartersManagementModal({
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
+        <div className="px-6 py-4 bg-white/20 backdrop-blur-sm border-t border-white/30 rounded-b-2xl">
           <div className="flex items-center justify-between">
-            <div className="text-sm text-gray-600">
+            <div className="text-sm text-slate-600 font-medium">
               {selected.length} of {MAX_SELECTED_KICKSTARTERS} kickstarters selected
             </div>
             <div className="flex items-center gap-3">
               <button
                 type="button"
                 onClick={() => setSelected([])}
-                className="px-4 py-2 text-gray-600 hover:text-gray-800"
+                className="px-4 py-2 bg-white/30 backdrop-blur-sm text-slate-600 rounded-lg font-medium hover:bg-white/40 transition text-sm border border-white/40 disabled:opacity-50 disabled:cursor-not-allowed"
                 disabled={selected.length === 0}
               >
-                Clear All
+                Clear all
               </button>
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 text-gray-600 hover:text-gray-800"
+                className="px-4 py-2 bg-white/30 backdrop-blur-sm text-slate-600 rounded-lg font-medium hover:bg-white/40 transition text-sm border border-white/40"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={handleSave}
-                className="px-4 py-2 bg-slate-blue text-white rounded-lg hover:bg-slate-blue-dark focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2"
+                className="px-4 py-2 bg-white/50 backdrop-blur-sm text-slate-blue rounded-lg font-semibold hover:bg-white/60 transition text-sm border border-white/50"
               >
                 Save selection
               </button>

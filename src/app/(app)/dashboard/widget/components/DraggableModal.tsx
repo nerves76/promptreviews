@@ -77,9 +77,17 @@ export const DraggableModal: React.FC<DraggableModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      {/* Backdrop */}
+      <div 
+        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        onClick={onClose}
+        aria-label="Close modal"
+      />
+      
+      {/* Modal */}
       <div
-        className={`bg-white/90 backdrop-blur-sm rounded-2xl shadow-2xl w-full ${maxWidth} pointer-events-auto relative border-2 border-white`}
+        className={`bg-gradient-to-br from-indigo-50 via-white to-purple-50 rounded-2xl shadow-2xl w-full ${maxWidth} relative border border-white/20 backdrop-blur-sm`}
         style={{
           position: 'absolute',
           left: modalPos.x,
@@ -90,8 +98,8 @@ export const DraggableModal: React.FC<DraggableModalProps> = ({
       >
         {/* Circular close button that exceeds modal borders */}
           <button
-          className="absolute -top-2 -right-2 bg-white border border-gray-200 rounded-full shadow-md flex items-center justify-center hover:bg-gray-100 focus:outline-none z-20 transition-colors p-2"
-          style={{ width: 32, height: 32 }}
+          className="absolute -top-3 -right-3 bg-white/70 backdrop-blur-sm border border-white/40 rounded-full shadow-lg flex items-center justify-center hover:bg-white/90 focus:outline-none z-20 transition-colors p-2"
+          style={{ width: 36, height: 36 }}
             onClick={onClose}
           aria-label="Close modal"
           >
@@ -100,18 +108,20 @@ export const DraggableModal: React.FC<DraggableModalProps> = ({
             </svg>
           </button>
 
-        <div className="modal-header flex items-center justify-between p-4 border-b cursor-move bg-slate-100 rounded-t-lg">
+        <div className="modal-header flex items-center justify-between p-4 cursor-move bg-gradient-to-r from-indigo-600 via-purple-600 to-fuchsia-600 rounded-t-2xl">
           <div className="w-1/3">
-            <h2 className="text-xl font-semibold">{title}</h2>
+            <h2 className="text-xl font-semibold text-white">{title}</h2>
           </div>
-          <div className="w-1/3 flex justify-center text-gray-400">
-             <Icon name="FaArrowsAlt" />
+          <div className="w-1/3 flex justify-center">
+             <div className="bg-white/20 backdrop-blur-sm rounded-lg p-2">
+               <Icon name="FaArrowsAlt" className="text-white" size={16} />
+             </div>
           </div>
           <div className="w-1/3 flex justify-end items-center gap-2 pr-8">
              {onReset && (
                 <button
                    onClick={onReset}
-                   className="px-4 py-1 border border-slate-300 bg-white text-slate-blue rounded-md font-semibold shadow-sm hover:bg-slate-50 transition text-sm"
+                   className="px-4 py-2 bg-white/20 backdrop-blur-sm text-white rounded-lg font-semibold hover:bg-white/30 transition text-sm border border-white/30"
                 >
                    {resetLabel}
                </button>
@@ -119,7 +129,7 @@ export const DraggableModal: React.FC<DraggableModalProps> = ({
              {onSave && (
                 <button
                   onClick={onSave}
-                  className="px-5 py-2 bg-slate-blue text-white rounded-md font-semibold shadow hover:bg-slate-700 transition"
+                  className="px-4 py-2 bg-white/20 backdrop-blur-sm text-white rounded-lg font-semibold hover:bg-white/30 transition text-sm border border-white/30"
                 >
                   {saveLabel}
                 </button>

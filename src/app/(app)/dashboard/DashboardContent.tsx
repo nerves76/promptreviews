@@ -896,7 +896,7 @@ const DashboardContent = React.memo(function DashboardContent({
 
           {/* Post-save share modal with star fall animation */}
           {showPostSaveModal && postSaveData && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
               {/* Star Falling Animation - always visible when modal is shown */}
               {showStars && starProps.map((props, i) => (
                 <span
@@ -925,38 +925,47 @@ const DashboardContent = React.memo(function DashboardContent({
                 </span>
               ))}
               {/* Modal content - always visible */}
-              <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full text-center relative z-10 overflow-hidden">
-                {/* Standardized red X close button */}
+              <div className="bg-gradient-to-br from-indigo-50 via-white to-purple-50 rounded-2xl shadow-2xl max-w-md w-full text-center relative z-10 border border-white/20 backdrop-blur-sm">
+                {/* Header */}
+                <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-fuchsia-600 rounded-t-2xl p-6">
+                  <h2 className="text-2xl font-bold text-white">
+                    Prompt Page Published! 🎉
+                  </h2>
+                </div>
+                
+                {/* Content */}
+                <div className="p-8">
+                {/* Glassmorphic close button */}
                 <button
                   onClick={() => {
                     setShowPostSaveModal(false);
                     setShowStars(false);
                   }}
-                  className="absolute -top-3 -right-3 bg-white border border-gray-200 rounded-full shadow-lg hover:shadow-xl transition-shadow duration-200 flex items-center justify-center hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 z-50"
-                  style={{ width: 48, height: 48 }}
+                  className="absolute -top-3 -right-3 bg-white/70 backdrop-blur-sm border border-white/40 rounded-full shadow-lg flex items-center justify-center hover:bg-white/90 focus:outline-none z-20 transition-colors p-2"
+                  style={{ width: 36, height: 36 }}
                   aria-label="Close modal"
                 >
                   <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
+                
+                  <div className="bg-white/70 backdrop-blur-sm rounded-xl p-6 border border-white/30 mb-6">
+                    {/* Prompty Success Image */}
+                    <div className="mb-6 flex justify-center">
+                      <img
+                        src="https://ltneloufqjktdplodvao.supabase.co/storage/v1/object/public/logos/prompt-assets/small-prompty-success.png"
+                        alt="Prompty Success"
+                        className="w-24 h-24 object-contain"
+                      />
+                    </div>
 
-                {/* Prompty Success Image */}
-                <div className="mb-6 flex justify-center">
-                  <img
-                    src="https://ltneloufqjktdplodvao.supabase.co/storage/v1/object/public/logos/prompt-assets/small-prompty-success.png"
-                    alt="Prompty Success"
-                    className="w-24 h-24 object-contain"
-                  />
-                </div>
-
-                <h2 className="text-2xl font-bold mb-4 text-slate-blue relative z-10">
-                  Prompt Page Published! 🎉
-                </h2>
-                <p className="mb-4 text-gray-700 relative z-10">
-                  Your prompt page is now live and ready to collect reviews.
-                </p>
-                <div className="flex flex-col gap-3 mb-6 relative z-10">
+                    <p className="mb-4 text-gray-700">
+                      Your prompt page is now live and ready to collect reviews.
+                    </p>
+                  </div>
+                  
+                  <div className="flex flex-col gap-3 mb-6">
                   <a
                     href={postSaveData.url}
                     target="_blank"
@@ -988,15 +997,16 @@ const DashboardContent = React.memo(function DashboardContent({
                     </a>
                   )}
                 </div>
-                <button
-                  onClick={() => {
-                    setShowPostSaveModal(false);
-                    setShowStars(false);
-                  }}
-                  className="bg-slate-blue text-white px-6 py-2 rounded hover:bg-slate-blue/90 font-semibold mt-2 relative z-10"
-                >
-                  Close
-                </button>
+                  <button
+                    onClick={() => {
+                      setShowPostSaveModal(false);
+                      setShowStars(false);
+                    }}
+                    className="bg-slate-blue text-white px-6 py-2 rounded hover:bg-slate-blue/90 font-semibold mt-2"
+                  >
+                    Close
+                  </button>
+                </div>
               </div>
             </div>
           )}

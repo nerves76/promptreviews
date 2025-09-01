@@ -105,6 +105,9 @@ export default function StylePage({ onClose, onStyleUpdate }: StylePageProps) {
     card_shadow_color: "#222222",
     card_shadow_intensity: 0.20,
     card_transparency: 1.00,
+    card_border_width: 0,
+    card_border_color: "#222222",
+    card_border_transparency: 1.00,
     kickstarters_background_design: false,
   });
 
@@ -113,6 +116,7 @@ export default function StylePage({ onClose, onStyleUpdate }: StylePageProps) {
   const [loading, setLoading] = React.useState(true);
   const [saving, setSaving] = React.useState(false);
   const [success, setSuccess] = React.useState(false);
+  const [universalPromptPageSlug, setUniversalPromptPageSlug] = React.useState<string | null>(null);
   
   // Helper function to validate hex color
   const isValidHexColor = (hex: string): boolean => {
@@ -185,9 +189,21 @@ export default function StylePage({ onClose, onStyleUpdate }: StylePageProps) {
 
       const { data: business } = await supabase
         .from("businesses")
-        .select("primary_font,secondary_font,primary_color,secondary_color,background_type,background_color,gradient_start,gradient_end,card_bg,card_text,card_inner_shadow,card_shadow_color,card_shadow_intensity,card_transparency,kickstarters_background_design")
+        .select("primary_font,secondary_font,primary_color,secondary_color,background_type,background_color,gradient_start,gradient_end,card_bg,card_text,card_inner_shadow,card_shadow_color,card_shadow_intensity,card_transparency,card_border_width,card_border_color,card_border_transparency,kickstarters_background_design")
         .eq("account_id", accountId)
         .single();
+      
+      // Fetch universal prompt page
+      const { data: universalPage } = await supabase
+        .from("prompt_pages")
+        .select('slug')
+        .eq("account_id", accountId)
+        .eq("is_universal", true)
+        .maybeSingle();
+      
+      if (universalPage?.slug) {
+        setUniversalPromptPageSlug(universalPage.slug);
+      }
       
       if (business) {
         setSettings(s => ({
@@ -200,6 +216,9 @@ export default function StylePage({ onClose, onStyleUpdate }: StylePageProps) {
           card_shadow_color: business.card_shadow_color || "#222222",
           card_shadow_intensity: business.card_shadow_intensity || 0.20,
           card_transparency: business.card_transparency || 1.00,
+          card_border_width: business.card_border_width || 0,
+          card_border_color: business.card_border_color || "#222222",
+          card_border_transparency: business.card_border_transparency || 1.00,
           kickstarters_background_design: business.kickstarters_background_design ?? false
         }));
       }
@@ -283,6 +302,9 @@ export default function StylePage({ onClose, onStyleUpdate }: StylePageProps) {
           card_shadow_color: settings.card_shadow_color,
           card_shadow_intensity: settings.card_shadow_intensity,
           card_transparency: settings.card_transparency,
+          card_border_width: settings.card_border_width,
+          card_border_color: settings.card_border_color,
+          card_border_transparency: settings.card_border_transparency,
           kickstarters_background_design: settings.kickstarters_background_design,
         })
         .eq("account_id", accountId);
@@ -318,8 +340,12 @@ export default function StylePage({ onClose, onStyleUpdate }: StylePageProps) {
         card_inner_shadow: false,
         card_shadow_color: "#222222",
         card_shadow_intensity: 0.20,
-              card_transparency: 1.00,
-      kickstarters_background_design: false,
+        card_transparency: 1.00,
+        card_glassmorphism: false,
+        card_backdrop_blur: 0,
+        card_border_width: 0,
+        card_border_color: "rgba(255, 255, 255, 0.2)",
+        kickstarters_background_design: false,
     });
     }
   }
@@ -335,9 +361,17 @@ export default function StylePage({ onClose, onStyleUpdate }: StylePageProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      {/* Backdrop */}
+      <div 
+        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        onClick={onClose || (() => window.history.back())}
+        aria-label="Close modal"
+      />
+      
+      {/* Modal */}
       <div
-        className="bg-white rounded-2xl shadow-xl w-full max-w-2xl pointer-events-auto relative"
+        className="bg-gradient-to-br from-indigo-50 via-white to-purple-50 rounded-2xl shadow-2xl w-full max-w-2xl relative border border-white/20 backdrop-blur-sm"
         style={{
           position: 'absolute',
           left: modalPos.x,
@@ -349,23 +383,25 @@ export default function StylePage({ onClose, onStyleUpdate }: StylePageProps) {
         onMouseDown={handleMouseDown}
       >
         {/* Draggable header */}
-        <div className="modal-header flex items-center justify-between p-4 border-b cursor-move bg-slate-100 rounded-t-2xl">
+        <div className="modal-header flex items-center justify-between p-4 cursor-move bg-gradient-to-r from-indigo-600 via-purple-600 to-fuchsia-600 rounded-t-2xl">
           <div className="w-1/3">
-            <h2 className="text-xl font-semibold text-slate-blue">Prompt Page Style</h2>
+            <h2 className="text-xl font-semibold text-white">Prompt Page Style</h2>
           </div>
-          <div className="w-1/3 flex justify-center text-gray-400">
-            <Icon name="FaArrowsAlt" />
+          <div className="w-1/3 flex justify-center">
+            <div className="bg-white/20 backdrop-blur-sm rounded-lg p-2">
+              <Icon name="FaArrowsAlt" className="text-white" size={16} />
+            </div>
           </div>
           <div className="w-1/3 flex justify-end items-center gap-2 pr-8">
             <button
-              className="px-4 py-1 border border-slate-300 bg-white text-slate-blue rounded-md font-semibold shadow-sm hover:bg-slate-50 transition text-sm"
+              className="px-4 py-2 bg-white/20 backdrop-blur-sm text-white rounded-lg font-semibold hover:bg-white/30 transition text-sm border border-white/30"
               onClick={handleReset}
               disabled={saving}
             >
               Reset
             </button>
             <button
-              className="px-5 py-2 bg-slate-blue text-white rounded-md font-semibold shadow hover:bg-slate-700 transition"
+              className="px-4 py-2 bg-white/20 backdrop-blur-sm text-white rounded-lg font-semibold hover:bg-white/30 transition text-sm border border-white/30"
               onClick={handleSave}
               disabled={saving}
             >
@@ -376,8 +412,8 @@ export default function StylePage({ onClose, onStyleUpdate }: StylePageProps) {
 
         {/* Circular close button that exceeds modal borders */}
         <button
-          className="absolute -top-2 -right-2 bg-white border border-gray-200 rounded-full shadow-md flex items-center justify-center hover:bg-gray-100 focus:outline-none z-20 transition-colors p-2"
-          style={{ width: 32, height: 32 }}
+          className="absolute -top-3 -right-3 bg-white/70 backdrop-blur-sm border border-white/40 rounded-full shadow-lg flex items-center justify-center hover:bg-white/90 focus:outline-none z-20 transition-colors p-2"
+          style={{ width: 36, height: 36 }}
           onClick={onClose || (() => window.history.back())}
           aria-label="Close style modal"
         >
@@ -393,21 +429,48 @@ export default function StylePage({ onClose, onStyleUpdate }: StylePageProps) {
             </div>
           )}
         
-        <div className="flex items-center gap-2 mb-6">
-          <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          <p className="text-sm text-gray-500">
-            Design changes affect all Prompt Pages.
-          </p>
+        <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4 mb-6 border border-white/30">
+          <div className="flex items-start gap-2">
+            <svg className="w-4 h-4 text-white/80 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div className="text-sm text-white/90">
+              <p>
+                Design changes affect all Prompt Pages. Try designing live with your{' '}
+                {universalPromptPageSlug ? (
+                  <a 
+                    href={`/r/${universalPromptPageSlug}`} 
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-white underline hover:text-white/80 transition-colors"
+                  >
+                    Universal Prompt Page
+                  </a>
+                ) : (
+                  'Universal Prompt Page'
+                )}, it's more fun!
+              </p>
+            </div>
+          </div>
         </div>
         <div className="relative my-8 p-6 rounded-lg">
           <div className="bg-white rounded-lg shadow p-6 mx-auto relative" style={{ 
             maxWidth: 800, 
-            background: settings.card_bg, 
+            background: settings.card_glassmorphism 
+              ? `${settings.card_bg}${Math.round(settings.card_transparency * 255).toString(16).padStart(2, '0')}`
+              : settings.card_bg,
             color: settings.card_text,
             position: 'relative',
-            opacity: settings.card_transparency
+            opacity: !settings.card_glassmorphism ? settings.card_transparency : 1,
+            backdropFilter: settings.card_glassmorphism && settings.card_backdrop_blur > 0 
+              ? `blur(${settings.card_backdrop_blur}px)` 
+              : 'none',
+            WebkitBackdropFilter: settings.card_glassmorphism && settings.card_backdrop_blur > 0 
+              ? `blur(${settings.card_backdrop_blur}px)` 
+              : 'none',
+            border: settings.card_glassmorphism && settings.card_border_width > 0 
+              ? `${settings.card_border_width}px solid ${settings.card_border_color}`
+              : 'none'
           }}>
             {settings.card_inner_shadow && (
               <div
@@ -430,11 +493,11 @@ export default function StylePage({ onClose, onStyleUpdate }: StylePageProps) {
             </button>
           </div>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-8 mt-2 mb-2">
-          <div className="flex flex-col gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-2 mb-2">
+          <div className="flex flex-col gap-6">
         {/* Font pickers */}
-          <div>
-              <label className="block text-sm font-medium text-gray-700 mb-5">Primary Font</label>
+          <div className="bg-white/70 backdrop-blur-sm rounded-xl p-5 border border-white/30">
+              <label className="block text-sm font-medium text-gray-700 mb-3">Primary Font</label>
             <select
               value={settings.primary_font}
               onChange={e => setSettings(s => ({ ...s, primary_font: e.target.value }))}
@@ -453,8 +516,8 @@ export default function StylePage({ onClose, onStyleUpdate }: StylePageProps) {
             </select>
             <p className="text-xs text-gray-500 mt-1">System fonts may look different on different devices.</p>
           </div>
-          <div>
-              <label className="block text-sm font-medium text-gray-700 mb-5">Secondary Font</label>
+          <div className="bg-white/70 backdrop-blur-sm rounded-xl p-5 border border-white/30">
+              <label className="block text-sm font-medium text-gray-700 mb-3">Secondary Font</label>
             <select
               value={settings.secondary_font}
               onChange={e => setSettings(s => ({ ...s, secondary_font: e.target.value }))}
@@ -474,82 +537,74 @@ export default function StylePage({ onClose, onStyleUpdate }: StylePageProps) {
             <p className="text-xs text-gray-500 mt-1">System fonts may look different on different devices.</p>
           </div>
             {/* Primary color */}
-          <div>
-              <label className="block text-sm font-medium text-gray-700 mb-5">Primary Color</label>
-            <div className="flex items-center gap-2">
-                <input type="color" value={settings.primary_color} onChange={e => setSettings(s => ({ ...s, primary_color: e.target.value }))} className="w-12 h-8 rounded" />
+          <div className="bg-white/70 backdrop-blur-sm rounded-xl p-5 border border-white/30">
+              <label className="block text-sm font-medium text-gray-700 mb-3">Primary Color</label>
+                <input type="color" value={settings.primary_color} onChange={e => setSettings(s => ({ ...s, primary_color: e.target.value }))} className="w-full h-10 rounded cursor-pointer" />
                 <input 
                   type="text" 
                   value={settings.primary_color} 
                   onChange={e => handleHexInputChange('primary_color', e.target.value)}
-                  className="w-24 px-2 py-1 border rounded bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent" 
+                  className="w-full mt-2 px-2 py-1 text-xs border rounded bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent" 
                   placeholder="#000000"
                 />
           </div>
-            </div>
           </div>
-          <div className="flex flex-col gap-8">
+          <div className="flex flex-col gap-6">
         {/* Background type */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-5">Background Type</label>
+            <div className="bg-white/70 backdrop-blur-sm rounded-xl p-5 border border-white/30">
+              <label className="block text-sm font-medium text-gray-700 mb-3">Background Type</label>
           <div className="flex gap-4">
                 <label><input type="radio" name="background_type" value="solid" checked={settings.background_type === "solid"} onChange={() => setSettings(s => ({ ...s, background_type: "solid" }))} /><span className="ml-2">Solid</span></label>
                 <label><input type="radio" name="background_type" value="gradient" checked={settings.background_type === "gradient"} onChange={() => setSettings(s => ({ ...s, background_type: "gradient" }))} /><span className="ml-2">Gradient</span></label>
           </div>
           {settings.background_type === "gradient" && (
-            <div className="flex gap-4 mt-2">
-              <div>
-                <label className="block text-xs text-gray-500">Start</label>
-                <div className="flex items-center gap-2">
-                      <input type="color" value={settings.gradient_start} onChange={e => setSettings(s => ({ ...s, gradient_start: e.target.value }))} className="w-12 h-8 rounded" />
-                      <input 
-                        type="text" 
-                        value={settings.gradient_start} 
-                        onChange={e => handleHexInputChange('gradient_start', e.target.value)}
-                        className="w-24 px-2 py-1 border rounded bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent" 
-                        placeholder="#000000"
-                      />
-                </div>
+            <div className="flex gap-4 mt-3">
+              <div className="flex-1">
+                <label className="block text-xs text-gray-500 mb-1">Start</label>
+                <input type="color" value={settings.gradient_start} onChange={e => setSettings(s => ({ ...s, gradient_start: e.target.value }))} className="w-full h-10 rounded cursor-pointer" />
+                <input 
+                  type="text" 
+                  value={settings.gradient_start} 
+                  onChange={e => handleHexInputChange('gradient_start', e.target.value)}
+                  className="w-full mt-1 px-2 py-1 text-xs border rounded bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent" 
+                  placeholder="#000000"
+                />
               </div>
-              <div>
-                <label className="block text-xs text-gray-500">End</label>
-                <div className="flex items-center gap-2">
-                      <input type="color" value={settings.gradient_end} onChange={e => setSettings(s => ({ ...s, gradient_end: e.target.value }))} className="w-12 h-8 rounded" />
-                      <input 
-                        type="text" 
-                        value={settings.gradient_end} 
-                        onChange={e => handleHexInputChange('gradient_end', e.target.value)}
-                        className="w-24 px-2 py-1 border rounded bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent" 
-                        placeholder="#000000"
-                      />
-                </div>
+              <div className="flex-1">
+                <label className="block text-xs text-gray-500 mb-1">End</label>
+                <input type="color" value={settings.gradient_end} onChange={e => setSettings(s => ({ ...s, gradient_end: e.target.value }))} className="w-full h-10 rounded cursor-pointer" />
+                <input 
+                  type="text" 
+                  value={settings.gradient_end} 
+                  onChange={e => handleHexInputChange('gradient_end', e.target.value)}
+                  className="w-full mt-1 px-2 py-1 text-xs border rounded bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent" 
+                  placeholder="#000000"
+                />
               </div>
             </div>
           )}
         </div>
             {/* Secondary color */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-5">Secondary Color</label>
-              <div className="flex items-center gap-2">
-                <input type="color" value={settings.secondary_color} onChange={e => setSettings(s => ({ ...s, secondary_color: e.target.value }))} className="w-12 h-8 rounded" />
+            <div className="bg-white/70 backdrop-blur-sm rounded-xl p-5 border border-white/30">
+              <label className="block text-sm font-medium text-gray-700 mb-3">Secondary Color</label>
+                <input type="color" value={settings.secondary_color} onChange={e => setSettings(s => ({ ...s, secondary_color: e.target.value }))} className="w-full h-10 rounded cursor-pointer" />
                 <input 
                   type="text" 
                   value={settings.secondary_color} 
                   onChange={e => handleHexInputChange('secondary_color', e.target.value)}
-                  className="w-24 px-2 py-1 border rounded bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent" 
+                  className="w-full mt-2 px-2 py-1 text-xs border rounded bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent" 
                   placeholder="#000000"
                 />
-              </div>
             </div>
         {/* Card background and text color options */}
-          <div>
-              <label className="block text-sm font-medium text-gray-700 mb-5">Card Background</label>
+          <div className="bg-white/70 backdrop-blur-sm rounded-xl p-5 border border-white/30">
+              <label className="block text-sm font-medium text-gray-700 mb-3">Card Background</label>
               <select value={settings.card_bg} onChange={e => setSettings(s => ({ ...s, card_bg: e.target.value }))} className="block w-full rounded-md border-gray-300 shadow-sm">
                 {cardBgOptions.map(opt => (<option key={opt.value} value={opt.value}>{opt.name}</option>))}
             </select>
           </div>
-          <div>
-              <label className="block text-sm font-medium text-gray-700 mb-5">Card Text Color</label>
+          <div className="bg-white/70 backdrop-blur-sm rounded-xl p-5 border border-white/30">
+              <label className="block text-sm font-medium text-gray-700 mb-3">Card Text Color</label>
               <select value={settings.card_text} onChange={e => setSettings(s => ({ ...s, card_text: e.target.value }))} className="block w-full rounded-md border-gray-300 shadow-sm">
                 {textColorOptions.map(opt => (<option key={opt.value} value={opt.value}>{opt.name}</option>))}
             </select>
@@ -558,7 +613,7 @@ export default function StylePage({ onClose, onStyleUpdate }: StylePageProps) {
         </div>
         
         {/* Card Styling Settings */}
-        <div className="mt-8 p-6 bg-gray-50 rounded-lg">
+        <div className="mt-8 p-6 bg-white/70 backdrop-blur-sm rounded-xl border border-white/30">
           <h3 className="text-lg font-semibold text-gray-800 mb-4">Card Styling</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
@@ -629,6 +684,81 @@ export default function StylePage({ onClose, onStyleUpdate }: StylePageProps) {
             </div>
           </div>
         </div>
+
+        {/* Border Settings */}
+        <div className="mt-8 p-6 bg-gray-50 rounded-lg">
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">Border Settings</h3>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-3">Border Thickness</label>
+              <select
+                value={settings.card_border_width}
+                onChange={(e) => setSettings(s => ({ ...s, card_border_width: parseFloat(e.target.value) }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              >
+                <option value="0">No border</option>
+                <option value="0.5">0.5px (hairline)</option>
+                <option value="1">1px (thin)</option>
+                <option value="1.5">1.5px</option>
+                <option value="2">2px (medium)</option>
+                <option value="3">3px (thick)</option>
+                <option value="4">4px (extra thick)</option>
+              </select>
+            </div>
+            
+            {settings.card_border_width > 0 && (
+              <>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">Border Color</label>
+                  <div className="flex gap-2">
+                    <input
+                      type="color"
+                      value={settings.card_border_color}
+                      onChange={(e) => setSettings(s => ({ ...s, card_border_color: e.target.value }))}
+                      className="h-10 w-20 border border-gray-300 rounded cursor-pointer"
+                    />
+                    <input
+                      type="text"
+                      value={settings.card_border_color}
+                      onChange={(e) => handleHexInputChange('card_border_color', e.target.value)}
+                      placeholder="#222222"
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    Border Transparency: {Math.round(settings.card_border_transparency * 100)}%
+                  </label>
+                  <input
+                    type="range"
+                    min="0"
+                    max="1"
+                    step="0.05"
+                    value={settings.card_border_transparency}
+                    onChange={(e) => setSettings(s => ({ ...s, card_border_transparency: parseFloat(e.target.value) }))}
+                    className="w-full"
+                  />
+                  <div className="flex justify-between text-xs text-gray-500 mt-1">
+                    <span>Transparent</span>
+                    <span>Opaque</span>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+          
+          {settings.card_border_width > 0 && (
+            <div className="mt-4 p-3 bg-blue-50 rounded-md">
+              <p className="text-xs text-blue-700">
+                <strong>Preview:</strong> {settings.card_border_width}px border with color {settings.card_border_color} at {Math.round(settings.card_border_transparency * 100)}% opacity
+              </p>
+            </div>
+          )}
+        </div>
+
         {/* Bottom action buttons row */}
         <div className="flex justify-end gap-4 mt-10">
           <button

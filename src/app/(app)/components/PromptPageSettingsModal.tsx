@@ -222,9 +222,17 @@ export default function PromptPageSettingsModal({
   return (
     <>
       {/* Modal */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
+      <div className="fixed inset-0 z-50 flex items-center justify-center">
+        {/* Backdrop */}
+        <div 
+          className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+          onClick={handleClose}
+          aria-label="Close modal"
+        />
+        
+        {/* Modal */}
         <div
-          className="bg-white rounded-2xl shadow-xl w-full max-w-4xl pointer-events-auto relative flex flex-col"
+          className="bg-gradient-to-br from-indigo-50 via-white to-purple-50 rounded-2xl shadow-2xl w-full max-w-4xl relative flex flex-col border border-white/20 backdrop-blur-sm"
           style={{
             position: 'absolute',
             left: modalPos.x,
@@ -236,29 +244,40 @@ export default function PromptPageSettingsModal({
           onMouseDown={handleMouseDown}
         >
           {/* Draggable header */}
-          <div className="modal-header flex items-center justify-between p-4 border-b cursor-move bg-slate-100 rounded-t-2xl">
+          <div className="modal-header flex items-center justify-between p-4 cursor-move bg-gradient-to-r from-indigo-600 via-purple-600 to-fuchsia-600 rounded-t-2xl">
             <div className="w-1/3">
               <div>
-                <h2 className="text-xl font-semibold text-slate-blue">
-                  Prompt Page Settings
+                <h2 className="text-xl font-semibold text-white">
+                  Prompt page settings
                 </h2>
-                <p className="text-xs text-gray-600 mt-1">
+                <p className="text-xs text-white/80 mt-1">
                   Configure global AI settings and defaults for new prompt pages
                 </p>
               </div>
             </div>
-            <div className="w-1/3 flex justify-center text-gray-400">
-              <Icon name="FaArrowsAlt" />
+            <div className="w-1/3 flex justify-center">
+              <div className="bg-white/20 backdrop-blur-sm rounded-lg p-2">
+                <Icon name="FaArrowsAlt" className="text-white/90" size={16} />
+              </div>
             </div>
-            <div className="w-1/3 flex justify-end">
-              {/* Empty space for balance */}
+            <div className="w-1/3 flex justify-end pr-8">
+              <button
+                onClick={handleSave}
+                disabled={isSubmitting}
+                className="px-4 py-2 bg-white/20 backdrop-blur-sm text-white rounded-lg font-semibold hover:bg-white/30 transition text-sm border border-white/30 flex items-center gap-2"
+              >
+                {isSubmitting && (
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                )}
+                {isSubmitting ? 'Saving...' : 'Save settings'}
+              </button>
             </div>
           </div>
 
           {/* Circular close button that exceeds modal borders */}
           <button
-            className="absolute -top-2 -right-2 bg-white border border-gray-200 rounded-full shadow-md flex items-center justify-center hover:bg-gray-100 focus:outline-none z-20 transition-colors p-2"
-            style={{ width: 32, height: 32 }}
+            className="absolute -top-3 -right-3 bg-white/70 backdrop-blur-sm border border-white/40 rounded-full shadow-lg flex items-center justify-center hover:bg-white/90 focus:outline-none z-20 transition-colors p-2"
+            style={{ width: 36, height: 36 }}
             onClick={handleClose}
             disabled={isSubmitting}
             aria-label="Close prompt settings modal"
@@ -280,11 +299,12 @@ export default function PromptPageSettingsModal({
 
               {/* GLOBAL SETTINGS - Apply to all prompt pages immediately */}
               <div className="mb-8">
-                <h2 className="text-xl font-bold text-slate-blue mb-1">Global</h2>
-                <p className="text-sm text-gray-600 mb-6">These settings apply immediately to all prompt pages.</p>
-                
-                {/* Keywords Section */}
-                <section className="mb-6">
+                <div className="bg-white/70 backdrop-blur-sm rounded-xl p-5 border border-white/30">
+                  <h2 className="text-xl font-bold text-slate-blue mb-1">Global</h2>
+                  <p className="text-sm text-gray-600 mb-6">These settings apply immediately to all prompt pages.</p>
+                  
+                  {/* Keywords Section */}
+                  <section className="mb-6">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                     Keywords (comma separated)
                     <RobotTooltip text="Keywords help with SEO and AI-generated content across all pages." />
@@ -301,7 +321,7 @@ export default function PromptPageSettingsModal({
                 {/* AI Dos and Don'ts Section */}
                 <section className="mb-6">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                    AI Guidelines
+                    AI guidelines
                     <RobotTooltip text="These guidelines help AI generate better content across all prompt pages." />
                   </h3>
                   
@@ -309,7 +329,7 @@ export default function PromptPageSettingsModal({
                     {/* AI Dos */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                        AI Dos
+                        AI dos
                         <RobotTooltip text="Things you want the AI to emphasize or include." />
                       </label>
                       <textarea
@@ -324,7 +344,7 @@ export default function PromptPageSettingsModal({
                     {/* AI Don'ts */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                        AI Don'ts
+                        AI don'ts
                         <RobotTooltip text="Things you want the AI to avoid or not mention." />
                       </label>
                       <textarea
@@ -337,13 +357,14 @@ export default function PromptPageSettingsModal({
                     </div>
                   </div>
                 </section>
+                </div>
               </div>
 
               {/* Divider */}
               <hr className="my-8 border-gray-200" />
 
               {/* DEFAULT SETTINGS - Only for new prompt pages */}
-              <div>
+              <div className="bg-white/70 backdrop-blur-sm rounded-xl p-5 border border-white/30">
                 <h2 className="text-xl font-bold text-slate-blue mb-4">Defaults</h2>
                 
                 {/* Info Notice */}
@@ -523,24 +544,17 @@ export default function PromptPageSettingsModal({
               )}
             </div>
             
-            {/* Buttons */}
-            <div className="flex items-center gap-3">
-              <button
-                onClick={handleClose}
-                disabled={isSubmitting}
-                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 disabled:opacity-50"
-              >
-                Close
-              </button>
+            {/* Bottom Save button */}
+            <div className="mt-6 p-4 bg-white/30 backdrop-blur-sm rounded-xl border border-white/40">
               <button
                 onClick={handleSave}
                 disabled={isSubmitting}
-                className="px-6 py-2 bg-slate-blue text-white rounded-lg hover:bg-slate-blue/90 disabled:opacity-50 flex items-center gap-2"
+                className="px-4 py-2 bg-white/50 backdrop-blur-sm text-slate-blue rounded-lg font-semibold hover:bg-white/60 transition text-sm border border-white/50 flex items-center gap-2"
               >
                 {isSubmitting && (
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                  <div className="w-4 h-4 border-2 border-slate-blue/30 border-t-slate-blue rounded-full animate-spin"></div>
                 )}
-                {isSubmitting ? 'Saving...' : 'Save Settings'}
+                {isSubmitting ? 'Saving...' : 'Save settings'}
               </button>
             </div>
           </div>

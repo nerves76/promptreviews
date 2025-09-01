@@ -197,10 +197,10 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl,
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 p-4">
       <div className="relative max-w-4xl w-full">
-        {/* Standardized circular close button - positioned outside modal container */}
+        {/* Glassmorphic close button */}
         <button
-          className="absolute -top-6 -right-6 bg-white border border-gray-200 rounded-full shadow-lg hover:shadow-xl transition-shadow duration-200 flex items-center justify-center hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 z-50"
-          style={{ width: 48, height: 48 }}
+          className="absolute -top-3 -right-3 bg-white/70 backdrop-blur-sm border border-white/40 rounded-full shadow-lg flex items-center justify-center hover:bg-white/90 focus:outline-none z-20 transition-colors p-2"
+          style={{ width: 36, height: 36 }}
           onClick={onClose}
           aria-label="Close modal"
         >
@@ -209,21 +209,21 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl,
           </svg>
         </button>
         
-        <div className="bg-white/90 backdrop-blur-sm shadow-2xl p-0 w-full relative flex flex-col md:flex-row gap-8 text-left rounded-2xl max-h-[90vh] overflow-y-auto border-2 border-white">
+        <div className="shadow-2xl p-0 w-full relative flex flex-col md:flex-row gap-0 text-left rounded-2xl max-h-[90vh] overflow-y-auto">
 
         {/* Top Right Download Button - Only show when preview is available */}
         {showPreview && (
           <button
             onClick={handleDownloadClick}
             disabled={isDownloading}
-            className="absolute top-4 right-8 bg-slate-blue text-white px-4 py-2 rounded-md hover:bg-slate-blue/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium z-20"
+            className="absolute top-4 right-8 bg-white/50 backdrop-blur-sm border border-white/30 text-slate-blue px-4 py-2 rounded-md hover:bg-white/70 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium z-20 shadow-lg"
           >
             {isDownloading ? 'Downloading...' : 'Download PDF'}
           </button>
         )}
         
         {/* Left side: Controls */}
-        <div className="flex-1 space-y-4 py-6 px-8 min-h-0">
+        <div className="flex-1 space-y-4 py-6 px-8 min-h-0 bg-white/90 backdrop-blur-sm rounded-l-2xl">
           <div>
             {/* Marketing Copy - Show when preview is not generated */}
             {!showPreview && (
@@ -751,51 +751,65 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl,
               </>
             )}
 
-            {/* Generate/Download Button - Moved to bottom */}
-            <button
-              onClick={showPreview ? handleDownloadClick : handleGenerateQRCode}
-              disabled={isGenerating || isDownloading}
-              className="w-full bg-slate-blue text-white py-2 px-4 rounded-md hover:bg-slate-blue/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {!showPreview ? 'Generate QR code' : (isDownloading ? 'Downloading...' : 'Download PDF')}
-            </button>
+            {/* Generate Button - Only for generating QR code */}
+            {!showPreview && (
+              <button
+                onClick={handleGenerateQRCode}
+                disabled={isGenerating}
+                className="w-full bg-slate-blue text-white py-2 px-4 rounded-md hover:bg-slate-blue/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Generate QR code
+              </button>
+            )}
           </div>
         </div>
 
         {/* Right side: Preview */}
-        <div className="flex-1 bg-blue-50 p-8 rounded-r-xl min-h-0 relative">
-          {showPreview ? (
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-gray-900">Preview</h3>
-              {qrPreviewUrl ? (
-                <div>
-                  <img 
-                    src={qrPreviewUrl} 
-                    alt="QR Code Preview" 
-                    className="w-full h-auto max-w-md mx-auto rounded-lg shadow-sm"
-                  />
-                </div>
-              ) : (
-                <div className="text-center">
-                  <p className="text-gray-500">Preview will appear here</p>
-                </div>
-              )}
-
-            </div>
-          ) : (
-            <div className="text-center">
-              <p className="text-gray-500">Preview will appear here after you generate your QR code</p>
-            </div>
-          )}
+        <div className="flex-1 bg-white/20 backdrop-blur-sm rounded-r-xl min-h-0 relative border-l border-white/30 flex flex-col">
+          <div className="flex-1 p-8 pb-16">
+            {showPreview ? (
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-white">Preview</h3>
+                {qrPreviewUrl ? (
+                  <div>
+                    <img 
+                      src={qrPreviewUrl} 
+                      alt="QR Code Preview" 
+                      className="w-full h-auto max-w-md mx-auto rounded-lg shadow-sm"
+                    />
+                  </div>
+                ) : (
+                  <div className="text-center">
+                    <p className="text-gray-500">Preview will appear here</p>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="text-center">
+                <p className="text-gray-500">Preview will appear here after you generate your QR code</p>
+              </div>
+            )}
+          </div>
           
-                    {/* Bottom buttons - only branding removal */}
-          <div className="absolute bottom-4 left-8 right-8 flex justify-start items-center">
+          {/* Bottom buttons */}
+          <div className="absolute bottom-4 left-8 right-8 flex justify-between items-center">
             <button
               onClick={() => setShowBrandingPopup(true)}
               className="text-blue-600 hover:text-blue-800 text-xs underline"
             >
               Remove Prompt Reviews logo?
             </button>
+            
+            {/* Bottom Right Download Button - Only show when preview is available */}
+            {showPreview && (
+              <button
+                onClick={handleDownloadClick}
+                disabled={isDownloading}
+                className="bg-white/50 backdrop-blur-sm border border-white/30 text-slate-blue px-4 py-2 rounded-md hover:bg-white/70 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium shadow-lg"
+              >
+                {isDownloading ? 'Downloading...' : 'Download PDF'}
+              </button>
+            )}
           </div>
         </div>
 

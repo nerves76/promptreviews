@@ -5,7 +5,7 @@ import { createClient, getUserOrMock } from "@/utils/supabaseClient";
 import { useRouter } from "next/navigation";
 import Icon from "@/components/Icon";
 import PageCard from "@/app/(app)/components/PageCard";
-import InlineLoader from "@/app/(app)/components/InlineLoader";
+import PageLoader from "@/app/(app)/components/PageLoader";
 import { trackEvent, GA_EVENTS } from "@/utils/analytics";
 import { getAccountIdForUser } from "@/auth/utils/accounts";
 import { useAuthGuard } from "@/utils/authGuard";
@@ -383,13 +383,7 @@ export default function AccountPage() {
   }, [isLoading, account?.deleted_at, accountCancelled]);
 
   if (isLoading) {
-    return (
-      <PageCard icon={<CowboyIcon />}>
-        <div className="flex items-center justify-center p-8">
-          <InlineLoader />
-        </div>
-      </PageCard>
-    );
+    return <PageLoader showText={true} text="Loading account..." />;
   }
 
   if (error && !user) {
@@ -869,16 +863,16 @@ export default function AccountPage() {
 
       {/* Account Cancelled Success Message */}
       {accountCancelled && (
-        <div className="fixed top-4 right-4 bg-green-50 border border-green-200 rounded-lg p-4 shadow-lg z-50 max-w-md">
+        <div className="fixed top-4 right-4 bg-green-50 border border-green-200 rounded-lg p-4 shadow-lg z-50 max-w-md supports-[backdrop-filter]:bg-white/20 supports-[backdrop-filter]:backdrop-blur-sm supports-[backdrop-filter]:border-white/30 supports-[backdrop-filter]:shadow-2xl">
           <div className="flex items-start">
             <div className="flex-shrink-0">
               <Icon name="FaCheckCircle" className="h-5 w-5 text-green-400" />
             </div>
             <div className="ml-3">
-              <h3 className="text-sm font-medium text-green-800">
+              <h3 className="text-sm font-medium text-green-800 supports-[backdrop-filter]:text-white">
                 Account Successfully Cancelled
               </h3>
-              <div className="mt-2 text-sm text-green-700">
+              <div className="mt-2 text-sm text-green-700 supports-[backdrop-filter]:text-white/90">
                 <p>Your account has been cancelled and will be deleted after 90 days.</p>
                 <p className="mt-1">You can reactivate anytime within 90 days by selecting a new plan.</p>
                 {!showPricingModal && (
