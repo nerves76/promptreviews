@@ -85,6 +85,7 @@ const Dashboard = React.memo(function Dashboard() {
   const [planSelectionRequired, setPlanSelectionRequired] = useState(false);
   const [paymentChangeType, setPaymentChangeType] = useState<string | null>(null);
   const [justCompletedPayment, setJustCompletedPayment] = useState(false);
+  const [lastAccountUpdate, setLastAccountUpdate] = useState<Date | null>(null);
   const [isPendingPricingModal, setIsPendingPricingModal] = useState(false);
 
   // State for businesses data (loaded separately from AuthContext)
@@ -400,11 +401,37 @@ const Dashboard = React.memo(function Dashboard() {
       ((!plan || plan === 'no_plan' || plan === 'NULL') && businessCount > 0) ||
       (plan === "grower" && isTrialExpired && !hasStripeCustomer);
     
+    console.log('🔍 Plan selection check:', {
+      plan,
+      businessCount,
+      isTrialExpired,
+      hasStripeCustomer,
+      isPlanSelectionRequired,
+      account_updated_at: account?.updated_at,
+      showPricingModal,
+      justCompletedPayment
+    });
+    
     setPlanSelectionRequired(!!isPlanSelectionRequired);
+    
+    // Check if we just came back from Stripe success or have success modal showing
+    const urlParams = typeof window !== "undefined" ? 
+      new URLSearchParams(window.location.search) : null;
+    const hasSuccessParam = urlParams?.get('success') === '1';
+    const hasPlanSuccessModal = typeof window !== "undefined" ? 
+      sessionStorage.getItem('showPlanSuccessModal') === 'true' : false;
+    
+    // Check if account was updated recently (within 15 seconds)
+    const accountRecentlyUpdated = lastAccountUpdate && 
+      (new Date().getTime() - lastAccountUpdate.getTime()) < 15000;
     
     // Show pricing modal when plan selection is required (but not during initial load)
     // Only show if user hasn't dismissed it and it's not already showing
-    if (isPlanSelectionRequired && !showPricingModal && !isDashboardLoading) {
+    // AND we haven't just completed a payment or showing success modal
+    // AND account wasn't recently updated
+    if (isPlanSelectionRequired && !showPricingModal && !isDashboardLoading && 
+        !justCompletedPayment && !hasSuccessParam && !hasPlanSuccessModal && 
+        !accountRecentlyUpdated) {
       // Check if user hasn't recently dismissed the modal
       const modalDismissed = typeof window !== "undefined" ? 
         sessionStorage.getItem('pricingModalDismissed') === 'true' : false;
@@ -523,12 +550,14 @@ const Dashboard = React.memo(function Dashboard() {
       // Refresh account data to get updated plan
       if (user?.id) {
         refreshAccount().then(() => {
-          // Reset the flag after account data is refreshed
-          setTimeout(() => setJustCompletedPayment(false), 1000);
+          // Track when account was updated
+          setLastAccountUpdate(new Date());
+          // Reset the flag after account data is refreshed (give more time for data to settle)
+          setTimeout(() => setJustCompletedPayment(false), 10000);
         }).catch(error => {
           console.error("Error refreshing account data:", error);
           // Reset the flag even if refresh fails
-          setTimeout(() => setJustCompletedPayment(false), 1000);
+          setTimeout(() => setJustCompletedPayment(false), 10000);
         });
       }
       
@@ -824,7 +853,10 @@ const Dashboard = React.memo(function Dashboard() {
         }
         
         // Check if this account is eligible for a trial
-        const isEligibleForTrial = !account.has_had_paid_plan && !account.trial_end && !account.trial_start;
+        // Eligible if they've never had a paid plan before AND it's not an additional account
+        const isEligibleForTrial = !account.has_had_paid_plan && 
+                                   !account.is_additional_account && 
+                                   account.plan === 'no_plan';
         
         // If eligible for trial, handle locally without Stripe
         if (isEligibleForTrial) {
@@ -1066,11 +1098,12 @@ const Dashboard = React.memo(function Dashboard() {
           hasHadPaidPlan={account?.has_had_paid_plan || false}
           showCanceledMessage={justCanceledStripe}
           onClose={handleClosePricingModal}
+          onSignOut={handleSignOut}
           isPlanSelectionRequired={planSelectionRequired}
-          isReactivation={account?.deleted_at !== null || (account?.plan === 'no_plan' && account?.has_had_paid_plan)}
-          hadPreviousTrial={account?.has_had_paid_plan || (account?.trial_end !== null && account?.trial_start !== null)}
+          isReactivation={account?.deleted_at !== null || (account?.plan === 'no_plan' && account?.has_had_paid_plan && !account?.is_additional_account)}
+          hadPreviousTrial={account?.has_had_paid_plan || account?.is_additional_account || false}
           reactivationOffer={
-            (account?.deleted_at || (account?.plan === 'no_plan' && account?.has_had_paid_plan)) ? {
+            (account?.deleted_at || (account?.plan === 'no_plan' && account?.has_had_paid_plan && !account?.is_additional_account)) ? {
               hasOffer: true,
               offerType: 'percentage',
               discount: 20,

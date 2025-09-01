@@ -275,7 +275,7 @@ export default function MultiBusinessPostingDemo() {
                           : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                       }`}
                     >
-                      <Icon name="prompty" className="w-4 h-4" />
+                      <Icon name="prompty" className="w-4 h-4" color="#2E4A7D" />
                       <span>Improve with AI</span>
                     </button>
                     

@@ -105,11 +105,18 @@ const PageCard = React.memo(function PageCard({
             {icon}
           </div>
         )}
-        {/* Top-right action button */}
+        {/* Top-right action button - responsive positioning */}
         {topRightAction && (
-          <div className="absolute top-4 right-4 sm:right-8 z-20 hidden sm:block">
-            {topRightAction}
-          </div>
+          <>
+            {/* Mobile: Show as part of content flow */}
+            <div className="block sm:hidden mb-4">
+              {topRightAction}
+            </div>
+            {/* Desktop: Show in top-right corner */}
+            <div className="absolute top-4 right-4 sm:right-8 z-20 hidden sm:block">
+              {topRightAction}
+            </div>
+          </>
         )}
         <div
           className="content w-full px-1 pt-2 sm:pt-0"

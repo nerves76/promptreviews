@@ -77,11 +77,12 @@ export async function POST(request: NextRequest) {
     const accountData = {
       id: newAccountId, // This now matches an auth.users.id
       user_id: user.id, // Track who created this account
-      plan: 'grower', // Start with grower plan
-      trial_start: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(), // Trial started 15 days ago
-      trial_end: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(), // Trial ended yesterday
-      is_free_account: false, // Not a free account - they need to pay
-      has_had_paid_plan: false, // Haven't had paid plan (won't trigger welcome back with no_plan)
+      plan: 'no_plan', // Start with no plan - they need to choose one
+      trial_start: null, // No trial dates
+      trial_end: null, // No trial dates
+      is_free_account: false, // Not a free account
+      has_had_paid_plan: false, // Keep as false - we'll use is_additional_account instead
+      is_additional_account: true, // Mark as additional account to prevent free trial
       custom_prompt_page_count: 0,
       contact_count: 0,
       created_at: new Date().toISOString(),
@@ -92,7 +93,7 @@ export async function POST(request: NextRequest) {
       review_notifications_enabled: true,
       email_review_notifications: true,
       gbp_insights_enabled: true,
-      onboarding_step: 'complete' // Use onboarding_step instead of onboarding_completed
+      onboarding_step: 'business_creation' // Start with business creation step
     };
 
     // Check if account already exists (created by trigger)
@@ -131,12 +132,13 @@ export async function POST(request: NextRequest) {
           email: email.toLowerCase(),
           business_name: businessName,
           user_id: user.id, // Track who created this additional account
-          trial_start: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(), // Trial started 15 days ago
-          trial_end: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(), // Trial ended yesterday
-          is_free_account: false, // Not a free account - they need to pay
-          has_had_paid_plan: false, // Haven't had paid plan (won't trigger welcome back with no_plan)
-          plan: 'grower', // Start with grower plan (but trial is expired)
-          onboarding_step: 'complete' // Mark as complete to avoid onboarding flow
+          trial_start: null, // No trial dates
+          trial_end: null, // No trial dates
+          is_free_account: false, // Not a free account
+          has_had_paid_plan: false, // Keep as false - we'll use is_additional_account instead
+          is_additional_account: true, // Mark as additional account to prevent free trial
+          plan: 'no_plan', // Start with no plan - they need to choose one
+          onboarding_step: 'business_creation' // Start with business creation step
         })
         .eq('id', newAccountId)
         .select()
@@ -194,53 +196,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create initial business profile for the new account
-    const businessData = {
-      account_id: newAccountId,
-      name: businessName,
-      business_name: businessName,
-      contact_name: `${firstName} ${lastName}`,
-      industry: 'Other',
-      created_at: new Date().toISOString(),
-      // Set some defaults
-      primary_color: '#4F46E5',
-      secondary_color: '#818CF8',
-      background_color: '#FFFFFF',
-      text_color: '#1F2937',
-      primary_font: 'Inter',
-      secondary_font: 'Inter',
-      background_type: 'gradient',
-      gradient_start: '#3B82F6',
-      gradient_end: '#c026d3',
-      card_bg: '#FFFFFF',
-      card_text: '#1A1A1A',
-      card_transparency: 1.0,
-      card_inner_shadow: false,
-      card_shadow_color: '#222222',
-      card_shadow_intensity: 0.2,
-      review_platforms: []
-    };
+    // Don't create a business automatically - user needs to go through create-business flow
+    // This ensures they set up their business properly and choose a payment plan
 
-    const { error: businessError } = await serviceSupabase
-      .from('businesses')
-      .insert(businessData);
-
-    if (businessError) {
-      console.error('❌ Error creating business profile:', businessError);
-      // Don't fail the request - account is still created
-    }
-
-    // FORCE update the account to remove trial and ensure proper settings
+    // FORCE update the account to ensure proper settings for additional accounts
     // Do this as a final step to override any trigger defaults
     const { error: finalUpdateError } = await serviceSupabase
       .from('accounts')
       .update({
-        trial_start: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(), // Trial started 15 days ago
-        trial_end: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(), // Trial ended yesterday
-        plan: 'grower', // Start with grower plan (but trial is expired)
+        trial_start: null, // No trial dates
+        trial_end: null, // No trial dates
+        plan: 'no_plan', // No plan - they need to choose one
         is_free_account: false,
-        has_had_paid_plan: false, // Haven't had paid plan (won't trigger welcome back with no_plan)
-        onboarding_step: 'complete'
+        has_had_paid_plan: false, // Keep as false
+        is_additional_account: true, // Mark as additional account
+        onboarding_step: 'business_creation' // Need to create business
       })
       .eq('id', newAccountId);
 

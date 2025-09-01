@@ -3,9 +3,11 @@ import React from "react";
 export default function PrivacyPage() {
   return (
     <div className="max-w-4xl mx-auto py-12 px-4">
-      <h1 className="text-3xl font-bold mb-6 text-slate-blue">
-        Privacy Policy
-      </h1>
+      <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg p-6 mb-8 border border-white/50">
+        <h1 className="text-3xl font-bold text-slate-blue">
+          Privacy Policy
+        </h1>
+      </div>
       
       <div className="mb-8 p-4 bg-blue-50 border border-blue-200 rounded-lg">
         <p className="text-blue-800 font-medium">
@@ -16,7 +18,7 @@ export default function PrivacyPage() {
         </p>
       </div>
 
-      <section className="mb-8">
+      <section className="mb-8 bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg p-6 border border-white/50">
         <h2 className="text-2xl font-semibold mb-4 text-slate-blue">1. Information We Collect</h2>
         
         <h3 className="text-xl font-medium mb-3">Account Information</h3>
@@ -44,7 +46,7 @@ export default function PrivacyPage() {
         </ul>
       </section>
 
-      <section className="mb-8">
+      <section className="mb-8 bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg p-6 border border-white/50">
         <h2 className="text-2xl font-semibold mb-4 text-slate-blue">2. AI Data Processing</h2>
         <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4">
           <p className="text-amber-800 font-medium mb-2">
@@ -72,7 +74,7 @@ export default function PrivacyPage() {
         </ul>
       </section>
 
-      <section className="mb-8">
+      <section className="mb-8 bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg p-6 border border-white/50">
         <h2 className="text-2xl font-semibold mb-4 text-slate-blue">3. How We Use Your Information</h2>
         
         <h3 className="text-xl font-medium mb-3">Service Provision</h3>
@@ -101,7 +103,7 @@ export default function PrivacyPage() {
         </ul>
       </section>
 
-      <section className="mb-8">
+      <section className="mb-8 bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg p-6 border border-white/50">
         <h2 className="text-2xl font-semibold mb-4 text-slate-blue">4. Information Sharing and Disclosure</h2>
         
         <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
@@ -135,7 +137,7 @@ export default function PrivacyPage() {
         </p>
       </section>
 
-      <section className="mb-8">
+      <section className="mb-8 bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg p-6 border border-white/50">
         <h2 className="text-2xl font-semibold mb-4 text-slate-blue">5. Third-Party Platform Integration</h2>
         <p className="mb-4">
           Our service integrates with third-party review platforms (Google, Yelp, Facebook, etc.). Important considerations:
@@ -148,7 +150,7 @@ export default function PrivacyPage() {
         </ul>
       </section>
 
-      <section className="mb-8">
+      <section className="mb-8 bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg p-6 border border-white/50">
         <h2 className="text-2xl font-semibold mb-4 text-slate-blue">6. Data Security</h2>
         <ul className="list-disc ml-6 mb-4 space-y-2">
           <li><strong>Encryption:</strong> Data is encrypted in transit (HTTPS) and at rest</li>
@@ -163,7 +165,7 @@ export default function PrivacyPage() {
         </p>
       </section>
 
-      <section className="mb-8">
+      <section className="mb-8 bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg p-6 border border-white/50">
         <h2 className="text-2xl font-semibold mb-4 text-slate-blue">7. Cookies and Tracking Technologies</h2>
         
         <h3 className="text-xl font-medium mb-3">Types of Cookies We Use</h3>
@@ -182,7 +184,7 @@ export default function PrivacyPage() {
         </ul>
       </section>
 
-      <section className="mb-8">
+      <section className="mb-8 bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg p-6 border border-white/50">
         <h2 className="text-2xl font-semibold mb-4 text-slate-blue">8. Data Retention</h2>
         <ul className="list-disc ml-6 mb-4 space-y-2">
           <li><strong>Account Data:</strong> Retained while your account is active and for 90 days after deletion</li>
@@ -193,7 +195,7 @@ export default function PrivacyPage() {
         </ul>
       </section>
 
-      <section className="mb-8">
+      <section className="mb-8 bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg p-6 border border-white/50">
         <h2 className="text-2xl font-semibold mb-4 text-slate-blue">9. Your Privacy Rights</h2>
         
         <h3 className="text-xl font-medium mb-3">General Rights</h3>
@@ -222,7 +224,7 @@ export default function PrivacyPage() {
         </ul>
       </section>
 
-      <section className="mb-8">
+      <section className="mb-8 bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg p-6 border border-white/50">
         <h2 className="text-2xl font-semibold mb-4 text-slate-blue">10. International Data Transfers</h2>
         <p className="mb-4">
           Your information may be processed and stored in countries other than your own. We ensure appropriate safeguards are in place:
@@ -235,14 +237,14 @@ export default function PrivacyPage() {
         </ul>
       </section>
 
-      <section className="mb-8">
+      <section className="mb-8 bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg p-6 border border-white/50">
         <h2 className="text-2xl font-semibold mb-4 text-slate-blue">11. Children's Privacy</h2>
         <p className="mb-4">
           Our service is not intended for children under 18. We do not knowingly collect personal information from children under 18. If you believe we have collected information from a child under 18, please contact us immediately.
         </p>
       </section>
 
-      <section className="mb-8">
+      <section className="mb-8 bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg p-6 border border-white/50">
         <h2 className="text-2xl font-semibold mb-4 text-slate-blue">12. Marketing Communications</h2>
         <ul className="list-disc ml-6 mb-4 space-y-2">
           <li><strong>Consent:</strong> We only send marketing emails with your consent</li>
@@ -252,7 +254,7 @@ export default function PrivacyPage() {
         </ul>
       </section>
 
-      <section className="mb-8">
+      <section className="mb-8 bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg p-6 border border-white/50">
         <h2 className="text-2xl font-semibold mb-4 text-slate-blue">13. Business Customer vs. End User Data</h2>
         <p className="mb-4">
           <strong>Two Types of Data Users:</strong>
@@ -273,7 +275,7 @@ export default function PrivacyPage() {
         </ul>
       </section>
 
-      <section className="mb-8">
+      <section className="mb-8 bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg p-6 border border-white/50">
         <h2 className="text-2xl font-semibold mb-4 text-slate-blue">14. Changes to This Privacy Policy</h2>
         <ul className="list-disc ml-6 mb-4 space-y-2">
           <li>We may update this Privacy Policy periodically</li>
@@ -283,7 +285,7 @@ export default function PrivacyPage() {
         </ul>
       </section>
 
-      <section className="mb-8">
+      <section className="mb-8 bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg p-6 border border-white/50">
         <h2 className="text-2xl font-semibold mb-4 text-slate-blue">15. Contact Information</h2>
         <p className="mb-4">
           For privacy-related questions, concerns, or requests, please contact us:

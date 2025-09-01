@@ -49,10 +49,13 @@ export async function POST(request: NextRequest) {
     });
     
     if (error) {
-      console.error('❌ Signup error:', error);
+      console.error('❌ Signup error:', JSON.stringify(error, null, 2));
+      
+      // Extract error message from various possible formats
+      const errorMessage = error.message || error.msg || error.error_description || error.toString();
       
       // Handle specific errors
-      if (error.message.includes('already registered') || error.message.includes('already exists')) {
+      if (errorMessage && (errorMessage.includes('already registered') || errorMessage.includes('already exists'))) {
         return NextResponse.json(
           { error: 'User already registered. Please sign in instead.' },
           { status: 400 }
@@ -60,7 +63,7 @@ export async function POST(request: NextRequest) {
       }
       
       return NextResponse.json(
-        { error: error.message || 'Failed to create account' },
+        { error: errorMessage || 'Failed to create account' },
         { status: 400 }
       );
     }
@@ -99,9 +102,10 @@ export async function POST(request: NextRequest) {
             first_name: firstName,
             last_name: lastName,
             plan: 'no_plan',
-            trial_start: new Date().toISOString(),
-            trial_end: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
+            trial_start: null,  // Don't set trial dates during signup
+            trial_end: null,    // Trial dates are only set when user chooses a paid plan
             is_free_account: false,
+            has_had_paid_plan: false,  // New accounts haven't had paid plans yet
             custom_prompt_page_count: 0,
             contact_count: 0,
             review_notifications_enabled: true,
@@ -159,10 +163,15 @@ export async function POST(request: NextRequest) {
       }
     });
     
-  } catch (error) {
-    console.error('❌ Signup exception:', error);
+  } catch (error: any) {
+    console.error('❌ Signup exception:', JSON.stringify(error, null, 2));
+    
+    // Extract error message from various possible formats
+    const errorMessage = error?.message || error?.msg || error?.error_description || 
+                        error?.toString() || 'Internal server error';
+    
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: errorMessage },
       { status: 500 }
     );
   }

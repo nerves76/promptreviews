@@ -80,6 +80,7 @@ interface PricingModalProps {
   hasHadPaidPlan?: boolean;
   showCanceledMessage?: boolean;
   onClose?: () => void;
+  onSignOut?: () => void;
   isPlanSelectionRequired?: boolean;
   reactivationOffer?: {
     hasOffer: boolean;
@@ -112,6 +113,7 @@ export default function PricingModal({
   hasHadPaidPlan = false,
   showCanceledMessage = false,
   onClose,
+  onSignOut,
   isPlanSelectionRequired = false,
   reactivationOffer,
   isReactivation = false,
@@ -132,11 +134,11 @@ export default function PricingModal({
   const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'annual'>('monthly');
   
   const wrapperClass = asModal
-    ? "fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80 overflow-y-auto"
+    ? "fixed inset-0 z-50 flex items-start justify-center bg-black bg-opacity-80 overflow-y-auto py-8"
     : "w-full flex flex-col items-center justify-center";
   return (
     <div className={wrapperClass}>
-      <div className="flex flex-col items-center w-full max-w-7xl mx-auto p-8 px-4 relative">
+      <div className="flex flex-col items-center w-full max-w-7xl mx-auto p-8 px-4 relative my-auto min-h-0">
         {/* Close button - only show if onClose is provided and we're in modal mode AND plan selection is not required */}
         {asModal && onClose && !isPlanSelectionRequired && (
           <button
@@ -147,6 +149,20 @@ export default function PricingModal({
             <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
+          </button>
+        )}
+        
+        {/* Logout button - only show when plan selection is required and signOut function is provided */}
+        {asModal && isPlanSelectionRequired && onSignOut && (
+          <button
+            onClick={onSignOut}
+            className="absolute top-4 right-4 z-10 px-4 py-2 bg-white/90 backdrop-blur-sm rounded-lg flex items-center gap-2 shadow-lg hover:shadow-xl hover:bg-white transition-all duration-200 border border-gray-200 text-gray-700 hover:text-red-600 font-medium"
+            aria-label="Sign out"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+            Sign Out
           </button>
         )}
         
@@ -239,7 +255,13 @@ export default function PricingModal({
                   borderColor: tier.key === currentPlan ? "#4338ca" : undefined,
                 }}
               >
-                {/* Removed the free trial banner */}
+                {/* Free trial banner for Grower plan */}
+                {isGrower && !hasHadPaidPlan && !hadPreviousTrial && 
+                 (!currentPlan || currentPlan === "grower" || currentPlan === "free" || currentPlan === "none" || currentPlan === "no_plan") && (
+                  <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-yellow-400 to-yellow-500 text-slate-blue font-bold px-4 py-1 rounded-full text-sm shadow-lg z-10 whitespace-nowrap">
+                    14-DAY FREE TRIAL
+                  </div>
+                )}
                 <h3 className={`text-3xl font-bold mb-2 ${tier.text}`}>
                   {tier.name}
                 </h3>
@@ -393,13 +415,13 @@ export default function PricingModal({
             {tooltip}
           </div>
         )}
-        <div className="mt-8 text-xs text-black text-center w-full">
+        <div className="mt-8 text-xs text-white text-center w-full">
           By continuing, you agree to our{" "}
           <a
             href="/terms"
             target="_blank"
             rel="noopener noreferrer"
-            className="underline text-indigo-700 hover:text-indigo-900"
+            className="underline text-white/90 hover:text-white"
           >
             Terms & Conditions
           </a>{" "}
@@ -408,7 +430,7 @@ export default function PricingModal({
             href="/privacy"
             target="_blank"
             rel="noopener noreferrer"
-            className="underline text-indigo-700 hover:text-indigo-900"
+            className="underline text-white/90 hover:text-white"
           >
             Privacy Policy
           </a>

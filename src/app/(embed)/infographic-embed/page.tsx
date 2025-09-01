@@ -72,7 +72,7 @@ export default function EmbedInfographicPage() {
   
   return (
     <div className="w-full flex flex-col items-center justify-start py-10">
-      <AnimatedInfographic isEmbed={true} debug={false} />
+      <AnimatedInfographic isEmbed={true} debug={false} key="v2" />
     </div>
   )
 }

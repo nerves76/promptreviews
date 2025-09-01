@@ -148,7 +148,7 @@ Here's your first tip: [icon] <— click here`;
                       tabIndex={0}
                       type="button"
                     >
-                      <Icon name="prompty" className="inline w-5 h-5 align-middle cursor-pointer text-slate-blue" size={20} />
+                      <Icon name="prompty" className="inline w-5 h-5 align-middle cursor-pointer" size={20} style={{ color: '#2E4A7D' }} />
                     </button>
                     {showTooltip && (
                       <div 
@@ -157,7 +157,7 @@ Here's your first tip: [icon] <— click here`;
                       >
                         <div className="space-y-2">
                           <p>
-                            Whenever you see me <Icon name="prompty" className="inline w-5 h-5 text-slate-blue align-middle" size={20} />, it means this field will help me learn about your business.
+                            Whenever you see me <Icon name="prompty" className="inline w-5 h-5 align-middle" size={20} style={{ color: '#2E4A7D' }} />, it means this field will help me learn about your business.
                           </p>
                           <p>
                             This will come in handy when you are responding to reviews or updating your Google Business Profile and need some copywriting help. It's also how I create review templates for your customers or clients.
@@ -198,21 +198,21 @@ Here's your first tip: [icon] <— click here`;
     <div className="fixed inset-0 z-50 overflow-y-auto pointer-events-none">
       <div className="min-h-full flex items-start justify-center p-4 pt-20">
         <div className="relative w-full max-w-4xl pointer-events-auto">
-          {/* Standardized circular close button */}
+          {/* Glassmorphic close button */}
           <button
-            className="absolute -top-3 -right-3 bg-white border border-gray-200 rounded-full shadow-lg flex items-center justify-center hover:bg-gray-100 focus:outline-none z-20 transition-colors"
-            style={{ width: 40, height: 40 }}
+            className="absolute -top-3 -right-3 bg-white/70 backdrop-blur-sm border border-white/40 rounded-full shadow-lg flex items-center justify-center hover:bg-white/90 focus:outline-none z-20 transition-colors p-2"
+            style={{ width: 36, height: 36 }}
             onClick={onClose}
             aria-label="Close modal"
           >
-            <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
           
-          <div className="bg-white/90 backdrop-blur-sm shadow-2xl flex flex-col md:flex-row gap-8 text-left rounded-2xl overflow-hidden border-2 border-white">
+          <div className="shadow-2xl flex flex-col md:flex-row gap-0 text-left rounded-2xl overflow-hidden border-2 border-white/50">
             {/* Left side: Content */}
-            <div className="flex-1 space-y-4 py-6 px-8 overflow-y-auto">
+            <div className="flex-1 space-y-4 py-6 px-8 overflow-y-auto bg-white rounded-l-2xl">
               <div>
                 <h2 className="text-2xl font-bold text-slate-blue mb-4">
                   {welcomeTitle}
@@ -232,27 +232,27 @@ Here's your first tip: [icon] <— click here`;
             </div>
 
             {/* Right side: Image */}
-            <div className="flex-1 bg-gray-50 p-8 rounded-r-xl flex items-center justify-center overflow-hidden relative">
+            <div className="flex-1 bg-white/5 backdrop-blur-sm p-4 rounded-r-xl flex items-center justify-center overflow-hidden relative border-l border-white/20">
               {imageUrl || !userName ? (
                 <div className="w-full h-full flex items-center justify-center">
                   <Image 
                     src={imageUrl || "/images/prompty-catching-stars.png"} 
                     alt={imageAlt} 
-                    width={400}
-                    height={300}
+                    width={500}
+                    height={375}
                     priority
-                    className="w-full h-auto max-w-md mx-auto rounded-lg shadow-sm"
+                    className="w-full h-auto max-w-xl mx-auto"
                   />
                 </div>
               ) : (
                 <div className="flex items-center justify-center h-full">
                   <div className="text-center">
-                    <div className="w-32 h-32 bg-gray-200 rounded-lg mx-auto mb-4 flex items-center justify-center">
-                      <svg className="w-16 h-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className="w-32 h-32 bg-white/30 backdrop-blur-sm rounded-lg mx-auto mb-4 flex items-center justify-center">
+                      <svg className="w-16 h-16 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                       </svg>
                     </div>
-                    <p className="text-gray-500">Welcome image</p>
+                    <p className="text-white/70">Welcome image</p>
                   </div>
                 </div>
               )}

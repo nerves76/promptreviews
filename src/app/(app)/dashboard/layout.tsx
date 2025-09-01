@@ -103,10 +103,16 @@ export default function DashboardLayout({
   }, [isInitialized, account, isClient, router]);
 
   // Check if we're on plan page with success parameter (to avoid flash)
-  const isPlanPageSuccess = typeof window !== 'undefined' && 
-    window.location.pathname === '/dashboard/plan' && 
-    (window.location.search.includes('success=1') || 
-     sessionStorage.getItem('showPlanSuccessModal') === 'true');
+  // Initialize to false on both server and client to avoid hydration mismatch
+  const [isPlanPageSuccess, setIsPlanPageSuccess] = useState(false);
+  
+  useEffect(() => {
+    // Only check on client side after mount
+    const isSuccess = window.location.pathname === '/dashboard/plan' && 
+      (window.location.search.includes('success=1') || 
+       sessionStorage.getItem('showPlanSuccessModal') === 'true');
+    setIsPlanPageSuccess(isSuccess);
+  }, []);
 
   // Show loading while AuthContext initializes or during transitions
   if ((!isInitialized || isTransitioning) && !isPlanPageSuccess) {

@@ -47,25 +47,17 @@ export default function CreateBusinessClient() {
   const redirectToDashboard = useCallback(() => {
     console.log("🔄 CreateBusinessClient: redirectToDashboard called");
     console.log("🔄 CreateBusinessClient: Current pathname:", window.location.pathname);
-    console.log("🔄 CreateBusinessClient: About to call router.push with /dashboard?businessCreated=1");
+    console.log("🔄 CreateBusinessClient: About to redirect to /dashboard?businessCreated=1");
     
     // Set flag to maintain loading state during transition
     sessionStorage.setItem('business-creation-complete', 'true');
     sessionStorage.setItem('redirect-in-progress', 'true');
     
-    // Keep loading state active during redirect
-    // Don't set loading to false - let the destination handle it
-    
-    try {
-      // Use push instead of replace for smoother transition
-      router.push("/dashboard?businessCreated=1");
-      console.log("✅ CreateBusinessClient: router.push called successfully");
-    } catch (error) {
-      console.error("❌ CreateBusinessClient: router.push failed:", error);
-      console.log("🔄 CreateBusinessClient: Trying window.location fallback");
-      window.location.href = "/dashboard?businessCreated=1";
-    }
-  }, [router]);
+    // Use window.location.replace for more reliable redirect
+    // This ensures the redirect happens even if Next.js router has issues
+    console.log("🔄 CreateBusinessClient: Using window.location.replace for redirect");
+    window.location.replace("/dashboard?businessCreated=1");
+  }, []);
 
   // Handler for closing the welcome popup
   const handleWelcomeClose = () => {
@@ -148,7 +140,7 @@ export default function CreateBusinessClient() {
 
   // Handle successful business creation
   const handleBusinessCreated = useCallback(() => {
-    console.log("✅ CreateBusinessClient: Business created successfully, refreshing...");
+    console.log("✅ CreateBusinessClient: Business created successfully, redirecting...");
     console.log("✅ CreateBusinessClient: handleBusinessCreated called at:", new Date().toISOString());
     setIsSubmitting(false);
     setIsRedirecting(true); // Set redirecting state to show loading screen
@@ -170,17 +162,11 @@ export default function CreateBusinessClient() {
       }
     }
     
-    // Shorter delay - BusinessGuard now gives 3 seconds for state update
+    // Small delay to allow state updates, then redirect
     setTimeout(() => {
-      console.log("🚀 CreateBusinessClient: Starting redirect process...");
-      console.log("🚀 CreateBusinessClient: About to call redirectToDashboard");
-      try {
-        redirectToDashboard();
-        console.log("✅ CreateBusinessClient: redirectToDashboard completed");
-      } catch (error) {
-        console.error("❌ CreateBusinessClient: Error in redirectToDashboard:", error);
-      }
-    }, 100); // Reduced from 500ms to 100ms since BusinessGuard now waits longer
+      console.log("🚀 CreateBusinessClient: Redirecting to dashboard...");
+      redirectToDashboard();
+    }, 100); // Small delay to ensure events are processed
   }, [redirectToDashboard]);
 
   // Handle top save button click
@@ -267,36 +253,10 @@ export default function CreateBusinessClient() {
   return (
     <>
       <div className="min-h-screen flex justify-center items-start px-4 sm:px-0">
-        <PageCard
-          topRightAction={
-            <button
-              onClick={handleTopSaveClick}
-              disabled={isSubmitting}
-              className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                isSubmitting
-                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                  : "bg-slate-blue text-white hover:bg-slate-blue/90"
-              }`}
-            >
-              {isSubmitting ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Creating...
-                </>
-              ) : (
-                <>
-                  <svg className="w-4 h-4 text-white fill-current">
-                    <use href="/icons-sprite.svg#FaPlus" />
-                  </svg>
-                  Create business
-                </>
-              )}
-            </button>
-          }
-        >
+        <PageCard>
           <div className="max-w-4xl mx-auto">
             {/* Welcome Message */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 w-full gap-4 relative">
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-8 w-full gap-4 relative">
               <div className="flex-1">
                 <h1 className="text-4xl font-bold flex items-center gap-3 text-slate-blue pt-2">
                   <Icon name="FaStore" size={32} className="text-slate-blue" />
@@ -312,17 +272,45 @@ export default function CreateBusinessClient() {
                 </div>
               </div>
               
-              {/* Mobile button - shows on small screens */}
-              <div className="block sm:hidden w-full mt-4">
+              {/* Desktop button - shows on larger screens */}
+              <div className="hidden sm:block sm:flex-shrink-0 sm:mt-2">
                 <button
                   type="button"
                   onClick={handleTopSaveClick}
                   disabled={isSubmitting}
-                  className="w-full bg-slate-blue text-white py-3 px-6 rounded-lg hover:bg-slate-blue/90 transition-all duration-200 font-semibold disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg"
+                  className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    isSubmitting
+                      ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                      : "bg-slate-blue text-white hover:bg-slate-blue/90"
+                  }`}
                 >
                   {isSubmitting ? (
                     <>
-                      <OptimizedSpinner size="sm" className="text-white" />
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      Creating...
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-4 h-4 text-white fill-current">
+                        <use href="/icons-sprite.svg#FaPlus" />
+                      </svg>
+                      Create business
+                    </>
+                  )}
+                </button>
+              </div>
+              
+              {/* Mobile button - shows on small screens */}
+              <div className="block sm:hidden mt-4">
+                <button
+                  type="button"
+                  onClick={handleTopSaveClick}
+                  disabled={isSubmitting}
+                  className="bg-slate-blue text-white py-2 px-4 rounded-lg hover:bg-slate-blue/90 transition-all duration-200 font-medium disabled:opacity-50 inline-flex items-center gap-2 shadow-lg text-sm"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                       Creating...
                     </>
                   ) : (

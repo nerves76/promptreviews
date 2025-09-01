@@ -17,6 +17,7 @@ export default function RobotTooltip({ text }: { text: string }) {
         <Icon name="prompty"
           className="inline-block w-4 h-4 align-middle cursor-pointer"
           size={16}
+          color="#2E4A7D"
         />
       </button>
       {show && (

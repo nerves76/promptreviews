@@ -117,7 +117,7 @@ Here's your first tip: [icon] <— click here`;
                     className="relative inline-block text-slate-blue hover:text-indigo-600"
                     type="button"
                   >
-                    <Icon name="prompty" className="w-5 h-5" size={20} />
+                    <Icon name="prompty" className="w-5 h-5" size={20} color="#2E4A7D" />
                     {showTooltip && (
                       <div className="absolute z-50 left-1/2 -translate-x-1/2 bottom-full mb-2 w-80 p-4 bg-white border border-gray-200 rounded-lg shadow-lg text-sm text-gray-700">
                         <p>Whenever you see me, it means this field will help me learn about your business.</p>
