@@ -75,11 +75,14 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate business profile
-    const { data: businessData } = await supabaseAdmin
+    // IMPORTANT: Don't use .single() as accounts can have multiple businesses
+    const { data: businessesData } = await supabaseAdmin
       .from("businesses")
       .select("name")
       .eq("account_id", accountId)
-      .single();
+      .order('created_at', { ascending: true }); // Get oldest business first
+    
+    const businessData = businessesData && businessesData.length > 0 ? businessesData[0] : null;
     
     if (!businessData) {
       return NextResponse.json({ 

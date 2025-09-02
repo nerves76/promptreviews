@@ -1280,11 +1280,14 @@ export default function UploadContactsPage() {
                                 return;
                               }
                               
-                              const { data: businessData } = await supabase
+                              // IMPORTANT: Don't use .single() as accounts can have multiple businesses
+                              const { data: businessesData } = await supabase
                                 .from("businesses")
                                 .select("name")
                                 .eq("account_id", user.id)
-                                .single();
+                                .order('created_at', { ascending: true }); // Get oldest business first
+                              
+                              const businessData = businessesData && businessesData.length > 0 ? businessesData[0] : null;
                               
                               if (!businessData) {
                                 alert('Please create a business profile first before creating prompt pages. You can do this from the "Your Business" section in the dashboard.');

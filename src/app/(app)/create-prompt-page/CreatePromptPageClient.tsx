@@ -1136,18 +1136,22 @@ export default function CreatePromptPageClient({
         return;
       }
 
-      const { data: businessData, error: businessError } = await supabase
+      // IMPORTANT: Don't use .single() as accounts can have multiple businesses
+      const { data: businessesData, error: businessError } = await supabase
         .from("businesses")
         .select("*")
         .eq("account_id", user.id)
-        .single();
+        .order('created_at', { ascending: true }); // Get oldest business first
       
       if (businessError) {
         throw new Error("Failed to fetch business data");
       }
-      if (!businessData) {
+      if (!businessesData || businessesData.length === 0) {
         throw new Error("No business found");
       }
+      
+      // Handle multiple businesses - use the first one (oldest)
+      const businessData = businessesData[0];
       
       // Get the campaign type from localStorage or formData
       const campaignType = formData.campaign_type || (typeof window !== 'undefined' 
@@ -1459,13 +1463,15 @@ export default function CreatePromptPageClient({
         throw new Error("No account found for user - account context not available");
       }
       
-      const { data: businessData, error: businessError } = await supabase
+      // IMPORTANT: Don't use .single() as accounts can have multiple businesses
+      const { data: businessesData, error: businessError } = await supabase
         .from("businesses")
         .select("*")
         .eq("account_id", currentAccountId)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .single();
+        .order('created_at', { ascending: true }); // Get oldest business first consistently
+      
+      // Handle multiple businesses - use the first one (oldest)
+      const businessData = businessesData && businessesData.length > 0 ? businessesData[0] : null;
       
       if (businessError) {
         console.error("Business fetch error:", businessError);
