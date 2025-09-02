@@ -18,6 +18,7 @@ import { useBusinessData, useAuthUser, useAccountData, useSubscriptionData } fro
 import UnrespondedReviewsWidget from '@/app/(app)/components/UnrespondedReviewsWidget';
 import { safeTransformLocations, validateTransformedLocations } from '@/lib/google-business/safe-transformer';
 import LocationSelector from '@/components/GoogleBusinessProfile/LocationSelector';
+import { getMaxLocationsForPlan, getPlanDisplayName } from '@/auth/utils/planUtils';
 // Using V2 to force webpack to reload
 import LocationSelectionModal from '@/components/GoogleBusinessProfile/LocationSelectionModalV2';
 import OverviewStats from '@/components/GoogleBusinessProfile/OverviewStats';
@@ -2087,10 +2088,7 @@ export default function SocialPostingDashboard() {
                                 <span>Rate limited ({rateLimitedUntil ? Math.ceil((rateLimitedUntil - Date.now()) / 1000) : 0}s)</span>
                               </>
                             ) : (
-                              <>
-                                <Icon name="FaDownload" className="w-4 h-4" />
-                                <span>Fetch Business Locations</span>
-                              </>
+                              <span>Fetch Business Locations</span>
                             )}
                           </button>
                         </div>
@@ -2410,7 +2408,6 @@ export default function SocialPostingDashboard() {
                               `Rate limited (${Math.ceil((rateLimitedUntil - Date.now()) / 1000)}s)`
                             ) : (
                               <>
-                                <Icon name="MdDownload" className="w-4 h-4 mr-2" />
                                 Fetch Locations
                               </>
                             )}
@@ -3358,7 +3355,6 @@ export default function SocialPostingDashboard() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
             <div className="flex items-center space-x-3 mb-4">
-              <Icon name="FaDownload" className="w-6 h-6 text-blue-600" />
               <h3 className="text-lg font-semibold text-gray-900">Fetch Business Locations</h3>
             </div>
             <p className="text-gray-600 mb-6">
@@ -3371,9 +3367,9 @@ export default function SocialPostingDashboard() {
                 <div className="text-sm text-blue-800">
                   <p className="font-medium mb-1">What happens next:</p>
                   <ul className="list-disc list-inside space-y-1 text-xs">
-                    <li>We'll fetch all your business locations from Google</li>
-                    <li>Each location's details will be saved for quick access</li>
-                    <li>You'll be able to post updates to any of your locations</li>
+                    <li>Choose locations to manage (limited by plan)</li>
+                    <li>Location details saved for quick access</li>
+                    <li>Post updates to your selected locations</li>
                   </ul>
                 </div>
               </div>
@@ -3383,7 +3379,6 @@ export default function SocialPostingDashboard() {
                 onClick={performFetchLocations}
                 className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center space-x-2"
               >
-                <Icon name="FaDownload" className="w-4 h-4" />
                 <span>Fetch Locations</span>
               </button>
               <button
@@ -3419,8 +3414,8 @@ export default function SocialPostingDashboard() {
       {showLocationSelectionModal && (
         <LocationSelectionModal
           locations={pendingLocations}
-          planLimit={currentPlan === 'maven' ? 10 : 5}
-          planName={currentPlan === 'maven' ? 'Maven' : 'Builder'}
+          planLimit={getMaxLocationsForPlan(currentPlan)}
+          planName={getPlanDisplayName(currentPlan)}
           onConfirm={handleLocationSelectionConfirm}
           onCancel={handleLocationSelectionCancel}
         />

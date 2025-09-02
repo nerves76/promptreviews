@@ -893,7 +893,7 @@ function PromptPagesContent() {
                       <button
                         type="button"
                         onClick={() => handleCopyLink()}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-purple-100 text-purple-800 rounded hover:bg-purple-200 text-sm font-medium shadow h-9 align-middle whitespace-nowrap"
+                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-purple-500/20 backdrop-blur-sm text-purple-800 rounded hover:bg-purple-500/30 text-sm font-medium shadow border border-white/30 h-9 align-middle whitespace-nowrap"
                       >
                         <Icon name="FaLink" className="w-5 h-5" size={20} />
                         Copy link
@@ -909,7 +909,7 @@ function PromptPagesContent() {
                             showNfcText: universalPromptPage?.nfc_text_enabled ?? false,
                           });
                         }}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-amber-100 text-amber-800 rounded hover:bg-amber-200 text-sm font-medium shadow h-9 align-middle whitespace-nowrap"
+                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-amber-500/20 backdrop-blur-sm text-amber-800 rounded hover:bg-amber-500/30 text-sm font-medium shadow border border-white/30 h-9 align-middle whitespace-nowrap"
                       >
                         <Icon name="MdDownload" className="w-5 h-5" size={20} />
                         QR code
@@ -928,7 +928,7 @@ function PromptPagesContent() {
                             const message = `Hi! I'd love to get your feedback on ${businessName}. Please leave a review here: ${reviewUrl}`;
                             window.location.href = `sms:?&body=${encodeURIComponent(message)}`;
                           }}
-                          className="inline-flex items-center gap-1 px-3 py-1.5 bg-green-100 text-green-800 rounded hover:bg-green-200 text-sm font-medium shadow h-9 align-middle whitespace-nowrap"
+                          className="inline-flex items-center gap-1 px-3 py-1.5 bg-green-500/20 backdrop-blur-sm text-green-800 rounded hover:bg-green-500/30 text-sm font-medium shadow border border-white/30 h-9 align-middle whitespace-nowrap"
                         >
                           <Icon name="FaMobile" className="w-5 h-5" size={20} />
                           Send SMS
@@ -942,7 +942,7 @@ function PromptPagesContent() {
                           const message = `Hi,\n\nI'd love to get your feedback on ${businessName}. Please leave a review here: ${reviewUrl}\n\nThank you!`;
                           window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(message)}`;
                         }}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-100 text-blue-800 rounded hover:bg-blue-200 text-sm font-medium shadow h-9 align-middle whitespace-nowrap"
+                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-500/20 backdrop-blur-sm text-blue-800 rounded hover:bg-blue-500/30 text-sm font-medium shadow border border-white/30 h-9 align-middle whitespace-nowrap"
                       >
                         <Icon name="FaEnvelope" className="w-5 h-5" size={20} />
                         Send Email
@@ -1157,19 +1157,19 @@ function PromptPagesContent() {
           ))}
 
           {/* Modal Content */}
-          <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-2xl max-w-md w-full mx-4 relative z-50 border-2 border-white">
-            {/* Standardized red X close button */}
+          <div className="bg-white/10 backdrop-blur-lg rounded-2xl shadow-2xl max-w-md w-full mx-4 relative z-50 border border-white/30">
+            {/* Glass-style close button */}
             <button
               onClick={() => {
                 setShowPostSaveModal(false);
                 setShowStars(false);
                 setPostSaveData(null);
               }}
-              className="absolute -top-3 -right-3 bg-white border border-gray-200 rounded-full shadow-lg hover:shadow-xl transition-shadow duration-200 flex items-center justify-center hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 z-50"
-              style={{ width: 48, height: 48 }}
+              className="absolute -top-3 -right-3 bg-white/70 backdrop-blur-sm border border-white/40 rounded-full shadow-lg flex items-center justify-center hover:bg-white/90 focus:outline-none z-20 transition-colors p-2"
+              style={{ width: 36, height: 36 }}
               aria-label="Close modal"
             >
-              <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
@@ -1184,26 +1184,26 @@ function PromptPagesContent() {
                     className="w-24 h-24 object-contain"
                   />
                 </div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  {postSaveData.isLocationCreation ? 'Location created! 🎉' : 'Prompt page published! 🎉'}
+                <h3 className="text-lg font-medium text-white mb-2">
+                  {postSaveData.isLocationCreation ? 'Location created! 🎉' : 'Prompt Page published! 🎉'}
                 </h3>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-white/90">
                   {postSaveData.isLocationCreation 
-                    ? `Your location "${postSaveData.locationName}" is now live with its own prompt page ready to collect reviews.`
-                    : 'Your prompt page is now live and ready to collect reviews.'
+                    ? `Your location "${postSaveData.locationName}" is now live with its own Prompt Page ready to collect reviews.`
+                    : 'Your Prompt Page is now live and ready to collect reviews.'
                   }
                 </p>
               </div>
 
               {/* Sharing Options */}
               <div className="space-y-3">
-                <div className="flex items-center justify-between p-3 bg-purple-100 rounded-lg">
-                  <span className="text-sm font-medium text-gray-700">Share link</span>
+                <div className="flex items-center justify-between p-3 bg-purple-500/30 backdrop-blur-sm rounded-lg border border-purple-300/30">
+                  <span className="text-sm font-medium text-white">Share link</span>
                   <button
                     onClick={() => {
                       navigator.clipboard.writeText(postSaveData.url);
                     }}
-                    className="text-slate-blue hover:text-slate-blue/80 text-sm font-medium"
+                    className="text-white hover:text-white/80 text-sm font-medium"
                   >
                     Copy
                   </button>
@@ -1211,8 +1211,8 @@ function PromptPagesContent() {
 
                 {/* For individual prompt pages with contact info, show CommunicationButtons */}
                 {(postSaveData.first_name || postSaveData.email || postSaveData.phone) && !postSaveData.isLocationCreation ? (
-                  <div className="flex items-center justify-between p-3 bg-teal-100 rounded-lg">
-                    <span className="text-sm font-medium text-gray-700">SMS or Email</span>
+                  <div className="flex items-center justify-between p-3 bg-teal-500/30 backdrop-blur-sm rounded-lg border border-teal-300/30">
+                    <span className="text-sm font-medium text-white">SMS or Email</span>
                     <CommunicationButtons
                       contact={{
                         id: postSaveData.contact_id || 'temp-contact',
@@ -1236,22 +1236,22 @@ function PromptPagesContent() {
                   <>
                     {/* For non-individual pages, show the original SMS and Email links */}
                     {/* SMS link */}
-                    <div className="flex items-center justify-between p-3 bg-green-100 rounded-lg">
-                      <span className="text-sm font-medium text-gray-700">Send SMS</span>
+                    <div className="flex items-center justify-between p-3 bg-green-500/30 backdrop-blur-sm rounded-lg border border-green-300/30">
+                      <span className="text-sm font-medium text-white">Send SMS</span>
                       <a
                         href={`sms:${postSaveData.phone || ''}?body=Hi ${postSaveData.first_name || 'there'}, I'd love to get your feedback! Please leave a review here: ${postSaveData.url}`}
-                        className="text-slate-blue hover:text-slate-blue/80 text-sm font-medium"
+                        className="text-white hover:text-white/80 text-sm font-medium"
                       >
                         Send
                       </a>
                     </div>
 
                     {/* Email link */}
-                    <div className="flex items-center justify-between p-3 bg-blue-100 rounded-lg">
-                      <span className="text-sm font-medium text-gray-700">Send email</span>
+                    <div className="flex items-center justify-between p-3 bg-blue-500/30 backdrop-blur-sm rounded-lg border border-blue-300/30">
+                      <span className="text-sm font-medium text-white">Send email</span>
                       <a
                         href={`mailto:${postSaveData.email || ''}?subject=Please leave a review&body=Hi ${postSaveData.first_name || 'there'},%0D%0A%0D%0AI'd love to get your feedback! Please leave a review here: ${postSaveData.url}%0D%0A%0D%0AThank you!`}
-                        className="text-slate-blue hover:text-slate-blue/80 text-sm font-medium"
+                        className="text-white hover:text-white/80 text-sm font-medium"
                       >
                         Send
                       </a>
@@ -1259,13 +1259,13 @@ function PromptPagesContent() {
                   </>
                 )}
 
-                <div className="flex items-center justify-between p-3 bg-amber-100 rounded-lg">
-                  <span className="text-sm font-medium text-gray-700">View Prompt Page</span>
+                <div className="flex items-center justify-between p-3 bg-amber-500/30 backdrop-blur-sm rounded-lg border border-amber-300/30">
+                  <span className="text-sm font-medium text-white">View Prompt Page</span>
                   <a
                     href={postSaveData.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-slate-blue hover:text-slate-blue/80 text-sm font-medium"
+                    className="text-white hover:text-white/80 text-sm font-medium"
                   >
                     Open
                   </a>

@@ -181,7 +181,7 @@ export default function PublicPromptPagesTable({
                     <div className="flex flex-row gap-2 items-center justify-end">
                       <button
                         type="button"
-                        className="inline-flex items-center px-2 py-1.5 bg-purple-100 text-purple-800 rounded hover:bg-purple-200 text-sm font-medium shadow h-9 align-middle whitespace-nowrap w-full sm:w-auto"
+                        className="inline-flex items-center px-2 py-1.5 bg-purple-500/20 backdrop-blur-sm text-purple-800 rounded hover:bg-purple-500/30 text-sm font-medium shadow border border-white/30 h-9 align-middle whitespace-nowrap w-full sm:w-auto"
                         title="Copy link"
                         onClick={async () => {
                           try {
@@ -206,7 +206,7 @@ export default function PublicPromptPagesTable({
                             showNfcText: page?.nfc_text_enabled ?? false,
                           });
                         }}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-amber-100 text-amber-800 rounded hover:bg-amber-200 text-sm font-medium shadow h-9 align-middle whitespace-nowrap"
+                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-amber-500/20 backdrop-blur-sm text-amber-800 rounded hover:bg-amber-500/30 text-sm font-medium shadow border border-white/30 h-9 align-middle whitespace-nowrap"
                       >
                         <Icon name="MdDownload" size={22} style={{ color: "#b45309" }} />
                         QR code

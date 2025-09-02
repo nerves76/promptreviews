@@ -358,7 +358,7 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
       
       {/* Modal */}
       <div
-        className="bg-gradient-to-br from-indigo-50 via-white to-purple-50 rounded-2xl shadow-2xl w-full max-w-2xl relative border border-white/20 backdrop-blur-sm"
+        className="bg-gradient-to-br from-indigo-50/95 via-white/95 to-purple-50/95 rounded-2xl shadow-2xl w-full max-w-2xl relative border border-white/20 backdrop-blur-sm"
         style={{
           position: 'absolute',
           left: modalPos.x,
@@ -586,7 +586,7 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
           )}
         </div>
         {/* Card background - moved up and with color picker */}
-        <div className="bg-white/70 backdrop-blur-sm rounded-xl p-5 border border-white/30">
+        <div className="bg-white/95 backdrop-blur-sm rounded-xl p-5 border border-white/30">
           <label className="block text-sm font-medium text-gray-700 mb-3">Card Background</label>
           <input type="color" value={settings.card_bg} onChange={e => setSettings(s => ({ ...s, card_bg: e.target.value }))} className="w-full h-10 rounded cursor-pointer" />
           <input 

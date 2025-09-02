@@ -105,7 +105,7 @@ export default function LocationSelectionModal({
             Select Business Locations to Manage
           </h2>
           <p className="text-sm text-gray-600">
-            Choose which Google Business Profile locations you want to manage with PromptReviews.
+            Choose which Google Business Profile locations you want to manage with Prompt Reviews.
             Your {planName} plan allows up to {planLimit} location{planLimit !== 1 ? 's' : ''}.
           </p>
         </div>

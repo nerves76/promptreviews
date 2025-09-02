@@ -591,19 +591,19 @@ export default function IndividualOutreach() {
           ))}
 
           {/* Modal Content */}
-          <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-2xl max-w-md w-full mx-4 relative z-50 border-2 border-white">
-            {/* Standardized red X close button */}
+          <div className="bg-white/10 backdrop-blur-lg rounded-2xl shadow-2xl max-w-md w-full mx-4 relative z-50 border border-white/30">
+            {/* Glass-style close button */}
             <button
               onClick={() => {
                 setShowPostSaveModal(false);
                 setShowStars(false);
                 setPostSaveData(null);
               }}
-              className="absolute -top-3 -right-3 bg-white border border-gray-200 rounded-full shadow-lg hover:shadow-xl transition-shadow duration-200 flex items-center justify-center hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 z-50"
-              style={{ width: 48, height: 48 }}
+              className="absolute -top-3 -right-3 bg-white/70 backdrop-blur-sm border border-white/40 rounded-full shadow-lg flex items-center justify-center hover:bg-white/90 focus:outline-none z-20 transition-colors p-2"
+              style={{ width: 36, height: 36 }}
               aria-label="Close modal"
             >
-              <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
@@ -618,34 +618,34 @@ export default function IndividualOutreach() {
                     className="w-24 h-24 object-contain"
                   />
                 </div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  {postSaveData.isLocationCreation ? 'Location created! 🎉' : 'Prompt page published! 🎉'}
+                <h3 className="text-lg font-medium text-white mb-2">
+                  {postSaveData.isLocationCreation ? 'Location created! 🎉' : 'Prompt Page published! 🎉'}
                 </h3>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-white/90">
                   {postSaveData.isLocationCreation 
-                    ? `Your location "${postSaveData.locationName}" is now live with its own prompt page ready to collect reviews.`
-                    : 'Your prompt page is now live and ready to collect reviews.'
+                    ? `Your location "${postSaveData.locationName}" is now live with its own Prompt Page ready to collect reviews.`
+                    : 'Your Prompt Page is now live and ready to collect reviews.'
                   }
                 </p>
               </div>
 
               {/* Sharing Options */}
               <div className="space-y-3">
-                <div className="flex items-center justify-between p-3 bg-purple-100 rounded-lg">
-                  <span className="text-sm font-medium text-gray-700">Share link</span>
+                <div className="flex items-center justify-between p-3 bg-purple-500/30 backdrop-blur-sm rounded-lg border border-purple-300/30">
+                  <span className="text-sm font-medium text-white">Share link</span>
                   <button
                     onClick={() => {
                       navigator.clipboard.writeText(postSaveData.url);
                     }}
-                    className="text-slate-blue hover:text-slate-blue/80 text-sm font-medium"
+                    className="text-white hover:text-white/80 text-sm font-medium"
                   >
                     Copy
                   </button>
                 </div>
 
                 {/* Communication Buttons with Tracking */}
-                <div className="p-3 bg-gray-50 rounded-lg">
-                  <div className="text-sm font-medium text-gray-700 mb-3">Send Review Request</div>
+                <div className="p-3 bg-teal-500/30 backdrop-blur-sm rounded-lg border border-teal-300/30">
+                  <div className="text-sm font-medium text-white mb-3">Send Review Request</div>
                   <CommunicationButtons
                     contact={{
                       id: postSaveData.contact_id || postSaveData.id || `temp-${Date.now()}`,
@@ -673,13 +673,13 @@ export default function IndividualOutreach() {
                   />
                 </div>
 
-                <div className="flex items-center justify-between p-3 bg-amber-100 rounded-lg">
-                  <span className="text-sm font-medium text-gray-700">View Prompt Page</span>
+                <div className="flex items-center justify-between p-3 bg-amber-500/30 backdrop-blur-sm rounded-lg border border-amber-300/30">
+                  <span className="text-sm font-medium text-white">View Prompt Page</span>
                   <a
                     href={postSaveData.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-slate-blue hover:text-slate-blue/80 text-sm font-medium"
+                    className="text-white hover:text-white/80 text-sm font-medium"
                   >
                     Open
                   </a>

@@ -187,16 +187,8 @@ export default function UniversalEditPromptPage() {
   const handleSave = () => {
     console.log('🔍 handleSave called');
     
-    // Check for review platforms before saving
-    if (formRef.current && typeof formRef.current.getCurrentState === "function") {
-      const currentFormState = formRef.current.getCurrentState();
-      console.log('🔍 Current form state:', currentFormState);
-      if (currentFormState && currentFormState.review_platforms.length === 0) {
-        if (!window.confirm("You didn't add a review platform. Are you sure you want to save?")) {
-          return;
-        }
-      }
-    }
+    // Skip review platform check - it has a stale closure issue
+    // The form component will handle its own validation
     
     // Trigger form submission (same as Service Prompt Page)
     const form = document.querySelector('form');

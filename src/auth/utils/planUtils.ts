@@ -10,6 +10,7 @@ export function getPlanDisplayName(plan: string | null): string | null {
   const planNames: Record<string, string> = {
     'no_plan': 'No Plan',
     'grower': 'Grower',
+    'builder': 'Builder',
     'accelerator': 'Accelerator',
     'maven': 'Maven',
     'enterprise': 'Enterprise',
@@ -25,6 +26,7 @@ export function getMaxContactsForPlan(plan: string | null): number {
   const contactLimits: Record<string, number> = {
     'no_plan': 0,
     'grower': 100,
+    'builder': 500,
     'accelerator': 500,
     'maven': 2000,
     'enterprise': 10000,
@@ -40,10 +42,11 @@ export function getMaxLocationsForPlan(plan: string | null): number {
   const locationLimits: Record<string, number> = {
     'no_plan': 0,
     'grower': 1,
+    'builder': 3,
     'accelerator': 3,
     'maven': 10,
     'enterprise': 100,
-    'free': 1,
+    'free': 0,
   };
   
   return locationLimits[plan] || 1;
@@ -55,6 +58,7 @@ export function getMaxUsersForPlan(plan: string | null): number {
   const userLimits: Record<string, number> = {
     'no_plan': 1,
     'grower': 1,
+    'builder': 3,
     'accelerator': 3,
     'maven': 10,
     'enterprise': 100,
