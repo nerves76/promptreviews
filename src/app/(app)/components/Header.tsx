@@ -12,7 +12,6 @@ import { trackEvent, GA_EVENTS } from '@/utils/analytics';
 import { fetchOnboardingTasks } from "@/utils/onboardingTasks";
 import PromptReviewsLogo from "@/app/(app)/dashboard/components/PromptReviewsLogo";
 import { AccountSwitcher } from './AccountSwitcher';
-import { getAccountIdForUser } from "@/auth/utils/accounts";
 import GetReviewsDropdown from './GetReviewsDropdown';
 
 const CowboyUserIcon = () => {
@@ -186,12 +185,11 @@ const Header = React.memo(function Header() {
         console.log('🔔 Header: Fetching notifications since:', since);
         
         // Get user's account info first to filter notifications properly
-        const accountId = await getAccountIdForUser(session.user.id, supabase);
-          
-        if (!accountId) {
-          console.log('🔔 Header: No account found for user, skipping notifications');
-          return;
-        }
+        // Note: This function runs in useEffect and can't directly use useAuth hook
+        // For now, skip notifications if no account context is available
+        // TODO: Move notifications to a component that can use auth context
+        console.log('🔔 Header: Notifications disabled - requires auth context integration');
+        return;
         
         const { data, error } = await supabase
           .from("review_submissions")

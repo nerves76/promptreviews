@@ -9,7 +9,7 @@
 import { useState, useEffect } from 'react';
 import Icon from '@/components/Icon';
 import { createClient } from '@/auth/providers/supabase';
-import { getAccountIdForUser } from '@/auth/utils/accounts';
+import { useAuth } from "@/auth";
 
 // Import our modular components
 import BusinessHoursEditor from './business-info/BusinessHoursEditor';
@@ -35,11 +35,16 @@ interface BusinessInfoEditorProps {
 }
 
 export default function BusinessInfoEditor({ locations, isConnected }: BusinessInfoEditorProps) {
+  const { selectedAccountId, account } = useAuth();
+  const accountId = selectedAccountId || account?.id;
+  
   // 🚨 DEBUG: Track component lifecycle
   console.log('🔵 BusinessInfoEditor: Component render/re-render at', new Date().toISOString(), {
     locationsCount: locations?.length,
     isConnected,
-    locationsIds: locations?.map(l => l.id)
+    locationsIds: locations?.map(l => l.id),
+    accountId,
+    selectedAccountId
   });
   
   // Storage key for form data persistence
@@ -158,11 +163,8 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
         const { data: { user } } = await createClient().auth.getUser();
         if (!user) return;
 
-        // Get account ID using the proper utility function
-        // This handles multiple account_user records correctly
-        const accountId = await getAccountIdForUser(user.id, createClient());
-
-        if (!accountId) return;
+        // Skip this check - using auth context for account switching
+        // Business context is not critical for component functionality
 
         // DISABLED: Skip business profile query to prevent 400 errors until schema is confirmed
         console.log('BusinessInfoEditor: Skipping business context query - preventing 400 errors');
@@ -407,9 +409,12 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
       const { data: { user } } = await createClient().auth.getUser();
       if (!user) return;
 
-      // Get account ID
-      const accountId = await getAccountIdForUser(user.id, createClient());
-      if (!accountId) return;
+      // Use account ID from auth context
+      if (!accountId) {
+        console.error('No account ID available from auth context');
+        alert('Unable to import business description. Please try refreshing the page.');
+        return;
+      }
 
       // Fetch business profile data
       const { data: businessProfile, error } = await createClient()

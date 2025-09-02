@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, Suspense } from "react";
 import { generateContextualReview, generateContextualTestimonial } from "@/utils/aiReviewGeneration";
 import Icon from "@/components/Icon";
 import { checkAccountLimits } from "@/utils/accountLimits";
-import { getAccountIdForUser } from "@/auth/utils/accounts";
+import { useAuth } from "@/auth";
 import { Dialog } from "@headlessui/react";
 import { getUserOrMock, supabase } from "@/utils/supabaseClient";
 import { markTaskAsCompleted } from "@/utils/onboardingTasks";
@@ -122,6 +122,8 @@ export default function CreatePromptPageClient({
 }: CreatePromptPageClientProps = {}) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { selectedAccountId, account } = useAuth();
+  const accountId = selectedAccountId || account?.id;
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loadingReviews, setLoadingReviews] = useState(false);
@@ -300,69 +302,71 @@ export default function CreatePromptPageClient({
         let retryCount = 0;
         const maxRetries = isPostBusinessCreation ? 5 : 3; // More retries after business creation
         
-        // Get the user's account_id using the proper utility function
-        // This handles multiple account_user records correctly
-        const accountId = await getAccountIdForUser(user.id, supabase);
-        
+        // Use account ID from auth context
         if (!accountId) {
           console.error("🎯 No account found for user:", user.id);
-          throw new Error("No account found for user");
+          console.error("🎯 Selected account ID:", selectedAccountId);
+          console.error("🎯 Account from context:", account?.id);
+          // Don't throw error here - continue with default business profile
+          console.warn("🎯 Using default business profile due to missing account context");
         }
         
         console.log('🎯 Using account ID:', accountId);
         
         console.log("🔑 Using account_id:", accountId, "for user:", user.id);
         
-        while (retryCount < maxRetries && !businessData && !businessError) {
-          console.log(`🔄 Fetching business profile (attempt ${retryCount + 1}/${maxRetries}) for account:`, accountId);
-          if (isPostBusinessCreation) {
-            console.log("🆕 Post-business-creation flow detected, using extended retry logic");
-          }
-          
-                  const result = await supabase
-          .from("businesses")
-          .select(`
-            name, 
-            services_offered, 
-            default_offer_enabled, 
-            default_offer_title, 
-            default_offer_body, 
-            default_offer_url,
-            default_offer_timelock,
-            review_platforms, 
-            facebook_url, 
-            instagram_url, 
-            bluesky_url, 
-            tiktok_url, 
-            youtube_url, 
-            linkedin_url, 
-            pinterest_url, 
-            created_at, 
-            updated_at,
-            kickstarters_enabled,
-            selected_kickstarters,
-            kickstarters_background_design,
-            emoji_sentiment_enabled,
-            emoji_sentiment_question,
-            emoji_feedback_message,
-            emoji_thank_you_message,
-            emoji_feedback_popup_header,
-            emoji_feedback_page_header,
-            falling_enabled,
-            falling_icon,
-            falling_icon_color,
-            show_friendly_note,
-            friendly_note,
-            recent_reviews_enabled,
-            recent_reviews_scope,
-            ai_button_enabled,
-            fix_grammar_enabled,
-            keywords,
-            ai_dos,
-            ai_donts
-          `)
-          .eq("account_id", accountId)
-          .maybeSingle();
+        // Only fetch business data if we have an account ID
+        if (accountId) {
+          while (retryCount < maxRetries && !businessData && !businessError) {
+            console.log(`🔄 Fetching business profile (attempt ${retryCount + 1}/${maxRetries}) for account:`, accountId);
+            if (isPostBusinessCreation) {
+              console.log("🆕 Post-business-creation flow detected, using extended retry logic");
+            }
+            
+            const result = await supabase
+              .from("businesses")
+              .select(`
+                name, 
+                services_offered, 
+                default_offer_enabled, 
+                default_offer_title, 
+                default_offer_body, 
+                default_offer_url,
+                default_offer_timelock,
+                review_platforms, 
+                facebook_url, 
+                instagram_url, 
+                bluesky_url, 
+                tiktok_url, 
+                youtube_url, 
+                linkedin_url, 
+                pinterest_url, 
+                created_at, 
+                updated_at,
+                kickstarters_enabled,
+                selected_kickstarters,
+                kickstarters_background_design,
+                emoji_sentiment_enabled,
+                emoji_sentiment_question,
+                emoji_feedback_message,
+                emoji_thank_you_message,
+                emoji_feedback_popup_header,
+                emoji_feedback_page_header,
+                falling_enabled,
+                falling_icon,
+                falling_icon_color,
+                show_friendly_note,
+                friendly_note,
+                recent_reviews_enabled,
+                recent_reviews_scope,
+                ai_button_enabled,
+                fix_grammar_enabled,
+                keywords,
+                ai_dos,
+                ai_donts
+              `)
+              .eq("account_id", accountId)
+              .maybeSingle();
             
           businessData = result.data;
           businessError = result.error;
@@ -374,6 +378,9 @@ export default function CreatePromptPageClient({
           }
           
           retryCount++;
+          }
+        } else {
+          console.log("🎯 No account ID available, using default business profile");
         }
           
         if (businessError) {
@@ -1446,16 +1453,16 @@ export default function CreatePromptPageClient({
         return;
       }
 
-      // Get the correct account ID for this user
-      const accountId = await getAccountIdForUser(user.id, supabase);
-      if (!accountId) {
-        throw new Error("No account found for user");
+      // Use account ID from auth context
+      const currentAccountId = accountId;
+      if (!currentAccountId) {
+        throw new Error("No account found for user - account context not available");
       }
       
       const { data: businessData, error: businessError } = await supabase
         .from("businesses")
         .select("*")
-        .eq("account_id", accountId)
+        .eq("account_id", currentAccountId)
         .order('created_at', { ascending: false })
         .limit(1)
         .single();
@@ -1479,7 +1486,7 @@ export default function CreatePromptPageClient({
       // Debug logging to see what's in formData
       
       const insertData = {
-        account_id: accountId,
+        account_id: currentAccountId,
         // Note: business_name column doesn't exist - removed
         review_type: mergedFormData.review_type || "service", // Use the review_type from form data
         status: "draft", // Start as draft for individual prompt pages
