@@ -11,7 +11,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { createClient } from '@supabase/supabase-js';
-import { getAccountIdForUser } from '@/auth/utils/accounts';
+import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
 
 export async function POST(request: NextRequest) {
   try {
@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get user's account ID
-    const accountId = await getAccountIdForUser(user.id, supabase);
+    const accountId = await getRequestAccountId(request, user.id, supabase);
     if (!accountId) {
       return NextResponse.json(
         { success: false, error: 'Account not found' },
@@ -126,7 +126,7 @@ export async function POST(request: NextRequest) {
     const { data: existingPromptPage } = await serviceSupabase
       .from('prompt_pages')
       .select('id')
-      .eq('account_id', user.id)
+      .eq('account_id', accountId)
       .eq('slug', 'google-imports')
       .single();
 
@@ -137,7 +137,7 @@ export async function POST(request: NextRequest) {
       const { data: newPromptPage, error: promptPageError } = await serviceSupabase
         .from('prompt_pages')
         .insert({
-          account_id: user.id,
+          account_id: accountId,
           slug: 'google-imports',
           status: 'draft', // Keep it as a draft
           is_universal: false,
@@ -301,7 +301,7 @@ export async function POST(request: NextRequest) {
         const { data: newContact, error: contactError } = await serviceSupabase
           .from('contacts')
           .insert({
-            account_id: user.id, // Use auth user ID, not the business account ID
+            account_id: accountId, // Use proper account ID from request context
             first_name: `Google User`, // Generic first name for system contact
             last_name: '', 
             google_reviewer_name: reviewerDisplayName, // Store actual Google display name here
@@ -317,7 +317,7 @@ export async function POST(request: NextRequest) {
         if (contactError) {
           console.error('❌ Error creating contact:', contactError);
           console.error('Contact data attempted:', {
-            account_id: user.id,
+            account_id: accountId,
             first_name: 'Google User',
             google_reviewer_name: reviewerDisplayName
           });

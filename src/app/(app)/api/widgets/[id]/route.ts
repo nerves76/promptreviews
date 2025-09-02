@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createServiceRoleClient } from '@/auth/providers/supabase';
 import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
-import { getAccountIdForUser } from '@/auth/utils/accounts';
+// Account ID utility already imported above
 import { createServerClient } from '@supabase/ssr';
 
 // 🔧 CONSOLIDATION: Use centralized service role client
@@ -96,7 +96,7 @@ export async function GET(
       }
       
       // Continue with the rest of the logic using the authenticated widget
-      return await fetchWidgetData(widget, widgetId);
+      return await fetchWidgetData(widget, widgetId, req);
     } else {
       // This is a public widget request (for embedding) - fetch without authentication using admin client
       const { data: widget, error: widgetError } = await supabaseAdmin
@@ -110,7 +110,7 @@ export async function GET(
       }
       
       // Continue with the rest of the logic using the public widget
-      return await fetchWidgetData(widget, widgetId);
+      return await fetchWidgetData(widget, widgetId, req);
     }
   } catch (err) {
     // Log and return server error
@@ -122,7 +122,7 @@ export async function GET(
 /**
  * Helper function to fetch widget data and reviews
  */
-async function fetchWidgetData(widget: any, widgetId: string) {
+async function fetchWidgetData(widget: any, widgetId: string, req: Request) {
   console.log(`[Widget ${widgetId}] Widget data:`, { 
     id: widget.id, 
     account_id: widget.account_id,
@@ -322,8 +322,8 @@ export async function PUT(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
-    // Get account ID for the user
-    const accountId = await getAccountIdForUser(user.id, supabase);
+    // Get account ID respecting client selection if provided
+    const accountId = await getRequestAccountId(req, user.id, supabase);
     if (!accountId) {
       return NextResponse.json({ error: 'Account not found' }, { status: 404 });
     }
@@ -379,8 +379,8 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
-    // Get account ID for the user
-    const accountId = await getAccountIdForUser(user.id, supabase);
+    // Get account ID respecting client selection if provided
+    const accountId = await getRequestAccountId(req, user.id, supabase);
     if (!accountId) {
       return NextResponse.json({ error: 'Account not found' }, { status: 404 });
     }

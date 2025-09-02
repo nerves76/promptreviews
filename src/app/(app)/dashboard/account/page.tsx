@@ -7,7 +7,7 @@ import Icon from "@/components/Icon";
 import PageCard from "@/app/(app)/components/PageCard";
 import PageLoader from "@/app/(app)/components/PageLoader";
 import { trackEvent, GA_EVENTS } from "@/utils/analytics";
-import { getAccountIdForUser } from "@/auth/utils/accounts";
+import { useAuth } from "@/auth";
 import { useAuthGuard } from "@/utils/authGuard";
 import { canCreateAccounts } from "@/config/adminConfig";
 import PricingModal from "@/app/(app)/components/PricingModal";
@@ -18,6 +18,7 @@ export default function AccountPage() {
 
   useAuthGuard();
   const router = useRouter();
+  const { selectedAccountId, account: authAccount } = useAuth();
   const [user, setUser] = useState<any>(null);
   const [account, setAccount] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -55,8 +56,8 @@ export default function AccountPage() {
 
         setUser(user);
 
-        // Get account ID using utility function
-        const accountId = await getAccountIdForUser(user.id, supabase);
+        // Get account ID from auth context
+        const accountId = selectedAccountId || authAccount?.id;
         
         if (!accountId) {
           console.log('AccountPage: No account found - redirecting to create business');
@@ -114,7 +115,7 @@ export default function AccountPage() {
     };
 
     loadAccountData();
-  }, [router]);
+  }, [router, selectedAccountId, authAccount?.id]);
 
   const handleSignOut = async () => {
     // Track sign out event

@@ -9,10 +9,22 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
+import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
 
 export async function POST(request: NextRequest) {
   try {
     console.log('🔧 AI Keyword Integration API called');
+
+    // Check authentication
+    const supabase = createServerComponentClient({ cookies });
+    const { data: { session }, error: authError } = await supabase.auth.getSession();
+    
+    if (authError || !session) {
+      return NextResponse.json(
+        { success: false, error: 'Authentication required' },
+        { status: 401 }
+      );
+    }
 
     const body = await request.json();
     const { currentDescription, keywords, businessContext } = body;

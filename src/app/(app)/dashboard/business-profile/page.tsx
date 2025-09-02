@@ -816,6 +816,21 @@ export default function BusinessProfilePage() {
       }
       
       console.log("Profile update successful!");
+      
+      // Also update the business_name in the accounts table to sync with account switcher
+      // This is especially important for the primary account
+      if (form.name && selectedAccount?.account_id) {
+        const { error: accountUpdateError } = await supabase
+          .from("accounts")
+          .update({ business_name: form.name })
+          .eq("id", selectedAccount.account_id);
+        
+        if (accountUpdateError) {
+          console.error("Failed to update business_name in accounts table:", accountUpdateError);
+          // Don't fail the whole update, just log the error
+        }
+      }
+      
       setSuccess("Profile updated successfully!");
       
       // Clear saved form data after successful submission

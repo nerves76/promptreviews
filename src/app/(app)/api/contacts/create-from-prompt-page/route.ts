@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSessionOrMock, createClient, createServiceRoleClient } from '@/auth/providers/supabase';
-import { getAccountIdForUser } from '@/auth/utils/accounts';
 import { checkAccountLimits } from '@/utils/accountLimits';
 
 export async function POST(request: NextRequest) {
@@ -48,13 +47,28 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get the correct account ID for this user
-    console.log('🔍 Contact from Prompt API - Looking up account for user:', user.id);
-    const accountId = await getAccountIdForUser(user.id, supabaseAdmin);
-    console.log('🔍 Contact from Prompt API - Account lookup result:', accountId);
+    // Parse request body
+    const { promptPageData, promptPageId, account_id } = await request.json();
+    
+    // Get account ID from request body
+    console.log('🔍 Contact from Prompt API - Account ID from request:', account_id);
+    const accountId = account_id;
     if (!accountId) {
-      console.error('❌ Contact from Prompt API - No account found for user:', user.id);
-      return NextResponse.json({ error: 'No account found' }, { status: 404 });
+      console.error('❌ Contact from Prompt API - No account_id provided in request');
+      return NextResponse.json({ error: 'account_id is required' }, { status: 400 });
+    }
+    
+    // Validate user has access to this account
+    const { data: accountUser } = await supabaseAdmin
+      .from('account_users')
+      .select('account_id')
+      .eq('user_id', user.id)
+      .eq('account_id', accountId)
+      .single();
+
+    if (!accountUser) {
+      console.error('❌ User does not have access to account:', accountId);
+      return NextResponse.json({ error: 'Access denied to this account' }, { status: 403 });
     }
 
     // Check account limits for contact creation
@@ -68,9 +82,6 @@ export async function POST(request: NextRequest) {
         upgrade_required: true
       }, { status: 403 });
     }
-
-    // Parse request body
-    const { promptPageData, promptPageId } = await request.json();
     
     // Validate required fields
     if (!promptPageData.first_name || promptPageData.first_name.trim() === '') {

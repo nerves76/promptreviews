@@ -1715,7 +1715,7 @@ export default function AnimatedInfographic({ isEmbed = false, debug = false }: 
                               : 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3))',
                             transform: hoveredTool === toolIndex ? 'scale(1.1)' : 'scale(1)',
                             // Adjust vertical position specifically for lightbulb icon
-                            ...(tool.iconName === 'FaLightbulb' ? { marginTop: '-4px' } : {})
+                            ...(tool.iconName === 'FaLightbulb' ? { marginTop: '-8px' } : {})
                           }}
                         />
                       )}
@@ -2120,7 +2120,7 @@ export default function AnimatedInfographic({ isEmbed = false, debug = false }: 
                         : 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3))',
                       transform: hoveredTool === toolIndex ? 'scale(1.1)' : 'scale(1)',
                       // Adjust vertical position specifically for lightbulb icon
-                      ...(tool.iconName === 'FaLightbulb' ? { marginTop: '-4px' } : {})
+                      ...(tool.iconName === 'FaLightbulb' ? { marginTop: '-8px' } : {})
                     }}
                   />
                 )}

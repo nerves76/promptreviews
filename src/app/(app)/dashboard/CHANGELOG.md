@@ -1,5 +1,18 @@
 # Dashboard Changelog
 
+## [2025-09-02] - Account Isolation Fix Complete
+### Fixed
+- Fixed remaining account isolation issues in final dashboard pages
+- Both pages now respect account switcher selection correctly
+- Pages were showing data from user's first account instead of selected account
+- Root cause: `getAccountIdForUser()` function bypassed account selection
+- Files fixed:
+  - `/dashboard/account/page.tsx` - Account settings and management page
+  - `/dashboard/plan/page.tsx` - Pricing and plan management page
+- All pages now use `useAuth()` hook to get `selectedAccountId` and `account` from context
+- Updated useEffect dependencies to re-render when account selection changes
+- Account isolation fix is now complete across all dashboard pages
+
 ## [2025-09-01] - Part 2
 ### Fixed - Critical Account Isolation Issue
 - Multiple dashboard pages not respecting account switcher selection

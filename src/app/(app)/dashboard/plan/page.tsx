@@ -6,10 +6,11 @@ import AppLoader from "@/app/(app)/components/AppLoader";
 import { useRouter, useSearchParams } from "next/navigation";
 import { tiers } from "../../components/PricingModal";
 import TopLoaderOverlay from "@/app/(app)/components/TopLoaderOverlay";
-import { getAccountIdForUser } from "@/auth/utils/accounts";
+import { useAuth } from "@/auth";
 
 export default function PlanPage() {
   const supabase = createClient();
+  const { selectedAccountId, account: authAccount } = useAuth();
 
   // Log when component mounts/unmounts
   useEffect(() => {
@@ -181,8 +182,8 @@ export default function PlanPage() {
 
       setUser(user);
 
-      // Get account ID using the utility function
-      const accountId = await getAccountIdForUser(user.id, supabase);
+      // Get account ID from auth context
+      const accountId = selectedAccountId || authAccount?.id;
       
       if (!accountId) {
         console.error("No account found for user:", user.id);
@@ -256,7 +257,7 @@ export default function PlanPage() {
       }
     };
     fetchAccount();
-  }, [router, supabase]);
+  }, [router, supabase, selectedAccountId, authAccount?.id]);
 
   const handleSelectTier = useCallback(
     async (tierKey: string, billing: 'monthly' | 'annual' = 'monthly') => {

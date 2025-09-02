@@ -5,7 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceRoleClient } from '@/auth/providers/supabase';
-import { getAccountIdForUser } from '@/auth/utils/accounts';
+import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
 import { createServerClient } from '@supabase/ssr';
 
 // 🔧 CONSOLIDATION: Use centralized service role client
@@ -88,8 +88,8 @@ export async function PUT(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get account ID for the user
-    const accountId = await getAccountIdForUser(user.id, supabase);
+    // Get account ID respecting client selection if provided
+    const accountId = await getRequestAccountId(request, user.id, supabase);
     if (!accountId) {
       console.error('[WIDGET-REVIEWS] Account not found for user:', user.id);
       return NextResponse.json({ error: 'Account not found' }, { status: 404 });
@@ -345,8 +345,8 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get account ID for the user
-    const accountId = await getAccountIdForUser(user.id, supabase);
+    // Get account ID respecting client selection if provided
+    const accountId = await getRequestAccountId(request, user.id, supabase);
     if (!accountId) {
       return NextResponse.json({ error: 'Account not found' }, { status: 404 });
     }

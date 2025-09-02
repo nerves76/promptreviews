@@ -7,7 +7,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { createServiceRoleClient } from '@/auth/providers/supabase';
-import { getAccountIdForUser } from '@/auth/utils/accounts';
+import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
 import { canCreateLocation, getTierLocationLimit, generateLocationPromptPageSlug, createLocationPromptPageData, generateUniqueLocationSlug } from '@/utils/locationUtils';
 
 // 🔧 CONSOLIDATION: Shared Supabase client creation for API routes
@@ -40,8 +40,8 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get account ID
-    const accountId = await getAccountIdForUser(user.id, supabase);
+    // Get account ID respecting client selection if provided
+    const accountId = await getRequestAccountId(request, user.id, supabase);
     if (!accountId) {
       return NextResponse.json({ error: 'No account found' }, { status: 404 });
     }
@@ -116,8 +116,8 @@ export async function POST(request: NextRequest) {
 
     console.log('🔍 API: User authenticated:', user.id);
 
-    // Get account ID
-    const accountId = await getAccountIdForUser(user.id, supabase);
+    // Get account ID respecting client selection if provided
+    const accountId = await getRequestAccountId(request, user.id, supabase);
     if (!accountId) {
       console.log('🔍 API: No account found for user:', user.id);
       return NextResponse.json({ error: 'No account found' }, { status: 404 });

@@ -1082,7 +1082,7 @@ const Dashboard = React.memo(function Dashboard() {
             hasBusiness={!!(businessData?.hasBusinesses)}
             hasCustomPromptPages={!!(consolidatedData?.promptPages && consolidatedData.promptPages.filter(p => !p.is_universal).length > 0)}
             hasUniversalPromptPage={!!(consolidatedData?.promptPages && consolidatedData.promptPages.some(p => p.is_universal))}
-            userId={user?.id}
+            accountId={account?.id}
             setShowStarfallCelebration={setShowStarfallCelebration}
             paymentChangeType={paymentChangeType}
           />

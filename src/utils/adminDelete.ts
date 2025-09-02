@@ -13,7 +13,6 @@
  */
 
 import { createClient } from '@supabase/supabase-js';
-import { getAccountIdForUser as getAccountIdForUserUtil } from '@/auth/utils/accounts';
 
 // Initialize Supabase admin client with service role key
 const supabaseAdmin = createClient(
@@ -68,9 +67,13 @@ export async function getUserIdByEmail(email: string): Promise<string | null> {
 
 /**
  * Get account ID for a user
- * Uses the centralized utility that handles multiple account_user records properly
+ * NOTE: This function still uses the problematic getAccountIdForUser utility.
+ * It should be updated when this admin utility is refactored to accept accountId directly.
+ * For now, keeping this as a wrapper since admin functions may need account discovery.
  */
 export async function getAccountIdForUser(userId: string): Promise<string | null> {
+  // Import dynamically to avoid circular dependencies
+  const { getAccountIdForUser: getAccountIdForUserUtil } = await import('@/auth/utils/accounts');
   return await getAccountIdForUserUtil(userId, supabaseAdmin);
 }
 

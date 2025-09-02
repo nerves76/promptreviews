@@ -18,7 +18,8 @@ import { useRouter } from "next/navigation";
 import QRCodeModal from "../../components/QRCodeModal";
 import StarfallCelebration from "@/app/(app)/components/StarfallCelebration";
 import { promptTypesWithDarkIcons as promptTypes } from "@/config/promptTypes";
-import { getAccountIdForUser } from "@/auth/utils/accounts";
+import { useAuthUser, useAccountData, useAuthLoading } from "@/auth/hooks/granularAuthHooks";
+import { useAccountSelection } from "@/utils/accountSelectionHooks";
 import BusinessLocationModal from "@/app/(app)/components/BusinessLocationModal";
 import { BusinessLocation } from "@/types/business";
 import { hasLocationAccess, formatLocationAddress, getLocationDisplayName } from "@/utils/locationUtils";
@@ -30,12 +31,17 @@ const StylePage = dynamic(() => import("../../dashboard/style/StyleModalPage"), 
 
 export default function IndividualOutreach() {
   const supabase = createClient();
+  const { user: authUser } = useAuthUser();
+  const { accountId: authAccountId } = useAccountData();
+  const { isLoading: authLoading } = useAuthLoading();
+  const { selectedAccountId } = useAccountSelection();
 
   const [loading, setLoading] = useState(true);
   const [promptPages, setPromptPages] = useState<any[]>([]);
   const [universalPromptPage, setUniversalPromptPage] = useState<any>(null);
   const [business, setBusiness] = useState<any>(null);
   const [account, setAccount] = useState<any>(null);
+  const [accountId, setAccountId] = useState<string | null>(null);
   const [universalUrl, setUniversalUrl] = useState("");
   const [copySuccess, setCopySuccess] = useState("");
   const [qrModal, setQrModal] = useState<{
@@ -85,15 +91,16 @@ export default function IndividualOutreach() {
       setLoading(true);
       setError(null);
       try {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-        if (!user) throw new Error("Not signed in");
+        // Use auth context data
+        if (!authUser) {
+          throw new Error("Not signed in");
+        }
         
-        // Get the account ID for the user
-        const accountId = await getAccountIdForUser(user.id, supabase);
+        // Use selectedAccountId if available (from account switcher), otherwise fall back to authAccountId
+        const fetchedAccountId = selectedAccountId || authAccountId;
+        setAccountId(fetchedAccountId);
         
-        if (!accountId) {
+        if (!fetchedAccountId) {
           console.log('No account found for user - user may need to complete setup');
           setError("Please complete your account setup to access prompt pages.");
           setLoading(false);
@@ -104,14 +111,14 @@ export default function IndividualOutreach() {
         const { data: accountData } = await supabase
           .from("accounts")
           .select("plan, location_count, max_locations")
-          .eq("id", accountId)
+          .eq("id", fetchedAccountId)
           .single();
         setAccount(accountData);
 
         const { data: businessProfiles } = await supabase
           .from("businesses")
           .select("*")
-          .eq("account_id", accountId)
+          .eq("account_id", fetchedAccountId)
           .order("created_at", { ascending: false })
           .limit(1);
         
@@ -129,7 +136,7 @@ export default function IndividualOutreach() {
         
         // DEVELOPMENT MODE BYPASS - Use mock universal prompt page
         let universalPage = null;
-        if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined' && localStorage.getItem('dev_auth_bypass') === 'true' && accountId === '12345678-1234-5678-9abc-123456789012') {
+        if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined' && localStorage.getItem('dev_auth_bypass') === 'true' && fetchedAccountId === '12345678-1234-5678-9abc-123456789012') {
           console.log('🔧 DEV MODE: Using mock universal prompt page');
           universalPage = {
             id: '0f1ba885-07d6-4698-9e94-a63d990c65e0',
@@ -149,7 +156,7 @@ export default function IndividualOutreach() {
           const { data: universalPages } = await supabase
             .from("prompt_pages")
             .select("*")
-            .eq("account_id", accountId)
+            .eq("account_id", fetchedAccountId)
             .eq("is_universal", true)
             .order("created_at", { ascending: false })
             .limit(1);
@@ -182,7 +189,7 @@ export default function IndividualOutreach() {
         
         // Fetch locations if user has access
         if (accountData && hasLocationAccess(accountData.plan)) {
-          await fetchLocations(accountId);
+          await fetchLocations(fetchedAccountId);
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load");
@@ -190,8 +197,11 @@ export default function IndividualOutreach() {
         setLoading(false);
       }
     }
-    fetchData();
-  }, [supabase]);
+    // Only fetch when auth is ready and we have an account ID
+    if (!authLoading && (selectedAccountId || authAccountId)) {
+      fetchData();
+    }
+  }, [authLoading, selectedAccountId, authAccountId, supabase]);
 
   const fetchLocations = async (accountId: string) => {
     try {
@@ -536,7 +546,10 @@ export default function IndividualOutreach() {
       {/* Style Modal */}
       {showStyleModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-          <StylePage onClose={() => setShowStyleModal(false)} />
+          <StylePage 
+            onClose={() => setShowStyleModal(false)} 
+            accountId={accountId}
+          />
         </div>
       )}
 

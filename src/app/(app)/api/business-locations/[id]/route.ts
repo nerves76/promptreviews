@@ -6,7 +6,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/auth/providers/supabase';
-import { getAccountIdForUser } from '@/auth/utils/accounts';
+import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
 
 interface Params {
   id: string;
@@ -23,8 +23,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<Pa
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get account ID
-    const accountId = await getAccountIdForUser(user.id, supabase);
+    // Get account ID respecting client selection if provided
+    const accountId = await getRequestAccountId(request, user.id, supabase);
     if (!accountId) {
       return NextResponse.json({ error: 'No account found' }, { status: 404 });
     }
@@ -82,8 +82,8 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<Pa
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get account ID
-    const accountId = await getAccountIdForUser(user.id, supabase);
+    // Get account ID respecting client selection if provided
+    const accountId = await getRequestAccountId(request, user.id, supabase);
     if (!accountId) {
       return NextResponse.json({ error: 'No account found' }, { status: 404 });
     }
@@ -197,8 +197,8 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get account ID
-    const accountId = await getAccountIdForUser(user.id, supabase);
+    // Get account ID respecting client selection if provided
+    const accountId = await getRequestAccountId(request, user.id, supabase);
     if (!accountId) {
       return NextResponse.json({ error: 'No account found' }, { status: 404 });
     }

@@ -5,7 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/auth/providers/supabase';
-import { getAccountIdForUser } from '@/auth/utils/accounts';
+import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
 
 export async function POST(request: NextRequest) {
   try {
@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get account ID for the user
-    const accountId = await getAccountIdForUser(userId, supabase);
+    const accountId = await getRequestAccountId(request, userId, supabase);
     
     if (!accountId) {
       return NextResponse.json({ 

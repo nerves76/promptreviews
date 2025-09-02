@@ -130,6 +130,8 @@ export function useBusinessProfile() {
       }
 
       // Get the currently selected account (respects account switching)
+      // NOTE: This is acceptable here since this hook is meant to determine the current account
+      // and check if it has a business profile, not operate on a specific provided account
       const { getAccountIdForUser } = await import('@/auth/utils/accounts');
       const accountId = await getAccountIdForUser(user.id);
 

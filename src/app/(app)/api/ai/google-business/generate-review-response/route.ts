@@ -7,7 +7,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/auth/providers/supabase';
-import { getAccountIdForUser } from '@/auth/utils/accounts';
+import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
 import { generateReviewResponse } from '@/utils/ai/google-business/reviewResponseGenerator';
 import { extractBrandContext, AIBrandContext } from '@/utils/ai/google-business/googleBusinessProfileHelpers';
 
@@ -79,7 +79,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ReviewRes
       brandContext = businessContext;
     } else {
       // Get user's account ID
-      const userAccountId = await getAccountIdForUser(user.id, supabase);
+      const userAccountId = await getRequestAccountId(request, user.id, supabase);
       if (!userAccountId) {
         return NextResponse.json(
           { success: false, error: 'No account found for user' },

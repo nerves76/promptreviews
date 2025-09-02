@@ -681,40 +681,42 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
         console.log('Auth session found for user:', user.email);
         setCurrentUserEmail(user.email || null);
         
-        // Get the account ID for the user - with error handling
-        let accountId = null;
-        try {
-          accountId = await getAccountIdForUser(user.id, supabase);
-          console.log("User account ID:", accountId);
-        } catch (accountError) {
-          console.error("Error getting account ID:", accountError);
-          // Continue without account ID
-          setIsOwner(false);
-          setUserLoading(false);
-          return;
-        }
-
-        if (!accountId) {
-          console.log("No account found for user");
-          setIsOwner(false);
-          setUserLoading(false);
-          return;
-        }
-        
-        // Check if user owns this prompt page by comparing account_ids
+        // Check if user owns this prompt page by checking ALL their accounts
+        // This is a PUBLIC page accessed by customers, so we need to verify if the 
+        // current logged-in user has access to the account that owns this prompt page
         if (promptPage?.account_id) {
           console.log('Checking ownership for prompt page account_id:', promptPage.account_id);
-          console.log('User account_id:', accountId);
-          console.log('Prompt page account_id:', promptPage.account_id);
           
-          const isPageOwner = accountId === promptPage.account_id;
-          // TEMPORARY: Always show style button for testing
-          setIsOwner(true);
-          
-          if (isPageOwner) {
-            console.log('✅ User is owner of this prompt page - showing style button');
-          } else {
-            console.log('❌ User is not owner of this prompt page - but showing style button for testing');
+          try {
+            // Get ALL accounts that the user has access to
+            const { data: userAccounts, error: accountError } = await supabase
+              .from('account_users')
+              .select('account_id, role')
+              .eq('user_id', user.id);
+            
+            if (accountError) {
+              console.error('Error fetching user accounts:', accountError);
+              setIsOwner(false);
+            } else {
+              console.log('User has access to accounts:', userAccounts?.map(ua => ua.account_id) || []);
+              
+              // Check if ANY of the user's accounts matches the prompt page account
+              const isPageOwner = userAccounts?.some(ua => ua.account_id === promptPage.account_id) || false;
+              setIsOwner(isPageOwner);
+              
+              if (isPageOwner) {
+                console.log('✅ User has access to account that owns this prompt page - showing style button');
+                const matchingAccount = userAccounts?.find(ua => ua.account_id === promptPage.account_id);
+                console.log('   User role in this account:', matchingAccount?.role);
+              } else {
+                console.log('❌ User does not have access to account that owns this prompt page - hiding style button');
+                console.log('   Prompt page account_id:', promptPage.account_id);
+                console.log('   User account_ids:', userAccounts?.map(ua => ua.account_id) || []);
+              }
+            }
+          } catch (error) {
+            console.error('Error checking account access:', error);
+            setIsOwner(false);
           }
         } else {
           console.log('No prompt page account_id found');

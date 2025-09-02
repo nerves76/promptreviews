@@ -17,7 +17,7 @@ interface GettingStartedProps {
   hasBusiness: boolean;
   hasCustomPromptPages: boolean;
   hasUniversalPromptPage: boolean;
-  userId?: string;
+  accountId?: string;
 }
 
 interface Task {
@@ -34,7 +34,7 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
   hasBusiness,
   hasCustomPromptPages,
   hasUniversalPromptPage,
-  userId
+  accountId
 }) => {
   const supabase = createClient();
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -44,7 +44,7 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
   // Initialize default tasks for new users via API
   useEffect(() => {
     const initializeTasks = async () => {
-      if (!userId) return;
+      if (!accountId) return;
 
       try {
         // Get the authentication token from Supabase
@@ -136,18 +136,18 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
     // Add a small delay to ensure session is established
     const timer = setTimeout(initializeTasks, 1000);
     return () => clearTimeout(timer);
-  }, [userId]);
+  }, [accountId]);
 
   // Fetch task completion status from database
   useEffect(() => {
     const loadTaskStatus = async () => {
-      if (!userId) {
+      if (!accountId) {
         setLoading(false);
         return;
       }
 
       try {
-        const taskStatus = await fetchOnboardingTasks(userId);
+        const taskStatus = await fetchOnboardingTasks(accountId);
         
         // Initialize tasks based on current state and database status
         const initialTasks: Task[] = [
@@ -260,7 +260,7 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
     };
 
     loadTaskStatus();
-  }, [userId, hasBusiness, hasCustomPromptPages, hasUniversalPromptPage]);
+  }, [accountId, hasBusiness, hasCustomPromptPages, hasUniversalPromptPage]);
 
   useEffect(() => {
     // Check if all tasks are completed
@@ -275,7 +275,7 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
   }, [tasks, onComplete, loading]);
 
   const handleTaskClick = async (taskId: string) => {
-    if (!userId) return;
+    if (!accountId) return;
 
     const newCompleted = !tasks.find(t => t.id === taskId)?.completed;
     
@@ -289,9 +289,9 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
     // Update database
     try {
       if (newCompleted) {
-        await markTaskAsCompleted(userId, taskId);
+        await markTaskAsCompleted(accountId, taskId);
       } else {
-        await markTaskAsIncomplete(userId, taskId);
+        await markTaskAsIncomplete(accountId, taskId);
       }
     } catch (error) {
       console.error('Error updating task status:', error);
@@ -305,7 +305,7 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
   };
 
   const handleTaskLinkClick = async (taskId: string) => {
-    if (!userId) return;
+    if (!accountId) return;
 
     // Mark task as completed when user clicks the link
     setTasks(prevTasks =>
@@ -316,7 +316,7 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
 
     // Update database
     try {
-      await markTaskAsCompleted(userId, taskId);
+      await markTaskAsCompleted(accountId, taskId);
     } catch (error) {
       console.error('Error marking task as completed:', error);
     }

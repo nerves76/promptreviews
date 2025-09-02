@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { getAccountIdForUser } from "@/auth/utils/accounts";
+import { getRequestAccountId } from "@/app/(app)/api/utils/getRequestAccountId";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -48,7 +48,7 @@ export async function GET(
 
     // Check if user owns this prompt page by comparing account_ids
     // Use proper utility function that handles multiple account_user records
-    const accountId = await getAccountIdForUser(user.id, supabase);
+    const accountId = await getRequestAccountId(request, user.id, supabase);
 
     if (!accountId) {
       console.log('No account found for user');

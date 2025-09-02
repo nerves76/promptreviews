@@ -49,7 +49,7 @@ interface DashboardContentProps {
   hasBusiness: boolean;
   hasCustomPromptPages: boolean;
   hasUniversalPromptPage: boolean;
-  userId?: string;
+  accountId?: string;
   setShowStarfallCelebration?: (show: boolean) => void;
   paymentChangeType?: string | null;
 }
@@ -106,7 +106,7 @@ const DashboardContent = React.memo(function DashboardContent({
   hasBusiness,
   hasCustomPromptPages,
   hasUniversalPromptPage,
-  userId,
+  accountId,
   setShowStarfallCelebration,
   paymentChangeType,
 }: DashboardContentProps) {
@@ -473,7 +473,7 @@ const DashboardContent = React.memo(function DashboardContent({
             // Optional: Handle completion if needed
             console.log("Getting Started checklist completed!");
           }}
-          userId={userId}
+          accountId={accountId}
         />
       </div>
 

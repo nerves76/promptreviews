@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { nanoid } from "nanoid";
 import { createClient } from "@supabase/supabase-js";
 import { slugify } from "@/utils/slugify";
-import { getAccountIdForUser } from "@/auth/utils/accounts";
+import { getRequestAccountId } from "@/app/(app)/api/utils/getRequestAccountId";
 import { preparePromptPageData, validatePromptPageData } from "@/utils/promptPageDataMapping";
 
 // Initialize Supabase client with service key for privileged operations
@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get account ID for authenticated user
-    const accountId = await getAccountIdForUser(user.id, supabase);
+    const accountId = await getRequestAccountId(request, user.id, supabase);
     if (!accountId) {
       return NextResponse.json(
         { error: 'Account not found. Please ensure you have completed the signup process.' },

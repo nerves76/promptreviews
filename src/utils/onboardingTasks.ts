@@ -8,7 +8,6 @@
 import { createClient } from '@/auth/providers/supabase';
 
 const supabase = createClient();
-import { getAccountIdForUser } from '@/auth/utils/accounts';
 
 export interface OnboardingTask {
   id: string;
@@ -25,11 +24,10 @@ export interface TaskCompletionStatus {
 }
 
 /**
- * Fetch all onboarding tasks for a user
+ * Fetch all onboarding tasks for an account
  */
-export async function fetchOnboardingTasks(userId: string): Promise<TaskCompletionStatus> {
+export async function fetchOnboardingTasks(accountId: string): Promise<TaskCompletionStatus> {
   try {
-    const accountId = await getAccountIdForUser(userId, supabase);
     if (!accountId) {
       return {};
     }
@@ -84,11 +82,10 @@ export async function fetchOnboardingTasks(userId: string): Promise<TaskCompleti
 /**
  * Mark a specific onboarding task as completed
  */
-export async function markTaskAsCompleted(userId: string, taskId: string): Promise<boolean> {
+export async function markTaskAsCompleted(accountId: string, taskId: string): Promise<boolean> {
   try {
-    const accountId = await getAccountIdForUser(userId, supabase);
     if (!accountId) {
-      console.error('No account found for user');
+      console.error('No account ID provided');
       return false;
     }
 
@@ -147,11 +144,10 @@ export async function markTaskAsCompleted(userId: string, taskId: string): Promi
 /**
  * Mark a specific onboarding task as incomplete
  */
-export async function markTaskAsIncomplete(userId: string, taskId: string): Promise<boolean> {
+export async function markTaskAsIncomplete(accountId: string, taskId: string): Promise<boolean> {
   try {
-    const accountId = await getAccountIdForUser(userId, supabase);
     if (!accountId) {
-      console.error('No account found for user');
+      console.error('No account ID provided');
       return false;
     }
 
@@ -210,9 +206,9 @@ export async function markTaskAsIncomplete(userId: string, taskId: string): Prom
 /**
  * Check if a specific task is completed
  */
-export async function isTaskCompleted(userId: string, taskId: string): Promise<boolean> {
+export async function isTaskCompleted(accountId: string, taskId: string): Promise<boolean> {
   try {
-    const taskStatus = await fetchOnboardingTasks(userId);
+    const taskStatus = await fetchOnboardingTasks(accountId);
     return taskStatus[taskId] || false;
   } catch (error) {
     console.error('Error checking task completion:', error);
@@ -223,9 +219,9 @@ export async function isTaskCompleted(userId: string, taskId: string): Promise<b
 /**
  * Get completion percentage for all tasks
  */
-export async function getOnboardingCompletionPercentage(userId: string, totalTasks: number): Promise<number> {
+export async function getOnboardingCompletionPercentage(accountId: string, totalTasks: number): Promise<number> {
   try {
-    const taskStatus = await fetchOnboardingTasks(userId);
+    const taskStatus = await fetchOnboardingTasks(accountId);
     const completedTasks = Object.values(taskStatus).filter(completed => completed).length;
     return Math.round((completedTasks / totalTasks) * 100);
   } catch (error) {
@@ -235,13 +231,12 @@ export async function getOnboardingCompletionPercentage(userId: string, totalTas
 }
 
 /**
- * Initialize default tasks for a new user
+ * Initialize default tasks for a new account
  */
-export async function initializeDefaultTasks(userId: string): Promise<boolean> {
+export async function initializeDefaultTasks(accountId: string): Promise<boolean> {
   try {
-    const accountId = await getAccountIdForUser(userId, supabase);
     if (!accountId) {
-      console.error('No account found for user');
+      console.error('No account ID provided');
       return false;
     }
 

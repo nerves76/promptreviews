@@ -11,7 +11,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/utils/supabaseClient';
-import { getAccountIdForUser } from '@/auth/utils/accounts';
+import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
 import { createStripeClientWithRetry, STRIPE_CONFIG } from '@/lib/billing/config';
 
 const stripeWithRetry = createStripeClientWithRetry();
@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
     console.log(`🗑️ Account cancellation requested for user: ${userId}`);
 
     // Get the user's account ID using the utility function
-    const accountId = await getAccountIdForUser(userId, supabase);
+    const accountId = await getRequestAccountId(request, userId, supabase);
     
     if (!accountId) {
       console.error(`No account found for user: ${userId}`);

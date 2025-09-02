@@ -4,7 +4,6 @@ import * as React from "react";
 import { createClient, getUserOrMock } from "@/utils/supabaseClient";
 
 const supabase = createClient();
-import { getAccountIdForUser } from "@/auth/utils/accounts";
 import Icon from "@/components/Icon";
 
 // Only include fonts that are actually loaded and used in the project
@@ -166,10 +165,10 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
         return;
       }
 
-      // Use prop accountId if provided, otherwise fall back to getAccountIdForUser
-      const accountId = propAccountId || await getAccountIdForUser(user.id, supabase);
+      // Use prop accountId - should always be provided by parent component
+      const accountId = propAccountId;
       if (!accountId) {
-        console.log("No account found for user");
+        console.log("No account ID provided as prop");
         setLoading(false);
         return;
       }
@@ -264,10 +263,10 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
         return;
       }
 
-      // Use prop accountId if provided, otherwise fall back to getAccountIdForUser
-      const accountId = propAccountId || await getAccountIdForUser(user.id, supabase);
+      // Use prop accountId - should always be provided by parent component
+      const accountId = propAccountId;
       if (!accountId) {
-        alert("No account found for user");
+        alert("No account ID provided");
         setSaving(false);
         return;
       }
@@ -485,7 +484,7 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-2 mb-2">
           <div className="flex flex-col gap-6">
         {/* Font pickers */}
-          <div className="bg-white/70 backdrop-blur-sm rounded-xl p-5 border border-white/30">
+          <div className="bg-white/95 backdrop-blur-sm rounded-xl p-5 border border-white/30">
               <label className="block text-sm font-medium text-gray-700 mb-3">Primary Font</label>
             <select
               value={settings.primary_font}
@@ -505,7 +504,7 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
             </select>
             <p className="text-xs text-gray-500 mt-1">System fonts may look different on different devices.</p>
           </div>
-          <div className="bg-white/70 backdrop-blur-sm rounded-xl p-5 border border-white/30">
+          <div className="bg-white/95 backdrop-blur-sm rounded-xl p-5 border border-white/30">
               <label className="block text-sm font-medium text-gray-700 mb-3">Secondary Font</label>
             <select
               value={settings.secondary_font}
@@ -526,7 +525,7 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
             <p className="text-xs text-gray-500 mt-1">System fonts may look different on different devices.</p>
           </div>
             {/* Primary color */}
-          <div className="bg-white/70 backdrop-blur-sm rounded-xl p-5 border border-white/30">
+          <div className="bg-white/95 backdrop-blur-sm rounded-xl p-5 border border-white/30">
               <label className="block text-sm font-medium text-gray-700 mb-3">Primary Color</label>
                 <input type="color" value={settings.primary_color} onChange={e => setSettings(s => ({ ...s, primary_color: e.target.value }))} className="w-full h-10 rounded cursor-pointer" />
                 <input 
@@ -540,7 +539,7 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
           </div>
           <div className="flex flex-col gap-6">
         {/* Background type */}
-            <div className="bg-white/70 backdrop-blur-sm rounded-xl p-5 border border-white/30">
+            <div className="bg-white/95 backdrop-blur-sm rounded-xl p-5 border border-white/30">
               <label className="block text-sm font-medium text-gray-700 mb-3">Background Type</label>
           <div className="flex gap-4">
                 <label><input type="radio" name="background_type" value="solid" checked={settings.background_type === "solid"} onChange={() => setSettings(s => ({ ...s, background_type: "solid" }))} /><span className="ml-2">Solid</span></label>
@@ -599,7 +598,7 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
           />
         </div>
             {/* Secondary color */}
-            <div className="bg-white/70 backdrop-blur-sm rounded-xl p-5 border border-white/30">
+            <div className="bg-white/95 backdrop-blur-sm rounded-xl p-5 border border-white/30">
               <label className="block text-sm font-medium text-gray-700 mb-3">Secondary Color</label>
                 <input type="color" value={settings.secondary_color} onChange={e => setSettings(s => ({ ...s, secondary_color: e.target.value }))} className="w-full h-10 rounded cursor-pointer" />
                 <input 
@@ -610,7 +609,7 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
                   placeholder="#000000"
                 />
             </div>
-          <div className="bg-white/70 backdrop-blur-sm rounded-xl p-5 border border-white/30">
+          <div className="bg-white/95 backdrop-blur-sm rounded-xl p-5 border border-white/30">
               <label className="block text-sm font-medium text-gray-700 mb-3">Card Text Color</label>
               <input type="color" value={settings.card_text} onChange={e => setSettings(s => ({ ...s, card_text: e.target.value }))} className="w-full h-10 rounded cursor-pointer" />
               <input 
@@ -625,7 +624,7 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
         </div>
         
         {/* Card Styling Settings */}
-        <div className="mt-8 p-6 bg-white/70 backdrop-blur-sm rounded-xl border border-white/30">
+        <div className="mt-8 p-6 bg-white/95 backdrop-blur-sm rounded-xl border border-white/30">
           <h3 className="text-lg font-semibold text-gray-800 mb-4">Card Styling</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
@@ -698,7 +697,7 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
         </div>
 
         {/* Border Settings */}
-        <div className="mt-8 p-6 bg-gray-50 rounded-lg">
+        <div className="mt-8 p-6 bg-white/95 backdrop-blur-sm rounded-xl border border-white/30">
           <h3 className="text-lg font-semibold text-gray-800 mb-4">Border Settings</h3>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

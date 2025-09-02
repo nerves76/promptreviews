@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSessionOrMock, createClient, createServiceRoleClient } from '@/auth/providers/supabase';
-import { getAccountIdForUser } from '@/auth/utils/accounts';
 import { slugify } from '@/utils/slugify';
 import { preparePromptPageData } from '@/utils/promptPageDataMapping';
 
@@ -45,14 +44,27 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get the correct account ID for this user
-    const accountId = await getAccountIdForUser(user.id, supabaseAdmin);
-    if (!accountId) {
-      return NextResponse.json({ error: 'No account found' }, { status: 404 });
-    }
-
     // Parse request body
-    const { contactIds, promptType, includeReviews } = await request.json();
+    const { contactIds, promptType, includeReviews, account_id } = await request.json();
+    
+    // Get account ID from request body
+    const accountId = account_id;
+    if (!accountId) {
+      return NextResponse.json({ error: 'account_id is required' }, { status: 400 });
+    }
+    
+    // Validate user has access to this account
+    const { data: accountUser } = await supabaseAdmin
+      .from('account_users')
+      .select('account_id')
+      .eq('user_id', user.id)
+      .eq('account_id', accountId)
+      .single();
+
+    if (!accountUser) {
+      console.error('❌ User does not have access to account:', accountId);
+      return NextResponse.json({ error: 'Access denied to this account' }, { status: 403 });
+    }
     
     if (!contactIds || !Array.isArray(contactIds) || contactIds.length === 0) {
       return NextResponse.json({ error: 'No contacts selected' }, { status: 400 });

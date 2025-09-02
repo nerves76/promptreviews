@@ -4,7 +4,6 @@
  */
 
 import { createClient } from '@/auth/providers/supabase';
-import { getAccountIdForUser } from '@/auth/utils/accounts';
 
 export interface CommunicationRecord {
   id: string;
@@ -59,16 +58,15 @@ export interface CreateCommunicationData {
  */
 export async function createCommunicationRecord(
   data: CreateCommunicationData,
-  userId: string,
+  accountId: string,
   supabase?: any
 ): Promise<CommunicationRecord> {
   // Use provided supabase client or create new one
   const client = supabase || createClient();
   
-  // Get account ID
-  const accountId = await getAccountIdForUser(userId, client);
+  // Check account ID
   if (!accountId) {
-    throw new Error('No account found for user');
+    throw new Error('No account ID provided');
   }
 
   // Create communication record
@@ -139,14 +137,13 @@ export async function createFollowUpReminder(
  */
 export async function getCommunicationHistory(
   contactId: string,
-  userId: string
+  accountId: string
 ): Promise<CommunicationRecord[]> {
   const supabase = createClient();
   
-  const accountId = await getAccountIdForUser(userId, supabase);
   if (!accountId) {
-    // Return empty array if no account found - this is ok for users who haven't set up communication
-    console.log('No account found for communication history - returning empty array');
+    // Return empty array if no account ID provided
+    console.log('No account ID provided for communication history - returning empty array');
     return [];
   }
 
@@ -176,15 +173,14 @@ export async function getCommunicationHistory(
  * Get pending follow-up reminders
  */
 export async function getPendingReminders(
-  userId: string,
+  accountId: string,
   limit = 50
 ): Promise<FollowUpReminder[]> {
   const supabase = createClient();
   
-  const accountId = await getAccountIdForUser(userId, supabase);
   if (!accountId) {
-    // Return empty array if no account found - this is ok for users who haven't set up communication
-    console.log('No account found for pending reminders - returning empty array');
+    // Return empty array if no account ID provided
+    console.log('No account ID provided for pending reminders - returning empty array');
     return [];
   }
 
@@ -224,13 +220,12 @@ export async function getPendingReminders(
  */
 export async function completeReminder(
   reminderId: string,
-  userId: string
+  accountId: string
 ): Promise<void> {
   const supabase = createClient();
   
-  const accountId = await getAccountIdForUser(userId, supabase);
   if (!accountId) {
-    throw new Error('No account found for user');
+    throw new Error('No account ID provided');
   }
 
   const { error } = await supabase
@@ -248,14 +243,13 @@ export async function completeReminder(
  * Get or create default communication templates for an account
  */
 export async function getDefaultTemplates(
-  userId: string,
+  accountId: string,
   communicationType: 'email' | 'sms'
 ): Promise<CommunicationTemplate[]> {
   const supabase = createClient();
   
-  const accountId = await getAccountIdForUser(userId, supabase);
   if (!accountId) {
-    throw new Error('No account found for user');
+    throw new Error('No account ID provided');
   }
 
   // First, try to get existing templates

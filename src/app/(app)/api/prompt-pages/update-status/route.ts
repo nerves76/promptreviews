@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/utils/supabaseClient';
-import { getAccountIdForUser } from '@/auth/utils/accounts';
+import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
 
 const VALID_STATUSES = ['draft', 'in_queue', 'sent', 'follow_up', 'complete'];
 
@@ -38,7 +38,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     // Get user's account ID
-    const accountId = await getAccountIdForUser(user.id, supabase);
+    const accountId = await getRequestAccountId(request, user.id, supabase);
     if (!accountId) {
       return NextResponse.json(
         { error: 'No account found for user' },

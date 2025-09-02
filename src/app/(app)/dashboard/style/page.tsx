@@ -4,10 +4,12 @@ import { useState, useEffect } from "react";
 import { markTaskAsCompleted } from "@/utils/onboardingTasks";
 import { useAuthGuard } from "@/utils/authGuard";
 import { createClient } from "@/utils/supabaseClient";
+import { useAuth } from "@/auth";
 import StyleModalPage from "./StyleModalPage";
 
 export default function StylePage() {
   const supabase = createClient();
+  const { selectedAccountId } = useAuth();
 
   useAuthGuard();
   const [showModal, setShowModal] = useState(false);
@@ -46,7 +48,10 @@ export default function StylePage() {
       </button>
 
       {showModal && (
-        <StyleModalPage onClose={() => setShowModal(false)} />
+        <StyleModalPage 
+          onClose={() => setShowModal(false)} 
+          accountId={selectedAccountId}
+        />
       )}
     </div>
   );

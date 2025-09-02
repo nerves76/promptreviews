@@ -1,5 +1,4 @@
 import { SupabaseClient } from "@supabase/supabase-js";
-import { getAccountIdForUser } from "@/auth/utils/accounts";
 
 // Plan limits configuration
 const PLAN_LIMITS = {
@@ -27,12 +26,9 @@ const PLAN_LIMITS = {
 
 export async function checkAccountLimits(
   supabase: SupabaseClient,
-  userId: string,
+  accountId: string,
   type: "prompt_page" | "contact",
 ) {
-  // Get account ID using the utility function
-  const accountId = await getAccountIdForUser(userId, supabase);
-  
   if (!accountId) {
     return { allowed: false, reason: "Account not found" };
   }
@@ -149,11 +145,8 @@ export async function checkAccountLimits(
 
 export async function isAccountBlocked(
   supabase: any,
-  userId: string,
+  accountId: string,
 ): Promise<boolean> {
-  // Get account ID using the utility function
-  const accountId = await getAccountIdForUser(userId, supabase);
-  
   if (!accountId) {
     return false;
   }

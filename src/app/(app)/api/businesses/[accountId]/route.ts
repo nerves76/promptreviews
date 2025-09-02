@@ -161,6 +161,21 @@ export async function PUT(
     }
 
     console.log(`[BUSINESS-BY-ACCOUNT] Successfully updated business: ${updatedBusiness.id}`);
+    
+    // Also update the business_name in the accounts table if it was changed
+    // This ensures the account switcher shows the updated name
+    if (body.name && existingBusiness.account_id) {
+      const { error: accountUpdateError } = await supabase
+        .from('accounts')
+        .update({ business_name: body.name })
+        .eq('id', existingBusiness.account_id);
+      
+      if (accountUpdateError) {
+        console.error('[BUSINESS-BY-ACCOUNT] Failed to update business_name in accounts table:', accountUpdateError);
+        // Don't fail the whole request if this update fails
+      }
+    }
+    
     return NextResponse.json(updatedBusiness);
   } catch (error) {
     console.error('[BUSINESS-BY-ACCOUNT] Unexpected error:', error);

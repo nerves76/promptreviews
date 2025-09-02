@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/utils/supabaseClient";
-import { getAccountIdForUser } from "@/auth/utils/accounts";
+import { getRequestAccountId } from "@/app/(app)/api/utils/getRequestAccountId";
 import { createStripeClient, BILLING_URLS, PORTAL_CONFIG } from "@/lib/billing/config";
 
 const stripe = createStripeClient();
@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
 
     // Get the user's account using the proper utility function
     // This handles multiple account_user records correctly
-    const accountId = await getAccountIdForUser(user.id, supabase);
+    const accountId = await getRequestAccountId(req, user.id, supabase);
 
     if (!accountId) {
       return NextResponse.json({ error: "Account not found" }, { status: 404 });

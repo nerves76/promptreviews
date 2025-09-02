@@ -17,7 +17,6 @@ import offerConfig from "@/app/(app)/components/prompt-modules/offerConfig";
 import { createClient } from "@/utils/supabaseClient";
 import Link from "next/link";
 import { markTaskAsCompleted } from "@/utils/onboardingTasks";
-import { getAccountIdForUser } from "@/auth/utils/accounts";
 import { useAuth } from "@/auth";
 
 // Helper to normalize platform names to match dropdown options
@@ -242,8 +241,8 @@ export default function UniversalEditPromptPage() {
       setIsSaving(false);
       return;
     }
-    // Get correct account ID
-    const accountId = await getAccountIdForUser(user.id, supabase);
+    // Get correct account ID from auth context
+    const accountId = account?.id;
     if (!accountId) {
       alert("No account found for user");
       setIsSaving(false);
