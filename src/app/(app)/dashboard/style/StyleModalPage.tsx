@@ -173,11 +173,15 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
         return;
       }
 
-      const { data: business } = await supabase
+      // IMPORTANT: Don't use .single() as accounts can have multiple businesses
+      const { data: businessData } = await supabase
         .from("businesses")
         .select("primary_font,secondary_font,primary_color,secondary_color,background_type,background_color,gradient_start,gradient_end,card_bg,card_text,card_inner_shadow,card_shadow_color,card_shadow_intensity,card_transparency,card_border_width,card_border_color,card_border_transparency,kickstarters_background_design")
         .eq("account_id", accountId)
-        .single();
+        .order("created_at", { ascending: true }); // Get oldest business first
+      
+      // Handle multiple businesses - use the first one (oldest)
+      const business = businessData && businessData.length > 0 ? businessData[0] : null;
       
       // Fetch universal prompt page
       const { data: universalPage } = await supabase

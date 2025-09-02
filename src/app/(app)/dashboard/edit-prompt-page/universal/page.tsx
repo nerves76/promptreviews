@@ -88,14 +88,21 @@ export default function UniversalEditPromptPage() {
         console.log("Fetching data for account:", accountId);
         
         // Fetch business profile
-        const { data: businessProfile, error: businessError } = await supabase
+        // IMPORTANT: Don't use .single() as accounts can have multiple businesses
+        const { data: businessData, error: businessError } = await supabase
           .from("businesses")
           .select("*")
           .eq("account_id", accountId)
-          .single();
+          .order("created_at", { ascending: true }); // Get oldest business first
           
         if (businessError) {
           console.error("Business fetch error:", businessError);
+        }
+        
+        // Handle multiple businesses - use the first one (oldest)
+        const businessProfile = businessData && businessData.length > 0 ? businessData[0] : null;
+        if (businessData && businessData.length > 1) {
+          console.log(`📊 Found ${businessData.length} businesses for account, using first one:`, businessProfile?.name || businessProfile?.id);
         }
         
         console.log("Business profile:", businessProfile);
