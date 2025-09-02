@@ -5,23 +5,20 @@ import { useRouter } from "next/navigation";
 import { createClient, getUserOrMock } from "@/utils/supabaseClient";
 
 const supabase = createClient();
-// Remove the AuthContext import since DashboardLayout already handles auth
-// import { useAuth } from "@/auth";
+import { useAuth } from "@/auth";
 import SimpleBusinessForm from "../components/SimpleBusinessForm";
 import AppLoader from "@/app/(app)/components/AppLoader";
 import PageCard from "@/app/(app)/components/PageCard";
 import WelcomePopup from "@/app/(app)/components/WelcomePopup";
 import Icon from "@/components/Icon";
-import { ensureAccountExists, getAccountIdForUser } from "@/auth/utils/accounts";
+import { ensureAccountExists } from "@/auth/utils/accounts";
 import { OptimizedSpinner } from "@/app/(app)/components/OptimizedComponents";
 
 
 export default function CreateBusinessClient() {
   console.log('🔍 CreateBusinessClient: Component rendered');
   
-  // 🔧 FIXED: Remove the auth context dependency that was causing infinite loops
-  // Since DashboardLayout already ensures user is authenticated, we don't need these
-  // const { isAdminUser, adminLoading } = useAuth();
+  const { selectedAccountId, account } = useAuth();
   
   const router = useRouter();
   const [loading, setLoading] = useState(true);
@@ -85,10 +82,10 @@ export default function CreateBusinessClient() {
         console.log('✅ CreateBusinessClient: User authenticated:', user.id);
         setUser(user);
 
-        // Ensure account exists and get account ID
-        const accountId = await getAccountIdForUser(user.id, supabase);
+        // Use the selected account from auth context
+        const accountId = selectedAccountId || account?.id;
         if (!accountId) {
-          console.log('🔄 CreateBusinessClient: Account not found, this is normal for first-time users');
+          console.log('🔄 CreateBusinessClient: No account selected, this is normal for first-time users');
           setError("Account setup required");
           setLoading(false);
           return;

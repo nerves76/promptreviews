@@ -15,7 +15,7 @@
  */
 import React, { useState, useRef, useEffect } from "react";
 import { createClient } from "@/utils/supabaseClient";
-import { getAccountIdForUser } from "@/auth/utils/accounts";
+import { useAuth } from "@/auth";
 
 // Assuming Widget and DesignState types might be needed from a shared types file in the future
 // For now, defining them locally.
@@ -45,6 +45,7 @@ export const WidgetEditorForm: React.FC<WidgetEditorFormProps> = ({
   saveWidgetName 
 }) => {
   const supabase = createClient();
+  const { selectedAccountId, account } = useAuth();
   // Storage key for form data persistence
   const formStorageKey = `widgetEditorForm_${widgetToEdit?.id || 'new'}`;
   
@@ -106,11 +107,11 @@ export const WidgetEditorForm: React.FC<WidgetEditorFormProps> = ({
       }
       setNameError("");
 
-      // Use the proper account lookup utility
-      const accountId = await getAccountIdForUser(user.id, supabase);
+      // Use the selected account from auth context
+      const accountId = selectedAccountId || account?.id;
       
       if (!accountId) {
-        throw new Error("Account not found. Please ensure you have completed the signup process.");
+        throw new Error("No account selected. Please select an account and try again.");
       }
 
       const widgetData = {

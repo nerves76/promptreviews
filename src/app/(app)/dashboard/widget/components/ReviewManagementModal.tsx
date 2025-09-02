@@ -5,7 +5,6 @@ import { DraggableModal } from './DraggableModal';
 import AppLoader from "@/app/(app)/components/AppLoader";
 import { PhotoUpload } from './PhotoUpload';
 import { createClient } from '@/auth/providers/supabase';
-import { getAccountIdForUser } from '@/auth/utils/accounts';
 import { apiClient } from '@/utils/apiClient';
 
 const CHARACTER_LIMIT = 250;
@@ -214,11 +213,11 @@ export function ReviewManagementModal({
         return;
       }
 
-      // Use account ID from prop if provided, otherwise fall back to getAccountIdForUser
-      const currentAccountId = accountId || await getAccountIdForUser(user.id, supabase);
+      // Use account ID from prop - should always be provided by parent component
+      const currentAccountId = accountId;
       if (!currentAccountId) {
-        console.error('❌ ReviewManagementModal: No account found');
-        setReviewError("No account found. Please refresh the page and try again.");
+        console.error('❌ ReviewManagementModal: No account ID provided as prop');
+        setReviewError("Account information missing. Please refresh the page and try again.");
         setLoadingReviews(false);
         return;
       }
@@ -691,10 +690,10 @@ export function ReviewManagementModal({
         return;
       }
       
-      // Use account ID from prop if provided, otherwise fall back to getAccountIdForUser
-      const currentAccountId = accountId || await getAccountIdForUser(user.id, supabase);
+      // Use account ID from prop - should always be provided by parent component
+      const currentAccountId = accountId;
       if (!currentAccountId) {
-        setReviewError("Account not found. Please refresh the page and try again.");
+        setReviewError("Account information missing. Please refresh the page and try again.");
         return;
       }
       
