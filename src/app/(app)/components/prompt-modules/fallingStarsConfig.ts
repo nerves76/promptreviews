@@ -16,7 +16,7 @@ import {
   FaMoon,
 } from "react-icons/fa";
 import { IconType } from "react-icons";
-import PromptyIcon from "./PromptyIcon";
+import PromptySprite from "./PromptySprite";
 
 export const FALLING_STARS_TITLE = "Falling star animation";
 
@@ -39,6 +39,9 @@ export const POPULAR_FALLING_ICONS: {
   // Nature & Weather (immediate load) - print-optimized icons only
   { key: "sun", label: "Sun", icon: FaSun, color: "text-yellow-400", category: "Nature & Weather" },
   { key: "moon", label: "Moon", icon: FaMoon, color: "text-blue-300", category: "Nature & Weather" },
+  
+  // Technology & Media (immediate load) 
+  { key: "prompty", label: "Prompty (AI Assistant)", icon: PromptySprite, color: "text-slate-500", category: "Technology & Media" },
 ];
 
 // 🚀 LAZY LOAD: Function to load all icons only when needed
@@ -247,18 +250,18 @@ export const loadAllFallingIcons = async (): Promise<{
     { key: "globe", label: "Globe", icon: FaGlobe, color: "text-blue-500", category: "Universal Symbols" },
     { key: "flag", label: "Flag", icon: FaFlag, color: "text-red-500", category: "Universal Symbols" },
     
-    // Entertainment & Media
-    { key: "music", label: "Music", icon: FaMusic, color: "text-purple-500", category: "Entertainment & Media" },
-    { key: "gamepad", label: "Gamepad", icon: FaGamepad, color: "text-indigo-500", category: "Entertainment & Media" },
-    { key: "camera", label: "Camera", icon: FaCamera, color: "text-gray-700", category: "Entertainment & Media" },
-    { key: "book", label: "Book", icon: FaBook, color: "text-amber-700", category: "Entertainment & Media" },
-    { key: "chess", label: "Chess", icon: FaChess, color: "text-gray-800", category: "Entertainment & Media" },
-    { key: "dice", label: "Dice", icon: FaDice, color: "text-red-600", category: "Entertainment & Media" },
-    { key: "puzzle", label: "Puzzle", icon: FaPuzzlePiece, color: "text-blue-500", category: "Entertainment & Media" },
-    { key: "microphone", label: "Microphone", icon: FaMicrophone, color: "text-gray-600", category: "Entertainment & Media" },
-    { key: "headphones", label: "Headphones", icon: FaHeadphones, color: "text-purple-600", category: "Entertainment & Media" },
-    { key: "palette", label: "Palette", icon: FaPalette, color: "text-pink-500", category: "Entertainment & Media" },
-    { key: "brush", label: "Brush", icon: FaBrush, color: "text-blue-500", category: "Entertainment & Media" },
+    // Technology & Media
+    { key: "music", label: "Music", icon: FaMusic, color: "text-purple-500", category: "Technology & Media" },
+    { key: "gamepad", label: "Gamepad", icon: FaGamepad, color: "text-indigo-500", category: "Technology & Media" },
+    { key: "camera", label: "Camera", icon: FaCamera, color: "text-gray-700", category: "Technology & Media" },
+    { key: "book", label: "Book", icon: FaBook, color: "text-amber-700", category: "Technology & Media" },
+    { key: "chess", label: "Chess", icon: FaChess, color: "text-gray-800", category: "Technology & Media" },
+    { key: "dice", label: "Dice", icon: FaDice, color: "text-red-600", category: "Technology & Media" },
+    { key: "puzzle", label: "Puzzle", icon: FaPuzzlePiece, color: "text-blue-500", category: "Technology & Media" },
+    { key: "microphone", label: "Microphone", icon: FaMicrophone, color: "text-gray-600", category: "Technology & Media" },
+    { key: "headphones", label: "Headphones", icon: FaHeadphones, color: "text-purple-600", category: "Technology & Media" },
+    { key: "palette", label: "Palette", icon: FaPalette, color: "text-pink-500", category: "Technology & Media" },
+    { key: "brush", label: "Brush", icon: FaBrush, color: "text-blue-500", category: "Technology & Media" },
     
     // Education & Learning
     { key: "graduationcap", label: "Graduation Cap", icon: FaGraduationCap, color: "text-blue-600", category: "Education & Learning" },
@@ -293,9 +296,8 @@ export const loadAllFallingIcons = async (): Promise<{
     { key: "skull", label: "Skull", icon: FaSkull, color: "text-gray-600", category: "Mythical & Fantasy" },
     { key: "yinyang", label: "Yin Yang", icon: FaYinYang, color: "text-gray-700", category: "Mythical & Fantasy" },
     
-    // Technology & Innovation
-    { key: "robot", label: "Robot", icon: FaRobot, color: "text-blue-600", category: "Technology & Innovation" },
-    { key: "prompty", label: "Prompty (AI Assistant)", icon: PromptyIcon, color: "text-purple-600", category: "Technology & Innovation" },
+    { key: "robot", label: "Robot", icon: FaRobot, color: "text-blue-600", category: "Technology & Media" },
+    { key: "prompty", label: "Prompty (AI Assistant)", icon: PromptySprite, color: "text-slate-500", category: "Technology & Media" },
     
     // Nature & Weather
     { key: "cannabis", label: "Cannabis Leaf", icon: FaCannabis, color: "text-green-600", category: "Nature & Weather" },
