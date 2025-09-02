@@ -30,6 +30,7 @@ import EmojiEmbedButton from "@/app/(app)/components/EmojiEmbedButton";
 import FiveStarSpinner from "@/app/(app)/components/FiveStarSpinner";
 import BusinessProfileBanner from "@/app/(app)/components/BusinessProfileBanner";
 import { useBusinessData, useAuthUser, useAccountData, useAuthLoading } from "@/auth/hooks/granularAuthHooks";
+import { useAccountSelection } from "@/utils/accountSelectionHooks";
 import PromptPageSettingsModal from "@/app/(app)/components/PromptPageSettingsModal";
 
 const StylePage = dynamic(() => import("../dashboard/style/StyleModalPage"), { ssr: false });
@@ -42,6 +43,7 @@ function PromptPagesContent() {
   const { user: authUser } = useAuthUser();
   const { accountId: authAccountId } = useAccountData();
   const { isLoading: authLoading } = useAuthLoading();
+  const { selectedAccountId } = useAccountSelection();
 
   // Track if initial auth load is complete
   const [authInitialized, setAuthInitialized] = useState(false);
@@ -181,11 +183,12 @@ function PromptPagesContent() {
       }
       
       // Don't refetch if we already have data for this account
-      if (business && authAccountId && business.account_id === authAccountId) {
+      const currentAccountId = selectedAccountId || authAccountId;
+      if (business && currentAccountId && business.account_id === currentAccountId) {
         console.log('⏸️ Skipping fetch - already have data for account');
         return;
       }
-      console.log('🚀 Starting data fetch for account:', authAccountId);
+      console.log('🚀 Starting data fetch for account:', currentAccountId);
       setLoading(true);
       setError(null);
       try {
@@ -197,7 +200,7 @@ function PromptPagesContent() {
         }
         
         // If no account ID, user might be new - handle gracefully
-        if (!authAccountId) {
+        if (!authAccountId && !selectedAccountId) {
           console.log('No account found for user - user may need to complete setup');
           setLoading(false);
           // Optionally show a message to complete account setup
@@ -206,7 +209,8 @@ function PromptPagesContent() {
         }
         
         setUser(authUser);
-        const accountId = authAccountId;
+        // Use selectedAccountId if available (from account switcher), otherwise fall back to authAccountId
+        const accountId = selectedAccountId || authAccountId;
 
         // Fetch account data for plan info
         const { data: accountData } = await supabase
@@ -359,7 +363,7 @@ function PromptPagesContent() {
       }
     }
     fetchData();
-  }, [authInitialized, authAccountId, authUser]);
+  }, [authInitialized, authAccountId, authUser, selectedAccountId]);
 
   const fetchLocations = async (accountId: string) => {
     try {

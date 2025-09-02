@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
       console.error('❌ Signup error:', JSON.stringify(error, null, 2));
       
       // Extract error message from various possible formats
-      const errorMessage = error.message || error.msg || error.error_description || error.toString();
+      const errorMessage = error.message || (error as any).msg || (error as any).error_description || error.toString();
       
       // Handle specific errors
       if (errorMessage && (errorMessage.includes('already registered') || errorMessage.includes('already exists'))) {

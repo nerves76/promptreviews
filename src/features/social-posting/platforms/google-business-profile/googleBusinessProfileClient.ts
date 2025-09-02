@@ -1237,6 +1237,26 @@ export class GoogleBusinessProfileClient {
   }
 
   /**
+   * Alias for getLocationDetails - for backward compatibility
+   */
+  async getLocation(accountId: string, locationId: string): Promise<any> {
+    return this.getLocationDetails(locationId);
+  }
+
+  /**
+   * Get unresponded reviews for a location
+   */
+  async getUnrespondedReviewsForLocation(locationId: string): Promise<any[]> {
+    try {
+      const reviews = await this.getReviews(locationId);
+      return reviews.filter((review: any) => !review.reviewReply);
+    } catch (error) {
+      console.error('Failed to get unresponded reviews:', error);
+      return [];
+    }
+  }
+
+  /**
    * Get local posts for engagement analysis
    */
   async getLocalPosts(locationId: string): Promise<any[]> {

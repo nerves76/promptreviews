@@ -1647,16 +1647,17 @@ export default function AnimatedInfographic({ isEmbed = false, debug = false }: 
               
               {/* Desktop Features - absolute positioned */}
               <div className="hidden [@media(min-width:960px)]:flex absolute z-30 flex-col items-center" style={{ bottom: '-255px', left: '50%', transform: 'translateX(-50%)' }}>
-                {/* Features Container - Horizontal bar for desktop */}
+                {/* Features Container - Rectangular bar with rounded corners for desktop */}
                 <div 
-                  className="flex flex-nowrap items-center justify-center gap-4 lg:gap-8 px-8 lg:px-12 py-3 lg:py-4 rounded-full"
+                  className="flex flex-nowrap items-center justify-center gap-6 lg:gap-10 xl:gap-12 px-10 lg:px-14 xl:px-16 py-5 lg:py-6 rounded-2xl"
                   style={{
                     background: 'rgba(255, 255, 255, 0.04)',
                     boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
                     backdropFilter: 'blur(4.1px)',
                     WebkitBackdropFilter: 'blur(4.1px)',
                     border: '1px solid rgba(255, 255, 255, 0.09)',
-                    overflow: 'visible'
+                    overflow: 'visible',
+                    minWidth: '750px'
                   }}
                 >
                   {toolCategories.flatMap(category => category.tools).map((tool, toolIndex) => (
@@ -1673,7 +1674,7 @@ export default function AnimatedInfographic({ isEmbed = false, debug = false }: 
                       {/* Icon */}
                       {tool.iconName === 'FaGrinHearts' ? (
                         <FaGrinHearts
-                          size={32}
+                          size={36}
                           className="transition-all duration-300"
                           style={{
                             color: hoveredTool === toolIndex ? '#f9a8d4' : '#fdb5a6',  // Soft pink on hover, peach normally
@@ -1685,8 +1686,8 @@ export default function AnimatedInfographic({ isEmbed = false, debug = false }: 
                         />
                       ) : tool.iconName === 'prompty' ? (
                         <svg 
-                          width={32} 
-                          height={32} 
+                          width={36} 
+                          height={36} 
                           viewBox="0 0 60 60"
                           className="transition-all duration-300"
                           style={{
@@ -1705,7 +1706,7 @@ export default function AnimatedInfographic({ isEmbed = false, debug = false }: 
                       ) : (
                         <Icon 
                           name={tool.iconName as IconName} 
-                          size={32} 
+                          size={36} 
                           className="transition-all duration-300"
                           style={{
                             color: hoveredTool === toolIndex ? '#f9a8d4' : '#fdb5a6',  // Soft pink on hover, peach normally

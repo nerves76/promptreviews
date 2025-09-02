@@ -108,7 +108,7 @@ export async function POST(request: NextRequest) {
         id: canceledSubscription.id,
         status: canceledSubscription.status,
         cancel_at_period_end: canceledSubscription.cancel_at_period_end,
-        current_period_end: canceledSubscription.current_period_end ? new Date(canceledSubscription.current_period_end * 1000).toISOString() : 'N/A'
+        current_period_end: (canceledSubscription as any).current_period_end ? new Date((canceledSubscription as any).current_period_end * 1000).toISOString() : 'N/A'
       });
 
       // ============================================
@@ -118,7 +118,7 @@ export async function POST(request: NextRequest) {
         .from('accounts')
         .update({
           subscription_status: 'canceling',
-          subscription_cancel_at: canceledSubscription.current_period_end ? new Date(canceledSubscription.current_period_end * 1000).toISOString() : null,
+          subscription_cancel_at: (canceledSubscription as any).current_period_end ? new Date((canceledSubscription as any).current_period_end * 1000).toISOString() : null,
           updated_at: new Date().toISOString()
         })
         .eq('id', userId);
@@ -137,7 +137,7 @@ export async function POST(request: NextRequest) {
         details: {
           subscription_id: canceledSubscription.id,
           status: canceledSubscription.status,
-          access_until: canceledSubscription.current_period_end ? new Date(canceledSubscription.current_period_end * 1000).toISOString() : 'N/A',
+          access_until: (canceledSubscription as any).current_period_end ? new Date((canceledSubscription as any).current_period_end * 1000).toISOString() : 'N/A',
           immediate: false,
           note: 'You will retain access until the end of your current billing period'
         }
