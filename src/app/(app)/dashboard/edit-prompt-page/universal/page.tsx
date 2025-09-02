@@ -118,16 +118,24 @@ export default function UniversalEditPromptPage() {
         }
         
         // CRITICAL: Verify the business belongs to the correct account
+        // This prevents ALL business defaults from leaking across accounts
         if (businessProfile && businessProfile.account_id !== accountId) {
           console.error("⚠️ ACCOUNT ISOLATION BREACH: Business account_id mismatch!", {
             expected: accountId,
             got: businessProfile.account_id,
-            business: businessProfile.id
+            business: businessProfile.id,
+            affectedSettings: [
+              'default_offer_enabled', 'default_offer_title', 'default_offer_body', 'default_offer_url',
+              'review_platforms', 'emoji_sentiment_*', 'falling_*', 'ai_button_enabled', 
+              'fix_grammar_enabled', 'kickstarters_*', 'recent_reviews_*', 'personalized_note_*'
+            ]
           });
-          // Don't use this business data - it's from the wrong account
-          setError("Account data mismatch detected. Please refresh the page.");
-          setIsLoading(false);
-          return;
+          // Don't use ANY business data - it's from the wrong account
+          // Set businessProfile to null to prevent any defaults from being used
+          setBusinessProfile(null);
+          setBusinessReviewPlatforms([]);
+          console.warn("⚠️ Business data rejected due to account mismatch - using empty defaults");
+          // Continue loading but without business defaults
         }
         
         console.log("Business profile:", businessProfile);

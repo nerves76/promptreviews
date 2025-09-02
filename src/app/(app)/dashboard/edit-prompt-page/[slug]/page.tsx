@@ -277,6 +277,19 @@ export default function EditPromptPage() {
         setIsLoading(false);
         return;
       }
+      
+      // CRITICAL: Verify the prompt page belongs to the correct account
+      if (promptData.account_id !== accountId) {
+        console.error("⚠️ ACCOUNT ISOLATION BREACH: Prompt page account_id mismatch!", {
+          expected: accountId,
+          got: promptData.account_id,
+          promptPageId: promptData.id,
+          slug: params.slug
+        });
+        setError("This prompt page belongs to a different account. Access denied.");
+        setIsLoading(false);
+        return;
+      }
       // Fetch business profile using accountId
       // ⚠️ CRITICAL: DO NOT use .single() - accounts can have multiple businesses!
       // Using .single() will fail with PGRST116 error if multiple businesses exist
@@ -303,6 +316,24 @@ export default function EditPromptPage() {
       const businessData = businessDataArray[0];
       if (businessDataArray.length > 1) {
         console.log(`Found ${businessDataArray.length} businesses for account, using first one:`, businessData?.name);
+      }
+      
+      // CRITICAL: Verify the business belongs to the correct account
+      // This prevents ALL business defaults from leaking across accounts
+      if (businessData && businessData.account_id !== accountId) {
+        console.error("⚠️ ACCOUNT ISOLATION BREACH: Business account_id mismatch in service prompt page!", {
+          expected: accountId,
+          got: businessData.account_id,
+          business: businessData.id,
+          slug: params.slug,
+          affectedSettings: [
+            'industry', 'industry_other', 'services_offered', 'features_or_benefits',
+            'review_platforms', 'default_offer_*', 'ai_button_enabled', 'fix_grammar_enabled'
+          ]
+        });
+        setError("Account data mismatch detected. Please refresh the page and try again.");
+        setIsLoading(false);
+        return;
       }
       // Store original data for comparison
       console.log("[DEBUG] Prompt data loaded:", promptData);
