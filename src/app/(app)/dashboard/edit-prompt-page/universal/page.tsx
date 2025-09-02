@@ -89,6 +89,8 @@ export default function UniversalEditPromptPage() {
         
         // Fetch business profile
         // IMPORTANT: Don't use .single() as accounts can have multiple businesses
+        // CRITICAL: Must filter by the EXACT account_id from the account switcher
+        console.log("🔍 Fetching businesses for account_id:", accountId);
         const { data: businessData, error: businessError } = await supabase
           .from("businesses")
           .select("*")
@@ -99,10 +101,33 @@ export default function UniversalEditPromptPage() {
           console.error("Business fetch error:", businessError);
         }
         
+        // Debug: Log all businesses returned
+        if (businessData && businessData.length > 0) {
+          console.log(`🔍 Businesses returned from query:`, businessData.map(b => ({
+            id: b.id,
+            account_id: b.account_id,
+            name: b.name || b.business_name,
+            platforms: b.review_platforms?.length || 0
+          })));
+        }
+        
         // Handle multiple businesses - use the first one (oldest)
         const businessProfile = businessData && businessData.length > 0 ? businessData[0] : null;
         if (businessData && businessData.length > 1) {
           console.log(`📊 Found ${businessData.length} businesses for account, using first one:`, businessProfile?.name || businessProfile?.id);
+        }
+        
+        // CRITICAL: Verify the business belongs to the correct account
+        if (businessProfile && businessProfile.account_id !== accountId) {
+          console.error("⚠️ ACCOUNT ISOLATION BREACH: Business account_id mismatch!", {
+            expected: accountId,
+            got: businessProfile.account_id,
+            business: businessProfile.id
+          });
+          // Don't use this business data - it's from the wrong account
+          setError("Account data mismatch detected. Please refresh the page.");
+          setIsLoading(false);
+          return;
         }
         
         console.log("Business profile:", businessProfile);
@@ -124,12 +149,32 @@ export default function UniversalEditPromptPage() {
           return;
         }
         
+        // CRITICAL: Verify the prompt page belongs to the correct account
+        if (universalPage && universalPage.account_id !== accountId) {
+          console.error("⚠️ ACCOUNT ISOLATION BREACH: Prompt page account_id mismatch!", {
+            expected: accountId,
+            got: universalPage.account_id,
+            page: universalPage.id
+          });
+          setError("Account data mismatch detected. Please refresh the page.");
+          setIsLoading(false);
+          return;
+        }
+        
         console.log("Universal prompt page:", universalPage);
         
         if (universalPage?.slug) setSlug(universalPage.slug);
         // Normalize platform names for business and universal platforms
         const universalPlatforms = normalizePlatforms(universalPage?.review_platforms);
         const businessPlatforms = normalizePlatforms(businessProfile?.review_platforms);
+        
+        // Debug: Log platform sources
+        console.log("🔍 Platform sources:", {
+          universalPlatforms: universalPlatforms.map(p => ({ name: p.name, url: p.url })),
+          businessPlatforms: businessPlatforms.map(p => ({ name: p.name, url: p.url })),
+          willUseUniversal: universalPlatforms.length > 0,
+          willUseBusiness: universalPlatforms.length === 0 && businessPlatforms.length > 0
+        });
         const merged: UniversalPromptFormState = {
           offer_enabled:
             universalPage?.offer_enabled ??
