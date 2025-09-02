@@ -172,9 +172,26 @@ export default function UniversalEditPromptPage() {
         console.log("🔍 Platform sources:", {
           universalPlatforms: universalPlatforms.map(p => ({ name: p.name, url: p.url })),
           businessPlatforms: businessPlatforms.map(p => ({ name: p.name, url: p.url })),
-          willUseUniversal: universalPlatforms.length > 0,
-          willUseBusiness: universalPlatforms.length === 0 && businessPlatforms.length > 0
+          universalPageHasPlatforms: universalPage?.review_platforms !== null && universalPage?.review_platforms !== undefined,
+          willUseUniversal: universalPage?.review_platforms !== null && universalPage?.review_platforms !== undefined,
+          willUseBusiness: universalPage?.review_platforms === null || universalPage?.review_platforms === undefined
         });
+        
+        // CRITICAL FIX: Only use business platforms if universal page has NEVER been saved with platforms
+        // If universal page has review_platforms field (even if empty array), use that instead of business platforms
+        // This prevents cross-account data leakage when user explicitly clears platforms
+        const platformsToUse = (universalPage?.review_platforms !== null && universalPage?.review_platforms !== undefined)
+          ? universalPlatforms  // Use universal platforms (even if empty array)
+          : businessPlatforms;   // Only fallback to business if universal page never saved platforms
+        
+        console.log("🔍 CRITICAL: Platforms decision:", {
+          universalPageField: universalPage?.review_platforms,
+          isNull: universalPage?.review_platforms === null,
+          isUndefined: universalPage?.review_platforms === undefined,
+          usingUniversal: (universalPage?.review_platforms !== null && universalPage?.review_platforms !== undefined),
+          platformCount: platformsToUse.length
+        });
+        
         const merged: UniversalPromptFormState = {
           offer_enabled:
             universalPage?.offer_enabled ??
@@ -197,9 +214,7 @@ export default function UniversalEditPromptPage() {
           emoji_feedback_popup_header: universalPage?.emoji_feedback_popup_header || "How can we improve?",
           emoji_feedback_page_header: universalPage?.emoji_feedback_page_header || "Your feedback helps us grow",
 
-          review_platforms: universalPlatforms.length
-            ? universalPlatforms
-            : businessPlatforms,
+          review_platforms: platformsToUse,
           falling_enabled: true, // Always default to enabled for new pages
           falling_icon: universalPage?.falling_icon || "star",
           falling_icon_color: universalPage?.falling_icon_color || "#fbbf24",
@@ -216,10 +231,10 @@ export default function UniversalEditPromptPage() {
         
         console.log("Merged form data:", merged);
         
-        // Show the button if there is a universal override, or if the merged list is empty
-        setShowResetButton(
-          universalPlatforms.length > 0 || merged.review_platforms.length === 0,
-        );
+        // Show reset button only if universal page has saved platforms (not null/undefined)
+        // This allows resetting back to business defaults
+        const hasUniversalPlatformsSaved = universalPage?.review_platforms !== null && universalPage?.review_platforms !== undefined;
+        setShowResetButton(hasUniversalPlatformsSaved);
         console.log('🏢 Universal page - Business profile data:', businessProfile);
         console.log('🏢 Universal page - Business name:', businessProfile?.name, businessProfile?.business_name);
         
