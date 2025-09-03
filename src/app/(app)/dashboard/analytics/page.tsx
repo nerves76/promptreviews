@@ -35,6 +35,8 @@ interface AnalyticsData {
   clicksByPlatform: Record<string, number>;
   clicksByDate: Record<string, number>;
   aiGenerations: number;
+  grammarFixes: number;
+  totalAIUsage: number;
   copySubmits: number;
   views: number;
   emojiSentiments: Record<string, number>;
@@ -43,6 +45,7 @@ interface AnalyticsData {
   websiteClicks: number;
   socialClicks: Record<string, number>;
   aiEvents: { date: string; promptPageId: string; platform: string }[];
+  grammarFixEvents: { date: string; promptPageId: string; platform: string }[];
   copySubmitEvents: { date: string; promptPageId: string; platform: string }[];
   reviewSubmitsAll: number;
   reviewSubmitsWeek: number;
@@ -268,6 +271,8 @@ export default function AnalyticsPage() {
           clicksByPlatform: {},
           clicksByDate: {},
           aiGenerations: 0,
+          grammarFixes: 0,
+          totalAIUsage: 0,
           copySubmits: 0,
           views: 0,
           emojiSentiments: {},
@@ -276,6 +281,7 @@ export default function AnalyticsPage() {
           websiteClicks: 0,
           socialClicks: {},
           aiEvents: [],
+          grammarFixEvents: [],
           copySubmitEvents: [],
           reviewSubmitsAll: 0,
           reviewSubmitsWeek: 0,
@@ -321,8 +327,19 @@ export default function AnalyticsPage() {
               }
               break;
             case "generate_with_ai":
+            case "ai_generate":
               analyticsData.aiGenerations++;
+              analyticsData.totalAIUsage++;
               analyticsData.aiEvents.push({
+                date: event.created_at,
+                promptPageId: event.prompt_page_id,
+                platform: event.platform || "",
+              });
+              break;
+            case "grammar_fix":
+              analyticsData.grammarFixes++;
+              analyticsData.totalAIUsage++;
+              analyticsData.grammarFixEvents.push({
                 date: event.created_at,
                 promptPageId: event.prompt_page_id,
                 platform: event.platform || "",
@@ -670,15 +687,6 @@ export default function AnalyticsPage() {
 
           <div className="bg-indigo-50 rounded-lg p-4">
             <p className="text-sm font-medium text-indigo-600">
-              AI Generations
-            </p>
-            <p className="mt-2 text-3xl font-semibold text-indigo-900">
-              {analytics.aiGenerations}
-            </p>
-          </div>
-
-          <div className="bg-indigo-50 rounded-lg p-4">
-            <p className="text-sm font-medium text-indigo-600">
               Copy & Submits
             </p>
             <p className="mt-2 text-3xl font-semibold text-indigo-900">
@@ -758,6 +766,47 @@ export default function AnalyticsPage() {
         </div>
       )}
 
+      {/* AI Features Section */}
+      {analytics && (
+        <div className="mt-8 mb-8">
+          <h2 className="text-xl font-bold text-gray-900 mb-4">AI Features Usage</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="bg-purple-50 rounded-lg p-6 border border-purple-200">
+              <div className="flex items-center mb-2">
+                <Icon name="FaRobot" className="w-5 h-5 text-purple-600 mr-2" size={20} />
+                <p className="text-sm font-medium text-purple-600">AI Generate</p>
+              </div>
+              <p className="text-3xl font-bold text-purple-900">
+                {analytics.aiGenerations}
+              </p>
+              <p className="text-xs text-purple-600 mt-1">Review generations</p>
+            </div>
+
+            <div className="bg-purple-50 rounded-lg p-6 border border-purple-200">
+              <div className="flex items-center mb-2">
+                <Icon name="FaSpellCheck" className="w-5 h-5 text-purple-600 mr-2" size={20} />
+                <p className="text-sm font-medium text-purple-600">Grammar Fix</p>
+              </div>
+              <p className="text-3xl font-bold text-purple-900">
+                {analytics.grammarFixes}
+              </p>
+              <p className="text-xs text-purple-600 mt-1">Grammar corrections</p>
+            </div>
+
+            <div className="bg-gradient-to-br from-purple-100 to-purple-200 rounded-lg p-6 border border-purple-300">
+              <div className="flex items-center mb-2">
+                <Icon name="FaMagic" className="w-5 h-5 text-purple-700 mr-2" size={20} />
+                <p className="text-sm font-medium text-purple-700">Total AI Usage</p>
+              </div>
+              <p className="text-3xl font-bold text-purple-900">
+                {analytics.totalAIUsage}
+              </p>
+              <p className="text-xs text-purple-700 mt-1">All AI features combined</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {analytics && analytics.aiEvents.length > 0 && (
         <div className="mb-8">
           <h3 className="text-lg font-bold mb-2">Generate with AI Events</h3>
@@ -786,6 +835,36 @@ export default function AnalyticsPage() {
           </table>
         </div>
       )}
+      
+      {analytics && analytics.grammarFixEvents.length > 0 && (
+        <div className="mb-8">
+          <h3 className="text-lg font-bold mb-2">Grammar Fix Events</h3>
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Prompt Page</th>
+                <th>Page Type</th>
+                <th>Review Platform</th>
+              </tr>
+            </thead>
+            <tbody>
+              {analytics.grammarFixEvents.map((ev) => {
+                const page = promptPages.find((p) => p.id === ev.promptPageId);
+                return (
+                  <tr key={ev.date + ev.promptPageId + ev.platform}>
+                    <td>{new Date(ev.date).toLocaleString()}</td>
+                    <td>{page?.slug || page?.first_name || ev.promptPageId}</td>
+                    <td>{page?.is_universal ? "Universal" : "Custom"}</td>
+                    <td>{ev.platform}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+      
       {analytics && analytics.copySubmitEvents.length > 0 && (
         <div className="mb-16">
           <h3 className="text-lg font-bold mb-2">Copy & Submit Events</h3>
