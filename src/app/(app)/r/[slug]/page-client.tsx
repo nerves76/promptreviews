@@ -1610,14 +1610,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
   };
 
   if (loading || !styleInitialized) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center">
-        <AppLoader variant="centered" />
-        <p className="mt-4 text-gray-600 text-sm">
-          {loading ? 'Loading page...' : 'Loading styles...'}
-        </p>
-      </div>
-    );
+    return <AppLoader />;
   }
 
   if (error) {

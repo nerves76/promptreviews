@@ -1,6 +1,15 @@
 # API Changelog
 
 ## [2025-09-03]
+### Fixed - Loading States Standardization
+- **Standardized all loading components:**
+  - Updated `AppLoader` to use `StandardLoader` internally for consistency
+  - Updated `PageLoader` to use `StandardLoader` internally for consistency
+  - Fixed prompt page client (r/[slug]/page-client.tsx) to use single loader instead of duplicating loading UI
+  - Removed unused FiveStarSpinner import from business-profile page
+  - Fixed ServicePromptPageForm loading text to use white color on gradient background
+  - Ensured no pages have multiple FiveStarSpinner components visible simultaneously
+
 ### Security - Comprehensive Security Audit Fixes
 - **Fixed authentication bypass in AI endpoints:**
   - `/api/fix-grammar` - Added session verification, prevented user_id spoofing

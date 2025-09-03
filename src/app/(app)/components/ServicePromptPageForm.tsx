@@ -260,7 +260,7 @@ export default function ServicePromptPageForm({
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <FiveStarSpinner size={24} />
-          <p className="mt-4 text-gray-600">Loading...</p>
+          <p className="mt-4 text-white">Loading...</p>
         </div>
       </div>
     );
@@ -421,7 +421,7 @@ export default function ServicePromptPageForm({
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <FiveStarSpinner size={24} />
-          <p className="mt-4 text-gray-600">Loading...</p>
+          <p className="mt-4 text-white">Loading...</p>
         </div>
       </div>
     );

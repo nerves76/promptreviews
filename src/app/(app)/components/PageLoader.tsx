@@ -3,33 +3,27 @@
 /**
  * PageLoader Component
  * 
- * Loading state for dashboard pages - shows stars on gradient background
- * without the white PageCard wrapper
+ * Loading state for dashboard pages - now wraps StandardLoader for consistency.
+ * Provides backward compatibility while ensuring standardized behavior.
  * 
- * @param size - Size of the spinner (default: 16)
- * @param showText - Whether to show "Loading..." text (default: true)
- * @param text - Custom loading text (default: "Loading...")
+ * @param size - DEPRECATED - kept for backward compatibility (StandardLoader uses fixed size)
+ * @param showText - DEPRECATED - kept for backward compatibility (StandardLoader always shows text)
+ * @param text - DEPRECATED - kept for backward compatibility (StandardLoader uses fixed text)
  */
 
-import FiveStarSpinner from "./FiveStarSpinner";
+import StandardLoader from "./StandardLoader";
 
 interface PageLoaderProps {
-  size?: number;
-  showText?: boolean;
-  text?: string;
+  size?: number; // Deprecated
+  showText?: boolean; // Deprecated
+  text?: string; // Deprecated
 }
 
 export default function PageLoader({ 
-  size = 16, 
-  showText = true,
-  text = "Loading..."
+  size = 16, // Ignored - kept for compatibility
+  showText = true, // Ignored - kept for compatibility
+  text = "Loading..." // Ignored - kept for compatibility
 }: PageLoaderProps = {}) {
-  return (
-    <div className="flex flex-col items-center justify-center py-20">
-      <FiveStarSpinner size={size} />
-      {showText && (
-        <div className="mt-4 text-base text-white/90 font-medium">{text}</div>
-      )}
-    </div>
-  );
+  // Always use inline mode - PageLoader is for in-page loading states
+  return <StandardLoader isLoading={true} mode="inline" />;
 }

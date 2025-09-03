@@ -9,7 +9,7 @@ import { getAccountIdForUser } from "@/auth/utils/accounts";
 import { isAdmin } from "@/utils/admin";
 import { EMOJI_SENTIMENT_LABELS, EMOJI_SENTIMENT_ICONS } from "@/app/(app)/components/prompt-modules/emojiSentimentConfig";
 import PageCard from "@/app/(app)/components/PageCard";
-import InlineLoader from "@/app/(app)/components/InlineLoader";
+import StandardLoader from "@/app/(app)/components/StandardLoader";
 import {
   LineChart,
   Line,
@@ -486,16 +486,9 @@ export default function AnalyticsPage() {
 
   if (isLoading) {
     return (
-      <div className="w-full mx-auto px-4 sm:px-6 md:px-8 lg:px-12 mt-12 md:mt-16 lg:mt-20 mb-16 flex justify-center items-start">
-        <div className="page relative w-full max-w-[1000px] rounded-2xl bg-white shadow-lg pt-4 px-8 md:px-12 pb-8">
-          <div className="icon absolute -top-4 -left-4 sm:-top-6 sm:-left-6 z-10 bg-white rounded-full shadow-lg p-3 sm:p-4 flex items-center justify-center">
-            <Icon name="FaChartLine" className="w-9 h-9 text-slate-blue" size={36} />
-          </div>
-          <div className="min-h-[400px] flex flex-col items-center justify-center">
-            <InlineLoader showText={true} />
-          </div>
-        </div>
-      </div>
+      <PageCard icon={<Icon name="FaChartBar" className="w-9 h-9 text-slate-blue" size={36} />}>
+        <StandardLoader isLoading={true} mode="inline" />
+      </PageCard>
     );
   }
 

@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { ChatBubbleLeftIcon } from "@heroicons/react/24/outline";
 import { DraggableModal } from './DraggableModal';
-import AppLoader from "@/app/(app)/components/AppLoader";
+import StandardLoader from "@/app/(app)/components/StandardLoader";
 import { PhotoUpload } from './PhotoUpload';
 import { createClient } from '@/auth/providers/supabase';
 import { apiClient } from '@/utils/apiClient';
@@ -878,9 +878,7 @@ export function ReviewManagementModal({
       )}
 
       {loadingReviews ? (
-        <div className="flex justify-center items-center h-96">
-          <AppLoader />
-        </div>
+        <StandardLoader isLoading={true} mode="inline" />
       ) : (
         <>
           <div className="bg-white/70 backdrop-blur-sm rounded-xl p-3 mb-4 border border-white/30">

@@ -126,40 +126,42 @@ export default function TrialBanner({
   }
 
   return (
-    <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-4 relative">
-      <div className="flex items-center justify-between max-w-7xl mx-auto">
-        <div className="flex items-center space-x-3">
-          <div className="flex-shrink-0">
-            <img
-              src="/images/prompty-success.png"
-              alt="Prompty"
-              className="w-12 h-12 object-contain"
-            />
+    <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white relative">
+      <div className="relative max-w-7xl mx-auto py-3 px-3 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center flex-1 pr-8">
+            <div className="flex-shrink-0">
+              <img
+                src="/images/prompty-success.png"
+                alt="Prompty"
+                className="w-12 h-12 object-contain"
+              />
+            </div>
+            <div className="ml-3">
+              <p className="font-medium">
+                🎉 You're on a {plan} trial! {timeRemaining}
+              </p>
+              <p className="text-sm opacity-90">
+                Upgrade anytime to unlock all features and continue growing your business
+              </p>
+            </div>
           </div>
-          <div>
-            <p className="font-medium">
-              🎉 You're on a {plan} trial! {timeRemaining}
-            </p>
-            <p className="text-sm opacity-90">
-              Upgrade anytime to unlock all features and continue growing your business
-            </p>
+          <div className="flex items-center space-x-3">
+            <a
+              href="/dashboard/plan"
+              className="flex-shrink-0 bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors backdrop-blur-sm border border-white/20"
+            >
+              Upgrade
+            </a>
+            <button
+              onClick={handleDismiss}
+              className="flex-shrink-0 p-1.5 text-white/70 hover:text-white/90 transition-all duration-200 bg-white/10 backdrop-blur-md border border-white/20 rounded-full hover:bg-white/15"
+            >
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+              </svg>
+            </button>
           </div>
-        </div>
-        <div className="flex items-center space-x-3">
-          <a
-            href="/dashboard/plan"
-            className="flex-shrink-0 bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors backdrop-blur-sm border border-white/20"
-          >
-            Upgrade
-          </a>
-          <button
-            onClick={handleDismiss}
-            className="flex-shrink-0 text-white hover:text-gray-200 transition-colors"
-          >
-            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-            </svg>
-          </button>
         </div>
       </div>
     </div>

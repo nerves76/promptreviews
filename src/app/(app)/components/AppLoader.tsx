@@ -3,40 +3,31 @@
 /**
  * AppLoader Component
  * 
- * Global loading spinner component that displays a centered animated five-star spinner
- * and loading text. Always vertically centered for consistency.
+ * Global loading spinner component - now wraps StandardLoader for consistency.
+ * Provides backward compatibility while ensuring standardized behavior.
  * 
- * @param size - Size of the spinner (default: 18)
- * @param variant - DEPRECATED - kept for backward compatibility but always uses centered
- * @param showText - Whether to show "Loading..." text (default: true)
- * @param className - Additional classes for the container
+ * @param size - DEPRECATED - kept for backward compatibility (StandardLoader uses fixed size)
+ * @param variant - DEPRECATED - kept for backward compatibility but ignored
+ * @param showText - DEPRECATED - kept for backward compatibility (StandardLoader always shows text)
+ * @param className - DEPRECATED - kept for backward compatibility but ignored
  */
 
-import FiveStarSpinner from "./FiveStarSpinner";
+import StandardLoader from "./StandardLoader";
 
 interface AppLoaderProps {
-  size?: number;
-  variant?: 'default' | 'centered' | 'compact'; // Deprecated - always centered
-  showText?: boolean;
-  className?: string;
+  size?: number; // Deprecated
+  variant?: 'default' | 'centered' | 'compact'; // Deprecated
+  showText?: boolean; // Deprecated
+  className?: string; // Deprecated
 }
 
 export default function AppLoader({ 
-  size = 18, 
-  variant = 'centered', // Always default to centered
-  showText = true,
-  className = ""
+  size = 18, // Ignored - kept for compatibility
+  variant = 'centered', // Ignored - kept for compatibility
+  showText = true, // Ignored - kept for compatibility
+  className = "" // Ignored - kept for compatibility
 }: AppLoaderProps = {}) {
-  // Use static classes to avoid hydration mismatches
-  // Don't use template literals or dynamic class construction
-  
-  return (
-    <div className="min-h-screen flex flex-col items-center justify-center transition-opacity duration-300 ease-in-out">
-      <FiveStarSpinner size={size} />
-      {showText && (
-        <div className="mt-4 text-lg text-white font-semibold">Loading…</div>
-      )}
-    </div>
-  );
+  // Always use fullPage mode - AppLoader is for full-page loading states
+  return <StandardLoader isLoading={true} mode="fullPage" />;
 }
 // Cache bust: 1755900095

@@ -16,7 +16,7 @@ import DashboardContent from "./DashboardContent";
 import PricingModal, { tiers } from "../components/PricingModal";
 import FiveStarSpinner from "../components/FiveStarSpinner";
 import PageCard from "../components/PageCard";
-import PageLoader from "@/app/(app)/components/PageLoader";
+import StandardLoader from "@/app/(app)/components/StandardLoader";
 import TopLoaderOverlay from "../components/TopLoaderOverlay";
 import { Button } from "@/app/(app)/components/ui/button";
 import Link from "next/link";
@@ -741,25 +741,11 @@ const Dashboard = React.memo(function Dashboard() {
 
   // Early returns for loading and error states
   if (authLoading) {
-    return (
-      <div className="min-h-screen flex flex-col justify-start px-4 sm:px-0">
-        <div className="h-96 flex justify-center items-center pt-0 -mt-2">
-          <QuoteDisplay />
-        </div>
-        <PageLoader showText={true} text="Loading dashboard..." />
-      </div>
-    );
+    return <StandardLoader isLoading={true} />;
   }
   
   if (!isAuthenticated) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600">
-        <div className="text-center">
-          <FiveStarSpinner />
-          <p className="mt-4 text-white">Loading...</p>
-        </div>
-      </div>
-    ); // Auth guard will handle redirect
+    return <StandardLoader isLoading={true} />; // Auth guard will handle redirect
   }
 
   if (error) {
@@ -784,14 +770,7 @@ const Dashboard = React.memo(function Dashboard() {
   // Also show loading when pricing modal is pending after business creation
   // Note: We only check businessesLoading, not !businessData, because businessData can be null while loading
   if (!account || businessesLoading || isPendingPricingModal) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600">
-        <div className="text-center">
-          <FiveStarSpinner />
-          <p className="mt-4 text-white">Loading...</p>
-        </div>
-      </div>
-    );
+    return <StandardLoader isLoading={true} />;
   }
 
   // Early business check to prevent dashboard flash before BusinessGuard redirect
@@ -805,14 +784,7 @@ const Dashboard = React.memo(function Dashboard() {
     // If no business and not in an exempt flow, show loading while BusinessGuard redirects
     if (!businessJustCreated && !businessCreationInProgress) {
       console.log('🔄 Dashboard: No business detected, waiting for BusinessGuard redirect...');
-      return (
-        <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600">
-          <div className="text-center">
-            <FiveStarSpinner />
-            <p className="mt-4 text-white">Loading...</p>
-          </div>
-        </div>
-      );
+      return <StandardLoader isLoading={true} />;
     }
   }
 
