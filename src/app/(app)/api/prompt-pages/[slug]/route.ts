@@ -67,7 +67,21 @@ function filterBusinessProfile(business: any) {
     gradient_end: business.gradient_end,
     
     // Logo (public display)
-    logo_url: business.logo_url
+    logo_url: business.logo_url,
+    
+    // Card styling (needed for proper display)
+    card_bg: business.card_bg,
+    card_text: business.card_text,
+    card_inner_shadow: business.card_inner_shadow,
+    card_shadow_color: business.card_shadow_color,
+    card_shadow_intensity: business.card_shadow_intensity,
+    card_transparency: business.card_transparency,
+    card_border_width: business.card_border_width,
+    card_border_color: business.card_border_color,
+    card_border_transparency: business.card_border_transparency,
+    
+    // Default offer URL (needed for offer display)
+    default_offer_url: business.default_offer_url
     
     // EXCLUDED SENSITIVE FIELDS:
     // - business_email, signup_email (email addresses)
@@ -295,8 +309,9 @@ export async function GET(
           .from('businesses')
           .select('*')
           .eq('account_id', promptPage.account_id)
+          .order('created_at', { ascending: true })
           .limit(1)
-          .single();
+          .maybeSingle(); // Use maybeSingle() instead of single() to handle 0 or 1 results
 
         if (businessErr) {
           console.log('[PROMPT-PAGE-BY-SLUG] Businesses table error, trying business_locations:', businessErr);
@@ -307,8 +322,9 @@ export async function GET(
             .select('*')
             .eq('account_id', promptPage.account_id)
             .eq('is_active', true)
+            .order('created_at', { ascending: true })
             .limit(1)
-            .single();
+            .maybeSingle(); // Use maybeSingle() to handle 0 or 1 results
 
           if (locationErr) {
             console.error('[PROMPT-PAGE-BY-SLUG] Error fetching business data from both tables:', { businessErr, locationErr });

@@ -526,7 +526,7 @@ export default function PromptPageSettingsModal({
             </div>
 
           {/* Footer */}
-          <div className="flex items-center justify-between p-6 border-t border-gray-200 flex-shrink-0">
+          <div className="flex items-center justify-between px-6 py-3 border-t border-gray-200 flex-shrink-0">
             {/* Success/Error Messages */}
             <div className="flex-1">
               {errors.success && (
@@ -547,19 +547,17 @@ export default function PromptPageSettingsModal({
               )}
             </div>
             
-            {/* Bottom Save button */}
-            <div className="mt-6 p-4 bg-white/30 backdrop-blur-sm rounded-xl border border-white/40">
-              <button
-                onClick={handleSave}
-                disabled={isSubmitting}
-                className="px-4 py-2 bg-white/50 backdrop-blur-sm text-slate-blue rounded-lg font-semibold hover:bg-white/60 transition text-sm border border-white/50 flex items-center gap-2"
-              >
-                {isSubmitting && (
-                  <div className="w-4 h-4 border-2 border-slate-blue/30 border-t-slate-blue rounded-full animate-spin"></div>
-                )}
-                {isSubmitting ? 'Saving...' : 'Save settings'}
-              </button>
-            </div>
+            {/* Save button */}
+            <button
+              onClick={handleSave}
+              disabled={isSubmitting}
+              className="px-6 py-2 bg-slate-blue text-white rounded-lg font-semibold hover:bg-slate-blue/90 transition text-sm flex items-center gap-2"
+            >
+              {isSubmitting && (
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+              )}
+              {isSubmitting ? 'Saving...' : 'Save settings'}
+            </button>
           </div>
         </div>
       </div>

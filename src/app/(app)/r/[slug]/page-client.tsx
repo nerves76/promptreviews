@@ -455,7 +455,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
         // Fetch kickstarters if enabled
         await fetchKickstarters(promptPage, businessProfile);
         
-        // Set business profile data
+        // Set business profile data (use defaults if not found)
         if (businessProfile) {
           const profileData = {
             ...businessProfile,
@@ -483,9 +483,38 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
             document.documentElement.style.setProperty('--card-text', profileData.card_text || '#1A1A1A');
           }
         } else {
-          setError("Business profile not found");
-          setLoading(false);
-          return;
+          // Use default business profile if none found
+          console.warn("Business profile not found, using defaults");
+          const defaultProfile = {
+            business_name: 'Business',
+            name: 'Business',
+            primary_font: 'Inter',
+            secondary_font: 'Inter',
+            primary_color: '#4F46E5',
+            secondary_color: '#818CF8',
+            background_color: '#FFFFFF',
+            text_color: '#1F2937',
+            background_type: 'gradient',
+            gradient_start: '#4F46E5',
+            gradient_middle: '#818CF8',
+            gradient_end: '#C7D2FE',
+            card_bg: '#FFFFFF',
+            card_text: '#1A1A1A',
+            review_platforms: []
+          };
+          
+          setBusinessProfile(defaultProfile);
+          
+          // Apply default styles
+          if (typeof window !== 'undefined') {
+            document.documentElement.style.setProperty('--primary-font', 'Inter');
+            document.documentElement.style.setProperty('--secondary-font', 'Inter');
+            document.documentElement.style.setProperty('--primary-color', '#4F46E5');
+            document.documentElement.style.setProperty('--background-color', '#FFFFFF');
+            document.documentElement.style.setProperty('--text-color', '#1F2937');
+            document.documentElement.style.setProperty('--card-bg', '#FFFFFF');
+            document.documentElement.style.setProperty('--card-text', '#1A1A1A');
+          }
         }
 
       } catch (err: unknown) {
@@ -1599,7 +1628,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
     );
   }
 
-  if (!promptPage || !businessProfile) {
+  if (!promptPage) {
     return (
       <div
         className="min-h-screen flex items-center justify-center p-8"
