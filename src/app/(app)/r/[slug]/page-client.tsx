@@ -1953,11 +1953,12 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                 ["neutral", "unsatisfied", "frustrated"].includes(sentiment || "") && 
                 showFeedbackForm && (
                   <div className="w-full flex justify-center my-8">
-                    <div className="mb-8 rounded-2xl shadow p-8 animate-slideup relative max-w-[1000px] w-full" style={{
-                      background: businessProfile?.card_bg || "#F9FAFB",
+                    <div className="mb-8 rounded-2xl shadow-lg p-8 animate-slideup relative max-w-[1000px] w-full backdrop-blur-sm" style={{
+                      background: applyCardTransparency(businessProfile?.card_bg || "#FFFFFF", businessProfile?.card_transparency ?? 0.95),
                       color: businessProfile?.card_text || "#1A1A1A",
                       position: 'relative',
-                      border: getCardBorderStyle()
+                      border: getCardBorderStyle(),
+                      backdropFilter: 'blur(8px)'
                     }}>
                       <div className="flex items-center mb-8">
                         <Icon 
@@ -2135,12 +2136,13 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
               {sentimentComplete && !showFeedbackForm && promptPage?.review_type === "photo" && (
                 <div className="mb-8">
                   <div 
-                    className="bg-white rounded-xl shadow p-6 relative"
+                    className="rounded-xl shadow-lg p-6 relative backdrop-blur-sm"
                     style={{
-                      background: applyCardTransparency(businessProfile?.card_bg || "#F9FAFB", 1.0),
+                      background: applyCardTransparency(businessProfile?.card_bg || "#FFFFFF", businessProfile?.card_transparency ?? 0.95),
                       color: businessProfile?.card_text || "#1A1A1A",
                       fontFamily: businessProfile?.primary_font || "Inter",
-                      border: getCardBorderStyle()
+                      border: getCardBorderStyle(),
+                      backdropFilter: 'blur(8px)'
                     }}
                   >
                     {businessProfile?.card_inner_shadow && (
@@ -2159,7 +2161,8 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                       className="absolute -top-4 -left-4 rounded-full shadow p-2 flex items-center justify-center"
                       style={{ 
                         zIndex: 20, 
-                        backgroundColor: businessProfile?.card_bg || '#ffffff'
+                        backgroundColor: applyCardTransparency(businessProfile?.card_bg || '#FFFFFF', businessProfile?.card_transparency ?? 0.95),
+                        backdropFilter: 'blur(4px)'
                       }}
                     >
                       <Icon 
@@ -2635,10 +2638,11 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                 const hasWebsite = businessProfile?.business_website;
                 
                 return (hasWebsite || hasSocialLinks) && (
-                  <div className="mb-8 rounded-2xl shadow p-8 animate-slideup relative" style={{
-                    background: applyCardTransparency(businessProfile?.card_bg || "#F9FAFB", businessProfile?.card_transparency ?? 1.0),
+                  <div className="mb-8 rounded-2xl shadow-lg p-8 animate-slideup relative backdrop-blur-sm" style={{
+                    background: applyCardTransparency(businessProfile?.card_bg || "#FFFFFF", businessProfile?.card_transparency ?? 0.95),
                     color: businessProfile?.card_text || "#1A1A1A",
-                    border: getCardBorderStyle()
+                    border: getCardBorderStyle(),
+                    backdropFilter: 'blur(8px)'
                   }}>
                     {businessProfile?.card_inner_shadow && (
                       <div

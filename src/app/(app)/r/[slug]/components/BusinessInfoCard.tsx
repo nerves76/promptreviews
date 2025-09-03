@@ -82,11 +82,12 @@ export default function BusinessInfoCard({ businessProfile, reviewType, promptPa
   };
   return (
     <div 
-      className={`rounded-2xl shadow px-6 pt-6 pb-12 mb-8 flex flex-col items-center max-w-xl mx-auto animate-slideup relative mt-32 ${getFontClass(businessProfile?.primary_font || "")}`} 
+      className={`rounded-2xl shadow-lg px-6 pt-6 pb-12 mb-8 flex flex-col items-center max-w-xl mx-auto animate-slideup relative mt-32 backdrop-blur-sm ${getFontClass(businessProfile?.primary_font || "")}`} 
       style={{
-        background: applyCardTransparency(businessProfile?.card_bg || "#F9FAFB", businessProfile?.card_transparency ?? 1.0),
+        background: applyCardTransparency(businessProfile?.card_bg || "#FFFFFF", businessProfile?.card_transparency ?? 0.95),
         color: businessProfile?.card_text || "#1A1A1A",
-        border: getCardBorderStyle()
+        border: getCardBorderStyle(),
+        backdropFilter: 'blur(8px)'
       }}
     >
       {businessProfile?.card_inner_shadow && (
@@ -106,7 +107,10 @@ export default function BusinessInfoCard({ businessProfile, reviewType, promptPa
       >
         <div 
           className="rounded-full p-0.5 shadow-lg flex items-center justify-center w-full h-full aspect-square"
-          style={{ backgroundColor: businessProfile?.card_bg || '#ffffff' }}
+          style={{ 
+            backgroundColor: applyCardTransparency(businessProfile?.card_bg || '#FFFFFF', businessProfile.card_transparency ?? 0.95),
+            backdropFilter: 'blur(4px)'
+          }}
         >
           {businessProfile?.logo_url ? (
             <Image

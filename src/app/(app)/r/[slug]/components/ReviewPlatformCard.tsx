@@ -107,11 +107,12 @@ export default function ReviewPlatformCard({
 
   return (
     <div
-      className="bg-white rounded-xl shadow p-6 relative mb-8"
+      className="rounded-xl shadow-lg p-6 relative mb-8 backdrop-blur-sm"
       style={{
-        background: applyCardTransparency(businessProfile.card_bg || "#F9FAFB", businessProfile.card_transparency ?? 1.0),
+        background: applyCardTransparency(businessProfile.card_bg || "#FFFFFF", businessProfile.card_transparency ?? 0.95),
         color: businessProfile.card_text || "#1A1A1A",
-        border: getCardBorderStyle()
+        border: getCardBorderStyle(),
+        backdropFilter: 'blur(8px)'
       }}
     >
       {businessProfile?.card_inner_shadow && (
@@ -131,8 +132,9 @@ export default function ReviewPlatformCard({
         title={label}
         style={{ 
           zIndex: 20, 
-          backgroundColor: businessProfile?.card_bg || '#ffffff',
-          border: getCardBorderStyle()
+          backgroundColor: applyCardTransparency(businessProfile?.card_bg || '#FFFFFF', businessProfile.card_transparency ?? 0.95),
+          border: getCardBorderStyle(),
+          backdropFilter: 'blur(4px)'
         }}
       >
         <Icon
