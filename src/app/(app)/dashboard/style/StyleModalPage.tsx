@@ -443,22 +443,6 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
         style={{ pointerEvents: 'auto' }}
       />
       
-      {/* Soft darkening area behind modal - only shows on prompt pages */}
-      {onClose && (
-        <div
-          style={{
-            position: 'fixed',
-            left: modalPos.x,
-            top: modalPos.y,
-            width: modalDimensions.width,
-            height: modalDimensions.height,
-            background: 'rgba(0, 0, 0, 0.3)',
-            borderRadius: '1rem',
-            pointerEvents: 'none',
-            zIndex: 49,
-          }}
-        />
-      )}
       
       {/* Modal */}
       <div
@@ -551,48 +535,6 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
           </div>
         )}
         
-        {/* Only show preview when NOT on a prompt page */}
-        {!onClose && (
-          <div className="relative my-8 p-6 rounded-lg">
-            <div className="bg-white rounded-lg shadow p-6 mx-auto relative" style={{ 
-            maxWidth: 800, 
-            background: settings.card_glassmorphism 
-              ? `${settings.card_bg}${Math.round(settings.card_transparency * 255).toString(16).padStart(2, '0')}`
-              : settings.card_bg,
-            position: 'relative',
-            opacity: !settings.card_glassmorphism ? settings.card_transparency : 1,
-            backdropFilter: settings.card_glassmorphism && settings.card_backdrop_blur > 0 
-              ? `blur(${settings.card_backdrop_blur}px)` 
-              : 'none',
-            WebkitBackdropFilter: settings.card_glassmorphism && settings.card_backdrop_blur > 0 
-              ? `blur(${settings.card_backdrop_blur}px)` 
-              : 'none',
-            border: settings.card_glassmorphism && settings.card_border_width > 0 
-              ? `${settings.card_border_width}px solid ${settings.card_border_color}`
-              : 'none'
-          }}>
-            {settings.card_inner_shadow && (
-              <div
-                className="pointer-events-none absolute inset-0 rounded-lg"
-                style={{
-                  boxShadow: `inset 0 0 32px 0 ${settings.card_shadow_color}${Math.round(settings.card_shadow_intensity * 255).toString(16).padStart(2, '0')}`,
-                  borderRadius: '0.5rem',
-                  zIndex: 1,
-                }}
-              />
-            )}
-            <h3 className={`text-xl font-bold mb-2 ${getFontClass(settings.primary_font)}`} style={{ color: settings.primary_color }}>
-              Preview heading
-            </h3>
-            <p className={`mb-4 ${getFontClass(settings.secondary_font)}`} style={{ color: settings.card_text }}>
-              This is how your background, text, and buttons will look with selected fonts and colors.
-            </p>
-            <button className="px-4 py-2 rounded" style={{ background: settings.secondary_color, color: "#fff" }}>
-              Sample Button
-            </button>
-          </div>
-        </div>
-        )}
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-2 mb-2">
           <div className="flex flex-col gap-6">
