@@ -56,18 +56,12 @@ const PageCard = React.memo(function PageCard({
   bottomRightImage?: BottomImage;
   topMargin?: string; // Add to interface
 }) {
+  // Initialize based on props to avoid hydration mismatch
+  const hasImage = !!(bottomLeftImage || bottomRightImage);
   const [imageLoaded, setImageLoaded] = useState(false);
-  const [showImage, setShowImage] = useState(false);
   const [imgHeight, setImgHeight] = useState(0);
   const [imgWidth, setImgWidth] = useState(0);
   const imgRef = useRef<HTMLImageElement>(null);
-
-  // Show image immediately when props are available
-  useEffect(() => {
-    if (bottomLeftImage || bottomRightImage) {
-      setShowImage(true);
-    }
-  }, [bottomLeftImage, bottomRightImage]);
 
   // Dynamically set bottom padding to match image height
   useEffect(() => {
@@ -75,7 +69,7 @@ const PageCard = React.memo(function PageCard({
       setImgHeight(imgRef.current.offsetHeight);
       setImgWidth(imgRef.current.offsetWidth);
     }
-  }, [imageLoaded, showImage]);
+  }, [imageLoaded]);
 
   // Responsive image sizing - 2-3 times larger than before
   const maxImgPx = 800; // Increased from 320 to 800 (2.5x larger)
@@ -121,7 +115,7 @@ const PageCard = React.memo(function PageCard({
         <div
           className="content w-full px-1 pt-2 sm:pt-0"
           style={{ 
-            paddingBottom: imageToShow && showImage ? "400px" : undefined
+            paddingBottom: imageToShow && hasImage ? "400px" : undefined
           }}
         >
           {children}
@@ -136,7 +130,7 @@ const PageCard = React.memo(function PageCard({
           </>
         )}
         {/* Bottom image */}
-        {imageToShow && showImage && (
+        {imageToShow && hasImage && (
           <div 
             className={`absolute bottom-0 z-10 pointer-events-none transition-opacity duration-500 ${isRightPositioned ? 'right-0' : 'left-0'}`} 
             style={{ width: "auto", maxWidth: "40%" }}

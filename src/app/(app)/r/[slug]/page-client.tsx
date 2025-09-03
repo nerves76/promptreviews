@@ -1502,9 +1502,9 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
   const backgroundStyle = (() => {
     if (businessProfile?.background_type === "gradient") {
       const gradientColors = [
-        businessProfile.gradient_start || "#4F46E5",
-        businessProfile.gradient_middle,
-        businessProfile.gradient_end || "#C7D2FE"
+        businessProfile.gradient_start || "#527DE7",
+        businessProfile.gradient_middle || "#7864C8",
+        businessProfile.gradient_end || "#914AAE"
       ].filter(Boolean); // Remove undefined/null values
       
       // Use all available gradient colors
