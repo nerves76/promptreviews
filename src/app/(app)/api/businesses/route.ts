@@ -186,6 +186,26 @@ export async function POST(request: NextRequest) {
       differentiators: businessData.differentiators || null,
       years_in_business: businessData.years_in_business || null,
       industries_served: businessData.industries_served || null,
+      // Glassmorphic design defaults
+      primary_font: 'Inter',
+      secondary_font: 'Roboto',
+      primary_color: '#6366F1',
+      secondary_color: '#818CF8',
+      background_type: 'gradient',
+      background_color: '#FFFFFF',
+      gradient_start: '#527DE7',
+      gradient_middle: '#7864C8',
+      gradient_end: '#914AAE',
+      card_bg: '#FFFFFF',
+      card_text: '#1A1A1A',
+      card_placeholder_color: '#9CA3AF',
+      card_transparency: 0.95,
+      card_border_width: 1,
+      card_border_color: '#E5E7EB',
+      card_border_transparency: 0.5,
+      card_inner_shadow: false,
+      card_shadow_color: '#222222',
+      card_shadow_intensity: 0.20,
       updated_at: new Date().toISOString(), // 🔧 FIX: Set updated_at to current time to prevent validation loop
     };
 
