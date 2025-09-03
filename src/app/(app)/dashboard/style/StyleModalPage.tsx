@@ -121,7 +121,7 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
     card_inner_shadow: false,
     card_shadow_color: "#222222",
     card_shadow_intensity: 0.20,
-    card_transparency: 0.85,
+    card_transparency: 0.30,
     card_border_width: 1,
     card_border_color: "#FFFFFF",
     card_border_transparency: 0.5,
@@ -245,7 +245,7 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
           card_inner_shadow: business.card_inner_shadow || false,
           card_shadow_color: business.card_shadow_color || "#222222",
           card_shadow_intensity: business.card_shadow_intensity || 0.20,
-          card_transparency: business.card_transparency ?? 0.85,
+          card_transparency: business.card_transparency ?? 0.30,
           card_border_width: business.card_border_width ?? 1,
           card_border_color: business.card_border_color || "#FFFFFF",
           card_border_transparency: business.card_border_transparency ?? 0.5,
@@ -422,7 +422,7 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
         card_inner_shadow: false,
         card_shadow_color: "#222222",
         card_shadow_intensity: 0.20,
-        card_transparency: 0.85,
+        card_transparency: 0.30,
         card_border_width: 1,
         card_border_color: "#FFFFFF",
         card_border_transparency: 0.5,
@@ -747,7 +747,7 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
               <label className="block text-sm font-medium text-gray-700 mb-3">Card Transparency</label>
               <input
                 type="range"
-                min="0.5"
+                min="0.3"
                 max="1"
                 step="0.05"
                 value={settings.card_transparency}
