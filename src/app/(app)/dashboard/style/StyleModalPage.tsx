@@ -388,6 +388,14 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
         } catch (taskError) {
           console.error("Error marking style task as completed:", taskError);
         }
+        
+        // If we're on a prompt page, refresh to apply the new styles
+        if (onClose && onStyleUpdate) {
+          onStyleUpdate(settings);
+          setTimeout(() => {
+            window.location.reload();
+          }, 500);
+        }
       }
     } catch (error) {
       console.error("Error saving style settings:", error);
@@ -443,6 +451,22 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
         style={{ pointerEvents: 'auto' }}
       />
       
+      {/* Soft darkening area behind modal - only shows on prompt pages */}
+      {onClose && (
+        <div
+          style={{
+            position: 'fixed',
+            left: modalPos.x,
+            top: modalPos.y,
+            width: modalDimensions.width,
+            height: modalDimensions.height,
+            background: 'rgba(0, 0, 0, 0.3)',
+            borderRadius: '1rem',
+            pointerEvents: 'none',
+            zIndex: 49,
+          }}
+        />
+      )}
       
       {/* Modal */}
       <div
