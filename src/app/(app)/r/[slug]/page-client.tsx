@@ -492,17 +492,22 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
             business_name: 'Business',
             name: 'Business',
             primary_font: 'Inter',
-            secondary_font: 'Inter',
-            primary_color: '#4F46E5',
+            secondary_font: 'Roboto',
+            primary_color: '#6366F1',
             secondary_color: '#818CF8',
             background_color: '#FFFFFF',
             text_color: '#1F2937',
             background_type: 'gradient',
-            gradient_start: '#4F46E5',
-            gradient_middle: '#818CF8',
-            gradient_end: '#C7D2FE',
+            gradient_start: '#527DE7',
+            gradient_middle: '#7864C8',
+            gradient_end: '#914AAE',
             card_bg: '#FFFFFF',
             card_text: '#1A1A1A',
+            card_placeholder_color: '#9CA3AF',
+            card_transparency: 0.95,
+            card_border_width: 1,
+            card_border_color: '#E5E7EB',
+            card_border_transparency: 0.5,
             review_platforms: []
           };
           
@@ -1506,6 +1511,15 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
         businessProfile.gradient_middle || "#7864C8",
         businessProfile.gradient_end || "#914AAE"
       ].filter(Boolean); // Remove undefined/null values
+      
+      // Debug logging
+      console.log('Background style computation:', {
+        background_type: businessProfile.background_type,
+        gradient_start: businessProfile.gradient_start,
+        gradient_middle: businessProfile.gradient_middle,
+        gradient_end: businessProfile.gradient_end,
+        gradientColors
+      });
       
       // Use all available gradient colors
       return {
