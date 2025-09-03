@@ -110,8 +110,8 @@ export default function BusinessInfoCard({ businessProfile, reviewType, promptPa
           style={{ 
             backgroundColor: applyCardTransparency(businessProfile?.card_bg || '#FFFFFF', businessProfile.card_transparency ?? 0.85),
             backdropFilter: 'blur(4px)',
-            border: '1px solid rgba(255, 255, 255, 0.5)',
-            padding: '2px'
+            border: '2px solid rgba(255, 255, 255, 0.8)',
+            padding: '1px'
           }}
         >
           {businessProfile?.logo_url ? (
