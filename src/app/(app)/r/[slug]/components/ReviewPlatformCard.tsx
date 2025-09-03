@@ -76,12 +76,42 @@ export default function ReviewPlatformCard({
   const aiButtonEnabled = promptPage?.ai_button_enabled !== false;
   const fixGrammarEnabled = promptPage?.fix_grammar_enabled !== false;
 
+  // Helper function to get card border style
+  const getCardBorderStyle = () => {
+    if (businessProfile?.card_border_width && businessProfile.card_border_width > 0) {
+      // Use rgba format for better browser compatibility
+      const borderColor = businessProfile.card_border_color || '#222222';
+      const borderOpacity = businessProfile.card_border_transparency || 1;
+      
+      // Convert hex to RGB
+      const hex = borderColor.replace('#', '');
+      const r = parseInt(hex.substr(0, 2), 16);
+      const g = parseInt(hex.substr(2, 2), 16);
+      const b = parseInt(hex.substr(4, 2), 16);
+      
+      return `${businessProfile.card_border_width}px solid rgba(${r}, ${g}, ${b}, ${borderOpacity})`;
+    }
+    return 'none';
+  };
+
+  // Helper function to get placeholder color (lighter version of card text)
+  const getPlaceholderColor = () => {
+    const textColor = businessProfile?.card_text || '#1A1A1A';
+    // Convert hex to RGB and add 0.5 opacity for lighter appearance
+    const hex = textColor.replace('#', '');
+    const r = parseInt(hex.substr(0, 2), 16);
+    const g = parseInt(hex.substr(2, 2), 16);
+    const b = parseInt(hex.substr(4, 2), 16);
+    return `rgba(${r}, ${g}, ${b}, 0.5)`;
+  };
+
   return (
     <div
-      className="bg-white rounded-xl shadow p-6 border border-gray-200 relative mb-8"
+      className="bg-white rounded-xl shadow p-6 relative mb-8"
       style={{
         background: applyCardTransparency(businessProfile.card_bg || "#F9FAFB", businessProfile.card_transparency ?? 1.0),
         color: businessProfile.card_text || "#1A1A1A",
+        border: getCardBorderStyle()
       }}
     >
       {businessProfile?.card_inner_shadow && (
@@ -101,7 +131,8 @@ export default function ReviewPlatformCard({
         title={label}
         style={{ 
           zIndex: 20, 
-          backgroundColor: businessProfile?.card_bg || '#ffffff'
+          backgroundColor: businessProfile?.card_bg || '#ffffff',
+          border: getCardBorderStyle()
         }}
       >
         <Icon

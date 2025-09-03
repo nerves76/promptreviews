@@ -142,6 +142,9 @@ interface BusinessProfile {
   card_shadow_color?: string;
   card_shadow_intensity?: number;
   card_transparency?: number;
+  card_border_width?: number;
+  card_border_color?: string;
+  card_border_transparency?: number;
   kickstarters_background_design?: boolean;
   // Additional fields for AI generation
   services_offered?: string;
@@ -642,6 +645,27 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
       setIsTimelockActive(false);
     }
   }, [promptPage?.offer_timelock, businessProfile?.default_offer_timelock, promptPage?.offer_enabled, businessProfile?.default_offer_enabled]);
+
+  // Helper function to get card border style
+  const getCardBorderStyle = () => {
+    if (businessProfile?.card_border_width && businessProfile.card_border_width > 0) {
+      // Use rgba format for better browser compatibility
+      const borderColor = businessProfile.card_border_color || '#222222';
+      const borderOpacity = businessProfile.card_border_transparency || 1;
+      
+      // Convert hex to RGB
+      const hex = borderColor.replace('#', '');
+      const r = parseInt(hex.substr(0, 2), 16);
+      const g = parseInt(hex.substr(2, 2), 16);
+      const b = parseInt(hex.substr(4, 2), 16);
+      
+      const borderStyle = `${businessProfile.card_border_width}px solid rgba(${r}, ${g}, ${b}, ${borderOpacity})`;
+      console.log('Border style:', borderStyle);
+      return borderStyle;
+    }
+    console.log('No border - width:', businessProfile?.card_border_width);
+    return 'none';
+  };
 
   // Track page view (exclude logged-in users)
   useEffect(() => {
@@ -1874,7 +1898,8 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                     <div className="mb-8 rounded-2xl shadow p-8 animate-slideup relative max-w-[1000px] w-full" style={{
                       background: businessProfile?.card_bg || "#F9FAFB",
                       color: businessProfile?.card_text || "#1A1A1A",
-                      position: 'relative'
+                      position: 'relative',
+                      border: getCardBorderStyle()
                     }}>
                       <div className="flex items-center mb-8">
                         <Icon 
@@ -2052,11 +2077,12 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
               {sentimentComplete && !showFeedbackForm && promptPage?.review_type === "photo" && (
                 <div className="mb-8">
                   <div 
-                    className="bg-white rounded-xl shadow p-6 border border-gray-200 relative"
+                    className="bg-white rounded-xl shadow p-6 relative"
                     style={{
                       background: applyCardTransparency(businessProfile?.card_bg || "#F9FAFB", 1.0),
                       color: businessProfile?.card_text || "#1A1A1A",
-                      fontFamily: businessProfile?.primary_font || "Inter"
+                      fontFamily: businessProfile?.primary_font || "Inter",
+                      border: getCardBorderStyle()
                     }}
                   >
                     {businessProfile?.card_inner_shadow && (
@@ -2553,7 +2579,8 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                 return (hasWebsite || hasSocialLinks) && (
                   <div className="mb-8 rounded-2xl shadow p-8 animate-slideup relative" style={{
                     background: applyCardTransparency(businessProfile?.card_bg || "#F9FAFB", businessProfile?.card_transparency ?? 1.0),
-                    color: businessProfile?.card_text || "#1A1A1A"
+                    color: businessProfile?.card_text || "#1A1A1A",
+                    border: getCardBorderStyle()
                   }}>
                     {businessProfile?.card_inner_shadow && (
                       <div

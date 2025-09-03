@@ -439,6 +439,7 @@ model accounts {
   max_gbp_locations            Int?                      @default(5)
   email_review_notifications   Boolean?                  @default(true)
   gbp_insights_enabled         Boolean?                  @default(true)
+  is_additional_account        Boolean?                  @default(false)
   account_events               account_events[]
   account_invitations          account_invitations[]
   account_users                account_users[]
@@ -464,6 +465,7 @@ model accounts {
   @@index([plan, trial_end], map: "idx_accounts_plan_trial_end")
   @@index([trial_end], map: "idx_accounts_trial_end")
   @@index([billing_period], map: "idx_accounts_billing_period")
+  @@index([id], map: "idx_accounts_id")
   @@schema("public")
 }
 
@@ -636,6 +638,7 @@ model business_locations {
   kickstarters_background_design                                     Boolean?       @default(false)
   recent_reviews_enabled                                             Boolean?
   offer_timelock                                                     Boolean?       @default(false)
+  custom_kickstarters                                                Json?
   accounts                                                           accounts       @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   prompt_pages_business_locations_prompt_page_idToprompt_pages       prompt_pages?  @relation("business_locations_prompt_page_idToprompt_pages", fields: [prompt_page_id], references: [id], onUpdate: NoAction)
   prompt_pages_prompt_pages_business_location_idTobusiness_locations prompt_pages[] @relation("prompt_pages_business_location_idTobusiness_locations")
@@ -737,6 +740,12 @@ model businesses {
   personalized_note_text         String?              @default("")
   falling_stars_enabled          Boolean?             @default(false)
   emoji_sentiment_selected       Json?                @default("[]")
+  custom_kickstarters            Json?                @default("[]")
+  card_backdrop_blur             Int?                 @default(0)
+  card_border_width              Decimal?             @default(0) @db.Decimal(3, 1)
+  card_border_color              String?              @default("rgba(255, 255, 255, 0.2)")
+  card_glassmorphism             Boolean?             @default(false)
+  card_border_transparency       Decimal?             @default(1.00) @db.Decimal(3, 2)
   accounts                       accounts             @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_businesses_account_id")
   review_submissions             review_submissions[]
 
@@ -1302,6 +1311,7 @@ model prompt_pages {
   eve_special_features                                                     Json?
   eve_review_guidance                                                      String?
   offer_timelock                                                           Boolean?                  @default(false)
+  custom_kickstarters                                                      Json?
   analytics_events                                                         analytics_events[]
   business_locations_business_locations_prompt_page_idToprompt_pages       business_locations[]      @relation("business_locations_prompt_page_idToprompt_pages")
   communication_records                                                    communication_records[]

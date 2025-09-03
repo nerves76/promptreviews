@@ -26,6 +26,9 @@ interface BusinessProfile {
   card_inner_shadow?: boolean;
   card_shadow_color?: string;
   card_shadow_intensity?: number;
+  card_border_width?: number;
+  card_border_color?: string;
+  card_border_transparency?: number;
 }
 
 interface BusinessInfoCardProps {
@@ -38,6 +41,24 @@ interface BusinessInfoCardProps {
 export default function BusinessInfoCard({ businessProfile, reviewType, promptPage, onOpenRecentReviews }: BusinessInfoCardProps) {
   // For service pages, only show City, State. For location pages, show full address
   const shouldShowFullAddress = reviewType === 'location' || reviewType === 'universal';
+  
+  // Helper function to get card border style
+  const getCardBorderStyle = () => {
+    if (businessProfile?.card_border_width && businessProfile.card_border_width > 0) {
+      // Use rgba format for better browser compatibility
+      const borderColor = businessProfile.card_border_color || '#222222';
+      const borderOpacity = businessProfile.card_border_transparency || 1;
+      
+      // Convert hex to RGB
+      const hex = borderColor.replace('#', '');
+      const r = parseInt(hex.substr(0, 2), 16);
+      const g = parseInt(hex.substr(2, 2), 16);
+      const b = parseInt(hex.substr(4, 2), 16);
+      
+      return `${businessProfile.card_border_width}px solid rgba(${r}, ${g}, ${b}, ${borderOpacity})`;
+    }
+    return 'none';
+  };
   
   const getAddressDisplay = () => {
     if (shouldShowFullAddress) {
@@ -64,7 +85,8 @@ export default function BusinessInfoCard({ businessProfile, reviewType, promptPa
       className={`rounded-2xl shadow px-6 pt-6 pb-12 mb-8 flex flex-col items-center max-w-xl mx-auto animate-slideup relative mt-32 ${getFontClass(businessProfile?.primary_font || "")}`} 
       style={{
         background: applyCardTransparency(businessProfile?.card_bg || "#F9FAFB", businessProfile?.card_transparency ?? 1.0),
-        color: businessProfile?.card_text || "#1A1A1A"
+        color: businessProfile?.card_text || "#1A1A1A",
+        border: getCardBorderStyle()
       }}
     >
       {businessProfile?.card_inner_shadow && (

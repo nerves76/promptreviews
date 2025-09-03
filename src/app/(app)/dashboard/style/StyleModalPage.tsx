@@ -70,32 +70,61 @@ interface StylePageProps {
   accountId?: string; // Account ID to use for saving styles
 }
 
+// Simple tooltip component
+function Tooltip({ text }: { text: string }) {
+  const [show, setShow] = React.useState(false);
+  
+  return (
+    <div className="relative inline-block ml-1">
+      <button
+        type="button"
+        onMouseEnter={() => setShow(true)}
+        onMouseLeave={() => setShow(false)}
+        className="text-gray-400 hover:text-gray-600 transition-colors"
+      >
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      </button>
+      {show && (
+        <div className="absolute z-50 w-64 px-3 py-2 text-xs text-white bg-gray-900 rounded-lg shadow-lg -top-2 left-6">
+          {text}
+          <div className="absolute w-2 h-2 bg-gray-900 transform rotate-45 -left-1 top-3"></div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function StylePage({ onClose, onStyleUpdate, accountId: propAccountId }: StylePageProps) {
 
   // Draggable modal state
   const [modalPos, setModalPos] = React.useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = React.useState(false);
   const [dragOffset, setDragOffset] = React.useState({ x: 0, y: 0 });
+  const [modalDimensions, setModalDimensions] = React.useState({ width: 672, height: 600 });
+  const modalRef = React.useRef<HTMLDivElement>(null);
 
   const [settings, setSettings] = React.useState({
     primary_font: "Inter",
     secondary_font: "Roboto",
-    primary_color: "#4F46E5",
+    primary_color: "#6366F1",
     secondary_color: "#818CF8",
     background_type: "gradient",
     background_color: "#FFFFFF",
-    gradient_start: "#3B82F6",
-    gradient_middle: "",
-    gradient_end: "#c026d3",
+    gradient_start: "#527DE7",
+    gradient_middle: "#7864C8",
+    gradient_end: "#914AAE",
     card_bg: "#FFFFFF",
     card_text: "#1A1A1A",
+    card_placeholder_color: "#9CA3AF",
     card_inner_shadow: false,
     card_shadow_color: "#222222",
     card_shadow_intensity: 0.20,
-    card_transparency: 1.00,
-    card_border_width: 0,
-    card_border_color: "#222222",
-    card_border_transparency: 1.00,
+    card_transparency: 0.95,
+    card_border_width: 1,
+    card_border_color: "#E5E7EB",
+    card_border_transparency: 0.5,
     kickstarters_background_design: false,
   });
 
@@ -179,7 +208,7 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
       // IMPORTANT: Don't use .single() as accounts can have multiple businesses
       const { data: businessData } = await supabase
         .from("businesses")
-        .select("primary_font,secondary_font,primary_color,secondary_color,background_type,background_color,gradient_start,gradient_middle,gradient_end,card_bg,card_text,card_inner_shadow,card_shadow_color,card_shadow_intensity,card_transparency,card_border_width,card_border_color,card_border_transparency,kickstarters_background_design")
+        .select("primary_font,secondary_font,primary_color,secondary_color,background_type,background_color,gradient_start,gradient_middle,gradient_end,card_bg,card_text,card_placeholder_color,card_inner_shadow,card_shadow_color,card_shadow_intensity,card_transparency,card_border_width,card_border_color,card_border_transparency,kickstarters_background_design")
         .eq("account_id", accountId)
         .order("created_at", { ascending: true }); // Get oldest business first
       
@@ -204,14 +233,15 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
           ...business,
           card_bg: business.card_bg || "#FFFFFF",
           card_text: business.card_text || "#1A1A1A",
+          card_placeholder_color: business.card_placeholder_color || "#9CA3AF",
           background_color: business.background_color || "#FFFFFF",
           card_inner_shadow: business.card_inner_shadow || false,
           card_shadow_color: business.card_shadow_color || "#222222",
           card_shadow_intensity: business.card_shadow_intensity || 0.20,
-          card_transparency: business.card_transparency || 1.00,
-          card_border_width: business.card_border_width || 0,
-          card_border_color: business.card_border_color || "#222222",
-          card_border_transparency: business.card_border_transparency || 1.00,
+          card_transparency: business.card_transparency || 0.95,
+          card_border_width: business.card_border_width || 1,
+          card_border_color: business.card_border_color || "#E5E7EB",
+          card_border_transparency: business.card_border_transparency || 0.5,
           kickstarters_background_design: business.kickstarters_background_design ?? false
         }));
       }
@@ -228,6 +258,39 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
     const x = Math.max(0, (window.innerWidth - modalWidth) / 2);
     const y = Math.max(0, (window.innerHeight - modalHeight) / 2);
     setModalPos({ x, y });
+  }, []);
+
+  // Track modal dimensions for backdrop
+  React.useEffect(() => {
+    if (modalRef.current) {
+      const updateDimensions = () => {
+        const rect = modalRef.current?.getBoundingClientRect();
+        if (rect) {
+          setModalDimensions({ width: rect.width, height: rect.height });
+        }
+      };
+      
+      // Initial measurement
+      updateDimensions();
+      
+      // Re-measure on window resize
+      window.addEventListener('resize', updateDimensions);
+      
+      // Use ResizeObserver if available to track content changes
+      if (typeof ResizeObserver !== 'undefined') {
+        const resizeObserver = new ResizeObserver(updateDimensions);
+        resizeObserver.observe(modalRef.current);
+        
+        return () => {
+          resizeObserver.disconnect();
+          window.removeEventListener('resize', updateDimensions);
+        };
+      }
+      
+      return () => {
+        window.removeEventListener('resize', updateDimensions);
+      };
+    }
   }, []);
 
   // Handle dragging
@@ -292,6 +355,7 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
           gradient_end: settings.gradient_end,
           card_bg: settings.card_bg,
           card_text: settings.card_text,
+          card_placeholder_color: settings.card_placeholder_color,
           card_inner_shadow: settings.card_inner_shadow,
           card_shadow_color: settings.card_shadow_color,
           card_shadow_intensity: settings.card_shadow_intensity,
@@ -330,25 +394,25 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
       setSettings({
         primary_font: "Inter",
         secondary_font: "Roboto",
-        primary_color: "#4F46E5",
+        primary_color: "#6366F1",
         secondary_color: "#818CF8",
         background_type: "gradient",
         background_color: "#FFFFFF",
-        gradient_start: "#3B82F6",
-        gradient_middle: "",
-        gradient_end: "#c026d3",
+        gradient_start: "#527DE7",
+        gradient_middle: "#7864C8",
+        gradient_end: "#914AAE",
         card_bg: "#FFFFFF",
         card_text: "#1A1A1A",
+        card_placeholder_color: "#9CA3AF",
         card_inner_shadow: false,
         card_shadow_color: "#222222",
         card_shadow_intensity: 0.20,
-        card_transparency: 1.00,
-        card_glassmorphism: false,
-        card_backdrop_blur: 0,
-        card_border_width: 0,
-        card_border_color: "rgba(255, 255, 255, 0.2)",
+        card_transparency: 0.95,
+        card_border_width: 1,
+        card_border_color: "#E5E7EB",
+        card_border_transparency: 0.5,
         kickstarters_background_design: false,
-    });
+      });
     }
   }
 
@@ -364,7 +428,7 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
-      {/* Transparent backdrop - no blur or dark overlay */}
+      {/* Clickable backdrop for closing */}
       <div 
         className="absolute inset-0"
         onClick={onClose || (() => window.history.back())}
@@ -372,17 +436,34 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
         style={{ pointerEvents: 'auto' }}
       />
       
+      {/* Soft darkening area behind modal - contained within modal bounds */}
+      <div
+        style={{
+          position: 'fixed',
+          left: modalPos.x,
+          top: modalPos.y,
+          width: modalDimensions.width,
+          height: modalDimensions.height,
+          background: 'rgba(0, 0, 0, 0.3)',
+          borderRadius: '1rem',
+          pointerEvents: 'none',
+          zIndex: 49,
+        }}
+      />
+      
       {/* Modal */}
       <div
+        ref={modalRef}
         className="bg-gradient-to-br from-indigo-50/95 via-white/95 to-purple-50/95 rounded-2xl shadow-2xl w-full max-w-2xl relative border border-white/20 backdrop-blur-sm"
         style={{
-          position: 'absolute',
+          position: 'fixed',
           left: modalPos.x,
           top: modalPos.y,
           transform: 'none',
           maxHeight: '90vh',
           height: 'auto',
           pointerEvents: 'auto',
+          zIndex: 50,
         }}
         onMouseDown={handleMouseDown}
       >
@@ -433,37 +514,42 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
             </div>
           )}
         
-        <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4 mb-6 border border-white/30">
-          <div className="flex items-start gap-2">
-            <svg className="w-4 h-4 text-white/80 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <div className="text-sm text-white/90">
-              <p>
-                Design changes affect all Prompt Pages. Try designing live with your{' '}
-                {universalPromptPageSlug ? (
-                  <a 
-                    href={`/r/${universalPromptPageSlug}`} 
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-white underline hover:text-white/80 transition-colors"
-                  >
-                    Universal Prompt Page
-                  </a>
-                ) : (
-                  'Universal Prompt Page'
-                )}, it's more fun!
-              </p>
+        {/* Only show info banner when NOT on a prompt page (when onClose is not provided) */}
+        {!onClose && (
+          <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4 mb-6 border border-white/30">
+            <div className="flex items-start gap-2">
+              <svg className="w-4 h-4 text-white/80 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <div className="text-sm text-white/90">
+                <p>
+                  Design changes affect all Prompt Pages. Try designing live with your{' '}
+                  {universalPromptPageSlug ? (
+                    <a 
+                      href={`/r/${universalPromptPageSlug}`} 
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-white underline hover:text-white/80 transition-colors"
+                    >
+                      Universal Prompt Page
+                    </a>
+                  ) : (
+                    'Universal Prompt Page'
+                  )}, it's more fun!
+                </p>
+              </div>
             </div>
           </div>
-        </div>
-        <div className="relative my-8 p-6 rounded-lg">
-          <div className="bg-white rounded-lg shadow p-6 mx-auto relative" style={{ 
+        )}
+        
+        {/* Only show preview when NOT on a prompt page */}
+        {!onClose && (
+          <div className="relative my-8 p-6 rounded-lg">
+            <div className="bg-white rounded-lg shadow p-6 mx-auto relative" style={{ 
             maxWidth: 800, 
             background: settings.card_glassmorphism 
               ? `${settings.card_bg}${Math.round(settings.card_transparency * 255).toString(16).padStart(2, '0')}`
               : settings.card_bg,
-            color: settings.card_text,
             position: 'relative',
             opacity: !settings.card_glassmorphism ? settings.card_transparency : 1,
             backdropFilter: settings.card_glassmorphism && settings.card_backdrop_blur > 0 
@@ -497,6 +583,8 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
             </button>
           </div>
         </div>
+        )}
+        
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-2 mb-2">
           <div className="flex flex-col gap-6">
         {/* Font pickers */}
@@ -542,12 +630,30 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
           </div>
             {/* Primary color */}
           <div className="bg-white/95 backdrop-blur-sm rounded-xl p-5 border border-white/30">
-              <label className="block text-sm font-medium text-gray-700 mb-3">Primary Color</label>
+              <div className="flex items-center mb-3">
+                <label className="text-sm font-medium text-gray-700">Primary Color</label>
+                <Tooltip text="Used for main headings and important text elements on your prompt pages" />
+              </div>
                 <input type="color" value={settings.primary_color} onChange={e => setSettings(s => ({ ...s, primary_color: e.target.value }))} className="w-full h-10 rounded cursor-pointer" />
                 <input 
                   type="text" 
                   value={settings.primary_color} 
                   onChange={e => handleHexInputChange('primary_color', e.target.value)}
+                  className="w-full mt-2 px-2 py-1 text-xs border rounded bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent" 
+                  placeholder="#000000"
+                />
+          </div>
+          {/* Secondary color - moved here */}
+          <div className="bg-white/95 backdrop-blur-sm rounded-xl p-5 border border-white/30">
+              <div className="flex items-center mb-3">
+                <label className="text-sm font-medium text-gray-700">Secondary Color</label>
+                <Tooltip text="Used for buttons, links, and accent elements throughout your prompt pages" />
+              </div>
+                <input type="color" value={settings.secondary_color} onChange={e => setSettings(s => ({ ...s, secondary_color: e.target.value }))} className="w-full h-10 rounded cursor-pointer" />
+                <input 
+                  type="text" 
+                  value={settings.secondary_color} 
+                  onChange={e => handleHexInputChange('secondary_color', e.target.value)}
                   className="w-full mt-2 px-2 py-1 text-xs border rounded bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent" 
                   placeholder="#000000"
                 />
@@ -614,7 +720,10 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
         </div>
         {/* Card background - moved up and with color picker */}
         <div className="bg-white/95 backdrop-blur-sm rounded-xl p-5 border border-white/30">
-          <label className="block text-sm font-medium text-gray-700 mb-3">Card Background</label>
+          <div className="flex items-center mb-3">
+            <label className="text-sm font-medium text-gray-700">Card Background</label>
+            <Tooltip text="Background color for review cards and content sections on your prompt pages" />
+          </div>
           <input type="color" value={settings.card_bg} onChange={e => setSettings(s => ({ ...s, card_bg: e.target.value }))} className="w-full h-10 rounded cursor-pointer" />
           <input 
             type="text" 
@@ -624,20 +733,11 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
             placeholder="#FFFFFF"
           />
         </div>
-            {/* Secondary color */}
-            <div className="bg-white/95 backdrop-blur-sm rounded-xl p-5 border border-white/30">
-              <label className="block text-sm font-medium text-gray-700 mb-3">Secondary Color</label>
-                <input type="color" value={settings.secondary_color} onChange={e => setSettings(s => ({ ...s, secondary_color: e.target.value }))} className="w-full h-10 rounded cursor-pointer" />
-                <input 
-                  type="text" 
-                  value={settings.secondary_color} 
-                  onChange={e => handleHexInputChange('secondary_color', e.target.value)}
-                  className="w-full mt-2 px-2 py-1 text-xs border rounded bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent" 
-                  placeholder="#000000"
-                />
-            </div>
           <div className="bg-white/95 backdrop-blur-sm rounded-xl p-5 border border-white/30">
-              <label className="block text-sm font-medium text-gray-700 mb-3">Card Text Color</label>
+              <div className="flex items-center mb-3">
+                <label className="text-sm font-medium text-gray-700">Card Text Color</label>
+                <Tooltip text="Text color for content inside review cards and sections" />
+              </div>
               <input type="color" value={settings.card_text} onChange={e => setSettings(s => ({ ...s, card_text: e.target.value }))} className="w-full h-10 rounded cursor-pointer" />
               <input 
                 type="text" 
@@ -645,6 +745,20 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
                 onChange={e => handleHexInputChange('card_text', e.target.value)}
                 className="w-full mt-2 px-2 py-1 text-xs border rounded bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent" 
                 placeholder="#1A1A1A"
+              />
+            </div>
+          <div className="bg-white/95 backdrop-blur-sm rounded-xl p-5 border border-white/30">
+              <div className="flex items-center mb-3">
+                <label className="text-sm font-medium text-gray-700">Placeholder Text Color</label>
+                <Tooltip text="Color for placeholder text in input fields and text areas" />
+              </div>
+              <input type="color" value={settings.card_placeholder_color} onChange={e => setSettings(s => ({ ...s, card_placeholder_color: e.target.value }))} className="w-full h-10 rounded cursor-pointer" />
+              <input 
+                type="text" 
+                value={settings.card_placeholder_color} 
+                onChange={e => handleHexInputChange('card_placeholder_color', e.target.value)}
+                className="w-full mt-2 px-2 py-1 text-xs border rounded bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent" 
+                placeholder="#9CA3AF"
               />
             </div>
           </div>
