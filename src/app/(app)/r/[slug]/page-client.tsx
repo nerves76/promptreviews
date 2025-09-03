@@ -1995,11 +1995,12 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                                 value={feedbackFirstName}
                                 onChange={(e) => setFeedbackFirstName(e.target.value)}
                                 placeholder="John"
-                                className="mt-1 block w-full rounded-lg shadow-md focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
+                                className="mt-1 block w-full rounded-lg focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm py-3 px-4"
                                 style={{
                                   background: businessProfile?.card_bg || "#F9FAFB",
                                   color: businessProfile?.card_text || "#1A1A1A",
-                                  boxShadow: "inset 0 1px 3px 0 rgba(60,64,67,0.18), inset 0 1.5px 6px 0 rgba(60,64,67,0.10)",
+                                  boxShadow: "inset 0 2px 4px 0 rgba(0,0,0,0.2), inset 0 1px 2px 0 rgba(0,0,0,0.15)",
+                                  border: "none",
                                 }}
                                 required
                               />
@@ -2018,11 +2019,12 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                                 value={feedbackLastName}
                                 onChange={(e) => setFeedbackLastName(e.target.value)}
                                 placeholder="Smith"
-                                className="mt-1 block w-full rounded-lg shadow-md focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
+                                className="mt-1 block w-full rounded-lg focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm py-3 px-4"
                                 style={{
                                   background: businessProfile?.card_bg || "#F9FAFB",
                                   color: businessProfile?.card_text || "#1A1A1A",
-                                  boxShadow: "inset 0 1px 3px 0 rgba(60,64,67,0.18), inset 0 1.5px 6px 0 rgba(60,64,67,0.10)",
+                                  boxShadow: "inset 0 2px 4px 0 rgba(0,0,0,0.2), inset 0 1px 2px 0 rgba(0,0,0,0.15)",
+                                  border: "none",
                                 }}
                                 required
                               />
@@ -2043,11 +2045,12 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                                 value={feedbackEmail}
                                 onChange={(e) => setFeedbackEmail(e.target.value)}
                                 placeholder="john@example.com"
-                                className="mt-1 block w-full rounded-lg shadow-md focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
+                                className="mt-1 block w-full rounded-lg focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm py-3 px-4"
                                 style={{
                                   background: businessProfile?.card_bg || "#F9FAFB",
                                   color: businessProfile?.card_text || "#1A1A1A",
-                                  boxShadow: "inset 0 1px 3px 0 rgba(60,64,67,0.18), inset 0 1.5px 6px 0 rgba(60,64,67,0.10)",
+                                  boxShadow: "inset 0 2px 4px 0 rgba(0,0,0,0.2), inset 0 1px 2px 0 rgba(0,0,0,0.15)",
+                                  border: "none",
                                 }}
                               />
                             </div>
@@ -2064,11 +2067,12 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                                 value={feedbackPhone}
                                 onChange={(e) => setFeedbackPhone(e.target.value)}
                                 placeholder="(555) 123-4567"
-                                className="mt-1 block w-full rounded-lg shadow-md focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
+                                className="mt-1 block w-full rounded-lg focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm py-3 px-4"
                                 style={{
                                   background: businessProfile?.card_bg || "#F9FAFB",
                                   color: businessProfile?.card_text || "#1A1A1A",
-                                  boxShadow: "inset 0 1px 3px 0 rgba(60,64,67,0.18), inset 0 1.5px 6px 0 rgba(60,64,67,0.10)",
+                                  boxShadow: "inset 0 2px 4px 0 rgba(0,0,0,0.2), inset 0 1px 2px 0 rgba(0,0,0,0.15)",
+                                  border: "none",
                                 }}
                               />
                             </div>
@@ -2092,7 +2096,8 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                               style={{
                                 background: businessProfile?.card_bg || "#F9FAFB",
                                 color: businessProfile?.card_text || "#1A1A1A",
-                                boxShadow: "inset 0 1px 3px 0 rgba(60,64,67,0.18), inset 0 1.5px 6px 0 rgba(60,64,67,0.10)",
+                                boxShadow: "inset 0 2px 4px 0 rgba(0,0,0,0.2), inset 0 1px 2px 0 rgba(0,0,0,0.15)",
+                                  border: "none",
                               }}
                             />
                           </div>
@@ -2258,7 +2263,8 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                               style={{
                                 background: businessProfile?.card_bg || "#F9FAFB",
                                 color: businessProfile?.card_text || "#1A1A1A",
-                                boxShadow: "inset 0 1px 3px 0 rgba(60,64,67,0.18), inset 0 1.5px 6px 0 rgba(60,64,67,0.10)",
+                                boxShadow: "inset 0 2px 4px 0 rgba(0,0,0,0.2), inset 0 1px 2px 0 rgba(0,0,0,0.15)",
+                                  border: "none",
                               }}
                               required
                             />
@@ -2280,7 +2286,8 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                               style={{
                                 background: businessProfile?.card_bg || "#F9FAFB",
                                 color: businessProfile?.card_text || "#1A1A1A",
-                                boxShadow: "inset 0 1px 3px 0 rgba(60,64,67,0.18), inset 0 1.5px 6px 0 rgba(60,64,67,0.10)",
+                                boxShadow: "inset 0 2px 4px 0 rgba(0,0,0,0.2), inset 0 1px 2px 0 rgba(0,0,0,0.15)",
+                                  border: "none",
                               }}
                               required
                             />
@@ -2306,7 +2313,8 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                               style={{
                                 background: businessProfile?.card_bg || "#F9FAFB",
                                 color: businessProfile?.card_text || "#1A1A1A",
-                                boxShadow: "inset 0 1px 3px 0 rgba(60,64,67,0.18), inset 0 1.5px 6px 0 rgba(60,64,67,0.10)",
+                                boxShadow: "inset 0 2px 4px 0 rgba(0,0,0,0.2), inset 0 1px 2px 0 rgba(0,0,0,0.15)",
+                                  border: "none",
                               }}
                             />
                           </div>
@@ -2330,7 +2338,8 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                             style={{
                               background: businessProfile?.card_bg || "#F9FAFB",
                               color: businessProfile?.card_text || "#1A1A1A",
-                              boxShadow: "inset 0 1px 3px 0 rgba(60,64,67,0.18), inset 0 1.5px 6px 0 rgba(60,64,67,0.10)",
+                              boxShadow: "inset 0 2px 4px 0 rgba(0,0,0,0.2), inset 0 1px 2px 0 rgba(0,0,0,0.15)",
+                                  border: "none",
                             }}
                             required
                           />
