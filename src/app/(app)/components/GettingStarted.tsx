@@ -163,7 +163,7 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
             id: "style-prompt-pages",
             title: "Style your prompt pages",
             description: "Match your brand with custom styling",
-            link: "/dashboard/style",
+            link: "/prompt-pages",
             icon: <Icon name="FaPalette" className="w-5 h-5" size={20} />,
             completed: taskStatus["style-prompt-pages"] || false
           },
@@ -217,7 +217,7 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
             id: "style-prompt-pages",
             title: "Style your prompt pages",
             description: "Match your brand with custom styling",
-            link: "/dashboard/style",
+            link: "/prompt-pages",
             icon: <Icon name="FaPalette" className="w-5 h-5" size={20} />,
             completed: false
           },
@@ -306,6 +306,12 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
 
   const handleTaskLinkClick = async (taskId: string) => {
     if (!accountId) return;
+
+    // Don't mark task as completed for style-prompt-pages
+    // It should only be marked complete when the style is actually saved
+    if (taskId === 'style-prompt-pages') {
+      return;
+    }
 
     // Mark task as completed when user clicks the link
     setTasks(prevTasks =>

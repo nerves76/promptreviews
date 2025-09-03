@@ -267,9 +267,8 @@ export default function CreatePromptPageClient({
     if (markOnboardingComplete) {
       const markCreatePromptTaskComplete = async () => {
         try {
-          const { data: { user } } = await supabase.auth.getUser();
-          if (user) {
-            await markTaskAsCompleted(user.id, "create-prompt-page");
+          if (accountId) {
+            await markTaskAsCompleted(accountId, "create-prompt-page");
           }
         } catch (error) {
           console.error("Error marking create prompt task as complete:", error);
@@ -277,7 +276,7 @@ export default function CreatePromptPageClient({
       };
       markCreatePromptTaskComplete();
     }
-  }, [markOnboardingComplete]);
+  }, [markOnboardingComplete, accountId]);
 
   useEffect(() => {
     const loadBusinessProfile = async () => {

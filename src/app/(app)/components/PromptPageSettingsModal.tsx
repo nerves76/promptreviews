@@ -181,9 +181,9 @@ export default function PromptPageSettingsModal({
       
       // Check if prompt-page-settings task should be completed
       // The task is complete if keywords and either AI dos or don'ts are filled in
-      if (user?.id && formData.keywords?.trim() && (formData.ai_dos?.trim() || formData.ai_donts?.trim())) {
+      if (accountId && formData.keywords?.trim() && (formData.ai_dos?.trim() || formData.ai_donts?.trim())) {
         // Mark the onboarding task as complete
-        await markTaskAsCompleted(user.id, 'prompt-page-settings');
+        await markTaskAsCompleted(accountId, 'prompt-page-settings');
       }
       
       // Show success message in the modal instead of closing

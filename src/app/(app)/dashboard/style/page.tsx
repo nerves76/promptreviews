@@ -1,7 +1,6 @@
 "use client";
 import * as React from "react";
-import { useState, useEffect } from "react";
-import { markTaskAsCompleted } from "@/utils/onboardingTasks";
+import { useState } from "react";
 import { useAuthGuard } from "@/utils/authGuard";
 import { createClient } from "@/utils/supabaseClient";
 import { useAuth } from "@/auth";
@@ -16,22 +15,6 @@ export default function StylePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [business, setBusiness] = useState<any>(null);
-
-  // Mark style prompt pages task as completed when user visits this page
-  useEffect(() => {
-    const markStyleTaskComplete = async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          await markTaskAsCompleted(user.id, "style-prompt-pages");
-        }
-      } catch (error) {
-        console.error("Error marking style task as complete:", error);
-      }
-    };
-
-    markStyleTaskComplete();
-  }, []);
 
   return (
     <div className="p-6">

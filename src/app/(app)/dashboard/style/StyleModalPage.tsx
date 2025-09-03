@@ -2,6 +2,7 @@
 import * as React from "react";
 // 🔧 CONSOLIDATED: Single import from supabaseClient module
 import { createClient, getUserOrMock } from "@/utils/supabaseClient";
+import { markTaskAsCompleted } from "@/utils/onboardingTasks";
 
 const supabase = createClient();
 import Icon from "@/components/Icon";
@@ -306,6 +307,13 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
         setSuccess(true);
         fetchSettings();
         setTimeout(() => setSuccess(false), 2000);
+        
+        // Mark the style-prompt-pages task as completed when successfully saved
+        try {
+          await markTaskAsCompleted(accountId, "style-prompt-pages");
+        } catch (taskError) {
+          console.error("Error marking style task as completed:", taskError);
+        }
       }
     } catch (error) {
       console.error("Error saving style settings:", error);

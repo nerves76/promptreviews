@@ -843,8 +843,10 @@ export default function BusinessProfilePage() {
       
       // Mark business profile task as completed when user successfully saves
       try {
-        await markTaskAsCompleted(user.id, "business-profile");
-        console.log("Business profile task marked as completed");
+        if (accountId) {
+          await markTaskAsCompleted(accountId, "business-profile");
+          console.log("Business profile task marked as completed");
+        }
         
         // Dispatch custom event to notify other components
         if (typeof window !== 'undefined') {

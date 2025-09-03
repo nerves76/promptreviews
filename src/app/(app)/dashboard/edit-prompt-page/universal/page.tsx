@@ -441,8 +441,10 @@ export default function UniversalEditPromptPage() {
     
     // Mark customize-universal task as completed when user successfully saves
     try {
-      await markTaskAsCompleted(user.id, "customize-universal");
-      console.log("Customize universal task marked as completed");
+      if (accountId) {
+        await markTaskAsCompleted(accountId, "customize-universal");
+        console.log("Customize universal task marked as completed");
+      }
     } catch (taskError) {
       console.error("Error marking customize-universal task as complete:", taskError);
     }
