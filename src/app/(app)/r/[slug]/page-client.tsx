@@ -184,17 +184,39 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
     offer_enabled: initialData?.promptPage?.offer_enabled,
     recent_reviews_enabled: initialData?.promptPage?.recent_reviews_enabled
   });
+  
+  console.log('🎨 [CLIENT] Received business profile:', {
+    name: initialData?.businessProfile?.name,
+    background_type: initialData?.businessProfile?.background_type,
+    gradient_start: initialData?.businessProfile?.gradient_start,
+    gradient_middle: initialData?.businessProfile?.gradient_middle,
+    gradient_end: initialData?.businessProfile?.gradient_end,
+    card_transparency: initialData?.businessProfile?.card_transparency,
+    card_border_width: initialData?.businessProfile?.card_border_width,
+  });
 
   const router = useRouter();
   const params = useParams();
   const searchParams = useSearchParams();
   const [promptPage, setPromptPage] = useState<any>(initialData?.promptPage || null);
-  const [businessProfile, setBusinessProfile] = useState<BusinessProfile>(initialData?.businessProfile || {
+  const [businessProfile, setBusinessProfile] = useState<BusinessProfile>(initialData?.businessProfile ? {
+    ...initialData.businessProfile,
+    // Ensure glassmorphic properties are present with defaults
+    background_type: initialData.businessProfile.background_type || 'gradient',
+    gradient_start: initialData.businessProfile.gradient_start || '#527DE7',
+    gradient_middle: initialData.businessProfile.gradient_middle || '#7864C8',
+    gradient_end: initialData.businessProfile.gradient_end || '#914AAE',
+    card_transparency: initialData.businessProfile.card_transparency ?? 0.95,
+    card_border_width: initialData.businessProfile.card_border_width ?? 1,
+    card_border_color: initialData.businessProfile.card_border_color || '#E5E7EB',
+    card_border_transparency: initialData.businessProfile.card_border_transparency ?? 0.5,
+    card_placeholder_color: initialData.businessProfile.card_placeholder_color || '#9CA3AF',
+  } : {
     name: "",
     logo_url: null,
     primary_font: "Inter",
     secondary_font: "Inter",
-    primary_color: "#4F46E5",
+    primary_color: "#6366F1",
     secondary_color: "#818CF8",
     background_color: "#FFFFFF",
     text_color: "#1F2937",
@@ -206,13 +228,18 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
     linkedin_url: null,
     pinterest_url: null,
     background_type: "gradient",
-    gradient_start: "#3B82F6",
-    gradient_middle: "",
-    gradient_end: "#c026d3",
+    gradient_start: "#527DE7",
+    gradient_middle: "#7864C8",
+    gradient_end: "#914AAE",
     business_name: "",
     review_platforms: [],
     card_bg: "#FFFFFF",
     card_text: "#1A1A1A",
+    card_transparency: 0.95,
+    card_border_width: 1,
+    card_border_color: "#E5E7EB",
+    card_border_transparency: 0.5,
+    card_placeholder_color: "#9CA3AF",
     card_inner_shadow: false,
     card_shadow_color: "#222222",
     card_shadow_intensity: 0.2,
@@ -471,7 +498,24 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
             card_inner_shadow: businessProfile.card_inner_shadow,
             card_shadow_color: businessProfile.card_shadow_color,
             card_shadow_intensity: businessProfile.card_shadow_intensity,
+            // Ensure gradient properties are included
+            background_type: businessProfile.background_type || 'gradient',
+            gradient_start: businessProfile.gradient_start || '#527DE7',
+            gradient_middle: businessProfile.gradient_middle || '#7864C8',
+            gradient_end: businessProfile.gradient_end || '#914AAE',
+            card_transparency: businessProfile.card_transparency ?? 0.95,
+            card_border_width: businessProfile.card_border_width ?? 1,
+            card_border_color: businessProfile.card_border_color || '#E5E7EB',
+            card_border_transparency: businessProfile.card_border_transparency ?? 0.5,
+            card_placeholder_color: businessProfile.card_placeholder_color || '#9CA3AF',
           };
+          
+          console.log('Setting businessProfile with gradient data:', {
+            background_type: profileData.background_type,
+            gradient_start: profileData.gradient_start,
+            gradient_middle: profileData.gradient_middle,
+            gradient_end: profileData.gradient_end,
+          });
           
           setBusinessProfile(profileData);
           
