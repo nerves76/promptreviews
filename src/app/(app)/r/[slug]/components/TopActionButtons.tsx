@@ -7,12 +7,17 @@
 
 import React from 'react';
 import Icon from '@/components/Icon';
-import { getAccessibleColor } from '@/utils/colorUtils';
+import { getAccessibleColor, applyCardTransparency, getContrastTextColor } from '@/utils/colorUtils';
 import { isOffWhiteOrCream } from '../utils/helperFunctions';
 
 interface BusinessProfile {
   card_bg?: string;
   primary_color?: string;
+  secondary_color?: string;
+  card_transparency?: number;
+  card_border_width?: number;
+  card_border_color?: string;
+  card_text?: string;
 }
 
 interface TopActionButtonsProps {
@@ -67,10 +72,23 @@ export default function TopActionButtons({
       >
         <button
           onClick={onSaveClick}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg shadow-md hover:bg-gray-50 transition-colors group"
-          style={buttonStyle}
+          className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 border-2 shadow-md"
+          style={{
+            backgroundColor: applyCardTransparency(businessProfile?.card_bg || '#FFFFFF', businessProfile?.card_transparency ?? 0.30),
+            borderColor: businessProfile?.card_border_color || "#FFFFFF",
+            borderWidth: businessProfile?.card_border_width || 1,
+            color: businessProfile?.card_text || "#FFFFFF",
+            backdropFilter: 'blur(5px)',
+            WebkitBackdropFilter: 'blur(5px)',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.opacity = "0.8";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.opacity = "1";
+          }}
         >
-          <Icon name="FaHeart" className="w-5 h-5 transition-colors group-hover:text-red-500" size={20} />
+          <Icon name="FaHeart" className="w-5 h-5" size={20} />
           <span className={`hidden sm:inline${showOnlyHeart ? " sm:hidden" : ""}`}>
             {showOnlyHeart ? "" : "Save for Later"}
           </span>

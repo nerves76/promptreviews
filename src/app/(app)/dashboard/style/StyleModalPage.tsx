@@ -105,11 +105,84 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
   const [modalDimensions, setModalDimensions] = React.useState({ width: 672, height: 600 });
   const modalRef = React.useRef<HTMLDivElement>(null);
 
+  // Preset configurations
+  const presets = {
+    glassy: {
+      name: "Glassy",
+      primary_font: "Inter",
+      secondary_font: "Roboto",
+      primary_color: "#2563EB",
+      secondary_color: "#2563EB",
+      background_type: "gradient",
+      background_color: "#FFFFFF",
+      gradient_start: "#2563EB",
+      gradient_middle: "#7864C8",
+      gradient_end: "#914AAE",
+      card_bg: "#FFFFFF",
+      card_text: "#FFFFFF",
+      card_placeholder_color: "#9CA3AF",
+      card_inner_shadow: true,
+      card_shadow_color: "#FFFFFF",
+      card_shadow_intensity: 0.30,
+      card_transparency: 0.30,
+      card_border_width: 1,
+      card_border_color: "#FFFFFF",
+      card_border_transparency: 0.5,
+      kickstarters_background_design: false,
+    },
+    solid: {
+      name: "Solid",
+      primary_font: "Inter",
+      secondary_font: "Roboto",
+      primary_color: "#3B82F6",
+      secondary_color: "#10B981",
+      background_type: "solid",
+      background_color: "#F3F4F6",
+      gradient_start: "#3B82F6",
+      gradient_middle: "#3B82F6",
+      gradient_end: "#3B82F6",
+      card_bg: "#FFFFFF",
+      card_text: "#111827",
+      card_placeholder_color: "#9CA3AF",
+      card_inner_shadow: false,
+      card_shadow_color: "#000000",
+      card_shadow_intensity: 0.10,
+      card_transparency: 1.0,
+      card_border_width: 0,
+      card_border_color: "#E5E7EB",
+      card_border_transparency: 1.0,
+      kickstarters_background_design: false,
+    },
+    paper: {
+      name: "Paper",
+      primary_font: "Merriweather",
+      secondary_font: "Georgia",
+      primary_color: "#7C3AED",
+      secondary_color: "#EC4899",
+      background_type: "solid",
+      background_color: "#FEFCF3",
+      gradient_start: "#7C3AED",
+      gradient_middle: "#7C3AED",
+      gradient_end: "#7C3AED",
+      card_bg: "#FFFEF9",
+      card_text: "#1F2937",
+      card_placeholder_color: "#9CA3AF",
+      card_inner_shadow: false,
+      card_shadow_color: "#000000",
+      card_shadow_intensity: 0.15,
+      card_transparency: 1.0,
+      card_border_width: 1,
+      card_border_color: "#D1D5DB",
+      card_border_transparency: 1.0,
+      kickstarters_background_design: false,
+    }
+  };
+
   const [settings, setSettings] = React.useState({
     primary_font: "Inter",
     secondary_font: "Roboto",
-    primary_color: "#6366F1",
-    secondary_color: "#818CF8",
+    primary_color: "#527DE7",
+    secondary_color: "#527DE7",
     background_type: "gradient",
     background_color: "#FFFFFF",
     gradient_start: "#527DE7",
@@ -228,15 +301,16 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
       }
       
       if (business) {
+        console.log('[StyleModal] Fetched business data:', business);
         setSettings(s => ({
           ...s,
           primary_font: business.primary_font || "Inter",
           secondary_font: business.secondary_font || "Roboto",
-          primary_color: business.primary_color || "#6366F1",
-          secondary_color: business.secondary_color || "#818CF8",
+          primary_color: business.primary_color || "#2563EB",
+          secondary_color: business.secondary_color || "#2563EB",
           background_type: business.background_type || "gradient",
           background_color: business.background_color || "#FFFFFF",
-          gradient_start: business.gradient_start || "#527DE7",
+          gradient_start: business.gradient_start || "#2563EB",
           gradient_middle: business.gradient_middle || "#7864C8",
           gradient_end: business.gradient_end || "#914AAE",
           card_bg: business.card_bg || "#FFFFFF",
@@ -327,11 +401,13 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
   }, [isDragging, dragOffset]);
 
   React.useEffect(() => {
+    console.log('[StyleModal] Component mounted, fetching settings...');
     fetchSettings();
   }, []);
 
   async function handleSave() {
     setSaving(true);
+    console.log('Saving settings:', settings);
     try {
       const { data: { user }, error } = await getUserOrMock(supabase);
       if (error || !user) {
@@ -342,6 +418,7 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
 
       // Use prop accountId - should always be provided by parent component
       const accountId = propAccountId;
+      console.log('Using account ID:', accountId);
       if (!accountId) {
         alert("No account ID provided");
         setSaving(false);
@@ -376,11 +453,13 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
       
       setSaving(false);
       if (updateError) {
+        console.error('Update error:', updateError);
         alert("Failed to save style settings: " + updateError.message);
       } else {
+        console.log('Settings saved successfully');
+        setSuccessMessage("All style changes saved successfully!");
         setSuccess(true);
         fetchSettings();
-        setTimeout(() => setSuccess(false), 2000);
         
         // Mark the style-prompt-pages task as completed when successfully saved
         try {
@@ -392,10 +471,17 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
         // If we're on a prompt page, refresh to apply the new styles
         if (onClose && onStyleUpdate) {
           onStyleUpdate(settings);
+          // Delay reload to allow success message to be seen
           setTimeout(() => {
             window.location.reload();
-          }, 500);
+          }, 1500);
         }
+        
+        // Clear success message after showing it
+        setTimeout(() => {
+          setSuccess(false);
+          setSuccessMessage("");
+        }, 3000);
       }
     } catch (error) {
       console.error("Error saving style settings:", error);
@@ -404,30 +490,56 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
     }
   }
 
-  function handleReset() {
+  // State for success message
+  const [successMessage, setSuccessMessage] = React.useState("");
+  
+  // Function to apply a preset with confirmation
+  const applyPreset = (presetKey: keyof typeof presets) => {
+    const preset = presets[presetKey];
+    const message = `Apply the "${preset.name}" preset? This will replace all current style settings.`;
+    
+    if (window.confirm(message)) {
+      const { name, ...presetSettings } = preset; // Exclude the name property
+      setSettings(presetSettings);
+      // Show success message
+      setSuccessMessage(`${preset.name} preset applied! Remember to save your changes.`);
+      setSuccess(true);
+      setTimeout(() => {
+        setSuccess(false);
+        setSuccessMessage("");
+      }, 4000);
+    }
+  };
+
+  async function handleReset() {
     if (window.confirm('Are you sure you want to reset all style settings to default? This cannot be undone.')) {
-      setSettings({
+      const defaultSettings = {
         primary_font: "Inter",
         secondary_font: "Roboto",
-        primary_color: "#6366F1",
-        secondary_color: "#818CF8",
+        primary_color: "#2563EB",
+        secondary_color: "#2563EB",
         background_type: "gradient",
         background_color: "#FFFFFF",
-        gradient_start: "#527DE7",
+        gradient_start: "#2563EB",
         gradient_middle: "#7864C8",
         gradient_end: "#914AAE",
         card_bg: "#FFFFFF",
-        card_text: "#1A1A1A",
+        card_text: "#FFFFFF",
         card_placeholder_color: "#9CA3AF",
-        card_inner_shadow: false,
-        card_shadow_color: "#222222",
-        card_shadow_intensity: 0.20,
+        card_inner_shadow: true,
+        card_shadow_color: "#FFFFFF",
+        card_shadow_intensity: 0.30,
         card_transparency: 0.30,
         card_border_width: 1,
         card_border_color: "#FFFFFF",
         card_border_transparency: 0.5,
         kickstarters_background_design: false,
-      });
+      };
+      
+      setSettings(defaultSettings);
+      
+      // Immediately save the reset values to database
+      setTimeout(() => handleSave(), 100);
     }
   }
 
@@ -496,18 +608,11 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
           </div>
           <div className="w-1/3 flex justify-end items-center gap-2 pr-8">
             <button
-              className="px-4 py-2 bg-white/20 backdrop-blur-sm text-white rounded-lg font-semibold hover:bg-white/30 transition text-sm border border-white/30"
-              onClick={handleReset}
-              disabled={saving}
-            >
-              Reset
-            </button>
-            <button
-              className="px-4 py-2 bg-white/20 backdrop-blur-sm text-white rounded-lg font-semibold hover:bg-white/30 transition text-sm border border-white/30"
+              className="px-5 py-2 bg-white/20 backdrop-blur-sm text-white rounded-lg font-semibold hover:bg-white/30 transition text-sm border border-white/30"
               onClick={handleSave}
               disabled={saving}
             >
-              {saving ? "Saving..." : "Save"}
+              {saving ? "Saving..." : "Save All Changes"}
             </button>
           </div>
         </div>
@@ -527,10 +632,51 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
         <div className="p-6 overflow-y-auto" style={{ maxHeight: 'calc(90vh - 5rem)' }}>
           {success && (
             <div className="mb-4 bg-green-50 border border-green-200 text-green-700 rounded-md p-4 text-center font-medium animate-fadein">
-              Style settings saved!
+              {successMessage || "Style settings saved!"}
             </div>
           )}
         
+          {/* Presets Dropdown */}
+          <div className="mb-6">
+            <label className="flex items-center text-sm font-medium mb-2 text-gray-700">
+              <Icon name="FaPalette" className="mr-2 text-purple-600" size={16} />
+              Style Presets
+              <Tooltip text="Choose from pre-designed style combinations to quickly change the look of your prompt pages" />
+            </label>
+            <div className="flex gap-2">
+              <button
+                onClick={() => applyPreset('glassy')}
+                className="flex-1 px-4 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg font-medium hover:from-blue-600 hover:to-purple-600 transition-all shadow-sm border border-white/20"
+              >
+                <div className="flex items-center justify-center gap-2">
+                  <Icon name="FaGem" size={16} />
+                  <span>Glassy</span>
+                </div>
+                <div className="text-xs opacity-80 mt-1">Transparent & modern</div>
+              </button>
+              <button
+                onClick={() => applyPreset('solid')}
+                className="flex-1 px-4 py-3 bg-gradient-to-r from-blue-600 to-green-600 text-white rounded-lg font-medium hover:from-blue-700 hover:to-green-700 transition-all shadow-sm"
+              >
+                <div className="flex items-center justify-center gap-2">
+                  <Icon name="FaCube" size={16} />
+                  <span>Solid</span>
+                </div>
+                <div className="text-xs opacity-80 mt-1">Clean & professional</div>
+              </button>
+              <button
+                onClick={() => applyPreset('paper')}
+                className="flex-1 px-4 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-medium hover:from-purple-700 hover:to-pink-700 transition-all shadow-sm"
+              >
+                <div className="flex items-center justify-center gap-2">
+                  <Icon name="FaFile" size={16} />
+                  <span>Paper</span>
+                </div>
+                <div className="text-xs opacity-80 mt-1">Classic & elegant</div>
+              </button>
+            </div>
+          </div>
+
         {/* Only show info banner when NOT on a prompt page (when onClose is not provided) */}
         {!onClose && (
           <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4 mb-6 border border-white/30">

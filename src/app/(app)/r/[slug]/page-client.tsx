@@ -203,12 +203,12 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
     ...initialData.businessProfile,
     // Ensure glassmorphic properties are present with defaults
     background_type: initialData.businessProfile.background_type || 'gradient',
-    gradient_start: initialData.businessProfile.gradient_start || '#527DE7',
+    gradient_start: initialData.businessProfile.gradient_start || '#2563EB',
     gradient_middle: initialData.businessProfile.gradient_middle || '#7864C8',
     gradient_end: initialData.businessProfile.gradient_end || '#914AAE',
-    card_transparency: initialData.businessProfile.card_transparency ?? 0.95,
+    card_transparency: initialData.businessProfile.card_transparency ?? 0.30,
     card_border_width: initialData.businessProfile.card_border_width ?? 1,
-    card_border_color: initialData.businessProfile.card_border_color || '#E5E7EB',
+    card_border_color: initialData.businessProfile.card_border_color || '#FFFFFF',
     card_border_transparency: initialData.businessProfile.card_border_transparency ?? 0.5,
     card_placeholder_color: initialData.businessProfile.card_placeholder_color || '#9CA3AF',
   } : {
@@ -228,21 +228,21 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
     linkedin_url: null,
     pinterest_url: null,
     background_type: "gradient",
-    gradient_start: "#527DE7",
+    gradient_start: "#2563EB",
     gradient_middle: "#7864C8",
     gradient_end: "#914AAE",
     business_name: "",
     review_platforms: [],
     card_bg: "#FFFFFF",
     card_text: "#1A1A1A",
-    card_transparency: 0.95,
+    card_transparency: 0.30,
     card_border_width: 1,
-    card_border_color: "#E5E7EB",
+    card_border_color: "#FFFFFF",
     card_border_transparency: 0.5,
     card_placeholder_color: "#9CA3AF",
-    card_inner_shadow: false,
-    card_shadow_color: "#222222",
-    card_shadow_intensity: 0.2,
+    card_inner_shadow: true,
+    card_shadow_color: "#FFFFFF",
+    card_shadow_intensity: 0.30,
   });
   const [loading, setLoading] = useState(!initialData);
   const [error, setError] = useState<string | null>(null);
@@ -500,7 +500,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
             card_shadow_intensity: businessProfile.card_shadow_intensity,
             // Ensure gradient properties are included
             background_type: businessProfile.background_type || 'gradient',
-            gradient_start: businessProfile.gradient_start || '#527DE7',
+            gradient_start: businessProfile.gradient_start || '#2563EB',
             gradient_middle: businessProfile.gradient_middle || '#7864C8',
             gradient_end: businessProfile.gradient_end || '#914AAE',
             card_transparency: businessProfile.card_transparency ?? 0.95,
@@ -542,13 +542,13 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
             background_color: '#FFFFFF',
             text_color: '#1F2937',
             background_type: 'gradient',
-            gradient_start: '#527DE7',
+            gradient_start: '#2563EB',
             gradient_middle: '#7864C8',
             gradient_end: '#914AAE',
             card_bg: '#FFFFFF',
             card_text: '#1A1A1A',
             card_placeholder_color: '#9CA3AF',
-            card_transparency: 0.95,
+            card_transparency: 0.30,
             card_border_width: 1,
             card_border_color: '#E5E7EB',
             card_border_transparency: 0.5,
@@ -1551,7 +1551,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
   const backgroundStyle = (() => {
     if (businessProfile?.background_type === "gradient") {
       const gradientColors = [
-        businessProfile.gradient_start || "#527DE7",
+        businessProfile.gradient_start || "#2563EB",
         businessProfile.gradient_middle || "#7864C8",
         businessProfile.gradient_end || "#914AAE"
       ].filter(Boolean); // Remove undefined/null values
@@ -1830,16 +1830,17 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
         >
           <button
             onClick={() => setShowSaveMenu(!showSaveMenu)}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg shadow-md hover:bg-gray-50 transition-colors group"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg shadow-md transition-all duration-200 group border font-medium"
             style={{
-              background: isOffWhiteOrCream(businessProfile?.card_bg || "#FFFFFF")
-                ? businessProfile?.card_bg || "#FFFFFF"
-                : "#FFFFFF",
-              color: getAccessibleColor(businessProfile?.primary_color || "#4F46E5"),
-              border: "1px solid #E5E7EB"
+              backgroundColor: applyCardTransparency(businessProfile?.card_bg || '#FFFFFF', Math.min(1, (businessProfile?.card_transparency ?? 0.30) + 0.4)),
+              borderColor: businessProfile?.card_border_color || "#FFFFFF",
+              borderWidth: businessProfile?.card_border_width || 1,
+              color: businessProfile?.primary_color || "#2563EB",
+              backdropFilter: 'blur(5px)',
+              WebkitBackdropFilter: 'blur(5px)'
             }}
           >
-            <Icon name="FaHeart" className="w-5 h-5 transition-colors group-hover:text-red-500" size={20} />
+            <Icon name="FaHeart" className="w-5 h-5 transition-colors group-hover:text-red-500" size={20} style={{ color: businessProfile?.primary_color || "#2563EB" }} />
             <span className={`hidden sm:inline${showOnlyHeart ? " sm:hidden" : ""}`}>{showOnlyHeart ? "" : "Save for Later"}</span>
             <span className={`inline sm:hidden${showOnlyHeart ? " hidden" : ""}`}>{showOnlyHeart ? "" : "Save"}</span>
           </button>

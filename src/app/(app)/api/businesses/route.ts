@@ -93,7 +93,7 @@ export async function POST(request: NextRequest) {
 
     const supabase = createServiceRoleClient();
     
-    // First, verify the account exists
+    // First, verify the account exists OR create it if needed
     console.log(`[BUSINESSES] Verifying account exists: ${account_id}`);
     const { data: accountExists, error: accountCheckError } = await supabase
       .from('accounts')
@@ -110,32 +110,64 @@ export async function POST(request: NextRequest) {
       });
       
       // If account doesn't exist, we need to create it first
+      // This can happen when a new user signs up and immediately creates a business
       if (accountCheckError.code === 'PGRST116') {
-        console.log('[BUSINESSES] Account not found, attempting to create it...');
+        console.log('[BUSINESSES] Account not found, creating it for new user...');
+        
+        // Get user info to populate account fields
+        const { data: userData, error: userError } = await supabase.auth.admin.getUserById(account_id);
+        
         const { error: createAccountError } = await supabase
           .from('accounts')
           .insert({
             id: account_id,
-            plan: 'free',
+            user_id: account_id, // For new signups, account_id = user_id
+            email: userData?.user?.email || businessData.business_email,
+            first_name: userData?.user?.user_metadata?.first_name || '',
+            last_name: userData?.user?.user_metadata?.last_name || '',
+            plan: 'no_plan', // New users start with no plan
             is_free_account: false,
+            has_had_paid_plan: false,
             custom_prompt_page_count: 0,
             contact_count: 0,
+            review_notifications_enabled: true,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
           });
         
         if (createAccountError) {
           console.error('[BUSINESSES] Failed to create account:', createAccountError);
-          return NextResponse.json(
-            { 
-              error: "Account does not exist and could not be created",
-              details: createAccountError.message,
-              accountId: account_id
-            },
-            { status: 400 }
-          );
+          
+          // If it's a unique constraint error, the account might already exist
+          if (createAccountError.code === '23505') {
+            console.log('[BUSINESSES] Account may already exist, continuing...');
+          } else {
+            return NextResponse.json(
+              { 
+                error: "Account does not exist and could not be created",
+                details: createAccountError.message,
+                accountId: account_id
+              },
+              { status: 400 }
+            );
+          }
+        } else {
+          console.log('[BUSINESSES] Account created successfully');
+          
+          // Create account_users link for owner
+          const { error: linkError } = await supabase
+            .from('account_users')
+            .insert({
+              account_id: account_id,
+              user_id: account_id,
+              role: 'owner',
+              created_at: new Date().toISOString()
+            });
+          
+          if (linkError && linkError.code !== '23505') {
+            console.error('[BUSINESSES] Account user link error:', linkError);
+          }
         }
-        console.log('[BUSINESSES] Account created successfully');
       } else {
         return NextResponse.json(
           { 
@@ -189,23 +221,23 @@ export async function POST(request: NextRequest) {
       // Glassmorphic design defaults
       primary_font: 'Inter',
       secondary_font: 'Roboto',
-      primary_color: '#6366F1',
-      secondary_color: '#818CF8',
+      primary_color: '#2563EB',
+      secondary_color: '#2563EB',
       background_type: 'gradient',
       background_color: '#FFFFFF',
-      gradient_start: '#527DE7',
+      gradient_start: '#2563EB',
       gradient_middle: '#7864C8',
       gradient_end: '#914AAE',
       card_bg: '#FFFFFF',
-      card_text: '#1A1A1A',
+      card_text: '#FFFFFF',
       card_placeholder_color: '#9CA3AF',
-      card_transparency: 0.95,
+      card_transparency: 0.70, // Changed from 0.30 to meet database constraint (0.50-1.00)
       card_border_width: 1,
-      card_border_color: '#E5E7EB',
+      card_border_color: '#FFFFFF',
       card_border_transparency: 0.5,
-      card_inner_shadow: false,
-      card_shadow_color: '#222222',
-      card_shadow_intensity: 0.20,
+      card_inner_shadow: true,
+      card_shadow_color: '#FFFFFF',
+      card_shadow_intensity: 0.30,
       updated_at: new Date().toISOString(), // 🔧 FIX: Set updated_at to current time to prevent validation loop
     };
 
@@ -307,6 +339,7 @@ export async function POST(request: NextRequest) {
     }
 
     console.log('[BUSINESSES] Business created successfully:', business.id);
+    console.log('[BUSINESSES] Full business object:', JSON.stringify(business, null, 2));
 
     // 🔧 CRITICAL FIX: Update accounts.business_name and promotion_code for metadata templates
     console.log('[BUSINESSES] Updating accounts.business_name and promotion_code...');
@@ -416,19 +449,24 @@ export async function POST(request: NextRequest) {
       console.warn('[BUSINESSES] Universal prompt page creation failed, but business was created successfully');
     }
 
-    return NextResponse.json(business);
+    return NextResponse.json({ 
+      success: true,
+      business: business 
+    }, { status: 201 });
   } catch (error) {
     console.error('[BUSINESSES] Unexpected error:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     const errorStack = error instanceof Error ? error.stack : undefined;
     
     console.error('[BUSINESSES] Error stack:', errorStack);
+    console.error('[BUSINESSES] Full error object:', JSON.stringify(error, null, 2));
     
     return NextResponse.json(
       { 
         error: "Internal server error",
         details: errorMessage,
-        stack: process.env.NODE_ENV === 'development' ? errorStack : undefined
+        stack: process.env.NODE_ENV === 'development' ? errorStack : undefined,
+        fullError: process.env.NODE_ENV === 'development' ? error : undefined
       },
       { status: 500 }
     );

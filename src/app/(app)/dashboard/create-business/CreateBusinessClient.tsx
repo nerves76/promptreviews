@@ -82,10 +82,11 @@ export default function CreateBusinessClient() {
         console.log('✅ CreateBusinessClient: User authenticated:', user.id);
         setUser(user);
 
-        // Use the selected account from auth context
-        const accountId = selectedAccountId || account?.id;
+        // Use the selected account from auth context OR the user's ID (for new accounts)
+        // During signup, the account ID is the same as the user ID
+        const accountId = selectedAccountId || account?.id || user.id;
         if (!accountId) {
-          console.log('🔄 CreateBusinessClient: No account selected, this is normal for first-time users');
+          console.log('🔄 CreateBusinessClient: No account found, this should not happen');
           setError("Account setup required");
           setLoading(false);
           return;

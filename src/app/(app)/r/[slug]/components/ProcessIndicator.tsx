@@ -1,12 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import Icon from '@/components/Icon';
+import { applyCardTransparency } from '@/utils/colorUtils';
 
 interface ProcessIndicatorProps {
   primaryColor?: string;
   cardBackgroundColor?: string;
+  cardTransparency?: number;
+  cardTextColor?: string;
 }
 
-export default function ProcessIndicator({ primaryColor = "#4F46E5", cardBackgroundColor = "#FFFFFF" }: ProcessIndicatorProps) {
+export default function ProcessIndicator({ primaryColor = "#4F46E5", cardBackgroundColor = "#FFFFFF", cardTransparency = 1, cardTextColor = "#1A1A1A" }: ProcessIndicatorProps) {
   const [activeStep, setActiveStep] = useState(0);
   const [animationPhase, setAnimationPhase] = useState<'waiting' | 'highlight' | 'drawLine' | 'pause' | 'fadeOut'>('waiting');
   const [drawnLines, setDrawnLines] = useState<number[]>([]);
@@ -81,8 +84,8 @@ export default function ProcessIndicator({ primaryColor = "#4F46E5", cardBackgro
   };
 
   return (
-    <div className="mb-6 px-1">
-      <div className="flex items-center justify-center max-w-full sm:flex grid grid-cols-3 sm:flex sm:items-center sm:justify-center gap-0 sm:gap-0">
+    <div className="mb-6 px-4">
+      <div className="flex items-center justify-center gap-3">
         {steps.map((step, index) => {
           const isActive = index === activeStep && animationPhase !== 'waiting';
           const isCompleted = index < activeStep && animationPhase !== 'waiting';
@@ -92,7 +95,7 @@ export default function ProcessIndicator({ primaryColor = "#4F46E5", cardBackgro
           return (
             <React.Fragment key={index}>
               {/* Step */}
-              <div className="flex items-center justify-center sm:justify-start sm:flex-1 min-w-0">
+              <div className="flex items-center">
                 {/* Step Number Circle */}
                 <div 
                   className={`flex-shrink-0 w-5 h-5 sm:w-6 sm:h-6 rounded-full border-2 flex items-center justify-center text-xs font-medium transition-all ${
@@ -102,7 +105,7 @@ export default function ProcessIndicator({ primaryColor = "#4F46E5", cardBackgro
                   }`}
                   style={{ 
                     borderColor: primaryColor,
-                    backgroundColor: isWaiting || isFadingOut ? cardBackgroundColor : (isActive || isCompleted) ? primaryColor : cardBackgroundColor,
+                    backgroundColor: isWaiting || isFadingOut ? applyCardTransparency(cardBackgroundColor, cardTransparency) : (isActive || isCompleted) ? primaryColor : applyCardTransparency(cardBackgroundColor, cardTransparency),
                     color: isWaiting || isFadingOut ? primaryColor : (isActive || isCompleted) ? getContrastColor(primaryColor) : primaryColor,
                     boxShadow: isWaiting || isFadingOut ? 'none' : isActive ? `0 0 12px ${primaryColor}40` : isCompleted ? `0 0 8px ${primaryColor}20` : 'none'
                   }}
@@ -111,11 +114,10 @@ export default function ProcessIndicator({ primaryColor = "#4F46E5", cardBackgro
                 </div>
                 
                 {/* Step Text - More compact on mobile */}
-                <div className={`ml-1 sm:ml-2 text-xs font-medium transition-colors ${
+                <div className={`ml-1 sm:ml-2 font-medium transition-colors ${
                   isFadingOut ? 'duration-1000' : 'duration-500'
-                } ${
-                  isWaiting || isFadingOut ? 'text-gray-600' : isActive ? 'text-gray-800' : isCompleted ? 'text-gray-700' : 'text-gray-600'
-                }`}>
+                }`}
+                style={{ color: cardTextColor }}>
                   {/* Mobile: Show very compact format */}
                   <span className="block sm:hidden text-xs leading-tight whitespace-nowrap">
                     {index === 0 && "Create"}
@@ -123,7 +125,7 @@ export default function ProcessIndicator({ primaryColor = "#4F46E5", cardBackgro
                     {index === 2 && "Post"}
                   </span>
                   {/* Desktop: Show full text */}
-                  <span className="hidden sm:block truncate">
+                  <span className="hidden sm:block text-sm truncate">
                     {step}
                   </span>
                 </div>

@@ -86,6 +86,20 @@ export default function DashboardLayout({
     }
   }, [isInitialized, user, isClient, router]);
 
+  // Check for users without accounts and redirect to sign-up
+  useEffect(() => {
+    // Only check after account loading is complete and user is authenticated
+    if (isInitialized && user && !accountLoading && isClient) {
+      // If no account exists after loading is complete, redirect to sign-up/onboarding
+      if (!account && !accountLoading) {
+        console.log('❌ Dashboard: User has no accounts, redirecting to sign-up/onboarding');
+        // Clear any auth session and redirect to sign-up
+        signOut();
+        router.push('/auth/sign-up');
+      }
+    }
+  }, [isInitialized, user, account, accountLoading, isClient, router, signOut]);
+
   // Check for accounts without plans and redirect to plan selection
   useEffect(() => {
     if (isInitialized && account && isClient) {

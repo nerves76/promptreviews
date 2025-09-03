@@ -327,14 +327,29 @@ const SimpleBusinessForm = forwardRef<HTMLFormElement, SimpleBusinessFormProps>(
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         console.error("Business creation API error:", errorData);
-        setError(`Failed to create business: ${errorData.error || response.statusText}`);
+        console.error("Full error details:", {
+          status: response.status,
+          statusText: response.statusText,
+          error: errorData.error,
+          details: errorData.details,
+          code: errorData.code,
+          hint: errorData.hint,
+          accountId: errorData.accountId
+        });
+        
+        // Show more detailed error message
+        const errorMessage = errorData.details || errorData.error || response.statusText;
+        setError(`Failed to create business: ${errorMessage}`);
         setLoading(false);
         setLoadingState(null);
         setIsSubmitting(false);
         return;
       }
 
-      const business = await response.json();
+      const responseData = await response.json();
+      console.log("API response data:", responseData);
+      
+      const business = responseData.business || responseData;
       console.log("Business created successfully via API:", business);
 
       // Update loading state to show redirecting

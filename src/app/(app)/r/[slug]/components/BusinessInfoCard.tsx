@@ -109,7 +109,8 @@ export default function BusinessInfoCard({ businessProfile, reviewType, promptPa
           className="rounded-full shadow-lg flex items-center justify-center w-full h-full aspect-square"
           style={{ 
             backgroundColor: applyCardTransparency(businessProfile?.card_bg || '#FFFFFF', businessProfile.card_transparency ?? 0.85),
-            backdropFilter: 'blur(4px)',
+            backdropFilter: 'blur(24px)',
+            WebkitBackdropFilter: 'blur(24px)',
             border: '2px solid rgba(255, 255, 255, 0.8)',
             padding: '1px'
           }}
@@ -159,7 +160,8 @@ export default function BusinessInfoCard({ businessProfile, reviewType, promptPa
           </div>
         ) : (
           (businessProfile?.address_street || businessProfile?.address_city || businessProfile?.address_state) && (
-            <div className={`text-center text-base text-gray-600 font-medium ${getFontClass(businessProfile?.secondary_font || "")}`}>
+            <div className={`text-center text-base font-medium ${getFontClass(businessProfile?.secondary_font || "")}`}
+              style={{ color: businessProfile?.card_text || "#1A1A1A" }}>
               {getAddressDisplay()}
             </div>
           )

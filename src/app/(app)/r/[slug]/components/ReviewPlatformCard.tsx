@@ -1,6 +1,6 @@
 import React from 'react';
 import Icon, { IconName } from '@/components/Icon';
-import { applyCardTransparency } from '@/utils/colorUtils';
+import { applyCardTransparency, getContrastTextColor } from '@/utils/colorUtils';
 import ProcessIndicator from './ProcessIndicator';
 
 interface ReviewPlatformCardProps {
@@ -128,16 +128,16 @@ export default function ReviewPlatformCard({
       
       {/* Icon in top-left corner */}
       <div
-        className="absolute rounded-full shadow-lg p-2 flex items-center justify-center backdrop-blur-md"
+        className="absolute rounded-full shadow-lg p-2 flex items-center justify-center"
         title={label}
         style={{ 
           top: '-20px',
           left: '-20px',
           zIndex: 20, 
-          backgroundColor: applyCardTransparency(businessProfile?.card_bg || '#FFFFFF', businessProfile.card_transparency ?? 0.85),
+          backgroundColor: applyCardTransparency(businessProfile?.card_bg || '#FFFFFF', businessProfile?.card_transparency ?? 0.30),
           border: getCardBorderStyle(),
-          backdropFilter: 'blur(8px)',
-          WebkitBackdropFilter: 'blur(8px)'
+          backdropFilter: 'blur(5px)',
+          WebkitBackdropFilter: 'blur(5px)'
         }}
       >
         <Icon
@@ -187,6 +187,8 @@ export default function ReviewPlatformCard({
           <ProcessIndicator 
             primaryColor={businessProfile?.primary_color} 
             cardBackgroundColor={businessProfile?.card_bg}
+            cardTransparency={businessProfile?.card_transparency ?? 0.30}
+            cardTextColor={businessProfile?.card_text || "#1A1A1A"}
           />
           
           {/* Custom instructions popup */}
@@ -218,7 +220,8 @@ export default function ReviewPlatformCard({
             <div className="flex-1">
               <label
                 htmlFor={`reviewerFirstName-${idx}`}
-                className="block text-sm font-medium text-gray-700"
+                className="block text-sm font-medium"
+                style={{ color: businessProfile?.card_text || "#1A1A1A" }}
               >
                 First Name <span className="text-red-500">*</span>
               </label>
@@ -227,12 +230,16 @@ export default function ReviewPlatformCard({
                 id={`reviewerFirstName-${idx}`}
                 value={reviewerFirstNames[idx]}
                 onChange={(e) => onFirstNameChange(idx, e.target.value)}
-                placeholder="Sally"
-                className="w-full mt-1 mb-2 p-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                placeholder="Gerald"
+                className="w-full mt-1 mb-2 p-3 rounded-lg focus:ring-2 focus:ring-indigo-500 sm:text-sm"
                 style={{
-                  background: businessProfile?.card_bg || "#F9FAFB",
+                  background: applyCardTransparency(
+                    businessProfile?.card_bg || "#F9FAFB", 
+                    Math.min(1, (businessProfile?.card_transparency ?? 0.30) + 0.4)
+                  ),
                   color: businessProfile?.card_text || "#1A1A1A",
-                  boxShadow: "inset 0 1px 3px 0 rgba(60,64,67,0.18), inset 0 1.5px 6px 0 rgba(60,64,67,0.10)",
+                  boxShadow: "inset 0 2px 4px 0 rgba(0,0,0,0.2), inset 0 1px 2px 0 rgba(0,0,0,0.15)",
+                  border: "none",
                 }}
                 required
               />
@@ -240,7 +247,8 @@ export default function ReviewPlatformCard({
             <div className="flex-1">
               <label
                 htmlFor={`reviewerLastName-${idx}`}
-                className="block text-sm font-medium text-gray-700"
+                className="block text-sm font-medium"
+                style={{ color: businessProfile?.card_text || "#1A1A1A" }}
               >
                 Last Name <span className="text-red-500">*</span>
               </label>
@@ -249,12 +257,16 @@ export default function ReviewPlatformCard({
                 id={`reviewerLastName-${idx}`}
                 value={reviewerLastNames[idx]}
                 onChange={(e) => onLastNameChange(idx, e.target.value)}
-                placeholder="Walden"
-                className="w-full mt-1 mb-2 p-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                placeholder="McGrew"
+                className="w-full mt-1 mb-2 p-3 rounded-lg focus:ring-2 focus:ring-indigo-500 sm:text-sm"
                 style={{
-                  background: businessProfile?.card_bg || "#F9FAFB",
+                  background: applyCardTransparency(
+                    businessProfile?.card_bg || "#F9FAFB", 
+                    Math.min(1, (businessProfile?.card_transparency ?? 0.30) + 0.4)
+                  ),
                   color: businessProfile?.card_text || "#1A1A1A",
-                  boxShadow: "inset 0 1px 3px 0 rgba(60,64,67,0.18), inset 0 1.5px 6px 0 rgba(60,64,67,0.10)",
+                  boxShadow: "inset 0 2px 4px 0 rgba(0,0,0,0.2), inset 0 1px 2px 0 rgba(0,0,0,0.15)",
+                  border: "none",
                 }}
                 required
               />
@@ -266,7 +278,8 @@ export default function ReviewPlatformCard({
             <div className="flex-1">
               <label
                 htmlFor={`reviewerRole-${idx}`}
-                className="block text-sm font-medium text-gray-700"
+                className="block text-sm font-medium"
+                style={{ color: businessProfile?.card_text || "#1A1A1A" }}
               >
                 Role/Position/Occupation
               </label>
@@ -275,12 +288,16 @@ export default function ReviewPlatformCard({
                 id={`reviewerRole-${idx}`}
                 value={reviewerRoles[idx]}
                 onChange={(e) => onRoleChange(idx, e.target.value)}
-                placeholder="Customer"
-                className="w-full mt-1 mb-2 p-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                placeholder="Zoo Director"
+                className="w-full mt-1 mb-2 p-3 rounded-lg focus:ring-2 focus:ring-indigo-500 sm:text-sm"
                 style={{
-                  background: businessProfile?.card_bg || "#F9FAFB",
+                  background: applyCardTransparency(
+                    businessProfile?.card_bg || "#F9FAFB", 
+                    Math.min(1, (businessProfile?.card_transparency ?? 0.30) + 0.4)
+                  ),
                   color: businessProfile?.card_text || "#1A1A1A",
-                  boxShadow: "inset 0 1px 3px 0 rgba(60,64,67,0.18), inset 0 1.5px 6px 0 rgba(60,64,67,0.10)",
+                  boxShadow: "inset 0 2px 4px 0 rgba(0,0,0,0.2), inset 0 1px 2px 0 rgba(0,0,0,0.15)",
+                  border: "none",
                 }}
               />
             </div>
@@ -291,7 +308,8 @@ export default function ReviewPlatformCard({
             <div className="flex items-center justify-between mb-2">
               <label
                 htmlFor={`reviewText-${idx}`}
-                className="block text-sm font-medium text-gray-700"
+                className="block text-sm font-medium"
+                style={{ color: businessProfile?.card_text || "#1A1A1A" }}
               >
                 Your Review <span className="text-red-500">*</span>
               </label>
@@ -309,7 +327,7 @@ export default function ReviewPlatformCard({
                     onMouseEnter={(e) => {
                       if (fixGrammarLoading !== idx && fixGrammarCounts[idx] < 3) {
                         e.currentTarget.style.backgroundColor = businessProfile?.secondary_color || "#6B7280";
-                        e.currentTarget.style.color = "white";
+                        e.currentTarget.style.color = getContrastTextColor(businessProfile?.secondary_color || "#4F46E5");
                       }
                     }}
                     onMouseLeave={(e) => {
@@ -368,12 +386,16 @@ export default function ReviewPlatformCard({
               value={platformReviewTexts[idx]}
               onChange={(e) => onReviewTextChange(idx, e.target.value)}
               placeholder="Share your experience..."
-              className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              className="w-full p-3 rounded-lg focus:ring-2 focus:ring-indigo-500 sm:text-sm"
               rows={4}
               style={{
-                background: businessProfile?.card_bg || "#F9FAFB",
+                background: applyCardTransparency(
+                  businessProfile?.card_bg || "#F9FAFB", 
+                  Math.min(1, (businessProfile?.card_transparency ?? 0.30) + 0.4)
+                ),
                 color: businessProfile?.card_text || "#1A1A1A",
-                boxShadow: "inset 0 1px 3px 0 rgba(60,64,67,0.18), inset 0 1.5px 6px 0 rgba(60,64,67,0.10)",
+                boxShadow: "inset 0 2px 4px 0 rgba(0,0,0,0.2), inset 0 1px 2px 0 rgba(0,0,0,0.15)",
+                border: "none",
               }}
               required
             />
@@ -386,21 +408,22 @@ export default function ReviewPlatformCard({
                 type="button"
                 onClick={() => onRewriteWithAI(idx)}
                 disabled={aiLoading === idx}
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-all duration-200 hover:text-white"
+                className="flex-1 px-4 py-2 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-all duration-200 border-2"
                 style={{
-                  borderColor: businessProfile?.secondary_color || "#6B7280",
-                  color: businessProfile?.secondary_color || "#6B7280",
+                  backgroundColor: "rgba(255, 255, 255, 0.1)",
+                  borderColor: businessProfile?.primary_color || "#2563EB",
+                  color: businessProfile?.primary_color || "#2563EB",
                 }}
                 onMouseEnter={(e) => {
-                  if (aiLoading !== idx) {
-                    e.currentTarget.style.backgroundColor = businessProfile?.secondary_color || "#6B7280";
-                    e.currentTarget.style.color = "white";
+                  if (aiLoading !== idx && !e.currentTarget.disabled) {
+                    e.currentTarget.style.backgroundColor = businessProfile?.primary_color || "#2563EB";
+                    e.currentTarget.style.color = getContrastTextColor(businessProfile?.primary_color || "#2563EB");
                   }
                 }}
                 onMouseLeave={(e) => {
-                  if (aiLoading !== idx) {
+                  if (aiLoading !== idx && !e.currentTarget.disabled) {
                     e.currentTarget.style.backgroundColor = "transparent";
-                    e.currentTarget.style.color = businessProfile?.secondary_color || "#6B7280";
+                    e.currentTarget.style.color = businessProfile?.primary_color || "#2563EB";
                   }
                 }}
               >
@@ -439,6 +462,7 @@ export default function ReviewPlatformCard({
               style={{
                 backgroundColor: businessProfile?.secondary_color || "#4F46E5",
                 borderColor: businessProfile?.secondary_color || "#4F46E5",
+                color: getContrastTextColor(businessProfile?.secondary_color || "#4F46E5"),
               }}
               onMouseEnter={(e) => {
                 if (isSubmitting !== idx && isCopied !== idx && isRedirecting !== idx && !e.currentTarget.disabled) {
@@ -449,18 +473,18 @@ export default function ReviewPlatformCard({
               onMouseLeave={(e) => {
                 if (isSubmitting !== idx && isCopied !== idx && isRedirecting !== idx && !e.currentTarget.disabled) {
                   e.currentTarget.style.backgroundColor = businessProfile?.secondary_color || "#4F46E5";
-                  e.currentTarget.style.color = "white";
+                  e.currentTarget.style.color = getContrastTextColor(businessProfile?.secondary_color || "#4F46E5");
                 }
               }}
             >
               {isSubmitting === idx ? (
                 <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2" style={{ borderColor: getContrastTextColor(businessProfile?.secondary_color || "#4F46E5") }}></div>
                   Copying review...
                 </>
               ) : isRedirecting === idx ? (
                 <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2" style={{ borderColor: getContrastTextColor(businessProfile?.secondary_color || "#4F46E5") }}></div>
                   Redirecting...
                 </>
               ) : (

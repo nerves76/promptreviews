@@ -56,6 +56,23 @@ export function getAccessibleColor(hex: string, minContrast: number = 4.5): stri
   return color;
 }
 
+// Determine if text should be white or black based on background color
+export function getContrastTextColor(bgHex: string): string {
+  // Remove # if present
+  const hex = bgHex.replace('#', '');
+  
+  // Convert to RGB
+  const r = parseInt(hex.substr(0, 2), 16);
+  const g = parseInt(hex.substr(2, 2), 16);
+  const b = parseInt(hex.substr(4, 2), 16);
+  
+  // Calculate luminance
+  const lum = luminance(r, g, b);
+  
+  // Return black for light backgrounds, white for dark backgrounds
+  return lum > 0.5 ? '#000000' : '#FFFFFF';
+}
+
 /**
  * Converts a hex color to rgba with transparency
  * @param hex - Hex color string (e.g., "#FFFFFF")
