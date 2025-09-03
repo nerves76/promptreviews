@@ -371,10 +371,6 @@ const Header = React.memo(function Header() {
                         <span className="absolute -top-1 -right-2 bg-yellow-400 text-yellow-900 text-xs px-2 py-1 rounded-full font-bold animate-pulse shadow-lg">
                           Start here!
                         </span>
-                        {/* Tooltip */}
-                        <span className="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap" style={{ zIndex: 2147483647 }}>
-                          Complete your business profile
-                        </span>
                       </>
                     )}
                   </Link>
@@ -703,7 +699,6 @@ const Header = React.memo(function Header() {
                           <span className="absolute top-0 -right-1 bg-yellow-400 text-yellow-900 text-xs px-2 py-1 rounded-full font-bold animate-pulse">
                             Start here!
                           </span>
-                          <span className="text-xs text-blue-600 block mt-1">Complete your business profile</span>
                         </>
                       )}
                     </Link>

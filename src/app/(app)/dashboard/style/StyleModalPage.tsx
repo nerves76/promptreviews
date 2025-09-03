@@ -104,6 +104,7 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
   const [dragOffset, setDragOffset] = React.useState({ x: 0, y: 0 });
   const [modalDimensions, setModalDimensions] = React.useState({ width: 672, height: 600 });
   const modalRef = React.useRef<HTMLDivElement>(null);
+  const [selectedPreset, setSelectedPreset] = React.useState<string | null>(null);
 
   // Preset configurations
   const presets = {
@@ -124,7 +125,7 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
       card_inner_shadow: true,
       card_shadow_color: "#FFFFFF",
       card_shadow_intensity: 0.30,
-      card_transparency: 0.30,
+      card_transparency: 0.70,
       card_border_width: 1,
       card_border_color: "#FFFFFF",
       card_border_transparency: 0.5,
@@ -194,7 +195,7 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
     card_inner_shadow: false,
     card_shadow_color: "#222222",
     card_shadow_intensity: 0.20,
-    card_transparency: 0.30,
+    card_transparency: 0.70,
     card_border_width: 1,
     card_border_color: "#FFFFFF",
     card_border_transparency: 0.5,
@@ -319,7 +320,7 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
           card_inner_shadow: business.card_inner_shadow || false,
           card_shadow_color: business.card_shadow_color || "#222222",
           card_shadow_intensity: business.card_shadow_intensity || 0.20,
-          card_transparency: business.card_transparency ?? 0.30,
+          card_transparency: business.card_transparency ?? 0.70,
           card_border_width: business.card_border_width ?? 1,
           card_border_color: business.card_border_color || "#FFFFFF",
           card_border_transparency: business.card_border_transparency ?? 0.5,
@@ -501,6 +502,7 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
     if (window.confirm(message)) {
       const { name, ...presetSettings } = preset; // Exclude the name property
       setSettings(presetSettings);
+      setSelectedPreset(presetKey);
       // Show success message
       setSuccessMessage(`${preset.name} preset applied! Remember to save your changes.`);
       setSuccess(true);
@@ -529,7 +531,7 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
         card_inner_shadow: true,
         card_shadow_color: "#FFFFFF",
         card_shadow_intensity: 0.30,
-        card_transparency: 0.30,
+        card_transparency: 0.70,
         card_border_width: 1,
         card_border_color: "#FFFFFF",
         card_border_transparency: 0.5,
@@ -636,44 +638,108 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
             </div>
           )}
         
-          {/* Presets Dropdown */}
-          <div className="mb-6">
-            <label className="flex items-center text-sm font-medium mb-2 text-gray-700">
-              <Icon name="FaPalette" className="mr-2 text-purple-600" size={16} />
-              Style Presets
-              <Tooltip text="Choose from pre-designed style combinations to quickly change the look of your prompt pages" />
+          {/* Enhanced Presets Section */}
+          <div className="mb-6 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-4 border border-blue-200">
+            <label className="flex items-center text-sm font-bold mb-3 text-gray-800">
+              <Icon name="FaPalette" className="mr-2 text-purple-600" size={18} />
+              Quick Style Presets
+              <Tooltip text="Start with a preset and customize it to your needs. Each preset provides a complete style foundation." />
+              <span className="ml-auto text-xs font-normal text-gray-600">Click to apply, then customize below</span>
             </label>
-            <div className="flex gap-2">
+            <div className="grid grid-cols-3 gap-3">
+              {/* Glassy Preset */}
               <button
                 onClick={() => applyPreset('glassy')}
-                className="flex-1 px-4 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg font-medium hover:from-blue-600 hover:to-purple-600 transition-all shadow-sm border border-white/20"
+                className={`relative overflow-hidden rounded-lg p-4 transition-all transform hover:scale-105 ${
+                  selectedPreset === 'glassy' 
+                    ? 'ring-4 ring-blue-500 ring-opacity-50 shadow-lg' 
+                    : 'hover:shadow-lg'
+                }`}
+                style={{
+                  background: 'linear-gradient(135deg, #2563EB 0%, #7864C8 50%, #914AAE 100%)',
+                }}
               >
-                <div className="flex items-center justify-center gap-2">
-                  <Icon name="FaGem" size={16} />
-                  <span>Glassy</span>
+                <div className="absolute inset-0 bg-white/30 backdrop-blur-sm" />
+                <div className="relative">
+                  <div className="flex items-center justify-center gap-2 text-white font-semibold mb-1">
+                    <Icon name="FaGem" size={20} />
+                    <span>Glassy</span>
+                  </div>
+                  <div className="text-xs text-white/90">Transparent cards with blur</div>
+                  <div className="mt-2 flex justify-center gap-1">
+                    <div className="w-8 h-8 rounded bg-white/70 border border-white/50" title="70% opacity" />
+                    <div className="w-8 h-8 rounded bg-white/30 backdrop-blur-sm" title="Glass effect" />
+                  </div>
+                  {selectedPreset === 'glassy' && (
+                    <div className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs px-2 py-1 rounded-bl-lg font-bold">
+                      Active
+                    </div>
+                  )}
                 </div>
-                <div className="text-xs opacity-80 mt-1">Transparent & modern</div>
               </button>
+
+              {/* Solid Preset */}
               <button
                 onClick={() => applyPreset('solid')}
-                className="flex-1 px-4 py-3 bg-gradient-to-r from-blue-600 to-green-600 text-white rounded-lg font-medium hover:from-blue-700 hover:to-green-700 transition-all shadow-sm"
+                className={`relative overflow-hidden rounded-lg p-4 transition-all transform hover:scale-105 ${
+                  selectedPreset === 'solid' 
+                    ? 'ring-4 ring-blue-500 ring-opacity-50 shadow-lg' 
+                    : 'hover:shadow-lg'
+                }`}
+                style={{
+                  background: '#F3F4F6',
+                }}
               >
-                <div className="flex items-center justify-center gap-2">
-                  <Icon name="FaCube" size={16} />
-                  <span>Solid</span>
+                <div className="relative">
+                  <div className="flex items-center justify-center gap-2 text-gray-800 font-semibold mb-1">
+                    <Icon name="FaCube" size={20} />
+                    <span>Solid</span>
+                  </div>
+                  <div className="text-xs text-gray-600">Opaque & professional</div>
+                  <div className="mt-2 flex justify-center gap-1">
+                    <div className="w-8 h-8 rounded bg-white border border-gray-300" title="100% opacity" />
+                    <div className="w-8 h-8 rounded bg-blue-600" title="Solid colors" />
+                  </div>
+                  {selectedPreset === 'solid' && (
+                    <div className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs px-2 py-1 rounded-bl-lg font-bold">
+                      Active
+                    </div>
+                  )}
                 </div>
-                <div className="text-xs opacity-80 mt-1">Clean & professional</div>
               </button>
+
+              {/* Paper Preset */}
               <button
                 onClick={() => applyPreset('paper')}
-                className="flex-1 px-4 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-medium hover:from-purple-700 hover:to-pink-700 transition-all shadow-sm"
+                className={`relative overflow-hidden rounded-lg p-4 transition-all transform hover:scale-105 ${
+                  selectedPreset === 'paper' 
+                    ? 'ring-4 ring-purple-500 ring-opacity-50 shadow-lg' 
+                    : 'hover:shadow-lg'
+                }`}
+                style={{
+                  background: '#FEFCF3',
+                }}
               >
-                <div className="flex items-center justify-center gap-2">
-                  <Icon name="FaFile" size={16} />
-                  <span>Paper</span>
+                <div className="relative">
+                  <div className="flex items-center justify-center gap-2 text-gray-800 font-semibold mb-1">
+                    <Icon name="FaFile" size={20} />
+                    <span>Paper</span>
+                  </div>
+                  <div className="text-xs text-gray-600">Classic & elegant</div>
+                  <div className="mt-2 flex justify-center gap-1">
+                    <div className="w-8 h-8 rounded bg-white border border-gray-400" title="Paper texture" />
+                    <div className="w-8 h-8 rounded bg-purple-600" title="Accent color" />
+                  </div>
+                  {selectedPreset === 'paper' && (
+                    <div className="absolute -top-1 -right-1 bg-purple-500 text-white text-xs px-2 py-1 rounded-bl-lg font-bold">
+                      Active
+                    </div>
+                  )}
                 </div>
-                <div className="text-xs opacity-80 mt-1">Classic & elegant</div>
               </button>
+            </div>
+            <div className="mt-3 text-xs text-gray-600 text-center">
+              💡 Tip: Apply a preset first, then fine-tune the settings below to match your brand
             </div>
           </div>
 

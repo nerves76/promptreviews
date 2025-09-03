@@ -7,6 +7,7 @@
 
 import React, { memo, useMemo, useCallback, Suspense } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
+import FiveStarSpinner from './FiveStarSpinner';
 
 // Error Fallback Component
 const ErrorFallback = ({ error, resetErrorBoundary }: { error: Error; resetErrorBoundary: () => void }) => {
@@ -24,16 +25,20 @@ const ErrorFallback = ({ error, resetErrorBoundary }: { error: Error; resetError
   );
 };
 
-// Optimized Loading Spinner
+// Optimized Loading Spinner - Now uses FiveStarSpinner for consistency
 export const OptimizedSpinner = memo(({ size = 'md', className = '' }: { size?: 'sm' | 'md' | 'lg'; className?: string }) => {
-  const sizeClasses = useMemo(() => ({
-    sm: 'h-4 w-4',
-    md: 'h-8 w-8',
-    lg: 'h-12 w-12'
-  }), []);
+  const spinnerSize = useMemo(() => {
+    // Map size props to pixel values, defaulting to consistent 18px
+    switch (size) {
+      case 'sm': return 14;
+      case 'md': return 16; 
+      case 'lg': return 18;
+      default: return 18;
+    }
+  }, [size]);
 
   return (
-    <div className={`animate-spin rounded-full border-b-2 border-slate-blue ${sizeClasses[size]} ${className}`} />
+    <FiveStarSpinner size={spinnerSize} className={className} />
   );
 });
 

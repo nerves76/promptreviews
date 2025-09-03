@@ -12,6 +12,7 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/auth/providers/supabase';
 import { isAdmin } from '@/auth/utils/admin';
 import Icon from '@/components/Icon';
+import StandardLoader from '@/app/(app)/components/StandardLoader';
 
 // Using singleton Supabase client from supabaseClient.ts
 
@@ -205,14 +206,7 @@ export default function AdminAnalyticsPage() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-blue mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading admin analytics...</p>
-        </div>
-      </div>
-    );
+    return <StandardLoader isLoading={true} mode="fullPage" />;
   }
 
   if (!isAdminUser) {

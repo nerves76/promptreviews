@@ -528,7 +528,7 @@ export default function UniversalEditPromptPage() {
           <div className="pb-16">
             {isLoading && (
               <div className="flex items-center justify-center py-8">
-                <div className="text-lg text-gray-600">Loading...</div>
+                <div className="text-lg text-white">Loading...</div>
               </div>
             )}
             {error && (

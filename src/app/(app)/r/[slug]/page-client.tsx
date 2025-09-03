@@ -206,7 +206,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
     gradient_start: initialData.businessProfile.gradient_start || '#2563EB',
     gradient_middle: initialData.businessProfile.gradient_middle || '#7864C8',
     gradient_end: initialData.businessProfile.gradient_end || '#914AAE',
-    card_transparency: initialData.businessProfile.card_transparency ?? 0.30,
+    card_transparency: initialData.businessProfile.card_transparency ?? 0.70,
     card_border_width: initialData.businessProfile.card_border_width ?? 1,
     card_border_color: initialData.businessProfile.card_border_color || '#FFFFFF',
     card_border_transparency: initialData.businessProfile.card_border_transparency ?? 0.5,
@@ -235,7 +235,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
     review_platforms: [],
     card_bg: "#FFFFFF",
     card_text: "#1A1A1A",
-    card_transparency: 0.30,
+    card_transparency: 0.70,
     card_border_width: 1,
     card_border_color: "#FFFFFF",
     card_border_transparency: 0.5,
@@ -503,9 +503,9 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
             gradient_start: businessProfile.gradient_start || '#2563EB',
             gradient_middle: businessProfile.gradient_middle || '#7864C8',
             gradient_end: businessProfile.gradient_end || '#914AAE',
-            card_transparency: businessProfile.card_transparency ?? 0.95,
+            card_transparency: businessProfile.card_transparency ?? 0.70,
             card_border_width: businessProfile.card_border_width ?? 1,
-            card_border_color: businessProfile.card_border_color || '#E5E7EB',
+            card_border_color: businessProfile.card_border_color || '#FFFFFF',
             card_border_transparency: businessProfile.card_border_transparency ?? 0.5,
             card_placeholder_color: businessProfile.card_placeholder_color || '#9CA3AF',
           };
@@ -548,9 +548,9 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
             card_bg: '#FFFFFF',
             card_text: '#1A1A1A',
             card_placeholder_color: '#9CA3AF',
-            card_transparency: 0.30,
+            card_transparency: 0.70,
             card_border_width: 1,
-            card_border_color: '#E5E7EB',
+            card_border_color: '#FFFFFF',
             card_border_transparency: 0.5,
             review_platforms: []
           };
@@ -1832,7 +1832,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
             onClick={() => setShowSaveMenu(!showSaveMenu)}
             className="flex items-center gap-2 px-4 py-2 rounded-lg shadow-md transition-all duration-200 group border font-medium"
             style={{
-              backgroundColor: applyCardTransparency(businessProfile?.card_bg || '#FFFFFF', Math.min(1, (businessProfile?.card_transparency ?? 0.30) + 0.4)),
+              backgroundColor: applyCardTransparency(businessProfile?.card_bg || '#FFFFFF', businessProfile?.card_transparency ?? 0.70),
               borderColor: businessProfile?.card_border_color || "#FFFFFF",
               borderWidth: businessProfile?.card_border_width || 1,
               color: businessProfile?.primary_color || "#2563EB",
@@ -2373,7 +2373,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                             >
                               {aiLoadingPhoto ? (
                                 <>
-                                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
+                                  <FiveStarSpinner size={16} />
                                   Generating...
                                 </>
                               ) : (
@@ -2421,7 +2421,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                           >
                             {photoSubmitting ? (
                               <>
-                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                <FiveStarSpinner size={16} />
                                 Submitting...
                               </>
                             ) : (

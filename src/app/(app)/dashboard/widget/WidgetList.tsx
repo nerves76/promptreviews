@@ -1,7 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { getUserOrMock } from "@/utils/supabaseClient";
-import PageLoader from "@/app/(app)/components/PageLoader";
 import { DraggableModal } from './components/DraggableModal';
 import { WidgetEditorForm } from './components/WidgetEditorForm';
 import { ReviewManagementModal } from './components/ReviewManagementModal';
@@ -223,7 +222,11 @@ export default function WidgetList({
     }
   };
 
-  if (loading) return <PageLoader showText={true} text="Loading widgets..." />;
+  if (loading) return (
+    <div className="flex items-center justify-center py-8">
+      <div className="text-lg text-gray-600">Loading widgets...</div>
+    </div>
+  );
   if (error) return <div>Error: {error}</div>;
 
   return (

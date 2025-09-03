@@ -287,34 +287,6 @@ export default function BusinessProfileForm({
             placeholder="https://yourbusiness.com"
           />
         </div>
-        <div className="mb-4 flex flex-col md:flex-row gap-4">
-          <div className="w-full md:w-1/2">
-            <label className="block font-semibold text-sm text-gray-500 mb-1">
-              Business phone
-            </label>
-            <input
-              type="tel"
-              name="phone"
-              className="w-full border px-3 py-2 rounded"
-              value={form.phone || ""}
-              onChange={handleChange}
-              placeholder="e.g., (555) 123-4567"
-            />
-          </div>
-          <div className="w-full md:w-1/2">
-            <label className="block font-semibold text-sm text-gray-500 mb-1">
-              Business email
-            </label>
-            <input
-              type="email"
-              name="business_email"
-              className="w-full border px-3 py-2 rounded"
-              value={form.business_email || ""}
-              onChange={handleChange}
-              placeholder="contact@yourbusiness.com"
-            />
-          </div>
-        </div>
         <div className="mb-4">
           <label className="block font-semibold text-sm text-gray-500 mb-1">
             Business address
@@ -332,8 +304,7 @@ export default function BusinessProfileForm({
             className="w-full border px-3 py-2 rounded mb-4"
             value={form.address_street || ""}
             onChange={handleChange}
-            required
-            placeholder="Street address"
+            placeholder="Street address (optional)"
           />
           <div className="flex gap-2 mb-2">
             <div className="flex flex-col w-32">
@@ -671,6 +642,42 @@ export default function BusinessProfileForm({
         </div>
       </div>
 
+      {/* Contact Information Section */}
+      <div className="mb-8">
+        <hr className="border-gray-300 mb-8" />
+        <h2 className="mt-4 mb-8 text-2xl font-bold text-slate-blue flex items-center gap-3">
+          <Icon name="FaPhone" className="w-7 h-7 text-slate-blue" size={28} />
+          Contact information
+        </h2>
+        <div className="mb-4 flex flex-col md:flex-row gap-4">
+          <div className="w-full md:w-1/2">
+            <label className="block font-semibold text-sm text-gray-500 mb-1">
+              Business phone
+            </label>
+            <input
+              type="tel"
+              name="phone"
+              className="w-full border px-3 py-2 rounded"
+              value={form.phone || ""}
+              onChange={handleChange}
+              placeholder="e.g., (555) 123-4567"
+            />
+          </div>
+          <div className="w-full md:w-1/2">
+            <label className="block font-semibold text-sm text-gray-500 mb-1">
+              Business email
+            </label>
+            <input
+              type="email"
+              name="business_email"
+              className="w-full border px-3 py-2 rounded"
+              value={form.business_email || ""}
+              onChange={handleChange}
+              placeholder="contact@yourbusiness.com"
+            />
+          </div>
+        </div>
+      </div>
 
       {/* Error/Success Messages */}
       {error && (

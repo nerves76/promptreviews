@@ -14,7 +14,7 @@
 - **Card Placeholder Color**: `#9CA3AF` (Gray)
 
 ### Transparency & Effects
-- **Card Transparency**: `0.30` (30% - makes cards 70% see-through)
+- **Card Transparency**: `0.70` (70% - makes cards 30% see-through)
 - **Card Border Width**: `1`
 - **Card Border Transparency**: `0.5`
 - **Card Inner Shadow**: `true` (enabled for frosted glass effect)
@@ -96,7 +96,7 @@ When "Reset" is clicked, these values should be applied:
   card_inner_shadow: true,
   card_shadow_color: "#FFFFFF",
   card_shadow_intensity: 0.30,
-  card_transparency: 0.30,
+  card_transparency: 0.70,
   card_border_width: 1,
   card_border_color: "#FFFFFF",
   card_border_transparency: 0.5,

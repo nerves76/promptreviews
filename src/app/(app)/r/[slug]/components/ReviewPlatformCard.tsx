@@ -2,6 +2,7 @@ import React from 'react';
 import Icon, { IconName } from '@/components/Icon';
 import { applyCardTransparency, getContrastTextColor } from '@/utils/colorUtils';
 import ProcessIndicator from './ProcessIndicator';
+import FiveStarSpinner from '@/app/(app)/components/FiveStarSpinner';
 
 interface ReviewPlatformCardProps {
   platform: any;
@@ -78,10 +79,11 @@ export default function ReviewPlatformCard({
 
   // Helper function to get card border style
   const getCardBorderStyle = () => {
-    if (businessProfile?.card_border_width && businessProfile.card_border_width > 0) {
+    const borderWidth = businessProfile?.card_border_width ?? 1; // Default to 1px if null/undefined
+    if (borderWidth > 0) {
       // Use rgba format for better browser compatibility
-      const borderColor = businessProfile.card_border_color || '#222222';
-      const borderOpacity = businessProfile.card_border_transparency || 1;
+      const borderColor = businessProfile?.card_border_color || '#FFFFFF';
+      const borderOpacity = businessProfile?.card_border_transparency ?? 0.5;
       
       // Convert hex to RGB
       const hex = borderColor.replace('#', '');
@@ -89,7 +91,7 @@ export default function ReviewPlatformCard({
       const g = parseInt(hex.substr(2, 2), 16);
       const b = parseInt(hex.substr(4, 2), 16);
       
-      return `${businessProfile.card_border_width}px solid rgba(${r}, ${g}, ${b}, ${borderOpacity})`;
+      return `${borderWidth}px solid rgba(${r}, ${g}, ${b}, ${borderOpacity})`;
     }
     return 'none';
   };
@@ -109,7 +111,7 @@ export default function ReviewPlatformCard({
     <div
       className="rounded-xl shadow-lg p-6 relative mb-8 backdrop-blur-sm"
       style={{
-        background: applyCardTransparency(businessProfile.card_bg || "#FFFFFF", businessProfile.card_transparency ?? 0.95),
+        background: applyCardTransparency(businessProfile.card_bg || "#FFFFFF", businessProfile.card_transparency ?? 0.70),
         color: businessProfile.card_text || "#1A1A1A",
         border: getCardBorderStyle(),
         backdropFilter: 'blur(8px)'
@@ -119,7 +121,7 @@ export default function ReviewPlatformCard({
         <div
           className="pointer-events-none absolute inset-0 rounded-xl"
           style={{
-            boxShadow: `inset 0 0 32px 0 ${businessProfile.card_shadow_color || '#222222'}${Math.round((businessProfile.card_shadow_intensity || 0.2) * 255).toString(16).padStart(2, '0')}`,
+            boxShadow: `inset 0 0 32px 0 ${businessProfile.card_shadow_color || '#FFFFFF'}${Math.round((businessProfile.card_shadow_intensity || 0.30) * 255).toString(16).padStart(2, '0')}`,
             borderRadius: '0.75rem',
             zIndex: 0,
           }}
@@ -134,7 +136,7 @@ export default function ReviewPlatformCard({
           top: '-20px',
           left: '-20px',
           zIndex: 20, 
-          backgroundColor: applyCardTransparency(businessProfile?.card_bg || '#FFFFFF', businessProfile?.card_transparency ?? 0.30),
+          backgroundColor: applyCardTransparency(businessProfile?.card_bg || '#FFFFFF', businessProfile?.card_transparency ?? 0.70),
           border: getCardBorderStyle(),
           backdropFilter: 'blur(5px)',
           WebkitBackdropFilter: 'blur(5px)'
@@ -339,7 +341,7 @@ export default function ReviewPlatformCard({
                   >
                     {fixGrammarLoading === idx ? (
                       <>
-                        <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-current"></div>
+                        <FiveStarSpinner size={12} />
                         Fixing...
                       </>
                     ) : (
@@ -429,7 +431,7 @@ export default function ReviewPlatformCard({
               >
                 {aiLoading === idx ? (
                   <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
+                    <FiveStarSpinner size={16} />
                     Generating...
                   </>
                 ) : (
@@ -479,12 +481,12 @@ export default function ReviewPlatformCard({
             >
               {isSubmitting === idx ? (
                 <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2" style={{ borderColor: getContrastTextColor(businessProfile?.secondary_color || "#4F46E5") }}></div>
+                  <FiveStarSpinner size={16} />
                   Copying review...
                 </>
               ) : isRedirecting === idx ? (
                 <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2" style={{ borderColor: getContrastTextColor(businessProfile?.secondary_color || "#4F46E5") }}></div>
+                  <FiveStarSpinner size={16} />
                   Redirecting...
                 </>
               ) : (

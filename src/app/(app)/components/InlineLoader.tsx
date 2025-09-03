@@ -4,34 +4,29 @@
  * InlineLoader Component
  * 
  * Lightweight loading spinner for inline content areas (cards, sections, etc.)
- * Does not take full screen space like AppLoader
+ * Now uses StandardLoader for consistency across the app.
  * 
- * @param size - Size of the spinner (default: 14)
- * @param showText - Whether to show "Loading..." text (default: false) 
- * @param className - Additional classes for the container
+ * @param size - DEPRECATED - kept for backward compatibility (StandardLoader uses fixed 18px size)
+ * @param showText - DEPRECATED - kept for backward compatibility (StandardLoader always shows text)  
+ * @param className - DEPRECATED - kept for backward compatibility
+ * @param text - DEPRECATED - kept for backward compatibility (StandardLoader uses "Loading..." text)
  */
 
-import FiveStarSpinner from "./FiveStarSpinner";
+import StandardLoader from "./StandardLoader";
 
 interface InlineLoaderProps {
-  size?: number;
-  showText?: boolean;
-  className?: string;
-  text?: string;
+  size?: number; // Deprecated
+  showText?: boolean; // Deprecated
+  className?: string; // Deprecated
+  text?: string; // Deprecated
 }
 
 export default function InlineLoader({ 
-  size = 14, 
-  showText = false,
-  className = "",
-  text = "Loading..."
+  size = 14, // Ignored - kept for compatibility
+  showText = false, // Ignored - kept for compatibility
+  className = "", // Ignored - kept for compatibility
+  text = "Loading..." // Ignored - kept for compatibility
 }: InlineLoaderProps = {}) {
-  return (
-    <div className={`flex flex-col items-center justify-center py-8 ${className}`}>
-      <FiveStarSpinner size={size} />
-      {showText && (
-        <div className="mt-3 text-sm text-white font-medium">{text}</div>
-      )}
-    </div>
-  );
+  // Always use StandardLoader inline mode for consistency
+  return <StandardLoader isLoading={true} mode="inline" />;
 }
