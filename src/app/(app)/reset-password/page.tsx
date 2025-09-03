@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabaseClient";
 import Link from "next/link";
+import FiveStarSpinner from "@/app/(app)/components/FiveStarSpinner";
 
 function ResetPasswordContent() {
   const [password, setPassword] = useState("");
@@ -140,7 +141,7 @@ function ResetPasswordContent() {
       <div className="min-h-screen bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto"></div>
+            <FiveStarSpinner size={18} />
             <h2 className="mt-4 text-xl font-semibold text-white">
               Verifying reset link...
             </h2>
@@ -303,7 +304,7 @@ export default function ResetPasswordPage() {
       <div className="min-h-screen bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto"></div>
+            <FiveStarSpinner size={18} />
             <h2 className="mt-4 text-xl font-semibold text-white">
               Loading...
             </h2>

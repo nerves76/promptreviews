@@ -10,6 +10,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { CheckCircleIcon, XCircleIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
+import FiveStarSpinner from '@/app/(app)/components/FiveStarSpinner';
 
 interface InvitationData {
   id: string;
@@ -223,7 +224,7 @@ function TeamAcceptContent() {
           <p className="text-gray-600 mb-6">
             You've successfully joined the team. Redirecting you to the dashboard...
           </p>
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+          <FiveStarSpinner size={18} />
         </div>
       </div>
     );

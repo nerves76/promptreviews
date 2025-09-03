@@ -8,7 +8,6 @@ import Link from "next/link";
 import Icon from "@/components/Icon";
 import PageCard from "@/app/(app)/components/PageCard";
 
-import InlineLoader from "@/app/(app)/components/InlineLoader";
 import QRCodeGenerator, { QR_FRAME_SIZES } from "../dashboard/components/QRCodeGenerator";
 import dynamic from "next/dynamic";
 import PromptPagesTable from "@/app/(app)/components/PromptPagesTable";
@@ -676,15 +675,11 @@ function PromptPagesContent() {
   }, [authInitialized, authUser, router]);
 
   // Show loader while auth is initializing or data is being fetched
-  // Using dataLoaded and minLoadTimeElapsed to ensure smooth loading experience
+  // Only show the gold stars on gradient background, no PageCard
   if (!authInitialized || !dataLoaded || !minLoadTimeElapsed || authLoading) {
     return (
-      <div>
-        <PageCard icon={<span className="text-3xl font-bold align-middle text-slate-blue" style={{ fontFamily: 'Inter, sans-serif' }}>[P]</span>}>
-          <div className="min-h-[400px] flex flex-col items-center justify-center">
-            <InlineLoader showText={true} />
-          </div>
-        </PageCard>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600">
+        <FiveStarSpinner size={24} />
       </div>
     );
   }

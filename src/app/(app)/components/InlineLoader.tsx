@@ -30,7 +30,7 @@ export default function InlineLoader({
     <div className={`flex flex-col items-center justify-center py-8 ${className}`}>
       <FiveStarSpinner size={size} />
       {showText && (
-        <div className="mt-3 text-sm text-gray-600 font-medium">{text}</div>
+        <div className="mt-3 text-sm text-white font-medium">{text}</div>
       )}
     </div>
   );

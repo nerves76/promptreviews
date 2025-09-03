@@ -85,6 +85,7 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
     background_type: "gradient",
     background_color: "#FFFFFF",
     gradient_start: "#3B82F6",
+    gradient_middle: "",
     gradient_end: "#c026d3",
     card_bg: "#FFFFFF",
     card_text: "#1A1A1A",
@@ -137,6 +138,7 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
         background_type: settings.background_type,
         background_color: settings.background_color,
         gradient_start: settings.gradient_start,
+        gradient_middle: settings.gradient_middle || null,
         gradient_end: settings.gradient_end,
         card_bg: settings.card_bg,
         card_text: settings.card_text,
@@ -177,7 +179,7 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
       // IMPORTANT: Don't use .single() as accounts can have multiple businesses
       const { data: businessData } = await supabase
         .from("businesses")
-        .select("primary_font,secondary_font,primary_color,secondary_color,background_type,background_color,gradient_start,gradient_end,card_bg,card_text,card_inner_shadow,card_shadow_color,card_shadow_intensity,card_transparency,card_border_width,card_border_color,card_border_transparency,kickstarters_background_design")
+        .select("primary_font,secondary_font,primary_color,secondary_color,background_type,background_color,gradient_start,gradient_middle,gradient_end,card_bg,card_text,card_inner_shadow,card_shadow_color,card_shadow_intensity,card_transparency,card_border_width,card_border_color,card_border_transparency,kickstarters_background_design")
         .eq("account_id", accountId)
         .order("created_at", { ascending: true }); // Get oldest business first
       
@@ -286,6 +288,7 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
           background_type: settings.background_type,
           background_color: settings.background_color,
           gradient_start: settings.gradient_start,
+          gradient_middle: settings.gradient_middle || null,
           gradient_end: settings.gradient_end,
           card_bg: settings.card_bg,
           card_text: settings.card_text,
@@ -332,6 +335,7 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
         background_type: "gradient",
         background_color: "#FFFFFF",
         gradient_start: "#3B82F6",
+        gradient_middle: "",
         gradient_end: "#c026d3",
         card_bg: "#FFFFFF",
         card_text: "#1A1A1A",
@@ -581,6 +585,17 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
                   onChange={e => handleHexInputChange('gradient_start', e.target.value)}
                   className="w-full mt-1 px-2 py-1 text-xs border rounded bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent" 
                   placeholder="#000000"
+                />
+              </div>
+              <div className="flex-1">
+                <label className="block text-xs text-gray-500 mb-1">Middle (Optional)</label>
+                <input type="color" value={settings.gradient_middle || '#FFFFFF'} onChange={e => setSettings(s => ({ ...s, gradient_middle: e.target.value }))} className="w-full h-10 rounded cursor-pointer" disabled={!settings.gradient_middle} />
+                <input 
+                  type="text" 
+                  value={settings.gradient_middle || ''} 
+                  onChange={e => handleHexInputChange('gradient_middle', e.target.value)}
+                  className="w-full mt-1 px-2 py-1 text-xs border rounded bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent" 
+                  placeholder="Leave empty for 2-color gradient"
                 />
               </div>
               <div className="flex-1">

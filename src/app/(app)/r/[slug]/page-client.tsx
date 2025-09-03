@@ -1474,15 +1474,24 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
     mergedOfferTitle &&
     mergedOfferBody;
 
-  // Compute background style
-  const backgroundStyle =
-    businessProfile?.background_type === "gradient"
-      ? {
-          background: `linear-gradient(to bottom, ${businessProfile.gradient_start}, ${businessProfile.gradient_end})`,
-        }
-      : {
-          background: businessProfile?.background_color || "#fff",
-        };
+  // Compute background style with proper gradient support
+  const backgroundStyle = (() => {
+    if (businessProfile?.background_type === "gradient") {
+      const gradientColors = [
+        businessProfile.gradient_start || "#4F46E5",
+        businessProfile.gradient_middle,
+        businessProfile.gradient_end || "#C7D2FE"
+      ].filter(Boolean); // Remove undefined/null values
+      
+      // Use all available gradient colors
+      return {
+        background: `linear-gradient(to bottom, ${gradientColors.join(", ")})`
+      };
+    }
+    return {
+      background: businessProfile?.background_color || "#fff"
+    };
+  })();
 
   // Trigger falling animation after sentiment modal is completed with a positive sentiment
   useEffect(() => {

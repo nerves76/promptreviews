@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { createClient } from '@/auth/providers/supabase';
 import PageCard from '@/app/(app)/components/PageCard';
 import Icon from '@/components/Icon';
+import FiveStarSpinner from '@/app/(app)/components/FiveStarSpinner';
 
 interface PromptPage {
   id: string;
@@ -73,8 +74,8 @@ export default function DebugFriendlyNotePage() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-blue mx-auto mb-4"></div>
-          <p>Loading debug information...</p>
+          <FiveStarSpinner size={18} />
+          <p className="text-white">Loading debug information...</p>
         </div>
       </div>
     );
