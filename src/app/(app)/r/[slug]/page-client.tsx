@@ -1026,6 +1026,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
         return newCounts;
       });
       
+      // Track grammar fix for non-authenticated users only
       if (
         !currentUser &&
         promptPage?.id &&

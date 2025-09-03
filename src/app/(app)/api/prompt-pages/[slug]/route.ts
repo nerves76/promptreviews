@@ -15,9 +15,22 @@ import { checkRateLimit, widgetRateLimiter } from '@/lib/rate-limit';
 
 // Create regular client for public access - respects RLS policies
 // This client uses the anon key and will respect RLS policies
-const supabase = createClient(
+const supabaseAnon = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false
+    }
+  }
+);
+
+// Create service role client for fetching business data
+// This bypasses RLS to allow public pages to show business info
+const supabaseService = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
   {
     auth: {
       persistSession: false,
@@ -196,7 +209,7 @@ export async function GET(
       promptPage = mockData;
     } else {
       // First, get the prompt page using regular client (respects RLS)
-      const { data: dbPromptPage, error: dbPromptError } = await supabase
+      const { data: dbPromptPage, error: dbPromptError } = await supabaseAnon
         .from('prompt_pages')
         .select('*')
         .eq('slug', slug)
@@ -231,7 +244,7 @@ export async function GET(
     if (promptPage.business_location_id) {
       console.log(`[PROMPT-PAGE-BY-SLUG] Fetching location-specific data for location ID: ${promptPage.business_location_id}`);
       
-      const { data: locationData, error: locationErr } = await supabase
+      const { data: locationData, error: locationErr } = await supabaseService
         .from('business_locations')
         .select('*')
         .eq('id', promptPage.business_location_id)
@@ -305,7 +318,9 @@ export async function GET(
       } else {
         // Try businesses table first with a simple select
         // For Universal pages, if there are multiple businesses, get the first one
-        const { data: businessData, error: businessErr } = await supabase
+        // Use service role client to bypass RLS for public pages
+        console.log('[PROMPT-PAGE-BY-SLUG] Querying businesses table for account_id:', promptPage.account_id);
+        const { data: businessData, error: businessErr } = await supabaseService
           .from('businesses')
           .select('*')
           .eq('account_id', promptPage.account_id)
@@ -313,11 +328,18 @@ export async function GET(
           .limit(1)
           .maybeSingle(); // Use maybeSingle() instead of single() to handle 0 or 1 results
 
+        console.log('[PROMPT-PAGE-BY-SLUG] Business query result:', { 
+          hasData: !!businessData, 
+          hasError: !!businessErr,
+          error: businessErr,
+          businessId: businessData?.id 
+        });
+
         if (businessErr) {
           console.log('[PROMPT-PAGE-BY-SLUG] Businesses table error, trying business_locations:', businessErr);
           
           // Fallback to business_locations table
-          const { data: locationData, error: locationErr } = await supabase
+          const { data: locationData, error: locationErr } = await supabaseService
             .from('business_locations')
             .select('*')
             .eq('account_id', promptPage.account_id)
@@ -411,7 +433,7 @@ export async function PATCH(
 
     // SECURITY: Use regular client - this will now require proper authentication
     // and will respect RLS policies, preventing unauthorized updates
-    const { data: promptPage, error } = await supabase
+    const { data: promptPage, error } = await supabaseAnon
       .from('prompt_pages')
       .update(body)
       .eq('slug', slug)

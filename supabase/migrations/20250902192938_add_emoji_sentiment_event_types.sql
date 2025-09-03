@@ -4,7 +4,7 @@
 -- Drop the existing constraint
 ALTER TABLE analytics_events DROP CONSTRAINT IF EXISTS valid_event_type;
 
--- Add the updated constraint with emoji_sentiment event types
+-- Add the updated constraint with emoji_sentiment event types and grammar_fix
 ALTER TABLE analytics_events 
 ADD CONSTRAINT valid_event_type 
 CHECK (event_type IN (
@@ -21,7 +21,8 @@ CHECK (event_type IN (
   'feature_used',            -- General feature usage tracking
   'emoji_sentiment',         -- Emoji sentiment selected
   'emoji_sentiment_choice',  -- Alternative emoji sentiment event
-  'constructive_feedback'    -- Constructive feedback provided
+  'constructive_feedback',   -- Constructive feedback provided
+  'grammar_fix'              -- Grammar fix button clicked
 ));
 
 -- Add comment explaining the constraint
