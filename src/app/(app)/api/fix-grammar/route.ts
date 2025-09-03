@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
-import { createClient } from "@supabase/supabase-js";
+import { createServerSupabaseClient, createServiceRoleClient } from "@/auth/providers/supabase";
 
 export const dynamic = "force-dynamic";
 
@@ -11,11 +11,40 @@ export async function POST(request: Request) {
       { status: 500 },
     );
   }
-  const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-  });
+
   try {
+    // Create Supabase client for auth verification using proper SSR patterns
+    const supabase = await createServerSupabaseClient();
+    
+    // Get the authenticated user from the session
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      console.warn('Grammar fix API: Authentication failed', { error: authError?.message });
+      return NextResponse.json(
+        { error: "Authentication required" },
+        { status: 401 },
+      );
+    }
+
+    const openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
+    
     const { text, user_id } = await request.json();
+
+    // Security: Verify user_id matches authenticated session
+    if (user_id && user_id !== user.id) {
+      console.error('Grammar fix API: Security violation - user_id mismatch', {
+        authenticatedUser: user.id,
+        providedUserId: user_id,
+        timestamp: new Date().toISOString(),
+      });
+      return NextResponse.json(
+        { error: "Forbidden: User ID mismatch" },
+        { status: 403 },
+      );
+    }
 
     if (!text || text.trim() === "") {
       return NextResponse.json(
@@ -50,13 +79,12 @@ export async function POST(request: Request) {
         (usage.prompt_tokens / 1000) * inputPrice +
         (usage.completion_tokens / 1000) * outputPrice;
 
-      // Insert into ai_usage table (using service role for API route)
-      const supabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!,
-      );
-      await supabase.from("ai_usage").insert({
-        user_id: user_id || null,
+      // Insert into ai_usage table (using service role for database write)
+      const serviceSupabase = createServiceRoleClient();
+      
+      // Use the authenticated user's ID (verified above)
+      await serviceSupabase.from("ai_usage").insert({
+        user_id: user.id,
         prompt_tokens: usage.prompt_tokens,
         completion_tokens: usage.completion_tokens,
         total_tokens: usage.total_tokens,

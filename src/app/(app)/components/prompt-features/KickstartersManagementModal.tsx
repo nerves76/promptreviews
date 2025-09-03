@@ -28,6 +28,7 @@ interface KickstartersManagementModalProps {
   allKickstarters: Kickstarter[];
   loading: boolean;
   onRefreshKickstarters?: () => void;
+  accountId: string; // Account context for security
 }
 
 const MAX_SELECTED_KICKSTARTERS = 50; // Increased from 10 to allow more selections
@@ -42,10 +43,18 @@ export default function KickstartersManagementModal({
   onSave,
   allKickstarters,
   loading,
-  onRefreshKickstarters
+  onRefreshKickstarters,
+  accountId
 }: KickstartersManagementModalProps) {
   const supabase = createClient();
   const modalRef = useRef<HTMLDivElement>(null);
+
+  // Validate account context for security
+  React.useEffect(() => {
+    if (isOpen && !accountId) {
+      console.error('KickstartersManagementModal: accountId is required for security');
+    }
+  }, [isOpen, accountId]);
   
   const [activeTab, setActiveTab] = useState<'browse' | 'selected'>('browse');
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
@@ -166,6 +175,12 @@ export default function KickstartersManagementModal({
   };
 
   const handleAddCustomKickstarter = () => {
+    // Verify account context is available for security
+    if (!accountId) {
+      setError('Account context required for security.');
+      return;
+    }
+
     // Validate input
     const trimmedQuestion = customQuestion.trim();
     if (!trimmedQuestion) {
@@ -187,6 +202,7 @@ export default function KickstartersManagementModal({
     const customId = `custom_${timestamp}_${randomStr}`;
     
     // Create a custom kickstarter object - always use CUSTOM category
+    // NOTE: This custom kickstarter will be scoped to accountId when saved by parent component
     const newCustomKickstarter: Kickstarter = {
       id: customId,
       question: trimmedQuestion,

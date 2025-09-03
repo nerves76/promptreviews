@@ -367,6 +367,7 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
               selected_kickstarters: selectedKickstarters,
             }}
             editMode={true}
+            accountId={businessProfile?.account_id}
           />
 
           {/* Recent Reviews Feature */}

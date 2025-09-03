@@ -721,6 +721,7 @@ export default function EmployeePromptPageForm({
               selected_kickstarters: formData.selected_kickstarters,
             }}
             editMode={true}
+            accountId={businessProfile?.account_id}
           />
 
           {/* Recent Reviews Feature */}

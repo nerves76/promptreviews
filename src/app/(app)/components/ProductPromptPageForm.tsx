@@ -566,6 +566,7 @@ export default function ProductPromptPageForm({
             selected_kickstarters: selectedKickstarters,
           }}
           editMode={true}
+          accountId={businessProfile?.account_id}
         />
 
         {/* Recent Reviews Feature */}

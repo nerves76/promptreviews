@@ -1,25 +1,73 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/utils/supabaseClient";
-
-const supabase = createClient();
+import { createServerSupabaseClient, createServiceRoleClient } from "@/auth/providers/supabase";
+import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
 import OpenAI from "openai";
 
+export const dynamic = "force-dynamic";
+
 export async function POST(request: Request) {
-  const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY!,
-  });
+  if (!process.env.OPENAI_API_KEY) {
+    return NextResponse.json(
+      { error: "OPENAI_API_KEY is missing from environment variables." },
+      { status: 500 },
+    );
+  }
+
   try {
+    // Create Supabase client for auth verification using proper SSR patterns
+    const supabase = await createServerSupabaseClient();
+    
+    // Get the authenticated user from the session
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      console.warn('Generate reviews API: Authentication failed', { error: authError?.message });
+      return NextResponse.json(
+        { error: "Authentication required" },
+        { status: 401 },
+      );
+    }
+
+    const openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY!,
+    });
+    
     const { pageId, platforms } = await request.json();
 
-    // Fetch the prompt page data
+    if (!pageId || !platforms || !Array.isArray(platforms)) {
+      return NextResponse.json(
+        { error: "pageId and platforms array are required" },
+        { status: 400 },
+      );
+    }
+
+    // Get user's account ID for security verification
+    const userAccountId = await getRequestAccountId(request, user.id, supabase);
+    if (!userAccountId) {
+      return NextResponse.json(
+        { error: "No account found for user" },
+        { status: 400 }
+      );
+    }
+
+    // Fetch the prompt page data with account verification
     const { data: page, error: pageError } = await supabase
       .from("prompt_pages")
       .select("*")
       .eq("id", pageId)
+      .eq("account_id", userAccountId) // Security: Only access pages owned by user's account
       .single();
 
-    if (pageError) {
-      throw new Error("Failed to fetch prompt page");
+    if (pageError || !page) {
+      console.error('Generate reviews API: Access denied or page not found', {
+        pageId,
+        userAccountId,
+        error: pageError?.message,
+      });
+      return NextResponse.json(
+        { error: "Prompt page not found or access denied" },
+        { status: 404 },
+      );
     }
 
     // Generate reviews for each platform
@@ -40,6 +88,24 @@ export async function POST(request: Request) {
         };
       }),
     );
+
+    // Log token usage for analytics
+    try {
+      const serviceSupabase = createServiceRoleClient();
+      await serviceSupabase.from("ai_usage").insert({
+        user_id: user.id,
+        feature: 'bulk_review_generation',
+        input_data: { 
+          pageId,
+          platforms: platforms,
+          reviewCount: reviews.length
+        },
+        created_at: new Date().toISOString(),
+      });
+    } catch (loggingError) {
+      // Don't fail the request if logging fails
+      console.error('Failed to log AI usage:', loggingError);
+    }
 
     return NextResponse.json({ reviews });
   } catch (error) {

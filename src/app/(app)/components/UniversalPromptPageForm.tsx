@@ -339,6 +339,7 @@ export default function UniversalPromptPageForm({
         businessProfile={businessProfile}
         initialData={initialData}
         editMode={true}
+        accountId={businessProfile?.account_id}
       />
 
       {/* Recent Reviews Feature */}

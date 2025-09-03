@@ -1372,6 +1372,7 @@ function PromptPagesContent() {
           kickstarters_background_design: business?.kickstarters_background_design || false,
         }}
         businessName={business?.name || businessName}
+        accountId={selectedAccountId || authAccountId}
       />
 
     </div>

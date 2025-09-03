@@ -73,6 +73,8 @@ export interface KickstartersFeatureProps {
     gradient_end?: string;
     background_color?: string;
   };
+  /** Account ID for security and data isolation */
+  accountId: string;
 }
 
 export default function KickstartersFeature({
@@ -91,6 +93,7 @@ export default function KickstartersFeature({
   disabled = false,
   editMode = false,
   businessProfile,
+  accountId,
 }: KickstartersFeatureProps) {
   const supabase = createClient();
   
@@ -530,6 +533,7 @@ export default function KickstartersFeature({
           allKickstarters={allKickstarters}
           loading={loading}
           onRefreshKickstarters={fetchKickstarters}
+          accountId={accountId}
         />
       )}
 

@@ -42,6 +42,7 @@ interface PromptPageSettingsModalProps {
   onSave: (settingsData: any) => Promise<void>;
   initialSettings?: any;
   businessName?: string;
+  accountId: string; // Account ID for security
 }
 
 export default function PromptPageSettingsModal({
@@ -49,7 +50,8 @@ export default function PromptPageSettingsModal({
   onClose,
   onSave,
   initialSettings = {},
-  businessName = ''
+  businessName = '',
+  accountId
 }: PromptPageSettingsModalProps) {
   const { user } = useAuthUser();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -516,6 +518,7 @@ export default function PromptPageSettingsModal({
                   onKickstartersChange={(kickstarters) => handleInputChange('selected_kickstarters', kickstarters)}
                   onCustomKickstartersChange={(custom) => handleInputChange('custom_kickstarters', custom)}
                   onBackgroundDesignChange={(backgroundDesign) => handleInputChange('kickstarters_background_design', backgroundDesign)}
+                  accountId={accountId}
                 />
                 </div>
               </div>

@@ -593,6 +593,7 @@ export default function ServicePromptPageForm({
             selected_kickstarters: initialData?.selected_kickstarters,
           }}
           editMode={true}
+          accountId={businessProfile?.account_id}
         />
 
         {/* Recent Reviews Section */}

@@ -384,6 +384,7 @@ export default function PhotoPromptPageForm({
               selected_kickstarters: formData.selected_kickstarters,
             }}
             editMode={true}
+            accountId={businessProfile?.account_id}
           />
 
           {/* Recent Reviews Feature */}

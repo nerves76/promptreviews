@@ -1,5 +1,13 @@
 # API Changelog
 
+## [2025-09-02]
+### Security
+- Fixed critical security vulnerabilities in `/api/fix-grammar` endpoint:
+  - Added proper session verification using `createServerSupabaseClient()`
+  - Added user_id validation to prevent ID spoofing attacks
+  - Added proper error logging for security violations
+  - Implemented proper 401/403 status codes for unauthorized/forbidden requests
+
 ## [2025-09-01]
 ### Fixed
 - Stripe webhook not processing due to missing stripe listen command

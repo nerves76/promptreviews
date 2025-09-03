@@ -407,6 +407,7 @@ export default function BasePromptPageForm({
             kickstarters_background_design: localBackgroundDesign,
           }}
           disabled={disabled}
+          accountId={businessProfile?.account_id}
 
           businessProfile={{
             primary_color: businessProfile?.primary_color,
