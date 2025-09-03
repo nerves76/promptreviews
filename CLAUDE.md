@@ -448,6 +448,21 @@ const accounts = await prisma.accounts.findMany({
 
 ## Recent Issues Log
 
+### 2025-09-03 - Comprehensive Security Audit and Fixes
+- **Issues Found:** Multiple account isolation vulnerabilities in prompt page features
+- **AI Endpoints:** Fixed authentication bypass in fix-grammar and generate-review APIs
+- **Kickstarters:** Added account verification to prevent cross-account access
+- **Public API:** Filtered sensitive business data from public endpoints
+- **Business Defaults:** Completed inheritance for all missing features
+- **Status:** RESOLVED - All vulnerabilities fixed and deployed
+- **Files Fixed:** 19 files with comprehensive security enhancements
+
+### 2025-09-02 - Cross-Account Platform Leakage
+- **Issue:** Review platforms from wrong accounts appearing in Universal Prompt Pages
+- **Root Cause:** Fallback logic used business platforms even when explicitly cleared
+- **Solution:** Distinguished between null (never saved) and empty array (explicitly cleared)
+- **Status:** RESOLVED - Platform inheritance logic fixed
+
 ### 2025-09-01 - Critical Account Isolation Breach
 - **Issue:** Dashboard pages showing data from wrong accounts when using account switcher
 - **Symptoms:** Prompt pages, reviews, and widgets displaying data from user's first account regardless of selection

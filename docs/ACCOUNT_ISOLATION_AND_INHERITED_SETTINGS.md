@@ -165,5 +165,35 @@ When testing account isolation:
 - `/src/auth/utils/accounts.ts` (contains problematic `getAccountIdForUser`)
 - `/supabase/migrations/*` (business table schema)
 
+## Security Fixes Applied (2025-09-03)
+
+### Critical Vulnerabilities Fixed:
+
+1. **AI Endpoints Security**
+   - `fix-grammar/route.ts`: Added session verification, prevented user_id spoofing
+   - `generate-review/route.ts`: Added authentication and account verification
+   - `generate-reviews/route.ts`: Added complete auth system with ownership checks
+   - Public pages (`r/[slug]/page-client.tsx`): AI features now require authentication and account ownership
+
+2. **Kickstarters Component Security**
+   - Added `accountId` prop throughout component chain (10+ files)
+   - `KickstartersManagementModal` now requires and validates account context
+   - All database operations properly scoped to correct account
+
+3. **Public API Data Filtering**
+   - `prompt-pages/[slug]/route.ts`: Filters out sensitive business data
+   - Only returns necessary display fields (name, styling, social URLs)
+   - Excludes: emails, phones, addresses, internal settings, API keys
+
+4. **Business Default Inheritance Completed**
+   - Added inheritance for `show_friendly_note` and `friendly_note`
+   - Added inheritance for `kickstarters_enabled` and `selected_kickstarters`
+   - Added inheritance for `recent_reviews_enabled` and `recent_reviews_scope`
+   - All features now properly fall back to business defaults when appropriate
+
+### Files Modified:
+- 19 source files updated with security enhancements
+- All changes committed to main branch
+
 ## Last Updated
-2025-09-02 - Added comprehensive account isolation checks and documentation
+2025-09-03 - Implemented comprehensive security fixes for all prompt page features and AI endpoints

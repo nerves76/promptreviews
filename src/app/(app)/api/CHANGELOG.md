@@ -1,5 +1,25 @@
 # API Changelog
 
+## [2025-09-03]
+### Security - Comprehensive Security Audit Fixes
+- **Fixed authentication bypass in AI endpoints:**
+  - `/api/fix-grammar` - Added session verification, prevented user_id spoofing
+  - `/api/generate-review` - Added authentication and account verification
+  - `/api/generate-reviews` - Added complete auth system with ownership checks
+  - All AI endpoints now require valid authentication and verify user ownership
+
+- **Fixed public API data exposure:**
+  - `/api/prompt-pages/[slug]` - Filtered sensitive business data from public access
+  - Only returns necessary display fields (name, styling, social URLs)
+  - Excludes emails, phones, addresses, internal settings, API keys
+  - Added rate limiting protection
+
+- **Security improvements:**
+  - All endpoints use `createServerSupabaseClient()` for proper SSR auth
+  - Added comprehensive security logging for violations
+  - Implemented proper 401/403 status codes
+  - Added account context verification throughout
+
 ## [2025-09-02]
 ### Security
 - Fixed critical security vulnerabilities in `/api/fix-grammar` endpoint:
