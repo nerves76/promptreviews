@@ -128,13 +128,16 @@ export default function ReviewPlatformCard({
       
       {/* Icon in top-left corner */}
       <div
-        className="absolute -top-4 -left-4 rounded-full shadow p-2 flex items-center justify-center"
+        className="absolute rounded-full shadow-lg p-2 flex items-center justify-center backdrop-blur-md"
         title={label}
         style={{ 
+          top: '-20px',
+          left: '-20px',
           zIndex: 20, 
-          backgroundColor: applyCardTransparency(businessProfile?.card_bg || '#FFFFFF', businessProfile.card_transparency ?? 0.95),
+          backgroundColor: applyCardTransparency(businessProfile?.card_bg || '#FFFFFF', businessProfile.card_transparency ?? 0.85),
           border: getCardBorderStyle(),
-          backdropFilter: 'blur(4px)'
+          backdropFilter: 'blur(8px)',
+          WebkitBackdropFilter: 'blur(8px)'
         }}
       >
         <Icon

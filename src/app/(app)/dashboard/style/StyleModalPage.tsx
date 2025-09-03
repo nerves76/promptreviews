@@ -121,9 +121,9 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
     card_inner_shadow: false,
     card_shadow_color: "#222222",
     card_shadow_intensity: 0.20,
-    card_transparency: 0.95,
+    card_transparency: 0.85,
     card_border_width: 1,
-    card_border_color: "#E5E7EB",
+    card_border_color: "#FFFFFF",
     card_border_transparency: 0.5,
     kickstarters_background_design: false,
   });
@@ -245,9 +245,9 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
           card_inner_shadow: business.card_inner_shadow || false,
           card_shadow_color: business.card_shadow_color || "#222222",
           card_shadow_intensity: business.card_shadow_intensity || 0.20,
-          card_transparency: business.card_transparency ?? 0.95,
+          card_transparency: business.card_transparency ?? 0.85,
           card_border_width: business.card_border_width ?? 1,
-          card_border_color: business.card_border_color || "#E5E7EB",
+          card_border_color: business.card_border_color || "#FFFFFF",
           card_border_transparency: business.card_border_transparency ?? 0.5,
           kickstarters_background_design: business.kickstarters_background_design ?? false
         }));
@@ -422,9 +422,9 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
         card_inner_shadow: false,
         card_shadow_color: "#222222",
         card_shadow_intensity: 0.20,
-        card_transparency: 0.95,
+        card_transparency: 0.85,
         card_border_width: 1,
-        card_border_color: "#E5E7EB",
+        card_border_color: "#FFFFFF",
         card_border_transparency: 0.5,
         kickstarters_background_design: false,
       });

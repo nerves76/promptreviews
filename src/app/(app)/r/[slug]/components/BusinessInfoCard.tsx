@@ -106,10 +106,12 @@ export default function BusinessInfoCard({ businessProfile, reviewType, promptPa
         style={{ pointerEvents: "none", top: "-100px" }}
       >
         <div 
-          className="rounded-full p-0.5 shadow-lg flex items-center justify-center w-full h-full aspect-square"
+          className="rounded-full shadow-lg flex items-center justify-center w-full h-full aspect-square"
           style={{ 
-            backgroundColor: applyCardTransparency(businessProfile?.card_bg || '#FFFFFF', businessProfile.card_transparency ?? 0.95),
-            backdropFilter: 'blur(4px)'
+            backgroundColor: applyCardTransparency(businessProfile?.card_bg || '#FFFFFF', businessProfile.card_transparency ?? 0.85),
+            backdropFilter: 'blur(4px)',
+            border: '1px solid rgba(255, 255, 255, 0.5)',
+            padding: '2px'
           }}
         >
           {businessProfile?.logo_url ? (
