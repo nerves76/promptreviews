@@ -2189,7 +2189,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                               id="photoReviewerFirstName"
                               value={photoReviewerFirstName}
                               onChange={(e) => setPhotoReviewerFirstName(e.target.value)}
-                              placeholder="Ezra"
+                              placeholder="Sally"
                               className="w-full mt-1 mb-2 p-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                               style={{
                                 background: businessProfile?.card_bg || "#F9FAFB",
@@ -2211,7 +2211,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                               id="photoReviewerLastName"
                               value={photoReviewerLastName}
                               onChange={(e) => setPhotoReviewerLastName(e.target.value)}
-                              placeholder="Scout"
+                              placeholder="Walden"
                               className="w-full mt-1 mb-2 p-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                               style={{
                                 background: businessProfile?.card_bg || "#F9FAFB",

@@ -222,7 +222,7 @@ export default function ReviewPlatformCard({
                 id={`reviewerFirstName-${idx}`}
                 value={reviewerFirstNames[idx]}
                 onChange={(e) => onFirstNameChange(idx, e.target.value)}
-                placeholder="Ezra"
+                placeholder="Sally"
                 className="w-full mt-1 mb-2 p-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                 style={{
                   background: businessProfile?.card_bg || "#F9FAFB",
@@ -244,7 +244,7 @@ export default function ReviewPlatformCard({
                 id={`reviewerLastName-${idx}`}
                 value={reviewerLastNames[idx]}
                 onChange={(e) => onLastNameChange(idx, e.target.value)}
-                placeholder="Scout"
+                placeholder="Walden"
                 className="w-full mt-1 mb-2 p-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                 style={{
                   background: businessProfile?.card_bg || "#F9FAFB",

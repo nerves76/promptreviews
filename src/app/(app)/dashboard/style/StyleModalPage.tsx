@@ -230,18 +230,25 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
       if (business) {
         setSettings(s => ({
           ...s,
-          ...business,
+          primary_font: business.primary_font || "Inter",
+          secondary_font: business.secondary_font || "Roboto",
+          primary_color: business.primary_color || "#6366F1",
+          secondary_color: business.secondary_color || "#818CF8",
+          background_type: business.background_type || "gradient",
+          background_color: business.background_color || "#FFFFFF",
+          gradient_start: business.gradient_start || "#527DE7",
+          gradient_middle: business.gradient_middle || "#7864C8",
+          gradient_end: business.gradient_end || "#914AAE",
           card_bg: business.card_bg || "#FFFFFF",
           card_text: business.card_text || "#1A1A1A",
           card_placeholder_color: business.card_placeholder_color || "#9CA3AF",
-          background_color: business.background_color || "#FFFFFF",
           card_inner_shadow: business.card_inner_shadow || false,
           card_shadow_color: business.card_shadow_color || "#222222",
           card_shadow_intensity: business.card_shadow_intensity || 0.20,
-          card_transparency: business.card_transparency || 0.95,
-          card_border_width: business.card_border_width || 1,
+          card_transparency: business.card_transparency ?? 0.95,
+          card_border_width: business.card_border_width ?? 1,
           card_border_color: business.card_border_color || "#E5E7EB",
-          card_border_transparency: business.card_border_transparency || 0.5,
+          card_border_transparency: business.card_border_transparency ?? 0.5,
           kickstarters_background_design: business.kickstarters_background_design ?? false
         }));
       }
@@ -436,20 +443,22 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
         style={{ pointerEvents: 'auto' }}
       />
       
-      {/* Soft darkening area behind modal - contained within modal bounds */}
-      <div
-        style={{
-          position: 'fixed',
-          left: modalPos.x,
-          top: modalPos.y,
-          width: modalDimensions.width,
-          height: modalDimensions.height,
-          background: 'rgba(0, 0, 0, 0.3)',
-          borderRadius: '1rem',
-          pointerEvents: 'none',
-          zIndex: 49,
-        }}
-      />
+      {/* Soft darkening area behind modal - only shows on prompt pages */}
+      {onClose && (
+        <div
+          style={{
+            position: 'fixed',
+            left: modalPos.x,
+            top: modalPos.y,
+            width: modalDimensions.width,
+            height: modalDimensions.height,
+            background: 'rgba(0, 0, 0, 0.3)',
+            borderRadius: '1rem',
+            pointerEvents: 'none',
+            zIndex: 49,
+          }}
+        />
+      )}
       
       {/* Modal */}
       <div

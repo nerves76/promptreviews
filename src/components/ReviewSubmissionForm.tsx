@@ -119,7 +119,7 @@ export default function ReviewSubmissionForm({
             id="reviewerName"
             value={reviewerInfo.name}
             onChange={(e) => updateReviewerInfo({ name: e.target.value })}
-            placeholder="Ezra C"
+            placeholder="Sally W"
             className="mt-1 block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
             required
           />
