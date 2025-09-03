@@ -1,0 +1,1547 @@
+
+> promptreviews@0.1.0 build
+> next build
+
+   ▲ Next.js 15.3.5
+   - Environments: .env.local, .env
+
+   Creating an optimized production build ...
+ ⚠ Compiled with warnings in 16.0s
+
+./node_modules/@opentelemetry/instrumentation-connect/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+Critical dependency: the request of a dependency is an expression
+
+Import trace for requested module:
+./node_modules/@opentelemetry/instrumentation-connect/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+./node_modules/@opentelemetry/instrumentation-connect/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/index.js
+./node_modules/@opentelemetry/instrumentation-connect/node_modules/@opentelemetry/instrumentation/build/esm/platform/index.js
+./node_modules/@opentelemetry/instrumentation-connect/node_modules/@opentelemetry/instrumentation/build/esm/index.js
+./node_modules/@opentelemetry/instrumentation-connect/build/src/instrumentation.js
+./node_modules/@opentelemetry/instrumentation-connect/build/src/index.js
+./node_modules/@sentry/node/build/cjs/integrations/tracing/connect.js
+./node_modules/@sentry/node/build/cjs/index.js
+./node_modules/@sentry/nextjs/build/cjs/index.server.js
+./src/app/global-error.tsx
+
+./node_modules/@opentelemetry/instrumentation-express/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+Critical dependency: the request of a dependency is an expression
+
+Import trace for requested module:
+./node_modules/@opentelemetry/instrumentation-express/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+./node_modules/@opentelemetry/instrumentation-express/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/index.js
+./node_modules/@opentelemetry/instrumentation-express/node_modules/@opentelemetry/instrumentation/build/esm/platform/index.js
+./node_modules/@opentelemetry/instrumentation-express/node_modules/@opentelemetry/instrumentation/build/esm/index.js
+./node_modules/@opentelemetry/instrumentation-express/build/src/instrumentation.js
+./node_modules/@opentelemetry/instrumentation-express/build/src/index.js
+./node_modules/@sentry/node/build/cjs/integrations/tracing/express.js
+./node_modules/@sentry/node/build/cjs/index.js
+./node_modules/@sentry/nextjs/build/cjs/index.server.js
+./src/app/global-error.tsx
+
+./node_modules/@opentelemetry/instrumentation-generic-pool/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+Critical dependency: the request of a dependency is an expression
+
+Import trace for requested module:
+./node_modules/@opentelemetry/instrumentation-generic-pool/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+./node_modules/@opentelemetry/instrumentation-generic-pool/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/index.js
+./node_modules/@opentelemetry/instrumentation-generic-pool/node_modules/@opentelemetry/instrumentation/build/esm/platform/index.js
+./node_modules/@opentelemetry/instrumentation-generic-pool/node_modules/@opentelemetry/instrumentation/build/esm/index.js
+./node_modules/@opentelemetry/instrumentation-generic-pool/build/src/instrumentation.js
+./node_modules/@opentelemetry/instrumentation-generic-pool/build/src/index.js
+./node_modules/@sentry/node/build/cjs/integrations/tracing/genericPool.js
+./node_modules/@sentry/node/build/cjs/index.js
+./node_modules/@sentry/nextjs/build/cjs/index.server.js
+./src/app/global-error.tsx
+
+./node_modules/@opentelemetry/instrumentation-hapi/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+Critical dependency: the request of a dependency is an expression
+
+Import trace for requested module:
+./node_modules/@opentelemetry/instrumentation-hapi/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+./node_modules/@opentelemetry/instrumentation-hapi/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/index.js
+./node_modules/@opentelemetry/instrumentation-hapi/node_modules/@opentelemetry/instrumentation/build/esm/platform/index.js
+./node_modules/@opentelemetry/instrumentation-hapi/node_modules/@opentelemetry/instrumentation/build/esm/index.js
+./node_modules/@opentelemetry/instrumentation-hapi/build/src/instrumentation.js
+./node_modules/@opentelemetry/instrumentation-hapi/build/src/index.js
+./node_modules/@sentry/node/build/cjs/integrations/tracing/hapi/index.js
+./node_modules/@sentry/node/build/cjs/index.js
+./node_modules/@sentry/nextjs/build/cjs/index.server.js
+./src/app/global-error.tsx
+
+./node_modules/@opentelemetry/instrumentation-ioredis/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+Critical dependency: the request of a dependency is an expression
+
+Import trace for requested module:
+./node_modules/@opentelemetry/instrumentation-ioredis/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+./node_modules/@opentelemetry/instrumentation-ioredis/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/index.js
+./node_modules/@opentelemetry/instrumentation-ioredis/node_modules/@opentelemetry/instrumentation/build/esm/platform/index.js
+./node_modules/@opentelemetry/instrumentation-ioredis/node_modules/@opentelemetry/instrumentation/build/esm/index.js
+./node_modules/@opentelemetry/instrumentation-ioredis/build/src/instrumentation.js
+./node_modules/@opentelemetry/instrumentation-ioredis/build/src/index.js
+./node_modules/@sentry/node/build/cjs/integrations/tracing/redis.js
+./node_modules/@sentry/node/build/cjs/index.js
+./node_modules/@sentry/nextjs/build/cjs/index.server.js
+./src/app/global-error.tsx
+
+./node_modules/@opentelemetry/instrumentation-knex/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+Critical dependency: the request of a dependency is an expression
+
+Import trace for requested module:
+./node_modules/@opentelemetry/instrumentation-knex/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+./node_modules/@opentelemetry/instrumentation-knex/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/index.js
+./node_modules/@opentelemetry/instrumentation-knex/node_modules/@opentelemetry/instrumentation/build/esm/platform/index.js
+./node_modules/@opentelemetry/instrumentation-knex/node_modules/@opentelemetry/instrumentation/build/esm/index.js
+./node_modules/@opentelemetry/instrumentation-knex/build/src/instrumentation.js
+./node_modules/@opentelemetry/instrumentation-knex/build/src/index.js
+./node_modules/@sentry/node/build/cjs/integrations/tracing/knex.js
+./node_modules/@sentry/node/build/cjs/index.js
+./node_modules/@sentry/nextjs/build/cjs/index.server.js
+./src/app/global-error.tsx
+
+./node_modules/@opentelemetry/instrumentation-lru-memoizer/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+Critical dependency: the request of a dependency is an expression
+
+Import trace for requested module:
+./node_modules/@opentelemetry/instrumentation-lru-memoizer/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+./node_modules/@opentelemetry/instrumentation-lru-memoizer/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/index.js
+./node_modules/@opentelemetry/instrumentation-lru-memoizer/node_modules/@opentelemetry/instrumentation/build/esm/platform/index.js
+./node_modules/@opentelemetry/instrumentation-lru-memoizer/node_modules/@opentelemetry/instrumentation/build/esm/index.js
+./node_modules/@opentelemetry/instrumentation-lru-memoizer/build/src/instrumentation.js
+./node_modules/@opentelemetry/instrumentation-lru-memoizer/build/src/index.js
+./node_modules/@sentry/node/build/cjs/integrations/tracing/lrumemoizer.js
+./node_modules/@sentry/node/build/cjs/index.js
+./node_modules/@sentry/nextjs/build/cjs/index.server.js
+./src/app/global-error.tsx
+
+./node_modules/@opentelemetry/instrumentation-mongoose/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+Critical dependency: the request of a dependency is an expression
+
+Import trace for requested module:
+./node_modules/@opentelemetry/instrumentation-mongoose/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+./node_modules/@opentelemetry/instrumentation-mongoose/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/index.js
+./node_modules/@opentelemetry/instrumentation-mongoose/node_modules/@opentelemetry/instrumentation/build/esm/platform/index.js
+./node_modules/@opentelemetry/instrumentation-mongoose/node_modules/@opentelemetry/instrumentation/build/esm/index.js
+./node_modules/@opentelemetry/instrumentation-mongoose/build/src/mongoose.js
+./node_modules/@opentelemetry/instrumentation-mongoose/build/src/index.js
+./node_modules/@sentry/node/build/cjs/integrations/tracing/mongoose.js
+./node_modules/@sentry/node/build/cjs/index.js
+./node_modules/@sentry/nextjs/build/cjs/index.server.js
+./src/app/global-error.tsx
+
+./node_modules/@opentelemetry/instrumentation-mysql2/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+Critical dependency: the request of a dependency is an expression
+
+Import trace for requested module:
+./node_modules/@opentelemetry/instrumentation-mysql2/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+./node_modules/@opentelemetry/instrumentation-mysql2/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/index.js
+./node_modules/@opentelemetry/instrumentation-mysql2/node_modules/@opentelemetry/instrumentation/build/esm/platform/index.js
+./node_modules/@opentelemetry/instrumentation-mysql2/node_modules/@opentelemetry/instrumentation/build/esm/index.js
+./node_modules/@opentelemetry/instrumentation-mysql2/build/src/instrumentation.js
+./node_modules/@opentelemetry/instrumentation-mysql2/build/src/index.js
+./node_modules/@sentry/node/build/cjs/integrations/tracing/mysql2.js
+./node_modules/@sentry/node/build/cjs/index.js
+./node_modules/@sentry/nextjs/build/cjs/index.server.js
+./src/app/global-error.tsx
+
+./node_modules/@opentelemetry/instrumentation-redis-4/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+Critical dependency: the request of a dependency is an expression
+
+Import trace for requested module:
+./node_modules/@opentelemetry/instrumentation-redis-4/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+./node_modules/@opentelemetry/instrumentation-redis-4/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/index.js
+./node_modules/@opentelemetry/instrumentation-redis-4/node_modules/@opentelemetry/instrumentation/build/esm/platform/index.js
+./node_modules/@opentelemetry/instrumentation-redis-4/node_modules/@opentelemetry/instrumentation/build/esm/index.js
+./node_modules/@opentelemetry/instrumentation-redis-4/build/src/instrumentation.js
+./node_modules/@opentelemetry/instrumentation-redis-4/build/src/index.js
+./node_modules/@sentry/node/build/cjs/integrations/tracing/redis.js
+./node_modules/@sentry/node/build/cjs/index.js
+./node_modules/@sentry/nextjs/build/cjs/index.server.js
+./src/app/global-error.tsx
+
+./node_modules/@opentelemetry/instrumentation-undici/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+Critical dependency: the request of a dependency is an expression
+
+Import trace for requested module:
+./node_modules/@opentelemetry/instrumentation-undici/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+./node_modules/@opentelemetry/instrumentation-undici/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/index.js
+./node_modules/@opentelemetry/instrumentation-undici/node_modules/@opentelemetry/instrumentation/build/esm/platform/index.js
+./node_modules/@opentelemetry/instrumentation-undici/node_modules/@opentelemetry/instrumentation/build/esm/index.js
+./node_modules/@opentelemetry/instrumentation-undici/build/src/undici.js
+./node_modules/@opentelemetry/instrumentation-undici/build/src/index.js
+./node_modules/@sentry/node/build/cjs/integrations/node-fetch/index.js
+./node_modules/@sentry/node/build/cjs/index.js
+./node_modules/@sentry/nextjs/build/cjs/index.server.js
+./src/app/global-error.tsx
+
+./node_modules/@sentry/node/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+Critical dependency: the request of a dependency is an expression
+
+Import trace for requested module:
+./node_modules/@sentry/node/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+./node_modules/@sentry/node/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/index.js
+./node_modules/@sentry/node/node_modules/@opentelemetry/instrumentation/build/esm/platform/index.js
+./node_modules/@sentry/node/node_modules/@opentelemetry/instrumentation/build/esm/index.js
+./node_modules/@sentry/node/build/cjs/integrations/tracing/postgresjs.js
+./node_modules/@sentry/node/build/cjs/index.js
+./node_modules/@sentry/nextjs/build/cjs/index.server.js
+./src/app/global-error.tsx
+
+./node_modules/@opentelemetry/instrumentation-connect/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+Critical dependency: the request of a dependency is an expression
+
+Import trace for requested module:
+./node_modules/@opentelemetry/instrumentation-connect/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+./node_modules/@opentelemetry/instrumentation-connect/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/index.js
+./node_modules/@opentelemetry/instrumentation-connect/node_modules/@opentelemetry/instrumentation/build/esm/platform/index.js
+./node_modules/@opentelemetry/instrumentation-connect/node_modules/@opentelemetry/instrumentation/build/esm/index.js
+./node_modules/@opentelemetry/instrumentation-connect/build/src/instrumentation.js
+./node_modules/@opentelemetry/instrumentation-connect/build/src/index.js
+./node_modules/@sentry/node/build/cjs/integrations/tracing/connect.js
+./node_modules/@sentry/node/build/cjs/index.js
+./node_modules/@sentry/nextjs/build/cjs/index.server.js
+
+./node_modules/@opentelemetry/instrumentation-express/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+Critical dependency: the request of a dependency is an expression
+
+Import trace for requested module:
+./node_modules/@opentelemetry/instrumentation-express/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+./node_modules/@opentelemetry/instrumentation-express/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/index.js
+./node_modules/@opentelemetry/instrumentation-express/node_modules/@opentelemetry/instrumentation/build/esm/platform/index.js
+./node_modules/@opentelemetry/instrumentation-express/node_modules/@opentelemetry/instrumentation/build/esm/index.js
+./node_modules/@opentelemetry/instrumentation-express/build/src/instrumentation.js
+./node_modules/@opentelemetry/instrumentation-express/build/src/index.js
+./node_modules/@sentry/node/build/cjs/integrations/tracing/express.js
+./node_modules/@sentry/node/build/cjs/index.js
+./node_modules/@sentry/nextjs/build/cjs/index.server.js
+
+./node_modules/@opentelemetry/instrumentation-generic-pool/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+Critical dependency: the request of a dependency is an expression
+
+Import trace for requested module:
+./node_modules/@opentelemetry/instrumentation-generic-pool/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+./node_modules/@opentelemetry/instrumentation-generic-pool/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/index.js
+./node_modules/@opentelemetry/instrumentation-generic-pool/node_modules/@opentelemetry/instrumentation/build/esm/platform/index.js
+./node_modules/@opentelemetry/instrumentation-generic-pool/node_modules/@opentelemetry/instrumentation/build/esm/index.js
+./node_modules/@opentelemetry/instrumentation-generic-pool/build/src/instrumentation.js
+./node_modules/@opentelemetry/instrumentation-generic-pool/build/src/index.js
+./node_modules/@sentry/node/build/cjs/integrations/tracing/genericPool.js
+./node_modules/@sentry/node/build/cjs/index.js
+./node_modules/@sentry/nextjs/build/cjs/index.server.js
+
+./node_modules/@opentelemetry/instrumentation-hapi/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+Critical dependency: the request of a dependency is an expression
+
+Import trace for requested module:
+./node_modules/@opentelemetry/instrumentation-hapi/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+./node_modules/@opentelemetry/instrumentation-hapi/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/index.js
+./node_modules/@opentelemetry/instrumentation-hapi/node_modules/@opentelemetry/instrumentation/build/esm/platform/index.js
+./node_modules/@opentelemetry/instrumentation-hapi/node_modules/@opentelemetry/instrumentation/build/esm/index.js
+./node_modules/@opentelemetry/instrumentation-hapi/build/src/instrumentation.js
+./node_modules/@opentelemetry/instrumentation-hapi/build/src/index.js
+./node_modules/@sentry/node/build/cjs/integrations/tracing/hapi/index.js
+./node_modules/@sentry/node/build/cjs/index.js
+./node_modules/@sentry/nextjs/build/cjs/index.server.js
+
+./node_modules/@opentelemetry/instrumentation-ioredis/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+Critical dependency: the request of a dependency is an expression
+
+Import trace for requested module:
+./node_modules/@opentelemetry/instrumentation-ioredis/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+./node_modules/@opentelemetry/instrumentation-ioredis/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/index.js
+./node_modules/@opentelemetry/instrumentation-ioredis/node_modules/@opentelemetry/instrumentation/build/esm/platform/index.js
+./node_modules/@opentelemetry/instrumentation-ioredis/node_modules/@opentelemetry/instrumentation/build/esm/index.js
+./node_modules/@opentelemetry/instrumentation-ioredis/build/src/instrumentation.js
+./node_modules/@opentelemetry/instrumentation-ioredis/build/src/index.js
+./node_modules/@sentry/node/build/cjs/integrations/tracing/redis.js
+./node_modules/@sentry/node/build/cjs/index.js
+./node_modules/@sentry/nextjs/build/cjs/index.server.js
+
+./node_modules/@opentelemetry/instrumentation-knex/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+Critical dependency: the request of a dependency is an expression
+
+Import trace for requested module:
+./node_modules/@opentelemetry/instrumentation-knex/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+./node_modules/@opentelemetry/instrumentation-knex/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/index.js
+./node_modules/@opentelemetry/instrumentation-knex/node_modules/@opentelemetry/instrumentation/build/esm/platform/index.js
+./node_modules/@opentelemetry/instrumentation-knex/node_modules/@opentelemetry/instrumentation/build/esm/index.js
+./node_modules/@opentelemetry/instrumentation-knex/build/src/instrumentation.js
+./node_modules/@opentelemetry/instrumentation-knex/build/src/index.js
+./node_modules/@sentry/node/build/cjs/integrations/tracing/knex.js
+./node_modules/@sentry/node/build/cjs/index.js
+./node_modules/@sentry/nextjs/build/cjs/index.server.js
+
+./node_modules/@opentelemetry/instrumentation-lru-memoizer/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+Critical dependency: the request of a dependency is an expression
+
+Import trace for requested module:
+./node_modules/@opentelemetry/instrumentation-lru-memoizer/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+./node_modules/@opentelemetry/instrumentation-lru-memoizer/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/index.js
+./node_modules/@opentelemetry/instrumentation-lru-memoizer/node_modules/@opentelemetry/instrumentation/build/esm/platform/index.js
+./node_modules/@opentelemetry/instrumentation-lru-memoizer/node_modules/@opentelemetry/instrumentation/build/esm/index.js
+./node_modules/@opentelemetry/instrumentation-lru-memoizer/build/src/instrumentation.js
+./node_modules/@opentelemetry/instrumentation-lru-memoizer/build/src/index.js
+./node_modules/@sentry/node/build/cjs/integrations/tracing/lrumemoizer.js
+./node_modules/@sentry/node/build/cjs/index.js
+./node_modules/@sentry/nextjs/build/cjs/index.server.js
+
+./node_modules/@opentelemetry/instrumentation-mongoose/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+Critical dependency: the request of a dependency is an expression
+
+Import trace for requested module:
+./node_modules/@opentelemetry/instrumentation-mongoose/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+./node_modules/@opentelemetry/instrumentation-mongoose/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/index.js
+./node_modules/@opentelemetry/instrumentation-mongoose/node_modules/@opentelemetry/instrumentation/build/esm/platform/index.js
+./node_modules/@opentelemetry/instrumentation-mongoose/node_modules/@opentelemetry/instrumentation/build/esm/index.js
+./node_modules/@opentelemetry/instrumentation-mongoose/build/src/mongoose.js
+./node_modules/@opentelemetry/instrumentation-mongoose/build/src/index.js
+./node_modules/@sentry/node/build/cjs/integrations/tracing/mongoose.js
+./node_modules/@sentry/node/build/cjs/index.js
+./node_modules/@sentry/nextjs/build/cjs/index.server.js
+
+./node_modules/@opentelemetry/instrumentation-mysql2/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+Critical dependency: the request of a dependency is an expression
+
+Import trace for requested module:
+./node_modules/@opentelemetry/instrumentation-mysql2/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+./node_modules/@opentelemetry/instrumentation-mysql2/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/index.js
+./node_modules/@opentelemetry/instrumentation-mysql2/node_modules/@opentelemetry/instrumentation/build/esm/platform/index.js
+./node_modules/@opentelemetry/instrumentation-mysql2/node_modules/@opentelemetry/instrumentation/build/esm/index.js
+./node_modules/@opentelemetry/instrumentation-mysql2/build/src/instrumentation.js
+./node_modules/@opentelemetry/instrumentation-mysql2/build/src/index.js
+./node_modules/@sentry/node/build/cjs/integrations/tracing/mysql2.js
+./node_modules/@sentry/node/build/cjs/index.js
+./node_modules/@sentry/nextjs/build/cjs/index.server.js
+
+./node_modules/@opentelemetry/instrumentation-redis-4/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+Critical dependency: the request of a dependency is an expression
+
+Import trace for requested module:
+./node_modules/@opentelemetry/instrumentation-redis-4/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+./node_modules/@opentelemetry/instrumentation-redis-4/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/index.js
+./node_modules/@opentelemetry/instrumentation-redis-4/node_modules/@opentelemetry/instrumentation/build/esm/platform/index.js
+./node_modules/@opentelemetry/instrumentation-redis-4/node_modules/@opentelemetry/instrumentation/build/esm/index.js
+./node_modules/@opentelemetry/instrumentation-redis-4/build/src/instrumentation.js
+./node_modules/@opentelemetry/instrumentation-redis-4/build/src/index.js
+./node_modules/@sentry/node/build/cjs/integrations/tracing/redis.js
+./node_modules/@sentry/node/build/cjs/index.js
+./node_modules/@sentry/nextjs/build/cjs/index.server.js
+
+./node_modules/@opentelemetry/instrumentation-undici/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+Critical dependency: the request of a dependency is an expression
+
+Import trace for requested module:
+./node_modules/@opentelemetry/instrumentation-undici/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+./node_modules/@opentelemetry/instrumentation-undici/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/index.js
+./node_modules/@opentelemetry/instrumentation-undici/node_modules/@opentelemetry/instrumentation/build/esm/platform/index.js
+./node_modules/@opentelemetry/instrumentation-undici/node_modules/@opentelemetry/instrumentation/build/esm/index.js
+./node_modules/@opentelemetry/instrumentation-undici/build/src/undici.js
+./node_modules/@opentelemetry/instrumentation-undici/build/src/index.js
+./node_modules/@sentry/node/build/cjs/integrations/node-fetch/index.js
+./node_modules/@sentry/node/build/cjs/index.js
+./node_modules/@sentry/nextjs/build/cjs/index.server.js
+
+./node_modules/@sentry/node/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+Critical dependency: the request of a dependency is an expression
+
+Import trace for requested module:
+./node_modules/@sentry/node/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+./node_modules/@sentry/node/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/index.js
+./node_modules/@sentry/node/node_modules/@opentelemetry/instrumentation/build/esm/platform/index.js
+./node_modules/@sentry/node/node_modules/@opentelemetry/instrumentation/build/esm/index.js
+./node_modules/@sentry/node/build/cjs/integrations/tracing/postgresjs.js
+./node_modules/@sentry/node/build/cjs/index.js
+./node_modules/@sentry/nextjs/build/cjs/index.server.js
+
+./node_modules/@opentelemetry/instrumentation-connect/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+Critical dependency: the request of a dependency is an expression
+
+Import trace for requested module:
+./node_modules/@opentelemetry/instrumentation-connect/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+./node_modules/@opentelemetry/instrumentation-connect/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/index.js
+./node_modules/@opentelemetry/instrumentation-connect/node_modules/@opentelemetry/instrumentation/build/esm/platform/index.js
+./node_modules/@opentelemetry/instrumentation-connect/node_modules/@opentelemetry/instrumentation/build/esm/index.js
+./node_modules/@opentelemetry/instrumentation-connect/build/src/instrumentation.js
+./node_modules/@opentelemetry/instrumentation-connect/build/src/index.js
+./node_modules/@sentry/node/build/cjs/integrations/tracing/connect.js
+./node_modules/@sentry/node/build/cjs/index.js
+./node_modules/@sentry/nextjs/build/cjs/index.server.js
+./src/app/(app)/api/test-sentry/route.ts
+
+./node_modules/@opentelemetry/instrumentation-express/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+Critical dependency: the request of a dependency is an expression
+
+Import trace for requested module:
+./node_modules/@opentelemetry/instrumentation-express/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+./node_modules/@opentelemetry/instrumentation-express/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/index.js
+./node_modules/@opentelemetry/instrumentation-express/node_modules/@opentelemetry/instrumentation/build/esm/platform/index.js
+./node_modules/@opentelemetry/instrumentation-express/node_modules/@opentelemetry/instrumentation/build/esm/index.js
+./node_modules/@opentelemetry/instrumentation-express/build/src/instrumentation.js
+./node_modules/@opentelemetry/instrumentation-express/build/src/index.js
+./node_modules/@sentry/node/build/cjs/integrations/tracing/express.js
+./node_modules/@sentry/node/build/cjs/index.js
+./node_modules/@sentry/nextjs/build/cjs/index.server.js
+./src/app/(app)/api/test-sentry/route.ts
+
+./node_modules/@opentelemetry/instrumentation-generic-pool/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+Critical dependency: the request of a dependency is an expression
+
+Import trace for requested module:
+./node_modules/@opentelemetry/instrumentation-generic-pool/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+./node_modules/@opentelemetry/instrumentation-generic-pool/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/index.js
+./node_modules/@opentelemetry/instrumentation-generic-pool/node_modules/@opentelemetry/instrumentation/build/esm/platform/index.js
+./node_modules/@opentelemetry/instrumentation-generic-pool/node_modules/@opentelemetry/instrumentation/build/esm/index.js
+./node_modules/@opentelemetry/instrumentation-generic-pool/build/src/instrumentation.js
+./node_modules/@opentelemetry/instrumentation-generic-pool/build/src/index.js
+./node_modules/@sentry/node/build/cjs/integrations/tracing/genericPool.js
+./node_modules/@sentry/node/build/cjs/index.js
+./node_modules/@sentry/nextjs/build/cjs/index.server.js
+./src/app/(app)/api/test-sentry/route.ts
+
+./node_modules/@opentelemetry/instrumentation-hapi/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+Critical dependency: the request of a dependency is an expression
+
+Import trace for requested module:
+./node_modules/@opentelemetry/instrumentation-hapi/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+./node_modules/@opentelemetry/instrumentation-hapi/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/index.js
+./node_modules/@opentelemetry/instrumentation-hapi/node_modules/@opentelemetry/instrumentation/build/esm/platform/index.js
+./node_modules/@opentelemetry/instrumentation-hapi/node_modules/@opentelemetry/instrumentation/build/esm/index.js
+./node_modules/@opentelemetry/instrumentation-hapi/build/src/instrumentation.js
+./node_modules/@opentelemetry/instrumentation-hapi/build/src/index.js
+./node_modules/@sentry/node/build/cjs/integrations/tracing/hapi/index.js
+./node_modules/@sentry/node/build/cjs/index.js
+./node_modules/@sentry/nextjs/build/cjs/index.server.js
+./src/app/(app)/api/test-sentry/route.ts
+
+./node_modules/@opentelemetry/instrumentation-ioredis/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+Critical dependency: the request of a dependency is an expression
+
+Import trace for requested module:
+./node_modules/@opentelemetry/instrumentation-ioredis/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+./node_modules/@opentelemetry/instrumentation-ioredis/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/index.js
+./node_modules/@opentelemetry/instrumentation-ioredis/node_modules/@opentelemetry/instrumentation/build/esm/platform/index.js
+./node_modules/@opentelemetry/instrumentation-ioredis/node_modules/@opentelemetry/instrumentation/build/esm/index.js
+./node_modules/@opentelemetry/instrumentation-ioredis/build/src/instrumentation.js
+./node_modules/@opentelemetry/instrumentation-ioredis/build/src/index.js
+./node_modules/@sentry/node/build/cjs/integrations/tracing/redis.js
+./node_modules/@sentry/node/build/cjs/index.js
+./node_modules/@sentry/nextjs/build/cjs/index.server.js
+./src/app/(app)/api/test-sentry/route.ts
+
+./node_modules/@opentelemetry/instrumentation-knex/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+Critical dependency: the request of a dependency is an expression
+
+Import trace for requested module:
+./node_modules/@opentelemetry/instrumentation-knex/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+./node_modules/@opentelemetry/instrumentation-knex/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/index.js
+./node_modules/@opentelemetry/instrumentation-knex/node_modules/@opentelemetry/instrumentation/build/esm/platform/index.js
+./node_modules/@opentelemetry/instrumentation-knex/node_modules/@opentelemetry/instrumentation/build/esm/index.js
+./node_modules/@opentelemetry/instrumentation-knex/build/src/instrumentation.js
+./node_modules/@opentelemetry/instrumentation-knex/build/src/index.js
+./node_modules/@sentry/node/build/cjs/integrations/tracing/knex.js
+./node_modules/@sentry/node/build/cjs/index.js
+./node_modules/@sentry/nextjs/build/cjs/index.server.js
+./src/app/(app)/api/test-sentry/route.ts
+
+./node_modules/@opentelemetry/instrumentation-lru-memoizer/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+Critical dependency: the request of a dependency is an expression
+
+Import trace for requested module:
+./node_modules/@opentelemetry/instrumentation-lru-memoizer/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+./node_modules/@opentelemetry/instrumentation-lru-memoizer/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/index.js
+./node_modules/@opentelemetry/instrumentation-lru-memoizer/node_modules/@opentelemetry/instrumentation/build/esm/platform/index.js
+./node_modules/@opentelemetry/instrumentation-lru-memoizer/node_modules/@opentelemetry/instrumentation/build/esm/index.js
+./node_modules/@opentelemetry/instrumentation-lru-memoizer/build/src/instrumentation.js
+./node_modules/@opentelemetry/instrumentation-lru-memoizer/build/src/index.js
+./node_modules/@sentry/node/build/cjs/integrations/tracing/lrumemoizer.js
+./node_modules/@sentry/node/build/cjs/index.js
+./node_modules/@sentry/nextjs/build/cjs/index.server.js
+./src/app/(app)/api/test-sentry/route.ts
+
+./node_modules/@opentelemetry/instrumentation-mongoose/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+Critical dependency: the request of a dependency is an expression
+
+Import trace for requested module:
+./node_modules/@opentelemetry/instrumentation-mongoose/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+./node_modules/@opentelemetry/instrumentation-mongoose/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/index.js
+./node_modules/@opentelemetry/instrumentation-mongoose/node_modules/@opentelemetry/instrumentation/build/esm/platform/index.js
+./node_modules/@opentelemetry/instrumentation-mongoose/node_modules/@opentelemetry/instrumentation/build/esm/index.js
+./node_modules/@opentelemetry/instrumentation-mongoose/build/src/mongoose.js
+./node_modules/@opentelemetry/instrumentation-mongoose/build/src/index.js
+./node_modules/@sentry/node/build/cjs/integrations/tracing/mongoose.js
+./node_modules/@sentry/node/build/cjs/index.js
+./node_modules/@sentry/nextjs/build/cjs/index.server.js
+./src/app/(app)/api/test-sentry/route.ts
+
+./node_modules/@opentelemetry/instrumentation-mysql2/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+Critical dependency: the request of a dependency is an expression
+
+Import trace for requested module:
+./node_modules/@opentelemetry/instrumentation-mysql2/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+./node_modules/@opentelemetry/instrumentation-mysql2/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/index.js
+./node_modules/@opentelemetry/instrumentation-mysql2/node_modules/@opentelemetry/instrumentation/build/esm/platform/index.js
+./node_modules/@opentelemetry/instrumentation-mysql2/node_modules/@opentelemetry/instrumentation/build/esm/index.js
+./node_modules/@opentelemetry/instrumentation-mysql2/build/src/instrumentation.js
+./node_modules/@opentelemetry/instrumentation-mysql2/build/src/index.js
+./node_modules/@sentry/node/build/cjs/integrations/tracing/mysql2.js
+./node_modules/@sentry/node/build/cjs/index.js
+./node_modules/@sentry/nextjs/build/cjs/index.server.js
+./src/app/(app)/api/test-sentry/route.ts
+
+./node_modules/@opentelemetry/instrumentation-redis-4/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+Critical dependency: the request of a dependency is an expression
+
+Import trace for requested module:
+./node_modules/@opentelemetry/instrumentation-redis-4/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+./node_modules/@opentelemetry/instrumentation-redis-4/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/index.js
+./node_modules/@opentelemetry/instrumentation-redis-4/node_modules/@opentelemetry/instrumentation/build/esm/platform/index.js
+./node_modules/@opentelemetry/instrumentation-redis-4/node_modules/@opentelemetry/instrumentation/build/esm/index.js
+./node_modules/@opentelemetry/instrumentation-redis-4/build/src/instrumentation.js
+./node_modules/@opentelemetry/instrumentation-redis-4/build/src/index.js
+./node_modules/@sentry/node/build/cjs/integrations/tracing/redis.js
+./node_modules/@sentry/node/build/cjs/index.js
+./node_modules/@sentry/nextjs/build/cjs/index.server.js
+./src/app/(app)/api/test-sentry/route.ts
+
+./node_modules/@opentelemetry/instrumentation-undici/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+Critical dependency: the request of a dependency is an expression
+
+Import trace for requested module:
+./node_modules/@opentelemetry/instrumentation-undici/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+./node_modules/@opentelemetry/instrumentation-undici/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/index.js
+./node_modules/@opentelemetry/instrumentation-undici/node_modules/@opentelemetry/instrumentation/build/esm/platform/index.js
+./node_modules/@opentelemetry/instrumentation-undici/node_modules/@opentelemetry/instrumentation/build/esm/index.js
+./node_modules/@opentelemetry/instrumentation-undici/build/src/undici.js
+./node_modules/@opentelemetry/instrumentation-undici/build/src/index.js
+./node_modules/@sentry/node/build/cjs/integrations/node-fetch/index.js
+./node_modules/@sentry/node/build/cjs/index.js
+./node_modules/@sentry/nextjs/build/cjs/index.server.js
+./src/app/(app)/api/test-sentry/route.ts
+
+./node_modules/@sentry/node/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+Critical dependency: the request of a dependency is an expression
+
+Import trace for requested module:
+./node_modules/@sentry/node/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+./node_modules/@sentry/node/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/index.js
+./node_modules/@sentry/node/node_modules/@opentelemetry/instrumentation/build/esm/platform/index.js
+./node_modules/@sentry/node/node_modules/@opentelemetry/instrumentation/build/esm/index.js
+./node_modules/@sentry/node/build/cjs/integrations/tracing/postgresjs.js
+./node_modules/@sentry/node/build/cjs/index.js
+./node_modules/@sentry/nextjs/build/cjs/index.server.js
+./src/app/(app)/api/test-sentry/route.ts
+
+   Skipping validation of types
+   Linting ...
+
+./src/app/(app)/admin/analytics/page.tsx
+44:6  Warning: React Hook useEffect has a missing dependency: 'checkAdminStatus'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+50:6  Warning: React Hook useEffect has a missing dependency: 'loadAnalytics'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/app/(app)/admin/announcements/page.tsx
+44:6  Warning: React Hook useEffect has a missing dependency: 'loadAnnouncements'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/app/(app)/admin/feedback/page.tsx
+37:6  Warning: React Hook useEffect has a missing dependency: 'loadFeedback'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/app/(app)/admin/free-accounts/page.tsx
+46:6  Warning: React Hook useEffect has a missing dependency: 'loadFreeAccounts'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/app/(app)/admin/page.tsx
+127:6  Warning: React Hook useEffect has missing dependencies: 'loadAnalytics' and 'supabase'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/app/(app)/admin/quotes/page.tsx
+46:6  Warning: React Hook useEffect has a missing dependency: 'loadQuotes'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/app/(app)/admin/trial-reminders/page.tsx
+45:6  Warning: React Hook useEffect has missing dependencies: 'fetchLogs' and 'fetchStats'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/app/(app)/admin/webhook-manager/page.tsx
+80:6  Warning: React Hook useEffect has a missing dependency: 'loadData'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/app/(app)/auth/clear-session/page.tsx
+93:6  Warning: React Hook useEffect has a missing dependency: 'supabase.auth'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/app/(app)/auth/debug-auth/page.tsx
+41:6  Warning: React Hook useEffect has missing dependencies: 'checkAuthState' and 'supabase.auth'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/app/(app)/auth/sign-up/page.tsx
+118:6  Warning: React Hook useEffect has a missing dependency: 'testDuplicateEmailBehavior'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/app/(app)/auth-test/page.tsx
+23:6  Warning: React Hook useEffect has a missing dependency: 'checkAuth'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/app/(app)/components/AnnouncementBanner.tsx
+32:6  Warning: React Hook useEffect has a missing dependency: 'loadActiveAnnouncement'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/app/(app)/components/BusinessDescriptionAnalyzer.tsx
+54:6  Warning: React Hook useEffect has missing dependencies: 'currentDescription' and 'handleAnalyzeDescription'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/app/(app)/components/BusinessInfoEditor.tsx
+139:6  Warning: React Hook useEffect has a missing dependency: 'selectedLocationIds.length'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/app/(app)/components/EmployeePromptPageForm.tsx
+132:6  Warning: React Hook useEffect has missing dependencies: 'formData' and 'safeInitialData'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/app/(app)/components/EventPromptPageForm.tsx
+125:6  Warning: React Hook useEffect has missing dependencies: 'formData' and 'safeInitialData'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/app/(app)/components/GettingStarted.tsx
+139:6  Warning: React Hook useEffect has a missing dependency: 'supabase.auth'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/app/(app)/components/Header.tsx
+251:6  Warning: React Hook useEffect has a missing dependency: 'supabase'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+275:6  Warning: React Hook useEffect has a missing dependency: 'notifications'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/app/(app)/components/NavigationDebugger.tsx
+196:6  Warning: React Hook useEffect has a missing dependency: 'pathname'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/app/(app)/components/ProductPromptPageForm.tsx
+175:9  Warning: The 'handleProductPhotoUpload' function makes the dependencies of useCallback Hook (at line 408) change on every render. To fix this, wrap the definition of 'handleProductPhotoUpload' in its own useCallback() Hook.  react-hooks/exhaustive-deps
+303:9  Warning: The 'validateForm' function makes the dependencies of useCallback Hook (at line 408) change on every render. Move it inside the useCallback callback. Alternatively, wrap the definition of 'validateForm' in its own useCallback() Hook.  react-hooks/exhaustive-deps
+
+./src/app/(app)/components/PromptPageForm.tsx
+161:6  Warning: React Hook useEffect has a missing dependency: 'handleIconChange'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/app/(app)/components/QRCodeModal.tsx
+152:6  Warning: React Hook useEffect has a missing dependency: 'showPreview'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/app/(app)/components/QuoteDisplay.tsx
+43:6  Warning: React Hook useEffect has a missing dependency: 'loadQuotes'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/app/(app)/components/RecentReviewsButton.tsx
+46:6  Warning: React Hook useEffect has a missing dependency: 'checkReviewCount'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/app/(app)/components/RecentReviewsModal.tsx
+52:6  Warning: React Hook useEffect has a missing dependency: 'fetchReviews'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/app/(app)/components/ServicePromptPageForm.tsx
+205:6  Warning: React Hook useEffect has a missing dependency: 'formData.features_or_benefits'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+243:6  Warning: React Hook useEffect has a missing dependency: 'initialData'. Either include it or remove the dependency array. If 'setFormData' needs the current value of 'initialData', you can also switch to useReducer instead of useState and read 'initialData' in the reducer.  react-hooks/exhaustive-deps
+
+./src/app/(app)/components/communication/UpcomingReminders.tsx
+60:6  Warning: React Hook useEffect has a missing dependency: 'fetchReminders'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/app/(app)/components/help/ArticleViewer.tsx
+24:6  Warning: React Hook useEffect has a missing dependency: 'fetchArticleContent'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/app/(app)/components/help/FAQsTab.tsx
+40:6  Warning: React Hook useEffect has a missing dependency: 'fetchFaqs'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/app/(app)/components/help/HelpModal.tsx
+46:6  Warning: React Hook useEffect has missing dependencies: 'activeTab', 'pageName', and 'pathname'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/app/(app)/components/help/TutorialsTab.tsx
+78:6  Warning: React Hook useEffect has a missing dependency: 'fetchTutorials'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+102:6  Warning: React Hook useEffect has a missing dependency: 'selectedArticle'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/app/(app)/components/help/TutorialsTabNew.tsx
+366:20  Warning: The ref value 'contentRef.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'contentRef.current' to a variable inside the effect, and use that variable in the cleanup function.  react-hooks/exhaustive-deps
+369:6  Warning: React Hook useEffect has a missing dependency: 'handleArticleClick'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/app/(app)/components/prompt-features/KickstartersFeature.tsx
+144:6  Warning: React Hook useEffect has a missing dependency: 'selectedKickstarters'. Either include it or remove the dependency array. If 'setSelected' needs the current value of 'selectedKickstarters', you can also switch to useReducer instead of useState and read 'selectedKickstarters' in the reducer.  react-hooks/exhaustive-deps
+162:6  Warning: React Hook useEffect has a missing dependency: 'initialData'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+168:6  Warning: React Hook useEffect has a missing dependency: 'fetchKickstarters'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+174:6  Warning: React Hook useEffect has a missing dependency: 'fetchKickstarters'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/app/(app)/create-prompt-page/CreatePromptPageClient.tsx
+810:6  Warning: React Hook useEffect has missing dependencies: 'account?.id', 'accountId', and 'selectedAccountId'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+837:6  Warning: React Hook useEffect has a missing dependency: 'loadingReviews'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/app/(app)/dashboard/DashboardContent.tsx
+244:6  Warning: React Hook useEffect has a missing dependency: 'setShowStarfallCelebration'. Either include it or remove the dependency array. If 'setShowStarfallCelebration' changes too often, find the parent component that defines it and wrap that definition in useCallback.  react-hooks/exhaustive-deps
+
+./src/app/(app)/dashboard/account/page.tsx
+118:6  Warning: React Hook useEffect has a missing dependency: 'supabase'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/app/(app)/dashboard/analytics/page.tsx
+468:6  Warning: React Hook useEffect has a missing dependency: 'supabase'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/app/(app)/dashboard/components/Analytics.tsx
+60:6  Warning: React Hook useEffect has a missing dependency: 'supabase'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/app/(app)/dashboard/components/QRCodeGenerator.tsx
+1142:6  Warning: React Hook useEffect has a missing dependency: 'generateQRCode'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/app/(app)/dashboard/contacts/page.tsx
+264:6  Warning: React Hook useEffect has a missing dependency: 'checkContactLimits'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/app/(app)/dashboard/create-business/CreateBusinessClient.tsx
+136:6  Warning: React Hook useEffect has a missing dependency: 'selectedAccountId'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/app/(app)/dashboard/edit-prompt-page/[slug]/page.tsx
+420:6  Warning: React Hook useEffect has a missing dependency: 'loadData'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/app/(app)/dashboard/edit-prompt-page/universal/UniversalPromptPageForm.tsx
+263:7  Warning: React Hook React.useImperativeHandle has missing dependencies: 'reviewPlatforms' and 'selectedKickstarters'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/app/(app)/dashboard/edit-prompt-page/universal/page.tsx
+260:6  Warning: React Hook React.useEffect has a missing dependency: 'supabase'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/app/(app)/dashboard/google-business/page.tsx
+227:6  Warning: React Hook useEffect has a missing dependency: 'locations.length'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+422:6  Warning: React Hook useEffect has a missing dependency: 'loadPlatforms'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+711:6  Warning: React Hook useCallback has missing dependencies: 'isLoadingPlatforms', 'isPostOAuthConnecting', and 'selectedLocations.length'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/app/(app)/dashboard/page.tsx
+339:6  Warning: React Hook useEffect has missing dependencies: 'account', 'refreshSession', 'router', and 'user'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+362:6  Warning: React Hook useEffect has missing dependencies: 'account', 'loadBusinessesData', 'loadDashboardSpecificData', and 'user'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+445:6  Warning: React Hook useEffect has missing dependencies: 'lastAccountUpdate' and 'showPricingModal'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+645:6  Warning: React Hook useEffect has missing dependencies: 'refreshAccount' and 'user?.id'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+680:6  Warning: React Hook useEffect has missing dependencies: 'account' and 'user'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+688:6  Warning: React Hook useEffect has a missing dependency: 'loadDashboardSpecificData'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+716:6  Warning: React Hook useMemo has a missing dependency: 'user'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/app/(app)/dashboard/plan/page.tsx
+173:6  Warning: React Hook useEffect has a missing dependency: 'account'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+686:5  Warning: React Hook useCallback has a missing dependency: 'isReactivation'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/app/(app)/dashboard/style/StyleModalPage.tsx
+258:6  Warning: React Hook React.useEffect has a missing dependency: 'fetchSettings'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/app/(app)/dashboard/style/page.tsx
+34:6  Warning: React Hook useEffect has a missing dependency: 'supabase.auth'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/app/(app)/dashboard/team/page.tsx
+266:6  Warning: React Hook useCallback has a missing dependency: 'authLoading'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+290:6  Warning: React Hook useEffect has a missing dependency: 'fetchTeamData'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/app/(app)/dashboard/widget/WidgetList.tsx
+78:6  Warning: React Hook useEffect has a missing dependency: 'handleManageReviews'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+109:6  Warning: React Hook useEffect has missing dependencies: 'selectedWidgetForReviews' and 'showReviewModal'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/app/(app)/dashboard/widget/components/ReviewManagementModal.tsx
+199:6  Warning: React Hook useEffect has a missing dependency: 'handleOpenReviewModal'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/app/(app)/dashboard/widget/components/ReviewModal.tsx
+78:6  Warning: React Hook useEffect has a missing dependency: 'handleMouseMove'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/app/(app)/dashboard/widget/components/WidgetPreview.tsx
+71:6  Warning: React Hook useMemo has a missing dependency: 'widget'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+75:48  Warning: React Hook useMemo has a missing dependency: 'widget'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/app/(app)/dashboard/widget/components/widgets/multi/MultiWidget.tsx
+219:6  Warning: React Hook useEffect has missing dependencies: 'currentDesign', 'isDevelopment', and 'reviews'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/app/(app)/dashboard/widget/hooks/useWidgets.ts
+84:6  Warning: React Hook useCallback has a missing dependency: 'lastFetchTime'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/app/(app)/dashboard/widget/page.tsx
+61:6  Warning: React Hook useEffect has a missing dependency: 'selectedWidget'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+265:6  Warning: React Hook React.useEffect has missing dependencies: 'fakeReviews', 'fetchFullWidgetData', 'selectedWidget', and 'widgets'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+288:6  Warning: React Hook React.useEffect has a missing dependency: 'fetchFullWidgetData'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/app/(app)/debug-friendly-note/page.tsx
+26:6  Warning: React Hook useEffect has a missing dependency: 'loadPromptPages'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/app/(app)/debug-nav/page.tsx
+140:6  Warning: React Hook useEffect has a missing dependency: 'manualCheck'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/app/(app)/demo/multi-business-posting/page.tsx
+121:42  Warning: The ref value 'animationTimeoutRef.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'animationTimeoutRef.current' to a variable inside the effect, and use that variable in the cleanup function.  react-hooks/exhaustive-deps
+
+./src/app/(app)/demo/multi-business-posting-embed/page.tsx
+121:42  Warning: The ref value 'animationTimeoutRef.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'animationTimeoutRef.current' to a variable inside the effect, and use that variable in the cleanup function.  react-hooks/exhaustive-deps
+
+./src/app/(app)/page.tsx
+48:6  Warning: React Hook useEffect has a missing dependency: 'supabase'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/app/(app)/prompt-pages/individual/page.tsx
+204:6  Warning: React Hook useEffect has missing dependencies: 'accountId', 'authUser', and 'router'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/app/(app)/prompt-pages/page.tsx
+142:6  Warning: React Hook useEffect has a missing dependency: 'promptPagesTab'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+366:6  Warning: React Hook useEffect has missing dependencies: 'business', 'loading', 'router', 'showBusinessRequiredModal', and 'supabase'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/app/(app)/r/[slug]/components/ProcessIndicator.tsx
+64:6  Warning: React Hook useEffect has a missing dependency: 'isFirstRun'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/app/(app)/r/[slug]/page-client.tsx
+504:6  Warning: React Hook useEffect has a missing dependency: 'fetchKickstarters'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+741:6  Warning: React Hook useEffect has missing dependencies: 'promptPage' and 'supabase'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+1179:6  Warning: React Hook useCallback has a missing dependency: 'loadGoogleFont'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+1551:6  Warning: React Hook useEffect has missing dependencies: 'SYSTEM_FONTS' and 'loadGoogleFont'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/app/(app)/reset-password/page.tsx
+92:6  Warning: React Hook useEffect has a missing dependency: 'supabase.auth'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/app/(app)/sign-out/page.tsx
+23:6  Warning: React Hook useEffect has a missing dependency: 'supabase.auth'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/auth/context/AccountContext.tsx
+182:6  Warning: React Hook useCallback has a missing dependency: 'setAccountId'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+223:6  Warning: React Hook useCallback has a missing dependency: 'setAccountId'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+321:6  Warning: React Hook useEffect has missing dependencies: 'clearAccountCache', 'loadAccount', 'loadAccounts', and 'setAccountId'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/auth/context/AdminContext.tsx
+121:6  Warning: React Hook useEffect has missing dependencies: 'account', 'checkAdminStatus', and 'clearAdminCache'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/auth/context/BusinessContext.tsx
+353:6  Warning: React Hook useEffect has missing dependencies: 'account', 'accountContext.account', 'accountContext.accountId', 'accountContext.accountLoading', and 'accountContext.selectedAccountId'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/components/AccountReactivation.tsx
+57:6  Warning: React Hook useEffect has a missing dependency: 'checkStatus'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/components/GoogleBusinessProfile/embeds/ReviewTrendsEmbed.tsx
+43:32  Warning: The ref value 'ref.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'ref.current' to a variable inside the effect, and use that variable in the cleanup function.  react-hooks/exhaustive-deps
+
+./src/utils/dynamicFontLoader.ts
+197:6  Warning: React Hook useEffect has a missing dependency: 'weights'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+197:19  Warning: React Hook useEffect has a complex expression in the dependency array. Extract it to a separate variable so it can be statically checked.  react-hooks/exhaustive-deps
+
+info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/app/api-reference/config/eslint#disabling-rules
+   Collecting page data ...
+   Generating static pages (0/199) ...
+   Generating static pages (49/199) 
+   Generating static pages (99/199) 
+🔍 BusinessProvider: Account context: {
+  sharedAccountId: null,
+  contextAccountId: null,
+  account: undefined,
+  hasAccountContext: true
+}
+🔐 TokenManager: Auth event: INITIAL_SESSION
+🔍 BusinessProvider: Account context: {
+  sharedAccountId: null,
+  contextAccountId: null,
+  account: undefined,
+  hasAccountContext: true
+}
+🎯 FeedbackBubble component rendered
+🎯 HelpModal rendered, isOpen: false initialArticleId: undefined
+🔍 BusinessProvider: Account context: {
+  sharedAccountId: null,
+  contextAccountId: null,
+  account: undefined,
+  hasAccountContext: true
+}
+🎯 FeedbackBubble component rendered
+🎯 HelpModal rendered, isOpen: false initialArticleId: undefined
+🔐 TokenManager: Auth event: INITIAL_SESSION
+🔍 BusinessProvider: Account context: {
+  sharedAccountId: null,
+  contextAccountId: null,
+  account: undefined,
+  hasAccountContext: true
+}
+🎯 FeedbackBubble component rendered
+🎯 HelpModal rendered, isOpen: false initialArticleId: undefined
+🔍 BusinessProvider: Account context: {
+  sharedAccountId: null,
+  contextAccountId: null,
+  account: undefined,
+  hasAccountContext: true
+}
+🎯 FeedbackBubble component rendered
+🎯 HelpModal rendered, isOpen: false initialArticleId: undefined
+🔍 BusinessProvider: Account context: {
+  sharedAccountId: null,
+  contextAccountId: null,
+  account: undefined,
+  hasAccountContext: true
+}
+🎯 FeedbackBubble component rendered
+🎯 HelpModal rendered, isOpen: false initialArticleId: undefined
+🔍 BusinessProvider: Account context: {
+  sharedAccountId: null,
+  contextAccountId: null,
+  account: undefined,
+  hasAccountContext: true
+}
+🔍 BusinessProvider: Account context: {
+  sharedAccountId: null,
+  contextAccountId: null,
+  account: undefined,
+  hasAccountContext: true
+}
+🎯 FeedbackBubble component rendered
+🎯 HelpModal rendered, isOpen: false initialArticleId: undefined
+🔍 BusinessProvider: Account context: {
+  sharedAccountId: null,
+  contextAccountId: null,
+  account: undefined,
+  hasAccountContext: true
+}
+🎯 FeedbackBubble component rendered
+🎯 HelpModal rendered, isOpen: false initialArticleId: undefined
+🔍 BusinessProvider: Account context: {
+  sharedAccountId: null,
+  contextAccountId: null,
+  account: undefined,
+  hasAccountContext: true
+}
+🔍 BusinessProvider: Account context: {
+  sharedAccountId: null,
+  contextAccountId: null,
+  account: undefined,
+  hasAccountContext: true
+}
+🎯 FeedbackBubble component rendered
+🎯 HelpModal rendered, isOpen: false initialArticleId: undefined
+🔍 BusinessProvider: Account context: {
+  sharedAccountId: null,
+  contextAccountId: null,
+  account: undefined,
+  hasAccountContext: true
+}
+🎯 FeedbackBubble component rendered
+🎯 HelpModal rendered, isOpen: false initialArticleId: undefined
+🎯 FeedbackBubble component rendered
+🎯 HelpModal rendered, isOpen: false initialArticleId: undefined
+🔍 BusinessProvider: Account context: {
+  sharedAccountId: null,
+  contextAccountId: null,
+  account: undefined,
+  hasAccountContext: true
+}
+🎯 FeedbackBubble component rendered
+🎯 HelpModal rendered, isOpen: false initialArticleId: undefined
+🔍 BusinessProvider: Account context: {
+  sharedAccountId: null,
+  contextAccountId: null,
+  account: undefined,
+  hasAccountContext: true
+}
+🎯 FeedbackBubble component rendered
+🎯 HelpModal rendered, isOpen: false initialArticleId: undefined
+🔍 BusinessProvider: Account context: {
+  sharedAccountId: null,
+  contextAccountId: null,
+  account: undefined,
+  hasAccountContext: true
+}
+🎯 FeedbackBubble component rendered
+🎯 HelpModal rendered, isOpen: false initialArticleId: undefined
+🔍 BusinessProvider: Account context: {
+  sharedAccountId: null,
+  contextAccountId: null,
+  account: undefined,
+  hasAccountContext: true
+}
+🎯 FeedbackBubble component rendered
+🎯 HelpModal rendered, isOpen: false initialArticleId: undefined
+🔐 TokenManager: Auth event: INITIAL_SESSION
+🔍 BusinessProvider: Account context: {
+  sharedAccountId: null,
+  contextAccountId: null,
+  account: undefined,
+  hasAccountContext: true
+}
+🎯 FeedbackBubble component rendered
+🎯 HelpModal rendered, isOpen: false initialArticleId: undefined
+🔍 BusinessProvider: Account context: {
+  sharedAccountId: null,
+  contextAccountId: null,
+  account: undefined,
+  hasAccountContext: true
+}
+🎯 FeedbackBubble component rendered
+🎯 HelpModal rendered, isOpen: false initialArticleId: undefined
+🔍 BusinessProvider: Account context: {
+  sharedAccountId: null,
+  contextAccountId: null,
+  account: undefined,
+  hasAccountContext: true
+}
+🎯 FeedbackBubble component rendered
+🎯 HelpModal rendered, isOpen: false initialArticleId: undefined
+🔍 BusinessProvider: Account context: {
+  sharedAccountId: null,
+  contextAccountId: null,
+  account: undefined,
+  hasAccountContext: true
+}
+🎯 FeedbackBubble component rendered
+🎯 HelpModal rendered, isOpen: false initialArticleId: undefined
+🔍 BusinessProvider: Account context: {
+  sharedAccountId: null,
+  contextAccountId: null,
+  account: undefined,
+  hasAccountContext: true
+}
+🎯 FeedbackBubble component rendered
+🎯 HelpModal rendered, isOpen: false initialArticleId: undefined
+🔍 BusinessProvider: Account context: {
+  sharedAccountId: null,
+  contextAccountId: null,
+  account: undefined,
+  hasAccountContext: true
+}
+🎯 FeedbackBubble component rendered
+🎯 HelpModal rendered, isOpen: false initialArticleId: undefined
+🔍 BusinessProvider: Account context: {
+  sharedAccountId: null,
+  contextAccountId: null,
+  account: undefined,
+  hasAccountContext: true
+}
+🎯 FeedbackBubble component rendered
+🎯 HelpModal rendered, isOpen: false initialArticleId: undefined
+🔍 BusinessProvider: Account context: {
+  sharedAccountId: null,
+  contextAccountId: null,
+  account: undefined,
+  hasAccountContext: true
+}
+🎯 FeedbackBubble component rendered
+🎯 HelpModal rendered, isOpen: false initialArticleId: undefined
+🔍 BusinessProvider: Account context: {
+  sharedAccountId: null,
+  contextAccountId: null,
+  account: undefined,
+  hasAccountContext: true
+}
+🎯 FeedbackBubble component rendered
+🎯 HelpModal rendered, isOpen: false initialArticleId: undefined
+🔍 BusinessProvider: Account context: {
+  sharedAccountId: null,
+  contextAccountId: null,
+  account: undefined,
+  hasAccountContext: true
+}
+🎯 FeedbackBubble component rendered
+🎯 HelpModal rendered, isOpen: false initialArticleId: undefined
+🔍 BusinessProvider: Account context: {
+  sharedAccountId: null,
+  contextAccountId: null,
+  account: undefined,
+  hasAccountContext: true
+}
+🎯 FeedbackBubble component rendered
+🎯 HelpModal rendered, isOpen: false initialArticleId: undefined
+🔍 BusinessProvider: Account context: {
+  sharedAccountId: null,
+  contextAccountId: null,
+  account: undefined,
+  hasAccountContext: true
+}
+🎯 FeedbackBubble component rendered
+🎯 HelpModal rendered, isOpen: false initialArticleId: undefined
+🔍 BusinessProvider: Account context: {
+  sharedAccountId: null,
+  contextAccountId: null,
+  account: undefined,
+  hasAccountContext: true
+}
+🎯 FeedbackBubble component rendered
+🎯 HelpModal rendered, isOpen: false initialArticleId: undefined
+🔍 BusinessProvider: Account context: {
+  sharedAccountId: null,
+  contextAccountId: null,
+  account: undefined,
+  hasAccountContext: true
+}
+🎯 FeedbackBubble component rendered
+🎯 HelpModal rendered, isOpen: false initialArticleId: undefined
+🔍 BusinessProvider: Account context: {
+  sharedAccountId: null,
+  contextAccountId: null,
+  account: undefined,
+  hasAccountContext: true
+}
+🎯 FeedbackBubble component rendered
+🎯 HelpModal rendered, isOpen: false initialArticleId: undefined
+🔍 BusinessProvider: Account context: {
+  sharedAccountId: null,
+  contextAccountId: null,
+  account: undefined,
+  hasAccountContext: true
+}
+🎯 FeedbackBubble component rendered
+🎯 HelpModal rendered, isOpen: false initialArticleId: undefined
+🔍 BusinessProvider: Account context: {
+  sharedAccountId: null,
+  contextAccountId: null,
+  account: undefined,
+  hasAccountContext: true
+}
+🎯 FeedbackBubble component rendered
+🎯 HelpModal rendered, isOpen: false initialArticleId: undefined
+🔍 BusinessProvider: Account context: {
+  sharedAccountId: null,
+  contextAccountId: null,
+  account: undefined,
+  hasAccountContext: true
+}
+🎯 FeedbackBubble component rendered
+🎯 HelpModal rendered, isOpen: false initialArticleId: undefined
+🔍 BusinessProvider: Account context: {
+  sharedAccountId: null,
+  contextAccountId: null,
+  account: undefined,
+  hasAccountContext: true
+}
+🎯 FeedbackBubble component rendered
+🎯 HelpModal rendered, isOpen: false initialArticleId: undefined
+   Generating static pages (149/199) 
+🔍 BusinessProvider: Account context: {
+  sharedAccountId: null,
+  contextAccountId: null,
+  account: undefined,
+  hasAccountContext: true
+}
+🎯 FeedbackBubble component rendered
+🎯 HelpModal rendered, isOpen: false initialArticleId: undefined
+🔍 BusinessProvider: Account context: {
+  sharedAccountId: null,
+  contextAccountId: null,
+  account: undefined,
+  hasAccountContext: true
+}
+🎯 FeedbackBubble component rendered
+🎯 HelpModal rendered, isOpen: false initialArticleId: undefined
+🔍 BusinessProvider: Account context: {
+  sharedAccountId: null,
+  contextAccountId: null,
+  account: undefined,
+  hasAccountContext: true
+}
+🎯 FeedbackBubble component rendered
+🎯 HelpModal rendered, isOpen: false initialArticleId: undefined
+🔍 BusinessProvider: Account context: {
+  sharedAccountId: null,
+  contextAccountId: null,
+  account: undefined,
+  hasAccountContext: true
+}
+🎯 FeedbackBubble component rendered
+🎯 HelpModal rendered, isOpen: false initialArticleId: undefined
+🔍 BusinessProvider: Account context: {
+  sharedAccountId: null,
+  contextAccountId: null,
+  account: undefined,
+  hasAccountContext: true
+}
+🎯 FeedbackBubble component rendered
+🎯 HelpModal rendered, isOpen: false initialArticleId: undefined
+🔍 BusinessProvider: Account context: {
+  sharedAccountId: null,
+  contextAccountId: null,
+  account: undefined,
+  hasAccountContext: true
+}
+🔍 BusinessProvider: Account context: {
+  sharedAccountId: null,
+  contextAccountId: null,
+  account: undefined,
+  hasAccountContext: true
+}
+🎯 FeedbackBubble component rendered
+🎯 HelpModal rendered, isOpen: false initialArticleId: undefined
+🔍 BusinessProvider: Account context: {
+  sharedAccountId: null,
+  contextAccountId: null,
+  account: undefined,
+  hasAccountContext: true
+}
+🔍 BusinessProvider: Account context: {
+  sharedAccountId: null,
+  contextAccountId: null,
+  account: undefined,
+  hasAccountContext: true
+}
+🔍 BusinessProvider: Account context: {
+  sharedAccountId: null,
+  contextAccountId: null,
+  account: undefined,
+  hasAccountContext: true
+}
+🎯 FeedbackBubble component rendered
+🎯 HelpModal rendered, isOpen: false initialArticleId: undefined
+🔍 BusinessProvider: Account context: {
+  sharedAccountId: null,
+  contextAccountId: null,
+  account: undefined,
+  hasAccountContext: true
+}
+🎯 FeedbackBubble component rendered
+🎯 HelpModal rendered, isOpen: false initialArticleId: undefined
+🔍 BusinessProvider: Account context: {
+  sharedAccountId: null,
+  contextAccountId: null,
+  account: undefined,
+  hasAccountContext: true
+}
+🎯 FeedbackBubble component rendered
+🎯 HelpModal rendered, isOpen: false initialArticleId: undefined
+🔍 BusinessProvider: Account context: {
+  sharedAccountId: null,
+  contextAccountId: null,
+  account: undefined,
+  hasAccountContext: true
+}
+🎯 FeedbackBubble component rendered
+🎯 HelpModal rendered, isOpen: false initialArticleId: undefined
+🎯 FeedbackBubble component rendered
+🎯 HelpModal rendered, isOpen: false initialArticleId: undefined
+🔍 BusinessProvider: Account context: {
+  sharedAccountId: null,
+  contextAccountId: null,
+  account: undefined,
+  hasAccountContext: true
+}
+🎯 FeedbackBubble component rendered
+🎯 HelpModal rendered, isOpen: false initialArticleId: undefined
+🔍 BusinessProvider: Account context: {
+  sharedAccountId: null,
+  contextAccountId: null,
+  account: undefined,
+  hasAccountContext: true
+}
+🎯 FeedbackBubble component rendered
+🎯 HelpModal rendered, isOpen: false initialArticleId: undefined
+🔍 BusinessProvider: Account context: {
+  sharedAccountId: null,
+  contextAccountId: null,
+  account: undefined,
+  hasAccountContext: true
+}
+🎯 FeedbackBubble component rendered
+🎯 HelpModal rendered, isOpen: false initialArticleId: undefined
+🔍 BusinessProvider: Account context: {
+  sharedAccountId: null,
+  contextAccountId: null,
+  account: undefined,
+  hasAccountContext: true
+}
+🎯 FeedbackBubble component rendered
+🎯 HelpModal rendered, isOpen: false initialArticleId: undefined
+🔍 BusinessProvider: Account context: {
+  sharedAccountId: null,
+  contextAccountId: null,
+  account: undefined,
+  hasAccountContext: true
+}
+🎯 FeedbackBubble component rendered
+🎯 HelpModal rendered, isOpen: false initialArticleId: undefined
+🔍 BusinessProvider: Account context: {
+  sharedAccountId: null,
+  contextAccountId: null,
+  account: undefined,
+  hasAccountContext: true
+}
+🔍 BusinessProvider: Account context: {
+  sharedAccountId: null,
+  contextAccountId: null,
+  account: undefined,
+  hasAccountContext: true
+}
+🔍 BusinessProvider: Account context: {
+  sharedAccountId: null,
+  contextAccountId: null,
+  account: undefined,
+  hasAccountContext: true
+}
+🔍 BusinessProvider: Account context: {
+  sharedAccountId: null,
+  contextAccountId: null,
+  account: undefined,
+  hasAccountContext: true
+}
+🎯 FeedbackBubble component rendered
+🎯 HelpModal rendered, isOpen: false initialArticleId: undefined
+🔍 BusinessProvider: Account context: {
+  sharedAccountId: null,
+  contextAccountId: null,
+  account: undefined,
+  hasAccountContext: true
+}
+🔍 BusinessProvider: Account context: {
+  sharedAccountId: null,
+  contextAccountId: null,
+  account: undefined,
+  hasAccountContext: true
+}
+🎯 FeedbackBubble component rendered
+🎯 HelpModal rendered, isOpen: false initialArticleId: undefined
+🔍 BusinessProvider: Account context: {
+  sharedAccountId: null,
+  contextAccountId: null,
+  account: undefined,
+  hasAccountContext: true
+}
+🎯 FeedbackBubble component rendered
+🎯 HelpModal rendered, isOpen: false initialArticleId: undefined
+🔍 BusinessProvider: Account context: {
+  sharedAccountId: null,
+  contextAccountId: null,
+  account: undefined,
+  hasAccountContext: true
+}
+🎯 FeedbackBubble component rendered
+🎯 HelpModal rendered, isOpen: false initialArticleId: undefined
+🔍 BusinessProvider: Account context: {
+  sharedAccountId: null,
+  contextAccountId: null,
+  account: undefined,
+  hasAccountContext: true
+}
+🎯 FeedbackBubble component rendered
+🎯 HelpModal rendered, isOpen: false initialArticleId: undefined
+🔍 BusinessProvider: Account context: {
+  sharedAccountId: null,
+  contextAccountId: null,
+  account: undefined,
+  hasAccountContext: true
+}
+🔍 BusinessProvider: Account context: {
+  sharedAccountId: null,
+  contextAccountId: null,
+  account: undefined,
+  hasAccountContext: true
+}
+🎯 FeedbackBubble component rendered
+🎯 HelpModal rendered, isOpen: false initialArticleId: undefined
+🔍 BusinessProvider: Account context: {
+  sharedAccountId: null,
+  contextAccountId: null,
+  account: undefined,
+  hasAccountContext: true
+}
+🔍 BusinessProvider: Account context: {
+  sharedAccountId: null,
+  contextAccountId: null,
+  account: undefined,
+  hasAccountContext: true
+}
+🔍 BusinessProvider: Account context: {
+  sharedAccountId: null,
+  contextAccountId: null,
+  account: undefined,
+  hasAccountContext: true
+}
+ ✓ Generating static pages (199/199)
+🔍 BusinessProvider: Account context: {
+  sharedAccountId: null,
+  contextAccountId: null,
+  account: undefined,
+  hasAccountContext: true
+}
+🎯 FeedbackBubble component rendered
+🎯 HelpModal rendered, isOpen: false initialArticleId: undefined
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                                                                           Size  First Load JS
+┌ ○ /                                                                              2.53 kB        1.17 MB
+├ ○ /_not-found                                                                      199 B        1.16 MB
+├ ○ /admin                                                                         8.49 kB        1.17 MB
+├ ○ /admin/analytics                                                               3.76 kB        1.17 MB
+├ ○ /admin/announcements                                                           4.51 kB        1.17 MB
+├ ○ /admin/critical-monitoring                                                     3.74 kB        1.17 MB
+├ ○ /admin/email-templates                                                         3.71 kB        1.17 MB
+├ ○ /admin/feedback                                                                4.31 kB        1.17 MB
+├ ○ /admin/free-accounts                                                           3.75 kB        1.17 MB
+├ ○ /admin/metadata-templates                                                       4.6 kB        1.17 MB
+├ ○ /admin/quotes                                                                  4.81 kB        1.17 MB
+├ ○ /admin/trial-reminders                                                         2.03 kB        1.17 MB
+├ ○ /admin/webhook-manager                                                         16.4 kB        1.18 MB
+├ ƒ /api/accounts/create-additional                                                  495 B        1.16 MB
+├ ƒ /api/admin/account-cleanup                                                       495 B        1.16 MB
+├ ƒ /api/admin/analytics                                                             495 B        1.16 MB
+├ ƒ /api/admin/delete-user                                                           495 B        1.16 MB
+├ ƒ /api/admin/free-accounts                                                         495 B        1.16 MB
+├ ƒ /api/admin/repair-users                                                          495 B        1.16 MB
+├ ƒ /api/ai/google-business/analyze-description                                      495 B        1.16 MB
+├ ƒ /api/ai/google-business/generate-review-response                                 495 B        1.16 MB
+├ ƒ /api/ai/google-business/generate-service-description                             495 B        1.16 MB
+├ ƒ /api/ai/google-business/integrate-keywords                                       495 B        1.16 MB
+├ ƒ /api/auth/ensure-account                                                         495 B        1.16 MB
+├ ƒ /api/auth/fix-account                                                            495 B        1.16 MB
+├ ƒ /api/auth/google/callback                                                        495 B        1.16 MB
+├ ƒ /api/auth/google/refresh-tokens                                                  495 B        1.16 MB
+├ ƒ /api/auth/google/update-tokens                                                   495 B        1.16 MB
+├ ƒ /api/auth/session                                                                495 B        1.16 MB
+├ ƒ /api/auth/signup                                                                 495 B        1.16 MB
+├ ƒ /api/business-information/categories                                             495 B        1.16 MB
+├ ƒ /api/business-information/location-details                                       495 B        1.16 MB
+├ ƒ /api/business-information/update-location                                        495 B        1.16 MB
+├ ƒ /api/business-locations                                                          495 B        1.16 MB
+├ ƒ /api/business-locations/[id]                                                     495 B        1.16 MB
+├ ƒ /api/businesses                                                                  495 B        1.16 MB
+├ ƒ /api/businesses/[accountId]                                                      495 B        1.16 MB
+├ ƒ /api/cancel-account                                                              495 B        1.16 MB
+├ ƒ /api/cancel-subscription                                                         495 B        1.16 MB
+├ ƒ /api/check-admin                                                                 495 B        1.16 MB
+├ ƒ /api/check-env                                                                   495 B        1.16 MB
+├ ƒ /api/check-ownership/[slug]                                                      495 B        1.16 MB
+├ ƒ /api/check-schema                                                                495 B        1.16 MB
+├ ƒ /api/communication/records                                                       495 B        1.16 MB
+├ ƒ /api/communication/reminders                                                     495 B        1.16 MB
+├ ƒ /api/contacts/bulk-create-prompt-pages                                           495 B        1.16 MB
+├ ƒ /api/contacts/create                                                             495 B        1.16 MB
+├ ƒ /api/contacts/create-from-prompt-page                                            495 B        1.16 MB
+├ ƒ /api/contacts/export                                                             495 B        1.16 MB
+├ ƒ /api/contacts/find-duplicates                                                    495 B        1.16 MB
+├ ƒ /api/contacts/merge                                                              495 B        1.16 MB
+├ ƒ /api/create-account                                                              495 B        1.16 MB
+├ ƒ /api/create-checkout-session                                                     495 B        1.16 MB
+├ ƒ /api/create-stripe-portal-session                                                495 B        1.16 MB
+├ ƒ /api/cron/cleanup-expired-invitations                                            495 B        1.16 MB
+├ ƒ /api/cron/send-comeback-emails                                                   495 B        1.16 MB
+├ ƒ /api/cron/send-communication-reminders                                           495 B        1.16 MB
+├ ƒ /api/cron/send-invitation-reminders                                              495 B        1.16 MB
+├ ƒ /api/cron/send-monthly-insights                                                  495 B        1.16 MB
+├ ƒ /api/cron/send-review-reminders                                                  495 B        1.16 MB
+├ ƒ /api/cron/send-trial-reminders                                                   495 B        1.16 MB
+├ ƒ /api/debug-account                                                               495 B        1.16 MB
+├ ƒ /api/debug-auth                                                                  495 B        1.16 MB
+├ ƒ /api/debug-prompt-page/[slug]                                                    495 B        1.16 MB
+├ ƒ /api/debug-session                                                               495 B        1.16 MB
+├ ƒ /api/delete-user                                                                 495 B        1.16 MB
+├ ƒ /api/email-templates                                                             495 B        1.16 MB
+├ ƒ /api/feedback                                                                    495 B        1.16 MB
+├ ƒ /api/fix-account                                                                 495 B        1.16 MB
+├ ƒ /api/fix-grammar                                                                 495 B        1.16 MB
+├ ƒ /api/game/leaderboard                                                            495 B        1.16 MB
+├ ƒ /api/game/save-score                                                             495 B        1.16 MB
+├ ƒ /api/game/submit-score                                                           495 B        1.16 MB
+├ ƒ /api/generate-review                                                             495 B        1.16 MB
+├ ƒ /api/generate-reviews                                                            495 B        1.16 MB
+├ ƒ /api/google-business-profile/import-reviews                                      495 B        1.16 MB
+├ ƒ /api/google-business-profile/overview                                            495 B        1.16 MB
+├ ƒ /api/health/ai-generation                                                        495 B        1.16 MB
+├ ƒ /api/health/review-tracking                                                      495 B        1.16 MB
+├ ƒ /api/help-docs/content                                                           495 B        1.16 MB
+├ ƒ /api/help-docs/faqs                                                              495 B        1.16 MB
+├ ƒ /api/help-docs/fetch-from-docs                                                   495 B        1.16 MB
+├ ƒ /api/help-docs/tutorials                                                         495 B        1.16 MB
+├ ƒ /api/infographic-widget                                                          495 B        1.16 MB
+├ ƒ /api/initialize-onboarding-tasks                                                 495 B        1.16 MB
+├ ƒ /api/manual-sync-subscription                                                    495 B        1.16 MB
+├ ƒ /api/metadata-templates                                                          495 B        1.16 MB
+├ ƒ /api/metadata-templates/[id]                                                     495 B        1.16 MB
+├ ƒ /api/monitoring/critical-error                                                   495 B        1.16 MB
+├ ƒ /api/monitoring/critical-success                                                 495 B        1.16 MB
+├ ƒ /api/onboarding-tasks                                                            495 B        1.16 MB
+├ ƒ /api/preview-billing-change                                                      495 B        1.16 MB
+├ ƒ /api/prompt-pages                                                                495 B        1.16 MB
+├ ƒ /api/prompt-pages/[slug]                                                         495 B        1.16 MB
+├ ƒ /api/prompt-pages/update-status                                                  495 B        1.16 MB
+├ ƒ /api/rate-limit-status                                                           495 B        1.16 MB
+├ ƒ /api/recent-reviews/[promptPageId]                                               495 B        1.16 MB
+├ ƒ /api/refresh-session                                                             495 B        1.16 MB
+├ ƒ /api/review-submissions                                                          495 B        1.16 MB
+├ ƒ /api/review-submissions/verify                                                   495 B        1.16 MB
+├ ƒ /api/reviews-management/fetch-reviews                                            495 B        1.16 MB
+├ ƒ /api/reviews-management/respond-review                                           495 B        1.16 MB
+├ ƒ /api/reviews-management/unresponded-reviews                                      495 B        1.16 MB
+├ ƒ /api/reviews-management/update-review-reply                                      495 B        1.16 MB
+├ ƒ /api/send-email                                                                  495 B        1.16 MB
+├ ƒ /api/send-trial-reminders                                                        495 B        1.16 MB
+├ ƒ /api/send-welcome-email                                                          495 B        1.16 MB
+├ ƒ /api/social-posting/improve-with-ai                                              495 B        1.16 MB
+├ ƒ /api/social-posting/locations                                                    495 B        1.16 MB
+├ ƒ /api/social-posting/photos/cleanup                                               495 B        1.16 MB
+├ ƒ /api/social-posting/photos/fetch                                                 495 B        1.16 MB
+├ ƒ /api/social-posting/photos/upload                                                495 B        1.16 MB
+├ ƒ /api/social-posting/platforms                                                    495 B        1.16 MB
+├ ƒ /api/social-posting/platforms/google-business-profile/disconnect                 495 B        1.16 MB
+├ ƒ /api/social-posting/platforms/google-business-profile/fetch-locations            495 B        1.16 MB
+├ ƒ /api/social-posting/platforms/google-business-profile/locations                  495 B        1.16 MB
+├ ƒ /api/social-posting/platforms/google-business-profile/revoke                     495 B        1.16 MB
+├ ƒ /api/social-posting/platforms/google-business-profile/save-selected-locations    495 B        1.16 MB
+├ ƒ /api/social-posting/platforms/google-business-profile/validate-connection        495 B        1.16 MB
+├ ƒ /api/social-posting/posts                                                        495 B        1.16 MB
+├ ƒ /api/social-posting/upload-image                                                 495 B        1.16 MB
+├ ƒ /api/stripe-webhook                                                              495 B        1.16 MB
+├ ƒ /api/sync-billing                                                                495 B        1.16 MB
+├ ƒ /api/sync-subscription                                                           495 B        1.16 MB
+├ ƒ /api/team/accept                                                                 495 B        1.16 MB
+├ ƒ /api/team/accept-after-signup                                                    495 B        1.16 MB
+├ ƒ /api/team/add-chris                                                              495 B        1.16 MB
+├ ƒ /api/team/invitations                                                            495 B        1.16 MB
+├ ƒ /api/team/invitations/resend                                                     495 B        1.16 MB
+├ ƒ /api/team/invitations/track                                                      495 B        1.16 MB
+├ ƒ /api/team/invite                                                                 495 B        1.16 MB
+├ ƒ /api/team/members                                                                495 B        1.16 MB
+├ ƒ /api/test-auth                                                                   495 B        1.16 MB
+├ ƒ /api/test-env                                                                    495 B        1.16 MB
+├ ƒ /api/test-google-oauth                                                           495 B        1.16 MB
+├ ƒ /api/test-google-oauth-bypass                                                    495 B        1.16 MB
+├ ƒ /api/test-rls                                                                    495 B        1.16 MB
+├ ƒ /api/test-sentry                                                                 495 B        1.16 MB
+├ ƒ /api/track-event                                                                 495 B        1.16 MB
+├ ƒ /api/track-review                                                                495 B        1.16 MB
+├ ƒ /api/upgrade-subscription                                                        495 B        1.16 MB
+├ ƒ /api/upload-contacts                                                             495 B        1.16 MB
+├ ƒ /api/upload-photo                                                                495 B        1.16 MB
+├ ƒ /api/upload-widget-photo                                                         495 B        1.16 MB
+├ ƒ /api/widgets                                                                     495 B        1.16 MB
+├ ƒ /api/widgets/[id]                                                                495 B        1.16 MB
+├ ƒ /api/widgets/[id]/reviews                                                        495 B        1.16 MB
+├ ƒ /api/widgets/debug                                                               495 B        1.16 MB
+├ ƒ /api/widgets/test-multi                                                          495 B        1.16 MB
+├ ƒ /api/widgets/upload-photo                                                        495 B        1.16 MB
+├ ○ /auth-test                                                                     2.57 kB        1.17 MB
+├ ƒ /auth/callback                                                                   495 B        1.16 MB
+├ ○ /auth/clear-session                                                            2.67 kB        1.17 MB
+├ ○ /auth/debug-auth                                                               2.36 kB        1.17 MB
+├ ○ /auth/sign-in                                                                  23.1 kB        1.19 MB
+├ ○ /auth/sign-up                                                                    12 kB        1.18 MB
+├ ○ /create-prompt-page                                                            74.5 kB        1.24 MB
+├ ○ /dashboard                                                                     50.2 kB        1.21 MB
+├ ○ /dashboard/account                                                             23.2 kB        1.19 MB
+├ ○ /dashboard/analytics                                                           9.19 kB        1.17 MB
+├ ○ /dashboard/business-profile                                                    23.5 kB        1.19 MB
+├ ○ /dashboard/contacts                                                            23.7 kB        1.19 MB
+├ ○ /dashboard/create-business                                                     24.9 kB        1.19 MB
+├ ○ /dashboard/create-prompt-page                                                    75 kB        1.24 MB
+├ ƒ /dashboard/edit-prompt-page/[slug]                                             69.2 kB        1.23 MB
+├ ○ /dashboard/edit-prompt-page/universal                                          68.6 kB        1.23 MB
+├ ○ /dashboard/google-business                                                     70.7 kB        1.23 MB
+├ ○ /dashboard/google-business-profile                                             1.15 kB        1.17 MB
+├ ○ /dashboard/plan                                                                23.9 kB        1.19 MB
+├ ○ /dashboard/reviews                                                             11.1 kB        1.18 MB
+├ ○ /dashboard/style                                                               19.3 kB        1.18 MB
+├ ○ /dashboard/team                                                                20.3 kB        1.18 MB
+├ ○ /dashboard/testimonials                                                        6.37 kB        1.17 MB
+├ ○ /dashboard/upload-contacts                                                     8.11 kB        1.17 MB
+├ ○ /dashboard/widget                                                              35.3 kB         1.2 MB
+├ ○ /debug-cookies                                                                 1.17 kB        1.17 MB
+├ ○ /debug-friendly-note                                                           3.49 kB        1.17 MB
+├ ○ /debug-nav                                                                     4.98 kB        1.17 MB
+├ ○ /demo/google-metrics                                                           5.78 kB        1.17 MB
+├ ○ /demo/multi-business-posting                                                   4.38 kB        1.17 MB
+├ ○ /demo/multi-business-posting-embed                                             3.33 kB        1.17 MB
+├ ○ /demo/review-trends-tablet                                                     7.12 kB        1.17 MB
+├ ƒ /docs/google-business-post-types                                                 495 B        1.16 MB
+├ ƒ /docs/google-business-products                                                   495 B        1.16 MB
+├ ƒ /docs/google-business-services-seo                                               495 B        1.16 MB
+├ ○ /embed/review-dashboard                                                        5.71 kB        1.17 MB
+├ ○ /emoji-sentiment-demo                                                            548 B        1.16 MB
+├ ○ /game                                                                          13.5 kB        1.18 MB
+├ ○ /icon-demo                                                                     2.82 kB        1.17 MB
+├ ○ /infographic                                                                   13.8 kB        1.18 MB
+├ ○ /infographic-embed                                                             14.1 kB        1.18 MB
+├ ○ /infographic/embed-instructions                                                1.12 kB        1.17 MB
+├ ○ /payment-demo                                                                  16.3 kB        1.18 MB
+├ ○ /privacy                                                                         495 B        1.16 MB
+├ ○ /prompt-pages                                                                  70.2 kB        1.23 MB
+├ ○ /prompt-pages/individual                                                       59.9 kB        1.22 MB
+├ ƒ /r/[slug]                                                                      35.2 kB         1.2 MB
+├ ○ /reactivate                                                                    14.9 kB        1.18 MB
+├ ○ /reset-password                                                                3.98 kB        1.17 MB
+├ ○ /sign-out                                                                      2.34 kB        1.17 MB
+├ ○ /team/accept                                                                   2.36 kB        1.17 MB
+├ ○ /terms                                                                           495 B        1.16 MB
+├ ○ /test-auth                                                                     14.4 kB        1.18 MB
+├ ○ /test-auth-browser                                                             1.85 kB        1.17 MB
+├ ○ /test-auth-context                                                             13.6 kB        1.18 MB
+├ ○ /test-env                                                                        551 B        1.16 MB
+├ ○ /test-ga                                                                        2.4 kB        1.17 MB
+├ ○ /test-google-oauth                                                             1.78 kB        1.17 MB
+├ ○ /test-google-oauth-mock                                                         2.5 kB        1.17 MB
+├ ○ /test-google-oauth-simple                                                      1.93 kB        1.17 MB
+├ ○ /test-mobile                                                                   1.62 kB        1.17 MB
+└ ○ /test-widget                                                                   1.24 kB        1.17 MB
++ First Load JS shared by all                                                      1.16 MB
+  └ chunks/vendors-770af525c42d8f4a.js                                             1.16 MB
+  └ other shared chunks (total)                                                    2.84 kB
+
+
+ƒ Middleware                                                                       93.6 kB
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

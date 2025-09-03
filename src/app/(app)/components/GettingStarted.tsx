@@ -355,7 +355,7 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
                   ? 'bg-white bg-opacity-15 hover:bg-opacity-20 cursor-pointer border-2 border-yellow-300 border-dashed animate-pulse'
                   : 'bg-white bg-opacity-10 hover:bg-opacity-15 cursor-pointer'
             }`}
-            onClick={() => !task.completed && handleTaskClick(task.id)}
+            onClick={() => handleTaskClick(task.id)}
           >
             <div className="flex items-center justify-center w-8 h-8 rounded-full bg-white bg-opacity-20 mr-3">
               {task.completed ? (
@@ -394,6 +394,11 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
                   >
                     Go →
                   </Link>
+                )}
+                {!task.link && !task.completed && (
+                  <span className="text-xs bg-white bg-opacity-20 rounded px-2 py-1">
+                    Click to complete
+                  </span>
                 )}
               </div>
               <p className={`text-sm opacity-80 ${task.completed ? 'line-through' : ''}`}>
