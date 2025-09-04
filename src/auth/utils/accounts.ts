@@ -560,7 +560,7 @@ async function _getAccountIdForUserInternal(userId: string, supabaseClient?: any
       }
       
       // Create a map for easy lookup
-      const accountMap = new Map(accounts?.map((a: any) => [a.id, a]) || []);
+      const accountMap = new Map(accounts.map((a: any) => [a.id, a]));
       
       
       // Add account data to accountUsers
