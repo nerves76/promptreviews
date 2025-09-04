@@ -293,39 +293,15 @@ const Dashboard = React.memo(function Dashboard() {
 
   // Ensure account exists for authenticated users
   useEffect(() => {
-    const ensureAccount = async () => {
-      if (authLoading) return;
-      if (!isAuthenticated || !user) return;
-      if (account) return; // Account already exists
-      
-      // Account is missing for authenticated user - create it
-      
-      try {
-        const response = await fetch('/api/auth/ensure-account', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' }
-        });
-        
-        const result = await response.json();
-        
-        if (response.status === 401) {
-          // User is not actually authenticated - redirect to sign-in
-          router.push('/auth/sign-in');
-          return;
-        }
-        
-        if (result.success) {
-          // Refresh auth context to load the new account
-          await refreshSession();
-        } else {
-          console.error('❌ Dashboard: Failed to ensure account:', result.error);
-        }
-      } catch (error) {
-        console.error('❌ Dashboard: Error ensuring account:', error);
-      }
-    };
-    
-    ensureAccount();
+    // Only log missing account - don't try to create for existing users
+    if (!authLoading && isAuthenticated && user && !account) {
+      console.error('❌ Dashboard: Account missing for authenticated user:', {
+        userId: user.id,
+        email: user.email,
+        accountsCount: accounts?.length || 0
+      });
+      // Don't auto-create - this is a data issue that needs investigation
+    }
   }, [authLoading, isAuthenticated, user?.id, account?.id]);
 
   // Load dashboard data when auth is ready

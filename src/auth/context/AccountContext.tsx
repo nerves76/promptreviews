@@ -124,42 +124,10 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
             timestamp: Date.now(),
           };
         } else {
-          // If still no account, try the ensure-account endpoint as a last resort
-          try {
-            // Get the current session to pass the auth token
-            const { data: { session } } = await supabase.auth.getSession();
-            
-            const response = await fetch('/api/auth/ensure-account', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': session?.access_token ? `Bearer ${session.access_token}` : '',
-              },
-            });
-            
-            if (response.ok) {
-              // Wait for account to be created
-              await new Promise(resolve => setTimeout(resolve, 1000));
-              
-              // Final attempt to load accounts
-              const finalAccounts = await getAccountsForUser(user.id);
-              setAccounts(finalAccounts);
-              
-              if (finalAccounts.length > 0) {
-                // Update cache
-                accountsCache.current = {
-                  data: finalAccounts,
-                  timestamp: Date.now(),
-                };
-              }
-            } else {
-              console.error('❌ Failed to ensure account exists:', response.status);
-              setAccounts([]);
-            }
-          } catch (ensureError) {
-            console.error('❌ Error ensuring account exists:', ensureError);
-            setAccounts([]);
-          }
+          // No accounts found - this could be a data issue
+          // Don't try to create accounts here - that should only happen on first sign-up
+          console.warn('⚠️ No accounts found for user:', user.id);
+          setAccounts([]);
         }
       } else {
         setAccounts(userAccounts);
