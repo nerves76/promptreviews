@@ -11,10 +11,6 @@ import GoogleAnalytics from "./components/GoogleAnalytics";
 import { Providers } from "@/components/Providers";
 import BodyWrapper from "./components/BodyWrapper";
 import { inter, fontVariables } from "../fonts";
-import { GlobalRefreshMonitor } from "./components/GlobalRefreshMonitor";
-import { NavigationDebugger } from "./components/NavigationDebugger";
-import { RefreshDebugger } from "./components/RefreshDebugger";
-import { UltimateRefreshDebugger } from "./components/UltimateRefreshDebugger";
 import IconSpriteInjector from "./components/IconSpriteInjector";
 
 // Sentry is initialized in instrumentation.ts - no need to import here
@@ -62,14 +58,6 @@ export default function RootLayout({
       >
         <Providers>
           <BodyWrapper>
-            {process.env.NODE_ENV === 'development' && (
-              <>
-                <GlobalRefreshMonitor />
-                <NavigationDebugger />
-                <RefreshDebugger />
-                <UltimateRefreshDebugger />
-              </>
-            )}
             <ClientRoot>
               <IconSpriteInjector />
               <AppMain>{children}</AppMain>

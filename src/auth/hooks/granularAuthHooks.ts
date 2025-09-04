@@ -72,7 +72,7 @@ export function useAuthActions() {
     signIn,
     signUp,
     signOut,
-    refreshSession,
+    refreshSession, // Now just delegates to TokenManager
     clearError,
     setError,
   };

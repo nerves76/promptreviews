@@ -51,8 +51,7 @@ interface CoreAuthContextType extends CoreAuthState {
   signOut: () => Promise<void>;
   
   // Session methods
-  refreshSession: () => Promise<void>;
-  checkSession: () => Promise<void>;
+  refreshSession: () => Promise<void>; // Minimal implementation - delegates to TokenManager
   
   // Utility methods
   clearError: () => void;
@@ -96,76 +95,13 @@ export function CoreAuthProvider({ children }: { children: React.ReactNode }) {
     setError(null);
   }, []);
 
-  // Refresh session using TokenManager for silent refresh
+  // Minimal refresh session - just delegates to TokenManager
+  // Kept for backward compatibility with components that call it
   const refreshSession = useCallback(async () => {
-    if (refreshingSession) return;
-    
-    setRefreshingSession(true);
-    try {
-      // Use TokenManager for silent refresh
-      const token = await tokenManager.getAccessToken();
-      if (token) {
-        const currentSession = tokenManager.getSession();
-        if (currentSession) {
-          // Only update if session actually changed
-          setSession(prev => {
-            if (prev?.access_token !== currentSession.access_token) {
-              return currentSession;
-            }
-            return prev;
-          });
-        }
-      }
-    } catch (error) {
-      console.error('Session refresh failed:', error);
-      setError('Session refresh failed');
-    } finally {
-      setRefreshingSession(false);
-    }
-  }, [refreshingSession]);
-
-  // Check session validity
-  const checkSession = useCallback(async () => {
-    try {
-      const { data: { session: currentSession }, error } = await supabase.auth.getSession();
-      
-      if (error) {
-        console.error('Session check error:', error);
-        return;
-      }
-
-      if (currentSession) {
-        // Only update if session has actually changed
-        setSession(prev => {
-          if (prev?.access_token !== currentSession.access_token || 
-              prev?.expires_at !== currentSession.expires_at) {
-            return currentSession;
-          }
-          return prev;
-        });
-        
-        // Only update user if it has changed
-        setUser(prev => {
-          if (prev?.id !== currentSession.user.id || 
-              prev?.email !== currentSession.user.email) {
-            return currentSession.user;
-          }
-          return prev;
-        });
-        
-        // Auto-refresh if expiring soon
-        const expiresAt = new Date(currentSession.expires_at! * 1000);
-        if (expiresAt.getTime() - Date.now() < SESSION_WARNING_THRESHOLD) {
-          await refreshSession();
-        }
-      } else {
-        setSession(null);
-        setUser(null);
-      }
-    } catch (error) {
-      console.error('Session check failed:', error);
-    }
-  }, [refreshSession]);
+    // TokenManager handles the actual refresh
+    await tokenManager.getAccessToken();
+    // Session updates will come through onAuthStateChange
+  }, []);
 
   // Sign in
   const signIn = useCallback(async (email: string, password: string): Promise<AuthResponse> => {
@@ -346,7 +282,7 @@ export function CoreAuthProvider({ children }: { children: React.ReactNode }) {
     return () => {
       subscription.unsubscribe();
     };
-  }, [checkSession, router, user?.id]);
+  }, [router, user?.id]);
 
   // Memoize the entire context value to prevent unnecessary re-renders
   const value = useMemo<CoreAuthContextType>(() => ({
@@ -368,7 +304,6 @@ export function CoreAuthProvider({ children }: { children: React.ReactNode }) {
     signUp,
     signOut,
     refreshSession,
-    checkSession,
     clearError,
     setError,
   }), [
@@ -389,7 +324,6 @@ export function CoreAuthProvider({ children }: { children: React.ReactNode }) {
     signUp,
     signOut,
     refreshSession,
-    checkSession,
     clearError,
     setError,
   ]);
@@ -430,7 +364,6 @@ export function useCoreAuth() {
         signUp: async () => ({ data: { user: null, session: null }, error: null }),
         signOut: async () => {},
         refreshSession: async () => {},
-        checkSession: async () => {},
         clearError: () => {},
         setError: () => {},
       };
