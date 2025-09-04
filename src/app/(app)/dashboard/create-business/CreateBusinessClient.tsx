@@ -137,16 +137,17 @@ export default function CreateBusinessClient() {
   }, []);
 
   // Handle successful business creation
-  const handleBusinessCreated = useCallback(() => {
-    console.log("✅ CreateBusinessClient: Business created successfully, redirecting...");
+  const handleBusinessCreated = useCallback(async () => {
+    console.log("✅ CreateBusinessClient: Business created successfully, preparing redirect...");
     console.log("✅ CreateBusinessClient: handleBusinessCreated called at:", new Date().toISOString());
     setIsSubmitting(false);
     setIsRedirecting(true); // Set redirecting state to show loading screen
     
-    // Set a flag to prevent BusinessGuard interference during redirect
+    // Set flags to prevent interference during redirect
     if (typeof window !== 'undefined') {
       sessionStorage.setItem('businessCreationInProgress', 'true');
-      console.log('🚫 CreateBusinessClient: Set businessCreationInProgress flag');
+      sessionStorage.setItem('business-creation-complete', 'true'); // Flag for dashboard layout
+      console.log('🚫 CreateBusinessClient: Set business creation flags');
     }
     
     // Force refresh business profile in auth context
@@ -160,12 +161,33 @@ export default function CreateBusinessClient() {
       }
     }
     
-    // Small delay to allow state updates, then redirect
-    setTimeout(() => {
-      console.log("🚀 CreateBusinessClient: Redirecting to dashboard...");
-      redirectToDashboard();
-    }, 100); // Small delay to ensure events are processed
-  }, [redirectToDashboard]);
+    // Give more time for database transactions to complete and propagate
+    console.log("⏳ CreateBusinessClient: Waiting for database to propagate...");
+    await new Promise(resolve => setTimeout(resolve, 2000)); // 2 second delay
+    
+    // Verify the account exists before redirecting
+    if (accountId) {
+      console.log("🔍 CreateBusinessClient: Verifying account exists...");
+      try {
+        const { data: accountCheck } = await supabase
+          .from('accounts')
+          .select('id')
+          .eq('id', accountId)
+          .single();
+        
+        if (accountCheck) {
+          console.log("✅ CreateBusinessClient: Account verified, proceeding with redirect");
+        } else {
+          console.log("⚠️ CreateBusinessClient: Account not found, but proceeding anyway");
+        }
+      } catch (error) {
+        console.log("⚠️ CreateBusinessClient: Error verifying account, but proceeding:", error);
+      }
+    }
+    
+    console.log("🚀 CreateBusinessClient: Redirecting to dashboard...");
+    redirectToDashboard();
+  }, [redirectToDashboard, accountId]);
 
   // Handle top save button click
   const handleTopSaveClick = useCallback(() => {

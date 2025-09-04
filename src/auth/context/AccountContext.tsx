@@ -86,8 +86,13 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    // Check cache
-    if (accountsCache.current) {
+    // Check if we just created a business (skip cache in this case)
+    const justCreatedBusiness = typeof window !== 'undefined' && 
+      (window.location.search.includes('businessCreated=1') || 
+       sessionStorage.getItem('business-creation-complete') === 'true');
+    
+    // Check cache (skip if we just created a business)
+    if (!justCreatedBusiness && accountsCache.current) {
       const cacheAge = Date.now() - accountsCache.current.timestamp;
       if (cacheAge < ACCOUNT_CACHE_DURATION) {
         setAccounts(accountsCache.current.data);

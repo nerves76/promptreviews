@@ -91,14 +91,21 @@ export default function DashboardLayout({
     // Skip this check on the create-business page - users need to be able to create their first business!
     const isOnCreateBusinessPage = window.location.pathname === '/dashboard/create-business';
     
+    // Skip this check if we just created a business (coming from create-business page)
+    const justCreatedBusiness = window.location.search.includes('businessCreated=1') || 
+                               sessionStorage.getItem('business-creation-complete') === 'true';
+    
     // Skip this check if we just came from signup (give the account time to be created)
     const justSignedUp = sessionStorage.getItem('just-signed-up') === 'true';
-    if (justSignedUp) {
-      // Clear the flag after a delay to allow future checks
+    
+    if (justSignedUp || justCreatedBusiness) {
+      console.log('⏳ Dashboard: Skipping account check - user just signed up or created business');
+      // Clear the flags after a delay to allow future checks
       setTimeout(() => {
         sessionStorage.removeItem('just-signed-up');
+        sessionStorage.removeItem('business-creation-complete');
       }, 5000);
-      return; // Skip the account check for new signups
+      return; // Skip the account check
     }
     
     // Only check after account loading is complete and user is authenticated

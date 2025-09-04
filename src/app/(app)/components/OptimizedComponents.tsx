@@ -7,7 +7,7 @@
 
 import React, { memo, useMemo, useCallback, Suspense } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
-import FiveStarSpinner from './FiveStarSpinner';
+import ButtonSpinner from '@/components/ButtonSpinner';
 
 // Error Fallback Component
 const ErrorFallback = ({ error, resetErrorBoundary }: { error: Error; resetErrorBoundary: () => void }) => {
@@ -25,20 +25,21 @@ const ErrorFallback = ({ error, resetErrorBoundary }: { error: Error; resetError
   );
 };
 
-// Optimized Loading Spinner - Now uses FiveStarSpinner for consistency
-export const OptimizedSpinner = memo(({ size = 'md', className = '' }: { size?: 'sm' | 'md' | 'lg'; className?: string }) => {
+// Optimized Loading Spinner - Uses ButtonSpinner for consistent button loading states
+export const OptimizedSpinner = memo(({ size = 'md', className = '' }: { size?: 'sm' | 'md' | 'lg' | 'xl'; className?: string }) => {
   const spinnerSize = useMemo(() => {
-    // Map size props to pixel values, defaulting to consistent 18px
+    // Map size props to pixel values as specified: sm=14, md=18, lg=24, xl=32
     switch (size) {
       case 'sm': return 14;
-      case 'md': return 16; 
-      case 'lg': return 18;
+      case 'md': return 18; 
+      case 'lg': return 24;
+      case 'xl': return 32;
       default: return 18;
     }
   }, [size]);
 
   return (
-    <FiveStarSpinner size={spinnerSize} className={className} />
+    <ButtonSpinner size={spinnerSize} className={className} />
   );
 });
 
