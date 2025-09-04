@@ -98,8 +98,10 @@ class TokenManager {
     const expiresIn = (expiresAt * 1000) - Date.now();
     const refreshIn = Math.max(expiresIn - (5 * 60 * 1000), 10000); // At least 10 seconds
     
+    console.log(`⏱️ TokenManager: Scheduling token refresh in ${Math.round(refreshIn / 1000)} seconds (${Math.round(refreshIn / 60000)} minutes)`);
     
     this.refreshTimer = setTimeout(() => {
+      console.log('🔄 TokenManager: Starting proactive token refresh');
       this.refreshTokenProactively();
     }, refreshIn);
   }
@@ -119,6 +121,7 @@ class TokenManager {
       }
       
       if (data.session) {
+        console.log('✅ TokenManager: Token refreshed successfully');
         this.session = data.session;
         this.scheduleTokenRefresh();
       }

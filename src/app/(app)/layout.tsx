@@ -62,10 +62,14 @@ export default function RootLayout({
       >
         <Providers>
           <BodyWrapper>
-            <GlobalRefreshMonitor />
-            <NavigationDebugger />
-            <RefreshDebugger />
-            <UltimateRefreshDebugger />
+            {process.env.NODE_ENV === 'development' && (
+              <>
+                <GlobalRefreshMonitor />
+                <NavigationDebugger />
+                <RefreshDebugger />
+                <UltimateRefreshDebugger />
+              </>
+            )}
             <ClientRoot>
               <IconSpriteInjector />
               <AppMain>{children}</AppMain>

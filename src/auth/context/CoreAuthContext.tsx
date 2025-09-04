@@ -66,7 +66,7 @@ const SESSION_WARNING_THRESHOLD = 10 * 60 * 1000; // 10 minutes
 export function CoreAuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const initializationStarted = useRef(false);
-  const sessionCheckInterval = useRef<NodeJS.Timeout | null>(null);
+  // Removed sessionCheckInterval - no longer needed as TokenManager handles refresh
 
   // Core state - MUST have same initial values on server and client to avoid hydration errors
   const [user, setUser] = useState<User | null>(null);
@@ -339,14 +339,12 @@ export function CoreAuthProvider({ children }: { children: React.ReactNode }) {
       }
     );
 
-    // Set up session check interval
-    sessionCheckInterval.current = setInterval(checkSession, 5 * 60 * 1000); // Every 5 minutes
-
+    // REMOVED: 5-minute session check interval - redundant with TokenManager
+    // TokenManager already handles proactive token refresh before expiry
+    // The onAuthStateChange listener handles session state updates
+    
     return () => {
       subscription.unsubscribe();
-      if (sessionCheckInterval.current) {
-        clearInterval(sessionCheckInterval.current);
-      }
     };
   }, [checkSession, router, user?.id]);
 
