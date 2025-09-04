@@ -218,6 +218,9 @@ export async function POST(request: NextRequest) {
       differentiators: businessData.differentiators || null,
       years_in_business: businessData.years_in_business || null,
       industries_served: businessData.industries_served || null,
+      // Referral source tracking
+      referral_source: businessData.referral_source || null,
+      referral_source_other: businessData.referral_source_other || null,
       // Glassmorphic design defaults
       primary_font: 'Inter',
       secondary_font: 'Roboto',
