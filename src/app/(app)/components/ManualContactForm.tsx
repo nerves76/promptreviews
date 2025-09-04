@@ -184,12 +184,6 @@ export default function ManualContactForm({
       // Get the current session for authentication
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       
-      console.log('ManualContactForm: Session debug:', {
-        hasSession: !!session,
-        sessionError: sessionError?.message,
-        hasAccessToken: !!session?.access_token,
-        userId: session?.user?.id
-      });
       
       // Prepare headers
       const headers: Record<string, string> = {
@@ -199,12 +193,9 @@ export default function ManualContactForm({
       // Add authorization header if we have a session
       if (session && !sessionError) {
         headers['Authorization'] = `Bearer ${session.access_token}`;
-        console.log('ManualContactForm: Added Authorization header');
       } else {
-        console.log('ManualContactForm: No session available for Authorization header');
       }
 
-      console.log('ManualContactForm: Making API request with headers:', headers);
       
       const response = await fetch("/api/contacts/create", {
         method: "POST",
@@ -215,10 +206,8 @@ export default function ManualContactForm({
         }),
       });
 
-      console.log('ManualContactForm: API response status:', response.status, response.statusText);
       
       const result = await response.json();
-      console.log('ManualContactForm: API response data:', result);
 
       if (!response.ok) {
         if (result.upgrade_required) {

@@ -11,7 +11,6 @@ import { GoogleBusinessProfileClient } from '@/features/social-posting/platforms
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('🔍 Fetch reviews API called');
     
     const body = await request.json();
     const { locationId } = body;
@@ -47,7 +46,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('✅ User authenticated:', user.id);
 
     // Get Google Business Profile tokens for the user
     const { data: tokenData, error: tokenError } = await supabase
@@ -64,7 +62,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('✅ Found Google Business Profile tokens for user:', user.id);
 
     // Create Google Business Profile client
     const gbpClient = new GoogleBusinessProfileClient({
@@ -74,10 +71,8 @@ export async function POST(request: NextRequest) {
     });
 
     // Fetch reviews for the location
-    console.log('🔄 Fetching reviews for location:', locationId);
     const reviews = await gbpClient.getReviews(locationId);
 
-    console.log('✅ Successfully fetched reviews:', reviews.length);
 
     return NextResponse.json({
       reviews,

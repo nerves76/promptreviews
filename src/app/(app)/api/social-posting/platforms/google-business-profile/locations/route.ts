@@ -31,7 +31,6 @@ export async function GET(request: NextRequest) {
     // Get current user
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {
-      console.log('Authentication error in locations API:', authError);
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -62,14 +61,12 @@ export async function GET(request: NextRequest) {
       .maybeSingle();
 
     if (tokenError || !tokens) {
-      console.log('Google Business Profile tokens not found for user:', user.id, tokenError);
       return NextResponse.json({ 
         error: 'Google Business Profile not connected',
         locations: []
       });
     }
 
-    console.log('✅ Found Google Business Profile tokens for user:', user.id);
 
     // Get locations from database using service role
     const { data: locations, error: locationError } = await serviceSupabase

@@ -79,11 +79,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('✅ Resend API - User authenticated:', {
-      userId: user.id,
-      email: user.email,
-      authMethod: cookieResult.data.user ? 'cookie' : 'header'
-    });
 
     // Get request body
     const { invitation_id } = await request.json();
@@ -197,13 +192,6 @@ export async function POST(request: NextRequest) {
       day: 'numeric'
     });
 
-    console.log('📧 Resending invitation email...', {
-      to: invitation.email,
-      from: inviterName,
-      business: businessName,
-      role: invitation.role,
-      expires: formattedExpirationDate
-    });
 
     // Send the email
     const emailResult = await sendTeamInvitationEmail(
@@ -227,13 +215,6 @@ export async function POST(request: NextRequest) {
     recordInvitationSuccess(accountUser.account_id);
 
     // Log successful resend for audit trail
-    console.log('✅ Invitation resent successfully', {
-      invitationId: invitation.id,
-      email: invitation.email,
-      role: invitation.role,
-      resentBy: user.id,
-      accountId: accountUser.account_id
-    });
 
     const response = NextResponse.json({
       message: 'Invitation resent successfully',

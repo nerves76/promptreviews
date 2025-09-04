@@ -56,7 +56,6 @@ export function createClient(): SupabaseClient {
     );
     
     if (isDevelopment && _instanceCount === 1) {
-      console.log('✅ Supabase browser client created successfully');
     }
   }
   
@@ -108,7 +107,6 @@ export function getClientStats() {
  * Reset client instance (for testing/debugging only)
  */
 export function resetClientInstance() {
-  console.log('🔄 Resetting Supabase client instance');
   _browserClient = null;
   _instanceCount = 0;
   _creationStack = [];
@@ -169,7 +167,6 @@ export function createServiceRoleClient(): SupabaseClient {
   }
   
   if (isDevelopment) {
-    console.log('🔑 Creating Supabase service role client (bypasses RLS)');
   }
   
   const { createClient } = require('@supabase/supabase-js');
@@ -216,7 +213,6 @@ export async function getUserOrMock(client: SupabaseClient) {
     if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined') {
       const devBypass = localStorage.getItem('dev_auth_bypass');
       if (devBypass === 'true') {
-        console.log('🔧 DEV MODE: getUserOrMock using authentication bypass');
         const mockUser = {
           id: '12345678-1234-5678-9abc-123456789012',
           email: 'test@example.com',
@@ -265,7 +261,6 @@ export async function getUserOrMock(client: SupabaseClient) {
  * Test authentication function
  */
 export async function testAuth(email: string, password: string) {
-  console.log('🧪 Testing authentication...');
   
   try {
     const client = createClient();
@@ -286,10 +281,6 @@ export async function testAuth(email: string, password: string) {
     }
     
     if (data.user && data.session) {
-      console.log('✅ Auth test successful!', {
-        userId: data.user.id,
-        hasSession: !!data.session
-      });
       return { success: true, user: data.user, session: data.session };
     }
     

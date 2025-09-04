@@ -22,13 +22,11 @@ export async function GET(
       );
     }
 
-    console.log(`[BUSINESS-BY-ACCOUNT] Fetching business for account: ${accountId}`);
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
     if (!supabaseUrl || !supabaseServiceKey) {
-      console.error('[BUSINESS-BY-ACCOUNT] Missing Supabase configuration');
       return NextResponse.json(
         { error: "Server configuration error" },
         { status: 500 }
@@ -52,14 +50,12 @@ export async function GET(
     }
 
     if (!business) {
-      console.log(`[BUSINESS-BY-ACCOUNT] No business found for account: ${accountId}`);
       return NextResponse.json(
         { error: "Business not found" },
         { status: 404 }
       );
     }
 
-    console.log(`[BUSINESS-BY-ACCOUNT] Successfully fetched business: ${business.id}`);
     return NextResponse.json(business);
   } catch (error) {
     console.error('[BUSINESS-BY-ACCOUNT] Unexpected error:', error);
@@ -85,13 +81,11 @@ export async function PUT(
     }
 
     const body = await request.json();
-    console.log(`[BUSINESS-BY-ACCOUNT] Updating business for account: ${accountId}`, body);
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
     if (!supabaseUrl || !supabaseServiceKey) {
-      console.error('[BUSINESS-BY-ACCOUNT] Missing Supabase configuration');
       return NextResponse.json(
         { error: "Server configuration error" },
         { status: 500 }
@@ -109,7 +103,6 @@ export async function PUT(
 
     // If not found by account_id, try by business id (for backwards compatibility)
     if (fetchError?.code === 'PGRST116' || !existingBusiness) {
-      console.log('[BUSINESS-BY-ACCOUNT] No business found by account_id, trying by id:', accountId);
       const result = await supabase
         .from('businesses')
         .select('id, account_id, name')
@@ -121,7 +114,6 @@ export async function PUT(
     }
 
     if (fetchError || !existingBusiness) {
-      console.error('[BUSINESS-BY-ACCOUNT] No business found for account/id:', accountId);
       console.error('[BUSINESS-BY-ACCOUNT] Fetch error:', fetchError);
       return NextResponse.json(
         { error: `No business found for account/id ${accountId}` },
@@ -129,12 +121,9 @@ export async function PUT(
       );
     }
 
-    console.log('[BUSINESS-BY-ACCOUNT] Found business:', existingBusiness);
 
     // Update the business record
     // Log the body being sent
-    console.log('[BUSINESS-BY-ACCOUNT] Update body fields:', Object.keys(body));
-    console.log('[BUSINESS-BY-ACCOUNT] Full update body:', JSON.stringify(body, null, 2));
 
     // Use the business id for the update
     const { data: updatedBusiness, error } = await supabase
@@ -160,7 +149,6 @@ export async function PUT(
       );
     }
 
-    console.log(`[BUSINESS-BY-ACCOUNT] Successfully updated business: ${updatedBusiness.id}`);
     
     // Also update the business_name in the accounts table if it was changed
     // This ensures the account switcher shows the updated name

@@ -26,11 +26,9 @@ export async function GET(
     const { data: { user }, error: userError } = await supabase.auth.getUser();
     
     if (userError || !user) {
-      console.log('No authenticated user found in ownership check');
       return NextResponse.json({ isOwner: false });
     }
 
-    console.log('Auth user found for ownership check:', user.email);
 
     // Get the prompt page to check ownership
     const { data: promptPage, error: promptError } = await supabase
@@ -40,26 +38,21 @@ export async function GET(
       .single();
 
     if (promptError || !promptPage) {
-      console.log('Prompt page not found or error:', promptError);
       return NextResponse.json({ isOwner: false });
     }
 
-    console.log('Prompt page account_id:', promptPage.account_id);
 
     // Check if user owns this prompt page by comparing account_ids
     // Use proper utility function that handles multiple account_user records
     const accountId = await getRequestAccountId(request, user.id, supabase);
 
     if (!accountId) {
-      console.log('No account found for user');
       return NextResponse.json({ isOwner: false });
     }
 
-    console.log('User account_id:', accountId);
 
     const isOwner = accountId === promptPage.account_id;
     
-    console.log('Ownership check result:', isOwner ? 'User is owner' : 'User is not owner');
 
     return NextResponse.json({
       isOwner,

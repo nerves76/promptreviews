@@ -244,7 +244,6 @@ export default function ServicePromptPageForm({
 
   // Add safety check for required props
   if (!supabase) {
-    console.error('ServicePromptPageForm: supabase is required but not provided');
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
@@ -255,7 +254,6 @@ export default function ServicePromptPageForm({
   }
 
   if (!businessProfile) {
-    console.error('ServicePromptPageForm: businessProfile is required but not provided');
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
@@ -349,13 +347,11 @@ export default function ServicePromptPageForm({
   // Handle AI review generation
   const handleGenerateAIReview = async (idx: number) => {
     if (!businessProfile) {
-      console.error("Business profile not loaded");
       return;
     }
     
     const platforms = formData.review_platforms || [];
     if (!platforms[idx]) {
-      console.error("Platform not found at index", idx);
       return;
     }
     

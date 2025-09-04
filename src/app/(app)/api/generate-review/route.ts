@@ -35,11 +35,6 @@ export async function POST(request: Request) {
 
     // Security: Verify user_id matches authenticated session
     if (user_id && user_id !== user.id) {
-      console.error('Generate review API: Security violation - user_id mismatch', {
-        authenticatedUser: user.id,
-        providedUserId: user_id,
-        timestamp: new Date().toISOString(),
-      });
       return NextResponse.json(
         { error: "Forbidden: User ID mismatch" },
         { status: 403 },

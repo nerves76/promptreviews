@@ -21,12 +21,6 @@ export function useRefreshPrevention(componentName: string) {
       rapidRenderCount.current++;
       
       if (rapidRenderCount.current > 5) {
-        console.error(`⚠️ RAPID RE-RENDER DETECTED in ${componentName}!`, {
-          renderCount: renderCount.current,
-          rapidRenderCount: rapidRenderCount.current,
-          timeSinceLastRender,
-          stack: new Error().stack
-        });
       }
     } else {
       rapidRenderCount.current = 0;
@@ -49,18 +43,15 @@ export function useRefreshPrevention(componentName: string) {
     const originalReplaceState = window.history.replaceState;
     
     window.history.pushState = function(...args) {
-      console.log(`📍 pushState called in ${componentName}:`, args[2]);
       return originalPushState.apply(window.history, args);
     };
     
     window.history.replaceState = function(...args) {
-      console.log(`📍 replaceState called in ${componentName}:`, args[2]);
       return originalReplaceState.apply(window.history, args);
     };
     
     // Listen for popstate events
     const handlePopState = (e: PopStateEvent) => {
-      console.log(`📍 popstate event in ${componentName}:`, e);
     };
     
     window.addEventListener('popstate', handlePopState);
@@ -78,11 +69,6 @@ export function useRefreshPrevention(componentName: string) {
     
     const checkLocationChange = () => {
       if (window.location.href !== lastHref) {
-        console.log(`🌐 Location changed in ${componentName}:`, {
-          from: lastHref,
-          to: window.location.href,
-          stack: new Error().stack
-        });
         lastHref = window.location.href;
       }
     };

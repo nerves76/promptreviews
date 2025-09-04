@@ -79,7 +79,6 @@ class ApiClient {
     
     const headers = await this.getHeaders(skipAuth, includeSelectedAccount);
     
-    console.log(`🌐 API Request: ${fetchOptions.method || 'GET'} ${url}`);
     
     const response = await fetch(`${this.baseUrl}${url}`, {
       ...fetchOptions,
@@ -89,11 +88,9 @@ class ApiClient {
       },
     });
     
-    console.log(`🌐 API Response: ${response.status} ${response.statusText}`);
     
     // Handle auth errors with retry
     if (response.status === 401 && retryOnAuthError && !skipAuth) {
-      console.log('🔄 API Client: Got 401, refreshing token and retrying...');
       
       // Force token refresh
       const newToken = await tokenManager.getAccessToken();

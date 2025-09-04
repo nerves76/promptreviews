@@ -243,7 +243,6 @@ export async function syncAllAccounts(): Promise<{
     }
   }
   
-  console.log(`Sync complete: ${synced} synced, ${failed} failed out of ${accounts.length} total`);
   
   return {
     total: accounts.length,

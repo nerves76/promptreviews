@@ -8,7 +8,6 @@ import { createServiceRoleClient } from '@/auth/providers/supabase';
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('🧹 Starting Google Business Profile media uploads cleanup...');
 
     // Verify this is an internal/cron request
     const authHeader = request.headers.get('authorization');
@@ -42,7 +41,6 @@ export async function POST(request: NextRequest) {
     }
 
     const deletedCount = deletedRecords?.length || 0;
-    console.log(`✅ Cleanup completed: ${deletedCount} old records removed`);
 
     return NextResponse.json({
       success: true,

@@ -13,7 +13,6 @@ import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('🔧 AI Keyword Integration API called');
 
     // Check authentication
     const supabase = createServerComponentClient({ cookies });
@@ -44,8 +43,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('📝 Integrating keywords:', keywords);
-    console.log('📄 Current description:', currentDescription.substring(0, 100) + '...');
 
     // Create AI prompt for keyword integration
     const systemPrompt = `You are an expert copywriter specializing in Google Business Profile optimization. Your task is to rewrite business descriptions to naturally integrate specific keywords while maintaining authenticity and readability.
@@ -117,8 +114,6 @@ Return only the rewritten description.`;
       throw new Error('No optimized description returned from AI');
     }
 
-    console.log('✅ Keyword integration successful');
-    console.log('📊 Result length:', optimizedDescription.length);
 
     return NextResponse.json({
       success: true,

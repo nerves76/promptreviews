@@ -18,12 +18,6 @@ export async function GET(request: NextRequest) {
   
   // Check hash fragment for error information (Supabase puts errors there for security)
   const hashFragment = requestUrl.hash;
-  console.log('🔗 Auth callback triggered with URL:', request.url);
-  console.log('📝 Code parameter:', code ? `Present (${code.substring(0, 10)}...)` : 'Missing');
-  console.log('🔄 Next parameter:', next || 'None');
-  console.log('📋 Type parameter:', type || 'None');
-  console.log('📋 All parameters:', allParams);
-  console.log('#️⃣ Hash fragment:', hashFragment || 'None');
 
   // Check if there's an error in the hash fragment
   if (hashFragment && hashFragment.includes('error=')) {
@@ -32,7 +26,6 @@ export async function GET(request: NextRequest) {
     const errorCode = hashParams.get('error_code');
     const errorDescription = hashParams.get('error_description');
     
-    console.log('❌ Error in hash fragment:', { error, errorCode, errorDescription });
     
     // Redirect with the error information
     return NextResponse.redirect(
@@ -42,7 +35,6 @@ export async function GET(request: NextRequest) {
 
   // If no code, check if we already have a session (Supabase might have set it during redirect)
   if (!code) {
-    console.log('⚠️ No code provided, checking for existing session...');
     
     try {
       // Create server client to check session
@@ -71,13 +63,11 @@ export async function GET(request: NextRequest) {
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       
       if (session && session.user) {
-        console.log('✅ Found existing session from Supabase redirect');
         // Continue with the normal flow using the existing session
         const user = session.user;
         const { id: userId, email } = user;
         
         // Jump to account creation logic
-        console.log('🔄 Processing user with existing session:', userId);
         
         // Check for pending team invitations
         let hasAcceptedInvitation = false;
@@ -205,7 +195,6 @@ export async function GET(request: NextRequest) {
       console.error('❌ Error checking session:', error);
     }
     
-    console.log('❌ No code and no session found');
     return NextResponse.redirect(`${requestUrl.origin}/auth/sign-in?error=missing_code`);
   }
 
@@ -233,7 +222,6 @@ export async function GET(request: NextRequest) {
       }
     );
 
-    console.log('🔄 Exchanging code for session...');
     
     // For email confirmations, the code verifier might be stored in cookies
     // Look for any code verifier cookies
@@ -244,12 +232,10 @@ export async function GET(request: NextRequest) {
     for (const cookie of allCookies) {
       if (cookie.name.includes('code-verifier')) {
         codeVerifier = cookie.value;
-        console.log('🍪 Found code verifier cookie:', cookie.name);
         break;
       }
     }
     
-    console.log('🔑 Code verifier status:', codeVerifier ? 'Found' : 'Not found');
     
     // Try to exchange the code
     // If we have a code verifier, use it; otherwise try without it
@@ -261,12 +247,6 @@ export async function GET(request: NextRequest) {
     sessionError = result.error;
     
     if (sessionError) {
-      console.log('❌ Session exchange error:', sessionError);
-      console.log('❌ Error details:', {
-        message: sessionError.message,
-        status: sessionError.status,
-        code: sessionError.code
-      });
       
       // If it's a token verification error, provide a more helpful message
       if (sessionError.message.includes('otp') || sessionError.message.includes('expired')) {
@@ -283,7 +263,6 @@ export async function GET(request: NextRequest) {
     const { data: { user }, error: userError } = await supabase.auth.getUser();
     
     if (userError || !user) {
-      console.log('❌ No user found after code exchange:', userError);
       return NextResponse.redirect(`${requestUrl.origin}/auth/sign-in?error=user_not_found`);
     }
 
@@ -296,15 +275,12 @@ export async function GET(request: NextRequest) {
     // If there's a next parameter, redirect there (e.g., for password reset)
     // Handle this IMMEDIATELY to avoid running through account creation logic
     if (next) {
-      console.log('🔄 Password reset or special flow detected, redirecting to:', next);
-      console.log('🔄 Skipping account creation logic for this flow');
       
       // For password reset, add the user email as a query parameter to help with verification
       const redirectUrl = new URL(`${requestUrl.origin}${next}`);
       redirectUrl.searchParams.set('email', user.email || '');
       redirectUrl.searchParams.set('verified', 'true');
       
-      console.log('🔗 Redirecting to:', redirectUrl.toString());
       return NextResponse.redirect(redirectUrl.toString());
     }
 
@@ -313,7 +289,6 @@ export async function GET(request: NextRequest) {
     
     // First, ensure the account exists (in case the trigger failed)
     try {
-      console.log('🔧 Ensuring account exists for user:', userId);
       
       // Check if account exists
       const { data: existingAccount, error: checkError } = await supabase
@@ -324,7 +299,6 @@ export async function GET(request: NextRequest) {
       
       if (checkError && checkError.code === 'PGRST116') {
         // Account doesn't exist, create it
-        console.log('⚠️ Account not found, creating manually...');
         
         // Call the backup function to create account
         const { data: createResult, error: createError } = await supabase
@@ -358,10 +332,8 @@ export async function GET(request: NextRequest) {
             console.log('✅ Account created via direct insert');
           }
         } else {
-          console.log('✅ Account created via RPC:', createResult);
         }
       } else if (existingAccount) {
-        console.log('✅ Account already exists');
       }
     } catch (error) {
       console.error('❌ Error ensuring account exists:', error);
@@ -390,7 +362,6 @@ export async function GET(request: NextRequest) {
         .gte('expires_at', new Date().toISOString());
 
       if (!invitationError && pendingInvitations && pendingInvitations.length > 0) {
-        console.log('🎯 Found pending invitations for user:', pendingInvitations.length);
         
         // Accept the first valid invitation
         const invitation = pendingInvitations[0];
@@ -401,11 +372,6 @@ export async function GET(request: NextRequest) {
 
         if (!canAddError && canAdd) {
           // Add user to account (NO separate account creation for team members)
-          console.log('🔧 Adding user to team account via callback:', {
-            account_id: invitation.account_id,
-            user_id: userId,
-            role: invitation.role
-          });
 
           const { error: addUserError } = await supabase
             .from('account_users')
@@ -441,7 +407,6 @@ export async function GET(request: NextRequest) {
             });
 
             // Try with service role client as fallback
-            console.log('🔄 Attempting fallback with service role client in callback...');
             const supabaseAdmin = createServiceRoleClient();
             const { error: fallbackError } = await supabaseAdmin
               .from('account_users')
@@ -452,14 +417,12 @@ export async function GET(request: NextRequest) {
               });
 
             if (!fallbackError) {
-              console.log('✅ Fallback succeeded - marking invitation as accepted');
               // Mark invitation as accepted
               await supabase
                 .from('account_invitations')
                 .update({ accepted_at: new Date().toISOString() })
                 .eq('token', invitation.token);
 
-              console.log('✅ Team invitation accepted via fallback - user added to team account');
               hasAcceptedInvitation = true;
               
               // Redirect to dashboard
@@ -517,7 +480,6 @@ export async function GET(request: NextRequest) {
     
     if (!accountLinks || accountLinks.length === 0) {
       isNewUser = true;
-      console.log("🆕 User has no account links, checking for existing account...");
       
       // Check if account already exists (using user_id instead of id)
       const { data: existingAccount, error: accountCheckError } = await supabase
@@ -531,7 +493,6 @@ export async function GET(request: NextRequest) {
       }
 
       if (!existingAccount) {
-        console.log("🆕 Creating new individual account for user:", userId);
         
         // Create account with proper fields
         const { data: newAccount, error: createAccountError } = await supabase
@@ -559,14 +520,12 @@ export async function GET(request: NextRequest) {
           
           // If it's a duplicate key error, the account already exists
           if (createAccountError.code === '23505') {
-            console.log("✅ Account already exists (duplicate key detected)");
             isNewUser = false;
           } else {
             // For other errors, redirect to sign-in
             return NextResponse.redirect(`${requestUrl.origin}/auth/sign-in?error=account_creation_failed`);
           }
         } else if (newAccount) {
-          console.log("✅ Individual account created successfully");
           
           // Create account_user link with upsert to avoid duplicates
           const { error: linkError } = await supabase
@@ -585,11 +544,9 @@ export async function GET(request: NextRequest) {
             console.error("❌ Error creating account_user link:", linkError);
             // Don't fail the whole flow for this error
           } else {
-            console.log("✅ User linked to account as owner");
           }
         }
       } else {
-        console.log("✅ Account already exists for user");
         isNewUser = false;
         
         // Ensure account_user link exists with upsert
@@ -614,7 +571,6 @@ export async function GET(request: NextRequest) {
         }
       }
     } else {
-      console.log("✅ User already has account links");
       isNewUser = false;
     }
 
@@ -629,7 +585,6 @@ export async function GET(request: NextRequest) {
         }
 
         await sendWelcomeEmail(email, firstName);
-        console.log("📧 Welcome email sent to:", email);
       } catch (emailError) {
         console.error("❌ Error sending welcome email:", emailError);
         // Don't fail the whole flow for email errors
@@ -652,7 +607,6 @@ export async function GET(request: NextRequest) {
         }
 
         await sendAdminNewUserNotification(email, firstName, lastName);
-        console.log("📧 Admin notification sent for new user:", email);
       } catch (adminNotificationError) {
         console.error("❌ Error sending admin notification:", adminNotificationError);
         // Don't fail the whole flow for admin notification errors

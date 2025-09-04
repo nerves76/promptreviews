@@ -244,11 +244,9 @@ export default function BusinessLocationModal({
           locationName: formData.name || "New Location"
         };
         
-        console.log('🔍 Setting localStorage showPostSaveModal for location:', modalData);
         localStorage.setItem("showPostSaveModal", JSON.stringify(modalData));
         
         // Close the modal first, then redirect to prompt-pages with locations tab to show the success modal
-        console.log('🔍 Closing modal and redirecting to prompt-pages?tab=locations for success modal');
         onClose();
         
         // Navigate immediately to prompt-pages with locations tab

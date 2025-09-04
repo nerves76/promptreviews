@@ -7,17 +7,14 @@ import { authenticateApiRequest } from "@/utils/apiAuth";
 
 export async function POST(request: NextRequest) {
   try {
-    console.log("Starting upload-contacts API route");
     
     // Authenticate the request
     const { user, supabase, error: authError } = await authenticateApiRequest(request);
     
     if (authError || !user) {
-      console.log("Upload contacts API: Authentication failed:", authError);
       return NextResponse.json({ error: authError || "Authentication required" }, { status: 401 });
     }
 
-    console.log("User authenticated:", { userId: user.id, email: user.email });
 
     // ENFORCE ACCOUNT LIMITS
     const limitCheck = await checkAccountLimits(supabase, user.id, "contact");
@@ -29,19 +26,15 @@ export async function POST(request: NextRequest) {
     }
 
     // Get the form data
-    console.log("Getting form data...");
     const formData = await request.formData();
     const file = formData.get("file") as File;
 
     if (!file) {
-      console.error("No file provided");
       return NextResponse.json({ error: "No file provided" }, { status: 400 });
     }
 
     // Read and parse the CSV file
-    console.log("Starting CSV processing...");
     const text = await file.text();
-    console.log("Raw CSV content:", text);
 
     // First, split the text into lines and clean them
     const lines = text
@@ -53,13 +46,10 @@ export async function POST(request: NextRequest) {
           line.split(",").some((cell) => cell.trim().length > 0),
       );
 
-    console.log("Cleaned lines:", lines);
-    console.log("Number of lines:", lines.length);
 
     // Parse the CSV with more lenient settings
     const records = parse(lines.join("\n"), {
       columns: (headers) => {
-        console.log("Raw headers before mapping:", headers);
         // Normalize header: lowercase, remove spaces/underscores
         const normalize = (h: string) => h.toLowerCase().replace(/\s|_/g, "");
         const expected = {
@@ -127,7 +117,6 @@ export async function POST(request: NextRequest) {
       skip_records_with_empty_values: true,
     });
 
-    console.log("Raw parsed records:", records);
     // Filter out any records that are completely empty
     const validRecords = records.filter((record: any, index: number) => {
       // Only keep fields that are in our expected list
@@ -153,8 +142,6 @@ export async function POST(request: NextRequest) {
       return true;
     });
 
-    console.log("Valid records after filtering and trimming:", validRecords);
-    console.log("Number of valid records:", validRecords.length);
 
     // Validate required fields
     const invalidRecords = validRecords.filter((record: any, index: number) => {
@@ -163,15 +150,12 @@ export async function POST(request: NextRequest) {
       const hasPhone = record.phone && record.phone.trim();
       const isValid = hasFirstName && (hasEmail || hasPhone);
       if (!isValid) {
-        console.log(`Record ${index + 1} is invalid:`, record);
       }
       return !isValid;
     });
 
-    console.log("Invalid records:", invalidRecords);
 
     // Prepare contacts for insertion
-    console.log("Preparing contacts for insertion...");
     const contacts = validRecords.map((record: any) => ({
       account_id: user.id,
       first_name: record.first_name?.trim() || null,
@@ -190,25 +174,18 @@ export async function POST(request: NextRequest) {
       status: "in_queue",
     }));
 
-    console.log("Contacts to insert:", contacts);
-    console.log("User ID:", user.id);
     if (contacts.length === 0) {
-      console.log("No contacts to insert. Exiting early.");
     }
 
     // Insert contacts into the database
-    console.log("Inserting contacts into database...");
     if (contacts.length > 0) {
-      console.log("First contact data:", contacts[0]); // Log the first contact's data
     }
-    console.log("User ID being used:", user.id); // Log the user ID
 
     const { data: insertedContacts, error: insertError } = await supabase
       .from("contacts")
       .insert(contacts)
       .select();
 
-    console.log("Insert result:", insertedContacts);
     if (insertError) {
       console.error("Error inserting contacts:", insertError);
       console.error("Error details:", {
@@ -227,15 +204,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log(
-      `Successfully inserted ${insertedContacts?.length || 0} contacts:`,
-      insertedContacts,
-    );
 
     // Create reviews if any were provided in the CSV
     let totalReviewsCreated = 0;
     if (insertedContacts && insertedContacts.length > 0) {
-      console.log("Processing reviews from CSV...");
       
       for (let i = 0; i < insertedContacts.length; i++) {
         const contact = insertedContacts[i];
@@ -267,7 +239,6 @@ export async function POST(request: NextRequest) {
         
         // Insert reviews for this contact
         if (reviews.length > 0) {
-          console.log(`Creating ${reviews.length} reviews for contact ${contact.id}`);
           const { error: reviewInsertError } = await supabase
             .from("review_submissions")
             .insert(reviews);
@@ -276,7 +247,6 @@ export async function POST(request: NextRequest) {
             console.error(`Error inserting reviews for contact ${contact.id}:`, reviewInsertError);
           } else {
             totalReviewsCreated += reviews.length;
-            console.log(`Successfully created ${reviews.length} reviews for contact ${contact.id}`);
           }
         }
       }

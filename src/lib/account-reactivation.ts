@@ -52,7 +52,6 @@ export class AccountReactivationSystem {
    */
   async checkReactivationNeeded(userId: string): Promise<ReactivationResult> {
     try {
-      console.log('🔄 Checking reactivation status for user:', userId);
 
       // ============================================
       // Get account data
@@ -90,7 +89,6 @@ export class AccountReactivationSystem {
       const now = new Date();
       const daysInactive = Math.floor((now.getTime() - deletedAt.getTime()) / (1000 * 60 * 60 * 24));
 
-      console.log(`📊 Account deleted ${daysInactive} days ago`);
 
       // ============================================
       // Check if data is still available
@@ -100,11 +98,9 @@ export class AccountReactivationSystem {
       if (daysInactive > this.retentionDays) {
         // Data should have been purged
         dataStatus = 'deleted';
-        console.log('⚠️ Account data may have been purged (>90 days)');
       } else if (daysInactive > 60) {
         // Warning zone
         dataStatus = 'partial';
-        console.log('⚠️ Account approaching data purge deadline');
       }
 
       return {
@@ -132,7 +128,6 @@ export class AccountReactivationSystem {
    */
   async reactivateAccount(userId: string): Promise<ReactivationResult> {
     try {
-      console.log('✨ Reactivating account for user:', userId);
 
       // ============================================
       // Get current account state
@@ -202,7 +197,6 @@ export class AccountReactivationSystem {
         };
       }
 
-      console.log('✅ Account successfully reactivated');
 
       // ============================================
       // Log reactivation event

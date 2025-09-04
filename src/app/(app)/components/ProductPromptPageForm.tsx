@@ -128,10 +128,8 @@ export default function ProductPromptPageForm({
 
   // Helper function to update form data
   const updateFormData = (data: any) => {
-    console.log('🔄 FORM UPDATE: Updating form data with:', data);
     setFormData((prev: any) => {
       const newData = { ...prev, ...data };
-      console.log('🔄 FORM UPDATE: New form data state:', newData);
       return newData;
     });
   };
@@ -139,10 +137,8 @@ export default function ProductPromptPageForm({
   // Update form data when initialData changes (for inheritance)
   useEffect(() => {
     if (initialData && Object.keys(initialData).length > 0) {
-      console.log('🔄 ProductPromptPageForm: initialData changed, updating form data:', initialData);
       setFormData((prev: any) => {
         const newData = { ...prev, ...initialData };
-        console.log('🔄 ProductPromptPageForm: Updated form data:', newData);
         return newData;
       });
     }
@@ -213,7 +209,6 @@ export default function ProductPromptPageForm({
           product_photo: uploadedPhotoUrl,
         };
         
-      console.log(`🔥 Step 1 data being sent:`, step1Data);
       await onSave(step1Data);
       onStepChange?.(2);
     } catch (error: any) {
@@ -226,13 +221,11 @@ export default function ProductPromptPageForm({
   // Handle AI review generation
   const handleGenerateAIReview = async (idx: number) => {
     if (!businessProfile) {
-      console.error("Business profile not loaded");
       return;
     }
     
     const platforms = formData.review_platforms || [];
     if (!platforms[idx]) {
-      console.error("Platform not found at index", idx);
       return;
     }
     
@@ -303,42 +296,29 @@ export default function ProductPromptPageForm({
   const validateForm = () => {
     const campaignType = formData.campaign_type || 'individual';
     
-    console.log(`🔥 Validating form - campaign_type: ${campaignType}`);
-    console.log(`🔥 Form data for validation:`, { 
-      campaign_type: campaignType,
-      first_name: formData.first_name,
-      last_name: formData.last_name,
-      email: formData.email,
-      name: formData.name 
-    });
     
     if (campaignType !== 'public') {
       // For individual campaigns, validate customer details
       if (!formData.first_name?.trim()) {
-        console.log(`🔥 Validation failed: First name missing for individual campaign`);
         setFormError("First name is required for individual campaigns.");
         return false;
       }
       if (!formData.last_name?.trim()) {
-        console.log(`🔥 Validation failed: Last name missing for individual campaign`);
         setFormError("Last name is required for individual campaigns.");
         return false;
       }
       if (!formData.email?.trim()) {
-        console.log(`🔥 Validation failed: Email missing for individual campaign`);
         setFormError("Email is required for individual campaigns.");
         return false;
       }
     } else {
       // For public campaigns, require a campaign name
       if (!formData.name?.trim()) {
-        console.log(`🔥 Validation failed: Campaign name missing for public campaign`);
         setFormError("Campaign name is required for public campaigns.");
         return false;
       }
     }
 
-    console.log(`🔥 Validation passed`);
     return true;
   };
 
@@ -346,10 +326,8 @@ export default function ProductPromptPageForm({
   const handleEditSave = React.useCallback(async () => {
     const operationId = Date.now() + Math.random();
     
-    console.log(`🔥 NEW SAVE HANDLER: Starting save ${operationId}`);
     
     if (isLoading) {
-      console.log(`🚫 Save blocked - already loading`);
       return;
     }
     
@@ -396,10 +374,7 @@ export default function ProductPromptPageForm({
         recent_reviews_scope: recentReviewsScope
       };
       
-      console.log(`🔥 Save data being sent:`, saveData);
-      console.log(`🔥 Calling onSave...`);
       await onSave(saveData);
-      console.log(`🔥 Save completed successfully`);
     } catch (error: any) {
       console.error(`🔥 Save failed:`, error);
       console.error(`🔥 Full error details:`, JSON.stringify(error, Object.getOwnPropertyNames(error)));
@@ -439,7 +414,6 @@ export default function ProductPromptPageForm({
   // Handle form submission to prevent page reload
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("🚫 Form submission prevented - using custom save handler");
   };
 
   return (

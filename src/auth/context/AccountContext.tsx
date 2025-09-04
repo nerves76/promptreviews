@@ -106,7 +106,6 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
       
       // If no accounts found for an authenticated user, ensure account exists
       if (userAccounts.length === 0) {
-        console.log('🔧 No accounts found for user, waiting for account creation from trigger...');
         // For new users, the database trigger creates the account asynchronously
         // We need to wait and retry instead of immediately calling ensure-account
         // which might fail due to session propagation issues
@@ -117,7 +116,6 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
         // Retry loading accounts
         const retryAccounts = await getAccountsForUser(user.id);
         if (retryAccounts.length > 0) {
-          console.log('✅ Account found after waiting for trigger');
           setAccounts(retryAccounts);
           
           // Update cache
@@ -127,7 +125,6 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
           };
         } else {
           // If still no account, try the ensure-account endpoint as a last resort
-          console.log('⚠️ No account after waiting, trying ensure-account endpoint...');
           try {
             // Get the current session to pass the auth token
             const { data: { session } } = await supabase.auth.getSession();
@@ -141,7 +138,6 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
             });
             
             if (response.ok) {
-              console.log('✅ Account created via ensure-account endpoint');
               // Wait for account to be created
               await new Promise(resolve => setTimeout(resolve, 1000));
               
@@ -179,7 +175,6 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
       
       // For 406 errors specifically, try to ensure account exists
       if (error instanceof Error && (error.message.includes('406') || error.message.includes('Not Acceptable'))) {
-        console.log('🔧 Got 406 error, attempting to ensure account exists...');
         try {
           const response = await fetch('/api/auth/ensure-account', {
             method: 'POST',
@@ -189,7 +184,6 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
           });
           
           if (response.ok) {
-            console.log('✅ Account ensured after 406 error, retrying');
             const retryAccounts = await getAccountsForUser(user.id);
             setAccounts(retryAccounts);
             
@@ -250,7 +244,6 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      console.log('📊 AccountContext: Loading account data for:', currentAccountId);
 
       // Fetch account data
       const { data, error } = await supabase
@@ -265,7 +258,6 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      console.log('✅ AccountContext: Account data loaded:', data?.business_name || data?.id);
       setAccount(data);
       
       // Update cache
@@ -348,11 +340,9 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
    * Not passing the client causes new client creation without auth.
    */
   useEffect(() => {
-    // console.log('🔄 AccountContext: useEffect running, isAuthenticated:', isAuthenticated, 'userId:', user?.id, 'accountId:', accountId);
     
     // Don't do anything if we already have an account ID
     if (accountId && isAuthenticated && user?.id) {
-      console.log('✅ AccountContext: Already have account ID:', accountId, 'skipping fetch');
       return;
     }
     
@@ -364,9 +354,7 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
         // This ensures the same authenticated session is used.
         // Not passing this was a major cause of the 8-hour debugging session.
         getAccountIdForUser(user.id, supabase).then((fetchedAccountId) => {
-          console.log('🎯 AccountContext: Got account ID:', fetchedAccountId);
           if (fetchedAccountId) {
-            console.log('📊 AccountContext: Setting account ID state to:', fetchedAccountId);
             // Set the shared account ID
             setAccountId(fetchedAccountId);
             setSelectedAccountId(() => fetchedAccountId);
@@ -388,7 +376,6 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
                 // ⚠️ CRITICAL: Pass supabase client on retry too!
                 getAccountIdForUser(user.id, supabase).then((retryAccountId) => {
                   if (retryAccountId) {
-                    console.log('✅ AccountContext: Retry successful, got account ID:', retryAccountId);
                     setAccountId(retryAccountId);
                     setSelectedAccountId(() => retryAccountId);
                     setAccountCacheTime(Date.now());
@@ -411,7 +398,6 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
       
       return () => clearTimeout(timeoutId);
     } else if (!isAuthenticated) {
-      console.log('🔄 AccountContext: Not authenticated, clearing account data');
       // Clear account data when not authenticated - use force flag
       setAccount(null);
       setAccountId(null, true); // Force clear on logout

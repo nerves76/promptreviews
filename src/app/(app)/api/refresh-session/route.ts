@@ -18,7 +18,6 @@ export async function POST(request: NextRequest) {
     }
 
     const userId = session.user.id;
-    console.log('🔄 Force refresh session and account data for user:', userId);
 
     // Force refresh the auth session
     const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
@@ -55,8 +54,6 @@ export async function POST(request: NextRequest) {
       }, { status: 500 });
     }
 
-    console.log('✅ Session and account data refreshed successfully');
-    console.log('✅ Current plan:', accountData?.plan);
 
     return NextResponse.json({ 
       success: true,

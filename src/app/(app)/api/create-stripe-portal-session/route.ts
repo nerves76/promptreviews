@@ -16,17 +16,10 @@ export async function POST(req: NextRequest) {
     const supabase = await createServerSupabaseClient();
     
     // For debugging - let's see what's happening
-    console.log("🔍 Portal API: Checking authentication...");
     
     // Get the current session (works better in API routes)
     const { data: { session }, error: sessionError } = await supabase.auth.getSession();
     
-    console.log("🔍 Portal API: Session check result:", {
-      hasSession: !!session,
-      hasUser: !!session?.user,
-      userId: session?.user?.id,
-      error: sessionError?.message
-    });
     
     if (sessionError || !session?.user) {
       console.error("❌ Portal API: Authentication failed:", sessionError?.message);
@@ -34,7 +27,6 @@ export async function POST(req: NextRequest) {
     }
 
     const user = session.user;
-    console.log("✅ Portal API: User authenticated:", user.id);
 
     // Get the user's account using the proper utility function
     // This handles multiple account_user records correctly
@@ -84,7 +76,6 @@ export async function POST(req: NextRequest) {
     // Only add configuration if we have one (for live mode, needs to be set in env)
     if (portalConfig) {
       sessionParams.configuration = portalConfig;
-      console.log(`🎯 Portal API: Using configuration ${portalConfig}`);
     } else {
       console.warn('⚠️ Portal API: No configuration specified, using default');
     }

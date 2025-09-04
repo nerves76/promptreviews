@@ -44,7 +44,6 @@ export async function POST(req: NextRequest) {
 
     // Check if this is a free account
     if (account.is_free_account) {
-      console.log("🆓 Free account detected, blocking subscription upgrade");
       return NextResponse.json({ 
         error: "FREE_ACCOUNT", 
         message: "Free accounts cannot upgrade subscriptions. Your account has been configured with free access.",
@@ -88,14 +87,6 @@ export async function POST(req: NextRequest) {
     // Get the correct price ID
     const targetPriceId = getPriceId(plan, billingPeriod) || '';
     
-    console.log('🔄 Subscription update details:', {
-      subscriptionId: activeSubscription.id,
-      currentItemId: subscriptionItem.id,
-      currentPriceId: subscriptionItem.price.id,
-      targetPlan: plan,
-      targetBillingPeriod: billingPeriod,
-      targetPriceId: targetPriceId,
-    });
     
     // Prepare update configuration
     const updateConfig = {
@@ -115,13 +106,6 @@ export async function POST(req: NextRequest) {
       updateConfig
     );
     
-    console.log('✅ Stripe subscription updated:', {
-      subscriptionId: updatedSubscription.id,
-      newItemId: updatedSubscription.items.data[0]?.id,
-      newPriceId: updatedSubscription.items.data[0]?.price.id,
-      newProductId: updatedSubscription.items.data[0]?.price.product,
-      status: updatedSubscription.status,
-    });
 
     // Update the plan and billing period in our database
     await supabase
@@ -153,12 +137,6 @@ export async function POST(req: NextRequest) {
     
     const redirectUrl = BILLING_URLS.SUCCESS_URL(finalChangeType, plan, billingPeriod);
     
-    console.log('🔄 Subscription update complete:', {
-      from: currentPlan,
-      to: plan,
-      changeType,
-      redirectUrl
-    });
     
     return NextResponse.json({ 
       success: true, 

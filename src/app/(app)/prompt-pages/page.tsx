@@ -171,36 +171,30 @@ function PromptPagesContent() {
     async function fetchData() {
       // Don't fetch until auth is fully initialized
       if (!authInitialized) {
-        console.log('⏸️ Skipping fetch - auth not initialized');
         return;
       }
       
       // Don't fetch if we're already loading
       if (loading && business) {
-        console.log('⏸️ Skipping fetch - already loading');
         return;
       }
       
       // Don't refetch if we already have data for this account
       const currentAccountId = selectedAccountId || authAccountId;
       if (business && currentAccountId && business.account_id === currentAccountId) {
-        console.log('⏸️ Skipping fetch - already have data for account');
         return;
       }
-      console.log('🚀 Starting data fetch for account:', currentAccountId);
       setLoading(true);
       setError(null);
       try {
         // Use auth context user and accountId instead of direct Supabase call
         if (!authUser) {
-          console.log('No authenticated user, redirecting to sign-in');
           router.push('/auth/sign-in');
           return;
         }
         
         // If no account ID, user might be new - handle gracefully
         if (!authAccountId && !selectedAccountId) {
-          console.log('No account found for user - user may need to complete setup');
           setLoading(false);
           // Optionally show a message to complete account setup
           setError("Please complete your account setup to access prompt pages.");
@@ -223,7 +217,6 @@ function PromptPagesContent() {
         
         // DEVELOPMENT MODE: Use API endpoint to bypass RLS issues
         if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined' && localStorage.getItem('dev_auth_bypass') === 'true') {
-          console.log('🔧 DEV MODE: Using API endpoint to fetch businesses for prompt pages');
           try {
             const response = await fetch(`/api/businesses?account_id=${accountId}`);
             const apiResult = await response.json();
@@ -250,15 +243,12 @@ function PromptPagesContent() {
           businessError = result.error;
         }
         
-        console.log('🔍 DEBUG: Prompt pages business query result:', { businessProfiles, businessError });
         const businessProfile = businessProfiles?.[0];
-        console.log('🔍 DEBUG: Selected business for prompt pages:', businessProfile);
         
         // Check if business profile exists and has a valid name
         if (!businessProfile || 
             !businessProfile.name || 
             businessProfile.name.trim() === '') {
-          console.log('❌ Business profile check failed:', { businessProfile });
           if (!showBusinessRequiredModal) {
             setShowBusinessRequiredModal(true);
           }
@@ -266,17 +256,11 @@ function PromptPagesContent() {
           return;
         }
         
-        console.log('[DEBUG] Setting business:', {
-          id: businessProfile.id,
-          account_id: businessProfile.account_id,
-          name: businessProfile.name
-        });
         setBusiness(businessProfile);
         
         // DEVELOPMENT MODE BYPASS - Use mock universal prompt page
         let universalPage = null;
         if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined' && localStorage.getItem('dev_auth_bypass') === 'true' && accountId === '12345678-1234-5678-9abc-123456789012') {
-          console.log('🔧 DEV MODE: Using mock universal prompt page');
           universalPage = {
             id: '0f1ba885-07d6-4698-9e94-a63d990c65e0',
             account_id: '12345678-1234-5678-9abc-123456789012',
@@ -356,7 +340,6 @@ function PromptPagesContent() {
         console.error('❌ Data fetch error:', err);
         setError(err instanceof Error ? err.message : "Failed to load");
       } finally {
-        console.log('✅ Data fetch completed');
         setLoading(false);
         setDataLoaded(true);
       }
@@ -383,7 +366,6 @@ function PromptPagesContent() {
 
   const handleCreateLocation = async (locationData: Partial<BusinessLocation>) => {
     try {
-      console.log('🔍 Frontend: Sending location data:', JSON.stringify(locationData, null, 2));
       
       const response = await fetch('/api/business-locations', {
         method: 'POST',
@@ -392,11 +374,9 @@ function PromptPagesContent() {
         body: JSON.stringify(locationData),
       });
       
-      console.log('🔍 Frontend: Response status:', response.status);
       
       if (response.ok) {
         const data = await response.json();
-        console.log('🔍 Frontend: Success response:', data);
         setLocations(prev => [...prev, data.location]);
         setLocationLimits(prev => ({ ...prev, current: prev.current + 1 }));
         
@@ -414,7 +394,6 @@ function PromptPagesContent() {
         }
       } else {
         const error = await response.json();
-        console.log('🔍 Frontend: Error response:', error);
         throw new Error(error.message || 'Failed to create location');
       }
     } catch (error) {
@@ -491,14 +470,6 @@ function PromptPagesContent() {
         try {
           const data = JSON.parse(flag);
           
-          console.log('🔍 Setting post save data:', data);
-          console.log('🔍 Is individual page check:', {
-            has_first_name: !!data.first_name,
-            has_email: !!data.email,
-            has_phone: !!data.phone,
-            is_location: data.isLocationCreation,
-            should_show_new_modal: (data.first_name || data.email || data.phone) && !data.isLocationCreation
-          });
           
           // Determine which tab this modal should show on
           const isForLocation = data.isLocationCreation;
@@ -511,7 +482,6 @@ function PromptPagesContent() {
           // If we're not on the right tab, don't show the modal here
           // The redirect should have put us on the right tab
           if (currentTab !== expectedTab) {
-            console.log(`Modal is for ${expectedTab} tab but we're on ${currentTab}, skipping`);
             return;
           }
           
@@ -645,8 +615,6 @@ function PromptPagesContent() {
   };
 
   function handlePromptTypeSelect(typeKey: string) {
-    console.log('[DEBUG] handlePromptTypeSelect called with:', typeKey);
-    console.log('[DEBUG] Current localStorage campaign_type:', localStorage.getItem('campaign_type'));
     setShowTypeModal(false);
     setIsNavigating(true); // Show loading state
     const campaignType = localStorage.getItem('campaign_type') || 'individual';
@@ -669,7 +637,6 @@ function PromptPagesContent() {
   // Check authentication first - redirect if not authenticated
   useEffect(() => {
     if (authInitialized && !authUser) {
-      console.log('No authenticated user, redirecting to sign-in');
       router.push('/auth/sign-in');
     }
   }, [authInitialized, authUser, router]);
@@ -802,10 +769,7 @@ function PromptPagesContent() {
                   <button
                     type="button"
                     onClick={() => {
-                      console.log('🎯 PROMPT PAGES - promptPagesTab:', promptPagesTab);
-                      console.log('🎯 PROMPT PAGES - Setting localStorage campaign_type to:', promptPagesTab);
                       localStorage.setItem('campaign_type', promptPagesTab);
-                      console.log('🎯 PROMPT PAGES - localStorage after setting:', localStorage.getItem('campaign_type'));
                       setShowTypeModal(true);
                     }}
                     disabled={promptPagesTab === 'individual' && account?.plan === 'grower'}

@@ -76,15 +76,6 @@ export function safeTransformLocation(
     
     // Debug logging to see what data we're receiving
     if (process.env.NODE_ENV === 'development') {
-      console.log(`🔍 Transformer receiving location ${index}:`, {
-        hasLocationName: 'location_name' in loc,
-        locationName: loc?.location_name,
-        hasName: 'name' in loc,
-        name: loc?.name,
-        hasTitle: 'title' in loc,
-        title: loc?.title,
-        keys: Object.keys(loc || {})
-      });
     }
     
     // Extract ID with multiple strategies
@@ -187,7 +178,6 @@ export function safeTransformLocations(
   rawLocations: unknown
 ): SafeLocation[] {
   if (!Array.isArray(rawLocations)) {
-    console.error('Expected array of locations, got:', typeof rawLocations);
     return [];
   }
   

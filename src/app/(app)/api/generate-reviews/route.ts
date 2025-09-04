@@ -59,11 +59,6 @@ export async function POST(request: Request) {
       .single();
 
     if (pageError || !page) {
-      console.error('Generate reviews API: Access denied or page not found', {
-        pageId,
-        userAccountId,
-        error: pageError?.message,
-      });
       return NextResponse.json(
         { error: "Prompt page not found or access denied" },
         { status: 404 },

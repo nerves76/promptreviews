@@ -98,7 +98,6 @@ export class GoogleBusinessProfileAdapter implements PlatformAdapter {
   async refreshAuth(): Promise<boolean> {
     try {
       if (!this.client) {
-        console.log('❌ No client available for token refresh');
         return false;
       }
 
@@ -106,7 +105,6 @@ export class GoogleBusinessProfileAdapter implements PlatformAdapter {
       // This will trigger the client's internal refresh logic if tokens are expired
       await this.client.listAccounts();
       
-      console.log('✅ Google Business Profile auth refreshed successfully');
       return true;
     } catch (error) {
       console.error('❌ Failed to refresh Google Business Profile auth:', error);
@@ -159,7 +157,6 @@ export class GoogleBusinessProfileAdapter implements PlatformAdapter {
           
           // Use stored account ID if available, otherwise fetch it
           if (!this.accountId) {
-            console.log('🔍 Account ID not stored, fetching from API...');
             try {
               const accounts = await this.client.listAccounts();
               if (accounts.length === 0) {
@@ -167,13 +164,11 @@ export class GoogleBusinessProfileAdapter implements PlatformAdapter {
               }
               // Use the first account (most users have only one)
               this.accountId = accounts[0].name.replace('accounts/', '');
-              console.log(`📋 Fetched account ID from API: ${this.accountId}`);
             } catch (error) {
               console.error('Error getting account ID:', error);
               throw new Error('Unable to get Google Business Profile account ID');
             }
           } else {
-            console.log(`📋 Using stored account ID: ${this.accountId}`);
           }
         } else {
           throw new Error('Invalid location ID format. Expected "locations/{id}" or "accounts/{accountId}/locations/{id}"');
@@ -183,7 +178,6 @@ export class GoogleBusinessProfileAdapter implements PlatformAdapter {
           throw new Error('Invalid location ID format');
         }
         
-        console.log(`📍 Using account ID: ${this.accountId}, location ID: ${actualLocationId}`);
         
         // Create the actual post
         const result = await this.client.createLocalPost(this.accountId, actualLocationId, gbpPost);

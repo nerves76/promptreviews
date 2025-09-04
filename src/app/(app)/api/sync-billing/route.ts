@@ -39,7 +39,6 @@ export async function POST(req: NextRequest) {
         }, { status: 403 });
       }
       
-      console.log("🔄 Starting bulk billing sync for all accounts");
       const result = await syncAllAccounts();
       
       return NextResponse.json({
@@ -56,7 +55,6 @@ export async function POST(req: NextRequest) {
       }, { status: 400 });
     }
     
-    console.log(`🔄 Syncing billing for account: ${accountId}`);
     const result = await syncAccountBilling(accountId);
     
     if (!result.success) {

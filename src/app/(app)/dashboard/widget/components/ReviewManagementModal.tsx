@@ -47,7 +47,6 @@ export function ReviewManagementModal({
       if (savedSelected) {
         try {
           const parsed = JSON.parse(savedSelected);
-          console.log('📝 Restored selected reviews from localStorage:', parsed.length);
           return parsed;
         } catch (e) {
           console.error('Failed to parse saved selected reviews:', e);
@@ -64,7 +63,6 @@ export function ReviewManagementModal({
       if (savedData) {
         try {
           const parsed = JSON.parse(savedData);
-          console.log('📝 Restored review management data from localStorage');
           return parsed.editedReviews || {};
         } catch (e) {
           console.error('Failed to parse saved review data:', e);
@@ -173,7 +171,6 @@ export function ReviewManagementModal({
           version: 2 // Version to handle future changes
         };
         localStorage.setItem(formStorageKey, JSON.stringify(dataToSave));
-        console.log('💾 Auto-saved review management data to localStorage (full text preserved)');
       }
     }, 1000); // Debounce for 1 second
 
@@ -185,7 +182,6 @@ export function ReviewManagementModal({
     const saveTimeout = setTimeout(() => {
       if (typeof window !== 'undefined' && widgetId && selectedReviews.length > 0) {
         localStorage.setItem(selectedReviewsKey, JSON.stringify(selectedReviews));
-        console.log('💾 Auto-saved selected reviews to localStorage:', selectedReviews.length);
       }
     }, 500); // Shorter debounce for selected reviews
 
@@ -199,7 +195,6 @@ export function ReviewManagementModal({
   }, [isOpen, widgetId]);
 
   const handleOpenReviewModal = async (widgetId: string) => {
-    console.log('🔍 ReviewManagementModal: Starting to load reviews for widget:', widgetId);
     setLoadingReviews(true);
     setReviewError("");
     
@@ -216,13 +211,11 @@ export function ReviewManagementModal({
       // Use account ID from prop - should always be provided by parent component
       const currentAccountId = accountId;
       if (!currentAccountId) {
-        console.error('❌ ReviewManagementModal: No account ID provided as prop');
         setReviewError("Account information missing. Please refresh the page and try again.");
         setLoadingReviews(false);
         return;
       }
 
-      console.log('🔍 ReviewManagementModal: Validating widget access for account:', currentAccountId);
       
       // Validate that the widget belongs to the current account
       const { data: widgetData, error: widgetError } = await supabase
@@ -252,10 +245,8 @@ export function ReviewManagementModal({
         return;
       }
 
-      console.log('✅ ReviewManagementModal: Widget validated successfully:', widgetData);
       setWidgetType(widgetData.type || null);
 
-      console.log('🔍 ReviewManagementModal: Fetching review_submissions...');
       // We already have accountId from the validation above
 
       // Fetch reviews from review_submissions for this account by joining with prompt_pages
@@ -282,7 +273,6 @@ export function ReviewManagementModal({
         return;
       }
 
-      console.log('✅ ReviewManagementModal: Review submissions fetched:', reviews?.length || 0);
 
       // Fetch selected reviews for this widget from widget_reviews
       const { data: widgetReviews, error: widgetReviewsError } = await supabase
@@ -305,7 +295,6 @@ export function ReviewManagementModal({
         return;
       }
       
-      console.log('✅ ReviewManagementModal: Widget reviews fetched:', widgetReviews?.length || 0);
 
       // Map review_submissions to the expected format
       const mappedReviews = (reviews || []).map(r => ({
@@ -341,7 +330,6 @@ export function ReviewManagementModal({
       if (savedSelected && (!widgetReviews || widgetReviews.length === 0)) {
         try {
           const parsed = JSON.parse(savedSelected);
-          console.log('📝 Using unsaved selected reviews from localStorage:', parsed.length);
           setSelectedReviews(parsed);
           setHasUnsavedChanges(true);
           // Show a warning that there are unsaved selections
@@ -354,8 +342,6 @@ export function ReviewManagementModal({
         setHasUnsavedChanges(false);
       }
       
-      console.log('✅ ReviewManagementModal: Available reviews (customer submissions only):', mappedReviews.length);
-      console.log('✅ ReviewManagementModal: Selected reviews (includes custom reviews):', widgetReviews?.length || 0);
       
       // Try to restore saved data from localStorage first
       let restoredData: any = null;
@@ -366,7 +352,6 @@ export function ReviewManagementModal({
             restoredData = JSON.parse(savedData);
             // Check if the saved data is for the same widget
             if (restoredData.widgetId === widgetId) {
-              console.log('📝 Found saved review data in localStorage, will merge with database data');
             } else {
               restoredData = null; // Ignore saved data if it's for a different widget
             }
@@ -435,20 +420,17 @@ export function ReviewManagementModal({
       
       // If we restored data, show a notification
       if (restoredData && Object.keys(restoredData.editedReviews || {}).length > 0) {
-        console.log('✅ ReviewManagementModal: Restored autosaved edits from localStorage');
         setHasUnsavedChanges(true);
         setShowRestoredNotification(true);
         // Auto-hide notification after 5 seconds
         setTimeout(() => setShowRestoredNotification(false), 5000);
       }
       
-      console.log('✅ ReviewManagementModal: All data loaded successfully');
       
     } catch (error) {
       console.error('❌ ReviewManagementModal: Unexpected error:', error);
       setReviewError("Failed to load reviews: " + (error as Error).message);
     } finally {
-      console.log('🔍 ReviewManagementModal: Setting loadingReviews to false');
       setLoadingReviews(false);
     }
   };
@@ -557,9 +539,7 @@ export function ReviewManagementModal({
   };
 
   const handleSaveReviews = async () => {
-    console.log('🎯 handleSaveReviews called', { widgetId, selectedReviewsCount: selectedReviews.length });
     if (!widgetId) {
-      console.error('❌ No widgetId provided to handleSaveReviews');
       return;
     }
     
@@ -577,14 +557,12 @@ export function ReviewManagementModal({
     }
     
     if (reviewsToTrim.length > 0) {
-      console.log('📝 Reviews need trimming:', reviewsToTrim.length);
       setReviewsToTrim(reviewsToTrim);
       setShowTrimConfirmation(true);
       return;
     }
     
     // If no trimming needed, proceed with save
-    console.log('✅ No trimming needed, proceeding with save');
     await handleSaveReviewsInternal();
   };
 
@@ -627,8 +605,6 @@ export function ReviewManagementModal({
   };
 
   const handleConfirmTrim = async () => {
-    console.log('🔍 ReviewManagementModal: handleConfirmTrim called');
-    console.log('🔍 ReviewManagementModal: reviewsToTrim:', reviewsToTrim);
     
     // Auto-trim the reviews that are too long
     const trimmedUpdates: { [id: string]: string } = {};
@@ -637,21 +613,14 @@ export function ReviewManagementModal({
       const originalText = item.text;
       const trimmedText = item.text.substring(0, CHARACTER_LIMIT).trim();
       
-      console.log(`🔍 ReviewManagementModal: Trimming review ${item.review.review_id}:`);
-      console.log(`   Original length: ${originalText.length}`);
-      console.log(`   Original text: "${originalText}"`);
-      console.log(`   Trimmed length: ${trimmedText.length}`);
-      console.log(`   Trimmed text: "${trimmedText}"`);
       
       trimmedUpdates[item.review.review_id] = trimmedText;
     }
     
-    console.log('🔍 ReviewManagementModal: trimmedUpdates:', trimmedUpdates);
     
     // Update the edited reviews state with trimmed content for UI
     setEditedReviews(prev => {
       const newState = { ...prev, ...trimmedUpdates };
-      console.log('🔍 ReviewManagementModal: Updated editedReviews state:', newState);
       return newState;
     });
     
@@ -659,7 +628,6 @@ export function ReviewManagementModal({
     setReviewsToTrim([]);
     
     // Continue with save, passing the trimmed updates
-    console.log('🔍 ReviewManagementModal: Calling handleSaveReviewsInternal with trimmedUpdates');
     await handleSaveReviewsInternal(trimmedUpdates);
   };
 
@@ -672,9 +640,7 @@ export function ReviewManagementModal({
   };
 
   const handleSaveReviewsInternal = async (trimmedUpdates: { [id: string]: string } = {}) => {
-    console.log('🎯 handleSaveReviewsInternal called', { widgetId, selectedReviewsCount: selectedReviews.length });
     if (!widgetId) {
-      console.error('❌ No widgetId in handleSaveReviewsInternal');
       setReviewError("No widget selected. Please select a widget and try again.");
       return;
     }
@@ -738,12 +704,6 @@ export function ReviewManagementModal({
         ? Math.round(rawRating * 2) / 2
         : null;
       
-      console.log(`🌟 Star Rating Debug for ${review.review_id}:`, {
-        original: review.star_rating,
-        edited: editedRatings[review.review_id],
-        raw: rawRating,
-        final: finalRating
-      });
       
       return {
         review_id: review.review_id,
@@ -758,17 +718,14 @@ export function ReviewManagementModal({
       };
     });
 
-    console.log('📤 Saving reviews to API:', { widgetId, reviewsCount: reviewsToSave.length });
     try {
       // Use apiClient which handles auth automatically
       const result = await apiClient.put(`/widgets/${widgetId}/reviews`, { reviews: reviewsToSave });
-      console.log("✅ Reviews saved successfully:", result);
       
       // Clear saved form data on successful save
       if (typeof window !== 'undefined') {
         localStorage.removeItem(formStorageKey);
         localStorage.removeItem(selectedReviewsKey);
-        console.log('🗑️ Cleared review management data and selected reviews from localStorage after successful save');
       }
       
       setHasUnsavedChanges(false);
@@ -818,15 +775,6 @@ export function ReviewManagementModal({
 
   const { reviews, totalPages, totalReviews } = getFilteredAndSortedReviews();
 
-  console.log('🔍 ReviewManagementModal: Render state:', {
-    isOpen,
-    loadingReviews,
-    allReviewsCount: allReviews.length,
-    selectedReviewsCount: selectedReviews.length,
-    activeTab,
-    widgetType,
-    reviewsCount: reviews.length
-  });
 
   if (!isOpen) return null;
 
@@ -1254,7 +1202,6 @@ export function ReviewManagementModal({
               className="px-5 py-2 bg-slate-blue text-white rounded font-semibold shadow hover:bg-slate-700 transition"
               style={{ minWidth: 90 }}
               onClick={() => {
-                console.log('🔘 Save button clicked!');
                 handleSaveReviews();
               }}
             >

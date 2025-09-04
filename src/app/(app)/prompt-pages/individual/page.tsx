@@ -101,7 +101,6 @@ export default function IndividualOutreach() {
         setAccountId(fetchedAccountId);
         
         if (!fetchedAccountId) {
-          console.log('No account found for user - user may need to complete setup');
           setError("Please complete your account setup to access prompt pages.");
           setLoading(false);
           return;
@@ -137,7 +136,6 @@ export default function IndividualOutreach() {
         // DEVELOPMENT MODE BYPASS - Use mock universal prompt page
         let universalPage = null;
         if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined' && localStorage.getItem('dev_auth_bypass') === 'true' && fetchedAccountId === '12345678-1234-5678-9abc-123456789012') {
-          console.log('🔧 DEV MODE: Using mock universal prompt page');
           universalPage = {
             id: '0f1ba885-07d6-4698-9e94-a63d990c65e0',
             account_id: '12345678-1234-5678-9abc-123456789012',
@@ -662,10 +660,8 @@ export default function IndividualOutreach() {
                       location: postSaveData.location || ''
                     }}
                     onCommunicationSent={() => {
-                      console.log('Communication sent for:', postSaveData.first_name);
                     }}
                     onStatusUpdated={(newStatus) => {
-                      console.log('Status updated to:', newStatus);
                       // Update postSaveData if needed
                       setPostSaveData((prev: any) => ({ ...prev, status: newStatus }));
                     }}

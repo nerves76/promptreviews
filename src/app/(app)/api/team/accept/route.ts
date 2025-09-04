@@ -219,11 +219,6 @@ export async function POST(request: NextRequest) {
     }
 
     // Add user to account
-    console.log('🔧 Adding user to account:', {
-      account_id: invitation.account_id,
-      user_id: user.id,
-      role: invitation.role
-    });
 
     const { error: addUserError } = await supabase
       .from('account_users')
@@ -246,7 +241,6 @@ export async function POST(request: NextRequest) {
       });
       
       // Try using service role client as fallback
-      console.log('🔄 Attempting fallback with service role client...');
       const { error: fallbackError } = await supabaseAdmin
         .from('account_users')
         .insert({
@@ -277,10 +271,8 @@ export async function POST(request: NextRequest) {
           { status: 500 }
         );
       } else {
-        console.log('✅ Fallback succeeded with service role client');
       }
     } else {
-      console.log('✅ Successfully added user to account with regular client');
     }
 
     // Mark invitation as accepted

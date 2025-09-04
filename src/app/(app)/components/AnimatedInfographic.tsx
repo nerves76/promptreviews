@@ -39,18 +39,8 @@ export default function AnimatedInfographic({ isEmbed = false, debug = false }: 
     
     // Calculate beam positions based on actual element positions
     const calculateBeamPositions = () => {
-      console.log('calculateBeamPositions called')
-      console.log('Refs:', {
-        customer: !!customerRef.current,
-        container: !!containerRef.current,
-        promptPageCard: !!promptPageCardRef.current,
-        promptPage: !!promptPageRef.current,
-        reviewPlatformCard: !!reviewPlatformCardRef.current,
-        reviewPlatform: !!reviewPlatformRef.current
-      })
       
       if (!customerRef.current || !containerRef.current) {
-        console.log('Missing customer or container ref')
         return
       }
       
@@ -59,7 +49,6 @@ export default function AnimatedInfographic({ isEmbed = false, debug = false }: 
       const reviewPlatformElement = reviewPlatformCardRef.current || reviewPlatformRef.current
       
       if (!promptPageElement || !reviewPlatformElement) {
-        console.log('Missing prompt page or review platform element')
         return
       }
       
@@ -95,12 +84,6 @@ export default function AnimatedInfographic({ isEmbed = false, debug = false }: 
       const beam2Top = socketVerticalPosition
       
       // Log for debugging resize issues
-      console.log('Beam recalculated on resize:', {
-        containerWidth: container.width,
-        beam1: { start: beam1Start, end: beam1End, width: beam1End - beam1Start },
-        beam2: { start: beam2Start, end: beam2End, width: beam2End - beam2Start },
-        verticalPos: socketVerticalPosition
-      })
       
       setBeamStyles({
         beam1: {
@@ -131,7 +114,6 @@ export default function AnimatedInfographic({ isEmbed = false, debug = false }: 
     const handleBeamResize = () => {
       clearTimeout(resizeTimeout)
       resizeTimeout = setTimeout(() => {
-        console.log('Window resized, recalculating beams...')
         calculateBeamPositions()
       }, 50)  // Faster response to resize
     }

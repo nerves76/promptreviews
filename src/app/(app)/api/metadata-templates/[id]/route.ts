@@ -16,7 +16,6 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    console.log(`[METADATA-TEMPLATE] Fetching template: ${id}`);
 
     const { data: template, error } = await supabaseAdmin
       .from('metadata_templates')
@@ -39,7 +38,6 @@ export async function GET(
       );
     }
 
-    console.log(`[METADATA-TEMPLATE] Successfully fetched template: ${template.id}`);
     return NextResponse.json(template);
   } catch (error) {
     console.error('[METADATA-TEMPLATE] Unexpected error:', error);
@@ -57,7 +55,6 @@ export async function PUT(
   try {
     const { id } = await params;
     const body = await request.json();
-    console.log(`[METADATA-TEMPLATE] Updating template: ${id}`, body);
 
     const {
       title_template,
@@ -126,7 +123,6 @@ export async function PUT(
       );
     }
 
-    console.log(`[METADATA-TEMPLATE] Successfully updated template: ${template.id}`);
     return NextResponse.json(template);
   } catch (error) {
     console.error('[METADATA-TEMPLATE] Unexpected error:', error);
@@ -143,7 +139,6 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
-    console.log(`[METADATA-TEMPLATE] Deleting template: ${id}`);
 
     const { error } = await supabaseAdmin
       .from('metadata_templates')
@@ -158,7 +153,6 @@ export async function DELETE(
       );
     }
 
-    console.log(`[METADATA-TEMPLATE] Successfully deleted template: ${id}`);
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('[METADATA-TEMPLATE] Unexpected error:', error);

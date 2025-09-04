@@ -11,9 +11,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { isAdmin } from '@/auth/utils/admin';
+import { checkRateLimit, adminRateLimiter } from '@/lib/rate-limit';
 
 export async function POST(request: NextRequest) {
   try {
+    // Check rate limit first (strict limits for admin operations)
+    const { allowed, remaining } = checkRateLimit(request, adminRateLimiter);
+    if (!allowed) {
+      return NextResponse.json(
+        { error: 'Too many requests. Admin operations are rate limited for security.' },
+        { status: 429 }
+      );
+    }
+
     // Check admin privileges
     const isAdminUser = await isAdmin();
     if (!isAdminUser) {

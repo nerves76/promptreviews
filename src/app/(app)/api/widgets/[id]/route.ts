@@ -123,12 +123,6 @@ export async function GET(
  * Helper function to fetch widget data and reviews
  */
 async function fetchWidgetData(widget: any, widgetId: string, req: Request) {
-  console.log(`[Widget ${widgetId}] Widget data:`, { 
-    id: widget.id, 
-    account_id: widget.account_id,
-    widget_type: widget.widget_type,
-    has_theme: !!widget.theme 
-  });
   
   // Only fetch reviews that have been explicitly selected for this widget
   let reviews = [];
@@ -168,20 +162,16 @@ async function fetchWidgetData(widget: any, widgetId: string, req: Request) {
           return wr;
         });
         
-        console.log(`Found ${reviews.length} selected reviews for widget with original dates merged`);
       } else {
         // Fallback to widget reviews if we can't fetch originals
         reviews = widgetReviews;
-        console.log(`Found ${reviews.length} selected reviews for widget (could not merge dates)`);
       }
     } else {
       // All reviews are custom (no review_ids)
       reviews = widgetReviews;
-      console.log(`Found ${reviews.length} custom reviews for widget`);
     }
   } else {
     // No reviews have been selected for this widget yet
-    console.log('No reviews selected for this widget yet. Use "Manage Reviews" to select which reviews to display.');
     reviews = [];
   }
 
@@ -194,7 +184,6 @@ async function fetchWidgetData(widget: any, widgetId: string, req: Request) {
   // Fetch the universal prompt page slug for the business
   let businessSlug = null;
   if (widget.account_id) {
-      console.log(`[Widget ${widgetId}] Fetching business slug for account_id: ${widget.account_id}`);
       
       const { data: promptPageData, error: slugError } = await supabaseAdmin
           .from('prompt_pages')
@@ -210,30 +199,24 @@ async function fetchWidgetData(widget: any, widgetId: string, req: Request) {
           
           // If single() fails because there are no rows, try without single()
           if (slugError.code === 'PGRST116') {
-              console.log(`[Widget ${widgetId}] No universal prompt page found, trying without single()`);
               const { data: promptPages, error: retryError } = await supabaseAdmin
                   .from('prompt_pages')
                   .select('slug')
                   .eq('account_id', widget.account_id)
                   .eq('is_universal', true);
               
-              console.log(`[Widget ${widgetId}] Found ${promptPages?.length || 0} universal prompt pages`);
               if (promptPages && promptPages.length > 0) {
                   businessSlug = promptPages[0].slug;
-                  console.log(`[Widget ${widgetId}] Using business slug: ${businessSlug}`);
               }
           }
       } else if (promptPageData) {
           businessSlug = promptPageData.slug;
-          console.log(`[Widget ${widgetId}] Found business slug: ${businessSlug}`);
       }
   } else {
-      console.log(`[Widget ${widgetId}] No account_id on widget, cannot fetch business slug`);
   }
 
   // If we still don't have a businessSlug, try to get the account's default business slug
   if (!businessSlug && widget.account_id) {
-      console.log(`[Widget ${widgetId}] No universal prompt page found, trying to get account's default business`);
       
       // Get the account's business name to use as a fallback slug
       const { data: accountData, error: accountError } = await supabaseAdmin
@@ -248,7 +231,6 @@ async function fetchWidgetData(widget: any, widgetId: string, req: Request) {
               .toLowerCase()
               .replace(/[^a-z0-9]+/g, '-')
               .replace(/^-+|-+$/g, '');
-          console.log(`[Widget ${widgetId}] Using fallback business slug from account: ${businessSlug}`);
       }
   }
 
@@ -269,7 +251,6 @@ async function fetchWidgetData(widget: any, widgetId: string, req: Request) {
   // For widgets, we need to allow embedding from customer sites
   // Log non-promptreviews origins for monitoring but still allow them
   if (origin && !origin.includes('promptreviews.app') && !origin.includes('localhost')) {
-    console.log(`[CORS] Widget ${widgetId} embedded from external site: ${origin}`);
   }
   
   // Still allow all origins for backward compatibility with existing embeds

@@ -3,7 +3,6 @@ import { createServerClient } from '@supabase/ssr';
 
 export async function GET(request: NextRequest) {
   try {
-    console.log('🔍 Session API: Checking session status...');
     
     // Create server client with proper cookie handling (Next.js 15 async compatible)
     const { cookies } = await import('next/headers');
@@ -28,7 +27,6 @@ export async function GET(request: NextRequest) {
     const { data: { user }, error } = await supabase.auth.getUser();
     
     if (error) {
-      console.log('❌ Session API: Error getting user:', error.message);
       return NextResponse.json({
         authenticated: false,
         user: null,
@@ -37,7 +35,6 @@ export async function GET(request: NextRequest) {
     }
 
     if (!user) {
-      console.log('❌ Session API: No user found');
       return NextResponse.json({
         authenticated: false,
         user: null,
@@ -46,8 +43,6 @@ export async function GET(request: NextRequest) {
     }
 
     
-    console.log('👤 Session API: User ID:', user.id);
-    console.log('📧 Session API: Email:', user.email);
 
     return NextResponse.json({
       authenticated: true,

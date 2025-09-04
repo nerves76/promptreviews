@@ -30,7 +30,6 @@ export async function GET(request: NextRequest) {
       .single();
 
     if (!accountUser) {
-      console.error('❌ User does not have access to account:', accountId);
       return NextResponse.json({ error: 'Access denied to this account' }, { status: 403 });
     }
 

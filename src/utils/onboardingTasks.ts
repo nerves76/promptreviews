@@ -36,7 +36,6 @@ export async function fetchOnboardingTasks(accountId: string): Promise<TaskCompl
 
     // DEVELOPMENT MODE: Use API endpoint to bypass RLS issues
     if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined' && localStorage.getItem('dev_auth_bypass') === 'true') {
-      console.log('🔧 DEV MODE: Using API endpoint to fetch onboarding tasks');
       try {
         const response = await fetch(`/api/onboarding-tasks?account_id=${accountId}`);
         const apiResult = await response.json();
@@ -85,7 +84,6 @@ export async function fetchOnboardingTasks(accountId: string): Promise<TaskCompl
 export async function markTaskAsCompleted(accountId: string, taskId: string): Promise<boolean> {
   try {
     if (!accountId) {
-      console.error('No account ID provided');
       return false;
     }
 
@@ -93,7 +91,6 @@ export async function markTaskAsCompleted(accountId: string, taskId: string): Pr
 
     // DEVELOPMENT MODE: Use API endpoint to bypass RLS issues
     if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined' && localStorage.getItem('dev_auth_bypass') === 'true') {
-      console.log('🔧 DEV MODE: Using API endpoint to mark task as completed');
       try {
         const response = await fetch('/api/onboarding-tasks', {
           method: 'POST',
@@ -147,7 +144,6 @@ export async function markTaskAsCompleted(accountId: string, taskId: string): Pr
 export async function markTaskAsIncomplete(accountId: string, taskId: string): Promise<boolean> {
   try {
     if (!accountId) {
-      console.error('No account ID provided');
       return false;
     }
 
@@ -155,7 +151,6 @@ export async function markTaskAsIncomplete(accountId: string, taskId: string): P
 
     // DEVELOPMENT MODE: Use API endpoint to bypass RLS issues
     if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined' && localStorage.getItem('dev_auth_bypass') === 'true') {
-      console.log('🔧 DEV MODE: Using API endpoint to mark task as incomplete');
       try {
         const response = await fetch('/api/onboarding-tasks', {
           method: 'POST',
@@ -236,7 +231,6 @@ export async function getOnboardingCompletionPercentage(accountId: string, total
 export async function initializeDefaultTasks(accountId: string): Promise<boolean> {
   try {
     if (!accountId) {
-      console.error('No account ID provided');
       return false;
     }
 

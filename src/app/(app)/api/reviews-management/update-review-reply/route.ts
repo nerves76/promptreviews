@@ -11,7 +11,6 @@ import { GoogleBusinessProfileClient } from '@/features/social-posting/platforms
 
 export async function PUT(request: NextRequest) {
   try {
-    console.log('🔍 Update review reply API called');
     
     const body = await request.json();
     const { locationId, reviewId, updatedReplyText } = body;
@@ -54,7 +53,6 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    console.log('✅ User authenticated:', user.id);
 
     // Get Google Business Profile tokens for the user
     const { data: tokenData, error: tokenError } = await supabase
@@ -71,7 +69,6 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    console.log('✅ Found Google Business Profile tokens for user:', user.id);
 
     // Create Google Business Profile client
     const gbpClient = new GoogleBusinessProfileClient({
@@ -81,10 +78,8 @@ export async function PUT(request: NextRequest) {
     });
 
     // Update reply to review
-    console.log('🔄 Updating reply to review:', reviewId);
     const result = await gbpClient.updateReviewReply(locationId, reviewId, updatedReplyText.trim());
 
-    console.log('✅ Successfully updated reply to review');
 
     return NextResponse.json({
       success: true,

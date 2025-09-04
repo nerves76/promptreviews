@@ -12,7 +12,6 @@ const supabaseAdmin = createServiceRoleClient();
 
 export async function GET(request: NextRequest) {
   try {
-    console.log('[METADATA-TEMPLATES] Fetching metadata templates');
 
     const { data: templates, error } = await supabaseAdmin
       .from('metadata_templates')
@@ -42,7 +41,6 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    console.log('[METADATA-TEMPLATES] Creating new template:', body);
 
     const {
       page_type,
@@ -106,7 +104,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log(`[METADATA-TEMPLATES] Successfully created template: ${template.id}`);
     return NextResponse.json(template);
   } catch (error) {
     console.error('[METADATA-TEMPLATES] Unexpected error:', error);

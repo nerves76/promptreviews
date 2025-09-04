@@ -39,7 +39,6 @@ export async function GET(request: NextRequest) {
     const expectedToken = process.env.CRON_SECRET_TOKEN;
     
     if (!expectedToken) {
-      console.error('CRON_SECRET_TOKEN environment variable not set');
       return NextResponse.json(
         { error: 'Cron secret not configured' }, 
         { status: 500 }
@@ -60,7 +59,6 @@ export async function GET(request: NextRequest) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
-    console.log('📊 Starting monthly GBP insights generation...');
 
     // Get all accounts with selected GBP locations and insights enabled
     const { data: accountsWithGBP, error: accountsError } = await supabase
@@ -90,7 +88,6 @@ export async function GET(request: NextRequest) {
     }
 
     if (!accountsWithGBP || accountsWithGBP.length === 0) {
-      console.log('✅ No accounts with selected GBP locations found');
       return NextResponse.json({
         success: true,
         message: 'No accounts with selected GBP locations',
@@ -98,7 +95,6 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    console.log(`📧 Found ${accountsWithGBP.length} accounts with selected GBP locations`);
 
     const results = [];
     let successCount = 0;
@@ -111,7 +107,6 @@ export async function GET(request: NextRequest) {
         // Get the primary user for this account
         const userId = account.account_users[0]?.user_id;
         if (!userId) {
-          console.error('No user found for account:', account.id);
           continue;
         }
 
@@ -124,7 +119,6 @@ export async function GET(request: NextRequest) {
 
         // If settings don't exist or are disabled, skip
         if (!reminderSettings?.enabled) {
-          console.log(`⏭️ Skipping account ${account.email} - monthly insights disabled`);
           skippedCount++;
           continue;
         }
@@ -136,7 +130,6 @@ export async function GET(request: NextRequest) {
           twentyFiveDaysAgo.setDate(twentyFiveDaysAgo.getDate() - 25);
           
           if (lastSentDate > twentyFiveDaysAgo) {
-            console.log(`⏭️ Skipping account ${account.email} - insights sent recently on ${lastSentDate.toLocaleDateString()}`);
             skippedCount++;
             continue;
           }
@@ -150,7 +143,6 @@ export async function GET(request: NextRequest) {
           .single();
 
         if (!gbpCredentials) {
-          console.log(`⏭️ Skipping account ${account.email} - no GBP credentials`);
           skippedCount++;
           continue;
         }
@@ -169,7 +161,6 @@ export async function GET(request: NextRequest) {
 
         for (const location of account.selected_gbp_locations) {
           try {
-            console.log(`📍 Fetching metrics for location: ${location.location_name}`);
             
             // Get unresponded reviews
             const unrespondedReviews = await gbpClient.getUnrespondedReviewsForLocation(location.location_id);
@@ -212,7 +203,6 @@ export async function GET(request: NextRequest) {
         }
 
         if (locationMetrics.length === 0) {
-          console.log(`⏭️ Skipping account ${account.email} - no metrics collected`);
           skippedCount++;
           continue;
         }
@@ -310,7 +300,6 @@ export async function GET(request: NextRequest) {
             }
           });
 
-          console.log(`✅ Sent monthly insights to ${account.email} (Health Score: ${healthScore}%)`);
         } else {
           errorCount++;
           results.push({
@@ -328,12 +317,6 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    console.log(`
-📊 Monthly Insights Summary:
-✅ Sent: ${successCount}
-⏭️ Skipped: ${skippedCount}
-❌ Failed: ${errorCount}
-    `);
 
     return NextResponse.json({
       success: true,

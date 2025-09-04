@@ -177,23 +177,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
   // Force re-deployment to clear cached React error #130 - 2025-01-30
   const supabase = createClient();
   
-  console.log('🔍 [CLIENT] Received prompt page data:', {
-    slug: initialData?.promptPage?.slug,
-    offer_timelock: initialData?.promptPage?.offer_timelock,
-    recent_reviews_scope: initialData?.promptPage?.recent_reviews_scope,
-    offer_enabled: initialData?.promptPage?.offer_enabled,
-    recent_reviews_enabled: initialData?.promptPage?.recent_reviews_enabled
-  });
   
-  console.log('🎨 [CLIENT] Received business profile:', {
-    name: initialData?.businessProfile?.name,
-    background_type: initialData?.businessProfile?.background_type,
-    gradient_start: initialData?.businessProfile?.gradient_start,
-    gradient_middle: initialData?.businessProfile?.gradient_middle,
-    gradient_end: initialData?.businessProfile?.gradient_end,
-    card_transparency: initialData?.businessProfile?.card_transparency,
-    card_border_width: initialData?.businessProfile?.card_border_width,
-  });
 
   const router = useRouter();
   const params = useParams();
@@ -429,7 +413,6 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
       const slug = params.slug as string;
 
       try {
-        console.log("Fetching prompt page and business data for slug:", slug);
         
         // ⚡ PERFORMANCE: Single API call to get both prompt page and business data
         const headers: any = {};
@@ -437,19 +420,14 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
         // DEVELOPMENT MODE BYPASS - Include saved Universal page data in headers
         if (process.env.NODE_ENV === 'development' && slug === 'universal-mdwd0peh' && typeof window !== 'undefined') {
           const savedData = localStorage.getItem('dev_universal_page_data');
-          console.log('🔧 DEV MODE: Checking for saved Universal page data in localStorage');
-          console.log('🔧 DEV MODE: Found saved data:', savedData ? 'YES' : 'NO');
           if (savedData) {
             try {
               const parsedData = JSON.parse(savedData);
-              console.log('🔧 DEV MODE: Parsed saved data emoji_sentiment_enabled:', parsedData.emoji_sentiment_enabled);
               headers['x-dev-universal-data'] = savedData;
-              console.log('🔧 DEV MODE: Including saved Universal page data in API request');
             } catch (e) {
               console.error('🔧 DEV MODE: Error parsing saved data:', e);
             }
           } else {
-            console.log('🔧 DEV MODE: No saved Universal page data found in localStorage');
           }
         }
         
@@ -463,7 +441,6 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
           cache: 'no-store' // Disable caching in dev mode
         });
         
-        console.log("API response status:", response.status, response.statusText);
         
         if (!response.ok) {
           if (response.status === 404) {
@@ -475,7 +452,6 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
         }
 
         const { promptPage, businessProfile } = await response.json();
-        console.log("Successfully fetched data:", { promptPage: promptPage.id, business: businessProfile?.id });
         
 
         
@@ -510,12 +486,6 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
             card_placeholder_color: businessProfile.card_placeholder_color || '#9CA3AF',
           };
           
-          console.log('Setting businessProfile with gradient data:', {
-            background_type: profileData.background_type,
-            gradient_start: profileData.gradient_start,
-            gradient_middle: profileData.gradient_middle,
-            gradient_end: profileData.gradient_end,
-          });
           
           setBusinessProfile(profileData);
           
@@ -737,7 +707,6 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
 
       setUserLoading(true);
       try {
-        console.log('Checking ownership for prompt page slug:', promptPage.slug);
         
         // Add better error handling to prevent validation errors
         let user = null;
@@ -766,25 +735,21 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
           return;
         }
 
-        console.log("Current user:", user);
         setCurrentUser(user);
 
         if (!user) {
-          console.log("No authenticated user");
           setCurrentUserEmail(null);
           setIsOwner(false);
           setUserLoading(false);
           return;
         }
 
-        console.log('Auth session found for user:', user.email);
         setCurrentUserEmail(user.email || null);
         
         // Check if user owns this prompt page by checking ALL their accounts
         // This is a PUBLIC page accessed by customers, so we need to verify if the 
         // current logged-in user has access to the account that owns this prompt page
         if (promptPage?.account_id) {
-          console.log('Checking ownership for prompt page account_id:', promptPage.account_id);
           
           try {
             // Get ALL accounts that the user has access to
@@ -797,20 +762,14 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
               console.error('Error fetching user accounts:', accountError);
               setIsOwner(false);
             } else {
-              console.log('User has access to accounts:', userAccounts?.map(ua => ua.account_id) || []);
               
               // Check if ANY of the user's accounts matches the prompt page account
               const isPageOwner = userAccounts?.some(ua => ua.account_id === promptPage.account_id) || false;
               setIsOwner(isPageOwner);
               
               if (isPageOwner) {
-                console.log('✅ User has access to account that owns this prompt page - showing style button');
                 const matchingAccount = userAccounts?.find(ua => ua.account_id === promptPage.account_id);
-                console.log('   User role in this account:', matchingAccount?.role);
               } else {
-                console.log('❌ User does not have access to account that owns this prompt page - hiding style button');
-                console.log('   Prompt page account_id:', promptPage.account_id);
-                console.log('   User account_ids:', userAccounts?.map(ua => ua.account_id) || []);
               }
             }
           } catch (error) {
@@ -818,7 +777,6 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
             setIsOwner(false);
           }
         } else {
-          console.log('No prompt page account_id found');
           setIsOwner(false);
         }
         
@@ -1554,13 +1512,6 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
       ].filter(Boolean); // Remove undefined/null values
       
       // Debug logging
-      console.log('Background style computation:', {
-        background_type: businessProfile.background_type,
-        gradient_start: businessProfile.gradient_start,
-        gradient_middle: businessProfile.gradient_middle,
-        gradient_end: businessProfile.gradient_end,
-        gradientColors
-      });
       
       // Use all available gradient colors
       return {

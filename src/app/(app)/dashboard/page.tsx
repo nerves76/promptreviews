@@ -111,7 +111,6 @@ const Dashboard = React.memo(function Dashboard() {
     try {
       setBusinessesLoading(true);
       
-      console.log('🏢 Dashboard: Loading businesses data...');
       
       const { data: businesses, error } = await supabase
         .from('businesses')
@@ -126,7 +125,6 @@ const Dashboard = React.memo(function Dashboard() {
         return;
       }
       
-      console.log('✅ Dashboard: Loaded businesses:', { count: businesses?.length || 0, businesses });
       setBusinessesData(businesses || []);
       
     } catch (error) {
@@ -146,7 +144,6 @@ const Dashboard = React.memo(function Dashboard() {
       setIsDashboardLoading(true);
       setError(null);
       
-      console.log('📊 Dashboard: Loading dashboard-specific data...');
       
       // Fetch only dashboard-specific data (not what AuthContext already provides)
       const [promptPagesResult, widgetsResult, reviewsResult, limitsResult] = await Promise.allSettled([
@@ -165,7 +162,6 @@ const Dashboard = React.memo(function Dashboard() {
         // Fetch review submissions using JOIN for better performance
         (async () => {
           try {
-            console.log('🔍 Dashboard: Fetching review_submissions with optimized query...');
             
             // Use a single query with JOIN instead of two sequential queries
             const result = await supabase
@@ -190,7 +186,6 @@ const Dashboard = React.memo(function Dashboard() {
               verified: row.verified
             })) || [];
             
-            console.log('✅ Dashboard: Found', reviewData.length, 'review submissions for account');
             return { data: reviewData, error: null };
           } catch (error) {
             console.error('❌ Dashboard: review_submissions query exception:', error);
@@ -276,7 +271,6 @@ const Dashboard = React.memo(function Dashboard() {
         universalUrl
       });
       
-      console.log('✅ Dashboard: Dashboard data loaded successfully');
       
     } catch (error) {
       console.error("❌ Dashboard: Error loading dashboard data:", error);
@@ -293,7 +287,6 @@ const Dashboard = React.memo(function Dashboard() {
   // Redirect to sign-in if not authenticated
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
-      console.log('🔒 Dashboard: User not authenticated, redirecting to sign-in');
       router.push('/auth/sign-in');
     }
   }, [authLoading, isAuthenticated, router]);
@@ -306,7 +299,6 @@ const Dashboard = React.memo(function Dashboard() {
       if (account) return; // Account already exists
       
       // Account is missing for authenticated user - create it
-      console.log('🔧 Dashboard: Account missing for authenticated user, ensuring it exists...');
       
       try {
         const response = await fetch('/api/auth/ensure-account', {
@@ -318,13 +310,11 @@ const Dashboard = React.memo(function Dashboard() {
         
         if (response.status === 401) {
           // User is not actually authenticated - redirect to sign-in
-          console.log('🔒 Dashboard: User not authenticated (401), redirecting to sign-in');
           router.push('/auth/sign-in');
           return;
         }
         
         if (result.success) {
-          console.log('✅ Dashboard: Account ensured, refreshing auth...');
           // Refresh auth context to load the new account
           await refreshSession();
         } else {
@@ -352,7 +342,6 @@ const Dashboard = React.memo(function Dashboard() {
     if (justCreatedBusiness) {
       // For new users, just load businesses data (needed for plan selection)
       // Skip loading widgets, prompt pages, reviews until after plan selection
-      console.log('🚀 Dashboard: New user detected, prioritizing plan selection');
       loadBusinessesData();
     } else {
       // For existing users, load all data
@@ -401,16 +390,6 @@ const Dashboard = React.memo(function Dashboard() {
       ((!plan || plan === 'no_plan' || plan === 'NULL') && businessCount > 0) ||
       (plan === "grower" && isTrialExpired && !hasStripeCustomer);
     
-    console.log('🔍 Plan selection check:', {
-      plan,
-      businessCount,
-      isTrialExpired,
-      hasStripeCustomer,
-      isPlanSelectionRequired,
-      account_updated_at: account?.updated_at,
-      showPricingModal,
-      justCompletedPayment
-    });
     
     setPlanSelectionRequired(!!isPlanSelectionRequired);
     
@@ -437,7 +416,6 @@ const Dashboard = React.memo(function Dashboard() {
         sessionStorage.getItem('pricingModalDismissed') === 'true' : false;
       
       if (!modalDismissed) {
-        console.log('💰 Plan selection required, showing pricing modal');
         setShowPricingModal(true);
       }
     }
@@ -464,18 +442,9 @@ const Dashboard = React.memo(function Dashboard() {
     if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
     
-    console.log('🔍 Dashboard URL params on mount:', {
-      businessCreated: params.get("businessCreated"),
-      canceled: params.get("canceled"),
-      success: params.get("success"),
-      portal_return: params.get("portal_return"),
-      businessCreatedHandled: sessionStorage.getItem('businessCreatedHandled'),
-      url: window.location.href
-    });
     
     // Handle return from Stripe Customer Portal
     if (params.get("portal_return") === "1") {
-      console.log('💳 User returned from Stripe Customer Portal');
       
       // Show a message that billing was updated
       // Note: We can't know exactly what changed, but we can show a generic message
@@ -499,14 +468,12 @@ const Dashboard = React.memo(function Dashboard() {
     
     // Handle reactivation flow
     if (params.get("reactivation") === "true") {
-      console.log('🔄 User is reactivating account, showing pricing modal...');
       
       // Get any stored reactivation offer
       const offerData = sessionStorage.getItem('reactivation_offer');
       if (offerData) {
         try {
           const offer = JSON.parse(offerData);
-          console.log('🎁 Reactivation offer found:', offer);
           // You can pass this to the pricing modal
         } catch (e) {
           console.error('Error parsing reactivation offer:', e);
@@ -618,7 +585,6 @@ const Dashboard = React.memo(function Dashboard() {
       setIsPendingPricingModal(true);
       
       // Delay showing pricing modal to let page fully render
-      console.log('🎯 Setting timeout to show pricing modal in 2 seconds');
       modalTimeoutRef.current = setTimeout(() => {
         // Double-check that user still needs to select a plan
         // (in case they completed Stripe checkout in the meantime)
@@ -626,12 +592,10 @@ const Dashboard = React.memo(function Dashboard() {
         const hasJustPaid = params.get('success') === '1';
         
         if (!hasJustPaid) {
-          console.log('🎯 Showing pricing modal after business creation');
           setIsPendingPricingModal(false);
           setShowPricingModal(true);
           setPlanSelectionRequired(true); // Make it required so user can't dismiss
         } else {
-          console.log('💳 User already completed payment, not showing modal');
           setIsPendingPricingModal(false);
         }
       }, 2000); // Wait 2 seconds for page to fully load
@@ -658,7 +622,6 @@ const Dashboard = React.memo(function Dashboard() {
         console.error('🚨 PAYMENT SUCCESS BUT PLAN NOT UPDATED!');
         console.error('  URL Plan:', planFromUrl);
         console.error('  Account Plan:', account.plan);
-        console.error('  User:', user.email);
         console.error('  Customer ID:', account.stripe_customer_id);
         
         // Show user-friendly message
@@ -670,19 +633,12 @@ const Dashboard = React.memo(function Dashboard() {
   // Debug logging for Maven users - simplified to prevent re-renders
   useEffect(() => {
     if (user && account && account.plan !== 'maven') {
-      console.log('📊 Dashboard Debug Info:');
-      console.log('  Email:', user.email);
-      console.log('  Plan:', account.plan);
-      console.log('  Business Count:', businessData?.businessCount || 0);
-      console.log('  Stripe Customer ID:', account.stripe_customer_id || 'MISSING');
-      console.log('  Subscription Status:', account.subscription_status || 'MISSING');
     }
   }, [user?.email, account?.plan, businessData?.businessCount, account?.stripe_customer_id]);
 
   // Load dashboard data immediately when account is available (don't wait for pricing modal)
   useEffect(() => {
     if (!dashboardData && businessData && !isDashboardLoading && account?.id) {
-      console.log('📊 Loading dashboard data immediately (not waiting for pricing modal)');
       loadDashboardSpecificData();
     }
   }, [dashboardData, businessData, isDashboardLoading, account]);
@@ -783,7 +739,6 @@ const Dashboard = React.memo(function Dashboard() {
     
     // If no business and not in an exempt flow, show loading while BusinessGuard redirects
     if (!businessJustCreated && !businessCreationInProgress) {
-      console.log('🔄 Dashboard: No business detected, waiting for BusinessGuard redirect...');
       return <StandardLoader isLoading={true} />;
     }
   }
@@ -858,7 +813,6 @@ const Dashboard = React.memo(function Dashboard() {
           if (typeof window !== "undefined") {
             sessionStorage.removeItem('pricingModalDismissed');
             sessionStorage.removeItem('businessCreatedHandled');
-            console.log("🧹 Cleared modal dismissal flag after grower plan selection");
           }
           
           // Instead of window.location.reload(), reload data and update state
@@ -872,7 +826,6 @@ const Dashboard = React.memo(function Dashboard() {
         }
         
         // If NOT eligible for trial (expired trial or had paid plan), go through Stripe for payment
-        console.log("📊 Grower plan selected but trial not eligible, proceeding to Stripe checkout");
       }
       
       // For paid plans, use Stripe checkout
@@ -887,7 +840,6 @@ const Dashboard = React.memo(function Dashboard() {
         billingPeriod: billingPeriod,
       };
       
-      console.log(`💳 Creating Stripe checkout session for:`, checkoutData);
       
       const response = await fetch("/api/create-checkout-session", {
         method: "POST",
@@ -904,12 +856,10 @@ const Dashboard = React.memo(function Dashboard() {
       }
 
       const responseData = await response.json();
-      console.log(`✅ Stripe checkout response:`, responseData);
       
       const { url } = responseData;
       
       if (url) {
-        console.log(`🚀 Redirecting to Stripe Checkout for ${tierKey}:`, url);
         window.location.href = url;
       } else {
         throw new Error("No checkout URL received");
@@ -927,12 +877,6 @@ const Dashboard = React.memo(function Dashboard() {
                           businessData && businessData.businessCount > 0;
     
     if (planSelectionRequired || hasInvalidPlan) {
-      console.log("⚠️ Plan selection required - cannot close modal", { 
-        planSelectionRequired, 
-        hasInvalidPlan, 
-        currentPlan: account?.plan,
-        businessCount: businessData?.businessCount 
-      });
       return;
     }
     
@@ -947,7 +891,6 @@ const Dashboard = React.memo(function Dashboard() {
     
     // Load remaining dashboard data if it hasn't been loaded yet
     if (!dashboardData) {
-      console.log('📊 Loading remaining dashboard data after modal close');
       loadDashboardSpecificData();
     }
   };
@@ -990,7 +933,6 @@ const Dashboard = React.memo(function Dashboard() {
       const result = await response.json();
       
       if (result.success) {
-        console.log('✅ Session refreshed:', result);
         
         // Refresh all auth context data
         await Promise.all([

@@ -15,7 +15,6 @@ import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('🔄 Import Reviews API called');
 
     // Get request body
     const body = await request.json();
@@ -69,8 +68,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('📍 Importing reviews for location:', locationId, 'Import type:', importType);
-    console.log('👤 User ID:', user.id, 'Account ID:', accountId);
 
     // Create service role client for database operations (bypasses RLS)
     const serviceSupabase = createClient(
@@ -92,10 +89,8 @@ export async function POST(request: NextRequest) {
 
     if (existingBusiness) {
       businessId = existingBusiness.id;
-      console.log('📦 Found existing business ID:', businessId);
     } else {
       // Create a business record if it doesn't exist
-      console.log('🆕 Creating new business for account:', accountId);
       const { data: newBusiness, error: businessError } = await serviceSupabase
         .from('businesses')
         .insert({
@@ -118,7 +113,6 @@ export async function POST(request: NextRequest) {
         );
       }
       businessId = newBusiness.id;
-      console.log('📦 Created new business ID:', businessId);
     }
 
     // Get or create a default prompt page for imported reviews
@@ -148,7 +142,6 @@ export async function POST(request: NextRequest) {
 
       if (!promptPageError && newPromptPage) {
         defaultPromptPageId = newPromptPage.id;
-        console.log('✅ Created default prompt page for imports:', defaultPromptPageId);
       } else {
         console.error('⚠️ Could not create default prompt page:', promptPageError);
         // If we can't create a prompt page, we can't import reviews
@@ -241,7 +234,6 @@ export async function POST(request: NextRequest) {
     const reviewsData = await reviewsResponse.json();
     const googleReviews = reviewsData.reviews || [];
     
-    console.log(`📊 Found ${googleReviews.length} reviews from Google`);
 
     if (googleReviews.length === 0) {
       return NextResponse.json({
@@ -261,7 +253,6 @@ export async function POST(request: NextRequest) {
         .not('google_review_id', 'is', null);
       
       existingReviewIds = (existingReviews || []).map(r => r.google_review_id).filter(Boolean);
-      console.log(`🔍 Found ${existingReviewIds.length} existing reviews in database`);
     }
 
     let importedCount = 0;
@@ -362,7 +353,6 @@ export async function POST(request: NextRequest) {
           // Check if it's a duplicate error
           if (reviewError.code === '23505' && reviewError.message.includes('idx_review_submissions_google_review_id_unique')) {
             skippedCount++;
-            console.log(`⏩ Review already exists for ${reviewerDisplayName}, skipping`);
           } else {
             console.error('❌ Error importing review:', reviewError);
             console.error('Review data attempted:', {
@@ -385,7 +375,6 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    console.log(`✅ Import completed: ${importedCount} new, ${skippedCount} already existed`);
 
     let message = '';
     if (importedCount > 0 && skippedCount > 0) {

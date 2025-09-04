@@ -20,7 +20,6 @@ export async function GET(request: NextRequest) {
 
     const supabase = createServiceRoleClient();
     
-    console.log(`[ONBOARDING_TASKS] GET: Fetching tasks for account: ${account_id}`);
     
     const { data: tasks, error } = await supabase
       .from('onboarding_tasks')
@@ -36,7 +35,6 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    console.log(`[ONBOARDING_TASKS] GET: Found ${tasks?.length || 0} tasks`);
     return NextResponse.json({ tasks: tasks || [] });
   } catch (error) {
     console.error('[ONBOARDING_TASKS] Unexpected error:', error);
@@ -59,7 +57,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log(`[ONBOARDING_TASKS] POST: Updating task ${task_id} for account: ${account_id}, completed: ${completed}`);
 
     const supabase = createServiceRoleClient();
 
@@ -86,7 +83,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log(`[ONBOARDING_TASKS] POST: Task updated successfully:`, data);
     return NextResponse.json({ task: data });
   } catch (error) {
     console.error('[ONBOARDING_TASKS] Unexpected error:', error);

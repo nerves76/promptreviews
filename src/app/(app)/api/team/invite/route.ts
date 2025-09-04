@@ -208,11 +208,6 @@ export async function POST(request: NextRequest) {
       if (!isExpired) {
         // Check if roles are different - allow role change via new invitation
         if (existingInvitation.role !== role) {
-          console.log('🔄 Updating invitation role:', {
-            email: emailValidation.email,
-            oldRole: existingInvitation.role,
-            newRole: role
-          });
           
           // Delete old invitation to create new one with different role
           await supabase
@@ -234,11 +229,6 @@ export async function POST(request: NextRequest) {
         }
       } else {
         // Clean up expired invitation
-        console.log('🗑️ Removing expired invitation:', {
-          email: emailValidation.email,
-          existingId: existingInvitation.id,
-          expiredAt: existingInvitation.expires_at
-        });
         
         await supabase
           .from('account_invitations')
@@ -247,11 +237,6 @@ export async function POST(request: NextRequest) {
       }
     } else if (existingInvitation && existingInvitation.accepted_at) {
       // Remove accepted invitations to allow re-invitation
-      console.log('🗑️ Removing accepted invitation for re-invitation:', {
-        email: emailValidation.email,
-        existingId: existingInvitation.id,
-        wasAccepted: true
-      });
       
       const { error: deleteError } = await supabase
         .from('account_invitations')
@@ -304,14 +289,6 @@ export async function POST(request: NextRequest) {
       day: 'numeric'
     });
 
-    console.log('📧 Sending invitation email...', {
-      to: emailValidation.email,
-      from: inviterName,
-      business: businessName,
-      role,
-      expires: formattedExpirationDate,
-      riskScore: emailValidation.riskScore
-    });
 
     // Send the email
     const emailResult = await sendTeamInvitationEmail(
@@ -342,15 +319,6 @@ export async function POST(request: NextRequest) {
     recordInvitationSuccess(accountUser.account_id);
 
     // Log successful invitation for audit trail
-    console.log('✅ Invitation sent successfully', {
-      invitationId: invitation.id,
-      email: emailValidation.email,
-      role,
-      invitedBy: user.id,
-      accountId: accountUser.account_id,
-      riskScore: emailValidation.riskScore,
-      warnings: warnings
-    });
 
     const response = NextResponse.json({
       message: 'Invitation sent successfully',

@@ -39,13 +39,6 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
   const accountId = selectedAccountId || account?.id;
   
   // 🚨 DEBUG: Track component lifecycle
-  console.log('🔵 BusinessInfoEditor: Component render/re-render at', new Date().toISOString(), {
-    locationsCount: locations?.length,
-    isConnected,
-    locationsIds: locations?.map(l => l.id),
-    accountId,
-    selectedAccountId
-  });
   
   // Storage key for form data persistence
   const formStorageKey = 'businessInfoEditorForm';
@@ -59,7 +52,6 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
       if (savedData) {
         try {
           const parsed = JSON.parse(savedData);
-          console.log('📝 Restored business info form data from localStorage');
           return parsed;
         } catch (e) {
           console.error('Failed to parse saved form data:', e);
@@ -105,9 +97,7 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
 
   // Debug: Log when component mounts/unmounts
   useEffect(() => {
-    console.log('🟢 BusinessInfoEditor: Component MOUNTED');
     return () => {
-      console.log('🔴 BusinessInfoEditor: Component UNMOUNTED');
     };
   }, []);
 
@@ -115,7 +105,6 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
   
   // Debug: Track selectedLocationIds changes
   useEffect(() => {
-    console.log('📍 BusinessInfoEditor: selectedLocationIds changed:', selectedLocationIds);
     // Persist selection to localStorage to survive component remounts
     if (selectedLocationIds.length > 0) {
       localStorage.setItem('business-info-selected-locations', JSON.stringify(selectedLocationIds));
@@ -129,7 +118,6 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
       try {
         const parsed = JSON.parse(savedSelections);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          console.log('🔄 Restoring selected locations from localStorage:', parsed);
           setSelectedLocationIds(parsed);
         }
       } catch (error) {
@@ -143,7 +131,6 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
     const saveTimeout = setTimeout(() => {
       if (typeof window !== 'undefined' && businessInfo) {
         localStorage.setItem(formStorageKey, JSON.stringify(businessInfo));
-        console.log('💾 Auto-saved business info form data');
       }
     }, 1000); // Debounce for 1 second
     
@@ -154,7 +141,6 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
   useEffect(() => {
     // Only run if we have connection - prevent unnecessary queries
     if (!isConnected) {
-      console.log('BusinessInfoEditor: Skipping business context fetch - not connected');
       return;
     }
 
@@ -167,14 +153,12 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
         // Business context is not critical for component functionality
 
         // DISABLED: Skip business profile query to prevent 400 errors until schema is confirmed
-        console.log('BusinessInfoEditor: Skipping business context query - preventing 400 errors');
         // 
         // Note: The businesses table may be missing expected columns:
         // business_name, business_type, city, state, services, industry
         // 
         // This query will be re-enabled once the database schema is confirmed to have these columns
       } catch (error) {
-        console.log('Could not fetch business context:', error);
         // Non-critical, continue without context
       }
     };
@@ -190,7 +174,6 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
       setDetailsError(null);
     } else {
       // If user has changes, just update the details loaded flag without clearing
-      console.log('🔒 Preserving form changes during location selection change');
     }
   }, [selectedLocationIds, hasChanges]);
 
@@ -212,7 +195,6 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
     if (hasChanges && formDataBackup && 
         businessInfo.description === '' && 
         formDataBackup.description !== '') {
-      console.log('🔄 Detected form reset, restoring backed up data');
       setBusinessInfo(formDataBackup);
     }
   }, [businessInfo, hasChanges, formDataBackup]);
@@ -229,32 +211,15 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
     
     // Backup form data while user is actively editing
     setFormDataBackup(newInfo);
-    console.log('💾 Backed up form data during edit');
   };
 
   const handleBusinessInfoLoaded = (loadedInfo: Partial<BusinessInfo>) => {
-    console.log('📥 BusinessInfoEditor received loaded info:', {
-      hasDescription: !!loadedInfo.description,
-      hasPrimaryCategory: !!loadedInfo.primaryCategory,
-      primaryCategoryData: loadedInfo.primaryCategory,
-      hasAdditionalCategories: !!loadedInfo.additionalCategories,
-      additionalCategoriesCount: loadedInfo.additionalCategories?.length || 0,
-      additionalCategoriesData: loadedInfo.additionalCategories,
-      allKeys: Object.keys(loadedInfo)
-    });
     
     setBusinessInfo(prev => {
       const updated = {
         ...prev,
         ...loadedInfo
       };
-      console.log('📋 Updated businessInfo state:', {
-        hasPrimaryCategory: !!updated.primaryCategory,
-        primaryCategoryData: updated.primaryCategory,
-        hasAdditionalCategories: !!updated.additionalCategories,
-        additionalCategoriesCount: updated.additionalCategories?.length || 0,
-        additionalCategoriesData: updated.additionalCategories
-      });
       return updated;
     });
     setHasChanges(false); // Loaded data is not a "change"
@@ -266,7 +231,6 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
     setSaveResult(null);
 
     try {
-      console.log('💾 Saving business info for locations:', selectedLocationIds);
       
       // Make a single API call with all selected locations
       const response = await fetch('/api/business-information/update-location', {
@@ -288,7 +252,6 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
       });
 
       const result = await response.json();
-      console.log('📊 Save response:', result);
 
       if (response.ok && result.success) {
         setSaveResult({ 
@@ -301,9 +264,7 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
         // Clear saved form data after successful submission
         if (typeof window !== 'undefined') {
           localStorage.removeItem(formStorageKey);
-          console.log('🗑️ Cleared saved business info form data');
         }
-        console.log('✅ Form data saved and backup cleared');
       } else {
         setSaveResult({ 
           success: false, 
@@ -391,13 +352,11 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
   };
 
   const handleDescriptionAnalyzed = (analysis: any) => {
-    console.log('📈 Analysis received in BusinessInfoEditor:', analysis);
     // Don't auto-apply the optimized description - let user choose to apply it
     // The BusinessDescriptionAnalyzer component will handle showing the preview and apply button
   };
 
   const handleApplyOptimizedDescription = (optimizedDescription: string) => {
-    console.log('✅ User chose to apply optimized description');
     handleInputChange('description', optimizedDescription);
     setShowDescriptionAnalyzer(false); // Close analyzer after applying
   };
@@ -440,7 +399,6 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
           }
         }
         handleInputChange('description', businessProfile.about_us);
-        console.log('✅ Imported business description from Your Business profile');
       } else {
         alert('No business description found in Your Business profile. Please add one there first.');
       }

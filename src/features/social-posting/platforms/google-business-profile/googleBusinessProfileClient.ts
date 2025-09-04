@@ -63,16 +63,8 @@ export class GoogleBusinessProfileClient {
     const isExpired = Date.now() >= this.expiresAt;
     const willExpireSoon = fiveMinutesFromNow >= this.expiresAt;
     
-    console.log('🔍 Token expiry check:', {
-      currentTime: new Date(Date.now()).toISOString(),
-      expiresAt: new Date(this.expiresAt).toISOString(),
-      isExpired,
-      willExpireSoon,
-      timeUntilExpiry: Math.round((this.expiresAt - Date.now()) / 1000 / 60) + ' minutes'
-    });
     
     if (isExpired || willExpireSoon) {
-      console.log('🔄 Token refresh needed:', isExpired ? 'EXPIRED' : 'EXPIRES_SOON');
       try {
         await this.refreshAccessToken();
       } catch (refreshError: any) {
@@ -96,7 +88,6 @@ export class GoogleBusinessProfileClient {
    */
   public async refreshAccessToken(): Promise<{ access_token: string; expires_in: number; refresh_token?: string } | null> {
     try {
-      console.log('🔄 Server-side token refresh initiated');
 
       // Construct the correct URL based on environment
       const baseUrl = typeof window !== 'undefined' 
@@ -266,7 +257,6 @@ export class GoogleBusinessProfileClient {
       if (retryCount < this.config.retries && 
           !error.message?.includes('Invalid endpoint format') &&
           !error.message?.includes('CRITICAL ERROR')) {
-        console.log(`🔄 Retrying request (${retryCount + 1}/${this.config.retries})...`);
         await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, retryCount)));
         return this.makeRequest(endpoint, options, retryCount + 1, overrideBaseUrl);
       }
@@ -305,7 +295,6 @@ export class GoogleBusinessProfileClient {
    */
   async listLocations(accountId: string): Promise<BusinessLocation[]> {
     try {
-      console.log(`📍 Fetching locations for account: ${accountId}`);
       
       // Extract just the numeric account ID from various formats
       // Handle multiple formats: "accounts/123", "accounts/accounts/123", or just "123"
@@ -321,14 +310,11 @@ export class GoogleBusinessProfileClient {
         throw new Error(`Invalid account ID format: ${accountId}. Expected numeric ID.`);
       }
       
-      console.log(`📍 Using clean account ID: ${cleanAccountId}`);
       
       // Debug: Log the endpoint template before replacement
-      console.log(`📍 Endpoint template: ${GOOGLE_BUSINESS_PROFILE.ENDPOINTS.LOCATIONS_LIST}`);
       
       // The template is /v1/accounts/{accountId}/locations, so {accountId} should be the account ID
       const endpoint = GOOGLE_BUSINESS_PROFILE.ENDPOINTS.LOCATIONS_LIST.replace('{accountId}', cleanAccountId);
-      console.log(`📍 Constructed endpoint: ${endpoint}`);
       
       // Additional validation to catch any remaining issues
       if (endpoint.includes('/accounts/accounts/')) {
@@ -339,7 +325,6 @@ export class GoogleBusinessProfileClient {
       // Include all category fields to ensure we get the complete category data
       const readMask = 'name,title,storefrontAddress,phoneNumbers,categories.primaryCategory,categories.additionalCategories,websiteUri,regularHours,serviceItems,profile,latlng,metadata';
       const endpointWithParams = `${endpoint}?readMask=${encodeURIComponent(readMask)}`;
-      console.log(`📍 Final URL to call: ${this.config.baseUrl}${endpointWithParams}`);
       
       // Use Business Information API for listing locations - explicit baseUrl to avoid URL construction issues
       const response = await this.makeRequest(
@@ -348,14 +333,11 @@ export class GoogleBusinessProfileClient {
         0,
         'https://mybusinessbusinessinformation.googleapis.com'
       ) as ListLocationsResponse;
-      console.log(`📍 Response data:`, response);
-      console.log(`📍 Response data.locations:`, response.locations);
       
       if (!response.locations) {
         return [];
       }
 
-      console.log(`✅ Found ${response.locations.length} locations`);
       return response.locations;
 
     } catch (error) {
@@ -387,7 +369,6 @@ export class GoogleBusinessProfileClient {
    */
   async listLocalPosts(accountId: string, locationId: string): Promise<LocalPost[]> {
     try {
-      console.log(`📝 Fetching local posts for location: ${locationId}`);
       
       const endpoint = GOOGLE_BUSINESS_PROFILE.ENDPOINTS.LOCAL_POSTS
         .replace('{accountId}', accountId)
@@ -399,7 +380,6 @@ export class GoogleBusinessProfileClient {
         return [];
       }
 
-      console.log(`✅ Found ${response.localPosts.length} local posts`);
       return response.localPosts;
 
     } catch (error) {
@@ -417,7 +397,6 @@ export class GoogleBusinessProfileClient {
     postData: CreateLocalPostRequest
   ): Promise<LocalPost> {
     try {
-      console.log(`📝 Creating local post for location: ${locationId}`);
       
       const endpoint = GOOGLE_BUSINESS_PROFILE.ENDPOINTS.LOCAL_POSTS
         .replace('{accountId}', accountId)
@@ -428,7 +407,6 @@ export class GoogleBusinessProfileClient {
         body: JSON.stringify(postData)
       }, 0, GOOGLE_BUSINESS_PROFILE.LEGACY_BASE_URL);
 
-      console.log('✅ Local post created successfully');
       return response as LocalPost;
 
     } catch (error) {
@@ -463,7 +441,6 @@ export class GoogleBusinessProfileClient {
    */
   async getLocationDetails(locationId: string): Promise<any> {
     try {
-      console.log(`📍 Getting location details for: ${locationId}`);
 
       // Clean the location ID to remove "locations/" prefix if present
       const cleanLocationId = locationId.replace('locations/', '');
@@ -485,7 +462,6 @@ export class GoogleBusinessProfileClient {
       const readMask = 'name,title,storefrontAddress,phoneNumbers,categories.primaryCategory,categories.additionalCategories,websiteUri,regularHours,profile,latlng,metadata,serviceItems';
       const endpointWithParams = `${endpoint}?readMask=${encodeURIComponent(readMask)}`;
 
-      console.log(`🔧 Location details endpoint: ${endpointWithParams}`);
 
       // Use Business Information API explicitly to avoid URL construction issues
       const response = await this.makeRequest(
@@ -495,7 +471,6 @@ export class GoogleBusinessProfileClient {
         'https://mybusinessbusinessinformation.googleapis.com'
       );
 
-      console.log('✅ Location details fetched successfully');
       return response;
 
     } catch (error) {
@@ -510,8 +485,6 @@ export class GoogleBusinessProfileClient {
    */
   async updateLocation(accountId: string, locationId: string, updates: any): Promise<any> {
     try {
-      console.log(`🔄 Updating location: ${locationId}`);
-      console.log(`📝 Updates:`, JSON.stringify(updates, null, 2));
 
       // Extract just the location ID if it's in full format
       let cleanLocationId = locationId;
@@ -519,13 +492,11 @@ export class GoogleBusinessProfileClient {
         cleanLocationId = locationId.split('/').pop() || locationId;
       }
       
-      console.log(`🔧 Using location ID: ${cleanLocationId}`);
 
       // CRITICAL FIX: Use correct Business Information API v1 endpoint format
       // The correct format is /v1/locations/{locationId} NOT /v1/accounts/{accountId}/locations/{locationId}
       const endpoint = `/v1/locations/${cleanLocationId}`;
       
-      console.log(`🔧 Update endpoint: ${endpoint}`);
 
       // Create update mask for the fields being updated
       const updateMask = [];
@@ -541,13 +512,8 @@ export class GoogleBusinessProfileClient {
       const queryParams = updateMask.length > 0 ? `?updateMask=${updateMask.join(',')}` : '';
       const fullEndpoint = `${endpoint}${queryParams}`;
 
-      console.log(`🔧 Full endpoint with update mask: ${fullEndpoint}`);
-      console.log(`🔧 Update mask fields: [${updateMask.join(', ')}]`);
-      console.log(`🔧 Request body size: ${JSON.stringify(updates).length} chars`);
 
       // Use Business Information API v1 - let automatic base URL selection handle it
-      console.log('🚨 BEFORE UPDATE makeRequest - fullEndpoint:', fullEndpoint);
-      console.log('🚨 BEFORE UPDATE makeRequest - updates:', JSON.stringify(updates, null, 2));
       
       const response = await this.makeRequest(
         fullEndpoint,
@@ -557,9 +523,7 @@ export class GoogleBusinessProfileClient {
         }
       );
       
-      console.log('🚨 AFTER UPDATE makeRequest - success! Response:', JSON.stringify(response, null, 2));
 
-      console.log('✅ Successfully updated location');
       return response;
     } catch (error: any) {
       console.error('❌ Failed to update location:', error);
@@ -582,7 +546,6 @@ export class GoogleBusinessProfileClient {
     mediaFormat: 'PHOTO' | 'VIDEO' = 'PHOTO'
   ): Promise<{ success: boolean; mediaItem?: any; error?: string }> {
     try {
-      console.log(`📷 Uploading media to location: ${locationId}`);
 
       // Clean the account ID to remove "accounts/" prefix if present
       const cleanAccountId = accountId.replace('accounts/', '');
@@ -595,7 +558,6 @@ export class GoogleBusinessProfileClient {
 
       const url = `${GOOGLE_BUSINESS_PROFILE.LEGACY_BASE_URL}${endpoint}`;
 
-      console.log(`🌐 Media upload URL: ${url}`);
 
       // Create FormData for file upload
       const formData = new FormData();
@@ -618,7 +580,6 @@ export class GoogleBusinessProfileClient {
         },
       });
 
-      console.log('✅ Media uploaded successfully');
       return {
         success: true,
         mediaItem: response
@@ -637,7 +598,6 @@ export class GoogleBusinessProfileClient {
    * Fetches media (photos) for a specific location
    */
   async getMedia(locationId: string): Promise<any[]> {
-    console.log('🔄 Fetching media for location:', locationId);
     
     try {
       // First get the account ID if we don't have it
@@ -657,7 +617,6 @@ export class GoogleBusinessProfileClient {
         method: 'GET'
       }, 0, GOOGLE_BUSINESS_PROFILE.LEGACY_BASE_URL) as { mediaItems?: any[] };
 
-      console.log('✅ Successfully fetched media items');
       return response?.mediaItems || [];
 
     } catch (error) {
@@ -670,7 +629,6 @@ export class GoogleBusinessProfileClient {
    * Fetches reviews for a specific location
    */
   async getReviews(locationId: string): Promise<any[]> {
-    console.log('🔄 Fetching reviews for location:', locationId);
     
     try {
       // First get the account ID if we don't have it
@@ -690,7 +648,6 @@ export class GoogleBusinessProfileClient {
         method: 'GET'
       }, 0, GOOGLE_BUSINESS_PROFILE.LEGACY_BASE_URL) as { reviews?: any[] };
 
-      console.log('✅ Successfully fetched reviews');
       return response?.reviews || [];
 
     } catch (error) {
@@ -703,7 +660,6 @@ export class GoogleBusinessProfileClient {
    * Replies to a specific review
    */
   async replyToReview(locationId: string, reviewId: string, replyText: string): Promise<any> {
-    console.log('🔄 Replying to review:', reviewId);
     
     try {
       // First get the account ID if we don't have it
@@ -726,7 +682,6 @@ export class GoogleBusinessProfileClient {
         }),
       }, 0, GOOGLE_BUSINESS_PROFILE.LEGACY_BASE_URL);
 
-      console.log('✅ Successfully replied to review');
       return response;
 
     } catch (error) {
@@ -739,7 +694,6 @@ export class GoogleBusinessProfileClient {
    * Updates an existing reply to a specific review
    */
   async updateReviewReply(locationId: string, reviewId: string, updatedReplyText: string): Promise<any> {
-    console.log('🔄 Updating review reply:', reviewId);
     
     try {
       // First get the account ID if we don't have it
@@ -762,7 +716,6 @@ export class GoogleBusinessProfileClient {
         }),
       }, 0, GOOGLE_BUSINESS_PROFILE.LEGACY_BASE_URL);
 
-      console.log('✅ Successfully updated review reply');
       return response;
 
     } catch (error) {
@@ -796,7 +749,6 @@ export class GoogleBusinessProfileClient {
       };
     }>;
   }[]> {
-    console.log('🔄 Fetching unresponded reviews from last 30 days');
     
     try {
       // Get all accounts
@@ -855,7 +807,6 @@ export class GoogleBusinessProfileClient {
         }
       }
 
-      console.log(`✅ Found ${results.length} locations with unresponded reviews`);
       return results;
 
     } catch (error) {
@@ -870,7 +821,6 @@ export class GoogleBusinessProfileClient {
    */
   async listCategories(): Promise<Array<{ categoryId: string; displayName: string }>> {
     try {
-      console.log('📋 Fetching Google Business categories...');
       
       // Add required parameters for Google Business Information API v1
       const queryParams = new URLSearchParams({
@@ -882,32 +832,20 @@ export class GoogleBusinessProfileClient {
       const baseEndpoint = '/v1/categories';
       const fullEndpoint = `${baseEndpoint}?${queryParams.toString()}`;
       
-      console.log('🔧 Categories endpoint construction:', {
-        baseEndpoint,
-        queryParams: queryParams.toString(),
-        fullEndpoint,
-        queryParamsLength: queryParams.toString().length
-      });
       
       // CRITICAL: Pass the full endpoint with query parameters
-      console.log('🚨 CALLING makeRequest with endpoint:', fullEndpoint);
       const response = await this.makeRequest(
         fullEndpoint,
         { method: 'GET' }
       ) as { categories?: any[] };
-      console.log('🚨 makeRequest completed successfully');
 
       if (response.categories) {
-        console.log('✅ Successfully fetched categories:', response.categories.length);
         return response.categories.map((cat: any) => ({
           categoryId: cat.name, // Use Google's 'name' field as our categoryId (e.g., "categories/gcid:marketing_consultant")
           displayName: cat.displayName
         }));
       }
 
-      console.log('⚠️ No categories in response, trying response structure analysis');
-      console.log('📊 Response keys:', Object.keys(response));
-      console.log('📊 Full response (first 200 chars):', JSON.stringify(response).substring(0, 200));
       return [];
     } catch (error: any) {
       console.error('❌ Failed to list categories:', error);
@@ -927,7 +865,6 @@ export class GoogleBusinessProfileClient {
     optimizationOpportunities: any[];
   }> {
     try {
-      console.log('📊 Fetching overview data for location:', locationId);
 
       // Fetch data from multiple sources in parallel
       // Only fetch reviews via API, get other data from database like working tabs do
@@ -952,12 +889,6 @@ export class GoogleBusinessProfileClient {
       const postsData = localPosts.status === 'fulfilled' ? localPosts.value : [];
 
       // Debug logging for failed API calls
-      console.log('📊 GBP API Results:');
-      console.log(`  Location Info: ${locationInfo.status} ${locationInfo.status === 'rejected' ? '❌ ' + locationInfo.reason : '✅'}`);
-      console.log(`  Reviews: ${reviews.status} ${reviews.status === 'rejected' ? '❌ ' + reviews.reason : `✅ ${reviewsData.length} reviews`}`);
-      console.log(`  Insights: ${insights.status} ${insights.status === 'rejected' ? '❌ ' + insights.reason : `✅ ${insightsData.length} insights`}`);
-      console.log(`  Photos: ${photos.status} ${photos.status === 'rejected' ? '❌ ' + photos.reason : `✅ ${photosData.length} photos`}`);
-      console.log(`  Posts: ${localPosts.status} ${localPosts.status === 'rejected' ? '❌ ' + localPosts.reason : `✅ ${postsData.length} posts`}`);
 
       // Use helper functions to process the data
       const { 
@@ -991,7 +922,6 @@ export class GoogleBusinessProfileClient {
         identifyOptimizationOpportunities(location, profileData, engagementData, photosData) : 
         [];
 
-      console.log('✅ Successfully aggregated overview data');
 
       return {
         profileData,
@@ -1011,12 +941,10 @@ export class GoogleBusinessProfileClient {
    */
   async getLocationInfo(locationId: string): Promise<any> {
     try {
-      console.log('📍 Fetching location info for:', locationId);
       
       const endpoint = `/v1/${locationId}`;
       const response = await this.makeRequest(endpoint, { method: 'GET' });
       
-      console.log('✅ Successfully fetched location info');
       return response;
     } catch (error: any) {
       console.error('❌ Failed to fetch location info:', error);
@@ -1030,7 +958,6 @@ export class GoogleBusinessProfileClient {
    */
   async getLocationInsights(locationId: string, dateRange: string = 'THIRTY_DAYS'): Promise<any[]> {
     try {
-      console.log('📈 [NEW API] Fetching performance data for:', locationId);
       
       // Use NEW Business Profile Performance API v1
       const originalBaseUrl = this.config.baseUrl;
@@ -1042,7 +969,6 @@ export class GoogleBusinessProfileClient {
       
       // Get date range for the request
       const dateRangeObj = this.getDateRange(dateRange);
-      console.log('🔍 [NEW API] Date range:', dateRangeObj);
       
       // Build query parameters for the new API using CORRECT Performance API v1 DailyMetric values
       // NOTE: Performance API requires special access approval from Google
@@ -1078,8 +1004,6 @@ export class GoogleBusinessProfileClient {
 
       const fullEndpoint = `${endpoint}?${queryParams.toString()}`;
       
-      console.log('🔍 [NEW API] Endpoint:', fullEndpoint);
-      console.log('🔍 [NEW API] Full URL being called:', `${this.config.baseUrl}${fullEndpoint}`);
 
       const response = await this.makeRequest(fullEndpoint, {
         method: 'GET'
@@ -1088,16 +1012,6 @@ export class GoogleBusinessProfileClient {
       // Restore original base URL
       this.config.baseUrl = originalBaseUrl;
       
-      console.log('✅ [NEW API] Successfully fetched performance data');
-      console.log('🔍 [NEW API] Response keys:', Object.keys(response || {}));
-      console.log('🔍 [NEW API] Response type:', typeof response);
-      console.log('🔍 [NEW API] Response structure:', {
-        hasMultiDailyMetricsTimeSeries: !!response.multiDailyMetricsTimeSeries,
-        metricsCount: response.multiDailyMetricsTimeSeries?.length || 0,
-        responseKeys: Object.keys(response || {}),
-        fullResponse: response,  // Log the full response
-        firstMetric: response.multiDailyMetricsTimeSeries?.[0] || 'none'
-      });
       
       // New API returns multiDailyMetricsTimeSeries array
       return response.multiDailyMetricsTimeSeries || [];
@@ -1116,26 +1030,10 @@ export class GoogleBusinessProfileClient {
       const isQuotaZero = error.message?.includes('quota') && error.message?.includes('0');
       
       if (isQuotaZero || (isAccessDenied && error.message?.includes('Performance'))) {
-        console.error('🚨 PERFORMANCE API ACCESS DENIED - This requires special Google approval!');
-        console.error('📋 Official Google documentation states:');
-        console.error('   "Note - If you have a quota of 0 after enabling the API, please request for GBP API access."');
-        console.error('🔗 You need to request access at: https://developers.google.com/my-business');
       }
       
-      console.log('🔄 [NEW API] This is likely due to:');
-      console.log('  1. 🚨 PERFORMANCE API REQUIRES SPECIAL ACCESS APPROVAL from Google');
-      console.log('  2. ⚠️  Business Profile Performance API NOT ENABLED in Google Console');
-      console.log('  3. 🔑 Insufficient permissions or unverified business profile');
-      console.log('  4. 📊 No performance data available for selected time period');
-      console.log('  5. 🔗 API endpoint or authentication issue');
       
-      console.log('🛠️  To fix:');
-      console.log('     - 🆘 REQUEST GBP API ACCESS from Google (Performance API requires approval)');
-      console.log('     - Enable "Business Profile Performance API" in Google Cloud Console');
-      console.log('     - Verify business profile is claimed and verified');
-      console.log('     - Check if business has sufficient activity for metrics');
       
-      console.log('🔄 [FALLBACK] Trying deprecated v4 API as backup...');
       
       // FALLBACK: Try the old API as a temporary measure
       try {
@@ -1152,7 +1050,6 @@ export class GoogleBusinessProfileClient {
    * Used as temporary backup if new Performance API isn't enabled
    */
   private async getLocationInsightsLegacy(locationId: string, dateRange: string = 'THIRTY_DAYS'): Promise<any[]> {
-    console.log('🔄 [LEGACY FALLBACK] Using deprecated v4 reportInsights API');
     
     // Extract account ID and location ID from the full location name
     const locationParts = locationId.split('/');
@@ -1195,8 +1092,6 @@ export class GoogleBusinessProfileClient {
     // Restore original base URL
     this.config.baseUrl = originalBaseUrl;
     
-    console.log('✅ [LEGACY FALLBACK] Got response from v4 API');
-    console.log('🔍 [LEGACY FALLBACK] Response:', JSON.stringify(response, null, 2));
     
     return response.locationMetrics || [];
   }
@@ -1206,7 +1101,6 @@ export class GoogleBusinessProfileClient {
    */
   async getLocationPhotos(locationId: string): Promise<any[]> {
     try {
-      console.log('📸 Fetching location photos for:', locationId);
       
       // Extract account ID and location ID from the full location name
       const locationParts = locationId.split('/');
@@ -1227,7 +1121,6 @@ export class GoogleBusinessProfileClient {
       // Restore original base URL
       this.config.baseUrl = originalBaseUrl;
       
-      console.log('✅ Successfully fetched location photos');
       return response.mediaItems || [];
     } catch (error: any) {
       console.error('❌ Failed to fetch location photos:', error);
@@ -1261,7 +1154,6 @@ export class GoogleBusinessProfileClient {
    */
   async getLocalPosts(locationId: string): Promise<any[]> {
     try {
-      console.log('📝 Fetching local posts for:', locationId);
       
       // Extract account ID and location ID from the full location name
       const locationParts = locationId.split('/');
@@ -1282,7 +1174,6 @@ export class GoogleBusinessProfileClient {
       // Restore original base URL
       this.config.baseUrl = originalBaseUrl;
       
-      console.log('✅ Successfully fetched local posts');
       return response.localPosts || [];
     } catch (error: any) {
       console.error('❌ Failed to fetch local posts:', error);

@@ -10,12 +10,10 @@ import { cookies } from 'next/headers';
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('🔄 Server-side token refresh initiated');
     
     const { refreshToken } = await request.json();
     
     if (!refreshToken) {
-      console.log('❌ No refresh token provided in request');
       return NextResponse.json({ 
         error: 'Refresh token is required',
         requiresReauth: true 
@@ -35,7 +33,6 @@ export async function POST(request: NextRequest) {
       }
     );
     
-    console.log('🔍 Looking up user by refresh token...');
 
     // Find the user by refresh token (using service role to bypass RLS)
     const { data: tokenData, error: tokenError } = await supabase
@@ -45,14 +42,12 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (tokenError || !tokenData) {
-      console.log('❌ No matching refresh token found:', tokenError?.message);
       return NextResponse.json({ 
         error: 'Invalid refresh token',
         requiresReauth: true 
       }, { status: 401 });
     }
 
-    console.log('✅ Found matching refresh token for user:', tokenData.user_id);
 
     // Check environment variables
     const clientId = process.env.GOOGLE_CLIENT_ID;
@@ -65,8 +60,6 @@ export async function POST(request: NextRequest) {
       }, { status: 500 });
     }
 
-    console.log('🔄 Exchanging refresh token for new access token...');
-    console.log('🔑 Using client ID:', clientId?.substring(0, 10) + '...');
 
     // Exchange refresh token for new access token
     const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
@@ -107,7 +100,6 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    console.log('✅ New access token received');
 
     // Update tokens in database
     const newExpiresAt = new Date(Date.now() + refreshData.expires_in * 1000).toISOString();
@@ -128,7 +120,6 @@ export async function POST(request: NextRequest) {
       }, { status: 500 });
     }
 
-    console.log('✅ Tokens refreshed and saved to database');
 
     return NextResponse.json({
       success: true,

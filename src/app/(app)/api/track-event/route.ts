@@ -77,7 +77,6 @@ export async function POST(req: NextRequest) {
                req.headers.get("cf-connecting-ip") || 
                null;
 
-    console.log(`[TRACK-EVENT] Tracking ${eventType} for prompt page: ${promptPageId}`);
 
     // Use service key for database operations to bypass RLS
     const supabaseService = createServiceRoleClient(); // use service role

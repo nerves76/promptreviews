@@ -264,7 +264,6 @@ export default function UploadContactsPage() {
   }, [supabase]);
 
   useEffect(() => {
-    console.log("State updated:", { selectedFile, preview, error, success });
   }, [selectedFile, preview, error, success]);
 
   // Helper function to render review count
@@ -392,13 +391,10 @@ export default function UploadContactsPage() {
   }, [supabase, currentPage]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    console.log("File select event:", e);
     const file = e.target.files?.[0];
-    console.log("Selected file:", file);
     if (!file) return;
 
     if (file.type !== "text/csv") {
-      console.log("Invalid file type:", file.type);
       setError("Please select a CSV file");
       return;
     }
@@ -409,9 +405,7 @@ export default function UploadContactsPage() {
     // Read and preview the file
     const reader = new FileReader();
     reader.onload = (event) => {
-      console.log("File read complete");
       const text = event.target?.result as string;
-      console.log("File content:", text);
 
       // Parse CSV with proper handling of quoted fields
       const parseCSV = (csv: string) => {
@@ -444,7 +438,6 @@ export default function UploadContactsPage() {
       };
 
       const rows = parseCSV(text).slice(0, 6); // Preview first 5 rows + header
-      console.log("Parsed rows:", rows);
       setPreview(rows);
     };
     reader.onerror = (error) => {
@@ -631,7 +624,6 @@ export default function UploadContactsPage() {
         return;
       }
 
-      console.log("Session:", session);
 
       const formData = new FormData();
       formData.append("file", selectedFile);
@@ -645,7 +637,6 @@ export default function UploadContactsPage() {
       });
 
       const data = await response.json();
-      console.log("Upload response:", data);
 
       if (!response.ok) {
         console.error("Upload error response:", data);
@@ -1094,7 +1085,6 @@ export default function UploadContactsPage() {
                       </div>
                       <button
                         onClick={() => {
-                          console.log('Merge button clicked for group:', group);
                           setSelectedDuplicateGroup(group);
                           setShowMergeModal(true);
                         }}

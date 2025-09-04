@@ -34,7 +34,6 @@ const missingVars = Object.entries(requiredEnvVars)
   .map(([key]) => key);
 
 if (missingVars.length > 0 && process.env.NODE_ENV !== 'test') {
-  console.error('❌ Missing required environment variables:', missingVars);
   throw new Error(`Missing required environment variables: ${missingVars.join(', ')}`);
 }
 

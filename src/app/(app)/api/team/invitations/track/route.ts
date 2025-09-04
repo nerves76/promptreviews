@@ -77,7 +77,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log(`📊 Tracked invitation event: ${event_type} for ${invitation.email}`);
 
     return NextResponse.json({
       success: true,
@@ -141,7 +140,6 @@ export async function GET(request: NextRequest) {
   if (redirectUrl && event === 'clicked') {
     try {
       const decodedRedirectUrl = decodeURIComponent(redirectUrl);
-      console.log(`🔄 Redirecting after tracking click: ${decodedRedirectUrl}`);
       
       return NextResponse.redirect(decodedRedirectUrl, { status: 302 });
     } catch (error) {

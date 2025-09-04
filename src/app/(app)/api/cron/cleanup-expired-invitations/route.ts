@@ -23,7 +23,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('🧹 Starting expired invitations cleanup...');
 
     // Get expired invitations (older than 7 days and not accepted)
     const { data: expiredInvitations, error: selectError } = await supabaseAdmin
@@ -41,7 +40,6 @@ export async function POST(request: NextRequest) {
     }
 
     if (!expiredInvitations || expiredInvitations.length === 0) {
-      console.log('✅ No expired invitations to clean up');
       return NextResponse.json({
         success: true,
         message: 'No expired invitations found',
@@ -49,7 +47,6 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    console.log(`🗑️ Found ${expiredInvitations.length} expired invitations to delete`);
 
     // Delete expired invitations
     const { error: deleteError } = await supabaseAdmin
@@ -65,7 +62,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log(`✅ Successfully deleted ${expiredInvitations.length} expired invitations`);
 
     // Log summary for monitoring
     const cleanupSummary = {
@@ -76,7 +72,6 @@ export async function POST(request: NextRequest) {
       accounts_affected: [...new Set(expiredInvitations.map(inv => inv.account_id))].length
     };
 
-    console.log('📊 Cleanup summary:', cleanupSummary);
 
     return NextResponse.json({
       success: true,

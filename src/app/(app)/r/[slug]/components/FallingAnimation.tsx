@@ -41,11 +41,9 @@ export default function FallingAnimation({
         
         // If not found in popular icons, try loading full icon list
         if (!isActualIcon && fallingIcon !== 'star') {
-          console.log(`🔧 Icon "${fallingIcon}" not found in popular icons, loading full list...`);
           // Dynamic import to get the enhanced function
           const { getFallingIconAsync } = await import('@/app/(app)/components/prompt-modules/fallingStarsConfig');
           config = await getFallingIconAsync(fallingIcon);
-          console.log(`🔧 Loaded icon config for "${fallingIcon}":`, config);
         }
         
         setIconConfig(config || null);

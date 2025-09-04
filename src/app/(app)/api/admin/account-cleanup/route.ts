@@ -10,12 +10,22 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/auth/providers/supabase';
 import { deleteUserCompletely } from '@/utils/adminDelete';
 import { isAdmin } from '@/auth/utils/admin';
+import { checkRateLimit, adminRateLimiter } from '@/lib/rate-limit';
 
 /**
  * GET - Get count of accounts eligible for permanent deletion
  */
 export async function GET(request: NextRequest) {
   try {
+    // Check rate limit first (strict limits for admin operations)
+    const { allowed, remaining } = checkRateLimit(request, adminRateLimiter);
+    if (!allowed) {
+      return NextResponse.json(
+        { error: 'Too many requests. Admin operations are rate limited for security.' },
+        { status: 429 }
+      );
+    }
+
     const supabase = createClient();
 
     // Check authentication
@@ -69,6 +79,15 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
+    // Check rate limit first (strict limits for admin operations)
+    const { allowed, remaining } = checkRateLimit(request, adminRateLimiter);
+    if (!allowed) {
+      return NextResponse.json(
+        { error: 'Too many requests. Admin operations are rate limited for security.' },
+        { status: 429 }
+      );
+    }
+
     const supabase = createClient();
 
     // Check authentication
@@ -132,7 +151,6 @@ export async function POST(request: NextRequest) {
 
     for (const account of eligibleAccounts) {
       try {
-        console.log(`Permanently deleting account: ${account.email} (deleted ${account.days_since_deletion} days ago)`);
         
         // Use the existing adminDelete utility to completely remove the user
         const deleteResult = await deleteUserCompletely(account.email);

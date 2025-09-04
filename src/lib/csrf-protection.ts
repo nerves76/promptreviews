@@ -51,7 +51,6 @@ export function isValidOrigin(request: NextRequest | Request): boolean {
   
   // Check for Vercel preview deployments
   if (!isAllowed && sourceUrl.includes('.vercel.app')) {
-    console.log('[CSRF] Allowing Vercel preview deployment:', sourceUrl);
     return true;
   }
   
@@ -71,12 +70,6 @@ export function requireValidOrigin(request: NextRequest | Request): NextResponse
     const origin = request.headers.get('origin') || request.headers.get('referer') || 'unknown';
     
     // Log the attempt for security monitoring
-    console.error('[SECURITY] CSRF attempt blocked', {
-      origin,
-      url: request.url,
-      method: request.method,
-      timestamp: new Date().toISOString(),
-    });
     
     return NextResponse.json(
       { 

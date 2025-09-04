@@ -38,9 +38,6 @@ export function useAccountSelection() {
   // Load user and accounts
   useEffect(() => {
     const loadAccountData = async () => {
-      console.log('🔄 useAccountSelection: Loading account data', {
-        pathname: typeof window !== 'undefined' ? window.location.pathname : 'SSR'
-      });
       try {
         const client = createClient();
         
@@ -48,7 +45,6 @@ export function useAccountSelection() {
         if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined') {
           const devBypass = localStorage.getItem('dev_auth_bypass');
           if (devBypass === 'true') {
-            console.log('🔧 DEV MODE: useAccountSelection using authentication bypass');
             const mockUser = { id: '12345678-1234-5678-9abc-123456789012' };
             setCurrentUserId(mockUser.id);
             
@@ -162,17 +158,11 @@ export function useAccountSelection() {
 
   // Switch to a different account
   const switchAccount = (accountId: string) => {
-    console.log('🔄 useAccountSelection: switchAccount called', {
-      accountId,
-      currentPath: window.location.pathname,
-      currentAccountId: state.selectedAccountId
-    });
     
     if (!currentUserId) return;
     
     const account = state.availableAccounts.find(acc => acc.account_id === accountId);
     if (!account) {
-      console.error('Account not found:', accountId);
       return;
     }
 
@@ -190,25 +180,15 @@ export function useAccountSelection() {
       } 
     });
     window.dispatchEvent(accountSwitchEvent);
-    console.log('📢 useAccountSelection: Emitted accountSwitched event', {
-      previousAccountId: state.selectedAccountId,
-      newAccountId: accountId
-    });
 
     // Only reload if we're not on the widget page (to prevent data loss)
     const currentPath = window.location.pathname;
-    console.log('🔄 useAccountSelection: Checking reload necessity', {
-      currentPath,
-      isWidgetPage: currentPath.includes('/dashboard/widget')
-    });
     
     if (!currentPath.includes('/dashboard/widget')) {
-      console.log('⚠️ useAccountSelection: Triggering page reload for account switch');
       // Force page reload to refresh all data with new account context
       window.location.reload();
     } else {
       // For widget page, clear widget-specific localStorage to prevent stale data
-      console.log('✅ useAccountSelection: On widget page - clearing widget localStorage and letting components refresh');
       
       // Clear any widget-specific localStorage data
       const keysToRemove: string[] = [];
@@ -220,7 +200,6 @@ export function useAccountSelection() {
       }
       keysToRemove.forEach(key => localStorage.removeItem(key));
       
-      console.log(`🧹 useAccountSelection: Cleared ${keysToRemove.length} widget-related localStorage entries`);
     }
   };
 

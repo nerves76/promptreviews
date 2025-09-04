@@ -154,7 +154,6 @@ export default function BasePromptPageForm({
       if (savedData) {
         try {
           const parsed = JSON.parse(savedData);
-          console.log('📝 Restored form data from localStorage');
           return parsed;
         } catch (e) {
           console.error('Failed to parse saved form data:', e);
@@ -233,7 +232,6 @@ export default function BasePromptPageForm({
     const saveTimeout = setTimeout(() => {
       if (typeof window !== 'undefined' && formData) {
         localStorage.setItem(formStorageKey, JSON.stringify(formData));
-        console.log('💾 Auto-saved form data to localStorage');
       }
     }, 1000); // Debounce for 1 second
     
@@ -278,7 +276,6 @@ export default function BasePromptPageForm({
       // Clear saved form data after successful submission
       if (typeof window !== 'undefined') {
         localStorage.removeItem(formStorageKey);
-        console.log('🗑️ Cleared saved form data after successful submission');
       }
     } catch (error) {
       console.error('Form submission error:', error);

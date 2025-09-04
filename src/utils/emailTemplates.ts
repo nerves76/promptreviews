@@ -108,7 +108,6 @@ export async function sendTemplatedEmail(
     if (!template) {
       // If template not found and we have fallbacks, use them
       if (fallbackSubject && fallbackHtml) {
-        console.log(`Template '${templateName}' not found, using fallback content`);
         
         const result = await resend.emails.send({
           from: "Prompt Reviews <team@updates.promptreviews.app>",
@@ -187,7 +186,6 @@ export async function sendAdminNewUserNotification(
   const adminEmails = (process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
   
   if (adminEmails.length === 0) {
-    console.log('No admin emails configured, skipping admin notification');
     return { success: true }; // Don't treat this as an error
   }
 
@@ -206,10 +204,8 @@ export async function sendAdminNewUserNotification(
 
       if (templateResult.success) {
         results.push({ email: adminEmail, success: true });
-        console.log(`✅ Admin notification sent to ${adminEmail} using template`);
       } else {
         // Fallback to direct email if template doesn't exist
-        console.log(`Template not found, falling back to direct email for ${adminEmail}`);
         
         const result = await resend.emails.send({
           from: "Prompt Reviews <alerts@updates.promptreviews.app>",
@@ -249,7 +245,6 @@ View admin dashboard: ${process.env.NEXT_PUBLIC_APP_URL || 'https://app.promptre
         });
 
         results.push({ email: adminEmail, success: true });
-        console.log(`✅ Admin notification sent to ${adminEmail} using fallback method`);
       }
     } catch (error) {
       console.error(`❌ Failed to send admin notification to ${adminEmail}:`, error);

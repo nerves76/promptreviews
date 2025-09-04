@@ -10,13 +10,11 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
 
-    console.log(`[REVIEW-SUBMISSIONS] Creating review submission for prompt page: ${body.prompt_page_id}`);
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
     if (!supabaseUrl || !supabaseServiceKey) {
-      console.error('[REVIEW-SUBMISSIONS] Missing Supabase configuration');
       return NextResponse.json(
         { error: "Server configuration error" },
         { status: 500 }

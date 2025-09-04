@@ -29,7 +29,6 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    console.log('🔧 Server-side signup for:', email);
     
     // Use service role client to create user without email confirmation
     const supabase = createServiceRoleClient();
@@ -76,7 +75,6 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    console.log('✅ User created successfully:', data.user.id);
     
     // Wait a moment for trigger to potentially create account
     await new Promise(resolve => setTimeout(resolve, 1000));
@@ -90,7 +88,6 @@ export async function POST(request: NextRequest) {
       .single();
     
     if (!existingAccount) {
-      console.log('🔧 Creating account manually (trigger didn\'t fire)...');
       
       try {
         // Create account manually
@@ -117,7 +114,6 @@ export async function POST(request: NextRequest) {
           
           // If it's a unique constraint error, the account might already exist
           if (accountError.code === '23505') {
-            console.log('Account may already exist, continuing...');
           } else {
             // For other errors, we should fail the signup
             // Delete the user since account creation failed
@@ -129,18 +125,15 @@ export async function POST(request: NextRequest) {
             );
           }
         } else {
-          console.log('✅ Account created manually');
         }
       } catch (accountCreationError) {
         console.error('❌ Account creation exception:', accountCreationError);
         // Don't fail the signup - user is still created
       }
     } else {
-      console.log('✅ Account already exists from trigger');
     }
     
     // ALWAYS ensure account_users link exists, regardless of how account was created
-    console.log('🔧 Ensuring account_users link exists...');
     
     // Check if account_users link already exists
     const { data: existingLink } = await supabase
@@ -151,7 +144,6 @@ export async function POST(request: NextRequest) {
       .single();
     
     if (!existingLink) {
-      console.log('📝 Creating account_users link...');
       const { error: linkError } = await supabase
         .from('account_users')
         .insert({
@@ -175,10 +167,8 @@ export async function POST(request: NextRequest) {
           );
         }
       } else {
-        console.log('✅ Account user link created');
       }
     } else {
-      console.log('✅ Account user link already exists');
     }
     
     return NextResponse.json({

@@ -23,7 +23,6 @@ class AuthTestUtils {
       
       if (testUser) {
         await this.supabase.auth.admin.deleteUser(testUser.id);
-        console.log(`Cleaned up test user: ${email}`);
       }
     } catch (error) {
       console.error('Cleanup error:', error);
@@ -69,7 +68,6 @@ export class AuthTestSuite {
   private results: { test: string; status: 'pass' | 'fail'; error?: string }[] = [];
   
   async runAllTests() {
-    console.log('🧪 Starting Auth Test Suite...\n');
     
     // Run tests in sequence
     await this.testSignUp();
@@ -96,10 +94,8 @@ export class AuthTestSuite {
     try {
       await fn();
       this.results.push({ test: name, status: 'pass' });
-      console.log(`✅ ${name}`);
     } catch (error: any) {
       this.results.push({ test: name, status: 'fail', error: error.message });
-      console.log(`❌ ${name}: ${error.message}`);
     }
   }
   
@@ -154,7 +150,6 @@ export class AuthTestSuite {
       // Account might not exist due to disabled triggers
       // This is expected in current state
       if (!account) {
-        console.log('  ⚠️ Account not auto-created (triggers disabled)');
       }
     });
   }
@@ -172,7 +167,6 @@ export class AuthTestSuite {
       
       // Might be empty due to disabled triggers
       if (!accountUsers || accountUsers.length === 0) {
-        console.log('  ⚠️ No account relationships (triggers disabled)');
       }
     });
   }
@@ -190,7 +184,6 @@ export class AuthTestSuite {
       
       // Empty is expected for new users
       if (!businesses || businesses.length === 0) {
-        console.log('  ℹ️ No business profile (expected for new user)');
       }
     });
   }
@@ -208,9 +201,7 @@ export class AuthTestSuite {
         .single();
       
       if (account && account.is_admin) {
-        console.log('  ℹ️ User is admin');
       } else {
-        console.log('  ℹ️ User is not admin (expected for test user)');
       }
     });
   }
@@ -228,9 +219,7 @@ export class AuthTestSuite {
         .single();
       
       if (!account) {
-        console.log('  ⚠️ No account record (triggers disabled)');
       } else {
-        console.log(`  ℹ️ Plan: ${account.plan || 'none'}`);
       }
     });
   }
@@ -253,28 +242,21 @@ export class AuthTestSuite {
   }
   
   private printResults() {
-    console.log('\n📊 Test Results:');
-    console.log('=' .repeat(50));
     
     const passed = this.results.filter(r => r.status === 'pass').length;
     const failed = this.results.filter(r => r.status === 'fail').length;
     const total = this.results.length;
     
-    console.log(`Total: ${total} | Passed: ${passed} | Failed: ${failed}`);
     
     if (failed > 0) {
-      console.log('\n❌ Failed Tests:');
       this.results.filter(r => r.status === 'fail').forEach(r => {
-        console.log(`  - ${r.test}: ${r.error}`);
       });
     }
     
     const percentage = Math.round((passed / total) * 100);
-    console.log(`\n${percentage}% tests passed`);
   }
   
   private async cleanup() {
-    console.log('\n🧹 Cleaning up...');
     await this.utils.cleanupTestUser(TEST_EMAIL);
   }
   

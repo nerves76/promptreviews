@@ -9,7 +9,6 @@ import { cookies } from 'next/headers';
 
 export async function GET(request: NextRequest) {
   try {
-    console.log('🐛 Debug auth route called');
     
     // Get all cookies for debugging
     const cookieStore = await cookies();
@@ -17,13 +16,6 @@ export async function GET(request: NextRequest) {
     const supabaseCookies = allCookies.filter(c => c.name.startsWith('sb-'));
     const requestCookieHeader = request.headers.get('cookie');
     
-    console.log('🍪 Cookie debug:', {
-      totalCookies: allCookies.length,
-      supabaseCookies: supabaseCookies.length,
-      cookieNames: allCookies.map(c => c.name),
-      requestHasCookies: !!requestCookieHeader,
-      requestCookieLength: requestCookieHeader?.length || 0
-    });
 
     // Create Supabase client
     const supabase = createServerClient(
@@ -63,7 +55,6 @@ export async function GET(request: NextRequest) {
       }
     };
 
-    console.log('🐛 Debug info:', debugInfo);
 
     return NextResponse.json(debugInfo);
 

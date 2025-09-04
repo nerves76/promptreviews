@@ -24,7 +24,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('📨 Starting invitation reminders check...');
 
     // Find invitations that need reminders:
     // - Created 3 days ago
@@ -65,7 +64,6 @@ export async function POST(request: NextRequest) {
     }
 
     if (!pendingInvitations || pendingInvitations.length === 0) {
-      console.log('✅ No invitations need reminders');
       return NextResponse.json({
         success: true,
         message: 'No invitations need reminders',
@@ -73,7 +71,6 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    console.log(`📧 Found ${pendingInvitations.length} invitations that might need reminders`);
 
     let remindersSent = 0;
     const errors = [];
@@ -98,7 +95,6 @@ export async function POST(request: NextRequest) {
         const lastActivity = events?.[0]?.created_at;
         
         if (hasOpened && lastActivity && new Date(lastActivity) > oneDayAgo) {
-          console.log(`⏭️ Skipping reminder for ${invitation.email} - recent activity`);
           continue;
         }
 
@@ -109,7 +105,6 @@ export async function POST(request: NextRequest) {
         );
 
         if (recentReminder) {
-          console.log(`⏭️ Skipping reminder for ${invitation.email} - reminder sent recently`);
           continue;
         }
 
@@ -144,7 +139,6 @@ export async function POST(request: NextRequest) {
 
         if (emailResult.success) {
           remindersSent++;
-          console.log(`✅ Sent reminder to ${invitation.email}`);
         } else {
           console.error(`❌ Failed to send reminder to ${invitation.email}:`, emailResult.error);
           errors.push(`${invitation.email}: ${emailResult.error}`);
@@ -159,7 +153,6 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    console.log(`📊 Reminder summary: ${remindersSent} sent, ${errors.length} errors`);
 
     return NextResponse.json({
       success: true,

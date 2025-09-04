@@ -64,14 +64,12 @@ const REACTIVATION_COUPONS = {
  * Ensure reactivation coupons exist in Stripe
  */
 export async function ensureReactivationCoupons(): Promise<void> {
-  console.log('🎟️ Setting up simplified reactivation coupons...');
   
   for (const [billingType, config] of Object.entries(REACTIVATION_COUPONS)) {
     try {
       // Check if coupon exists
       try {
         await stripe.coupons.retrieve(config.id);
-        console.log(`✅ Coupon ${config.id} already exists`);
         continue;
       } catch (err: any) {
         if (err.code !== 'resource_missing') {
@@ -89,7 +87,6 @@ export async function ensureReactivationCoupons(): Promise<void> {
         metadata: config.metadata
       });
       
-      console.log(`✅ Created coupon: ${coupon.id}`);
       
       // Also create a promotion code
       const promoCode = await stripe.promotionCodes.create({
@@ -101,7 +98,6 @@ export async function ensureReactivationCoupons(): Promise<void> {
         }
       });
       
-      console.log(`✅ Created promo code: ${promoCode.code}`);
       
     } catch (error) {
       console.error(`❌ Error managing coupon ${config.id}:`, error);
@@ -117,10 +113,6 @@ export async function getReactivationOffer(
   userId: string,
   accountDeleted: boolean
 ): Promise<ReactivationOffer> {
-  console.log('🎁 Checking reactivation offer eligibility', {
-    userId,
-    accountDeleted
-  });
   
   // Simple check - if account was deleted, they get the offer
   if (!accountDeleted) {
@@ -153,7 +145,6 @@ export async function applyReactivationOffer(
   billingPeriod: 'monthly' | 'annual'
 ): Promise<any> {
   if (!isReactivation) {
-    console.log('📊 Not a reactivation - no offer to apply');
     return sessionConfig;
   }
   
@@ -161,7 +152,6 @@ export async function applyReactivationOffer(
     ? REACTIVATION_COUPONS.annual.id
     : REACTIVATION_COUPONS.monthly.id;
   
-  console.log(`🎟️ Applying reactivation coupon: ${couponId}`);
   
   // Add coupon to checkout session
   return {
@@ -193,15 +183,12 @@ export async function deleteOldReactivationCoupons(): Promise<void> {
     'PR_THANKS_20'
   ];
   
-  console.log('🧹 Cleaning up old reactivation coupons...');
   
   for (const couponId of oldCouponIds) {
     try {
       await stripe.coupons.del(couponId);
-      console.log(`✅ Deleted old coupon: ${couponId}`);
     } catch (error: any) {
       if (error.code === 'resource_missing') {
-        console.log(`⏭️ Coupon ${couponId} doesn't exist`);
       } else {
         console.error(`❌ Error deleting ${couponId}:`, error.message);
       }
@@ -213,7 +200,6 @@ export async function deleteOldReactivationCoupons(): Promise<void> {
  * CLI command to setup new coupons
  */
 export async function setupSimplifiedCoupons(): Promise<void> {
-  console.log('🚀 Setting up simplified reactivation coupons...');
   
   try {
     // First, clean up old coupons
@@ -222,15 +208,12 @@ export async function setupSimplifiedCoupons(): Promise<void> {
     // Then create new ones
     await ensureReactivationCoupons();
     
-    console.log('✅ Simplified coupons are ready!');
     
     // List the new coupons
     const coupons = await stripe.coupons.list({ limit: 10 });
-    console.log('\n📋 Available reactivation coupons:');
     coupons.data
       .filter(c => c.metadata?.type === 'reactivation')
       .forEach(c => {
-        console.log(`  - ${c.id}: ${c.percent_off}% off`);
       });
       
   } catch (error) {

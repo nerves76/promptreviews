@@ -25,27 +25,18 @@ export default function WidgetPage() {
   
   // Debug logging for component lifecycle
   useEffect(() => {
-    console.log('🎯 WidgetPage: Component mounted');
     return () => {
-      console.log('🎯 WidgetPage: Component unmounting');
     };
   }, []);
   
   // Track when selectedWidgetFull changes
   useEffect(() => {
-    console.log('🔄 WidgetPage: selectedWidgetFull changed:', {
-      hasWidget: !!selectedWidgetFull,
-      widgetId: selectedWidgetFull?.id,
-      reviewCount: selectedWidgetFull?.reviews?.length || 0,
-      widgetType: selectedWidgetFull?.type
-    });
   }, [selectedWidgetFull]);
   
   // Clear selected widget when widgets list changes (e.g., after account switch)
   useEffect(() => {
     // If widgets array is empty (e.g., during account switch), clear selection
     if (widgets.length === 0 && selectedWidget) {
-      console.log('🔄 WidgetPage: Widgets list empty (account switch?), clearing selection');
       setSelectedWidget(null);
       setSelectedWidgetFull(null);
     } 
@@ -53,7 +44,6 @@ export default function WidgetPage() {
     else if (selectedWidget && widgets.length > 0) {
       const widgetStillExists = widgets.some(w => w.id === selectedWidget.id);
       if (!widgetStillExists) {
-        console.log('🔄 WidgetPage: Selected widget no longer in list, clearing selection');
         setSelectedWidget(null);
         setSelectedWidgetFull(null);
       }
@@ -63,7 +53,6 @@ export default function WidgetPage() {
   // Listen for account switch events and clear widget selection
   useEffect(() => {
     const handleAccountSwitch = (event: CustomEvent) => {
-      console.log('🔄 WidgetPage: Account switched, clearing widget selection', event.detail);
       setSelectedWidget(null);
       setSelectedWidgetFull(null);
       
@@ -77,7 +66,6 @@ export default function WidgetPage() {
       }
       keysToRemove.forEach(key => {
         localStorage.removeItem(key);
-        console.log('🗑️ Cleared localStorage key:', key);
       });
     };
 
@@ -102,7 +90,6 @@ export default function WidgetPage() {
       if (savedDesign) {
         try {
           const parsed = JSON.parse(savedDesign);
-          console.log('📝 Restored widget design from localStorage');
           return parsed;
         } catch (e) {
           console.error('Failed to parse saved design:', e);
@@ -119,24 +106,16 @@ export default function WidgetPage() {
   // Function to fetch full widget data including reviews
   const fetchFullWidgetData = useCallback(async (widgetId: string) => {
     try {
-      console.log('🔍 WidgetPage: Fetching full widget data for:', widgetId);
       
       // apiClient now automatically includes X-Selected-Account header
       const fullWidgetData = await apiClient.get(`/widgets/${widgetId}`);
       
-      console.log('✅ WidgetPage: Full widget data fetched:', fullWidgetData);
-      console.log('📊 WidgetPage: Reviews in fetched data:', {
-        hasReviews: !!fullWidgetData?.reviews,
-        reviewCount: fullWidgetData?.reviews?.length || 0,
-        reviews: fullWidgetData?.reviews
-      });
       setSelectedWidgetFull(fullWidgetData);
     } catch (error: any) {
       console.error('❌ WidgetPage: Error fetching full widget data:', error);
       
       // If we get a 403, it means the widget doesn't belong to the current account
       if (error?.status === 403 || error?.message?.includes('403')) {
-        console.log('🔄 WidgetPage: Widget no longer accessible (likely due to account switch), clearing selection');
         setSelectedWidget(null);
         setSelectedWidgetFull(null);
       }
@@ -221,35 +200,23 @@ export default function WidgetPage() {
 
   // Auto-select logic
   React.useEffect(() => {
-    console.log('🔍 WidgetPage: Auto-select effect triggered', { 
-      loading, 
-      widgetsCount: widgets?.length,
-      pathname: typeof window !== 'undefined' ? window.location.pathname : 'SSR'
-    });
     
     if (loading) {
-      console.log('⏳ WidgetPage: Still loading, skipping auto-select');
       return;
     }
     
     // Check if we already have a selected widget to avoid unnecessary re-selection
     if (selectedWidget && selectedWidget.id !== "fake-multi-widget") {
-      console.log('📌 WidgetPage: Already have a selected widget, skipping auto-select', {
-        widgetId: selectedWidget.id,
-        pathname: window.location.pathname
-      });
       return;
     }
     
     if (widgets && widgets.length > 0) {
-      console.log('✅ WidgetPage: Found widgets, selecting first one:', widgets[0]);
       // Clear any fake widget and select the first real widget
       setSelectedWidget(widgets[0]);
       setSelectedWidgetFull(null); // Clear fake widget data
       // Fetch full widget data for the selected widget
       fetchFullWidgetData(widgets[0].id);
     } else if (widgets && widgets.length === 0) {
-      console.log('📝 WidgetPage: No widgets found, creating fake widget');
       const fakeWidget = {
         id: "fake-multi-widget",
         name: "Demo Multi-Widget",
@@ -270,7 +237,6 @@ export default function WidgetPage() {
       // Don't save demo widget design to localStorage
       if (typeof window !== 'undefined' && design && selectedWidget?.id && selectedWidget.id !== 'fake-multi-widget') {
         localStorage.setItem(designStorageKey, JSON.stringify(design));
-        console.log('💾 Auto-saved widget design to localStorage');
       }
     }, 1000); // Debounce for 1 second
 
@@ -280,7 +246,6 @@ export default function WidgetPage() {
   // Additional check: if selected widget is fake but real widgets exist, switch to real widget
   React.useEffect(() => {
     if (selectedWidget && selectedWidget.id === "fake-multi-widget" && widgets && widgets.length > 0) {
-      console.log('🔄 WidgetPage: Switching from fake widget to real widget');
       setSelectedWidget(widgets[0]);
       setSelectedWidgetFull(null);
       fetchFullWidgetData(widgets[0].id);
@@ -324,9 +289,7 @@ export default function WidgetPage() {
   };
 
   const handleManageReviews = () => {
-    console.log('🎯 Opening review modal with widget:', selectedWidget);
     if (!selectedWidget?.id) {
-      console.error('❌ No widget selected when opening review modal!');
     }
     setShowReviewModal(true);
   };
@@ -345,7 +308,6 @@ export default function WidgetPage() {
 
   // Handle widget selection from the list
   const handleWidgetSelect = (widget: any) => {
-    console.log('🔍 WidgetPage: Widget selected from list:', widget);
     setSelectedWidget(widget);
     // Always fetch fresh data, even if the same widget is selected
     // This ensures updates from review changes are reflected
@@ -355,7 +317,6 @@ export default function WidgetPage() {
   // Function to refresh the currently selected widget's data
   const refreshSelectedWidget = useCallback(() => {
     if (selectedWidget?.id && selectedWidget.id !== 'fake-multi-widget') {
-      console.log('🔄 WidgetPage: Refreshing selected widget data');
       fetchFullWidgetData(selectedWidget.id);
     }
   }, [selectedWidget?.id, fetchFullWidgetData]);

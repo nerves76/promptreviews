@@ -12,35 +12,23 @@ export async function POST(request: NextRequest) {
     let userError = null;
 
     // Debug: Log all headers
-    console.log('🔍 Contacts API - Request headers:', {
-      authorization: request.headers.get('authorization'),
-      'content-type': request.headers.get('content-type'),
-      hasAuthHeader: !!request.headers.get('authorization'),
-      allHeaders: Array.from(request.headers.entries())
-    });
 
     // First try cookie-based auth
     const cookieResult = await getSessionOrMock(supabase);
     if (!cookieResult.error && cookieResult.data?.session?.user) {
       user = cookieResult.data.session.user;
-      console.log('✅ Contacts API - Cookie auth successful for user:', user.id);
     } else {
-      console.log('❌ Contacts API - Cookie auth failed:', cookieResult.error instanceof Error ? cookieResult.error.message : 'Unknown error');
       // If cookie auth fails, try Authorization header
       const authHeader = request.headers.get('authorization');
       if (authHeader?.startsWith('Bearer ')) {
         const token = authHeader.substring(7);
-        console.log('🔑 Contacts API - Trying Authorization header auth with token length:', token.length);
         const headerResult = await supabaseAdmin.auth.getUser(token);
         if (!headerResult.error && headerResult.data.user) {
           user = headerResult.data.user;
-          console.log('✅ Contacts API - Header auth successful for user:', user.id);
         } else {
-          console.log('❌ Contacts API - Header auth failed:', headerResult.error?.message);
           userError = headerResult.error;
         }
       } else {
-        console.log('❌ Contacts API - No valid Authorization header found');
         userError = cookieResult.error;
       }
     }
@@ -58,10 +46,8 @@ export async function POST(request: NextRequest) {
     const contactData = await request.json();
     
     // Get account ID from request body
-    console.log('🔍 Contacts API - Account ID from request:', contactData.account_id);
     const accountId = contactData.account_id;
     if (!accountId) {
-      console.error('❌ Contacts API - No account_id provided in request');
       return NextResponse.json({ error: 'account_id is required' }, { status: 400 });
     }
 
@@ -74,14 +60,11 @@ export async function POST(request: NextRequest) {
       .single();
     
     if (!accountUser) {
-      console.error('❌ Contacts API - User does not have access to account:', accountId);
       return NextResponse.json({ error: 'Access denied to this account' }, { status: 403 });
     }
 
     // Check account limits for contact creation
-    console.log('🔍 Contacts API - Checking account limits for user:', user.id);
     const limitCheck = await checkAccountLimits(supabaseAdmin, user.id, 'contact');
-    console.log('🔍 Contacts API - Limit check result:', limitCheck);
     if (!limitCheck.allowed) {
       console.error('❌ Contacts API - Limit check failed:', limitCheck);
       return NextResponse.json({ 
@@ -130,7 +113,6 @@ export async function POST(request: NextRequest) {
     };
 
     // Insert contact into the database using service role client to bypass RLS
-    console.log('🔍 Contacts API - Creating contact with account_id:', accountId);
     const { data: insertedContact, error: insertError } = await supabaseAdmin
       .from("contacts")
       .insert(contact)
@@ -150,7 +132,6 @@ export async function POST(request: NextRequest) {
 
     // Create reviews if any were provided
     if (reviews.length > 0) {
-      console.log('🔍 Contacts API - Creating reviews for contact:', insertedContact.id);
       
       const reviewSubmissions = reviews.map((review: any) => ({
         prompt_page_id: null, // No prompt page association for manual reviews
@@ -177,7 +158,6 @@ export async function POST(request: NextRequest) {
         // The contact was created successfully, so we return success
         // but log the review creation error
       } else {
-        console.log('✅ Contacts API - Successfully created', reviewSubmissions.length, 'reviews');
       }
     }
 

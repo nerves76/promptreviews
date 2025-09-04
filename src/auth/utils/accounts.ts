@@ -436,7 +436,6 @@ export async function getAccountIdForUser(userId: string, supabaseClient?: any):
   const clientId = supabaseClient ? supabaseClient._supabaseUrl || 'custom' : 'default';
   const requestKey = `${userId}-${clientId}`;
   if (pendingRequests.has(requestKey)) {
-    console.log('🔄 Reusing pending request for user:', userId, 'client:', clientId);
     return pendingRequests.get(requestKey)!;
   }
 
@@ -467,7 +466,6 @@ async function _getAccountIdForUserInternal(userId: string, supabaseClient?: any
   try {
     // DEVELOPMENT MODE BYPASS - Check for dev bypass user ID
     if (process.env.NODE_ENV === 'development' && userId === '12345678-1234-5678-9abc-123456789012') {
-      console.log('🔧 DEV MODE: getAccountIdForUser using authentication bypass');
       return '12345678-1234-5678-9abc-123456789012';
     }
     
@@ -488,7 +486,6 @@ async function _getAccountIdForUserInternal(userId: string, supabaseClient?: any
     if (selectedAccountId) {
       // Only log when in debug mode or first time
       if (process.env.NODE_ENV === 'development' && Math.random() < 0.1) {
-        console.log('🎯 User has manually selected account:', selectedAccountId);
       }
       // Validate that this account still exists and user has access
       // Note: We only filter by user_id due to RLS policies
@@ -526,14 +523,12 @@ async function _getAccountIdForUserInternal(userId: string, supabaseClient?: any
     }
 
     if (accountUsers && accountUsers.length > 0) {
-      console.log(`✅ Found ${accountUsers.length} account_users records for user ${userId}`);
       
       // For ALL users (including single account), we need to verify the account exists
       // Don't return immediately - always verify the account data is accessible
       
       // Fetch account details for all users
       const accountIds = accountUsers.map((au: any) => au.account_id);
-      console.log('🔍 Looking for accounts with IDs:', accountIds);
       
       const { data: accounts, error: accountsError } = await client
         .from("accounts")
@@ -546,11 +541,8 @@ async function _getAccountIdForUserInternal(userId: string, supabaseClient?: any
         return accountUsers[0].account_id;
       }
       
-      console.log('📊 Accounts found:', accounts?.map((a: any) => ({ id: a.id, plan: a.plan })));
       
       if (!accounts || accounts.length === 0) {
-        console.log('⚠️ No accounts found for account_ids:', accountIds);
-        console.log('⚠️ This might mean the accounts table is out of sync with account_users');
         // Still return the account_id even if we can't fetch details
         return accountUsers[0].account_id;
       }
@@ -563,8 +555,6 @@ async function _getAccountIdForUserInternal(userId: string, supabaseClient?: any
       // Create a map for easy lookup
       const accountMap = new Map(accounts?.map((a: any) => [a.id, a]) || []);
       
-      console.log('🗺️ Account map keys:', Array.from(accountMap.keys()));
-      console.log('🔑 Account_users account_ids:', accountUsers.map((au: any) => au.account_id));
       
       // Add account data to accountUsers
       const accountUsersWithData = accountUsers.map((au: any) => ({
@@ -572,11 +562,6 @@ async function _getAccountIdForUserInternal(userId: string, supabaseClient?: any
         account: accountMap.get(au.account_id)
       }));
       
-      console.log('📋 Account selection data:', accountUsersWithData.map((au: any) => ({
-        account_id: au.account_id,
-        role: au.role,
-        plan: au.account?.plan || 'NO_ACCOUNT_DATA'
-      })));
       
       // PRIORITY 1: Support/team accounts with paid plans (these likely have businesses)
       const teamAccountWithPlan = accountUsersWithData.find((au: any) => 
@@ -588,7 +573,6 @@ async function _getAccountIdForUserInternal(userId: string, supabaseClient?: any
       );
       
       if (teamAccountWithPlan) {
-        console.log('✅ Selected team account with paid plan:', teamAccountWithPlan.account_id, 'plan:', teamAccountWithPlan.account?.plan);
         return teamAccountWithPlan.account_id;
       }
       
@@ -602,7 +586,6 @@ async function _getAccountIdForUserInternal(userId: string, supabaseClient?: any
       );
       
       if (ownedAccountWithPlan) {
-        console.log('✅ Selected owned account with paid plan:', ownedAccountWithPlan.account_id, 'plan:', ownedAccountWithPlan.account?.plan);
         return ownedAccountWithPlan.account_id;
       }
       
@@ -610,7 +593,6 @@ async function _getAccountIdForUserInternal(userId: string, supabaseClient?: any
       const anyAccountWithData = accountUsersWithData.find((au: any) => au.account);
       
       if (anyAccountWithData) {
-        console.log('✅ Selected account with data:', anyAccountWithData.account_id, 'role:', anyAccountWithData.role, 'plan:', anyAccountWithData.account?.plan);
         return anyAccountWithData.account_id;
       }
       
@@ -629,12 +611,10 @@ async function _getAccountIdForUserInternal(userId: string, supabaseClient?: any
       }
       
       // PRIORITY 5: Fallback to first account
-      console.log('⚠️ No suitable account found, falling back to first account:', accountUsers[0].account_id);
       return accountUsers[0].account_id;
     }
 
     // If no account_user record found, user doesn't have access to any accounts
-    console.log('🔍 No accounts found for user - this may be a new user or access issue');
 
     // No account found - this is expected for new users
     return null;

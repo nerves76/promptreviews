@@ -20,7 +20,6 @@ export async function GET(request: NextRequest) {
     const expectedToken = process.env.CRON_SECRET_TOKEN;
     
     if (!expectedToken) {
-      console.error('CRON_SECRET_TOKEN environment variable not set');
       return NextResponse.json(
         { error: 'Cron secret not configured' }, 
         { status: 500 }
@@ -41,7 +40,6 @@ export async function GET(request: NextRequest) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
-    console.log('📨 Starting review reminder check...');
 
     // Get all users with Google Business Profile connections and reminders enabled
     const { data: usersWithGBP, error: gbpError } = await supabase
@@ -72,7 +70,6 @@ export async function GET(request: NextRequest) {
     }
 
     if (!usersWithGBP || usersWithGBP.length === 0) {
-      console.log('✅ No users with Google Business Profile connections found');
       return NextResponse.json({
         success: true,
         message: 'No users with Google Business Profile connections',
@@ -80,7 +77,6 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    console.log(`📧 Found ${usersWithGBP.length} users with Google Business Profile connections`);
 
     const results = [];
     let successCount = 0;
@@ -97,13 +93,11 @@ export async function GET(request: NextRequest) {
           : userData.review_reminder_settings;
 
         if (!profile) {
-          console.error('No profile found for user:', userId);
           continue;
         }
 
         // Check if reminders are enabled for this user
         if (reminderSettings && !reminderSettings.enabled) {
-          console.log(`⏭️ Skipping user ${profile.email} - reminders disabled`);
           skippedCount++;
           continue;
         }
@@ -115,7 +109,6 @@ export async function GET(request: NextRequest) {
           sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
           
           if (lastReminderDate > sevenDaysAgo) {
-            console.log(`⏭️ Skipping user ${profile.email} - reminder sent recently`);
             skippedCount++;
             continue;
           }
@@ -129,11 +122,9 @@ export async function GET(request: NextRequest) {
         });
 
         // Fetch unresponded reviews from last 30 days
-        console.log(`🔍 Checking unresponded reviews for user: ${profile.email}`);
         const unrespondedReviews = await gbpClient.getUnrespondedReviews();
 
         if (!unrespondedReviews || unrespondedReviews.length === 0) {
-          console.log(`✅ No unresponded reviews for user: ${profile.email}`);
           skippedCount++;
           continue;
         }
@@ -150,7 +141,6 @@ export async function GET(request: NextRequest) {
         }
 
         if (!hasNewReviews) {
-          console.log(`⏭️ Skipping user ${profile.email} - no new reviews since last reminder`);
           skippedCount++;
           continue;
         }
@@ -238,7 +228,6 @@ export async function GET(request: NextRequest) {
             accountCount
           });
 
-          console.log(`✅ Sent reminder to ${profile.email} for ${totalReviews} reviews`);
         } else {
           errorCount++;
           results.push({
@@ -269,7 +258,6 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    console.log(`📊 Review reminder summary: ${successCount} sent, ${errorCount} failed, ${skippedCount} skipped`);
 
     return NextResponse.json({
       success: true,

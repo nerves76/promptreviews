@@ -71,7 +71,6 @@ export default function TeamPage() {
       if (savedData) {
         try {
           const parsed = JSON.parse(savedData);
-          console.log('📝 Restored team invite form data from localStorage');
           return parsed.email || '';
         } catch (e) {
           console.error('Failed to parse saved invite form data:', e);
@@ -112,7 +111,6 @@ export default function TeamPage() {
       if (savedData) {
         try {
           const parsed = JSON.parse(savedData);
-          console.log('📝 Restored bulk invite form data from localStorage');
           return parsed.emails || '';
         } catch (e) {
           console.error('Failed to parse saved bulk invite form data:', e);
@@ -135,7 +133,6 @@ export default function TeamPage() {
           email: inviteEmail,
           role: inviteRole
         }));
-        console.log('💾 Auto-saved team invite form data');
       }
     }, 1000); // Debounce for 1 second
 
@@ -150,7 +147,6 @@ export default function TeamPage() {
           emails: bulkEmails,
           role: bulkRole
         }));
-        console.log('💾 Auto-saved bulk invite form data');
       }
     }, 1000); // Debounce for 1 second
 
@@ -162,12 +158,6 @@ export default function TeamPage() {
     const supabase = createClient();
     const { data: { session } } = await supabase.auth.getSession();
     
-    console.log('🔐 Team Page - Getting auth headers:', {
-      hasSession: !!session,
-      userId: session?.user?.id,
-      hasAccessToken: !!session?.access_token,
-      tokenLength: session?.access_token?.length
-    });
     
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
@@ -176,13 +166,6 @@ export default function TeamPage() {
     if (session?.access_token) {
       headers['Authorization'] = `Bearer ${session.access_token}`;
     } else {
-      console.error('❌ Team Page - No access token available for API calls', {
-        hasSession: !!session,
-        hasUser: !!session?.user,
-        userId: session?.user?.id,
-        sessionKeys: session ? Object.keys(session) : [],
-        userEmail: session?.user?.email
-      });
     }
     
     return headers;
@@ -204,15 +187,9 @@ export default function TeamPage() {
 
   // Fetch team data - wrapped in useCallback to prevent infinite re-renders
   const fetchTeamData = useCallback(async () => {
-    console.log('🔄 Team Page - fetchTeamData called:', {
-      userAuthenticated: !!user?.id,
-      authLoading,
-      alreadyFetching: fetchingRef.current
-    });
     
     // Prevent multiple simultaneous calls
     if (fetchingRef.current) {
-      console.log('⏸️ Team Page - Already fetching, skipping');
       return;
     }
     
@@ -243,15 +220,6 @@ export default function TeamPage() {
         }
       }
 
-      console.log('📊 Team Data Received:', {
-        members: membersData.members?.map((m: any) => ({
-          email: m.email,
-          role: m.role,
-          user_id: m.user_id
-        })),
-        accountId: membersData.account?.id,
-        currentUserRole: membersData.current_user_role
-      });
       
       setTeamData({
         ...membersData,
@@ -269,19 +237,10 @@ export default function TeamPage() {
   useEffect(() => {
     let isMounted = true;
     
-    console.log('🔄 Team Page - useEffect triggered:', {
-      userAuthenticated: !!user?.id,
-      authLoading,
-      accountLoading,
-      selectedAccountId: selectedAccount?.account_id,
-      alreadyFetching: fetchingRef.current
-    });
     
     // Fetch team data if user is authenticated and auth is loaded
     // Simplified logic: just proceed if user is ready
     if (user?.id && !authLoading && !fetchingRef.current) {
-      console.log('✅ Team Page - Fetching team data, account:', selectedAccount?.account_id || 'default');
-      fetchTeamData().catch(console.error);
     }
     
     return () => {
@@ -377,7 +336,6 @@ export default function TeamPage() {
       // Clear saved form data on successful invite
       if (typeof window !== 'undefined') {
         localStorage.removeItem(inviteFormStorageKey);
-        console.log('🗑️ Cleared team invite form data after successful invite');
       }
       await fetchTeamData();
     }
@@ -458,7 +416,6 @@ export default function TeamPage() {
         // Clear saved form data on successful bulk invite
         if (typeof window !== 'undefined') {
           localStorage.removeItem(bulkInviteStorageKey);
-          console.log('🗑️ Cleared bulk invite form data after successful invites');
         }
         await fetchTeamData(); // Refresh data
       }
@@ -614,7 +571,6 @@ export default function TeamPage() {
 
   // Add Chris for support
   const addChris = async () => {
-    console.log('Add Chris button clicked');
     try {
       setAddingChris(true);
       setError(null);
@@ -623,7 +579,6 @@ export default function TeamPage() {
       // Get authentication headers
       const headers = await getAuthHeaders();
 
-      console.log('Calling /api/team/add-chris');
       const response = await fetch('/api/team/add-chris', {
         method: 'POST',
         headers,
@@ -633,7 +588,6 @@ export default function TeamPage() {
       });
 
       const data = await response.json();
-      console.log('Response:', response.status, data);
 
       if (!response.ok && !data.already_member) {
         throw new Error(data.error || 'Failed to add Chris for support');
@@ -656,7 +610,6 @@ export default function TeamPage() {
       setTimeout(() => setError(null), 5000);
     } finally {
       setAddingChris(false);
-      console.log('addChris finished');
     }
   };
 
@@ -1257,13 +1210,11 @@ export default function TeamPage() {
       {/* Development Support Section - Always visible for owners */}
       {isOwner && (
         (() => {
-          console.log('🔍 Checking for Chris in members:', members.map(m => ({ email: m.email, role: m.role })));
           const chrisMember = members.find(member => 
             member.email === 'chris@diviner.agency' || 
             member.email === 'nerves76@gmail.com'
           );
           const hasChris = !!chrisMember;
-          console.log('🔍 Chris found?', hasChris, 'Chris member:', chrisMember);
           
           return (
             <div className={`border rounded-lg p-6 mt-8 ${

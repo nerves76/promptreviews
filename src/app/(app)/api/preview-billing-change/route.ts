@@ -14,7 +14,6 @@ const stripe = createStripeClient();
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    console.log('📊 Preview billing change request:', body);
     
     const { plan, userId, billingPeriod = 'monthly' }: { 
       plan: string; 
@@ -23,12 +22,10 @@ export async function POST(req: NextRequest) {
     } = body;
     
     if (!plan || !isValidPlan(plan)) {
-      console.error('Invalid plan:', plan, 'Available plans:', Object.keys(PRICE_IDS));
       return NextResponse.json({ error: "Invalid plan", message: `Plan "${plan}" is not valid` }, { status: 400 });
     }
 
     if (!userId) {
-      console.error('No user ID provided');
       return NextResponse.json({ error: "User ID is required", message: "User ID is required" }, { status: 400 });
     }
 
@@ -52,18 +49,8 @@ export async function POST(req: NextRequest) {
       }, { status: 404 });
     }
 
-    console.log('📊 Account found:', {
-      hasStripeCustomer: !!account.stripe_customer_id,
-      hasSubscription: !!account.stripe_subscription_id,
-      currentPlan: account.plan,
-      currentBilling: account.billing_period
-    });
 
     if (!account.stripe_customer_id || !account.stripe_subscription_id) {
-      console.error('No active subscription:', {
-        stripe_customer_id: account.stripe_customer_id,
-        stripe_subscription_id: account.stripe_subscription_id
-      });
       return NextResponse.json({ 
         error: "No active subscription",
         message: "No subscription found to modify. Please contact support if you believe this is an error." 
@@ -74,11 +61,6 @@ export async function POST(req: NextRequest) {
     let subscription;
     try {
       subscription = await stripe.subscriptions.retrieve(account.stripe_subscription_id);
-      console.log('📊 Subscription retrieved:', {
-        id: subscription.id,
-        status: subscription.status,
-        itemCount: subscription.items?.data?.length || 0
-      });
     } catch (stripeError: any) {
       console.error("Failed to retrieve subscription from Stripe:", stripeError);
       return NextResponse.json({ 
@@ -89,7 +71,6 @@ export async function POST(req: NextRequest) {
     
     // Check if subscription has items
     if (!subscription.items || !subscription.items.data || subscription.items.data.length === 0) {
-      console.error("Subscription has no items:", subscription.id);
       return NextResponse.json({ 
         error: "Invalid subscription state",
         message: "Your subscription appears to be in an invalid state. Please contact support." 
@@ -100,7 +81,6 @@ export async function POST(req: NextRequest) {
     const newPriceId = getPriceId(plan, billingPeriod);
     
     if (!newPriceId) {
-      console.error("Invalid price ID for plan:", plan, billingPeriod);
       return NextResponse.json({ 
         error: "Invalid plan configuration",
         message: "The selected plan is not properly configured. Please try again or contact support." 
@@ -145,16 +125,6 @@ export async function POST(req: NextRequest) {
       }
     }
     
-    console.log('📊 Attempting to preview invoice with:', {
-      customer: account.stripe_customer_id,
-      subscription: subscription.id,
-      currentItemId: subscription.items.data[0].id,
-      currentPrice: currentStripePrice,
-      newPrice: newPriceId,
-      proration_date,
-      detectedBilling: actualBillingPeriod,
-      databaseBilling: account.billing_period
-    });
     
     // Preview the upcoming invoice with the changes
     let upcomingInvoice;
@@ -202,16 +172,6 @@ export async function POST(req: NextRequest) {
     }
 
     // Debug: Log what we're getting from Stripe
-    console.log('📊 Invoice lines from Stripe:', upcomingInvoice.lines.data.map(line => ({
-      description: line.description,
-      amount: line.amount / 100,
-      proration: (line as any).proration,
-      type: (line as any).type,
-      period: line.period ? {
-        start: new Date(line.period.start * 1000).toISOString(),
-        end: new Date(line.period.end * 1000).toISOString()
-      } : null
-    })));
     
     // Identify if this is an upgrade or downgrade based on plan comparison
     // Use the ACTUAL plan from Stripe, not what the database says
@@ -243,14 +203,6 @@ export async function POST(req: NextRequest) {
     // For upgrades, the net should be positive (charge)
     const netAmount = chargeAmount - creditAmount;
     
-    console.log('📊 Calculated amounts:', { 
-      creditAmount, 
-      chargeAmount, 
-      netAmount,
-      isDowngrade,
-      isUpgrade,
-      lineCount: upcomingInvoice.lines.data.length 
-    });
 
     return NextResponse.json({
       preview: {

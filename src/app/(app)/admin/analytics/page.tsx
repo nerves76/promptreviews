@@ -51,38 +51,29 @@ export default function AdminAnalyticsPage() {
   }, [isAdminUser, timeRange]);
 
   const checkAdminStatus = async () => {
-    console.log('Analytics page: Starting admin status check');
     try {
       const { data: { user }, error: userError } = await supabase.auth.getUser();
-      console.log('Analytics page: User check result:', { user: user?.id, email: user?.email, error: userError });
       
       if (userError) {
-        console.log('Analytics page: User error:', userError);
         router.push('/dashboard');
         return;
       }
       
       if (!user) {
-        console.log('Analytics page: No user found, redirecting to dashboard');
         router.push('/dashboard');
         return;
       }
       
-      console.log('Analytics page: Checking admin status for user:', user.id);
       const adminStatus = await isAdmin(user.id, supabase);
-      console.log('Analytics page: Admin status result:', adminStatus);
       
       if (!adminStatus) {
-        console.log('Analytics page: User is not admin, redirecting to dashboard');
         router.push('/dashboard');
         return;
       }
       
-      console.log('Analytics page: User is admin, setting state');
       setIsAdminUser(true);
       setLoading(false);
     } catch (error) {
-      console.log('Analytics page: Error in checkAdminStatus:', error);
       router.push('/dashboard');
     }
   };

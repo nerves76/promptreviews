@@ -71,7 +71,6 @@ export async function logBillingEvent(event: Omit<BillingAuditLog, 'id' | 'creat
       console.error('Failed to log billing event:', error);
       // Don't throw - we don't want logging failures to break the main flow
     } else {
-      console.log(`📝 Billing event logged: ${event.event_type} for account ${event.account_id}`);
     }
   } catch (error) {
     console.error('Error in billing audit logger:', error);

@@ -24,7 +24,6 @@ export async function GET(
       );
     }
 
-    console.log(`[DEBUG-PROMPT-PAGE] Analyzing slug: ${slug}`);
 
     // Step 1: Get the prompt page
     const { data: promptPage, error: promptError } = await supabaseAdmin
@@ -63,7 +62,6 @@ export async function GET(
     }
 
     if (!promptPage) {
-      console.log(`[DEBUG-PROMPT-PAGE] No prompt page found for slug: ${slug}`);
       return NextResponse.json({ debugInfo }, { status: 200 });
     }
 

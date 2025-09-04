@@ -64,11 +64,6 @@ export default function LoadPhotosButton({
     try {
       const locationId = selectedLocationIds[0];
       const selectedLocation = locations.find(loc => loc.id === locationId);
-      console.log('🔍 Loading photos for location:', {
-        requestedId: locationId,
-        selectedLocation: selectedLocation,
-        allLocations: locations.map(loc => ({ id: loc.id, name: loc.name }))
-      });
 
       const response = await fetch('/api/social-posting/photos/fetch', {
         method: 'POST',
@@ -79,15 +74,8 @@ export default function LoadPhotosButton({
       });
 
       const data = await response.json();
-      console.log('📦 Photos API Response:', { 
-        status: response.status, 
-        ok: response.ok, 
-        success: data.success, 
-        photoCount: data.photos?.length 
-      });
 
       if (response.ok && data.success) {
-        console.log(`✅ Successfully loaded ${data.photos.length} photos for location`);
         
         // Transform the photos data
         const loadedPhotos: LoadedPhoto[] = data.photos || [];

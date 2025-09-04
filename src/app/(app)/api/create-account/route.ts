@@ -12,7 +12,6 @@ export async function POST(request: NextRequest) {
     const { userId, email, first_name, last_name } = await request.json();
 
     if (!userId || !email) {
-      console.error('CREATE-ACCOUNT: Missing required fields:', { userId: !!userId, email: !!email });
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
@@ -23,10 +22,6 @@ export async function POST(request: NextRequest) {
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
     if (!supabaseUrl || !supabaseServiceKey) {
-      console.error('CREATE-ACCOUNT: Missing Supabase configuration:', {
-        supabaseUrl: !!supabaseUrl,
-        supabaseServiceKey: !!supabaseServiceKey
-      });
       return NextResponse.json(
         { error: "Missing Supabase configuration" },
         { status: 500 }
@@ -41,7 +36,6 @@ export async function POST(request: NextRequest) {
       'Prefer': 'return=minimal'
     };
 
-    console.log('[CREATE-ACCOUNT] Using service key for authentication');
 
     // Create new account with only the fields that exist in the accounts table
     const accountData = {

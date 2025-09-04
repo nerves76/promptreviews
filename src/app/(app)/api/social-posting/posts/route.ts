@@ -68,12 +68,10 @@ export async function POST(request: NextRequest) {
       if (locationData && locationData.length > 0 && locationData[0].account_name) {
         // Extract account ID from the stored account name (accounts/{id})
         accountId = locationData[0].account_name.replace('accounts/', '');
-        console.log(`📋 Got account ID from stored location data: ${accountId}`);
       }
 
       // If we don't have the account ID from stored data, we'll let the adapter handle it
       if (!accountId) {
-        console.log('⚠️ Account ID not found in stored location data, adapter will fetch it');
       }
 
       // Create adapter with the authenticated client

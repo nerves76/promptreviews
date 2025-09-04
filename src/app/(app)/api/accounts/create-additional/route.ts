@@ -32,7 +32,6 @@ export async function POST(request: NextRequest) {
     }
 
     const requestData = await request.json();
-    console.log('Create additional account request:', JSON.stringify(requestData, null, 2));
     
     const { firstName, lastName, email, businessName } = requestData;
 
@@ -153,8 +152,6 @@ export async function POST(request: NextRequest) {
       } else {
         insertedAccount = updatedAccount;
       }
-      console.log('✅ Account already existed (created by trigger), updated with our data');
-      console.log('Updated account data:', JSON.stringify(updatedAccount, null, 2));
     }
 
     // Create account_users link for BOTH users
@@ -182,7 +179,6 @@ export async function POST(request: NextRequest) {
       created_at: new Date().toISOString()
     };
 
-    console.log('Creating account_users link for current user:', JSON.stringify(currentUserLinkData, null, 2));
 
     const { error: linkError } = await serviceSupabase
       .from('account_users')
@@ -226,14 +222,8 @@ export async function POST(request: NextRequest) {
         .eq('id', newAccountId)
         .single();
         
-      console.log('📊 Final account state after all updates:', JSON.stringify(finalAccount, null, 2));
     }
 
-    console.log('✅ Additional account created successfully:', {
-      accountId: newAccountId,
-      businessName: businessName,
-      userId: user.id
-    });
 
     return NextResponse.json({
       success: true,

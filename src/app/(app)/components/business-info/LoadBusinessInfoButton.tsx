@@ -68,7 +68,6 @@ export default function LoadBusinessInfoButton({
     // Use the first selected location as reference for multiple selections
     const referenceLocationId = selectedLocationIds[0];
     if (selectedLocationIds.length > 1) {
-      console.log(`📍 Using ${locations.find(l => l.id === referenceLocationId)?.name} as reference for AI generation`);
     }
 
     setIsLoading(true);
@@ -77,13 +76,6 @@ export default function LoadBusinessInfoButton({
 
     try {
       const selectedLocation = locations.find(loc => loc.id === referenceLocationId);
-      console.log('🔍 Loading current business information for location:', {
-        requestedId: referenceLocationId,
-        selectedLocation: selectedLocation,
-        isReference: selectedLocationIds.length > 1,
-        totalSelected: selectedLocationIds.length,
-        allLocations: locations.map(loc => ({ id: loc.id, name: loc.name }))
-      });
 
       const response = await fetch('/api/business-information/location-details', {
         method: 'POST',
@@ -94,29 +86,13 @@ export default function LoadBusinessInfoButton({
       });
 
       const data = await response.json();
-      console.log('📦 API Response:', { status: response.status, ok: response.ok, success: data.success, hasLocation: !!data.location });
 
       if (response.ok && data.success && data.location) {
-        console.log('✅ Loaded current business information:', data.location);
         
         // Deep inspection of the location object to find categories
-        console.log('🔍 FULL LOCATION OBJECT:', JSON.stringify(data.location, null, 2));
         
-        console.log('🏷️ Raw categories data from Google:', {
-          hasCategories: !!data.location.categories,
-          categoriesStructure: JSON.stringify(data.location.categories, null, 2),
-          primaryCategory: data.location.primaryCategory,
-          additionalCategories: data.location.additionalCategories,
-          hasPrimaryCategory: !!data.location.primaryCategory,
-          hasAdditionalCategories: !!data.location.additionalCategories,
-          additionalCategoriesCount: data.location.additionalCategories?.length || 0,
-          fullLocationKeys: Object.keys(data.location || {}),
-          locationName: data.location.name,
-          locationTitle: data.location.title
-        });
         
         // Check every possible field that might contain categories
-        console.log('🔍 Searching for categories in all possible locations:');
         const possibleCategoryFields = [
           'categories',
           'category',
@@ -130,7 +106,6 @@ export default function LoadBusinessInfoButton({
         
         possibleCategoryFields.forEach(field => {
           if (data.location[field]) {
-            console.log(`  ✅ Found field "${field}":`, data.location[field]);
           }
         });
         
@@ -143,14 +118,12 @@ export default function LoadBusinessInfoButton({
         
         // Option 1: Nested under 'categories' object (most common)
         if (data.location.categories) {
-          console.log('📋 Found categories object:', data.location.categories);
           
           // Check for primaryCategory or primary_category (Google uses both)
           const primaryCat = data.location.categories.primaryCategory || 
                             data.location.categories.primary_category;
           
           if (primaryCat) {
-            console.log('📋 Processing primary category from categories object:', primaryCat);
             primaryCategory = {
               categoryId: primaryCat.name || primaryCat.categoryId,
               displayName: primaryCat.displayName
@@ -162,7 +135,6 @@ export default function LoadBusinessInfoButton({
                                 data.location.categories.additional_categories;
           
           if (additionalCats && Array.isArray(additionalCats)) {
-            console.log('📋 Processing additional categories from categories object:', additionalCats);
             additionalCategories = additionalCats.map((cat: any) => ({
               categoryId: cat.name || cat.categoryId,
               displayName: cat.displayName
@@ -172,7 +144,6 @@ export default function LoadBusinessInfoButton({
         
         // Option 2: Directly on location object (less common but sometimes used)
         if (!primaryCategory && data.location.primaryCategory) {
-          console.log('📋 Processing primary category from data.location.primaryCategory:', data.location.primaryCategory);
           primaryCategory = {
             categoryId: data.location.primaryCategory.name || data.location.primaryCategory.categoryId,
             displayName: data.location.primaryCategory.displayName
@@ -180,18 +151,12 @@ export default function LoadBusinessInfoButton({
         }
         
         if (additionalCategories.length === 0 && data.location.additionalCategories) {
-          console.log('📋 Processing additional categories from data.location.additionalCategories:', data.location.additionalCategories);
           additionalCategories = data.location.additionalCategories.map((cat: any) => ({
             categoryId: cat.name || cat.categoryId,
             displayName: cat.displayName
           }));
         }
         
-        console.log('🏷️ Final processed categories:', {
-          primaryCategory,
-          additionalCategories,
-          additionalCategoriesCount: additionalCategories.length
-        });
         
         // Parse business hours from API response
         let loadedHours: any = {
@@ -205,7 +170,6 @@ export default function LoadBusinessInfoButton({
         };
         
         if (data.location.regularHours?.periods) {
-          console.log('🕒 Raw business hours from Google:', JSON.stringify(data.location.regularHours, null, 2));
           
           const parsedHours: any = {};
           
@@ -216,7 +180,6 @@ export default function LoadBusinessInfoButton({
           
           // Parse the periods from Google's format
           data.location.regularHours.periods.forEach((period: any, index: number) => {
-            console.log(`🕒 Processing period ${index}:`, JSON.stringify(period, null, 2));
             
             if (period.openDay && period.openTime && period.closeTime) {
               // Convert Google's time format {hours: 9, minutes: 0} to HH:MM format
@@ -237,14 +200,11 @@ export default function LoadBusinessInfoButton({
           });
           
           loadedHours = parsedHours;
-          console.log('✅ Parsed business hours:', loadedHours);
         } else {
-          console.log('⚠️ No regular hours found in location data');
         }
 
         // Process service items to ensure proper structure
         const rawServiceItems = data.location.serviceItems || [];
-        console.log('🔍 Raw service items from Google:', rawServiceItems);
         
         // Process address if available
         let loadedAddress = undefined;
@@ -256,7 +216,6 @@ export default function LoadBusinessInfoButton({
             postalCode: data.location.storefrontAddress.postalCode,
             regionCode: data.location.storefrontAddress.regionCode
           };
-          console.log('📍 Loaded address:', loadedAddress);
         }
 
         // Process phone numbers
@@ -266,12 +225,10 @@ export default function LoadBusinessInfoButton({
             primaryPhone: data.location.phoneNumbers.primaryPhone,
             additionalPhones: data.location.phoneNumbers.additionalPhones || []
           };
-          console.log('📞 Loaded phone numbers:', loadedPhoneNumbers);
         }
 
         // Process website
         const loadedWebsite = data.location.websiteUri || '';
-        console.log('🌐 Loaded website:', loadedWebsite);
 
         // Process coordinates
         let loadedCoordinates = undefined;
@@ -280,20 +237,14 @@ export default function LoadBusinessInfoButton({
             latitude: data.location.latlng.latitude,
             longitude: data.location.latlng.longitude
           };
-          console.log('📍 Loaded coordinates:', loadedCoordinates);
         }
 
         const processedServiceItems = Array.isArray(rawServiceItems) 
           ? rawServiceItems.map((item: any, index: number) => {
-              console.log(`🔍 Processing service item ${index}:`, item);
               
               // Use the utility function to process Google service items
               const processed = processGoogleServiceItem(item);
               
-              console.log(`✅ Processed service item ${index}:`, {
-                original: item,
-                processed: processed
-              });
               
               return {
                 name: processed.name,
@@ -302,7 +253,6 @@ export default function LoadBusinessInfoButton({
             })
           : [];
 
-        console.log('✅ Processed service items:', processedServiceItems);
 
         // Update business info with all available data
         const loadedBusinessInfo = {
@@ -318,20 +268,10 @@ export default function LoadBusinessInfoButton({
           latlng: loadedCoordinates
         };
 
-        console.log('📦 Final loadedBusinessInfo being passed to component:', {
-          hasDescription: !!loadedBusinessInfo.description,
-          hasPrimaryCategory: !!loadedBusinessInfo.primaryCategory,
-          primaryCategoryData: loadedBusinessInfo.primaryCategory,
-          hasAdditionalCategories: !!loadedBusinessInfo.additionalCategories,
-          additionalCategoriesCount: loadedBusinessInfo.additionalCategories.length,
-          additionalCategoriesData: loadedBusinessInfo.additionalCategories
-        });
 
         onBusinessInfoLoaded(loadedBusinessInfo);
         onDetailsLoadedChange(true);
-        console.log('✅ Business information loaded successfully');
       } else {
-        console.log('⚠️ No business information available or API error:', data);
         const errorMessage = data.message || data.error || 'Unable to load current business information';
         onErrorChange(errorMessage);
         onDetailsLoadedChange(true); // Still mark as "attempted" so we don't keep showing the button

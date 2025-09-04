@@ -33,7 +33,6 @@ export async function getRequestAccountId(
       .single();
     
     if (accountUser) {
-      console.log(`[API] Using client-selected account: ${selectedAccountHeader}`);
       return selectedAccountHeader;
     } else {
       console.warn(`[API] User ${userId} doesn't have access to account ${selectedAccountHeader}, falling back to auto-selection`);
@@ -43,7 +42,6 @@ export async function getRequestAccountId(
   // Fall back to automatic account selection
   const accountId = await getAccountIdForUser(userId, supabaseClient);
   if (accountId) {
-    console.log(`[API] Using auto-selected account: ${accountId}`);
   }
   
   return accountId;

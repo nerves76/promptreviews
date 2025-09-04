@@ -40,7 +40,6 @@ export async function getOnboardingStatus(
       .single();
 
     if (accountError || !account) {
-      console.log('🔍 OnboardingUtils: No account found for user, needs account creation');
       return {
         step: 'incomplete',
         shouldRedirect: true,
@@ -74,11 +73,6 @@ export async function getOnboardingStatus(
       isTrialExpired: !!isTrialExpired
     };
 
-    console.log('🔍 OnboardingUtils: User status:', {
-      userId,
-      accountId: account.id,
-      ...debugInfo
-    });
 
     // Determine onboarding status based on current state
     
@@ -134,7 +128,6 @@ export async function updateOnboardingStep(
   step: OnboardingStep
 ): Promise<void> {
   try {
-    console.log(`🔍 OnboardingUtils: Updating onboarding step to '${step}' for account ${accountId}`);
     
     const { error } = await supabase
       .from('accounts')
@@ -146,7 +139,6 @@ export async function updateOnboardingStep(
       throw error;
     }
 
-    console.log(`✅ OnboardingUtils: Successfully updated onboarding step to '${step}'`);
   } catch (error) {
     console.error('🔍 OnboardingUtils: Failed to update onboarding step:', error);
     throw error;
@@ -213,7 +205,6 @@ export async function handleBusinessCreated(
 ): Promise<void> {
   try {
     await updateOnboardingStep(supabase, accountId, 'needs_plan');
-    console.log('✅ OnboardingUtils: Onboarding step updated to needs_plan after business creation');
   } catch (error) {
     console.error('💥 OnboardingUtils: Error updating onboarding step after business creation:', error);
   }
@@ -229,7 +220,6 @@ export async function handlePlanSelected(
 ): Promise<void> {
   try {
     await updateOnboardingStep(supabase, accountId, 'complete');
-    console.log('✅ OnboardingUtils: Onboarding step updated to complete after plan selection');
   } catch (error) {
     console.error('💥 OnboardingUtils: Error updating onboarding step after plan selection:', error);
   }

@@ -3,7 +3,6 @@ import { getSessionOrMock, createClient, createServiceRoleClient } from '@/auth/
 import { checkAccountLimits } from '@/utils/accountLimits';
 
 export async function POST(request: NextRequest) {
-  console.log('🚨 CONTACT API ENDPOINT HIT - Request received');
   try {
     const supabase = createClient();
     const supabaseAdmin = createServiceRoleClient();
@@ -16,24 +15,18 @@ export async function POST(request: NextRequest) {
     const cookieResult = await getSessionOrMock(supabase);
     if (!cookieResult.error && cookieResult.data?.session?.user) {
       user = cookieResult.data.session.user;
-      console.log('✅ Contact from Prompt API - Cookie auth successful for user:', user.id);
     } else {
-      console.log('❌ Contact from Prompt API - Cookie auth failed:', cookieResult.error instanceof Error ? cookieResult.error.message : 'Unknown error');
       // If cookie auth fails, try Authorization header
       const authHeader = request.headers.get('authorization');
       if (authHeader?.startsWith('Bearer ')) {
         const token = authHeader.substring(7);
-        console.log('🔑 Contact from Prompt API - Trying Authorization header auth with token length:', token.length);
         const headerResult = await supabaseAdmin.auth.getUser(token);
         if (!headerResult.error && headerResult.data.user) {
           user = headerResult.data.user;
-          console.log('✅ Contact from Prompt API - Header auth successful for user:', user.id);
         } else {
-          console.log('❌ Contact from Prompt API - Header auth failed:', headerResult.error?.message);
           userError = headerResult.error;
         }
       } else {
-        console.log('❌ Contact from Prompt API - No valid Authorization header found');
         userError = cookieResult.error;
       }
     }
@@ -51,10 +44,8 @@ export async function POST(request: NextRequest) {
     const { promptPageData, promptPageId, account_id } = await request.json();
     
     // Get account ID from request body
-    console.log('🔍 Contact from Prompt API - Account ID from request:', account_id);
     const accountId = account_id;
     if (!accountId) {
-      console.error('❌ Contact from Prompt API - No account_id provided in request');
       return NextResponse.json({ error: 'account_id is required' }, { status: 400 });
     }
     
@@ -67,14 +58,11 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (!accountUser) {
-      console.error('❌ User does not have access to account:', accountId);
       return NextResponse.json({ error: 'Access denied to this account' }, { status: 403 });
     }
 
     // Check account limits for contact creation
-    console.log('🔍 Contact from Prompt API - Checking account limits for user:', user.id);
     const limitCheck = await checkAccountLimits(supabaseAdmin, user.id, 'contact');
-    console.log('🔍 Contact from Prompt API - Limit check result:', limitCheck);
     if (!limitCheck.allowed) {
       console.error('❌ Contact from Prompt API - Limit check failed:', limitCheck);
       return NextResponse.json({ 
@@ -113,7 +101,6 @@ export async function POST(request: NextRequest) {
     };
 
     // Insert contact into the database using service role client to bypass RLS
-    console.log('🔍 Contact from Prompt API - Creating contact with account_id:', accountId);
     const { data: insertedContact, error: insertError } = await supabaseAdmin
       .from("contacts")
       .insert(contact)
@@ -132,7 +119,6 @@ export async function POST(request: NextRequest) {
     }
 
     // Link the prompt page to the newly created contact
-    console.log('🔍 Contact from Prompt API - Linking prompt page to contact:', promptPageId, insertedContact.id);
     const { error: linkError } = await supabaseAdmin
       .from("prompt_pages")
       .update({ contact_id: insertedContact.id })
@@ -144,7 +130,6 @@ export async function POST(request: NextRequest) {
       // The contact was created successfully, so we return success
       // but log the linking error
     } else {
-      console.log('✅ Contact from Prompt API - Successfully linked prompt page to contact');
     }
 
     return NextResponse.json({

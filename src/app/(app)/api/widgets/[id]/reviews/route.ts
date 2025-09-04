@@ -64,11 +64,6 @@ export async function PUT(
     const body = await request.json();
     const { reviews } = body;
     
-    console.log('[WIDGET-REVIEWS] PUT request received:', {
-      widgetId,
-      reviewCount: reviews?.length,
-      bodyKeys: Object.keys(body)
-    });
 
     if (!Array.isArray(reviews)) {
       return NextResponse.json({ error: 'Reviews must be an array' }, { status: 400 });
@@ -91,15 +86,9 @@ export async function PUT(
     // Get account ID respecting client selection if provided
     const accountId = await getRequestAccountId(request, user.id, supabase);
     if (!accountId) {
-      console.error('[WIDGET-REVIEWS] Account not found for user:', user.id);
       return NextResponse.json({ error: 'Account not found' }, { status: 404 });
     }
 
-    console.log('[WIDGET-REVIEWS] Verifying widget ownership:', {
-      widgetId,
-      accountId,
-      userId: user.id
-    });
 
     // Verify widget ownership using admin client
     const { data: widget, error: widgetError } = await supabaseAdmin
@@ -110,13 +99,6 @@ export async function PUT(
       .single();
 
     if (widgetError || !widget) {
-      console.error('[WIDGET-REVIEWS] Widget access denied:', {
-        widgetId,
-        accountId,
-        error: widgetError,
-        widget,
-        userId: user.id
-      });
       
       // Provide more specific error message
       if (widgetError?.code === 'PGRST116') {
@@ -133,7 +115,6 @@ export async function PUT(
     }
 
     // First, let's check if the table exists and what columns it has
-    console.log('[WIDGET-REVIEWS] Testing database connection...');
     
     // Try a simple select first
     const { data: testSelect, error: testError } = await supabaseAdmin
@@ -158,11 +139,9 @@ export async function PUT(
         }, { status: 500 });
       }
     } else {
-      console.log('[WIDGET-REVIEWS] Table exists, sample row:', testSelect?.[0]);
     }
     
     // Delete existing reviews for this widget
-    console.log('[WIDGET-REVIEWS] Deleting existing reviews for widget:', widgetId);
     const { error: deleteError } = await supabaseAdmin
       .from('widget_reviews')
       .delete()
@@ -185,7 +164,6 @@ export async function PUT(
     // Insert new reviews if any provided
     if (reviews.length > 0) {
       // First, try inserting a minimal test review to see what works
-      console.log('[WIDGET-REVIEWS] Testing with minimal review first...');
       
       const testReview = {
         widget_id: widgetId,
@@ -214,7 +192,6 @@ export async function PUT(
           hint: testError.hint
         }, { status: 500 });
       } else {
-        console.log('[WIDGET-REVIEWS] Test review succeeded, proceeding with actual reviews');
         
         // Delete the test review
         await supabaseAdmin
@@ -233,11 +210,6 @@ export async function PUT(
           finalRating = Math.max(1, Math.min(5, finalRating));
         }
         
-        console.log(`[API] Star Rating for ${review.review_id}:`, {
-          received: review.star_rating,
-          rounded: Math.round(review.star_rating * 2) / 2,
-          final: finalRating
-        });
         
         // Ensure review_id is a valid UUID
         // If the review already has a valid UUID, use it; otherwise generate one
@@ -268,16 +240,10 @@ export async function PUT(
           reviewToInsert.photo_url = review.photo_url;
         }
         
-        console.log(`[WIDGET-REVIEWS] Review ${index} to insert:`, reviewToInsert);
         
         return reviewToInsert;
       });
 
-      console.log('[WIDGET-REVIEWS] Attempting to insert reviews:', {
-        count: reviewsToInsert.length,
-        widgetId,
-        sample: reviewsToInsert[0]
-      });
 
       const { error: insertError } = await supabaseAdmin
         .from('widget_reviews')

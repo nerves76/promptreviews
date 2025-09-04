@@ -47,11 +47,6 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const requestedAccountId = searchParams.get('account_id');
     
-    console.log('🔍 Team members request:', {
-      userId: user.id,
-      requestedAccountId,
-      hasAccountParam: !!requestedAccountId
-    });
     
     // For multi-account support: if account_id is provided, use it; otherwise get all user's accounts
     let accountQuery = supabase
@@ -80,13 +75,10 @@ export async function GET(request: NextRequest) {
     // Get the first account (or the requested one)
     const accountUser = accountUsers?.[0];
 
-    console.log('🔍 accountUser result:', accountUser);
-    console.log('🔍 accountError:', accountError);
 
     // If account_user doesn't exist, check if the user has their own account
     // This handles users created before the account_users system was fully implemented
     if (!accountUser && accountError && accountError.code === 'PGRST116') {
-      console.log('🔧 No account_users entry found, checking for user account...');
       
       // Check if user has an account with their user_id as account_id
       const { data: userAccount, error: userAccountError } = await supabase
@@ -103,7 +95,6 @@ export async function GET(request: NextRequest) {
         .single();
 
       if (userAccount && !userAccountError) {
-        console.log('🔧 Found user account, creating missing account_users entry...');
         
         // Create the missing account_users entry
         const { error: insertError } = await supabase
@@ -122,7 +113,6 @@ export async function GET(request: NextRequest) {
           );
         }
 
-        console.log('✅ Successfully created account_users entry');
         
         // Now we can proceed with the account_user data
         const reconstructedAccountUser = {
@@ -148,7 +138,6 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    console.log('🔍 accounts array:', accountUser?.accounts);
 
     // Continue with normal processing
     return await processTeamMembers(supabase, supabaseAdmin, user, accountUser);
@@ -190,11 +179,9 @@ async function processTeamMembers(supabase: any, supabaseAdmin: any, user: any, 
       );
     }
 
-    console.log(`📋 Found ${accountUsers.length} team members for account ${accountUser.account_id}`);
     
     // Get all user IDs we need to fetch
     const userIds = accountUsers.map((au: any) => au.user_id);
-    console.log(`🔍 Fetching details for user IDs:`, userIds);
     
     // Fetch all users and create a map
     const { data: authUsersData, error: listError } = await supabaseAdmin.auth.admin.listUsers({
@@ -212,14 +199,12 @@ async function processTeamMembers(supabase: any, supabaseAdmin: any, user: any, 
       authUsersData.users.forEach((u: any) => {
         userEmailMap.set(u.id, u.email);
       });
-      console.log(`📧 Found emails for ${userEmailMap.size} users`);
     }
     
     // Map the account users with their emails
     const membersWithDetails = accountUsers.map((accountUserEntry: any) => {
       const email = userEmailMap.get(accountUserEntry.user_id) || '';
       
-      console.log(`👤 User ${accountUserEntry.user_id}: email=${email}, role=${accountUserEntry.role}`);
       
       return {
         user_id: accountUserEntry.user_id,
@@ -258,13 +243,6 @@ async function processTeamMembers(supabase: any, supabaseAdmin: any, user: any, 
     };
 
     // Debug logging
-    console.log('Team API - Account data:', accountData);
-    console.log('Team API - Raw account from DB:', account);
-    console.log('Team API - Members returned:', members.map((m: any) => ({ 
-      email: m.email, 
-      role: m.role,
-      user_id: m.user_id 
-    })));
 
     return NextResponse.json({
       members,
@@ -400,7 +378,6 @@ export async function DELETE(request: NextRequest) {
       // Don't fail the request - member removal was successful
     }
 
-    console.log(`✅ Successfully removed team member: ${memberToRemove.user.email}`);
 
     return NextResponse.json({
       message: 'Team member removed successfully',
@@ -514,7 +491,6 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
-    console.log(`✅ Successfully updated member role: ${memberUserId} -> ${newRole}`);
 
     return NextResponse.json({
       message: 'Member role updated successfully',

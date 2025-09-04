@@ -62,16 +62,6 @@ export default function DashboardLayout({
   // DEBUG: Log authentication state (DISABLED - was causing infinite re-renders)
   // useEffect(() => {
   //   if (process.env.NODE_ENV === 'development') {
-  //     console.log('🔍 Dashboard Layout State:', {
-  //       isInitialized,
-  //       isLoading,
-  //       hasUser: !!user,
-  //       userEmail: user?.email,
-  //       accountLoading,
-  //       hasAccount: !!account,
-  //       accountId: account?.id,
-  //       timestamp: new Date().toISOString()
-  //     });
   //   }
   // }, [isInitialized, isLoading, user, accountLoading, account]);
 
@@ -80,7 +70,6 @@ export default function DashboardLayout({
   useEffect(() => {
     if (isInitialized && !user && isClient) {
       if (process.env.NODE_ENV === 'development') {
-        console.log('❌ Dashboard: No user found after initialization, redirecting to sign-in');
       }
       router.push('/auth/sign-in');
     }
@@ -99,7 +88,6 @@ export default function DashboardLayout({
     const justSignedUp = sessionStorage.getItem('just-signed-up') === 'true';
     
     if (justSignedUp || justCreatedBusiness) {
-      console.log('⏳ Dashboard: Skipping account check - user just signed up or created business');
       // Clear the flags after a delay to allow future checks
       setTimeout(() => {
         sessionStorage.removeItem('just-signed-up');
@@ -112,7 +100,6 @@ export default function DashboardLayout({
     if (isInitialized && user && !accountLoading && isClient && !isOnCreateBusinessPage) {
       // If no account exists after loading is complete, redirect to sign-up/onboarding
       if (!account && !accountLoading) {
-        console.log('❌ Dashboard: User has no accounts, redirecting to sign-up/onboarding');
         // Clear any auth session and redirect to sign-up
         signOut();
         router.push('/auth/sign-up');
@@ -130,7 +117,6 @@ export default function DashboardLayout({
       const isAllowedPath = currentPath === '/dashboard' || currentPath === '/dashboard/plan';
       
       if (hasNoPlan && !isAllowedPath) {
-        console.log('📋 No plan detected, redirecting to dashboard for plan selection');
         router.push('/dashboard');
       }
     }
@@ -151,7 +137,6 @@ export default function DashboardLayout({
   // Show loading while AuthContext initializes or during transitions
   if ((!isInitialized || isTransitioning) && !isPlanPageSuccess) {
     if (process.env.NODE_ENV === 'development') {
-      console.log('🔄 Dashboard: Loading state', { isInitialized, isTransitioning });
     }
     return (
       <div className="min-h-screen flex flex-col items-center justify-center">
@@ -169,7 +154,6 @@ export default function DashboardLayout({
   // BUT skip if we're showing plan success modal
   if ((isLoading || accountLoading) && !isPlanPageSuccess) {
     if (process.env.NODE_ENV === 'development') {
-      console.log('🔄 Dashboard: Loading user or account data...');
     }
     return (
       <div className="min-h-screen flex flex-col items-center justify-center">

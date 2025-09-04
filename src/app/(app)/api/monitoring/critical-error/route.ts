@@ -193,7 +193,6 @@ export async function POST(request: NextRequest) {
     
     // Send alerts if needed
     if (shouldSendImmediateAlert || highErrorRate) {
-      console.log(`🚨 Sending critical alert for ${error.functionName}`);
       
       // Send alerts in parallel
       await Promise.allSettled([

@@ -76,12 +76,6 @@ export default function AnalyticsPage() {
   const { selectedAccount, loading: accountLoading } = useAccountSelection();
   
   // Debug logging for account selection
-  console.log('📊 Analytics Page - Account Selection State:', {
-    selectedAccount,
-    accountLoading,
-    selectedAccountId: selectedAccount?.account_id,
-    selectedAccountName: selectedAccount?.account_name
-  });
   const [promptPages, setPromptPages] = useState<PromptPage[]>([]);
   const [timeRange, setTimeRange] = useState<
     | "all"
@@ -103,19 +97,13 @@ export default function AnalyticsPage() {
 
   useEffect(() => {
     const fetchPromptPages = async () => {
-      console.log('🔄 Analytics Page - fetchPromptPages called:', {
-        accountLoading,
-        selectedAccountId: selectedAccount?.account_id
-      });
       
       // Wait for account selection to complete
       if (accountLoading || !selectedAccount?.account_id) {
-        console.log('⏸️ Analytics Page - Waiting for account selection to complete');
         return;
       }
       
       try {
-        console.log('✅ Analytics Page - Fetching prompt pages for account:', selectedAccount.account_id);
         
         const { data, error } = await supabase
           .from("prompt_pages")
@@ -123,7 +111,6 @@ export default function AnalyticsPage() {
           .eq("account_id", selectedAccount.account_id);
         if (error) throw error;
         
-        console.log('📊 Analytics Page - Prompt pages loaded:', data?.length || 0);
         setPromptPages(data || []);
       } catch (err) {
         console.error('❌ Analytics Page - Error loading prompt pages:', err);
@@ -158,19 +145,13 @@ export default function AnalyticsPage() {
 
   useEffect(() => {
     const loadAnalytics = async () => {
-      console.log('🔄 Analytics Page - loadAnalytics called:', {
-        accountLoading,
-        selectedAccountId: selectedAccount?.account_id
-      });
       
       // Wait for account selection to complete
       if (accountLoading || !selectedAccount?.account_id) {
-        console.log('⏸️ Analytics Page - Waiting for account selection in loadAnalytics');
         return;
       }
       
       try {
-        console.log('✅ Analytics Page - Loading analytics for account:', selectedAccount.account_id);
 
         // Get all prompt page IDs for this account
         const { data: pages } = await supabase
@@ -470,7 +451,6 @@ export default function AnalyticsPage() {
 
         (analyticsData as any).timelineData = timelineData;
 
-        console.log('📊 Analytics Page - Analytics data loaded successfully');
         setAnalytics(analyticsData);
       } catch (err) {
         console.error("❌ Analytics Page - Supabase analytics error:", err);

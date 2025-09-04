@@ -16,7 +16,6 @@ import { OptimizedSpinner } from "@/app/(app)/components/OptimizedComponents";
 
 
 export default function CreateBusinessClient() {
-  console.log('🔍 CreateBusinessClient: Component rendered');
   
   const { selectedAccountId, account } = useAuth();
   
@@ -42,9 +41,6 @@ export default function CreateBusinessClient() {
 
   // Memoize router functions to prevent infinite loops
   const redirectToDashboard = useCallback(() => {
-    console.log("🔄 CreateBusinessClient: redirectToDashboard called");
-    console.log("🔄 CreateBusinessClient: Current pathname:", window.location.pathname);
-    console.log("🔄 CreateBusinessClient: About to redirect to /dashboard?businessCreated=1");
     
     // Set flag to maintain loading state during transition
     sessionStorage.setItem('business-creation-complete', 'true');
@@ -52,13 +48,11 @@ export default function CreateBusinessClient() {
     
     // Use window.location.replace for more reliable redirect
     // This ensures the redirect happens even if Next.js router has issues
-    console.log("🔄 CreateBusinessClient: Using window.location.replace for redirect");
     window.location.replace("/dashboard?businessCreated=1");
   }, []);
 
   // Handler for closing the welcome popup
   const handleWelcomeClose = () => {
-    console.log('🎉 CreateBusinessClient: Welcome popup closed');
     setShowWelcomePopup(false);
     localStorage.setItem('hasSeenCreateBusinessWelcome', 'true');
   };
@@ -67,7 +61,6 @@ export default function CreateBusinessClient() {
   useEffect(() => {
     const setupBusinessCreation = async () => {
       try {
-        console.log('🔍 CreateBusinessClient: Setting up business creation...');
         
         // Get current user (should already be authenticated by layout)
         const { data: { user }, error } = await getUserOrMock(supabase);
@@ -79,20 +72,17 @@ export default function CreateBusinessClient() {
           return;
         }
 
-        console.log('✅ CreateBusinessClient: User authenticated:', user.id);
         setUser(user);
 
         // Use the selected account from auth context OR the user's ID (for new accounts)
         // During signup, the account ID is the same as the user ID
         const accountId = selectedAccountId || account?.id || user.id;
         if (!accountId) {
-          console.log('🔄 CreateBusinessClient: No account found, this should not happen');
           setError("Account setup required");
           setLoading(false);
           return;
         }
 
-        console.log('✅ CreateBusinessClient: Account ID:', accountId);
         setAccountId(accountId);
 
         // Fetch account data including first_name and last_name
@@ -114,15 +104,12 @@ export default function CreateBusinessClient() {
         // Check if user has seen the welcome popup before
         if (typeof window !== 'undefined') {
           const hasSeenWelcome = localStorage.getItem('hasSeenCreateBusinessWelcome');
-          console.log('🎉 CreateBusinessClient: Welcome popup check - hasSeenWelcome:', hasSeenWelcome);
           if (!hasSeenWelcome) {
-            console.log('🎉 CreateBusinessClient: Showing welcome popup for new user');
             // Small delay to let the page load before showing popup
             setTimeout(() => {
               setShowWelcomePopup(true);
             }, 1000);
           } else {
-            console.log('🎉 CreateBusinessClient: User has already seen welcome popup');
           }
         }
 
@@ -138,8 +125,6 @@ export default function CreateBusinessClient() {
 
   // Handle successful business creation
   const handleBusinessCreated = useCallback(async () => {
-    console.log("✅ CreateBusinessClient: Business created successfully, preparing redirect...");
-    console.log("✅ CreateBusinessClient: handleBusinessCreated called at:", new Date().toISOString());
     setIsSubmitting(false);
     setIsRedirecting(true); // Set redirecting state to show loading screen
     
@@ -147,27 +132,22 @@ export default function CreateBusinessClient() {
     if (typeof window !== 'undefined') {
       sessionStorage.setItem('businessCreationInProgress', 'true');
       sessionStorage.setItem('business-creation-complete', 'true'); // Flag for dashboard layout
-      console.log('🚫 CreateBusinessClient: Set business creation flags');
     }
     
     // Force refresh business profile in auth context
     if (typeof window !== 'undefined') {
-      console.log('🔄 CreateBusinessClient: Dispatching forceRefreshBusiness event');
       try {
         window.dispatchEvent(new CustomEvent('forceRefreshBusiness'));
-        console.log('✅ CreateBusinessClient: forceRefreshBusiness event dispatched successfully');
       } catch (error) {
         console.error('❌ CreateBusinessClient: Error dispatching forceRefreshBusiness event:', error);
       }
     }
     
     // Give more time for database transactions to complete and propagate
-    console.log("⏳ CreateBusinessClient: Waiting for database to propagate...");
     await new Promise(resolve => setTimeout(resolve, 2000)); // 2 second delay
     
     // Verify the account exists before redirecting
     if (accountId) {
-      console.log("🔍 CreateBusinessClient: Verifying account exists...");
       try {
         const { data: accountCheck } = await supabase
           .from('accounts')
@@ -176,23 +156,18 @@ export default function CreateBusinessClient() {
           .single();
         
         if (accountCheck) {
-          console.log("✅ CreateBusinessClient: Account verified, proceeding with redirect");
         } else {
-          console.log("⚠️ CreateBusinessClient: Account not found, but proceeding anyway");
         }
       } catch (error) {
-        console.log("⚠️ CreateBusinessClient: Error verifying account, but proceeding:", error);
       }
     }
     
-    console.log("🚀 CreateBusinessClient: Redirecting to dashboard...");
     redirectToDashboard();
   }, [redirectToDashboard, accountId]);
 
   // Handle top save button click
   const handleTopSaveClick = useCallback(() => {
     if (isSubmitting) {
-      console.log("Top button click blocked - already submitting");
       return;
     }
     
@@ -235,7 +210,6 @@ export default function CreateBusinessClient() {
     return 'there';
   };
 
-  console.log('🔍 CreateBusinessClient: Render state - loading:', loading, 'isRedirecting:', isRedirecting);
 
   if (loading || isRedirecting) {
     return (
@@ -359,7 +333,6 @@ export default function CreateBusinessClient() {
       </div>
 
       {/* Welcome Popup with Carl Sagan quote */}
-      {console.log('🎉 CreateBusinessClient: Rendering popup - showWelcomePopup:', showWelcomePopup, 'userName will be:', getUserDisplayName())}
       <WelcomePopup
         isOpen={showWelcomePopup}
         onClose={handleWelcomeClose}

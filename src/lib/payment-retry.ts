@@ -97,7 +97,6 @@ export class PaymentRetrySystem {
     stripeCustomerId: string;
   }): Promise<RetryResult> {
     try {
-      console.log('💳 Handling failed payment with grace period:', params.accountId);
 
       // ============================================
       // Check if retry already exists
@@ -165,11 +164,6 @@ export class PaymentRetrySystem {
         nextRetryDate: nextRetryDate.toLocaleDateString()
       });
 
-      console.log('✅ Payment retry scheduled with grace period:', {
-        accountId: params.accountId,
-        gracePeriodEnds: gracePeriodEnds.toISOString(),
-        nextRetryAt: nextRetryDate.toISOString()
-      });
 
       return {
         success: true,
@@ -248,7 +242,6 @@ export class PaymentRetrySystem {
    * Restrict access after grace period expires
    */
   private async restrictAccess(accountId: string, retryId: string): Promise<void> {
-    console.log('🔒 Restricting access for account:', accountId);
 
     // Update retry record
     await this.supabase
@@ -277,7 +270,6 @@ export class PaymentRetrySystem {
    * Should be called by a cron job
    */
   async processScheduledRetries(): Promise<void> {
-    console.log('⏰ Processing scheduled payment retries');
 
     // Get retries due for processing
     const { data: dueRetries, error } = await this.supabase
@@ -292,7 +284,6 @@ export class PaymentRetrySystem {
       return;
     }
 
-    console.log(`Found ${dueRetries.length} payments to retry`);
 
     for (const retry of dueRetries) {
       await this.attemptPaymentRetry(retry);
@@ -303,7 +294,6 @@ export class PaymentRetrySystem {
    * Attempt to retry a payment
    */
   private async attemptPaymentRetry(retry: PaymentRetryRecord): Promise<void> {
-    console.log(`💳 Attempting payment retry for account: ${retry.account_id}`);
 
     try {
       // Get Stripe customer ID
@@ -345,7 +335,6 @@ export class PaymentRetrySystem {
    */
   private async retryStripePayment(customerId: string, invoiceId: string): Promise<boolean> {
     // This would be actual Stripe API call
-    console.log(`🔄 Retrying Stripe payment for customer: ${customerId}`);
     
     // Simulate 30% success rate for demo
     return Math.random() < 0.3;
@@ -355,7 +344,6 @@ export class PaymentRetrySystem {
    * Handle successful payment recovery
    */
   private async handlePaymentRecovery(retry: PaymentRetryRecord): Promise<void> {
-    console.log('✅ Payment recovered successfully!');
 
     // Update retry record
     await this.supabase
@@ -391,13 +379,11 @@ export class PaymentRetrySystem {
     template: string,
     data: any
   ): Promise<void> {
-    console.log(`📧 Sending ${template} email to account: ${accountId}`);
     
     // In production, integrate with email service
     // Example: SendGrid, Postmark, AWS SES
     
     // Log email for now
-    console.log('Email data:', data);
   }
 
   /**
@@ -437,7 +423,6 @@ export class PaymentRetrySystem {
    * Manually trigger payment retry (for admin/support)
    */
   async manualRetry(accountId: string): Promise<RetryResult> {
-    console.log('👤 Manual payment retry requested for:', accountId);
     
     const { data: retry } = await this.supabase
       .from('payment_retries')

@@ -66,31 +66,24 @@ export default function UniversalEditPromptPage() {
         
         // Use account from auth context if available
         if (!user || !account?.id) {
-          console.log("Waiting for auth context to load...");
           setIsLoading(false);
           return;
         }
         
-        console.log("Current user:", user.id, user.email);
-        console.log("Current account from context:", account.id);
         
         // Use the account ID from the auth context (respects account switcher)
         const accountId = account.id;
-        console.log("Account ID result:", accountId);
         
         if (!accountId) {
-          console.error("No account found for user:", user.id);
           setError("No account found for user");
           setIsLoading(false);
           return;
         }
         
-        console.log("Fetching data for account:", accountId);
         
         // Fetch business profile
         // IMPORTANT: Don't use .single() as accounts can have multiple businesses
         // CRITICAL: Must filter by the EXACT account_id from the account switcher
-        console.log("🔍 Fetching businesses for account_id:", accountId);
         const { data: businessData, error: businessError } = await supabase
           .from("businesses")
           .select("*")
@@ -103,33 +96,16 @@ export default function UniversalEditPromptPage() {
         
         // Debug: Log all businesses returned
         if (businessData && businessData.length > 0) {
-          console.log(`🔍 Businesses returned from query:`, businessData.map(b => ({
-            id: b.id,
-            account_id: b.account_id,
-            name: b.name || b.business_name,
-            platforms: b.review_platforms?.length || 0
-          })));
         }
         
         // Handle multiple businesses - use the first one (oldest)
         const businessProfile = businessData && businessData.length > 0 ? businessData[0] : null;
         if (businessData && businessData.length > 1) {
-          console.log(`📊 Found ${businessData.length} businesses for account, using first one:`, businessProfile?.name || businessProfile?.id);
         }
         
         // CRITICAL: Verify the business belongs to the correct account
         // This prevents ALL business defaults from leaking across accounts
         if (businessProfile && businessProfile.account_id !== accountId) {
-          console.error("⚠️ ACCOUNT ISOLATION BREACH: Business account_id mismatch!", {
-            expected: accountId,
-            got: businessProfile.account_id,
-            business: businessProfile.id,
-            affectedSettings: [
-              'default_offer_enabled', 'default_offer_title', 'default_offer_body', 'default_offer_url',
-              'review_platforms', 'emoji_sentiment_*', 'falling_*', 'ai_button_enabled', 
-              'fix_grammar_enabled', 'kickstarters_*', 'recent_reviews_*', 'personalized_note_*'
-            ]
-          });
           // Don't use ANY business data - it's from the wrong account
           // Set businessProfile to null to prevent any defaults from being used
           setBusinessProfile(null);
@@ -138,7 +114,6 @@ export default function UniversalEditPromptPage() {
           // Continue loading but without business defaults
         }
         
-        console.log("Business profile:", businessProfile);
         
         // Fetch universal prompt page
         const { data: universalPage, error: universalError } = await supabase
@@ -159,17 +134,11 @@ export default function UniversalEditPromptPage() {
         
         // CRITICAL: Verify the prompt page belongs to the correct account
         if (universalPage && universalPage.account_id !== accountId) {
-          console.error("⚠️ ACCOUNT ISOLATION BREACH: Prompt page account_id mismatch!", {
-            expected: accountId,
-            got: universalPage.account_id,
-            page: universalPage.id
-          });
           setError("Account data mismatch detected. Please refresh the page.");
           setIsLoading(false);
           return;
         }
         
-        console.log("Universal prompt page:", universalPage);
         
         if (universalPage?.slug) setSlug(universalPage.slug);
         // Normalize platform names for business and universal platforms
@@ -177,13 +146,6 @@ export default function UniversalEditPromptPage() {
         const businessPlatforms = normalizePlatforms(businessProfile?.review_platforms);
         
         // Debug: Log platform sources
-        console.log("🔍 Platform sources:", {
-          universalPlatforms: universalPlatforms.map(p => ({ name: p.name, url: p.url })),
-          businessPlatforms: businessPlatforms.map(p => ({ name: p.name, url: p.url })),
-          universalPageHasPlatforms: universalPage?.review_platforms !== null && universalPage?.review_platforms !== undefined,
-          willUseUniversal: universalPage?.review_platforms !== null && universalPage?.review_platforms !== undefined,
-          willUseBusiness: universalPage?.review_platforms === null || universalPage?.review_platforms === undefined
-        });
         
         // CRITICAL FIX: Only use business platforms if universal page has NEVER been saved with platforms
         // If universal page has review_platforms field (even if empty array), use that instead of business platforms
@@ -192,13 +154,6 @@ export default function UniversalEditPromptPage() {
           ? universalPlatforms  // Use universal platforms (even if empty array)
           : businessPlatforms;   // Only fallback to business if universal page never saved platforms
         
-        console.log("🔍 CRITICAL: Platforms decision:", {
-          universalPageField: universalPage?.review_platforms,
-          isNull: universalPage?.review_platforms === null,
-          isUndefined: universalPage?.review_platforms === undefined,
-          usingUniversal: (universalPage?.review_platforms !== null && universalPage?.review_platforms !== undefined),
-          platformCount: platformsToUse.length
-        });
         
         const merged: UniversalPromptFormState = {
           offer_enabled:
@@ -244,14 +199,11 @@ export default function UniversalEditPromptPage() {
           recent_reviews_scope: universalPage?.recent_reviews_scope || businessProfile?.default_recent_reviews_scope || 'current_page',
         };
         
-        console.log("Merged form data:", merged);
         
         // Show reset button only if universal page has saved platforms (not null/undefined)
         // This allows resetting back to business defaults
         const hasUniversalPlatformsSaved = universalPage?.review_platforms !== null && universalPage?.review_platforms !== undefined;
         setShowResetButton(hasUniversalPlatformsSaved);
-        console.log('🏢 Universal page - Business profile data:', businessProfile);
-        console.log('🏢 Universal page - Business name:', businessProfile?.name, businessProfile?.business_name);
         
         setInitialData(merged);
         setBusinessReviewPlatforms(businessPlatforms);
@@ -267,22 +219,18 @@ export default function UniversalEditPromptPage() {
   }, [user, account?.id]); // Re-fetch when account changes
 
   const handleSave = () => {
-    console.log('🔍 handleSave called');
     
     // Skip review platform check - it has a stale closure issue
     // The form component will handle its own validation
     
     // Trigger form submission (same as Service Prompt Page)
     const form = document.querySelector('form');
-    console.log('🔍 Form element found:', !!form);
     if (form) {
-      console.log('🔍 Dispatching submit event');
       form.dispatchEvent(new Event('submit', { bubbles: true }));
     }
   };
 
   const handleFormSave = async (formState: UniversalPromptFormState) => {
-    console.log('🔍 handleFormSave called with:', formState);
     setIsSaving(true);
     
     // DEVELOPMENT MODE BYPASS - Check for dev bypass flag
@@ -290,7 +238,6 @@ export default function UniversalEditPromptPage() {
     if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined') {
       const devBypass = localStorage.getItem('dev_auth_bypass');
       if (devBypass === 'true') {
-        console.log('🔧 DEV MODE: Save function using authentication bypass');
         user = {
           id: '12345678-1234-5678-9abc-123456789012',
           email: 'test@example.com',
@@ -328,7 +275,6 @@ export default function UniversalEditPromptPage() {
     
     // DEVELOPMENT MODE BYPASS - Use mock universal prompt page ID
     if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined' && localStorage.getItem('dev_auth_bypass') === 'true' && accountId === '12345678-1234-5678-9abc-123456789012') {
-      console.log('🔧 DEV MODE: Using mock universal prompt page ID for save');
       universalPage = {
         id: '0f1ba885-07d6-4698-9e94-a63d990c65e0'
       };
@@ -352,19 +298,12 @@ export default function UniversalEditPromptPage() {
       return;
     }
     // Debug: Log form state being saved
-    console.log('🔍 SAVE DEBUG: Form state being saved:', {
-      offer_enabled: formState.offer_enabled,
-      offer_title: formState.offer_title,
-      offer_body: formState.offer_body,
-      offer_url: formState.offer_url,
-    });
     
     // Update universal prompt page
     let error = null;
     
     // DEVELOPMENT MODE BYPASS - Skip database update in dev mode
     if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined' && localStorage.getItem('dev_auth_bypass') === 'true' && accountId === '12345678-1234-5678-9abc-123456789012') {
-      console.log('🔧 DEV MODE: Skipping database update for universal prompt page');
       
       // Store the current form state in localStorage so the public page can use it
       // When emoji sentiment is enabled, disable falling on page load (they should only fall on emoji selection)
@@ -396,11 +335,9 @@ export default function UniversalEditPromptPage() {
       };
       
       localStorage.setItem('dev_universal_page_data', JSON.stringify(devUniversalPageData));
-      console.log('🔧 DEV MODE: Stored Universal page data in localStorage:', devUniversalPageData);
       
       // Verify it was saved
       const saved = localStorage.getItem('dev_universal_page_data');
-      console.log('🔧 DEV MODE: Verified saved data:', saved ? JSON.parse(saved) : null);
       
       // Simulate successful save
       error = null;
@@ -443,7 +380,6 @@ export default function UniversalEditPromptPage() {
     try {
       if (accountId) {
         await markTaskAsCompleted(accountId, "customize-universal");
-        console.log("Customize universal task marked as completed");
       }
     } catch (taskError) {
       console.error("Error marking customize-universal task as complete:", taskError);
@@ -454,7 +390,6 @@ export default function UniversalEditPromptPage() {
     
     // DEVELOPMENT MODE BYPASS - Use mock slug
     if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined' && localStorage.getItem('dev_auth_bypass') === 'true' && accountId === '12345678-1234-5678-9abc-123456789012') {
-      console.log('🔧 DEV MODE: Using mock slug for save success');
       updatedPage = {
         slug: 'universal-mdwd0peh'
       };
@@ -479,14 +414,12 @@ export default function UniversalEditPromptPage() {
         phone: "",
         email: ""
       };
-      console.log('🔍 Setting localStorage showPostSaveModal:', modalData);
       localStorage.setItem(
         "showPostSaveModal",
         JSON.stringify(modalData),
       );
     }
     // Redirect to prompt-pages to show the modal
-    console.log('🔍 Redirecting to prompt-pages');
     window.location.href = "/prompt-pages";
     setIsSaving(false);
   };

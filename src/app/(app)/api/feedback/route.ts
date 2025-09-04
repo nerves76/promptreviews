@@ -46,7 +46,6 @@ export async function POST(request: Request) {
     // If no user from token, try to get from cookies or other means
     if (!user) {
       // For now, let's allow feedback without user ID (anonymous feedback)
-      console.log('No authenticated user found, allowing anonymous feedback');
     }
 
     // Insert feedback into the database
@@ -71,12 +70,6 @@ export async function POST(request: Request) {
       );
     }
 
-    console.log('Feedback submitted successfully:', {
-      id: data.id,
-      category,
-      user_id: user?.id || 'anonymous',
-      has_email: !!email
-    });
 
     return NextResponse.json({ 
       success: true, 

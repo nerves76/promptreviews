@@ -247,14 +247,12 @@ export default function EditPromptPage() {
       
       // Use account from auth context
       if (!user || !account?.id) {
-        console.log("Waiting for auth context to load...");
         setIsLoading(false);
         return;
       }
       
       // Use the account ID from the auth context (respects account switcher)
       const accountId = account.id;
-      console.log("Using account from context:", accountId);
       
       if (!accountId) {
         setError("No account found for user.");
@@ -280,12 +278,6 @@ export default function EditPromptPage() {
       
       // CRITICAL: Verify the prompt page belongs to the correct account
       if (promptData.account_id !== accountId) {
-        console.error("⚠️ ACCOUNT ISOLATION BREACH: Prompt page account_id mismatch!", {
-          expected: accountId,
-          got: promptData.account_id,
-          promptPageId: promptData.id,
-          slug: params.slug
-        });
         setError("This prompt page belongs to a different account. Access denied.");
         setIsLoading(false);
         return;
@@ -315,29 +307,16 @@ export default function EditPromptPage() {
       // Use the first business if multiple exist (oldest one)
       const businessData = businessDataArray[0];
       if (businessDataArray.length > 1) {
-        console.log(`Found ${businessDataArray.length} businesses for account, using first one:`, businessData?.name);
       }
       
       // CRITICAL: Verify the business belongs to the correct account
       // This prevents ALL business defaults from leaking across accounts
       if (businessData && businessData.account_id !== accountId) {
-        console.error("⚠️ ACCOUNT ISOLATION BREACH: Business account_id mismatch in service prompt page!", {
-          expected: accountId,
-          got: businessData.account_id,
-          business: businessData.id,
-          slug: params.slug,
-          affectedSettings: [
-            'industry', 'industry_other', 'services_offered', 'features_or_benefits',
-            'review_platforms', 'default_offer_*', 'ai_button_enabled', 'fix_grammar_enabled'
-          ]
-        });
         setError("Account data mismatch detected. Please refresh the page and try again.");
         setIsLoading(false);
         return;
       }
       // Store original data for comparison
-      console.log("[DEBUG] Prompt data loaded:", promptData);
-      console.log("[DEBUG] Contact ID:", promptData.contact_id);
       setOriginalFormData({
         ...promptData,
         review_platforms: promptData.review_platforms || [],
@@ -476,9 +455,7 @@ export default function EditPromptPage() {
         data: { session },
       } = await supabase.auth.getSession();
       if (session && session.user) {
-        console.log("[DEBUG] Current user UID:", session.user.id);
       } else {
-        console.log("[DEBUG] No user session found");
       }
     };
     logCurrentUserUid();
@@ -787,7 +764,6 @@ export default function EditPromptPage() {
         ),
       );
 
-      console.log("[DEBUG] Payload sent to Supabase:", payload);
 
       const { data: updateDataResult, error: updateError } = await supabase
         .from("prompt_pages")
@@ -797,10 +773,6 @@ export default function EditPromptPage() {
         .single();
 
       // Log the full response for debugging
-      console.log("[DEBUG] Supabase update response:", {
-        updateDataResult,
-        updateError,
-      });
       
       if (updateError) {
         console.error("[DEBUG] Update error object:", updateError);
@@ -861,7 +833,6 @@ export default function EditPromptPage() {
 
   // Simple single-step save for product pages (like universal prompt page)
   const handleProductSave = async (formState: any) => {
-    console.log("[DEBUG] handleProductSave called with formState:", formState);
     setIsLoading(true);
     setError(null);
     setSuccessMessage(null);
@@ -884,9 +855,7 @@ export default function EditPromptPage() {
       
       // Apply the mapping to convert camelCase to snake_case for database
       const rawData = { ...formData, ...formState };
-      console.log("[DEBUG] Product Save - Raw data before mapping:", rawData);
       const updateData = mapToDbColumns(rawData);
-      console.log("[DEBUG] Product Save - Data after mapping:", updateData);
       
       // Only include valid columns in the payload
       const validColumns = [
@@ -924,7 +893,6 @@ export default function EditPromptPage() {
         ),
       );
       
-      console.log("[DEBUG] Product Save payload:", payload);
       
       // Ensure features_or_benefits is properly formatted as JSON
       if (payload.features_or_benefits && typeof payload.features_or_benefits === 'string') {
@@ -936,7 +904,6 @@ export default function EditPromptPage() {
         }
       }
       
-      console.log("[DEBUG] Product Save payload after JSON fix:", payload);
       
       // Update the prompt page
       const { error: updateError } = await supabase
@@ -944,7 +911,6 @@ export default function EditPromptPage() {
         .update(payload)
         .eq("id", promptPage.id);
       
-      console.log("[DEBUG] Supabase update error:", updateError);
       if (updateError) {
         console.error("❌ PRODUCT SAVE FAILED:", updateError);
         console.error("❌ Full error details:", JSON.stringify(updateError, null, 2));
@@ -953,7 +919,6 @@ export default function EditPromptPage() {
         return;
       }
       
-      console.log('✅ PRODUCT SAVE COMPLETED: Data saved successfully to database');
       
       // Set localStorage flag for post-save modal and redirect to prompt-pages
       if (promptPage?.slug) {
@@ -963,7 +928,6 @@ export default function EditPromptPage() {
           phone: formData.phone,
           email: formData.email
         };
-        console.log('🔍 Setting localStorage showPostSaveModal:', modalData);
         localStorage.setItem(
           "showPostSaveModal",
           JSON.stringify(modalData),
@@ -971,7 +935,6 @@ export default function EditPromptPage() {
       }
       
       // Navigate immediately to prompt-pages with appropriate tab to show the modal
-      console.log('🔍 Navigating to prompt-pages to show success modal');
       
       // Redirect based on campaign type
       let redirectUrl = '/prompt-pages'; // Default to main page (public tab)
@@ -983,10 +946,6 @@ export default function EditPromptPage() {
       }
       // If campaign_type is 'public' or anything else, use default /prompt-pages
       
-      console.log('🔍 Redirecting after edit:', { 
-        campaign_type: promptPage.campaign_type,
-        redirectUrl 
-      });
       
       router.push(redirectUrl);
       
@@ -1000,8 +959,6 @@ export default function EditPromptPage() {
   };
 
   const handleGeneralSave = async (formState: any) => {
-    console.log("[DEBUG] handleGeneralSave called with formState:", formState);
-    console.log('🔄 SAVE HANDLER: Setting loading state and starting save operation');
     setIsLoading(true);
     setError(null);
     setSuccessMessage(null);
@@ -1117,8 +1074,6 @@ export default function EditPromptPage() {
         ),
       );
       // Debug logs for troubleshooting
-      console.log("[DEBUG] General Save updateData:", updateData);
-      console.log("[DEBUG] General Save payload:", payload);
       // Update the prompt page
       const { data: updatedPromptPage, error: updateError } = await supabase
         .from("prompt_pages")
@@ -1128,7 +1083,6 @@ export default function EditPromptPage() {
         .single();
       
       // Debug log for Supabase response
-      console.log("[DEBUG] Supabase update error:", updateError);
       if (updateError) {
         setError(updateError.message);
         return;
@@ -1163,15 +1117,12 @@ export default function EditPromptPage() {
           phone: formData.phone,
           email: formData.email
         };
-        console.log('🔍 Setting localStorage showPostSaveModal:', modalData);
         localStorage.setItem(
           "showPostSaveModal",
           JSON.stringify(modalData),
         );
       }
       // Navigate immediately to prompt-pages to show the modal
-      console.log('✅ SAVE COMPLETED: Data saved successfully to database');
-      console.log('🔍 Navigating to prompt-pages to show success modal');
       
       // Redirect based on campaign type
       let redirectUrl = '/prompt-pages'; // Default to main page (public tab)
@@ -1183,10 +1134,6 @@ export default function EditPromptPage() {
       }
       // If campaign_type is 'public' or anything else, use default /prompt-pages
       
-      console.log('🔍 Redirecting after save:', { 
-        campaign_type: promptPage.campaign_type,
-        redirectUrl 
-      });
       
       router.push(redirectUrl);
       
@@ -1207,18 +1154,12 @@ export default function EditPromptPage() {
 
   const handleFormSave = async (formState: ServicePromptFormState | any) => {
     // Check for name changes if this is an individual prompt page
-    console.log("[DEBUG] handleFormSave - originalFormData:", originalFormData);
-    console.log("[DEBUG] handleFormSave - contact_id:", originalFormData?.contact_id);
-    console.log("[DEBUG] handleFormSave - formState names:", formState.first_name, formState.last_name);
-    console.log("[DEBUG] handleFormSave - original names:", originalFormData?.first_name, originalFormData?.last_name);
-    console.log("[DEBUG] handleFormSave - Full formState:", formState);
     
     if (originalFormData && originalFormData.contact_id) {
       const nameChanged = 
         formState.first_name !== originalFormData.first_name ||
         formState.last_name !== originalFormData.last_name;
       
-      console.log("[DEBUG] Name changed?", nameChanged);
       
       if (nameChanged) {
         // Show confirmation dialog
@@ -1228,7 +1169,6 @@ export default function EditPromptPage() {
         return;
       }
     } else {
-      console.log("[DEBUG] No contact_id found, skipping name change check");
     }
     
     // For product pages, use the specialized handler
@@ -1334,7 +1274,6 @@ export default function EditPromptPage() {
   const handleToggleOffer = () => {
     setOfferEnabled((v) => {
       const newValue = !v;
-      console.log("[DEBUG] Toggling offerEnabled:", newValue);
       return newValue;
     });
   };
@@ -1371,7 +1310,6 @@ export default function EditPromptPage() {
   }
 
   if (!businessProfile) {
-    console.log('🔍 No businessProfile loaded yet');
     return (
       <div className="flex items-center justify-center min-h-screen">
         <AppLoader />
@@ -1379,11 +1317,6 @@ export default function EditPromptPage() {
     );
   }
 
-  console.log('🔍 Rendering edit page with:', { 
-    type: formData.type, 
-    businessProfile: !!businessProfile,
-    initialData: !!initialData 
-  });
 
   // Ensure all required fields are present and not undefined
   const safeBusinessProfile = {
@@ -1393,11 +1326,6 @@ export default function EditPromptPage() {
   };
 
   // Unified approach: All prompt pages are editable using PromptPageForm
-  console.log('🔍 Rendering unified PromptPageForm for:', { 
-    type: formData.type, 
-    review_type: (formData as any).review_type,
-    businessProfile: !!businessProfile 
-  });
 
   // Determine the appropriate icon based on page type
   const getPageIcon = () => {

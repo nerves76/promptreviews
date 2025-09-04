@@ -49,12 +49,6 @@ export default function BusinessInfoCard({ businessProfile, reviewType, promptPa
     const borderColor = businessProfile?.card_border_color || '#FFFFFF';
     const borderOpacity = businessProfile?.card_border_transparency ?? 0.8;
     
-    console.log('[BusinessInfoCard] Border values:', {
-      width: borderWidth,
-      color: borderColor,
-      opacity: borderOpacity,
-      fromDB: businessProfile?.card_border_width
-    });
     
     if (borderWidth <= 0) return 'none';
     

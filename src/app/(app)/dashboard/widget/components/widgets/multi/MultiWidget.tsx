@@ -49,12 +49,6 @@ const MultiWidget: React.FC<MultiWidgetProps> = ({ data, design }) => {
   const isDevelopment = process.env.NODE_ENV === 'development';
 
   useEffect(() => {
-    console.log('🚀 MultiWidget: Starting initialization with data:', {
-      hasReviews: !!reviews,
-      reviewsCount: reviews?.length,
-      hasDesign: !!currentDesign,
-      widgetId: data.id
-    });
     
     // Add a cleanup flag to prevent initialization after unmount
     let isMounted = true;
@@ -65,7 +59,6 @@ const MultiWidget: React.FC<MultiWidgetProps> = ({ data, design }) => {
         return Promise.resolve();
       }
 
-      if (isDevelopment) console.log('📥 MultiWidget: Loading CSS from /widgets/multi/multi-widget.css...');
       return new Promise<void>((resolve, reject) => {
         const link = document.createElement('link');
         link.rel = 'stylesheet';
@@ -88,7 +81,6 @@ const MultiWidget: React.FC<MultiWidgetProps> = ({ data, design }) => {
         return Promise.resolve();
       }
 
-      if (isDevelopment) console.log('📥 MultiWidget: Loading widget script from /widgets/multi/widget-embed.js...');
       return new Promise<void>((resolve, reject) => {
         const script = document.createElement('script');
         script.src = `/widgets/multi/widget-embed.js?v=${new Date().getTime()}`;
@@ -101,7 +93,6 @@ const MultiWidget: React.FC<MultiWidgetProps> = ({ data, design }) => {
 
               resolve();
             } else {
-              console.error('❌ MultiWidget: PromptReviews not properly initialized');
               reject(new Error('PromptReviews not properly initialized'));
             }
           }, 500);
@@ -118,22 +109,18 @@ const MultiWidget: React.FC<MultiWidgetProps> = ({ data, design }) => {
       try {
         // Check if component is still mounted before proceeding
         if (!isMounted) {
-          console.log('🛑 MultiWidget: Component unmounted, skipping initialization');
           return;
         }
         
         // Prevent multiple initializations
         if (initializedRef.current) {
-          console.log('🛑 MultiWidget: Already initialized, skipping');
           return;
         }
         
-        console.log('🚀 MultiWidget: Starting initialization...');
         await Promise.all([loadWidgetCSS(), loadWidgetScript()]);
         
         // Check again after loading dependencies
         if (!isMounted) {
-          console.log('🛑 MultiWidget: Component unmounted after loading dependencies');
           return;
         }
         
@@ -142,20 +129,11 @@ const MultiWidget: React.FC<MultiWidgetProps> = ({ data, design }) => {
         
         // Final check before initialization
         if (!isMounted) {
-          console.log('🛑 MultiWidget: Component unmounted before initialization');
           return;
         }
         
-        console.log('🔍 MultiWidget: Checking dependencies...');
-        console.log('🔍 MultiWidget: Container ref:', !!containerRef.current);
-        console.log('🔍 MultiWidget: Container ID:', containerRef.current?.id);
-        console.log('🔍 MultiWidget: PromptReviews:', !!window.PromptReviews);
-        console.log('🔍 MultiWidget: initializeWidget function:', !!window.PromptReviews?.initializeWidget);
-        console.log('🔍 MultiWidget: Reviews:', reviews);
-        console.log('🔍 MultiWidget: Design:', currentDesign);
         
         if (containerRef.current && window.PromptReviews?.initializeWidget) {
-          console.log('🚀 MultiWidget: Using initializeWidget API');
           // Always pass an array for reviews, even if empty
           window.PromptReviews.initializeWidget(
             containerRef.current.id,
@@ -166,21 +144,12 @@ const MultiWidget: React.FC<MultiWidgetProps> = ({ data, design }) => {
 
           initializedRef.current = true;
         } else {
-          console.error('❌ MultiWidget: Missing dependencies for initialization.');
-          console.log('🔍 MultiWidget: Debug info:', {
-            containerRef: !!containerRef.current,
-            PromptReviews: !!window.PromptReviews,
-            initializeWidget: !!window.PromptReviews?.initializeWidget,
-            retryCount: retryCountRef.current
-          });
           
           // Retry mechanism
           if (retryCountRef.current < maxRetries && isMounted) {
             retryCountRef.current++;
-            console.log(`🔄 MultiWidget: Retrying initialization (${retryCountRef.current}/${maxRetries})...`);
             setTimeout(initializeWidget, 500);
           } else {
-            console.error('❌ MultiWidget: Max retries reached, giving up');
           }
         }
       } catch (error) {
@@ -189,7 +158,6 @@ const MultiWidget: React.FC<MultiWidgetProps> = ({ data, design }) => {
         // Retry on error
         if (retryCountRef.current < maxRetries && isMounted) {
           retryCountRef.current++;
-          console.log(`🔄 MultiWidget: Retrying after error (${retryCountRef.current}/${maxRetries})...`);
           setTimeout(initializeWidget, 1000);
         }
       }
@@ -198,21 +166,13 @@ const MultiWidget: React.FC<MultiWidgetProps> = ({ data, design }) => {
     // Initialize widget whenever we have the design (reviews can be empty)
     if (currentDesign && !initializedRef.current) {
       retryCountRef.current = 0; // Reset retry count
-      console.log('🚀 MultiWidget: Initializing widget:', {
-        reviewsCount: reviews?.length || 0,
-        designKeys: Object.keys(currentDesign || {}),
-        containerId: `promptreviews-widget-container-${data.id}`
-      });
       initializeWidget();
     } else if (!currentDesign) {
-      console.log('⚠️ MultiWidget: Waiting for design data');
     } else {
-      console.log('⚠️ MultiWidget: Already initialized');
     }
 
     // Cleanup function
     return () => {
-      console.log('🧹 MultiWidget: Component unmounting, setting cleanup flag');
       isMounted = false;
       initializedRef.current = false;
     };
@@ -221,10 +181,6 @@ const MultiWidget: React.FC<MultiWidgetProps> = ({ data, design }) => {
   // Separate effect to handle updates after initialization (design or reviews change)
   useEffect(() => {
     if (initializedRef.current && window.PromptReviews?.initializeWidget && containerRef.current) {
-      console.log('🔄 MultiWidget: Data changed, re-initializing widget:', {
-        reviewsCount: reviews?.length || 0,
-        hasDesign: !!currentDesign
-      });
       window.PromptReviews.initializeWidget(
         containerRef.current.id,
         reviews || [],

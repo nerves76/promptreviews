@@ -180,7 +180,6 @@ export default function PhotoPromptPageForm({
     setAiGeneratingIndex(idx);
     try {
       // TODO: Implement AI review generation logic
-      console.log('Generating AI review for index:', idx);
       // Simulate AI generation delay
       await new Promise(resolve => setTimeout(resolve, 2000));
     } catch (error) {
@@ -242,17 +241,13 @@ export default function PhotoPromptPageForm({
         selected_kickstarters: formData.selected_kickstarters,
       };
       
-      console.log('🔥 PhotoPromptPageForm calling onSave with:', saveData);
       const result = await onSave(saveData);
-      console.log('🔥 PhotoPromptPageForm onSave result:', result);
       
       // Call success callback if provided (this triggers redirect)
       if (onPublishSuccess && result && typeof result === 'object' && 'slug' in result) {
         const typedResult = result as { slug: string };
-        console.log('🔥 PhotoPromptPageForm calling onPublishSuccess with slug:', typedResult.slug);
         onPublishSuccess(typedResult.slug);
       } else {
-        console.log('🔥 PhotoPromptPageForm - no onPublishSuccess callback or slug');
       }
     } catch (error) {
       console.error('Error saving photo prompt page:', error);

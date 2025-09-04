@@ -48,7 +48,6 @@ export async function withRetry<T>(
       
       // Success - return the result
       if (attempt > 0) {
-        console.log(`✅ Stripe API call succeeded after ${attempt} retries`);
       }
       return result;
       

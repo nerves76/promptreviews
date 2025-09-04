@@ -20,15 +20,12 @@ export default function AuthDebugPage() {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('Auth state changed:', event, session);
         setSession(session);
         setUser(session?.user || null);
         
         if (event === 'SIGNED_IN') {
-          console.log('✅ User signed in successfully');
           await checkAuthState();
         } else if (event === 'SIGNED_OUT') {
-          console.log('👋 User signed out');
           setUser(null);
           setSession(null);
         }
@@ -45,19 +42,15 @@ export default function AuthDebugPage() {
       setLoading(true);
       setError(null);
       
-      console.log('🔍 Checking authentication state...');
       
       // Check session
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      console.log('Session check result:', { session, error: sessionError });
       
       // Check user
       const { data: { user }, error: userError } = await supabase.auth.getUser();
-      console.log('User check result:', { user, error: userError });
       
       // Get cookies
       const cookieString = typeof document !== 'undefined' ? document.cookie : '';
-      console.log('Current cookies:', cookieString);
       
       // Set state
       setSession(session);
@@ -95,7 +88,6 @@ export default function AuthDebugPage() {
       setLoading(true);
       setError(null);
       
-      console.log('🧪 Testing sign in...');
       
       const { data, error } = await supabase.auth.signInWithPassword({
         email: 'nerves76@gmail.com',
@@ -106,7 +98,6 @@ export default function AuthDebugPage() {
         console.error('Sign in failed:', error);
         setError(`Sign in failed: ${error.message}`);
       } else {
-        console.log('✅ Sign in successful:', data);
         await checkAuthState();
       }
     } catch (err) {
@@ -122,7 +113,6 @@ export default function AuthDebugPage() {
       setLoading(true);
       setError(null);
       
-      console.log('👋 Testing sign out...');
       
       const { error } = await supabase.auth.signOut();
       
@@ -130,7 +120,6 @@ export default function AuthDebugPage() {
         console.error('Sign out failed:', error);
         setError(`Sign out failed: ${error.message}`);
       } else {
-        console.log('✅ Sign out successful');
         await checkAuthState();
       }
     } catch (err) {

@@ -15,7 +15,6 @@ export function NavigationDebugger() {
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    console.log('🔍 Navigation Debugger Active');
     
     // Create global navigation tracker
     (window as any).__navDebug = {
@@ -39,11 +38,6 @@ export function NavigationDebugger() {
                      type.includes('mount') ? 'color: green' :
                      'color: blue';
         
-        console.log(`%c[NavDebug] ${type}`, color, {
-          ...details,
-          component: entry.component,
-          pathname: entry.pathname
-        });
         
         // Detect navigation loops
         const recentNavs = this.logs.slice(-10);
@@ -68,24 +62,19 @@ export function NavigationDebugger() {
           acc[log.type] = (acc[log.type] || 0) + 1;
           return acc;
         }, {});
-        console.log('Navigation events by type:');
         console.table(byType);
         
         // Show navigation patterns
         const pathChanges = this.logs.filter(l => l.type === 'pathname_change');
         if (pathChanges.length > 0) {
-          console.log('Path navigation sequence:');
           pathChanges.slice(-10).forEach(p => {
-            console.log(`  ${p.timestamp}: ${p.details.from} → ${p.details.to}`);
           });
         }
         
         // Show recent router.push calls
         const pushCalls = this.logs.filter(l => l.type === 'router_push');
         if (pushCalls.length > 0) {
-          console.log('Recent router.push calls:');
           pushCalls.slice(-5).forEach(p => {
-            console.log(`  ${p.timestamp}: ${p.details.url} from ${p.component}`);
           });
         }
         
@@ -157,7 +146,6 @@ export function NavigationDebugger() {
     
     // Add console helper
     (window as any).navReport = () => (window as any).__navDebug.getReport();
-    console.log('💡 Type "navReport()" in console for navigation debug report');
     
     return () => {
       // Restore original methods

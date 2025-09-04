@@ -84,7 +84,6 @@ export default function LocationSelectionModal({
 
   // Confirm selection
   const handleConfirm = () => {
-    console.log('LocationSelectionModal - Confirming with IDs:', selectedIds);
     if (selectedIds.length === 0) {
       console.warn('No locations selected');
       return;

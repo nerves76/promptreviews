@@ -55,10 +55,8 @@ export function SharedAccountProvider({ children }: { children: React.ReactNode 
     // 4. User gets redirected to create-business
     // The force flag is only used during logout to truly clear the ID.
     if (accountId && !id && !force) {
-      console.log('⚠️ SharedAccountState: Attempted to set null over existing account ID:', accountId, '- ignoring');
       return;
     }
-    console.log('🔄 SharedAccountState: Setting account ID to:', id, '(was:', accountId, ')', force ? '[FORCED]' : '');
     setAccountIdState(id);
     // Force re-render of all consumers
     setUpdateCounter(prev => prev + 1);

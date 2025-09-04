@@ -13,7 +13,6 @@ export default function FeedbackBubble() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   
   // Debug logging
-  console.log('🎯 FeedbackBubble component rendered');
 
   // Add keyboard shortcut for help (?)
   useEffect(() => {

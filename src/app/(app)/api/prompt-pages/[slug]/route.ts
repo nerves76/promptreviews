@@ -148,14 +148,12 @@ export async function GET(
       );
     }
 
-    console.log(`[PROMPT-PAGE-BY-SLUG] Fetching prompt page for slug: ${slug}`);
 
     // DEVELOPMENT MODE BYPASS - Return mock Universal prompt page
     let promptPage = null;
     let promptError = null;
     
     if (process.env.NODE_ENV === 'development' && slug === 'universal-mdwd0peh') {
-      console.log('🔧 DEV MODE: Returning mock Universal prompt page data');
       
       // Default mock data
       let mockData = {
@@ -198,7 +196,6 @@ export async function GET(
       if (savedDataHeader) {
         try {
           const savedData = JSON.parse(savedDataHeader);
-          console.log('🔧 DEV MODE: Using saved Universal page data from header');
           // Merge saved data with defaults
           mockData = { ...mockData, ...savedData };
         } catch (e) {
@@ -228,21 +225,18 @@ export async function GET(
     }
 
     if (!promptPage) {
-      console.log(`[PROMPT-PAGE-BY-SLUG] No prompt page found for slug: ${slug}`);
       return NextResponse.json(
         { error: "Prompt page not found" },
         { status: 404 }
       );
     }
 
-    console.log(`[PROMPT-PAGE-BY-SLUG] Successfully fetched prompt page: ${promptPage.id}`);
 
     // Get business profile - check if this is a location-specific page first
     let businessProfile = null;
 
     // If this prompt page is associated with a specific location, get location data
     if (promptPage.business_location_id) {
-      console.log(`[PROMPT-PAGE-BY-SLUG] Fetching location-specific data for location ID: ${promptPage.business_location_id}`);
       
       const { data: locationData, error: locationErr } = await supabaseService
         .from('business_locations')
@@ -272,17 +266,14 @@ export async function GET(
           gradient_middle: '#818CF8',
           gradient_end: '#C7D2FE'
         };
-        console.log(`[PROMPT-PAGE-BY-SLUG] Using location-specific data for: ${locationData.name}`);
       }
     }
 
     // If no location-specific data found, fall back to general business data
     if (!businessProfile) {
-      console.log('[PROMPT-PAGE-BY-SLUG] Fetching general business data');
       
       // DEVELOPMENT MODE BYPASS - Return mock business profile
       if (process.env.NODE_ENV === 'development' && promptPage.account_id === '12345678-1234-5678-9abc-123456789012') {
-        console.log('🔧 DEV MODE: Returning mock business profile data for public page');
         // NOTE: Mock data includes sensitive fields that will be filtered out by filterBusinessProfile
         businessProfile = {
           id: '6762c76a-8677-4c7f-9a0f-f444024961a2',
@@ -319,7 +310,6 @@ export async function GET(
         // Try businesses table first with a simple select
         // For Universal pages, if there are multiple businesses, get the first one
         // Use service role client to bypass RLS for public pages
-        console.log('[PROMPT-PAGE-BY-SLUG] Querying businesses table for account_id:', promptPage.account_id);
         const { data: businessData, error: businessErr } = await supabaseService
           .from('businesses')
           .select('*')
@@ -328,15 +318,8 @@ export async function GET(
           .limit(1)
           .maybeSingle(); // Use maybeSingle() instead of single() to handle 0 or 1 results
 
-        console.log('[PROMPT-PAGE-BY-SLUG] Business query result:', { 
-          hasData: !!businessData, 
-          hasError: !!businessErr,
-          error: businessErr,
-          businessId: businessData?.id 
-        });
 
         if (businessErr) {
-          console.log('[PROMPT-PAGE-BY-SLUG] Businesses table error, trying business_locations:', businessErr);
           
           // Fallback to business_locations table
           const { data: locationData, error: locationErr } = await supabaseService
@@ -429,7 +412,6 @@ export async function PATCH(
       );
     }
 
-    console.log(`[PROMPT-PAGE-BY-SLUG] Updating prompt page for slug: ${slug}`);
 
     // SECURITY: Use regular client - this will now require proper authentication
     // and will respect RLS policies, preventing unauthorized updates
@@ -448,7 +430,6 @@ export async function PATCH(
       );
     }
 
-    console.log(`[PROMPT-PAGE-BY-SLUG] Successfully updated prompt page: ${promptPage.id}`);
     return NextResponse.json(promptPage);
   } catch (error) {
     console.error('[PROMPT-PAGE-BY-SLUG] Unexpected error:', error);

@@ -29,15 +29,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Account not found" }, { status: 404 });
     }
 
-    console.log("🔄 Manual sync for account:", userId);
-    console.log("  Current plan:", account.plan);
-    console.log("  Stripe customer:", account.stripe_customer_id);
 
     // If no Stripe customer ID, try to find by email
     let customerId = account.stripe_customer_id;
     
     if (!customerId && account.email) {
-      console.log("  No customer ID, searching by email:", account.email);
       const customers = await stripe.customers.list({
         email: account.email,
         limit: 1
@@ -45,7 +41,6 @@ export async function POST(req: NextRequest) {
       
       if (customers.data.length > 0) {
         customerId = customers.data[0].id;
-        console.log("  Found customer by email:", customerId);
       }
     }
     
@@ -63,7 +58,6 @@ export async function POST(req: NextRequest) {
       limit: 10,
     });
 
-    console.log("  Found", subscriptions.data.length, "active subscriptions");
 
     if (subscriptions.data.length === 0) {
       // Check for trialing subscriptions too
@@ -75,7 +69,6 @@ export async function POST(req: NextRequest) {
       
       if (trialingSubs.data.length > 0) {
         subscriptions.data = trialingSubs.data;
-        console.log("  Found", trialingSubs.data.length, "trialing subscriptions");
       }
     }
 
@@ -118,11 +111,6 @@ export async function POST(req: NextRequest) {
       }
     }
     
-    console.log("  Subscription ID:", subscription.id);
-    console.log("  Price ID:", priceId);
-    console.log("  Detected plan:", plan);
-    console.log("  Billing period:", billingPeriod);
-    console.log("  Status:", subscription.status);
 
     // Update the account
     const { data: updatedAccount, error: updateError } = await supabase
@@ -144,7 +132,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Failed to update account" }, { status: 500 });
     }
 
-    console.log("✅ Account synced successfully!");
     
     return NextResponse.json({ 
       success: true,

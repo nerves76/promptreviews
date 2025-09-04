@@ -69,12 +69,6 @@ export default function BusinessProfilePage() {
   // Debug logging for account selection (moved after state initialization)
   useEffect(() => {
     if (process.env.NODE_ENV === 'development') {
-      console.log('🔍 BusinessProfile: Account selection state', {
-        selectedAccount: selectedAccount?.account_id,
-        accountLoading,
-        availableAccountsCount: availableAccounts?.length,
-        pageState
-      });
     }
   }, [selectedAccount, accountLoading, availableAccounts, pageState]);
   
@@ -89,7 +83,6 @@ export default function BusinessProfilePage() {
   useEffect(() => {
     if (pageState === 'initial' || pageState === 'loading') {
       const timeout = setTimeout(() => {
-        console.error('⚠️ BusinessProfile: Loading timeout - forcing ready state');
         if (mountedRef.current) {
           setPageState('ready');
           setError('Loading timeout - please refresh the page');
@@ -121,7 +114,6 @@ export default function BusinessProfilePage() {
       if (savedData) {
         try {
           const parsed = JSON.parse(savedData);
-          console.log('📝 Restored business profile form data from localStorage');
           return parsed;
         } catch (e) {
           console.error('Failed to parse saved form data:', e);
@@ -218,7 +210,6 @@ export default function BusinessProfilePage() {
     const saveTimeout = setTimeout(() => {
       if (typeof window !== 'undefined' && form) {
         localStorage.setItem(formStorageKey, JSON.stringify(form));
-        console.log('💾 Auto-saved business profile form data');
       }
     }, 1000); // Debounce for 1 second
     
@@ -241,20 +232,10 @@ export default function BusinessProfilePage() {
       try {
         // Wait for account selection to complete
         if (accountLoading) {
-          console.log('⏳ BusinessProfile: Account is still loading, waiting...', {
-            accountLoading,
-            selectedAccount: selectedAccount?.account_id,
-            pageState
-          });
           return;
         }
         
         if (!selectedAccount) {
-          console.log('⚠️ BusinessProfile: No selected account available', {
-            accountLoading,
-            availableAccounts: availableAccounts?.length,
-            pageState
-          });
           // If we have no selected account and loading is done, set to ready to prevent infinite loading
           if (!accountLoading && mountedRef.current) {
             setPageState('ready');
@@ -265,7 +246,6 @@ export default function BusinessProfilePage() {
 
         // Skip if we're already in a ready state
         if (pageState === 'ready' && !loading) {
-          console.log('Skipping business profile reload - already ready');
           return;
         }
         
@@ -274,9 +254,6 @@ export default function BusinessProfilePage() {
           setPageState('loading');
         }
 
-        console.log('🔄 Loading business profile for account:', selectedAccount.account_id);
-        console.log('🔍 DEBUG: Full selectedAccount object:', selectedAccount);
-        console.log('🔍 DEBUG: Account loading state:', accountLoading);
         setLoading(true);
         setError("");
         setSuccess("");
@@ -293,13 +270,11 @@ export default function BusinessProfilePage() {
         setAccountId(currentAccountId);
 
         // Load business profile for the selected account
-        console.log('🔍 DEBUG: Querying businesses table with account_id:', currentAccountId);
         
         let businessProfiles, businessError;
         
         // DEVELOPMENT MODE: Use API endpoint to bypass RLS issues
         if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined' && localStorage.getItem('dev_auth_bypass') === 'true') {
-          console.log('🔧 DEV MODE: Using API endpoint to fetch businesses');
           try {
             const response = await fetch(`/api/businesses?account_id=${currentAccountId}`);
             const apiResult = await response.json();
@@ -326,9 +301,7 @@ export default function BusinessProfilePage() {
           businessError = result.error;
         }
         
-        console.log('🔍 DEBUG: Business query result:', { businessProfiles, businessError });
         const businessData = businessProfiles?.[0];
-        console.log('🔍 DEBUG: Selected business data:', businessData);
 
         if (businessError) {
           console.error("Error loading business profile:", businessError);
@@ -336,7 +309,6 @@ export default function BusinessProfilePage() {
           setNoProfile(true);
         } else if (!businessData) {
           // No business profile found for this account
-          console.log('📝 No business profile found for account:', currentAccountId);
           // Reset form to empty state
           setForm({
             name: "",
@@ -380,7 +352,6 @@ export default function BusinessProfilePage() {
           setLogoUrl(null);
           setNoProfile(true);
         } else if (businessData) {
-          console.log('✅ Business profile loaded for account:', currentAccountId, 'Business name:', businessData.name);
           setForm({
             ...businessData,
             business_website: businessData.business_website || "",
@@ -500,7 +471,6 @@ export default function BusinessProfilePage() {
     const file = e.target.files?.[0];
     if (!file) return;
     
-    console.log("Logo file selected:", file.name, file.size, file.type);
     
     if (file.size > 10 * 1024 * 1024) { // 10MB
       setLogoError("Please upload an image under 10MB. Large images may fail to process.");
@@ -512,7 +482,6 @@ export default function BusinessProfilePage() {
     }
     
     try {
-      console.log("Starting image compression for web version...");
       // Create web version (optimized for fast loading)
       const webVersion = await imageCompression(file, {
         maxSizeMB: 0.3, // 300KB for web display
@@ -522,7 +491,6 @@ export default function BusinessProfilePage() {
         initialQuality: 0.8,
       });
       
-      console.log("Starting image compression for print version...");
       // Create print version (optimized for print quality)
       const printVersion = await imageCompression(file, {
         maxSizeMB: 2.0, // 2MB for better print quality
@@ -532,7 +500,6 @@ export default function BusinessProfilePage() {
         initialQuality: 0.95, // Higher quality for print
       });
       
-      console.log("Web version size:", webVersion.size, "Print version size:", printVersion.size);
       
       // Store both versions for upload after cropping
       setRawLogoFile(webVersion); // Use web version for cropping preview
@@ -555,14 +522,11 @@ export default function BusinessProfilePage() {
 
   const handleCropConfirm = async () => {
     if (!logoUrl || !croppedAreaPixels) {
-      console.error("Missing logoUrl or croppedAreaPixels for crop confirmation");
       return;
     }
     
     try {
-      console.log("Starting image cropping for web version...");
       const croppedWebBlob = await getCroppedImg(logoUrl, croppedAreaPixels);
-      console.log("Web image cropping successful, blob size:", croppedWebBlob.size);
       
       const croppedWebFile = new File(
         [croppedWebBlob],
@@ -573,10 +537,8 @@ export default function BusinessProfilePage() {
       // If we have a print version, crop it too
       let croppedPrintFile = null;
       if (rawLogoPrintFile) {
-        console.log("Starting image cropping for print version...");
         const printLogoUrl = URL.createObjectURL(rawLogoPrintFile);
         const croppedPrintBlob = await getCroppedImg(printLogoUrl, croppedAreaPixels);
-        console.log("Print image cropping successful, blob size:", croppedPrintBlob.size);
         
         croppedPrintFile = new File(
           [croppedPrintBlob],
@@ -609,11 +571,9 @@ export default function BusinessProfilePage() {
     
     // Prevent multiple submissions
     if (isSubmitting) {
-      console.log("Form submission already in progress, ignoring duplicate submission");
       return;
     }
     
-    console.log("Starting form submission...");
     setIsSubmitting(true);
     setLoading(true);
     setError("");
@@ -622,7 +582,6 @@ export default function BusinessProfilePage() {
     
     // Add timeout to prevent endless loading
     const timeoutId = setTimeout(() => {
-      console.error("Form submission timed out after 30 seconds");
       setError("Request timed out. Please try again.");
       setLoading(false);
       setIsSubmitting(false);
@@ -642,19 +601,16 @@ export default function BusinessProfilePage() {
         return;
       }
       
-      console.log("User authenticated, proceeding with logo upload...");
       let uploadedLogoUrl = logoUrl;
       let uploadedLogoPrintUrl = null;
       
       if (logoFile) {
-        console.log("Logo file detected, starting upload process...");
         try {
           // Always use the 'logos' bucket and store in 'business-logos/{account_id}.webp' for consistency
           const bucketName = 'logos';
           const webFilePath = `business-logos/${selectedAccount?.account_id}.webp`;
           const printFilePath = `business-logos/${selectedAccount?.account_id}_print.webp`;
           
-          console.log("Uploading web logo to:", bucketName, webFilePath, "with file:", logoFile);
           
           // Upload web version
           const { error: webUploadError } = await supabase.storage
@@ -676,17 +632,14 @@ export default function BusinessProfilePage() {
             // Continue without logo upload rather than failing the entire save
             uploadedLogoUrl = logoUrl;
           } else {
-            console.log("Web logo upload successful, getting public URL...");
             const { data: publicUrlData } = supabase.storage
               .from(bucketName)
               .getPublicUrl(webFilePath);
-            console.log("Supabase publicUrlData:", publicUrlData);
             uploadedLogoUrl = publicUrlData?.publicUrl || null;
           }
           
           // Upload print version if available
           if (logoPrintFile) {
-            console.log("Uploading print logo to:", bucketName, printFilePath, "with file:", logoPrintFile);
             
             const { error: printUploadError } = await supabase.storage
               .from(bucketName)
@@ -696,65 +649,20 @@ export default function BusinessProfilePage() {
               });
             
             if (!printUploadError) {
-              console.log("Print logo upload successful, getting public URL...");
               const { data: printPublicUrlData } = supabase.storage
                 .from(bucketName)
                 .getPublicUrl(printFilePath);
-              console.log("Print logo publicUrlData:", printPublicUrlData);
               uploadedLogoPrintUrl = printPublicUrlData?.publicUrl || null;
             } else {
               console.error("Print logo upload failed:", printUploadError);
             }
           }
         } catch (uploadException) {
-          console.error("Exception during logo upload:", uploadException);
           setLogoError("Failed to upload logo, but profile will be saved.");
         }
       } else {
-        console.log("No logo file to upload, proceeding with profile update...");
       }
       
-      console.log("Updating business profile in database...");
-      console.log("Form data being sent:", {
-        name: form.name,
-        company_values: form.company_values,
-        differentiators: form.differentiators,
-        years_in_business: form.years_in_business,
-        industries_served: form.industries_served,
-        taglines: form.taglines,
-        keywords: form.keywords,
-        team_info: form.team_info,
-        review_platforms: form.review_platforms || [],
-        platform_word_counts: form.platform_word_counts,
-        logo_url: uploadedLogoUrl,
-        facebook_url: form.facebook_url,
-        instagram_url: form.instagram_url,
-        bluesky_url: form.bluesky_url,
-        tiktok_url: form.tiktok_url,
-        youtube_url: form.youtube_url,
-        linkedin_url: form.linkedin_url,
-        pinterest_url: form.pinterest_url,
-        default_offer_enabled: form.default_offer_enabled,
-        default_offer_title: form.default_offer_title,
-        default_offer_body: form.default_offer_body,
-        default_offer_url: form.default_offer_url,
-        address_street: form.address_street,
-        address_city: form.address_city,
-        address_state: form.address_state,
-        address_zip: form.address_zip,
-        address_country: form.address_country,
-        phone: form.phone,
-        business_website: form.business_website,
-        offer_learn_more_url: form.offer_learn_more_url,
-        business_email: form.business_email,
-        ai_dos: form.ai_dos,
-        ai_donts: form.ai_donts,
-        kickstarters_enabled: form.kickstarters_enabled,
-        selected_kickstarters: form.selected_kickstarters,
-        custom_kickstarters: form.custom_kickstarters,
-        kickstarters_background_design: form.kickstarters_background_design,
-        services_offered: services,
-      });
       
       const { error: updateError } = await supabase
         .from("businesses")
@@ -814,7 +722,6 @@ export default function BusinessProfilePage() {
         return;
       }
       
-      console.log("Profile update successful!");
       
       // Also update the business_name in the accounts table to sync with account switcher
       // This is especially important for the primary account
@@ -837,14 +744,12 @@ export default function BusinessProfilePage() {
         localStorage.removeItem(formStorageKey);
         localStorage.removeItem('businessProfilePlatforms');
         localStorage.removeItem('businessProfileServices');
-        console.log('🗑️ Cleared saved business profile form data');
       }
       
       // Mark business profile task as completed when user successfully saves
       try {
         if (accountId) {
           await markTaskAsCompleted(accountId, "business-profile");
-          console.log("Business profile task marked as completed");
         }
         
         // Dispatch custom event to notify other components

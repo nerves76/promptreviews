@@ -47,14 +47,12 @@ export async function POST(request: NextRequest) {
     const accountId = await getAccountIdForUser(user.id, supabase);
     
     if (!accountId) {
-      console.error('No account found for user:', user.id);
       return NextResponse.json(
         { error: 'No account found for user' },
         { status: 404 }
       );
     }
     
-    console.log('Found account ID:', accountId, 'for user:', user.id);
     
     // Get account details - try with max_gbp_locations first, fall back without if column doesn't exist
     let account: any;
@@ -69,7 +67,6 @@ export async function POST(request: NextRequest) {
     
     if (result.error?.message?.includes('max_gbp_locations')) {
       // Column doesn't exist yet, try without it
-      console.log('max_gbp_locations column not found, falling back to basic query');
       const fallbackResult = await supabase
         .from('accounts')
         .select('id, plan')
@@ -98,13 +95,6 @@ export async function POST(request: NextRequest) {
     // Use database value if available, otherwise fall back to plan defaults
     const maxLocations = account.max_gbp_locations || (account.plan === 'maven' ? 10 : 5);
     
-    console.log('Account details:', {
-      accountId,
-      plan: account.plan,
-      max_gbp_locations: account.max_gbp_locations,
-      calculatedMaxLocations: maxLocations,
-      requestedLocations: locations.length
-    });
     
     // Check if user is trying to select too many locations
     if (locations.length > maxLocations) {
@@ -120,16 +110,6 @@ export async function POST(request: NextRequest) {
 
     // TODO: Uncomment when selected_gbp_locations table is created
     // For now, just log what we would save
-    console.log('Would save selected locations:', {
-      accountId,
-      userId: user.id,
-      locationCount: locations.length,
-      locations: locations.map(loc => ({
-        id: loc.id,
-        name: loc.name,
-        address: loc.address
-      }))
-    });
     
     // Temporarily skip database operations since table doesn't exist yet
     /*
@@ -185,7 +165,6 @@ export async function POST(request: NextRequest) {
     }
     */
 
-    console.log(`✅ Saved ${locations.length} selected GBP locations for account ${accountId}`);
 
     return NextResponse.json({
       success: true,

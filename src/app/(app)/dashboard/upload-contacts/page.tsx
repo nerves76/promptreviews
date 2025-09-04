@@ -17,12 +17,6 @@ export default function UploadContactsPage() {
   const { selectedAccount, loading: accountLoading } = useAccountSelection();
   
   // Debug logging for account selection
-  console.log('📥 Upload Contacts Page - Account Selection State:', {
-    selectedAccount,
-    accountLoading,
-    selectedAccountId: selectedAccount?.account_id,
-    selectedAccountName: selectedAccount?.account_name
-  });
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [error, setError] = useState<string>("");
   const [success, setSuccess] = useState<string>("");
@@ -53,18 +47,12 @@ export default function UploadContactsPage() {
 
   useEffect(() => {
     const fetchAccount = async () => {
-      console.log('🔄 Upload Contacts Page - fetchAccount called:', {
-        accountLoading,
-        selectedAccountId: selectedAccount?.account_id
-      });
       
       // Wait for account selection to complete
       if (accountLoading || !selectedAccount?.account_id) {
-        console.log('⏸️ Upload Contacts Page - Waiting for account selection to complete');
         return;
       }
       
-      console.log('✅ Upload Contacts Page - Fetching account data for:', selectedAccount.account_id);
       
       const { data, error } = await supabase
         .from("accounts")
@@ -83,7 +71,6 @@ export default function UploadContactsPage() {
   }, [supabase, accountLoading, selectedAccount?.account_id]);
 
   useEffect(() => {
-    console.log("State updated:", { selectedFile, preview, error, success });
   }, [selectedFile, preview, error, success]);
 
   // Helper to determine if user is blocked from uploading contacts
@@ -98,13 +85,10 @@ export default function UploadContactsPage() {
       setShowUpgradeModal(true);
       return;
     }
-    console.log("File select event:", e);
     const file = e.target.files?.[0];
-    console.log("Selected file:", file);
     if (!file) return;
 
     if (file.type !== "text/csv") {
-      console.log("Invalid file type:", file.type);
       setError("Please select a CSV file");
       return;
     }
@@ -115,9 +99,7 @@ export default function UploadContactsPage() {
     // Read and preview the file
     const reader = new FileReader();
     reader.onload = (event) => {
-      console.log("File read complete");
       const text = event.target?.result as string;
-      console.log("File content:", text);
 
       // Parse CSV with proper handling of quoted fields
       const parseCSV = (csv: string) => {
@@ -150,7 +132,6 @@ export default function UploadContactsPage() {
       };
 
       const rows = parseCSV(text).slice(0, 6); // Preview first 5 rows + header
-      console.log("Parsed rows:", rows);
       setPreview(rows);
     };
     reader.onerror = (error) => {
@@ -239,7 +220,6 @@ export default function UploadContactsPage() {
         return;
       }
 
-      console.log("Session:", session);
 
       const formData = new FormData();
       formData.append("file", selectedFile);
@@ -254,7 +234,6 @@ export default function UploadContactsPage() {
       });
 
       const data = await response.json();
-      console.log("Upload response:", data);
 
       if (!response.ok) {
         if (

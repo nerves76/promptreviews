@@ -39,7 +39,6 @@ export default function ServicesEditor({ locations, isConnected }: ServicesEdito
       if (saved) {
         try {
           const parsed = JSON.parse(saved);
-          console.log('💾 Restored services form data from localStorage');
           return parsed;
         } catch (error) {
           console.error('Failed to parse saved services form data:', error);
@@ -75,7 +74,6 @@ export default function ServicesEditor({ locations, isConnected }: ServicesEdito
     const saveTimeout = setTimeout(() => {
       if (typeof window !== 'undefined' && businessInfo) {
         localStorage.setItem(formStorageKey, JSON.stringify(businessInfo));
-        console.log('💾 Auto-saved services form data');
       }
     }, 1000);
     
@@ -108,12 +106,6 @@ export default function ServicesEditor({ locations, isConnected }: ServicesEdito
   };
 
   const handleBusinessInfoLoaded = (loadedInfo: Partial<BusinessInfo>) => {
-    console.log('📥 ServicesEditor received loaded info:', {
-      hasPrimaryCategory: !!loadedInfo.primaryCategory,
-      hasAdditionalCategories: !!loadedInfo.additionalCategories,
-      additionalCategoriesCount: loadedInfo.additionalCategories?.length || 0,
-      serviceItemsCount: loadedInfo.serviceItems?.length || 0
-    });
     
     setBusinessInfo(prev => {
       const updated = {
@@ -135,7 +127,6 @@ export default function ServicesEditor({ locations, isConnected }: ServicesEdito
         primaryCategory: loadedInfo.primaryCategory?.displayName || '',
         description: loadedInfo.description || ''
       });
-      console.log('🤖 Set business context for AI generation:', businessContext);
     }
     
     setHasChanges(false);

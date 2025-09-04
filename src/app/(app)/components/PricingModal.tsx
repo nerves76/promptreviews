@@ -119,14 +119,6 @@ export default function PricingModal({
   isReactivation = false,
   hadPreviousTrial = false,
 }: PricingModalProps & { currentBillingPeriod?: 'monthly' | 'annual' }) {
-  console.log('🎯 PricingModal props:', {
-    currentPlan,
-    hasHadPaidPlan,
-    isReactivation,
-    hadPreviousTrial,
-    reactivationOffer,
-    showTrialBadge: !hasHadPaidPlan && !hadPreviousTrial && (!currentPlan || currentPlan === "grower" || currentPlan === "free" || currentPlan === "none" || currentPlan === "no_plan")
-  });
   const [tooltip, setTooltip] = useState<string | null>(null);
   const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(
     null,

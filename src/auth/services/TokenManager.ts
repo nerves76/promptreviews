@@ -45,7 +45,6 @@ class TokenManager {
     
     // Set up auth state listener for critical events only
     this.supabase.auth.onAuthStateChange((event, newSession) => {
-      console.log('🔐 TokenManager: Auth event:', event);
       
       // Handle token refresh silently
       if (event === 'TOKEN_REFRESHED' && newSession) {
@@ -78,7 +77,6 @@ class TokenManager {
   }
   
   private handleTokenRefresh(newSession: Session) {
-    console.log('🔄 TokenManager: Silently updating token');
     // Update session without triggering React re-renders
     this.session = newSession;
     // Reschedule next refresh
@@ -100,7 +98,6 @@ class TokenManager {
     const expiresIn = (expiresAt * 1000) - Date.now();
     const refreshIn = Math.max(expiresIn - (5 * 60 * 1000), 10000); // At least 10 seconds
     
-    console.log(`⏰ TokenManager: Scheduling refresh in ${Math.round(refreshIn / 1000)}s`);
     
     this.refreshTimer = setTimeout(() => {
       this.refreshTokenProactively();
@@ -111,7 +108,6 @@ class TokenManager {
     if (this.isRefreshing) return;
     
     this.isRefreshing = true;
-    console.log('🔄 TokenManager: Proactively refreshing token');
     
     try {
       const { data, error } = await this.supabase.auth.refreshSession();

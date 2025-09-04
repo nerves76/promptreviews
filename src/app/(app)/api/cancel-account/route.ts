@@ -35,13 +35,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Confirmation required' }, { status: 400 });
     }
 
-    console.log(`🗑️ Account cancellation requested for user: ${userId}`);
 
     // Get the user's account ID using the utility function
     const accountId = await getRequestAccountId(request, userId, supabase);
     
     if (!accountId) {
-      console.error(`No account found for user: ${userId}`);
       return NextResponse.json({ error: 'Account not found' }, { status: 404 });
     }
 
@@ -60,7 +58,6 @@ export async function POST(request: NextRequest) {
 
     // Only owners can delete accounts
     if (accountUser.role !== 'owner') {
-      console.error(`User ${userId} attempted to delete account ${accountId} but is not owner (role: ${accountUser.role})`);
       return NextResponse.json({ 
         error: 'Only account owners can delete accounts',
         userRole: accountUser.role 
@@ -95,14 +92,12 @@ export async function POST(request: NextRequest) {
     let stripeError = null;
     
     if (account.stripe_subscription_id) {
-      console.log(`🎯 Account has Stripe subscription ID: ${account.stripe_subscription_id}`);
       
       try {
         // First, try to retrieve the subscription to check if it exists and is active
         let subscription;
         try {
           subscription = await stripeWithRetry.retrieveSubscription(account.stripe_subscription_id);
-          console.log(`📊 Retrieved subscription with status: ${subscription.status}`);
         } catch (retrieveError: any) {
           console.warn(`⚠️ Could not retrieve subscription: ${retrieveError.message}`);
           subscription = null;
@@ -111,15 +106,12 @@ export async function POST(request: NextRequest) {
         // Check subscription status
         if (!subscription) {
           // Subscription doesn't exist in Stripe - safe to delete account
-          console.log(`ℹ️ Subscription doesn't exist in Stripe - safe to proceed`);
           stripeSubscriptionCancelled = true;
         } else if (subscription.status === 'canceled' || subscription.status === 'incomplete_expired') {
           // Already cancelled - safe to delete account
-          console.log(`ℹ️ Subscription already cancelled (status: ${subscription.status}) - safe to proceed`);
           stripeSubscriptionCancelled = true;
         } else {
           // Active subscription - MUST cancel it
-          console.log(`⚠️ Active subscription found (status: ${subscription.status}) - attempting to cancel...`);
           
           try {
             const updatedSubscription = await stripeWithRetry.updateSubscription(
@@ -134,7 +126,6 @@ export async function POST(request: NextRequest) {
               }
             );
             
-            console.log(`✅ Stripe subscription cancelled successfully`);
             stripeSubscriptionCancelled = true;
             
             // Note: We successfully cancelled the subscription in Stripe
@@ -156,7 +147,6 @@ export async function POST(request: NextRequest) {
       
       // If we couldn't cancel an active subscription, we MUST NOT delete the account
       if (!stripeSubscriptionCancelled) {
-        console.error('❌ Cannot delete account - active subscription could not be cancelled');
         return NextResponse.json({ 
           error: 'Cannot delete account while subscription is active. Please cancel your subscription first or contact support.',
           details: stripeError,
@@ -164,7 +154,6 @@ export async function POST(request: NextRequest) {
         }, { status: 400 });
       }
     } else {
-      console.log('ℹ️ No Stripe subscription ID found - safe to proceed with deletion');
     }
 
     // Soft delete the account - set deleted_at and reset plan
@@ -182,7 +171,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to cancel account' }, { status: 500 });
     }
 
-    console.log(`✅ Account soft-deleted successfully: ${account.email} (ID: ${accountId})`);
 
     // Optional: Sign out the user
     await supabase.auth.signOut();

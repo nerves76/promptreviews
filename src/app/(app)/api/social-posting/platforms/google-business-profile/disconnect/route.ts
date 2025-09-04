@@ -33,18 +33,12 @@ import { cookies } from 'next/headers';
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('🔌 Google Business Profile disconnect requested');
     
     // Create server-side Supabase client for auth
     const cookieStore = await cookies();
     
     // Debug cookies
     const allCookies = cookieStore.getAll();
-    console.log('🍪 Available cookies:', {
-      total: allCookies.length,
-      supabaseCookies: allCookies.filter(c => c.name.startsWith('sb-')).length,
-      cookieNames: allCookies.map(c => c.name)
-    });
     
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -71,14 +65,8 @@ export async function POST(request: NextRequest) {
     );
     
     // Get current user with proper error handling
-    console.log('🔍 Attempting to get user for disconnect...');
     const { data: { user }, error: userError } = await supabase.auth.getUser();
     
-    console.log('🔍 User fetch result:', {
-      hasUser: !!user,
-      userId: user?.id,
-      error: userError?.message
-    });
     
     if (userError || !user) {
       console.error('❌ User not authenticated for disconnect:', userError || 'No user found');
@@ -88,11 +76,9 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    console.log('✅ User authenticated for disconnect:', user.id);
     
     // Optional: Revoke tokens with Google first (best practice)
     try {
-      console.log('🔄 Getting tokens for revocation...');
       
       // Get the tokens before we delete them (using service role)
       const { data: tokenData } = await serviceSupabase
@@ -102,7 +88,6 @@ export async function POST(request: NextRequest) {
         .single();
       
       if (tokenData?.access_token) {
-        console.log('🔄 Attempting to revoke Google tokens...');
         
         // Revoke the access token with Google
         const revokeResponse = await fetch(`https://oauth2.googleapis.com/revoke?token=${tokenData.access_token}`, {
@@ -113,12 +98,10 @@ export async function POST(request: NextRequest) {
         });
         
         if (revokeResponse.ok) {
-          console.log('✅ Successfully revoked Google tokens');
         } else {
           console.warn('⚠️ Failed to revoke Google tokens, proceeding with database cleanup');
         }
       } else {
-        console.log('ℹ️ No access token found for revocation');
       }
     } catch (revokeError) {
       console.warn('⚠️ Token revocation failed, proceeding with database cleanup:', revokeError);
@@ -132,11 +115,6 @@ export async function POST(request: NextRequest) {
       .eq('user_id', user.id)
       .maybeSingle();
     
-    console.log('🔍 Tokens before deletion:', {
-      exists: !!existingTokens,
-      id: existingTokens?.id,
-      checkError: checkError?.message
-    });
     
     // Remove Google Business Profile tokens from database (using service role)
     const { data: deleteData, error: deleteError, count } = await serviceSupabase
@@ -153,11 +131,6 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    console.log('✅ Successfully removed Google Business Profile tokens from database', {
-      deletedCount: count,
-      deletedRows: deleteData?.length || 0,
-      deletedData: deleteData
-    });
     
     // Verify deletion (using service role)
     const { data: verifyTokens, error: verifyError } = await serviceSupabase
@@ -166,11 +139,6 @@ export async function POST(request: NextRequest) {
       .eq('user_id', user.id)
       .maybeSingle();
     
-    console.log('🔍 Tokens after deletion:', {
-      stillExists: !!verifyTokens,
-      id: verifyTokens?.id,
-      verifyError: verifyError?.message
-    });
     
     // Also remove all Google Business locations for this user (using service role)
     const { error: locationsDeleteError } = await serviceSupabase
@@ -182,7 +150,6 @@ export async function POST(request: NextRequest) {
       console.error('⚠️ Error removing Google Business locations:', locationsDeleteError);
       // Don't fail the whole operation if location cleanup fails
     } else {
-      console.log('✅ Successfully removed Google Business locations from database');
     }
     
     // Clean up rate limit records (using service role)
@@ -195,7 +162,6 @@ export async function POST(request: NextRequest) {
       console.error('⚠️ Error removing rate limit records:', rateLimitError);
       // Don't fail the whole operation if rate limit cleanup fails
     } else {
-      console.log('✅ Successfully cleaned up rate limit records');
     }
     
     return NextResponse.json({

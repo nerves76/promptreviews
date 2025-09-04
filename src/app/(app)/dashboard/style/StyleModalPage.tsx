@@ -313,7 +313,6 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
     try {
       const { data: { user }, error } = await getUserOrMock(supabase);
       if (error || !user) {
-        console.log("No authenticated user found for style settings");
         setLoading(false);
         return;
       }
@@ -321,7 +320,6 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
       // Use prop accountId - should always be provided by parent component
       const accountId = propAccountId;
       if (!accountId) {
-        console.log("No account ID provided as prop");
         setLoading(false);
         return;
       }
@@ -349,7 +347,6 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
       }
       
       if (business) {
-        console.log('[StyleModal] Fetched business data:', business);
         setSettings(s => ({
           ...s,
           primary_font: business.primary_font || "Inter",
@@ -449,13 +446,11 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
   }, [isDragging, dragOffset]);
 
   React.useEffect(() => {
-    console.log('[StyleModal] Component mounted, fetching settings...');
     fetchSettings();
   }, []);
 
   async function handleSave() {
     setSaving(true);
-    console.log('Saving settings:', settings);
     try {
       const { data: { user }, error } = await getUserOrMock(supabase);
       if (error || !user) {
@@ -466,7 +461,6 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
 
       // Use prop accountId - should always be provided by parent component
       const accountId = propAccountId;
-      console.log('Using account ID:', accountId);
       if (!accountId) {
         alert("No account ID provided");
         setSaving(false);
@@ -504,7 +498,6 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
         console.error('Update error:', updateError);
         alert("Failed to save style settings: " + updateError.message);
       } else {
-        console.log('Settings saved successfully');
         setSuccessMessage("All style changes saved successfully!");
         setSuccess(true);
         fetchSettings();

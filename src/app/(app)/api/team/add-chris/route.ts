@@ -115,11 +115,6 @@ export async function POST(request: NextRequest) {
     const chrisUser = usersList.users.find(u => u.email === CHRIS_EMAIL);
     const chrisUserId = chrisUser?.id;
 
-    console.log('Looking for Chris:', {
-      chrisEmail: CHRIS_EMAIL,
-      found: !!chrisUserId,
-      userId: chrisUserId
-    });
 
     if (chrisUserId) {
       // Check if Chris is already a member
@@ -137,11 +132,6 @@ export async function POST(request: NextRequest) {
       }
 
       // Add Chris directly as a support member (bypassing user limits)
-      console.log('Adding Chris to account:', {
-        account_id: accountUser.account_id,
-        user_id: chrisUserId,
-        role: 'support'
-      });
       
       // Use admin client to bypass RLS policies
       const { error: addUserError } = await supabaseAdmin
@@ -155,7 +145,6 @@ export async function POST(request: NextRequest) {
       if (addUserError) {
         // Check if it's a duplicate key error (Chris already in account)
         if (addUserError.code === '23505' || addUserError.message?.includes('duplicate key')) {
-          console.log('Chris is already a member of this account');
           return NextResponse.json({
             message: 'Chris is already a member of this account',
             already_member: true
@@ -232,13 +221,6 @@ export async function POST(request: NextRequest) {
       day: 'numeric'
     });
 
-    console.log('📧 Sending support invitation email to Chris...', {
-      to: CHRIS_EMAIL,
-      from: inviterName,
-      business: businessName,
-      role: 'support',
-      expires: formattedExpirationDate
-    });
 
     // Send the email with custom message for Chris
     const emailResult = await sendTeamInvitationEmail(

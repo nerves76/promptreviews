@@ -248,7 +248,6 @@ export default function ReviewManagement({ locations, isConnected }: ReviewManag
           }
         }
       } catch (profileError) {
-        console.log('Could not fetch Google Business Profile data, using default context');
       }
 
       const response = await fetch('/api/ai/google-business/generate-review-response', {
@@ -312,7 +311,6 @@ export default function ReviewManagement({ locations, isConnected }: ReviewManag
           }
         }
       } catch (profileError) {
-        console.log('Could not fetch Google Business Profile data, using default context');
       }
 
       const response = await fetch('/api/ai/google-business/generate-review-response', {

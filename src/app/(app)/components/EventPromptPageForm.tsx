@@ -94,10 +94,8 @@ export default function EventPromptPageForm({
   // Update form data when initialData changes (for inheritance)
   useEffect(() => {
     if (initialData && Object.keys(initialData).length > 0) {
-      console.log('🔄 EventPromptPageForm: initialData changed, updating form data:', initialData);
       setFormData((prev: any) => {
         const newData = { ...prev, ...initialData };
-        console.log('🔄 EventPromptPageForm: Updated form data:', newData);
         return newData;
       });
     }
@@ -153,14 +151,12 @@ export default function EventPromptPageForm({
     setAiGeneratingIndex(idx);
     
     if (!businessProfile) {
-      console.error("Business profile not loaded");
       setAiGeneratingIndex(null);
       return;
     }
 
     const platforms = formData.review_platforms || [];
     if (!platforms[idx]) {
-      console.error("Platform not found at index", idx);
       setAiGeneratingIndex(null);
       return;
     }

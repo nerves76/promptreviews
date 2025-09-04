@@ -31,7 +31,6 @@ export async function POST(request: NextRequest) {
     // Get current user
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {
-      console.log('❌ Authentication error in update-tokens API:', authError);
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -43,7 +42,6 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    console.log('💾 Updating Google Business Profile tokens for user:', user.id);
 
     // Update tokens in database
     const { error: updateError } = await supabase
@@ -63,7 +61,6 @@ export async function POST(request: NextRequest) {
       }, { status: 500 });
     }
 
-    console.log('✅ Google Business Profile tokens updated successfully');
     
     return NextResponse.json({ 
       success: true,

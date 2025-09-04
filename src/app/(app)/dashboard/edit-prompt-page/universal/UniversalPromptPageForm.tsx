@@ -188,7 +188,6 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
       setAiGeneratingIndex(idx);
       try {
         // TODO: Implement AI review generation logic
-        console.log('Generating AI review for index:', idx);
         // Simulate AI generation delay
         await new Promise(resolve => setTimeout(resolve, 2000));
       } catch (error) {
@@ -200,7 +199,6 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
 
     // Debug: Log when modal state changes
     React.useEffect(() => {
-      console.log('🔍 Modal state changed:', showPopupConflictModal);
     }, [showPopupConflictModal]);
 
     // Expose a submit function via ref
@@ -294,7 +292,6 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
         className="space-y-8"
         onSubmit={(e) => {
           e.preventDefault();
-          console.log('🔍 Form onSubmit triggered');
           
           // Remove the review platform validation from here
           // It's now handled in the parent component's Save button
@@ -332,7 +329,6 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
             recent_reviews_scope: recentReviewsScope,
           };
           
-          console.log('🔍 Calling onSave with data:', formData);
           onSave(formData);
         }}
       >

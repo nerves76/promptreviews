@@ -13,7 +13,6 @@ import { canCreateAccounts } from "@/config/adminConfig";
 import PricingModal from "@/app/(app)/components/PricingModal";
 
 export default function AccountPage() {
-  console.log('🚀 AccountPage component rendering');
   const supabase = createClient();
 
   useAuthGuard();
@@ -60,7 +59,6 @@ export default function AccountPage() {
         const accountId = selectedAccountId || authAccount?.id;
         
         if (!accountId) {
-          console.log('AccountPage: No account found - redirecting to create business');
           router.push('/dashboard/create-business');
           return;
         }
@@ -79,13 +77,6 @@ export default function AccountPage() {
           return;
         }
 
-        console.log('📊 Account data loaded:', {
-          id: accountData.id,
-          email: accountData.email,
-          plan: accountData.plan,
-          deleted_at: accountData.deleted_at,
-          has_deleted_at: !!accountData.deleted_at
-        });
 
         // Note: Onboarding logic is now handled by the dashboard layout
         // This page should only load account data without redirecting for onboarding
@@ -94,16 +85,12 @@ export default function AccountPage() {
         
         // Check if account is already cancelled (deleted_at is set)
         if (accountData.deleted_at) {
-          console.log('🔴 Account is cancelled, showing reactivation offer');
-          console.log('🔴 Deleted at:', accountData.deleted_at);
           setAccountCancelled(true);
           // Show pricing modal after a short delay
           setTimeout(() => {
-            console.log('🔴 Opening pricing modal for cancelled account');
             setShowPricingModal(true);
           }, 1500);
         } else {
-          console.log('✅ Account is active (no deleted_at)');
         }
         
         setIsLoading(false);
@@ -142,17 +129,14 @@ export default function AccountPage() {
     setResetPasswordMessage(null);
 
     try {
-      console.log('🔄 Sending password reset email to:', user.email);
       
       const { error } = await supabase.auth.resetPasswordForEmail(user.email, {
         redirectTo: `${window.location.origin}/auth/callback?next=/reset-password`,
       });
 
       if (error) {
-        console.log('❌ Password reset email error:', error);
         setError(`Password reset failed: ${error.message}`);
       } else {
-        console.log('✅ Password reset email sent successfully');
         setError(null); // Clear any existing errors
         setResetPasswordMessage('Password reset email sent! Check your inbox and click the link to reset your password.');
         
@@ -296,7 +280,6 @@ export default function AccountPage() {
       });
 
       const result = await response.json();
-      console.log('Cancel account response:', { status: response.status, result });
 
       if (!response.ok) {
         console.error('Cancel account failed:', result);
@@ -377,7 +360,6 @@ export default function AccountPage() {
   // Check if account is cancelled and show reactivation immediately
   useEffect(() => {
     if (!isLoading && account?.deleted_at && !accountCancelled) {
-      console.log('🔴 Detected cancelled account, triggering reactivation modal');
       setAccountCancelled(true);
       setShowPricingModal(true);
     }
@@ -901,7 +883,6 @@ export default function AccountPage() {
         <PricingModal
           onSelectTier={async (tier: string, billingPeriod: 'monthly' | 'annual') => {
             // Handle plan selection
-            console.log('Selected plan:', tier, billingPeriod);
             setShowPricingModal(false);
             // Redirect to checkout or handle plan selection
             router.push(`/dashboard/plan?tier=${tier}&billing=${billingPeriod}&reactivation=true`);

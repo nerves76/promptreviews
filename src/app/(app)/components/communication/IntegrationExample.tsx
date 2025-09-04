@@ -49,13 +49,11 @@ export function PromptPageWithCommunication() {
           promptPage={promptPage}
           onCommunicationSent={() => {
             // Refresh data, show success message, etc.
-            console.log('Communication sent successfully!');
             // You might want to refresh the page data here
           }}
           onStatusUpdated={(newStatus) => {
             // Update local state when status changes
             setPromptPage(prev => ({ ...prev, status: newStatus }));
-            console.log('Status updated to:', newStatus);
           }}
           className="flex gap-2"
         />
@@ -163,7 +161,6 @@ export function ContactTableRowWithCommunication({ contact }: { contact: any }) 
             }}
             onStatusUpdated={(newStatus) => {
               // Update the contact's prompt page status
-              console.log('Updated status for', contact.first_name, 'to', newStatus);
             }}
             className="flex gap-1"
           />
@@ -196,7 +193,6 @@ export function BulkCommunicationExample() {
       if (communicationType === 'sms' && !contact.phone) continue;
 
       // Create communication record (you'd call your API here)
-      console.log(`Sending ${communicationType} to ${contact.first_name} ${contact.last_name}`);
     }
   };
 

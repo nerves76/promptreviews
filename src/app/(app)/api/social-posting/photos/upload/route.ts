@@ -9,7 +9,6 @@ import { GoogleBusinessProfileClient } from '@/features/social-posting/platforms
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('📷 Photo upload API called');
 
     // Get the authorization header
     const authHeader = request.headers.get('authorization');
@@ -34,7 +33,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('✅ User authenticated:', user.id);
 
     // Parse the form data
     const formData = await request.formData();
@@ -57,7 +55,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log(`📷 Processing upload: ${file.name} (${file.size} bytes) to location ${locationId}`);
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
@@ -91,7 +88,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('✅ Found Google Business Profile tokens for user:', user.id);
 
     // Create Google Business Profile client
     const gbpClient = new GoogleBusinessProfileClient({
@@ -118,7 +114,6 @@ export async function POST(request: NextRequest) {
     }
 
     const accountId = locationData.account_id;
-    console.log(`📍 Using account: ${accountId} for location: ${locationId}`);
 
     // Upload the photo to Google Business Profile
     const uploadResult = await gbpClient.uploadMedia(
@@ -139,7 +134,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('✅ Photo uploaded successfully to Google Business Profile');
 
     // Store upload record in database for tracking (use service role to bypass RLS)
     try {
@@ -163,7 +157,6 @@ export async function POST(request: NextRequest) {
         console.warn('Failed to store upload record:', insertError);
         // Don't fail the request if we can't store the record
       } else {
-        console.log('✅ Upload record stored successfully');
       }
     } catch (dbError) {
       console.warn('Database logging error:', dbError);

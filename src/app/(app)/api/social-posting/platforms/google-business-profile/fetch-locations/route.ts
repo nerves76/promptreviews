@@ -33,11 +33,9 @@ export async function POST(request: NextRequest) {
     // Get current user
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {
-      console.log('Authentication error in fetch-locations API:', authError);
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    console.log('🔍 Fetch-locations API called');
 
     // Create service role client for accessing OAuth tokens (bypasses RLS)
     const serviceSupabase = createClient(
@@ -52,7 +50,6 @@ export async function POST(request: NextRequest) {
       .eq('user_id', user.id);
     
     if (!checkError && existingLocations && existingLocations.length > 0) {
-      console.log(`✅ Found ${existingLocations.length} existing locations in database`);
       
       // Check if any location needs updating (status is UNKNOWN or updated_at is old)
       const needsUpdate = existingLocations.some(loc => 
@@ -62,7 +59,6 @@ export async function POST(request: NextRequest) {
       );
       
       if (!needsUpdate) {
-        console.log('✅ Locations are up to date, returning cached data');
         return NextResponse.json({
           success: true,
           message: `Found ${existingLocations.length} business locations`,
@@ -78,7 +74,6 @@ export async function POST(request: NextRequest) {
           }))
         });
       } else {
-        console.log('⚠️ Locations need updating (have UNKNOWN status or are stale), fetching fresh data from Google');
         // Delete old locations with UNKNOWN status to force fresh fetch
         const { error: deleteError } = await serviceSupabase
           .from('google_business_locations')
@@ -87,9 +82,7 @@ export async function POST(request: NextRequest) {
           .eq('status', 'UNKNOWN');
         
         if (deleteError) {
-          console.log('⚠️ Error deleting stale locations:', deleteError);
         } else {
-          console.log('✅ Deleted stale locations with UNKNOWN status');
         }
       }
     }
@@ -105,7 +98,6 @@ export async function POST(request: NextRequest) {
       .maybeSingle();
 
     if (rateLimitError && rateLimitError.code !== 'PGRST116') { // PGRST116 = no rows found
-      console.log('⚠️ Error checking rate limit status:', rateLimitError);
     }
 
     const now = Date.now();
@@ -113,11 +105,9 @@ export async function POST(request: NextRequest) {
     const timeSinceLastCall = now - lastApiCall;
     const requiredWait = 120000; // 2 minutes to be conservative with quota exhaustion
 
-    console.log(`🕐 Rate limit check: Last API call was ${Math.ceil(timeSinceLastCall / 1000)}s ago (required: ${Math.ceil(requiredWait / 1000)}s)`);
 
     if (timeSinceLastCall < requiredWait) {
       const remainingWait = Math.ceil((requiredWait - timeSinceLastCall) / 1000);
-      console.log(`⏳ Global rate limit active. Last API call was ${Math.ceil(timeSinceLastCall / 1000)}s ago. Need to wait ${remainingWait}s more.`);
       
       return NextResponse.json({
         success: false,
@@ -128,7 +118,6 @@ export async function POST(request: NextRequest) {
       }, { status: 429 });
     }
 
-    console.log('✅ Rate limit check passed, proceeding with API calls');
 
     // Get user's Google Business Profile tokens using service role
     const { data: tokens, error: tokenError } = await serviceSupabase
@@ -138,14 +127,12 @@ export async function POST(request: NextRequest) {
       .maybeSingle();
 
     if (tokenError || !tokens) {
-      console.log('Google Business Profile tokens not found for user:', user.id, tokenError);
       return NextResponse.json({ 
         error: 'Google Business Profile not connected',
         success: false
       });
     }
 
-    console.log('✅ Found Google Business Profile tokens for user:', user.id);
 
     // Create Google Business Profile client
     const client = new GoogleBusinessProfileClient({
@@ -156,7 +143,6 @@ export async function POST(request: NextRequest) {
 
     try {
       // Fetch accounts from Google Business Profile API
-      console.log('🔍 Fetching Google Business Profile accounts...');
       
       // Update rate limit timestamp right before making the API call
       await serviceSupabase
@@ -168,7 +154,6 @@ export async function POST(request: NextRequest) {
         });
       
       const accounts = await client.listAccounts();
-      console.log('✅ Found Google Business Profile accounts:', accounts.length);
       
       let allLocations: any[] = [];
       let hasErrors = false;
@@ -186,7 +171,6 @@ export async function POST(request: NextRequest) {
       // Process each account to fetch locations
       for (const account of accounts) {
         try {
-          console.log(`🔍 Fetching locations for account: ${account.name} (${accounts.indexOf(account) + 1}/${accounts.length})`);
           
           // Store rate limit tracking in database using service role
           await serviceSupabase
@@ -198,22 +182,10 @@ export async function POST(request: NextRequest) {
             });
           
           const locations = await client.listLocations(account.name);
-          console.log(`✅ Found ${locations.length} locations for account ${account.name}`);
           
           // Store locations in database
           for (const location of locations) {
             // Log the location fields for debugging
-            console.log(`📍 Processing location:`, {
-              id: location.name,
-              title: location.title,
-              locationName: location.locationName,
-              storefrontAddress: location.storefrontAddress,
-              phoneNumbers: location.phoneNumbers,
-              websiteUri: location.websiteUri,
-              metadata: location.metadata,
-              locationState: location.locationState,
-              verificationState: location.verificationState
-            });
             
             // Extract address properly
             let address = '';
@@ -256,7 +228,6 @@ export async function POST(request: NextRequest) {
               updated_at: new Date().toISOString()
             };
             
-            console.log(`📍 Storing location with name: "${locationData.location_name}"`);
             
             // Upsert location to avoid duplicates using service role
             const { error: insertError } = await serviceSupabase
@@ -285,7 +256,6 @@ export async function POST(request: NextRequest) {
       
       // Provide accurate status reporting
       if (hasErrors && allLocations.length === 0) {
-        console.log(`❌ Failed to fetch locations due to errors: ${errorMessages.join(', ')}`);
         return NextResponse.json({
           success: false,
           message: `Failed to fetch business locations: ${errorMessages.join(', ')}`,
@@ -293,7 +263,6 @@ export async function POST(request: NextRequest) {
           errors: errorMessages
         });
       } else if (hasErrors && allLocations.length > 0) {
-        console.log(`⚠️ Partially successful: fetched ${allLocations.length} locations with some errors`);
         return NextResponse.json({
           success: true,
           message: `Fetched ${allLocations.length} business locations with some errors`,
@@ -301,7 +270,6 @@ export async function POST(request: NextRequest) {
           warnings: errorMessages
         });
       } else {
-        console.log(`✅ Successfully fetched and stored ${allLocations.length} locations`);
         return NextResponse.json({
           success: true,
           message: allLocations.length > 0 
@@ -331,7 +299,6 @@ export async function POST(request: NextRequest) {
              errorMessage.includes('rate limit') ||
              errorMessage.includes('quota exceeded') ||
              errorMessage.includes('rate limit exceeded')) {
-           console.log('⚠️ Rate limit detected:', apiError.message);
            return NextResponse.json({
              success: false,
              error: 'RATE_LIMIT_ERROR',
@@ -352,11 +319,9 @@ export async function POST(request: NextRequest) {
              errorMessage.includes('unauthorized') ||
              errorMessage.includes('invalid credentials') ||
              errorMessage.includes('token expired')) {
-           console.log('⚠️ Authentication error detected:', apiError.message);
            
            // Try to refresh the token
            if (tokens.refresh_token) {
-             console.log('🔄 Attempting to refresh expired token...');
              try {
                const newTokens = await client.refreshAccessToken();
                if (newTokens && newTokens.access_token) {
@@ -370,7 +335,6 @@ export async function POST(request: NextRequest) {
                    })
                    .eq('user_id', user.id);
                  
-                 console.log('✅ Token refreshed successfully');
                  return NextResponse.json({
                    success: false,
                    error: 'TOKEN_REFRESHED',
@@ -400,7 +364,6 @@ export async function POST(request: NextRequest) {
              errorMessage.includes('forbidden') ||
              errorMessage.includes('permission denied') ||
              errorMessage.includes('access denied')) {
-           console.log('⚠️ Permission error detected:', apiError.message);
            return NextResponse.json({
              success: false,
              error: 'PERMISSION_ERROR',
@@ -418,7 +381,6 @@ export async function POST(request: NextRequest) {
          if (errorMessage.includes('timeout') || 
              errorMessage.includes('econnrefused') ||
              errorMessage.includes('network')) {
-           console.log('⚠️ Network error detected:', apiError.message);
            return NextResponse.json({
              success: false,
              error: 'NETWORK_ERROR',
@@ -433,7 +395,6 @@ export async function POST(request: NextRequest) {
          
          // Google API specific errors
          if (errorMessage.includes('google') || errorMessage.includes('gmbapi')) {
-           console.log('⚠️ Google API error:', apiError.message);
            errorResponse.details = {
              googleError: apiError.message,
              suggestion: 'The Google Business Profile API returned an error. This might be temporary.'

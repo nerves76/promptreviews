@@ -100,13 +100,6 @@ export default function PromptPageForm({
 
   // Debug log for formData changes
   useEffect(() => {
-    console.log("[DEBUG] formData updated:", {
-      first_name: formData.first_name,
-      last_name: formData.last_name,
-      phone: formData.phone,
-      email: formData.email,
-      role: formData.role,
-    });
   }, [formData.first_name, formData.last_name, formData.phone, formData.email, formData.role]);
 
   useEffect(() => {

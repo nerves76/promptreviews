@@ -63,7 +63,6 @@ export default function AccountReactivation({ onReactivated, onSkip }: Reactivat
     }
 
     try {
-      console.log('🔍 Checking reactivation status for account:', account.id);
       
       // Check if account needs reactivation
       const status = await checkAndReactivate(account.id);
@@ -76,11 +75,8 @@ export default function AccountReactivation({ onReactivated, onSkip }: Reactivat
         const availableOffer = await getOffer(account.id);
         setOffer(availableOffer);
         
-        console.log('💡 Reactivation needed. Days inactive:', status.daysInactive);
-        console.log('🎁 Offer available:', availableOffer);
       } else {
         // Account is active, no reactivation needed
-        console.log('✅ Account is active, no reactivation needed');
         if (onSkip) onSkip();
       }
     } catch (error) {
@@ -97,13 +93,11 @@ export default function AccountReactivation({ onReactivated, onSkip }: Reactivat
     setReactivating(true);
     
     try {
-      console.log('🚀 Starting reactivation process...');
       
       // Reactivate the account
       const result = await checkAndReactivate(account!.id);
       
       if (result.success) {
-        console.log('✅ Account reactivated successfully');
         
         // Refresh account data
         await refreshAccount();

@@ -284,7 +284,6 @@ export function CoreAuthProvider({ children }: { children: React.ReactNode }) {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, newSession) => {
-        console.log('Auth state change:', event);
         
         // Handle different auth events appropriately
         // TOKEN_REFRESHED: Silent token refresh, no UI updates needed
@@ -293,7 +292,6 @@ export function CoreAuthProvider({ children }: { children: React.ReactNode }) {
         
         if (event === 'TOKEN_REFRESHED') {
           // COMPLETELY IGNORE TOKEN_REFRESHED - TokenManager handles it
-          console.log('🔇 Ignoring TOKEN_REFRESHED in CoreAuth - handled by TokenManager');
           return; // Skip ALL updates for token refresh
         }
         
@@ -303,11 +301,9 @@ export function CoreAuthProvider({ children }: { children: React.ReactNode }) {
           setSession(prev => {
             // Check if the access token is different
             if (prev?.access_token !== newSession?.access_token) {
-              console.log('🔄 Updating session with new access token (silent)');
               return newSession;
             }
             // Same token, no update needed
-            console.log('🔇 Skipping session update - token unchanged');
             return prev;
           });
           return;
@@ -315,7 +311,6 @@ export function CoreAuthProvider({ children }: { children: React.ReactNode }) {
         
         if (event === 'INITIAL_SESSION') {
           // Initial page load - let it proceed normally
-          console.log('Initial session loaded');
         }
         
         if (newSession) {

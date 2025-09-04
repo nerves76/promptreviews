@@ -29,9 +29,7 @@ function ResetPasswordContent() {
       try {
         // Set up auth state change listener
         const { data } = supabase.auth.onAuthStateChange((event, session) => {
-          console.log("🔄 Auth state change detected:", event);
           if (session && session.user) {
-            console.log("✅ Session established via auth state change for user:", session.user.email);
             setIsAuthenticated(true);
             setUserEmail(session.user.email || "");
             setIsCheckingAuth(false);
@@ -47,7 +45,6 @@ function ResetPasswordContent() {
         const verifiedFromUrl = urlParams.get('verified');
         
         if (emailFromUrl && verifiedFromUrl === 'true') {
-          console.log("✅ Direct verification from URL parameters");
           setIsAuthenticated(true);
           setUserEmail(emailFromUrl);
           setIsCheckingAuth(false);
@@ -56,7 +53,6 @@ function ResetPasswordContent() {
           try {
             window.history.replaceState({}, document.title, window.location.pathname);
           } catch (e) {
-            console.log("History API error:", e);
           }
           return;
         }
@@ -64,7 +60,6 @@ function ResetPasswordContent() {
         // Check for existing session
         const { data: { session } } = await supabase.auth.getSession();
         if (session && session.user) {
-          console.log("✅ Existing session found for user:", session.user.email);
           setIsAuthenticated(true);
           setUserEmail(session.user.email || "");
           setIsCheckingAuth(false);
@@ -114,17 +109,14 @@ function ResetPasswordContent() {
     setError("");
 
     try {
-      console.log("🔄 Updating password...");
       
       const { error } = await supabase.auth.updateUser({
         password: password
       });
 
       if (error) {
-        console.log("❌ Password update error:", error);
         setError(`Password update failed: ${error.message}`);
       } else {
-        console.log("✅ Password updated successfully");
         alert("Password updated successfully! You can now sign in with your new password.");
         router.push("/auth/sign-in");
       }

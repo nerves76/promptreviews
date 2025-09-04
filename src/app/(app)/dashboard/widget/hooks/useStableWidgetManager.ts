@@ -29,7 +29,6 @@ export function useStableWidgetManager() {
     
     // If an operation is in progress, deny
     if (operationInProgressRef.current) {
-      console.log('🚫 Operation denied: Another operation in progress');
       return false;
     }
     
@@ -38,7 +37,6 @@ export function useStableWidgetManager() {
         lastOp.type === type && 
         lastOp.id === id && 
         (now - lastOp.timestamp) < DEBOUNCE_THRESHOLD) {
-      console.log(`🚫 Operation denied: Duplicate ${type} within ${DEBOUNCE_THRESHOLD}ms`);
       return false;
     }
     
@@ -55,7 +53,6 @@ export function useStableWidgetManager() {
       timestamp: Date.now()
     };
     operationInProgressRef.current = true;
-    console.log(`▶️ Starting operation: ${type}${id ? ` (${id})` : ''}`);
   }, []);
   
   /**
@@ -63,7 +60,6 @@ export function useStableWidgetManager() {
    */
   const endOperation = useCallback(() => {
     operationInProgressRef.current = false;
-    console.log('✅ Operation completed');
   }, []);
   
   /**

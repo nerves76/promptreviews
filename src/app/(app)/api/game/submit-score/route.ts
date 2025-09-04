@@ -136,7 +136,6 @@ export async function POST(request: NextRequest) {
 
     // If email provided, this is a lead - you could trigger email campaigns here
     if (email) {
-      console.log(`New game lead: ${email} - Score: ${score}`);
       // TODO: Add to email marketing list, send welcome email, etc.
     }
 

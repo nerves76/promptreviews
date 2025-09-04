@@ -32,12 +32,10 @@ export default function ReactivatePage() {
   // HANDLE EVENTS
   // ============================================
   const handleReactivated = () => {
-    console.log('✅ Account reactivated, redirecting to pricing...');
     // The component handles the redirect
   };
 
   const handleSkip = () => {
-    console.log('⏭️ User skipped reactivation');
     router.push('/dashboard');
   };
 

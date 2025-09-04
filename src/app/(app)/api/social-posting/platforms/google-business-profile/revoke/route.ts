@@ -10,7 +10,6 @@ import { cookies } from 'next/headers';
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('🔄 Google Business Profile revoke requested');
     
     // Create server-side Supabase client
     const cookieStore = await cookies();
@@ -41,7 +40,6 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    console.log('✅ User authenticated for revoke:', user.id);
     
     // Get the tokens to revoke
     const { data: tokenData } = await supabase
@@ -57,7 +55,6 @@ export async function POST(request: NextRequest) {
       // Try to revoke both tokens if available
       const tokenToRevoke = tokenData.refresh_token || tokenData.access_token;
       
-      console.log('🔄 Revoking Google tokens completely...');
       
       try {
         // Use Google's revoke endpoint to completely clear permissions
@@ -72,11 +69,9 @@ export async function POST(request: NextRequest) {
         const responseText = await revokeResponse.text();
         
         if (revokeResponse.ok) {
-          console.log('✅ Successfully revoked Google tokens - permissions cleared from Google');
           revokeSuccess = true;
           revokeMessage = 'Google permissions completely revoked. You can now reconnect with fresh permissions.';
         } else if (revokeResponse.status === 400 && responseText.includes('Token expired or revoked')) {
-          console.log('ℹ️ Tokens already revoked or expired');
           revokeSuccess = true;
           revokeMessage = 'Google permissions already cleared. You can now reconnect.';
         } else {
@@ -88,7 +83,6 @@ export async function POST(request: NextRequest) {
         revokeMessage = 'Error revoking permissions, but you can still try reconnecting.';
       }
     } else {
-      console.log('ℹ️ No tokens found to revoke');
       revokeSuccess = true;
       revokeMessage = 'No existing Google permissions found. You can connect fresh.';
     }

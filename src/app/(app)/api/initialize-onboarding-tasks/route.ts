@@ -63,7 +63,6 @@ export async function POST(request: NextRequest) {
       
       if (error) {
         accountError = error;
-        console.log(`Account fetch attempt ${attempt + 1} failed:`, error);
         
         // Wait before retrying (except on last attempt)
         if (attempt < 2) {

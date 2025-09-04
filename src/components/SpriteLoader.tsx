@@ -74,7 +74,6 @@ export default function SpriteLoader() {
         
         // Optional: Add loaded indicator for debugging
         if (process.env.NODE_ENV === 'development') {
-          console.log('📦 SVG Icon Sprite loaded successfully');
         }
       } catch (error) {
         console.error('❌ Failed to load SVG sprite:', error);

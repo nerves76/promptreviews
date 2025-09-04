@@ -75,7 +75,6 @@ function SignUpContent() {
 
   // Test function to help debug duplicate email behavior
   const testDuplicateEmailBehavior = async (testEmail: string) => {
-    console.log('🧪 Testing duplicate email behavior for:', testEmail);
     
     try {
       const { data, error } = await supabase.auth.signUp({
@@ -90,21 +89,9 @@ function SignUpContent() {
         },
       });
 
-      console.log('🧪 Test result:', {
-        hasError: !!error,
-        errorMessage: error?.message,
-        errorStatus: error?.status,
-        hasUser: !!data?.user,
-        userEmail: data?.user?.email,
-        userIdentities: data?.user?.identities?.length || 0,
-        hasSession: !!data?.session,
-        fullData: data,
-        fullError: error
-      });
 
       return { data, error };
     } catch (err) {
-      console.log('🧪 Test caught exception:', err);
       return { error: err };
     }
   };
@@ -113,7 +100,6 @@ function SignUpContent() {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       (window as any).testDuplicateEmail = testDuplicateEmailBehavior;
-      console.log('🧪 Test function exposed: window.testDuplicateEmail("test@example.com")');
     }
   }, []);
 
@@ -125,17 +111,9 @@ function SignUpContent() {
     
     // Prevent double submission
     if (loading) {
-      console.log('🚫 Form submission blocked - already loading');
       return;
     }
     
-    console.log('🚀 Form submission started');
-    console.log('📝 Form data before validation:', { 
-      firstName: firstName.length, 
-      lastName: lastName.length, 
-      email: email.length, 
-      password: password.length 
-    });
     
     setLoading(true);
     setError("");
@@ -188,8 +166,6 @@ function SignUpContent() {
     }
 
     try {
-      console.log('🚀 Starting server-side sign-up process...');
-      console.log('📝 Form data after validation:', { firstName, lastName, email, password: '***' });
       
       // Use our new server-side API endpoint
       const response = await fetch('/api/auth/signup', {
@@ -206,7 +182,6 @@ function SignUpContent() {
       });
 
       const result = await response.json();
-      console.log('📧 Server signup response:', { status: response.status, result });
 
       if (!response.ok) {
         console.error('❌ Server signup error:', result);
@@ -229,15 +204,12 @@ function SignUpContent() {
       }
 
       if (result.success) {
-        console.log('✅ Account created successfully:', result.user);
         
         // Show success message and redirect to sign-in
-        console.log('✅ Sign-up completed successfully');
         setEmailSent(true);
         setMessage('Account created successfully! You can now sign in with your credentials.');
         
         // Track sign up event
-        console.log('📊 Tracking sign up event...');
         try {
           trackSignUp('email');
         } catch (trackError) {
@@ -245,7 +217,6 @@ function SignUpContent() {
           // Don't fail the sign-up process if tracking fails
         }
       } else {
-        console.log('⚠️ Unexpected server response');
         setError('Account creation completed but with unexpected response. Please try signing in.');
       }
     } catch (err) {
@@ -266,7 +237,6 @@ function SignUpContent() {
       
       setError(errorMessage);
     } finally {
-      console.log('🏁 Sign-up process completed, setting loading to false');
       setLoading(false);
     }
   };

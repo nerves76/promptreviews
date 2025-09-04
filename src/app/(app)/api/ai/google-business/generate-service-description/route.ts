@@ -74,10 +74,8 @@ export async function POST(request: NextRequest): Promise<NextResponse<ServiceDe
         city: businessContext.city || '',
         industry: businessContext.primaryCategory ? [businessContext.primaryCategory] : []
       };
-      console.log('✅ Using Google Business Profile context:', brandContext);
     } else {
       // Fall back to database business profile
-      console.log('⚠️ No Google Business Profile context provided, fetching from database...');
       
       // Get user's account ID
       const userAccountId = await getRequestAccountId(request, user.id, supabase);
@@ -103,7 +101,6 @@ export async function POST(request: NextRequest): Promise<NextResponse<ServiceDe
       }
 
       brandContext = extractBrandContext(business);
-      console.log('📋 Using database business context:', brandContext);
     }
 
     // Validate brand context has minimum required data

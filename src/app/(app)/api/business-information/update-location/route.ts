@@ -28,16 +28,11 @@ import { hasValue } from '@/utils/dataFiltering';
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('🔄 Business information update API called');
-    console.log('🚨 CACHE-BUSTING-V6: ENHANCED REQUEST DEBUG! TIMESTAMP: ' + Date.now() + ' 🚨');
 
     // Parse request body with detailed logging
     let body;
     try {
       body = await request.json();
-      console.log('📥 Request body received successfully');
-      console.log('📥 Request body keys:', Object.keys(body));
-      console.log('📥 Request body content:', JSON.stringify(body, null, 2));
     } catch (parseError) {
       console.error('❌ Failed to parse request body:', parseError);
       return NextResponse.json(
@@ -48,17 +43,8 @@ export async function POST(request: NextRequest) {
 
     const { locationIds, updates } = body;
 
-    console.log('🔍 Extracted from body:', {
-      locationIds: locationIds,
-      locationIdsType: typeof locationIds,
-      locationIdsLength: Array.isArray(locationIds) ? locationIds.length : 'not array',
-      updates: updates,
-      updatesType: typeof updates,
-      updatesKeys: updates ? Object.keys(updates) : 'null/undefined'
-    });
 
     if (!locationIds || !Array.isArray(locationIds) || locationIds.length === 0) {
-      console.log('❌ Invalid locationIds:', { locationIds, isArray: Array.isArray(locationIds) });
       return NextResponse.json(
         { error: 'Location IDs are required and must be a non-empty array' },
         { status: 400 }
@@ -66,15 +52,12 @@ export async function POST(request: NextRequest) {
     }
 
     if (!updates || typeof updates !== 'object') {
-      console.log('❌ Invalid updates:', { updates, type: typeof updates });
       return NextResponse.json(
         { error: 'Updates object is required' },
         { status: 400 }
       );
     }
 
-    console.log('💾 Saving business info for locations:', locationIds);
-    console.log('📝 Updates to apply:', updates);
 
     // Create Supabase client and authenticate user
     const cookieStore = await cookies();
@@ -103,11 +86,9 @@ export async function POST(request: NextRequest) {
     } = await supabase.auth.getUser();
 
     if (authError || !user) {
-      console.log('❌ Authentication failed:', authError);
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    console.log('✅ User authenticated:', user.id);
 
     // Get Google Business Profile tokens
     const { data: tokens } = await supabase
@@ -141,10 +122,8 @@ export async function POST(request: NextRequest) {
           // Store using the full location ID as key to match what we use for retrieval
           locationDetails.set(location.name, location.title || location.name);
         }
-        console.log('📍 Fetched location names for success messages:', Array.from(locationDetails.entries()));
       }
     } catch (error) {
-      console.log('⚠️ Could not fetch location names for success messages:', error);
     }
 
     // Process each location
@@ -152,16 +131,12 @@ export async function POST(request: NextRequest) {
     
     for (const locationId of locationIds) {
       try {
-        console.log(`\n🔄 Processing location: ${locationId}`);
 
         // First, fetch current location data to preserve required fields
         let currentLocationData: any = null;
         try {
-          console.log('🔍 Fetching current location data to preserve required fields...');
           currentLocationData = await client.getLocation('', locationId);
-          console.log('✅ Current location data fetched, has address:', !!currentLocationData?.storefrontAddress);
         } catch (fetchError) {
-          console.log('⚠️ Could not fetch current location data, proceeding with update anyway');
         }
 
         // Convert our update format to Google Business Profile API v1 format
@@ -171,7 +146,6 @@ export async function POST(request: NextRequest) {
         // Business name update - only if not empty
         if (hasValue(updates.locationName)) {
           locationUpdate.title = cleanStringForGoogle(updates.locationName);
-          console.log('📝 Including title update:', locationUpdate.title);
         }
 
         // Business description update - only if not empty
@@ -179,7 +153,6 @@ export async function POST(request: NextRequest) {
           locationUpdate.profile = {
             description: cleanStringForGoogle(updates.description)
           };
-          console.log('📝 Including description update');
         }
 
         // Address update - handle carefully for service area businesses
@@ -196,12 +169,9 @@ export async function POST(request: NextRequest) {
               postalCode: cleanStringForGoogle(address.postalCode),
               regionCode: address.regionCode || 'US'
             };
-            console.log('📍 Including address in update');
           } else {
-            console.log('📍 Skipping empty address');
           }
         } else {
-          console.log('📍 No address available (likely service area business)');
         }
 
         // Phone numbers update
@@ -210,13 +180,11 @@ export async function POST(request: NextRequest) {
             primaryPhone: cleanStringForGoogle(updates.phoneNumbers.primaryPhone),
             additionalPhones: updates.phoneNumbers.additionalPhones?.map((phone: string) => cleanStringForGoogle(phone)).filter(Boolean) || []
           };
-          console.log('📞 Including phone numbers update');
         }
 
         // Website update
         if (hasValue(updates.websiteUri)) {
           locationUpdate.websiteUri = cleanStringForGoogle(updates.websiteUri);
-          console.log('🌐 Including website update');
         }
 
         // Coordinates update (usually not editable by users but preserve if exists)
@@ -226,12 +194,10 @@ export async function POST(request: NextRequest) {
             latitude: coords.latitude,
             longitude: coords.longitude
           };
-          console.log('📍 Including coordinates');
         }
 
         // Business hours update - only if provided and has meaningful data
         if (hasValue(updates.regularHours) && typeof updates.regularHours === 'object') {
-          console.log('🕒 Raw business hours from frontend:', JSON.stringify(updates.regularHours, null, 2));
           
           // Convert HH:MM format to Google's time object format
           const parseTime = (timeStr: string) => {
@@ -251,7 +217,6 @@ export async function POST(request: NextRequest) {
             const typedHours = hours as { closed?: boolean; open?: string; close?: string };
             
             if (typedHours && typeof typedHours === 'object' && !typedHours.closed && typedHours.open && typedHours.close) {
-              console.log(`📅 Processing ${dayName}: ${typedHours.open} - ${typedHours.close}`);
               
               // Convert day name to Google's format
               const googleDay = dayName.toUpperCase();
@@ -267,8 +232,6 @@ export async function POST(request: NextRequest) {
           
           if (periods.length > 0) {
             locationUpdate.regularHours = { periods };
-            console.log('📝 Including hours update:', periods.length, 'periods');
-            console.log('📝 Converted hours format:', JSON.stringify(locationUpdate.regularHours, null, 2));
           }
         }
 
@@ -284,7 +247,6 @@ export async function POST(request: NextRequest) {
             }
           });
         }
-        console.log('🏷️ Available categories for service mapping:', availableCategories);
 
         /**
          * Map service name to most appropriate business category
@@ -352,13 +314,11 @@ export async function POST(request: NextRequest) {
 
         // Service items update - only if provided and has meaningful data
         if (hasValue(updates.serviceItems) && Array.isArray(updates.serviceItems)) {
-          console.log('🔍 Raw service items from frontend:', JSON.stringify(updates.serviceItems, null, 2));
           
           const validServices = updates.serviceItems.filter((service: any) => 
             hasValue(service) && hasValue(service.name)
           ).map((service: any) => {
             const categoryId = mapServiceToCategory(service.name.trim(), availableCategories);
-            console.log(`🏷️ Mapped "${service.name}" to category: ${categoryId}`);
             
             return {
               // Use freeFormServiceItem for custom services - Google now supports this
@@ -373,7 +333,6 @@ export async function POST(request: NextRequest) {
             };
           });
           
-          console.log('🔍 Converted service items for API:', JSON.stringify(validServices, null, 2));
           
           // Validate that all service items have valid categories
           const servicesWithValidCategories = validServices.filter((service: any) => 
@@ -382,15 +341,11 @@ export async function POST(request: NextRequest) {
           
           if (servicesWithValidCategories.length > 0) {
             locationUpdate.serviceItems = servicesWithValidCategories;
-            console.log('📝 Including service items update:', servicesWithValidCategories.length, 'services with valid categories');
             
             if (servicesWithValidCategories.length < validServices.length) {
-              console.log(`⚠️ Filtered out ${validServices.length - servicesWithValidCategories.length} service(s) with invalid categories`);
             }
           } else {
-            console.log('⚠️ No valid service items to send - all services lack valid categories');
             if (availableCategories.length === 0) {
-              console.log('⚠️ No business categories available for service mapping. Please ensure primary/additional categories are set.');
             }
           }
         }
@@ -417,12 +372,6 @@ export async function POST(request: NextRequest) {
           );
 
         if (hasValidPrimaryCategory || hasValidAdditionalCategories) {
-          console.log('📊 Category update check:', {
-            currentPrimary: currentPrimaryCategory,
-            newPrimary: updates.primaryCategory?.categoryId,
-            isChanging: isPrimaryCategoryChanging,
-            willUpdate: hasValidPrimaryCategory
-          });
           locationUpdate.categories = {};
           
           if (hasValidPrimaryCategory) {
@@ -431,7 +380,6 @@ export async function POST(request: NextRequest) {
               name: updates.primaryCategory.categoryId, // Google expects "name" field with categoryId value
               displayName: updates.primaryCategory.displayName
             };
-            console.log('📝 Including primary category update');
           }
           
           if (hasValidAdditionalCategories) {
@@ -446,16 +394,13 @@ export async function POST(request: NextRequest) {
                 name: cat.categoryId, // Google expects "name" field with categoryId value
                 displayName: cat.displayName
               }));
-              console.log('📝 Including additional categories update:', validCategories.length, 'categories');
             }
           }
         } else {
-          console.log('⏭️ Skipping categories update - no valid category data provided');
         }
 
         // Only proceed if we have something meaningful to update
         if (Object.keys(locationUpdate).length === 0) {
-          console.log('⚠️ No meaningful updates to send - all fields were empty');
           results.push({
             locationId,
             success: true,
@@ -465,20 +410,8 @@ export async function POST(request: NextRequest) {
           continue;
         }
 
-        console.log('📤 Final update payload:', JSON.stringify(locationUpdate, null, 2));
-        console.log('🔍 DEBUGGING CATEGORIES - Raw updates object:', {
-          hasPrimaryCategory: !!updates.primaryCategory,
-          primaryCategoryData: updates.primaryCategory,
-          hasAdditionalCategories: !!updates.additionalCategories,
-          additionalCategoriesData: updates.additionalCategories,
-          additionalCategoriesCount: updates.additionalCategories?.length || 0
-        });
-        console.log('🔍 DEBUGGING CATEGORIES - Transformed locationUpdate.categories:', 
-          locationUpdate.categories ? JSON.stringify(locationUpdate.categories, null, 2) : 'undefined'
-        );
 
         // Call the Google Business Profile API with the Business Information API v1
-        console.log(`🚀 Calling Google Business Profile API for location: ${locationId}`);
         const result = await client.updateLocation('', locationId, locationUpdate);
         
         // Create detailed success message
@@ -537,12 +470,6 @@ export async function POST(request: NextRequest) {
     const failedUpdates = results.filter(r => !r.success);
     const skippedUpdates = results.filter(r => r.skipped);
 
-    console.log('📊 Update summary:', {
-      total: results.length,
-      successful: successfulUpdates.length,
-      failed: failedUpdates.length,
-      skipped: skippedUpdates.length
-    });
 
     if (failedUpdates.length === results.length) {
       // All updates failed

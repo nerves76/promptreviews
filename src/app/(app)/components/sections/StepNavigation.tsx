@@ -23,10 +23,8 @@ export const TopNavigation = React.memo(function TopNavigation({
 }: StepNavigationProps) {
   const handleClick = () => {
     if (isSaving) {
-      console.log("🔘 TopNavigation: Save in progress, button disabled");
       return;
     }
-    console.log("🔘 TopNavigation: Button clicked");
     onSave?.();
   };
 
@@ -79,15 +77,12 @@ export const BottomNavigation = React.memo(function BottomNavigation({
 }: StepNavigationProps) {
   const handleSave = () => {
     if (isSaving) {
-      console.log("🔘 BottomNavigation: Save in progress, button disabled");
       return;
     }
-    console.log("🔘 BottomNavigation: Save button clicked");
     onSave?.();
   };
 
   const handleCancel = () => {
-    console.log("🔘 BottomNavigation: Cancel button clicked");
     onCancel?.();
   };
 

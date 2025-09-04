@@ -172,15 +172,10 @@ const DashboardContent = React.memo(function DashboardContent({
       try {
         // Only fetch if we have an account
         if (!account?.id) {
-          console.log('No account available yet, skipping prompt pages fetch');
           return;
         }
 
         // Log environment variables (without exposing the actual values)
-        console.log("Environment check:", {
-          hasSupabaseUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
-          hasSupabaseKey: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-        });
 
         if (
           !process.env.NEXT_PUBLIC_SUPABASE_URL ||
@@ -200,7 +195,6 @@ const DashboardContent = React.memo(function DashboardContent({
           throw new Error(`Database connection failed: ${testError.message}`);
         }
 
-        console.log("Supabase connection test successful");
 
         // Fetch prompt pages for the current account
         const { data, error } = await supabase
@@ -214,7 +208,6 @@ const DashboardContent = React.memo(function DashboardContent({
           throw new Error(`Failed to fetch prompt pages: ${error.message}`);
         }
 
-        console.log("Successfully fetched prompt pages:", data?.length || 0);
         setPromptPages(data || []);
         setLoading(false);
       } catch (error) {
@@ -471,7 +464,6 @@ const DashboardContent = React.memo(function DashboardContent({
           hasUniversalPromptPage={hasUniversalPromptPage}
           onComplete={() => {
             // Optional: Handle completion if needed
-            console.log("Getting Started checklist completed!");
           }}
           accountId={accountId}
         />

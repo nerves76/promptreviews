@@ -168,7 +168,6 @@ IMPORTANT: Aim for 400-700 characters for optimal impact and readability. This l
             }
             
             cleanResponse = cleanResponse.trim();
-            console.log('🧹 Cleaned AI response:', cleanResponse.substring(0, 200) + '...');
             analysis = JSON.parse(cleanResponse);
           } catch (parseError) {
             console.error('Failed to parse AI response:', aiResponse);

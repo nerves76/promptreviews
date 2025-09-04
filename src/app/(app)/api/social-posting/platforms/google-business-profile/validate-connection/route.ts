@@ -34,11 +34,9 @@ export async function POST(request: NextRequest) {
     // Get current user
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {
-      console.log('Authentication error in validate-connection API:', authError);
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    console.log('🔍 Manual token validation requested');
 
     // Create service role client for accessing OAuth tokens (bypasses RLS)
     const serviceSupabase = createClient(
@@ -54,14 +52,12 @@ export async function POST(request: NextRequest) {
       .maybeSingle();
 
     if (tokenError || !tokens) {
-      console.log('Google Business Profile tokens not found for user:', user.id, tokenError);
       return NextResponse.json({ 
         isValid: false,
         error: 'Google Business Profile not connected'
       });
     }
 
-    console.log('✅ Found Google Business Profile tokens for user:', user.id);
 
     // Create Google Business Profile client and test the connection
     const client = new GoogleBusinessProfileClient({
@@ -72,9 +68,7 @@ export async function POST(request: NextRequest) {
 
     try {
       // Test the connection with a simple accounts call
-      console.log('🔍 Testing Google Business Profile connection...');
       const accounts = await client.listAccounts();
-      console.log(`✅ Token validation successful - found ${accounts.length} accounts`);
       
       return NextResponse.json({
         isValid: true,

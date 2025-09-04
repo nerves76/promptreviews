@@ -54,8 +54,6 @@ export default function BusinessDescriptionAnalyzer({
   }, [autoAnalyze]);
 
   const handleAnalyzeDescription = async () => {
-    console.log('🔍 Starting business description analysis...');
-    console.log('📝 Description to analyze:', currentDescription);
     
     if (!currentDescription.trim()) {
       setError('No business description to analyze');
@@ -67,7 +65,6 @@ export default function BusinessDescriptionAnalyzer({
     setAnalysis(null);
 
     try {
-                    console.log('⚙️ Analyzing business description...');
       
       // Call the real AI analysis endpoint
       const response = await fetch('/api/ai/google-business/analyze-description', {
@@ -100,11 +97,8 @@ export default function BusinessDescriptionAnalyzer({
         optimizedDescription: data.analysis.optimizedDescription
       };
 
-                    console.log('📊 Analysis results:', aiAnalysis);
-                    console.log('🧠 Semantic Analysis:', data.analysis.semanticAnalysis);
 
       setAnalysis(aiAnalysis);
-                    console.log('✅ Analysis complete, calling onAnalysisComplete callback');
       onAnalysisComplete?.(aiAnalysis);
     } catch (err) {
               console.error('❌ Business description analysis error:', err);
@@ -148,7 +142,6 @@ export default function BusinessDescriptionAnalyzer({
     setError('');
 
     try {
-      console.log('🔧 Integrating keywords into description...');
       
       const response = await fetch('/api/ai/google-business/integrate-keywords', {
         method: 'POST',
@@ -183,7 +176,6 @@ export default function BusinessDescriptionAnalyzer({
         onAnalysisComplete?.(updatedAnalysis);
       }
       
-      console.log('✅ Keywords integrated successfully');
     } catch (error: any) {
       console.error('❌ Keyword integration failed:', error);
       setError(error.message || 'Failed to integrate keywords. Please try again.');

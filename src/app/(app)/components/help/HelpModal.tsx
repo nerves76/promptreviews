@@ -26,7 +26,6 @@ export default function HelpModal({
   const [activeTab, setActiveTab] = useState<TabType>(initialTab);
   
   // Debug logging
-  console.log('🎯 HelpModal rendered, isOpen:', isOpen, 'initialArticleId:', initialArticleId);
   
   // Get context information from current page or use provided keywords
   const pageContext = getContextFromPath(pathname);

@@ -60,14 +60,12 @@ export default function GamePage() {
                   className="w-full h-full border-0"
                   title="Get Found Online: The Game"
                   onLoad={() => {
-                    console.log('Game iframe loaded successfully');
                     setGameLoaded(true);
                   }}
                   onError={(e) => {
                     console.error('Game iframe failed to load:', e);
                   }}
                   onLoadStart={() => {
-                    console.log('Game iframe starting to load...');
                   }}
                   allow="autoplay; fullscreen; microphone; camera"
                   style={{ 

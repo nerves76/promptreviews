@@ -41,7 +41,6 @@ export async function POST(req: NextRequest) {
       });
 
     if (accountError) {
-      console.log('Account creation attempted, may already exist:', accountError.message);
     }
 
     return NextResponse.json({ 

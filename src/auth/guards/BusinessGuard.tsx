@@ -50,19 +50,11 @@ function BusinessGuard({ children }: BusinessGuardProps) {
     // Don't do anything while ANY loading is happening
     // This prevents false redirects during auth state changes
     if (isLoading || businessLoading || accountLoading) {
-      console.log('⏳ BusinessGuard: Skipping checks - still loading', {
-        isLoading,
-        businessLoading,
-        accountLoading,
-        isAuthenticated,
-        hasBusiness
-      });
       return;
     }
 
     // Only apply business requirements to authenticated users
     if (!isAuthenticated) {
-      console.log('🔒 BusinessGuard: User not authenticated, skipping business check');
       return;
     }
 
@@ -135,17 +127,6 @@ function BusinessGuard({ children }: BusinessGuardProps) {
 
     // Debug URL parameters
     if (typeof window !== "undefined" && process.env.NODE_ENV === 'development') {
-      console.log('🔍 BusinessGuard: URL debug', {
-        pathname,
-        search: window.location.search,
-        businessCreatedParam: urlParams?.get("businessCreated"),
-        businessJustCreated,
-        businessCreationInProgress,
-        googleOAuthInProgress,
-        isComingFromPlanChange,
-        hasBusiness,
-        timestamp: new Date().toISOString()
-      });
     }
 
     // Skip business requirements if user is coming from plan change
@@ -155,12 +136,10 @@ function BusinessGuard({ children }: BusinessGuardProps) {
     
     // If Google OAuth is in progress, don't interfere to prevent session logout
     if (googleOAuthInProgress) {
-      console.log('🔒 BusinessGuard: Google OAuth in progress, skipping check to preserve session');
       // Clean up the flag after a longer delay (OAuth can take time)
       setTimeout(() => {
         if (typeof window !== 'undefined') {
           sessionStorage.removeItem('googleOAuthInProgress');
-          console.log('🔒 BusinessGuard: Cleared googleOAuthInProgress flag');
         }
       }, 30000); // 30 seconds to allow OAuth to complete
       return;
@@ -168,12 +147,10 @@ function BusinessGuard({ children }: BusinessGuardProps) {
     
     // If business creation is in progress, don't interfere
     if (businessCreationInProgress) {
-      console.log('🚫 BusinessGuard: Business creation in progress, skipping check');
       // Clean up the flag after a delay
       setTimeout(() => {
         if (typeof window !== 'undefined') {
           sessionStorage.removeItem('businessCreationInProgress');
-          console.log('🚫 BusinessGuard: Cleared businessCreationInProgress flag');
         }
       }, 2000);
       return;
@@ -181,8 +158,6 @@ function BusinessGuard({ children }: BusinessGuardProps) {
     
     // If business was just created, give the state time to update before checking
     if (businessJustCreated) {
-      console.log('🎉 BusinessGuard: Business just created, allowing state to update');
-      console.log('🎉 BusinessGuard: Skipping business check for 3 seconds to allow auth context update');
       
       // Clean up the URL parameter after a longer delay to prevent conflicts
       setTimeout(() => {
@@ -190,7 +165,6 @@ function BusinessGuard({ children }: BusinessGuardProps) {
           const url = new URL(window.location.href);
           url.searchParams.delete('businessCreated');
           window.history.replaceState({}, '', url.toString());
-          console.log('🎉 BusinessGuard: Cleaned up businessCreated parameter');
         }
       }, 3000); // Increased from 1000ms to 3000ms
       return;
@@ -222,21 +196,6 @@ function BusinessGuard({ children }: BusinessGuardProps) {
       // Also check if account has a paid plan - paid accounts should have businesses
       const hasPaidPlan = account.plan && account.plan !== 'free' && account.plan !== 'no_plan';
       
-      console.log('🔍 BusinessGuard: Checking business requirements', {
-        hasBusiness,
-        isAccountOwner,
-        hasNeverHadBusiness,
-        hasPaidPlan,
-        hasCreatedBusiness,
-        accountId: account.id,
-        userId: user?.id,
-        plan: account.plan,
-        pathname,
-        accountAge: accountAge / 1000 / 60 / 60, // in hours
-        isVeryNewAccount,
-        isNewAccount,
-        timestamp: new Date().toISOString()
-      });
       
       // Only redirect if:
       // 1. User is the account owner (not a team member)
@@ -245,20 +204,12 @@ function BusinessGuard({ children }: BusinessGuardProps) {
       // 4. Account is less than 24 hours old (grace period for existing accounts)
       
       if (isAccountOwner && hasNeverHadBusiness && !hasPaidPlan && isNewAccount) {
-        console.log('🔄 BusinessGuard: Account owner without business (never created one), will redirect after delay', {
-          pathname,
-          timestamp: new Date().toISOString()
-        });
         
         // Add a delay to allow state to stabilize
         const timeoutId = setTimeout(() => {
           // Re-check states after delay
           if (isAuthenticated && !hasBusiness && !isLoading && !businessLoading && !accountLoading && 
               pathname !== '/dashboard/create-business' && isAccountOwner && hasNeverHadBusiness && !hasPaidPlan && isNewAccount) {
-            console.log('🔄 BusinessGuard: Redirecting account owner to create-business', {
-              pathname,
-              timestamp: new Date().toISOString()
-            });
             router.push("/dashboard/create-business");
           }
         }, 2000); // 2 seconds to allow state to stabilize
@@ -266,26 +217,9 @@ function BusinessGuard({ children }: BusinessGuardProps) {
         // Clean up timeout if component unmounts or deps change
         return () => clearTimeout(timeoutId);
       } else if (!isAccountOwner) {
-        console.log('ℹ️ BusinessGuard: User is a team member, no business required', {
-          accountId: account.id,
-          userId: user?.id,
-          timestamp: new Date().toISOString()
-        });
       } else if (hasPaidPlan) {
-        console.log('ℹ️ BusinessGuard: Paid account, should have business - not redirecting', {
-          plan: account.plan,
-          timestamp: new Date().toISOString()
-        });
       } else if (hasCreatedBusiness) {
-        console.log('ℹ️ BusinessGuard: User has created business before, not redirecting', {
-          timestamp: new Date().toISOString()
-        });
       } else if (!isNewAccount) {
-        console.log('ℹ️ BusinessGuard: Account is older than 24 hours, not redirecting', {
-          accountAge: accountAge / 1000 / 60 / 60, // in hours
-          accountCreatedAt: account.created_at,
-          timestamp: new Date().toISOString()
-        });
       }
     }
 

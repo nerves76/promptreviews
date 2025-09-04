@@ -19,7 +19,6 @@ export async function POST(req: NextRequest) {
   if (csrfError) return csrfError;
   
   try {
-    console.log("🚀 Processing checkout session request");
     
     // Parse request body
     let requestBody;
@@ -45,16 +44,13 @@ export async function POST(req: NextRequest) {
       isReactivation?: boolean;
       reactivationOffer?: any;
     } = requestBody;
-    console.log("📊 Request:", { plan, userId, email: email ? "provided" : "missing", billingPeriod });
     
     // Validate required fields
     if (!plan || !isValidPlan(plan)) {
-      console.error("❌ Invalid plan:", plan);
       return NextResponse.json({ error: "Invalid plan specified" }, { status: 400 });
     }
 
     if (!userId) {
-      console.error("❌ Missing userId");
       return NextResponse.json({ error: "User ID is required" }, { status: 400 });
     }
 
@@ -68,7 +64,6 @@ export async function POST(req: NextRequest) {
     }
 
     // Fetch account data
-    console.log("🔍 Fetching account data");
     let accountData;
     try {
       const { data: account, error } = await supabase
@@ -84,7 +79,6 @@ export async function POST(req: NextRequest) {
       
       // Allow free accounts to upgrade if they choose to
       if (account.is_free_account) {
-        console.log("🆓 Free account detected, allowing upgrade from free to paid");
         // Free accounts can upgrade to paid plans
       }
       
@@ -98,26 +92,18 @@ export async function POST(req: NextRequest) {
     const userEmail = accountEmail || email;
     
     if (!userEmail) {
-      console.error("❌ No email available");
       return NextResponse.json({ error: "Email is required for checkout" }, { status: 400 });
     }
 
-    console.log("📋 Account info:", { 
-      hasStripeCustomer: !!stripe_customer_id, 
-      currentPlan, 
-      targetPlan: plan 
-    });
 
     // Handle free trial upgrade logic
     if (currentPlan === "grower" && plan !== "grower") {
-      console.log("✅ Processing free trial upgrade");
     }
 
     // Determine change type
     const changeType = currentPlan ? getPlanChangeType(currentPlan, plan) : 'new';
 
     // Create checkout session
-    console.log("🛒 Creating checkout session");
     
     // Check if existing customer ID is valid in current Stripe mode
     let validCustomerId = null;
@@ -125,17 +111,13 @@ export async function POST(req: NextRequest) {
       try {
         await stripe.customers.retrieve(stripe_customer_id);
         validCustomerId = stripe_customer_id;
-        console.log("✅ Existing customer ID is valid:", stripe_customer_id);
       } catch (customerError: any) {
-        console.log("⚠️ Existing customer ID is invalid in current mode:", stripe_customer_id);
-        console.log("Will use email instead:", userEmail);
       }
     }
     
     // Debug configuration
     const priceId = getPriceId(plan, billingPeriod);
     if (!priceId) {
-      console.error("❌ No price ID found for plan:", plan, billingPeriod);
       return NextResponse.json({ error: "Invalid plan configuration" }, { status: 400 });
     }
 
@@ -169,19 +151,16 @@ export async function POST(req: NextRequest) {
 
     // Add trial period for grower plan if eligible
     if (shouldGetTrial) {
-      console.log('🎁 Adding 14-day free trial for new grower plan subscriber');
       sessionConfig.subscription_data = {
         trial_period_days: 14
       };
     } else if (plan === 'grower' && hadPreviousTrial) {
-      console.log('⚠️ User already had trial - grower plan will be charged immediately');
     }
 
     // ============================================
     // CRITICAL: Apply reactivation offer if eligible (Simplified)
     // ============================================
     if (isReactivation) {
-      console.log('🎁 Applying reactivation offer for billing period:', billingPeriod);
       
       try {
         const { applyReactivationOffer } = await import('@/lib/stripe-reactivation-offers');
@@ -194,7 +173,6 @@ export async function POST(req: NextRequest) {
           billingPeriod
         );
         
-        console.log('✅ Reactivation offer applied to checkout session');
       } catch (offerError) {
         console.error('⚠️ Could not apply reactivation offer:', offerError);
         // Continue without offer - don't block checkout
@@ -202,19 +180,10 @@ export async function POST(req: NextRequest) {
     }
 
 
-    console.log("📋 Session config:", {
-      priceId: getPriceId(plan, billingPeriod),
-      billingPeriod,
-      hasValidCustomer: !!validCustomerId,
-      usingCustomerEmail: !validCustomerId,
-      customerEmail: userEmail,
-      metadata: sessionConfig.metadata
-    });
 
     let checkoutSession;
     try {
       checkoutSession = await stripe.checkout.sessions.create(sessionConfig);
-      console.log("✅ Checkout session created:", checkoutSession.id);
       
     } catch (stripeError: any) {
       console.error("❌ Stripe checkout error:", stripeError);
@@ -247,7 +216,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Failed to create checkout session" }, { status: 500 });
     }
 
-    console.log("✅ Checkout session ready:", checkoutSession.url);
     return NextResponse.json({ url: checkoutSession.url });
 
   } catch (error: any) {

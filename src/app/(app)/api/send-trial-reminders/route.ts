@@ -88,7 +88,6 @@ export async function POST(request: NextRequest) {
         // Handle the profiles array from inner join
         const profile = Array.isArray(account.profiles) ? account.profiles[0] : account.profiles;
         if (!profile) {
-          console.error('No profile found for account:', account.id);
           continue;
         }
         // Check if we've already sent a reminder for this account today

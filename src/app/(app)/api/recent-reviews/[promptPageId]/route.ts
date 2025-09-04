@@ -57,7 +57,6 @@ export async function GET(
 
     // DEVELOPMENT MODE BYPASS - Return mock review data
     if (process.env.NODE_ENV === 'development' && promptPageId === '0f1ba885-07d6-4698-9e94-a63d990c65e0') {
-      console.log('🔧 DEV MODE: Returning mock recent reviews data');
       const mockReviews = [
         {
           initials: 'S.J.',

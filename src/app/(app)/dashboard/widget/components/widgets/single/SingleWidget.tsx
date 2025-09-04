@@ -43,7 +43,6 @@ const SingleWidget: React.FC<SingleWidgetProps> = ({ data, design }) => {
         return Promise.resolve();
       }
 
-      console.log('📥 SingleWidget: Loading CSS from /widgets/single/single-widget.css...');
       return new Promise<void>((resolve, reject) => {
         const link = document.createElement('link');
         link.rel = 'stylesheet';
@@ -67,7 +66,6 @@ const SingleWidget: React.FC<SingleWidgetProps> = ({ data, design }) => {
         return Promise.resolve();
       }
 
-      console.log('📥 SingleWidget: Loading widget script from /widgets/single/widget-embed.js...');
       return new Promise<void>((resolve, reject) => {
         const script = document.createElement('script');
         script.src = `/widgets/single/widget-embed.js?v=${new Date().getTime()}`;
@@ -79,7 +77,6 @@ const SingleWidget: React.FC<SingleWidgetProps> = ({ data, design }) => {
               
               resolve();
             } else {
-              console.log('⏳ SingleWidget: Waiting for initializeWidget function...');
               setTimeout(checkFunction, 100);
             }
           };
@@ -99,16 +96,13 @@ const SingleWidget: React.FC<SingleWidgetProps> = ({ data, design }) => {
       try {
         // Check if component is still mounted before proceeding
         if (!isMounted) {
-          console.log('🛑 SingleWidget: Component unmounted, skipping initialization');
           return;
         }
         
-        console.log('🚀 SingleWidget: Starting initialization...');
         await Promise.all([loadWidgetCSS(), loadWidgetScript()]);
         
         // Check again after loading dependencies
         if (!isMounted) {
-          console.log('🛑 SingleWidget: Component unmounted after loading dependencies');
           return;
         }
         
@@ -117,20 +111,11 @@ const SingleWidget: React.FC<SingleWidgetProps> = ({ data, design }) => {
         
         // Final check before initialization
         if (!isMounted) {
-          console.log('🛑 SingleWidget: Component unmounted before initialization');
           return;
         }
         
-        console.log('🔍 SingleWidget: Checking dependencies...');
-        console.log('🔍 SingleWidget: Container ref:', !!containerRef.current);
-        console.log('🔍 SingleWidget: Container ID:', containerRef.current?.id);
-        console.log('🔍 SingleWidget: PromptReviewsSingle:', !!window.PromptReviewsSingle);
-        console.log('🔍 SingleWidget: initializeWidget function:', !!window.PromptReviewsSingle?.initializeWidget);
-        console.log('🔍 SingleWidget: Reviews:', reviews);
-        console.log('🔍 SingleWidget: Design:', currentDesign);
         
         if (containerRef.current && window.PromptReviewsSingle?.initializeWidget) {
-          console.log('🚀 SingleWidget: Using initializeWidget API');
           window.PromptReviewsSingle.initializeWidget(
             containerRef.current.id,
             reviews,
@@ -139,21 +124,12 @@ const SingleWidget: React.FC<SingleWidgetProps> = ({ data, design }) => {
           );
 
         } else {
-          console.error('❌ SingleWidget: Missing dependencies for initialization.');
-          console.log('🔍 SingleWidget: Debug info:', {
-            containerRef: !!containerRef.current,
-            PromptReviewsSingle: !!window.PromptReviewsSingle,
-            initializeWidget: !!window.PromptReviewsSingle?.initializeWidget,
-            retryCount: retryCountRef.current
-          });
           
           // Retry mechanism
           if (retryCountRef.current < maxRetries && isMounted) {
             retryCountRef.current++;
-            console.log(`🔄 SingleWidget: Retrying initialization (${retryCountRef.current}/${maxRetries})...`);
             setTimeout(initializeWidget, 500);
           } else {
-            console.error('❌ SingleWidget: Max retries reached, giving up');
           }
         }
       } catch (error) {
@@ -162,7 +138,6 @@ const SingleWidget: React.FC<SingleWidgetProps> = ({ data, design }) => {
         // Retry on error
         if (retryCountRef.current < maxRetries && isMounted) {
           retryCountRef.current++;
-          console.log(`🔄 SingleWidget: Retrying after error (${retryCountRef.current}/${maxRetries})...`);
           setTimeout(initializeWidget, 1000);
         }
       }
@@ -172,16 +147,10 @@ const SingleWidget: React.FC<SingleWidgetProps> = ({ data, design }) => {
       retryCountRef.current = 0; // Reset retry count
       initializeWidget();
     } else {
-      console.log('⚠️ SingleWidget: Missing reviews or design data:', { 
-        reviews: !!reviews, 
-        reviewsLength: reviews?.length, 
-        design: !!currentDesign 
-      });
     }
 
     // Cleanup function
     return () => {
-      console.log('🧹 SingleWidget: Component unmounting, setting cleanup flag');
       isMounted = false;
     };
   }, [reviews, currentDesign, slug, data.id, data.type]);

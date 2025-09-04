@@ -15,7 +15,6 @@ export async function GET(request: NextRequest) {
 
     // DEVELOPMENT MODE BYPASS - Return mock business data
     if (process.env.NODE_ENV === 'development' && account_id === '12345678-1234-5678-9abc-123456789012') {
-      console.log('🔧 DEV MODE: Returning mock business data');
       const mockBusiness = {
         id: '6762c76a-8677-4c7f-9a0f-f444024961a2',
         account_id: '12345678-1234-5678-9abc-123456789012',
@@ -39,10 +38,8 @@ export async function GET(request: NextRequest) {
     let query = supabase.from('businesses').select('*');
     
     if (account_id) {
-      console.log(`[BUSINESSES] GET: Fetching businesses for account: ${account_id}`);
       query = query.eq('account_id', account_id);
     } else {
-      console.log('[BUSINESSES] GET: Fetching all businesses');
     }
 
     const { data: businesses, error } = await query.order('created_at', { ascending: false });
@@ -55,7 +52,6 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    console.log(`[BUSINESSES] GET: Found ${businesses?.length || 0} businesses`);
     return NextResponse.json({ businesses: businesses || [] });
   } catch (error) {
     console.error('[BUSINESSES] Unexpected error:', error);
@@ -89,12 +85,10 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    console.log(`[BUSINESSES] Creating business: ${name} for account: ${account_id}`);
 
     const supabase = createServiceRoleClient();
     
     // First, verify the account exists OR create it if needed
-    console.log(`[BUSINESSES] Verifying account exists: ${account_id}`);
     const { data: accountExists, error: accountCheckError } = await supabase
       .from('accounts')
       .select('id, plan, is_free_account')
@@ -112,7 +106,6 @@ export async function POST(request: NextRequest) {
       // If account doesn't exist, we need to create it first
       // This can happen when a new user signs up and immediately creates a business
       if (accountCheckError.code === 'PGRST116') {
-        console.log('[BUSINESSES] Account not found, creating it for new user...');
         
         // Get user info to populate account fields
         const { data: userData, error: userError } = await supabase.auth.admin.getUserById(account_id);
@@ -140,7 +133,6 @@ export async function POST(request: NextRequest) {
           
           // If it's a unique constraint error, the account might already exist
           if (createAccountError.code === '23505') {
-            console.log('[BUSINESSES] Account may already exist, continuing...');
           } else {
             return NextResponse.json(
               { 
@@ -152,7 +144,6 @@ export async function POST(request: NextRequest) {
             );
           }
         } else {
-          console.log('[BUSINESSES] Account created successfully');
           
           // Create account_users link for owner
           const { error: linkError } = await supabase
@@ -179,13 +170,11 @@ export async function POST(request: NextRequest) {
         );
       }
     } else {
-      console.log('[BUSINESSES] Account verified:', accountExists);
     }
     
     // DEVELOPMENT MODE BYPASS - Use existing account
     let bypassAccountValidation = false;
     if (process.env.NODE_ENV === 'development' && account_id === '12345678-1234-5678-9abc-123456789012') {
-      console.log('🔧 DEV MODE: Using existing development account for business creation');
       bypassAccountValidation = true;
     }
 
@@ -244,7 +233,6 @@ export async function POST(request: NextRequest) {
       updated_at: new Date().toISOString(), // 🔧 FIX: Set updated_at to current time to prevent validation loop
     };
 
-    console.log('[BUSINESSES] Attempting to insert business with data:', JSON.stringify(insertData, null, 2));
     
     const { data: business, error } = await supabase
       .from('businesses')
@@ -265,7 +253,6 @@ export async function POST(request: NextRequest) {
       // In development mode, if it's a foreign key constraint error for our mock account,
       // try to continue anyway by creating with minimal data
       if (bypassAccountValidation && error.code === '23503' && error.message.includes('fk_businesses_account_id')) {
-        console.log('🔧 DEV MODE: Foreign key constraint failed as expected, trying alternative approach...');
         
         // Try creating the business without the account_id constraint by using a different approach
         // Since we're using service role, let's try to create the account first in a minimal way
@@ -294,7 +281,6 @@ export async function POST(request: NextRequest) {
             );
           }
           
-          console.log('🔧 DEV MODE: Minimal account created, retrying business creation...');
           
           // Try business creation again
           const { data: retryBusiness, error: retryError } = await supabase
@@ -314,7 +300,6 @@ export async function POST(request: NextRequest) {
             );
           }
           
-          console.log('🔧 DEV MODE: Business created successfully on retry');
           return NextResponse.json({ business: retryBusiness }, { status: 201 });
           
         } catch (devError) {
@@ -341,17 +326,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('[BUSINESSES] Business created successfully:', business.id);
-    console.log('[BUSINESSES] Full business object:', JSON.stringify(business, null, 2));
 
     // 🔧 CRITICAL FIX: Update accounts.business_name and promotion_code for metadata templates
-    console.log('[BUSINESSES] Updating accounts.business_name and promotion_code...');
     const accountUpdates: any = { business_name: name };
     
     // Add promotion code if provided
     if (businessData.promotion_code) {
       accountUpdates.promotion_code = businessData.promotion_code;
-      console.log('[BUSINESSES] Adding promotion code to account:', businessData.promotion_code);
     }
     
     const { error: accountUpdateError } = await supabase
@@ -363,12 +344,10 @@ export async function POST(request: NextRequest) {
       console.error('[BUSINESSES] Warning: Failed to update account data:', accountUpdateError);
       // Don't fail the entire operation, just log the warning
     } else {
-      console.log('[BUSINESSES] Successfully updated account data:', accountUpdates);
     }
 
     // Create universal prompt page (same logic as SimpleBusinessForm)
     try {
-      console.log('[BUSINESSES] Creating universal prompt page...');
       
       // Check if universal prompt page already exists
       const { data: existingUniversal } = await supabase
@@ -379,7 +358,6 @@ export async function POST(request: NextRequest) {
         .single();
       
       if (existingUniversal) {
-        console.log('[BUSINESSES] Universal prompt page already exists, skipping creation');
       } else {
         const { slugify } = await import('@/utils/slugify');
         const universalSlug = slugify("universal", Date.now().toString(36));

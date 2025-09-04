@@ -82,7 +82,6 @@ export default function TutorialsTab({
     if (initialArticleId && tutorials.length > 0 && !selectedArticle) {
       const articleToOpen = tutorials.find(t => t.id === initialArticleId);
       if (articleToOpen) {
-        console.log('🎯 Auto-opening article:', initialArticleId);
         setSelectedArticle(articleToOpen);
         // Track the auto-open
         trackUserAction({

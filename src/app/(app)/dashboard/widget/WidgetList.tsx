@@ -90,7 +90,6 @@ export default function WidgetList({
     if (selectedWidgetForReviews && widgets.length > 0) {
       const widgetStillExists = widgets.some(w => w.id === selectedWidgetForReviews);
       if (!widgetStillExists) {
-        console.log('🔄 WidgetList: Selected widget for reviews no longer exists, clearing');
         setSelectedWidgetForReviews(null);
         if (showReviewModal) {
           setShowReviewModal(false);
@@ -99,7 +98,6 @@ export default function WidgetList({
     }
     // Also clear if widgets list is empty
     if (widgets.length === 0 && selectedWidgetForReviews) {
-      console.log('🔄 WidgetList: Widgets list empty, clearing selected widget for reviews');
       setSelectedWidgetForReviews(null);
       if (showReviewModal) {
         setShowReviewModal(false);
@@ -110,7 +108,6 @@ export default function WidgetList({
   // Listen for account switch events and close any open modals
   useEffect(() => {
     const handleAccountSwitch = (event: CustomEvent) => {
-      console.log('🔄 WidgetList: Account switched, closing any open modals', event.detail);
       
       // Close all modals
       if (showReviewModal) {
@@ -203,7 +200,6 @@ export default function WidgetList({
     // Validate that the widget exists in the current widgets list
     const widgetExists = widgets.some(w => w.id === widgetId);
     if (!widgetExists) {
-      console.error('❌ Widget not found in current widgets list:', widgetId);
       alert('This widget is not available. Please refresh the page or select a different widget.');
       return;
     }
@@ -279,7 +275,6 @@ export default function WidgetList({
         onReviewsChange={() => {
           // If this widget is currently selected in preview, refresh its data
           if (selectedWidgetForReviews && selectedWidgetId === selectedWidgetForReviews) {
-            console.log('🔄 WidgetList: Refreshing selected widget after review changes');
             // Use the dedicated refresh function which will fetch fresh data
             if (onRefreshWidget) {
               onRefreshWidget();
@@ -289,7 +284,6 @@ export default function WidgetList({
           else if (selectedWidgetForReviews && onSelectWidget) {
             const widget = widgets.find(w => w.id === selectedWidgetForReviews);
             if (widget) {
-              console.log('🔄 WidgetList: Auto-selecting widget after review changes to show updates');
               onSelectWidget(widget);
             }
           }

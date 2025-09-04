@@ -61,7 +61,6 @@ export class WebhookRecoverySystem {
     error: string;
   }): Promise<void> {
     try {
-      console.log('🔴 Storing failed webhook for recovery:', params.eventId);
 
       const failedWebhook: FailedWebhook = {
         event_id: params.eventId,
@@ -88,7 +87,6 @@ export class WebhookRecoverySystem {
         // Log to external service as last resort
         this.logToExternalService(failedWebhook);
       } else {
-        console.log('✅ Failed webhook stored successfully');
         
         // Send alert to admin
         await this.sendAdminAlert(failedWebhook);
@@ -109,7 +107,6 @@ export class WebhookRecoverySystem {
    */
   async attemptRecovery(webhookId: string): Promise<RecoveryResult> {
     try {
-      console.log('🔄 Attempting webhook recovery:', webhookId);
 
       // ============================================
       // Get the failed webhook
@@ -178,7 +175,6 @@ export class WebhookRecoverySystem {
             })
             .eq('id', webhookId);
 
-          console.log('✅ Webhook successfully recovered!');
           return {
             success: true,
             message: 'Webhook recovered successfully',
@@ -322,7 +318,6 @@ export class WebhookRecoverySystem {
    */
   private scheduleRetry(eventId: string): void {
     setTimeout(async () => {
-      console.log('⏰ Retrying webhook:', eventId);
       const { data } = await this.supabase
         .from('failed_webhooks')
         .select('id')
@@ -340,7 +335,6 @@ export class WebhookRecoverySystem {
    * Send alert to admin about failed webhook
    */
   private async sendAdminAlert(webhook: FailedWebhook): Promise<void> {
-    console.log('📧 Sending admin alert for failed webhook:', webhook.event_id);
     
     // In production, integrate with your alerting service
     // For now, just log it prominently
@@ -414,7 +408,6 @@ export class WebhookRecoverySystem {
    * Manually retry a specific webhook
    */
   async manualRetry(webhookId: string): Promise<RecoveryResult> {
-    console.log('👤 Manual retry requested for webhook:', webhookId);
     return this.attemptRecovery(webhookId);
   }
 }

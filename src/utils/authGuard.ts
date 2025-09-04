@@ -28,7 +28,6 @@ export function useAuthGuard(options: AuthGuardOptions = {}): AuthGuardResult {
         if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined') {
           const devBypass = localStorage.getItem('dev_auth_bypass');
           if (devBypass === 'true') {
-            console.log('🔧 DEV MODE: AuthGuard using authentication bypass');
             // Mock user is authenticated, no business profile checking needed in dev mode
             setLoading(false);
             setShouldRedirect(false);
@@ -107,13 +106,11 @@ export function useBusinessProfile() {
 
   const checkBusinessProfile = async () => {
     try {
-      console.log('📊 useBusinessProfile: Checking business profile...');
       
       // DEVELOPMENT MODE BYPASS - Check for dev bypass flag
       if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined') {
         const devBypass = localStorage.getItem('dev_auth_bypass');
         if (devBypass === 'true') {
-          console.log('🔧 DEV MODE: useBusinessProfile using authentication bypass');
                   setHasBusiness(true);
         setBusinessId('12345678-1234-5678-9abc-123456789012'); // Same mock account ID
           setLoading(false);

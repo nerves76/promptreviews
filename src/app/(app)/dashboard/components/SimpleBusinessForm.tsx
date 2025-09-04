@@ -150,7 +150,6 @@ const SimpleBusinessForm = forwardRef<HTMLFormElement, SimpleBusinessFormProps>(
       if (savedData) {
         try {
           const parsed = JSON.parse(savedData);
-          console.log('📝 Restored business form data from localStorage');
           return parsed;
         } catch (e) {
           console.error('Failed to parse saved form data:', e);
@@ -195,7 +194,6 @@ const SimpleBusinessForm = forwardRef<HTMLFormElement, SimpleBusinessFormProps>(
     const saveTimeout = setTimeout(() => {
       if (typeof window !== 'undefined') {
         localStorage.setItem(formStorageKey, JSON.stringify(form));
-        console.log('💾 Auto-saved business form to localStorage');
       }
     }, 1000); // Debounce for 1 second
     
@@ -238,13 +236,9 @@ const SimpleBusinessForm = forwardRef<HTMLFormElement, SimpleBusinessFormProps>(
     
     // Prevent double submission
     if (isSubmitting) {
-      console.log("Form submission blocked - already submitting");
       return;
     }
     
-    console.log("Form submission started");
-    console.log("Form data:", form);
-    console.log("Account ID:", accountId);
     
     // Validate promotion code before submission
     if (!validatePromotionCode(form.promotion_code)) {
@@ -273,7 +267,6 @@ const SimpleBusinessForm = forwardRef<HTMLFormElement, SimpleBusinessFormProps>(
     const missingFields = requiredFields.filter(field => !form[field as keyof typeof form]);
     
     if (missingFields.length > 0) {
-      console.log("Missing required fields:", missingFields);
       setError(`Missing required fields: ${missingFields.join(', ')}`);
       setLoading(false);
       setLoadingState(null);
@@ -281,9 +274,6 @@ const SimpleBusinessForm = forwardRef<HTMLFormElement, SimpleBusinessFormProps>(
     }
 
     try {
-      console.log("Starting business creation process via API...");
-      console.log("Account ID:", accountId);
-      console.log("Form data:", form);
       
       // Create business via API endpoint instead of direct database access
       const businessData = {
@@ -312,8 +302,6 @@ const SimpleBusinessForm = forwardRef<HTMLFormElement, SimpleBusinessFormProps>(
         referral_source_other: form.referral_source_other || null,
       };
 
-      console.log("Making API call to /api/businesses");
-      console.log("Request body:", JSON.stringify(businessData, null, 2));
       
       const response = await fetch('/api/businesses', {
         method: 'POST',
@@ -323,8 +311,6 @@ const SimpleBusinessForm = forwardRef<HTMLFormElement, SimpleBusinessFormProps>(
         body: JSON.stringify(businessData),
       });
       
-      console.log("API response status:", response.status);
-      console.log("API response ok:", response.ok);
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
@@ -349,10 +335,8 @@ const SimpleBusinessForm = forwardRef<HTMLFormElement, SimpleBusinessFormProps>(
       }
 
       const responseData = await response.json();
-      console.log("API response data:", responseData);
       
       const business = responseData.business || responseData;
-      console.log("Business created successfully via API:", business);
 
       // Update loading state to show redirecting
       setLoadingState('redirecting');
@@ -361,24 +345,19 @@ const SimpleBusinessForm = forwardRef<HTMLFormElement, SimpleBusinessFormProps>(
       // Dispatch event to refresh navigation state
       if (typeof window !== "undefined") {
         window.dispatchEvent(new CustomEvent('businessCreated', { detail: { businessId: business.id } }));
-        console.log("🎉 Dispatched businessCreated event for navigation refresh");
       }
       
-      console.log("Business created successfully, calling onSuccess callback");
       
       // Set flag that this account has created a business
       if (accountId) {
         localStorage.setItem(`hasCreatedBusiness_${accountId}`, 'true');
-        console.log("✅ Set hasCreatedBusiness flag for account:", accountId);
       }
       
       // Clear the saved form data since business was created successfully
       localStorage.removeItem(formStorageKey);
-      console.log('🗑️ Cleared saved form data after successful business creation');
       
       // Call the success callback
       onSuccess();
-      console.log("onSuccess callback completed");
 
     } catch (err) {
       console.error("Error creating business:", err);
@@ -389,7 +368,6 @@ const SimpleBusinessForm = forwardRef<HTMLFormElement, SimpleBusinessFormProps>(
       setLoadingState(null);
       setIsSubmitting(false);
     } finally {
-      console.log("Form submission completed");
       // Note: We don't reset loading state here for successful redirects
       // as we want to show "Redirecting..." until the page changes
       // But we do reset isSubmitting to prevent future submissions

@@ -36,7 +36,6 @@ export function useCancelledAccountGuard(options: UseCancelledAccountGuardOption
       );
       
       if (!isAllowed) {
-        console.log('🚫 Cancelled account accessing protected route:', currentPath);
         router.push(redirectTo);
       }
     }

@@ -130,7 +130,6 @@ export async function GET(request: NextRequest) {
     const expectedToken = process.env.CRON_SECRET_TOKEN;
     
     if (!expectedToken) {
-      console.error('CRON_SECRET_TOKEN environment variable not set');
       return NextResponse.json(
         { error: 'Cron secret not configured' }, 
         { status: 500 }
@@ -148,7 +147,6 @@ export async function GET(request: NextRequest) {
     // Create Supabase client with service role key for admin access
     const supabase = createServiceRoleClient();
 
-    console.log('📨 Starting communication reminder check...');
 
     // Get all pending reminders that are due (reminder_date <= now)
     const { data: dueReminders, error: remindersError } = await supabase
@@ -208,7 +206,6 @@ export async function GET(request: NextRequest) {
     }
 
     if (!dueReminders || dueReminders.length === 0) {
-      console.log('📭 No due communication reminders found');
       
       // Log to Sentry as info (not an error, but good to track)
       captureMessage('No due communication reminders found', 'info', {
@@ -222,7 +219,6 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    console.log(`📬 Found ${dueReminders.length} due communication reminders to process`);
 
     let processed = 0;
     let failed = 0;
@@ -233,7 +229,6 @@ export async function GET(request: NextRequest) {
       try {
         // Skip if business/account doesn't have an email (we send reminders to the business, not the customer)
         if (!reminder.accounts?.email) {
-          console.log(`⏭️ Skipping reminder ${reminder.id} - business account has no email`);
           continue;
         }
 
@@ -355,7 +350,6 @@ You can view and manage this communication in your dashboard.`;
             console.log(`📝 Created activity record for business about ${customerName}`);
           }
 
-          console.log(`✅ Sent follow-up reminder to ${business.email} about customer ${customerName}`);
           processed++;
         } else {
           console.error(`❌ Failed to send reminder ${reminder.id}:`, emailResult.error);
@@ -399,7 +393,6 @@ You can view and manage this communication in your dashboard.`;
     cronContext.processedCount = processed;
     cronContext.failureCount = failed;
 
-    console.log(`📊 Communication reminders processed: ${processed} sent, ${failed} failed`);
 
     // If there were failures, send admin notification
     if (failed > 0) {

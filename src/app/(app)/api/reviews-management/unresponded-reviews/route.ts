@@ -11,7 +11,6 @@ import { GoogleBusinessProfileClient } from '@/features/social-posting/platforms
 
 export async function GET(request: NextRequest) {
   try {
-    console.log('🔍 Get unresponded reviews API called');
     
     // Create server-side Supabase client that handles session cookies
     const cookieStore = await cookies();
@@ -37,7 +36,6 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    console.log('✅ User authenticated:', user.id);
 
     // Get Google Business Profile tokens for the user
     const { data: tokenData, error: tokenError } = await supabase
@@ -54,7 +52,6 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    console.log('✅ Found Google Business Profile tokens for user:', user.id);
 
     // Create Google Business Profile client
     const gbpClient = new GoogleBusinessProfileClient({
@@ -64,7 +61,6 @@ export async function GET(request: NextRequest) {
     });
 
     // Fetch unresponded reviews
-    console.log('🔄 Fetching unresponded reviews...');
     const unrespondedReviews = await gbpClient.getUnrespondedReviews();
 
     // Calculate summary statistics
@@ -72,7 +68,6 @@ export async function GET(request: NextRequest) {
     const accountCount = new Set(unrespondedReviews.map(location => location.accountId)).size;
     const locationCount = unrespondedReviews.length;
 
-    console.log(`✅ Found ${totalReviews} unresponded reviews across ${locationCount} locations`);
 
     return NextResponse.json({
       success: true,

@@ -251,7 +251,6 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
   const refreshSubscription = useCallback(async () => {
     // This would trigger a refresh of the account data
     // In a real implementation, this might fetch fresh data from Stripe
-    console.log('Refreshing subscription data...');
   }, []);
 
   // Check trial status (for notifications)

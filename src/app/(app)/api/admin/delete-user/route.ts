@@ -14,6 +14,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { deleteUserCompletely } from '@/utils/adminDelete';
 import { isAdmin } from '@/auth/utils/admin';
+import { checkRateLimit, adminRateLimiter } from '@/lib/rate-limit';
 
 // Initialize Supabase admin client
 const supabaseAdmin = createClient(
@@ -65,6 +66,15 @@ async function checkAdminPrivileges(request: NextRequest): Promise<boolean> {
  */
 export async function POST(request: NextRequest) {
   try {
+    // Check rate limit first (strict limits for admin operations)
+    const { allowed, remaining } = checkRateLimit(request, adminRateLimiter);
+    if (!allowed) {
+      return NextResponse.json(
+        { error: 'Too many requests. Admin operations are rate limited for security.' },
+        { status: 429 }
+      );
+    }
+
     // Check admin privileges
     const isAdmin = await checkAdminPrivileges(request);
     if (!isAdmin) {
@@ -95,7 +105,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log(`Admin ${checkOnly ? 'check' : 'delete'} request for email: ${email}`);
 
     // If checkOnly is true, just verify the user exists
     if (checkOnly) {

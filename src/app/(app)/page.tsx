@@ -51,7 +51,6 @@ export default function Home() {
   useEffect(() => {
     const fallbackTimeout = setTimeout(() => {
       if (isLoading) {
-        console.log('Auth check taking too long, redirecting to sign-in');
         router.push("/auth/sign-in");
       }
     }, 20000); // Increased to match auth timeout

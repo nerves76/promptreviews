@@ -54,7 +54,6 @@ export async function POST(request: NextRequest) {
     }
 
     const userId = session.user.id;
-    console.log(`🔄 Processing subscription cancellation for user: ${userId}`);
 
     // ============================================
     // STEP 3: Get subscription details from database
@@ -77,7 +76,6 @@ export async function POST(request: NextRequest) {
     // STEP 4: Check if there's a subscription to cancel
     // ============================================
     if (!account.stripe_subscription_id) {
-      console.log('ℹ️ No Stripe subscription to cancel for user:', userId);
       return NextResponse.json({ 
         success: true, 
         message: 'No active subscription to cancel',
@@ -85,7 +83,6 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    console.log(`🎯 Cancelling Stripe subscription: ${account.stripe_subscription_id}`);
 
     // ============================================
     // STEP 5: Cancel the Stripe subscription
@@ -104,12 +101,6 @@ export async function POST(request: NextRequest) {
         }
       ) as Stripe.Subscription;
 
-      console.log('✅ Stripe subscription marked for cancellation:', {
-        id: canceledSubscription.id,
-        status: canceledSubscription.status,
-        cancel_at_period_end: canceledSubscription.cancel_at_period_end,
-        current_period_end: (canceledSubscription as any).current_period_end ? new Date((canceledSubscription as any).current_period_end * 1000).toISOString() : 'N/A'
-      });
 
       // ============================================
       // STEP 6: Update database with cancellation info
@@ -229,7 +220,6 @@ export async function DELETE(request: NextRequest) {
       }
     );
 
-    console.log('🔥 Subscription cancelled immediately:', canceledSubscription.id);
 
     // Update database
     await supabase

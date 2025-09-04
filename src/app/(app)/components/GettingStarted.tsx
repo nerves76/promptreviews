@@ -67,7 +67,6 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
         }
 
         if (!session?.access_token) {
-          console.log('Session not available yet, skipping task initialization');
           return;
         }
 
@@ -95,7 +94,6 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
               
               // If it's a 404 (account not found), retry after waiting
               if (response.status === 404 && attempt < 2) {
-                console.log(`Task initialization attempt ${attempt + 1} failed, retrying in 2 seconds...`);
                 await new Promise(resolve => setTimeout(resolve, 2000));
                 continue;
               }
@@ -108,14 +106,12 @@ const GettingStarted: React.FC<GettingStartedProps> = ({
               });
             } else {
               const result = await response.json();
-              console.log('Default tasks initialized:', result);
               success = true;
               break;
             }
           } catch (fetchError) {
             lastError = fetchError;
             if (attempt < 2) {
-              console.log(`Task initialization attempt ${attempt + 1} failed, retrying in 2 seconds...`);
               await new Promise(resolve => setTimeout(resolve, 2000));
             }
           }

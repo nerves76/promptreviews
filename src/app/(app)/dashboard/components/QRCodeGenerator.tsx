@@ -427,7 +427,6 @@ export default function QRCodeGenerator({
             });
             
             if (!isValidBlob) {
-              console.log('Blob URL is invalid, skipping logo');
               // Continue without logo - don't process this logo section
               // The rest of the QR code generation will continue
             } else {

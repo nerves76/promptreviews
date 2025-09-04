@@ -40,8 +40,6 @@ interface VariableContext {
 export function substituteVariables(template: string, context: VariableContext): string {
   if (!template) return '';
   
-  console.log(`[METADATA] Substituting variables in template: "${template}"`);
-  console.log(`[METADATA] Context variables:`, context);
   
   let result = template;
   
@@ -53,7 +51,6 @@ export function substituteVariables(template: string, context: VariableContext):
       const before = result;
       result = result.replace(pattern, value);
       if (before !== result) {
-        console.log(`[METADATA] Replaced [${key}] with "${value}"`);
       }
     }
   });
@@ -62,10 +59,8 @@ export function substituteVariables(template: string, context: VariableContext):
   const beforeCleanup = result;
   result = result.replace(/\[[\w_]+\]/g, '');
   if (beforeCleanup !== result) {
-    console.log(`[METADATA] Cleaned up unreplaced variables: "${beforeCleanup}" -> "${result}"`);
   }
   
-  console.log(`[METADATA] Final result: "${result}"`);
   return result.trim();
 }
 
@@ -76,7 +71,6 @@ export async function getActiveMetadataTemplate(pageType: string): Promise<Metad
   try {
     const supabaseAdmin = createServiceRoleClient();
     
-    console.log(`[METADATA] Looking for template for page type: ${pageType}`);
     
     // First, let's check if any templates exist for this page type
     const { data: allTemplates, error: listError } = await supabaseAdmin
@@ -89,7 +83,6 @@ export async function getActiveMetadataTemplate(pageType: string): Promise<Metad
       return null;
     }
     
-    console.log(`[METADATA] Found ${allTemplates?.length || 0} templates for ${pageType}:`, allTemplates);
     
     // Now get the active one
     const { data, error } = await supabaseAdmin
@@ -104,14 +97,12 @@ export async function getActiveMetadataTemplate(pageType: string): Promise<Metad
       
       // If no active template found, try to create one from the default templates
       if (error.code === 'PGRST116') { // No rows returned
-        console.log('[METADATA] No active template found, creating default template...');
         return await createDefaultTemplate(pageType, supabaseAdmin);
       }
       
       return null;
     }
     
-    console.log(`[METADATA] Found active template:`, data);
     return data;
   } catch (error) {
     console.error('[METADATA] Error getting active metadata template:', error);
@@ -142,14 +133,10 @@ export async function generatePromptPageMetadata(
   canonical?: string;
   robots?: string;
 }> {
-  console.log(`[METADATA] Generating metadata for page type: ${pageType}`);
-  console.log(`[METADATA] Context:`, context);
   
   const template = await getActiveMetadataTemplate(pageType);
   
   if (!template) {
-    console.log(`[METADATA] ⚠️  No template found for ${pageType}, using fallback`);
-    console.log(`[METADATA] This means the database query failed or no templates exist`);
     // Helper function to format page type
     const formatPageType = (type: string): string => {
       switch (type.toLowerCase()) {
@@ -197,7 +184,6 @@ export async function generatePromptPageMetadata(
     };
   }
   
-  console.log(`[METADATA] Using template:`, template);
   
   const title = substituteVariables(template.title_template, context);
   const description = substituteVariables(template.description_template, context);
@@ -207,15 +193,6 @@ export async function generatePromptPageMetadata(
   const twitterDescription = substituteVariables(template.twitter_description_template, context);
   const keywords = substituteVariables(template.keywords_template, context);
   
-  console.log(`[METADATA] Generated metadata:`, {
-    title,
-    description,
-    ogTitle,
-    ogDescription,
-    twitterTitle,
-    twitterDescription,
-    keywords
-  });
   
   return {
     title,
@@ -275,12 +252,10 @@ async function createDefaultTemplate(pageType: string, supabaseAdmin: any): Prom
 
   const template = defaultTemplates[pageType as keyof typeof defaultTemplates];
   if (!template) {
-    console.error(`[METADATA] No default template found for page type: ${pageType}`);
     return null;
   }
 
   try {
-    console.log(`[METADATA] Creating default template for ${pageType}:`, template);
     
     const { data, error } = await supabaseAdmin
       .from('metadata_templates')
@@ -297,7 +272,6 @@ async function createDefaultTemplate(pageType: string, supabaseAdmin: any): Prom
       return null;
     }
 
-    console.log(`[METADATA] Successfully created default template:`, data);
     return data;
   } catch (error) {
     console.error('[METADATA] Error creating default template:', error);

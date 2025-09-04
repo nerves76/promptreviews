@@ -10,7 +10,6 @@ import { GoogleBusinessProfileClient } from '@/features/social-posting/platforms
 
 export async function GET(request: NextRequest) {
   try {
-    console.log('🔍 Business categories API called');
     
     const { searchParams } = new URL(request.url);
     const search = searchParams.get('search') || '';
@@ -33,14 +32,12 @@ export async function GET(request: NextRequest) {
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     
     if (authError || !user) {
-      console.log('❌ Authentication error:', authError?.message || 'No user found');
       return NextResponse.json({ 
         error: 'Authentication required',
         categories: []
       }, { status: 401 });
     }
 
-    console.log('✅ User authenticated:', user.id);
 
     // Get Google Business Profile tokens
     const { data: tokenData, error: tokenError } = await supabase
@@ -50,7 +47,6 @@ export async function GET(request: NextRequest) {
       .single();
 
     if (tokenError || !tokenData) {
-      console.log('❌ No Google tokens found:', tokenError?.message);
       return NextResponse.json({
         error: 'Google Business Profile not connected',
         categories: []
@@ -66,7 +62,6 @@ export async function GET(request: NextRequest) {
 
     try {
       // Fetch categories from Google Business Profile API
-      console.log('🔍 Fetching business categories from Google...');
       const categories = await gbpClient.listCategories();
       
       // Filter categories based on search term
@@ -82,7 +77,6 @@ export async function GET(request: NextRequest) {
       // Limit results
       const limitedCategories = filteredCategories.slice(0, limit);
       
-      console.log(`✅ Returning ${limitedCategories.length} categories (filtered from ${categories.length} total)`);
       
       return NextResponse.json({
         success: true,

@@ -303,23 +303,16 @@ export default function CreatePromptPageClient({
         
         // Use account ID from auth context
         if (!accountId) {
-          console.error("🎯 No account found for user:", user.id);
-          console.error("🎯 Selected account ID:", selectedAccountId);
-          console.error("🎯 Account from context:", account?.id);
           // Don't throw error here - continue with default business profile
           console.warn("🎯 Using default business profile due to missing account context");
         }
         
-        console.log('🎯 Using account ID:', accountId);
         
-        console.log("🔑 Using account_id:", accountId, "for user:", user.id);
         
         // Only fetch business data if we have an account ID
         if (accountId) {
           while (retryCount < maxRetries && !businessData && !businessError) {
-            console.log(`🔄 Fetching business profile (attempt ${retryCount + 1}/${maxRetries}) for account:`, accountId);
             if (isPostBusinessCreation) {
-              console.log("🆕 Post-business-creation flow detected, using extended retry logic");
             }
             
             const result = await supabase
@@ -372,14 +365,12 @@ export default function CreatePromptPageClient({
           
           if (!businessData && !businessError && retryCount < maxRetries - 1) {
             const delay = isPostBusinessCreation ? (retryCount + 1) * 1000 : (retryCount + 1) * 500;
-            console.log(`🔄 No business found, retrying in ${delay}ms...`);
             await new Promise(resolve => setTimeout(resolve, delay));
           }
           
           retryCount++;
           }
         } else {
-          console.log("🎯 No account ID available, using default business profile");
         }
           
         if (businessError) {
@@ -862,7 +853,6 @@ export default function CreatePromptPageClient({
           review_platforms: reviewPlatforms
         }));
         
-        console.log(`✅ Imported ${contactReviews.length} reviews as review platform templates`);
       }
     } catch (err) {
       console.error('Error loading contact reviews:', err);
@@ -1314,7 +1304,6 @@ export default function CreatePromptPageClient({
 
             if (contactResponse.ok) {
               const contactResult = await contactResponse.json();
-              console.log('✅ Contact created successfully:', contactResult);
               
               // Update success message to mention contact creation
               const contactName = `${formData.first_name} ${formData.last_name || ''}`.trim();

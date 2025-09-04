@@ -240,7 +240,6 @@ export default function BusinessHealthMetrics({
   const hasEngagementData = !!engagementData;
 
   // Debug logging to see what data we're receiving
-  console.log('🔍 BusinessHealthMetrics engagement data:', engagementData);
   const hasPerformanceData = performanceData && (performanceData.monthlyViews > 0 || performanceData.topSearchQueries?.length > 0);
 
   return (

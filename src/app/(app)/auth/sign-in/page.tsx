@@ -49,18 +49,15 @@ export default function SignIn() {
   const validateSession = async (maxRetries = 3, delayMs = 1000) => {
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        console.log(`🔍 Session validation attempt ${attempt}/${maxRetries}...`);
         
         const response = await fetch('/api/auth/session');
         const sessionData = await response.json();
         
         if (sessionData.authenticated && sessionData.user) {
-          console.log('✅ Session validation successful!');
           return sessionData;
         }
         
         if (attempt < maxRetries) {
-          console.log(`⏳ Session not ready, waiting ${delayMs}ms before retry...`);
           await new Promise(resolve => setTimeout(resolve, delayMs));
         }
       } catch (error) {
@@ -76,17 +73,13 @@ export default function SignIn() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("🚀 Starting sign in process...");
-    console.log("📋 Form data:", { email: formData.email, hasPassword: !!formData.password });
     
     setIsLoading(true);
     setError("");
 
     try {
-      console.log("📧 Attempting sign in with email:", formData.email);
       
       // Use direct Supabase client authentication for proper session handling
-      console.log("🔐 Starting sign-in with new auth context...");
       
       const result = await signIn(formData.email, formData.password);
 
@@ -113,7 +106,6 @@ export default function SignIn() {
         return;
       }
 
-      console.log("✅ Sign in successful!");
       
       // Check if this is a first-time sign in (user just created account)
       // We can detect this by checking if the email sent message is still visible
@@ -122,7 +114,6 @@ export default function SignIn() {
                            window.location.search.includes('from=signup');
       
       if (isFirstSignIn) {
-        console.log("🎉 First-time sign in detected, setting flag");
         sessionStorage.setItem('just-signed-up', 'true');
       }
       
@@ -137,14 +128,12 @@ export default function SignIn() {
         console.warn("Analytics tracking failed:", trackError);
       }
 
-      console.log("🔄 Authentication successful, preparing redirect...");
       
       // Wait a moment for the session to be properly established
       // This ensures cookies are set before navigation
       await new Promise(resolve => setTimeout(resolve, 500));
       
       // Now redirect using router for proper Next.js navigation
-      console.log("🚀 Redirecting to dashboard...");
       router.push("/dashboard");
     } catch (error: any) {
       console.error("💥 Sign in process failed:", error);
@@ -166,7 +155,6 @@ export default function SignIn() {
     setResetMessage(null);
 
     try {
-      console.log('🔄 Sending password reset email to:', resetEmail);
       
       // Note: For now, password reset needs direct Supabase client access
       // This would ideally be moved to the AuthContext in the future
@@ -177,10 +165,8 @@ export default function SignIn() {
       });
 
       if (error) {
-        console.log('❌ Password reset email error:', error);
         setError(`Password reset failed: ${error.message}`);
       } else {
-        console.log('✅ Password reset email sent successfully');
         setError(''); // Clear any existing errors
         setResetMessage('Password reset email sent! Check your inbox and click the link to reset your password.');
         // Clear the form

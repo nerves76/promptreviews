@@ -20,7 +20,6 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ isAdmin: false, error: 'No authenticated user' }, { status: 401 });
     }
     
-    console.log('check-admin: Checking admin status for user:', user.id, user.email);
     
     // Check if user is admin using simple is_admin column
     const { data: account, error: adminError } = await supabase
@@ -45,7 +44,6 @@ export async function GET(request: NextRequest) {
     }
     
     const isAdmin = !!(account?.is_admin);
-    console.log('check-admin: Admin status result:', { user: user.id, isAdmin });
     
     return NextResponse.json({ 
       isAdmin, 

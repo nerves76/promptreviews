@@ -42,7 +42,6 @@ export default function SocialPostingDashboard() {
   const { business } = useBusinessData();
   const { account } = useAccountData();
   
-  console.log('Google Business - Successfully got auth context, plan:', currentPlan);
   
   /**
    * GOOGLE BUSINESS PROFILE STATE DOCUMENTATION
@@ -122,7 +121,6 @@ export default function SocialPostingDashboard() {
     if (typeof window !== 'undefined') {
       const savedContent = localStorage.getItem('googleBusinessPostContent');
       if (savedContent) {
-        console.log('📝 Restored post content from localStorage');
         return savedContent;
       }
     }
@@ -138,7 +136,6 @@ export default function SocialPostingDashboard() {
     const saveTimeout = setTimeout(() => {
       if (typeof window !== 'undefined' && postContent) {
         localStorage.setItem('googleBusinessPostContent', postContent);
-        console.log('💾 Auto-saved post content to localStorage');
       }
     }, 1000); // Debounce for 1 second
     
@@ -285,53 +282,37 @@ export default function SocialPostingDashboard() {
    * 5. Clean URL but keep tab → User stays on correct tab
    */
   useEffect(() => {
-    console.log('🔄 Main useEffect triggered - checking for OAuth or initial load');
-    console.log('🔄 initialLoadDone.current:', initialLoadDone.current);
     
     // Prevent multiple runs - only run once per page load
     if (initialLoadDone.current) {
-      console.log('⏸️ Skipping useEffect - initial load already completed');
       return;
     }
     
     // Mark initial load as completed IMMEDIATELY to prevent re-runs
     initialLoadDone.current = true;
-    console.log('✅ Initial load marked as completed (early)');
     
     // Check if we're coming back from OAuth
-    console.log('📍 Current URL:', window.location.href);
-    console.log('📍 Query string:', window.location.search);
     const urlParams = new URLSearchParams(window.location.search);
     const isPostOAuth = urlParams.get('connected') === 'true';
     const hasError = urlParams.get('error');
-    console.log('📍 Parsed params:', {
-      connected: urlParams.get('connected'),
-      error: urlParams.get('error'),
-      message: urlParams.get('message'),
-      tab: urlParams.get('tab')
-    });
     
     // Clear OAuth flag when returning from OAuth
     if (typeof window !== 'undefined' && sessionStorage.getItem('googleOAuthInProgress') === 'true') {
       sessionStorage.removeItem('googleOAuthInProgress');
-      console.log('🔒 Cleared googleOAuthInProgress flag on page load');
     }
     
     // Also check for cookie flag from OAuth callback
     if (typeof document !== 'undefined' && document.cookie.includes('clearGoogleOAuthFlag=true')) {
       // Clear the cookie
       document.cookie = 'clearGoogleOAuthFlag=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
-      console.log('🔒 Cleared OAuth flag from callback cookie');
     }
     
     // Handle OAuth errors
     if (hasError) {
-      console.log('❌ OAuth error detected:', hasError);
       const message = urlParams.get('message');
       
       // Check if this is a missing_scope error
       if (hasError === 'missing_scope') {
-        console.log('❌ Missing scope detected - user needs to check the checkbox');
         
         // Just show the simple message - no auto-fix attempts
         setPostResult({ 
@@ -365,7 +346,6 @@ export default function SocialPostingDashboard() {
       // Load platforms to show disconnected state
       loadPlatforms();
     } else if (isPostOAuth) {
-      console.log('🔄 Post-OAuth redirect detected');
       
       /**
        * POST-OAUTH LOADING STATE FIX:
@@ -401,9 +381,7 @@ export default function SocialPostingDashboard() {
       // setIsConnected(true); // Removed - wait for actual connection confirmation
       
       // Give the database a moment to save the tokens, then load platforms
-      console.log('🔄 Post-OAuth: Waiting for database to sync before loading platforms...');
       setTimeout(async () => {
-        console.log('🔄 Post-OAuth: Loading platforms to refresh connection state');
         try {
           await loadPlatforms();
           // Success message will be shown after platforms are actually loaded
@@ -414,7 +392,6 @@ export default function SocialPostingDashboard() {
       }, 1000); // Reduced to 1 second - balance between safety and speed
     } else {
       // Load platforms on page load (normal page load)
-      console.log('🔄 Initial page load: Loading platforms');
       loadPlatforms();
     }
     
@@ -508,18 +485,12 @@ export default function SocialPostingDashboard() {
 
   // Simplified platform loading - no API validation calls
   const loadPlatforms = useCallback(async () => {
-    console.log('🔍 TRACE: loadPlatforms called from:', new Error().stack?.split('\n')[1]?.trim());
-    console.log('🔍 Current loadingRef.current:', loadingRef.current);
-    console.log('🔍 Current isLoadingPlatforms state:', isLoadingPlatforms);
     
     // Prevent multiple simultaneous calls using ref (more reliable)
     if (loadingRef.current) {
-      console.log('⏸️ Skipping loadPlatforms - already in progress (via ref)');
       return;
     }
     
-    console.log('Loading platforms (database check only)...');
-    console.log('🔄 Setting loading flags to true');
     loadingRef.current = true;
     setIsLoadingPlatforms(true);
     
@@ -529,7 +500,6 @@ export default function SocialPostingDashboard() {
       const { data: { session } } = await supabase.auth.getSession();
       
       if (!session?.access_token) {
-        console.log('No session token available');
         setIsConnected(false);
         setLocations([]);
         setSelectedLocations([]);
@@ -542,7 +512,6 @@ export default function SocialPostingDashboard() {
       }
 
       // Check platforms API for database state only (no token validation calls)
-      console.log('🔍 Fetching platforms (database only)...');
       // Add cache-busting to ensure fresh data after disconnect
       const response = await fetch(`/api/social-posting/platforms?t=${Date.now()}`, {
         cache: 'no-store',
@@ -550,10 +519,8 @@ export default function SocialPostingDashboard() {
           'Cache-Control': 'no-cache'
         }
       });
-      console.log('Platforms API response status:', response.status);
       
       if (response.status === 401) {
-        console.log('Authentication error - session may have expired');
         setIsConnected(false);
         setLocations([]);
         setSelectedLocations([]);
@@ -567,31 +534,20 @@ export default function SocialPostingDashboard() {
       
       if (response.ok) {
         const responseData = await response.json();
-        console.log('Platforms API response data:', responseData);
         
         const platforms = responseData.platforms || [];
         const googlePlatform = platforms.find((p: any) => p.id === 'google-business-profile');
         
-        console.log('Google platform found:', googlePlatform);
         
         if (googlePlatform && googlePlatform.connected) {
           setIsConnected(true);
           setConnectedEmail(googlePlatform.connectedEmail || null);
-          console.log('Google Business Profile is connected');
-          console.log('Connected Google account:', googlePlatform.connectedEmail);
           
           // Load business locations from the platforms response
           const locations = googlePlatform.locations || [];
-          console.log('Locations from platforms API:', locations);
           
           // Debug: Log the raw location data structure
           if (locations.length > 0) {
-            console.log('🔍 First location raw data:', {
-              fullObject: locations[0],
-              hasLocationName: 'location_name' in locations[0],
-              locationNameValue: locations[0].location_name,
-              keys: Object.keys(locations[0])
-            });
           }
           
           // Ensure location_name is accessible before transformation
@@ -613,10 +569,8 @@ export default function SocialPostingDashboard() {
           
           // Log summary in development
           if (process.env.NODE_ENV === 'development') {
-            console.log(`✅ Safely transformed ${transformedLocations.length} locations`);
             transformedLocations.forEach((loc, i) => {
               if (loc._debug?.warnings?.length) {
-                console.log(`Location ${i} warnings:`, loc._debug.warnings);
               }
             });
           }
@@ -627,10 +581,8 @@ export default function SocialPostingDashboard() {
               prev.some((loc, idx) => loc.id !== transformedLocations[idx]?.id);
             
             if (hasChanged) {
-              console.log('📍 Locations have changed, updating state');
               return transformedLocations;
             } else {
-              console.log('📍 Locations unchanged, keeping existing state to prevent re-renders');
               return prev; // Return existing array to prevent re-render
             }
           });
@@ -664,7 +616,6 @@ export default function SocialPostingDashboard() {
           setConnectedEmail(null);
           setLocations([]);
           setSelectedLocations([]);
-          console.log('Google Business Profile is not connected');
           
           // Show error message if available
           if (googlePlatform?.error) {
@@ -696,15 +647,12 @@ export default function SocialPostingDashboard() {
         message: 'Failed to load Google Business Profile connection. Please refresh the page or try reconnecting.' 
       });
     } finally {
-      console.log('Setting loading states to false');
-      console.log('🔄 Setting both loading flags to false');
       loadingRef.current = false;
       setIsLoading(false);
       
       // Add a delay before clearing the platforms loading state
       // This ensures React has time to process the location state updates
       setTimeout(() => {
-        console.log('🔄 Delayed setting isLoadingPlatforms to false');
         setIsLoadingPlatforms(false);
       }, 500); // Increased delay to 500ms for better reliability
     }
@@ -726,7 +674,6 @@ export default function SocialPostingDashboard() {
       // Store flag to preserve session during OAuth redirect
       if (typeof window !== 'undefined') {
         sessionStorage.setItem('googleOAuthInProgress', 'true');
-        console.log('🔒 Set OAuth in progress flag to preserve session');
       }
       
       // Get Google OAuth credentials from environment
@@ -735,7 +682,6 @@ export default function SocialPostingDashboard() {
       
       // Validate required environment variables
       if (!redirectUriRaw) {
-        console.error('❌ Missing environment variable: NEXT_PUBLIC_GOOGLE_REDIRECT_URI');
         setPostResult({ success: false, message: 'Missing Google OAuth configuration. Please check environment variables.' });
         setIsLoading(false);
         // Clear OAuth flag on error
@@ -763,8 +709,6 @@ export default function SocialPostingDashboard() {
       // include_granted_scopes=false ensures only requested scopes are granted
       const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${encodedScope}&response_type=${responseType}&state=${state}&access_type=offline&prompt=select_account%20consent&include_granted_scopes=false`;
       
-      console.log('🔗 Redirecting to Google OAuth:', googleAuthUrl);
-      console.log('🔒 OAuth flag set, preserving Supabase session during redirect');
       
       // Add a small delay to ensure session storage is set
       setTimeout(() => {
@@ -778,7 +722,6 @@ export default function SocialPostingDashboard() {
       // Clear OAuth flag on error
       if (typeof window !== 'undefined') {
         sessionStorage.removeItem('googleOAuthInProgress');
-        console.log('🔒 Cleared googleOAuthInProgress flag due to error');
       }
     }
   };
@@ -813,7 +756,6 @@ export default function SocialPostingDashboard() {
    */
   const handleDisconnect = async () => {
     try {
-      console.log('🔌 Disconnecting Google Business Profile...');
       setIsLoading(true);
       setIsLoadingPlatforms(true); // Also set platforms loading state
       
@@ -827,7 +769,6 @@ export default function SocialPostingDashboard() {
       });
       
       if (response.ok) {
-        console.log('✅ Successfully disconnected from Google Business Profile API');
         setPostResult({ 
           success: true, 
           message: 'Successfully disconnected from Google Business Profile' 
@@ -857,7 +798,6 @@ export default function SocialPostingDashboard() {
        * 3. Close modal
        * 4. Wait longer (1.5s) before reloading platforms to ensure DB is updated
        */
-      console.log('🧹 Clearing local Google Business Profile state IMMEDIATELY');
       
       // Clear all localStorage entries
       localStorage.removeItem('google-business-connected');
@@ -885,7 +825,6 @@ export default function SocialPostingDashboard() {
       // This gives time for the database transaction to complete
       // Also force a hard refresh to clear any potential caching
       setTimeout(async () => {
-        console.log('🔄 Reloading platforms after disconnect (2s delay for DB sync)...');
         
         // Force clear the loading ref to ensure loadPlatforms can run
         loadingRef.current = false;
@@ -1002,7 +941,6 @@ export default function SocialPostingDashboard() {
       }
 
       const result = await response.json();
-      console.log(`✅ Fetched ${result.locations?.length || 0} business locations`);
       
       // Update local state with fetched locations
       if (result.locations && result.locations.length > 0) {
@@ -1013,11 +951,9 @@ export default function SocialPostingDashboard() {
           address: loc.address || ''
         }));
         
-        console.log('Setting pending locations:', validLocations);
         
         // If only one location, auto-select it and skip the modal
         if (validLocations.length === 1) {
-          console.log('Only one location found, auto-selecting:', validLocations[0]);
           
           // Auto-select the single location
           const singleLocation = validLocations[0];
@@ -1095,12 +1031,10 @@ export default function SocialPostingDashboard() {
   // Handle location selection confirmation
   const handleLocationSelectionConfirm = async (selectedIds: string[]) => {
     try {
-      console.log('Confirming location selection:', { selectedIds, pendingLocations });
       
       // Filter locations to only selected ones
       const selectedLocs = pendingLocations.filter(loc => selectedIds.includes(loc.id));
       
-      console.log('Selected locations:', selectedLocs);
       
       // Validate selected locations
       if (!selectedLocs || selectedLocs.length === 0) {
@@ -1128,7 +1062,6 @@ export default function SocialPostingDashboard() {
       }
 
       const result = await response.json();
-      console.log('✅ Saved selected locations to database:', result);
       
       // Save selected locations to state and localStorage
       setLocations(selectedLocs);
@@ -1197,7 +1130,6 @@ export default function SocialPostingDashboard() {
       setIsPosting(true);
       setPostResult(null);
       
-      console.log(`📝 Posting to ${selectedLocations.length} Google Business Profile location(s)...`);
       
       // Upload images to Supabase storage (with error handling)
       let uploadedImageUrls: string[] = [];
@@ -1242,7 +1174,6 @@ export default function SocialPostingDashboard() {
           }
         };
         
-        console.log(`📝 Posting to location: ${locationId}`);
         
         const response = await fetch('/api/social-posting/posts', {
           method: 'POST',
@@ -1265,7 +1196,6 @@ export default function SocialPostingDashboard() {
       });
 
       const postResults = await Promise.all(postPromises);
-      console.log('📊 All post responses:', postResults);
 
       const successfulPosts = postResults.filter(r => r.success);
       const failedPosts = postResults.filter(r => !r.success);
@@ -1277,7 +1207,6 @@ export default function SocialPostingDashboard() {
         });
         setPostContent(''); // Clear content on success
         localStorage.removeItem('googleBusinessPostContent'); // Clear saved content
-        console.log('🗑️ Cleared saved post content after successful posting');
         clearAllImages(); // Clear uploaded images on success
         setShowCTA(false); // Clear CTA on success
         setCTAType('LEARN_MORE');
@@ -1435,7 +1364,6 @@ export default function SocialPostingDashboard() {
       const newImageUrls = imageFiles.map(file => URL.createObjectURL(file));
       setImageUrls(prev => [...prev, ...newImageUrls]);
 
-      console.log(`�� Added ${imageFiles.length} image(s). Total: ${newImages.length}`);
     } catch (error) {
       console.error('Image upload error:', error);
       setPostResult({ success: false, message: 'Failed to process images. Please try again.' });
@@ -1571,7 +1499,6 @@ export default function SocialPostingDashboard() {
     setImportResult(null);
 
     try {
-      console.log(`🔄 Importing ${type} reviews for location:`, selectedLocationId);
       
       const response = await fetch('/api/google-business-profile/import-reviews', {
         method: 'POST',
@@ -1596,9 +1523,7 @@ export default function SocialPostingDashboard() {
           errors: result.errors, // Include error details for debugging
           totalErrorCount: result.totalErrorCount
         });
-        console.log('✅ Reviews imported successfully:', result.count);
         if (result.errors && result.errors.length > 0) {
-          console.log('⚠️ Import errors:', result.errors);
         }
       } else {
         setImportResult({ 
@@ -2143,7 +2068,6 @@ export default function SocialPostingDashboard() {
                     <div className="mt-3">
                       <button
                         onClick={() => {
-                          console.log('🔄 Manual refresh requested');
                           setIsLoading(true);
                           loadPlatforms();
                         }}
@@ -2461,19 +2385,15 @@ export default function SocialPostingDashboard() {
                                      * Must create new array to trigger React re-render
                                      * Using div instead of label to prevent event issues
                                      */
-                                    console.log(`📍 Checkbox clicked for location: ${location.name} (${location.id}), checked: ${e.target.checked}`);
-                                    console.log('Current selection before change:', selectedLocations);
                                     
                                     if (e.target.checked) {
                                       // Only add if not already in the list
                                       if (!selectedLocations.includes(location.id)) {
                                         const newSelection = [...selectedLocations, location.id];
-                                        console.log('✅ Adding location, new selection:', newSelection);
                                         setSelectedLocations(newSelection);
                                       }
                                     } else {
                                       const newSelection = selectedLocations.filter(id => id !== location.id);
-                                      console.log('❌ Removing location, new selection:', newSelection);
                                       setSelectedLocations(newSelection);
                                     }
                                   }}

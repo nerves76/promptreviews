@@ -143,7 +143,6 @@ export async function getCommunicationHistory(
   
   if (!accountId) {
     // Return empty array if no account ID provided
-    console.log('No account ID provided for communication history - returning empty array');
     return [];
   }
 
@@ -180,7 +179,6 @@ export async function getPendingReminders(
   
   if (!accountId) {
     // Return empty array if no account ID provided
-    console.log('No account ID provided for pending reminders - returning empty array');
     return [];
   }
 

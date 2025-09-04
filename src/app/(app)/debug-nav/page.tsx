@@ -17,21 +17,17 @@ export default function DebugNav() {
   const manualCheck = async () => {
     setIsChecking(true);
     try {
-      console.log("🔍 Manual business check starting...");
       
       const { data: { user }, error: userError } = await getUserOrMock(supabase);
-      console.log("👤 User check:", { user: user?.id, error: userError });
       
       if (user) {
         const accountId = await getAccountIdForUser(user.id);
-        console.log("🏢 Account ID:", accountId);
         
         const { data: businesses, error: bizError } = await supabase
           .from('businesses')
           .select('id, name')
           .eq('account_id', accountId);
           
-        console.log("🏪 Business check:", { businesses, error: bizError });
         
         setDebugInfo({
           userId: user.id,
@@ -49,7 +45,6 @@ export default function DebugNav() {
   };
 
   const triggerRefresh = () => {
-    console.log("🔄 Triggering navigation refresh...");
     refresh();
     
     // Also dispatch events
@@ -87,7 +82,6 @@ export default function DebugNav() {
   };
 
   const forceEnableNavigation = () => {
-    console.log("🚀 Force enabling navigation...");
     
     // Directly modify the DOM to enable navigation links
     if (typeof window !== "undefined") {
@@ -111,7 +105,6 @@ export default function DebugNav() {
       
       // Force refresh any business profile hooks
       window.dispatchEvent(new CustomEvent('forceNavigationEnable'));
-      console.log("✅ Navigation links force-enabled");
       setResult("✅ Navigation links have been force-enabled! Try clicking them now.");
     }
   };
@@ -126,9 +119,7 @@ export default function DebugNav() {
       '/dashboard/widget'
     ];
     
-    console.log("🧪 Testing navigation links...");
     links.forEach(link => {
-      console.log(`Testing: ${link}`);
     });
     
     // Try navigating to analytics directly

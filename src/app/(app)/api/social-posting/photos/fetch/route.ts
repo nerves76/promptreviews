@@ -9,7 +9,6 @@ import { GoogleBusinessProfileClient } from '@/features/social-posting/platforms
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('📷 Fetch photos API called');
 
     // Create Supabase client and verify user
     const supabase = createClient();
@@ -23,7 +22,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('✅ User authenticated:', user.id);
 
     // Parse the request body
     const { locationId } = await request.json();
@@ -35,7 +33,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log(`📷 Fetching photos for location: ${locationId}`);
 
     // Get Google Business Profile tokens from database
     const { data: tokenData, error: tokenError } = await supabase
@@ -52,7 +49,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('✅ Found Google Business Profile tokens for user:', user.id);
 
     // Create Google Business Profile client
     const gbpClient = new GoogleBusinessProfileClient({
@@ -62,10 +58,8 @@ export async function POST(request: NextRequest) {
     });
 
     // Fetch photos for the location
-    console.log('🔄 Fetching photos for location:', locationId);
     const photos = await gbpClient.getMedia(locationId);
 
-    console.log(`✅ Successfully fetched ${photos.length} photos`);
 
     // Organize photos by category (if category info is available)
     // Google's media API may not always include category info, so we'll try to infer or use default

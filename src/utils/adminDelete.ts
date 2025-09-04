@@ -442,7 +442,6 @@ async function deleteUserFromAuth(userId: string): Promise<{ deleted: number; er
  * @returns Promise resolving to cleanup result
  */
 export async function deleteUserCompletely(email: string): Promise<CleanupResult> {
-  console.log(`Starting comprehensive deletion for user: ${email}`);
   
   try {
     // Step 1: Get user ID by email
@@ -455,7 +454,6 @@ export async function deleteUserCompletely(email: string): Promise<CleanupResult
       };
     }
 
-    console.log(`Found user ID: ${userId}`);
 
     // Step 2: Get account ID for the user
     const accountId = await getAccountIdForUser(userId);
@@ -467,61 +465,47 @@ export async function deleteUserCompletely(email: string): Promise<CleanupResult
       };
     }
 
-    console.log(`Found account ID: ${accountId}`);
 
     // Step 3: Perform cleanup in proper order (child tables first)
     const cleanupResults: { [tableName: string]: { deleted: number; error?: string } } = {};
 
     // Clean up analytics events
-    console.log('Cleaning up analytics events...');
     cleanupResults.analytics_events = await cleanupAnalyticsEvents(accountId);
 
     // Clean up AI usage
-    console.log('Cleaning up AI usage...');
     cleanupResults.ai_usage = await cleanupAiUsage(userId);
 
     // Clean up widget reviews
-    console.log('Cleaning up widget reviews...');
     cleanupResults.widget_reviews = await cleanupWidgetReviews(accountId);
 
     // Clean up review submissions
-    console.log('Cleaning up review submissions...');
     cleanupResults.review_submissions = await cleanupReviewSubmissions(accountId);
 
     // Clean up contacts
-    console.log('Cleaning up contacts...');
     cleanupResults.contacts = await cleanupContacts(accountId);
 
     // Clean up prompt pages
-    console.log('Cleaning up prompt pages...');
     cleanupResults.prompt_pages = await cleanupPromptPages(accountId);
 
     // Clean up widgets
-    console.log('Cleaning up widgets...');
     cleanupResults.widgets = await cleanupWidgets(accountId);
 
     // Clean up businesses
-    console.log('Cleaning up businesses...');
     cleanupResults.businesses = await cleanupBusinesses(accountId);
 
     // Clean up account invitations
-    console.log('Cleaning up account invitations...');
     cleanupResults.account_invitations = await cleanupAccountInvitations(accountId);
 
     // Clean up admin privileges
-    console.log('Cleaning up admin privileges...');
     cleanupResults.admins = await cleanupAdmins(userId);
 
     // Clean up account_users relationship
-    console.log('Cleaning up account_users...');
     cleanupResults.account_users = await cleanupAccountUsers(userId);
 
     // Clean up account
-    console.log('Cleaning up account...');
     cleanupResults.accounts = await cleanupAccount(accountId);
 
     // Finally, delete user from auth
-    console.log('Deleting user from auth...');
     cleanupResults.auth_user = await deleteUserFromAuth(userId);
 
     // Check for any errors
@@ -537,7 +521,6 @@ export async function deleteUserCompletely(email: string): Promise<CleanupResult
       };
     }
 
-    console.log(`Successfully deleted user: ${email}`);
     return {
       success: true,
       message: `Successfully deleted user: ${email}`,

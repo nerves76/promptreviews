@@ -18,7 +18,6 @@ const CowboyUserIcon = () => {
   const [imageError, setImageError] = useState(false);
 
   if (imageError) {
-    console.log('🐴 Cowboy icon failed to load, showing fallback');
     return (
       <div className="w-8 h-8 border-2 border-white rounded-full flex items-center justify-center hover:opacity-80 transition-opacity">
                         <Icon name="FaUserCircle" className="w-5 h-5 text-white" size={20} />
@@ -34,11 +33,9 @@ const CowboyUserIcon = () => {
         className="w-full h-full object-contain"
         style={{ filter: 'brightness(0) invert(1)' }}
         onError={() => {
-          console.log('🐴 Cowboy icon error occurred');
           setImageError(true);
         }}
         onLoad={() => {
-          console.log('🐴 Cowboy icon loaded successfully');
         }}
       />
     </div>
@@ -90,7 +87,6 @@ const Header = React.memo(function Header() {
         }
         if (user) {
           if (process.env.NODE_ENV === 'development') {
-            console.log('Header: User found:', user.id);
           }
           
           // Check if business profile task is completed
@@ -105,7 +101,6 @@ const Header = React.memo(function Header() {
           setUser(user);
         } else {
           if (process.env.NODE_ENV === 'development') {
-            console.log('Header: No user found');
           }
           setUser(null);
           setBusinessProfileLoaded(true); // No user means no badge should show
@@ -122,7 +117,6 @@ const Header = React.memo(function Header() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (process.env.NODE_ENV === 'development') {
-          console.log('Header: Auth state changed:', event, session?.user?.id);
         }
         
         // Skip token refresh events - they shouldn't reset state
@@ -159,14 +153,12 @@ const Header = React.memo(function Header() {
       try {
         // Check if Supabase client is properly initialized
         if (!supabase) {
-          console.error('🚨 Header: Supabase client not initialized');
           return;
         }
         
         // Check if user is authenticated first
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) {
-          console.log('🔔 Header: No active session, skipping notifications fetch');
           return;
         }
         
@@ -176,19 +168,16 @@ const Header = React.memo(function Header() {
         
         // Validate that the calculated date is not in the future
         if (sevenDaysAgo > now) {
-          console.error('🚨 Header: Invalid date calculation - sevenDaysAgo is in the future:', sevenDaysAgo.toISOString());
           return; // Skip API call to prevent 400 error
         }
         
         const since = sevenDaysAgo.toISOString();
         
-        console.log('🔔 Header: Fetching notifications since:', since);
         
         // Get user's account info first to filter notifications properly
         // Note: This function runs in useEffect and can't directly use useAuth hook
         // For now, skip notifications if no account context is available
         // TODO: Move notifications to a component that can use auth context
-        console.log('🔔 Header: Notifications disabled - requires auth context integration');
         return;
         
         const { data, error } = await supabase
@@ -213,7 +202,6 @@ const Header = React.memo(function Header() {
         }
         
         if (data) {
-          console.log('✅ Header: Notifications fetched successfully:', data.length);
           setNotifications(
             data.map((r: any) => {
               const name = r.first_name

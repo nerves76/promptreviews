@@ -91,12 +91,6 @@ export function BusinessProvider({ children }: { children: React.ReactNode }) {
   const { account } = accountContext;
   
   // Debug log to verify we're getting the account context
-  console.log('🔍 BusinessProvider: Account context:', { 
-    sharedAccountId: sharedAccount.accountId,
-    contextAccountId: accountContext.accountId, 
-    account: accountContext.account?.id,
-    hasAccountContext: !!accountContext 
-  });
   
   // Business state
   const [business, setBusiness] = useState<Business | null>(null);
@@ -127,9 +121,7 @@ export function BusinessProvider({ children }: { children: React.ReactNode }) {
   // ⚠️ WARNING: DO NOT CHANGE TO .single() or .maybeSingle() - accounts can have MULTIPLE businesses!
   // This caused an 8-hour debugging session when it broke navigation for multi-business accounts
   const loadBusiness = useCallback(async () => {
-    console.log('🏢 loadBusiness called with accountId:', accountId);
     if (!accountId) {
-      console.log('🏢 No accountId, clearing business');
       setBusiness(null);
       return;
     }
@@ -146,7 +138,6 @@ export function BusinessProvider({ children }: { children: React.ReactNode }) {
 
     setBusinessLoading(true);
     try {
-      console.log('🏢 Loading business for account:', accountId);
       
       // ⚠️ CRITICAL: DO NOT ADD .single() or .maybeSingle() here!
       // Accounts can have multiple businesses (e.g., from mergers, migrations, or duplicates)
@@ -169,7 +160,6 @@ export function BusinessProvider({ children }: { children: React.ReactNode }) {
         
         // If it's an RLS error, we might not have access - treat as no business
         if (error.code === '42501' || error.message?.includes('RLS')) {
-          console.log('📭 RLS policy prevented business fetch - treating as no business for account:', accountId);
         }
         
         setBusiness(null);
@@ -178,7 +168,6 @@ export function BusinessProvider({ children }: { children: React.ReactNode }) {
       
       if (!data || data.length === 0) {
         // No business found - this is expected for new accounts
-        console.log('📭 No business found for account:', accountId);
         setBusiness(null);
         return;
       }
@@ -186,10 +175,8 @@ export function BusinessProvider({ children }: { children: React.ReactNode }) {
       // If multiple businesses exist, use the first one (oldest)
       const businessData = data[0];
       if (data.length > 1) {
-        console.log(`📊 Found ${data.length} businesses for account, using first one:`, businessData?.name || businessData?.id);
       }
       
-      console.log('✅ Business loaded:', businessData?.name || businessData?.id);
 
       setBusiness(businessData);
       
@@ -327,17 +314,8 @@ export function BusinessProvider({ children }: { children: React.ReactNode }) {
 
   // Initialize business on account change
   useEffect(() => {
-    console.log('🔄 BusinessContext: Account changed to:', accountId, 'account object:', account ? account.id : 'undefined');
-    console.log('🔍 BusinessContext: Full account context state:', {
-      sharedAccountId: accountId,
-      contextAccountId: accountContext.accountId,
-      hasAccount: !!accountContext.account,
-      accountLoading: accountContext.accountLoading,
-      selectedAccountId: accountContext.selectedAccountId
-    });
     
     if (accountId) {
-      console.log('📦 BusinessContext: Loading business for new account:', accountId);
       // Small delay to ensure account data is fully loaded
       const timer = setTimeout(() => {
         loadBusiness();
@@ -345,7 +323,6 @@ export function BusinessProvider({ children }: { children: React.ReactNode }) {
       }, 100);
       return () => clearTimeout(timer);
     } else {
-      console.log('📦 BusinessContext: No account ID, clearing business data');
       setBusiness(null);
       setBusinesses([]);
       clearBusinessCache();

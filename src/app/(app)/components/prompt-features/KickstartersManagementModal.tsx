@@ -52,7 +52,6 @@ export default function KickstartersManagementModal({
   // Validate account context for security
   React.useEffect(() => {
     if (isOpen && !accountId) {
-      console.error('KickstartersManagementModal: accountId is required for security');
     }
   }, [isOpen, accountId]);
   
@@ -227,7 +226,6 @@ export default function KickstartersManagementModal({
     setShowAddCustom(false);
     
     // Log success for debugging (will remove later)
-    console.log('Custom kickstarter added successfully:', newCustomKickstarter);
   };
 
   const handleSave = () => {

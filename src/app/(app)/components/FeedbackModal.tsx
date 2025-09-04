@@ -84,7 +84,6 @@ export default function FeedbackModal({
 
       if (response.ok) {
         const result = await response.json();
-        console.log('Feedback submitted successfully:', result);
         
         setSubmitStatus('success');
         setMessage('');

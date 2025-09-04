@@ -14,6 +14,7 @@ import { useAuth } from '@/auth';
 import { WebhookRecoverySystem } from '@/lib/webhook-recovery';
 import { PaymentRetrySystem } from '@/lib/payment-retry';
 import { createClient } from '@/auth/providers/supabase';
+import { isAdmin } from '@/utils/admin';
 
 // ============================================
 // TYPES
@@ -61,23 +62,33 @@ export default function WebhookManagerPage() {
   // CHECK ADMIN ACCESS
   // ============================================
   useEffect(() => {
-    // In production, implement proper admin role checking
-    if (!isAuthenticated) {
-      window.location.href = '/sign-in';
-      return;
-    }
+    const checkAdminAccess = async () => {
+      if (!isAuthenticated) {
+        window.location.href = '/sign-in';
+        return;
+      }
 
-    // Check if user is admin (you'll need to implement this)
-    const isAdmin = account?.email?.includes('@promptreviews.app');
-    
-    if (!isAdmin) {
-      alert('Admin access required');
-      window.location.href = '/dashboard';
-      return;
-    }
+      // Get current user and check admin status properly
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        window.location.href = '/sign-in';
+        return;
+      }
 
-    loadData();
-  }, [isAuthenticated, account]);
+      // Use proper database-backed admin check
+      const adminStatus = await isAdmin(user.id, supabase);
+      
+      if (!adminStatus) {
+        alert('Admin access required');
+        window.location.href = '/dashboard';
+        return;
+      }
+
+      loadData();
+    };
+
+    checkAdminAccess();
+  }, [isAuthenticated]);
 
   // ============================================
   // LOAD DATA

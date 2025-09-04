@@ -7,7 +7,6 @@ export async function GET() {
     // Look for container element
     var container = document.getElementById('promptreviews-infographic');
     if (!container) {
-      console.error('PromptReviews Infographic: Container element with id "promptreviews-infographic" not found');
       return;
     }
 

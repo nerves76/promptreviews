@@ -39,17 +39,14 @@ const PhotoWidget: React.FC<PhotoWidgetProps> = ({ data, design }) => {
     // Load the CSS if not already loaded
     const loadWidgetCSS = (): Promise<void> => {
       if (document.querySelector('link[href="/widgets/photo/photo-widget.css"]')) {
-        console.log('✅ PhotoWidget: CSS already loaded');
         return Promise.resolve();
       }
 
-      console.log('📥 PhotoWidget: Loading CSS from /widgets/photo/photo-widget.css...');
       return new Promise<void>((resolve, reject) => {
         const link = document.createElement('link');
         link.rel = 'stylesheet';
         link.href = `/widgets/photo/photo-widget.css?v=${new Date().getTime()}`;
         link.onload = () => {
-          console.log('✅ PhotoWidget: CSS loaded successfully');
           resolve();
         };
         link.onerror = (error) => {
@@ -63,23 +60,18 @@ const PhotoWidget: React.FC<PhotoWidgetProps> = ({ data, design }) => {
     // Load the widget script if not already loaded
     const loadWidgetScript = (): Promise<void> => {
       if (window.PromptReviewsPhoto?.initializeWidget) {
-        console.log('✅ PhotoWidget: Widget script already loaded');
         return Promise.resolve();
       }
 
-      console.log('📥 PhotoWidget: Loading widget script from /widgets/photo/widget-embed.js...');
       return new Promise<void>((resolve, reject) => {
         const script = document.createElement('script');
         script.src = `/widgets/photo/widget-embed.js?v=${new Date().getTime()}`;
         script.onload = () => {
-          console.log('✅ PhotoWidget: Widget script loaded successfully');
           // Wait for the script to fully initialize and expose the function
           const checkFunction = () => {
             if (window.PromptReviewsPhoto?.initializeWidget) {
-              console.log('🔧 PhotoWidget: initializeWidget function is available');
               resolve();
             } else {
-              console.log('⏳ PhotoWidget: Waiting for initializeWidget function...');
               setTimeout(checkFunction, 100);
             }
           };
@@ -99,16 +91,13 @@ const PhotoWidget: React.FC<PhotoWidgetProps> = ({ data, design }) => {
       try {
         // Check if component is still mounted before proceeding
         if (!isMounted) {
-          console.log('🛑 PhotoWidget: Component unmounted, skipping initialization');
           return;
         }
         
-        console.log('🚀 PhotoWidget: Starting initialization...');
         await Promise.all([loadWidgetCSS(), loadWidgetScript()]);
         
         // Check again after loading dependencies
         if (!isMounted) {
-          console.log('🛑 PhotoWidget: Component unmounted after loading dependencies');
           return;
         }
         
@@ -117,43 +106,24 @@ const PhotoWidget: React.FC<PhotoWidgetProps> = ({ data, design }) => {
         
         // Final check before initialization
         if (!isMounted) {
-          console.log('🛑 PhotoWidget: Component unmounted before initialization');
           return;
         }
         
-        console.log('🔍 PhotoWidget: Checking dependencies...');
-        console.log('🔍 PhotoWidget: Container ref:', !!containerRef.current);
-        console.log('🔍 PhotoWidget: Container ID:', containerRef.current?.id);
-        console.log('🔍 PhotoWidget: PromptReviewsPhoto:', !!window.PromptReviewsPhoto);
-        console.log('🔍 PhotoWidget: initializeWidget function:', !!window.PromptReviewsPhoto?.initializeWidget);
-        console.log('🔍 PhotoWidget: Reviews:', reviews);
-        console.log('🔍 PhotoWidget: Design:', currentDesign);
         
         if (containerRef.current && window.PromptReviewsPhoto?.initializeWidget) {
-          console.log('🚀 PhotoWidget: Using initializeWidget API');
           window.PromptReviewsPhoto.initializeWidget(
             containerRef.current.id,
             reviews,
             currentDesign,
             slug || 'example-business'
           );
-          console.log('✅ PhotoWidget: Widget initialization completed');
         } else {
-          console.error('❌ PhotoWidget: Missing dependencies for initialization.');
-          console.log('🔍 PhotoWidget: Debug info:', {
-            containerRef: !!containerRef.current,
-            PromptReviewsPhoto: !!window.PromptReviewsPhoto,
-            initializeWidget: !!window.PromptReviewsPhoto?.initializeWidget,
-            retryCount: retryCountRef.current
-          });
           
           // Retry mechanism
           if (retryCountRef.current < maxRetries && isMounted) {
             retryCountRef.current++;
-            console.log(`🔄 PhotoWidget: Retrying initialization (${retryCountRef.current}/${maxRetries})...`);
             setTimeout(initializeWidget, 500);
           } else {
-            console.error('❌ PhotoWidget: Max retries reached, giving up');
           }
         }
       } catch (error) {
@@ -162,7 +132,6 @@ const PhotoWidget: React.FC<PhotoWidgetProps> = ({ data, design }) => {
         // Retry on error
         if (retryCountRef.current < maxRetries && isMounted) {
           retryCountRef.current++;
-          console.log(`🔄 PhotoWidget: Retrying after error (${retryCountRef.current}/${maxRetries})...`);
           setTimeout(initializeWidget, 1000);
         }
       }
@@ -172,16 +141,10 @@ const PhotoWidget: React.FC<PhotoWidgetProps> = ({ data, design }) => {
       retryCountRef.current = 0; // Reset retry count
       initializeWidget();
     } else {
-      console.log('⚠️ PhotoWidget: Missing reviews or design data:', { 
-        reviews: !!reviews, 
-        reviewsLength: reviews?.length, 
-        design: !!currentDesign 
-      });
     }
 
     // Cleanup function
     return () => {
-      console.log('🧹 PhotoWidget: Component unmounting, setting cleanup flag');
       isMounted = false;
     };
   }, [reviews, currentDesign, slug, data.id, data.type]);

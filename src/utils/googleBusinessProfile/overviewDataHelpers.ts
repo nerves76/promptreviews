@@ -131,8 +131,6 @@ export function processReviewTrends(reviews: any[]): ReviewTrendsData {
   
   // Debug: Log first few reviews to see their structure
   if (reviews.length > 0) {
-    console.log('📊 Sample review structure:', reviews[0]);
-    console.log('📊 Available review fields:', Object.keys(reviews[0]));
   }
   
   // Calculate average rating
@@ -158,12 +156,10 @@ export function processReviewTrends(reviews: any[]): ReviewTrendsData {
       rating = parseInt(review.star_rating) || parseFloat(review.star_rating) || 0;
     }
     
-    console.log(`📊 Review rating: ${rating} (from starRating: ${review.starRating}, rating: ${review.rating})`);
     return sum + rating;
   }, 0);
   const averageRating = totalReviews > 0 ? ratingsSum / totalReviews : 0;
   
-  console.log(`📊 Rating calculation: ${ratingsSum} / ${totalReviews} = ${averageRating}`);
 
   // Calculate review trend (new reviews in last 30 days)
   const recentReviews = reviews.filter(review => {
@@ -467,10 +463,8 @@ export function identifyOptimizationOpportunities(
  * Handles both multiDailyMetricsTimeSeries and legacy locationMetrics response formats
  */
 export function formatPerformanceData(performanceData: any[], customerActions: any[]): PerformanceData {
-  console.log('🔍 Processing performance data:', performanceData);
   
   if (!performanceData || !Array.isArray(performanceData)) {
-    console.log('⚠️ No performance data available');
     return {
       monthlyViews: 0,
       viewsTrend: 0,
@@ -488,10 +482,8 @@ export function formatPerformanceData(performanceData: any[], customerActions: a
   const isNewApiFormat = performanceData.length > 0 && performanceData[0].dailyMetric;
   
   if (isNewApiFormat) {
-    console.log('📊 Using NEW Performance API v1 format');
     return formatNewPerformanceData(performanceData);
   } else {
-    console.log('📊 Using LEGACY v4 API format (fallback)');
     return formatLegacyPerformanceData(performanceData);
   }
 }
@@ -500,7 +492,6 @@ export function formatPerformanceData(performanceData: any[], customerActions: a
  * Format NEW Performance API v1 response (multiDailyMetricsTimeSeries)
  */
 function formatNewPerformanceData(multiDailyMetrics: any[]): PerformanceData {
-  console.log('🔍 formatNewPerformanceData called with:', multiDailyMetrics?.length || 0, 'metrics');
   
   let totalViews = 0;
   let totalWebsiteClicks = 0;
@@ -513,12 +504,6 @@ function formatNewPerformanceData(multiDailyMetrics: any[]): PerformanceData {
 
   // Process each daily metric time series
   multiDailyMetrics.forEach((metricSeries: any, index: number) => {
-    console.log(`🔍 Processing metric ${index + 1}:`, {
-      dailyMetric: metricSeries.dailyMetric,
-      hasTimeSeries: !!metricSeries.timeSeries,
-      hasValues: !!metricSeries.timeSeries?.dailyValues,
-      valuesCount: metricSeries.timeSeries?.dailyValues?.length || 0
-    });
     const dailyMetric = metricSeries.dailyMetric;
     const timeSeries = metricSeries.timeSeries;
     
@@ -529,7 +514,6 @@ function formatNewPerformanceData(multiDailyMetrics: any[]): PerformanceData {
       return sum + (daily.value || 0);
     }, 0);
 
-    console.log(`📊 ${dailyMetric}: ${totalValue}`);
 
     // Map new API metrics to our display values
     switch (dailyMetric) {
@@ -563,16 +547,6 @@ function formatNewPerformanceData(multiDailyMetrics: any[]): PerformanceData {
     }
   });
 
-  console.log('📈 NEW API Performance totals:', {
-    totalViews,
-    totalWebsiteClicks,
-    totalPhoneCalls,
-    totalDirectionRequests,
-    totalConversations,
-    totalBookings,
-    totalFoodOrders,
-    totalMenuClicks
-  });
 
   return {
     monthlyViews: totalViews,
@@ -602,7 +576,6 @@ function formatLegacyPerformanceData(locationMetrics: any[]): PerformanceData {
 
     location.metricValues.forEach((metric: any) => {
       const value = parseInt(metric.totalValue?.value || '0');
-      console.log(`📊 LEGACY ${metric.metric}: ${value}`);
 
       switch (metric.metric) {
         case 'VIEWS_MAPS':
@@ -624,12 +597,6 @@ function formatLegacyPerformanceData(locationMetrics: any[]): PerformanceData {
     });
   });
 
-  console.log('📈 LEGACY API Performance totals:', {
-    totalViews,
-    totalWebsiteClicks,
-    totalPhoneCalls,
-    totalDirectionRequests
-  });
 
   return {
     monthlyViews: totalViews,

@@ -16,7 +16,6 @@ export async function POST(request: NextRequest) {
       const { data: userData, error: verifyError } = await supabaseAdmin.auth.getUser(token);
       if (!verifyError && userData.user) {
         user = userData.user;
-        console.log('🔑 User authenticated via Bearer token:', user.id);
       }
     }
     
@@ -27,19 +26,16 @@ export async function POST(request: NextRequest) {
       
       if (!userError && cookieUser) {
         user = cookieUser;
-        console.log('🍪 User authenticated via cookies:', user.id);
       }
     }
     
     if (!user) {
-      console.log('❌ No authenticated user found via token or cookies');
       return NextResponse.json(
         { error: 'Not authenticated' },
         { status: 401 }
       );
     }
     
-    console.log('🔧 Ensuring account exists for user:', user.id);
     
     // Use service role client for database operations
     const supabaseAdmin = createServiceRoleClient();
@@ -54,7 +50,6 @@ export async function POST(request: NextRequest) {
     // If there's an account_users record, use that account_id to check for the account
     const accountIdToCheck = accountUserRecord?.account_id || user.id;
     
-    console.log('🔍 Checking for account with ID:', accountIdToCheck, 'for user:', user.id);
     
     // Check if account exists (including soft-deleted ones)
     const { data: existingAccount, error: checkError } = await supabaseAdmin
@@ -66,7 +61,6 @@ export async function POST(request: NextRequest) {
     if (existingAccount) {
       // Check if account was previously deleted
       if (existingAccount.deleted_at) {
-        console.log('🔄 Reactivating previously deleted account:', existingAccount.id);
         
         // Reactivate the account but don't give a new trial
         const { error: reactivateError } = await supabaseAdmin
@@ -96,7 +90,6 @@ export async function POST(request: NextRequest) {
         });
       }
       
-      console.log('✅ Account already exists:', existingAccount.id);
       return NextResponse.json({ 
         success: true, 
         message: 'Account already exists',
@@ -106,8 +99,6 @@ export async function POST(request: NextRequest) {
     
     // If there's an orphaned account_users record, we need to handle it differently
     if (accountUserRecord && !existingAccount) {
-      console.log('⚠️ Found orphaned account_users record for user:', user.id);
-      console.log('🔧 Creating account with ID:', accountIdToCheck);
       
       // Create account with the ID from account_users record
       const { data: newAccount, error: createError } = await supabaseAdmin
@@ -137,7 +128,6 @@ export async function POST(request: NextRequest) {
         );
       }
       
-      console.log('✅ Account created for orphaned record:', newAccount.id);
       
       return NextResponse.json({ 
         success: true, 
@@ -147,7 +137,6 @@ export async function POST(request: NextRequest) {
     }
     
     // Create account if it doesn't exist (normal flow)
-    console.log('🔧 Creating account for user:', user.id);
     
     const { data: newAccount, error: createError } = await supabaseAdmin
       .from('accounts')
@@ -190,7 +179,6 @@ export async function POST(request: NextRequest) {
       console.error('❌ Account user link error:', linkError);
     }
     
-    console.log('✅ Account created successfully:', newAccount.id);
     
     return NextResponse.json({ 
       success: true, 

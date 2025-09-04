@@ -14,8 +14,6 @@ import { generateMockOverviewData } from '@/utils/googleBusinessProfile/overview
 
 export async function GET(request: NextRequest) {
   try {
-    console.error('🚨🚨🚨 GMB OVERVIEW API CALLED - THIS SHOULD SHOW 🚨🚨🚨');
-    console.log('📊 GMB Overview API: Starting overview data fetch');
 
     // Get location ID from query parameters
     const { searchParams } = new URL(request.url);
@@ -29,11 +27,9 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    console.log('📊 GMB Overview API: Location ID:', locationId);
 
     // If mock data is requested, return mock data
     if (useMockData) {
-      console.log('📊 GMB Overview API: Using mock data');
       const mockData = generateMockOverviewData();
       
       return NextResponse.json({
@@ -72,7 +68,6 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    console.log('✅ GMB Overview API: User authenticated:', user.id);
 
     // Create service role client for accessing OAuth tokens (bypasses RLS)
     const serviceSupabase = createClient(
@@ -95,11 +90,9 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    console.log('✅ GMB Overview API: Found Google Business Profile tokens');
 
     // Check if we have valid credentials
     if (!tokens.access_token) {
-      console.error('❌ GMB Overview API: Invalid access token');
       return NextResponse.json(
         { success: false, error: 'Invalid Google Business Profile credentials' },
         { status: 400 }
@@ -113,15 +106,12 @@ export async function GET(request: NextRequest) {
       expiresAt: new Date(tokens.expires_at).getTime()
     });
 
-    console.log('🔧 GMB Overview API: Client initialized, fetching overview data...');
 
     // Get business data from Google APIs (same pattern as Business Info tab)
     try {
       // Use the same successful pattern as business-information/location-details
-      console.log('🔍 Fetching accounts to find location details...');
       
       const accounts = await gbpClient.listAccounts();
-      console.log(`✅ Found ${accounts.length} accounts`);
       
       let foundLocation = null;
       
@@ -130,59 +120,46 @@ export async function GET(request: NextRequest) {
       // Search through all accounts to find the location (same as Business Info)
       for (const account of accounts) {
         try {
-          console.log(`🔍 Checking account: ${account.name}`);
           const locations = await gbpClient.listLocations(account.name);
-          console.log(`📍 Account ${account.name} has ${locations.length} locations:`, 
-            locations.map(loc => ({ name: loc.name, title: loc.title })));
           
           // Find the matching location
-          console.log(`🔍 Searching for location ID: "${locationId}"`);
-          console.log(`🔍 Available location names in this account:`, locations.map(loc => `"${loc.name}"`));
           
           foundLocation = locations.find(loc => {
             const matches = loc.name === locationId;
-            console.log(`🔍 Comparing "${loc.name}" === "${locationId}" = ${matches}`);
             return matches;
           });
           
           if (foundLocation) {
-            console.log('✅ Found location with complete Google data:', foundLocation.name);
             foundAccount = account;
             break;
           } else {
-            console.log(`⚠️ Location ${locationId} not found in account ${account.name}`);
             
             // Try alternative matching approaches
             const cleanLocationId = locationId.replace('locations/', '');
             const altFound = locations.find(loc => {
               const cleanLocName = loc.name.replace('locations/', '');
               const altMatches = cleanLocName === cleanLocationId;
-              console.log(`🔍 Alternative match: "${cleanLocName}" === "${cleanLocationId}" = ${altMatches}`);
               return altMatches;
             });
             
             if (altFound) {
-              console.log('✅ Found location with alternative matching:', altFound.name);
               foundLocation = altFound;
               foundAccount = account;
               break;
             }
           }
         } catch (accountError) {
-          console.log(`⚠️ Error checking account ${account.name}:`, accountError);
           // Continue with other accounts
         }
       }
 
       const locationData = foundLocation;
-      console.log('📍 Final location data:', locationData ? 'Complete Google object found' : 'Not found');
 
       // Extract account and location IDs for API calls
       const accountId = foundAccount ? foundAccount.name.replace('accounts/', '') : '';
       const cleanLocationId = locationId.replace('locations/', '');
 
       // Fetch data from multiple APIs in parallel
-      console.error('🚨 ABOUT TO CALL PERFORMANCE API - This should always show');
       
       const [reviewsResult, photosResult, postsResult, insightsResult] = await Promise.allSettled([
         gbpClient.getReviews(locationId),
@@ -191,7 +168,6 @@ export async function GET(request: NextRequest) {
         gbpClient.getLocationInsights(locationId, 'THIRTY_DAYS')
       ]);
       
-      console.error('🚨 PERFORMANCE API COMPLETED - Result status:', insightsResult.status);
       
       if (insightsResult.status === 'rejected') {
         console.error('🚨 PERFORMANCE API FAILED - Error:', insightsResult.reason);
@@ -203,19 +179,9 @@ export async function GET(request: NextRequest) {
       const postsData = postsResult.status === 'fulfilled' ? postsResult.value : [];
       const insightsData = insightsResult.status === 'fulfilled' ? insightsResult.value : [];
       
-      console.error('🚨 INSIGHTS DATA LENGTH:', insightsData?.length || 0);
 
       // Log API call results
-      console.log('📊 API Results Summary:');
-      console.log(`  Reviews: ${reviewsResult.status} - ${reviewsData.length} items`);
-      console.log(`  Photos: ${photosResult.status} - ${photosData.length} items`);
-      console.log(`  Posts: ${postsResult.status} - ${postsData.length} items`);
-      console.log(`  Insights: ${insightsResult.status} - ${insightsData.length} metrics`);
       
-      if (reviewsResult.status === 'rejected') console.log('  Reviews error:', reviewsResult.reason);
-      if (photosResult.status === 'rejected') console.log('  Photos error:', photosResult.reason);
-      if (postsResult.status === 'rejected') console.log('  Posts error:', postsResult.reason);
-      if (insightsResult.status === 'rejected') console.log('  Insights error:', insightsResult.reason);
 
       // Process the data using helper functions
       const { 
@@ -230,32 +196,9 @@ export async function GET(request: NextRequest) {
         calculateProfileCompleteness(locationData, [], []) : 
         { categoriesUsed: 0, maxCategories: 10, servicesCount: 0, servicesWithDescriptions: 0, businessDescriptionLength: 0, businessDescriptionMaxLength: 750, seoScore: 0, photosByCategory: {} };
 
-      console.log('📊 Categories structure debug:', {
-        nestedStructure: {
-          hasPrimaryCategory: !!locationData?.categories?.primaryCategory,
-          hasAdditionalCategories: !!locationData?.categories?.additionalCategories,
-          primaryCategoryName: locationData?.categories?.primaryCategory?.displayName || 'none',
-          additionalCount: locationData?.categories?.additionalCategories?.length || 0
-        },
-        legacyStructure: {
-          hasPrimaryCategory: !!locationData?.primaryCategory,
-          hasAdditionalCategories: !!locationData?.additionalCategories,
-          primaryCategoryName: locationData?.primaryCategory?.displayName || 'none',
-          additionalCount: locationData?.additionalCategories?.length || 0
-        }
-      });
 
-      console.log('📊 Profile completeness calculated:', {
-        categoriesUsed: profileData.categoriesUsed,
-        servicesCount: profileData.servicesCount,
-        servicesWithDescriptions: profileData.servicesWithDescriptions,
-        descriptionLength: profileData.businessDescriptionLength,
-        seoScore: profileData.seoScore
-      });
 
       if (!locationData) {
-        console.log('❌ Location not found in any account');
-        console.log('🔍 Requested location ID:', locationId);
         
         return NextResponse.json({
           success: false,
@@ -302,47 +245,19 @@ export async function GET(request: NextRequest) {
         lastPhotoDate: getLatestDate(photosData, 'createTime')
       };
 
-      console.log('📊 Activity metrics:', {
-        recentPhotos: recentPhotos.length,
-        recentPosts: recentPostsData.length,
-        totalPhotos: photosData.length,
-        totalPosts: postsData.length
-      });
 
           // Debug: Log raw insights data structure
-    console.log('🔍 Raw insights data from Google API:', JSON.stringify(insightsData, null, 2));
-    console.log('🔍 Insights data structure:', {
-      isArray: Array.isArray(insightsData),
-      length: insightsData?.length,
-      firstItem: insightsData?.[0] ? Object.keys(insightsData[0]) : 'none',
-      sample: insightsData?.[0]
-    });
 
     // ADDITIONAL DEBUG: Log each metric in detail
     if (Array.isArray(insightsData) && insightsData.length > 0) {
-      console.log('🔍 DETAILED METRICS BREAKDOWN:');
       insightsData.forEach((metric, index) => {
-        console.log(`  Metric ${index + 1}:`, {
-          dailyMetric: metric.dailyMetric,
-          hasTimeSeries: !!metric.timeSeries,
-          hasDailyValues: !!metric.timeSeries?.dailyValues,
-          dailyValuesCount: metric.timeSeries?.dailyValues?.length || 0,
-          sampleValues: metric.timeSeries?.dailyValues?.slice(0, 3) || 'none'
-        });
       });
     } else {
-      console.log('⚠️ No insights data or empty array received');
     }
 
       // Process real Google Business Profile performance data
       const performanceData = formatPerformanceData(insightsData, []);
       
-      console.log('📈 Performance data processed:', {
-        monthlyViews: performanceData.monthlyViews,
-        viewsTrend: performanceData.viewsTrend,
-        topSearchQueries: performanceData.topSearchQueries?.length,
-        customerActions: performanceData.customerActions
-      });
 
       const optimizationOpportunities = identifyOptimizationOpportunities(locationData, profileData, engagementData, []);
 
@@ -354,10 +269,6 @@ export async function GET(request: NextRequest) {
         optimizationOpportunities
       };
       
-      console.log('✅ GMB Overview API: Successfully fetched overview data');
-      console.log('📊 API Response - Review Trends:', overviewData.reviewTrends);
-      console.log('📊 API Response - Profile Data:', overviewData.profileData);
-      console.log('📊 API Response - Performance Data:', overviewData.performanceData);
 
       return NextResponse.json({
         success: true,
@@ -371,7 +282,6 @@ export async function GET(request: NextRequest) {
 
       // If there's an API error, fall back to mock data with a warning
       if (fetchError.message?.includes('quota') || fetchError.message?.includes('rate limit')) {
-        console.log('📊 GMB Overview API: Falling back to mock data due to rate limits');
         const mockData = generateMockOverviewData();
         
         return NextResponse.json({

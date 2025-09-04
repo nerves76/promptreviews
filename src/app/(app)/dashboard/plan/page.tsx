@@ -14,9 +14,7 @@ export default function PlanPage() {
 
   // Log when component mounts/unmounts
   useEffect(() => {
-    console.log('🚀 PlanPage component mounted');
     return () => {
-      console.log('💥 PlanPage component unmounting!');
     };
   }, []);
   
@@ -30,7 +28,6 @@ export default function PlanPage() {
       const hasSuccess = urlParams.get('success') === '1';
       const hasSessionSuccess = sessionStorage.getItem('showPlanSuccessModal') === 'true';
       const shouldLoad = !hasSuccess && !hasSessionSuccess;
-      console.log('🔍 Initial loading state:', { hasSuccess, hasSessionSuccess, shouldLoad });
       return shouldLoad;
     }
     return true;
@@ -40,11 +37,6 @@ export default function PlanPage() {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   
   // Debug render cycles with state
-  console.log('🎨 PlanPage render:', { 
-    isLoading, 
-    showSuccessModal, 
-    hasAccount: !!account 
-  });
   const [showDowngradeModal, setShowDowngradeModal] = useState(false);
   const [downgradeTarget, setDowngradeTarget] = useState<string | null>(null);
   const [downgradeFeatures, setDowngradeFeatures] = useState<string[]>([]);
@@ -125,7 +117,6 @@ export default function PlanPage() {
       
       // Check if we should show success modal from URL or session
       if ((success === '1' || shouldShowModal === 'true') && !successModalShownRef.current) {
-        console.log('📊 Success modal triggered:', { success, shouldShowModal, change, savedAction });
         
         // Mark that we've shown the modal BEFORE setting state to prevent re-runs
         successModalShownRef.current = true;
@@ -162,7 +153,6 @@ export default function PlanPage() {
       
       // Handle canceled checkout
       if (canceled === '1') {
-        console.log('🚫 User canceled checkout');
         setUpgradeProcessing(false);
         setDowngradeProcessing(false);
         setShowUpgradeModal(false);
@@ -186,7 +176,6 @@ export default function PlanPage() {
       const accountId = selectedAccountId || authAccount?.id;
       
       if (!accountId) {
-        console.error("No account found for user:", user.id);
         router.push("/dashboard/create-business");
         return;
       }
@@ -244,7 +233,6 @@ export default function PlanPage() {
           if (syncData.currentPlan && syncData.currentBilling) {
             // Update local state if sync changed the values
             if (syncData.currentPlan !== accountData.plan || syncData.currentBilling !== accountData.billing_period) {
-              console.log('📊 Synced with Stripe:', syncData);
               setCurrentPlan(syncData.currentPlan);
               setBillingPeriod(syncData.currentBilling as 'monthly' | 'annual');
               prevPlanRef.current = syncData.currentPlan;
@@ -408,16 +396,9 @@ export default function PlanPage() {
         // Check if user needs checkout (trial/free) or upgrade (existing customer)
         const needsCheckout = !account.stripe_customer_id || account.is_free_account;
         
-        console.log('🔍 Checking user type for upgrade:', {
-          hasStripeCustomer: !!account.stripe_customer_id,
-          isFreeAccount: account.is_free_account,
-          needsCheckout,
-          accountId: account.id
-        });
         
         if (needsCheckout) {
           // For trial/free users, go directly to checkout (no proration needed)
-          console.log('🆓 Trial or free user detected, going to checkout for new subscription');
           setUpgrading(true);
           setUpgradingPlan(`Setting up ${targetTier.name} plan...`);
           
@@ -525,7 +506,6 @@ export default function PlanPage() {
             
             let errorData: any = { error: 'Unknown error' };
             const responseText = await previewRes.text();
-            console.error('Response text:', responseText);
             
             try {
               errorData = JSON.parse(responseText);
@@ -625,7 +605,6 @@ export default function PlanPage() {
         
         if (needsCheckout) {
           // For trial/free users, they need to set up payment first even for "downgrades"
-          console.log('🆓 Trial or free user detected - need to set up payment first');
           
           // Show a message that they need to set up payment
           setConfirmModalConfig({
@@ -693,11 +672,6 @@ export default function PlanPage() {
   
   // Debug: Track success modal state changes
   useEffect(() => {
-    console.log('🔍 Success modal state changed:', { 
-      showSuccessModal, 
-      successModalShownRef: successModalShownRef.current,
-      sessionStorage: typeof window !== 'undefined' ? sessionStorage.getItem('showPlanSuccessModal') : 'N/A'
-    });
     
     // Update ref to track current state
     if (showSuccessModal) {
@@ -709,20 +683,8 @@ export default function PlanPage() {
 
   // Confirm downgrade handler
   const handleConfirmDowngrade = async () => {
-    console.log("🎯 handleConfirmDowngrade called!", {
-      downgradeTarget,
-      account: account?.id,
-      user: user?.id,
-      userRole,
-      currentPlan
-    });
     
     if (!downgradeTarget || !account || !user) {
-      console.error("❌ Missing required data for downgrade", {
-        downgradeTarget,
-        account: !!account,
-        user: !!user
-      });
       return;
     }
     
@@ -793,7 +755,6 @@ export default function PlanPage() {
             try {
               // For customers with active Stripe subscriptions, use the upgrade API to downgrade
               if (account.stripe_customer_id) {
-                console.log("📡 Calling upgrade-subscription API for downgrade...");
                 const res = await fetch("/api/upgrade-subscription", {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
@@ -807,20 +768,16 @@ export default function PlanPage() {
                 
                 if (res.ok) {
                   const data = await res.json();
-                  console.log("📉 Downgrade API response:", data);
                   
                   // Build full URL to ensure proper redirect
                   const baseUrl = window.location.origin;
                   const redirectUrl = `${baseUrl}/dashboard/plan?success=1&change=downgrade&plan=${downgradeTarget}&billing=${billingPeriod}`;
-                  console.log("🔄 Redirecting to:", redirectUrl);
-                  console.log("📍 Current location before redirect:", window.location.href);
                   
                   // Close modal and redirect
                   setShowConfirmModal(false);
                   
                   // Add a small delay to ensure the database update completes
                   setTimeout(() => {
-                    console.log("🚀 Executing redirect now...");
                     window.location.href = redirectUrl;
                   }, 500);
                   return;
@@ -983,11 +940,9 @@ export default function PlanPage() {
           
           if (res.ok) {
           const data = await res.json();
-          console.log("📈 Upgrade API response:", data);
           
           // For now, always use local redirect to ensure it works
           const redirectUrl = `/dashboard/plan?success=1&change=upgrade&plan=${upgradeTarget}&billing=${billingPeriod}`;
-          console.log("🔄 Redirecting to:", redirectUrl);
           
           // Add a small delay to ensure the database update completes
           setTimeout(() => {
@@ -999,7 +954,6 @@ export default function PlanPage() {
           
           // Check if this is a free trial user who should use checkout instead
           if (errorData.error === "FREE_TRIAL_USER" || errorData.redirectToCheckout) {
-            console.log("Free trial user detected, redirecting to checkout...");
             
             // Redirect to checkout session API instead
             const checkoutRes = await fetch("/api/create-checkout-session", {
@@ -1075,7 +1029,6 @@ export default function PlanPage() {
         {/* Standardized close button - breaching corner */}
         <button
           onClick={() => {
-            console.log('✅ User clicked close button on success modal');
             sessionStorage.removeItem('showPlanSuccessModal');
             sessionStorage.removeItem('planSuccessAction');
             successModalShownRef.current = false;
@@ -1202,7 +1155,6 @@ export default function PlanPage() {
               <div className="mt-4">
                 <button
                   onClick={async () => {
-                    console.log('🔄 Triggering manual subscription sync...');
                     try {
                       const res = await fetch('/api/manual-sync-subscription', {
                         method: 'POST',
@@ -1211,7 +1163,6 @@ export default function PlanPage() {
                       });
                       const data = await res.json();
                       if (res.ok) {
-                        console.log('✅ Sync successful:', data);
                         alert('Subscription synced! Refreshing page...');
                         window.location.reload();
                       } else {

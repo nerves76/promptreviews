@@ -25,31 +25,17 @@ export function useWidgets() {
   const [lastFetchTime, setLastFetchTime] = useState<number>(0);
   
   // Debug logging for account selection
-  console.log('🎨 useWidgets - Account Selection State:', {
-    selectedAccount,
-    accountLoading,
-    selectedAccountId: selectedAccount?.account_id,
-    selectedAccountName: selectedAccount?.account_name
-  });
 
   const fetchWidgets = useCallback(async (force = false) => {
     // Debounce fetches - prevent fetching more than once per second unless forced
     const now = Date.now();
     if (!force && now - lastFetchTime < 1000) {
-      console.log('⏸️ useWidgets: Skipping fetch (debounced)');
       return;
     }
     
-    console.log('🔄 useWidgets: Starting fetchWidgets', {
-      accountLoading,
-      selectedAccountId: selectedAccount?.account_id,
-      timestamp: new Date().toISOString(),
-      forced: force
-    });
     
     // Wait for account selection to complete
     if (accountLoading || !selectedAccount?.account_id) {
-      console.log('⏸️ useWidgets: Waiting for account selection to complete');
       return;
     }
     
@@ -57,7 +43,6 @@ export function useWidgets() {
     setLastFetchTime(now);
     
     try {
-      console.log('✅ useWidgets: Fetching widgets for account:', selectedAccount.account_id);
       
       // Use apiClient for better token management
       // For now, still use supabase directly but this can be migrated to API endpoint
@@ -71,7 +56,6 @@ export function useWidgets() {
         throw new Error(`Failed to fetch widgets: ${fetchError.message}`);
       }
       
-      console.log('🎨 useWidgets: Widgets fetched successfully:', widgetsData?.length || 0);
       setWidgets(widgetsData || []);
       setError(null);
     } catch (err) {
@@ -89,7 +73,6 @@ export function useWidgets() {
     let mounted = true;
     
     if (mounted && !accountLoading && selectedAccount?.account_id) {
-      console.log('🔄 useWidgets: Account changed or loaded, fetching widgets for:', selectedAccount.account_id);
       // Clear existing widgets when account changes
       setWidgets([]);
       setError(null);
@@ -107,7 +90,6 @@ export function useWidgets() {
     }
     
     try {
-      console.log('🎨 useWidgets: Creating widget for account:', selectedAccount.account_id);
       
       // Create widget directly in database using selected account ID
       const widgetData = {
@@ -147,7 +129,6 @@ export function useWidgets() {
 
   const updateWidget = async (widgetId: string, updates: Partial<Widget>) => {
     try {
-      console.log('🎨 useWidgets: Updating widget:', widgetId, updates);
       
       // Update widget directly in database
       const { data, error: updateError } = await supabase
@@ -176,7 +157,6 @@ export function useWidgets() {
 
   const deleteWidget = async (widgetId: string) => {
     try {
-      console.log('🎨 useWidgets: Deleting widget:', widgetId);
       
       // Delete widget directly from database
       const { error: deleteError } = await supabase

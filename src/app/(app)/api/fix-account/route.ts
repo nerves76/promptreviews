@@ -12,7 +12,6 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    console.log('🔧 Manually fixing account for user:', userId);
     
     const supabase = createServiceRoleClient();
     
@@ -27,7 +26,6 @@ export async function POST(request: NextRequest) {
     }
     
     const user = userData.user;
-    console.log('👤 User found:', { id: user.id, email: user.email, metadata: user.user_metadata });
     
     // Check if account already exists
     const { data: existingAccount } = await supabase
@@ -72,7 +70,6 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    console.log('✅ Account created:', newAccount);
     
     // Create account_users link
     const { error: linkError } = await supabase
@@ -92,7 +89,6 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    console.log('✅ Account user link created');
     
     return NextResponse.json({
       success: true,

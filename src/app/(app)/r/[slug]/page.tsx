@@ -114,9 +114,6 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     const pageType = getPageType(promptPage);
     const variableContext = createVariableContext(business, promptPage);
     
-    console.log(`[PAGE] Generating metadata for page type: ${pageType}`);
-    console.log(`[PAGE] Variable context:`, variableContext);
-    console.log(`[PAGE] Business name: ${business.name}`);
     
     // Generate metadata using templates with variable substitution
     const templateMetadata = await generatePromptPageMetadata(pageType, variableContext);
@@ -157,7 +154,6 @@ async function getPromptPageData(slug: string): Promise<PromptPageData | null> {
   try {
     // DEVELOPMENT MODE BYPASS - Return mock Universal prompt page data
     if (process.env.NODE_ENV === 'development' && slug === 'universal-mdwd0peh') {
-      console.log('🔧 DEV MODE: Server component returning mock Universal prompt page data');
       
       // Default mock data for server-side rendering
       const mockPromptPage = {

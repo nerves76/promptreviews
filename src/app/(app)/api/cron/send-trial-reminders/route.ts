@@ -18,7 +18,6 @@ export async function GET(request: NextRequest) {
     const expectedToken = process.env.CRON_SECRET_TOKEN;
     
     if (!expectedToken) {
-      console.error('CRON_SECRET_TOKEN environment variable not set');
       return NextResponse.json(
         { error: 'Cron secret not configured' }, 
         { status: 500 }
@@ -79,7 +78,6 @@ export async function GET(request: NextRequest) {
         // Handle the profiles array from inner join
         const profile = Array.isArray(account.profiles) ? account.profiles[0] : account.profiles;
         if (!profile) {
-          console.error('No profile found for account:', account.id);
           continue;
         }
 
@@ -165,7 +163,6 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    console.log(`Cron job completed: ${successCount} reminders sent, ${errorCount} failed, ${skippedCount} skipped`);
 
     return NextResponse.json({
       success: true,

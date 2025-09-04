@@ -36,7 +36,6 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    console.log('🚀 Starting comeback email campaign (monthly run)...');
 
     // Find accounts cancelled around 90 days ago
     // Since we run monthly, check a wider window (75-105 days)
@@ -46,7 +45,6 @@ export async function GET(request: NextRequest) {
     const endDate = new Date();
     endDate.setDate(endDate.getDate() - 75); // 75 days ago
 
-    console.log(`📅 Looking for accounts cancelled between ${startDate.toISOString()} and ${endDate.toISOString()}`);
 
     // Get cancelled accounts in the target window
     const { data: cancelledAccounts, error: fetchError } = await supabaseAdmin
@@ -62,7 +60,6 @@ export async function GET(request: NextRequest) {
     }
 
     if (!cancelledAccounts || cancelledAccounts.length === 0) {
-      console.log('ℹ️ No accounts found in the comeback window');
       return NextResponse.json({ 
         success: true, 
         message: 'No accounts to email',
@@ -71,7 +68,6 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    console.log(`📊 Found ${cancelledAccounts.length} cancelled accounts to check`);
 
     // Check which accounts haven't received comeback email yet
     const { data: emailHistory, error: historyError } = await supabaseAdmin
@@ -88,7 +84,6 @@ export async function GET(request: NextRequest) {
     const accountsToEmail = cancelledAccounts.filter(a => !alreadyEmailed.has(a.id));
 
     if (accountsToEmail.length === 0) {
-      console.log('ℹ️ All eligible accounts have already received comeback emails');
       return NextResponse.json({ 
         success: true, 
         message: 'All accounts already emailed',
@@ -97,7 +92,6 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    console.log(`📧 Sending comeback emails to ${accountsToEmail.length} accounts`);
 
     // Get the email template
     const { data: template, error: templateError } = await supabaseAdmin
@@ -153,7 +147,6 @@ export async function GET(request: NextRequest) {
           throw emailError;
         }
 
-        console.log(`✅ Email sent to ${account.email}`);
 
         // Record the communication
         const { error: recordError } = await supabaseAdmin
@@ -218,7 +211,6 @@ export async function GET(request: NextRequest) {
       errors: errors.length > 0 ? errors : undefined
     };
 
-    console.log('📊 Campaign summary:', summary);
 
     return NextResponse.json(summary);
 

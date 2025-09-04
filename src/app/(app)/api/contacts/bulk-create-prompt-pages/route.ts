@@ -21,13 +21,10 @@ export async function POST(request: NextRequest) {
       const authHeader = request.headers.get('authorization');
       if (authHeader?.startsWith('Bearer ')) {
         const token = authHeader.substring(7);
-        console.log('🔑 Bulk API - Trying Authorization header auth with token length:', token.length);
         const headerResult = await supabaseAdmin.auth.getUser(token);
         if (!headerResult.error && headerResult.data.user) {
           user = headerResult.data.user;
-          console.log('✅ Bulk API - Header auth successful for user:', user.id);
         } else {
-          console.log('❌ Bulk API - Header auth failed:', headerResult.error?.message);
           userError = headerResult.error;
         }
       } else {
@@ -62,7 +59,6 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (!accountUser) {
-      console.error('❌ User does not have access to account:', accountId);
       return NextResponse.json({ error: 'Access denied to this account' }, { status: 403 });
     }
     
@@ -115,14 +111,8 @@ export async function POST(request: NextRequest) {
     const results = [];
     const errors = [];
 
-    console.log(`🔄 Bulk API - Processing ${contacts.length} contacts for prompt type: ${promptType}`);
 
     for (const contact of contacts) {
-      console.log(`🔄 Bulk API - Processing contact:`, {
-        id: contact.id,
-        name: `${contact.first_name || ''} ${contact.last_name || ''}`.trim(),
-        email: contact.email
-      });
       try {
         // Generate unique slug
         const contactName = `${contact.first_name || ''} ${contact.last_name || ''}`.trim() || 'Contact';
@@ -205,13 +195,6 @@ export async function POST(request: NextRequest) {
               console.error('⚠️ Error during review import for contact:', contact.id, reviewImportError);
             }
           }
-          console.log('✅ Bulk API - Successfully created prompt page:', {
-            contactId: contact.id,
-            contactName: contactName,
-            promptPageId: promptPage.id,
-            slug: promptPage.slug,
-            title: promptPage.title
-          });
           results.push({
             contactId: contact.id,
             contactName: contactName,
@@ -229,12 +212,6 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    console.log(`📊 Bulk API - Final results:`, {
-      totalContacts: contacts.length,
-      created: results.length,
-      failed: errors.length,
-      errors: errors.map(e => ({ contactName: e.contactName, error: e.error }))
-    });
 
     return NextResponse.json({
       success: true,

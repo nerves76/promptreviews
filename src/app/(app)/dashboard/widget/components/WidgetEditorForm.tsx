@@ -56,7 +56,6 @@ export const WidgetEditorForm: React.FC<WidgetEditorFormProps> = ({
       if (savedData) {
         try {
           const parsed = JSON.parse(savedData);
-          console.log('📝 Restored widget editor form data from localStorage');
           return parsed;
         } catch (e) {
           console.error('Failed to parse saved widget form data:', e);
@@ -75,7 +74,6 @@ export const WidgetEditorForm: React.FC<WidgetEditorFormProps> = ({
     const saveTimeout = setTimeout(() => {
       if (typeof window !== 'undefined' && form && form.name.trim()) {
         localStorage.setItem(formStorageKey, JSON.stringify(form));
-        console.log('💾 Auto-saved widget editor form data to localStorage');
       }
     }, 1000); // Debounce for 1 second
 
@@ -151,7 +149,6 @@ export const WidgetEditorForm: React.FC<WidgetEditorFormProps> = ({
       // Clear saved form data on successful save
       if (typeof window !== 'undefined') {
         localStorage.removeItem(formStorageKey);
-        console.log('🗑️ Cleared widget editor form data from localStorage after successful save');
       }
       
       onSaveSuccess(newWidget);

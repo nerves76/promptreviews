@@ -435,7 +435,6 @@ function AuthTestPageContent() {
             </button>
             <button
               onClick={() => {
-                console.log('Full Auth State:', auth);
                 alert('Check console for full auth state');
               }}
               className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"

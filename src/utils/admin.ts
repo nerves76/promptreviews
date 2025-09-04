@@ -21,13 +21,11 @@ export async function isAdmin(userId?: string, supabaseClient?: any): Promise<bo
 
       if (authError) {
         if (process.env.NODE_ENV === 'development') {
-          console.log('isAdmin: Auth error, returning false:', authError.message);
         }
         return false;
       }
       if (!user) {
         if (process.env.NODE_ENV === 'development') {
-          console.log('isAdmin: No user found, returning false');
         }
         return false;
       }
@@ -36,7 +34,6 @@ export async function isAdmin(userId?: string, supabaseClient?: any): Promise<bo
 
     // Only log occasionally to reduce noise (20% of the time)
     if (process.env.NODE_ENV === 'development' && Math.random() < 0.2) {
-      console.log('isAdmin: Checking admin status for user ID:', userToCheck);
     }
     
     // Simple query: Check is_admin column in accounts table
@@ -87,7 +84,6 @@ export async function setAdminStatus(
   try {
     const client = supabaseClient || createClient();
     
-    console.log(`Setting admin status for ${email} to ${isAdminStatus}`);
     
     // Update the is_admin column
     const { data, error } = await client
@@ -176,7 +172,6 @@ export async function ensureAdminForEmail(user: { id: string, email: string }, s
   if (!user?.email) return;
   if (!adminEmails.includes(user.email.toLowerCase())) return;
 
-  console.log(`ensureAdminForEmail: Auto-granting admin status for ${user.email}`);
   await setAdminStatus(user.email, true, supabaseClient);
 }
 
@@ -264,20 +259,15 @@ export async function getAllActiveQuotes(supabaseClient?: any) {
 export async function createAnnouncement(message: string, buttonText?: string, buttonUrl?: string, supabaseClient?: any): Promise<boolean> {
   try {
     const client = supabaseClient || createClient();
-    console.log('createAnnouncement: Starting with message:', message);
     
     const { data: { user } } = await client.auth.getUser();
-    console.log('createAnnouncement: User check result:', { user: user?.id, email: user?.email });
     if (!user) {
-      console.error('createAnnouncement: No user found');
       return false;
     }
 
     // Check if user is admin using the reliable isAdmin function
     const adminStatus = await isAdmin(user.id, client);
-    console.log('createAnnouncement: Admin status check result:', adminStatus);
     if (!adminStatus) {
-      console.error('createAnnouncement: User is not an admin');
       return false;
     }
 
@@ -287,7 +277,6 @@ export async function createAnnouncement(message: string, buttonText?: string, b
       .update({ is_active: false })
       .eq('is_active', true);
 
-    console.log('createAnnouncement: Deactivate existing announcements result:', { error: deactivateError });
 
     // Prepare announcement data
     const announcementData: any = {
@@ -304,14 +293,12 @@ export async function createAnnouncement(message: string, buttonText?: string, b
       announcementData.button_url = buttonUrl.trim();
     }
 
-    console.log('createAnnouncement: Prepared announcement data:', announcementData);
 
     // Create new announcement
     const { error: insertError } = await client
       .from('announcements')
       .insert(announcementData);
 
-    console.log('createAnnouncement: Insert result:', { error: insertError });
     return !insertError;
   } catch (error) {
     console.error('Error creating announcement:', error);
@@ -333,14 +320,12 @@ export async function createQuote(text: string, author?: string, buttonText?: st
     const client = supabaseClient || createClient();
     const { data: { user } } = await client.auth.getUser();
     if (!user) {
-      console.error('createQuote: No user found');
       return false;
     }
 
     // Check if user is admin using the reliable isAdmin function
     const adminStatus = await isAdmin(user.id, client);
     if (!adminStatus) {
-      console.error('createQuote: User is not an admin');
       return false;
     }
 
@@ -360,7 +345,6 @@ export async function createQuote(text: string, author?: string, buttonText?: st
       quoteData.button_url = buttonUrl.trim();
     }
 
-    console.log('createQuote: Inserting quote data:', quoteData);
 
     // Create new quote
     const { error } = await client
@@ -377,7 +361,6 @@ export async function createQuote(text: string, author?: string, buttonText?: st
       return false;
     }
 
-    console.log('createQuote: Quote created successfully');
     return true;
   } catch (error) {
     console.error('Error creating quote:', error);
@@ -480,18 +463,15 @@ export async function deleteQuote(id: string, supabaseClient?: any): Promise<boo
     const client = supabaseClient || createClient();
     const { data: { user } } = await client.auth.getUser();
     if (!user) {
-      console.error('deleteQuote: No user found');
       return false;
     }
 
     // Check if user is admin using the reliable isAdmin function
     const adminStatus = await isAdmin(user.id, client);
     if (!adminStatus) {
-      console.error('deleteQuote: User is not an admin');
       return false;
     }
 
-    console.log('deleteQuote: Deleting quote with ID:', id);
 
     // Delete the quote
     const { error } = await client
@@ -509,7 +489,6 @@ export async function deleteQuote(id: string, supabaseClient?: any): Promise<boo
       return false;
     }
 
-    console.log('deleteQuote: Quote deleted successfully');
     return true;
   } catch (error) {
     console.error('Error deleting quote:', error);
@@ -532,14 +511,12 @@ export async function updateQuote(id: string, text: string, author?: string, but
     const client = supabaseClient || createClient();
     const { data: { user } } = await client.auth.getUser();
     if (!user) {
-      console.error('updateQuote: No user found');
       return false;
     }
 
     // Check if user is admin using the reliable isAdmin function
     const adminStatus = await isAdmin(user.id, client);
     if (!adminStatus) {
-      console.error('updateQuote: User is not an admin');
       return false;
     }
 
@@ -562,7 +539,6 @@ export async function updateQuote(id: string, text: string, author?: string, but
       updateData.button_url = null; // Clear if empty
     }
 
-    console.log('updateQuote: Updating quote with ID:', id, 'Data:', updateData);
 
     // Update the quote
     const { error } = await client
@@ -580,7 +556,6 @@ export async function updateQuote(id: string, text: string, author?: string, but
       return false;
     }
 
-    console.log('updateQuote: Quote updated successfully');
     return true;
   } catch (error) {
     console.error('Error updating quote:', error);
@@ -600,20 +575,15 @@ export async function getAllFeedback(supabaseClient?: any) {
     // First check if user is admin
     const { data: { user } } = await client.auth.getUser();
     if (!user) {
-      console.error('getAllFeedback: No user found');
       return [];
     }
 
-    console.log('getAllFeedback: Checking admin status for user:', user.id);
     const adminStatus = await isAdmin(user.id, client);
-    console.log('getAllFeedback: Admin status:', adminStatus);
 
     if (!adminStatus) {
-      console.error('getAllFeedback: User is not admin');
       return [];
     }
 
-    console.log('getAllFeedback: Fetching feedback data...');
     const { data: feedback, error } = await client
       .from('feedback')
       .select(`
@@ -638,7 +608,6 @@ export async function getAllFeedback(supabaseClient?: any) {
       return [];
     }
 
-    console.log('getAllFeedback: Successfully fetched feedback:', feedback?.length || 0, 'items');
     return feedback || [];
   } catch (error) {
     console.error('getAllFeedback: Unexpected error:', error);
@@ -687,20 +656,15 @@ export async function deleteFeedback(feedbackId: string, supabaseClient?: any): 
     // First check if user is admin
     const { data: { user } } = await client.auth.getUser();
     if (!user) {
-      console.error('deleteFeedback: No user found');
       return false;
     }
 
-    console.log('deleteFeedback: Checking admin status for user:', user.id);
     const adminStatus = await isAdmin(user.id, client);
-    console.log('deleteFeedback: Admin status:', adminStatus);
 
     if (!adminStatus) {
-      console.error('deleteFeedback: User is not admin');
       return false;
     }
 
-    console.log('deleteFeedback: Deleting feedback with ID:', feedbackId);
 
     const { error } = await client
       .from('feedback')
@@ -717,7 +681,6 @@ export async function deleteFeedback(feedbackId: string, supabaseClient?: any): 
       return false;
     }
 
-    console.log('deleteFeedback: Feedback deleted successfully');
     return true;
   } catch (error) {
     console.error('Error deleting feedback:', error);

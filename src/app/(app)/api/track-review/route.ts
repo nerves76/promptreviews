@@ -11,14 +11,11 @@ export async function POST(request: NextRequest) {
     // Apply rate limiting first
     const rateLimitResult = standardReviewRateLimit(request);
     if (rateLimitResult) {
-      console.log("[track-review] Rate limit exceeded for IP");
       return rateLimitResult;
     }
     
     const body = await request.json();
     // Log Supabase config and payload
-    console.log("[track-review] Using service role client for anonymous review submission");
-    console.log("[track-review] Payload:", JSON.stringify(body));
 
     const {
       promptPageId,
@@ -34,7 +31,6 @@ export async function POST(request: NextRequest) {
       phone,
     } = body;
 
-    console.log("[track-review] Step 1: Validating input data...");
     if (!promptPageId) {
       console.error("[track-review] ERROR: Missing promptPageId");
       return NextResponse.json({ error: "Missing promptPageId" }, { status: 400 });
@@ -46,7 +42,6 @@ export async function POST(request: NextRequest) {
       request.headers.get("x-real-ip") ||
       "";
 
-    console.log("[track-review] Step 2: Fetching prompt page with ID:", promptPageId);
     
     // Fetch business_id (account_id) from prompt_pages
     const { data: promptPage, error: promptPageError } = await supabase
@@ -55,7 +50,6 @@ export async function POST(request: NextRequest) {
       .eq("id", promptPageId)
       .single();
     
-    console.log("[track-review] Prompt page query result:", { data: promptPage, error: promptPageError });
     
     if (promptPageError) {
       console.error("[track-review] ERROR: Failed to fetch prompt page:", promptPageError);
@@ -72,9 +66,7 @@ export async function POST(request: NextRequest) {
     }
     
     const business_id = promptPage.account_id;
-    console.log("[track-review] Step 3: Found business_id:", business_id);
 
-    console.log("[track-review] Step 4: Inserting review submission...");
     
     // Combine first_name and last_name into reviewer_name for the constraint
     const reviewer_name = [first_name, last_name].filter(Boolean).join(' ').trim();
@@ -123,11 +115,9 @@ export async function POST(request: NextRequest) {
       }, { status: 500 });
     }
 
-    console.log("[track-review] Step 5: Review submission inserted successfully:", data?.id);
 
     // Step 6: Create or update contact from review submission
     if (data?.id && (first_name || last_name) && (email || phone)) {
-      console.log("[track-review] Step 6: Creating/updating contact from review submission...");
       
       try {
         // Check if contact already exists (by email or phone)
@@ -146,7 +136,6 @@ export async function POST(request: NextRequest) {
 
         if (existingContact) {
           // Update existing contact with review info
-          console.log("[track-review] Updating existing contact:", existingContact.id);
           
           const updateData: any = {
             review_submission_id: data.id,
@@ -177,7 +166,6 @@ export async function POST(request: NextRequest) {
           }
         } else {
           // Create new contact from review submission
-          console.log("[track-review] Creating new contact from review submission");
           
           const contactData: any = {
             account_id: business_id,
@@ -217,7 +205,6 @@ export async function POST(request: NextRequest) {
         // Don't fail the whole request if contact creation fails
       }
     } else {
-      console.log("[track-review] Skipping contact creation - insufficient data (need name and email/phone)");
     }
 
     // Log review submission to analytics_events
@@ -282,17 +269,6 @@ export async function POST(request: NextRequest) {
         templateName = 'review_praise_notification';
       }
       
-      console.log("[track-review] Sending templated email notification", {
-        to: account.email,
-        template: templateName,
-        reviewerName: reviewerFullName,
-        platform,
-        reviewContent,
-        accountFirstName: account.first_name,
-        sentiment,
-        isPositive: isPositiveSentiment,
-        isNegative: isNegativeSentiment,
-      });
 
       try {
         const emailResult = await sendTemplatedEmail(templateName, account.email, {
@@ -303,7 +279,6 @@ export async function POST(request: NextRequest) {
         });
 
         if (emailResult.success) {
-          console.log("[track-review] Templated email sent successfully to", account.email);
         } else {
           console.error("[track-review] Failed to send templated email:", emailResult.error);
         }
@@ -314,11 +289,6 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true, data });
   } catch (error) {
-    console.error(
-      "Error tracking review:",
-      error,
-      JSON.stringify(error, null, 2),
-    );
     if (typeof error === "object" && error !== null) {
       if ("message" in error) {
         console.error("Error message:", (error as any).message);

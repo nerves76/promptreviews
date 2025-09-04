@@ -171,22 +171,18 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl,
 
   const handleDownloadClick = () => {
     setIsDownloading(true);
-    console.log('Download button clicked');
     
     // Trigger the download function directly on the QRCodeGenerator component
     setTimeout(() => {
       const qrGenerator = document.querySelector('[data-qr-generator]') as HTMLCanvasElement;
-      console.log('Found QR generator element:', qrGenerator);
       
       if (qrGenerator && (qrGenerator as any).downloadQRCode) {
-        console.log('Calling downloadQRCode function');
         try {
           (qrGenerator as any).downloadQRCode();
         } catch (error) {
           console.error('Error downloading QR code:', error);
         }
       } else {
-        console.error('downloadQRCode function not found on element');
       }
       setIsDownloading(false);
     }, 100);

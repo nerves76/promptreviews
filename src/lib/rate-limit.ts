@@ -63,6 +63,7 @@ class RateLimiter {
 export const apiRateLimiter = new RateLimiter(60000, 60); // 60 req/min for general API
 export const authRateLimiter = new RateLimiter(900000, 5); // 5 attempts per 15 min for auth
 export const widgetRateLimiter = new RateLimiter(60000, 100); // 100 req/min for widgets (more permissive)
+export const adminRateLimiter = new RateLimiter(300000, 10); // 10 req per 5 min for admin operations (strict)
 
 /**
  * Middleware helper for API routes

@@ -137,7 +137,6 @@ export async function POST(req: NextRequest) {
       tutorials = filterAndRankTutorials(docsTutorials, context);
     } else {
       // Fallback to mock data
-      console.log('Using fallback tutorial data');
       tutorials = filterAndRankTutorials(fallbackTutorials, context);
     }
 
