@@ -129,22 +129,6 @@ export async function POST(request: NextRequest) {
           }
         } else {
           console.log('✅ Account created manually');
-          
-          // Create account_users link
-          const { error: linkError } = await supabase
-            .from('account_users')
-            .insert({
-              account_id: userId,
-              user_id: userId,
-              role: 'owner',
-              created_at: new Date().toISOString()
-            });
-          
-          if (linkError) {
-            console.error('❌ Account user link error:', linkError);
-          } else {
-            console.log('✅ Account user link created');
-          }
         }
       } catch (accountCreationError) {
         console.error('❌ Account creation exception:', accountCreationError);
@@ -152,6 +136,48 @@ export async function POST(request: NextRequest) {
       }
     } else {
       console.log('✅ Account already exists from trigger');
+    }
+    
+    // ALWAYS ensure account_users link exists, regardless of how account was created
+    console.log('🔧 Ensuring account_users link exists...');
+    
+    // Check if account_users link already exists
+    const { data: existingLink } = await supabase
+      .from('account_users')
+      .select('*')
+      .eq('account_id', userId)
+      .eq('user_id', userId)
+      .single();
+    
+    if (!existingLink) {
+      console.log('📝 Creating account_users link...');
+      const { error: linkError } = await supabase
+        .from('account_users')
+        .insert({
+          account_id: userId,
+          user_id: userId,
+          role: 'owner',
+          created_at: new Date().toISOString()
+        });
+      
+      if (linkError) {
+        console.error('❌ Account user link error:', linkError);
+        
+        // This is critical - without this link, user can't access their account
+        // Try to clean up and fail the signup
+        if (linkError.code !== '23505') { // Unless it's a duplicate key error
+          await supabase.auth.admin.deleteUser(userId);
+          
+          return NextResponse.json(
+            { error: 'Failed to complete account setup. Please try again.' },
+            { status: 500 }
+          );
+        }
+      } else {
+        console.log('✅ Account user link created');
+      }
+    } else {
+      console.log('✅ Account user link already exists');
     }
     
     return NextResponse.json({
