@@ -98,9 +98,20 @@ export function CoreAuthProvider({ children }: { children: React.ReactNode }) {
   // Minimal refresh session - just delegates to TokenManager
   // Kept for backward compatibility with components that call it
   const refreshSession = useCallback(async () => {
-    // TokenManager handles the actual refresh
-    await tokenManager.getAccessToken();
-    // Session updates will come through onAuthStateChange
+    try {
+      // TokenManager handles the actual refresh
+      const token = await tokenManager.getAccessToken();
+      if (!token) {
+        // If no token, try to get session from Supabase directly
+        const { data: { session: currentSession } } = await supabase.auth.getSession();
+        if (currentSession) {
+          setSession(currentSession);
+          setUser(currentSession.user);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to refresh session:', error);
+    }
   }, []);
 
   // Sign in
@@ -122,6 +133,8 @@ export function CoreAuthProvider({ children }: { children: React.ReactNode }) {
       if (response.data.user && response.data.session) {
         setUser(response.data.user);
         setSession(response.data.session);
+        // Update TokenManager with new session
+        tokenManager.updateSession(response.data.session);
       }
 
       return response;
@@ -156,6 +169,8 @@ export function CoreAuthProvider({ children }: { children: React.ReactNode }) {
       if (response.data.user && response.data.session) {
         setUser(response.data.user);
         setSession(response.data.session);
+        // Update TokenManager with new session
+        tokenManager.updateSession(response.data.session);
       }
 
       return response;
@@ -176,6 +191,8 @@ export function CoreAuthProvider({ children }: { children: React.ReactNode }) {
       // Clear all state
       setUser(null);
       setSession(null);
+      // Clear TokenManager session
+      tokenManager.updateSession(null);
       
       // Navigate to sign-in
       router.push('/auth/sign-in');
@@ -205,6 +222,8 @@ export function CoreAuthProvider({ children }: { children: React.ReactNode }) {
         if (initialSession) {
           setSession(initialSession);
           setUser(initialSession.user);
+          // Sync with TokenManager
+          tokenManager.updateSession(initialSession);
         }
       } catch (error) {
         console.error('Auth initialization error:', error);

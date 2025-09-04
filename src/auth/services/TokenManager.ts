@@ -156,6 +156,22 @@ class TokenManager {
   }
   
   /**
+   * Update session (called after sign in/sign up)
+   */
+  updateSession(session: Session | null) {
+    this.session = session;
+    if (session) {
+      this.scheduleTokenRefresh();
+    } else {
+      // Clear refresh timer if signing out
+      if (this.refreshTimer) {
+        clearTimeout(this.refreshTimer);
+        this.refreshTimer = null;
+      }
+    }
+  }
+  
+  /**
    * Check if current session is valid
    */
   private isSessionValid(): boolean {
