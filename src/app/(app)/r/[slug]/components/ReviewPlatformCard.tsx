@@ -2,7 +2,7 @@ import React from 'react';
 import Icon, { IconName } from '@/components/Icon';
 import { applyCardTransparency, getContrastTextColor } from '@/utils/colorUtils';
 import ProcessIndicator from './ProcessIndicator';
-import FiveStarSpinner from '@/app/(app)/components/FiveStarSpinner';
+import ButtonSpinner from '@/components/ButtonSpinner';
 
 interface ReviewPlatformCardProps {
   platform: any;
@@ -340,7 +340,7 @@ export default function ReviewPlatformCard({
                   >
                     {fixGrammarLoading === idx ? (
                       <>
-                        <FiveStarSpinner size={12} />
+                        <ButtonSpinner size={12} />
                         Fixing...
                       </>
                     ) : (
@@ -430,7 +430,7 @@ export default function ReviewPlatformCard({
               >
                 {aiLoading === idx ? (
                   <>
-                    <FiveStarSpinner size={16} />
+                    <ButtonSpinner size={16} />
                     Generating...
                   </>
                 ) : (
@@ -480,12 +480,12 @@ export default function ReviewPlatformCard({
             >
               {isSubmitting === idx ? (
                 <>
-                  <FiveStarSpinner size={16} />
+                  <ButtonSpinner size={16} />
                   Copying review...
                 </>
               ) : isRedirecting === idx ? (
                 <>
-                  <FiveStarSpinner size={16} />
+                  <ButtonSpinner size={16} />
                   Redirecting...
                 </>
               ) : (

@@ -24,7 +24,7 @@ import LocationSelectionModal from '@/components/GoogleBusinessProfile/LocationS
 import OverviewStats from '@/components/GoogleBusinessProfile/OverviewStats';
 import BusinessHealthMetrics from '@/components/GoogleBusinessProfile/BusinessHealthMetrics';
 import HelpModal from '@/app/(app)/components/help/HelpModal';
-import FiveStarSpinner from '@/app/(app)/components/FiveStarSpinner';
+import ButtonSpinner from '@/components/ButtonSpinner';
 // Using built-in alert for notifications instead of react-toastify
 
 interface GoogleBusinessLocation {
@@ -2784,7 +2784,7 @@ export default function SocialPostingDashboard() {
                   >
                     {isLoading ? (
                       <>
-                        <FiveStarSpinner />
+                        <ButtonSpinner />
                         <span>Connecting...</span>
                       </>
                     ) : (
@@ -2822,7 +2822,7 @@ export default function SocialPostingDashboard() {
                   >
                     {isLoading ? (
                       <>
-                        <FiveStarSpinner />
+                        <ButtonSpinner />
                         <span>Connecting...</span>
                       </>
                     ) : (

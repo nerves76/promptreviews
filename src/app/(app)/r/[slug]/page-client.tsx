@@ -19,7 +19,7 @@ import { IconName } from "@/components/Icon";
 import ReviewSubmissionForm from "@/components/ReviewSubmissionForm";
 import { useReviewer } from "@/contexts/ReviewerContext";
 import AppLoader from "@/app/(app)/components/AppLoader";
-import FiveStarSpinner from "@/app/(app)/components/FiveStarSpinner";
+import ButtonSpinner from "@/components/ButtonSpinner";
 import PromptReviewsLogo from "@/app/(app)/dashboard/components/PromptReviewsLogo";
 import PageCard from "@/app/(app)/components/PageCard";
 import imageCompression from 'browser-image-compression';
@@ -2113,10 +2113,8 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                             >
                               {feedbackSubmitting ? (
                                 <span className="flex items-center justify-center">
-                                  <FiveStarSpinner
+                                  <ButtonSpinner
                                     size={18}
-                                    color1="#a5b4fc"
-                                    color2="#6366f1"
                                   />
                                 </span>
                               ) : (
@@ -2370,7 +2368,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                             >
                               {aiLoadingPhoto ? (
                                 <>
-                                  <FiveStarSpinner size={16} />
+                                  <ButtonSpinner size={16} />
                                   Generating...
                                 </>
                               ) : (
@@ -2418,7 +2416,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                           >
                             {photoSubmitting ? (
                               <>
-                                <FiveStarSpinner size={16} />
+                                <ButtonSpinner size={16} />
                                 Submitting...
                               </>
                             ) : (

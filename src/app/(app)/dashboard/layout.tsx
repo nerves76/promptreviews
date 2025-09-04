@@ -88,8 +88,11 @@ export default function DashboardLayout({
 
   // Check for users without accounts and redirect to sign-up
   useEffect(() => {
+    // Skip this check on the create-business page - users need to be able to create their first business!
+    const isOnCreateBusinessPage = window.location.pathname === '/dashboard/create-business';
+    
     // Only check after account loading is complete and user is authenticated
-    if (isInitialized && user && !accountLoading && isClient) {
+    if (isInitialized && user && !accountLoading && isClient && !isOnCreateBusinessPage) {
       // If no account exists after loading is complete, redirect to sign-up/onboarding
       if (!account && !accountLoading) {
         console.log('❌ Dashboard: User has no accounts, redirecting to sign-up/onboarding');
