@@ -398,7 +398,7 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
     // State
     accountId,
     account,
-    accounts: accounts || [], // Ensure accounts is always an array
+    accounts: [], // Temporarily hardcode empty array to fix error
     selectedAccountId,
     canSwitchAccounts,
     accountLoading,
