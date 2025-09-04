@@ -79,21 +79,20 @@ export default function ReviewPlatformCard({
 
   // Helper function to get card border style
   const getCardBorderStyle = () => {
-    const borderWidth = businessProfile?.card_border_width ?? 1; // Default to 1px if null/undefined
-    if (borderWidth > 0) {
-      // Use rgba format for better browser compatibility
-      const borderColor = businessProfile?.card_border_color || '#FFFFFF';
-      const borderOpacity = businessProfile?.card_border_transparency ?? 0.5;
-      
-      // Convert hex to RGB
-      const hex = borderColor.replace('#', '');
-      const r = parseInt(hex.substr(0, 2), 16);
-      const g = parseInt(hex.substr(2, 2), 16);
-      const b = parseInt(hex.substr(4, 2), 16);
-      
-      return `${borderWidth}px solid rgba(${r}, ${g}, ${b}, ${borderOpacity})`;
-    }
-    return 'none';
+    // Use database values with sensible defaults
+    const borderWidth = businessProfile?.card_border_width ?? 2;
+    const borderColor = businessProfile?.card_border_color || '#FFFFFF';
+    const borderOpacity = businessProfile?.card_border_transparency ?? 0.8;
+    
+    if (borderWidth <= 0) return 'none';
+    
+    // Convert hex to RGB
+    const hex = borderColor.replace('#', '');
+    const r = parseInt(hex.substr(0, 2), 16);
+    const g = parseInt(hex.substr(2, 2), 16);
+    const b = parseInt(hex.substr(4, 2), 16);
+    
+    return `${borderWidth}px solid rgba(${r}, ${g}, ${b}, ${borderOpacity})`;
   };
 
   // Helper function to get placeholder color (lighter version of card text)
@@ -111,7 +110,7 @@ export default function ReviewPlatformCard({
     <div
       className="rounded-xl shadow-lg p-6 relative mb-8 backdrop-blur-sm"
       style={{
-        background: applyCardTransparency(businessProfile.card_bg || "#FFFFFF", businessProfile.card_transparency ?? 0.70),
+        background: applyCardTransparency(businessProfile.card_bg || "#FFFFFF", businessProfile.card_transparency ?? 0.95),
         color: businessProfile.card_text || "#1A1A1A",
         border: getCardBorderStyle(),
         backdropFilter: 'blur(8px)'
@@ -136,10 +135,10 @@ export default function ReviewPlatformCard({
           top: '-20px',
           left: '-20px',
           zIndex: 20, 
-          backgroundColor: applyCardTransparency(businessProfile?.card_bg || '#FFFFFF', businessProfile?.card_transparency ?? 0.70),
+          backgroundColor: applyCardTransparency(businessProfile?.card_bg || '#FFFFFF', businessProfile?.card_transparency ?? 0.95),
           border: getCardBorderStyle(),
-          backdropFilter: 'blur(5px)',
-          WebkitBackdropFilter: 'blur(5px)'
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)'
         }}
       >
         <Icon

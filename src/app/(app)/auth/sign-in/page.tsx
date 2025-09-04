@@ -125,34 +125,15 @@ export default function SignIn() {
         console.warn("Analytics tracking failed:", trackError);
       }
 
-      console.log("🔄 Authentication successful, attempting redirect...");
+      console.log("🔄 Authentication successful, preparing redirect...");
       
-      // Debug router state
-      console.log("🔍 Router state:", {
-        pathname: window.location.pathname,
-        href: window.location.href,
-        router: !!router,
-        routerType: typeof router.replace
-      });
+      // Wait a moment for the session to be properly established
+      // This ensures cookies are set before navigation
+      await new Promise(resolve => setTimeout(resolve, 500));
       
-      // Try different navigation methods
-      try {
-        console.log("🚀 Calling router.replace('/dashboard')...");
-        router.replace("/dashboard");
-        console.log("✅ router.replace called successfully");
-        
-        // Also try window.location as fallback after a delay
-        setTimeout(() => {
-          if (window.location.pathname === "/auth/sign-in") {
-            console.log("⚠️ Still on sign-in page after 2s, trying window.location redirect");
-            window.location.href = "/dashboard";
-          }
-        }, 2000);
-      } catch (routerError) {
-        console.error("❌ Router navigation failed:", routerError);
-        // Fallback to window.location
-        window.location.href = "/dashboard";
-      }
+      // Now redirect using router for proper Next.js navigation
+      console.log("🚀 Redirecting to dashboard...");
+      router.push("/dashboard");
     } catch (error: any) {
       console.error("💥 Sign in process failed:", error);
       setError(error.message || "An unexpected error occurred. Please try again.");

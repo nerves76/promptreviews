@@ -206,7 +206,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
     gradient_start: initialData.businessProfile.gradient_start || '#2563EB',
     gradient_middle: initialData.businessProfile.gradient_middle || '#7864C8',
     gradient_end: initialData.businessProfile.gradient_end || '#914AAE',
-    card_transparency: initialData.businessProfile.card_transparency ?? 0.70,
+    card_transparency: initialData.businessProfile.card_transparency ?? 0.95,
     card_border_width: initialData.businessProfile.card_border_width ?? 1,
     card_border_color: initialData.businessProfile.card_border_color || '#FFFFFF',
     card_border_transparency: initialData.businessProfile.card_border_transparency ?? 0.5,
@@ -235,7 +235,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
     review_platforms: [],
     card_bg: "#FFFFFF",
     card_text: "#1A1A1A",
-    card_transparency: 0.70,
+    card_transparency: 0.95,
     card_border_width: 1,
     card_border_color: "#FFFFFF",
     card_border_transparency: 0.5,
@@ -503,7 +503,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
             gradient_start: businessProfile.gradient_start || '#2563EB',
             gradient_middle: businessProfile.gradient_middle || '#7864C8',
             gradient_end: businessProfile.gradient_end || '#914AAE',
-            card_transparency: businessProfile.card_transparency ?? 0.70,
+            card_transparency: businessProfile.card_transparency ?? 0.95,
             card_border_width: businessProfile.card_border_width ?? 1,
             card_border_color: businessProfile.card_border_color || '#FFFFFF',
             card_border_transparency: businessProfile.card_border_transparency ?? 0.5,
@@ -548,7 +548,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
             card_bg: '#FFFFFF',
             card_text: '#1A1A1A',
             card_placeholder_color: '#9CA3AF',
-            card_transparency: 0.70,
+            card_transparency: 0.95,
             card_border_width: 1,
             card_border_color: '#FFFFFF',
             card_border_transparency: 0.5,
@@ -697,23 +697,20 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
 
   // Helper function to get card border style
   const getCardBorderStyle = () => {
-    if (businessProfile?.card_border_width && businessProfile.card_border_width > 0) {
-      // Use rgba format for better browser compatibility
-      const borderColor = businessProfile.card_border_color || '#222222';
-      const borderOpacity = businessProfile.card_border_transparency || 1;
-      
-      // Convert hex to RGB
-      const hex = borderColor.replace('#', '');
-      const r = parseInt(hex.substr(0, 2), 16);
-      const g = parseInt(hex.substr(2, 2), 16);
-      const b = parseInt(hex.substr(4, 2), 16);
-      
-      const borderStyle = `${businessProfile.card_border_width}px solid rgba(${r}, ${g}, ${b}, ${borderOpacity})`;
-      console.log('Border style:', borderStyle);
-      return borderStyle;
-    }
-    console.log('No border - width:', businessProfile?.card_border_width);
-    return 'none';
+    // Use database values with sensible defaults
+    const borderWidth = businessProfile?.card_border_width ?? 2;
+    const borderColor = businessProfile?.card_border_color || '#FFFFFF';
+    const borderOpacity = businessProfile?.card_border_transparency ?? 0.8;
+    
+    if (borderWidth <= 0) return 'none';
+    
+    // Convert hex to RGB
+    const hex = borderColor.replace('#', '');
+    const r = parseInt(hex.substr(0, 2), 16);
+    const g = parseInt(hex.substr(2, 2), 16);
+    const b = parseInt(hex.substr(4, 2), 16);
+    
+    return `${borderWidth}px solid rgba(${r}, ${g}, ${b}, ${borderOpacity})`;
   };
 
   // Track page view (exclude logged-in users)
@@ -1832,7 +1829,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
             onClick={() => setShowSaveMenu(!showSaveMenu)}
             className="flex items-center gap-2 px-4 py-2 rounded-lg shadow-md transition-all duration-200 group border font-medium"
             style={{
-              backgroundColor: applyCardTransparency(businessProfile?.card_bg || '#FFFFFF', businessProfile?.card_transparency ?? 0.70),
+              backgroundColor: applyCardTransparency(businessProfile?.card_bg || '#FFFFFF', businessProfile?.card_transparency ?? 0.95),
               borderColor: businessProfile?.card_border_color || "#FFFFFF",
               borderWidth: businessProfile?.card_border_width || 1,
               color: businessProfile?.primary_color || "#2563EB",
@@ -2169,7 +2166,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                         top: '-20px',
                         left: '-20px',
                         zIndex: 20, 
-                        backgroundColor: applyCardTransparency(businessProfile?.card_bg || '#FFFFFF', businessProfile?.card_transparency ?? 0.85),
+                        backgroundColor: applyCardTransparency(businessProfile?.card_bg || '#FFFFFF', businessProfile?.card_transparency ?? 0.95),
                         backdropFilter: 'blur(8px)',
                         WebkitBackdropFilter: 'blur(8px)'
                       }}

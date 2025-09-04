@@ -104,14 +104,14 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
   const [dragOffset, setDragOffset] = React.useState({ x: 0, y: 0 });
   const [modalDimensions, setModalDimensions] = React.useState({ width: 672, height: 600 });
   const modalRef = React.useRef<HTMLDivElement>(null);
-  const [selectedPreset, setSelectedPreset] = React.useState<string | null>(null);
+  const [selectedPreset, setSelectedPreset] = React.useState<string | null>('glassy');
 
   // Preset configurations
   const presets = {
     glassy: {
       name: "Glassy",
-      primary_font: "Inter",
-      secondary_font: "Roboto",
+      primary_font: "Playfair Display",
+      secondary_font: "Lato",
       primary_color: "#2563EB",
       secondary_color: "#2563EB",
       background_type: "gradient",
@@ -125,32 +125,32 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
       card_inner_shadow: true,
       card_shadow_color: "#FFFFFF",
       card_shadow_intensity: 0.30,
-      card_transparency: 0.70,
-      card_border_width: 1,
+      card_transparency: 0.30,
+      card_border_width: 2,
       card_border_color: "#FFFFFF",
       card_border_transparency: 0.5,
       kickstarters_background_design: false,
     },
     solid: {
-      name: "Solid",
-      primary_font: "Inter",
-      secondary_font: "Roboto",
-      primary_color: "#3B82F6",
-      secondary_color: "#10B981",
+      name: "Solidy",
+      primary_font: "Montserrat",
+      secondary_font: "Open Sans",
+      primary_color: "#60A5FA",
+      secondary_color: "#34D399",
       background_type: "solid",
-      background_color: "#F3F4F6",
-      gradient_start: "#3B82F6",
-      gradient_middle: "#3B82F6",
-      gradient_end: "#3B82F6",
-      card_bg: "#FFFFFF",
-      card_text: "#111827",
-      card_placeholder_color: "#9CA3AF",
-      card_inner_shadow: false,
+      background_color: "#E0E7FF",
+      gradient_start: "#E0E7FF",
+      gradient_middle: "#E0E7FF",
+      gradient_end: "#E0E7FF",
+      card_bg: "#1E3A8A",
+      card_text: "#F1F5F9",
+      card_placeholder_color: "#94A3B8",
+      card_inner_shadow: true,
       card_shadow_color: "#000000",
-      card_shadow_intensity: 0.10,
+      card_shadow_intensity: 0.30,
       card_transparency: 1.0,
       card_border_width: 0,
-      card_border_color: "#E5E7EB",
+      card_border_color: "#334155",
       card_border_transparency: 1.0,
       kickstarters_background_design: false,
     },
@@ -158,44 +158,91 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
       name: "Paper",
       primary_font: "Merriweather",
       secondary_font: "Georgia",
-      primary_color: "#7C3AED",
-      secondary_color: "#EC4899",
+      primary_color: "#6B2C2C",
+      secondary_color: "#92400E",
       background_type: "solid",
-      background_color: "#FEFCF3",
-      gradient_start: "#7C3AED",
-      gradient_middle: "#7C3AED",
-      gradient_end: "#7C3AED",
-      card_bg: "#FFFEF9",
+      background_color: "#374151",
+      gradient_start: "#6B2C2C",
+      gradient_middle: "#6B2C2C",
+      gradient_end: "#6B2C2C",
+      card_bg: "#FEFCF3",
+      card_text: "#1F2937",
+      card_placeholder_color: "#9CA3AF",
+      card_inner_shadow: true,
+      card_shadow_color: "#92400E",
+      card_shadow_intensity: 0.20,
+      card_transparency: 1.0,
+      card_border_width: 0,
+      card_border_color: "#D1D5DB",
+      card_border_transparency: 1.0,
+      kickstarters_background_design: true,
+    },
+    outdoorsy: {
+      name: "Outdoorsy",
+      primary_font: "Oswald",
+      secondary_font: "Raleway",
+      primary_color: "#14532D",
+      secondary_color: "#EA580C",
+      background_type: "gradient",
+      background_color: "#FFFFFF",
+      gradient_start: "#1E40AF",
+      gradient_middle: "#93C5FD",
+      gradient_end: "#FEF3C7",
+      card_bg: "#F5F3F0",
+      card_text: "#1F2937",
+      card_placeholder_color: "#6B7280",
+      card_inner_shadow: false,
+      card_shadow_color: "#000000",
+      card_shadow_intensity: 0.10,
+      card_transparency: 0.95,
+      card_border_width: 2,
+      card_border_color: "#A78BFA",
+      card_border_transparency: 0.3,
+      kickstarters_background_design: false,
+    },
+    snazzy: {
+      name: "Snazzy",
+      primary_font: "Bebas Neue",
+      secondary_font: "Poppins",
+      primary_color: "#BE185D",
+      secondary_color: "#EA580C",
+      background_type: "gradient",
+      background_color: "#FFFFFF",
+      gradient_start: "#FED7AA",
+      gradient_middle: "#FB923C",
+      gradient_end: "#E11D48",
+      card_bg: "#FFFFFF",
       card_text: "#1F2937",
       card_placeholder_color: "#9CA3AF",
       card_inner_shadow: false,
       card_shadow_color: "#000000",
       card_shadow_intensity: 0.15,
-      card_transparency: 1.0,
-      card_border_width: 1,
-      card_border_color: "#D1D5DB",
-      card_border_transparency: 1.0,
+      card_transparency: 0.95,
+      card_border_width: 2,
+      card_border_color: "#FB923C",
+      card_border_transparency: 0.5,
       kickstarters_background_design: false,
     }
   };
 
+  // Default to Glassy preset settings
   const [settings, setSettings] = React.useState({
     primary_font: "Inter",
     secondary_font: "Roboto",
-    primary_color: "#527DE7",
-    secondary_color: "#527DE7",
+    primary_color: "#2563EB",
+    secondary_color: "#2563EB",
     background_type: "gradient",
     background_color: "#FFFFFF",
-    gradient_start: "#527DE7",
+    gradient_start: "#2563EB",
     gradient_middle: "#7864C8",
     gradient_end: "#914AAE",
     card_bg: "#FFFFFF",
-    card_text: "#1A1A1A",
+    card_text: "#FFFFFF",
     card_placeholder_color: "#9CA3AF",
-    card_inner_shadow: false,
-    card_shadow_color: "#222222",
-    card_shadow_intensity: 0.20,
-    card_transparency: 0.70,
+    card_inner_shadow: true,
+    card_shadow_color: "#FFFFFF",
+    card_shadow_intensity: 0.30,
+    card_transparency: 0.30,
     card_border_width: 1,
     card_border_color: "#FFFFFF",
     card_border_transparency: 0.5,
@@ -320,7 +367,7 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
           card_inner_shadow: business.card_inner_shadow || false,
           card_shadow_color: business.card_shadow_color || "#222222",
           card_shadow_intensity: business.card_shadow_intensity || 0.20,
-          card_transparency: business.card_transparency ?? 0.70,
+          card_transparency: business.card_transparency ?? 0.95,
           card_border_width: business.card_border_width ?? 1,
           card_border_color: business.card_border_color || "#FFFFFF",
           card_border_transparency: business.card_border_transparency ?? 0.5,
@@ -531,8 +578,8 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
         card_inner_shadow: true,
         card_shadow_color: "#FFFFFF",
         card_shadow_intensity: 0.30,
-        card_transparency: 0.70,
-        card_border_width: 1,
+        card_transparency: 0.30,
+        card_border_width: 2,
         card_border_color: "#FFFFFF",
         card_border_transparency: 0.5,
         kickstarters_background_design: false,
@@ -632,120 +679,36 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
         </button>
 
         <div className="p-6 overflow-y-auto" style={{ maxHeight: 'calc(90vh - 5rem)' }}>
+          {/* Style Preset Selector */}
+          <div className="bg-white rounded-lg shadow p-6 mb-6">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Style Presets</h3>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Choose a preset
+              </label>
+              <select
+                value={selectedPreset || 'glassy'}
+                onChange={(e) => applyPreset(e.target.value as keyof typeof presets)}
+                className="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+              >
+                <option value="glassy">Glassy - Like a martini for reviews</option>
+                <option value="solid">Solidy - Dependable like a bullet-proof briefcase</option>
+                <option value="paper">Papery - Leather-bound books, rich mahogany</option>
+                <option value="outdoorsy">Outdoorsy - Like a Patagonia jacket for your reviews</option>
+                <option value="snazzy">Snazzy - Karaoke night for your reviews</option>
+              </select>
+            </div>
+          </div>
+          
           {success && (
             <div className="mb-4 bg-green-50 border border-green-200 text-green-700 rounded-md p-4 text-center font-medium animate-fadein">
               {successMessage || "Style settings saved!"}
             </div>
           )}
-        
-          {/* Enhanced Presets Section */}
-          <div className="mb-6 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-4 border border-blue-200">
-            <label className="flex items-center text-sm font-bold mb-3 text-gray-800">
-              <Icon name="FaPalette" className="mr-2 text-purple-600" size={18} />
-              Quick Style Presets
-              <Tooltip text="Start with a preset and customize it to your needs. Each preset provides a complete style foundation." />
-              <span className="ml-auto text-xs font-normal text-gray-600">Click to apply, then customize below</span>
-            </label>
-            <div className="grid grid-cols-3 gap-3">
-              {/* Glassy Preset */}
-              <button
-                onClick={() => applyPreset('glassy')}
-                className={`relative overflow-hidden rounded-lg p-4 transition-all transform hover:scale-105 ${
-                  selectedPreset === 'glassy' 
-                    ? 'ring-4 ring-blue-500 ring-opacity-50 shadow-lg' 
-                    : 'hover:shadow-lg'
-                }`}
-                style={{
-                  background: 'linear-gradient(135deg, #2563EB 0%, #7864C8 50%, #914AAE 100%)',
-                }}
-              >
-                <div className="absolute inset-0 bg-white/30 backdrop-blur-sm" />
-                <div className="relative">
-                  <div className="flex items-center justify-center gap-2 text-white font-semibold mb-1">
-                    <Icon name="FaGem" size={20} />
-                    <span>Glassy</span>
-                  </div>
-                  <div className="text-xs text-white/90">Transparent cards with blur</div>
-                  <div className="mt-2 flex justify-center gap-1">
-                    <div className="w-8 h-8 rounded bg-white/70 border border-white/50" title="70% opacity" />
-                    <div className="w-8 h-8 rounded bg-white/30 backdrop-blur-sm" title="Glass effect" />
-                  </div>
-                  {selectedPreset === 'glassy' && (
-                    <div className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs px-2 py-1 rounded-bl-lg font-bold">
-                      Active
-                    </div>
-                  )}
-                </div>
-              </button>
-
-              {/* Solid Preset */}
-              <button
-                onClick={() => applyPreset('solid')}
-                className={`relative overflow-hidden rounded-lg p-4 transition-all transform hover:scale-105 ${
-                  selectedPreset === 'solid' 
-                    ? 'ring-4 ring-blue-500 ring-opacity-50 shadow-lg' 
-                    : 'hover:shadow-lg'
-                }`}
-                style={{
-                  background: '#F3F4F6',
-                }}
-              >
-                <div className="relative">
-                  <div className="flex items-center justify-center gap-2 text-gray-800 font-semibold mb-1">
-                    <Icon name="FaCube" size={20} />
-                    <span>Solid</span>
-                  </div>
-                  <div className="text-xs text-gray-600">Opaque & professional</div>
-                  <div className="mt-2 flex justify-center gap-1">
-                    <div className="w-8 h-8 rounded bg-white border border-gray-300" title="100% opacity" />
-                    <div className="w-8 h-8 rounded bg-blue-600" title="Solid colors" />
-                  </div>
-                  {selectedPreset === 'solid' && (
-                    <div className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs px-2 py-1 rounded-bl-lg font-bold">
-                      Active
-                    </div>
-                  )}
-                </div>
-              </button>
-
-              {/* Paper Preset */}
-              <button
-                onClick={() => applyPreset('paper')}
-                className={`relative overflow-hidden rounded-lg p-4 transition-all transform hover:scale-105 ${
-                  selectedPreset === 'paper' 
-                    ? 'ring-4 ring-purple-500 ring-opacity-50 shadow-lg' 
-                    : 'hover:shadow-lg'
-                }`}
-                style={{
-                  background: '#FEFCF3',
-                }}
-              >
-                <div className="relative">
-                  <div className="flex items-center justify-center gap-2 text-gray-800 font-semibold mb-1">
-                    <Icon name="FaFile" size={20} />
-                    <span>Paper</span>
-                  </div>
-                  <div className="text-xs text-gray-600">Classic & elegant</div>
-                  <div className="mt-2 flex justify-center gap-1">
-                    <div className="w-8 h-8 rounded bg-white border border-gray-400" title="Paper texture" />
-                    <div className="w-8 h-8 rounded bg-purple-600" title="Accent color" />
-                  </div>
-                  {selectedPreset === 'paper' && (
-                    <div className="absolute -top-1 -right-1 bg-purple-500 text-white text-xs px-2 py-1 rounded-bl-lg font-bold">
-                      Active
-                    </div>
-                  )}
-                </div>
-              </button>
-            </div>
-            <div className="mt-3 text-xs text-gray-600 text-center">
-              💡 Tip: Apply a preset first, then fine-tune the settings below to match your brand
-            </div>
-          </div>
 
         {/* Only show info banner when NOT on a prompt page (when onClose is not provided) */}
         {!onClose && (
-          <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4 mb-6 border border-white/30">
+          <div className="bg-white rounded-lg shadow p-6 mb-6">
             <div className="flex items-start gap-2">
               <svg className="w-4 h-4 text-white/80 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -775,7 +738,7 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-2 mb-2">
           <div className="flex flex-col gap-6">
         {/* Font pickers */}
-          <div className="bg-white/95 backdrop-blur-sm rounded-xl p-5 border border-white/30">
+          <div className="bg-white rounded-lg shadow p-6">
               <label className="block text-sm font-medium text-gray-700 mb-3">Primary Font</label>
             <select
               value={settings.primary_font}
@@ -795,7 +758,7 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
             </select>
             <p className="text-xs text-gray-500 mt-1">System fonts may look different on different devices.</p>
           </div>
-          <div className="bg-white/95 backdrop-blur-sm rounded-xl p-5 border border-white/30">
+          <div className="bg-white rounded-lg shadow p-6">
               <label className="block text-sm font-medium text-gray-700 mb-3">Secondary Font</label>
             <select
               value={settings.secondary_font}
@@ -816,7 +779,7 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
             <p className="text-xs text-gray-500 mt-1">System fonts may look different on different devices.</p>
           </div>
             {/* Primary color */}
-          <div className="bg-white/95 backdrop-blur-sm rounded-xl p-5 border border-white/30">
+          <div className="bg-white rounded-lg shadow p-6">
               <div className="flex items-center mb-3">
                 <label className="text-sm font-medium text-gray-700">Primary Color</label>
                 <Tooltip text="Used for main headings and important text elements on your prompt pages" />
@@ -831,7 +794,7 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
                 />
           </div>
           {/* Secondary color - moved here */}
-          <div className="bg-white/95 backdrop-blur-sm rounded-xl p-5 border border-white/30">
+          <div className="bg-white rounded-lg shadow p-6">
               <div className="flex items-center mb-3">
                 <label className="text-sm font-medium text-gray-700">Secondary Color</label>
                 <Tooltip text="Used for buttons, links, and accent elements throughout your prompt pages" />
@@ -848,7 +811,7 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
           </div>
           <div className="flex flex-col gap-6">
         {/* Background type */}
-            <div className="bg-white/95 backdrop-blur-sm rounded-xl p-5 border border-white/30">
+            <div className="bg-white rounded-lg shadow p-6">
               <label className="block text-sm font-medium text-gray-700 mb-3">Background Type</label>
           <div className="flex gap-4">
                 <label><input type="radio" name="background_type" value="solid" checked={settings.background_type === "solid"} onChange={() => setSettings(s => ({ ...s, background_type: "solid" }))} /><span className="ml-2">Solid</span></label>
@@ -906,7 +869,7 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
           )}
         </div>
         {/* Card background - moved up and with color picker */}
-        <div className="bg-white/95 backdrop-blur-sm rounded-xl p-5 border border-white/30">
+        <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center mb-3">
             <label className="text-sm font-medium text-gray-700">Card Background</label>
             <Tooltip text="Background color for review cards and content sections on your prompt pages" />
@@ -920,7 +883,7 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
             placeholder="#FFFFFF"
           />
         </div>
-          <div className="bg-white/95 backdrop-blur-sm rounded-xl p-5 border border-white/30">
+          <div className="bg-white rounded-lg shadow p-6">
               <div className="flex items-center mb-3">
                 <label className="text-sm font-medium text-gray-700">Card Text Color</label>
                 <Tooltip text="Text color for content inside review cards and sections" />
@@ -934,7 +897,7 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
                 placeholder="#1A1A1A"
               />
             </div>
-          <div className="bg-white/95 backdrop-blur-sm rounded-xl p-5 border border-white/30">
+          <div className="bg-white rounded-lg shadow p-6">
               <div className="flex items-center mb-3">
                 <label className="text-sm font-medium text-gray-700">Placeholder Text Color</label>
                 <Tooltip text="Color for placeholder text in input fields and text areas" />
@@ -959,7 +922,7 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
               <label className="block text-sm font-medium text-gray-700 mb-3">Card Transparency</label>
               <input
                 type="range"
-                min="0.3"
+                min="0"
                 max="1"
                 step="0.05"
                 value={settings.card_transparency}

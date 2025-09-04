@@ -95,12 +95,12 @@ export function hexToRgba(hex: string, alpha: number): string {
 /**
  * Applies transparency to a card background color
  * @param cardBg - The card background color (hex)
- * @param transparency - Transparency value between 0.5 and 1.0
+ * @param transparency - Transparency value between 0 and 1.0
  * @returns rgba color string with transparency applied
  */
 export function applyCardTransparency(cardBg: string, transparency: number): string {
-  // Ensure transparency is within bounds
-  const alpha = Math.max(0.5, Math.min(1.0, transparency));
+  // Ensure transparency is within bounds (0 to 1)
+  const alpha = Math.max(0, Math.min(1.0, transparency));
   
   // If the color is already rgba, extract the rgb values and apply new alpha
   if (cardBg.startsWith('rgba(')) {

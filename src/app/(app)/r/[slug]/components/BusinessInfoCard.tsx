@@ -44,20 +44,27 @@ export default function BusinessInfoCard({ businessProfile, reviewType, promptPa
   
   // Helper function to get card border style
   const getCardBorderStyle = () => {
-    if (businessProfile?.card_border_width && businessProfile.card_border_width > 0) {
-      // Use rgba format for better browser compatibility
-      const borderColor = businessProfile.card_border_color || '#222222';
-      const borderOpacity = businessProfile.card_border_transparency || 1;
-      
-      // Convert hex to RGB
-      const hex = borderColor.replace('#', '');
-      const r = parseInt(hex.substr(0, 2), 16);
-      const g = parseInt(hex.substr(2, 2), 16);
-      const b = parseInt(hex.substr(4, 2), 16);
-      
-      return `${businessProfile.card_border_width}px solid rgba(${r}, ${g}, ${b}, ${borderOpacity})`;
-    }
-    return 'none';
+    // Use database values with sensible defaults
+    const borderWidth = businessProfile?.card_border_width ?? 2;
+    const borderColor = businessProfile?.card_border_color || '#FFFFFF';
+    const borderOpacity = businessProfile?.card_border_transparency ?? 0.8;
+    
+    console.log('[BusinessInfoCard] Border values:', {
+      width: borderWidth,
+      color: borderColor,
+      opacity: borderOpacity,
+      fromDB: businessProfile?.card_border_width
+    });
+    
+    if (borderWidth <= 0) return 'none';
+    
+    // Convert hex to RGB
+    const hex = borderColor.replace('#', '');
+    const r = parseInt(hex.substr(0, 2), 16);
+    const g = parseInt(hex.substr(2, 2), 16);
+    const b = parseInt(hex.substr(4, 2), 16);
+    
+    return `${borderWidth}px solid rgba(${r}, ${g}, ${b}, ${borderOpacity})`;
   };
   
   const getAddressDisplay = () => {
@@ -108,10 +115,10 @@ export default function BusinessInfoCard({ businessProfile, reviewType, promptPa
         <div 
           className="rounded-full shadow-lg flex items-center justify-center w-full h-full aspect-square"
           style={{ 
-            backgroundColor: applyCardTransparency(businessProfile?.card_bg || '#FFFFFF', businessProfile.card_transparency ?? 0.85),
+            backgroundColor: applyCardTransparency(businessProfile?.card_bg || '#FFFFFF', businessProfile.card_transparency ?? 0.95),
             backdropFilter: 'blur(24px)',
             WebkitBackdropFilter: 'blur(24px)',
-            border: '2px solid rgba(255, 255, 255, 0.8)',
+            border: `${businessProfile?.card_border_width ?? 2}px solid rgba(255, 255, 255, ${businessProfile?.card_border_transparency ?? 0.8})`,
             padding: '1px'
           }}
         >
