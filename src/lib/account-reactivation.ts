@@ -50,7 +50,7 @@ export class AccountReactivationSystem {
    * Check if a returning user needs reactivation
    * Called on login for users with deleted_at
    */
-  async checkReactivationNeeded(userId: string): Promise<ReactivationResult> {
+  async checkReactivationNeeded(accountId: string): Promise<ReactivationResult> {
     try {
 
       // ============================================
@@ -59,7 +59,7 @@ export class AccountReactivationSystem {
       const { data: account, error } = await this.supabase
         .from('accounts')
         .select('*')
-        .eq('id', userId)
+        .eq('id', accountId)
         .single();
 
       if (error || !account) {
@@ -126,7 +126,7 @@ export class AccountReactivationSystem {
    * Reactivate a cancelled account
    * Clears deleted_at and prepares for new subscription
    */
-  async reactivateAccount(userId: string): Promise<ReactivationResult> {
+  async reactivateAccount(accountId: string): Promise<ReactivationResult> {
     try {
 
       // ============================================
@@ -135,7 +135,7 @@ export class AccountReactivationSystem {
       const { data: account, error: fetchError } = await this.supabase
         .from('accounts')
         .select('*')
-        .eq('id', userId)
+        .eq('id', accountId)
         .single();
 
       if (fetchError || !account) {
@@ -186,7 +186,7 @@ export class AccountReactivationSystem {
           reactivated_at: new Date().toISOString(),
           reactivation_count: (account.reactivation_count || 0) + 1
         })
-        .eq('id', userId);
+        .eq('id', accountId);
 
       if (updateError) {
         console.error('❌ Failed to reactivate account:', updateError);
@@ -271,7 +271,7 @@ export class AccountReactivationSystem {
    * Get reactivation offer for returning user
    * Simplified: Everyone gets the same welcome back offer
    */
-  async getReactivationOffer(userId: string): Promise<{
+  async getReactivationOffer(accountId: string): Promise<{
     hasOffer: boolean;
     offerType?: string;
     discount?: number;
@@ -281,7 +281,7 @@ export class AccountReactivationSystem {
       const { data: account } = await this.supabase
         .from('accounts')
         .select('deleted_at')
-        .eq('id', userId)
+        .eq('id', accountId)
         .single();
 
       if (!account?.deleted_at) {
@@ -309,30 +309,30 @@ export class AccountReactivationSystem {
  * React Hook for account reactivation
  */
 export function useAccountReactivation() {
-  const checkAndReactivate = async (userId: string): Promise<ReactivationResult> => {
+  const checkAndReactivate = async (accountId: string): Promise<ReactivationResult> => {
     const reactivation = new AccountReactivationSystem(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     );
 
     // First check if reactivation is needed
-    const status = await reactivation.checkReactivationNeeded(userId);
+    const status = await reactivation.checkReactivationNeeded(accountId);
     
     if (status.requiresPlanSelection && status.dataStatus !== 'deleted') {
       // Automatically reactivate if data is still available
-      return await reactivation.reactivateAccount(userId);
+      return await reactivation.reactivateAccount(accountId);
     }
 
     return status;
   };
 
-  const getOffer = async (userId: string) => {
+  const getOffer = async (accountId: string) => {
     const reactivation = new AccountReactivationSystem(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     );
     
-    return await reactivation.getReactivationOffer(userId);
+    return await reactivation.getReactivationOffer(accountId);
   };
 
   return {

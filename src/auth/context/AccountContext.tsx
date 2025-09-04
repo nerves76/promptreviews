@@ -177,7 +177,7 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
       let currentAccountId = targetAccountId;
       if (!currentAccountId) {
         // ⚠️ CRITICAL: Pass supabase client to ensure auth session is used
-      currentAccountId = await getAccountIdForUser(user.id, supabase);
+        currentAccountId = await getAccountIdForUser(user.id, supabase);
         setAccountId(currentAccountId);
       }
 
@@ -187,6 +187,12 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
+      // Debug logging to understand multi-account issues
+      console.log('🔍 AccountContext.loadAccount:', {
+        userId: user.id,
+        currentAccountId,
+        isSameAsUserId: currentAccountId === user.id,
+      });
 
       // Fetch account data
       const { data, error } = await supabase
@@ -197,6 +203,26 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
 
       if (error) {
         console.error('Failed to load account:', error);
+        
+        // Handle 406 error specifically - this happens when .single() gets 0 or multiple rows
+        if (error.code === 'PGRST116') {
+          console.error('⚠️ 406 Error: Account query returned multiple or no rows', {
+            accountId: currentAccountId,
+            userId: user.id,
+            errorDetails: error.details,
+            hint: error.hint,
+          });
+          
+          // This likely means we're using the wrong ID
+          // Try to recover by clearing the account ID and fetching again
+          if (currentAccountId === user.id) {
+            console.error('❌ CRITICAL: Using user.id as account.id - this is wrong for multi-account users!');
+            // Clear the bad account ID
+            setAccountId(null);
+            // Don't retry here - let the next render cycle handle it
+          }
+        }
+        
         setAccount(null);
         return;
       }

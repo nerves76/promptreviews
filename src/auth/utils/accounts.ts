@@ -520,6 +520,13 @@ async function _getAccountIdForUserInternal(userId: string, supabaseClient?: any
       console.error('❌ Error fetching account_users:', accountUserError);
     } else if (!accountUsers || accountUsers.length === 0) {
       console.log('⚠️ No account_users records found for user:', userId);
+      console.log('   This will return null - no account creation for existing users');
+    } else {
+      console.log('✅ Found account_users records:', {
+        userId,
+        accountCount: accountUsers.length,
+        accounts: accountUsers.map(au => ({ accountId: au.account_id, role: au.role }))
+      });
     }
 
     if (accountUsers && accountUsers.length > 0) {
