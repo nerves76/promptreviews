@@ -98,16 +98,81 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
     setAccountsLoading(true);
     try {
       const userAccounts = await getAccountsForUser(user.id);
-      setAccounts(userAccounts);
       
-      // Update cache
-      accountsCache.current = {
-        data: userAccounts,
-        timestamp: Date.now(),
-      };
+      // If no accounts found for an authenticated user, ensure account exists
+      if (userAccounts.length === 0) {
+        console.log('🔧 No accounts found for user, ensuring account exists...');
+        try {
+          const response = await fetch('/api/auth/ensure-account', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          });
+          
+          if (response.ok) {
+            console.log('✅ Account created/ensured, retrying account load');
+            // Retry loading accounts after ensuring account exists
+            const retryAccounts = await getAccountsForUser(user.id);
+            setAccounts(retryAccounts);
+            
+            // Update cache
+            accountsCache.current = {
+              data: retryAccounts,
+              timestamp: Date.now(),
+            };
+          } else {
+            console.error('❌ Failed to ensure account exists:', response.status);
+            setAccounts([]);
+          }
+        } catch (ensureError) {
+          console.error('❌ Error ensuring account exists:', ensureError);
+          setAccounts([]);
+        }
+      } else {
+        setAccounts(userAccounts);
+        
+        // Update cache
+        accountsCache.current = {
+          data: userAccounts,
+          timestamp: Date.now(),
+        };
+      }
     } catch (error) {
       console.error('Failed to load accounts:', error);
-      setAccounts([]);
+      
+      // For 406 errors specifically, try to ensure account exists
+      if (error instanceof Error && (error.message.includes('406') || error.message.includes('Not Acceptable'))) {
+        console.log('🔧 Got 406 error, attempting to ensure account exists...');
+        try {
+          const response = await fetch('/api/auth/ensure-account', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          });
+          
+          if (response.ok) {
+            console.log('✅ Account ensured after 406 error, retrying');
+            const retryAccounts = await getAccountsForUser(user.id);
+            setAccounts(retryAccounts);
+            
+            // Update cache
+            accountsCache.current = {
+              data: retryAccounts,
+              timestamp: Date.now(),
+            };
+          } else {
+            console.error('❌ Failed to ensure account after 406:', response.status);
+            setAccounts([]);
+          }
+        } catch (ensureError) {
+          console.error('❌ Error ensuring account after 406:', ensureError);
+          setAccounts([]);
+        }
+      } else {
+        setAccounts([]);
+      }
     } finally {
       setAccountsLoading(false);
     }

@@ -19,12 +19,24 @@ export async function POST(request: NextRequest) {
     // Use service role client for database operations
     const supabaseAdmin = createServiceRoleClient();
     
+    // First check if there's an account_users record
+    const { data: accountUserRecord, error: accountUserError } = await supabaseAdmin
+      .from('account_users')
+      .select('account_id')
+      .eq('user_id', user.id)
+      .single();
+    
+    // If there's an account_users record, use that account_id to check for the account
+    const accountIdToCheck = accountUserRecord?.account_id || user.id;
+    
+    console.log('🔍 Checking for account with ID:', accountIdToCheck, 'for user:', user.id);
+    
     // Check if account exists (including soft-deleted ones)
     const { data: existingAccount, error: checkError } = await supabaseAdmin
       .from('accounts')
       .select('id, deleted_at, plan, stripe_customer_id, trial_start, trial_end')
-      .eq('id', user.id)
-      .single();
+      .eq('id', accountIdToCheck)
+      .maybeSingle();
     
     if (existingAccount) {
       // Check if account was previously deleted
@@ -67,7 +79,49 @@ export async function POST(request: NextRequest) {
       });
     }
     
-    // Create account if it doesn't exist
+    // If there's an orphaned account_users record, we need to handle it differently
+    if (accountUserRecord && !existingAccount) {
+      console.log('⚠️ Found orphaned account_users record for user:', user.id);
+      console.log('🔧 Creating account with ID:', accountIdToCheck);
+      
+      // Create account with the ID from account_users record
+      const { data: newAccount, error: createError } = await supabaseAdmin
+        .from('accounts')
+        .insert({
+          id: accountIdToCheck,
+          user_id: user.id,
+          email: user.email,
+          first_name: user.user_metadata?.first_name || '',
+          last_name: user.user_metadata?.last_name || '',
+          plan: 'no_plan',
+          trial_start: new Date().toISOString(),
+          trial_end: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
+          is_free_account: false,
+          custom_prompt_page_count: 0,
+          contact_count: 0,
+          review_notifications_enabled: true,
+        })
+        .select()
+        .single();
+      
+      if (createError) {
+        console.error('❌ Error creating account for orphaned record:', createError);
+        return NextResponse.json(
+          { error: 'Failed to create account' },
+          { status: 500 }
+        );
+      }
+      
+      console.log('✅ Account created for orphaned record:', newAccount.id);
+      
+      return NextResponse.json({ 
+        success: true, 
+        message: 'Account created for orphaned record',
+        accountId: newAccount.id 
+      });
+    }
+    
+    // Create account if it doesn't exist (normal flow)
     console.log('🔧 Creating account for user:', user.id);
     
     const { data: newAccount, error: createError } = await supabaseAdmin
