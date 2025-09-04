@@ -41,13 +41,14 @@ export async function POST(request: NextRequest) {
     const supabaseAdmin = createServiceRoleClient();
     
     // First check if there's an account_users record
-    const { data: accountUserRecord, error: accountUserError } = await supabaseAdmin
+    const { data: accountUserRecords, error: accountUserError } = await supabaseAdmin
       .from('account_users')
       .select('account_id')
-      .eq('user_id', user.id)
-      .single();
+      .eq('user_id', user.id);
     
     // If there's an account_users record, use that account_id to check for the account
+    // Use maybeSingle() to handle 0 or 1 records gracefully
+    const accountUserRecord = accountUserRecords && accountUserRecords.length > 0 ? accountUserRecords[0] : null;
     const accountIdToCheck = accountUserRecord?.account_id || user.id;
     
     

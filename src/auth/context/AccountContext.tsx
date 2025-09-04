@@ -173,36 +173,11 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
     } catch (error) {
       console.error('Failed to load accounts:', error);
       
-      // For 406 errors specifically, try to ensure account exists
-      if (error instanceof Error && (error.message.includes('406') || error.message.includes('Not Acceptable'))) {
-        try {
-          const response = await fetch('/api/auth/ensure-account', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-          });
-          
-          if (response.ok) {
-            const retryAccounts = await getAccountsForUser(user.id);
-            setAccounts(retryAccounts);
-            
-            // Update cache
-            accountsCache.current = {
-              data: retryAccounts,
-              timestamp: Date.now(),
-            };
-          } else {
-            console.error('❌ Failed to ensure account after 406:', response.status);
-            setAccounts([]);
-          }
-        } catch (ensureError) {
-          console.error('❌ Error ensuring account after 406:', ensureError);
-          setAccounts([]);
-        }
-      } else {
-        setAccounts([]);
-      }
+      // Don't try to create account for 406 errors - this means the query is wrong
+      // 406 happens when using .single() but getting 0 or multiple rows
+      // This should not trigger account creation
+      console.error('Account fetch error - likely a query issue, not missing account');
+      setAccounts([]);
     } finally {
       setAccountsLoading(false);
     }

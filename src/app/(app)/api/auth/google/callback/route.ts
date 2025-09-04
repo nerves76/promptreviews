@@ -277,11 +277,12 @@ export async function GET(request: NextRequest) {
     );
     
     // First check if a record already exists for this user
+    // Use maybeSingle() to handle 0 or 1 records gracefully
     const { data: existingRecord } = await supabaseAdmin
       .from('google_business_profiles')
       .select('id')
       .eq('user_id', user.id)
-      .single();
+      .maybeSingle();
     
     const now = Date.now();
     const expiresAt = new Date(now + (tokens.expires_in || 3600) * 1000);
