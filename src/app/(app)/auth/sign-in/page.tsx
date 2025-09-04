@@ -115,11 +115,23 @@ export default function SignIn() {
 
       console.log("✅ Sign in successful!");
       
+      // Check if this is a first-time sign in (user just created account)
+      // We can detect this by checking if the email sent message is still visible
+      // or if we're coming from the sign-up page
+      const isFirstSignIn = document.referrer.includes('/auth/sign-up') || 
+                           window.location.search.includes('from=signup');
+      
+      if (isFirstSignIn) {
+        console.log("🎉 First-time sign in detected, setting flag");
+        sessionStorage.setItem('just-signed-up', 'true');
+      }
+      
       // Track sign in event
       try {
         trackEvent(GA_EVENTS.SIGN_IN, {
           method: 'email',
           timestamp: new Date().toISOString(),
+          first_time: isFirstSignIn,
         });
       } catch (trackError) {
         console.warn("Analytics tracking failed:", trackError);

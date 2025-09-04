@@ -101,33 +101,64 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
       
       // If no accounts found for an authenticated user, ensure account exists
       if (userAccounts.length === 0) {
-        console.log('🔧 No accounts found for user, ensuring account exists...');
-        try {
-          const response = await fetch('/api/auth/ensure-account', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-          });
+        console.log('🔧 No accounts found for user, waiting for account creation from trigger...');
+        // For new users, the database trigger creates the account asynchronously
+        // We need to wait and retry instead of immediately calling ensure-account
+        // which might fail due to session propagation issues
+        
+        // Wait for the trigger to create the account
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        // Retry loading accounts
+        const retryAccounts = await getAccountsForUser(user.id);
+        if (retryAccounts.length > 0) {
+          console.log('✅ Account found after waiting for trigger');
+          setAccounts(retryAccounts);
           
-          if (response.ok) {
-            console.log('✅ Account created/ensured, retrying account load');
-            // Retry loading accounts after ensuring account exists
-            const retryAccounts = await getAccountsForUser(user.id);
-            setAccounts(retryAccounts);
+          // Update cache
+          accountsCache.current = {
+            data: retryAccounts,
+            timestamp: Date.now(),
+          };
+        } else {
+          // If still no account, try the ensure-account endpoint as a last resort
+          console.log('⚠️ No account after waiting, trying ensure-account endpoint...');
+          try {
+            // Get the current session to pass the auth token
+            const { data: { session } } = await supabase.auth.getSession();
             
-            // Update cache
-            accountsCache.current = {
-              data: retryAccounts,
-              timestamp: Date.now(),
-            };
-          } else {
-            console.error('❌ Failed to ensure account exists:', response.status);
+            const response = await fetch('/api/auth/ensure-account', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': session?.access_token ? `Bearer ${session.access_token}` : '',
+              },
+            });
+            
+            if (response.ok) {
+              console.log('✅ Account created via ensure-account endpoint');
+              // Wait for account to be created
+              await new Promise(resolve => setTimeout(resolve, 1000));
+              
+              // Final attempt to load accounts
+              const finalAccounts = await getAccountsForUser(user.id);
+              setAccounts(finalAccounts);
+              
+              if (finalAccounts.length > 0) {
+                // Update cache
+                accountsCache.current = {
+                  data: finalAccounts,
+                  timestamp: Date.now(),
+                };
+              }
+            } else {
+              console.error('❌ Failed to ensure account exists:', response.status);
+              setAccounts([]);
+            }
+          } catch (ensureError) {
+            console.error('❌ Error ensuring account exists:', ensureError);
             setAccounts([]);
           }
-        } catch (ensureError) {
-          console.error('❌ Error ensuring account exists:', ensureError);
-          setAccounts([]);
         }
       } else {
         setAccounts(userAccounts);

@@ -38,6 +38,7 @@ export async function POST(request: NextRequest) {
     // The createUser call will fail if user already exists, which is the desired behavior
     
     // Create user with service role (bypasses email confirmation)
+    // Note: We set confirmed_at to ensure the trigger fires immediately
     const { data, error } = await supabase.auth.admin.createUser({
       email,
       password,

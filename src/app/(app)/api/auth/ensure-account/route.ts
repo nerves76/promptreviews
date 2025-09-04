@@ -3,11 +3,36 @@ import { createServerSupabaseClient, createServiceRoleClient } from '@/auth/prov
 
 export async function POST(request: NextRequest) {
   try {
-    // Get the authenticated user from the server-side client - updated
-    const supabase = await createServerSupabaseClient();
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    // Try to get auth from Authorization header first (for client-side calls)
+    const authHeader = request.headers.get('Authorization');
+    let user = null;
     
-    if (userError || !user) {
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      // Use the token from the client
+      const token = authHeader.slice(7);
+      const supabaseAdmin = createServiceRoleClient();
+      
+      // Verify the token and get the user
+      const { data: userData, error: verifyError } = await supabaseAdmin.auth.getUser(token);
+      if (!verifyError && userData.user) {
+        user = userData.user;
+        console.log('🔑 User authenticated via Bearer token:', user.id);
+      }
+    }
+    
+    // Fallback to server-side cookie-based auth
+    if (!user) {
+      const supabase = await createServerSupabaseClient();
+      const { data: { user: cookieUser }, error: userError } = await supabase.auth.getUser();
+      
+      if (!userError && cookieUser) {
+        user = cookieUser;
+        console.log('🍪 User authenticated via cookies:', user.id);
+      }
+    }
+    
+    if (!user) {
+      console.log('❌ No authenticated user found via token or cookies');
       return NextResponse.json(
         { error: 'Not authenticated' },
         { status: 401 }
