@@ -297,8 +297,7 @@ const Dashboard = React.memo(function Dashboard() {
     if (!authLoading && isAuthenticated && user && !account) {
       console.error('❌ Dashboard: Account missing for authenticated user:', {
         userId: user.id,
-        email: user.email,
-        accountsCount: accounts?.length || 0
+        email: user.email
       });
       // Don't auto-create - this is a data issue that needs investigation
     }
