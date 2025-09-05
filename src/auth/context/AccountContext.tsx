@@ -18,7 +18,8 @@ import { getAccountIdForUser, getAccountsForUser } from '../utils/accounts';
 import { selectBestAccount } from '../utils/accountSelection';
 import { Account } from '../types';
 
-const supabase = createClient();
+// Don't create client at module level - create it inside the component
+// const supabase = createClient();
 
 interface AccountState {
   // Account data
@@ -54,6 +55,9 @@ const ACCOUNT_CACHE_DURATION = 2 * 60 * 1000; // 2 minutes
 export function AccountProvider({ children }: { children: React.ReactNode }) {
   const { user, isAuthenticated } = useCoreAuth();
   const sharedAccount = useSharedAccount();
+  
+  // Create supabase client inside component to ensure it has auth token
+  const supabase = React.useMemo(() => createClient(), []);
   
   // Account state - use shared state for accountId
   const accountId = sharedAccount.accountId;
