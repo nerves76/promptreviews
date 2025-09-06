@@ -74,15 +74,15 @@ export default function DashboardLayout({
     const checkTimeout = setTimeout(() => {
       // Only check after account loading is complete and user is authenticated
       if (isInitialized && user && !accountLoading && isClient && !isOnCreateBusinessPage) {
-        // If no account exists after loading is complete
-        if (!account && !accountLoading) {
-          console.warn('User authenticated but no account found:', user.id);
-          // Check localStorage for stored selection
-          const storedSelection = localStorage.getItem(`selected_account_${user.id}`);
-          if (!storedSelection && !isOnCreateBusinessPage) {
-            // No account, redirect to create-business
-            router.push('/dashboard/create-business');
-          }
+        // Check localStorage for stored selection (using correct key format)
+        const storedSelection = localStorage.getItem(`promptreviews_selected_account_${user.id}`);
+        
+        // If no account exists after loading is complete AND no account is selected
+        // This prevents redirect loops when switching accounts
+        if (!account && !accountLoading && !storedSelection) {
+          console.warn('User authenticated but no account found and none selected:', user.id);
+          // No account and no selection, redirect to create-business
+          router.push('/dashboard/create-business');
         }
       }
     }, 2000); // Wait 2 seconds before checking

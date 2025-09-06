@@ -76,9 +76,9 @@ export default function CreateBusinessClient() {
         if (existingAccounts && existingAccounts.length > 0) {
           console.log('✅ User already has accounts, redirecting to dashboard');
           // User has accounts, they shouldn't be on create-business page
-          // Store the first account and redirect
+          // Store the first account and redirect (using correct localStorage key)
           const firstAccountId = existingAccounts[0].account_id;
-          localStorage.setItem(`selected_account_${user.id}`, firstAccountId);
+          localStorage.setItem(`promptreviews_selected_account_${user.id}`, firstAccountId);
           
           // User has accounts, redirect to dashboard
           
