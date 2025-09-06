@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, useRef } from "react";
 import { createClient } from "@/auth/providers/supabase";
+import { useAuthGuard } from "@/utils/authGuard";
 import { getAccountIdForUser } from "@/auth/utils/accounts";
 import { useAccountSelection } from "@/utils/accountSelectionHooks";
 import Icon, { IconName } from "@/components/Icon";
@@ -267,6 +268,7 @@ function getSentimentIcon(sentiment: string) {
 }
 
 export default function ReviewsPage() {
+  const { loading: authLoading, shouldRedirect } = useAuthGuard();
   const supabase = createClient();
   const { selectedAccount } = useAccountSelection();
 
@@ -609,12 +611,16 @@ export default function ReviewsPage() {
     setTimeout(() => setSampleNotice(null), 7000);
   };
 
-  if (loading) {
+  if (authLoading || loading) {
     return (
       <PageCard>
         <StandardLoader isLoading={true} mode="inline" />
       </PageCard>
     );
+  }
+
+  if (shouldRedirect) {
+    return null; // Will redirect to /auth/sign-in
   }
 
   return (

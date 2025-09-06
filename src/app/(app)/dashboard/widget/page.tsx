@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { apiClient } from "@/utils/apiClient";
+import { useAuthGuard } from "@/utils/authGuard";
 import WidgetList from "./WidgetList";
 import PageCard from "@/app/(app)/components/PageCard";
 import Icon from "@/components/Icon";
@@ -14,6 +15,7 @@ import { useWidgets } from "./hooks/useWidgets";
 // import { useRefreshPrevention } from "./hooks/useRefreshPrevention";
 
 export default function WidgetPage() {
+  const { loading: authLoading, shouldRedirect } = useAuthGuard();
   
   // Enable refresh guard to monitor and prevent unwanted refreshes
   // useRefreshGuard('WidgetPage');
@@ -322,6 +324,18 @@ export default function WidgetPage() {
   }, [selectedWidget?.id, fetchFullWidgetData]);
 
   const isCopied = copiedWidgetId === selectedWidget?.id;
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+      </div>
+    );
+  }
+
+  if (shouldRedirect) {
+    return null; // Will redirect to /auth/sign-in
+  }
 
   return (
     <div className="p-4 md:p-8 lg:p-12">
