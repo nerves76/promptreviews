@@ -149,11 +149,20 @@ export async function POST(request: NextRequest) {
         .single();
       
       if (createAccountError) {
-        console.error('[BUSINESSES] Failed to create account:', createAccountError);
+        console.error('[BUSINESSES] Failed to create account:', {
+          error: createAccountError,
+          message: createAccountError.message,
+          code: createAccountError.code,
+          details: createAccountError.details,
+          hint: createAccountError.hint,
+          newAccountId: newAccountId
+        });
         return NextResponse.json(
           { 
             error: "Failed to create account",
-            details: createAccountError.message
+            details: createAccountError.message,
+            code: createAccountError.code,
+            hint: createAccountError.hint
           },
           { status: 400 }
         );

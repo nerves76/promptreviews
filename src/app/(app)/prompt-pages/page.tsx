@@ -193,11 +193,9 @@ function PromptPagesContent() {
           return;
         }
         
-        // If no account ID, user might be new - handle gracefully
+        // If no account ID, user needs to create a business first
         if (!authAccountId && !selectedAccountId) {
-          setLoading(false);
-          // Optionally show a message to complete account setup
-          setError("Please complete your account setup to access prompt pages.");
+          router.push('/dashboard/create-business');
           return;
         }
         
