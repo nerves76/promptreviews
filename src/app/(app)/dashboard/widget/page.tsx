@@ -435,13 +435,13 @@ export default function WidgetPage() {
         widgetId={selectedWidget?.id}
         accountId={selectedAccount?.account_id}
         design={design}
-        onReviewsChange={useCallback(() => {
+        onReviewsChange={() => {
           // Only refresh the full widget data to update the preview
           // Don't call fetchWidgets as it's not needed for review changes
           if (selectedWidget?.id) {
             fetchFullWidgetData(selectedWidget.id);
           }
-        }, [selectedWidget?.id, fetchFullWidgetData])}
+        }}
       />
 
       {showStyleModal && selectedWidget && (
