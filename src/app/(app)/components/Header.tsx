@@ -326,7 +326,7 @@ const Header = React.memo(function Header() {
                 } inline-flex items-center px-1 pt-1 border-b-4 text-base font-medium transition-colors duration-200 h-16 relative group`}
               >
                 Dashboard
-                {!hasBusiness && (
+                {!hasBusiness && typeof window !== 'undefined' && (
                   <span className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap" style={{ zIndex: 2147483647 }}>
                     Create business profile first
                   </span>
