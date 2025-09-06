@@ -128,10 +128,11 @@ export async function POST(request: NextRequest) {
       console.log('[BUSINESSES] No account found for user, creating new independent account');
       
       // Generate a new UUID for the account (independent from user.id)
+      const newAccountId = crypto.randomUUID();
       const { data: newAccountData, error: createAccountError } = await supabase
         .from('accounts')
         .insert({
-          // Let database generate a new UUID with gen_random_uuid()
+          id: newAccountId, // Explicitly set the UUID
           email: user.email || businessData.business_email,
           first_name: user.user_metadata?.first_name || '',
           last_name: user.user_metadata?.last_name || '',
