@@ -60,8 +60,11 @@ export default function DashboardLayout({
 
   // Check for users without accounts and redirect to create-business
   useEffect(() => {
-    // Skip this check on the create-business page
+    // Skip this check on the create-business page - ALWAYS skip for this page
     const isOnCreateBusinessPage = window.location.pathname === '/dashboard/create-business';
+    if (isOnCreateBusinessPage) {
+      return; // Never redirect from create-business page
+    }
     
     // Skip this check if we just created a business
     const justCreatedBusiness = window.location.search.includes('businessCreated=1');
@@ -73,7 +76,7 @@ export default function DashboardLayout({
     // Wait before checking - give the account context time to load
     const checkTimeout = setTimeout(() => {
       // Only check after account loading is complete and user is authenticated
-      if (isInitialized && user && !accountLoading && isClient && !isOnCreateBusinessPage) {
+      if (isInitialized && user && !accountLoading && isClient) {
         // Check localStorage for stored selection (using correct key format)
         const storedSelection = localStorage.getItem(`promptreviews_selected_account_${user.id}`);
         
@@ -115,8 +118,12 @@ export default function DashboardLayout({
     setIsPlanPageSuccess(isSuccess);
   }, []);
 
-  // Show loading while AuthContext initializes
-  if (!isInitialized && !isPlanPageSuccess) {
+  // Check if we're on create-business page
+  const isOnCreateBusinessPage = typeof window !== 'undefined' && 
+    window.location.pathname === '/dashboard/create-business';
+
+  // Show loading while AuthContext initializes (but not on create-business page)
+  if (!isInitialized && !isPlanPageSuccess && !isOnCreateBusinessPage) {
     if (process.env.NODE_ENV === 'development') {
     }
     return (
@@ -132,8 +139,8 @@ export default function DashboardLayout({
   }
   
   // Show loading while user data or account data is still loading
-  // BUT skip if we're showing plan success modal
-  if ((isLoading || accountLoading) && !isPlanPageSuccess) {
+  // BUT skip if we're showing plan success modal OR on create-business page
+  if ((isLoading || accountLoading) && !isPlanPageSuccess && !isOnCreateBusinessPage) {
     if (process.env.NODE_ENV === 'development') {
     }
     return (

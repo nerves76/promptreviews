@@ -507,7 +507,7 @@ const Header = React.memo(function Header() {
                 {showNotifications && mounted && createPortal(
                   <div
                     ref={menuRef}
-                    className="fixed w-80 bg-white/85 backdrop-blur-md rounded-lg shadow-lg border border-white/30"
+                    className="fixed w-80 bg-gray-900/95 backdrop-blur-md rounded-lg shadow-2xl border border-white/30"
                     style={{
                       maxHeight: '400px',
                       overflowY: 'auto',
@@ -517,22 +517,22 @@ const Header = React.memo(function Header() {
                     }}
                   >
                     <div className="p-4">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-3">Recent activity</h3>
+                      <h3 className="text-lg font-semibold text-white mb-3">Recent activity</h3>
                       {recentNotifications.length === 0 ? (
-                        <div className="text-center py-8 text-gray-500">
-                          <Icon name="FaBell" className="w-8 h-8 mx-auto mb-2 opacity-50" size={32} />
-                          <p>No recent activity</p>
-                          <p className="text-sm mt-1">Check back later for new reviews and feedback.</p>
+                        <div className="text-center py-8 text-gray-400">
+                          <Icon name="FaBell" className="w-8 h-8 mx-auto mb-2 opacity-50 text-white" size={32} />
+                          <p className="text-white">No recent activity</p>
+                          <p className="text-sm mt-1 text-gray-400">Check back later for new reviews and feedback.</p>
                         </div>
                       ) : (
                         <div className="space-y-3">
                           {recentNotifications.map((notification) => (
-                            <div key={notification.id} className="p-3 bg-white/50 rounded-lg border border-gray-100">
-                              <p className="text-sm font-medium text-gray-900">{notification.message}</p>
+                            <div key={notification.id} className="p-3 bg-white/10 rounded-lg border border-white/20">
+                              <p className="text-sm font-medium text-white">{notification.message}</p>
                               {notification.preview && (
-                                <p className="text-xs text-gray-600 mt-1">{notification.preview}...</p>
+                                <p className="text-xs text-gray-400 mt-1">{notification.preview}...</p>
                               )}
-                              <p className="text-xs text-gray-500 mt-2">
+                              <p className="text-xs text-gray-400 mt-2">
                                 {new Date(notification.created_at).toLocaleDateString()}
                               </p>
                             </div>
@@ -570,7 +570,7 @@ const Header = React.memo(function Header() {
                 {accountMenuOpen && mounted && createPortal(
                   <div 
                     ref={accountMenuRef}
-                    className="fixed bg-white/85 backdrop-blur-md rounded-lg shadow-2xl border-2 border-white/30 py-2"
+                    className="fixed bg-gray-900/95 backdrop-blur-md rounded-lg shadow-2xl border border-white/30 py-2"
                     style={{ 
                       zIndex: 2147483647,
                       top: accountButtonRef.current ? accountButtonRef.current.getBoundingClientRect().bottom + 8 : 0,
@@ -578,52 +578,52 @@ const Header = React.memo(function Header() {
                       width: '256px'
                     }}
                   >
-                    <Link href="/dashboard/account" className="flex items-center px-4 py-3 text-gray-700 hover:bg-slate-blue/10 hover:text-slate-blue transition-colors duration-200" onClick={() => setAccountMenuOpen(false)}>
-                      <Icon name="FaUser" className="w-5 h-5 mr-3" size={20} />
+                    <Link href="/dashboard/account" className="flex items-center px-4 py-3 text-white hover:bg-white/10 transition-colors duration-200" onClick={() => setAccountMenuOpen(false)}>
+                      <Icon name="FaUser" className="w-5 h-5 mr-3 text-white" size={20} />
                       <div className="flex-1">
                         <div className="font-medium">Account</div>
-                        <div className="text-sm text-slate-blue">Manage your profile</div>
+                        <div className="text-sm text-gray-400">Manage your profile</div>
                       </div>
                     </Link>
-                    <Link href="/dashboard/analytics" className="flex items-center px-4 py-3 text-gray-700 hover:bg-slate-blue/10 hover:text-slate-blue transition-colors duration-200" onClick={() => setAccountMenuOpen(false)}>
-                      <Icon name="FaChartBar" className="w-5 h-5 mr-3" size={20} />
+                    <Link href="/dashboard/analytics" className="flex items-center px-4 py-3 text-white hover:bg-white/10 transition-colors duration-200" onClick={() => setAccountMenuOpen(false)}>
+                      <Icon name="FaChartBar" className="w-5 h-5 mr-3 text-white" size={20} />
                       <div className="flex-1">
                         <div className="font-medium">Analytics</div>
-                        <div className="text-sm text-slate-blue">View performance metrics</div>
+                        <div className="text-sm text-gray-400">View performance metrics</div>
                       </div>
                     </Link>
-                    <Link href="/dashboard/plan" className="flex items-center px-4 py-3 text-gray-700 hover:bg-slate-blue/10 hover:text-slate-blue transition-colors duration-200" onClick={() => setAccountMenuOpen(false)}>
-                      <Icon name="FaRocket" className="w-5 h-5 mr-3" size={20} />
+                    <Link href="/dashboard/plan" className="flex items-center px-4 py-3 text-white hover:bg-white/10 transition-colors duration-200" onClick={() => setAccountMenuOpen(false)}>
+                      <Icon name="FaRocket" className="w-5 h-5 mr-3 text-white" size={20} />
                       <div className="flex-1">
                         <div className="font-medium">Plan</div>
-                        <div className="text-sm text-slate-blue">Manage subscription</div>
+                        <div className="text-sm text-gray-400">Manage subscription</div>
                       </div>
                     </Link>
-                    <Link href="/dashboard/team" className="flex items-center px-4 py-3 text-gray-700 hover:bg-slate-blue/10 hover:text-slate-blue transition-colors duration-200" onClick={() => setAccountMenuOpen(false)}>
-                      <Icon name="FaUsers" className="w-5 h-5 mr-3" size={20} />
+                    <Link href="/dashboard/team" className="flex items-center px-4 py-3 text-white hover:bg-white/10 transition-colors duration-200" onClick={() => setAccountMenuOpen(false)}>
+                      <Icon name="FaUsers" className="w-5 h-5 mr-3 text-white" size={20} />
                       <div className="flex-1">
                         <div className="font-medium">Team</div>
-                        <div className="text-sm text-slate-blue">Invite team members</div>
+                        <div className="text-sm text-gray-400">Invite team members</div>
                       </div>
                     </Link>
                     {isAdminUser && (
-                      <Link href="/admin" className="flex items-center px-4 py-3 text-purple-600 hover:bg-purple-50 hover:text-purple-700 transition-colors duration-200" onClick={() => setAccountMenuOpen(false)}>
-                        <Icon name="FaShieldAlt" className="w-5 h-5 mr-3" size={20} />
+                      <Link href="/admin" className="flex items-center px-4 py-3 text-purple-400 hover:bg-white/10 transition-colors duration-200" onClick={() => setAccountMenuOpen(false)}>
+                        <Icon name="FaShieldAlt" className="w-5 h-5 mr-3 text-purple-400" size={20} />
                         <div className="flex-1">
                           <div className="font-medium">Admin panel</div>
-                          <div className="text-sm text-purple-500">System administration</div>
+                          <div className="text-sm text-purple-300">System administration</div>
                         </div>
                       </Link>
                     )}
                     {/* Game link hidden on mobile due to compatibility issues */}
-                    <Link href="/game" className="hidden md:flex items-center px-4 py-3 text-gray-700 hover:bg-slate-blue/10 hover:text-slate-blue transition-colors duration-200" onClick={() => setAccountMenuOpen(false)}>
+                    <Link href="/game" className="hidden md:flex items-center px-4 py-3 text-white hover:bg-white/10 transition-colors duration-200" onClick={() => setAccountMenuOpen(false)}>
                       <span className="mr-3 text-xl">🎮</span>
                       <div className="flex-1">
                         <div className="font-medium">Get Found Online: The Game</div>
-                        <div className="text-sm text-slate-blue">Play and learn</div>
+                        <div className="text-sm text-gray-400">Play and learn</div>
                       </div>
                     </Link>
-                    <div className="border-t border-gray-200/50 my-2" />
+                    <div className="border-t border-white/20 my-2" />
                     <button
                       onClick={async () => {
                         trackEvent(GA_EVENTS.SIGN_OUT, { timestamp: new Date().toISOString() });
@@ -631,12 +631,12 @@ const Header = React.memo(function Header() {
                         router.push("/auth/sign-in");
                         setAccountMenuOpen(false);
                       }}
-                      className="flex items-center w-full px-4 py-3 text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors duration-200"
+                      className="flex items-center w-full px-4 py-3 text-red-400 hover:bg-white/10 hover:text-red-300 transition-colors duration-200"
                     >
-                      <Icon name="FaSignOutAlt" className="w-5 h-5 mr-3" size={20} />
+                      <Icon name="FaSignOutAlt" className="w-5 h-5 mr-3 text-red-400" size={20} />
                       <div className="flex-1 text-left">
                         <div className="font-medium">Sign out</div>
-                        <div className="text-sm text-red-400">End your session</div>
+                        <div className="text-sm text-red-300">End your session</div>
                       </div>
                     </button>
                   </div>,
@@ -671,7 +671,7 @@ const Header = React.memo(function Header() {
                   {mobileAccountSwitcherOpen && mounted && createPortal(
                     <div
                       ref={mobileAccountDropdownRef}
-                      className="fixed left-4 right-4 bg-white/90 backdrop-blur-md rounded-lg shadow-2xl border-2 border-white/50 overflow-hidden"
+                      className="fixed left-4 right-4 bg-gray-900/95 backdrop-blur-md rounded-lg shadow-2xl border border-white/30 overflow-hidden"
                       style={{
                         zIndex: 2147483648,
                         top: mobileAccountSwitcherRef.current ? mobileAccountSwitcherRef.current.getBoundingClientRect().bottom + 8 : 0,
@@ -681,14 +681,14 @@ const Header = React.memo(function Header() {
                       }}
                     >
                       {/* Inline account switcher content since AccountSwitcher component has its own button */}
-                      <div className="px-4 py-3 border-b border-gray-200">
+                      <div className="px-4 py-3 border-b border-white/20">
                         <div className="flex items-center gap-2">
-                          <svg className="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
                           </svg>
-                          <h3 className="text-sm font-medium text-gray-900">Switch account</h3>
+                          <h3 className="text-sm font-medium text-white">Switch account</h3>
                         </div>
-                        <p className="text-xs text-slate-blue mt-1 ml-6">
+                        <p className="text-xs text-gray-400 mt-1 ml-6">
                           Select which account you want to work with
                         </p>
                       </div>
@@ -703,26 +703,26 @@ const Header = React.memo(function Header() {
                               }
                               setMobileAccountSwitcherOpen(false);
                             }}
-                            className="w-full px-4 py-3 text-left hover:bg-slate-blue/10 hover:text-slate-blue focus:outline-none focus:bg-slate-blue/10 transition-colors"
+                            className="w-full px-4 py-3 text-left hover:bg-white/10 focus:outline-none focus:bg-white/10 transition-colors"
                           >
                             <div className="flex items-center gap-3">
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2">
-                                  <span className="font-medium text-gray-900 truncate">
+                                  <span className="font-medium text-white truncate">
                                     {account.business_name || account.account_name || `${account.first_name} ${account.last_name}`.trim() || 'Account'}
                                   </span>
                                   {account.account_id === selectedAccount?.account_id && (
-                                    <span className="px-2 py-0.5 text-xs font-medium text-green-700 bg-green-100 rounded-full">
+                                    <span className="px-2 py-0.5 text-xs font-medium text-green-300 bg-green-900/50 rounded-full">
                                       Current
                                     </span>
                                   )}
                                 </div>
                                 <div className="flex items-center gap-2 mt-1">
-                                  <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-gray-100 text-gray-600">
+                                  <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-white/10 text-gray-400">
                                     {account.role}
                                   </span>
                                   {account.plan && account.plan !== 'no_plan' && (
-                                    <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-blue-100 text-blue-600">
+                                    <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-blue-900/50 text-blue-300">
                                       {account.plan}
                                     </span>
                                   )}
@@ -761,7 +761,7 @@ const Header = React.memo(function Header() {
               onClick={() => setMenuOpen(false)}
             />
             {/* Menu Content */}
-            <div className="absolute top-20 left-4 right-4 bg-blue-50 shadow-lg rounded-xl border border-blue-200">
+            <div className="absolute top-20 left-4 right-4 bg-gray-900/95 backdrop-blur-md shadow-2xl rounded-xl border border-white/30">
               <div className="px-2 pt-2 pb-3 space-y-1 flex flex-col">
                 <Link
                   href={hasBusiness ? "/dashboard" : "#"}
@@ -776,10 +776,10 @@ const Header = React.memo(function Header() {
                   }}
                   className={`${
                     isActive("/dashboard")
-                      ? "bg-slate-blue/10 text-slate-blue"
+                      ? "bg-white/20 text-white"
                       : hasBusiness
-                        ? "text-blue-900 hover:bg-slate-blue/10 hover:text-slate-blue"
-                        : "text-blue-400 cursor-not-allowed"
+                        ? "text-white hover:bg-white/10"
+                        : "text-gray-500 cursor-not-allowed"
                   } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
                 >
                   Dashboard
@@ -799,10 +799,10 @@ const Header = React.memo(function Header() {
                       }}
                       className={`${
                         isActive("/dashboard/business-profile")
-                          ? "bg-slate-blue/10 text-slate-blue"
+                          ? "bg-white/20 text-white"
                           : hasBusiness 
-                            ? "text-blue-900 hover:bg-slate-blue/10 hover:text-slate-blue"
-                            : "text-blue-400 cursor-not-allowed"
+                            ? "text-white hover:bg-white/10"
+                            : "text-gray-500 cursor-not-allowed"
                       } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200 relative`}
                     >
                       Your business
@@ -816,7 +816,7 @@ const Header = React.memo(function Header() {
                     </Link>
                     {/* Get Reviews Section */}
                     <div className={`px-3 py-2 ${!hasBusiness ? 'opacity-50' : ''}`}>
-                      <div className={`text-sm font-medium ${hasBusiness ? 'text-blue-700' : 'text-blue-400'} mb-2`}>Get reviews</div>
+                      <div className={`text-sm font-medium ${hasBusiness ? 'text-gray-400' : 'text-gray-600'} mb-2`}>Get reviews</div>
                       <div className="space-y-1">
                         <Link
                           href={hasBusiness ? "/prompt-pages" : "#"}
@@ -831,10 +831,10 @@ const Header = React.memo(function Header() {
                           }}
                           className={`${
                             isActive("/prompt-pages")
-                              ? "bg-slate-blue/10 text-slate-blue"
+                              ? "bg-white/20 text-white"
                               : hasBusiness 
-                                ? "text-blue-900 hover:bg-slate-blue/10 hover:text-slate-blue"
-                                : "text-blue-400 cursor-not-allowed"
+                                ? "text-white hover:bg-white/10"
+                                : "text-gray-500 cursor-not-allowed"
                           } block px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200`}
                         >
                           Prompt Pages
@@ -852,10 +852,10 @@ const Header = React.memo(function Header() {
                           }}
                           className={`${
                             isActive("/dashboard/contacts")
-                              ? "bg-slate-blue/10 text-slate-blue"
+                              ? "bg-white/20 text-white"
                               : hasBusiness 
-                                ? "text-blue-900 hover:bg-slate-blue/10 hover:text-slate-blue"
-                                : "text-blue-400 cursor-not-allowed"
+                                ? "text-white hover:bg-white/10"
+                                : "text-gray-500 cursor-not-allowed"
                           } block px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200`}
                         >
                           Contacts
@@ -873,10 +873,10 @@ const Header = React.memo(function Header() {
                           }}
                           className={`${
                             isActive("/dashboard/reviews")
-                              ? "bg-slate-blue/10 text-slate-blue"
+                              ? "bg-white/20 text-white"
                               : hasBusiness 
-                                ? "text-blue-900 hover:bg-slate-blue/10 hover:text-slate-blue"
-                                : "text-blue-400 cursor-not-allowed"
+                                ? "text-white hover:bg-white/10"
+                                : "text-gray-500 cursor-not-allowed"
                           } block px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200`}
                         >
                           Review Management
@@ -899,10 +899,10 @@ const Header = React.memo(function Header() {
                           }}
                           className={`${
                             isActive("/dashboard/google-business")
-                              ? "bg-slate-blue/10 text-slate-blue"
+                              ? "bg-white/20 text-white"
                               : hasBusiness 
-                                ? "text-blue-900 hover:bg-slate-blue/10 hover:text-slate-blue"
-                                : "text-blue-400 cursor-not-allowed"
+                                ? "text-white hover:bg-white/10"
+                                : "text-gray-500 cursor-not-allowed"
                           } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
                         >
                           Google biz
@@ -949,10 +949,10 @@ const Header = React.memo(function Header() {
                       }}
                       className={`${
                         isActive("/dashboard/account")
-                          ? "bg-slate-blue/10 text-slate-blue"
+                          ? "bg-white/20 text-white"
                           : hasBusiness 
-                            ? "text-blue-900 hover:bg-slate-blue/10 hover:text-slate-blue"
-                            : "text-blue-400 cursor-not-allowed"
+                            ? "text-white hover:bg-white/10"
+                            : "text-gray-500 cursor-not-allowed"
                       } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
                     >
                       Account
@@ -970,10 +970,10 @@ const Header = React.memo(function Header() {
                       }}
                       className={`${
                         isActive("/dashboard/analytics")
-                          ? "bg-slate-blue/10 text-slate-blue"
+                          ? "bg-white/20 text-white"
                           : hasBusiness 
-                            ? "text-blue-900 hover:bg-slate-blue/10 hover:text-slate-blue"
-                            : "text-blue-400 cursor-not-allowed"
+                            ? "text-white hover:bg-white/10"
+                            : "text-gray-500 cursor-not-allowed"
                       } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
                     >
                       Analytics
@@ -991,10 +991,10 @@ const Header = React.memo(function Header() {
                       }}
                       className={`${
                         isActive("/dashboard/plan")
-                          ? "bg-slate-blue/10 text-slate-blue"
+                          ? "bg-white/20 text-white"
                           : hasBusiness 
-                            ? "text-blue-900 hover:bg-slate-blue/10 hover:text-slate-blue"
-                            : "text-blue-400 cursor-not-allowed"
+                            ? "text-white hover:bg-white/10"
+                            : "text-gray-500 cursor-not-allowed"
                       } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
                     >
                       Plan
@@ -1002,7 +1002,7 @@ const Header = React.memo(function Header() {
                     {isAdminUser && (
                       <Link
                         href="/admin"
-                        className="text-purple-600 hover:bg-purple-50 block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200"
+                        className="text-purple-400 hover:bg-white/10 block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200"
                         onClick={() => setMenuOpen(false)}
                       >
                         Admin panel
@@ -1015,7 +1015,7 @@ const Header = React.memo(function Header() {
                         router.push("/auth/sign-in");
                         setMenuOpen(false);
                       }}
-                      className="text-red-600 hover:bg-red-50 block w-full text-left px-3 py-2 rounded-md text-base font-medium transition-colors duration-200"
+                      className="text-red-400 hover:bg-white/10 block w-full text-left px-3 py-2 rounded-md text-base font-medium transition-colors duration-200"
                     >
                       Sign out
                     </button>
@@ -1023,7 +1023,7 @@ const Header = React.memo(function Header() {
                 ) : (
                   <Link
                     href="/auth/sign-in"
-                    className="text-blue-900 hover:bg-slate-blue/10 hover:text-slate-blue block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200"
+                    className="text-white hover:bg-white/10 block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200"
                     onClick={() => setMenuOpen(false)}
                   >
                     Sign in
