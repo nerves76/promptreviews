@@ -562,24 +562,45 @@ const Dashboard = React.memo(function Dashboard() {
       // Force reload of account data to pick up the newly created account
       if (refreshAccount) {
         console.log('🔄 Refreshing account data after business creation');
-        refreshAccount();
+        // Wait for refresh to complete before showing modal
+        refreshAccount().then(() => {
+          console.log('✅ Account data refreshed, now showing pricing modal');
+          // Double-check that user still needs to select a plan
+          // (in case they completed Stripe checkout in the meantime)
+          const params = new URLSearchParams(window.location.search);
+          const hasJustPaid = params.get('success') === '1';
+          
+          if (!hasJustPaid) {
+            setIsPendingPricingModal(false);
+            setShowPricingModal(true);
+            setPlanSelectionRequired(true); // Make it required so user can't dismiss
+          } else {
+            setIsPendingPricingModal(false);
+          }
+        }).catch(error => {
+          console.error('❌ Error refreshing account after business creation:', error);
+          // Show modal anyway after a delay
+          setTimeout(() => {
+            setIsPendingPricingModal(false);
+            setShowPricingModal(true);
+            setPlanSelectionRequired(true);
+          }, 2000);
+        });
+      } else {
+        // Fallback if refreshAccount is not available
+        modalTimeoutRef.current = setTimeout(() => {
+          const params = new URLSearchParams(window.location.search);
+          const hasJustPaid = params.get('success') === '1';
+          
+          if (!hasJustPaid) {
+            setIsPendingPricingModal(false);
+            setShowPricingModal(true);
+            setPlanSelectionRequired(true);
+          } else {
+            setIsPendingPricingModal(false);
+          }
+        }, 3000); // Wait 3 seconds for page to fully load
       }
-      
-      // Delay showing pricing modal to let page fully render and account data to load
-      modalTimeoutRef.current = setTimeout(() => {
-        // Double-check that user still needs to select a plan
-        // (in case they completed Stripe checkout in the meantime)
-        const params = new URLSearchParams(window.location.search);
-        const hasJustPaid = params.get('success') === '1';
-        
-        if (!hasJustPaid) {
-          setIsPendingPricingModal(false);
-          setShowPricingModal(true);
-          setPlanSelectionRequired(true); // Make it required so user can't dismiss
-        } else {
-          setIsPendingPricingModal(false);
-        }
-      }, 2000); // Wait 2 seconds for page to fully load
       
       // Clean up the URL immediately
       const newUrl = window.location.pathname;
