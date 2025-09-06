@@ -66,8 +66,8 @@ export default function CreateBusinessClient() {
 
         if (error || !user) {
           console.error('❌ CreateBusinessClient: User not authenticated:', error);
-          setError("Authentication required");
-          setLoading(false);
+          // Redirect to sign-in page if not authenticated
+          router.push('/auth/sign-in');
           return;
         }
 
