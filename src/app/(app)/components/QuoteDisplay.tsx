@@ -112,24 +112,6 @@ export default function QuoteDisplay({
                     <Icon name="FaChevronRight" className="h-5 w-5" size={20} />
       </button>
       
-      {/* Mobile Navigation - Below the quote */}
-      <div className="flex md:hidden justify-center gap-4 absolute -bottom-16 left-1/2 transform -translate-x-1/2">
-        <button
-          onClick={previousQuote}
-          className="p-2.5 text-white/90 hover:text-white transition-all duration-200 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg hover:bg-white/15"
-          aria-label="Previous quote"
-        >
-          <Icon name="FaChevronLeft" className="h-5 w-5" size={20} />
-        </button>
-        <button
-          onClick={nextQuote}
-          className="p-2.5 text-white/90 hover:text-white transition-all duration-200 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg hover:bg-white/15"
-          aria-label="Next quote"
-        >
-          <Icon name="FaChevronRight" className="h-5 w-5" size={20} />
-        </button>
-      </div>
-
       {/* Quote Box - Enhanced glassmorphic styling */}
       <div className="relative backdrop-blur-xl bg-white/10 border border-white/30 rounded-2xl p-8 shadow-lg w-full md:min-w-[800px] md:max-w-[800px] before:absolute before:inset-0 before:rounded-2xl before:bg-gradient-to-br before:from-white/5 before:to-transparent before:pointer-events-none overflow-hidden">
         {/* Subtle gradient overlay */}
@@ -167,6 +149,24 @@ export default function QuoteDisplay({
             {currentIndex + 1} of {quotes.length}
           </div>
         </div>
+      </div>
+      
+      {/* Mobile Navigation - Below the quote with proper spacing */}
+      <div className="flex md:hidden justify-center gap-4 mt-6 mb-8">
+        <button
+          onClick={previousQuote}
+          className="p-2.5 text-white/90 hover:text-white transition-all duration-200 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg hover:bg-white/15"
+          aria-label="Previous quote"
+        >
+          <Icon name="FaChevronLeft" className="h-5 w-5" size={20} />
+        </button>
+        <button
+          onClick={nextQuote}
+          className="p-2.5 text-white/90 hover:text-white transition-all duration-200 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg hover:bg-white/15"
+          aria-label="Next quote"
+        >
+          <Icon name="FaChevronRight" className="h-5 w-5" size={20} />
+        </button>
       </div>
     </div>
   );

@@ -13,6 +13,7 @@ import { fetchOnboardingTasks } from "@/utils/onboardingTasks";
 import PromptReviewsLogo from "@/app/(app)/dashboard/components/PromptReviewsLogo";
 import { AccountSwitcher } from './AccountSwitcher';
 import GetReviewsDropdown from './GetReviewsDropdown';
+import { useAccountSelection } from '@/utils/accountSelectionHooks';
 
 const CowboyUserIcon = () => {
   const [imageError, setImageError] = useState(false);
@@ -52,14 +53,25 @@ const Header = React.memo(function Header() {
   const [notifications, setNotifications] = useState<any[]>([]);
   const [menuOpen, setMenuOpen] = useState(false);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
+  const [mobileAccountSwitcherOpen, setMobileAccountSwitcherOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const notificationsButtonRef = useRef<HTMLButtonElement>(null);
   const accountButtonRef = useRef<HTMLButtonElement>(null);
   const accountMenuRef = useRef<HTMLDivElement>(null);
+  const mobileAccountSwitcherRef = useRef<HTMLButtonElement>(null);
+  const mobileAccountDropdownRef = useRef<HTMLDivElement>(null);
   
   const { isAdminUser, adminLoading } = useAuth();
   // 🔧 FIXED: Use actual hasBusiness state from AuthContext instead of hardcoded true
   const { hasBusiness, businessLoading, currentPlan } = useAuth();
+  
+  // Account selection for mobile switcher
+  const {
+    selectedAccount,
+    availableAccounts,
+    switchAccount,
+    hasMultipleAccounts
+  } = useAccountSelection();
   
   // Track business profile task completion
   const [businessProfileCompleted, setBusinessProfileCompleted] = useState(false);
@@ -70,6 +82,32 @@ const Header = React.memo(function Header() {
   
   // Store current user ID in a ref to access it in the callback
   const currentUserIdRef = useRef<string | undefined>(user?.id);
+  
+  // Debug logging for account switcher
+  useEffect(() => {
+    console.log('[Header] Account Switcher Debug:', {
+      hasMultipleAccounts,
+      availableAccountsCount: availableAccounts?.length,
+      selectedAccount: selectedAccount?.account_id
+    });
+  }, [hasMultipleAccounts, availableAccounts, selectedAccount]);
+  
+  // Mobile account switcher functions
+  const switchToNextAccount = () => {
+    if (!hasMultipleAccounts || !availableAccounts || !selectedAccount) return;
+    
+    const currentIndex = availableAccounts.findIndex(acc => acc.account_id === selectedAccount.account_id);
+    const nextIndex = (currentIndex + 1) % availableAccounts.length;
+    switchAccount(availableAccounts[nextIndex].account_id);
+  };
+  
+  const switchToPreviousAccount = () => {
+    if (!hasMultipleAccounts || !availableAccounts || !selectedAccount) return;
+    
+    const currentIndex = availableAccounts.findIndex(acc => acc.account_id === selectedAccount.account_id);
+    const prevIndex = currentIndex === 0 ? availableAccounts.length - 1 : currentIndex - 1;
+    switchAccount(availableAccounts[prevIndex].account_id);
+  };
 
   useEffect(() => {
     // Update the ref whenever user changes
@@ -290,6 +328,23 @@ const Header = React.memo(function Header() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [accountMenuOpen]);
 
+  // Handle mobile account switcher click outside
+  useEffect(() => {
+    if (!mobileAccountSwitcherOpen) return;
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        mobileAccountSwitcherRef.current && 
+        !mobileAccountSwitcherRef.current.contains(event.target as Node) &&
+        mobileAccountDropdownRef.current &&
+        !mobileAccountDropdownRef.current.contains(event.target as Node)
+      ) {
+        setMobileAccountSwitcherOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [mobileAccountSwitcherOpen]);
+
   // 🔧 REMOVED: Business profile refresh listeners since Header no longer manages business state
   // DashboardLayout handles business profile state management
 
@@ -326,7 +381,7 @@ const Header = React.memo(function Header() {
                 } inline-flex items-center px-1 pt-1 border-b-4 text-base font-medium transition-colors duration-200 h-16 relative group`}
               >
                 Dashboard
-                {!hasBusiness && typeof window !== 'undefined' && (
+                {!hasBusiness && (
                   <span className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap" style={{ zIndex: 2147483647 }}>
                     Create business profile first
                   </span>
@@ -589,8 +644,95 @@ const Header = React.memo(function Header() {
             )}
             </div>
             
-            {/* Hamburger Icon for Mobile - Now on Far Right */}
-            <div className="md:hidden">
+            {/* Mobile Controls - Account Switcher and Hamburger */}
+            <div className="md:hidden flex items-center gap-1 relative">
+              {/* Account Switcher Icon - Show if user has multiple accounts */}
+              {hasMultipleAccounts ? (
+                <>
+                  <button
+                    ref={mobileAccountSwitcherRef}
+                    onClick={() => setMobileAccountSwitcherOpen(!mobileAccountSwitcherOpen)}
+                    className="w-8 h-8 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white/30 transition-all duration-200"
+                    aria-label="Switch account"
+                    title={selectedAccount ? `Current: ${selectedAccount.business_name || selectedAccount.account_name || 'Account'}` : 'Switch account'}
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                    </svg>
+                  </button>
+                  
+                  {/* Mobile Account Switcher Dropdown - Rendered in Portal */}
+                  {mobileAccountSwitcherOpen && typeof window !== 'undefined' && createPortal(
+                    <div
+                      ref={mobileAccountDropdownRef}
+                      className="fixed left-4 right-4 bg-white/90 backdrop-blur-md rounded-lg shadow-2xl border-2 border-white/50 overflow-hidden"
+                      style={{
+                        zIndex: 2147483648,
+                        top: mobileAccountSwitcherRef.current ? mobileAccountSwitcherRef.current.getBoundingClientRect().bottom + 8 : 0,
+                        maxWidth: '400px',
+                        marginLeft: 'auto',
+                        marginRight: 'auto'
+                      }}
+                    >
+                      {/* Inline account switcher content since AccountSwitcher component has its own button */}
+                      <div className="px-4 py-3 border-b border-gray-200">
+                        <div className="flex items-center gap-2">
+                          <svg className="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                          </svg>
+                          <h3 className="text-sm font-medium text-gray-900">Switch account</h3>
+                        </div>
+                        <p className="text-xs text-slate-blue mt-1 ml-6">
+                          Select which account you want to work with
+                        </p>
+                      </div>
+                      
+                      <div className="max-h-64 overflow-y-auto">
+                        {availableAccounts.map((account) => (
+                          <button
+                            key={account.account_id}
+                            onClick={() => {
+                              if (account.account_id !== selectedAccount?.account_id) {
+                                switchAccount(account.account_id);
+                              }
+                              setMobileAccountSwitcherOpen(false);
+                            }}
+                            className="w-full px-4 py-3 text-left hover:bg-slate-blue/10 hover:text-slate-blue focus:outline-none focus:bg-slate-blue/10 transition-colors"
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2">
+                                  <span className="font-medium text-gray-900 truncate">
+                                    {account.business_name || account.account_name || `${account.first_name} ${account.last_name}`.trim() || 'Account'}
+                                  </span>
+                                  {account.account_id === selectedAccount?.account_id && (
+                                    <span className="px-2 py-0.5 text-xs font-medium text-green-700 bg-green-100 rounded-full">
+                                      Current
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="flex items-center gap-2 mt-1">
+                                  <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-gray-100 text-gray-600">
+                                    {account.role}
+                                  </span>
+                                  {account.plan && account.plan !== 'no_plan' && (
+                                    <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-blue-100 text-blue-600">
+                                      {account.plan}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>,
+                    document.body
+                  )}
+                </>
+              ) : null}
+              
+              {/* Hamburger Menu */}
               <button
                 onClick={() => setMenuOpen(!menuOpen)}
                 className="inline-flex items-center justify-center p-2 rounded-md text-white hover:text-white/80 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white/30"
@@ -615,11 +757,6 @@ const Header = React.memo(function Header() {
             {/* Menu Content */}
             <div className="absolute top-20 left-4 right-4 bg-blue-50 shadow-lg rounded-xl border border-blue-200">
               <div className="px-2 pt-2 pb-3 space-y-1 flex flex-col">
-                {/* Account Switcher - Mobile */}
-                <div className="px-3 py-2">
-                  <AccountSwitcher />
-                </div>
-                
                 <Link
                   href={hasBusiness ? "/dashboard" : "#"}
                   onClick={(e) => {

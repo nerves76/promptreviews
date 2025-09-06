@@ -38,15 +38,9 @@ export default function CreateBusinessClient() {
     img.src = "https://ltneloufqjktdplodvao.supabase.co/storage/v1/object/public/logos/prompt-assets/prompty-telescope-capturing-reviews.png";
   }, []);
 
-  // Memoize router functions to prevent infinite loops
+  // Redirect to dashboard after business creation
   const redirectToDashboard = useCallback(() => {
-    
-    // Set flag to maintain loading state during transition
-    sessionStorage.setItem('business-creation-complete', 'true');
-    sessionStorage.setItem('redirect-in-progress', 'true');
-    
-    // Use window.location.replace for more reliable redirect
-    // This ensures the redirect happens even if Next.js router has issues
+    // Use window.location.replace for reliable redirect
     window.location.replace("/dashboard?businessCreated=1");
   }, []);
 
@@ -72,30 +66,51 @@ export default function CreateBusinessClient() {
         }
 
         setUser(user);
-
-        // Use the selected account from auth context OR the user's ID (for new accounts)
-        // During signup, the account ID is the same as the user ID
-        const accountId = selectedAccountId || account?.id || user.id;
-        if (!accountId) {
-          setError("Account setup required");
-          setLoading(false);
+        
+        // Check if user already has accounts (they shouldn't be here if they do)
+        const { data: existingAccounts } = await supabase
+          .from('account_users')
+          .select('account_id')
+          .eq('user_id', user.id);
+          
+        if (existingAccounts && existingAccounts.length > 0) {
+          console.log('✅ User already has accounts, redirecting to dashboard');
+          // User has accounts, they shouldn't be on create-business page
+          // Store the first account and redirect
+          const firstAccountId = existingAccounts[0].account_id;
+          localStorage.setItem(`selected_account_${user.id}`, firstAccountId);
+          
+          // User has accounts, redirect to dashboard
+          
+          // Redirect to dashboard
+          window.location.href = '/dashboard';
           return;
         }
 
-        setAccountId(accountId);
+        // For new users, we don't require an existing account - the business creation will create one
+        // Use the selected account from auth context if available
+        const currentAccountId = selectedAccountId || account?.id || null;
+        
+        // We don't need an existing account for business creation
+        // The API will create a new account if needed
+        setAccountId(currentAccountId);
 
-        // Fetch account data including first_name and last_name
-        const { data: account, error: accountError } = await supabase
-          .from('accounts')
-          .select('id, first_name, last_name, email')
-          .eq('id', accountId)
-          .single();
+        // Fetch account data if we have an accountId
+        if (currentAccountId) {
+          const { data: accountInfo, error: accountError } = await supabase
+            .from('accounts')
+            .select('id, first_name, last_name, email')
+            .eq('id', currentAccountId)
+            .single();
 
-        if (accountError) {
-          console.error('❌ CreateBusinessClient: Error fetching account data:', accountError);
+          if (accountError) {
+            console.error('❌ CreateBusinessClient: Error fetching account data:', accountError);
+          } else {
+            console.log('✅ CreateBusinessClient: Account data fetched:', accountInfo);
+            setAccountData(accountInfo);
+          }
         } else {
-          console.log('✅ CreateBusinessClient: Account data fetched:', account);
-          setAccountData(account);
+          console.log('ℹ️ CreateBusinessClient: No existing account - will create new one during business creation');
         }
 
         setLoading(false);
@@ -127,42 +142,12 @@ export default function CreateBusinessClient() {
     setIsSubmitting(false);
     setIsRedirecting(true); // Set redirecting state to show loading screen
     
-    // Set flags to prevent interference during redirect
-    if (typeof window !== 'undefined') {
-      sessionStorage.setItem('businessCreationInProgress', 'true');
-      sessionStorage.setItem('business-creation-complete', 'true'); // Flag for dashboard layout
-    }
-    
-    // Force refresh business profile in auth context
-    if (typeof window !== 'undefined') {
-      try {
-        window.dispatchEvent(new CustomEvent('forceRefreshBusiness'));
-      } catch (error) {
-        console.error('❌ CreateBusinessClient: Error dispatching forceRefreshBusiness event:', error);
-      }
-    }
-    
-    // Give more time for database transactions to complete and propagate
+    // Give time for database transactions to complete and propagate
     await new Promise(resolve => setTimeout(resolve, 2000)); // 2 second delay
     
-    // Verify the account exists before redirecting
-    if (accountId) {
-      try {
-        const { data: accountCheck } = await supabase
-          .from('accounts')
-          .select('id')
-          .eq('id', accountId)
-          .single();
-        
-        if (accountCheck) {
-        } else {
-        }
-      } catch (error) {
-      }
-    }
-    
+    // Redirect to dashboard
     redirectToDashboard();
-  }, [redirectToDashboard, accountId]);
+  }, [redirectToDashboard]);
 
   // Handle top save button click
   const handleTopSaveClick = useCallback(() => {
@@ -246,13 +231,12 @@ export default function CreateBusinessClient() {
   return (
     <>
       <div className="min-h-screen flex justify-center items-start px-4 sm:px-0">
-        <PageCard>
+        <PageCard icon={<Icon name="FaStore" className="w-9 h-9 text-slate-blue" size={36} />}>
           <div className="max-w-4xl mx-auto">
             {/* Welcome Message */}
             <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-8 w-full gap-4 relative">
               <div className="flex-1">
-                <h1 className="text-4xl font-bold flex items-center gap-3 text-slate-blue pt-2">
-                  <Icon name="FaStore" size={32} className="text-slate-blue" />
+                <h1 className="text-4xl font-bold text-slate-blue pt-2">
                   Create your business profile
                 </h1>
                 <div className="mt-6">
@@ -262,6 +246,24 @@ export default function CreateBusinessClient() {
                   <p className="mt-2 text-sm text-gray-600 max-w-[650px]">
                     Let's create your business profile so you can start collecting reviews and growing your reputation online.
                   </p>
+                  
+                  {/* Emergency escape for users with existing accounts */}
+                  {user && (
+                    <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                      <p className="text-sm text-amber-800">
+                        Having trouble? Already have an account?
+                        <button 
+                          onClick={() => {
+                            // Simply redirect to dashboard
+                            window.location.href = '/dashboard';
+                          }}
+                          className="ml-2 text-blue-600 hover:underline font-semibold"
+                        >
+                          Go to Dashboard →
+                        </button>
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
               
@@ -318,8 +320,8 @@ export default function CreateBusinessClient() {
               </div>
             </div>
 
-            {/* Business Form */}
-            {user && accountId && (
+            {/* Business Form - Allow form even without existing accountId */}
+            {user && (
               <SimpleBusinessForm
                 ref={formRef}
                 user={user}

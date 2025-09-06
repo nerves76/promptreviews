@@ -65,8 +65,9 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
   const [account, setAccount] = useState<Account | null>(null);
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
-  const [accountLoading, setAccountLoading] = useState(false);
-  const [accountsLoading, setAccountsLoading] = useState(false);
+  // Start as loading=true so we don't redirect before trying to load
+  const [accountLoading, setAccountLoading] = useState(true);
+  const [accountsLoading, setAccountsLoading] = useState(true);
   const [accountCacheTime, setAccountCacheTime] = useState<number | null>(null);
   
   // Refs for caching
@@ -296,89 +297,65 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
 
   /**
    * Initialize account when authentication state changes
-   * 
-   * This effect is responsible for:
-   * 1. Detecting when a user logs in/out
-   * 2. Fetching the user's account ID
-   * 3. Loading account details
-   * 4. Propagating account ID to SharedAccountState
-   * 
-   * ⚠️ TIMING ISSUES THAT CAUSED 8-HOUR DEBUG:
-   * - Supabase session might not be ready immediately after auth
-   * - getAccountIdForUser might return null on first call
-   * - That's why we have retry logic with delays
-   * - SharedAccountState prevents setting null over existing ID
-   * 
-   * ⚠️ CRITICAL: Must pass supabase client to getAccountIdForUser!
-   * Not passing the client causes new client creation without auth.
+   * Simplified to always read from localStorage without complex event handling
    */
   useEffect(() => {
-    
-    // Don't do anything if we already have an account ID
-    if (accountId && isAuthenticated && user?.id) {
-      return;
-    }
-    
     if (isAuthenticated && user?.id) {
       // Add a small delay to ensure auth session is fully established
       const timeoutId = setTimeout(() => {
-        // Get the account ID
-        // ⚠️ CRITICAL: ALWAYS pass supabase client as second parameter!
-        // This ensures the same authenticated session is used.
-        // Not passing this was a major cause of the 8-hour debugging session.
+        // Get the account ID from localStorage or database
         getAccountIdForUser(user.id, supabase).then((fetchedAccountId) => {
           if (fetchedAccountId) {
-            // Set the shared account ID
+            // Set the account ID
             setAccountId(fetchedAccountId);
-            setSelectedAccountId(() => fetchedAccountId);
+            setSelectedAccountId(fetchedAccountId);
             
-            // Force a re-render by updating a timestamp
-            setAccountCacheTime(Date.now());
-            
-            // Now load the full account data with the specific ID
+            // Load the full account data
             loadAccount(fetchedAccountId);
             
-            // Load all accounts in parallel (for account switcher)
+            // Load all accounts for the switcher
             loadAccounts();
           } else {
-            console.warn('⚠️ AccountContext: No account ID returned for user:', user.id);
-            // Don't set to null immediately - retry once after a longer delay
+            console.warn('⚠️ AccountContext: No account ID found for user:', user.id);
+            // Retry once after a delay
             setTimeout(() => {
-              // Check again if we don't already have an account ID
               if (!accountId) {
-                // ⚠️ CRITICAL: Pass supabase client on retry too!
                 getAccountIdForUser(user.id, supabase).then((retryAccountId) => {
                   if (retryAccountId) {
                     setAccountId(retryAccountId);
-                    setSelectedAccountId(() => retryAccountId);
-                    setAccountCacheTime(Date.now());
+                    setSelectedAccountId(retryAccountId);
                     loadAccount(retryAccountId);
                     loadAccounts();
                   } else {
-                    console.warn('⚠️ AccountContext: Retry also returned null, user may not have accounts');
-                    // Only set to null after retry fails
+                    console.warn('⚠️ AccountContext: No accounts found for user');
                     setAccountId(null);
-                    setSelectedAccountId(() => null);
+                    setSelectedAccountId(null);
+                    setAccountLoading(false);
                   }
                 });
               }
-            }, 1000); // Longer delay for retry
+            }, 1000);
           }
         }).catch(error => {
           console.error('❌ AccountContext: Error getting account ID:', error);
+          setAccountLoading(false);
         });
-      }, 500); // Longer delay to ensure session is fully established
+      }, 500);
       
       return () => clearTimeout(timeoutId);
     } else if (!isAuthenticated) {
-      // Clear account data when not authenticated - use force flag
+      // Clear account data when not authenticated
       setAccount(null);
       setAccountId(null, true); // Force clear on logout
       setAccounts([]);
       setSelectedAccountId(null);
       clearAccountCache();
+      setAccountLoading(false);
+      setAccountsLoading(false);
     }
-  }, [isAuthenticated, user?.id, accountId]);
+  }, [isAuthenticated, user?.id]);
+
+  // Removed: Event listener for account switching - now using simple reload approach
 
   // DISABLED: Auto-refresh account data periodically
   // This was causing PageCard to disappear every minute and users to lose typed content

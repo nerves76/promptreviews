@@ -734,6 +734,9 @@ export default function BusinessProfilePage() {
         if (accountUpdateError) {
           console.error("Failed to update business_name in accounts table:", accountUpdateError);
           // Don't fail the whole update, just log the error
+        } else {
+          // Dispatch event to refresh account data in the account switcher
+          window.dispatchEvent(new CustomEvent('businessUpdated'));
         }
       }
       
@@ -798,7 +801,8 @@ export default function BusinessProfilePage() {
   }
 
   return (
-    <PageCard icon={<Icon name="FaStore" className="w-9 h-9 text-slate-blue" size={36} />}>
+    <div className="min-h-screen flex justify-center items-start px-4 sm:px-0">
+      <PageCard icon={<Icon name="FaStore" className="w-9 h-9 text-slate-blue" size={36} />}>
       
       <div className="flex items-start justify-between mt-2 mb-4">
         <div className="flex flex-col mt-0 md:mt-[3px]">
@@ -921,6 +925,7 @@ You can update your don'ts over time by testing outputs and reviewing what gets 
         imageAlt="Prompty teaching about your business"
         buttonText="Got it, let's go!"
       /> */}
-    </PageCard>
+      </PageCard>
+    </div>
   );
 }

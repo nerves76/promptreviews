@@ -34,6 +34,23 @@ export function useAccountSelection() {
   });
 
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [refreshCounter, setRefreshCounter] = useState(0);
+
+  // Listen for business creation/update events to refresh account data
+  useEffect(() => {
+    const handleBusinessUpdate = () => {
+      console.log('[AccountSelection] Business updated, refreshing accounts...');
+      setRefreshCounter(prev => prev + 1);
+    };
+
+    window.addEventListener('businessCreated', handleBusinessUpdate);
+    window.addEventListener('businessUpdated', handleBusinessUpdate);
+
+    return () => {
+      window.removeEventListener('businessCreated', handleBusinessUpdate);
+      window.removeEventListener('businessUpdated', handleBusinessUpdate);
+    };
+  }, []);
 
   // Load user and accounts
   useEffect(() => {
@@ -132,8 +149,10 @@ export function useAccountSelection() {
         }
         
         // If no valid stored selection, use primary account
-        if (!selectedAccountId) {
+        if (!selectedAccountId && primaryAccountId) {
           selectedAccountId = primaryAccountId;
+          // Store the primary selection so it persists
+          setStoredAccountSelection(user.id, primaryAccountId);
         }
 
         setState({
@@ -154,35 +173,27 @@ export function useAccountSelection() {
     };
 
     loadAccountData();
-  }, []);
+  }, [refreshCounter]); // Re-run when refreshCounter changes
 
   // Switch to a different account
-  const switchAccount = (accountId: string) => {
-    
-    if (!currentUserId) return;
+  const switchAccount = async (accountId: string) => {
+    if (!currentUserId) {
+      console.warn('[AccountSelection] No currentUserId, cannot switch');
+      return;
+    }
     
     const account = state.availableAccounts.find(acc => acc.account_id === accountId);
     if (!account) {
+      console.warn('[AccountSelection] Account not found:', accountId);
       return;
     }
 
+    console.log('[AccountSelection] Switching from', state.selectedAccountId, 'to', accountId);
+    
+    // Store the selection in localStorage
     setStoredAccountSelection(currentUserId, accountId);
-    setState(prev => ({
-      ...prev,
-      selectedAccountId: accountId
-    }));
-
-    // Emit custom event for account switch
-    const accountSwitchEvent = new CustomEvent('accountSwitched', { 
-      detail: { 
-        previousAccountId: state.selectedAccountId,
-        newAccountId: accountId 
-      } 
-    });
-    window.dispatchEvent(accountSwitchEvent);
-
+    
     // Clear any cached data that might be account-specific
-    // This ensures components will refetch data for the new account
     const keysToRemove: string[] = [];
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
@@ -197,9 +208,13 @@ export function useAccountSelection() {
     }
     keysToRemove.forEach(key => localStorage.removeItem(key));
     
-    // DO NOT RELOAD THE PAGE - This causes auth session loss!
-    // The state update and event emission will trigger React to re-render
-    // Components listening to accountSwitched event will refetch their data
+    // Simple reload to apply the new account selection
+    window.location.reload();
+  };
+
+  // Refresh account data (useful after business creation/updates)
+  const refreshAccounts = () => {
+    setRefreshCounter(prev => prev + 1);
   };
 
   // Get current selected account details (memoized to prevent unnecessary re-renders)
@@ -213,6 +228,7 @@ export function useAccountSelection() {
     ...state,
     selectedAccount,
     switchAccount,
+    refreshAccounts,
     hasMultipleAccounts: state.availableAccounts.length > 1
   };
 } 

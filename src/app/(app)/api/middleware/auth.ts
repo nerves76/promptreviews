@@ -50,29 +50,68 @@ export async function verifyAuth(request: NextRequest): Promise<AuthResult> {
       }
     }
 
-    // Method 2: If no bearer token, try cookie-based auth
+    // Method 2: If no bearer token, try cookie-based auth with service role
     if (!user) {
       try {
         const { cookies } = await import('next/headers');
         const cookieStore = await cookies();
         
-        const supabase = createServerClient(
-          process.env.NEXT_PUBLIC_SUPABASE_URL!,
-          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-          {
-            cookies: {
-              get: (name) => cookieStore.get(name)?.value,
-              set: () => {},
-              remove: () => {},
-            },
-          }
-        );
+        console.log('[AUTH] Attempting cookie-based auth...');
         
-        const { data: { user: cookieUser }, error } = await supabase.auth.getUser();
-        if (cookieUser && !error) {
-          user = cookieUser;
-        } else if (!authError) {
-          authError = error;
+        // Check if we have the auth token cookie
+        const authToken = cookieStore.get('sb-127-auth-token')?.value;
+        if (!authToken) {
+          console.log('[AUTH] No auth token cookie found');
+          authError = new Error('No auth session');
+        } else {
+          console.log('[AUTH] Auth token cookie found, length:', authToken.length);
+          
+          // Use service role client to get user by token
+          const serviceClient = createServiceRoleClient();
+          const { data: { user: serviceUser }, error: serviceError } = await serviceClient.auth.getUser(authToken);
+          
+          if (serviceUser && !serviceError && serviceUser.id) {
+            console.log('[AUTH] Got valid user via service client:', serviceUser.id);
+            console.log('[AUTH] Service user keys:', Object.keys(serviceUser));
+            console.log('[AUTH] Service user full object:', JSON.stringify(serviceUser, null, 2));
+            
+            // Make sure we have a complete user object
+            if (!serviceUser.id || typeof serviceUser.id !== 'string') {
+              console.error('[AUTH] Service user has invalid ID:', serviceUser.id);
+              throw new Error('Service user has invalid ID');
+            }
+            
+            user = serviceUser;
+          } else {
+            console.log('[AUTH] Service client auth failed:', serviceError?.message);
+            // Fall back to regular client
+            const supabase = createServerClient(
+              process.env.NEXT_PUBLIC_SUPABASE_URL!,
+              process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+              {
+                cookies: {
+                  get: (name) => cookieStore.get(name)?.value,
+                  set: () => {},
+                  remove: () => {},
+                },
+              }
+            );
+            
+            const { data: authData, error } = await supabase.auth.getUser();
+            const cookieUser = authData?.user;
+            
+            if (cookieUser && !error && cookieUser.id) {
+              console.log('[AUTH] Got valid user via regular client:', cookieUser.id);
+              console.log('[AUTH] Full cookieUser object keys:', Object.keys(cookieUser));
+              
+              // CRITICAL FIX: Just use the cookieUser as-is since it has the ID
+              // The problem was the spread operator was somehow corrupting the object
+              user = cookieUser;
+            } else {
+              console.error('[AUTH] Failed to get valid user from session');
+              authError = error || new Error('Invalid session');
+            }
+          }
         }
       } catch (cookieError) {
         // Cookie method failed, use existing error or set new one
@@ -89,10 +128,52 @@ export async function verifyAuth(request: NextRequest): Promise<AuthResult> {
         errorCode: 401
       };
     }
+    
+    // Log the user object being returned
+    console.log('[AUTH] Returning user from verifyAuth:', {
+      hasUser: !!user,
+      userId: user?.id,
+      userEmail: user?.email,
+      userKeys: user ? Object.keys(user) : [],
+      userIdType: typeof user?.id
+    });
+    
+    // Final validation before returning
+    if (!user || !user.id) {
+      console.error('[AUTH] CRITICAL: User object is missing ID before return!', {
+        user: user,
+        userKeys: user ? Object.keys(user) : 'null'
+      });
+      return {
+        success: false,
+        error: 'User session corrupt - missing user ID',
+        errorCode: 401
+      };
+    }
+
+    // Ensure we're returning a clean user object with the ID
+    const returnUser = {
+      id: user.id,
+      email: user.email,
+      aud: user.aud,
+      role: user.role,
+      email_confirmed_at: user.email_confirmed_at,
+      phone: user.phone,
+      confirmed_at: user.confirmed_at,
+      last_sign_in_at: user.last_sign_in_at,
+      app_metadata: user.app_metadata,
+      user_metadata: user.user_metadata,
+      identities: user.identities,
+      created_at: user.created_at,
+      updated_at: user.updated_at,
+      is_anonymous: user.is_anonymous
+    };
+    
+    console.log('[AUTH] Final return user ID:', returnUser.id);
 
     return {
       success: true,
-      user
+      user: returnUser
     };
   } catch (error) {
     console.error('Auth verification error:', error);

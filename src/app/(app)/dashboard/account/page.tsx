@@ -8,14 +8,14 @@ import PageCard from "@/app/(app)/components/PageCard";
 import PageLoader from "@/app/(app)/components/PageLoader";
 import { trackEvent, GA_EVENTS } from "@/utils/analytics";
 import { useAuth } from "@/auth";
-import { useAuthGuard } from "@/utils/authGuard";
 import { canCreateAccounts } from "@/config/adminConfig";
 import PricingModal from "@/app/(app)/components/PricingModal";
 
 export default function AccountPage() {
   const supabase = createClient();
 
-  useAuthGuard();
+  // Don't use useAuthGuard here as we're handling auth manually below
+  // useAuthGuard();
   const router = useRouter();
   const { selectedAccountId, account: authAccount } = useAuth();
   const [user, setUser] = useState<any>(null);
@@ -59,7 +59,10 @@ export default function AccountPage() {
         const accountId = selectedAccountId || authAccount?.id;
         
         if (!accountId) {
-          router.push('/dashboard/create-business');
+          // User is authenticated but has no account yet
+          // Don't redirect, just show a message
+          setError("No account found. Please create a business first.");
+          setIsLoading(false);
           return;
         }
 
@@ -72,7 +75,12 @@ export default function AccountPage() {
 
         if (accountError) {
           console.error("Error loading account:", accountError);
-          setError("Failed to load account data");
+          // Check if it's a not found error
+          if (accountError.code === 'PGRST116') {
+            setError("No account found. Please create a business first.");
+          } else {
+            setError("Failed to load account data");
+          }
           setIsLoading(false);
           return;
         }
@@ -369,16 +377,30 @@ export default function AccountPage() {
     return <PageLoader showText={true} text="Loading account..." />;
   }
 
-  if (error && !user) {
+  if (error) {
     return (
-      <PageCard icon={<CowboyIcon />}>
-        <div className="text-red-600 text-center p-8">{error}</div>
-      </PageCard>
+      <div className="min-h-screen flex justify-center items-start px-4 sm:px-0">
+        <PageCard icon={<CowboyIcon />}>
+          <div className="text-center p-8">
+            <Icon name="FaExclamationCircle" className="w-12 h-12 text-yellow-500 mx-auto mb-4" />
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">No Account Found</h2>
+            <p className="text-gray-600 mb-6">{error}</p>
+            <a
+              href="/dashboard/create-business"
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-slate-blue hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-blue"
+            >
+              <Icon name="FaStore" className="w-4 h-4 mr-2" />
+              Create Your Business
+            </a>
+          </div>
+        </PageCard>
+      </div>
     );
   }
 
   return (
-    <PageCard icon={<CowboyIcon />}>
+    <div className="min-h-screen flex justify-center items-start px-4 sm:px-0">
+      <PageCard icon={<CowboyIcon />}>
       {/* Page Title */}
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Account</h1>
@@ -909,6 +931,7 @@ export default function AccountPage() {
           }}
         />
       )}
-    </PageCard>
+      </PageCard>
+    </div>
   );
 }

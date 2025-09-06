@@ -366,6 +366,9 @@ const SimpleBusinessForm = forwardRef<HTMLFormElement, SimpleBusinessFormProps>(
       // Clear the saved form data since business was created successfully
       localStorage.removeItem(formStorageKey);
       
+      // Dispatch event to trigger account data refresh
+      window.dispatchEvent(new CustomEvent('businessCreated'));
+      
       // Call the success callback
       onSuccess();
 

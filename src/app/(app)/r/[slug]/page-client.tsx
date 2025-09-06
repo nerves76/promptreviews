@@ -1504,22 +1504,34 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
 
   // Compute background style with proper gradient support
   const backgroundStyle = (() => {
-    if (businessProfile?.background_type === "gradient") {
+    // Debug logging
+    console.log('Background settings:', {
+      type: businessProfile?.background_type,
+      color: businessProfile?.background_color,
+      gradientStart: businessProfile?.gradient_start,
+      gradientMiddle: businessProfile?.gradient_middle,
+      gradientEnd: businessProfile?.gradient_end
+    });
+    
+    // Default to gradient unless explicitly set to solid
+    if (businessProfile?.background_type !== "solid") {
       const gradientColors = [
-        businessProfile.gradient_start || "#2563EB",
-        businessProfile.gradient_middle || "#7864C8",
-        businessProfile.gradient_end || "#914AAE"
+        businessProfile?.gradient_start || "#2563EB",
+        businessProfile?.gradient_middle || "#7864C8",
+        businessProfile?.gradient_end || "#914AAE"
       ].filter(Boolean); // Remove undefined/null values
-      
-      // Debug logging
       
       // Use all available gradient colors
       return {
         background: `linear-gradient(to bottom, ${gradientColors.join(", ")})`
       };
     }
+    
+    // For solid backgrounds
+    const bgColor = businessProfile?.background_color || "#ffffff";
+    console.log('Using solid background color:', bgColor);
     return {
-      background: businessProfile?.background_color || "#fff"
+      background: bgColor
     };
   })();
 
@@ -1710,7 +1722,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
           </button>
         </div>
       )}
-      <div className="min-h-screen" style={backgroundStyle}>
+      <div className="min-h-screen">
         {/* Falling Animation */}
         {/* DEPLOYMENT FORCE: 2025-01-27 - Ensure falling star icons are restored */}
         <FallingAnimation

@@ -80,7 +80,15 @@ export async function POST(request: NextRequest) {
     // For business creation, we need basic auth but account might not exist yet
     // This is typically called during initial setup after signup
     const { verifyAuth } = await import("../middleware/auth");
+    
+    console.log('[BUSINESSES] Starting auth verification...');
     const authResult = await verifyAuth(request);
+    console.log('[BUSINESSES] Auth result:', {
+      success: authResult.success,
+      hasUser: !!authResult.user,
+      error: authResult.error
+    });
+    
     if (!authResult.success) {
       return NextResponse.json(
         { error: authResult.error },
@@ -90,11 +98,39 @@ export async function POST(request: NextRequest) {
 
     const { user } = authResult;
     
+    // Log the user object for debugging
+    console.log('[BUSINESSES] User from auth:', {
+      hasUser: !!user,
+      userId: user?.id,
+      userEmail: user?.email,
+      userKeys: user ? Object.keys(user) : 'user is null',
+      userType: typeof user,
+      userIdType: user ? typeof user.id : 'N/A'
+    });
+    
+    // CRITICAL: Log each property explicitly to debug the issue
+    if (user) {
+      console.log('[BUSINESSES] User properties:');
+      console.log('[BUSINESSES]   user.id =', user.id);
+      console.log('[BUSINESSES]   user["id"] =', user["id"]);
+      console.log('[BUSINESSES]   Object.hasOwnProperty(user, "id") =', Object.prototype.hasOwnProperty.call(user, "id"));
+      console.log('[BUSINESSES]   "id" in user =', "id" in user);
+      console.log('[BUSINESSES]   user keys =', Object.keys(user));
+      console.log('[BUSINESSES]   user.email =', user.email);
+      console.log('[BUSINESSES]   Full user stringified (first 500 chars):', JSON.stringify(user).substring(0, 500));
+    } else {
+      console.log('[BUSINESSES] User is null or undefined');
+    }
+    
     // Ensure user has an ID
     if (!user?.id) {
-      console.error('[BUSINESSES] User object missing ID:', user);
+      console.error('[BUSINESSES] User object missing ID:', {
+        user: user,
+        userKeys: user ? Object.keys(user) : 'user is null',
+        authResult: authResult
+      });
       return NextResponse.json(
-        { error: "Invalid user session" },
+        { error: "Invalid user session - user ID not found" },
         { status: 401 }
       );
     }
@@ -142,6 +178,7 @@ export async function POST(request: NextRequest) {
         .from('accounts')
         .insert({
           id: newAccountId, // Explicitly set the UUID
+          user_id: user.id, // CRITICAL: Set user_id for the trigger
           email: user.email || businessData.business_email,
           first_name: user.user_metadata?.first_name || '',
           last_name: user.user_metadata?.last_name || '',
@@ -158,13 +195,13 @@ export async function POST(request: NextRequest) {
         .single();
       
       if (createAccountError) {
-        console.error('[BUSINESSES] Failed to create account:', {
-          error: createAccountError,
-          message: createAccountError.message,
-          code: createAccountError.code,
-          details: createAccountError.details,
-          hint: createAccountError.hint,
-          newAccountId: newAccountId
+        console.error('[BUSINESSES] Failed to create account:');
+        console.error('[BUSINESSES] Error object:', JSON.stringify(createAccountError, null, 2));
+        console.error('[BUSINESSES] Insert data:', {
+          id: newAccountId,
+          email: user.email || businessData.business_email,
+          first_name: user.user_metadata?.first_name || '',
+          last_name: user.user_metadata?.last_name || ''
         });
         return NextResponse.json(
           { 
@@ -182,23 +219,83 @@ export async function POST(request: NextRequest) {
       console.log('[BUSINESSES] Created new account with ID:', accountId);
       
       // Create account_users link for owner
+      // Double-check user.id exists before inserting
+      if (!user?.id) {
+        console.error('[BUSINESSES] Cannot create account_users link - user.id is null:', {
+          user: user,
+          accountId: accountId
+        });
+        return NextResponse.json(
+          { 
+            error: "User session invalid - cannot link account",
+            details: "User ID is missing from session"
+          },
+          { status: 401 }
+        );
+      }
+      
       console.log('[BUSINESSES] Creating account_users link:', {
         account_id: accountId,
         user_id: user.id,
-        user_email: user.email
+        user_email: user.email,
+        userType: typeof user.id,
+        userIdValue: user.id
       });
+      
+      // Final validation before insert
+      const userId = user?.id;
+      if (!userId) {
+        console.error('[BUSINESSES] CRITICAL: user.id is null right before insert!', {
+          user: user,
+          userKeys: user ? Object.keys(user) : 'null'
+        });
+        throw new Error('User ID is null at insert time');
+      }
+      
+      console.log('[BUSINESSES] About to insert account_users with:', {
+        account_id: accountId,
+        user_id: userId,
+        role: 'owner',
+        userIdType: typeof userId,
+        userIdLength: userId ? userId.length : 0
+      });
+      
+      // Create the insert object and log it
+      const insertData = {
+        account_id: accountId,
+        user_id: userId,  // Use the validated userId variable
+        role: 'owner',
+        created_at: new Date().toISOString()
+      };
+      
+      console.log('[BUSINESSES] Insert data object:', JSON.stringify(insertData));
+      console.log('[BUSINESSES] Verifying userId before insert:', userId);
+      console.log('[BUSINESSES] Verifying accountId before insert:', accountId);
       
       const { error: linkError } = await supabase
         .from('account_users')
-        .insert({
-          account_id: accountId,
-          user_id: user.id,
-          role: 'owner',
-          created_at: new Date().toISOString()
-        });
+        .insert(insertData);
       
-      if (linkError && linkError.code !== '23505') {
-        console.error('[BUSINESSES] Account user link error:', linkError);
+      if (linkError) {
+        console.error('[BUSINESSES] Account user link error:', {
+          error: linkError,
+          code: linkError.code,
+          message: linkError.message,
+          details: linkError.details,
+          accountId: accountId,
+          userId: user.id
+        });
+        
+        // Only ignore duplicate key errors (user already linked to account)
+        if (linkError.code !== '23505') {
+          return NextResponse.json(
+            { 
+              error: "Failed to link user to account",
+              details: linkError.message
+            },
+            { status: 400 }
+          );
+        }
       }
     } else {
       // Verify the account exists if we have an accountId

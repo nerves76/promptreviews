@@ -291,17 +291,25 @@ const Dashboard = React.memo(function Dashboard() {
     }
   }, [authLoading, isAuthenticated, router]);
 
-  // Ensure account exists for authenticated users
+  // Check for missing account only after initial load completes
+  // Use a ref to track if we've done the initial check to avoid duplicate warnings
+  const accountCheckDone = useRef(false);
+  
   useEffect(() => {
-    // Only log missing account - don't try to create for existing users
-    if (!authLoading && isAuthenticated && user && !account) {
-      console.error('❌ Dashboard: Account missing for authenticated user:', {
-        userId: user.id,
-        email: user.email
-      });
-      // Don't auto-create - this is a data issue that needs investigation
+    // Only check once after everything is loaded
+    if (!authLoading && !accountLoading && !accountCheckDone.current) {
+      accountCheckDone.current = true;
+      
+      // Only warn if user is authenticated with ID but no account after loading
+      if (isAuthenticated && user?.id && !account) {
+        console.warn('⚠️ Dashboard: No account found for user:', {
+          userId: user.id,
+          email: user.email || 'no-email'
+        });
+        // Don't auto-create - let the user go through proper onboarding
+      }
     }
-  }, [authLoading, isAuthenticated, user?.id, account?.id]);
+  }, [authLoading, accountLoading, isAuthenticated, user?.id, account?.id]);
 
   // Load dashboard data when auth is ready
   useEffect(() => {

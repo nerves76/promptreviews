@@ -33,23 +33,6 @@ export default function DashboardLayout({
   // Ensure we're on the client side before accessing browser APIs
   useEffect(() => {
     setIsClient(true);
-    
-    // Check for redirect flags to maintain smooth transitions
-    const authRedirect = sessionStorage.getItem('auth-redirect-in-progress');
-    const businessCreated = sessionStorage.getItem('business-creation-complete');
-    const redirectInProgress = sessionStorage.getItem('redirect-in-progress');
-    
-    if (authRedirect || businessCreated || redirectInProgress) {
-      setIsTransitioning(true);
-      
-      // Clear flags and stop transitioning after a brief delay
-      setTimeout(() => {
-        sessionStorage.removeItem('auth-redirect-in-progress');
-        sessionStorage.removeItem('business-creation-complete');
-        sessionStorage.removeItem('redirect-in-progress');
-        setIsTransitioning(false);
-      }, 500);
-    }
   }, []);
 
 
@@ -75,37 +58,37 @@ export default function DashboardLayout({
     }
   }, [isInitialized, user, isClient, router]);
 
-  // Check for users without accounts and redirect to sign-up
+  // Check for users without accounts and redirect to create-business
   useEffect(() => {
-    // Skip this check on the create-business page - users need to be able to create their first business!
+    // Skip this check on the create-business page
     const isOnCreateBusinessPage = window.location.pathname === '/dashboard/create-business';
     
-    // Skip this check if we just created a business (coming from create-business page)
-    const justCreatedBusiness = window.location.search.includes('businessCreated=1') || 
-                               sessionStorage.getItem('business-creation-complete') === 'true';
+    // Skip this check if we just created a business
+    const justCreatedBusiness = window.location.search.includes('businessCreated=1');
     
-    // Skip this check if we just came from signup (give the account time to be created)
-    const justSignedUp = sessionStorage.getItem('just-signed-up') === 'true';
-    
-    if (justSignedUp || justCreatedBusiness) {
-      // Clear the flags after a delay to allow future checks
-      setTimeout(() => {
-        sessionStorage.removeItem('just-signed-up');
-        sessionStorage.removeItem('business-creation-complete');
-      }, 5000);
+    if (justCreatedBusiness) {
       return; // Skip the account check
     }
     
-    // Only check after account loading is complete and user is authenticated
-    if (isInitialized && user && !accountLoading && isClient && !isOnCreateBusinessPage) {
-      // If no account exists after loading is complete, redirect to sign-up/onboarding
-      if (!account && !accountLoading) {
-        // Clear any auth session and redirect to sign-up
-        signOut();
-        router.push('/auth/sign-up');
+    // Wait before checking - give the account context time to load
+    const checkTimeout = setTimeout(() => {
+      // Only check after account loading is complete and user is authenticated
+      if (isInitialized && user && !accountLoading && isClient && !isOnCreateBusinessPage) {
+        // If no account exists after loading is complete
+        if (!account && !accountLoading) {
+          console.warn('User authenticated but no account found:', user.id);
+          // Check localStorage for stored selection
+          const storedSelection = localStorage.getItem(`selected_account_${user.id}`);
+          if (!storedSelection && !isOnCreateBusinessPage) {
+            // No account, redirect to create-business
+            router.push('/dashboard/create-business');
+          }
+        }
       }
-    }
-  }, [isInitialized, user, account, accountLoading, isClient, router, signOut]);
+    }, 2000); // Wait 2 seconds before checking
+    
+    return () => clearTimeout(checkTimeout);
+  }, [isInitialized, user, account, accountLoading, isClient, router]);
 
   // Check for accounts without plans and redirect to plan selection
   useEffect(() => {
@@ -123,19 +106,17 @@ export default function DashboardLayout({
   }, [isInitialized, account, isClient, router]);
 
   // Check if we're on plan page with success parameter (to avoid flash)
-  // Initialize to false on both server and client to avoid hydration mismatch
   const [isPlanPageSuccess, setIsPlanPageSuccess] = useState(false);
   
   useEffect(() => {
     // Only check on client side after mount
     const isSuccess = window.location.pathname === '/dashboard/plan' && 
-      (window.location.search.includes('success=1') || 
-       sessionStorage.getItem('showPlanSuccessModal') === 'true');
+      window.location.search.includes('success=1');
     setIsPlanPageSuccess(isSuccess);
   }, []);
 
-  // Show loading while AuthContext initializes or during transitions
-  if ((!isInitialized || isTransitioning) && !isPlanPageSuccess) {
+  // Show loading while AuthContext initializes
+  if (!isInitialized && !isPlanPageSuccess) {
     if (process.env.NODE_ENV === 'development') {
     }
     return (
