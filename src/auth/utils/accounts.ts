@@ -531,11 +531,31 @@ async function _getAccountIdForUserInternal(userId: string, supabaseClient?: any
 
     if (accountUsers && accountUsers.length > 0) {
       
+      // CRITICAL FIX: Filter out legacy records where account_id = user_id
+      // These are created by the auth trigger for backward compatibility
+      // but should not be used for multi-account users
+      const validAccountUsers = accountUsers.filter((au: any) => {
+        // If user has multiple accounts and one is the legacy self-reference, filter it out
+        if (accountUsers.length > 1 && au.account_id === userId) {
+          console.log('🔍 Filtering out legacy self-reference account:', {
+            userId,
+            accountId: au.account_id,
+            role: au.role,
+            totalAccounts: accountUsers.length
+          });
+          return false;
+        }
+        return true;
+      });
+      
+      // If all accounts were filtered out (shouldn't happen), use original list
+      const accountUsersToProcess = validAccountUsers.length > 0 ? validAccountUsers : accountUsers;
+      
       // For ALL users (including single account), we need to verify the account exists
       // Don't return immediately - always verify the account data is accessible
       
       // Fetch account details for all users
-      const accountIds = accountUsers.map((au: any) => au.account_id);
+      const accountIds = accountUsersToProcess.map((au: any) => au.account_id);
       
       const { data: accounts, error: accountsError } = await client
         .from("accounts")
@@ -545,26 +565,26 @@ async function _getAccountIdForUserInternal(userId: string, supabaseClient?: any
       if (accountsError) {
         console.error('❌ Error fetching accounts:', accountsError);
         // If we can't fetch account details, just return the first account_id we have
-        return accountUsers[0].account_id;
+        return accountUsersToProcess[0].account_id;
       }
       
       
       if (!accounts || accounts.length === 0) {
         // Still return the account_id even if we can't fetch details
-        return accountUsers[0].account_id;
+        return accountUsersToProcess[0].account_id;
       }
       
       // If only one account, return it now that we've verified it exists
-      if (accountUsers.length === 1) {
-        return accountUsers[0].account_id;
+      if (accountUsersToProcess.length === 1) {
+        return accountUsersToProcess[0].account_id;
       }
       
       // Create a map for easy lookup
       const accountMap = new Map(accounts.map((a: any) => [a.id, a]));
       
       
-      // Add account data to accountUsers
-      const accountUsersWithData = accountUsers.map((au: any) => ({
+      // Add account data to accountUsersToProcess (not accountUsers!)
+      const accountUsersWithData = accountUsersToProcess.map((au: any) => ({
         ...au,
         account: accountMap.get(au.account_id)
       }));
@@ -618,7 +638,7 @@ async function _getAccountIdForUserInternal(userId: string, supabaseClient?: any
       }
       
       // PRIORITY 5: Fallback to first account
-      return accountUsers[0].account_id;
+      return accountUsersToProcess[0].account_id;
     }
 
     // If no account_user record found, user doesn't have access to any accounts
