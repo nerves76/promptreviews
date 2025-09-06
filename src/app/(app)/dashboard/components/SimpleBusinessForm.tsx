@@ -336,20 +336,31 @@ const SimpleBusinessForm = forwardRef<HTMLFormElement, SimpleBusinessFormProps>(
       const responseData = await response.json();
       
       const business = responseData.business || responseData;
+      const newAccountId = responseData.accountId; // Get the new account ID if created
 
       // Update loading state to show redirecting
       setLoadingState('redirecting');
       setSuccess("Business created successfully! Redirecting to dashboard...");
       
-      // Dispatch event to refresh navigation state
+      // Dispatch event to refresh navigation state with new account ID
       if (typeof window !== "undefined") {
-        window.dispatchEvent(new CustomEvent('businessCreated', { detail: { businessId: business.id } }));
+        window.dispatchEvent(new CustomEvent('businessCreated', { 
+          detail: { 
+            businessId: business.id,
+            accountId: newAccountId || accountId // Include the account ID
+          } 
+        }));
       }
       
-      
       // Set flag that this account has created a business
-      if (accountId) {
-        localStorage.setItem(`hasCreatedBusiness_${accountId}`, 'true');
+      // Use the new account ID if one was created
+      const accountToFlag = newAccountId || accountId;
+      if (accountToFlag) {
+        localStorage.setItem(`hasCreatedBusiness_${accountToFlag}`, 'true');
+        // Store the new account ID for the context to pick up
+        if (newAccountId) {
+          localStorage.setItem('newly_created_account_id', newAccountId);
+        }
       }
       
       // Clear the saved form data since business was created successfully
@@ -763,7 +774,10 @@ const SimpleBusinessForm = forwardRef<HTMLFormElement, SimpleBusinessFormProps>(
           className="bg-slate-blue text-white py-2 px-6 rounded hover:bg-slate-blue/90 transition-colors font-semibold disabled:opacity-50 flex items-center gap-2"
         >
           {loading && (
-            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            <svg className="w-4 h-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
           )}
           {loading ? (
             loadingState === 'creating' ? "Creating..." : "Redirecting..."

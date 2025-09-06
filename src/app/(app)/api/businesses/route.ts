@@ -122,24 +122,20 @@ export async function POST(request: NextRequest) {
 
     const supabase = createServiceRoleClient();
     
-    // If no accountId, this is a new user creating their first business
-    // We need to create an account for them
+    // If no accountId, this is a user creating a new account/business
+    // Create a new independent account with proper UUID
     if (!accountId) {
-      console.log('[BUSINESSES] No account found for user, creating new account');
+      console.log('[BUSINESSES] No account found for user, creating new independent account');
       
-      // For new users, account.id = user.id (legacy pattern for backward compatibility)
-      accountId = user.id;
-      
-      // Create the account
-      const { error: createAccountError } = await supabase
+      // Generate a new UUID for the account (independent from user.id)
+      const { data: newAccountData, error: createAccountError } = await supabase
         .from('accounts')
         .insert({
-          id: accountId,
-          user_id: accountId, // For new signups, account_id = user_id
+          // Let database generate a new UUID with gen_random_uuid()
           email: user.email || businessData.business_email,
           first_name: user.user_metadata?.first_name || '',
           last_name: user.user_metadata?.last_name || '',
-          plan: 'no_plan', // New users start with no plan
+          plan: 'no_plan', // New accounts start with no plan
           is_free_account: false,
           has_had_paid_plan: false,
           custom_prompt_page_count: 0,
@@ -147,9 +143,11 @@ export async function POST(request: NextRequest) {
           review_notifications_enabled: true,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
-        });
+        })
+        .select('id')
+        .single();
       
-      if (createAccountError && createAccountError.code !== '23505') {
+      if (createAccountError) {
         console.error('[BUSINESSES] Failed to create account:', createAccountError);
         return NextResponse.json(
           { 
@@ -159,6 +157,10 @@ export async function POST(request: NextRequest) {
           { status: 400 }
         );
       }
+      
+      // Use the newly created account ID
+      accountId = newAccountData.id;
+      console.log('[BUSINESSES] Created new account with ID:', accountId);
       
       // Create account_users link for owner
       const { error: linkError } = await supabase
@@ -453,7 +455,8 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ 
       success: true,
-      business: business 
+      business: business,
+      accountId: accountId // Include account ID so frontend can update its state
     }, { status: 201 });
   } catch (error) {
     console.error('[BUSINESSES] Unexpected error:', error);

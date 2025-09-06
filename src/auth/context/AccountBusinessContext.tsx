@@ -517,6 +517,23 @@ export function AccountBusinessProvider({ children }: { children: React.ReactNod
   // Initialize on authentication state changes
   useEffect(() => {
     if (!accountId && isAuthenticated && user?.id) {
+      // Check if we have a newly created account ID from business creation
+      const newlyCreatedAccountId = typeof window !== 'undefined' 
+        ? localStorage.getItem('newly_created_account_id')
+        : null;
+      
+      if (newlyCreatedAccountId) {
+        console.log('🆕 Found newly created account ID:', newlyCreatedAccountId);
+        setAccountId(newlyCreatedAccountId);
+        setSelectedAccountId(newlyCreatedAccountId);
+        setAccountCacheTime(Date.now());
+        loadAccount(newlyCreatedAccountId);
+        loadAccounts();
+        // Clear the flag after using it
+        localStorage.removeItem('newly_created_account_id');
+        return;
+      }
+      
       const timeoutId = setTimeout(() => {
         getAccountIdForUser(user.id, supabase).then((fetchedAccountId) => {
           if (fetchedAccountId) {
@@ -540,7 +557,9 @@ export function AccountBusinessProvider({ children }: { children: React.ReactNod
                     loadAccount(retryAccountId);
                     loadAccounts();
                   } else {
-                    console.warn('⚠️ Retry also returned null, user may not have accounts');
+                    console.warn('⚠️ Retry also returned null, user may not have accounts yet');
+                    // Don't set a fallback - user genuinely has no accounts
+                    // They'll need to create one through the business creation flow
                     setAccountId(null);
                     setSelectedAccountId(null);
                   }
