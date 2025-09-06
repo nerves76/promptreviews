@@ -11,7 +11,7 @@ import Link from "next/link";
 import Icon from "@/components/Icon";
 import { useState, useEffect } from "react";
 import { fetchOnboardingTasks } from "@/utils/onboardingTasks";
-import { createClient } from "@/utils/supabaseClient";
+import { createClient } from "@/auth/providers/supabase";
 
 interface BusinessProfileBannerProps {
   show?: boolean; // Make optional since we'll determine it internally

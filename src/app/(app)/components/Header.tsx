@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import Icon from "@/components/Icon";
 import { createPortal } from "react-dom";
-import { createClient, getUserOrMock } from "@/utils/supabaseClient";
+import { createClient, getUserOrMock } from "@/auth/providers/supabase";
 import { useAuth } from "@/auth";
 import { trackEvent, GA_EVENTS } from '@/utils/analytics';
 import { fetchOnboardingTasks } from "@/utils/onboardingTasks";
@@ -324,7 +324,6 @@ const Header = React.memo(function Header() {
                       ? "border-transparent text-white hover:border-white/30 hover:text-white/90"
                       : "border-transparent text-white/50 cursor-not-allowed"
                 } inline-flex items-center px-1 pt-1 border-b-4 text-base font-medium transition-colors duration-200 h-16 relative group`}
-                title={!hasBusiness ? "Create your business profile first" : ""}
               >
                 Dashboard
                 {!hasBusiness && (
@@ -350,8 +349,7 @@ const Header = React.memo(function Header() {
                           ? "border-transparent text-white hover:border-white/30 hover:text-white/90"
                           : "border-transparent text-white/50 cursor-not-allowed"
                     } inline-flex items-center px-1 pt-1 border-b-4 text-base font-medium transition-colors duration-200 h-16 relative group`}
-                    title={!hasBusiness ? "Create your business profile first" : ""}
-                  >
+                      >
                     Your business
                     {hasBusiness && businessProfileLoaded && !businessProfileCompleted && (
                       <>
@@ -385,14 +383,8 @@ const Header = React.memo(function Header() {
                             ? "border-transparent text-white hover:border-white/30 hover:text-white/90"
                             : "border-transparent text-white/50 cursor-not-allowed"
                       } inline-flex items-center px-1 pt-1 border-b-4 text-base font-medium transition-colors duration-200 h-16 relative group`}
-                      title={!hasBusiness ? "Create your business profile first" : ""}
-                    >
+                          >
                       Google biz
-                      {!hasBusiness && (
-                        <span className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap" style={{ zIndex: 2147483647 }}>
-                          Create business profile first
-                        </span>
-                      )}
                     </Link>
                   )}
 
@@ -412,14 +404,8 @@ const Header = React.memo(function Header() {
                             ? "border-transparent text-white hover:border-white/30 hover:text-white/90"
                             : "border-transparent text-white/50 cursor-not-allowed"
                       } inline-flex items-center px-1 pt-1 border-b-4 text-base font-medium transition-colors duration-200 h-16 relative group`}
-                      title={!hasBusiness ? "Create your business profile first" : ""}
-                    >
+                          >
                       Social Posting
-                      {!hasBusiness && (
-                        <span className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap" style={{ zIndex: 2147483647 }}>
-                          Create business profile first
-                        </span>
-                      )}
                     </Link>
                     */}
                 </>
@@ -448,8 +434,7 @@ const Header = React.memo(function Header() {
                     setShowNotifications((v) => !v);
                   }}
                   aria-label="Show notifications"
-                  title={!hasBusiness ? "Create your business profile first" : ""}
-                >
+                  >
                   <Icon name="FaBell" className={`w-6 h-6 ${hasBusiness ? 'text-white hover:text-white/80' : 'text-white/50'} transition-colors`} size={24} />
                   {notifications.filter((n) => !n.read).length > 0 && (
                     <span className="absolute -top-1 -right-1 bg-pink-300 text-slate-blue text-[10px] rounded-full w-4 h-4 flex items-center justify-center font-bold border border-white">
@@ -517,8 +502,7 @@ const Header = React.memo(function Header() {
                   className={`flex items-center focus:outline-none ${
                     !hasBusiness ? 'opacity-50 cursor-not-allowed' : ''
                   }`}
-                  title={!hasBusiness ? "Create your business profile first" : ""}
-                >
+                  >
                   <CowboyUserIcon />
                 </button>
                 {/* Account Menu Dropdown - Rendered in Portal */}
@@ -656,9 +640,6 @@ const Header = React.memo(function Header() {
                   } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
                 >
                   Dashboard
-                  {!hasBusiness && (
-                    <span className="text-xs text-blue-600 block mt-1">Create business profile first</span>
-                  )}
                 </Link>
                 {!businessLoading && (
                   <>
@@ -714,9 +695,6 @@ const Header = React.memo(function Header() {
                           } block px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200`}
                         >
                           Prompt Pages
-                          {!hasBusiness && (
-                            <span className="text-xs text-blue-600 block mt-1">Create business profile first</span>
-                          )}
                         </Link>
                         <Link
                           href={hasBusiness ? "/dashboard/contacts" : "#"}
@@ -738,9 +716,6 @@ const Header = React.memo(function Header() {
                           } block px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200`}
                         >
                           Contacts
-                          {!hasBusiness && (
-                            <span className="text-xs text-blue-600 block mt-1">Create business profile first</span>
-                          )}
                         </Link>
                         <Link
                           href={hasBusiness ? "/dashboard/reviews" : "#"}
@@ -762,9 +737,6 @@ const Header = React.memo(function Header() {
                           } block px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200`}
                         >
                           Review Management
-                          {!hasBusiness && (
-                            <span className="text-xs text-blue-600 block mt-1">Create business profile first</span>
-                          )}
                         </Link>
                       </div>
                     </div>
@@ -791,9 +763,6 @@ const Header = React.memo(function Header() {
                           } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
                         >
                           Google biz
-                          {!hasBusiness && (
-                            <span className="text-xs text-blue-600 block mt-1">Create business profile first</span>
-                          )}
                         </Link>
                     )}
 
@@ -818,9 +787,6 @@ const Header = React.memo(function Header() {
                       } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
                     >
                       Social Posting
-                      {!hasBusiness && (
-                        <span className="text-xs text-blue-600 block mt-1">Create business profile first</span>
-                      )}
                     </Link>
                     */}
                   </>
@@ -847,9 +813,6 @@ const Header = React.memo(function Header() {
                       } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
                     >
                       Account
-                      {!hasBusiness && (
-                        <span className="text-xs text-blue-600 block mt-1">Create business profile first</span>
-                      )}
                     </Link>
                     <Link
                       href={hasBusiness ? "/dashboard/analytics" : "#"}
@@ -871,9 +834,6 @@ const Header = React.memo(function Header() {
                       } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
                     >
                       Analytics
-                      {!hasBusiness && (
-                        <span className="text-xs text-blue-600 block mt-1">Create business profile first</span>
-                      )}
                     </Link>
                     <Link
                       href={hasBusiness ? "/dashboard/plan" : "#"}
@@ -895,9 +855,6 @@ const Header = React.memo(function Header() {
                       } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
                     >
                       Plan
-                      {!hasBusiness && (
-                        <span className="text-xs text-blue-600 block mt-1">Create business profile first</span>
-                      )}
                     </Link>
                     {isAdminUser && (
                       <Link

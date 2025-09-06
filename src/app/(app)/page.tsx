@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 // 🔧 CONSOLIDATED: Single import from supabaseClient module
-import { createClient, getUserOrMock } from "@/utils/supabaseClient";
+import { createClient, getUserOrMock } from "@/auth/providers/supabase";
 import AppLoader from "@/app/(app)/components/AppLoader";
 
 // Use the singleton Supabase client instead of creating a new instance

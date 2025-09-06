@@ -27,7 +27,7 @@ import { getAccessibleColor, applyCardTransparency } from "@/utils/colorUtils";
 import { getFallingIcon, getFallingIconColor } from "@/app/(app)/components/prompt-modules/fallingStarsConfig";
 import dynamic from "next/dynamic";
 // 🔧 CONSOLIDATED: Single import from supabaseClient module
-import { createClient, getUserOrMock } from "@/utils/supabaseClient";
+import { createClient, getUserOrMock } from "@/auth/providers/supabase";
 import { getAccountIdForUser } from "@/auth/utils/accounts";
 import offerConfig from "@/app/(app)/components/prompt-modules/offerConfig";
 

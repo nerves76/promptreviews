@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/utils/supabaseClient";
+import { createClient } from "@/auth/providers/supabase";
 import Link from "next/link";
 import FiveStarSpinner from "@/app/(app)/components/FiveStarSpinner";
 

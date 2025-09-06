@@ -10,7 +10,7 @@
 import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { createClient, getUserOrMock } from "@/utils/supabaseClient";
+import { createClient, getUserOrMock } from "@/auth/providers/supabase";
 
 const supabase = createClient();
 import { isAdmin } from "@/utils/admin";

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useAuthGuard } from "@/utils/authGuard";
 // 🔧 CONSOLIDATED: Single import from supabaseClient module
-import { createClient, getUserOrMock, getSessionOrMock } from "@/utils/supabaseClient";
+import { createClient, getUserOrMock, getSessionOrMock } from "@/auth/providers/supabase";
 import { useAccountSelection } from "@/utils/accountSelectionHooks";
 import Icon from "@/components/Icon";
 import { Dialog } from "@headlessui/react";

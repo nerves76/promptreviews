@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { createClient, getUserOrMock } from "@/utils/supabaseClient";
+import { createClient, getUserOrMock } from "@/auth/providers/supabase";
 import { useAuthGuard } from "@/utils/authGuard";
 import { useAccountSelection } from "@/utils/accountSelectionHooks";
 import Icon from "@/components/Icon";

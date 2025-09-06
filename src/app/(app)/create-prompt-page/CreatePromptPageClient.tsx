@@ -6,7 +6,7 @@ import Icon from "@/components/Icon";
 import { checkAccountLimits } from "@/utils/accountLimits";
 import { useAuth } from "@/auth";
 import { Dialog } from "@headlessui/react";
-import { getUserOrMock, supabase } from "@/utils/supabaseClient";
+import { getUserOrMock, supabase } from "@/auth/providers/supabase";
 import { markTaskAsCompleted } from "@/utils/onboardingTasks";
 import dynamic from "next/dynamic";
 import { slugify } from "@/utils/slugify";

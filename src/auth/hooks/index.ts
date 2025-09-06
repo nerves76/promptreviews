@@ -14,4 +14,4 @@ export {
   usePaymentStatus
 } from './useAuth';
 
-export { useSubscription } from '../context/SubscriptionContext';
+export { useSubscription } from '../context/FeatureContext';

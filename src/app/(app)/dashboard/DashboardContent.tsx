@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { RefObject, useState, useEffect, useMemo } from "react";
-import { createClient, getUserOrMock } from "@/utils/supabaseClient";
+import { createClient, getUserOrMock } from "@/auth/providers/supabase";
 import React from "react";
 
 const supabase = createClient();

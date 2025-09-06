@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { createClient, getUserOrMock } from "@/utils/supabaseClient";
+import { createClient, getUserOrMock } from "@/auth/providers/supabase";
 import Cropper from "react-easy-crop";
 import type { Area } from "react-easy-crop";
 import { useAuthGuard } from "@/utils/authGuard";

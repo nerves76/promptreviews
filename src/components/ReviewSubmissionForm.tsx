@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { createClient } from "@/utils/supabaseClient";
+import { createClient } from "@/auth/providers/supabase";
 import { useReviewer } from "@/contexts/ReviewerContext";
-import type { PromptPage } from "@/utils/supabaseClient";
+import type { PromptPage } from "@/auth/providers/supabase";
 
 const PLATFORM_OPTIONS = [
   "Google Business Profile",

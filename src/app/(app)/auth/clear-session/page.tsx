@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, Suspense } from "react";
-import { createClient, clearAuthSession } from "@/utils/supabaseClient";
+import { createClient, clearAuthSession } from "@/auth/providers/supabase";
 import { useRouter, useSearchParams } from "next/navigation";
 
 function ClearSessionContent() {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { createClient, getUserOrMock } from "@/utils/supabaseClient";
+import { createClient, getUserOrMock } from "@/auth/providers/supabase";
 import { useRouter } from "next/navigation";
 import Icon from "@/components/Icon";
 import PageCard from "@/app/(app)/components/PageCard";

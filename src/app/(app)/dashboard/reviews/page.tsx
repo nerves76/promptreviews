@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useRef } from "react";
-import { createClient } from "@/utils/supabaseClient";
+import { createClient } from "@/auth/providers/supabase";
 import { getAccountIdForUser } from "@/auth/utils/accounts";
 import { useAccountSelection } from "@/utils/accountSelectionHooks";
 import Icon, { IconName } from "@/components/Icon";

@@ -8,7 +8,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { createClient } from "@/utils/supabaseClient";
+import { createClient } from "@/auth/providers/supabase";
 import { getAllAnnouncements, createAnnouncement, toggleAnnouncement } from "@/utils/admin";
 
 interface Announcement {

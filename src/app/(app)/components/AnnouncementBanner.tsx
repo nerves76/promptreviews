@@ -7,7 +7,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { createClient } from "@/utils/supabaseClient";
+import { createClient } from "@/auth/providers/supabase";
 import { getActiveAnnouncement } from "@/utils/admin";
 import Icon from "@/components/Icon";
 

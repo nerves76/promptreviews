@@ -1,7 +1,7 @@
 "use client";
 import * as React from "react";
 // 🔧 CONSOLIDATED: Single import from supabaseClient module
-import { createClient, getUserOrMock } from "@/utils/supabaseClient";
+import { createClient, getUserOrMock } from "@/auth/providers/supabase";
 import { markTaskAsCompleted } from "@/utils/onboardingTasks";
 
 const supabase = createClient();

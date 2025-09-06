@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { createClient } from "@/utils/supabaseClient";
+import { createClient } from "@/auth/providers/supabase";
 import Icon, { IconName } from "@/components/Icon";
 import PageCard from "@/app/(app)/components/PageCard";
 import AppLoader from "@/app/(app)/components/AppLoader";

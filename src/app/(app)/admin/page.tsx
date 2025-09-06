@@ -9,7 +9,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { createClient, getUserOrMock } from "@/utils/supabaseClient";
+import { createClient, getUserOrMock } from "@/auth/providers/supabase";
 import { isAdmin } from "@/utils/admin";
 import { useRouter } from "next/navigation";
 import AppLoader from "@/app/(app)/components/AppLoader";

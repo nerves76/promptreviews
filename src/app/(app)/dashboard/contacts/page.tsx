@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useAuthGuard } from "@/utils/authGuard";
-import { createClient, getSessionOrMock } from "@/utils/supabaseClient";
+import { createClient, getSessionOrMock } from "@/auth/providers/supabase";
 import Icon from "@/components/Icon";
 import AppLoader from "@/app/(app)/components/AppLoader";
 import PageCard from "@/app/(app)/components/PageCard";

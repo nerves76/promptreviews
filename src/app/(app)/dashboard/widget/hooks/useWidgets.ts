@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
-import { createClient } from "@/utils/supabaseClient";
+import { createClient } from "@/auth/providers/supabase";
 import { useAccountSelection } from "@/utils/accountSelectionHooks";
 import { apiClient } from "@/utils/apiClient";
 

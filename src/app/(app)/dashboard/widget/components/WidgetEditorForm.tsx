@@ -14,7 +14,7 @@
  * Last updated: 2025-07-01
  */
 import React, { useState, useRef, useEffect } from "react";
-import { createClient } from "@/utils/supabaseClient";
+import { createClient } from "@/auth/providers/supabase";
 import { useAuth } from "@/auth";
 
 // Assuming Widget and DesignState types might be needed from a shared types file in the future

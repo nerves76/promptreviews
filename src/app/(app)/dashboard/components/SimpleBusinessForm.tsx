@@ -10,10 +10,9 @@
 import React, { useState, forwardRef, useEffect, useCallback } from "react";
 import Icon from "@/components/Icon";
 import IndustrySelector from "@/app/(app)/components/IndustrySelector";
-import { createClient } from "@/utils/supabaseClient";
+import { createClient } from "@/auth/providers/supabase";
 import { useRouter } from "next/navigation";
 import { slugify } from "@/utils/slugify";
-import { OptimizedSpinner } from "@/app/(app)/components/OptimizedComponents";
 
 interface SimpleBusinessFormProps {
   user: any;
@@ -763,7 +762,9 @@ const SimpleBusinessForm = forwardRef<HTMLFormElement, SimpleBusinessFormProps>(
           disabled={loading || isSubmitting}
           className="bg-slate-blue text-white py-2 px-6 rounded hover:bg-slate-blue/90 transition-colors font-semibold disabled:opacity-50 flex items-center gap-2"
         >
-          {loading && <OptimizedSpinner size="sm" className="text-white" />}
+          {loading && (
+            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+          )}
           {loading ? (
             loadingState === 'creating' ? "Creating..." : "Redirecting..."
           ) : "Create Business"}

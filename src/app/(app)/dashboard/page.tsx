@@ -8,7 +8,7 @@
 "use client";
 
 import { useEffect, useState, useRef, useMemo, useCallback } from "react";
-import { createClient } from "@/utils/supabaseClient";
+import { createClient } from "@/auth/providers/supabase";
 import { useRouter, useSearchParams } from "next/navigation";
 import { QRCodeSVG } from "qrcode.react";
 import Icon from "@/components/Icon";

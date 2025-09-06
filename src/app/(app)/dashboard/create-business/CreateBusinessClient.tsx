@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { createClient, getUserOrMock } from "@/utils/supabaseClient";
+import { createClient, getUserOrMock } from "@/auth/providers/supabase";
 
 const supabase = createClient();
 import { useAuth } from "@/auth";
@@ -12,7 +12,6 @@ import PageCard from "@/app/(app)/components/PageCard";
 import WelcomePopup from "@/app/(app)/components/WelcomePopup";
 import Icon from "@/components/Icon";
 import { ensureAccountExists } from "@/auth/utils/accounts";
-import { OptimizedSpinner } from "@/app/(app)/components/OptimizedComponents";
 
 
 export default function CreateBusinessClient() {

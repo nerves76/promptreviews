@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerSupabaseClient } from '@/utils/supabaseClient';
+import { createServerSupabaseClient } from '@/auth/providers/supabase';
 import { getPendingReminders } from '@/utils/communication';
 
 export async function GET(request: NextRequest) {

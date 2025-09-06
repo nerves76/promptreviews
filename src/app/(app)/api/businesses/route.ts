@@ -6,15 +6,30 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { createServiceRoleClient } from "@/utils/supabaseClient";
+import { createServiceRoleClient } from "@/auth/providers/supabase";
+import { verifyAccountAuth } from "../middleware/auth";
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const account_id = searchParams.get('account_id');
+    // Verify authentication and get authorized account
+    const authResult = await verifyAccountAuth(request);
+    if (!authResult.success) {
+      return NextResponse.json(
+        { error: authResult.error },
+        { status: authResult.errorCode || 401 }
+      );
+    }
+
+    const { user, accountId } = authResult;
+    if (!accountId) {
+      return NextResponse.json(
+        { error: "Account access required" },
+        { status: 403 }
+      );
+    }
 
     // DEVELOPMENT MODE BYPASS - Return mock business data
-    if (process.env.NODE_ENV === 'development' && account_id === '12345678-1234-5678-9abc-123456789012') {
+    if (process.env.NODE_ENV === 'development' && accountId === '12345678-1234-5678-9abc-123456789012') {
       const mockBusiness = {
         id: '6762c76a-8677-4c7f-9a0f-f444024961a2',
         account_id: '12345678-1234-5678-9abc-123456789012',
@@ -35,14 +50,12 @@ export async function GET(request: NextRequest) {
 
     const supabase = createServiceRoleClient();
 
-    let query = supabase.from('businesses').select('*');
-    
-    if (account_id) {
-      query = query.eq('account_id', account_id);
-    } else {
-    }
-
-    const { data: businesses, error } = await query.order('created_at', { ascending: false });
+    // Always filter by the authenticated user's account - no client input trusted
+    const { data: businesses, error } = await supabase
+      .from('businesses')
+      .select('*')
+      .eq('account_id', accountId)
+      .order('created_at', { ascending: false });
 
     if (error) {
       console.error('[BUSINESSES] Error fetching businesses:', error);
@@ -64,12 +77,33 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const businessData = await request.json();
-    const { name, account_id } = businessData;
-
-    if (!name || !account_id) {
+    // For business creation, we need basic auth but account might not exist yet
+    // This is typically called during initial setup after signup
+    const { verifyAuth } = await import("../middleware/auth");
+    const authResult = await verifyAuth(request);
+    if (!authResult.success) {
       return NextResponse.json(
-        { error: "Missing required fields: name and account_id" },
+        { error: authResult.error },
+        { status: authResult.errorCode || 401 }
+      );
+    }
+
+    const { user } = authResult;
+    
+    // Try to get account ID, but don't fail if it doesn't exist
+    // The business creation will handle account creation if needed
+    const { getRequestAccountId } = await import("@/app/(app)/api/utils/getRequestAccountId");
+    let accountId = await getRequestAccountId(request, user.id);
+    
+    // If no account exists, we'll create one during business creation
+    // This happens for new users creating their first business
+
+    const businessData = await request.json();
+    const { name } = businessData;
+
+    if (!name) {
+      return NextResponse.json(
+        { error: "Missing required field: name" },
         { status: 400 }
       );
     }
@@ -88,93 +122,80 @@ export async function POST(request: NextRequest) {
 
     const supabase = createServiceRoleClient();
     
-    // First, verify the account exists OR create it if needed
-    const { data: accountExists, error: accountCheckError } = await supabase
-      .from('accounts')
-      .select('id, plan, is_free_account')
-      .eq('id', account_id)
-      .single();
-    
-    if (accountCheckError) {
-      console.error('[BUSINESSES] Account verification failed:', accountCheckError);
-      console.error('[BUSINESSES] Account check error details:', {
-        code: accountCheckError.code,
-        message: accountCheckError.message,
-        accountId: account_id
-      });
+    // If no accountId, this is a new user creating their first business
+    // We need to create an account for them
+    if (!accountId) {
+      console.log('[BUSINESSES] No account found for user, creating new account');
       
-      // If account doesn't exist, we need to create it first
-      // This can happen when a new user signs up and immediately creates a business
-      if (accountCheckError.code === 'PGRST116') {
-        
-        // Get user info to populate account fields
-        const { data: userData, error: userError } = await supabase.auth.admin.getUserById(account_id);
-        
-        const { error: createAccountError } = await supabase
-          .from('accounts')
-          .insert({
-            id: account_id,
-            user_id: account_id, // For new signups, account_id = user_id
-            email: userData?.user?.email || businessData.business_email,
-            first_name: userData?.user?.user_metadata?.first_name || '',
-            last_name: userData?.user?.user_metadata?.last_name || '',
-            plan: 'no_plan', // New users start with no plan
-            is_free_account: false,
-            has_had_paid_plan: false,
-            custom_prompt_page_count: 0,
-            contact_count: 0,
-            review_notifications_enabled: true,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          });
-        
-        if (createAccountError) {
-          console.error('[BUSINESSES] Failed to create account:', createAccountError);
-          
-          // If it's a unique constraint error, the account might already exist
-          if (createAccountError.code === '23505') {
-          } else {
-            return NextResponse.json(
-              { 
-                error: "Account does not exist and could not be created",
-                details: createAccountError.message,
-                accountId: account_id
-              },
-              { status: 400 }
-            );
-          }
-        } else {
-          
-          // Create account_users link for owner
-          const { error: linkError } = await supabase
-            .from('account_users')
-            .insert({
-              account_id: account_id,
-              user_id: account_id,
-              role: 'owner',
-              created_at: new Date().toISOString()
-            });
-          
-          if (linkError && linkError.code !== '23505') {
-            console.error('[BUSINESSES] Account user link error:', linkError);
-          }
-        }
-      } else {
+      // For new users, account.id = user.id (legacy pattern for backward compatibility)
+      accountId = user.id;
+      
+      // Create the account
+      const { error: createAccountError } = await supabase
+        .from('accounts')
+        .insert({
+          id: accountId,
+          user_id: accountId, // For new signups, account_id = user_id
+          email: user.email || businessData.business_email,
+          first_name: user.user_metadata?.first_name || '',
+          last_name: user.user_metadata?.last_name || '',
+          plan: 'no_plan', // New users start with no plan
+          is_free_account: false,
+          has_had_paid_plan: false,
+          custom_prompt_page_count: 0,
+          contact_count: 0,
+          review_notifications_enabled: true,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        });
+      
+      if (createAccountError && createAccountError.code !== '23505') {
+        console.error('[BUSINESSES] Failed to create account:', createAccountError);
         return NextResponse.json(
           { 
-            error: "Failed to verify account",
-            details: accountCheckError.message,
-            accountId: account_id
+            error: "Failed to create account",
+            details: createAccountError.message
           },
           { status: 400 }
         );
       }
+      
+      // Create account_users link for owner
+      const { error: linkError } = await supabase
+        .from('account_users')
+        .insert({
+          account_id: accountId,
+          user_id: user.id,
+          role: 'owner',
+          created_at: new Date().toISOString()
+        });
+      
+      if (linkError && linkError.code !== '23505') {
+        console.error('[BUSINESSES] Account user link error:', linkError);
+      }
     } else {
+      // Verify the account exists if we have an accountId
+      const { data: accountExists, error: accountCheckError } = await supabase
+        .from('accounts')
+        .select('id, plan, is_free_account')
+        .eq('id', accountId)
+        .single();
+      
+      if (accountCheckError) {
+        console.error('[BUSINESSES] Account verification failed:', accountCheckError);
+        return NextResponse.json(
+          { 
+            error: "Account not found or access denied",
+            details: accountCheckError.message
+          },
+          { status: 403 }
+        );
+      }
     }
     
     // DEVELOPMENT MODE BYPASS - Use existing account
     let bypassAccountValidation = false;
-    if (process.env.NODE_ENV === 'development' && account_id === '12345678-1234-5678-9abc-123456789012') {
+    if (process.env.NODE_ENV === 'development' && accountId === '12345678-1234-5678-9abc-123456789012') {
       bypassAccountValidation = true;
     }
 
@@ -188,7 +209,7 @@ export async function POST(request: NextRequest) {
     const insertData = {
       id: crypto.randomUUID(), // 🔧 FIXED: Generate UUID for ID until migration is applied
       name,
-      account_id,
+      account_id: accountId,
       industry: industryData,
       industries_other: businessData.industries_other || null,
       business_website: businessData.business_website || null,
@@ -247,7 +268,7 @@ export async function POST(request: NextRequest) {
         message: error.message,
         details: error.details,
         hint: error.hint,
-        accountId: account_id
+        accountId: accountId
       });
       
       // In development mode, if it's a foreign key constraint error for our mock account,
@@ -261,7 +282,7 @@ export async function POST(request: NextRequest) {
           const { error: minimalAccountError } = await supabase
             .from('accounts')
             .upsert([{
-              id: account_id,
+              id: accountId,
               plan: 'free',
               is_free_account: false,
               custom_prompt_page_count: 0,
@@ -320,7 +341,7 @@ export async function POST(request: NextRequest) {
           details: error.message,
           code: error.code,
           hint: error.hint,
-          accountId: account_id
+          accountId: accountId
         },
         { status: 500 }
       );
@@ -338,7 +359,7 @@ export async function POST(request: NextRequest) {
     const { error: accountUpdateError } = await supabase
       .from('accounts')
       .update(accountUpdates)
-      .eq('id', account_id);
+      .eq('id', accountId);
 
     if (accountUpdateError) {
       console.error('[BUSINESSES] Warning: Failed to update account data:', accountUpdateError);
@@ -353,7 +374,7 @@ export async function POST(request: NextRequest) {
       const { data: existingUniversal } = await supabase
         .from("prompt_pages")
         .select("id")
-        .eq("account_id", account_id)
+        .eq("account_id", accountId)
         .eq("is_universal", true)
         .single();
       
@@ -363,7 +384,7 @@ export async function POST(request: NextRequest) {
         const universalSlug = slugify("universal", Date.now().toString(36));
       
       const universalPromptPageData = {
-        account_id: account_id,
+        account_id: accountId,
         slug: universalSlug,
         is_universal: true,
         status: "draft",

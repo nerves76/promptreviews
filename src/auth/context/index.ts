@@ -1,18 +1,16 @@
 /**
  * Auth Context Module Exports
  * 
- * This file provides centralized exports for all auth contexts
+ * Updated for the new 3-context architecture (CoreAuth + AccountBusiness + Feature)
  */
 
 // Main composite provider and hook
 export { CompositeAuthProvider, useAuth } from './CompositeAuthProvider';
 
-// Individual context providers and hooks
+// New consolidated context providers and hooks
 export { CoreAuthProvider, useCoreAuth } from './CoreAuthContext';
-export { AccountProvider, useAccount } from './AccountContext';
-export { BusinessProvider, useBusiness } from './BusinessContext';
-export { AdminProvider, useAdmin, useAdminGuard } from './AdminContext';
-export { SubscriptionProvider, useSubscription } from './SubscriptionContext';
+export { AccountBusinessProvider, useAccountBusiness, useAccount, useBusiness } from './AccountBusinessContext';
+export { FeatureProvider, useFeatures, useAdmin, useSubscription, useAdminGuard } from './FeatureContext';
 
 // Legacy exports for backward compatibility
 export { 

@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useMemo, Suspense } from "react";
 import { useRef } from "react";
 // 🔧 CONSOLIDATED: Single import from supabaseClient module
-import { createClient, getUserOrMock } from "@/utils/supabaseClient";
+import { createClient, getUserOrMock } from "@/auth/providers/supabase";
 import Link from "next/link";
 import Icon from "@/components/Icon";
 import PageCard from "@/app/(app)/components/PageCard";

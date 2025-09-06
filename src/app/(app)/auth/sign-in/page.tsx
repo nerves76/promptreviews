@@ -158,7 +158,7 @@ export default function SignIn() {
       
       // Note: For now, password reset needs direct Supabase client access
       // This would ideally be moved to the AuthContext in the future
-      const { createClient } = require('@/utils/supabaseClient');
+      const { createClient } = require('@/auth/providers/supabase');
       const supabaseClient = createClient();
       const { error } = await supabaseClient.auth.resetPasswordForEmail(resetEmail, {
         redirectTo: `${window.location.origin}/reset-password`,

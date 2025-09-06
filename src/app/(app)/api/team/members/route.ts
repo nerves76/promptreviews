@@ -9,6 +9,7 @@ import { createServerClient } from '@supabase/ssr';
 import { createServiceRoleClient } from '@/auth/providers/supabase';
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
+import { getRequestAccountId } from '../../utils/getRequestAccountId';
 
 // 🔧 CONSOLIDATION: Shared server client creation for API routes
 // This eliminates duplicate client creation patterns
@@ -43,13 +44,17 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Get account_id from query params (for multi-account support)
-    const { searchParams } = new URL(request.url);
-    const requestedAccountId = searchParams.get('account_id');
+    // Get account ID using secure method that validates access
+    const accountId = await getRequestAccountId(request, user.id);
+    if (!accountId) {
+      return NextResponse.json(
+        { error: 'Account not found or access denied' },
+        { status: 403 }
+      );
+    }
     
-    
-    // For multi-account support: if account_id is provided, use it; otherwise get all user's accounts
-    let accountQuery = supabase
+    // Get the account and user's role
+    const { data: accountUsers, error: accountError } = await supabase
       .from('account_users')
       .select(`
         account_id,
@@ -63,16 +68,10 @@ export async function GET(request: NextRequest) {
           max_users
         )
       `)
-      .eq('user_id', user.id);
+      .eq('user_id', user.id)
+      .eq('account_id', accountId);
     
-    // If specific account requested, filter for it
-    if (requestedAccountId) {
-      accountQuery = accountQuery.eq('account_id', requestedAccountId);
-    }
-    
-    const { data: accountUsers, error: accountError } = await accountQuery;
-    
-    // Get the first account (or the requested one)
+    // Get the account user data
     const accountUser = accountUsers?.[0];
 
 
@@ -91,7 +90,7 @@ export async function GET(request: NextRequest) {
           plan,
           max_users
         `)
-        .eq('id', user.id)
+        .eq('id', accountId)
         .single();
 
       if (userAccount && !userAccountError) {
@@ -101,7 +100,7 @@ export async function GET(request: NextRequest) {
           .from('account_users')
           .insert({
             user_id: user.id,
-            account_id: user.id,
+            account_id: accountId,
             role: 'owner'
           });
 
@@ -116,7 +115,7 @@ export async function GET(request: NextRequest) {
         
         // Now we can proceed with the account_user data
         const reconstructedAccountUser = {
-          account_id: user.id,
+          account_id: accountId,
           role: 'owner' as const,
           accounts: userAccount
         };
@@ -288,11 +287,21 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    // Get the current user's account
+    // Get account ID using secure method
+    const accountId = await getRequestAccountId(request, user.id);
+    if (!accountId) {
+      return NextResponse.json(
+        { error: 'Account not found or access denied' },
+        { status: 403 }
+      );
+    }
+
+    // Get the current user's role in this account
     const { data: accountUser, error: accountError } = await supabase
       .from('account_users')
       .select('account_id, role')
       .eq('user_id', user.id)
+      .eq('account_id', accountId)
       .single();
 
     if (accountError || !accountUser) {
@@ -431,11 +440,21 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
-    // Get the current user's account
+    // Get account ID using secure method
+    const accountId = await getRequestAccountId(request, user.id);
+    if (!accountId) {
+      return NextResponse.json(
+        { error: 'Account not found or access denied' },
+        { status: 403 }
+      );
+    }
+
+    // Get the current user's role in this account
     const { data: accountUser, error: accountError } = await supabase
       .from('account_users')
       .select('account_id, role')
       .eq('user_id', user.id)
+      .eq('account_id', accountId)
       .single();
 
     if (accountError || !accountUser) {

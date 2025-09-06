@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState, useRef, useCallback } from "react";
-import { createClient } from "@/utils/supabaseClient";
+import { createClient } from "@/auth/providers/supabase";
 import PricingModal from "../../components/PricingModal";
 import AppLoader from "@/app/(app)/components/AppLoader";
 import { useRouter, useSearchParams } from "next/navigation";

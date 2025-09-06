@@ -12,10 +12,8 @@
 
 import { useMemo } from 'react';
 import { useCoreAuth } from '../context/CoreAuthContext';
-import { useAccount } from '../context/AccountContext';
-import { useBusiness } from '../context/BusinessContext';
-import { useAdmin } from '../context/AdminContext';
-import { useSubscription } from '../context/SubscriptionContext';
+import { useAccount, useBusiness } from '../context/AccountBusinessContext';
+import { useAdmin, useSubscription } from '../context/FeatureContext';
 
 /**
  * Hook for components that only need user data

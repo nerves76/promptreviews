@@ -26,7 +26,7 @@ import ProductPromptPageForm from "@/app/(app)/components/ProductPromptPageForm"
 import React from "react";
 import AppLoader from "@/app/(app)/components/AppLoader";
 import RobotTooltip from "@/app/(app)/components/RobotTooltip";
-import { createClient } from "@/utils/supabaseClient";
+import { createClient } from "@/auth/providers/supabase";
 
 interface ReviewPlatformLink {
   name: string;

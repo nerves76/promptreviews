@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerSupabaseClient } from '@/utils/supabaseClient';
+import { createServerSupabaseClient } from '@/auth/providers/supabase';
 import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
 
 const VALID_STATUSES = ['draft', 'in_queue', 'sent', 'follow_up', 'complete'];

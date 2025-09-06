@@ -11,7 +11,7 @@
 import { useState } from "react";
 import { Dialog } from "@headlessui/react";
 import Icon from "@/components/Icon";
-import { createClient } from "@/utils/supabaseClient";
+import { createClient } from "@/auth/providers/supabase";
 import { platformOptions } from "@/app/(app)/components/prompt-features/ReviewPlatformsFeature";
 
 interface ManualContactFormProps {

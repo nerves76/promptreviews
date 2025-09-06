@@ -1,5 +1,5 @@
 import { NextResponse, NextRequest } from "next/server";
-import { createClient, createServiceRoleClient } from "@/utils/supabaseClient";
+import { createClient, createServiceRoleClient } from "@/auth/providers/supabase";
 import { sendTemplatedEmail } from "@/utils/emailTemplates";
 import { standardReviewRateLimit } from "@/utils/reviewRateLimit";
 

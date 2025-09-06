@@ -6,7 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { createServerSupabaseClient } from "@/utils/supabaseClient";
+import { createServerSupabaseClient } from "@/auth/providers/supabase";
 import { syncAccountBilling, syncAllAccounts } from "@/lib/billing/sync";
 
 export async function POST(req: NextRequest) {

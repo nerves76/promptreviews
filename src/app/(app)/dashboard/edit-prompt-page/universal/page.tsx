@@ -14,7 +14,7 @@ import PromptPageForm from "@/app/(app)/components/PromptPageForm";
 import Icon from "@/components/Icon";
 import PageCard from "@/app/(app)/components/PageCard";
 import offerConfig from "@/app/(app)/components/prompt-modules/offerConfig";
-import { createClient } from "@/utils/supabaseClient";
+import { createClient } from "@/auth/providers/supabase";
 import Link from "next/link";
 import { markTaskAsCompleted } from "@/utils/onboardingTasks";
 import { useAuth } from "@/auth";

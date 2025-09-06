@@ -15,7 +15,7 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
 import Icon from "@/components/Icon";
-import { createClient } from "@/utils/supabaseClient";
+import { createClient } from "@/auth/providers/supabase";
 import { Kickstarter } from "./KickstartersFeature";
 
 interface KickstartersManagementModalProps {

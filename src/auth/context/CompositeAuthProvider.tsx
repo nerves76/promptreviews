@@ -1,66 +1,46 @@
 /**
  * Composite Authentication Provider
  * 
- * Combines all auth-related contexts into a single provider
- * This ensures proper context hierarchy and dependency management
+ * Simplified 3-context architecture combining all auth-related contexts
+ * This reduces complexity while maintaining all functionality
  */
 
 "use client";
 
 import React from 'react';
 import { CoreAuthProvider, useCoreAuth } from './CoreAuthContext';
-import { AccountProvider, useAccount } from './AccountContext';
-import { BusinessProvider, useBusiness } from './BusinessContext';
-import { AdminProvider, useAdmin } from './AdminContext';
-import { SubscriptionProvider, useSubscription } from './SubscriptionContext';
-import { SharedAccountProvider } from './SharedAccountState';
+import { AccountBusinessProvider, useAccountBusiness, useAccount, useBusiness } from './AccountBusinessContext';
+import { FeatureProvider, useFeatures, useAdmin, useSubscription, useAdminGuard } from './FeatureContext';
 
 interface CompositeAuthProviderProps {
   children: React.ReactNode;
 }
 
 /**
- * ⚠️ CRITICAL: PROVIDER ORDER MATTERS! ⚠️
- * ========================================
+ * ✨ SIMPLIFIED ARCHITECTURE ✨
+ * =============================
  * 
- * The order of these providers is ESSENTIAL for proper operation.
- * Changing the order WILL break multi-account support and cause:
- * - AccountContext not propagating accountId to BusinessContext
- * - Users being redirected to create-business when they have businesses
- * - Navigation getting disabled after account switching
- * - 8+ hours of debugging pain
+ * Reduced from 6 contexts to 3 for better maintainability:
  * 
- * REQUIRED ORDER:
- * 1. CoreAuthProvider - Base authentication (user, session)
- * 2. SharedAccountProvider - MUST be before Account & Business (shares state between them)
- * 3. AccountProvider - Depends on CoreAuth for user and SharedAccount for state
- * 4. BusinessProvider - Depends on SharedAccount for accountId
- * 5. AdminProvider - Depends on both CoreAuth and Account
- * 6. SubscriptionProvider - Depends on Account for subscription data
+ * 1. CoreAuthProvider - Core authentication (user, session, sign in/out)
+ * 2. AccountBusinessProvider - Account + Business data (merged AccountContext + BusinessContext + SharedAccountState)
+ * 3. FeatureProvider - Admin + Subscription features (merged AdminContext + SubscriptionContext)
  * 
- * WHY THIS ORDER:
- * - SharedAccountProvider creates the shared accountId state
- * - AccountProvider writes to this shared state
- * - BusinessProvider reads from this shared state
- * - If SharedAccount isn't before both, they can't share state
- * - If Account isn't before Business, Business won't get accountId
- * 
- * See MULTI_ACCOUNT_TROUBLESHOOTING.md for debugging help.
+ * BENEFITS:
+ * - Eliminates SharedAccountState complexity
+ * - Reduces circular dependencies
+ * - Groups related functionality logically
+ * - Maintains all existing functionality
+ * - Simpler provider hierarchy
  */
 export function CompositeAuthProvider({ children }: CompositeAuthProviderProps) {
   return (
     <CoreAuthProvider>
-      <SharedAccountProvider>
-        <AccountProvider>
-          <BusinessProvider>
-            <AdminProvider>
-              <SubscriptionProvider>
-                {children}
-              </SubscriptionProvider>
-            </AdminProvider>
-          </BusinessProvider>
-        </AccountProvider>
-      </SharedAccountProvider>
+      <AccountBusinessProvider>
+        <FeatureProvider>
+          {children}
+        </FeatureProvider>
+      </AccountBusinessProvider>
     </CoreAuthProvider>
   );
 }
@@ -68,10 +48,8 @@ export function CompositeAuthProvider({ children }: CompositeAuthProviderProps) 
 // Unified hook that combines all auth contexts
 export function useAuth() {
   const core = useCoreAuth();
-  const account = useAccount();
-  const business = useBusiness();
-  const admin = useAdmin();
-  const subscription = useSubscription();
+  const accountBusiness = useAccountBusiness();
+  const features = useFeatures();
   
   // Combine all context values into a single object
   // This maintains backward compatibility with the original AuthContext
@@ -79,50 +57,75 @@ export function useAuth() {
     // Core auth
     ...core,
     
-    // Account
-    accountId: account.accountId,
-    account: account.account,
-    accounts: account.accounts,
-    selectedAccountId: account.selectedAccountId,
-    canSwitchAccounts: account.canSwitchAccounts,
-    accountLoading: account.accountLoading,
-    accountsLoading: account.accountsLoading,
-    loadAccount: account.loadAccount,
-    loadAccounts: account.loadAccounts,
-    switchAccount: account.switchAccount,
-    refreshAccount: account.refreshAccount,
+    // Account & Business (from AccountBusinessContext)
+    accountId: accountBusiness.accountId,
+    account: accountBusiness.account,
+    accounts: accountBusiness.accounts,
+    selectedAccountId: accountBusiness.selectedAccountId,
+    canSwitchAccounts: accountBusiness.canSwitchAccounts,
+    accountLoading: accountBusiness.accountLoading,
+    accountsLoading: accountBusiness.accountsLoading,
+    loadAccount: accountBusiness.loadAccount,
+    loadAccounts: accountBusiness.loadAccounts,
+    switchAccount: accountBusiness.switchAccount,
+    refreshAccount: accountBusiness.refreshAccount,
     
-    // Business
-    business: business.business,
-    businesses: business.businesses,
-    hasBusiness: business.hasBusiness,
-    requiresBusinessProfile: business.requiresBusinessProfile,
-    businessLoading: business.businessLoading,
-    businessesLoading: business.businessesLoading,
-    loadBusiness: business.loadBusiness,
-    loadBusinesses: business.loadBusinesses,
-    createBusiness: business.createBusiness,
-    updateBusiness: business.updateBusiness,
-    refreshBusiness: business.refreshBusiness,
+    business: accountBusiness.business,
+    businesses: accountBusiness.businesses,
+    hasBusiness: accountBusiness.hasBusiness,
+    requiresBusinessProfile: accountBusiness.requiresBusinessProfile,
+    businessLoading: accountBusiness.businessLoading,
+    businessesLoading: accountBusiness.businessesLoading,
+    loadBusiness: accountBusiness.loadBusiness,
+    loadBusinesses: accountBusiness.loadBusinesses,
+    createBusiness: accountBusiness.createBusiness,
+    updateBusiness: accountBusiness.updateBusiness,
+    refreshBusiness: accountBusiness.refreshBusiness,
     
-    // Admin
-    isAdminUser: admin.isAdminUser,
-    adminChecked: admin.adminChecked,
-    adminLoading: admin.adminLoading,
-    checkAdminStatus: admin.checkAdminStatus,
-    refreshAdminStatus: admin.refreshAdminStatus,
+    // Features (Admin + Subscription from FeatureContext)
+    isAdminUser: features.isAdminUser,
+    adminChecked: features.adminChecked,
+    adminLoading: features.adminLoading,
+    checkAdminStatus: features.checkAdminStatus,
+    refreshAdminStatus: features.refreshAdminStatus,
     
-    // Subscription
-    ...subscription,
+    // Subscription data
+    subscriptionStatus: features.subscriptionStatus,
+    paymentStatus: features.paymentStatus,
+    trialStatus: features.trialStatus,
+    trialDaysRemaining: features.trialDaysRemaining,
+    isTrialExpiringSoon: features.isTrialExpiringSoon,
+    trialEndsAt: features.trialEndsAt,
+    currentPlan: features.currentPlan,
+    planDisplayName: features.planDisplayName,
+    planTier: features.planTier,
+    hasActivePlan: features.hasActivePlan,
+    requiresPlanSelection: features.requiresPlanSelection,
+    isFreePlan: features.isFreePlan,
+    maxContacts: features.maxContacts,
+    maxLocations: features.maxLocations,
+    maxUsers: features.maxUsers,
+    maxPromptPages: features.maxPromptPages,
+    contactCount: features.contactCount,
+    locationCount: features.locationCount,
+    promptPageCount: features.promptPageCount,
+    customPromptPageCount: features.customPromptPageCount,
+    hasPaymentMethod: features.hasPaymentMethod,
+    paymentMethodStatus: features.paymentMethodStatus,
+    accountStatus: features.accountStatus,
+    canAccessFeatures: features.canAccessFeatures,
+    hasHadPaidPlan: features.hasHadPaidPlan,
+    stripeCustomerId: features.stripeCustomerId,
+    stripeSubscriptionId: features.stripeSubscriptionId,
+    refreshSubscription: features.refreshSubscription,
+    checkTrialStatus: features.checkTrialStatus,
     
     // Combined loading state
-    isLoading: core.isLoading || account.accountLoading || business.businessLoading || admin.adminLoading,
+    isLoading: core.isLoading || accountBusiness.accountLoading || accountBusiness.businessLoading || features.adminLoading,
   };
 }
 
 // Export individual hooks for more granular usage
 export { useCoreAuth } from './CoreAuthContext';
-export { useAccount } from './AccountContext';
-export { useBusiness } from './BusinessContext';
-export { useAdmin, useAdminGuard } from './AdminContext';
-export { useSubscription } from './SubscriptionContext';
+export { useAccountBusiness, useAccount, useBusiness } from './AccountBusinessContext';
+export { useFeatures, useAdmin, useSubscription, useAdminGuard } from './FeatureContext';

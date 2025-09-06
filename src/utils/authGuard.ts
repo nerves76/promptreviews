@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/utils/supabaseClient";
+import { createClient } from "@/auth/providers/supabase";
 
 // 🔧 CONSOLIDATED: Shared client instance to eliminate duplicate createClient calls
 const supabase = createClient();
