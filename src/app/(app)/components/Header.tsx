@@ -54,6 +54,7 @@ const Header = React.memo(function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const [mobileAccountSwitcherOpen, setMobileAccountSwitcherOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const notificationsButtonRef = useRef<HTMLButtonElement>(null);
   const accountButtonRef = useRef<HTMLButtonElement>(null);
@@ -82,6 +83,11 @@ const Header = React.memo(function Header() {
   
   // Store current user ID in a ref to access it in the callback
   const currentUserIdRef = useRef<string | undefined>(user?.id);
+  
+  // Set mounted state to prevent hydration mismatches
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   
   // Debug logging for account switcher
   useEffect(() => {
@@ -498,7 +504,7 @@ const Header = React.memo(function Header() {
                   )}
                 </button>
                 {/* Notifications Dropdown - Rendered in Portal */}
-                {showNotifications && typeof window !== 'undefined' && createPortal(
+                {showNotifications && mounted && createPortal(
                   <div
                     ref={menuRef}
                     className="fixed w-80 bg-white/85 backdrop-blur-md rounded-lg shadow-lg border border-white/30"
@@ -561,7 +567,7 @@ const Header = React.memo(function Header() {
                   <CowboyUserIcon />
                 </button>
                 {/* Account Menu Dropdown - Rendered in Portal */}
-                {accountMenuOpen && typeof window !== 'undefined' && createPortal(
+                {accountMenuOpen && mounted && createPortal(
                   <div 
                     ref={accountMenuRef}
                     className="fixed bg-white/85 backdrop-blur-md rounded-lg shadow-2xl border-2 border-white/30 py-2"
@@ -662,7 +668,7 @@ const Header = React.memo(function Header() {
                   </button>
                   
                   {/* Mobile Account Switcher Dropdown - Rendered in Portal */}
-                  {mobileAccountSwitcherOpen && typeof window !== 'undefined' && createPortal(
+                  {mobileAccountSwitcherOpen && mounted && createPortal(
                     <div
                       ref={mobileAccountDropdownRef}
                       className="fixed left-4 right-4 bg-white/90 backdrop-blur-md rounded-lg shadow-2xl border-2 border-white/50 overflow-hidden"
@@ -744,7 +750,7 @@ const Header = React.memo(function Header() {
           </div>
         </div>
         {/* Mobile Menu Dropdown - Rendered in Portal */}
-        {menuOpen && typeof window !== 'undefined' && createPortal(
+        {menuOpen && mounted && createPortal(
           <div 
             className="fixed inset-0 md:hidden"
             style={{ zIndex: 2147483647 }}

@@ -245,21 +245,27 @@ export default function AccountPage() {
         throw new Error(result.error || 'Failed to create account');
       }
 
-      setCreateAccountSuccess(`Account created successfully for ${firstName} ${lastName}! You can now switch to this account from the account selector.`);
+      setCreateAccountSuccess(`Account created successfully for ${firstName} ${lastName}! Switching to the new account...`);
       setShowCreateAccountModal(false);
       
       // Reset form
       (e.target as HTMLFormElement).reset();
       
-      // Keep success message visible and optionally refresh
-      setTimeout(() => {
-        setCreateAccountSuccess(null);
-      }, 7000);
-      
-      // Refresh the page to potentially show new account in lists
-      setTimeout(() => {
-        window.location.reload();
-      }, 2000);
+      // Store the new account selection and redirect to business creation
+      if (result.accountId && user?.id) {
+        // Set the new account as selected
+        localStorage.setItem(`promptreviews_selected_account_${user.id}`, result.accountId);
+        
+        // Redirect to business creation for the new account
+        setTimeout(() => {
+          window.location.href = '/dashboard/create-business';
+        }, 1500);
+      } else {
+        // Fallback: just reload if we don't have the account ID
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
+      }
 
     } catch (error: any) {
       console.error('Error creating account:', error);
