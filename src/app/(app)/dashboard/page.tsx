@@ -559,7 +559,13 @@ const Dashboard = React.memo(function Dashboard() {
       // Set pending state immediately to maintain loading state
       setIsPendingPricingModal(true);
       
-      // Delay showing pricing modal to let page fully render
+      // Force reload of account data to pick up the newly created account
+      if (refreshAccount) {
+        console.log('🔄 Refreshing account data after business creation');
+        refreshAccount();
+      }
+      
+      // Delay showing pricing modal to let page fully render and account data to load
       modalTimeoutRef.current = setTimeout(() => {
         // Double-check that user still needs to select a plan
         // (in case they completed Stripe checkout in the meantime)
