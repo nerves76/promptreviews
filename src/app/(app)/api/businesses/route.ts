@@ -90,6 +90,15 @@ export async function POST(request: NextRequest) {
 
     const { user } = authResult;
     
+    // Ensure user has an ID
+    if (!user?.id) {
+      console.error('[BUSINESSES] User object missing ID:', user);
+      return NextResponse.json(
+        { error: "Invalid user session" },
+        { status: 401 }
+      );
+    }
+    
     // Try to get account ID, but don't fail if it doesn't exist
     // The business creation will handle account creation if needed
     const { getRequestAccountId } = await import("@/app/(app)/api/utils/getRequestAccountId");
@@ -173,6 +182,12 @@ export async function POST(request: NextRequest) {
       console.log('[BUSINESSES] Created new account with ID:', accountId);
       
       // Create account_users link for owner
+      console.log('[BUSINESSES] Creating account_users link:', {
+        account_id: accountId,
+        user_id: user.id,
+        user_email: user.email
+      });
+      
       const { error: linkError } = await supabase
         .from('account_users')
         .insert({
