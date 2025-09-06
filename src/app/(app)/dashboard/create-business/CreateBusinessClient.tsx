@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { createClient, getUserOrMock } from "@/auth/providers/supabase";
+import { useRedirectManager } from "@/hooks/useRedirectManager";
 
 const supabase = createClient();
 import { useAuth } from "@/auth";
@@ -17,6 +18,7 @@ import { ensureAccountExists } from "@/auth/utils/accounts";
 export default function CreateBusinessClient() {
   
   const { selectedAccountId, account } = useAuth();
+  const { redirectToDashboard: centralizedRedirectToDashboard, redirectToSignIn } = useRedirectManager();
   
   const router = useRouter();
   const [loading, setLoading] = useState(true);
@@ -40,14 +42,20 @@ export default function CreateBusinessClient() {
 
   // Redirect to dashboard after business creation
   const redirectToDashboard = useCallback(() => {
-    // Use window.location.replace for reliable redirect
-    window.location.replace("/dashboard?businessCreated=1");
-  }, []);
+    // Use centralized redirect with business creation query param
+    if (typeof window !== 'undefined') {
+      window.location.replace("/dashboard?businessCreated=1");
+    } else {
+      centralizedRedirectToDashboard('Business creation completed');
+    }
+  }, [centralizedRedirectToDashboard]);
 
   // Handler for closing the welcome popup
   const handleWelcomeClose = () => {
     setShowWelcomePopup(false);
-    localStorage.setItem('hasSeenCreateBusinessWelcome', 'true');
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('hasSeenCreateBusinessWelcome', 'true');
+    }
   };
 
 
@@ -61,7 +69,7 @@ export default function CreateBusinessClient() {
         if (error || !user) {
           console.error('❌ CreateBusinessClient: User not authenticated:', error);
           // Redirect to sign-in page if not authenticated
-          router.push('/auth/sign-in');
+          redirectToSignIn('User not authenticated in create business');
           return;
         }
 
@@ -76,14 +84,15 @@ export default function CreateBusinessClient() {
         if (existingAccounts && existingAccounts.length > 0) {
           console.log('✅ User already has accounts, redirecting to dashboard');
           // User has accounts, they shouldn't be on create-business page
-          // Store the first account and redirect (using correct localStorage key)
+          
+          // Store the first account for account context
           const firstAccountId = existingAccounts[0].account_id;
-          localStorage.setItem(`promptreviews_selected_account_${user.id}`, firstAccountId);
+          if (typeof window !== 'undefined') {
+            localStorage.setItem(`promptreviews_selected_account_${user.id}`, firstAccountId);
+          }
           
-          // User has accounts, redirect to dashboard
-          
-          // Redirect to dashboard
-          window.location.href = '/dashboard';
+          // Use centralized redirect with circuit breaker protection
+          centralizedRedirectToDashboard('User already has existing accounts');
           return;
         }
 
@@ -135,7 +144,7 @@ export default function CreateBusinessClient() {
     };
 
     setupBusinessCreation();
-  }, []);
+  }, [redirectToSignIn, centralizedRedirectToDashboard]);
 
   // Handle successful business creation
   const handleBusinessCreated = useCallback(async () => {
@@ -213,10 +222,12 @@ export default function CreateBusinessClient() {
             onClick={() => {
               // If it's an account setup issue, redirect to login
               if (error === "Account setup required" || error === "Authentication required") {
-                router.push('/auth/sign-in');
+                redirectToSignIn('Error handling: Authentication required');
               } else {
                 // For other errors, try reloading
-                window.location.reload();
+                if (typeof window !== 'undefined') {
+                  window.location.reload();
+                }
               }
             }} 
             className="bg-slate-blue text-white px-6 py-2 rounded-lg hover:bg-slate-blue/90"
@@ -254,8 +265,8 @@ export default function CreateBusinessClient() {
                         Having trouble? Already have an account?
                         <button 
                           onClick={() => {
-                            // Simply redirect to dashboard
-                            window.location.href = '/dashboard';
+                            // Use centralized redirect
+                            centralizedRedirectToDashboard('Emergency escape to dashboard');
                           }}
                           className="ml-2 text-blue-600 hover:underline font-semibold"
                         >
