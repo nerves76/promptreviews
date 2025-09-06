@@ -355,11 +355,11 @@ const SimpleBusinessForm = forwardRef<HTMLFormElement, SimpleBusinessFormProps>(
       // Set flag that this account has created a business
       // Use the new account ID if one was created
       const accountToFlag = newAccountId || accountId;
-      if (accountToFlag) {
-        localStorage.setItem(`hasCreatedBusiness_${accountToFlag}`, 'true');
+      if (accountToFlag && user?.id) {
+        localStorage.setItem(`promptreviews_has_created_business_${user.id}_${accountToFlag}`, 'true');
         // Store the new account ID for the context to pick up
-        if (newAccountId) {
-          localStorage.setItem('newly_created_account_id', newAccountId);
+        if (newAccountId && user?.id) {
+          localStorage.setItem(`promptreviews_new_account_${user.id}`, newAccountId);
         }
       }
       

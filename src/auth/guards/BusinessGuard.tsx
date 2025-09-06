@@ -189,8 +189,8 @@ function BusinessGuard({ children }: BusinessGuardProps) {
       
       // Check if this account has NEVER had a business
       // We check localStorage for the business creation flag
-      const hasCreatedBusiness = typeof window !== 'undefined' ? 
-        localStorage.getItem(`hasCreatedBusiness_${account.id}`) === 'true' : false;
+      const hasCreatedBusiness = typeof window !== 'undefined' && user?.id ? 
+        localStorage.getItem(`promptreviews_has_created_business_${user.id}_${account.id}`) === 'true' : false;
       const hasNeverHadBusiness = !hasCreatedBusiness;
       
       // Also check if account has a paid plan - paid accounts should have businesses

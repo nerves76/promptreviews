@@ -301,7 +301,7 @@ export function AccountBusinessProvider({ children }: { children: React.ReactNod
       
       // Store in localStorage for persistence
       if (typeof window !== 'undefined') {
-        localStorage.setItem('selected_account_id', newAccountId);
+        localStorage.setItem(`promptreviews_selected_account_${user.id}`, newAccountId);
       }
 
       // Clear cache to force reload
@@ -518,8 +518,8 @@ export function AccountBusinessProvider({ children }: { children: React.ReactNod
   useEffect(() => {
     if (!accountId && isAuthenticated && user?.id) {
       // Check if we have a newly created account ID from business creation
-      const newlyCreatedAccountId = typeof window !== 'undefined' 
-        ? localStorage.getItem('newly_created_account_id')
+      const newlyCreatedAccountId = typeof window !== 'undefined' && user?.id
+        ? localStorage.getItem(`promptreviews_new_account_${user.id}`)
         : null;
       
       if (newlyCreatedAccountId) {
@@ -530,7 +530,9 @@ export function AccountBusinessProvider({ children }: { children: React.ReactNod
         loadAccount(newlyCreatedAccountId);
         loadAccounts();
         // Clear the flag after using it
-        localStorage.removeItem('newly_created_account_id');
+        if (user?.id) {
+          localStorage.removeItem(`promptreviews_new_account_${user.id}`);
+        }
         return;
       }
       

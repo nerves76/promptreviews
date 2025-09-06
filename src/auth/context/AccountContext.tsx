@@ -273,7 +273,7 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
       
       // Store in localStorage for persistence
       if (typeof window !== 'undefined') {
-        localStorage.setItem('selected_account_id', newAccountId);
+        localStorage.setItem(`promptreviews_selected_account_${user.id}`, newAccountId);
       }
 
       // Clear cache to force reload
