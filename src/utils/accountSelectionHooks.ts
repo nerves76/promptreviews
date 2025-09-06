@@ -181,26 +181,25 @@ export function useAccountSelection() {
     });
     window.dispatchEvent(accountSwitchEvent);
 
-    // Only reload if we're not on the widget page (to prevent data loss)
-    const currentPath = window.location.pathname;
-    
-    if (!currentPath.includes('/dashboard/widget')) {
-      // Force page reload to refresh all data with new account context
-      window.location.reload();
-    } else {
-      // For widget page, clear widget-specific localStorage to prevent stale data
-      
-      // Clear any widget-specific localStorage data
-      const keysToRemove: string[] = [];
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key && (key.startsWith('widgetDesign_') || key.startsWith('widgetEditorForm_'))) {
-          keysToRemove.push(key);
-        }
+    // Clear any cached data that might be account-specific
+    // This ensures components will refetch data for the new account
+    const keysToRemove: string[] = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && (
+        key.startsWith('widgetDesign_') || 
+        key.startsWith('widgetEditorForm_') ||
+        key.startsWith('cached_') ||
+        key.includes('_cache')
+      )) {
+        keysToRemove.push(key);
       }
-      keysToRemove.forEach(key => localStorage.removeItem(key));
-      
     }
+    keysToRemove.forEach(key => localStorage.removeItem(key));
+    
+    // DO NOT RELOAD THE PAGE - This causes auth session loss!
+    // The state update and event emission will trigger React to re-render
+    // Components listening to accountSwitched event will refetch their data
   };
 
   // Get current selected account details (memoized to prevent unnecessary re-renders)
