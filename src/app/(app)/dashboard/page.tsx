@@ -396,8 +396,14 @@ const Dashboard = React.memo(function Dashboard() {
     // Determine if payment is required based on plan, trial, and subscription status
     let paymentRequired = false;
 
-    // Active subscription never requires payment
-    if (subscriptionStatus === 'active') {
+    // Check if this is a free account first
+    const isFreeAccount = account.is_free_account || plan === 'free';
+
+    // Free accounts never require payment
+    if (isFreeAccount) {
+      paymentRequired = false;
+    } else if (subscriptionStatus === 'active') {
+      // Active subscription never requires payment
       paymentRequired = false;
     } else if (plan === 'grower') {
       const trialActive = trialEnd && now <= trialEnd && !hasStripeCustomer;
@@ -415,7 +421,8 @@ const Dashboard = React.memo(function Dashboard() {
       paymentRequired = subscriptionStatus !== 'active';
     } else {
       // No plan selected but business exists -> require plan/payment
-      paymentRequired = ((!plan || plan === 'no_plan' || plan === 'NULL') && businessCount > 0);
+      // But exclude free accounts from this requirement
+      paymentRequired = ((!plan || plan === 'no_plan' || plan === 'NULL') && businessCount > 0 && !isFreeAccount);
     }
 
     setPlanSelectionRequired(!!paymentRequired);
