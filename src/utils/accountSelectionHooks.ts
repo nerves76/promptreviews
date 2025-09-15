@@ -193,19 +193,25 @@ export function useAccountSelection() {
     // Store the selection in localStorage
     setStoredAccountSelection(currentUserId, accountId);
     
-    // Clear any cached data that might be account-specific
+    // Clear any cached data that might be account-specific, but DO NOT remove user draft form data
+    // We intentionally avoid removing keys like:
+    // - promptPageForm_* (prompt page drafts)
+    // - widgetEditorForm_* (widget editor drafts)
+    // - businessInfoEditorForm* (business info drafts)
+    // Draft keys are already account-scoped and safe to keep across reloads.
     const keysToRemove: string[] = [];
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
-      if (key && (
-        key.startsWith('widgetDesign_') || 
-        key.startsWith('widgetEditorForm_') ||
-        key.startsWith('promptPageForm_') ||
-        key.startsWith('businessInfoEditorForm') ||
+      if (!key) continue;
+      
+      // Only remove volatile cache entries that are safe to regenerate
+      if (
+        key.startsWith('widgetDesign_') ||
         key.startsWith('business-info-selected-locations') ||
         key.startsWith('cached_') ||
-        key.includes('_cache')
-      )) {
+        key.endsWith('_cache') ||
+        key.includes(':cache:')
+      ) {
         keysToRemove.push(key);
       }
     }

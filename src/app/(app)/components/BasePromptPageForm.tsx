@@ -215,6 +215,7 @@ export default function BasePromptPageForm({
   const [isSaving, setIsSaving] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
   const [showPopupConflictModal, setShowPopupConflictModal] = useState<string | null>(null);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   
   // Local state for kickstarters background design to provide immediate UI feedback
   const [localBackgroundDesign, setLocalBackgroundDesign] = useState<boolean>(
@@ -243,6 +244,26 @@ export default function BasePromptPageForm({
     
     return () => clearTimeout(saveTimeout);
   }, [formData, formStorageKey]);
+
+  // Track unsaved changes for unload protection
+  useEffect(() => {
+    // Mark as having unsaved changes whenever formData mutates
+    setHasUnsavedChanges(true);
+  }, [formData]);
+
+  // Warn user before accidental refresh/close when there are unsaved changes
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const handler = (e: BeforeUnloadEvent) => {
+      if (hasUnsavedChanges && !isSaving) {
+        e.preventDefault();
+        // Chrome requires returnValue to be set
+        e.returnValue = '';
+      }
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [hasUnsavedChanges, isSaving]);
 
   // Generic update function
   const updateFormData = (field: keyof BaseFormState, value: any) => {
@@ -283,6 +304,8 @@ export default function BasePromptPageForm({
       if (typeof window !== 'undefined') {
         localStorage.removeItem(formStorageKey);
       }
+      // Reset unsaved changes flag after successful save
+      setHasUnsavedChanges(false);
     } catch (error) {
       console.error('Form submission error:', error);
       setErrors(['An error occurred while saving. Please try again.']);
