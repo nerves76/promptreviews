@@ -115,6 +115,21 @@ export default function SocialPostingDashboard() {
     return [];
   });
   
+  // Enforce single-location UI and selection rules
+  useEffect(() => {
+    // If there's exactly one location, force select it
+    if (locations.length === 1) {
+      const only = locations[0].id;
+      if (selectedLocations.length !== 1 || selectedLocations[0] !== only) {
+        setSelectedLocations([only]);
+      }
+    }
+    // On Grower plan, allow at most one selected location
+    if (currentPlan === 'grower' && selectedLocations.length > 1) {
+      setSelectedLocations([selectedLocations[0]]);
+    }
+  }, [locations, currentPlan]);
+  
   const [isLocationDropdownOpen, setIsLocationDropdownOpen] = useState(false);
   // Initialize postContent with saved data
   const [postContent, setPostContent] = useState(() => {
@@ -2345,6 +2360,15 @@ export default function SocialPostingDashboard() {
                         </div>
                       </div>
                     ) : (
+                      (locations.length === 1 || (currentPlan === 'grower' && selectedLocations.length === 1)) ? (
+                        <div className="px-4 py-3 border border-gray-200 rounded-md bg-gray-50 text-gray-800">
+                          <div className="flex items-center space-x-2">
+                            <Icon name="FaGoogle" className="w-4 h-4 text-gray-600" />
+                            <span className="font-medium">Google Business Profile:</span>
+                            <span>{locations.find(l => l.id === (selectedLocations[0] || locations[0]?.id))?.name || 'Selected location'}</span>
+                          </div>
+                        </div>
+                      ) : (
                       <div className="location-dropdown relative">
                         <button
                           onClick={() => setIsLocationDropdownOpen(!isLocationDropdownOpen)}
@@ -2385,7 +2409,10 @@ export default function SocialPostingDashboard() {
                                      * Must create new array to trigger React re-render
                                      * Using div instead of label to prevent event issues
                                      */
-                                    
+                                    // Enforce Grower plan limit: max 1 selected
+                                    if (currentPlan === 'grower' && e.target.checked && !selectedLocations.includes(location.id) && selectedLocations.length >= 1) {
+                                      return;
+                                    }
                                     if (e.target.checked) {
                                       // Only add if not already in the list
                                       if (!selectedLocations.includes(location.id)) {
@@ -2418,6 +2445,7 @@ export default function SocialPostingDashboard() {
                           </div>
                         )}
                       </div>
+                      )
                     )}
                   </div>
 
