@@ -18,7 +18,6 @@ const tiers = [
       "**14-day free trial*",
       "Universal Prompt Page",
       "3 custom Prompt Pages",
-      "Cannot upload contacts",
       "Review widget",
       "Analytics",
       "Manage 1 Google Business Profile",

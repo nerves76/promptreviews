@@ -23,7 +23,7 @@ interface FreeAccount {
 }
 
 const PLAN_LEVELS = [
-  { value: 'grower', label: 'Grower', description: '3 custom prompt pages, cannot upload contacts' },
+  { value: 'grower', label: 'Grower', description: '3 custom prompt pages' },
   { value: 'builder', label: 'Builder', description: '50 prompt pages, 1000 contacts, 3 team members' },
   { value: 'maven', label: 'Maven', description: '500 prompt pages, 10,000 contacts, 5 team members' },
 ];
