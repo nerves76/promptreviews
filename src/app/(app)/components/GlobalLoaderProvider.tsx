@@ -15,7 +15,7 @@ interface LoaderAPI {
 
 const LoaderContext = createContext<LoaderAPI | null>(null);
 
-const DEFAULT_DEBOUNCE_MS = 150; // delay before showing to avoid flicker
+const DEFAULT_DEBOUNCE_MS = 300; // increased to reduce quick-flash overlays
 const DEFAULT_MIN_VISIBLE_MS = 300; // keep shown at least this long
 
 export function useGlobalLoader() {
@@ -47,6 +47,8 @@ function GlobalLoaderProviderInner({
   const routerSafetyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const failsafeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastActivityRef = useRef<number>(Date.now());
+  const longTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const LONG_DIM_MS = 900; // add dimmer only after sustained loading
 
   const recomputeActive = useCallback(() => {
     const total = Object.values(countsRef.current).reduce((a, b) => a + b, 0);
@@ -61,6 +63,13 @@ function GlobalLoaderProviderInner({
         minVisibleUntilRef.current = Date.now() + DEFAULT_MIN_VISIBLE_MS;
         setActive(true);
         document.documentElement.setAttribute("data-global-loading", "true");
+        // Apply dimmer only after LONG_DIM_MS
+        if (longTimerRef.current) clearTimeout(longTimerRef.current);
+        longTimerRef.current = setTimeout(() => {
+          if (visibleRef.current) {
+            document.documentElement.setAttribute("data-global-loading-long", "true");
+          }
+        }, LONG_DIM_MS);
         // Start a failsafe to prevent being stuck indefinitely
         if (failsafeTimerRef.current) clearTimeout(failsafeTimerRef.current);
         failsafeTimerRef.current = setTimeout(() => {
@@ -70,6 +79,7 @@ function GlobalLoaderProviderInner({
             visibleRef.current = false;
             setActive(false);
             document.documentElement.removeAttribute("data-global-loading");
+            document.documentElement.removeAttribute("data-global-loading-long");
           }
         }, 10000); // 10s failsafe
       }, DEFAULT_DEBOUNCE_MS);
@@ -84,9 +94,14 @@ function GlobalLoaderProviderInner({
         visibleRef.current = false;
         setActive(false);
         document.documentElement.removeAttribute("data-global-loading");
+        document.documentElement.removeAttribute("data-global-loading-long");
         if (failsafeTimerRef.current) {
           clearTimeout(failsafeTimerRef.current);
           failsafeTimerRef.current = null;
+        }
+        if (longTimerRef.current) {
+          clearTimeout(longTimerRef.current);
+          longTimerRef.current = null;
         }
       }, delay);
     }

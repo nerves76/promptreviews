@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/auth/providers/supabase";
 import Link from "next/link";
+import { useEffect } from "react";
 import { useGlobalLoader } from "@/app/(app)/components/GlobalLoaderProvider";
 import AppLoader from "@/app/(app)/components/AppLoader";
 
@@ -130,8 +131,11 @@ function ResetPasswordContent() {
   };
 
   const loader = useGlobalLoader();
-  if (isCheckingAuth) { loader.show('reset-password'); return null; }
-  loader.hide('reset-password');
+  useEffect(() => {
+    if (isCheckingAuth) loader.show('reset-password'); else loader.hide('reset-password');
+    return () => loader.hide('reset-password');
+  }, [isCheckingAuth, loader]);
+  if (isCheckingAuth) return null;
 
   if (!isAuthenticated) {
     return (

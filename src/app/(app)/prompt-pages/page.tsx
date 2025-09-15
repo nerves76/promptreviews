@@ -26,7 +26,7 @@ import { hasLocationAccess, formatLocationAddress, getLocationDisplayName } from
 import CommunicationButtons from "@/app/(app)/components/communication/CommunicationButtons";
 
 import EmojiEmbedButton from "@/app/(app)/components/EmojiEmbedButton";
-import FiveStarSpinner from "@/app/(app)/components/FiveStarSpinner";
+// Page-level loading uses global overlay
 import { useGlobalLoader } from "@/app/(app)/components/GlobalLoaderProvider";
 import BusinessProfileBanner from "@/app/(app)/components/BusinessProfileBanner";
 import { useAuth } from "@/auth";
@@ -666,6 +666,8 @@ function PromptPagesContent() {
     return () => loader.hide("page");
   }, [authInitialized, dataLoaded, minLoadTimeElapsed, authLoading, loader]);
 
+  // In-page navigations rely on router/network interception to reduce flicker
+
   // While loading, render nothing (global overlay covers the screen)
   if (!authInitialized || !dataLoaded || !minLoadTimeElapsed || authLoading) {
     return null;
@@ -678,9 +680,7 @@ function PromptPagesContent() {
 
   return (
     <div>
-      {/* Navigation loading uses global overlay */}
-      {isNavigating && loader.show("navigate")}
-      {!isNavigating && loader.hide("navigate")}
+      {/* Navigation loading uses global overlay (controlled via effect) */}
       
       <PromptTypeSelectModal
         open={showTypeModal}

@@ -18,7 +18,8 @@ import ProductPromptPageForm from "../components/ProductPromptPageForm";
 import PhotoPromptPageForm from "../components/PhotoPromptPageForm";
 import EmployeePromptPageForm from "../components/EmployeePromptPageForm";
 import EventPromptPageForm from "../components/EventPromptPageForm";
-import FiveStarSpinner from "../components/FiveStarSpinner";
+import { useEffect } from "react";
+import { useGlobalLoader } from "../components/GlobalLoaderProvider";
 
 interface ReviewPlatformLink {
   platform: string;
@@ -1821,13 +1822,12 @@ export default function CreatePromptPageClient({
     setMounted(true);
   }, []);
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center">
-        <FiveStarSpinner size={24} />
-      </div>
-    );
-  }
+  const loader = useGlobalLoader();
+  useEffect(() => {
+    if (isLoading) loader.show('create-prompt-page'); else loader.hide('create-prompt-page');
+    return () => loader.hide('create-prompt-page');
+  }, [isLoading, loader]);
+  if (isLoading) return null;
 
   // Get the appropriate icon based on review type
   const getPageIcon = (reviewType: string) => {

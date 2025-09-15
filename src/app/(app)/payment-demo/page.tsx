@@ -9,15 +9,17 @@
 
 import { useAuth } from '@/auth';
 import PaymentStatus, { PaymentStateExamples } from '@/app/(app)/components/PaymentStatus';
+import { useEffect } from 'react';
 import { useGlobalLoader } from '@/app/(app)/components/GlobalLoaderProvider';
 
 export default function PaymentDemoPage() {
   const authData = useAuth();
   const loader = useGlobalLoader();
-  if (!authData) {
-    loader.show('payment-demo');
-    return null;
-  }
+  useEffect(() => {
+    if (!authData || authData.isLoading) loader.show('payment-demo'); else loader.hide('payment-demo');
+    return () => loader.hide('payment-demo');
+  }, [authData, loader]);
+  if (!authData) return null;
   
   const { 
     isAuthenticated, 
@@ -32,11 +34,7 @@ export default function PaymentDemoPage() {
     planTier
   } = authData;
 
-  if (isLoading) {
-    loader.show('payment-demo');
-    return null;
-  }
-  loader.hide('payment-demo');
+  if (isLoading) return null;
 
   if (!isAuthenticated) {
     return (

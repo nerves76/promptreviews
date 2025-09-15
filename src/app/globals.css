@@ -5,6 +5,13 @@
 /* When the global overlay is active, hide any inline/local star spinners */
 html[data-global-loading="true"] .five-star-spinner { display: none !important; }
 
+/* Global overlay background dimmer only after sustained loading */
+.global-overlay { background: transparent; }
+html[data-global-loading-long="true"] .global-overlay {
+  background: rgba(10, 18, 40, 0.18);
+  backdrop-filter: blur(1.5px);
+}
+
 /* Prevent white flash on initial load - removed, handled below */
 
 :root {

@@ -15,8 +15,8 @@ export default function GlobalOverlayLoader({ visible }: GlobalOverlayLoaderProp
       aria-live="polite"
       aria-busy="true"
       role="status"
-      className="fixed inset-0 z-[9999] flex items-start justify-center"
-      style={{ background: "rgba(10, 18, 40, 0.35)", backdropFilter: "blur(2px)", paddingTop: 200 }}
+      className="global-overlay fixed inset-0 z-[9999] flex items-start justify-center transition-opacity duration-150"
+      style={{ paddingTop: 200, pointerEvents: 'none' }}
     >
       <div className="flex flex-col items-center select-none">
         <FiveStarSpinner size={24} />
@@ -25,4 +25,3 @@ export default function GlobalOverlayLoader({ visible }: GlobalOverlayLoaderProp
     </div>
   );
 }
-

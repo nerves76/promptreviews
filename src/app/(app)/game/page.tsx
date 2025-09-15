@@ -29,8 +29,15 @@ export default function GamePage() {
     return () => clearTimeout(timer);
   }, []);
 
-  if (authLoading) { loader.show('game'); return null; }
-  loader.hide('game');
+  useEffect(() => {
+    if (!gameLoaded) loader.show('game-iframe'); else loader.hide('game-iframe');
+    return () => loader.hide('game-iframe');
+  }, [gameLoaded, loader]);
+
+  useEffect(() => {
+    if (authLoading) loader.show('game-auth'); else loader.hide('game-auth');
+  }, [authLoading, loader]);
+  if (authLoading) return null;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600">
@@ -39,8 +46,7 @@ export default function GamePage() {
         <div className="space-y-4">
           {/* Game Container */}
           <div className="relative">
-            {!gameLoaded && loader.show('game-iframe')}
-            {gameLoaded && loader.hide('game-iframe')}
+            {/* Use effect to control iframe loading overlay */}
             
             <div className="bg-white rounded-lg shadow-lg overflow-hidden">
               {/* Direct game content */}

@@ -68,10 +68,11 @@ export default function AdminLayout({
     return pathname.startsWith(path);
   };
 
-  if (loading) {
-    loader.show('admin-layout');
-    return null;
-  }
+  useEffect(() => {
+    if (loading) loader.show('admin-layout'); else loader.hide('admin-layout');
+    return () => loader.hide('admin-layout');
+  }, [loading, loader]);
+  if (loading) return null;
 
   if (!isAdminUser) {
     return <div>Access denied</div>;
