@@ -1,40 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/utils/supabase/server';
-import { cookies } from 'next/headers';
+import { createServiceRoleClient } from '@/auth/providers/supabase';
+import { verifyAccountAuth } from '../../middleware/auth';
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createClient();
-
-    // Get authenticated user
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    // Verify authentication and get authorized account
+    const authResult = await verifyAccountAuth(request);
+    if (!authResult.success) {
+      return NextResponse.json(
+        { error: authResult.error },
+        { status: authResult.errorCode || 401 }
+      );
     }
 
-    // Get selected account from cookie
-    const cookieStore = cookies();
-    const selectedAccountCookie = cookieStore.get('selected_account');
-
-    if (!selectedAccountCookie?.value) {
-      return NextResponse.json({ error: 'No account selected' }, { status: 400 });
-    }
-
-    const accountId = selectedAccountCookie.value;
+    const { user, accountId } = authResult;
     console.log('[API] Update style for account:', accountId, 'user:', user.id);
 
-    // Verify user has access to this account
-    const { data: accountUser, error: accessError } = await supabase
-      .from('account_users')
-      .select('role')
-      .eq('account_id', accountId)
-      .eq('user_id', user.id)
-      .single();
-
-    if (accessError || !accountUser) {
-      console.error('[API] Access denied:', accessError);
-      return NextResponse.json({ error: 'Access denied' }, { status: 403 });
-    }
+    const supabase = createServiceRoleClient();
 
     // Parse the style update from request body
     const body = await request.json();
