@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, Suspense } from "react";
 import GlobalOverlayLoader from "./GlobalOverlayLoader";
 import { usePathname, useSearchParams } from "next/navigation";
 
@@ -30,7 +30,7 @@ interface ProviderProps {
   interceptNetwork?: boolean;
 }
 
-export default function GlobalLoaderProvider({
+function GlobalLoaderProviderInner({
   children,
   enabled = true,
   interceptNetwork = false,
@@ -177,6 +177,14 @@ export default function GlobalLoaderProvider({
       {/* Overlay at root */}
       {enabled && <GlobalOverlayLoader visible={active} />}
     </LoaderContext.Provider>
+  );
+}
+
+export default function GlobalLoaderProvider(props: ProviderProps) {
+  return (
+    <Suspense fallback={null}>
+      <GlobalLoaderProviderInner {...props} />
+    </Suspense>
   );
 }
 
