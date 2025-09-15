@@ -9,6 +9,10 @@ import { notFound } from 'next/navigation';
 import { createServiceRoleClient } from '@/auth/providers/supabase';
 import { Metadata } from 'next';
 
+// Force dynamic rendering to prevent caching issues with account isolation
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 // Server component for initial page load
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;

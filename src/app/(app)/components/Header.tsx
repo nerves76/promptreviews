@@ -354,6 +354,28 @@ const Header = React.memo(function Header() {
   // 🔧 REMOVED: Business profile refresh listeners since Header no longer manages business state
   // DashboardLayout handles business profile state management
 
+  // Close all dropdowns on route change or unmount to prevent stuck blur overlays
+  useEffect(() => {
+    const handleRouteChange = () => {
+      setAccountMenuOpen(false);
+      setShowNotifications(false);
+      setMenuOpen(false);
+      setMobileAccountSwitcherOpen(false);
+    };
+
+    // Listen for popstate events (browser back/forward)
+    window.addEventListener('popstate', handleRouteChange);
+
+    // Clean up on unmount - CRITICAL to prevent stuck blur
+    return () => {
+      setAccountMenuOpen(false);
+      setShowNotifications(false);
+      setMenuOpen(false);
+      setMobileAccountSwitcherOpen(false);
+      window.removeEventListener('popstate', handleRouteChange);
+    };
+  }, []);
+
   return (
     <header className="bg-transparent backdrop-blur-sm mt-2.5">
       <nav className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

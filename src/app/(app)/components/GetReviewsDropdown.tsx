@@ -50,12 +50,28 @@ const GetReviewsDropdown: React.FC<GetReviewsDropdownProps> = ({
         setIsOpen(false);
       }
     };
-    
+
     if (isOpen) {
       document.addEventListener('mousedown', handleClickOutside);
       return () => document.removeEventListener('mousedown', handleClickOutside);
     }
   }, [isOpen]);
+
+  // Close dropdown on route change or unmount to prevent stuck blur overlay
+  useEffect(() => {
+    const handleRouteChange = () => {
+      setIsOpen(false);
+    };
+
+    // Listen for popstate events (browser back/forward)
+    window.addEventListener('popstate', handleRouteChange);
+
+    // Clean up on unmount - CRITICAL to prevent stuck blur
+    return () => {
+      setIsOpen(false); // Ensure dropdown is closed when component unmounts
+      window.removeEventListener('popstate', handleRouteChange);
+    };
+  }, []);
 
   const menuItems = [
     { href: "/prompt-pages", label: "Prompt Pages", icon: PromptPagesIcon, description: "Create review collection pages" },

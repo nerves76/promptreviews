@@ -89,6 +89,10 @@ src/
 - **Problem:** RLS policy violations
 - **Solution:** Development mode routes through API endpoints with service role
 
+### Stripe Checkout (Local, No Webhooks)
+- **Problem:** After successful payment, pricing modal reappears because Stripe webhooks aren’t running locally
+- **Solution:** Success URLs now include `session_id` and the app calls `/api/finalize-checkout` to update the account immediately (plan, billing period, customer/subscription IDs)
+
 ## 📚 Documentation
 
 - **Full README:** `README.md` - Complete documentation

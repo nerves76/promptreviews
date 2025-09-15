@@ -37,6 +37,22 @@ export function AccountSwitcher() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Close dropdown on route change to prevent stuck blur overlay
+  useEffect(() => {
+    const handleRouteChange = () => {
+      setIsOpen(false);
+    };
+
+    // Listen for popstate events (browser back/forward)
+    window.addEventListener('popstate', handleRouteChange);
+
+    // Clean up on unmount - CRITICAL to prevent stuck blur
+    return () => {
+      setIsOpen(false); // Ensure dropdown is closed when component unmounts
+      window.removeEventListener('popstate', handleRouteChange);
+    };
+  }, []);
+
   // Don't render if loading or error
   if (loading || error || !selectedAccount) {
     return null;

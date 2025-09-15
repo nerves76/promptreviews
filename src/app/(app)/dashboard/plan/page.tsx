@@ -107,6 +107,7 @@ export default function PlanPage() {
   // Use specific search param values as dependencies instead of the whole object
   const success = searchParams?.get('success');
   const change = searchParams?.get('change');
+  const sessionId = searchParams?.get('session_id');
   const canceled = searchParams?.get('canceled');
   const isReactivation = searchParams?.get('reactivation') === 'true';
   
@@ -143,11 +144,26 @@ export default function PlanPage() {
         sessionStorage.setItem('showPlanSuccessModal', 'true');
         sessionStorage.setItem('planSuccessAction', action);
         
+        // If we have a session_id (from Stripe success), finalize immediately to update account locally
+        (async () => {
+          try {
+            if (success === '1' && sessionId && authAccount?.id) {
+              await fetch('/api/finalize-checkout', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ session_id: sessionId, userId: authAccount.id })
+              });
+            }
+          } catch (e) {
+            console.warn('Finalize checkout failed (non-blocking):', e);
+          }
+        })();
+
         // Clean up URL if needed
         if (success === '1') {
           setTimeout(() => {
             window.history.replaceState({}, '', window.location.pathname);
-          }, 100);
+          }, 200);
         }
       }
       
@@ -160,7 +176,7 @@ export default function PlanPage() {
         window.history.replaceState({}, '', window.location.pathname);
       }
     }
-  }, [success, change, canceled]); // Only re-run when these specific values change
+  }, [success, change, canceled, sessionId, authAccount?.id]); // Only re-run when these specific values change
 
   useEffect(() => {
     const fetchAccount = async () => {

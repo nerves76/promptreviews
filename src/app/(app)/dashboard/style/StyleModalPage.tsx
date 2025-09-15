@@ -279,6 +279,8 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
   const [saving, setSaving] = React.useState(false);
   const [success, setSuccess] = React.useState(false);
   const [universalPromptPageSlug, setUniversalPromptPageSlug] = React.useState<string | null>(null);
+  // Whether any prompt page has kickstarters enabled (controls visibility of Kickstarters section)
+  const [kickstartersEnabled, setKickstartersEnabled] = React.useState<boolean>(false);
   
   // Helper function to validate hex color
   const isValidHexColor = (hex: string): boolean => {
@@ -380,13 +382,27 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
       // Fetch universal prompt page
       const { data: universalPage } = await supabase
         .from("prompt_pages")
-        .select('slug')
+        .select('slug, kickstarters_enabled')
         .eq("account_id", accountId)
         .eq("is_universal", true)
         .maybeSingle();
 
       if (universalPage?.slug) {
         setUniversalPromptPageSlug(universalPage.slug);
+      }
+
+      // Determine if kickstarters is enabled anywhere (prefer universal page if present)
+      if (universalPage && typeof universalPage.kickstarters_enabled === 'boolean') {
+        setKickstartersEnabled(!!universalPage.kickstarters_enabled);
+      } else {
+        // Fallback: check if any prompt page has kickstarters enabled
+        const { data: anyKickstartersEnabled } = await supabase
+          .from('prompt_pages')
+          .select('id')
+          .eq('account_id', accountId)
+          .eq('kickstarters_enabled', true)
+          .limit(1);
+        setKickstartersEnabled((anyKickstartersEnabled?.length || 0) > 0);
       }
 
       if (business) {
@@ -1068,24 +1084,56 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
                 </div>
               </>
             )}
-
-            {/* Kickstarters Background Design */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3">Kickstarters Design Style</label>
-              <select
-                value={settings.kickstarters_background_design ? 'true' : 'false'}
-                onChange={(e) => setSettings(s => ({ ...s, kickstarters_background_design: e.target.value === 'true' }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              >
-                <option value="true">With Background</option>
-                <option value="false">Without Background</option>
-              </select>
-              <p className="text-xs text-gray-500 mt-1">
-                Choose how the inspiration questions appear: with a card background or transparent using card colors.
-              </p>
-            </div>
           </div>
         </div>
+
+        {/* Kickstarters Section (conditional) */}
+        {kickstartersEnabled && (
+          <div className="mt-8 p-6 bg-white/95 backdrop-blur-sm rounded-xl border border-white/30">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">Kickstarters</h3>
+            <p className="text-sm text-gray-600 mb-4">
+              Style the Kickstarter prompts shown on your Prompt Pages.
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-3">Kickstarters Design Style</label>
+                <select
+                  value={settings.kickstarters_background_design ? 'true' : 'false'}
+                  onChange={(e) => setSettings(s => ({ ...s, kickstarters_background_design: e.target.value === 'true' }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                >
+                  <option value="true">With Background</option>
+                  <option value="false">Without Background</option>
+                </select>
+                <p className="text-xs text-gray-500 mt-1">
+                  Choose card-style background or transparent text using your card colors.
+                </p>
+              </div>
+              <div>
+                <div className="flex items-center mb-3">
+                  <label className="text-sm font-medium text-gray-700">Kickstarters Primary Color</label>
+                  <Tooltip text="Color for Kickstarter text and controls (uses Primary Color)." />
+                </div>
+                <input
+                  type="color"
+                  value={settings.primary_color}
+                  onChange={e => setSettings(s => ({ ...s, primary_color: e.target.value }))}
+                  className="w-full h-10 rounded cursor-pointer"
+                />
+                <input
+                  type="text"
+                  value={settings.primary_color}
+                  onChange={e => handleHexInputChange('primary_color', e.target.value)}
+                  className="w-full mt-2 px-2 py-1 text-xs border rounded bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent"
+                  placeholder="#2563EB"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  This uses your Primary Color. Updating it changes other headings too.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Border Settings */}
         <div className="mt-8 p-6 bg-white/95 backdrop-blur-sm rounded-xl border border-white/30">
