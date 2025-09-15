@@ -125,11 +125,13 @@ export default function DashboardLayout({
     window.location.pathname === '/dashboard/create-business';
 
   // Show loading while AuthContext initializes (but not on create-business page)
-  if (!isInitialized && !isPlanPageSuccess && !isOnCreateBusinessPage) {
-    // Use global overlay; render nothing
-    loader.show('layout');
-    return null;
-  }
+  useEffect(() => {
+    const showOverlay = (!isInitialized && !isPlanPageSuccess && !isOnCreateBusinessPage) ||
+      ((isLoading || accountLoading) && !isPlanPageSuccess && !isOnCreateBusinessPage);
+    if (showOverlay) loader.show('layout'); else loader.hide('layout');
+    return () => loader.hide('layout');
+  }, [isInitialized, isPlanPageSuccess, isOnCreateBusinessPage, isLoading, accountLoading, loader]);
+  if (!isInitialized && !isPlanPageSuccess && !isOnCreateBusinessPage) return null;
 
   // Show nothing while redirecting
   if (isInitialized && !user && isClient) {
@@ -138,10 +140,7 @@ export default function DashboardLayout({
   
   // Show loading while user data or account data is still loading
   // BUT skip if we're showing plan success modal OR on create-business page
-  if ((isLoading || accountLoading) && !isPlanPageSuccess && !isOnCreateBusinessPage) {
-    loader.show('layout');
-    return null;
-  }
+  if ((isLoading || accountLoading) && !isPlanPageSuccess && !isOnCreateBusinessPage) return null;
 
 
   // If account has no plan and not on allowed paths, the useEffect above will redirect
