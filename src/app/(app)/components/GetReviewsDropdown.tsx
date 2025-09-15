@@ -102,7 +102,7 @@ const GetReviewsDropdown: React.FC<GetReviewsDropdownProps> = ({
       {isOpen && mounted && createPortal(
         <>
           <div
-            className="fixed inset-0 bg-black/40 backdrop-blur-[2px]"
+            className="fixed inset-0 bg-black/40"
             style={{ zIndex: 2147483647 }}
             onClick={() => setIsOpen(false)}
           />

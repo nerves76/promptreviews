@@ -136,7 +136,7 @@ export function AccountSwitcher() {
       {isOpen && typeof window !== 'undefined' && createPortal(
         <>
           <div
-            className="fixed inset-0 bg-black/40 backdrop-blur-[2px]"
+            className="fixed inset-0 bg-black/40"
             style={{ zIndex: 2147483647 }}
             onClick={() => setIsOpen(false)}
           />
