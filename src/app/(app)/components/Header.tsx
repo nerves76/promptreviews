@@ -607,11 +607,11 @@ const Header = React.memo(function Header() {
                       </div>
                     </Link>
                     {isAdminUser && (
-                      <Link href="/admin" className="flex items-center px-4 py-3 text-purple-400 hover:bg-white/10 transition-colors duration-200" onClick={() => setAccountMenuOpen(false)}>
-                        <Icon name="FaShieldAlt" className="w-5 h-5 mr-3 text-purple-400" size={20} />
-                        <div className="flex-1">
-                          <div className="font-medium">Admin panel</div>
-                          <div className="text-sm text-purple-300">System administration</div>
+                      <Link href="/admin" className="flex items-center px-4 py-3 text-white hover:bg-white/10 transition-colors duration-200" onClick={() => setAccountMenuOpen(false)}>
+                        <Icon name="FaShieldAlt" className="w-5 h-5 mr-3 text-white" size={20} />
+                          <div className="flex-1">
+                          <div className="font-medium text-white">Admin panel</div>
+                          <div className="text-sm text-white/80">System administration</div>
                         </div>
                       </Link>
                     )}

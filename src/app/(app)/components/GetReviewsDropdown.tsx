@@ -86,7 +86,7 @@ const GetReviewsDropdown: React.FC<GetReviewsDropdownProps> = ({
       {isOpen && mounted && createPortal(
         <div 
           ref={dropdownRef}
-          className="fixed bg-white/70 backdrop-blur-md rounded-lg shadow-2xl border-2 border-white/30 py-2" 
+          className="fixed bg-gray-900/90 backdrop-blur-md rounded-lg shadow-2xl border border-white/30 py-2" 
           style={{ 
             top: buttonRef.current ? buttonRef.current.getBoundingClientRect().bottom + 4 : 0,
             left: buttonRef.current ? buttonRef.current.getBoundingClientRect().left : 0,
@@ -103,18 +103,18 @@ const GetReviewsDropdown: React.FC<GetReviewsDropdownProps> = ({
               }}
               className={`${
                 pathname === item.href || pathname.startsWith(item.href + '/')
-                  ? "bg-slate-blue/10 text-slate-blue"
-                  : "text-gray-700 hover:bg-slate-blue/10 hover:text-slate-blue"
+                  ? "bg-white/10 text-white"
+                  : "text-white hover:bg-white/10"
               } flex items-center px-4 py-3 transition-colors duration-200`}
             >
               {typeof item.icon === 'string' ? (
-                <Icon name={item.icon as any} className="w-5 h-5 mr-3" size={20} />
+                <Icon name={item.icon as any} className="w-5 h-5 mr-3 text-white" size={20} />
               ) : (
-                <item.icon className="w-5 h-5 mr-3" />
+                <item.icon className="w-5 h-5 mr-3 text-white" />
               )}
               <div className="flex-1">
-                <div className="font-medium">{item.label}</div>
-                <div className="text-sm text-slate-blue">{item.description}</div>
+                <div className="font-medium text-white">{item.label}</div>
+                <div className="text-sm text-white/80">{item.description}</div>
               </div>
             </Link>
           ))}
