@@ -476,8 +476,8 @@ const Header = React.memo(function Header() {
           
           {/* Right Side - Desktop: Account Switcher, Notifications and User Account | Mobile: Hamburger Menu */}
           <div className="flex items-center gap-4">
-            {/* Account Switcher - Desktop Only */}
-            <div className="hidden md:flex items-center">
+            {/* Account Switcher - Desktop Only (reserve width to prevent layout shift) */}
+            <div className="hidden md:flex items-center w-[220px] shrink-0 justify-end">
               <AccountSwitcher />
             </div>
             
