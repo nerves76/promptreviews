@@ -2122,14 +2122,18 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                     
                     {/* Icon in top-left corner */}
                     <div
-                      className="absolute rounded-full shadow-lg p-2 flex items-center justify-center backdrop-blur-md"
+                      className={`absolute rounded-full shadow-lg p-2 flex items-center justify-center ${
+                        (businessProfile?.card_transparency ?? 0.95) < 1 ? 'backdrop-blur-2xl' : ''
+                      }`}
                       style={{ 
                         top: '-20px',
                         left: '-20px',
                         zIndex: 20, 
-                        backgroundColor: applyCardTransparency(businessProfile?.card_bg || '#FFFFFF', businessProfile?.card_transparency ?? 0.95),
-                        backdropFilter: 'blur(8px)',
-                        WebkitBackdropFilter: 'blur(8px)'
+                        backgroundColor: (businessProfile?.card_transparency ?? 0.95) < 1
+                          ? `rgba(255,255,255, ${Math.min(0.55, Math.max(0.2, 1 - ((businessProfile?.card_transparency ?? 0.95)) + 0.2))})`
+                          : applyCardTransparency(businessProfile?.card_bg || '#FFFFFF', businessProfile?.card_transparency ?? 0.95),
+                        backdropFilter: (businessProfile?.card_transparency ?? 0.95) < 1 ? 'blur(12px)' : undefined,
+                        WebkitBackdropFilter: (businessProfile?.card_transparency ?? 0.95) < 1 ? 'blur(12px)' : undefined
                       }}
                     >
                       <Icon 

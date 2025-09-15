@@ -529,7 +529,7 @@ const Header = React.memo(function Header() {
                 {showNotifications && mounted && createPortal(
                   <>
                     <div
-                      className="fixed inset-0 bg-black/40 backdrop-blur-[2px]"
+                      className="fixed inset-0 bg-black/40"
                       style={{ zIndex: 2147483648 }}
                       onClick={() => setShowNotifications(false)}
                     />
@@ -599,7 +599,7 @@ const Header = React.memo(function Header() {
                 {accountMenuOpen && mounted && createPortal(
                   <>
                     <div
-                      className="fixed inset-0 bg-black/40 backdrop-blur-[2px]"
+                      className="fixed inset-0 bg-black/40"
                       style={{ zIndex: 2147483646 }}
                       onClick={() => setAccountMenuOpen(false)}
                     />

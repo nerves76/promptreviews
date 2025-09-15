@@ -888,7 +888,7 @@ const DashboardContent = React.memo(function DashboardContent({
 
           {/* Post-save share modal with star fall animation */}
           {showPostSaveModal && postSaveData && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
               {/* Star Falling Animation - always visible when modal is shown */}
               {showStars && starProps.map((props, i) => (
                 <span
