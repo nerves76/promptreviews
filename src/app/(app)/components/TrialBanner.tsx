@@ -54,11 +54,18 @@ export default function TrialBanner({
       }
 
       const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
-      
-      if (days > 0) {
+      const hours = Math.floor((timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+
+      // Emphasize urgency as trial nears end
+      if (days > 3) {
         setTimeRemaining(`${days} day${days !== 1 ? 's' : ''} remaining`);
+      } else if (days > 0) {
+        // 1–3 days left
+        setTimeRemaining(`Only ${days} day${days !== 1 ? 's' : ''} left`);
+      } else if (hours > 0) {
+        setTimeRemaining(`Only ${hours} hour${hours !== 1 ? 's' : ''} left`);
       } else {
-        setTimeRemaining("Less than 1 day remaining");
+        setTimeRemaining("Less than 1 hour left");
       }
     };
 
