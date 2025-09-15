@@ -490,8 +490,21 @@ export default function UniversalEditPromptPage() {
             )}
           </div>
         </PageCard>
+
+        {/* Floating Save & Publish button - bottom right */}
+        <div className="fixed bottom-8 right-8 z-50">
+          <button
+            type="button"
+            className="bg-slate-blue text-white px-6 py-3 rounded-lg font-semibold shadow-lg hover:bg-slate-blue/90 transition-all transform hover:scale-105 flex items-center gap-2"
+            onClick={handleSave}
+            disabled={isSaving}
+          >
+            <Icon name="FaSave" className="w-5 h-5" />
+            {isSaving ? "Saving..." : "Save & publish"}
+          </button>
+        </div>
       )}
-      
+
       {useStandardizedForm && (
         <div className="w-full bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600 pb-16 md:pb-24 lg:pb-32">
           <div className="flex flex-col mt-0 md:mt-[3px] mb-4 px-6 pt-8">
