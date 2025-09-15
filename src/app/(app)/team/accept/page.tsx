@@ -11,6 +11,7 @@ import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { CheckCircleIcon, XCircleIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 import { useGlobalLoader } from '@/app/(app)/components/GlobalLoaderProvider';
+import AppLoader from "@/app/(app)/components/AppLoader";
 
 interface InvitationData {
   id: string;
