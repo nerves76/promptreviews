@@ -92,61 +92,53 @@ export async function POST(request: NextRequest) {
     }
     
     
-    // Wait a moment for trigger to potentially create account
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // Check if account was created by trigger
+    // The database trigger should create the account, but it may not fire with admin.createUser
+    // Wait briefly for the trigger to complete
+    await new Promise(resolve => setTimeout(resolve, 500));
+
     const userId = data.user.id;
+
+    // Verify the trigger created the account successfully
     const { data: existingAccount } = await supabase
       .from('accounts')
       .select('id')
       .eq('id', userId)
       .single();
-    
+
     if (!existingAccount) {
-      
-      try {
-        // Create account manually
-        const { error: accountError } = await supabase
-          .from('accounts')
-          .insert({
-            id: userId,
-            user_id: userId,
-            email,
-            first_name: firstName,
-            last_name: lastName,
-            plan: 'no_plan',
-            trial_start: null,  // Don't set trial dates during signup
-            trial_end: null,    // Trial dates are only set when user chooses a paid plan
-            is_free_account: false,
-            has_had_paid_plan: false,  // New accounts haven't had paid plans yet
-            custom_prompt_page_count: 0,
-            contact_count: 0,
-            review_notifications_enabled: true,
-          });
-        
-        if (accountError) {
-          console.error('❌ Account creation error:', accountError);
-          
-          // If it's a unique constraint error, the account might already exist
-          if (accountError.code === '23505') {
-          } else {
-            // For other errors, we should fail the signup
-            // Delete the user since account creation failed
-            await supabase.auth.admin.deleteUser(userId);
-            
-            return NextResponse.json(
-              { error: 'Failed to create account. Please try again.' },
-              { status: 500 }
-            );
-          }
-        } else {
-        }
-      } catch (accountCreationError) {
-        console.error('❌ Account creation exception:', accountCreationError);
-        // Don't fail the signup - user is still created
+      console.log('⚠️ Trigger did not create account, creating manually for user:', userId);
+
+      // Create account manually since trigger didn't fire
+      // This is safe because we check for existence first
+      const { error: accountError } = await supabase
+        .from('accounts')
+        .insert({
+          id: userId,
+          email,
+          first_name: firstName,
+          last_name: lastName,
+          plan: 'no_plan',
+          trial_start: null,
+          trial_end: null,
+          is_free_account: false,
+          has_had_paid_plan: false,
+          custom_prompt_page_count: 0,
+          contact_count: 0,
+          review_notifications_enabled: true,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        });
+
+      if (accountError && accountError.code !== '23505') { // Ignore duplicate key errors
+        console.error('❌ Failed to create account:', accountError);
+        // Delete the user since account creation failed
+        await supabase.auth.admin.deleteUser(userId);
+
+        return NextResponse.json(
+          { error: 'Failed to create account. Please try again.' },
+          { status: 500 }
+        );
       }
-    } else {
     }
     
     // ALWAYS ensure account_users link exists, regardless of how account was created

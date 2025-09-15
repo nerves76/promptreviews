@@ -252,6 +252,27 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
   // Store the business ID for updates
   const [businessId, setBusinessId] = React.useState<string | null>(null);
 
+  // Function to check if current settings match a preset
+  const checkIfMatchesPreset = (currentSettings: typeof settings): string | null => {
+    for (const [key, preset] of Object.entries(presets)) {
+      const { name, ...presetSettings } = preset;
+      let matches = true;
+
+      // Compare each setting field
+      for (const [field, value] of Object.entries(presetSettings)) {
+        if (currentSettings[field as keyof typeof currentSettings] !== value) {
+          matches = false;
+          break;
+        }
+      }
+
+      if (matches) {
+        return key;
+      }
+    }
+    return null; // No preset matches - it's custom
+  };
+
   // Update parent component whenever settings change (but not on initial load)
   const [isInitialized, setIsInitialized] = React.useState(false);
   const [loading, setLoading] = React.useState(true);
@@ -382,6 +403,36 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
           card_border_transparency: (business.card_border_transparency ?? s.card_border_transparency) as number,
           kickstarters_background_design: (business.kickstarters_background_design ?? s.kickstarters_background_design) as boolean,
         }));
+
+        // After loading settings, check if they match any preset
+        const matchingPreset = checkIfMatchesPreset({
+          ...s,
+          primary_font: business.primary_font || "Inter",
+          secondary_font: business.secondary_font || "Roboto",
+          primary_color: business.primary_color || "#2563EB",
+          secondary_color: business.secondary_color || "#2563EB",
+          background_type: business.background_type || "gradient",
+          background_color: business.background_color || "#FFFFFF",
+          gradient_start: business.gradient_start || "#2563EB",
+          gradient_end: business.gradient_end || "#914AAE",
+          card_bg: business.card_bg || "#FFFFFF",
+          card_text: business.card_text || "#1A1A1A",
+          card_transparency: business.card_transparency ?? 0.95,
+          gradient_middle: business.gradient_middle || s.gradient_middle,
+          card_placeholder_color: business.card_placeholder_color || s.card_placeholder_color,
+          card_inner_shadow: (business.card_inner_shadow ?? s.card_inner_shadow) as boolean,
+          card_shadow_color: business.card_shadow_color || s.card_shadow_color,
+          card_shadow_intensity: (business.card_shadow_intensity ?? s.card_shadow_intensity) as number,
+          card_border_width: (business.card_border_width ?? s.card_border_width) as number,
+          card_border_color: business.card_border_color || s.card_border_color,
+          card_border_transparency: (business.card_border_transparency ?? s.card_border_transparency) as number,
+          kickstarters_background_design: (business.kickstarters_background_design ?? s.kickstarters_background_design) as boolean,
+        });
+        setSelectedPreset(matchingPreset || 'custom');
+      } else {
+        // No business data, check default settings
+        const matchingPreset = checkIfMatchesPreset(settings);
+        setSelectedPreset(matchingPreset || 'custom');
       }
     } catch (error) {
       console.error("Error fetching style settings:", error);
@@ -579,10 +630,18 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
   const [successMessage, setSuccessMessage] = React.useState("");
   
   // Function to apply a preset with confirmation
-  const applyPreset = (presetKey: keyof typeof presets) => {
-    const preset = presets[presetKey];
+  const applyPreset = (presetKey: string) => {
+    // Don't do anything if selecting custom - it's not a real preset
+    if (presetKey === 'custom') {
+      setSelectedPreset('custom');
+      return;
+    }
+
+    const preset = presets[presetKey as keyof typeof presets];
+    if (!preset) return;
+
     const message = `Apply the "${preset.name}" preset? This will replace all current style settings.`;
-    
+
     if (window.confirm(message)) {
       const { name, ...presetSettings } = preset; // Exclude the name property
       setSettings(presetSettings);
@@ -596,6 +655,14 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
       }, 4000);
     }
   };
+
+  // Check for custom settings whenever settings change
+  React.useEffect(() => {
+    if (isInitialized) {
+      const matchingPreset = checkIfMatchesPreset(settings);
+      setSelectedPreset(matchingPreset || 'custom');
+    }
+  }, [settings, isInitialized]);
 
   async function handleReset() {
     if (window.confirm('Are you sure you want to reset all style settings to default? This cannot be undone.')) {
@@ -724,10 +791,11 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
                 Choose a preset
               </label>
               <select
-                value={selectedPreset || 'glassy'}
-                onChange={(e) => applyPreset(e.target.value as keyof typeof presets)}
+                value={selectedPreset || 'custom'}
+                onChange={(e) => applyPreset(e.target.value)}
                 className="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
               >
+                <option value="custom">Custom - Your unique style</option>
                 <option value="glassy">Glassy - Like a martini for reviews</option>
                 <option value="solid">Solidy - Dependable like a bullet-proof briefcase</option>
                 <option value="paper">Papery - Leather-bound books, rich mahogany</option>

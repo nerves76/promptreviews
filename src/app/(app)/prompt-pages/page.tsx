@@ -274,15 +274,29 @@ function PromptPagesContent() {
             updated_at: new Date().toISOString()
           };
         } else {
-          const { data: universalPages } = await supabase
-            .from("prompt_pages")
-            .select("*")
-            .eq("account_id", accountId)
-            .eq("is_universal", true)
-            .order("created_at", { ascending: false })
-            .limit(1);
-          
-          universalPage = universalPages?.[0];
+          // Include Authorization header to ensure server can authenticate
+          let authHeaders: Record<string, string> = { 'X-Selected-Account': accountId };
+          try {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session?.access_token) {
+              authHeaders['Authorization'] = `Bearer ${session.access_token}`;
+            }
+          } catch {}
+
+          const ensureRes = await fetch('/api/prompt-pages/ensure-universal', {
+            method: 'POST',
+            credentials: 'include',
+            headers: authHeaders,
+          });
+          if (ensureRes.ok) {
+            const ensureData = await ensureRes.json();
+            universalPage = ensureData.page || null;
+          } else {
+            if (process.env.NODE_ENV === 'development') {
+              try { const err = await ensureRes.json(); console.warn('ensure-universal failed', ensureRes.status, err); } catch {}
+            }
+            universalPage = null;
+          }
         }
         setUniversalPromptPage(universalPage);
         if (universalPage?.slug) {

@@ -167,56 +167,90 @@ export async function POST(request: NextRequest) {
 
     const supabase = createServiceRoleClient();
     
-    // If no accountId, this is a user creating a new account/business
-    // Create a new independent account with proper UUID
+    // If no accountId, check if account exists with user.id (created by trigger)
     if (!accountId) {
-      console.log('[BUSINESSES] No account found for user, creating new independent account');
-      
-      // Generate a new UUID for the account (independent from user.id)
-      const newAccountId = crypto.randomUUID();
-      const { data: newAccountData, error: createAccountError } = await supabase
+      console.log('[BUSINESSES] No account found via getRequestAccountId, checking if trigger created one');
+
+      // First check if an account already exists with the user's ID (created by trigger)
+      const { data: existingAccount, error: checkError } = await supabase
         .from('accounts')
-        .insert({
-          id: newAccountId, // Explicitly set the UUID
-          user_id: user.id, // CRITICAL: Set user_id for the trigger
-          email: user.email || businessData.business_email,
-          first_name: user.user_metadata?.first_name || '',
-          last_name: user.user_metadata?.last_name || '',
-          plan: 'no_plan', // New accounts start with no plan
-          is_free_account: false,
-          has_had_paid_plan: false,
-          custom_prompt_page_count: 0,
-          contact_count: 0,
-          review_notifications_enabled: true,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        })
         .select('id')
+        .eq('id', user.id)
         .single();
+
+      if (existingAccount) {
+        console.log('[BUSINESSES] Found existing account created by trigger:', existingAccount.id);
+        accountId = existingAccount.id;
+
+        // Update the account with the business owner's name if not already set
+        const { error: updateError } = await supabase
+          .from('accounts')
+          .update({
+            first_name: user.user_metadata?.first_name || businessData.first_name || '',
+            last_name: user.user_metadata?.last_name || businessData.last_name || '',
+            email: user.email || businessData.business_email,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', accountId);
+
+        if (updateError) {
+          console.error('[BUSINESSES] Failed to update account with names:', updateError);
+        }
+      } else {
+        // Only create a new account if one doesn't exist
+        console.log('[BUSINESSES] No existing account found, creating new account with user.id');
+
+        // Use user.id as the account ID to match what the trigger would create
+        const { data: newAccountData, error: createAccountError } = await supabase
+          .from('accounts')
+          .insert({
+            id: user.id, // Use user.id to match trigger behavior
+            user_id: user.id,
+            email: user.email || businessData.business_email,
+            first_name: user.user_metadata?.first_name || businessData.first_name || '',
+            last_name: user.user_metadata?.last_name || businessData.last_name || '',
+            plan: 'no_plan',
+            is_free_account: false,
+            has_had_paid_plan: false,
+            custom_prompt_page_count: 0,
+            contact_count: 0,
+            review_notifications_enabled: true,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          })
+          .select('id')
+          .single();
       
-      if (createAccountError) {
-        console.error('[BUSINESSES] Failed to create account:');
-        console.error('[BUSINESSES] Error object:', JSON.stringify(createAccountError, null, 2));
-        console.error('[BUSINESSES] Insert data:', {
-          id: newAccountId,
-          email: user.email || businessData.business_email,
-          first_name: user.user_metadata?.first_name || '',
-          last_name: user.user_metadata?.last_name || ''
-        });
-        return NextResponse.json(
-          { 
-            error: "Failed to create account",
-            details: createAccountError.message,
-            code: createAccountError.code,
-            hint: createAccountError.hint
-          },
-          { status: 400 }
-        );
-      }
-      
-      // Use the newly created account ID
-      accountId = newAccountData.id;
-      console.log('[BUSINESSES] Created new account with ID:', accountId);
+        if (createAccountError) {
+          console.error('[BUSINESSES] Failed to create account:');
+          console.error('[BUSINESSES] Error object:', JSON.stringify(createAccountError, null, 2));
+          console.error('[BUSINESSES] Insert data:', {
+            id: user.id,
+            email: user.email || businessData.business_email,
+            first_name: user.user_metadata?.first_name || businessData.first_name || '',
+            last_name: user.user_metadata?.last_name || businessData.last_name || ''
+          });
+          // Check if it's a duplicate key error (account already exists)
+          if (createAccountError.code === '23505') {
+            // Account already exists, try to use it
+            console.log('[BUSINESSES] Account already exists, using existing account');
+            accountId = user.id;
+          } else {
+            return NextResponse.json(
+              {
+                error: "Failed to create account",
+                details: createAccountError.message,
+                code: createAccountError.code,
+                hint: createAccountError.hint
+              },
+              { status: 400 }
+            );
+          }
+        } else {
+          // Use the newly created account ID
+          accountId = newAccountData.id;
+        }
+        console.log('[BUSINESSES] Created new account with ID:', accountId);
       
       // Create account_users link for owner
       // Double-check user.id exists before inserting
@@ -297,6 +331,7 @@ export async function POST(request: NextRequest) {
           );
         }
       }
+      } // Close the else block from line 199
     } else {
       // Verify the account exists if we have an accountId
       const { data: accountExists, error: accountCheckError } = await supabase

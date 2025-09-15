@@ -52,6 +52,7 @@ const Dashboard = React.memo(function Dashboard() {
     isLoading: authLoading,
     accountLoading,
     hasBusiness,
+    selectedAccountId,
     signOut,
     refreshSession,
     refreshAccount
@@ -106,7 +107,8 @@ const Dashboard = React.memo(function Dashboard() {
   
   // Load businesses data
   const loadBusinessesData = useCallback(async () => {
-    if (!user?.id || !account?.id || businessesLoading) return;
+    const currentAccountId = selectedAccountId || account?.id;
+    if (!user?.id || !currentAccountId || businessesLoading) return;
     
     try {
       setBusinessesLoading(true);
@@ -115,7 +117,7 @@ const Dashboard = React.memo(function Dashboard() {
       const { data: businesses, error } = await supabase
         .from('businesses')
         .select('*')
-        .eq('account_id', account.id)
+        .eq('account_id', currentAccountId)
         .order('created_at', { ascending: false });
       
       if (error) {
@@ -134,11 +136,12 @@ const Dashboard = React.memo(function Dashboard() {
     } finally {
       setBusinessesLoading(false);
     }
-  }, [user?.id, account?.id, businessesLoading, supabase]);
+  }, [user?.id, account?.id, selectedAccountId, businessesLoading, supabase]);
 
   // Load dashboard-specific data (widgets, prompt pages, reviews)
   const loadDashboardSpecificData = useCallback(async () => {
-    if (!user?.id || !account?.id) return;
+    const currentAccountId = selectedAccountId || account?.id;
+    if (!user?.id || !currentAccountId) return;
     
     try {
       setIsDashboardLoading(true);
@@ -150,13 +153,13 @@ const Dashboard = React.memo(function Dashboard() {
         supabase
           .from("prompt_pages")
           .select("*")
-          .eq("account_id", account.id)
+          .eq("account_id", currentAccountId)
           .order("created_at", { ascending: false }),
         
         supabase
           .from("widgets")
           .select("*")
-          .eq("account_id", account.id)
+          .eq("account_id", currentAccountId)
           .order("created_at", { ascending: false }),
         
         // Fetch review submissions using JOIN for better performance
@@ -172,7 +175,7 @@ const Dashboard = React.memo(function Dashboard() {
                 verified,
                 prompt_pages!inner(account_id)
               `)
-              .eq("prompt_pages.account_id", account.id);
+              .eq("prompt_pages.account_id", currentAccountId);
             
             if (result.error) {
               console.error('❌ Dashboard: review_submissions JOIN query failed:', result.error);
@@ -217,9 +220,40 @@ const Dashboard = React.memo(function Dashboard() {
       }
 
       // Separate universal and custom prompt pages
-      const universalPromptPage = promptPages.find(pp => pp.is_universal);
+      let universalPromptPage = promptPages.find(pp => pp.is_universal);
       const customPromptPages = promptPages.filter(pp => !pp.is_universal);
-      const universalUrl = universalPromptPage ? `${window.location.origin}/r/${universalPromptPage.slug}` : "";
+      let universalUrl = universalPromptPage ? `${window.location.origin}/r/${universalPromptPage.slug}` : "";
+
+      // Ensure the universal prompt page exists for this account via API (service role)
+      if (!universalPromptPage) {
+        try {
+          // Include Authorization header to ensure server can authenticate
+          let authHeaders: Record<string, string> = { 'X-Selected-Account': (selectedAccountId || account.id) as string };
+          try {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session?.access_token) {
+              authHeaders['Authorization'] = `Bearer ${session.access_token}`;
+            }
+          } catch {}
+
+          const ensureRes = await fetch('/api/prompt-pages/ensure-universal', {
+            method: 'POST',
+            credentials: 'include',
+            headers: authHeaders,
+          });
+          if (ensureRes.ok) {
+            const ensureData = await ensureRes.json();
+            universalPromptPage = ensureData.page || null;
+            if (universalPromptPage?.slug) {
+              universalUrl = `${window.location.origin}/r/${universalPromptPage.slug}`;
+            }
+          } else {
+            if (process.env.NODE_ENV === 'development') {
+              try { const err = await ensureRes.json(); console.warn('ensure-universal failed', ensureRes.status, err); } catch {}
+            }
+          }
+        } catch {}
+      }
 
       // Calculate review statistics with proper date filtering
       const now = new Date();
@@ -279,7 +313,7 @@ const Dashboard = React.memo(function Dashboard() {
     } finally {
       setIsDashboardLoading(false);
     }
-  }, [user?.id, account?.id, supabase]);
+  }, [user?.id, account?.id, selectedAccountId, supabase]);
 
   // Add a ref to track if businessCreated param was handled
   const businessCreatedHandled = useRef(false);
