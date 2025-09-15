@@ -558,11 +558,15 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
 
       console.log('[StyleModal] Sending update via API:', updatePayload);
 
+      // Get the selected account from localStorage for the header
+      const selectedAccount = localStorage.getItem('selectedAccount');
+
       // Use the API endpoint for proper account isolation
       const response = await fetch('/api/businesses/update-style', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          ...(selectedAccount && { 'X-Selected-Account': selectedAccount }),
         },
         credentials: 'include', // Include cookies for authentication
         body: JSON.stringify(updatePayload),

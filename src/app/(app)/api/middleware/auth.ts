@@ -57,9 +57,19 @@ export async function verifyAuth(request: NextRequest): Promise<AuthResult> {
         const cookieStore = await cookies();
         
         console.log('[AUTH] Attempting cookie-based auth...');
-        
-        // Check if we have the auth token cookie
-        const authToken = cookieStore.get('sb-127-auth-token')?.value;
+
+        // Check if we have the auth token cookie - dynamically find it
+        // In production it's sb-ltneloufqjktdplodvao-auth-token, locally it's sb-127-auth-token
+        let authToken: string | undefined;
+        const allCookies = cookieStore.getAll();
+        for (const cookie of allCookies) {
+          if (cookie.name.startsWith('sb-') && cookie.name.endsWith('-auth-token')) {
+            authToken = cookie.value;
+            console.log('[AUTH] Found auth cookie:', cookie.name);
+            break;
+          }
+        }
+
         if (!authToken) {
           console.log('[AUTH] No auth token cookie found');
           authError = new Error('No auth session');
