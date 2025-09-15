@@ -81,14 +81,16 @@ export default function BusinessInfoCard({ businessProfile, reviewType, promptPa
         .join(", ");
     }
   };
+  const transparency = businessProfile?.card_transparency ?? 0.95;
+  const blurEnabled = transparency < 1;
   return (
     <div 
-      className={`rounded-2xl shadow-lg px-6 pt-6 pb-12 mb-8 flex flex-col items-center max-w-xl mx-auto animate-slideup relative mt-32 backdrop-blur-sm ${getFontClass(businessProfile?.primary_font || "")}`} 
+      className={`rounded-2xl shadow-lg px-6 pt-6 pb-12 mb-8 flex flex-col items-center max-w-xl mx-auto animate-slideup relative mt-32 ${blurEnabled ? 'backdrop-blur-sm' : ''} ${getFontClass(businessProfile?.primary_font || "")}`} 
       style={{
-        background: applyCardTransparency(businessProfile?.card_bg || "#FFFFFF", businessProfile?.card_transparency ?? 0.95),
+        background: applyCardTransparency(businessProfile?.card_bg || "#FFFFFF", transparency),
         color: businessProfile?.card_text || "#1A1A1A",
         border: getCardBorderStyle(),
-        backdropFilter: 'blur(8px)'
+        backdropFilter: blurEnabled ? 'blur(8px)' : undefined
       }}
     >
       {businessProfile?.card_inner_shadow && (
@@ -109,9 +111,9 @@ export default function BusinessInfoCard({ businessProfile, reviewType, promptPa
         <div 
           className="rounded-full shadow-lg flex items-center justify-center w-full h-full aspect-square"
           style={{ 
-            backgroundColor: applyCardTransparency(businessProfile?.card_bg || '#FFFFFF', businessProfile.card_transparency ?? 0.95),
-            backdropFilter: 'blur(24px)',
-            WebkitBackdropFilter: 'blur(24px)',
+            backgroundColor: applyCardTransparency(businessProfile?.card_bg || '#FFFFFF', transparency),
+            backdropFilter: blurEnabled ? 'blur(24px)' : undefined,
+            WebkitBackdropFilter: blurEnabled ? 'blur(24px)' : undefined,
             border: `${businessProfile?.card_border_width ?? 2}px solid rgba(255, 255, 255, ${businessProfile?.card_border_transparency ?? 0.8})`,
             padding: '1px'
           }}

@@ -106,14 +106,16 @@ export default function ReviewPlatformCard({
     return `rgba(${r}, ${g}, ${b}, 0.5)`;
   };
 
+  const transparency = businessProfile?.card_transparency ?? 0.95;
+  const blurEnabled = transparency < 1;
   return (
     <div
-      className="rounded-xl shadow-lg p-6 relative mb-8 backdrop-blur-sm"
+      className={`rounded-xl shadow-lg p-6 relative mb-8 ${blurEnabled ? 'backdrop-blur-sm' : ''}`}
       style={{
-        background: applyCardTransparency(businessProfile.card_bg || "#FFFFFF", businessProfile.card_transparency ?? 0.95),
+        background: applyCardTransparency(businessProfile.card_bg || "#FFFFFF", transparency),
         color: businessProfile.card_text || "#1A1A1A",
         border: getCardBorderStyle(),
-        backdropFilter: 'blur(8px)'
+        backdropFilter: blurEnabled ? 'blur(8px)' : undefined
       }}
     >
       {businessProfile?.card_inner_shadow && (
@@ -135,10 +137,10 @@ export default function ReviewPlatformCard({
           top: '-20px',
           left: '-20px',
           zIndex: 20, 
-          backgroundColor: applyCardTransparency(businessProfile?.card_bg || '#FFFFFF', businessProfile?.card_transparency ?? 0.95),
+          backgroundColor: applyCardTransparency(businessProfile?.card_bg || '#FFFFFF', transparency),
           border: getCardBorderStyle(),
-          backdropFilter: 'blur(12px)',
-          WebkitBackdropFilter: 'blur(12px)'
+          backdropFilter: blurEnabled ? 'blur(12px)' : undefined,
+          WebkitBackdropFilter: blurEnabled ? 'blur(12px)' : undefined
         }}
       >
         <Icon

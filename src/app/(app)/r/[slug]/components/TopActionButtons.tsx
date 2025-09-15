@@ -78,8 +78,8 @@ export default function TopActionButtons({
             borderColor: businessProfile?.card_border_color || "#FFFFFF",
             borderWidth: businessProfile?.card_border_width || 1,
             color: businessProfile?.card_text || "#FFFFFF",
-            backdropFilter: 'blur(5px)',
-            WebkitBackdropFilter: 'blur(5px)',
+            backdropFilter: (businessProfile?.card_transparency ?? 1) < 1 ? 'blur(5px)' : undefined,
+            WebkitBackdropFilter: (businessProfile?.card_transparency ?? 1) < 1 ? 'blur(5px)' : undefined,
           }}
           onMouseEnter={(e) => {
             e.currentTarget.style.opacity = "0.8";

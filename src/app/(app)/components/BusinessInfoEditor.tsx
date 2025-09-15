@@ -40,8 +40,9 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
   
   // 🚨 DEBUG: Track component lifecycle
   
-  // Storage key for form data persistence
-  const formStorageKey = 'businessInfoEditorForm';
+  // Storage keys for form data and selections, namespaced by account to avoid cross-account bleed
+  const formStorageKey = accountId ? `businessInfoEditorForm_${accountId}` : 'businessInfoEditorForm_noacct';
+  const selectedLocationsKey = accountId ? `business-info-selected-locations_${accountId}` : 'business-info-selected-locations_noacct';
   
   const [selectedLocationIds, setSelectedLocationIds] = useState<string[]>([]);
   const [isLocationDropdownOpen, setIsLocationDropdownOpen] = useState(false);
@@ -107,13 +108,13 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
   useEffect(() => {
     // Persist selection to localStorage to survive component remounts
     if (selectedLocationIds.length > 0) {
-      localStorage.setItem('business-info-selected-locations', JSON.stringify(selectedLocationIds));
+      localStorage.setItem(selectedLocationsKey, JSON.stringify(selectedLocationIds));
     }
-  }, [selectedLocationIds]);
+  }, [selectedLocationIds, selectedLocationsKey]);
   
   // Restore selected locations on mount
   useEffect(() => {
-    const savedSelections = localStorage.getItem('business-info-selected-locations');
+    const savedSelections = localStorage.getItem(selectedLocationsKey);
     if (savedSelections && selectedLocationIds.length === 0) {
       try {
         const parsed = JSON.parse(savedSelections);
@@ -124,7 +125,7 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
         console.error('Failed to parse saved location selections:', error);
       }
     }
-  }, [locations]); // Run when locations are available
+  }, [locations, selectedLocationsKey]); // Run when locations are available
   
   // Auto-save business info to localStorage
   useEffect(() => {

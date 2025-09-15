@@ -144,7 +144,13 @@ export default function BasePromptPageForm({
   const router = useRouter();
   
   // Generate a unique key for this form instance to persist data
-  const formStorageKey = `promptPageForm_${campaignType || 'unknown'}_${initialData?.id || 'new'}`;
+  // Include account_id to prevent cross-account bleed when one user has multiple accounts
+  const formStorageKey = React.useMemo(() => {
+    const accountIdPart = businessProfile?.account_id ? `${businessProfile.account_id}` : 'noacct';
+    const idPart = initialData?.id || 'new';
+    const campaignPart = campaignType || 'unknown';
+    return `promptPageForm_${accountIdPart}_${campaignPart}_${idPart}`;
+  }, [businessProfile?.account_id, campaignType, initialData?.id]);
   
   // Initialize form state with defaults, checking localStorage first
   const [formData, setFormData] = useState<BaseFormState>(() => {

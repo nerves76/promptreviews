@@ -200,6 +200,9 @@ export function useAccountSelection() {
       if (key && (
         key.startsWith('widgetDesign_') || 
         key.startsWith('widgetEditorForm_') ||
+        key.startsWith('promptPageForm_') ||
+        key.startsWith('businessInfoEditorForm') ||
+        key.startsWith('business-info-selected-locations') ||
         key.startsWith('cached_') ||
         key.includes('_cache')
       )) {

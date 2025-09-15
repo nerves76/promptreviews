@@ -12,6 +12,7 @@ import { Providers } from "@/components/Providers";
 import BodyWrapper from "./components/BodyWrapper";
 import { inter, fontVariables } from "../fonts";
 import IconSpriteInjector from "./components/IconSpriteInjector";
+import GlobalLocalStorageMigration from "./components/GlobalLocalStorageMigration";
 
 // Sentry is initialized in instrumentation.ts - no need to import here
 
@@ -60,6 +61,7 @@ export default function RootLayout({
           <BodyWrapper>
             <ClientRoot>
               <IconSpriteInjector />
+              <GlobalLocalStorageMigration />
               <AppMain>{children}</AppMain>
             </ClientRoot>
           </BodyWrapper>

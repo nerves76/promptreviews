@@ -46,8 +46,9 @@ export const WidgetEditorForm: React.FC<WidgetEditorFormProps> = ({
 }) => {
   const supabase = createClient();
   const { selectedAccountId, account } = useAuth();
-  // Storage key for form data persistence
-  const formStorageKey = `widgetEditorForm_${widgetToEdit?.id || 'new'}`;
+  // Storage key for form data persistence, include account to avoid cross-account bleed for 'new' widgets
+  const accountIdPart = selectedAccountId || account?.id || 'noacct';
+  const formStorageKey = `widgetEditorForm_${accountIdPart}_${widgetToEdit?.id || 'new'}`;
   
   const [form, setForm] = useState(() => {
     // Try to restore from localStorage first
