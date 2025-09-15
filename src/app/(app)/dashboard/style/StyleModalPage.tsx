@@ -382,8 +382,7 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
       }
 
       if (business) {
-        setSettings(s => ({
-          ...s,
+        const newSettings = {
           // Core, older columns (should exist in all deployments)
           primary_font: business.primary_font || "Inter",
           secondary_font: business.secondary_font || "Roboto",
@@ -397,42 +396,22 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
           card_text: business.card_text || "#1A1A1A",
           card_transparency: business.card_transparency ?? 0.95,
 
-          // Newer/optional columns (fallbacks if missing in live DB)
-          gradient_middle: business.gradient_middle || s.gradient_middle,
-          card_placeholder_color: business.card_placeholder_color || s.card_placeholder_color,
-          card_inner_shadow: (business.card_inner_shadow ?? s.card_inner_shadow) as boolean,
-          card_shadow_color: business.card_shadow_color || s.card_shadow_color,
-          card_shadow_intensity: (business.card_shadow_intensity ?? s.card_shadow_intensity) as number,
-          card_border_width: (business.card_border_width ?? s.card_border_width) as number,
-          card_border_color: business.card_border_color || s.card_border_color,
-          card_border_transparency: (business.card_border_transparency ?? s.card_border_transparency) as number,
-          kickstarters_background_design: (business.kickstarters_background_design ?? s.kickstarters_background_design) as boolean,
-        }));
+          // Newer/optional columns (fallbacks from current settings if missing in DB)
+          gradient_middle: business.gradient_middle || settings.gradient_middle,
+          card_placeholder_color: business.card_placeholder_color || settings.card_placeholder_color,
+          card_inner_shadow: (business.card_inner_shadow ?? settings.card_inner_shadow) as boolean,
+          card_shadow_color: business.card_shadow_color || settings.card_shadow_color,
+          card_shadow_intensity: (business.card_shadow_intensity ?? settings.card_shadow_intensity) as number,
+          card_border_width: (business.card_border_width ?? settings.card_border_width) as number,
+          card_border_color: business.card_border_color || settings.card_border_color,
+          card_border_transparency: (business.card_border_transparency ?? settings.card_border_transparency) as number,
+          kickstarters_background_design: (business.kickstarters_background_design ?? settings.kickstarters_background_design) as boolean,
+        };
+
+        setSettings(newSettings);
 
         // After loading settings, check if they match any preset
-        const matchingPreset = checkIfMatchesPreset({
-          ...s,
-          primary_font: business.primary_font || "Inter",
-          secondary_font: business.secondary_font || "Roboto",
-          primary_color: business.primary_color || "#2563EB",
-          secondary_color: business.secondary_color || "#2563EB",
-          background_type: business.background_type || "gradient",
-          background_color: business.background_color || "#FFFFFF",
-          gradient_start: business.gradient_start || "#2563EB",
-          gradient_end: business.gradient_end || "#914AAE",
-          card_bg: business.card_bg || "#FFFFFF",
-          card_text: business.card_text || "#1A1A1A",
-          card_transparency: business.card_transparency ?? 0.95,
-          gradient_middle: business.gradient_middle || s.gradient_middle,
-          card_placeholder_color: business.card_placeholder_color || s.card_placeholder_color,
-          card_inner_shadow: (business.card_inner_shadow ?? s.card_inner_shadow) as boolean,
-          card_shadow_color: business.card_shadow_color || s.card_shadow_color,
-          card_shadow_intensity: (business.card_shadow_intensity ?? s.card_shadow_intensity) as number,
-          card_border_width: (business.card_border_width ?? s.card_border_width) as number,
-          card_border_color: business.card_border_color || s.card_border_color,
-          card_border_transparency: (business.card_border_transparency ?? s.card_border_transparency) as number,
-          kickstarters_background_design: (business.kickstarters_background_design ?? s.kickstarters_background_design) as boolean,
-        });
+        const matchingPreset = checkIfMatchesPreset(newSettings);
         setSelectedPreset(matchingPreset || 'custom');
       } else {
         // No business data, check default settings
