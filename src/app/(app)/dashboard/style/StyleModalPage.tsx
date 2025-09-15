@@ -344,9 +344,11 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
       // Use prop accountId - should always be provided by parent component
       const accountId = propAccountId;
       if (!accountId) {
+        console.error('[StyleModal] No accountId provided as prop');
         setLoading(false);
         return;
       }
+      console.log('[StyleModal] Loading settings for accountId:', accountId);
 
       // IMPORTANT: Avoid selecting specific columns to prevent errors if schema hasn't been migrated yet
       // Select all columns and then safely map to settings with fallbacks
@@ -358,10 +360,13 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
 
       // Handle multiple businesses - use the first one (oldest)
       const business = businessData && businessData.length > 0 ? businessData[0] : null;
+      console.log('[StyleModal] Found businesses:', businessData?.length || 0, 'Selected business ID:', business?.id);
 
       // Store the business ID for updates
       if (business?.id) {
         setBusinessId(business.id);
+      } else {
+        console.error('[StyleModal] No business found for account:', accountId);
       }
 
       // Fetch universal prompt page
@@ -515,30 +520,19 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
   async function handleSave() {
     setSaving(true);
     try {
-      const { data: { user }, error } = await getUserOrMock(supabase);
-      if (error || !user) {
-        alert("Not signed in");
-        setSaving(false);
-        return;
-      }
-
-      // Use prop accountId - should always be provided by parent component
-      const accountId = propAccountId;
-      if (!accountId) {
-        alert("No account ID provided");
-        setSaving(false);
-        return;
-      }
-
       // Check if we have a business ID to update
       if (!businessId) {
+        console.error('[StyleModal] Cannot save - no businessId set.');
         alert("No business profile found. Please create a business profile first.");
         setSaving(false);
         return;
       }
+      console.log('[StyleModal] Saving to business ID:', businessId);
 
-      // First, update only core fields to guarantee background settings save on older schemas
-      const coreUpdate = {
+      // Prepare the update payload
+      const updatePayload = {
+        businessId,
+        // Core fields
         primary_font: settings.primary_font,
         secondary_font: settings.secondary_font,
         primary_color: settings.primary_color,
@@ -550,75 +544,66 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
         card_bg: settings.card_bg,
         card_text: settings.card_text,
         card_transparency: settings.card_transparency,
-      } as const;
+        // Advanced fields
+        gradient_middle: settings.gradient_middle || null,
+        card_placeholder_color: settings.card_placeholder_color,
+        card_inner_shadow: settings.card_inner_shadow,
+        card_shadow_color: settings.card_shadow_color,
+        card_shadow_intensity: settings.card_shadow_intensity,
+        card_border_width: settings.card_border_width,
+        card_border_color: settings.card_border_color,
+        card_border_transparency: settings.card_border_transparency,
+        kickstarters_background_design: settings.kickstarters_background_design,
+      };
 
-      const { error: coreError } = await supabase
-        .from("businesses")
-        .update(coreUpdate)
-        .eq("id", businessId)
-        .eq("account_id", accountId); // Double-check for security
+      console.log('[StyleModal] Sending update via API:', updatePayload);
 
-      // Optionally attempt to update newer/advanced fields; ignore failures so core save still succeeds
-      let advancedError: any = null;
-      if (!coreError) {
-        const advancedUpdate: any = {
-          gradient_middle: settings.gradient_middle || null,
-          card_placeholder_color: settings.card_placeholder_color,
-          card_inner_shadow: settings.card_inner_shadow,
-          card_shadow_color: settings.card_shadow_color,
-          card_shadow_intensity: settings.card_shadow_intensity,
-          card_border_width: settings.card_border_width,
-          card_border_color: settings.card_border_color,
-          card_border_transparency: settings.card_border_transparency,
-          kickstarters_background_design: settings.kickstarters_background_design,
-        };
-        const { error: optError } = await supabase
-          .from("businesses")
-          .update(advancedUpdate)
-          .eq("id", businessId)
-          .eq("account_id", accountId); // Double-check for security
-        if (optError) {
-          advancedError = optError;
-          console.warn("Advanced style fields could not be saved (likely missing columns on live DB):", optError.message);
-        }
+      // Use the API endpoint for proper account isolation
+      const response = await fetch('/api/businesses/update-style', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include', // Include cookies for authentication
+        body: JSON.stringify(updatePayload),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to save styles');
       }
 
       setSaving(false);
-      if (coreError) {
-        console.error('Update error (core):', coreError);
-        alert("Failed to save style settings: " + coreError.message);
-      } else {
-        setSuccessMessage("All style changes saved successfully!");
-        setSuccess(true);
-        fetchSettings();
-        
-        // Mark the style-prompt-pages task as completed when successfully saved
-        try {
+      console.log('[StyleModal] Successfully saved styles to business:', businessId);
+      setSuccessMessage("All style changes saved successfully!");
+      setSuccess(true);
+      fetchSettings();
+
+      // Mark the style-prompt-pages task as completed when successfully saved
+      try {
+        const accountId = propAccountId;
+        if (accountId) {
           await markTaskAsCompleted(accountId, "style-prompt-pages");
-        } catch (taskError) {
-          console.error("Error marking style task as completed:", taskError);
         }
-        
-        // If we're on a prompt page, refresh to apply the new styles
-        if (onClose && onStyleUpdate) {
-          onStyleUpdate(settings);
-          // Delay reload to allow success message to be seen
-          setTimeout(() => {
-            window.location.reload();
-          }, 1500);
-        }
-        
-        // If advanced fields failed, show a subtle notice (but don't block)
-        if (advancedError) {
-          console.info("Note: Some advanced style options were not saved due to server schema. Core styles were saved.");
-        }
-        
-        // Clear success message after showing it
-        setTimeout(() => {
-          setSuccess(false);
-          setSuccessMessage("");
-        }, 3000);
+      } catch (taskError) {
+        console.error("Error marking style task as completed:", taskError);
       }
+
+      // If we're on a prompt page, refresh to apply the new styles
+      if (onClose && onStyleUpdate) {
+        onStyleUpdate(settings);
+        // Delay reload to allow success message to be seen
+        setTimeout(() => {
+          window.location.reload();
+        }, 1500);
+      }
+
+      // Clear success message after showing it
+      setTimeout(() => {
+        setSuccess(false);
+        setSuccessMessage("");
+      }, 3000);
     } catch (error) {
       console.error("Error saving style settings:", error);
       alert("Failed to save style settings. Please try again.");
