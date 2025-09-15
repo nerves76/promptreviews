@@ -47,7 +47,13 @@
   .text-primary {
     color: var(--primary-color);
   }
-  
+
+  /* Prompt page container - replaces min-h-screen to avoid conflicts with embed styles */
+  .prompt-page-container {
+    min-height: 100vh;
+    position: relative;
+  }
+
   .bg-primary {
     background-color: var(--primary-color);
   }

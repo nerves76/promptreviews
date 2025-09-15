@@ -1689,7 +1689,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
   }
 
   return (
-    <div style={backgroundStyle} className="min-h-screen w-full">
+    <div style={backgroundStyle} className="prompt-page-container w-full" data-background-applied="true">
       {/* Dynamic font loader - loads fonts on demand */}
       <FontLoader 
         primaryFont={businessProfile?.primary_font}
