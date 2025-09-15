@@ -4,9 +4,21 @@ import { verifyAccountAuth } from '../../middleware/auth';
 
 export async function POST(request: NextRequest) {
   try {
+    // Log incoming headers for debugging
+    const selectedAccountHeader = request.headers.get('x-selected-account');
+    console.log('[API/update-style] Incoming X-Selected-Account header:', selectedAccountHeader);
+
     // Verify authentication and get authorized account
     const authResult = await verifyAccountAuth(request);
+    console.log('[API/update-style] Auth result:', {
+      success: authResult.success,
+      accountId: authResult.accountId,
+      userId: authResult.user?.id,
+      error: authResult.error
+    });
+
     if (!authResult.success) {
+      console.error('[API/update-style] Auth failed:', authResult.error);
       return NextResponse.json(
         { error: authResult.error },
         { status: authResult.errorCode || 401 }
@@ -14,7 +26,7 @@ export async function POST(request: NextRequest) {
     }
 
     const { user, accountId } = authResult;
-    console.log('[API] Update style for account:', accountId, 'user:', user.id);
+    console.log('[API/update-style] Update style for account:', accountId, 'user:', user.id);
 
     const supabase = createServiceRoleClient();
 
@@ -27,6 +39,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify the business belongs to the selected account
+    console.log('[API/update-style] Checking business:', businessId, 'for account:', accountId);
     const { data: business, error: bizCheckError } = await supabase
       .from('businesses')
       .select('id')
@@ -35,8 +48,13 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (bizCheckError || !business) {
-      console.error('[API] Business not found or access denied:', bizCheckError);
-      return NextResponse.json({ error: 'Business not found' }, { status: 404 });
+      console.error('[API/update-style] Business not found or access denied:', {
+        businessId,
+        accountId,
+        error: bizCheckError?.message,
+        code: bizCheckError?.code
+      });
+      return NextResponse.json({ error: 'Business not found or access denied' }, { status: 404 });
     }
 
     console.log('[API] Updating business:', businessId, 'with styles:', styleUpdate);

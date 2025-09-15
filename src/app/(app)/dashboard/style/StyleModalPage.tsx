@@ -539,14 +539,27 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
 
       // Get the selected account from localStorage for the header
       const selectedAccount = localStorage.getItem('selectedAccount');
+      console.log('[StyleModal] Selected account from localStorage:', selectedAccount);
+      console.log('[StyleModal] PropAccountId:', propAccountId);
+
+      // Build headers with proper account ID
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+      };
+
+      // Try propAccountId first (passed from parent), then localStorage
+      const accountIdToUse = propAccountId || selectedAccount;
+      if (accountIdToUse) {
+        headers['X-Selected-Account'] = accountIdToUse;
+        console.log('[StyleModal] Adding X-Selected-Account header:', accountIdToUse);
+      } else {
+        console.warn('[StyleModal] No account ID available for header!');
+      }
 
       // Use the API endpoint for proper account isolation
       const response = await fetch('/api/businesses/update-style', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(selectedAccount && { 'X-Selected-Account': selectedAccount }),
-        },
+        headers,
         credentials: 'include', // Include cookies for authentication
         body: JSON.stringify(updatePayload),
       });
