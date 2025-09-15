@@ -505,17 +505,23 @@ const Header = React.memo(function Header() {
                 </button>
                 {/* Notifications Dropdown - Rendered in Portal */}
                 {showNotifications && mounted && createPortal(
-                  <div
-                    ref={menuRef}
-                    className="fixed w-80 bg-gray-900/95 backdrop-blur-md rounded-lg shadow-2xl border border-white/30"
-                    style={{
-                      maxHeight: '400px',
-                      overflowY: 'auto',
-                      zIndex: 2147483649, // Higher than account switcher to ensure it's on top
-                      top: notificationsButtonRef.current ? notificationsButtonRef.current.getBoundingClientRect().bottom + 8 : 0,
-                      right: window.innerWidth - (notificationsButtonRef.current ? notificationsButtonRef.current.getBoundingClientRect().right : 0)
-                    }}
-                  >
+                  <>
+                    <div
+                      className="fixed inset-0 bg-black/40 backdrop-blur-[2px]"
+                      style={{ zIndex: 2147483648 }}
+                      onClick={() => setShowNotifications(false)}
+                    />
+                    <div
+                      ref={menuRef}
+                      className="fixed w-80 bg-gray-900/95 backdrop-blur-md rounded-lg shadow-2xl border border-white/30"
+                      style={{
+                        maxHeight: '400px',
+                        overflowY: 'auto',
+                        zIndex: 2147483649, // Higher than account switcher to ensure it's on top
+                        top: notificationsButtonRef.current ? notificationsButtonRef.current.getBoundingClientRect().bottom + 8 : 0,
+                        right: window.innerWidth - (notificationsButtonRef.current ? notificationsButtonRef.current.getBoundingClientRect().right : 0)
+                      }}
+                    >
                     <div className="p-4">
                       <h3 className="text-lg font-semibold text-white mb-3">Recent activity</h3>
                       {recentNotifications.length === 0 ? (
@@ -540,7 +546,8 @@ const Header = React.memo(function Header() {
                         </div>
                       )}
                     </div>
-                  </div>,
+                    </div>
+                  </>,
                   document.body
                 )}
               </div>
@@ -568,16 +575,22 @@ const Header = React.memo(function Header() {
                 </button>
                 {/* Account Menu Dropdown - Rendered in Portal */}
                 {accountMenuOpen && mounted && createPortal(
-                  <div 
-                    ref={accountMenuRef}
-                    className="fixed bg-gray-900/95 backdrop-blur-md rounded-lg shadow-2xl border border-white/30 py-2"
-                    style={{ 
-                      zIndex: 2147483647,
-                      top: accountButtonRef.current ? accountButtonRef.current.getBoundingClientRect().bottom + 8 : 0,
-                      right: window.innerWidth - (accountButtonRef.current ? accountButtonRef.current.getBoundingClientRect().right : 0),
-                      width: '256px'
-                    }}
-                  >
+                  <>
+                    <div
+                      className="fixed inset-0 bg-black/40 backdrop-blur-[2px]"
+                      style={{ zIndex: 2147483646 }}
+                      onClick={() => setAccountMenuOpen(false)}
+                    />
+                    <div 
+                      ref={accountMenuRef}
+                      className="fixed bg-gray-900/95 backdrop-blur-md rounded-lg shadow-2xl border border-white/30 py-2"
+                      style={{ 
+                        zIndex: 2147483647,
+                        top: accountButtonRef.current ? accountButtonRef.current.getBoundingClientRect().bottom + 8 : 0,
+                        right: window.innerWidth - (accountButtonRef.current ? accountButtonRef.current.getBoundingClientRect().right : 0),
+                        width: '256px'
+                      }}
+                    >
                     <Link href="/dashboard/account" className="flex items-center px-4 py-3 text-white hover:bg-white/10 transition-colors duration-200" onClick={() => setAccountMenuOpen(false)}>
                       <Icon name="FaUser" className="w-5 h-5 mr-3 text-white" size={20} />
                       <div className="flex-1">
@@ -639,7 +652,8 @@ const Header = React.memo(function Header() {
                         <div className="text-sm text-red-300">End your session</div>
                       </div>
                     </button>
-                  </div>,
+                    </div>
+                  </>,
                   document.body
                 )}
               </div>

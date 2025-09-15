@@ -84,15 +84,21 @@ const GetReviewsDropdown: React.FC<GetReviewsDropdownProps> = ({
 
       {/* Render dropdown in portal to escape stacking context */}
       {isOpen && mounted && createPortal(
-        <div 
-          ref={dropdownRef}
-          className="fixed bg-gray-900/90 backdrop-blur-md rounded-lg shadow-2xl border border-white/30 py-2" 
-          style={{ 
-            top: buttonRef.current ? buttonRef.current.getBoundingClientRect().bottom + 4 : 0,
-            left: buttonRef.current ? buttonRef.current.getBoundingClientRect().left : 0,
-            width: '256px',
-            zIndex: 2147483647 
-          }}>
+        <>
+          <div
+            className="fixed inset-0 bg-black/40 backdrop-blur-[2px]"
+            style={{ zIndex: 2147483647 }}
+            onClick={() => setIsOpen(false)}
+          />
+          <div 
+            ref={dropdownRef}
+            className="fixed bg-gray-900/90 backdrop-blur-md rounded-lg shadow-2xl border border-white/30 py-2" 
+            style={{ 
+              top: buttonRef.current ? buttonRef.current.getBoundingClientRect().bottom + 4 : 0,
+              left: buttonRef.current ? buttonRef.current.getBoundingClientRect().left : 0,
+              width: '256px',
+              zIndex: 2147483648 
+            }}>
           {menuItems.map((item) => (
             <Link
               key={item.href}
@@ -118,7 +124,8 @@ const GetReviewsDropdown: React.FC<GetReviewsDropdownProps> = ({
               </div>
             </Link>
           ))}
-        </div>,
+          </div>
+        </>,
         document.body
       )}
     </div>

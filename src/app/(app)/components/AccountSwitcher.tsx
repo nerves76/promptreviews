@@ -118,15 +118,21 @@ export function AccountSwitcher() {
 
       {/* Dropdown Menu - Rendered in Portal */}
       {isOpen && typeof window !== 'undefined' && createPortal(
-        <div
-          ref={dropdownRef}
-          className="fixed w-80 bg-gray-900/90 backdrop-blur-md rounded-lg shadow-2xl border border-white/30 py-2 overflow-hidden"
-          style={{
-            zIndex: 2147483648, // One higher than other header elements
-            top: buttonRef.current ? buttonRef.current.getBoundingClientRect().bottom + 8 : 0,
-            left: buttonRef.current ? buttonRef.current.getBoundingClientRect().left : 0,
-          }}
-        >
+        <>
+          <div
+            className="fixed inset-0 bg-black/40 backdrop-blur-[2px]"
+            style={{ zIndex: 2147483647 }}
+            onClick={() => setIsOpen(false)}
+          />
+          <div
+            ref={dropdownRef}
+            className="fixed w-80 bg-gray-900/90 backdrop-blur-md rounded-lg shadow-2xl border border-white/30 py-2 overflow-hidden"
+            style={{
+              zIndex: 2147483648, // One higher than other header elements
+              top: buttonRef.current ? buttonRef.current.getBoundingClientRect().bottom + 8 : 0,
+              left: buttonRef.current ? buttonRef.current.getBoundingClientRect().left : 0,
+            }}
+          >
           {/* Header */}
           <div className="px-4 py-3 border-b border-white/20">
             <div className="flex items-center gap-2">
@@ -183,7 +189,8 @@ export function AccountSwitcher() {
             ))}
           </div>
 
-        </div>,
+          </div>
+        </>,
         document.body
       )}
     </div>
