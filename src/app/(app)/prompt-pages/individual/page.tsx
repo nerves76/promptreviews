@@ -18,8 +18,8 @@ import { useRouter } from "next/navigation";
 import QRCodeModal from "../../components/QRCodeModal";
 import StarfallCelebration from "@/app/(app)/components/StarfallCelebration";
 import { promptTypesWithDarkIcons as promptTypes } from "@/config/promptTypes";
+import { useAuth } from "@/auth";
 import { useAuthUser, useAccountData, useAuthLoading } from "@/auth/hooks/granularAuthHooks";
-import { useAccountSelection } from "@/utils/accountSelectionHooks";
 import BusinessLocationModal from "@/app/(app)/components/BusinessLocationModal";
 import { BusinessLocation } from "@/types/business";
 import { hasLocationAccess, formatLocationAddress, getLocationDisplayName } from "@/utils/locationUtils";
@@ -32,9 +32,8 @@ const StylePage = dynamic(() => import("../../dashboard/style/StyleModalPage"), 
 export default function IndividualOutreach() {
   const supabase = createClient();
   const { user: authUser } = useAuthUser();
-  const { accountId: authAccountId } = useAccountData();
+  const { accountId: authAccountId, selectedAccountId } = useAccountData();
   const { isLoading: authLoading } = useAuthLoading();
-  const { selectedAccountId } = useAccountSelection();
 
   const [loading, setLoading] = useState(true);
   const [promptPages, setPromptPages] = useState<any[]>([]);

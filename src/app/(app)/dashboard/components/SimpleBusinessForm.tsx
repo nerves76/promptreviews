@@ -361,6 +361,8 @@ const SimpleBusinessForm = forwardRef<HTMLFormElement, SimpleBusinessFormProps>(
         if (newAccountId && user?.id) {
           localStorage.setItem(`promptreviews_new_account_${user.id}`, newAccountId);
         }
+        // Also pre-select this account for the dashboard/account context to avoid redirect loops
+        localStorage.setItem(`promptreviews_selected_account_${user.id}`, accountToFlag);
       }
       
       // Clear the saved form data since business was created successfully

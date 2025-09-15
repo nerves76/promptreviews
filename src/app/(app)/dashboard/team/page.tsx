@@ -11,7 +11,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { PlusIcon, XMarkIcon, UserIcon, EnvelopeIcon, ClockIcon, QuestionMarkCircleIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '@/auth';
-import { useAccountSelection } from '@/utils/accountSelectionHooks';
+import { useAccountData } from '@/auth/hooks/granularAuthHooks';
 import FiveStarSpinner from '@/app/(app)/components/FiveStarSpinner';
 import { createClient } from '@/auth/providers/supabase';
 
@@ -57,7 +57,7 @@ interface TeamData {
 export default function TeamPage() {
   const router = useRouter();
   const { user, isAdminUser, isLoading: authLoading } = useAuth();
-  const { selectedAccount, loading: accountLoading } = useAccountSelection();
+  const { selectedAccountId } = useAccountData();
   const [teamData, setTeamData] = useState<TeamData | null>(null);
   const [loading, setLoading] = useState(true);
   // Storage keys for form data persistence
@@ -203,7 +203,7 @@ export default function TeamPage() {
       const headers = await getAuthHeaders();
 
       // Fetch members - pass selected account if available
-      const accountId = selectedAccount?.account_id || user?.id;
+      const accountId = selectedAccountId || user?.id;
       const membersUrl = accountId ? `/api/team/members?account_id=${accountId}` : '/api/team/members';
       const membersResponse = await fetch(membersUrl, { headers });
       if (!membersResponse.ok) {
@@ -231,7 +231,7 @@ export default function TeamPage() {
       setLoading(false);
       fetchingRef.current = false;
     }
-  }, [selectedAccount, user?.id]); // Dependencies for account selection
+  }, [selectedAccountId, user?.id]); // Dependencies for account selection
 
   // Single useEffect for initial data loading
   useEffect(() => {
@@ -246,7 +246,7 @@ export default function TeamPage() {
     return () => {
       isMounted = false;
     };
-  }, [user?.id, authLoading, accountLoading, selectedAccount?.account_id]); // Added account selection dependencies
+  }, [user?.id, authLoading, selectedAccountId]); // Simplified dependencies
 
   // Helper function to set loading state for specific actions
   const setActionLoading = (action: string, isLoading: boolean) => {

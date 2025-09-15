@@ -4,6 +4,16 @@
 
 Your application uses a sophisticated authentication system built on Supabase Auth with custom extensions for admin roles and multi-account support. The system is well-architected but has several areas that need attention to resolve your authentication issues.
 
+## Current Account Selection (Source of Truth)
+
+- Account selection persists in localStorage using the key pattern `promptreviews_selected_account_{userId}`.
+- The client includes the selected account in requests via the `X-Selected-Account` header (see `src/utils/apiClient.ts`).
+- API routes resolve the effective account with `getRequestAccountId(request, userId, supabase)` which:
+  - Validates the `X-Selected-Account` belongs to the authenticated user via `account_users`.
+  - Falls back to automatic selection (`getAccountIdForUser`) when missing/invalid.
+- No httpOnly cookie is used for account selection today. If documentation elsewhere suggests this, consider it historical; the current implementation is localStorage + validated header.
+- Recommended for new code: use `useAuth()` to read `selectedAccountId` from the `CompositeAuthProvider`; avoid introducing new parallel account selection hooks.
+
 ## Core Components
 
 ### 1. AuthContext (`src/contexts/AuthContext.tsx`)
@@ -71,9 +81,9 @@ graph TD
 ```
 
 ### 2. Multi-Account Selection
-- Users can manually switch between accounts
-- Selection stored in localStorage with key: `promptreviews_selected_account_{userId}`
-- Validation ensures selected account still exists and user has access
+- Users can manually switch between accounts.
+- Selection is stored in localStorage with key: `promptreviews_selected_account_{userId}`.
+- Server-side validation ensures selected account still exists and user has access (via `getRequestAccountId`).
 
 ### 3. OAuth Flow (Google Business)
 - Handles Google OAuth callback with retry logic
@@ -137,6 +147,9 @@ graph TD
    - Admin status stored in database, not JWT
    - Consider adding audit logging for admin actions
    - Implement IP-based restrictions for admin access
+2. **Multi-Account Access**:
+   - Validate account access on every request (implemented via `getRequestAccountId`)
+   - Note: While selection is stored in localStorage client-side, server validation prevents cross-account data access even if the header is manipulated
 
 2. **Multi-Account Access**:
    - Proper RLS policies on account_users table

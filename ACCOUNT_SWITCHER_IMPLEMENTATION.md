@@ -4,11 +4,11 @@
 
 The account switcher functionality allows users to seamlessly switch between multiple accounts they belong to, with a primary use case being customer support where administrators can be invited to customer accounts to help debug issues.
 
-## ✅ **What Was Implemented**
+## ✅ What Was Implemented
 
 ### 1. Account Selection State Management (`src/utils/accountSelection.ts`)
-- **Purpose**: Manages user's manual account selection with localStorage persistence
-- **Key Features**:
+- Purpose: Manages user's manual account selection with localStorage persistence
+- Key features:
   - `useAccountSelection()` React hook for managing state
   - `UserAccount` interface with role, plan, and account metadata
   - localStorage persistence with user-specific keys
@@ -110,17 +110,13 @@ The account switcher functionality allows users to seamlessly switch between mul
 - **Focus Management**: Clear focus indicators
 - **Click Outside**: Closes dropdown when clicking elsewhere
 
-## 🔒 **Security Considerations**
+## 🔒 Security Considerations
 
-### Access Control:
-- **RLS Enforcement**: All database queries respect Row Level Security
-- **Role Validation**: Account access validated on every request
-- **Session Integrity**: User authentication required for all operations
+- Server-side validation: APIs use `getRequestAccountId(request, userId, supabase)` to validate `X-Selected-Account` against `account_users`, preventing cross-account access even if the client mutates localStorage.
+- Session integrity: User authentication is required for all operations; selection alone does not grant access.
+- Invalid selection handling: Stored selections are validated and cleared if access is revoked.
 
-### Data Isolation:
-- **Account Context**: All APIs use selected account for data filtering
-- **Permission Boundaries**: Users only see data they have legitimate access to
-- **Invalid Selection Handling**: Graceful fallback when access is revoked
+Note: Account selection currently uses localStorage on the client and a validated `X-Selected-Account` header on requests. There is no httpOnly cookie for account selection.
 
 ## 🚀 **Testing Strategy**
 
@@ -138,7 +134,7 @@ The account switcher functionality allows users to seamlessly switch between mul
 - **Stale data**: Validation of account access on each load
 - **Storage failures**: Fallback to automatic selection algorithm
 
-## 💡 **Future Enhancements**
+## 💡 Future Enhancements
 
 ### Potential Improvements:
 1. **Real-time Updates**: WebSocket notifications for account changes

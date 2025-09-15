@@ -4,7 +4,8 @@ import { useState, useEffect } from "react";
 import { useAuthGuard } from "@/utils/authGuard";
 // 🔧 CONSOLIDATED: Single import from supabaseClient module
 import { createClient, getUserOrMock, getSessionOrMock } from "@/auth/providers/supabase";
-import { useAccountSelection } from "@/utils/accountSelectionHooks";
+import { useAccountData } from "@/auth/hooks/granularAuthHooks";
+import { useAuth } from "@/auth";
 import Icon from "@/components/Icon";
 import { Dialog } from "@headlessui/react";
 import { useRouter } from "next/navigation";
@@ -14,7 +15,8 @@ export default function UploadContactsPage() {
   const supabase = createClient();
 
   useAuthGuard();
-  const { selectedAccount, loading: accountLoading } = useAccountSelection();
+  const { selectedAccountId } = useAccountData();
+  const { accountLoading } = useAuth();
   
   // Debug logging for account selection
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -49,7 +51,7 @@ export default function UploadContactsPage() {
     const fetchAccount = async () => {
       
       // Wait for account selection to complete
-      if (accountLoading || !selectedAccount?.account_id) {
+      if (accountLoading || !selectedAccountId) {
         return;
       }
       
@@ -57,7 +59,7 @@ export default function UploadContactsPage() {
       const { data, error } = await supabase
         .from("accounts")
         .select("*")
-        .eq("id", selectedAccount.account_id)
+        .eq("id", selectedAccountId)
         .single();
       
       if (error) {
@@ -68,7 +70,7 @@ export default function UploadContactsPage() {
       }
     };
     fetchAccount();
-  }, [supabase, accountLoading, selectedAccount?.account_id]);
+  }, [supabase, accountLoading, selectedAccountId]);
 
   useEffect(() => {
   }, [selectedFile, preview, error, success]);

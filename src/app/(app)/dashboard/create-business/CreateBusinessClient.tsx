@@ -30,6 +30,8 @@ export default function CreateBusinessClient() {
   const [user, setUser] = useState<any>(null);
   const [accountId, setAccountId] = useState<string | null>(null);
   const [accountData, setAccountData] = useState<any>(null);
+  // Guard to prevent repeated redirects/race loops
+  const hasRedirectedRef = useRef(false);
   
   // Ref to trigger form submission from top button
   const formRef = useRef<HTMLFormElement>(null);
@@ -91,15 +93,23 @@ export default function CreateBusinessClient() {
             .limit(1);
 
           if (!bizErr && existingBusinesses && existingBusinesses.length > 0) {
-            console.log('✅ User already has accounts with a business, redirecting to dashboard');
-            // Store a reasonable default account for context hydration
-            const firstAccountId = existingBusinesses[0].account_id || existingAccounts[0].account_id;
-            if (typeof window !== 'undefined') {
-              localStorage.setItem(`promptreviews_selected_account_${user.id}`, firstAccountId);
+            // Prevent repeated redirects on re-renders or route transitions
+            if (!hasRedirectedRef.current) {
+              hasRedirectedRef.current = true;
+              console.log('✅ User already has accounts with a business, redirecting to dashboard');
+              // Store a reasonable default account for context hydration
+              const firstAccountId = existingBusinesses[0].account_id || existingAccounts[0].account_id;
+              if (typeof window !== 'undefined') {
+                localStorage.setItem(`promptreviews_selected_account_${user.id}`, firstAccountId);
+              }
+              // Use hard navigation to avoid component re-mount loops
+              if (typeof window !== 'undefined') {
+                window.location.replace('/dashboard');
+              } else {
+                centralizedRedirectToDashboard('User already has existing accounts with a business');
+              }
             }
-            // Redirect to dashboard; they don’t need to create a business
-            centralizedRedirectToDashboard('User already has existing accounts with a business');
-            return;
+            return; // Stop further execution
           }
 
           // User has accounts but no businesses yet → stay on this page to create a business
@@ -270,23 +280,7 @@ export default function CreateBusinessClient() {
                     Let's create your business profile so you can start collecting reviews and growing your reputation online.
                   </p>
                   
-                  {/* Emergency escape for users with existing accounts */}
-                  {user && (
-                    <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                      <p className="text-sm text-amber-800">
-                        Having trouble? Already have an account?
-                        <button 
-                          onClick={() => {
-                            // Use centralized redirect
-                            centralizedRedirectToDashboard('Emergency escape to dashboard');
-                          }}
-                          className="ml-2 text-blue-600 hover:underline font-semibold"
-                        >
-                          Go to Dashboard →
-                        </button>
-                      </p>
-                    </div>
-                  )}
+                  {/* Removed emergency dashboard banner per request */}
                 </div>
               </div>
               

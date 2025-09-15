@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import { createClient, getUserOrMock } from "@/auth/providers/supabase";
 import { useAuthGuard } from "@/utils/authGuard";
-import { useAccountSelection } from "@/utils/accountSelectionHooks";
+import { useAccountData } from "@/auth/hooks/granularAuthHooks";
+import { useAuth } from "@/auth";
 import Icon from "@/components/Icon";
 import { getAccountIdForUser } from "@/auth/utils/accounts";
 import { isAdmin } from "@/utils/admin";
@@ -73,7 +74,8 @@ export default function AnalyticsPage() {
   const supabase = createClient();
 
   useAuthGuard();
-  const { selectedAccount, loading: accountLoading } = useAccountSelection();
+  const { selectedAccountId } = useAccountData();
+  const { accountLoading } = useAuth();
   
   // Debug logging for account selection
   const [promptPages, setPromptPages] = useState<PromptPage[]>([]);
@@ -99,7 +101,7 @@ export default function AnalyticsPage() {
     const fetchPromptPages = async () => {
       
       // Wait for account selection to complete
-      if (accountLoading || !selectedAccount?.account_id) {
+      if (accountLoading || !selectedAccountId) {
         return;
       }
       
@@ -108,7 +110,7 @@ export default function AnalyticsPage() {
         const { data, error } = await supabase
           .from("prompt_pages")
           .select("id, slug, first_name, is_universal")
-          .eq("account_id", selectedAccount.account_id);
+          .eq("account_id", selectedAccountId);
         if (error) throw error;
         
         setPromptPages(data || []);
@@ -120,7 +122,7 @@ export default function AnalyticsPage() {
       }
     };
     fetchPromptPages();
-  }, [supabase, accountLoading, selectedAccount?.account_id]);
+  }, [supabase, accountLoading, selectedAccountId]);
 
   useEffect(() => {
     const fetchLocationNames = async () => {

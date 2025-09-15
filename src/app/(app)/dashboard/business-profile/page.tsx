@@ -7,7 +7,7 @@ import Cropper from "react-easy-crop";
 import type { Area } from "react-easy-crop";
 import { useAuthGuard } from "@/utils/authGuard";
 import { useBusinessData, useAuthUser, useAccountData } from "@/auth/hooks/granularAuthHooks";
-import { useAccountSelection } from "@/utils/accountSelectionHooks";
+import { useAuth } from "@/auth";
 import Icon from "@/components/Icon";
 import { getAccountIdForUser } from "@/auth/utils/accounts";
 import { isAdmin } from "@/utils/admin";
@@ -60,7 +60,8 @@ function Tooltip({ text }: { text: string }) {
 
 export default function BusinessProfilePage() {
   const supabase = createClient();
-  const { selectedAccount, loading: accountLoading, availableAccounts } = useAccountSelection();
+  const { selectedAccountId, account } = useAccountData();
+  const { accountLoading } = useAuth();
   
   // Consolidated loading state to prevent flickering
   const [pageState, setPageState] = useState<'initial' | 'loading' | 'ready' | 'no-profile'>('initial');
@@ -70,7 +71,7 @@ export default function BusinessProfilePage() {
   useEffect(() => {
     if (process.env.NODE_ENV === 'development') {
     }
-  }, [selectedAccount, accountLoading, availableAccounts, pageState]);
+  }, [selectedAccountId, accountLoading, pageState]);
   
   // Cleanup on unmount
   useEffect(() => {
@@ -235,7 +236,7 @@ export default function BusinessProfilePage() {
           return;
         }
         
-        if (!selectedAccount) {
+        if (!selectedAccountId) {
           // If we have no selected account and loading is done, set to ready to prevent infinite loading
           if (!accountLoading && mountedRef.current) {
             setPageState('ready');
@@ -266,7 +267,7 @@ export default function BusinessProfilePage() {
         }
 
         // Use selected account ID instead of user ID
-        const currentAccountId = selectedAccount.account_id;
+        const currentAccountId = selectedAccountId;
         setAccountId(currentAccountId);
 
         // Load business profile for the selected account
@@ -417,7 +418,7 @@ export default function BusinessProfilePage() {
     };
 
     loadBusinessProfile();
-  }, [router, supabase, selectedAccount?.account_id, accountLoading, availableAccounts?.length, loading, pageState, selectedAccount]);
+  }, [router, supabase, selectedAccountId, accountLoading, loading, pageState]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -608,8 +609,8 @@ export default function BusinessProfilePage() {
         try {
           // Always use the 'logos' bucket and store in 'business-logos/{account_id}.webp' for consistency
           const bucketName = 'logos';
-          const webFilePath = `business-logos/${selectedAccount?.account_id}.webp`;
-          const printFilePath = `business-logos/${selectedAccount?.account_id}_print.webp`;
+          const webFilePath = `business-logos/${selectedAccountId}.webp`;
+          const printFilePath = `business-logos/${selectedAccountId}_print.webp`;
           
           
           // Upload web version
@@ -707,7 +708,7 @@ export default function BusinessProfilePage() {
           kickstarters_background_design: form.kickstarters_background_design,
           services_offered: services,
         })
-        .eq("account_id", selectedAccount?.account_id);
+        .eq("account_id", selectedAccountId);
         
       if (updateError) {
         console.error("Database update error:", updateError);
@@ -725,11 +726,11 @@ export default function BusinessProfilePage() {
       
       // Also update the business_name in the accounts table to sync with account switcher
       // This is especially important for the primary account
-      if (form.name && selectedAccount?.account_id) {
+      if (form.name && selectedAccountId) {
         const { error: accountUpdateError } = await supabase
           .from("accounts")
           .update({ business_name: form.name })
-          .eq("id", selectedAccount.account_id);
+          .eq("id", selectedAccountId);
         
         if (accountUpdateError) {
           console.error("Failed to update business_name in accounts table:", accountUpdateError);

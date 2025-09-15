@@ -28,8 +28,8 @@ import CommunicationButtons from "@/app/(app)/components/communication/Communica
 import EmojiEmbedButton from "@/app/(app)/components/EmojiEmbedButton";
 import FiveStarSpinner from "@/app/(app)/components/FiveStarSpinner";
 import BusinessProfileBanner from "@/app/(app)/components/BusinessProfileBanner";
+import { useAuth } from "@/auth";
 import { useBusinessData, useAuthUser, useAccountData, useAuthLoading } from "@/auth/hooks/granularAuthHooks";
-import { useAccountSelection } from "@/utils/accountSelectionHooks";
 import PromptPageSettingsModal from "@/app/(app)/components/PromptPageSettingsModal";
 
 const StylePage = dynamic(() => import("../dashboard/style/StyleModalPage"), { ssr: false });
@@ -38,11 +38,11 @@ function PromptPagesContent() {
   const supabase = useMemo(() => createClient(), []);
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { selectedAccountId } = useAuth();
   const { hasBusiness, businessName } = useBusinessData();
   const { user: authUser } = useAuthUser();
   const { accountId: authAccountId } = useAccountData();
   const { isLoading: authLoading } = useAuthLoading();
-  const { selectedAccountId } = useAccountSelection();
 
   // Track if initial auth load is complete
   const [authInitialized, setAuthInitialized] = useState(false);

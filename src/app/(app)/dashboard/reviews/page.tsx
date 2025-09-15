@@ -4,7 +4,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { createClient } from "@/auth/providers/supabase";
 import { useAuthGuard } from "@/utils/authGuard";
 import { getAccountIdForUser } from "@/auth/utils/accounts";
-import { useAccountSelection } from "@/utils/accountSelectionHooks";
+import { useAccountData } from "@/auth/hooks/granularAuthHooks";
 import Icon, { IconName } from "@/components/Icon";
 import PageCard from "@/app/(app)/components/PageCard";
 import StandardLoader from "@/app/(app)/components/StandardLoader";
@@ -270,7 +270,7 @@ function getSentimentIcon(sentiment: string) {
 export default function ReviewsPage() {
   const { loading: authLoading, shouldRedirect } = useAuthGuard();
   const supabase = createClient();
-  const { selectedAccount } = useAccountSelection();
+  const { selectedAccountId } = useAccountData();
 
   const [reviews, setReviews] = useState<Review[]>([]);
   const [grouped, setGrouped] = useState<ReviewerGroup[]>([]);
@@ -304,16 +304,16 @@ export default function ReviewsPage() {
 
   // Using singleton Supabase client from supabaseClient.ts
 
-  // Get current account ID from account selection
+  // Get current account ID from auth context
   useEffect(() => {
-    if (selectedAccount?.account_id) {
-      setAccountId(selectedAccount.account_id);
+    if (selectedAccountId) {
+      setAccountId(selectedAccountId);
       setError(null);
     } else {
       setError("No account selected");
       setAccountId(null);
     }
-  }, [selectedAccount]);
+  }, [selectedAccountId]);
 
   useEffect(() => {
     const fetchReviews = async () => {
