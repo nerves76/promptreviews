@@ -10,7 +10,6 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { CheckCircleIcon, XCircleIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
-import { useEffect } from 'react';
 import { useGlobalLoader } from '@/app/(app)/components/GlobalLoaderProvider';
 
 interface InvitationData {

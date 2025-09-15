@@ -4,7 +4,6 @@ import { useState, useEffect, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/auth/providers/supabase";
 import Link from "next/link";
-import { useEffect } from "react";
 import { useGlobalLoader } from "@/app/(app)/components/GlobalLoaderProvider";
 import AppLoader from "@/app/(app)/components/AppLoader";
 

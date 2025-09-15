@@ -18,7 +18,6 @@ import ProductPromptPageForm from "../components/ProductPromptPageForm";
 import PhotoPromptPageForm from "../components/PhotoPromptPageForm";
 import EmployeePromptPageForm from "../components/EmployeePromptPageForm";
 import EventPromptPageForm from "../components/EventPromptPageForm";
-import { useEffect } from "react";
 import { useGlobalLoader } from "../components/GlobalLoaderProvider";
 
 interface ReviewPlatformLink {
