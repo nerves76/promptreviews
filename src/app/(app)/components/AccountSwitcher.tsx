@@ -120,7 +120,7 @@ export function AccountSwitcher() {
       {isOpen && typeof window !== 'undefined' && createPortal(
         <div
           ref={dropdownRef}
-          className="fixed w-80 bg-white/90 backdrop-blur-md rounded-lg shadow-2xl border-2 border-white/50 py-2 overflow-hidden"
+          className="fixed w-80 bg-gray-900/90 backdrop-blur-md rounded-lg shadow-2xl border border-white/30 py-2 overflow-hidden"
           style={{
             zIndex: 2147483648, // One higher than other header elements
             top: buttonRef.current ? buttonRef.current.getBoundingClientRect().bottom + 8 : 0,
@@ -128,14 +128,14 @@ export function AccountSwitcher() {
           }}
         >
           {/* Header */}
-          <div className="px-4 py-3 border-b border-gray-200">
+          <div className="px-4 py-3 border-b border-white/20">
             <div className="flex items-center gap-2">
-              <svg className="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
               </svg>
-              <h3 className="text-sm font-medium text-gray-900">Switch account</h3>
+              <h3 className="text-sm font-medium text-white">Switch account</h3>
             </div>
-            <p className="text-xs text-slate-blue mt-1 ml-6">
+            <p className="text-xs text-white/80 mt-1 ml-6">
               Select which account you want to work with
             </p>
           </div>
@@ -151,22 +151,22 @@ export function AccountSwitcher() {
                   }
                   setIsOpen(false);
                 }}
-                className="w-full px-4 py-3 text-left hover:bg-slate-blue/10 hover:text-slate-blue focus:outline-none focus:bg-slate-blue/10 transition-colors"
+                className="w-full px-4 py-3 text-left text-white hover:bg-white/10 focus:outline-none focus:bg-white/10 transition-colors"
               >
                 <div className="flex items-center gap-3">
                   <div className="flex-1 min-w-0">
                     {/* Account Name */}
                     <div className="flex items-center gap-2">
-                      <span className="font-medium text-gray-900 truncate">
+                      <span className="font-medium text-white truncate">
                         {getAccountDisplayName(account)}
                       </span>
                       {account.is_primary && (
-                        <span className="px-2 py-0.5 text-xs font-medium text-purple-700 bg-purple-100 rounded-full">
+                        <span className="px-2 py-0.5 text-xs font-medium text-white bg-white/20 rounded-full">
                           Default
                         </span>
                       )}
                       {account.account_id === selectedAccount.account_id && (
-                        <span className="px-2 py-0.5 text-xs font-medium text-green-700 bg-green-100 rounded-full">
+                        <span className="px-2 py-0.5 text-xs font-medium text-white bg-white/20 rounded-full">
                           Current
                         </span>
                       )}
@@ -174,9 +174,7 @@ export function AccountSwitcher() {
                     
                     {/* Account Details */}
                     <div className="flex items-center gap-2 mt-1">
-                      <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-gray-100 text-gray-600">
-                        {account.role}
-                      </span>
+                      <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-white/10 text-white border border-white/20">{account.role}</span>
                     </div>
                   </div>
                   
