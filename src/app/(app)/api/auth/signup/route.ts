@@ -28,8 +28,24 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-    
-    
+    // Environment sanity checks to produce clear local error messages
+    const missingEnv: string[] = [];
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL) missingEnv.push('NEXT_PUBLIC_SUPABASE_URL');
+    if (!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) missingEnv.push('NEXT_PUBLIC_SUPABASE_ANON_KEY');
+    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) missingEnv.push('SUPABASE_SERVICE_ROLE_KEY');
+    if (missingEnv.length > 0) {
+      return NextResponse.json(
+        { 
+          error: 'Supabase environment variables are missing',
+          details: {
+            missing: missingEnv,
+            hint: 'Ensure .env.local contains these keys and restart the dev server.'
+          }
+        },
+        { status: 500 }
+      );
+    }
+
     // Use service role client to create user without email confirmation
     const supabase = createServiceRoleClient();
     
@@ -181,12 +197,9 @@ export async function POST(request: NextRequest) {
     });
     
   } catch (error: any) {
-    console.error('❌ Signup exception:', JSON.stringify(error, null, 2));
-    
-    // Extract error message from various possible formats
-    const errorMessage = error?.message || error?.msg || error?.error_description || 
-                        error?.toString() || 'Internal server error';
-    
+    // Prefer explicit message; JSON.stringify(Error) is often {}
+    const errorMessage = (error && error.message) ? error.message : (typeof error === 'string' ? error : 'Internal server error');
+    console.error('❌ Signup exception:', errorMessage);
     return NextResponse.json(
       { error: errorMessage },
       { status: 500 }

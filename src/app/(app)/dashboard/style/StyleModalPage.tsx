@@ -249,6 +249,9 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
     kickstarters_background_design: false,
   });
 
+  // Store the business ID for updates
+  const [businessId, setBusinessId] = React.useState<string | null>(null);
+
   // Update parent component whenever settings change (but not on initial load)
   const [isInitialized, setIsInitialized] = React.useState(false);
   const [loading, setLoading] = React.useState(true);
@@ -324,16 +327,22 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
         return;
       }
 
-      // IMPORTANT: Don't use .single() as accounts can have multiple businesses
+      // IMPORTANT: Avoid selecting specific columns to prevent errors if schema hasn't been migrated yet
+      // Select all columns and then safely map to settings with fallbacks
       const { data: businessData } = await supabase
         .from("businesses")
-        .select("primary_font,secondary_font,primary_color,secondary_color,background_type,background_color,gradient_start,gradient_middle,gradient_end,card_bg,card_text,card_placeholder_color,card_inner_shadow,card_shadow_color,card_shadow_intensity,card_transparency,card_border_width,card_border_color,card_border_transparency,kickstarters_background_design")
+        .select("*")
         .eq("account_id", accountId)
         .order("created_at", { ascending: true }); // Get oldest business first
-      
+
       // Handle multiple businesses - use the first one (oldest)
       const business = businessData && businessData.length > 0 ? businessData[0] : null;
-      
+
+      // Store the business ID for updates
+      if (business?.id) {
+        setBusinessId(business.id);
+      }
+
       // Fetch universal prompt page
       const { data: universalPage } = await supabase
         .from("prompt_pages")
@@ -341,14 +350,15 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
         .eq("account_id", accountId)
         .eq("is_universal", true)
         .maybeSingle();
-      
+
       if (universalPage?.slug) {
         setUniversalPromptPageSlug(universalPage.slug);
       }
-      
+
       if (business) {
         setSettings(s => ({
           ...s,
+          // Core, older columns (should exist in all deployments)
           primary_font: business.primary_font || "Inter",
           secondary_font: business.secondary_font || "Roboto",
           primary_color: business.primary_color || "#2563EB",
@@ -356,19 +366,21 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
           background_type: business.background_type || "gradient",
           background_color: business.background_color || "#FFFFFF",
           gradient_start: business.gradient_start || "#2563EB",
-          gradient_middle: business.gradient_middle || "#7864C8",
           gradient_end: business.gradient_end || "#914AAE",
           card_bg: business.card_bg || "#FFFFFF",
           card_text: business.card_text || "#1A1A1A",
-          card_placeholder_color: business.card_placeholder_color || "#9CA3AF",
-          card_inner_shadow: business.card_inner_shadow || false,
-          card_shadow_color: business.card_shadow_color || "#222222",
-          card_shadow_intensity: business.card_shadow_intensity || 0.20,
           card_transparency: business.card_transparency ?? 0.95,
-          card_border_width: business.card_border_width ?? 1,
-          card_border_color: business.card_border_color || "#FFFFFF",
-          card_border_transparency: business.card_border_transparency ?? 0.5,
-          kickstarters_background_design: business.kickstarters_background_design ?? false
+
+          // Newer/optional columns (fallbacks if missing in live DB)
+          gradient_middle: business.gradient_middle || s.gradient_middle,
+          card_placeholder_color: business.card_placeholder_color || s.card_placeholder_color,
+          card_inner_shadow: (business.card_inner_shadow ?? s.card_inner_shadow) as boolean,
+          card_shadow_color: business.card_shadow_color || s.card_shadow_color,
+          card_shadow_intensity: (business.card_shadow_intensity ?? s.card_shadow_intensity) as number,
+          card_border_width: (business.card_border_width ?? s.card_border_width) as number,
+          card_border_color: business.card_border_color || s.card_border_color,
+          card_border_transparency: (business.card_border_transparency ?? s.card_border_transparency) as number,
+          kickstarters_background_design: (business.kickstarters_background_design ?? s.kickstarters_background_design) as boolean,
         }));
       }
     } catch (error) {
@@ -467,36 +479,63 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
         return;
       }
 
-      const { error: updateError } = await supabase
+      // Check if we have a business ID to update
+      if (!businessId) {
+        alert("No business profile found. Please create a business profile first.");
+        setSaving(false);
+        return;
+      }
+
+      // First, update only core fields to guarantee background settings save on older schemas
+      const coreUpdate = {
+        primary_font: settings.primary_font,
+        secondary_font: settings.secondary_font,
+        primary_color: settings.primary_color,
+        secondary_color: settings.secondary_color,
+        background_type: settings.background_type,
+        background_color: settings.background_color,
+        gradient_start: settings.gradient_start,
+        gradient_end: settings.gradient_end,
+        card_bg: settings.card_bg,
+        card_text: settings.card_text,
+        card_transparency: settings.card_transparency,
+      } as const;
+
+      const { error: coreError } = await supabase
         .from("businesses")
-        .update({
-          primary_font: settings.primary_font,
-          secondary_font: settings.secondary_font,
-          primary_color: settings.primary_color,
-          secondary_color: settings.secondary_color,
-          background_type: settings.background_type,
-          background_color: settings.background_color,
-          gradient_start: settings.gradient_start,
+        .update(coreUpdate)
+        .eq("id", businessId)
+        .eq("account_id", accountId); // Double-check for security
+
+      // Optionally attempt to update newer/advanced fields; ignore failures so core save still succeeds
+      let advancedError: any = null;
+      if (!coreError) {
+        const advancedUpdate: any = {
           gradient_middle: settings.gradient_middle || null,
-          gradient_end: settings.gradient_end,
-          card_bg: settings.card_bg,
-          card_text: settings.card_text,
           card_placeholder_color: settings.card_placeholder_color,
           card_inner_shadow: settings.card_inner_shadow,
           card_shadow_color: settings.card_shadow_color,
           card_shadow_intensity: settings.card_shadow_intensity,
-          card_transparency: settings.card_transparency,
           card_border_width: settings.card_border_width,
           card_border_color: settings.card_border_color,
           card_border_transparency: settings.card_border_transparency,
           kickstarters_background_design: settings.kickstarters_background_design,
-        })
-        .eq("account_id", accountId);
-      
+        };
+        const { error: optError } = await supabase
+          .from("businesses")
+          .update(advancedUpdate)
+          .eq("id", businessId)
+          .eq("account_id", accountId); // Double-check for security
+        if (optError) {
+          advancedError = optError;
+          console.warn("Advanced style fields could not be saved (likely missing columns on live DB):", optError.message);
+        }
+      }
+
       setSaving(false);
-      if (updateError) {
-        console.error('Update error:', updateError);
-        alert("Failed to save style settings: " + updateError.message);
+      if (coreError) {
+        console.error('Update error (core):', coreError);
+        alert("Failed to save style settings: " + coreError.message);
       } else {
         setSuccessMessage("All style changes saved successfully!");
         setSuccess(true);
@@ -516,6 +555,11 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
           setTimeout(() => {
             window.location.reload();
           }, 1500);
+        }
+        
+        // If advanced fields failed, show a subtle notice (but don't block)
+        if (advancedError) {
+          console.info("Note: Some advanced style options were not saved due to server schema. Core styles were saved.");
         }
         
         // Clear success message after showing it

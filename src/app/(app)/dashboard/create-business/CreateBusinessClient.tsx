@@ -75,25 +75,37 @@ export default function CreateBusinessClient() {
 
         setUser(user);
         
-        // Check if user already has accounts (they shouldn't be here if they do)
+        // Check if user already has accounts
         const { data: existingAccounts } = await supabase
           .from('account_users')
           .select('account_id')
           .eq('user_id', user.id);
-          
+
         if (existingAccounts && existingAccounts.length > 0) {
-          console.log('✅ User already has accounts, redirecting to dashboard');
-          // User has accounts, they shouldn't be on create-business page
-          
-          // Store the first account for account context
-          const firstAccountId = existingAccounts[0].account_id;
-          if (typeof window !== 'undefined') {
-            localStorage.setItem(`promptreviews_selected_account_${user.id}`, firstAccountId);
+          // If user has accounts, only redirect if ANY of those accounts already has a business
+          const accountIds = existingAccounts.map(a => a.account_id);
+          const { data: existingBusinesses, error: bizErr } = await supabase
+            .from('businesses')
+            .select('id, account_id')
+            .in('account_id', accountIds)
+            .limit(1);
+
+          if (!bizErr && existingBusinesses && existingBusinesses.length > 0) {
+            console.log('✅ User already has accounts with a business, redirecting to dashboard');
+            // Store a reasonable default account for context hydration
+            const firstAccountId = existingBusinesses[0].account_id || existingAccounts[0].account_id;
+            if (typeof window !== 'undefined') {
+              localStorage.setItem(`promptreviews_selected_account_${user.id}`, firstAccountId);
+            }
+            // Redirect to dashboard; they don’t need to create a business
+            centralizedRedirectToDashboard('User already has existing accounts with a business');
+            return;
           }
-          
-          // Use centralized redirect with circuit breaker protection
-          centralizedRedirectToDashboard('User already has existing accounts');
-          return;
+
+          // User has accounts but no businesses yet → stay on this page to create a business
+          // Preselect the first account id so the form can associate correctly
+          const firstAccountId = existingAccounts[0]?.account_id || null;
+          setAccountId(firstAccountId);
         }
 
         // For new users, we don't require an existing account - the business creation will create one
