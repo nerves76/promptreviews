@@ -435,8 +435,8 @@ const Dashboard = React.memo(function Dashboard() {
     // Only show if user hasn't dismissed it and it's not already showing
     // AND we haven't just completed a payment or showing success modal
     // AND account wasn't recently updated
-    if (isPlanSelectionRequired && !showPricingModal && !isDashboardLoading && 
-        !justCompletedPayment && !hasSuccessParam && !hasPlanSuccessModal && 
+    if (planSelectionRequired && !showPricingModal && !isDashboardLoading &&
+        !justCompletedPayment && !hasSuccessParam && !hasPlanSuccessModal &&
         !accountRecentlyUpdated) {
       // Check if user hasn't recently dismissed the modal
       const modalDismissed = typeof window !== "undefined" ? 

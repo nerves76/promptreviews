@@ -483,6 +483,13 @@ export default function SocialPostingDashboard() {
     }
   }, [locations, selectedLocationId]);
 
+  // Keep single-selection list in sync with selectedLocationId
+  useEffect(() => {
+    if (selectedLocations.length === 1 && selectedLocationId !== selectedLocations[0]) {
+      setSelectedLocationId(selectedLocations[0]);
+    }
+  }, [selectedLocations, selectedLocationId]);
+
   // Fetch overview data when tab becomes active
   useEffect(() => {
     if (activeTab === 'overview' && selectedLocationId && isConnected) {
@@ -2143,24 +2150,34 @@ export default function SocialPostingDashboard() {
               {/* Always show the impressive charts and stats */}
               {(
                 <div className="space-y-6">
-                  {/* Location Selector - show demo location if not connected */}
-                  <LocationSelector
-                    locations={locations.length > 0 && locations[0].name ? locations.map(loc => ({
-                      id: loc.id,
-                      name: loc.name || 'Loading...',
-                      address: loc.address || ''
-                    })) : isConnected ? [] : [
-                      {
-                        id: 'demo-location',
-                        name: 'Your Business Name',
-                        address: '123 Main Street, Your City, State 12345'
-                      }
-                    ]}
-                    selectedLocationId={selectedLocationId || (locations.length > 0 ? locations[0].id : 'demo-location')}
-                    onLocationChange={handleLocationChange}
-                    isConnected={isConnected}
-                    isLoading={isLoadingPlatforms || (isConnected && locations.length === 0)}
-                  />
+                  {/* Location display/selector - static label when only one applicable */}
+                  {(locations.length === 1 || (currentPlan === 'grower' && selectedLocationId)) ? (
+                    <div className="px-4 py-3 border border-gray-200 rounded-md bg-gray-50 text-gray-800">
+                      <div className="flex items-center space-x-2">
+                        <Icon name="FaGoogle" className="w-4 h-4 text-gray-600" />
+                        <span className="font-medium">Google Business Profile:</span>
+                        <span>{locations.find(l => l.id === (selectedLocationId || locations[0]?.id))?.name || 'Selected location'}</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <LocationSelector
+                      locations={locations.length > 0 && locations[0].name ? locations.map(loc => ({
+                        id: loc.id,
+                        name: loc.name || 'Loading...',
+                        address: loc.address || ''
+                      })) : isConnected ? [] : [
+                        {
+                          id: 'demo-location',
+                          name: 'Your Business Name',
+                          address: '123 Main Street, Your City, State 12345'
+                        }
+                      ]}
+                      selectedLocationId={selectedLocationId || (locations.length > 0 ? locations[0].id : 'demo-location')}
+                      onLocationChange={handleLocationChange}
+                      isConnected={isConnected}
+                      isLoading={isLoadingPlatforms || (isConnected && locations.length === 0)}
+                    />
+                  )}
 
                   {/* Error State */}
                   {overviewError && (
@@ -3199,29 +3216,41 @@ export default function SocialPostingDashboard() {
                 , or filter out contacts who have already reviewed you.
               </p>
               
-              {/* Location Selection Dropdown */}
+              {/* Location Selection (static when single/grower) */}
               {locations.length > 0 && (
-                <div className="mb-4">
-                  <label htmlFor="import-location-select" className="block text-sm font-medium text-gray-700 mb-2">
-                    Select Location to Import From:
-                  </label>
-                  <select
-                    id="import-location-select"
-                    value={selectedLocationId || ''}
-                    onChange={(e) => setSelectedLocationId(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    disabled={isImportingReviews}
-                  >
-                    {!selectedLocationId && (
-                      <option value="">-- Select a location --</option>
-                    )}
-                    {locations.map((location) => (
-                      <option key={location.id} value={location.id}>
-                        {location.name || `Business ${location.id.substring(0, 8)}...`}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                (locations.length === 1 || (currentPlan === 'grower' && selectedLocationId)) ? (
+                  <div className="mb-4">
+                    <div className="px-3 py-2 border border-gray-200 rounded-md bg-gray-50 text-gray-800">
+                      <div className="flex items-center space-x-2">
+                        <Icon name="FaGoogle" className="w-4 h-4 text-gray-600" />
+                        <span className="font-medium">Google Business Profile:</span>
+                        <span>{locations.find(l => l.id === (selectedLocationId || locations[0]?.id))?.name || 'Selected location'}</span>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="mb-4">
+                    <label htmlFor="import-location-select" className="block text-sm font-medium text-gray-700 mb-2">
+                      Select Location to Import From:
+                    </label>
+                    <select
+                      id="import-location-select"
+                      value={selectedLocationId || ''}
+                      onChange={(e) => setSelectedLocationId(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      disabled={isImportingReviews}
+                    >
+                      {!selectedLocationId && (
+                        <option value="">-- Select a location --</option>
+                      )}
+                      {locations.map((location) => (
+                        <option key={location.id} value={location.id}>
+                          {location.name || `Business ${location.id.substring(0, 8)}...`}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )
               )}
 
               <div className="space-y-3">
