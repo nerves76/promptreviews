@@ -19,6 +19,7 @@ import { createClient } from "@/auth/providers/supabase";
 import Link from "next/link";
 import { markTaskAsCompleted } from "@/utils/onboardingTasks";
 import { useAuth } from "@/auth";
+import { revalidatePromptPage } from "@/app/(app)/actions/revalidate";
 
 // Helper to normalize platform names to match dropdown options
 const normalizePlatformName = (name: string): string => {
@@ -40,6 +41,7 @@ const normalizePlatforms = (platforms: any[] | null | undefined = []) =>
 
 export default function UniversalEditPromptPage() {
   const supabase = createClient();
+  const router = useRouter();
   const { user, account } = useAuth();
 
   // Feature flag for testing new standardized form
@@ -409,7 +411,7 @@ export default function UniversalEditPromptPage() {
     
     if (updatedPage?.slug) setSlug(updatedPage.slug);
     if (updatedPage?.slug) {
-      const modalData = { 
+      const modalData = {
         url: `/r/${updatedPage.slug}`,
         first_name: "", // Universal pages don't have specific customer info
         phone: "",
@@ -419,6 +421,9 @@ export default function UniversalEditPromptPage() {
         "showPostSaveModal",
         JSON.stringify(modalData),
       );
+
+      // Revalidate the prompt page cache to ensure fresh data
+      await revalidatePromptPage(updatedPage.slug);
     }
     // Redirect to prompt-pages to show the modal
     window.location.href = "/prompt-pages";

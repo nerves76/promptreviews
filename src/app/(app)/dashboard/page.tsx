@@ -387,28 +387,38 @@ const Dashboard = React.memo(function Dashboard() {
     if (authLoading || accountLoading || businessesLoading || !account || !businessData) return;
     
     const now = new Date();
-    const trialStart = account.trial_start ? new Date(account.trial_start) : null;
     const trialEnd = account.trial_end ? new Date(account.trial_end) : null;
     const plan = account.plan;
     const hasStripeCustomer = !!account.stripe_customer_id;
+    const subscriptionStatus = account.subscription_status;
     const businessCount = businessData.businessCount;
 
-    // User is on a paid plan
-    const isPaidUser = 
-      plan === "builder" || 
-      plan === "maven" || 
-      (plan === "grower" && hasStripeCustomer);
+    // Determine if payment is required based on plan, trial, and subscription status
+    let paymentRequired = false;
 
-    // Check if trial has expired
-    const isTrialExpired = trialEnd && now > trialEnd;
+    // Active subscription never requires payment
+    if (subscriptionStatus === 'active') {
+      paymentRequired = false;
+    } else if (plan === 'grower') {
+      const trialActive = trialEnd && now <= trialEnd && !hasStripeCustomer;
+      if (trialActive) {
+        paymentRequired = false;
+      } else if (hasStripeCustomer) {
+        // Paying grower but not active -> needs attention/payment
+        paymentRequired = subscriptionStatus !== 'active';
+      } else {
+        // Not paying grower: require payment only after trial expires
+        paymentRequired = !!trialEnd && now > trialEnd;
+      }
+    } else if (plan === 'builder' || plan === 'maven') {
+      // Paid plans require active subscription
+      paymentRequired = subscriptionStatus !== 'active';
+    } else {
+      // No plan selected but business exists -> require plan/payment
+      paymentRequired = ((!plan || plan === 'no_plan' || plan === 'NULL') && businessCount > 0);
+    }
 
-    // Determine if plan selection is required
-    const isPlanSelectionRequired = 
-      ((!plan || plan === 'no_plan' || plan === 'NULL') && businessCount > 0) ||
-      (plan === "grower" && isTrialExpired && !hasStripeCustomer);
-    
-    
-    setPlanSelectionRequired(!!isPlanSelectionRequired);
+    setPlanSelectionRequired(!!paymentRequired);
     
     // Check if we just came back from Stripe success or have success modal showing
     const urlParams = typeof window !== "undefined" ? 
@@ -439,20 +449,18 @@ const Dashboard = React.memo(function Dashboard() {
     
   }, [authLoading, accountLoading, businessesLoading, isDashboardLoading, account, businessData, justCompletedPayment, dashboardData]);
 
-  // Close modal and clear flags for Maven users
+  // Close modal automatically whenever payment is not required
   useEffect(() => {
-    if (account?.plan === 'maven' && showPricingModal) {
+    if (!planSelectionRequired && showPricingModal) {
       setShowPricingModal(false);
-      setPlanSelectionRequired(false);
       setJustCompletedPayment(false);
-      
       // Clear all modal-related session storage
       if (typeof window !== "undefined") {
         sessionStorage.removeItem('pricingModalDismissed');
         localStorage.removeItem('showPostSaveModal');
       }
     }
-  }, [account?.plan, showPricingModal]);
+  }, [planSelectionRequired, showPricingModal]);
 
   // Handle URL parameters and celebrations
   useEffect(() => {
