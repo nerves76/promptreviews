@@ -15,8 +15,8 @@ interface LoaderAPI {
 
 const LoaderContext = createContext<LoaderAPI | null>(null);
 
-const DEFAULT_DEBOUNCE_MS = 300; // increased to reduce quick-flash overlays
-const DEFAULT_MIN_VISIBLE_MS = 300; // keep shown at least this long
+const DEFAULT_DEBOUNCE_MS = 700; // delay before showing to skip fast loads
+const DEFAULT_MIN_VISIBLE_MS = 280; // keep shown briefly to avoid flash once visible
 
 export function useGlobalLoader() {
   const ctx = useContext(LoaderContext);
@@ -48,7 +48,7 @@ function GlobalLoaderProviderInner({
   const failsafeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastActivityRef = useRef<number>(Date.now());
   const longTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const LONG_DIM_MS = 900; // add dimmer only after sustained loading
+  const LONG_DIM_MS = 1800; // add dimmer only after sustained loading
 
   const recomputeActive = useCallback(() => {
     const total = Object.values(countsRef.current).reduce((a, b) => a + b, 0);
