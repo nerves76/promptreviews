@@ -9,12 +9,13 @@
 
 import { useEffect, useState } from "react";
 import { useAuth } from "@/auth";
-import FiveStarSpinner from "../components/FiveStarSpinner";
+import { useGlobalLoader } from "../components/GlobalLoaderProvider";
 import { useCancelledAccountGuard } from "@/utils/useCancelledAccountGuard";
 
 export default function GamePage() {
   const { user, isLoading: authLoading } = useAuth();
   const [gameLoaded, setGameLoaded] = useState(false);
+  const loader = useGlobalLoader();
   
   // Block cancelled accounts from accessing the game
   const { isBlocked } = useCancelledAccountGuard();
@@ -28,13 +29,8 @@ export default function GamePage() {
     return () => clearTimeout(timer);
   }, []);
 
-  if (authLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600 flex items-center justify-center">
-        <FiveStarSpinner />
-      </div>
-    );
-  }
+  if (authLoading) { loader.show('game'); return null; }
+  loader.hide('game');
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600">
@@ -43,14 +39,8 @@ export default function GamePage() {
         <div className="space-y-4">
           {/* Game Container */}
           <div className="relative">
-            {!gameLoaded && (
-              <div className="absolute inset-0 bg-slate-100 rounded-lg flex items-center justify-center z-10">
-                <div className="text-center">
-                  <FiveStarSpinner />
-                  <p className="mt-4 text-slate-600">Loading Get Found Online: The Game...</p>
-                </div>
-              </div>
-            )}
+            {!gameLoaded && loader.show('game-iframe')}
+            {gameLoaded && loader.hide('game-iframe')}
             
             <div className="bg-white rounded-lg shadow-lg overflow-hidden">
               {/* Direct game content */}

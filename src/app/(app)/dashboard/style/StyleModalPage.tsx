@@ -361,6 +361,14 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
       // Handle multiple businesses - use the first one (oldest)
       const business = businessData && businessData.length > 0 ? businessData[0] : null;
       console.log('[StyleModal] Found businesses:', businessData?.length || 0, 'Selected business ID:', business?.id);
+      if (business) {
+        console.log('[StyleModal] Loaded gradient values from DB:', {
+          gradient_start: business.gradient_start,
+          gradient_middle: business.gradient_middle,
+          gradient_end: business.gradient_end,
+          background_type: business.background_type
+        });
+      }
 
       // Store the business ID for updates
       if (business?.id) {
@@ -396,8 +404,8 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
           card_text: business.card_text || "#1A1A1A",
           card_transparency: business.card_transparency ?? 0.95,
 
-          // Newer/optional columns (fallbacks from current settings if missing in DB)
-          gradient_middle: business.gradient_middle || settings.gradient_middle,
+          // Newer/optional columns (use the default from our presets if missing in DB)
+          gradient_middle: business.gradient_middle || "#7864C8",
           card_placeholder_color: business.card_placeholder_color || settings.card_placeholder_color,
           card_inner_shadow: (business.card_inner_shadow ?? settings.card_inner_shadow) as boolean,
           card_shadow_color: business.card_shadow_color || settings.card_shadow_color,
@@ -535,7 +543,13 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
         kickstarters_background_design: settings.kickstarters_background_design,
       };
 
-      console.log('[StyleModal] Sending update via API:', updatePayload);
+      console.log('[StyleModal] Gradient values being sent:', {
+        gradient_start: updatePayload.gradient_start,
+        gradient_middle: updatePayload.gradient_middle,
+        gradient_end: updatePayload.gradient_end,
+        background_type: updatePayload.background_type
+      });
+      console.log('[StyleModal] Full update payload:', updatePayload);
 
       // Get the selected account from localStorage for the header
       const selectedAccount = localStorage.getItem('selectedAccount');

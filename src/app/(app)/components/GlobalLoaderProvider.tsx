@@ -44,6 +44,9 @@ function GlobalLoaderProviderInner({
   const visibleRef = useRef(false);
   const showTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const minVisibleUntilRef = useRef<number>(0);
+  const routerSafetyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const failsafeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastActivityRef = useRef<number>(Date.now());
 
   const recomputeActive = useCallback(() => {
     const total = Object.values(countsRef.current).reduce((a, b) => a + b, 0);
@@ -58,6 +61,17 @@ function GlobalLoaderProviderInner({
         minVisibleUntilRef.current = Date.now() + DEFAULT_MIN_VISIBLE_MS;
         setActive(true);
         document.documentElement.setAttribute("data-global-loading", "true");
+        // Start a failsafe to prevent being stuck indefinitely
+        if (failsafeTimerRef.current) clearTimeout(failsafeTimerRef.current);
+        failsafeTimerRef.current = setTimeout(() => {
+          // If still active after long duration, force clear
+          if (visibleRef.current) {
+            countsRef.current = {};
+            visibleRef.current = false;
+            setActive(false);
+            document.documentElement.removeAttribute("data-global-loading");
+          }
+        }, 10000); // 10s failsafe
       }, DEFAULT_DEBOUNCE_MS);
     } else {
       // hide respecting minimum visible time
@@ -70,23 +84,48 @@ function GlobalLoaderProviderInner({
         visibleRef.current = false;
         setActive(false);
         document.documentElement.removeAttribute("data-global-loading");
+        if (failsafeTimerRef.current) {
+          clearTimeout(failsafeTimerRef.current);
+          failsafeTimerRef.current = null;
+        }
       }, delay);
     }
   }, []);
 
   const show = useCallback((key: LoaderKey = "network", opts?: { minVisibleMs?: number }) => {
     const k = String(key);
+    if (k === "router" && (countsRef.current[k] || 0) > 0) {
+      // Avoid accumulating router shows from repeated history calls
+      return;
+    }
     countsRef.current[k] = (countsRef.current[k] || 0) + 1;
     if (opts?.minVisibleMs) {
       minVisibleUntilRef.current = Math.max(minVisibleUntilRef.current, Date.now() + opts.minVisibleMs);
     }
+    lastActivityRef.current = Date.now();
     recomputeActive();
+
+    // Safety auto-hide for router if URL doesn't change (e.g., pushState to same URL)
+    if (k === "router") {
+      if (routerSafetyTimerRef.current) clearTimeout(routerSafetyTimerRef.current);
+      routerSafetyTimerRef.current = setTimeout(() => {
+        // Only hide if still active due to router key
+        if ((countsRef.current[k] || 0) > 0) {
+          hide("router");
+        }
+      }, 7000);
+    }
   }, [recomputeActive]);
 
   const hide = useCallback((key: LoaderKey = "network") => {
     const k = String(key);
     const current = countsRef.current[k] || 0;
     countsRef.current[k] = Math.max(0, current - 1);
+    if (k === "router" && routerSafetyTimerRef.current) {
+      clearTimeout(routerSafetyTimerRef.current);
+      routerSafetyTimerRef.current = null;
+    }
+    lastActivityRef.current = Date.now();
     recomputeActive();
   }, [recomputeActive]);
 
@@ -187,4 +226,3 @@ export default function GlobalLoaderProvider(props: ProviderProps) {
     </Suspense>
   );
 }
-

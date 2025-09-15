@@ -27,6 +27,7 @@ import CommunicationButtons from "@/app/(app)/components/communication/Communica
 
 import EmojiEmbedButton from "@/app/(app)/components/EmojiEmbedButton";
 import FiveStarSpinner from "@/app/(app)/components/FiveStarSpinner";
+import { useGlobalLoader } from "@/app/(app)/components/GlobalLoaderProvider";
 import BusinessProfileBanner from "@/app/(app)/components/BusinessProfileBanner";
 import { useAuth } from "@/auth";
 import { useBusinessData, useAuthUser, useAccountData, useAuthLoading } from "@/auth/hooks/granularAuthHooks";
@@ -653,14 +654,21 @@ function PromptPagesContent() {
     }
   }, [authInitialized, authUser, router]);
 
-  // Show loader while auth is initializing or data is being fetched
-  // Only show the gold stars on gradient background, no PageCard
+  // Tie page-level loading to the global overlay
+  const loader = useGlobalLoader();
+  useEffect(() => {
+    const isPageLoading = (!authInitialized || !dataLoaded || !minLoadTimeElapsed || authLoading);
+    if (isPageLoading) {
+      loader.show("page");
+    } else {
+      loader.hide("page");
+    }
+    return () => loader.hide("page");
+  }, [authInitialized, dataLoaded, minLoadTimeElapsed, authLoading, loader]);
+
+  // While loading, render nothing (global overlay covers the screen)
   if (!authInitialized || !dataLoaded || !minLoadTimeElapsed || authLoading) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600">
-        <FiveStarSpinner size={24} />
-      </div>
-    );
+    return null;
   }
 
   // If auth is initialized but no user, show nothing while redirecting
@@ -670,13 +678,9 @@ function PromptPagesContent() {
 
   return (
     <div>
-      {/* Navigation Loading Overlay */}
-      {isNavigating && (
-        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black bg-opacity-75">
-          <FiveStarSpinner size={24} />
-          <div className="mt-4 text-lg text-white font-semibold">Loading prompt page…</div>
-        </div>
-      )}
+      {/* Navigation loading uses global overlay */}
+      {isNavigating && loader.show("navigate")}
+      {!isNavigating && loader.hide("navigate")}
       
       <PromptTypeSelectModal
         open={showTypeModal}
@@ -1378,7 +1382,7 @@ function UniversalTooltip() {
 // Wrapper component with Suspense boundary
 export default function PromptPages() {
   return (
-    <Suspense fallback={<FiveStarSpinner />}>
+    <Suspense fallback={<></>}>
       <PromptPagesContent />
     </Suspense>
   );

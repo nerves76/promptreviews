@@ -1,16 +1,10 @@
 import { Suspense } from "react";
 import CreatePromptPageClient from "./CreatePromptPageClient";
-import FiveStarSpinner from "@/app/(app)/components/FiveStarSpinner";
+import AppLoader from "@/app/(app)/components/AppLoader";
 
 export default function CreatePromptPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen flex flex-col items-center justify-center">
-          <FiveStarSpinner size={24} />
-        </div>
-      }
-    >
+    <Suspense fallback={<AppLoader /> }>
       <CreatePromptPageClient />
     </Suspense>
   );

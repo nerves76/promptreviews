@@ -12,7 +12,8 @@ import { useRouter } from 'next/navigation';
 import { PlusIcon, XMarkIcon, UserIcon, EnvelopeIcon, ClockIcon, QuestionMarkCircleIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '@/auth';
 import { useAccountData } from '@/auth/hooks/granularAuthHooks';
-import FiveStarSpinner from '@/app/(app)/components/FiveStarSpinner';
+// Page-level loading uses the global overlay
+import { useGlobalLoader } from "@/app/(app)/components/GlobalLoaderProvider";
 import { createClient } from '@/auth/providers/supabase';
 
 interface TeamMember {
@@ -60,6 +61,7 @@ export default function TeamPage() {
   const { selectedAccountId } = useAccountData();
   const [teamData, setTeamData] = useState<TeamData | null>(null);
   const [loading, setLoading] = useState(true);
+  const loader = useGlobalLoader();
   // Storage keys for form data persistence
   const inviteFormStorageKey = 'teamInviteForm';
   const bulkInviteStorageKey = 'teamBulkInviteForm';
@@ -628,13 +630,15 @@ export default function TeamPage() {
     }
   }, [loading, teamData]);
 
-  // Show loading spinner while auth is loading or team data is loading
+  // Use global overlay for page-level loading; render nothing
+  useEffect(() => {
+    const pageLoading = authLoading || loading || !user;
+    if (pageLoading) loader.show('team'); else loader.hide('team');
+    return () => loader.hide('team');
+  }, [authLoading, loading, user, loader]);
+
   if (authLoading || loading || !user) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center">
-        <FiveStarSpinner />
-      </div>
-    );
+    return null;
   }
 
   if (!teamData) {

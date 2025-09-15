@@ -10,7 +10,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { CheckCircleIcon, XCircleIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
-import FiveStarSpinner from '@/app/(app)/components/FiveStarSpinner';
+import { useGlobalLoader } from '@/app/(app)/components/GlobalLoaderProvider';
 
 interface InvitationData {
   id: string;
@@ -38,6 +38,7 @@ function TeamAcceptContent() {
     invitationEmail: string;
     currentUserEmail: string;
   } | null>(null);
+  const loader = useGlobalLoader();
 
   // Fetch invitation details
   useEffect(() => {
@@ -124,19 +125,8 @@ function TeamAcceptContent() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600 flex items-center justify-center">
-        <div className="max-w-md w-full bg-white/90 backdrop-blur-sm rounded-2xl shadow-2xl p-8 border-2 border-white">
-          <div className="animate-pulse">
-            <div className="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
-            <div className="h-4 bg-gray-200 rounded w-1/2 mb-4"></div>
-            <div className="h-4 bg-gray-200 rounded w-5/6"></div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  if (loading) { loader.show('team-accept'); return null; }
+  loader.hide('team-accept');
 
   if (error) {
     return (
@@ -224,7 +214,7 @@ function TeamAcceptContent() {
           <p className="text-gray-600 mb-6">
             You've successfully joined the team. Redirecting you to the dashboard...
           </p>
-          <FiveStarSpinner size={18} />
+          {/* Global overlay already indicates loading */}
         </div>
       </div>
     );

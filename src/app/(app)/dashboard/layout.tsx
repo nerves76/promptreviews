@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/auth";
 import { useRouter } from "next/navigation";
 import AppLoader from "@/app/(app)/components/AppLoader";
+import { useGlobalLoader } from "@/app/(app)/components/GlobalLoaderProvider";
 import { trackEvent, GA_EVENTS } from "@/utils/analytics";
 import TrialBanner from "../components/TrialBanner";
 import Header from "../components/Header";
@@ -29,6 +30,7 @@ export default function DashboardLayout({
   const [isClient, setIsClient] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const router = useRouter();
+  const loader = useGlobalLoader();
 
   // Ensure we're on the client side before accessing browser APIs
   useEffect(() => {
@@ -124,13 +126,9 @@ export default function DashboardLayout({
 
   // Show loading while AuthContext initializes (but not on create-business page)
   if (!isInitialized && !isPlanPageSuccess && !isOnCreateBusinessPage) {
-    if (process.env.NODE_ENV === 'development') {
-    }
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center">
-        <AppLoader variant="centered" />
-      </div>
-    );
+    // Use global overlay; render nothing
+    loader.show('layout');
+    return null;
   }
 
   // Show nothing while redirecting
@@ -141,13 +139,8 @@ export default function DashboardLayout({
   // Show loading while user data or account data is still loading
   // BUT skip if we're showing plan success modal OR on create-business page
   if ((isLoading || accountLoading) && !isPlanPageSuccess && !isOnCreateBusinessPage) {
-    if (process.env.NODE_ENV === 'development') {
-    }
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center">
-        <AppLoader variant="centered" />
-      </div>
-    );
+    loader.show('layout');
+    return null;
   }
 
 

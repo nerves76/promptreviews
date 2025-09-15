@@ -45,7 +45,7 @@ export default function FiveStarSpinner({
 
   return (
     <div
-      className={`flex items-center justify-center gap-2 text-white ${className}`}
+      className={`five-star-spinner flex items-center justify-center gap-2 text-white ${className}`}
       style={{ fontSize: size, minHeight: size + 6, ...style }}
     >
       {[0, 1, 2, 3].map((i) => (

@@ -4,7 +4,8 @@ import { useState, useEffect, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/auth/providers/supabase";
 import Link from "next/link";
-import FiveStarSpinner from "@/app/(app)/components/FiveStarSpinner";
+import { useGlobalLoader } from "@/app/(app)/components/GlobalLoaderProvider";
+import AppLoader from "@/app/(app)/components/AppLoader";
 
 function ResetPasswordContent() {
   const [password, setPassword] = useState("");
@@ -128,23 +129,9 @@ function ResetPasswordContent() {
     }
   };
 
-  if (isCheckingAuth) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-        <div className="sm:mx-auto sm:w-full sm:max-w-md">
-          <div className="text-center">
-            <FiveStarSpinner size={18} />
-            <h2 className="mt-4 text-xl font-semibold text-white">
-              Verifying reset link...
-            </h2>
-            <p className="mt-2 text-sm text-white/80">
-              Please wait while we verify your password reset request.
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const loader = useGlobalLoader();
+  if (isCheckingAuth) { loader.show('reset-password'); return null; }
+  loader.hide('reset-password');
 
   if (!isAuthenticated) {
     return (
@@ -292,18 +279,7 @@ function ResetPasswordContent() {
 
 export default function ResetPasswordPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-        <div className="sm:mx-auto sm:w-full sm:max-w-md">
-          <div className="text-center">
-            <FiveStarSpinner size={18} />
-            <h2 className="mt-4 text-xl font-semibold text-white">
-              Loading...
-            </h2>
-          </div>
-        </div>
-      </div>
-    }>
+    <Suspense fallback={<AppLoader /> }>
       <ResetPasswordContent />
     </Suspense>
   );

@@ -9,21 +9,14 @@
 
 import { useAuth } from '@/auth';
 import PaymentStatus, { PaymentStateExamples } from '@/app/(app)/components/PaymentStatus';
-import FiveStarSpinner from '@/app/(app)/components/FiveStarSpinner';
+import { useGlobalLoader } from '@/app/(app)/components/GlobalLoaderProvider';
 
 export default function PaymentDemoPage() {
   const authData = useAuth();
-  
-  // Handle null context during static generation
+  const loader = useGlobalLoader();
   if (!authData) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600 flex items-center justify-center">
-        <div className="bg-white rounded-lg p-8 shadow-lg">
-          <FiveStarSpinner />
-          <p className="mt-4 text-gray-600">Loading...</p>
-        </div>
-      </div>
-    );
+    loader.show('payment-demo');
+    return null;
   }
   
   const { 
@@ -40,15 +33,10 @@ export default function PaymentDemoPage() {
   } = authData;
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600 flex items-center justify-center">
-        <div className="bg-white rounded-lg p-8 shadow-lg">
-          <FiveStarSpinner />
-          <p className="mt-4 text-gray-600">Loading payment demo...</p>
-        </div>
-      </div>
-    );
+    loader.show('payment-demo');
+    return null;
   }
+  loader.hide('payment-demo');
 
   if (!isAuthenticated) {
     return (

@@ -8,7 +8,7 @@ import Link from "next/link";
 import Icon from "@/components/Icon";
 import PageCard from "@/app/(app)/components/PageCard";
 import UniversalPromptPageForm from "../../dashboard/edit-prompt-page/universal/UniversalPromptPageForm";
-import AppLoader from "@/app/(app)/components/AppLoader";
+import { useGlobalLoader } from "@/app/(app)/components/GlobalLoaderProvider";
 import QRCodeGenerator, { QR_FRAME_SIZES } from "../../dashboard/components/QRCodeGenerator";
 import dynamic from "next/dynamic";
 import PromptPagesTable from "@/app/(app)/components/PromptPagesTable";
@@ -395,13 +395,13 @@ export default function IndividualOutreach() {
     return props;
   }, []);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center">
-        <AppLoader />
-      </div>
-    );
-  }
+  const loader = useGlobalLoader();
+  useEffect(() => {
+    if (loading) loader.show('prompt-pages-individual'); else loader.hide('prompt-pages-individual');
+    return () => loader.hide('prompt-pages-individual');
+  }, [loading, loader]);
+
+  if (loading) return null;
 
   return (
     <>

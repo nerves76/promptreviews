@@ -57,25 +57,63 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Business not found or access denied' }, { status: 404 });
     }
 
-    console.log('[API] Updating business:', businessId, 'with styles:', styleUpdate);
+    // Log specific gradient values being updated
+    console.log('[API/update-style] Gradient values to update:', {
+      gradient_start: styleUpdate.gradient_start,
+      gradient_middle: styleUpdate.gradient_middle,
+      gradient_end: styleUpdate.gradient_end,
+      background_type: styleUpdate.background_type
+    });
+
+    console.log('[API/update-style] Full update payload:', JSON.stringify(styleUpdate, null, 2));
 
     // Update the business with new style settings
-    const { error: updateError } = await supabase
+    const { data: updateData, error: updateError, count } = await supabase
       .from('businesses')
       .update(styleUpdate)
       .eq('id', businessId)
-      .eq('account_id', accountId); // Double-check for security
+      .eq('account_id', accountId) // Double-check for security
+      .select();
+
+    console.log('[API/update-style] Update result:', {
+      error: updateError,
+      dataReturned: updateData?.length || 0,
+      count: count
+    });
 
     if (updateError) {
-      console.error('[API] Update error:', updateError);
+      console.error('[API/update-style] Update error:', updateError);
       return NextResponse.json({
         error: 'Failed to update styles',
         details: updateError.message
       }, { status: 500 });
     }
 
-    console.log('[API] Successfully updated styles for business:', businessId);
-    return NextResponse.json({ success: true });
+    // Verify the update by reading back
+    const { data: verifyData, error: verifyError } = await supabase
+      .from('businesses')
+      .select('background_type, background_color, gradient_start, gradient_middle, gradient_end')
+      .eq('id', businessId)
+      .single();
+
+    console.log('[API/update-style] Verification read:', {
+      businessId,
+      verifyError,
+      currentGradientValues: {
+        gradient_start: verifyData?.gradient_start,
+        gradient_middle: verifyData?.gradient_middle,
+        gradient_end: verifyData?.gradient_end,
+        background_type: verifyData?.background_type
+      },
+      allValues: verifyData
+    });
+
+    console.log('[API/update-style] Successfully processed update for business:', businessId);
+    return NextResponse.json({
+      success: true,
+      updated: updateData,
+      verified: verifyData
+    });
 
   } catch (error) {
     console.error('[API] Unexpected error:', error);

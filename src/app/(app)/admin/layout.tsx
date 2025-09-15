@@ -16,6 +16,7 @@ const supabase = createClient();
 import { isAdmin } from "@/utils/admin";
 import { useRouter } from "next/navigation";
 import AppLoader from "@/app/(app)/components/AppLoader";
+import { useGlobalLoader } from "@/app/(app)/components/GlobalLoaderProvider";
 import PageCard from "@/app/(app)/components/PageCard";
 
 export default function AdminLayout({
@@ -28,6 +29,7 @@ export default function AdminLayout({
   const [user, setUser] = useState<any>(null);
   const router = useRouter();
   const pathname = usePathname();
+  const loader = useGlobalLoader();
 
   useEffect(() => {
     const checkAdminAccess = async () => {
@@ -67,7 +69,8 @@ export default function AdminLayout({
   };
 
   if (loading) {
-    return <AppLoader />;
+    loader.show('admin-layout');
+    return null;
   }
 
   if (!isAdminUser) {

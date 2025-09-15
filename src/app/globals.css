@@ -2,6 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* When the global overlay is active, hide any inline/local star spinners */
+html[data-global-loading="true"] .five-star-spinner { display: none !important; }
+
 /* Prevent white flash on initial load - removed, handled below */
 
 :root {

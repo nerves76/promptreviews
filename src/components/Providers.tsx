@@ -8,13 +8,14 @@ import GlobalLoaderProvider from "@/app/(app)/components/GlobalLoaderProvider";
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <AuthProvider>
-      <ReviewerProvider>
-        <BusinessGuard>
-          <GlobalLoaderProvider enabled={true} interceptNetwork={false}>
+      {/* Global loader must wrap everything so context is always available */}
+      <GlobalLoaderProvider enabled={true} interceptNetwork={true}>
+        <ReviewerProvider>
+          <BusinessGuard>
             {children}
-          </GlobalLoaderProvider>
-        </BusinessGuard>
-      </ReviewerProvider>
+          </BusinessGuard>
+        </ReviewerProvider>
+      </GlobalLoaderProvider>
     </AuthProvider>
   );
 }

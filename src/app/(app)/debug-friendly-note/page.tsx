@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { createClient } from '@/auth/providers/supabase';
 import PageCard from '@/app/(app)/components/PageCard';
 import Icon from '@/components/Icon';
-import FiveStarSpinner from '@/app/(app)/components/FiveStarSpinner';
+import { useGlobalLoader } from '@/app/(app)/components/GlobalLoaderProvider';
 
 interface PromptPage {
   id: string;
@@ -70,16 +70,13 @@ export default function DebugFriendlyNotePage() {
 
   const clearTestResults = () => setTestResults([]);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <FiveStarSpinner size={18} />
-          <p className="text-white">Loading debug information...</p>
-        </div>
-      </div>
-    );
-  }
+  const loader = useGlobalLoader();
+  useEffect(() => {
+    if (loading) loader.show('debug-friendly'); else loader.hide('debug-friendly');
+    return () => loader.hide('debug-friendly');
+  }, [loading, loader]);
+
+  if (loading) return null;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-500 to-purple-600 p-4">

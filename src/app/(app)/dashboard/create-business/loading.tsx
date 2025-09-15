@@ -1,10 +1,4 @@
-import AppLoader from "@/app/(app)/components/AppLoader";
-
 export default function Loading() {
-  return (
-    <div className="min-h-screen flex flex-col items-center justify-center">
-      <AppLoader variant="compact" />
-      <p className="mt-4 text-gray-600 text-sm">Setting up your business profile...</p>
-    </div>
-  );
+  // Global overlay handles page-level loading now.
+  return null;
 }
