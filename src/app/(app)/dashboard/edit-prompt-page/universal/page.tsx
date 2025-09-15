@@ -415,7 +415,8 @@ export default function UniversalEditPromptPage() {
         url: `/r/${updatedPage.slug}`,
         first_name: "", // Universal pages don't have specific customer info
         phone: "",
-        email: ""
+        email: "",
+        isUniversal: true // Flag to identify this as a universal page
       };
       localStorage.setItem(
         "showPostSaveModal",
@@ -425,8 +426,8 @@ export default function UniversalEditPromptPage() {
       // Revalidate the prompt page cache to ensure fresh data
       await revalidatePromptPage(updatedPage.slug);
     }
-    // Redirect to prompt-pages to show the modal
-    window.location.href = "/prompt-pages";
+    // Redirect to prompt-pages public tab to show the modal
+    window.location.href = "/prompt-pages?tab=public";
     setIsSaving(false);
   };
 

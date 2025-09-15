@@ -486,12 +486,13 @@ function PromptPagesContent() {
           
           // Determine which tab this modal should show on
           const isForLocation = data.isLocationCreation;
-          const isForIndividual = !isForLocation && (data.first_name || data.email || data.phone);
-          
+          const isForUniversal = data.isUniversal === true;
+          const isForIndividual = !isForLocation && !isForUniversal && (data.first_name || data.email || data.phone);
+
           // Check if we're on the right tab
           const currentTab = promptPagesTab;
           const expectedTab = isForLocation ? 'locations' : (isForIndividual ? 'individual' : 'public');
-          
+
           // If we're not on the right tab, don't show the modal here
           // The redirect should have put us on the right tab
           if (currentTab !== expectedTab) {
