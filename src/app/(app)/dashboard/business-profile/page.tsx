@@ -103,7 +103,6 @@ export default function BusinessProfilePage() {
   useAuthGuard();
   const { user } = useAuthUser();
   const { business } = useBusinessData();
-  const { account } = useAccountData();
   
   // Storage key for form data persistence
   const formStorageKey = 'businessProfileForm';
