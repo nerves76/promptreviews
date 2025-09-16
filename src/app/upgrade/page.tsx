@@ -6,7 +6,7 @@ import { createBrowserClient } from "@supabase/ssr";
 import { FaCheck, FaRocket, FaUsers, FaCrown, FaStar } from "react-icons/fa";
 import { useAuthGuard } from "@/utils/authGuard";
 import { getUserOrMock } from "@/utils/supabase";
-import FiveStarSpinner from "@/app/components/FiveStarSpinner";
+import FiveStarSpinner from "../(app)/components/FiveStarSpinner";
 
 interface PricingTier {
   name: string;
