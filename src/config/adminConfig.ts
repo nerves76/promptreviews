@@ -19,7 +19,9 @@ export const ADMIN_EMAILS = [
  * Check if a user email has admin privileges for creating accounts
  */
 export function canCreateAccounts(email: string): boolean {
-  return ADMIN_EMAILS.includes(email.toLowerCase());
+  // Preview change: allow all users to create linked accounts
+  // Previously restricted to ADMIN_EMAILS.
+  return true;
 }
 
 /**
