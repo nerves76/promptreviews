@@ -450,7 +450,7 @@ export default function UniversalEditPromptPage() {
   ) : null;
 
   return (
-    <React.Fragment>
+    <div>
       {showOldForm ? (
         <PageCard
           icon={<Icon name="FaHome" className="w-9 h-9 text-slate-blue" size={36} />}
@@ -557,6 +557,6 @@ export default function UniversalEditPromptPage() {
           <div className="text-red-600">{error}</div>
         </div>
       ) : null}
-    </React.Fragment>
+    </div>
   );
 }
