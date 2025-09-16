@@ -1,0 +1,1135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PromptReviews - Emoji Sentiment Flow</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .demo-container {
+            position: relative;
+            display: block;
+            margin: 0 auto;
+            text-align: center;
+            width: fit-content;
+        }
+
+        .phone-container {
+            position: relative;
+            display: inline-block;
+        }
+
+        .phone {
+            width: 325px;
+            height: 580px;
+            background: #1f2937;
+            border-radius: 28px;
+            padding: 8px;
+            position: relative;
+        }
+
+        .phone-screen {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 22px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .phone-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 24px 12px;
+            background: transparent;
+            position: relative;
+        }
+
+        .modal {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            padding: 28px 20px;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.3);
+            max-width: 350px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .page-layout {
+            background: transparent;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .page-header {
+            padding: 20px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .business-logo {
+            width: 64px;
+            height: 64px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #4F46E5;
+            font-size: 28px;
+            font-weight: bold;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .business-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: #ffffff;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        }
+
+        .page-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+        }
+
+        .page-content .google-form,
+        .page-content .feedback-form {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            padding: 24px;
+            max-width: 350px;
+            width: 100%;
+            margin: 0 auto;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #4F46E5;
+            margin-bottom: 20px;
+        }
+
+        .feedback-header {
+            font-size: 18px;
+            font-weight: 600;
+            color: #4F46E5;
+            margin-bottom: 20px;
+        }
+
+        .emoji-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
+            gap: 12px;
+            flex-wrap: nowrap;
+        }
+
+        .emoji {
+            width: 56px;
+            height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .emoji:before {
+            content: '';
+            position: absolute;
+            width: 36px;
+            height: 36px;
+            transition: all 0.3s ease;
+        }
+
+        .emoji:hover {
+            transform: scale(1.15);
+        }
+
+        /* FontAwesome-style emoji icons */
+        .emoji.excellent:before {
+            background: #F472B6;
+            mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cpath d='M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM144 208a32 32 0 1 1 64 0 32 32 0 1 1 -64 0zm192-32a32 32 0 1 1 0 64 32 32 0 1 1 0-64zM144 336c0-8.8 7.2-16 16-16s16 7.2 16 16c0 26.5 21.5 48 48 48h64c26.5 0 48-21.5 48-48c0-8.8 7.2-16 16-16s16 7.2 16 16c0 44.2-35.8 80-80 80H224c-44.2 0-80-35.8-80-80z'/%3E%3C/svg%3E") no-repeat center;
+            mask-size: 32px 32px;
+        }
+
+        .emoji.satisfied:before {
+            background: #10B981;
+            mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cpath d='M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM164.1 325.5C182 346.2 212.6 368 256 368s74-21.8 91.9-42.5c5.8-6.7 15.9-7.4 22.6-1.6s7.4 15.9 1.6 22.6C349.8 372.1 311.1 400 256 400s-93.8-27.9-116.1-53.5c-5.8-6.7-5.1-16.8 1.6-22.6s16.8-5.1 22.6 1.6zM144 208a32 32 0 1 1 64 0 32 32 0 1 1 -64 0zm192-32a32 32 0 1 1 0 64 32 32 0 1 1 0-64z'/%3E%3C/svg%3E") no-repeat center;
+            mask-size: 32px 32px;
+        }
+
+        .emoji.neutral:before {
+            background: #9CA3AF;
+            mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cpath d='M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM144 208a32 32 0 1 1 64 0 32 32 0 1 1 -64 0zm192-32a32 32 0 1 1 0 64 32 32 0 1 1 0-64zM192 320h128c8.8 0 16 7.2 16 16s-7.2 16-16 16H192c-8.8 0-16-7.2-16-16s7.2-16 16-16z'/%3E%3C/svg%3E") no-repeat center;
+            mask-size: 32px 32px;
+        }
+
+        .emoji.frustrated:before {
+            background: #EF4444;
+            mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cpath d='M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM159.3 388.7c-2.6 8.4-11.6 13.2-20 10.5s-13.2-11.6-10.5-20C145.5 326.1 196.3 288 256 288s110.5 38.1 127.3 91.3c2.6 8.4-2.1 17.4-10.5 20s-17.4-2.1-20-10.5C340.5 349.4 302.1 320 256 320s-84.5 29.4-96.7 68.7zM144 208a32 32 0 1 1 64 0 32 32 0 1 1 -64 0zm192-32a32 32 0 1 1 0 64 32 32 0 1 1 0-64z'/%3E%3C/svg%3E") no-repeat center;
+            mask-size: 32px 32px;
+        }
+
+        .emoji.clicked {
+            animation: pulse 0.3s ease;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.3); }
+            100% { transform: scale(1.15); }
+        }
+
+        /* Pulsing glow animation for interactive emojis */
+        .emoji.excellent,
+        .emoji.frustrated {
+            border-radius: 50%;
+            animation: pulseGlow 12s ease-in-out infinite;
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% {
+                box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.2);
+            }
+            50% {
+                box-shadow: 0 0 0 8px rgba(255, 255, 255, 0.4),
+                            0 0 15px 0 rgba(255, 255, 255, 0.2);
+            }
+        }
+
+        /* Specific glow colors for happy and sad emojis */
+        .emoji.excellent {
+            animation: pulseGlowHappy 12s ease-in-out infinite;
+        }
+
+        .emoji.frustrated {
+            animation: pulseGlowSad 12s ease-in-out infinite;
+        }
+
+        @keyframes pulseGlowHappy {
+            0%, 40%, 60%, 100% {
+                box-shadow: 0 0 0 0 rgba(244, 114, 182, 0);
+            }
+            50% {
+                box-shadow: 0 0 0 8px rgba(244, 114, 182, 0.6),
+                            0 0 20px 0 rgba(244, 114, 182, 0.4);
+            }
+        }
+
+        @keyframes pulseGlowSad {
+            0%, 40%, 60%, 100% {
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+            }
+            50% {
+                box-shadow: 0 0 0 8px rgba(239, 68, 68, 0.6),
+                            0 0 20px 0 rgba(239, 68, 68, 0.4);
+            }
+        }
+
+        .choice-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .choice-btn {
+            padding: 12px 16px;
+            border: 2px solid #e5e7eb;
+            background: white;
+            border-radius: 8px;
+            color: #374151;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .choice-btn.private {
+            border-color: #4F46E5;
+            background: #4F46E5;
+            color: white;
+        }
+
+        .choice-btn.public {
+            border-color: #4F46E5;
+            color: #4F46E5;
+        }
+
+        .choice-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .choice-btn.private:hover {
+            background: #3B37A8;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+        }
+
+        .choice-btn.public:hover {
+            background: rgba(79, 70, 229, 0.05);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
+        }
+
+        /* Google Review Form Styles */
+        .google-form {
+            max-width: 350px;
+            width: 100%;
+        }
+
+        .google-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #e5e7eb;
+            color: #374151;
+        }
+
+        .google-logo {
+            width: 20px;
+            height: 20px;
+            background: #4285f4;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 12px;
+        }
+
+        .star-rating {
+            display: flex;
+            gap: 4px;
+            justify-content: center;
+            margin-bottom: 16px;
+        }
+
+        .star {
+            width: 28px;
+            height: 28px;
+            cursor: pointer;
+            color: #FFD700;
+            font-size: 24px;
+        }
+
+        .review-textarea {
+            width: 100%;
+            min-height: 80px;
+            padding: 12px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            resize: none;
+            font-family: inherit;
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+
+        .ai-generate-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            margin-bottom: 16px;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .ai-generate-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .submit-btn {
+            background: #4285f4;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(66, 133, 244, 0.3);
+        }
+
+        /* Feedback Form Styles */
+        .feedback-form {
+            max-width: 350px;
+            width: 100%;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+            text-align: left;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 6px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .form-textarea {
+            width: 100%;
+            min-height: 60px;
+            padding: 10px 12px;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            resize: none;
+            font-family: inherit;
+            font-size: 14px;
+        }
+
+        .brand-badge {
+            position: absolute;
+            bottom: -8px;
+            right: -8px;
+            background: #1f2937;
+            color: white;
+            font-size: 10px;
+            font-weight: 600;
+            padding: 4px 8px;
+            border-radius: 12px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .brand-badge:hover {
+            background: #4F46E5;
+            transform: scale(1.05);
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        .fade-out {
+            animation: fadeOut 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeOut {
+            from { opacity: 1; transform: translateY(0); }
+            to { opacity: 0; transform: translateY(10px); }
+        }
+
+        /* Star fall animation */
+        .star-fall {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .falling-star {
+            position: absolute;
+            width: 36px;
+            height: 36px;
+            background: #FFD700;
+            clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+            animation: fall linear infinite;
+            opacity: 0;
+            top: -50px;
+        }
+
+        .falling-star:nth-child(1) { left: 10%; animation-duration: 2s; animation-delay: 0s; }
+        .falling-star:nth-child(2) { left: 25%; animation-duration: 2.5s; animation-delay: 0.3s; }
+        .falling-star:nth-child(3) { left: 40%; animation-duration: 2.2s; animation-delay: 0.6s; }
+        .falling-star:nth-child(4) { left: 55%; animation-duration: 2.8s; animation-delay: 0.9s; }
+        .falling-star:nth-child(5) { left: 70%; animation-duration: 2.4s; animation-delay: 1.2s; }
+        .falling-star:nth-child(6) { left: 85%; animation-duration: 2.6s; animation-delay: 1.5s; }
+        .falling-star:nth-child(7) { left: 15%; animation-duration: 2.1s; animation-delay: 0.8s; }
+        .falling-star:nth-child(8) { left: 75%; animation-duration: 2.7s; animation-delay: 0.4s; }
+
+        @keyframes fall {
+            0% {
+                top: -50px;
+                opacity: 0;
+                transform: rotate(0deg);
+            }
+            10% {
+                opacity: 1;
+                transform: rotate(18deg);
+            }
+            100% {
+                top: 100%;
+                opacity: 0;
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Star Rain Animation */
+        .star-rain {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 15;
+        }
+
+        .rain-star {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background: #FFD700;
+            clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+            animation: rainFall linear forwards;
+            opacity: 0;
+            top: -40px;
+        }
+
+        @keyframes rainFall {
+            0% {
+                top: -40px;
+                opacity: 0;
+                transform: rotate(0deg) scale(1);
+            }
+            10% {
+                opacity: 1;
+                transform: rotate(18deg) scale(1);
+            }
+            25% {
+                opacity: 0.9;
+                transform: rotate(144deg) scale(1.1);
+            }
+            100% {
+                top: 100%;
+                opacity: 0;
+                transform: rotate(720deg) scale(0.8);
+            }
+        }
+
+        /* Reset button */
+        .reset-btn {
+            display: block;
+            margin: 20px auto 0;
+            background: #4F46E5;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+        
+        .reset-btn:hover {
+            background: #3B2BBF;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+        }
+
+
+
+        /* Google Review Page Styles */
+        .google-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            border-bottom: 1px solid #e8eaed;
+            background: white;
+            margin: -24px -24px 20px -24px;
+        }
+
+        .google-logo {
+            font-size: 20px;
+            font-weight: 500;
+            font-family: 'Product Sans', Arial, sans-serif;
+        }
+
+        .back-arrow {
+            font-size: 18px;
+            color: #5f6368;
+            cursor: pointer;
+        }
+
+        .google-content {
+            padding: 0;
+        }
+
+        .business-info {
+            display: flex;
+            align-items: center;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #e8eaed;
+        }
+
+        .business-avatar {
+            width: 48px;
+            height: 48px;
+            background: #4F46E5;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-right: 12px;
+        }
+
+        .business-details .business-name {
+            font-size: 16px;
+            font-weight: 500;
+            color: #202124;
+            margin-bottom: 4px;
+        }
+
+        .business-rating {
+            font-size: 14px;
+            color: #5f6368;
+        }
+
+        .review-section {
+            padding-top: 8px;
+        }
+
+        .rating-selector {
+            margin-bottom: 20px;
+        }
+
+        .rating-stars {
+            display: flex;
+            gap: 4px;
+        }
+
+        .rating-stars .star {
+            font-size: 32px;
+            color: #dadce0;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .rating-stars .star.active {
+            color: #fbbc04;
+        }
+
+        .review-input {
+            margin-bottom: 20px;
+        }
+
+        .google-textarea {
+            width: 100%;
+            min-height: 100px;
+            padding: 12px;
+            border: 1px solid #dadce0;
+            border-radius: 4px;
+            font-size: 14px;
+            font-family: inherit;
+            resize: vertical;
+            background: #f8f9fa;
+        }
+
+        .reviewer-info {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .reviewer-avatar {
+            width: 32px;
+            height: 32px;
+            background: #4285f4;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 500;
+            margin-right: 8px;
+        }
+
+        .reviewer-name {
+            font-size: 14px;
+            color: #202124;
+            font-weight: 500;
+        }
+
+        .google-submit-btn {
+            background: #1a73e8;
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .google-submit-btn:hover {
+            background: #1557b0;
+            box-shadow: 0 1px 2px 0 rgba(60,64,67,.3), 0 1px 3px 1px rgba(60,64,67,.15);
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .phone {
+                width: 280px;
+                height: 520px;
+            }
+            
+            .emoji-container {
+                gap: 8px;
+            }
+            
+            .emoji {
+                width: 50px;
+                height: 50px;
+            }
+            
+            .emoji:before {
+                width: 32px;
+                height: 32px;
+            }
+            
+            .reset-btn {
+                margin: 15px auto 0;
+                padding: 8px 16px;
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <div class="phone-container">
+            <div class="phone">
+                <div class="phone-screen">
+                    <div class="phone-content">
+                        <div class="modal fade-in">
+                            <div class="modal-title">How was your experience?</div>
+                            <div class="emoji-container">
+                                <div class="emoji excellent" data-sentiment="excellent"></div>
+                                <div class="emoji satisfied" data-sentiment="satisfied"></div>
+                                <div class="emoji neutral" data-sentiment="neutral"></div>
+                                <div class="emoji frustrated" data-sentiment="frustrated"></div>
+                            </div>
+                        </div>
+                        <div class="star-fall" id="starFall"></div>
+                </div>
+                </div>
+            </div>
+        </div>
+        
+        <button class="reset-btn" onclick="resetDemo()">Reset Demo</button>
+    </div>
+
+    <script>
+        let currentStep = 1;
+        let isAnimating = false;
+
+
+
+        function createStars(container) {
+            container.innerHTML = '';
+            for (let i = 0; i < 8; i++) {
+                const star = document.createElement('div');
+                star.className = 'falling-star';
+                container.appendChild(star);
+            }
+        }
+
+        function showStarFall() {
+            const starFall = document.getElementById('starFall');
+            createStars(starFall);
+            starFall.style.display = 'block';
+            
+            setTimeout(() => {
+                starFall.style.display = 'none';
+            }, 3000);
+        }
+
+        function createStarRain() {
+            const phoneContent = document.querySelector('.phone-content');
+            const starRain = document.createElement('div');
+            starRain.className = 'star-rain';
+            starRain.id = 'starRain';
+            
+            // Create 15 rain stars with random positions and timing
+            for (let i = 0; i < 15; i++) {
+                const star = document.createElement('div');
+                star.className = 'rain-star';
+                star.style.left = Math.random() * 90 + '%';
+                star.style.animationDuration = (Math.random() * 1.5 + 1.5) + 's';
+                star.style.animationDelay = Math.random() * 2 + 's';
+                starRain.appendChild(star);
+            }
+            
+            phoneContent.appendChild(starRain);
+            
+            // Remove after animation completes
+            setTimeout(() => {
+                if (starRain.parentNode) {
+                    starRain.parentNode.removeChild(starRain);
+                }
+            }, 4000);
+        }
+
+        function showStep1() {
+            const phoneContent = document.querySelector('.phone-content');
+            phoneContent.innerHTML = `
+                <div class="modal fade-in">
+                    <div class="modal-title">How was your experience?</div>
+                    <div class="emoji-container">
+                        <div class="emoji excellent" data-sentiment="excellent"></div>
+                        <div class="emoji satisfied" data-sentiment="satisfied"></div>
+                        <div class="emoji neutral" data-sentiment="neutral"></div>
+                        <div class="emoji frustrated" data-sentiment="frustrated"></div>
+                    </div>
+                </div>
+                <div class="star-fall" id="starFall"></div>
+            `;
+            
+            currentStep = 1;
+            attachEmojiListeners();
+        }
+
+        function showStep2() {
+            const phoneContent = document.querySelector('.phone-content');
+            phoneContent.innerHTML = `
+                <div class="modal fade-in">
+                    <div class="feedback-header">How can we improve?</div>
+                    <div class="choice-buttons">
+                        <button class="choice-btn private" onclick="handlePrivateChoice()">
+                            Send private feedback
+                        </button>
+                        <button class="choice-btn public" onclick="handlePublicChoice()">
+                            Post review publically
+                        </button>
+                    </div>
+                    <p style="text-align: center; margin-top: 16px; color: #666; font-size: 14px;">
+                        Your feedback can help us learn and grow. Please consider sharing your feedback privately so we can address it promptly.
+                    </p>
+                </div>
+                <div class="star-fall" id="starFall"></div>
+            `;
+            
+            currentStep = 2;
+        }
+
+        function showGoogleReviewForm(withStars = false, userName = '') {
+            const nameField = userName ? `
+                <div style="margin-bottom: 16px; padding: 8px 12px; background-color: #f9fafb; border-radius: 6px; border: 1px solid #e5e7eb;">
+                    <div style="font-size: 12px; color: #6b7280; margin-bottom: 2px;">Reviewer name:</div>
+                    <div style="font-size: 14px; color: #374151; font-weight: 500;">${userName}</div>
+                </div>
+            ` : '';
+            
+            const phoneContent = document.querySelector('.phone-content');
+            phoneContent.innerHTML = `
+                <div class="page-layout fade-in">
+                    <div class="page-header">
+                        <div class="business-logo">★</div>
+                        <div class="business-name">Your Business</div>
+                    </div>
+                    <div class="page-content">
+                        <div class="google-form">
+                            <div style="font-size: 18px; font-weight: 600; color: #4F46E5; margin-bottom: 20px;">Write a Google review</div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Name</label>
+                                <input class="form-input" type="text" placeholder="Your name" value="${userName}" style="margin-bottom: 15px;">
+                            </div>
+                            
+                            <textarea class="review-textarea" placeholder="Share your experience"></textarea>
+                            
+                            <button class="ai-generate-btn" onclick="generateAIReview()">
+                                ✨ Generate with AI
+                            </button>
+                            
+                            <button class="submit-btn" onclick="submitReview()">
+                                Copy & Submit
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="star-fall" id="starFall"></div>
+            `;
+            
+            currentStep = 3;
+            
+            // Show star animation AFTER the HTML is set
+            if (withStars) {
+                setTimeout(() => {
+                    showStarFall();
+                }, 100);
+            }
+        }
+
+        function showFeedbackForm(userName = '') {
+            const nameField = userName ? `
+                <div class="form-group">
+                    <label class="form-label">Name</label>
+                    <input class="form-input" type="text" value="${userName}" readonly style="background-color: #f9fafb;">
+                </div>
+            ` : '';
+            
+            const phoneContent = document.querySelector('.phone-content');
+            phoneContent.innerHTML = `
+                <div class="page-layout fade-in">
+                    <div class="page-header">
+                        <div class="business-logo">★</div>
+                        <div class="business-name">Your Business</div>
+                    </div>
+                    <div class="page-content">
+                        <div class="feedback-form">
+                            <div class="feedback-header">Your feedback helps us grow</div>
+                            
+                            ${nameField}
+                            
+                            <div class="form-group">
+                                <label class="form-label">Email</label>
+                                <input class="form-input" type="email" placeholder="Your email address">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Your feedback</label>
+                                <textarea class="form-textarea" placeholder="Tell us about your experience..."></textarea>
+                            </div>
+                            
+                            <button class="submit-btn" onclick="submitFeedback()">
+                                Send Feedback
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="star-fall" id="starFall"></div>
+            `;
+            
+            currentStep = 4;
+        }
+
+        function generateAIReview() {
+            const textarea = document.querySelector('.review-textarea');
+            const sampleReviews = [
+                "Love the atmosphere. The player piano was delightful. Staff was super friendly. Highly recommended!",
+                "Excellent service! The staff was incredibly friendly and helpful. Definitely recommend to everyone!",
+                "Amazing experience from start to finish. Professional team and great attention to detail. Will be back!",
+                "Such a talented team. They make the complex, simple. You can't go wrong with Diviner.",
+                "These guys are straight shooters. Always open and honest about pricing. Great craftmenship. Highly recomended."
+            ];
+            
+            const randomReview = sampleReviews[Math.floor(Math.random() * sampleReviews.length)];
+            
+            // Simulate typing effect
+            textarea.value = '';
+            let i = 0;
+            const typeInterval = setInterval(() => {
+                if (i < randomReview.length) {
+                    textarea.value += randomReview.charAt(i);
+                    i++;
+                } else {
+                    clearInterval(typeInterval);
+                }
+            }, 30);
+        }
+
+        function attachEmojiListeners() {
+            const emojis = document.querySelectorAll('.emoji');
+            emojis.forEach(emoji => {
+                emoji.addEventListener('click', function() {
+                    if (isAnimating) return;
+                    
+                    const sentiment = this.getAttribute('data-sentiment');
+                    
+                    // Add clicked animation
+                    this.classList.add('clicked');
+                    
+                    // Route based on sentiment
+                    setTimeout(() => {
+                        if (sentiment === 'excellent' || sentiment === 'satisfied') {
+                            // Happy emojis go directly to Google review form
+                            showGoogleReviewForm(true);
+                        } else {
+                            // Sad emojis go to choice screen
+                            showStep2();
+                        }
+                    }, 800);
+                });
+            });
+        }
+
+        function handlePrivateChoice() {
+            showFeedbackForm();
+        }
+
+        function handlePublicChoice() {
+            showGoogleReviewForm(false); // No star fall for public negative reviews
+        }
+
+
+
+        function submitReview() {
+            // Show Google review form immediately without the "Redirecting..." message
+            showGoogleReviewPage();
+        }
+
+        function showGoogleReviewPage() {
+            const phoneContent = document.querySelector('.phone-content');
+            const reviewText = document.querySelector('.review-textarea')?.value || "";
+            
+            phoneContent.innerHTML = `
+                <div class="page-layout fade-in">
+                    <div class="google-content" style="background: white; padding: 20px; border-radius: 16px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1); max-width: 350px; margin: 0 auto;">
+                        <div class="business-header" style="text-align: center; margin-bottom: 20px;">
+                            <div style="font-size: 18px; font-weight: 500; color: #202124; margin-bottom: 8px;">Your Business</div>
+                        </div>
+                        
+                        <div class="reviewer-info" style="display: flex; align-items: center; margin-bottom: 16px; padding: 0; background: transparent;">
+                            <div class="reviewer-avatar" style="width: 40px; height: 40px; background: #4285f4; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 500; margin-right: 8px;">CB</div>
+                            <div>
+                                <div style="font-size: 16px; color: #202124; font-weight: 500; margin-bottom: 2px; text-align: left;">Chris Bolton</div>
+                                <div style="font-size: 14px; color: #5f6368; text-align: left;">
+                                    Posting publicly across Google
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="rating-selector" style="margin-bottom: 20px;">
+                            <div class="rating-stars" style="display: flex; gap: 8px; justify-content: center;">
+                                <span class="star active" style="font-size: 32px; color: #fbbc04;">★</span>
+                                <span class="star active" style="font-size: 32px; color: #fbbc04;">★</span>
+                                <span class="star active" style="font-size: 32px; color: #fbbc04;">★</span>
+                                <span class="star active" style="font-size: 32px; color: #fbbc04;">★</span>
+                                <span class="star active" style="font-size: 32px; color: #fbbc04;">★</span>
+                            </div>
+                        </div>
+                        
+                        <div class="review-input" style="margin-bottom: 16px;">
+                            <textarea class="google-textarea" style="width: 100%; min-height: 120px; padding: 16px; border: 2px solid #1a73e8; border-radius: 8px; font-size: 16px; font-family: inherit; resize: none; outline: none;" placeholder="Share your experience">${reviewText}</textarea>
+                        </div>
+                        
+                        <div class="photo-section" style="margin-bottom: 20px;">
+                            <div style="display: flex; align-items: center; padding: 12px; background: #f8f9fa; border-radius: 8px; color: #1a73e8; cursor: pointer;">
+                                <span style="font-size: 14px; color: #1a73e8;">Add photos & videos</span>
+                            </div>
+                        </div>
+                        
+                        <div class="action-buttons" style="display: flex; gap: 12px; justify-content: flex-end;">
+                            <button onclick="restartDemo()" style="background: transparent; color: #1a73e8; border: none; padding: 8px 16px; border-radius: 4px; font-size: 14px; font-weight: 500; cursor: pointer;">
+                                Cancel
+                            </button>
+                            <button class="google-submit-btn" onclick="restartDemo()" style="background: #1a73e8; color: white; border: none; padding: 8px 24px; border-radius: 4px; font-size: 14px; font-weight: 500; cursor: pointer;">
+                                Post
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            currentStep = 5;
+        }
+
+
+
+        function submitFeedback() {
+            showThankYou();
+        }
+
+        function showThankYou(message) {
+            const phoneContent = document.querySelector('.phone-content');
+            phoneContent.innerHTML = `
+                <div class="modal fade-in">
+                    <div class="modal-title">Thank you for your feedback! We'll get back to you within 24-hours.</div>
+                    ${message ? `<p style="color: #10B981; font-weight: 500; margin-top: 16px;">${message}</p>` : ''}
+                </div>
+                <div class="star-fall" id="starFall"></div>
+            `;
+            
+            // Reset after 3 seconds
+            setTimeout(() => {
+                showStep1();
+            }, 3000);
+        }
+
+        function resetDemo() {
+            showStep1();
+        }
+
+        function restartDemo() {
+            showStep1();
+        }
+
+        // Initialize the demo
+        document.addEventListener('DOMContentLoaded', function() {
+            // Attach listeners to any existing static emojis first
+            attachEmojiListeners();
+            // Then show step 1 (which will replace content and reattach listeners)
+            showStep1();
+        });
+    </script>
+</body>
+</html> 

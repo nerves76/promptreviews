@@ -1,6 +1,8 @@
 import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY!);
+
+export { resend };
 // To enable hard-coding, the toggle script can swap the above line with:
 // const resend = new Resend("your-hardcoded-resend-key-here");
 
@@ -8,11 +10,13 @@ export async function sendResendEmail({
   to,
   subject,
   text,
-  from = "noreply@updates.promptreviews.app", // Use your verified Resend domain
+  html,
+  from = "noreply@updates.promptreviews.app", // Use your verified domain
 }: {
   to: string;
   subject: string;
-  text: string;
+  text?: string;
+  html?: string;
   from?: string;
 }) {
   try {
@@ -20,7 +24,7 @@ export async function sendResendEmail({
       from,
       to,
       subject,
-      text,
+      ...(html ? { html } : { text: text || '' }),
     });
     return data;
   } catch (error) {

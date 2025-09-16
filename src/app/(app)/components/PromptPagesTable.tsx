@@ -1,0 +1,458 @@
+import React, { useState } from "react";
+import Link from "next/link";
+import Icon from "@/components/Icon";
+import QRCodeModal from "./QRCodeModal";
+import CommunicationButtons from "./communication/CommunicationButtons";
+
+export interface PromptPage {
+  id: string;
+  slug: string;
+  status: "draft" | "in_queue" | "sent" | "follow_up" | "complete";
+  created_at: string;
+  phone?: string;
+  email?: string;
+  first_name?: string;
+  last_name?: string;
+  is_universal: boolean;
+  review_type?: string;
+  nfc_text_enabled?: boolean;
+  contact_id?: string;
+  contacts?: {
+    id: string;
+    first_name: string;
+    last_name: string;
+    email: string;
+    phone: string;
+  };
+}
+
+interface PromptPagesTableProps {
+  promptPages: PromptPage[];
+  business: any;
+  account: any;
+  universalUrl: string;
+  onStatusUpdate: (pageId: string, newStatus: PromptPage["status"]) => void;
+  onDeletePages: (pageIds: string[]) => void;
+  onCreatePromptPage?: () => void;
+}
+
+const STATUS_COLORS = {
+  draft: "bg-gray-500/20 backdrop-blur-sm text-gray-800 border border-white/30",
+  in_queue: "bg-blue-500/20 backdrop-blur-sm text-blue-800 border border-white/30",
+  sent: "bg-purple-500/20 backdrop-blur-sm text-purple-800 border border-white/30",
+  follow_up: "bg-yellow-500/20 backdrop-blur-sm text-yellow-800 border border-white/30",
+  complete: "bg-green-500/20 backdrop-blur-sm text-green-800 border border-white/30",
+};
+
+export default function PromptPagesTable({
+  promptPages,
+  business,
+  account,
+  universalUrl,
+  onStatusUpdate,
+  onDeletePages,
+  onCreatePromptPage,
+}: PromptPagesTableProps) {
+  // Table state
+  const [selectedType, setSelectedType] = useState("");
+  const [selectedTab, setSelectedTab] = useState<"draft" | "in_queue" | "sent" | "follow_up" | "complete">("draft");
+  const [sortField, setSortField] = useState<"first_name" | "last_name" | "review_type" | null>(null);
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+  const [selectedPages, setSelectedPages] = useState<string[]>([]);
+  const [batchStatus, setBatchStatus] = useState<PromptPage["status"]>("in_queue");
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteConfirmation, setDeleteConfirmation] = useState("");
+  const [qrModal, setQrModal] = useState<{ open: boolean; url: string; clientName: string; logoUrl?: string; showNfcText?: boolean } | null>(null);
+  const [copyLinkId, setCopyLinkId] = useState<string | null>(null);
+
+  // Filtering and sorting
+  const filteredPromptPages = promptPages.filter((page) => {
+    if (page.is_universal) return false;
+    if (selectedType && page.review_type !== selectedType) return false;
+    if (selectedTab === "draft") return page.status === "draft";
+    if (selectedTab === "in_queue") return page.status === "in_queue";
+    if (selectedTab === "sent") return page.status === "sent";
+    if (selectedTab === "follow_up") return page.status === "follow_up";
+    if (selectedTab === "complete") return page.status === "complete";
+    return true;
+  });
+
+  const draftCount = promptPages.filter((p) => p.status === "draft" && !p.is_universal).length;
+  const inQueueCount = promptPages.filter((p) => p.status === "in_queue" && !p.is_universal).length;
+  const sentCount = promptPages.filter((p) => p.status === "sent" && !p.is_universal).length;
+  const followUpCount = promptPages.filter((p) => p.status === "follow_up" && !p.is_universal).length;
+  const completeCount = promptPages.filter((p) => p.status === "complete" && !p.is_universal).length;
+
+  const handleSort = (field: "first_name" | "last_name" | "review_type") => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    } else {
+      setSortField(field);
+      setSortDirection("asc");
+    }
+  };
+
+  const sortedPromptPages = [...filteredPromptPages].sort((a, b) => {
+    if (!sortField) return 0;
+    let aValue = (a[sortField] || "").toLowerCase();
+    let bValue = (b[sortField] || "").toLowerCase();
+    if (sortDirection === "asc") {
+      return aValue.localeCompare(bValue);
+    } else {
+      return bValue.localeCompare(aValue);
+    }
+  });
+
+  // Selection
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedPages(filteredPromptPages.map((page) => page.id));
+    } else {
+      setSelectedPages([]);
+    }
+  };
+  const handleSelectPage = (pageId: string, checked: boolean) => {
+    if (checked) {
+      setSelectedPages([...selectedPages, pageId]);
+    } else {
+      setSelectedPages(selectedPages.filter((id) => id !== pageId));
+    }
+  };
+
+  // Batch actions
+  const handleBatchStatusUpdate = () => {
+    selectedPages.forEach((id) => onStatusUpdate(id, batchStatus));
+    setSelectedPages([]);
+  };
+  const handleBatchDelete = () => {
+    if (deleteConfirmation !== "DELETE") return;
+    onDeletePages(selectedPages);
+    setSelectedPages([]);
+    setShowDeleteModal(false);
+    setDeleteConfirmation("");
+  };
+
+  // Plan lock logic
+  const isGrower = account?.plan === "grower";
+  const isBuilder = account?.plan === "builder";
+  const isMaven = account?.plan === "maven";
+  
+  // Use proper plan limits from accountLimits.ts
+  const maxGrowerPages = 4;
+  const maxBuilderPages = 100;
+  const maxMavenPages = 500;
+  
+  const accessiblePromptPages = isGrower
+    ? sortedPromptPages.slice(0, maxGrowerPages)
+    : isBuilder
+      ? sortedPromptPages.slice(0, maxBuilderPages)
+      : isMaven
+        ? sortedPromptPages.slice(0, maxMavenPages)
+        : sortedPromptPages; // No limit for other plans or unlimited access
+  const lockedPromptPages = isGrower
+    ? sortedPromptPages.slice(maxGrowerPages)
+    : isBuilder
+      ? sortedPromptPages.slice(maxBuilderPages)
+      : isMaven
+        ? sortedPromptPages.slice(maxMavenPages)
+        : [];
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex gap-2">
+          <button
+            className={`px-4 py-1.5 rounded-t-md text-sm font-semibold border-b-2 transition-colors
+              ${selectedTab === "draft"
+                ? "border-blue-500 bg-white text-blue-600 shadow-sm z-10"
+                : "border-transparent bg-gray-500 text-white hover:bg-gray-600"}
+            `}
+            onClick={() => setSelectedTab("draft")}
+          >
+            Draft ({draftCount})
+          </button>
+          <button
+            className={`px-4 py-1.5 rounded-t-md text-sm font-semibold border-b-2 transition-colors
+              ${selectedTab === "in_queue"
+                ? "border-blue-500 bg-white text-blue-600 shadow-sm z-10"
+                : "border-transparent bg-gray-500 text-white hover:bg-gray-600"}
+            `}
+            onClick={() => setSelectedTab("in_queue")}
+          >
+            In queue ({inQueueCount})
+          </button>
+          <button
+            className={`px-4 py-1.5 rounded-t-md text-sm font-semibold border-b-2 transition-colors
+              ${selectedTab === "sent"
+                ? "border-blue-500 bg-white text-blue-600 shadow-sm z-10"
+                : "border-transparent bg-gray-500 text-white hover:bg-gray-600"}
+            `}
+            onClick={() => setSelectedTab("sent")}
+          >
+            Sent ({sentCount})
+          </button>
+          <button
+            className={`px-4 py-1.5 rounded-t-md text-sm font-semibold border-b-2 transition-colors
+              ${selectedTab === "follow_up"
+                ? "border-blue-500 bg-white text-blue-600 shadow-sm z-10"
+                : "border-transparent bg-gray-500 text-white hover:bg-gray-600"}
+            `}
+            onClick={() => setSelectedTab("follow_up")}
+          >
+            Follow up ({followUpCount})
+          </button>
+          <button
+            className={`px-4 py-1.5 rounded-t-md text-sm font-semibold border-b-2 transition-colors
+              ${selectedTab === "complete"
+                ? "border-blue-500 bg-white text-blue-600 shadow-sm z-10"
+                : "border-transparent bg-gray-500 text-white hover:bg-gray-600"}
+            `}
+            onClick={() => setSelectedTab("complete")}
+          >
+            Complete ({completeCount})
+          </button>
+        </div>
+        <select
+          value={selectedType}
+          onChange={(e) => setSelectedType(e.target.value)}
+          className="rounded-md border border-gray-300 px-2 py-1 text-sm"
+        >
+          <option value="">All types</option>
+          <option value="service">Service review</option>
+          <option value="product">Product review</option>
+          <option value="event">Events & spaces</option>
+          <option value="video">Video testimonial</option>
+          <option value="photo">Photo + testimonial</option>
+        </select>
+      </div>
+      {/* Batch Actions */}
+      {selectedPages.length > 0 && (
+        <div className="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-200 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <span className="text-sm text-gray-600">
+              {selectedPages.length} page{selectedPages.length !== 1 ? "s" : ""} selected
+            </span>
+            <select
+              value={batchStatus}
+              onChange={(e) => setBatchStatus(e.target.value as PromptPage["status"])}
+              className="rounded-md border-gray-300 text-sm"
+            >
+              <option value="draft">Draft</option>
+              <option value="in_queue">In queue</option>
+              <option value="sent">Sent</option>
+              <option value="follow_up">Follow up</option>
+              <option value="complete">Complete</option>
+            </select>
+            <button
+              onClick={handleBatchStatusUpdate}
+                                className="px-3 py-1.5 bg-slate-blue text-white rounded hover:bg-slate-blue/90 text-sm font-medium"
+            >
+              Update Status
+            </button>
+          </div>
+          <button
+            onClick={() => setShowDeleteModal(true)}
+            className="px-3 py-1.5 bg-red-600 text-white rounded hover:bg-red-700 text-sm font-medium"
+          >
+            Delete Selected
+          </button>
+        </div>
+      )}
+      {/* Table */}
+      <div className="overflow-x-auto shadow sm:rounded-lg">
+        <table className="min-w-full divide-y divide-gray-300">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="relative w-12 px-3 py-3.5">
+                <input
+                  type="checkbox"
+                  className="absolute left-4 top-1/2 -mt-2 h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
+                  checked={selectedPages.length === filteredPromptPages.length && filteredPromptPages.length > 0}
+                  onChange={(e) => handleSelectAll(e.target.checked)}
+                />
+              </th>
+              <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 cursor-pointer select-none hover:bg-gray-100 group" onClick={() => handleSort("first_name")}>First {sortField === "first_name" ? (sortDirection === "asc" ? "↑" : "↓") : <span className="text-xs">↕</span>}</th>
+              <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 cursor-pointer select-none hover:bg-gray-100 group" onClick={() => handleSort("last_name")}>Last {sortField === "last_name" ? (sortDirection === "asc" ? "↑" : "↓") : <span className="text-xs">↕</span>}</th>
+              <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 cursor-pointer select-none hover:bg-gray-100 group" onClick={() => handleSort("review_type")}>Type {sortField === "review_type" ? (sortDirection === "asc" ? "↑" : "↓") : <span className="text-xs">↕</span>}</th>
+              <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Contact</th>
+              <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Edit</th>
+              <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Status</th>
+              <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Created</th>
+              <th className="relative py-3.5 pl-3 pr-4 sm:pr-6 text-sm font-semibold text-gray-900">Send</th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {accessiblePromptPages.map((page, index) => (
+              <tr key={page.id} className={index % 2 === 0 ? "bg-white" : "bg-blue-50"}>
+                <td className="relative w-12 px-3 py-4">
+                  <input
+                    type="checkbox"
+                    className="absolute left-4 top-1/2 -mt-2 h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
+                    checked={selectedPages.includes(page.id)}
+                    onChange={(e) => handleSelectPage(page.id, e.target.checked)}
+                  />
+                </td>
+                <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-900">{page.first_name || ""}</td>
+                <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-900">{page.last_name || ""}</td>
+                <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-900 capitalize">
+                  {page.review_type === "service" && "Service"}
+                  {page.review_type === "photo" && "Photo"}
+                  {page.review_type === "video" && "Video"}
+                  {page.review_type === "event" && "Event"}
+                  {page.review_type === "product" && "Product"}
+                  {!["service", "photo", "video", "event", "product"].includes(page.review_type || "") && (page.review_type ? page.review_type.charAt(0).toUpperCase() + page.review_type.slice(1) : "Service")}
+                </td>
+                <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-900">
+                  {page.contacts || page.contact_id ? (
+                    <Link 
+                      href={`/dashboard/contacts`}
+                      className="text-slate-blue hover:text-slate-blue/80 underline"
+                    >
+                      View contact
+                    </Link>
+                  ) : (
+                    <span className="text-gray-400">—</span>
+                  )}
+                </td>
+                <td className="whitespace-nowrap px-3 py-4 text-sm flex gap-2 items-center">
+                  <div className="mt-[6px] flex gap-2">
+                    <Link href={`/r/${page.slug}`} className="text-slate-blue underline hover:text-slate-blue/80 hover:underline">View</Link>
+                    {page.slug && (
+                      <Link
+                        href={page.is_universal
+                          ? "/dashboard/edit-prompt-page/universal"
+                          : `/dashboard/edit-prompt-page/${page.slug}`}
+                        className="text-slate-blue underline hover:text-slate-blue/80 hover:underline"
+                      >
+                        Edit
+                      </Link>
+                    )}
+                  </div>
+                </td>
+                <td className="whitespace-nowrap px-3 py-4 text-sm">
+                  <select
+                    value={page.status}
+                    onChange={(e) => onStatusUpdate(page.id, e.target.value as PromptPage["status"])}
+                    className={`rounded-full px-2 py-1 text-xs font-medium ${STATUS_COLORS[page.status] || "bg-gray-100 text-gray-800"}`}
+                  >
+                    <option value="draft">Draft</option>
+                    <option value="in_queue">In queue</option>
+                    <option value="sent">Sent</option>
+                    <option value="follow_up">Follow up</option>
+                    <option value="complete">Complete</option>
+                  </select>
+                </td>
+                <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{new Date(page.created_at).toLocaleDateString()}</td>
+                <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+                  <div className="flex flex-row gap-2 items-center justify-end">
+                    {!page.is_universal && (page.phone || page.email) && (
+                      <CommunicationButtons
+                        contact={{
+                          id: page.contact_id || page.id,
+                          first_name: page.first_name || page.contacts?.first_name || "",
+                          last_name: page.last_name || page.contacts?.last_name || "",
+                          email: page.email || page.contacts?.email,
+                          phone: page.phone || page.contacts?.phone
+                        }}
+                        promptPage={{
+                          id: page.id,
+                          slug: page.slug,
+                          status: page.status,
+                          client_name: `${page.first_name || ""} ${page.last_name || ""}`.trim(),
+                          location: business?.name
+                        }}
+                        singleButton={true}
+                        buttonText="Send"
+                        className="inline-flex items-center px-3 py-1.5 bg-teal-100 text-teal-800 rounded hover:bg-teal-200 text-sm font-medium shadow h-9 align-middle whitespace-nowrap w-full sm:w-auto"
+                      />
+                    )}
+                    {!page.is_universal && (
+                      <button
+                        type="button"
+                        className="inline-flex items-center px-2 py-1.5 bg-purple-500/20 backdrop-blur-sm text-purple-800 rounded hover:bg-purple-500/30 text-sm font-medium shadow border border-white/30 h-9 align-middle whitespace-nowrap w-full sm:w-auto"
+                        title="Copy link"
+                        onClick={async () => {
+                          try {
+                            await navigator.clipboard.writeText(`${window.location.origin}/r/${page.slug}`);
+                            setCopyLinkId(page.id);
+                            setTimeout(() => setCopyLinkId(null), 2000);
+                          } catch (err) {
+                            alert("Could not copy to clipboard. Please copy manually.");
+                          }
+                        }}
+                      >
+                        <Icon name="FaLink" className="w-4 h-4" size={16} />
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setQrModal({
+                          open: true,
+                          url: `${window.location.origin}/r/${page.slug}`,
+                          clientName: page.first_name || "Customer",
+                          logoUrl: business?.logo_print_url || business?.logo_url,
+                          showNfcText: page?.nfc_text_enabled ?? false,
+                        });
+                      }}
+                      className="inline-flex items-center gap-1 px-3 py-1.5 bg-amber-500/20 backdrop-blur-sm text-amber-800 rounded hover:bg-amber-500/30 text-sm font-medium shadow border border-white/30 h-9 align-middle whitespace-nowrap"
+                    >
+                      <Icon name="MdDownload" size={22} style={{ color: "#b45309" }} />
+                      QR code
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+          <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-2xl p-8 max-w-md w-full border-2 border-white">
+            <h3 className="text-lg font-bold mb-4 text-red-600">Delete Prompt Pages</h3>
+            <p className="mb-4 text-gray-600">
+              You are about to delete {selectedPages.length} prompt page{selectedPages.length !== 1 ? "s" : ""}. This action cannot be undone.
+            </p>
+            <p className="mb-4 text-gray-600">Please type DELETE in the box below to continue.</p>
+            <input
+              type="text"
+              value={deleteConfirmation}
+              onChange={(e) => setDeleteConfirmation(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md mb-4"
+              placeholder="Type DELETE to confirm"
+            />
+            <div className="flex justify-end gap-4">
+              <button
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  setDeleteConfirmation("");
+                }}
+                className="px-4 py-2 text-gray-600 hover:text-gray-800"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleBatchDelete}
+                disabled={deleteConfirmation !== "DELETE"}
+                className={`px-4 py-2 rounded ${deleteConfirmation === "DELETE" ? "bg-red-600 text-white hover:bg-red-700" : "bg-gray-300 text-gray-500 cursor-not-allowed"}`}
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* QR Code Modal - Now using reusable component */}
+      <QRCodeModal
+        isOpen={qrModal?.open || false}
+        onClose={() => setQrModal(null)}
+        url={qrModal?.url || ""}
+        clientName={qrModal?.clientName || ""}
+        logoUrl={qrModal?.logoUrl}
+        showNfcText={qrModal?.showNfcText}
+      />
+    </div>
+  );
+} 

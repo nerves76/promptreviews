@@ -1,0 +1,23 @@
+# Robots.txt for promptreviews.app
+# Protect sensitive paths from search engine crawling
+
+User-agent: *
+Allow: /
+Allow: /r/
+
+# Block all API endpoints from crawling
+Disallow: /api/
+Disallow: /_next/
+Disallow: /dashboard/
+Disallow: /auth/
+Disallow: /admin/
+
+# Block widget endpoints specifically 
+Disallow: /api/widgets/
+Disallow: /infographic-embed/
+
+# Rate limiting for responsible crawlers
+Crawl-delay: 1
+
+# Sitemap location (when you have one)
+# Sitemap: https://promptreviews.app/sitemap.xml

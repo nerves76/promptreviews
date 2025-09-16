@@ -135,6 +135,7 @@
       display: flex;
       gap: 16px;
       align-items: center;
+      margin: 0 20px; /* Add margin to create more space between arrows and dots */
   }
   
   .pr-dot {

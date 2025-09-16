@@ -5,7 +5,6 @@
 
 'use client';
 
-import * as Sentry from '@sentry/nextjs';
 import { useEffect } from 'react';
 
 export default function GlobalError({
@@ -16,27 +15,31 @@ export default function GlobalError({
   reset: () => void;
 }) {
   useEffect(() => {
-    // Report the error to Sentry
-    Sentry.captureException(error, {
-      tags: {
-        errorType: 'global-error',
-        component: 'GlobalError',
-      },
-      contexts: {
-        error: {
-          digest: error.digest,
-          message: error.message,
-          stack: error.stack,
+    // Only import and use Sentry if not disabled
+    if (process.env.DISABLE_SENTRY !== 'true' && process.env.NODE_ENV !== 'development') {
+      const Sentry = require('@sentry/nextjs');
+      // Report the error to Sentry
+        Sentry.captureException(error, {
+        tags: {
+          errorType: 'global-error',
+          component: 'GlobalError',
         },
-      },
-    });
+        contexts: {
+          error: {
+            digest: error.digest,
+            message: error.message,
+            stack: error.stack,
+          },
+        },
+      });
+    }
   }, [error]);
 
   return (
     <html>
       <body>
         <div className="min-h-screen flex items-center justify-center bg-gray-50">
-          <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow-lg">
+          <div className="max-w-md w-full space-y-8 p-8 bg-white/90 backdrop-blur-sm rounded-2xl shadow-2xl border-2 border-white">
             <div className="text-center">
               <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
                 Something went wrong

@@ -54,4 +54,63 @@ export function getAccessibleColor(hex: string, minContrast: number = 4.5): stri
     tries++;
   }
   return color;
+}
+
+// Determine if text should be white or black based on background color
+export function getContrastTextColor(bgHex: string): string {
+  // Remove # if present
+  const hex = bgHex.replace('#', '');
+  
+  // Convert to RGB
+  const r = parseInt(hex.substr(0, 2), 16);
+  const g = parseInt(hex.substr(2, 2), 16);
+  const b = parseInt(hex.substr(4, 2), 16);
+  
+  // Calculate luminance
+  const lum = luminance(r, g, b);
+  
+  // Return black for light backgrounds, white for dark backgrounds
+  return lum > 0.5 ? '#000000' : '#FFFFFF';
+}
+
+/**
+ * Converts a hex color to rgba with transparency
+ * @param hex - Hex color string (e.g., "#FFFFFF")
+ * @param alpha - Alpha value between 0 and 1
+ * @returns rgba color string
+ */
+export function hexToRgba(hex: string, alpha: number): string {
+  // Remove the # if present
+  const cleanHex = hex.replace('#', '');
+  
+  // Parse the hex values
+  const r = parseInt(cleanHex.substr(0, 2), 16);
+  const g = parseInt(cleanHex.substr(2, 2), 16);
+  const b = parseInt(cleanHex.substr(4, 2), 16);
+  
+  // Return rgba string
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+/**
+ * Applies transparency to a card background color
+ * @param cardBg - The card background color (hex)
+ * @param transparency - Transparency value between 0 and 1.0
+ * @returns rgba color string with transparency applied
+ */
+export function applyCardTransparency(cardBg: string, transparency: number): string {
+  // Ensure transparency is within bounds (0 to 1)
+  const alpha = Math.max(0, Math.min(1.0, transparency));
+  
+  // If the color is already rgba, extract the rgb values and apply new alpha
+  if (cardBg.startsWith('rgba(')) {
+    const rgbaMatch = cardBg.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*[\d.]+)?\)/);
+    if (rgbaMatch) {
+      const [, r, g, b] = rgbaMatch;
+      return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    }
+  }
+  
+  // Convert hex to rgba
+  return hexToRgba(cardBg, alpha);
 } 

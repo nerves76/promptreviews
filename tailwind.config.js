@@ -7,6 +7,15 @@ module.exports = {
     "./src/widget-embed/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   safelist: [
+    // Backdrop filter and transparency classes for dropdowns and glassmorphic elements
+    "backdrop-blur-md", "backdrop-blur-sm", "backdrop-blur", "backdrop-filter",
+    "bg-white/70", "bg-white/85", "bg-white/90", "bg-white/95", "border-white/30",
+    "bg-white/10", "bg-white/20", "hover:bg-white/20", "hover:bg-white/30",
+    // Dark glass effect classes for menus and dropdowns
+    "bg-black/70", "bg-black/80", "bg-black/85", "bg-black/90", "bg-black/95",
+    "bg-green-500/20", "bg-green-500/30", "hover:bg-green-500/30", "border-green-400/30",
+    "text-white/90", "hover:text-white/90",
+    "hover:bg-slate-blue/10", "hover:text-slate-blue", "focus:bg-slate-blue/10", "bg-slate-blue/10",
     // Layout and responsive classes for widgets
     "flex", "flex-col", "flex-row", "items-center", "items-stretch", "justify-center", "justify-between", "flex-1",
     "w-full", "w-2/5", "h-full", "h-[320px]", "sm:h-[320px]", "min-h-[180px]", "max-h-[320px]", "min-w-10", "min-h-10",
@@ -107,6 +116,20 @@ module.exports = {
       },
       gap: {
         15: '3.75rem', // 60px
+      },
+      animation: {
+        fadeIn: 'fadeIn 0.2s ease-out',
+        scaleIn: 'scaleIn 0.2s ease-out',
+      },
+      keyframes: {
+        fadeIn: {
+          '0%': { opacity: '0' },
+          '100%': { opacity: '1' },
+        },
+        scaleIn: {
+          '0%': { transform: 'scale(0.95)', opacity: '0' },
+          '100%': { transform: 'scale(1)', opacity: '1' },
+        },
       },
     },
   },

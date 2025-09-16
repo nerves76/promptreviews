@@ -1,0 +1,40 @@
+# Stripe Test Mode Setup Commands
+# Run these commands one by one in your terminal after ensuring internet connection
+
+# 1. Create Grower Product
+stripe products create --name="Grower" --description="Perfect for small businesses getting started"
+# Note the product ID (prod_xxx) and use it in the next commands
+
+# 2. Create Grower Monthly Price ($15/month with 14-day trial)
+stripe prices create --product="REPLACE_WITH_GROWER_PRODUCT_ID" --unit-amount=1500 --currency=usd --recurring[interval]=month --recurring[trial_period_days]=14
+
+# 3. Create Grower Annual Price ($153/year with 14-day trial)
+stripe prices create --product="REPLACE_WITH_GROWER_PRODUCT_ID" --unit-amount=15300 --currency=usd --recurring[interval]=year --recurring[trial_period_days]=14
+
+# 4. Create Builder Product  
+stripe products create --name="Builder" --description="For growing businesses ready to scale"
+# Note the product ID
+
+# 5. Create Builder Monthly Price ($35/month)
+stripe prices create --product="REPLACE_WITH_BUILDER_PRODUCT_ID" --unit-amount=3500 --currency=usd --recurring[interval]=month
+
+# 6. Create Builder Annual Price ($357/year)
+stripe prices create --product="REPLACE_WITH_BUILDER_PRODUCT_ID" --unit-amount=35700 --currency=usd --recurring[interval]=year
+
+# 7. Create Maven Product
+stripe products create --name="Maven" --description="For established businesses with multiple locations"
+# Note the product ID
+
+# 8. Create Maven Monthly Price ($100/month)
+stripe prices create --product="REPLACE_WITH_MAVEN_PRODUCT_ID" --unit-amount=10000 --currency=usd --recurring[interval]=month
+
+# 9. Create Maven Annual Price ($1020/year)
+stripe prices create --product="REPLACE_WITH_MAVEN_PRODUCT_ID" --unit-amount=102000 --currency=usd --recurring[interval]=year
+
+# After running these, add the price IDs to your .env.local:
+# STRIPE_PRICE_ID_GROWER=price_xxx (monthly)
+# STRIPE_PRICE_ID_GROWER_ANNUAL=price_xxx
+# STRIPE_PRICE_ID_BUILDER=price_xxx (monthly)
+# STRIPE_PRICE_ID_BUILDER_ANNUAL=price_xxx
+# STRIPE_PRICE_ID_MAVEN=price_xxx (monthly)
+# STRIPE_PRICE_ID_MAVEN_ANNUAL=price_xxx

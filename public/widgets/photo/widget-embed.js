@@ -246,8 +246,9 @@
   }
 
   function createReviewCard(review, design) {
-    const reviewText = design.showQuotes ? `"${review.review_content}"` : review.review_content;
+    const reviewText = design.showQuotes ? `&#8220;${review.review_content}&#8221;` : review.review_content;
     const dateText = design.showRelativeDate ? getRelativeDate(review.created_at) : new Date(review.created_at).toLocaleDateString();
+    const platformText = design.showPlatform && review.platform ? ` via ${review.platform}` : '';
     
     // Use the new renderStars function
     const starsHTML = review.star_rating ? renderStars(review.star_rating, design) : '';
@@ -277,6 +278,13 @@
     
     const backgroundColorWithOpacity = hexToRgba(bgColor, bgOpacity);
     
+    // Handle border color with opacity
+    const borderColor = design.borderColor || '#cccccc';
+    const borderOpacity = design.borderOpacity !== undefined ? design.borderOpacity : 1;
+    const borderWithOpacity = borderOpacity < 1 && borderColor.startsWith('#')
+      ? hexToRgba(borderColor, borderOpacity)
+      : borderColor;
+    
     // Create photo HTML if available - now fills the full left side
     const photoHTML = hasPhoto ? `
       <div class="pr-photo-review-image" style="
@@ -297,15 +305,44 @@
       </div>
     ` : '';
 
+    // Handle both outer shadow and inner shadow
+    let shadows = [];
+    
+    if (design.shadow) {
+      const shadowColor = design.shadowColor || '#000000';
+      const shadowIntensity = design.shadowIntensity || 0.2;
+      const shadowColorWithOpacity = shadowColor.startsWith('#') 
+        ? hexToRgba(shadowColor, shadowIntensity)
+        : `rgba(0, 0, 0, ${shadowIntensity})`;
+      shadows.push(`0 4px 6px -1px ${shadowColorWithOpacity}`);
+    }
+    
+    // Add inner shadow for frosty glass effect
+    if (design.innerShadow) {
+      const innerShadowColor = design.innerShadowColor || '#FFFFFF';
+      const innerShadowOpacity = design.innerShadowOpacity || 0.5;
+      const innerShadowRgba = innerShadowColor.startsWith('#')
+        ? hexToRgba(innerShadowColor, innerShadowOpacity)
+        : `rgba(255, 255, 255, ${innerShadowOpacity})`;
+      shadows.push(`inset 0 1px 3px ${innerShadowRgba}`);
+    }
+    
+    const shadow = shadows.length > 0 ? shadows.join(', ') : 'none';
+    
+    // Always apply backdrop blur
+    const backdropBlur = design.backdropBlur || 10;
+    const backdropFilter = `backdrop-filter: blur(${backdropBlur}px); -webkit-backdrop-filter: blur(${backdropBlur}px);`;
+    
     return `
       <div class="pr-photo-review-card" style="
         background-color: ${backgroundColorWithOpacity};
-        border: ${design.borderWidth || 2}px solid ${design.borderColor || '#cccccc'};
+        ${design.border ? `border: ${design.borderWidth || 2}px solid ${borderWithOpacity};` : 'border: none;'}
         border-radius: ${design.borderRadius || 16}px;
         color: ${design.textColor || '#22223b'};
         font-family: ${design.font || 'Inter'}, sans-serif;
         line-height: ${design.lineSpacing || 1.4};
-        box-shadow: ${design.shadow ? `0 4px 6px -1px rgba(0, 0, 0, ${design.shadowIntensity || 0.2})` : 'none'};
+        box-shadow: ${shadow};
+        ${backdropFilter}
         padding: 0;
         position: relative;
         overflow: hidden;
@@ -337,9 +374,9 @@
               ">${review.reviewer_role}</div>` : ''}
               <div style="
                 color: ${design.roleTextColor || '#6b7280'};
-                font-size: ${design.attributionFontSize || 15}px;
-                margin-top: 0.25rem;
-              ">${dateText}</div>
+                font-size: 0.75rem;
+                margin-top: 0.125rem;
+              ">${dateText}${platformText}</div>
             </div>
           </div>
         </div>
@@ -360,6 +397,49 @@
     return `${Math.floor(diffDays / 365)} years ago`;
   }
 
+  function generateSchemaMarkup(reviews, businessName) {
+    if (!reviews || reviews.length === 0) return '';
+    
+    // Calculate aggregate rating
+    const totalRating = reviews.reduce((sum, review) => sum + (review.star_rating || 0), 0);
+    const averageRating = (totalRating / reviews.length).toFixed(1);
+    const reviewCount = reviews.length;
+    
+    // Get business name from the page or use a default
+    const name = businessName || document.title || 'Business';
+    
+    const schema = {
+      "@context": "https://schema.org",
+      "@type": "Product", // Can also use "LocalBusiness" or "Organization"
+      "name": name,
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": averageRating,
+        "bestRating": "5",
+        "worstRating": "1",
+        "ratingCount": reviewCount,
+        "reviewCount": reviewCount
+      },
+      "review": reviews.slice(0, 5).map(review => ({ // Google typically shows first 5
+        "@type": "Review",
+        "reviewRating": {
+          "@type": "Rating",
+          "ratingValue": review.star_rating || 5,
+          "bestRating": "5",
+          "worstRating": "1"
+        },
+        "author": {
+          "@type": "Person",
+          "name": `${review.first_name || ''} ${review.last_name || ''}`.trim() || "Anonymous"
+        },
+        "datePublished": review.created_at,
+        "reviewBody": review.review_content
+      }))
+    };
+    
+    return `<script type="application/ld+json">${JSON.stringify(schema)}</script>`;
+  }
+
   function createCarouselHTML(widgetId, reviews, design, businessSlug) {
     initCarouselState(widgetId, reviews, design);
     const state = carouselState[widgetId];
@@ -376,21 +456,37 @@
     const borderColor = design.borderColor || '#cccccc';
     const borderWidth = design.borderWidth || 2;
     const bgOpacity = design.bgOpacity !== undefined ? design.bgOpacity : 1;
+    const borderOpacity = design.borderOpacity !== undefined ? design.borderOpacity : 1;
     const accentColor = design.accentColor || '#4f46e5';
+    
+    // Helper function to convert hex to rgba
+    const hexToRgba = (hex, opacity) => {
+      const r = parseInt(hex.slice(1, 3), 16);
+      const g = parseInt(hex.slice(3, 5), 16);
+      const b = parseInt(hex.slice(5, 7), 16);
+      return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+    };
+    
+    const borderWithOpacity = borderOpacity < 1 && borderColor.startsWith('#')
+      ? hexToRgba(borderColor, borderOpacity)
+      : borderColor;
+    
+    // Convert background color to rgba for buttons
+    const backgroundWithOpacity = bgOpacity < 1 && bgColor.startsWith('#')
+      ? hexToRgba(bgColor, bgOpacity)
+      : bgColor;
     
     // Base style for arrow buttons
     const buttonStyle = `
-      background-color: ${bgColor};
-      border: ${borderWidth}px solid ${borderColor};
-      opacity: ${bgOpacity};
+      background-color: ${backgroundWithOpacity};
+      border: ${borderWidth}px solid ${borderWithOpacity};
     `;
 
     // Style for the "Submit a Review" button
     const submitButtonStyle = `
-      background-color: ${bgColor};
-      border: ${borderWidth}px solid ${borderColor};
+      background-color: ${backgroundWithOpacity};
+      border: ${borderWidth}px solid ${borderWithOpacity};
       border-radius: ${design.buttonBorderRadius || 8}px;
-      opacity: ${bgOpacity};
       color: ${accentColor};
     `;
     
@@ -453,14 +549,18 @@
 
     const submitReviewHTML = design.showSubmitReviewButton ? `
       <div class="pr-photo-submit-review-container">
-        <a href="/r/${businessSlug}?source=widget" target="_blank" class="pr-photo-submit-btn" style="${submitButtonStyle}">
+        <a href="https://promptreviews.app/r/${businessSlug}?source=widget" target="_blank" class="pr-photo-submit-btn" style="${submitButtonStyle}">
           Submit a Review
         </a>
       </div>
     ` : '';
     
+    // Generate schema markup for SEO
+    const schemaMarkup = generateSchemaMarkup(reviews, null); // Will use document.title as fallback
+    
     // --- Final Widget HTML ---
     return `
+      ${schemaMarkup}
       ${embeddedStyles}
       <div class="pr-photo-carousel-container">
         <div class="pr-photo-carousel-track">
@@ -479,29 +579,55 @@
 
   // Main function to initialize all widgets on the page
   async function autoInitializeWidgets() {
+    // Skip auto-initialization if we're in a dashboard context
+    // Dashboard components will call initializeWidget manually
+    if (window.location.pathname.includes('/dashboard')) {
+      console.log('🔄 PhotoWidget: Dashboard context detected, skipping auto-initialization');
+      return;
+    }
+
     const widgets = document.querySelectorAll('[data-prompt-reviews-id], [data-widget-id]');
     if (widgets.length === 0) return;
+
+    injectCSS();
 
     for (const widgetContainer of widgets) {
       const widgetId = widgetContainer.getAttribute('data-prompt-reviews-id') || widgetContainer.getAttribute('data-widget-id');
       const businessSlug = widgetContainer.getAttribute('data-business-slug');
+      widgetContainer.id = `pr-widget-container-${widgetId}`;
 
       try {
-        const response = await fetch(`http://localhost:3001/api/widgets/${widgetId}`);
+        // Use absolute URL for cross-domain embedding
+        const apiUrl = window.location.hostname === 'app.promptreviews.app' 
+          ? `/api/widgets/${widgetId}`
+          : `https://app.promptreviews.app/api/widgets/${widgetId}`;
+        
+        const response = await fetch(apiUrl);
         if (!response.ok) {
           throw new Error(`Failed to fetch widget data: ${response.statusText}`);
         }
-        const { reviews, design } = await response.json();
+        const { reviews, design, businessSlug } = await response.json();
         
         if (reviews && reviews.length > 0) {
-          // Use the proper initializeWidget function instead of calling createCarouselHTML directly
           window.PromptReviewsPhoto.initializeWidget(widgetContainer.id, reviews, design, businessSlug);
         } else {
-          widgetContainer.innerHTML = '<p>No reviews to display.</p>';
+          widgetContainer.innerHTML = `
+        <div style="display: flex; align-items: center; justify-content: center; min-height: 200px; color: white; font-size: 18px;">
+          <div style="text-align: center;">
+            <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 8px;">
+              <svg style="width: 24px; height: 24px;" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clip-rule="evenodd" />
+              </svg>
+              <span>Add reviews to your widget</span>
+            </div>
+            <p style="font-size: 14px; opacity: 0.8;">Click talk bubble icon to add and manage reviews.</p>
+          </div>
+        </div>
+      `;
         }
 
       } catch (error) {
-        console.error('Error initializing PromptReviews Photo widget:', error);
+        console.error('Error initializing PromptReviews widget:', error);
         widgetContainer.innerHTML = '<p>Error loading reviews.</p>';
       }
     }

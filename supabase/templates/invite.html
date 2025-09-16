@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>You have been invited to PromptReviews</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8fafc;
+        }
+        .container {
+            background-color: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .logo {
+            color: #475569;
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        h1 {
+            color: #475569;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        .button {
+            display: inline-block;
+            padding: 12px 32px;
+            background-color: #475569;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 500;
+            margin: 20px 0;
+        }
+        .button:hover {
+            background-color: #334155;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #64748b;
+            font-size: 14px;
+        }
+        .invite-details {
+            background-color: #f1f5f9;
+            padding: 20px;
+            border-radius: 6px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">PromptReviews</div>
+        </div>
+        
+        <h1>You've been invited!</h1>
+        
+        <p>You have been invited to join a PromptReviews account to help manage customer reviews and grow the business.</p>
+        
+        <div class="invite-details">
+            <p><strong>Invited by:</strong> {{ .Data.InviterName }}</p>
+            <p><strong>Business:</strong> {{ .Data.BusinessName }}</p>
+            <p><strong>Role:</strong> {{ .Data.Role }}</p>
+        </div>
+        
+        <p>Click the button below to accept the invitation and create your account:</p>
+        
+        <p style="text-align: center;">
+            <a href="{{ .ConfirmationURL }}" class="button">Accept Invitation</a>
+        </p>
+        
+        <p>If the button doesn't work, you can also copy and paste this link into your browser:</p>
+        <p style="word-break: break-all; background-color: #f1f5f9; padding: 10px; border-radius: 4px; font-family: monospace;">
+            {{ .ConfirmationURL }}
+        </p>
+        
+        <p>This invitation will expire in 7 days.</p>
+        
+        <div class="footer">
+            <p>If you weren't expecting this invitation, you can safely ignore this email.</p>
+            <p>&copy; 2025 PromptReviews. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html> 

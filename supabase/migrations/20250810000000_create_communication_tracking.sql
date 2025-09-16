@@ -1,0 +1,183 @@
+-- Communication Tracking System
+-- This migration creates tables for tracking email/SMS communications and follow-up reminders
+
+-- Communication records table
+CREATE TABLE IF NOT EXISTS public.communication_records (
+    id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+    account_id uuid NOT NULL REFERENCES public.accounts(id) ON DELETE CASCADE,
+    contact_id uuid NOT NULL REFERENCES public.contacts(id) ON DELETE CASCADE,
+    prompt_page_id uuid REFERENCES public.prompt_pages(id) ON DELETE SET NULL,
+    
+    -- Communication details
+    communication_type text NOT NULL CHECK (communication_type IN ('email', 'sms')),
+    status text NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'sent', 'failed')),
+    subject text, -- For emails
+    message_content text NOT NULL,
+    
+    -- Metadata
+    sent_at timestamp with time zone,
+    created_at timestamp with time zone DEFAULT timezone('utc', now()) NOT NULL,
+    updated_at timestamp with time zone DEFAULT timezone('utc', now()) NOT NULL,
+    
+    -- Tracking data
+    user_agent text,
+    ip_address inet
+);
+
+-- Follow-up reminders table
+CREATE TABLE IF NOT EXISTS public.follow_up_reminders (
+    id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+    communication_record_id uuid NOT NULL REFERENCES public.communication_records(id) ON DELETE CASCADE,
+    account_id uuid NOT NULL REFERENCES public.accounts(id) ON DELETE CASCADE,
+    contact_id uuid NOT NULL REFERENCES public.contacts(id) ON DELETE CASCADE,
+    
+    -- Reminder details
+    reminder_type text NOT NULL CHECK (reminder_type IN ('1_week', '2_weeks', '3_weeks', '1_month', '2_months', '3_months', '4_months', '5_months', '6_months')),
+    reminder_date timestamp with time zone NOT NULL,
+    status text NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'sent', 'completed', 'cancelled')),
+    
+    -- Optional message override
+    custom_message text,
+    
+    -- Timestamps
+    created_at timestamp with time zone DEFAULT timezone('utc', now()) NOT NULL,
+    updated_at timestamp with time zone DEFAULT timezone('utc', now()) NOT NULL
+);
+
+-- Communication templates table for default messages
+CREATE TABLE IF NOT EXISTS public.communication_templates (
+    id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+    account_id uuid NOT NULL REFERENCES public.accounts(id) ON DELETE CASCADE,
+    
+    -- Template details
+    name text NOT NULL,
+    communication_type text NOT NULL CHECK (communication_type IN ('email', 'sms')),
+    template_type text NOT NULL CHECK (template_type IN ('initial', 'follow_up')),
+    
+    -- Content
+    subject_template text, -- For emails, supports variables like {{business_name}}
+    message_template text NOT NULL, -- Supports variables
+    
+    -- Status
+    is_default boolean DEFAULT false,
+    is_active boolean DEFAULT true,
+    
+    -- Timestamps
+    created_at timestamp with time zone DEFAULT timezone('utc', now()) NOT NULL,
+    updated_at timestamp with time zone DEFAULT timezone('utc', now()) NOT NULL,
+    
+    -- Ensure unique default per type
+    UNIQUE(account_id, communication_type, template_type, is_default) DEFERRABLE INITIALLY DEFERRED
+);
+
+-- Add indexes for performance
+CREATE INDEX IF NOT EXISTS idx_communication_records_account_id ON public.communication_records(account_id);
+CREATE INDEX IF NOT EXISTS idx_communication_records_contact_id ON public.communication_records(contact_id);
+CREATE INDEX IF NOT EXISTS idx_communication_records_prompt_page_id ON public.communication_records(prompt_page_id);
+CREATE INDEX IF NOT EXISTS idx_communication_records_status ON public.communication_records(status);
+CREATE INDEX IF NOT EXISTS idx_communication_records_sent_at ON public.communication_records(sent_at);
+
+CREATE INDEX IF NOT EXISTS idx_follow_up_reminders_account_id ON public.follow_up_reminders(account_id);
+CREATE INDEX IF NOT EXISTS idx_follow_up_reminders_contact_id ON public.follow_up_reminders(contact_id);
+CREATE INDEX IF NOT EXISTS idx_follow_up_reminders_status ON public.follow_up_reminders(status);
+CREATE INDEX IF NOT EXISTS idx_follow_up_reminders_reminder_date ON public.follow_up_reminders(reminder_date);
+
+CREATE INDEX IF NOT EXISTS idx_communication_templates_account_id ON public.communication_templates(account_id);
+CREATE INDEX IF NOT EXISTS idx_communication_templates_type ON public.communication_templates(communication_type, template_type);
+
+-- Add RLS policies
+ALTER TABLE public.communication_records ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.follow_up_reminders ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.communication_templates ENABLE ROW LEVEL SECURITY;
+
+-- Communication records policies
+CREATE POLICY "Users can view their own communication records" ON public.communication_records
+    FOR SELECT USING (
+        account_id IN (
+            SELECT account_id FROM public.account_users 
+            WHERE user_id = auth.uid()
+        )
+    );
+
+CREATE POLICY "Users can insert their own communication records" ON public.communication_records
+    FOR INSERT WITH CHECK (
+        account_id IN (
+            SELECT account_id FROM public.account_users 
+            WHERE user_id = auth.uid()
+        )
+    );
+
+CREATE POLICY "Users can update their own communication records" ON public.communication_records
+    FOR UPDATE USING (
+        account_id IN (
+            SELECT account_id FROM public.account_users 
+            WHERE user_id = auth.uid()
+        )
+    );
+
+-- Follow-up reminders policies
+CREATE POLICY "Users can view their own follow-up reminders" ON public.follow_up_reminders
+    FOR SELECT USING (
+        account_id IN (
+            SELECT account_id FROM public.account_users 
+            WHERE user_id = auth.uid()
+        )
+    );
+
+CREATE POLICY "Users can insert their own follow-up reminders" ON public.follow_up_reminders
+    FOR INSERT WITH CHECK (
+        account_id IN (
+            SELECT account_id FROM public.account_users 
+            WHERE user_id = auth.uid()
+        )
+    );
+
+CREATE POLICY "Users can update their own follow-up reminders" ON public.follow_up_reminders
+    FOR UPDATE USING (
+        account_id IN (
+            SELECT account_id FROM public.account_users 
+            WHERE user_id = auth.uid()
+        )
+    );
+
+-- Communication templates policies
+CREATE POLICY "Users can view their own communication templates" ON public.communication_templates
+    FOR SELECT USING (
+        account_id IN (
+            SELECT account_id FROM public.account_users 
+            WHERE user_id = auth.uid()
+        )
+    );
+
+CREATE POLICY "Users can manage their own communication templates" ON public.communication_templates
+    FOR ALL USING (
+        account_id IN (
+            SELECT account_id FROM public.account_users 
+            WHERE user_id = auth.uid()
+        )
+    );
+
+-- Function to update updated_at timestamp
+CREATE OR REPLACE FUNCTION public.update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = timezone('utc', now());
+    RETURN NEW;
+END;
+$$ language 'plpgsql';
+
+-- Add triggers for updated_at
+CREATE TRIGGER update_communication_records_updated_at
+    BEFORE UPDATE ON public.communication_records
+    FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+
+CREATE TRIGGER update_follow_up_reminders_updated_at
+    BEFORE UPDATE ON public.follow_up_reminders
+    FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+
+CREATE TRIGGER update_communication_templates_updated_at
+    BEFORE UPDATE ON public.communication_templates
+    FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+
+-- Insert default templates for new accounts (will be created via API when needed)
+-- This ensures every account has basic templates to start with

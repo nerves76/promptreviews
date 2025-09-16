@@ -82,13 +82,38 @@ This file is the **canonical source for all UI/UX and visual conventions** in Pr
 
 ## 6. Typography
 
-- **Font Sizes & Usage:**
-  - **Main Title:** `text-3xl` (1.875rem/30px), `font-bold`, `text-center` or `text-left` as needed, color slate blue (`#1A237E`). Used for main card/page titles.
-  - **Section Title:** `text-2xl` (1.5rem/24px), `font-bold`, `text-left`, color slate blue (`#1A237E`). Used for section headers inside cards.
-  - **Subheading:** `text-xl` (1.25rem/20px), `font-semibold`, color slate blue or gray as appropriate.
-  - **Body:** `text-base` (1rem/16px), `text-gray-700`. Used for main content and instructions.
-  - **Labels:** `text-sm` (0.875rem/14px), `font-medium`, `text-gray-700`. Used for form labels and small headings.
-  - **Subtext/Helper:** `text-xs` (0.75rem/12px), `text-gray-500`. Used for helper text, notes, and secondary info.
+### Font Size Scale & Usage
+
+**Tailwind Classes with Conversions:**
+```
+text-xs    = 0.75rem  (12px)  - Helper text, badges, secondary info
+text-sm    = 0.875rem (14px)  - Form labels, buttons, small headings  
+text-base  = 1rem     (16px)  - Default body text
+text-lg    = 1.125rem (18px)  - Large body text, card titles
+text-xl    = 1.25rem  (20px)  - Subheadings
+text-2xl   = 1.5rem   (24px)  - Section headers inside cards
+text-3xl   = 1.875rem (30px)  - Main titles, page headers
+text-4xl   = 2.25rem  (36px)  - Hero sections (rarely used)
+text-5xl   = 3rem     (48px)  - Hero sections (rarely used)
+text-6xl   = 3.75rem  (60px)  - Special elements (e.g., emojis)
+```
+
+### Font Weight Scale
+```
+font-medium   = 500  - Form labels, buttons
+font-semibold = 600  - Subheadings, important labels
+font-bold     = 700  - Main titles, section headers
+```
+
+### Standard Typography Combinations
+
+- **Main Title:** `text-3xl font-bold`, `text-center` or `text-left` as needed, color slate blue (`#1A237E`). Used for main card/page titles.
+- **Section Title:** `text-2xl font-bold`, `text-left`, color slate blue (`#1A237E`). Used for section headers inside cards.
+- **Subheading:** `text-xl font-semibold`, color slate blue or gray as appropriate.
+- **Card Title:** `text-lg font-semibold`, for smaller card headers.
+- **Body:** `text-base`, `text-gray-700`. Used for main content and instructions.
+- **Labels:** `text-sm font-medium`, `text-gray-700`. Used for form labels and small headings.
+- **Subtext/Helper:** `text-xs`, `text-gray-500`. Used for helper text, notes, and secondary info.
 
 **Example:**
 

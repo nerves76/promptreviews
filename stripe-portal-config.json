@@ -1,0 +1,64 @@
+{
+  "business_profile": {
+    "headline": "Manage Your Prompt Reviews Subscription",
+    "privacy_policy_url": "https://app.promptreviews.app/privacy",
+    "terms_of_service_url": "https://app.promptreviews.app/terms"
+  },
+  "features": {
+    "customer_update": {
+      "enabled": true,
+      "allowed_updates": ["email", "name", "address", "phone"]
+    },
+    "invoice_history": {
+      "enabled": true
+    },
+    "payment_method_update": {
+      "enabled": true
+    },
+    "subscription_cancel": {
+      "enabled": true,
+      "mode": "at_period_end",
+      "proration_behavior": "none",
+      "cancellation_reason": {
+        "enabled": true,
+        "options": [
+          "too_expensive",
+          "missing_features",
+          "switched_service",
+          "unused",
+          "customer_service",
+          "too_complex",
+          "low_quality",
+          "other"
+        ]
+      }
+    },
+    "subscription_pause": {
+      "enabled": false
+    },
+    "subscription_update": {
+      "enabled": true,
+      "default_allowed_updates": ["price", "quantity"],
+      "proration_behavior": "always_invoice",
+      "products": [
+        {
+          "product": "grower",
+          "prices": ["monthly", "annual"]
+        },
+        {
+          "product": "builder",
+          "prices": ["monthly", "annual"]
+        },
+        {
+          "product": "maven",
+          "prices": ["monthly", "annual"]
+        }
+      ]
+    }
+  },
+  "default_return_url": "https://app.promptreviews.app/dashboard/plan?success=1&change=billing_period",
+  "metadata": {
+    "app": "prompt_reviews",
+    "version": "1.0"
+  }
+}

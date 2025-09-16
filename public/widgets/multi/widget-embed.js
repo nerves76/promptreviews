@@ -62,48 +62,115 @@
     const borderRadius = design.borderRadius || 16;
     const borderWidth = design.borderWidth || 2;
     const borderColor = design.borderColor || '#cccccc';
+    const borderOpacity = design.borderOpacity !== undefined ? design.borderOpacity : 1;
     const bgOpacity = design.bgOpacity !== undefined ? design.bgOpacity : 1;
     const font = design.font || 'Inter';
+    const quoteSize = design.quoteSize || 1.5; // Default quote size in rem
+    
+    // Convert hex color to rgba with opacity if needed
+    let backgroundColorWithOpacity = bgColor;
+    if (bgOpacity < 1 && bgColor.startsWith('#')) {
+      const r = parseInt(bgColor.slice(1, 3), 16);
+      const g = parseInt(bgColor.slice(3, 5), 16);
+      const b = parseInt(bgColor.slice(5, 7), 16);
+      backgroundColorWithOpacity = `rgba(${r}, ${g}, ${b}, ${bgOpacity})`;
+    }
+    
+    // Convert border color to rgba with opacity if needed
+    let borderColorWithOpacity = borderColor;
+    if (borderOpacity < 1 && borderColor.startsWith('#')) {
+      const r = parseInt(borderColor.slice(1, 3), 16);
+      const g = parseInt(borderColor.slice(3, 5), 16);
+      const b = parseInt(borderColor.slice(5, 7), 16);
+      borderColorWithOpacity = `rgba(${r}, ${g}, ${b}, ${borderOpacity})`;
+    }
     
     let cardStyle = `
-      background-color: ${bgColor};
-      color: ${textColor};
       border-radius: ${borderRadius}px;
-      padding: 1.5rem;
+      padding: 1.25rem;
       display: flex;
       flex-direction: column;
       font-family: ${font}, sans-serif;
-      opacity: ${bgOpacity};
     `;
     
-    if (design.border) {
-      cardStyle += `border: ${borderWidth}px solid ${borderColor};`;
+    // Apply backdrop blur and styles
+    const backdropBlur = design.backdropBlur || 10;
+    
+    cardStyle += `
+      background-color: ${backgroundColorWithOpacity};
+      backdrop-filter: blur(${backdropBlur}px);
+      -webkit-backdrop-filter: blur(${backdropBlur}px);
+      color: ${textColor};
+    `;
+    
+    // Apply border settings
+    if (design.border === true) {
+      cardStyle += `border: ${borderWidth}px solid ${borderColorWithOpacity};`;
+    } else {
+      cardStyle += `border: none;`;
     }
+    
+    // Handle both outer shadow and inner shadow
+    let shadows = [];
     
     if (design.shadow) {
       const shadowColor = design.shadowColor || '#222222';
       const shadowIntensity = design.shadowIntensity || 0.2;
-      cardStyle += `box-shadow: inset 0 0 20px rgba(0, 0, 0, ${shadowIntensity});`;
+      
+      // Convert hex shadow color to rgba
+      let shadowRgba = `rgba(0, 0, 0, ${shadowIntensity})`;
+      if (shadowColor.startsWith('#')) {
+        const r = parseInt(shadowColor.slice(1, 3), 16);
+        const g = parseInt(shadowColor.slice(3, 5), 16);
+        const b = parseInt(shadowColor.slice(5, 7), 16);
+        shadowRgba = `rgba(${r}, ${g}, ${b}, ${shadowIntensity})`;
+      }
+      
+      shadows.push(`0 4px 6px -1px ${shadowRgba}`);
     }
     
-    const openingQuote = design.showQuotes ? `<span class="decorative-quote-opening" style="color: ${accentColor}; font-size: 1.5rem; font-weight: bold; line-height: 1; opacity: 0.3; margin-bottom: 0.5rem; display: block; text-align: left; width: 100%;">"</span>` : '';
-    const closingQuote = design.showQuotes ? `<span class="decorative-quote-closing" style="color: ${accentColor}; font-size: 1.5rem; font-weight: bold; line-height: 1; opacity: 0.3; position: absolute; bottom: 1rem; right: 1rem;">"</span>` : '';
+    // Add inner shadow for frosty glass effect
+    if (design.innerShadow) {
+      const innerShadowColor = design.innerShadowColor || '#FFFFFF';
+      const innerShadowOpacity = design.innerShadowOpacity || 0.5;
+      
+      // Convert hex to rgba for inner shadow
+      let innerShadowRgba = `rgba(255, 255, 255, ${innerShadowOpacity})`;
+      if (innerShadowColor.startsWith('#')) {
+        const r = parseInt(innerShadowColor.slice(1, 3), 16);
+        const g = parseInt(innerShadowColor.slice(3, 5), 16);
+        const b = parseInt(innerShadowColor.slice(5, 7), 16);
+        innerShadowRgba = `rgba(${r}, ${g}, ${b}, ${innerShadowOpacity})`;
+      }
+      
+      shadows.push(`inset 0 1px 3px ${innerShadowRgba}`);
+    }
+    
+    if (shadows.length > 0) {
+      cardStyle += `box-shadow: ${shadows.join(', ')};`;
+    }
+    
+    // Use curly quotes and apply quote size
+    const openingQuote = design.showQuotes ? `<span class="decorative-quote-opening" style="color: ${accentColor}; font-size: ${quoteSize}rem; font-weight: bold; line-height: 1; opacity: 0.3; margin-bottom: 0.5rem; display: block; text-align: left; width: 100%;">&#8220;</span>` : '';
+    const closingQuote = design.showQuotes ? `<span class="decorative-quote-closing" style="color: ${accentColor}; font-size: ${quoteSize}rem; font-weight: bold; line-height: 1; opacity: 0.3; position: absolute; bottom: 1rem; right: 1rem;">&#8221;</span>` : '';
     
     const starsHTML = review.star_rating ? `<div class="stars-row" style="margin-bottom: 0.75rem; display: flex; justify-content: center;">${renderStars(review.star_rating)}</div>` : '';
-    const dateHTML = design.showRelativeDate && review.created_at ? `<div class="reviewer-date" style="font-size: 0.875rem; color: ${roleColor}; opacity: 0.65; margin-top: 0.5rem;">${getRelativeTime(review.created_at)}</div>` : '';
+    const dateHTML = design.showRelativeDate && review.created_at ? `<div class="reviewer-date" style="font-size: 0.75rem; color: ${roleColor}; opacity: 0.65; margin-top: 0.5rem;">${getRelativeTime(review.created_at)}</div>` : '';
+    const platformHTML = design.showPlatform && review.platform ? `<div class="reviewer-platform" style="font-size: 0.75rem; color: ${roleColor}; opacity: 0.7; margin-top: 0.125rem;">via ${review.platform}</div>` : '';
 
     return `
       <div class="pr-review-card" style="${cardStyle}">
         ${starsHTML}
         <div class="review-content" style="flex-grow: 1; position: relative;">
           ${openingQuote}
-          <p class="review-text" style="margin: 0; font-size: 1rem; line-height: 1.5; color: ${textColor}; padding-left: ${design.showQuotes ? '1rem' : '0'}; padding-right: ${design.showQuotes ? '2rem' : '0'}; padding-bottom: ${design.showQuotes ? '2rem' : '0'};">${review.review_content}</p>
+          <p class="review-text" style="margin: 0; font-size: 0.9rem; line-height: 1.4; color: ${textColor}; padding-left: ${design.showQuotes ? '0.75rem' : '0'}; padding-right: ${design.showQuotes ? '1.5rem' : '0'}; padding-bottom: ${design.showQuotes ? '1.5rem' : '0'};">${review.review_content}</p>
           ${closingQuote}
         </div>
-        <div class="reviewer-details" style="margin-top: 1rem; text-align: center;">
-          <div class="reviewer-name" style="font-weight: bold; color: ${nameColor};">${review.first_name || ''} ${review.last_name || ''}</div>
-          ${review.reviewer_role ? `<div class="reviewer-role" style="font-size: 0.875rem; color: ${roleColor}; opacity: 0.65;">${review.reviewer_role}</div>` : ''}
+        <div class="reviewer-details" style="margin-top: 0.75rem; text-align: center;">
+          <div class="reviewer-name" style="font-weight: bold; font-size: 0.9rem; color: ${nameColor};">${review.first_name || ''} ${review.last_name || ''}</div>
+          ${review.reviewer_role ? `<div class="reviewer-role" style="font-size: 0.8rem; color: ${roleColor}; opacity: 0.65;">${review.reviewer_role}</div>` : ''}
           ${dateHTML}
+          ${platformHTML}
         </div>
       </div>
     `;
@@ -250,9 +317,71 @@
     }
   }
 
+  function generateSchemaMarkup(reviews, businessName) {
+    if (!reviews || reviews.length === 0) return '';
+    
+    // Calculate aggregate rating
+    const totalRating = reviews.reduce((sum, review) => sum + (review.star_rating || 0), 0);
+    const averageRating = (totalRating / reviews.length).toFixed(1);
+    const reviewCount = reviews.length;
+    
+    // Get business name from the page or use a default
+    const name = businessName || document.title || 'Business';
+    
+    const schema = {
+      "@context": "https://schema.org",
+      "@type": "Product", // Can also use "LocalBusiness" or "Organization"
+      "name": name,
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": averageRating,
+        "bestRating": "5",
+        "worstRating": "1",
+        "ratingCount": reviewCount,
+        "reviewCount": reviewCount
+      },
+      "review": reviews.slice(0, 5).map(review => ({ // Google typically shows first 5
+        "@type": "Review",
+        "reviewRating": {
+          "@type": "Rating",
+          "ratingValue": review.star_rating || 5,
+          "bestRating": "5",
+          "worstRating": "1"
+        },
+        "author": {
+          "@type": "Person",
+          "name": `${review.first_name || ''} ${review.last_name || ''}`.trim() || "Anonymous"
+        },
+        "datePublished": review.created_at,
+        "reviewBody": review.review_content
+      }))
+    };
+    
+    return `<script type="application/ld+json">${JSON.stringify(schema)}</script>`;
+  }
+
   function createCarouselHTML(widgetId, reviews, design, businessSlug) {
     initCarouselState(widgetId, reviews, design);
     const state = carouselState[widgetId];
+
+    // Handle empty reviews case
+    if (!reviews || reviews.length === 0) {
+      return `
+        <div class="pr-multi-widget">
+          <div style="display: flex; align-items: center; justify-content: center; min-height: 200px; color: white; font-size: 18px;">
+            <div style="text-align: center;">
+              <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 8px;">
+                <svg style="width: 24px; height: 24px;" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clip-rule="evenodd" />
+                </svg>
+                <span>Add reviews to your widget</span>
+              </div>
+              <p style="font-size: 14px; opacity: 0.8;">Click the speech bubble icon above to add and manage reviews.</p>
+            </div>
+          </div>
+        </div>
+      `;
+    }
 
     const reviewCardsHTML = reviews.map(review => 
       `<div class="pr-carousel-item">${createReviewCard(review, design)}</div>`
@@ -265,13 +394,31 @@
     const bgColor = design.bgColor || '#ffffff';
     const borderColor = design.borderColor || '#cccccc';
     const borderWidth = design.borderWidth || 2;
+    const borderOpacity = design.borderOpacity !== undefined ? design.borderOpacity : 1;
     const bgOpacity = design.bgOpacity !== undefined ? design.bgOpacity : 1;
     const accentColor = design.accentColor || '#4f46e5';
     
+    // Convert hex color to rgba with opacity for buttons
+    let buttonBackgroundColor = bgColor;
+    if (bgOpacity < 1 && bgColor.startsWith('#')) {
+      const r = parseInt(bgColor.slice(1, 3), 16);
+      const g = parseInt(bgColor.slice(3, 5), 16);
+      const b = parseInt(bgColor.slice(5, 7), 16);
+      buttonBackgroundColor = `rgba(${r}, ${g}, ${b}, ${bgOpacity})`;
+    }
+    
+    // Convert border color to rgba with opacity if needed
+    let borderColorWithOpacity = borderColor;
+    if (borderOpacity < 1 && borderColor.startsWith('#')) {
+      const r = parseInt(borderColor.slice(1, 3), 16);
+      const g = parseInt(borderColor.slice(3, 5), 16);
+      const b = parseInt(borderColor.slice(5, 7), 16);
+      borderColorWithOpacity = `rgba(${r}, ${g}, ${b}, ${borderOpacity})`;
+    }
+    
     const buttonStyle = `
-      background-color: ${bgColor};
-      border: ${borderWidth}px solid ${borderColor};
-      opacity: ${bgOpacity};
+      background-color: ${buttonBackgroundColor};
+      ${design.border ? `border: ${borderWidth}px solid ${borderColorWithOpacity};` : 'border: none;'}
     `;
 
     const arrowStyle = `
@@ -316,11 +463,10 @@
 
     const submitReviewButton = design.showSubmitReviewButton ? `
       <div class="pr-submit-review-container">
-        <a href="https://prompt.reviews/r/${businessSlug}" target="_blank" rel="noopener noreferrer" class="pr-submit-btn"
+        <a href="https://promptreviews.app/r/${businessSlug}" target="_blank" rel="noopener noreferrer" class="pr-submit-btn"
            style="
-             background-color: ${bgColor};
-             border: ${borderWidth}px solid ${borderColor};
-             opacity: ${bgOpacity};
+             background-color: ${buttonBackgroundColor};
+             ${design.border ? `border: ${borderWidth}px solid ${borderColorWithOpacity};` : 'border: none;'}
              color: ${accentColor};
              padding: 8px 16px;
              text-decoration: none;
@@ -333,7 +479,11 @@
       </div>
     ` : '';
     
+    // Generate schema markup for SEO
+    const schemaMarkup = generateSchemaMarkup(reviews, null); // Will use document.title as fallback
+    
     return `
+      ${schemaMarkup}
       <div class="pr-multi-widget">
         <style>
           ${arrowStyle}
@@ -362,6 +512,12 @@
 
     const prevBtn = widgetElement.querySelector('.pr-prev-btn');
     const nextBtn = widgetElement.querySelector('.pr-next-btn');
+
+    // Check if buttons exist before adding listeners (they won't exist when there are no reviews)
+    if (!prevBtn || !nextBtn) {
+      console.log('🔍 Widget: Navigation buttons not found (likely no reviews to display)');
+      return;
+    }
 
     prevBtn.addEventListener('click', () => {
       const state = carouselState[widgetId];
@@ -455,7 +611,8 @@
         .pr-carousel-item {
             flex-shrink: 0;
             width: calc(100% / 3 - 1rem * 2 / 3);
-            display: flex; 
+            display: flex;
+            padding-top: 8px; /* Space for hover lift effect */
         }
         
         /* Review Card Styles */
@@ -537,6 +694,7 @@
             display: flex;
             gap: 16px;
             align-items: center;
+            margin: 0 20px; /* Add margin to create more space between arrows and dots */
         }
         
         .pr-dot {
@@ -565,6 +723,7 @@
         @media (max-width: 1024px) {
             .pr-carousel-item {
                 width: calc(100% / 2 - 1rem * 1 / 2); /* Two cards */
+                padding-top: 8px; /* Maintain hover space */
             }
         }
         
@@ -572,6 +731,7 @@
             .pr-carousel-item {
                 width: 100%; /* One card */
                 gap: 0;
+                padding-top: 8px; /* Maintain hover space */
             }
             .pr-carousel-track {
               gap: 0;
@@ -583,6 +743,13 @@
 
   // Main function to initialize all widgets on the page
   async function autoInitializeWidgets() {
+    // Skip auto-initialization if we're in a dashboard context
+    // Dashboard components will call initializeWidget manually
+    if (window.location.pathname.includes('/dashboard')) {
+      console.log('🔄 MultiWidget: Dashboard context detected, skipping auto-initialization');
+      return;
+    }
+
     const widgets = document.querySelectorAll('[data-prompt-reviews-id], [data-widget-id]');
     if (widgets.length === 0) return;
 
@@ -594,17 +761,34 @@
       widgetContainer.id = `pr-widget-container-${widgetId}`;
 
       try {
-        const response = await fetch(`http://localhost:3001/api/widgets/${widgetId}`);
+        // Use absolute URL for cross-domain embedding
+        const apiUrl = window.location.hostname === 'app.promptreviews.app' 
+          ? `/api/widgets/${widgetId}`
+          : `https://app.promptreviews.app/api/widgets/${widgetId}`;
+        
+        const response = await fetch(apiUrl);
         if (!response.ok) {
           throw new Error(`Failed to fetch widget data: ${response.statusText}`);
         }
-        const { reviews, design } = await response.json();
+        const { reviews, design, businessSlug } = await response.json();
         
         if (reviews && reviews.length > 0) {
           widgetContainer.innerHTML = createCarouselHTML(widgetContainer.id, reviews, design, businessSlug);
           initializeCarousel(widgetContainer.id);
         } else {
-          widgetContainer.innerHTML = '<p>No reviews to display.</p>';
+          widgetContainer.innerHTML = `
+        <div style="display: flex; align-items: center; justify-content: center; min-height: 200px; color: white; font-size: 18px;">
+          <div style="text-align: center;">
+            <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 8px;">
+              <svg style="width: 24px; height: 24px;" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clip-rule="evenodd" />
+              </svg>
+              <span>Add reviews to your widget</span>
+            </div>
+            <p style="font-size: 14px; opacity: 0.8;">Click talk bubble icon to add and manage reviews.</p>
+          </div>
+        </div>
+      `;
         }
 
       } catch (error) {

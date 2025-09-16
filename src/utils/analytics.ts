@@ -33,6 +33,7 @@ export const GA_EVENTS = {
   SUBSCRIPTION_STARTED: 'subscription_started',
   SUBSCRIPTION_CANCELLED: 'subscription_cancelled',
   SUBSCRIPTION_UPDATED: 'subscription_updated',
+  PLAN_SELECTED: 'plan_selected',
   
   // Admin actions
   ANNOUNCEMENT_CREATED: 'announcement_created',
@@ -171,6 +172,22 @@ export const trackError = (error: Error | string, context?: Record<string, any>)
     error_message: typeof error === 'string' ? error : error.message,
     error_stack: typeof error === 'object' ? error.stack : undefined,
     ...context,
+    timestamp: new Date().toISOString(),
+  });
+}; 
+
+// Add a function to track emoji sentiment clicks
+/**
+ * Track emoji sentiment click events
+ * @param sentiment - The sentiment of the emoji clicked (e.g., excellent, satisfied)
+ * @param promptPage - The identifier for the Universal prompt page
+ * @param businessLocation - The identifier for the business location
+ */
+export const trackEmojiSentimentClick = (sentiment: string, promptPage: string, businessLocation: string) => {
+  trackEvent('emoji_sentiment_click', {
+    sentiment,
+    promptPage,
+    businessLocation,
     timestamp: new Date().toISOString(),
   });
 }; 

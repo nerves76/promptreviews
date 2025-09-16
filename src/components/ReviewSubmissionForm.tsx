@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { supabase } from "@/utils/supabase";
+import { createClient } from "@/auth/providers/supabase";
 import { useReviewer } from "@/contexts/ReviewerContext";
-import type { PromptPage } from "@/utils/supabase";
+import type { PromptPage } from "@/auth/providers/supabase";
 
 const PLATFORM_OPTIONS = [
   "Google Business Profile",
@@ -36,6 +36,7 @@ export default function ReviewSubmissionForm({
   onSuccess,
   onError,
 }: ReviewSubmissionFormProps) {
+  const supabase = createClient();
   const { reviewerInfo, updateReviewerInfo } = useReviewer();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -118,7 +119,7 @@ export default function ReviewSubmissionForm({
             id="reviewerName"
             value={reviewerInfo.name}
             onChange={(e) => updateReviewerInfo({ name: e.target.value })}
-            placeholder="Ezra C"
+            placeholder="Sally W"
             className="mt-1 block w-full rounded-lg shadow-md bg-gray-50 focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm border border-gray-200 py-3 px-4"
             required
           />
@@ -175,7 +176,7 @@ export default function ReviewSubmissionForm({
       {error && <div className="text-red-500 text-sm">{error}</div>}
       <button
         type="submit"
-        className="w-full py-3 px-6 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition-colors"
+        className="w-full py-3 px-6 bg-slate-blue text-white rounded-lg font-semibold hover:bg-slate-blue/90 transition-colors"
         disabled={isSubmitting}
       >
         {isSubmitting ? "Submitting..." : "Submit Review"}

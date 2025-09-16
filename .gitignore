@@ -37,3 +37,60 @@ next-env.d.ts
 .env*
 
 test-supabase-service-role.js
+
+/src/generated/prisma
+
+# docs-site build artifacts
+docs-promptreviews/docs-site/.next/
+docs-promptreviews/docs-site/node_modules/
+docs-promptreviews/docs-site/out/
+docs-promptreviews/docs-site/build/
+
+# any other node_modules directories
+**/node_modules/
+
+# any other .next directories
+**/.next/
+
+# any other build directories
+**/build/
+**/out/
+
+# database exports that may contain sensitive data
+pg_policies
+accounts
+
+# Database dumps and backups
+database/migrations/*_dump.sql
+database/migrations/*_backup.sql
+database/migrations/full_dump.sql
+database/migrations/current_data.sql
+database/migrations/local_schema.sql
+database/migrations/supabase-backup.sql
+database/migrations/accounts_schema.sql
+database/migrations/db_dump.sql
+
+# Prisma generated binaries
+src/generated/prisma/*.node
+*.dylib.node
+
+# Test artifacts
+playwright-report/
+test-results/
+coverage/
+
+# Logs
+*.log
+build_output.log
+
+# Backup and temp directories
+*-backup/
+*-old/
+*.backup
+archive/
+tmp/
+temp/
+
+# Large binary files
+*.node
+*.dylib

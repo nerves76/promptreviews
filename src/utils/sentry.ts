@@ -3,17 +3,22 @@
  * This file provides helper functions for Sentry integration
  */
 
-import * as Sentry from '@sentry/nextjs';
+// Check if Sentry is disabled
+const isSentryDisabled = process.env.DISABLE_SENTRY === 'true' || process.env.NODE_ENV === 'development';
 
 /**
  * Set user context for Sentry tracking
  * @param user - User object with id, email, and other properties
  */
 export function setUserContext(user: { id: string; email?: string; [key: string]: any }) {
+  if (isSentryDisabled) return;
+  
+  // Only import Sentry when actually needed
+  const Sentry = require('@sentry/nextjs');
   Sentry.setUser({
+    ...user,
     id: user.id,
     email: user.email,
-    ...user,
   });
 }
 
@@ -21,6 +26,9 @@ export function setUserContext(user: { id: string; email?: string; [key: string]
  * Clear user context from Sentry
  */
 export function clearUserContext() {
+  if (isSentryDisabled) return;
+  
+  const Sentry = require('@sentry/nextjs');
   Sentry.setUser(null);
 }
 
@@ -35,6 +43,9 @@ export function addBreadcrumb(
   category: string = 'user',
   data?: Record<string, any>
 ) {
+  if (isSentryDisabled) return;
+  
+  const Sentry = require('@sentry/nextjs');
   Sentry.addBreadcrumb({
     message,
     category,
@@ -54,6 +65,9 @@ export function captureError(
   context?: Record<string, any>,
   tags?: Record<string, string>
 ) {
+  if (isSentryDisabled) return;
+  
+  const Sentry = require('@sentry/nextjs');
   Sentry.captureException(error, {
     contexts: context,
     tags,
@@ -72,9 +86,12 @@ export function captureError(
  */
 export function captureMessage(
   message: string,
-  level: Sentry.SeverityLevel = 'info',
+  level: any = 'info',
   context?: Record<string, any>
 ) {
+  if (isSentryDisabled) return;
+  
+  const Sentry = require('@sentry/nextjs');
   Sentry.captureMessage(message, {
     level,
     contexts: context,
@@ -87,6 +104,9 @@ export function captureMessage(
  * @param value - Tag value
  */
 export function setTag(key: string, value: string) {
+  if (isSentryDisabled) return;
+  
+  const Sentry = require('@sentry/nextjs');
   Sentry.setTag(key, value);
 }
 
@@ -96,5 +116,8 @@ export function setTag(key: string, value: string) {
  * @param context - Context data
  */
 export function setContext(name: string, context: Record<string, any>) {
+  if (isSentryDisabled) return;
+  
+  const Sentry = require('@sentry/nextjs');
   Sentry.setContext(name, context);
 } 

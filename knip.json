@@ -1,0 +1,52 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "entry": [
+    "src/app/**/*.{ts,tsx}",
+    "src/pages/**/*.{ts,tsx}",
+    "scripts/**/*.{ts,js}"
+  ],
+  "project": [
+    "src/**/*.{ts,tsx,js,jsx}",
+    "!src/**/*.test.{ts,tsx}",
+    "!src/**/*.spec.{ts,tsx}",
+    "!src/**/*.BACKUP.*",
+    "!src/**/*.ORIGINAL.*",
+    "!src/**/*.old.*"
+  ],
+  "ignore": [
+    "**/*.d.ts",
+    "src/generated/**",
+    "src/examples/**",
+    "build/**",
+    "dist/**",
+    ".next/**",
+    "node_modules/**",
+    "**/*.BACKUP.*",
+    "**/*.ORIGINAL.*",
+    "**/*.old.*"
+  ],
+  "ignoreDependencies": [
+    "@types/*",
+    "eslint-*",
+    "prettier",
+    "@sentry/cli",
+    "knip",
+    "@prisma/client",
+    "prisma"
+  ],
+  "ignoreExportsUsedInFile": true,
+  "next": {
+    "entry": [
+      "src/app/**/page.tsx",
+      "src/app/**/layout.tsx",
+      "src/app/**/route.ts",
+      "src/app/**/error.tsx",
+      "src/app/**/loading.tsx",
+      "src/app/**/not-found.tsx",
+      "src/app/**/template.tsx",
+      "src/middleware.ts",
+      "next.config.js"
+    ]
+  },
+  "ignoreWorkspaces": ["packages/**"]
+}
