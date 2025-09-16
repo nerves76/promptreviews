@@ -1,4 +1,4 @@
-import FiveStarSpinner from "./FiveStarSpinner";
+import FiveStarSpinner from "../(app)/components/FiveStarSpinner";
 
 export default function AppLoader({ size = 24 }: { size?: number } = {}) {
   return (
