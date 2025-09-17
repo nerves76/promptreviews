@@ -64,7 +64,7 @@ export default function CreateBusinessClient() {
   useEffect(() => {
     const setupBusinessCreation = async () => {
       try {
-        
+
         // Get current user (should already be authenticated by layout)
         const { data: { user }, error } = await getUserOrMock(supabase);
 
@@ -76,7 +76,10 @@ export default function CreateBusinessClient() {
         }
 
         setUser(user);
-        
+
+        // Get the currently selected account from localStorage
+        const storedSelection = localStorage.getItem(`promptreviews_selected_account_${user.id}`);
+
         // Check if user already has accounts
         const { data: existingAccounts } = await supabase
           .from('account_users')
@@ -84,45 +87,81 @@ export default function CreateBusinessClient() {
           .eq('user_id', user.id);
 
         if (existingAccounts && existingAccounts.length > 0) {
-          // If user has accounts, only redirect if ANY of those accounts already has a business
-          const accountIds = existingAccounts.map(a => a.account_id);
-          const { data: existingBusinesses, error: bizErr } = await supabase
-            .from('businesses')
-            .select('id, account_id')
-            .in('account_id', accountIds)
-            .limit(1);
+          // If a specific account is selected via the account switcher, check ONLY that account for businesses
+          let accountToCheck = storedSelection;
 
-          if (!bizErr && existingBusinesses && existingBusinesses.length > 0) {
-            // Prevent repeated redirects on re-renders or route transitions
-            if (!hasRedirectedRef.current) {
-              hasRedirectedRef.current = true;
-              console.log('✅ User already has accounts with a business, redirecting to dashboard');
-              // Only set a default account if user doesn't already have a selection
-              const storedSelection = localStorage.getItem(`promptreviews_selected_account_${user.id}`);
-              if (!storedSelection) {
-                // No existing selection, use a reasonable default
-                const firstAccountId = existingBusinesses[0].account_id || existingAccounts[0].account_id;
-                if (typeof window !== 'undefined') {
-                  localStorage.setItem(`promptreviews_selected_account_${user.id}`, firstAccountId);
-                }
-              }
-              // Use hard navigation to avoid component re-mount loops
-              if (typeof window !== 'undefined') {
-                window.location.replace('/dashboard');
-              } else {
-                centralizedRedirectToDashboard('User already has existing accounts with a business');
-              }
-            }
-            return; // Stop further execution
+          // Validate the stored selection exists in user's accounts
+          if (accountToCheck && !existingAccounts.find(a => a.account_id === accountToCheck)) {
+            accountToCheck = null; // Invalid selection
           }
 
-          // User has accounts but no businesses yet → stay on this page to create a business
-          // Check for stored selection first, then fall back to first account
-          const storedAccountId = localStorage.getItem(`promptreviews_selected_account_${user.id}`);
-          const accountToUse = storedAccountId && existingAccounts.find(a => a.account_id === storedAccountId)
-            ? storedAccountId
-            : existingAccounts[0]?.account_id || null;
-          setAccountId(accountToUse);
+          if (accountToCheck) {
+            // Check if the SELECTED account has a business
+            const { data: selectedAccountBusiness, error: bizErr } = await supabase
+              .from('businesses')
+              .select('id')
+              .eq('account_id', accountToCheck)
+              .limit(1);
+
+            if (!bizErr && selectedAccountBusiness && selectedAccountBusiness.length > 0) {
+              // Selected account has a business, redirect to dashboard
+              if (!hasRedirectedRef.current) {
+                hasRedirectedRef.current = true;
+                console.log('✅ Selected account has a business, redirecting to dashboard');
+                // Use hard navigation to avoid component re-mount loops
+                if (typeof window !== 'undefined') {
+                  window.location.replace('/dashboard');
+                } else {
+                  centralizedRedirectToDashboard('Selected account already has a business');
+                }
+              }
+              return;
+            }
+
+            // Selected account has no business - stay on this page to create one
+            console.log('ℹ️ Selected account has no business, staying on create-business page');
+            setAccountId(accountToCheck);
+            // Set a flag to prevent BusinessGuard from redirecting
+            if (typeof window !== 'undefined') {
+              sessionStorage.setItem('intentionallyOnCreateBusiness', 'true');
+            }
+          } else {
+            // No specific account selected, check if ANY account has a business
+            const accountIds = existingAccounts.map(a => a.account_id);
+            const { data: existingBusinesses, error: bizErr } = await supabase
+              .from('businesses')
+              .select('id, account_id')
+              .in('account_id', accountIds)
+              .limit(1);
+
+            if (!bizErr && existingBusinesses && existingBusinesses.length > 0) {
+              // At least one account has a business
+              if (!hasRedirectedRef.current) {
+                hasRedirectedRef.current = true;
+                console.log('✅ User has accounts with businesses, redirecting to dashboard');
+                // Set the first account with a business as the default
+                const firstAccountWithBusiness = existingBusinesses[0].account_id;
+                if (typeof window !== 'undefined') {
+                  localStorage.setItem(`promptreviews_selected_account_${user.id}`, firstAccountWithBusiness);
+                }
+                // Use hard navigation to avoid component re-mount loops
+                if (typeof window !== 'undefined') {
+                  window.location.replace('/dashboard');
+                } else {
+                  centralizedRedirectToDashboard('User already has accounts with businesses');
+                }
+              }
+              return;
+            }
+
+            // User has accounts but none have businesses - use first account
+            const firstAccountId = existingAccounts[0]?.account_id || null;
+            setAccountId(firstAccountId);
+            // Set a flag to prevent BusinessGuard from redirecting
+            if (typeof window !== 'undefined') {
+              sessionStorage.setItem('intentionallyOnCreateBusiness', 'true');
+            }
+          }
         }
 
         // For new users, we don't require an existing account - the business creation will create one

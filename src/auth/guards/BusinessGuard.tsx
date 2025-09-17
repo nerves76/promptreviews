@@ -155,6 +155,19 @@ function BusinessGuard({ children }: BusinessGuardProps) {
       }, 2000);
       return;
     }
+
+    // If we're intentionally on create-business page for a new account, don't redirect
+    const intentionallyOnCreateBusiness = typeof window !== 'undefined' ?
+      sessionStorage.getItem('intentionallyOnCreateBusiness') === 'true' : false;
+    if (intentionallyOnCreateBusiness && pathname === '/dashboard/create-business') {
+      // Clean up the flag after a delay
+      setTimeout(() => {
+        if (typeof window !== 'undefined') {
+          sessionStorage.removeItem('intentionallyOnCreateBusiness');
+        }
+      }, 5000);
+      return;
+    }
     
     // If business was just created, give the state time to update before checking
     if (businessJustCreated) {
