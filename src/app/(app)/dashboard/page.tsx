@@ -435,12 +435,20 @@ const Dashboard = React.memo(function Dashboard() {
     if (planSelectionRequired && !showPricingModal && !isDashboardLoading &&
         !justCompletedPayment && !hasSuccessParam && !hasPlanSuccessModal &&
         !accountRecentlyUpdated) {
-      // Check if user hasn't recently dismissed the modal
-      const modalDismissed = typeof window !== "undefined" ? 
-        sessionStorage.getItem('pricingModalDismissed') === 'true' : false;
-      
-      if (!modalDismissed) {
+      // For users with no_plan, ALWAYS show the modal regardless of dismissal
+      const hasInvalidPlan = (!account?.plan || account.plan === 'no_plan' || account.plan === 'NULL');
+
+      if (account?.business_creation_complete && hasInvalidPlan) {
+        // Force show for no_plan users who completed business creation
         setShowPricingModal(true);
+      } else {
+        // For other cases, check if user hasn't recently dismissed the modal
+        const modalDismissed = typeof window !== "undefined" ?
+          sessionStorage.getItem('pricingModalDismissed') === 'true' : false;
+
+        if (!modalDismissed) {
+          setShowPricingModal(true);
+        }
       }
     }
     
@@ -961,23 +969,30 @@ const Dashboard = React.memo(function Dashboard() {
   };
 
   const handleClosePricingModal = () => {
-    // Check if user has invalid plan and needs to select one
-    const hasInvalidPlan = (!account?.plan || account.plan === 'no_plan' || account.plan === 'NULL') && 
-                          businessData && businessData.businessCount > 0;
-    
-    if (planSelectionRequired || hasInvalidPlan) {
+    // NEVER allow closing the modal if user has no_plan or NULL plan
+    const hasInvalidPlan = (!account?.plan || account.plan === 'no_plan' || account.plan === 'NULL');
+
+    // Block closing if user has completed business creation but has no valid plan
+    if (account?.business_creation_complete && hasInvalidPlan) {
+      console.log('[Dashboard] Blocking modal close - no valid plan selected');
       return;
     }
-    
+
+    // Also block if API says payment is required
+    if (planSelectionRequired) {
+      console.log('[Dashboard] Blocking modal close - payment required by API');
+      return;
+    }
+
     setShowPricingModal(false);
     setJustCanceledStripe(false);
-    
+
     // Remember that user dismissed the modal for this session
     if (typeof window !== "undefined") {
       sessionStorage.setItem('pricingModalDismissed', 'true');
       sessionStorage.removeItem('businessCreatedHandled');
     }
-    
+
     // Load remaining dashboard data if it hasn't been loaded yet
     if (!dashboardData) {
       loadDashboardSpecificData();
@@ -1102,7 +1117,7 @@ const Dashboard = React.memo(function Dashboard() {
           showCanceledMessage={justCanceledStripe}
           onClose={handleClosePricingModal}
           onSignOut={handleSignOut}
-          isPlanSelectionRequired={planSelectionRequired}
+          isPlanSelectionRequired={planSelectionRequired || (account?.business_creation_complete && (!account?.plan || account.plan === 'no_plan' || account.plan === 'NULL'))}
           isReactivation={account?.deleted_at !== null || (account?.plan === 'no_plan' && account?.has_had_paid_plan && !account?.is_additional_account)}
           hadPreviousTrial={account?.has_had_paid_plan || account?.is_additional_account || false}
           reactivationOffer={

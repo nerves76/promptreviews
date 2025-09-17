@@ -130,7 +130,7 @@ export default function PricingModal({
   return (
     <div className={wrapperClass}>
       <div className="flex flex-col items-center w-full max-w-7xl mx-auto p-8 px-4 relative my-auto min-h-0">
-        {/* Close button - only show if onClose is provided and we're in modal mode AND plan selection is not required */}
+        {/* Close button - only show if plan selection is NOT required */}
         {asModal && onClose && !isPlanSelectionRequired && (
           <button
             onClick={onClose}
