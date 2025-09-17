@@ -97,10 +97,14 @@ export default function CreateBusinessClient() {
             if (!hasRedirectedRef.current) {
               hasRedirectedRef.current = true;
               console.log('✅ User already has accounts with a business, redirecting to dashboard');
-              // Store a reasonable default account for context hydration
-              const firstAccountId = existingBusinesses[0].account_id || existingAccounts[0].account_id;
-              if (typeof window !== 'undefined') {
-                localStorage.setItem(`promptreviews_selected_account_${user.id}`, firstAccountId);
+              // Only set a default account if user doesn't already have a selection
+              const storedSelection = localStorage.getItem(`promptreviews_selected_account_${user.id}`);
+              if (!storedSelection) {
+                // No existing selection, use a reasonable default
+                const firstAccountId = existingBusinesses[0].account_id || existingAccounts[0].account_id;
+                if (typeof window !== 'undefined') {
+                  localStorage.setItem(`promptreviews_selected_account_${user.id}`, firstAccountId);
+                }
               }
               // Use hard navigation to avoid component re-mount loops
               if (typeof window !== 'undefined') {
@@ -113,9 +117,12 @@ export default function CreateBusinessClient() {
           }
 
           // User has accounts but no businesses yet → stay on this page to create a business
-          // Preselect the first account id so the form can associate correctly
-          const firstAccountId = existingAccounts[0]?.account_id || null;
-          setAccountId(firstAccountId);
+          // Check for stored selection first, then fall back to first account
+          const storedAccountId = localStorage.getItem(`promptreviews_selected_account_${user.id}`);
+          const accountToUse = storedAccountId && existingAccounts.find(a => a.account_id === storedAccountId)
+            ? storedAccountId
+            : existingAccounts[0]?.account_id || null;
+          setAccountId(accountToUse);
         }
 
         // For new users, we don't require an existing account - the business creation will create one
