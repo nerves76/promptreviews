@@ -359,7 +359,10 @@ const Dashboard = React.memo(function Dashboard() {
     if (justCreatedBusiness) {
       // For new users, just load businesses data (needed for plan selection)
       // Skip loading widgets, prompt pages, reviews until after plan selection
-      loadBusinessesData();
+      (async () => {
+        await loadBusinessesData();
+        setIsDashboardLoading(false);
+      })();
     } else {
       // For existing users, load all data
       loadDashboardSpecificData();
