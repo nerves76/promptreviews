@@ -382,50 +382,40 @@ const Dashboard = React.memo(function Dashboard() {
     }
   }, []);
 
-  // Enhanced plan selection logic using AuthContext data
+  // Check payment requirement using centralized API
   useEffect(() => {
     if (authLoading || accountLoading || businessesLoading || !account || !businessData) return;
-    
-    const now = new Date();
-    const trialEnd = account.trial_end ? new Date(account.trial_end) : null;
-    const plan = account.plan;
-    const hasStripeCustomer = !!account.stripe_customer_id;
-    const subscriptionStatus = account.subscription_status;
-    const businessCount = businessData.businessCount;
 
-    // Determine if payment is required based on plan, trial, and subscription status
-    let paymentRequired = false;
+    const checkPaymentStatus = async () => {
+      try {
+        // Use the centralized API to check if payment is required
+        const response = await fetch(`/api/accounts/payment-status?accountId=${selectedAccountId || account.id}`);
 
-    // Check if this is a free account first
-    const isFreeAccount = account.is_free_account || plan === 'free';
+        if (!response.ok) {
+          console.error('Failed to check payment status:', response.status);
+          return;
+        }
 
-    // Free accounts never require payment
-    if (isFreeAccount) {
-      paymentRequired = false;
-    } else if (subscriptionStatus === 'active') {
-      // Active subscription never requires payment
-      paymentRequired = false;
-    } else if (plan === 'grower') {
-      const trialActive = trialEnd && now <= trialEnd && !hasStripeCustomer;
-      if (trialActive) {
-        paymentRequired = false;
-      } else if (hasStripeCustomer) {
-        // Paying grower but not active -> needs attention/payment
-        paymentRequired = subscriptionStatus !== 'active';
-      } else {
-        // Not paying grower: require payment only after trial expires
-        paymentRequired = !!trialEnd && now > trialEnd;
+        const data = await response.json();
+
+        if (process.env.NODE_ENV === 'development' && data.debug) {
+          console.log('[Dashboard] Payment status check:', data.debug);
+        }
+
+        setPlanSelectionRequired(data.requiresPayment);
+
+        // Log the reason for debugging
+        if (data.requiresPayment) {
+          console.log('[Dashboard] Payment required:', data.reason);
+        }
+      } catch (error) {
+        console.error('Error checking payment status:', error);
+        // Fall back to not requiring payment on error to avoid blocking users
+        setPlanSelectionRequired(false);
       }
-    } else if (plan === 'builder' || plan === 'maven') {
-      // Paid plans require active subscription
-      paymentRequired = subscriptionStatus !== 'active';
-    } else {
-      // No plan selected but business exists -> require plan/payment
-      // But exclude free accounts from this requirement
-      paymentRequired = ((!plan || plan === 'no_plan' || plan === 'NULL') && businessCount > 0 && !isFreeAccount);
-    }
+    };
 
-    setPlanSelectionRequired(!!paymentRequired);
+    checkPaymentStatus();
     
     // Check if we just came back from Stripe success or have success modal showing
     const urlParams = typeof window !== "undefined" ? 
@@ -606,9 +596,6 @@ const Dashboard = React.memo(function Dashboard() {
         return;
       }
 
-      // Get the account ID that created the business
-      const businessAccountId = params.get("accountId");
-
       // Clear any previous modal dismissal from sessionStorage since user just created business
       if (typeof window !== "undefined") {
         sessionStorage.removeItem('pricingModalDismissed');
@@ -619,35 +606,47 @@ const Dashboard = React.memo(function Dashboard() {
       // Set pending state immediately to maintain loading state
       setIsPendingPricingModal(true);
 
-      // If a specific account created the business, we need to check THAT account's plan
-      if (businessAccountId && businessAccountId !== selectedAccountId) {
-        console.log('🔄 Business created with different account, switching to check plan:', businessAccountId);
-        // Switch to the account that created the business first
-        if (typeof window !== 'undefined') {
-          localStorage.setItem(`promptreviews_selected_account_${user?.id}`, businessAccountId);
-          // Force a reload to ensure we check the correct account
-          window.location.reload();
-          return;
-        }
-      }
-
       // Force reload of account data to pick up the newly created account
+      // The account switch already happened via localStorage in SimpleBusinessForm
       if (refreshAccount) {
         console.log('🔄 Refreshing account data after business creation');
-        // Wait for refresh to complete before showing modal
-        refreshAccount().then(() => {
-          console.log('✅ Account data refreshed, now showing pricing modal for account:', selectedAccountId || account?.id);
-          // Double-check that user still needs to select a plan
-          // (in case they completed Stripe checkout in the meantime)
-          const params = new URLSearchParams(window.location.search);
-          const hasJustPaid = params.get('success') === '1';
-          
-          if (!hasJustPaid) {
+        // Wait for refresh to complete before checking payment status
+        refreshAccount().then(async () => {
+          console.log('✅ Account data refreshed for account:', selectedAccountId || account?.id);
+
+          // Check payment status using the centralized API
+          try {
+            const accountToCheck = selectedAccountId || account?.id;
+            const response = await fetch(`/api/accounts/payment-status?accountId=${accountToCheck}`);
+
+            if (response.ok) {
+              const data = await response.json();
+              console.log('[Dashboard] Post-business creation payment check:', data.reason);
+
+              if (data.requiresPayment) {
+                // Clear the pending state and show modal
+                setIsPendingPricingModal(false);
+                setShowPricingModal(true);
+                setPlanSelectionRequired(true); // Make it required so user can't dismiss
+                console.log('🎯 Showing pricing modal for new business');
+              } else {
+                // No payment required, clear pending state
+                setIsPendingPricingModal(false);
+                console.log('✅ No payment required for this account');
+              }
+            } else {
+              console.error('Failed to check payment status after business creation');
+              // Show modal anyway as fallback
+              setIsPendingPricingModal(false);
+              setShowPricingModal(true);
+              setPlanSelectionRequired(true);
+            }
+          } catch (error) {
+            console.error('Error checking payment status:', error);
+            // Show modal anyway as fallback
             setIsPendingPricingModal(false);
             setShowPricingModal(true);
-            setPlanSelectionRequired(true); // Make it required so user can't dismiss
-          } else {
-            setIsPendingPricingModal(false);
+            setPlanSelectionRequired(true);
           }
         }).catch(error => {
           console.error('❌ Error refreshing account after business creation:', error);
@@ -659,17 +658,33 @@ const Dashboard = React.memo(function Dashboard() {
           }, 2000);
         });
       } else {
-        // Fallback if refreshAccount is not available
-        modalTimeoutRef.current = setTimeout(() => {
-          const params = new URLSearchParams(window.location.search);
-          const hasJustPaid = params.get('success') === '1';
-          
-          if (!hasJustPaid) {
+        // Fallback if refreshAccount is not available - use API to check
+        modalTimeoutRef.current = setTimeout(async () => {
+          try {
+            const accountToCheck = selectedAccountId || account?.id;
+            const response = await fetch(`/api/accounts/payment-status?accountId=${accountToCheck}`);
+
+            if (response.ok) {
+              const data = await response.json();
+              if (data.requiresPayment) {
+                setIsPendingPricingModal(false);
+                setShowPricingModal(true);
+                setPlanSelectionRequired(true);
+              } else {
+                setIsPendingPricingModal(false);
+              }
+            } else {
+              // Fallback - show modal
+              setIsPendingPricingModal(false);
+              setShowPricingModal(true);
+              setPlanSelectionRequired(true);
+            }
+          } catch (error) {
+            console.error('Error checking payment status in fallback:', error);
+            // Show modal anyway
             setIsPendingPricingModal(false);
             setShowPricingModal(true);
             setPlanSelectionRequired(true);
-          } else {
-            setIsPendingPricingModal(false);
           }
         }, 3000); // Wait 3 seconds for page to fully load
       }

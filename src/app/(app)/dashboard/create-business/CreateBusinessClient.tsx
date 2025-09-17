@@ -44,15 +44,13 @@ export default function CreateBusinessClient() {
 
   // Redirect to dashboard after business creation
   const redirectToDashboard = useCallback(() => {
-    // Use centralized redirect with business creation query param and account ID
+    // Simple redirect - account switching is handled by SimpleBusinessForm via localStorage
     if (typeof window !== 'undefined') {
-      // Include the account ID to ensure dashboard checks the right account
-      const url = accountId ? `/dashboard?businessCreated=1&accountId=${accountId}` : "/dashboard?businessCreated=1";
-      window.location.replace(url);
+      window.location.replace("/dashboard?businessCreated=1");
     } else {
       centralizedRedirectToDashboard('Business creation completed');
     }
-  }, [centralizedRedirectToDashboard, accountId]);
+  }, [centralizedRedirectToDashboard]);
 
   // Handler for closing the welcome popup
   const handleWelcomeClose = () => {
