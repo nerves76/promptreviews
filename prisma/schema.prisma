@@ -440,6 +440,7 @@ model accounts {
   email_review_notifications   Boolean?                  @default(true)
   gbp_insights_enabled         Boolean?                  @default(true)
   is_additional_account        Boolean?                  @default(false)
+  business_creation_complete   Boolean?                  @default(false)
   account_events               account_events[]
   account_invitations          account_invitations[]
   account_users                account_users[]
