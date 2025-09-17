@@ -605,23 +605,38 @@ const Dashboard = React.memo(function Dashboard() {
         window.history.replaceState({}, document.title, newUrl);
         return;
       }
-      
+
+      // Get the account ID that created the business
+      const businessAccountId = params.get("accountId");
+
       // Clear any previous modal dismissal from sessionStorage since user just created business
       if (typeof window !== "undefined") {
         sessionStorage.removeItem('pricingModalDismissed');
         // Set a flag to prevent multiple triggers
         sessionStorage.setItem('businessCreatedHandled', 'true');
       }
-      
+
       // Set pending state immediately to maintain loading state
       setIsPendingPricingModal(true);
-      
+
+      // If a specific account created the business, we need to check THAT account's plan
+      if (businessAccountId && businessAccountId !== selectedAccountId) {
+        console.log('🔄 Business created with different account, switching to check plan:', businessAccountId);
+        // Switch to the account that created the business first
+        if (typeof window !== 'undefined') {
+          localStorage.setItem(`promptreviews_selected_account_${user?.id}`, businessAccountId);
+          // Force a reload to ensure we check the correct account
+          window.location.reload();
+          return;
+        }
+      }
+
       // Force reload of account data to pick up the newly created account
       if (refreshAccount) {
         console.log('🔄 Refreshing account data after business creation');
         // Wait for refresh to complete before showing modal
         refreshAccount().then(() => {
-          console.log('✅ Account data refreshed, now showing pricing modal');
+          console.log('✅ Account data refreshed, now showing pricing modal for account:', selectedAccountId || account?.id);
           // Double-check that user still needs to select a plan
           // (in case they completed Stripe checkout in the meantime)
           const params = new URLSearchParams(window.location.search);

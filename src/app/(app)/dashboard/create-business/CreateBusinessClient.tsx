@@ -44,13 +44,15 @@ export default function CreateBusinessClient() {
 
   // Redirect to dashboard after business creation
   const redirectToDashboard = useCallback(() => {
-    // Use centralized redirect with business creation query param
+    // Use centralized redirect with business creation query param and account ID
     if (typeof window !== 'undefined') {
-      window.location.replace("/dashboard?businessCreated=1");
+      // Include the account ID to ensure dashboard checks the right account
+      const url = accountId ? `/dashboard?businessCreated=1&accountId=${accountId}` : "/dashboard?businessCreated=1";
+      window.location.replace(url);
     } else {
       centralizedRedirectToDashboard('Business creation completed');
     }
-  }, [centralizedRedirectToDashboard]);
+  }, [centralizedRedirectToDashboard, accountId]);
 
   // Handler for closing the welcome popup
   const handleWelcomeClose = () => {
