@@ -442,15 +442,16 @@ export default function UniversalEditPromptPage() {
     </button>
   );
 
-  const actionButtons = useStandardizedForm ? null : (
+  const actionButtons = !useStandardizedForm ? (
     <div className="flex gap-3">
       {saveButton}
     </div>
-  );
+  ) : null;
 
   return (
-    <div>
-      {useStandardizedForm ? null : (
+    <>
+      {!useStandardizedForm && (
+        <>
         <PageCard
           icon={<Icon name="FaHome" className="w-9 h-9 text-slate-blue" size={36} />}
           topRightAction={actionButtons}
@@ -504,9 +505,10 @@ export default function UniversalEditPromptPage() {
             {isSaving ? "Saving..." : "Save & publish"}
           </button>
         </div>
+        </>
       )}
 
-      {useStandardizedForm ? (
+      {useStandardizedForm && (
         <div className="w-full bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600 pb-16 md:pb-24 lg:pb-32">
           <div className="flex flex-col mt-0 md:mt-[3px] mb-4 px-6 pt-8">
             <h1 className="text-4xl font-bold text-white mt-0 mb-2">
@@ -517,11 +519,11 @@ export default function UniversalEditPromptPage() {
             </p>
           </div>
         </div>
-      ) : null}
+      )}
 
       
       {/* Standardized Form - rendered outside PageCard */}
-      {useStandardizedForm && !isLoading && !error && initialData ? (
+      {useStandardizedForm && !isLoading && !error && initialData && (
         <PromptPageForm
           mode="edit"
           initialData={{
@@ -541,21 +543,21 @@ export default function UniversalEditPromptPage() {
             window.location.href = "/prompt-pages";
           }}
         />
-      ) : null}
+      )}
       
       {/* Loading and Error States for Standardized Form */}
-      {useStandardizedForm && isLoading ? (
+      {useStandardizedForm && isLoading && (
         <div className="flex items-center justify-center py-8">
           <div className="text-lg text-gray-600">Loading...</div>
         </div>
-      ) : null}
+      )}
       
-      {useStandardizedForm && error ? (
+      {useStandardizedForm && error && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-4 m-6">
           <div className="text-red-800 font-medium">Error</div>
           <div className="text-red-600">{error}</div>
         </div>
-      ) : null}
-    </div>
+      )}
+    </>
   );
 }
