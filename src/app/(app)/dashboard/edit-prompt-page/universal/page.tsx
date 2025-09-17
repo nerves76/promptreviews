@@ -446,7 +446,7 @@ export default function UniversalEditPromptPage() {
     <div className="flex gap-3">
       {saveButton}
     </div>
-  ) : null;
+  );
 
   return (
     <div>
