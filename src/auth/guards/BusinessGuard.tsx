@@ -36,14 +36,15 @@ interface BusinessGuardProps {
 function BusinessGuard({ children }: BusinessGuardProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const { 
-    isAuthenticated, 
-    hasBusiness, 
-    isLoading, 
+  const {
+    isAuthenticated,
+    hasBusiness,
+    isLoading,
     businessLoading,
     accountLoading,
     account,
-    user
+    user,
+    refreshAccount
   } = useAuth();
 
   useEffect(() => {
@@ -183,27 +184,53 @@ function BusinessGuard({ children }: BusinessGuardProps) {
       return;
     }
 
+    // Check for debug bypass
+    const urlParams = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
+    const debugBypass = urlParams?.get("debug") === "bypass";
+    const forceRefresh = urlParams?.get("refresh") === "true";
+
+    // Force refresh if requested
+    if (forceRefresh && refreshAccount && !accountLoading) {
+      console.log('[BusinessGuard] Force refreshing account data...');
+      refreshAccount();
+      // Remove the refresh param
+      if (typeof window !== 'undefined') {
+        const url = new URL(window.location.href);
+        url.searchParams.delete('refresh');
+        window.history.replaceState({}, '', url.toString());
+      }
+      return;
+    }
+
     // SIMPLIFIED: Only check business_creation_complete flag
     // This is the single source of truth for whether business setup is done
     if (pathname !== '/dashboard/create-business' && account) {
-      const businessCreationComplete = account.business_creation_complete === true;
+      // LOG THE RAW VALUE TO SEE WHAT'S ACTUALLY THERE
+      console.log('[BusinessGuard] RAW account.business_creation_complete value:', {
+        accountId: account.id,
+        raw_value: account.business_creation_complete,
+        type: typeof account.business_creation_complete,
+        stringified: JSON.stringify(account.business_creation_complete),
+        full_account: JSON.stringify(account)
+      });
+
+      const businessCreationComplete = account.business_creation_complete === true || debugBypass;
 
       // Add detailed logging in development
-      if (process.env.NODE_ENV === 'development') {
-        console.log('[BusinessGuard] Navigation check:', {
-          accountId: account.id,
-          businessCreationComplete,
-          pathname,
-          shouldRedirect: !businessCreationComplete
-        });
-      }
+      console.log('[BusinessGuard] Navigation check:', {
+        accountId: account.id,
+        businessCreationComplete,
+        pathname,
+        shouldRedirect: !businessCreationComplete
+      });
 
       // ONLY redirect if business_creation_complete is false
       if (!businessCreationComplete) {
         console.log('[BusinessGuard] Redirecting to create-business:', {
-          reason: 'business_creation_complete is false',
+          reason: 'business_creation_complete is not true',
           accountId: account.id,
-          businessCreationComplete: account.business_creation_complete
+          raw_business_creation_complete: account.business_creation_complete,
+          evaluated_as: businessCreationComplete
         });
 
         // Add a delay to allow state to stabilize
@@ -217,6 +244,11 @@ function BusinessGuard({ children }: BusinessGuardProps) {
 
         // Clean up timeout if component unmounts or deps change
         return () => clearTimeout(timeoutId);
+      } else {
+        console.log('[BusinessGuard] NOT redirecting - business_creation_complete is true:', {
+          accountId: account.id,
+          businessCreationComplete
+        });
       }
       // If business_creation_complete is true, let them through
       // The dashboard will handle showing pricing modal if needed
