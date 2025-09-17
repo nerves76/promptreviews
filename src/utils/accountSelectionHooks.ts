@@ -139,20 +139,26 @@ export function useAccountSelection() {
           is_primary: acc.account_id === primaryAccountId
         }));
         
-        // Get stored selection or use primary account
+        // ALWAYS prefer stored selection if it exists and is valid
         let selectedAccountId = getStoredAccountSelection(user.id);
-        
+
         // Validate stored selection exists in available accounts
         if (selectedAccountId && !accounts.find(acc => acc.account_id === selectedAccountId)) {
+          console.log('[AccountSelection] Stored account not found in available accounts, clearing:', selectedAccountId);
           selectedAccountId = null;
           clearStoredAccountSelection(user.id);
         }
-        
-        // If no valid stored selection, use primary account
-        if (!selectedAccountId && primaryAccountId) {
+
+        // Only use primary account if no stored selection
+        if (!selectedAccountId) {
           selectedAccountId = primaryAccountId;
           // Store the primary selection so it persists
-          setStoredAccountSelection(user.id, primaryAccountId);
+          if (primaryAccountId) {
+            console.log('[AccountSelection] No stored selection, using primary account:', primaryAccountId);
+            setStoredAccountSelection(user.id, primaryAccountId);
+          }
+        } else {
+          console.log('[AccountSelection] Using stored account selection:', selectedAccountId);
         }
 
         setState({
