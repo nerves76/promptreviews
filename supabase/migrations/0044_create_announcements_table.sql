@@ -23,10 +23,12 @@ CREATE TABLE IF NOT EXISTS quotes (
 ALTER TABLE announcements ENABLE ROW LEVEL SECURITY;
 ALTER TABLE quotes ENABLE ROW LEVEL SECURITY;
 
--- Create RLS policies for announcements
+-- Create RLS policies for announcements (if not exists)
+DROP POLICY IF EXISTS "Allow public read access to active announcements" ON announcements;
 CREATE POLICY "Allow public read access to active announcements" ON announcements
   FOR SELECT USING (is_active = true);
 
+DROP POLICY IF EXISTS "Allow admin management of announcements" ON announcements;
 CREATE POLICY "Allow admin management of announcements" ON announcements
   FOR ALL USING (
     EXISTS (
@@ -37,9 +39,11 @@ CREATE POLICY "Allow admin management of announcements" ON announcements
   );
 
 -- Create RLS policies for quotes
+DROP POLICY IF EXISTS "Allow public read access to active quotes" ON quotes;
 CREATE POLICY "Allow public read access to active quotes" ON quotes
   FOR SELECT USING (is_active = true);
 
+DROP POLICY IF EXISTS "Allow admin management of quotes" ON quotes;
 CREATE POLICY "Allow admin management of quotes" ON quotes
   FOR ALL USING (
     EXISTS (
