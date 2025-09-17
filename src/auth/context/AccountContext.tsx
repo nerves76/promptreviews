@@ -270,7 +270,7 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
       // Update selected account
       setAccountId(newAccountId);
       setSelectedAccountId(newAccountId);
-      
+
       // Store in localStorage for persistence
       if (typeof window !== 'undefined') {
         localStorage.setItem(`promptreviews_selected_account_${user.id}`, newAccountId);
@@ -278,9 +278,10 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
 
       // Clear cache to force reload
       clearAccountCache();
-      
-      // Reload account data
-      await loadAccount();
+
+      // Reload account data - IMPORTANT: Pass the new account ID directly
+      // Don't rely on state update as it's asynchronous
+      await loadAccount(newAccountId);
     } catch (error) {
       console.error('Failed to switch account:', error);
       throw error;

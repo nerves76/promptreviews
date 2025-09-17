@@ -189,10 +189,27 @@ function BusinessGuard({ children }: BusinessGuardProps) {
       const businessCreationComplete = account.business_creation_complete || false;
       const isFreeAccount = account.is_free_account || plan === 'free';
 
+      // Add detailed logging in development
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[BusinessGuard] Navigation check:', {
+          accountId: account.id,
+          plan,
+          businessCreationComplete,
+          isFreeAccount,
+          pathname,
+          shouldRedirect: !businessCreationComplete && (!plan || plan === 'no_plan') && !isFreeAccount
+        });
+      }
+
       // Navigation logic based on business_creation_complete flag
       if (!businessCreationComplete && (!plan || plan === 'no_plan') && !isFreeAccount) {
         // Business not created yet and not a free account - redirect to create business
-        console.log('[BusinessGuard] Redirecting to create-business: business_creation_complete=false');
+        console.log('[BusinessGuard] Redirecting to create-business:', {
+          reason: 'business_creation_complete=false',
+          accountId: account.id,
+          plan,
+          businessCreationComplete
+        });
 
         // Add a delay to allow state to stabilize
         const timeoutId = setTimeout(() => {
@@ -205,6 +222,13 @@ function BusinessGuard({ children }: BusinessGuardProps) {
 
         // Clean up timeout if component unmounts or deps change
         return () => clearTimeout(timeoutId);
+      } else if (businessCreationComplete && plan === 'no_plan' && !isFreeAccount) {
+        // Log that this account should show pricing modal
+        console.log('[BusinessGuard] Account should show pricing modal:', {
+          accountId: account.id,
+          plan,
+          businessCreationComplete
+        });
       }
       // If business_creation_complete is true and plan is no_plan,
       // let them go to dashboard where pricing modal will show
