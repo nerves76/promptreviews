@@ -184,8 +184,7 @@ function BusinessGuard({ children }: BusinessGuardProps) {
       return;
     }
 
-    // Check for debug bypass
-    const urlParams = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
+    // Check for debug bypass (urlParams already declared above)
     const debugBypass = urlParams?.get("debug") === "bypass";
     const forceRefresh = urlParams?.get("refresh") === "true";
 
