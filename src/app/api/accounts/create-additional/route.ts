@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/auth/providers/supabase";
-import { createServiceClient } from "@/auth/utils/supabase";
+import { createClient, createServiceRoleClient } from "@/auth/providers/supabase";
 
 export async function POST(req: NextRequest) {
   try {
@@ -20,8 +19,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Email is required" }, { status: 400 });
     }
 
-    // Use service client to bypass RLS for account creation
-    const serviceClient = createServiceClient();
+    // Use service role client to bypass RLS for account creation
+    const serviceClient = createServiceRoleClient();
 
     // Create the new account
     const { data: newAccount, error: accountError } = await serviceClient
