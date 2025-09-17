@@ -13,6 +13,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { QRCodeSVG } from "qrcode.react";
 import Icon from "@/components/Icon";
 import DashboardContent from "./DashboardContent";
+import { evaluatePricingRequirement } from "@/utils/pricing";
 import PricingModal, { tiers } from "../components/PricingModal";
 import FiveStarSpinner from "../components/FiveStarSpinner";
 import PageCard from "../components/PageCard";
@@ -385,77 +386,73 @@ const Dashboard = React.memo(function Dashboard() {
     }
   }, []);
 
-  // Check payment requirement using centralized API
+  // Check payment requirement using local helper
   useEffect(() => {
-    if (authLoading || accountLoading || businessesLoading || !account || !businessData) return;
+    if (authLoading || accountLoading || businessesLoading || !account) return;
 
-    const checkPaymentStatus = async () => {
-      try {
-        // Use the centralized API to check if payment is required
-        const response = await fetch(`/api/accounts/payment-status?accountId=${selectedAccountId || account.id}`);
+    const deletedRaw = account.deleted_at;
+    const deletedNormalized = typeof deletedRaw === 'string' ? deletedRaw.trim() : deletedRaw;
 
-        if (!response.ok) {
-          console.error('Failed to check payment status:', response.status);
-          return;
-        }
+    const decision = evaluatePricingRequirement({
+      plan: account.plan ?? null,
+      businessCreationComplete: account.business_creation_complete,
+      isDeleted: Boolean(deletedNormalized),
+      trialEnd: account.trial_end,
+      subscriptionStatus: account.subscription_status,
+      isFreeAccount: account.is_free_account,
+      hasHadPaidPlan: account.has_had_paid_plan,
+    });
 
-        const data = await response.json();
+    setPlanSelectionRequired(decision.requiresPayment);
 
-        if (process.env.NODE_ENV === 'development' && data.debug) {
-          console.log('[Dashboard] Payment status check:', data.debug);
-        }
+    if (process.env.NODE_ENV === 'development') {
+      console.debug('[Dashboard] Pricing decision:', {
+        ...decision,
+        accountId: account.id,
+      });
+    }
 
-        setPlanSelectionRequired(data.requiresPayment);
-
-        // Log the reason for debugging
-        if (data.requiresPayment) {
-          console.log('[Dashboard] Payment required:', data.reason);
-        }
-      } catch (error) {
-        console.error('Error checking payment status:', error);
-        // Fall back to not requiring payment on error to avoid blocking users
-        setPlanSelectionRequired(false);
-      }
-    };
-
-    checkPaymentStatus();
-    
-    // Check if we just came back from Stripe success or have success modal showing
-    const urlParams = typeof window !== "undefined" ? 
+    const urlParams = typeof window !== "undefined" ?
       new URLSearchParams(window.location.search) : null;
     const hasSuccessParam = urlParams?.get('success') === '1';
-    const hasPlanSuccessModal = typeof window !== "undefined" ? 
+    const hasPlanSuccessModal = typeof window !== "undefined" ?
       sessionStorage.getItem('showPlanSuccessModal') === 'true' : false;
-    
-    // Check if account was updated recently (within 15 seconds)
-    const accountRecentlyUpdated = lastAccountUpdate && 
-      (new Date().getTime() - lastAccountUpdate.getTime()) < 15000;
-    
-    // Show pricing modal when plan selection is required (but not during initial load)
-    // Only show if user hasn't dismissed it and it's not already showing
-    // AND we haven't just completed a payment or showing success modal
-    // AND account wasn't recently updated
-    if (planSelectionRequired && !showPricingModal && !isDashboardLoading &&
-        !justCompletedPayment && !hasSuccessParam && !hasPlanSuccessModal &&
-        !accountRecentlyUpdated) {
-      // For users with no_plan, ALWAYS show the modal regardless of dismissal
-      const hasInvalidPlan = (!account?.plan || account.plan === 'no_plan' || account.plan === 'NULL');
 
-      if (account?.business_creation_complete && hasInvalidPlan) {
-        // Force show for no_plan users who completed business creation
-        setShowPricingModal(true);
-      } else {
-        // For other cases, check if user hasn't recently dismissed the modal
-        const modalDismissed = typeof window !== "undefined" ?
-          sessionStorage.getItem('pricingModalDismissed') === 'true' : false;
+    const accountRecentlyUpdated = lastAccountUpdate &&
+      (Date.now() - lastAccountUpdate.getTime()) < 15000;
+    const approvalWindowClear = !justCompletedPayment && !hasSuccessParam && !hasPlanSuccessModal && !accountRecentlyUpdated;
 
-        if (!modalDismissed) {
-          setShowPricingModal(true);
+    if (decision.requiresPayment && approvalWindowClear) {
+      let modalDismissed = false;
+      if (typeof window !== 'undefined') {
+        const lastAccountKey = sessionStorage.getItem('pricingModalAccountId');
+        if (lastAccountKey !== account.id) {
+          sessionStorage.removeItem('pricingModalDismissed');
+          sessionStorage.setItem('pricingModalAccountId', account.id);
         }
+        modalDismissed = sessionStorage.getItem('pricingModalDismissed') === 'true';
+      }
+
+      if (!modalDismissed) {
+        setShowPricingModal(true);
+      }
+    } else if (!decision.requiresPayment && showPricingModal) {
+      setShowPricingModal(false);
+      setJustCompletedPayment(false);
+      if (typeof window !== "undefined") {
+        sessionStorage.removeItem('pricingModalDismissed');
+        sessionStorage.removeItem('showPlanSuccessModal');
       }
     }
-    
-  }, [authLoading, accountLoading, businessesLoading, isDashboardLoading, account, businessData, justCompletedPayment, dashboardData]);
+  }, [
+    authLoading,
+    accountLoading,
+    businessesLoading,
+    account,
+    justCompletedPayment,
+    lastAccountUpdate,
+    showPricingModal,
+  ]);
 
   // Close modal automatically whenever payment is not required
   useEffect(() => {
