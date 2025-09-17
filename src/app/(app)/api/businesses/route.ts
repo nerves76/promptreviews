@@ -215,6 +215,7 @@ export async function POST(request: NextRequest) {
             custom_prompt_page_count: 0,
             contact_count: 0,
             review_notifications_enabled: true,
+            business_creation_complete: true, // Mark as complete since we're creating business
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
           })
@@ -507,9 +508,12 @@ export async function POST(request: NextRequest) {
     }
 
 
-    // 🔧 CRITICAL FIX: Update accounts.business_name and promotion_code for metadata templates
-    const accountUpdates: any = { business_name: name };
-    
+    // 🔧 CRITICAL FIX: Update accounts.business_name, promotion_code, and business_creation_complete flag
+    const accountUpdates: any = {
+      business_name: name,
+      business_creation_complete: true  // Mark that business creation is complete
+    };
+
     // Add promotion code if provided
     if (businessData.promotion_code) {
       accountUpdates.promotion_code = businessData.promotion_code;

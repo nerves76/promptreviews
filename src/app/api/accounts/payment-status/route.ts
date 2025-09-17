@@ -53,14 +53,8 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Account not found" }, { status: 404 });
     }
 
-    // Check if account has any businesses
-    const { data: businesses, error: bizError } = await supabase
-      .from('businesses')
-      .select('id')
-      .eq('account_id', accountId)
-      .limit(1);
-
-    const hasBusiness = !bizError && businesses && businesses.length > 0;
+    // Check business creation status from the account
+    const businessCreationComplete = account.business_creation_complete || false;
 
     // Determine if payment is required
     let requiresPayment = false;
@@ -78,10 +72,10 @@ export async function GET(req: NextRequest) {
       // Free accounts never require payment
       requiresPayment = false;
       reason = "Free account";
-    } else if (!hasBusiness) {
-      // No business yet, don't require payment
+    } else if (!businessCreationComplete) {
+      // Business creation not complete, don't require payment yet
       requiresPayment = false;
-      reason = "No business created";
+      reason = "Business creation not complete";
     } else if (subscriptionStatus === 'active') {
       // Active subscription never requires payment
       requiresPayment = false;
@@ -105,9 +99,9 @@ export async function GET(req: NextRequest) {
       requiresPayment = subscriptionStatus !== 'active';
       reason = requiresPayment ? "Paid plan requires active subscription" : "Subscription active";
     } else if (!plan || plan === 'no_plan' || plan === 'NULL') {
-      // No plan selected but business exists -> require plan selection
-      requiresPayment = hasBusiness;
-      reason = hasBusiness ? "Business exists but no plan selected" : "No business";
+      // No plan selected but business creation complete -> require plan selection
+      requiresPayment = businessCreationComplete;
+      reason = businessCreationComplete ? "Business creation complete but no plan selected" : "Business creation not complete";
     }
 
     // Additional info for debugging
@@ -115,7 +109,7 @@ export async function GET(req: NextRequest) {
       accountId,
       plan,
       isFreeAccount,
-      hasBusiness,
+      businessCreationComplete,
       hasStripeCustomer,
       subscriptionStatus,
       trialEnd: trialEnd?.toISOString(),

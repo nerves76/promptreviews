@@ -183,57 +183,31 @@ function BusinessGuard({ children }: BusinessGuardProps) {
       return;
     }
 
-    // Business creation redirect should ONLY happen for:
-    // 1. Account owners (not team members)
-    // 2. Who don't have a business yet
-    // 3. On their first login (detected by checking if account was created recently)
-    
-    // Team members and support users should NEVER be redirected to create-business
-    // They should use the dashboard normally even without a business
-    
-    if (!hasBusiness && pathname !== '/dashboard/create-business' && account) {
-      // Calculate account age once to use for multiple checks
-      const accountAge = account.created_at ? Date.now() - new Date(account.created_at).getTime() : Infinity;
-      const isVeryNewAccount = accountAge < 5 * 60 * 1000; // Less than 5 minutes old
-      const isNewAccount = accountAge < 24 * 60 * 60 * 1000; // Less than 24 hours old
-      
-      // If it's a very new account, assume they're the owner
-      const isAccountOwner = isVeryNewAccount ? true : true; // For now, allow all users to be redirected if they have no business
-      
-      // Check if this account has NEVER had a business
-      // We check localStorage for the business creation flag
-      const hasCreatedBusiness = typeof window !== 'undefined' && user?.id ? 
-        localStorage.getItem(`promptreviews_has_created_business_${user.id}_${account.id}`) === 'true' : false;
-      const hasNeverHadBusiness = !hasCreatedBusiness;
-      
-      // Also check if account has a paid plan - paid accounts should have businesses
-      const hasPaidPlan = account.plan && account.plan !== 'free' && account.plan !== 'no_plan';
-      
-      
-      // Only redirect if:
-      // 1. User is the account owner (not a team member)
-      // 2. Account has never had a business (no localStorage flag)
-      // 3. Account doesn't have a paid plan (paid plans shouldn't need redirect)
-      // 4. Account is less than 24 hours old (grace period for existing accounts)
-      
-      if (isAccountOwner && hasNeverHadBusiness && !hasPaidPlan && isNewAccount) {
-        
+    // Use the business_creation_complete flag for navigation decisions
+    if (pathname !== '/dashboard/create-business' && account) {
+      const plan = account.plan;
+      const businessCreationComplete = account.business_creation_complete || false;
+      const isFreeAccount = account.is_free_account || plan === 'free';
+
+      // Navigation logic based on business_creation_complete flag
+      if (!businessCreationComplete && (!plan || plan === 'no_plan') && !isFreeAccount) {
+        // Business not created yet and not a free account - redirect to create business
+        console.log('[BusinessGuard] Redirecting to create-business: business_creation_complete=false');
+
         // Add a delay to allow state to stabilize
         const timeoutId = setTimeout(() => {
           // Re-check states after delay
-          if (isAuthenticated && !hasBusiness && !isLoading && !businessLoading && !accountLoading && 
-              pathname !== '/dashboard/create-business' && isAccountOwner && hasNeverHadBusiness && !hasPaidPlan && isNewAccount) {
+          if (isAuthenticated && !isLoading && !businessLoading && !accountLoading &&
+              pathname !== '/dashboard/create-business') {
             router.push("/dashboard/create-business");
           }
         }, 2000); // 2 seconds to allow state to stabilize
-        
+
         // Clean up timeout if component unmounts or deps change
         return () => clearTimeout(timeoutId);
-      } else if (!isAccountOwner) {
-      } else if (hasPaidPlan) {
-      } else if (hasCreatedBusiness) {
-      } else if (!isNewAccount) {
       }
+      // If business_creation_complete is true and plan is no_plan,
+      // let them go to dashboard where pricing modal will show
     }
 
   }, [isAuthenticated, hasBusiness, isLoading, businessLoading, accountLoading, pathname, router, account, user]);
