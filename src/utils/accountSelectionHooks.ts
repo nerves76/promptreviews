@@ -143,21 +143,28 @@ export function useAccountSelection() {
         let selectedAccountId = getStoredAccountSelection(user.id);
 
         // Validate stored selection exists in available accounts
-        if (selectedAccountId && !accounts.find(acc => acc.account_id === selectedAccountId)) {
+        if (selectedAccountId && accounts.length > 0 && !accounts.find(acc => acc.account_id === selectedAccountId)) {
+          // Only clear if we actually have accounts loaded and the stored one isn't among them
           console.log('[AccountSelection] Stored account not found in available accounts, clearing:', selectedAccountId);
           selectedAccountId = null;
           clearStoredAccountSelection(user.id);
         }
 
+        // If we have a stored selection but no accounts loaded yet, keep it
+        // This prevents clearing during initial load
+        if (selectedAccountId && accounts.length === 0) {
+          console.log('[AccountSelection] Keeping stored selection (accounts still loading):', selectedAccountId);
+        }
+
         // Only use primary account if no stored selection
-        if (!selectedAccountId) {
+        if (!selectedAccountId && accounts.length > 0) {
           selectedAccountId = primaryAccountId;
           // Store the primary selection so it persists
           if (primaryAccountId) {
             console.log('[AccountSelection] No stored selection, using primary account:', primaryAccountId);
             setStoredAccountSelection(user.id, primaryAccountId);
           }
-        } else {
+        } else if (selectedAccountId) {
           console.log('[AccountSelection] Using stored account selection:', selectedAccountId);
         }
 
