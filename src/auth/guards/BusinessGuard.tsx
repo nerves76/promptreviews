@@ -204,6 +204,9 @@ function BusinessGuard({ children }: BusinessGuardProps) {
     // SIMPLIFIED: Only check business_creation_complete flag
     // This is the single source of truth for whether business setup is done
     if (pathname !== '/dashboard/create-business' && account) {
+      if (account.is_additional_account) {
+        return;
+      }
       // LOG THE RAW VALUE TO SEE WHAT'S ACTUALLY THERE
       console.log('[BusinessGuard] RAW account.business_creation_complete value:', {
         accountId: account.id,
