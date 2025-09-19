@@ -228,24 +228,11 @@ function BusinessGuard({ children }: BusinessGuardProps) {
 
       // ONLY redirect if business_creation_complete is false
       if (!businessCreationComplete) {
-        console.log('[BusinessGuard] Redirecting to create-business:', {
-          reason: 'business_creation_complete is not true',
+        console.log('[BusinessGuard] business_creation_complete not yet true, skipping redirect to avoid reload loop:', {
           accountId: account.id,
           raw_business_creation_complete: account.business_creation_complete,
-          evaluated_as: businessCreationComplete
         });
-
-        // Add a delay to allow state to stabilize
-        const timeoutId = setTimeout(() => {
-          // Re-check states after delay
-          if (isAuthenticated && !isLoading && !businessLoading && !accountLoading &&
-              pathname !== '/dashboard/create-business') {
-            router.push("/dashboard/create-business");
-          }
-        }, 2000); // 2 seconds to allow state to stabilize
-
-        // Clean up timeout if component unmounts or deps change
-        return () => clearTimeout(timeoutId);
+        return;
       } else {
         console.log('[BusinessGuard] NOT redirecting - business_creation_complete is true:', {
           accountId: account.id,
