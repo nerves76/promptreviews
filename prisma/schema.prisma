@@ -321,7 +321,7 @@ model users {
   sessions                      sessions[]
   account_invitations           account_invitations[]
   account_users                 account_users[]
-  accounts                      accounts?
+  accounts                      accounts[]
   admins                        admins?
   ai_usage                      ai_usage[]
   announcements                 announcements[]
@@ -336,7 +336,6 @@ model users {
   google_business_locations     google_business_locations[]
   google_business_media_uploads google_business_media_uploads[]
   google_business_profiles      google_business_profiles?
-  prompt_pages                  prompt_pages[]
   quotes                        quotes[]
   review_reminder_logs          review_reminder_logs[]
   review_reminder_settings      review_reminder_settings?
@@ -401,7 +400,7 @@ model account_users {
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model accounts {
-  id                           String                    @id @db.Uuid
+  id                           String                    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   plan                         String                    @default("no_plan")
   trial_start                  DateTime?                 @db.Timestamptz(6)
   trial_end                    DateTime?                 @db.Timestamptz(6)
@@ -428,23 +427,26 @@ model accounts {
   is_admin                     Boolean?                  @default(false)
   free_plan_level              String?
   promotion_code               String?
-  max_contacts                 Int?                      @default(100)
-  max_prompt_pages             Int?                      @default(10)
+  max_contacts                 Int?                      @default(0)
+  max_prompt_pages             Int?                      @default(3)
   prompt_page_count            Int?                      @default(0)
   reactivated_at               DateTime?                 @db.Timestamptz(6)
   reactivation_count           Int?                      @default(0)
   last_cancellation_reason     String?
   onboarding_step              String?                   @default("incomplete")
+  business_creation_complete   Boolean?                  @default(false)
   billing_period               String?                   @default("monthly")
   max_gbp_locations            Int?                      @default(5)
   email_review_notifications   Boolean?                  @default(true)
   gbp_insights_enabled         Boolean?                  @default(true)
   is_additional_account        Boolean?                  @default(false)
-  business_creation_complete   Boolean?                  @default(false)
+  had_paid_plan                Boolean?                  @default(false)
+  created_by_user_id           String?                   @db.Uuid
+  created_by                   String?                   @db.Uuid
   account_events               account_events[]
   account_invitations          account_invitations[]
   account_users                account_users[]
-  users                        users                     @relation(fields: [id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users                        users?                    @relation(fields: [created_by], references: [id], onUpdate: NoAction)
   audit_logs                   audit_logs[]
   billing_audit_log            billing_audit_log[]
   business_locations           business_locations[]
@@ -454,12 +456,14 @@ model accounts {
   email_domain_policies        email_domain_policies[]
   follow_up_reminders          follow_up_reminders[]
   onboarding_tasks             onboarding_tasks[]
+  prompt_pages                 prompt_pages[]
   review_reminder_logs         review_reminder_logs[]
   selected_gbp_locations       selected_gbp_locations[]
   trial_reminder_logs          trial_reminder_logs[]
   widgets                      widgets[]
 
   @@index([created_at], map: "idx_accounts_created_at")
+  @@index([created_by], map: "idx_accounts_created_by")
   @@index([deleted_at], map: "idx_accounts_deleted_at")
   @@index([onboarding_step], map: "idx_accounts_onboarding_step")
   @@index([plan], map: "idx_accounts_plan")
@@ -723,8 +727,8 @@ model businesses {
   emoji_sentiment_question       String?              @default("How was your experience?")
   emoji_feedback_message         String?              @default("Please tell us more about your experience")
   emoji_thank_you_message        String?              @default("Thank you for your feedback!")
-  emoji_feedback_popup_header    String?              @default("How can we improve?")
-  emoji_feedback_page_header     String?              @default("Your feedback helps us grow")
+  emoji_feedback_popup_header    String?              @default("")
+  emoji_feedback_page_header     String?              @default("")
   falling_enabled                Boolean?             @default(true)
   falling_icon                   String?              @default("star")
   falling_icon_color             String?              @default("#FFD700")
@@ -747,6 +751,10 @@ model businesses {
   card_border_color              String?              @default("rgba(255, 255, 255, 0.2)")
   card_glassmorphism             Boolean?             @default(false)
   card_border_transparency       Decimal?             @default(1.00) @db.Decimal(3, 2)
+  card_placeholder_color         String?              @default("#9CA3AF")
+  referral_source                String?              @db.VarChar(50)
+  referral_source_other          String?
+  kickstarters_accent_color      String?
   accounts                       accounts             @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_businesses_account_id")
   review_submissions             review_submissions[]
 
@@ -814,53 +822,42 @@ model communication_templates {
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model contacts {
-  id                                                                   String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  account_id                                                           String                  @db.Uuid
-  first_name                                                           String
-  last_name                                                            String?
-  email                                                                String?
-  phone                                                                String?
-  category                                                             String?
-  notes                                                                String?
-  google_url                                                           String?
-  yelp_url                                                             String?
-  facebook_url                                                         String?
-  google_review                                                        String?
-  yelp_review                                                          String?
-  facebook_review                                                      String?
-  google_instructions                                                  String?
-  yelp_instructions                                                    String?
-  facebook_instructions                                                String?
-  review_rewards                                                       String?
-  status                                                               String?                 @default("draft")
-  created_at                                                           DateTime                @default(dbgenerated("timezone('utc'::text, now())")) @db.Timestamptz(6)
-  updated_at                                                           DateTime                @default(dbgenerated("timezone('utc'::text, now())")) @db.Timestamptz(6)
-  role                                                                 String?
-  address_line1                                                        String?
-  address_line2                                                        String?
-  city                                                                 String?
-  state                                                                String?
-  postal_code                                                          String?
-  country                                                              String?
-  business_name                                                        String?
-  review_submission_id                                                 String?                 @db.Uuid
-  review_verification_status                                           String?                 @default("unknown")
-  google_review_verified_at                                            DateTime?               @db.Timestamptz(6)
-  yelp_review_verified_at                                              DateTime?               @db.Timestamptz(6)
-  facebook_review_verified_at                                          DateTime?               @db.Timestamptz(6)
-  tripadvisor_review_verified_at                                       DateTime?               @db.Timestamptz(6)
-  potential_review_matches                                             Json?                   @default("[]")
-  manual_verification_notes                                            String?
-  source                                                               String?                 @default("manual")
-  last_review_check_at                                                 DateTime?               @db.Timestamptz(6)
-  imported_from_google                                                 Boolean?                @default(false)
-  google_reviewer_name                                                 String?
-  communication_records                                                communication_records[]
-  users                                                                users                   @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  review_submissions_contacts_review_submission_idToreview_submissions review_submissions?     @relation("contacts_review_submission_idToreview_submissions", fields: [review_submission_id], references: [id], onUpdate: NoAction)
-  follow_up_reminders                                                  follow_up_reminders[]
-  prompt_pages                                                         prompt_pages[]
-  review_submissions_review_submissions_contact_idTocontacts           review_submissions[]    @relation("review_submissions_contact_idTocontacts")
+  id                                                         String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  account_id                                                 String                  @db.Uuid
+  first_name                                                 String
+  last_name                                                  String?
+  email                                                      String?
+  phone                                                      String?
+  category                                                   String?
+  notes                                                      String?
+  google_url                                                 String?
+  yelp_url                                                   String?
+  facebook_url                                               String?
+  google_review                                              String?
+  yelp_review                                                String?
+  facebook_review                                            String?
+  google_instructions                                        String?
+  yelp_instructions                                          String?
+  facebook_instructions                                      String?
+  review_rewards                                             String?
+  status                                                     String?                 @default("draft")
+  created_at                                                 DateTime                @default(dbgenerated("timezone('utc'::text, now())")) @db.Timestamptz(6)
+  updated_at                                                 DateTime                @default(dbgenerated("timezone('utc'::text, now())")) @db.Timestamptz(6)
+  role                                                       String?
+  address_line1                                              String?
+  address_line2                                              String?
+  city                                                       String?
+  state                                                      String?
+  postal_code                                                String?
+  country                                                    String?
+  business_name                                              String?
+  imported_from_google                                       Boolean?                @default(false)
+  google_reviewer_name                                       String?
+  communication_records                                      communication_records[]
+  users                                                      users                   @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  follow_up_reminders                                        follow_up_reminders[]
+  prompt_pages                                               prompt_pages[]
+  review_submissions_review_submissions_contact_idTocontacts review_submissions[]    @relation("review_submissions_contact_idTocontacts")
 
   @@index([account_id])
   @@index([email])
@@ -874,17 +871,11 @@ model contacts {
   @@index([country], map: "idx_contacts_country")
   @@index([created_at], map: "idx_contacts_created_at")
   @@index([email], map: "idx_contacts_email")
-  @@index([facebook_review_verified_at], map: "idx_contacts_facebook_review_verified_at")
-  @@index([google_review_verified_at], map: "idx_contacts_google_review_verified_at")
   @@index([imported_from_google], map: "idx_contacts_imported_from_google")
   @@index([city, state, country], map: "idx_contacts_location")
   @@index([phone], map: "idx_contacts_phone")
   @@index([postal_code], map: "idx_contacts_postal_code")
-  @@index([review_submission_id], map: "idx_contacts_review_submission_id")
-  @@index([review_verification_status], map: "idx_contacts_review_verification_status")
-  @@index([source], map: "idx_contacts_source")
   @@index([state], map: "idx_contacts_state")
-  @@index([yelp_review_verified_at], map: "idx_contacts_yelp_review_verified_at")
   @@schema("public")
 }
 
@@ -1108,16 +1099,18 @@ model google_business_media_uploads {
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model google_business_profiles {
-  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  user_id       String    @unique @db.Uuid
-  access_token  String
-  refresh_token String?
-  expires_at    DateTime  @db.Timestamptz(6)
-  scopes        String?
-  created_at    DateTime? @default(now()) @db.Timestamptz(6)
-  updated_at    DateTime? @default(now()) @db.Timestamptz(6)
-  google_email  String?
-  users         users     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  id                    String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id               String    @unique @db.Uuid
+  access_token          String
+  refresh_token         String?
+  expires_at            DateTime  @db.Timestamptz(6)
+  scopes                String?
+  created_at            DateTime? @default(now()) @db.Timestamptz(6)
+  updated_at            DateTime? @default(now()) @db.Timestamptz(6)
+  google_email          String?
+  selected_account_id   String?
+  selected_account_name String?
+  users                 users     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@index([user_id], map: "idx_google_business_profiles_user_id")
   @@index([google_email], map: "idx_google_business_profiles_google_email")
@@ -1256,7 +1249,7 @@ model prompt_pages {
   product_name                                                             String?
   product_photo                                                            String?
   product_subcopy                                                          String?
-  show_friendly_note                                                       Boolean                   @default(false)
+  show_friendly_note                                                       Boolean                   @default(true)
   note_popup_enabled                                                       Boolean?                  @default(false)
   contact_id                                                               String?                   @db.Uuid
   business_location_id                                                     String?                   @db.Uuid
@@ -1313,10 +1306,11 @@ model prompt_pages {
   eve_review_guidance                                                      String?
   offer_timelock                                                           Boolean?                  @default(false)
   custom_kickstarters                                                      Json?
+  settings                                                                 Json?                     @default("{}")
   analytics_events                                                         analytics_events[]
   business_locations_business_locations_prompt_page_idToprompt_pages       business_locations[]      @relation("business_locations_prompt_page_idToprompt_pages")
   communication_records                                                    communication_records[]
-  users                                                                    users                     @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users                                                                    accounts                  @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   business_locations_prompt_pages_business_location_idTobusiness_locations business_locations?       @relation("prompt_pages_business_location_idTobusiness_locations", fields: [business_location_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   contacts                                                                 contacts?                 @relation(fields: [contact_id], references: [id], onUpdate: NoAction)
   review_submissions                                                       review_submissions[]
@@ -1372,7 +1366,7 @@ model quotes {
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model review_drafts {
-  id                 String    @id @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
+  id                 String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
   prompt_page_id     String?   @db.Uuid
   platform           String?
   review_text        String?
@@ -1428,38 +1422,37 @@ model review_reminder_settings {
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model review_submissions {
-  id                                                         String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  prompt_page_id                                             String?       @db.Uuid
-  platform                                                   String
-  submitted_at                                               DateTime?     @default(now()) @db.Timestamptz(6)
-  status                                                     String
-  user_agent                                                 String?
-  ip_address                                                 String?
-  created_at                                                 DateTime?     @default(now()) @db.Timestamptz(6)
-  reviewer_name                                              String?
-  reviewer_role                                              String?
-  review_content                                             String?
-  review_group_id                                            String?       @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  photo_url                                                  String?
-  emoji_sentiment_selection                                  String?       @db.VarChar(32)
-  first_name                                                 String?       @db.VarChar(100)
-  last_name                                                  String?       @db.VarChar(100)
-  email                                                      String?       @db.VarChar(255)
-  phone                                                      String?       @db.VarChar(50)
-  prompt_page_type                                           String?
-  review_type                                                String?
-  verified                                                   Boolean?      @default(false)
-  verified_at                                                DateTime?     @db.Timestamptz(6)
-  platform_url                                               String?
-  business_id                                                String?       @db.Uuid
-  google_review_id                                           String?
-  imported_from_google                                       Boolean?      @default(false)
-  star_rating                                                Int?
-  contact_id                                                 String?       @db.Uuid
-  contacts_contacts_review_submission_idToreview_submissions contacts[]    @relation("contacts_review_submission_idToreview_submissions")
-  businesses                                                 businesses?   @relation(fields: [business_id], references: [id], onUpdate: NoAction, map: "fk_review_submissions_business_id")
-  contacts_review_submissions_contact_idTocontacts           contacts?     @relation("review_submissions_contact_idTocontacts", fields: [contact_id], references: [id], onUpdate: NoAction, map: "fk_review_submissions_contact_id")
-  prompt_pages                                               prompt_pages? @relation(fields: [prompt_page_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  id                                               String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  prompt_page_id                                   String?       @db.Uuid
+  platform                                         String
+  submitted_at                                     DateTime?     @default(now()) @db.Timestamptz(6)
+  status                                           String
+  user_agent                                       String?
+  ip_address                                       String?
+  created_at                                       DateTime?     @default(now()) @db.Timestamptz(6)
+  reviewer_name                                    String?
+  reviewer_role                                    String?
+  review_content                                   String?
+  review_group_id                                  String?       @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  photo_url                                        String?
+  emoji_sentiment_selection                        String?       @db.VarChar(32)
+  first_name                                       String?       @db.VarChar(100)
+  last_name                                        String?       @db.VarChar(100)
+  email                                            String?       @db.VarChar(255)
+  phone                                            String?       @db.VarChar(50)
+  prompt_page_type                                 String?
+  review_type                                      String?
+  verified                                         Boolean?      @default(false)
+  verified_at                                      DateTime?     @db.Timestamptz(6)
+  platform_url                                     String?
+  business_id                                      String?       @db.Uuid
+  google_review_id                                 String?
+  imported_from_google                             Boolean?      @default(false)
+  star_rating                                      Int?
+  contact_id                                       String?       @db.Uuid
+  businesses                                       businesses?   @relation(fields: [business_id], references: [id], onUpdate: NoAction, map: "fk_review_submissions_business_id")
+  contacts_review_submissions_contact_idTocontacts contacts?     @relation("review_submissions_contact_idTocontacts", fields: [contact_id], references: [id], onUpdate: NoAction, map: "fk_review_submissions_contact_id")
+  prompt_pages                                     prompt_pages? @relation(fields: [prompt_page_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@index([business_id], map: "idx_review_submissions_business_id")
   @@index([contact_id], map: "idx_review_submissions_contact_id")
@@ -1512,7 +1505,6 @@ model widget_reviews {
   platform                  String?
   created_at                DateTime? @default(now()) @db.Timestamptz(6)
   updated_at                DateTime? @default(now()) @db.Timestamptz(6)
-  photo_url                 String?
   order_index               Int?
   emoji_sentiment_selection String?   @db.VarChar(32)
   email                     String?   @db.VarChar(255)
@@ -1528,6 +1520,7 @@ model widget_reviews {
   user_agent                String?
   ip_address                String?
   review_group_id           String?   @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  photo_url                 String?
   widgets                   widgets   @relation(fields: [widget_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@index([business_id], map: "idx_widget_reviews_business_id")
@@ -1549,16 +1542,16 @@ model widget_reviews {
 model widgets {
   id                     String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   account_id             String           @db.Uuid
-  name                   String
   type                   String
-  config                 Json?            @default("{}")
-  is_active              Boolean?         @default(true)
   created_at             DateTime?        @default(now()) @db.Timestamptz(6)
   updated_at             DateTime?        @default(now()) @db.Timestamptz(6)
   theme                  Json?            @default("{}")
   review_count           Int?             @default(5)
   widget_type            String?          @default("multi")
   submit_reviews_enabled Boolean          @default(true)
+  config                 Json?            @default("{}")
+  is_active              Boolean?         @default(true)
+  name                   String
   widget_reviews         widget_reviews[]
   accounts               accounts         @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 

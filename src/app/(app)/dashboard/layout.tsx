@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/auth";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import AppLoader from "@/app/(app)/components/AppLoader";
 import { useGlobalLoader } from "@/app/(app)/components/GlobalLoaderProvider";
 import { trackEvent, GA_EVENTS } from "@/utils/analytics";
@@ -27,14 +27,18 @@ export default function DashboardLayout({
     signOut 
   } = useAuth();
   
-  const [isClient, setIsClient] = useState(false);
-  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [hasMounted, setHasMounted] = useState(false);
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const loader = useGlobalLoader();
+
+  const businessCreatedFlag = searchParams?.get('businessCreated') ?? null;
+  const successFlag = searchParams?.get('success') ?? null;
 
   // Ensure we're on the client side before accessing browser APIs
   useEffect(() => {
-    setIsClient(true);
+    setHasMounted(true);
   }, []);
 
 
@@ -53,24 +57,28 @@ export default function DashboardLayout({
   // Handle redirect to sign-in in useEffect to avoid render-time side effects
   // This must be called before any conditional returns to follow React hooks rules
   useEffect(() => {
-    if (isInitialized && !user && isClient) {
+    if (isInitialized && !user && hasMounted) {
       if (process.env.NODE_ENV === 'development') {
       }
       router.push('/auth/sign-in');
     }
-  }, [isInitialized, user, isClient, router]);
+  }, [isInitialized, user, hasMounted, router]);
 
   // Check for users without accounts and redirect to create-business
   useEffect(() => {
     // Skip this check on the create-business page - ALWAYS skip for this page
-    const isOnCreateBusinessPage = window.location.pathname === '/dashboard/create-business';
+    if (!hasMounted) {
+      return;
+    }
+
+    const isOnCreateBusinessPage = pathname === '/dashboard/create-business';
     if (isOnCreateBusinessPage) {
       return; // Never redirect from create-business page
     }
-    
+
     // Skip this check if we just created a business
-    const justCreatedBusiness = window.location.search.includes('businessCreated=1');
-    
+    const justCreatedBusiness = businessCreatedFlag === '1';
+
     if (justCreatedBusiness) {
       return; // Skip the account check
     }
@@ -78,10 +86,10 @@ export default function DashboardLayout({
     // Wait before checking - give the account context time to load
     const checkTimeout = setTimeout(() => {
       // Only check after account loading is complete and user is authenticated
-      if (isInitialized && user && !accountLoading && isClient) {
+      if (isInitialized && user && !accountLoading && hasMounted) {
         // Check localStorage for stored selection (using correct key format)
         const storedSelection = localStorage.getItem(`promptreviews_selected_account_${user.id}`);
-        
+
         // If no account exists after loading is complete AND no account is selected
         // This prevents redirect loops when switching accounts
         if (!account && !accountLoading && !storedSelection) {
@@ -93,37 +101,34 @@ export default function DashboardLayout({
     }, 2000); // Wait 2 seconds before checking
     
     return () => clearTimeout(checkTimeout);
-  }, [isInitialized, user, account, accountLoading, isClient, router]);
+  }, [hasMounted, isInitialized, user, account, accountLoading, pathname, businessCreatedFlag, router]);
 
   // Check for accounts without plans and redirect to plan selection
   useEffect(() => {
-    if (isInitialized && account && isClient) {
+    if (!hasMounted) {
+      return;
+    }
+
+    if (isInitialized && account) {
       const hasNoPlan = !account.plan || account.plan === 'no_plan' || account.plan === 'NULL';
-      
-      // Allow access to /dashboard and /dashboard/plan for plan selection
-      const currentPath = window.location.pathname;
-      const isAllowedPath = currentPath === '/dashboard' || currentPath === '/dashboard/plan';
-      
+
+      const isAllowedPath =
+        pathname === '/dashboard' ||
+        pathname === '/dashboard/plan' ||
+        pathname.startsWith('/dashboard/create-business');
+
       if (hasNoPlan && !isAllowedPath) {
-        router.push('/dashboard');
+        router.push('/dashboard/create-business');
       }
     }
-  }, [isInitialized, account, isClient, router]);
+  }, [hasMounted, isInitialized, account, pathname, router]);
 
-  // Check if we're on plan page with success parameter (to avoid flash)
-  const [isPlanPageSuccess, setIsPlanPageSuccess] = useState(false);
-  
-  useEffect(() => {
-    // Only check on client side after mount
-    const isSuccess = window.location.pathname === '/dashboard/plan' && 
-      window.location.search.includes('success=1');
-    setIsPlanPageSuccess(isSuccess);
-  }, []);
+  const isOnCreateBusinessPage = pathname === '/dashboard/create-business';
+  const isPlanPageSuccess = useMemo(() => {
+    return pathname === '/dashboard/plan' && successFlag === '1';
+  }, [pathname, successFlag]);
 
   // Check if we're on create-business page
-  const isOnCreateBusinessPage = typeof window !== 'undefined' && 
-    window.location.pathname === '/dashboard/create-business';
-
   // Show loading while AuthContext initializes (but not on create-business page)
   useEffect(() => {
     const showOverlay = (!isInitialized && !isPlanPageSuccess && !isOnCreateBusinessPage) ||
@@ -134,7 +139,7 @@ export default function DashboardLayout({
   if (!isInitialized && !isPlanPageSuccess && !isOnCreateBusinessPage) return null;
 
   // Show nothing while redirecting
-  if (isInitialized && !user && isClient) {
+  if (isInitialized && !user && hasMounted) {
     return null;
   }
   

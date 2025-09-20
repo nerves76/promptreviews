@@ -15,6 +15,7 @@ import Icon from "@/components/Icon";
 import DashboardContent from "./DashboardContent";
 import { evaluatePricingRequirement } from "@/utils/pricing";
 import PricingModal, { tiers } from "../components/PricingModal";
+import { evaluateTrialEligibility } from "@/lib/billing/trialEligibility";
 import FiveStarSpinner from "../components/FiveStarSpinner";
 import PageCard from "../components/PageCard";
 import StandardLoader from "@/app/(app)/components/StandardLoader";
@@ -58,6 +59,11 @@ const Dashboard = React.memo(function Dashboard() {
     refreshSession,
     refreshAccount
   } = useAuth();
+
+  const trialEligibility = useMemo(
+    () => evaluateTrialEligibility(account),
+    [account?.plan, account?.has_had_paid_plan, account?.is_additional_account]
+  );
   
   // Remove auth guard - authentication is handled by dashboard layout
   // useAuthGuard(); // This was causing premature redirects
@@ -401,28 +407,29 @@ const Dashboard = React.memo(function Dashboard() {
       subscriptionStatus: account.subscription_status,
       isFreeAccount: account.is_free_account,
       hasHadPaidPlan: account.has_had_paid_plan,
+      isAdditionalAccount: account.is_additional_account,
     });
-
-    setPlanSelectionRequired(decision.requiresPayment);
-
-    if (process.env.NODE_ENV === 'development') {
-      console.debug('[Dashboard] Pricing decision:', {
-        ...decision,
-        accountId: account.id,
-      });
-    }
 
     const urlParams = typeof window !== "undefined" ?
       new URLSearchParams(window.location.search) : null;
-    const hasSuccessParam = urlParams?.get('success') === '1';
-    const hasPlanSuccessModal = typeof window !== "undefined" ?
-      sessionStorage.getItem('showPlanSuccessModal') === 'true' : false;
+    const hasSuccessParam = Boolean(urlParams?.get('success') === '1');
+    const hasPlanSuccessModal = Boolean(typeof window !== "undefined" &&
+      sessionStorage.getItem('showPlanSuccessModal') === 'true');
+    const forcedAccountId = typeof window !== 'undefined'
+      ? sessionStorage.getItem('forcePricingModalAccountId')
+      : null;
+    const forceModalForAccount = Boolean(forcedAccountId && account.id === forcedAccountId);
+    const shouldRequirePayment = decision.requiresPayment || forceModalForAccount;
+
+    if (forceModalForAccount && typeof window !== 'undefined' && user?.id) {
+      localStorage.setItem(`promptreviews_selected_account_${user.id}`, account.id);
+    }
 
     const accountRecentlyUpdated = lastAccountUpdate &&
       (Date.now() - lastAccountUpdate.getTime()) < 15000;
     const approvalWindowClear = !justCompletedPayment && !hasSuccessParam && !hasPlanSuccessModal && !accountRecentlyUpdated;
 
-    if (decision.requiresPayment && approvalWindowClear) {
+    if (shouldRequirePayment && approvalWindowClear) {
       let modalDismissed = false;
       if (typeof window !== 'undefined') {
         const lastAccountKey = sessionStorage.getItem('pricingModalAccountId');
@@ -433,17 +440,24 @@ const Dashboard = React.memo(function Dashboard() {
         modalDismissed = sessionStorage.getItem('pricingModalDismissed') === 'true';
       }
 
-      if (!modalDismissed) {
+      if (!modalDismissed || forceModalForAccount) {
         setShowPricingModal(true);
+        setPlanSelectionRequired(true);
+        if (forceModalForAccount && typeof window !== 'undefined') {
+          sessionStorage.removeItem('forcePricingModalAccountId');
+        }
       }
-    } else if (!decision.requiresPayment && showPricingModal) {
+    } else if (!shouldRequirePayment && showPricingModal) {
       setShowPricingModal(false);
       setJustCompletedPayment(false);
       if (typeof window !== "undefined") {
         sessionStorage.removeItem('pricingModalDismissed');
         sessionStorage.removeItem('showPlanSuccessModal');
+        sessionStorage.removeItem('forcePricingModalAccountId');
       }
     }
+
+    setPlanSelectionRequired(shouldRequirePayment);
   }, [
     authLoading,
     accountLoading,
@@ -625,6 +639,11 @@ const Dashboard = React.memo(function Dashboard() {
           // Check payment status using the centralized API
           try {
             const accountToCheck = selectedAccountId || account?.id;
+            if (!accountToCheck) {
+              console.warn('[Dashboard] Skipping payment check – no account ID available yet');
+              setIsPendingPricingModal(false);
+              return;
+            }
             const response = await fetch(`/api/accounts/payment-status?accountId=${accountToCheck}`);
 
             if (response.ok) {
@@ -670,6 +689,11 @@ const Dashboard = React.memo(function Dashboard() {
         modalTimeoutRef.current = setTimeout(async () => {
           try {
             const accountToCheck = selectedAccountId || account?.id;
+            if (!accountToCheck) {
+              console.warn('[Dashboard] Fallback payment check skipped – account ID not ready');
+              setIsPendingPricingModal(false);
+              return;
+            }
             const response = await fetch(`/api/accounts/payment-status?accountId=${accountToCheck}`);
 
             if (response.ok) {
@@ -878,12 +902,10 @@ const Dashboard = React.memo(function Dashboard() {
         
         // Check if this account is eligible for a trial
         // Eligible if they've never had a paid plan before AND it's not an additional account
-        const isEligibleForTrial = !account.has_had_paid_plan && 
-                                   !account.is_additional_account && 
-                                   account.plan === 'no_plan';
-        
+        const trialCheck = evaluateTrialEligibility(account);
+
         // If eligible for trial, handle locally without Stripe
-        if (isEligibleForTrial) {
+        if (trialCheck.eligible) {
           // Update account to grower plan with trial dates
           const updateData = { 
             plan: tierKey,
@@ -1113,13 +1135,12 @@ const Dashboard = React.memo(function Dashboard() {
           onSelectTier={handleSelectTier}
           currentPlan={account?.plan}
           currentBillingPeriod={account?.billing_period}
-          hasHadPaidPlan={account?.has_had_paid_plan || false}
           showCanceledMessage={justCanceledStripe}
           onClose={handleClosePricingModal}
           onSignOut={handleSignOut}
           isPlanSelectionRequired={planSelectionRequired || (account?.business_creation_complete && (!account?.plan || account.plan === 'no_plan' || account.plan === 'NULL'))}
+          trialEligibility={trialEligibility}
           isReactivation={account?.deleted_at !== null || (account?.plan === 'no_plan' && account?.has_had_paid_plan && !account?.is_additional_account)}
-          hadPreviousTrial={account?.has_had_paid_plan || account?.is_additional_account || false}
           reactivationOffer={
             (account?.deleted_at || (account?.plan === 'no_plan' && account?.has_had_paid_plan && !account?.is_additional_account)) ? {
               hasOffer: true,

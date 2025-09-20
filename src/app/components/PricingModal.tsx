@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { TrialEligibilityResult } from "@/lib/billing/trialEligibility";
 
 const tiers = [
   {
@@ -58,7 +59,7 @@ interface PricingModalProps {
   onSelectTier: (tierKey: string) => void;
   asModal?: boolean;
   currentPlan?: string;
-  hasHadPaidPlan?: boolean;
+  trialEligibility?: TrialEligibilityResult;
 }
 
 function getButtonLabel(tierKey: string, currentPlan?: string) {
@@ -90,12 +91,13 @@ export default function PricingModal({
   onSelectTier,
   asModal = true,
   currentPlan,
-  hasHadPaidPlan = false,
+  trialEligibility,
 }: PricingModalProps) {
   const [tooltip, setTooltip] = useState<string | null>(null);
   const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(
     null,
   );
+  const growerTrialEligible = trialEligibility?.eligible ?? false;
   const wrapperClass = asModal
     ? "fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80 overflow-y-auto"
     : "w-full flex flex-col items-center justify-center";
@@ -114,7 +116,7 @@ export default function PricingModal({
                     ? " border border-4 border-solid border-indigo-700"
                     : "") +
                   (isGrower &&
-                  !hasHadPaidPlan &&
+                  growerTrialEligible &&
                   (!currentPlan ||
                     currentPlan === "grower" ||
                     currentPlan === "free" ||
@@ -128,9 +130,9 @@ export default function PricingModal({
                   borderColor: tier.key === currentPlan ? "#4338ca" : undefined,
                 }}
               >
-                {/* Show gold banner only if user has NOT had a paid plan and is NOT currently subscribed */}
+                {/* Show gold banner only when the account can claim the Grower trial */}
                 {isGrower &&
-                  !hasHadPaidPlan &&
+                  growerTrialEligible &&
                   (!currentPlan ||
                     currentPlan === "grower" ||
                     currentPlan === "free" ||
@@ -151,7 +153,7 @@ export default function PricingModal({
                     if (
                       isGrower &&
                       f.includes("14-day free trial") &&
-                      (hasHadPaidPlan ||
+                      (!growerTrialEligible ||
                         (currentPlan &&
                           currentPlan !== "grower" &&
                           currentPlan !== "free" &&

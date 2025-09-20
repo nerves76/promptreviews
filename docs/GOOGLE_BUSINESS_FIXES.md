@@ -130,4 +130,4 @@ If users report continued issues:
 1. Check browser console for transformation logs
 2. Verify database tokens are properly deleted after disconnect
 3. Check for any cached authentication state in localStorage
-4. Ensure cookies are properly set for authentication
+4. Ensure the Supabase session tokens are healthy (clear `sb-*` cookies/localStorage and re-authenticate if needed)

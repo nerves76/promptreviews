@@ -52,12 +52,11 @@ export async function POST(request: NextRequest) {
         first_name: user.user_metadata?.first_name || 'User',
         last_name: user.user_metadata?.last_name || 'Name',
         plan: 'no_plan',
-        trial_start: new Date().toISOString(),
-        trial_end: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
         is_free_account: false,
         custom_prompt_page_count: 0,
         contact_count: 0,
         review_notifications_enabled: true,
+        created_by: userId,
       })
       .select()
       .single();

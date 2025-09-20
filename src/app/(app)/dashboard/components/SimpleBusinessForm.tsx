@@ -18,7 +18,33 @@ interface SimpleBusinessFormProps {
   user: any;
   accountId: string | null;
   onSuccess: () => void;
+  initialValues?: Partial<FormState>;
 }
+
+type FormState = {
+  name: string;
+  industries_other: string;
+  industry: string[];
+  business_website: string;
+  business_email: string;
+  phone: string;
+  address_street: string;
+  address_city: string;
+  address_state: string;
+  address_zip: string;
+  address_country: string;
+  tagline: string;
+  company_values: string;
+  ai_dos: string;
+  ai_donts: string;
+  services_offered: string;
+  differentiators: string;
+  years_in_business: string;
+  industries_served: string;
+  promotion_code: string;
+  referral_source?: string;
+  referral_source_other?: string;
+};
 
 // RobotTooltip component for AI-related field explanations
 function RobotTooltip({ text }: { text: string }) {
@@ -135,6 +161,7 @@ const SimpleBusinessForm = forwardRef<HTMLFormElement, SimpleBusinessFormProps>(
   user,
   accountId,
   onSuccess,
+  initialValues,
 }, ref) => {
   const supabase = createClient();
   const router = useRouter();
@@ -143,40 +170,42 @@ const SimpleBusinessForm = forwardRef<HTMLFormElement, SimpleBusinessFormProps>(
   const formStorageKey = 'createBusinessForm';
   
   // Initialize form with saved data if available
-  const [form, setForm] = useState(() => {
+  const defaults: FormState = {
+    name: "",
+    industries_other: "",
+    industry: [],
+    business_website: "",
+    business_email: "",
+    phone: "",
+    address_street: "",
+    address_city: "",
+    address_state: "",
+    address_zip: "",
+    address_country: "United States",
+    tagline: "",
+    company_values: "",
+    ai_dos: "",
+    ai_donts: "",
+    services_offered: "",
+    differentiators: "",
+    years_in_business: "",
+    industries_served: "",
+    promotion_code: "",
+  } as FormState;
+
+  const [form, setForm] = useState<FormState>(() => {
     if (typeof window !== 'undefined') {
       const savedData = localStorage.getItem(formStorageKey);
       if (savedData) {
         try {
           const parsed = JSON.parse(savedData);
-          return parsed;
+          return { ...defaults, ...(initialValues || {}), ...parsed };
         } catch (e) {
           console.error('Failed to parse saved form data:', e);
         }
       }
     }
-    return {
-      name: "",
-      industries_other: "",
-      industry: [],
-      business_website: "",
-      business_email: "",
-      phone: "",
-      address_street: "",
-      address_city: "",
-      address_state: "",
-      address_zip: "",
-      address_country: "United States",
-      tagline: "",
-      company_values: "",
-      ai_dos: "",
-      ai_donts: "",
-      services_offered: "",
-      differentiators: "",
-      years_in_business: "",
-      industries_served: "",
-      promotion_code: "",
-    };
+    return { ...defaults, ...(initialValues || {}) };
   });
   
   const [loading, setLoading] = useState(false);
@@ -306,6 +335,7 @@ const SimpleBusinessForm = forwardRef<HTMLFormElement, SimpleBusinessFormProps>(
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'X-Selected-Account': accountId || '', // CRITICAL: Include the selected account ID
         },
         body: JSON.stringify(businessData),
       });

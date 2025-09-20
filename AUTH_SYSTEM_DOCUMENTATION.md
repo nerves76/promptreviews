@@ -25,7 +25,12 @@ Your application uses a sophisticated authentication system built on Supabase Au
   - Multi-account support
   - Payment/subscription status tracking
   - Business profile integration
-  - Email verification status
+  - Signup readiness status
+
+### Session Strategy (Current vs. Historical)
+- **Current**: Relies on Supabase's session tokens (managed via its JS SDK) plus client-side state in `AuthContext`.
+- **Historical Attempt**: A custom cookie-based authentication layer was prototyped but ultimately abandoned due to complexity and duplication of Supabase features.
+- **Outcome**: The codebase standardized on Supabase sessions; any cookie-based references in older docs/scripts should be considered deprecated.
 
 ### 2. Admin System (`src/utils/admin.ts`)
 - **Implementation**: Simple `is_admin` boolean column in accounts table

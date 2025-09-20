@@ -167,7 +167,8 @@ async function checkAndRepairUser(supabaseAdmin: any, user: any, repair: boolean
             id: user.id,
             name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'Unknown',
             created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
+            updated_at: new Date().toISOString(),
+            created_by: user.id
           });
 
         if (createAccountError) {

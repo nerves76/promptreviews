@@ -17,7 +17,7 @@ import { ensureAccountExists } from "@/auth/utils/accounts";
 
 export default function CreateBusinessClient() {
   
-  const { selectedAccountId, account } = useAuth();
+  const { selectedAccountId, account, refreshAccount, user: authUser } = useAuth();
   const { redirectToDashboard: centralizedRedirectToDashboard, redirectToSignIn } = useRedirectManager();
   
   const router = useRouter();
@@ -32,6 +32,8 @@ export default function CreateBusinessClient() {
   const [accountData, setAccountData] = useState<any>(null);
   // Guard to prevent repeated redirects/race loops
   const hasRedirectedRef = useRef(false);
+
+  const [pendingBusinessName, setPendingBusinessName] = useState<string | null>(null);
   
   // Ref to trigger form submission from top button
   const formRef = useRef<HTMLFormElement>(null);
@@ -78,15 +80,22 @@ export default function CreateBusinessClient() {
         setUser(user);
 
         // Get the currently selected account from localStorage
-        const storedSelection = localStorage.getItem(`promptreviews_selected_account_${user.id}`);
+        const pendingId = sessionStorage.getItem('pendingAccountId');
+        let storedSelection = pendingId || localStorage.getItem(`promptreviews_selected_account_${user.id}`);
+        let accountToUse: string | null = storedSelection;
+
+        if (pendingId && typeof window !== 'undefined') {
+          sessionStorage.setItem('intentionallyOnCreateBusiness', 'true');
+        }
 
         // Check if user already has accounts
-        const { data: existingAccounts } = await supabase
-          .from('account_users')
-          .select('account_id')
-          .eq('user_id', user.id);
+       const { data: existingAccounts } = await supabase
+         .from('account_users')
+         .select('account_id')
+         .eq('user_id', user.id);
 
-        if (existingAccounts && existingAccounts.length > 0) {
+        const shouldValidateSelection = !pendingId;
+        if (shouldValidateSelection && existingAccounts && existingAccounts.length > 0) {
           // If a specific account is selected via the account switcher, check ONLY that account for businesses
           let accountToCheck = storedSelection;
 
@@ -120,7 +129,7 @@ export default function CreateBusinessClient() {
 
             // Selected account has no business - stay on this page to create one
             console.log('ℹ️ Selected account has no business, staying on create-business page');
-            setAccountId(accountToCheck);
+            accountToUse = accountToCheck;
             // Set a flag to prevent BusinessGuard from redirecting
             if (typeof window !== 'undefined') {
               sessionStorage.setItem('intentionallyOnCreateBusiness', 'true');
@@ -156,7 +165,7 @@ export default function CreateBusinessClient() {
 
             // User has accounts but none have businesses - use first account
             const firstAccountId = existingAccounts[0]?.account_id || null;
-            setAccountId(firstAccountId);
+            accountToUse = firstAccountId;
             // Set a flag to prevent BusinessGuard from redirecting
             if (typeof window !== 'undefined') {
               sessionStorage.setItem('intentionallyOnCreateBusiness', 'true');
@@ -164,20 +173,19 @@ export default function CreateBusinessClient() {
           }
         }
 
-        // For new users, we don't require an existing account - the business creation will create one
-        // Use the selected account from auth context if available
-        const currentAccountId = selectedAccountId || account?.id || null;
-        
-        // We don't need an existing account for business creation
-        // The API will create a new account if needed
-        setAccountId(currentAccountId);
+        // For new users or cases where no stored selection exists, fall back to auth context
+        if (!accountToUse) {
+          accountToUse = pendingId || selectedAccountId || account?.id || null;
+        }
+
+        setAccountId(accountToUse);
 
         // Fetch account data if we have an accountId
-        if (currentAccountId) {
+        if (accountToUse) {
           const { data: accountInfo, error: accountError } = await supabase
             .from('accounts')
             .select('id, first_name, last_name, email')
-            .eq('id', currentAccountId)
+            .eq('id', accountToUse)
             .single();
 
           if (accountError) {
@@ -214,17 +222,57 @@ export default function CreateBusinessClient() {
     setupBusinessCreation();
   }, [redirectToSignIn, centralizedRedirectToDashboard]);
 
+  // Read pending business name from session storage (set when creating additional accounts)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const storedName = sessionStorage.getItem('pendingBusinessName');
+    if (storedName) {
+      setPendingBusinessName(storedName);
+      sessionStorage.removeItem('pendingBusinessName');
+    }
+    const pendingAccountId = sessionStorage.getItem('pendingAccountId');
+    if (pendingAccountId) {
+      setAccountId(pendingAccountId);
+      sessionStorage.removeItem('pendingAccountId');
+    }
+  }, []);
+
+  useEffect(() => {
+    if (accountData?.business_name && !pendingBusinessName) {
+      setPendingBusinessName(accountData.business_name);
+    }
+  }, [accountData?.business_name, pendingBusinessName]);
+
   // Handle successful business creation
   const handleBusinessCreated = useCallback(async () => {
     setIsSubmitting(false);
-    setIsRedirecting(true); // Set redirecting state to show loading screen
-    
-    // Give time for database transactions to complete and propagate
-    await new Promise(resolve => setTimeout(resolve, 2000)); // 2 second delay
-    
-    // Redirect to dashboard
+    setIsRedirecting(true);
+
+    const targetAccountId = accountId || (typeof window !== 'undefined' ? sessionStorage.getItem('pendingAccountId') : null);
+
+    if (typeof window !== 'undefined' && targetAccountId) {
+      sessionStorage.setItem('forcePricingModalAccountId', targetAccountId);
+    }
+
+    if (typeof window !== 'undefined' && targetAccountId && (authUser?.id || user?.id)) {
+      const ownerId = authUser?.id || user?.id;
+      localStorage.setItem(`promptreviews_selected_account_${ownerId}`, targetAccountId);
+    }
+
+    await new Promise(resolve => setTimeout(resolve, 1200));
+
+    if (typeof refreshAccount === 'function') {
+      try {
+        await refreshAccount();
+      } catch (error) {
+        console.warn('CreateBusinessClient: refreshAccount failed', error);
+      }
+    }
+
+    await new Promise(resolve => setTimeout(resolve, 300));
+
     redirectToDashboard();
-  }, [redirectToDashboard]);
+  }, [accountId, authUser?.id, refreshAccount, redirectToDashboard, user?.id]);
 
   // Handle top save button click
   const handleTopSaveClick = useCallback(() => {
@@ -390,6 +438,9 @@ export default function CreateBusinessClient() {
                 user={user}
                 accountId={accountId}
                 onSuccess={handleBusinessCreated}
+                initialValues={{
+                  name: pendingBusinessName || ''
+                }}
               />
             )}
           </div>

@@ -10,6 +10,7 @@ import { trackEvent, GA_EVENTS } from "@/utils/analytics";
 import { useAuth } from "@/auth";
 import { canCreateAccounts } from "@/config/adminConfig";
 import PricingModal from "@/app/(app)/components/PricingModal";
+import { evaluateTrialEligibility } from "@/lib/billing/trialEligibility";
 
 export default function AccountPage() {
   const supabase = createClient();
@@ -38,6 +39,7 @@ export default function AccountPage() {
   const [createAccountLoading, setCreateAccountLoading] = useState(false);
   const [createAccountError, setCreateAccountError] = useState<string | null>(null);
   const [createAccountSuccess, setCreateAccountSuccess] = useState<string | null>(null);
+  const trialEligibility = evaluateTrialEligibility(account);
   
   // Account cancelled state
   const [accountCancelled, setAccountCancelled] = useState(false);
@@ -245,16 +247,25 @@ export default function AccountPage() {
         throw new Error(result.error || 'Failed to create account');
       }
 
+      // Preserve the business name to prefill the create-business form
+      if (typeof window !== 'undefined' && result.businessName) {
+        sessionStorage.setItem('pendingBusinessName', result.businessName);
+      }
+
       setCreateAccountSuccess(`Account created successfully for ${firstName} ${lastName}! Switching to the new account...`);
       setShowCreateAccountModal(false);
       
       // Reset form
       (e.target as HTMLFormElement).reset();
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('createBusinessForm');
+      }
       
       // Store the new account selection and redirect to business creation
       if (result.accountId && user?.id) {
         // Set the new account as selected
         localStorage.setItem(`promptreviews_selected_account_${user.id}`, result.accountId);
+        sessionStorage.setItem('pendingAccountId', result.accountId);
         
         // Redirect to business creation for the new account
         setTimeout(() => {
@@ -917,8 +928,7 @@ export default function AccountPage() {
           }}
           currentPlan={account?.plan || 'no_plan'}
           isReactivation={true}
-          hadPreviousTrial={true} // They deleted their account, so they already had a trial
-          hasHadPaidPlan={account?.has_had_paid_plan || true} // Pass the actual value from account
+          trialEligibility={trialEligibility}
           reactivationOffer={{
             hasOffer: true,
             offerType: 'percentage',

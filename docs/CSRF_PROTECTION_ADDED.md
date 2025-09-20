@@ -54,7 +54,7 @@ Cross-Site Request Forgery (CSRF) is an attack where a malicious website tricks 
 
 #### Cookie Security Helper
 - **File:** `/src/app/api/middleware-cookies.ts`
-- SameSite cookie configuration for basic CSRF protection
+- SameSite cookie configuration for CSRF-sensitive cookies (separate from Supabase's managed auth session)
 - Secure cookie options for production
 
 ## How It Works

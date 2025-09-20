@@ -4,11 +4,14 @@ import {
   createStripeClient,
   PRICE_IDS,
   SUPABASE_CONFIG,
-  BILLING_URLS,
   isValidPlan,
   getPriceId,
   getPlanChangeType
 } from "@/lib/billing/config";
+import {
+  deriveTrialMetadata,
+  evaluateTrialEligibility,
+} from "@/lib/billing/trialEligibility";
 
 const stripe = createStripeClient();
 
@@ -68,7 +71,7 @@ export async function POST(req: NextRequest) {
     try {
       const { data: account, error } = await supabase
         .from("accounts")
-        .select("stripe_customer_id, plan, email, is_free_account, free_plan_level, trial_start, trial_end, has_had_paid_plan")
+        .select("stripe_customer_id, plan, email, is_free_account, free_plan_level, trial_start, trial_end, has_had_paid_plan, is_additional_account")
         .eq("id", userId)
         .single();
       
@@ -115,6 +118,23 @@ export async function POST(req: NextRequest) {
       }
     }
     
+    // If no valid Stripe customer exists yet, create one now and persist it
+    if (!validCustomerId) {
+      try {
+        const customer = await stripe.customers.create({
+          email: userEmail,
+          metadata: { userId }
+        });
+        validCustomerId = customer.id;
+        await supabase
+          .from('accounts')
+          .update({ stripe_customer_id: customer.id })
+          .eq('id', userId);
+      } catch (customerError: any) {
+        console.error('❌ Failed to create Stripe customer:', customerError);
+      }
+    }
+    
     // Debug configuration
     const priceId = getPriceId(plan, billingPeriod);
     if (!priceId) {
@@ -122,26 +142,35 @@ export async function POST(req: NextRequest) {
     }
 
     // Check if user already had a trial
-    const hadPreviousTrial = accountData.trial_start && (accountData.has_had_paid_plan || currentPlan !== 'grower');
+    const trialEvaluation = evaluateTrialEligibility(accountData);
+    const trialMeta = deriveTrialMetadata(trialEvaluation);
+    
+    const hadPreviousTrial = trialMeta.hasConsumedTrial;
     
     // Configure session - add trial period only for grower plan if user hasn't had a trial
-    const shouldGetTrial = plan === 'grower' && !hadPreviousTrial && !currentPlan;
+    const shouldGetTrial =
+      plan === 'grower' &&
+      trialEvaluation.eligible &&
+      (!currentPlan || currentPlan === 'no_plan');
     
+    const successUrl = `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/plan?success=1&change=upgrade&plan=${plan}&billing=${billingPeriod}&session_id={CHECKOUT_SESSION_ID}`;
+    const cancelUrl = `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/plan?canceled=1&plan=${plan}&billing=${billingPeriod}`;
+
     let sessionConfig: any = {
       payment_method_types: ["card" as const],
       mode: "subscription" as const,
       line_items: [{ price: priceId, quantity: 1 }],
       metadata: { 
-        userId, 
+        userId,
         plan,
-        billingPeriod: billingPeriod || 'monthly',
+        billingPeriod,
         userEmail: userEmail || "",
         changeType,
         isReactivation: isReactivation ? 'true' : 'false',
         hadPreviousTrial: hadPreviousTrial ? 'true' : 'false'
       },
-      success_url: BILLING_URLS.SUCCESS_URL(changeType, plan),
-      cancel_url: BILLING_URLS.CANCEL_URL,
+      success_url: successUrl,
+      cancel_url: cancelUrl,
       // Use valid customer ID if available, otherwise use email
       ...(validCustomerId 
         ? { customer: validCustomerId }

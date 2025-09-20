@@ -126,7 +126,8 @@ export async function POST(request: NextRequest) {
           contact_count: 0,
           review_notifications_enabled: true,
           created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
+          created_by: userId,
         });
 
       if (accountError && accountError.code !== '23505') { // Ignore duplicate key errors

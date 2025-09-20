@@ -228,10 +228,17 @@ function BusinessGuard({ children }: BusinessGuardProps) {
 
       // ONLY redirect if business_creation_complete is false
       if (!businessCreationComplete) {
-        console.log('[BusinessGuard] business_creation_complete not yet true, skipping redirect to avoid reload loop:', {
+        console.log('[BusinessGuard] Redirecting owner to business onboarding flow:', {
           accountId: account.id,
-          raw_business_creation_complete: account.business_creation_complete,
+          pathname,
         });
+
+        if (typeof window !== 'undefined') {
+          sessionStorage.setItem('intentionallyOnCreateBusiness', 'true');
+        }
+
+        // Use replace to avoid stacking history entries
+        router.replace('/dashboard/create-business');
         return;
       } else {
         console.log('[BusinessGuard] NOT redirecting - business_creation_complete is true:', {

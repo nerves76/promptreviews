@@ -167,81 +167,9 @@ export async function POST(request: NextRequest) {
 
     const supabase = createServiceRoleClient();
     
-    // Check if user already has accounts with businesses
-    const { data: userAccounts } = await supabase
-      .from('account_users')
-      .select('account_id')
-      .eq('user_id', user.id);
-
-    const { data: existingBusinesses } = await supabase
-      .from('businesses')
-      .select('account_id')
-      .in('account_id', userAccounts?.map(ua => ua.account_id) || []);
-
-    // If user has accounts with businesses, check if the selected account already has a business
-    let shouldCreateNewAccount = false;
-    if (existingBusinesses && existingBusinesses.length > 0) {
-      // If an account is selected, check if it already has a business
-      if (accountId) {
-        const accountHasBusiness = existingBusinesses.some(b => b.account_id === accountId);
-        // If selected account has a business, we should create a new account
-        shouldCreateNewAccount = accountHasBusiness;
-      } else {
-        // No account selected but user has businesses - create new account
-        shouldCreateNewAccount = true;
-      }
-    }
-
-    if (shouldCreateNewAccount) {
-      console.log('[BUSINESSES] User has existing businesses, creating new additional account');
-
-      // Create a new additional account for this business
-      const { data: newAccount, error: createError } = await supabase
-        .from('accounts')
-        .insert({
-          email: user.email || businessData.business_email,
-          first_name: user.user_metadata?.first_name || businessData.first_name || '',
-          last_name: user.user_metadata?.last_name || businessData.last_name || '',
-          business_name: name,
-          plan: 'no_plan',
-          is_free_account: false,
-          is_additional_account: true,
-          trial_start: null,
-          trial_end: null,
-          custom_prompt_page_count: 0,
-          contact_count: 0,
-          review_notifications_enabled: true,
-          business_creation_complete: false, // Will be set to true after business creation
-          created_by: user.id,
-        })
-        .select('id')
-        .single();
-
-      if (createError) {
-        console.error('[BUSINESSES] Failed to create additional account:', createError);
-        return NextResponse.json(
-          { error: "Failed to create additional account", details: createError.message },
-          { status: 500 }
-        );
-      }
-
-      accountId = newAccount.id;
-
-      // Link user to the new account as owner
-      const { error: linkError } = await supabase
-        .from('account_users')
-        .insert({
-          account_id: accountId,
-          user_id: user.id,
-          role: 'owner',
-        });
-
-      if (linkError && linkError.code !== '23505') {
-        console.error('[BUSINESSES] Failed to link user to new account:', linkError);
-      }
-
-      console.log('[BUSINESSES] Created new additional account:', accountId);
-    }
+    // REMOVED: Complex logic for creating new accounts automatically
+    // With proper X-Selected-Account header, the client controls which account to use
+    // The create-additional flow happens separately through /api/accounts/create-additional
 
     // If no accountId, check if account exists with user.id (created by trigger)
     if (!accountId) {
@@ -602,15 +530,10 @@ export async function POST(request: NextRequest) {
 
 
     // 🔧 CRITICAL FIX: Update accounts.business_name, promotion_code, and business_creation_complete flag
-    // Only update business_name if this is not a newly created additional account
     const accountUpdates: any = {
+      business_name: name,
       business_creation_complete: true  // Mark that business creation is complete
     };
-
-    // Only update business_name if we didn't just create this as a new additional account
-    if (!shouldCreateNewAccount) {
-      accountUpdates.business_name = name;
-    }
 
     if (accountRecord?.is_additional_account) {
       accountUpdates.is_additional_account = true;

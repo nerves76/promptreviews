@@ -4,93 +4,45 @@
 
 This document provides comprehensive documentation of the sign-up process and multi-user account system in PromptReviews. The system is designed to support multiple users per account while maintaining proper authentication, authorization, and data isolation.
 
-## Email Confirmation Setup (Long-Term Solution)
+## Signup Configuration (Direct Confirmation)
 
-### **Configuration for Both Environments**
+PromptReviews no longer uses transactional email for account verification. The signup form posts to `/api/auth/signup`, which leverages a Supabase service-role client to create and immediately confirm the user. Important details:
 
-The system is configured to work seamlessly in both local development and production environments:
+- `auth.admin.createUser` is called with `email_confirm: true`, so Supabase marks the account as verified on creation.
+- Database triggers (plus a fallback in the API route) provision the `accounts` and `account_users` records.
+- Users can sign in as soon as the signup request succeeds—no confirmation link is required.
 
-**Supabase Configuration (`supabase/config.toml`):**
-```toml
-[auth]
-site_url = "https://app.promptreviews.app"
-additional_redirect_urls = ["https://app.promptreviews.app", "http://localhost:3001"]
-```
-
-**How It Works:**
-1. **Production**: `site_url` points to production domain
-2. **Local Development**: `localhost:3001` is included in `additional_redirect_urls`
-3. **Sign-Up Code**: Always uses `window.location.origin` for `emailRedirectTo`
-
-### **Environment Detection**
-
-The sign-up process automatically detects the environment:
-- **Local Development**: `http://localhost:3001/auth/callback`
-- **Production**: `https://app.promptreviews.app/auth/callback`
-
-### **Deployment Considerations**
-
-**Before Deploying to Production:**
-- Ensure `site_url` is set to `https://app.promptreviews.app`
-- Verify `additional_redirect_urls` includes both production and localhost URLs
-- Run `supabase config push` to update the remote configuration
-
-**For Local Development:**
-- No configuration changes needed
-- Email confirmation links will automatically point to localhost:3001
-- Both environments are supported simultaneously
+Ensure the Supabase environment variables (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`) are present in every environment; without them, the API route returns a descriptive error. Team invitations still rely on Supabase's email delivery to send secure acceptance links, which is handled separately from the core signup flow described below.
 
 ## Sign-Up Process Flow
 
 ### 1. User Registration (`/auth/sign-up`)
 
-**File**: `src/app/auth/sign-up/page.tsx`
+**File**: `src/app/(app)/auth/sign-up/page.tsx`
 
 **Process**:
-1. User fills out registration form with:
-   - First Name
-   - Last Name
-   - Email
-   - Password
-2. Form validation ensures all fields are completed
-3. Supabase Auth creates user account with metadata:
-   ```typescript
-   {
-     email,
-     password,
-     options: {
-       emailRedirectTo: `${window.location.origin}/auth/callback`,
-       data: {
-         first_name: firstName,
-         last_name: lastName,
-       },
-     },
-   }
-   ```
-4. Email confirmation is sent to user's email address
-5. User is redirected to confirmation page
+1. User completes registration form with first name, last name, email, and password
+2. Client-side validation enforces required fields, email format, password length, and terms acceptance
+3. The form submits a POST request to `/api/auth/signup`
 
-### 2. Email Confirmation (`/auth/callback`)
+### 2. Server-Side Account Creation (`/api/auth/signup`)
 
-**File**: `src/app/auth/callback/route.ts`
+**File**: `src/app/(app)/api/auth/signup/route.ts`
 
 **Process**:
-1. User clicks email confirmation link
-2. Link points to current environment (localhost:3001 or production)
-3. Supabase processes the confirmation token
-4. User is automatically signed in
-5. Account creation process begins:
-   - Creates account record in `accounts` table
-   - Creates account_user record linking user to account
-   - Creates default business profile
-   - Redirects to plan selection page
+1. Validate the payload (required fields, password length, email format)
+2. Verify critical Supabase environment variables are present
+3. Create the user via `supabase.auth.admin.createUser` with `email_confirm: true`
+4. Ensure the `accounts` and `account_users` rows exist (insert manually if triggers have not finished)
+5. Return success so the client can prompt the user to sign in immediately
 
 ### 3. Account Setup Flow
 
-**After Email Confirmation**:
-1. **Plan Selection**: User chooses subscription plan
-2. **Business Creation**: User creates their first business
-3. **Dashboard Access**: User gains access to full dashboard
+**After Signup API success**:
+1. **Sign-In Prompt**: UI displays confirmation and links to `/auth/sign-in`
+2. **Plan Selection**: Upon first sign-in, onboarding prompts for plan choice
+3. **Business Creation**: User creates their first business profile
+4. **Dashboard Access**: Full dashboard unlocks once onboarding requirements are completed
 
 ## Multi-User Account System
 
@@ -102,9 +54,12 @@ CREATE TABLE accounts (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name TEXT NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  created_by UUID REFERENCES auth.users(id)
 );
 ```
+
+`created_by` captures the user who initiated the account so support teams can trace ownership and helpers can safely join service-role created accounts.
 
 **Account Users Table**:
 ```sql
@@ -139,10 +94,10 @@ CREATE TABLE businesses (
 ### **Account Management**
 
 **Adding Users to Account**:
-1. Account owner invites user via email
-2. User receives invitation email
-3. User accepts invitation and joins account
-4. User gains access to account's businesses
+1. Account owner sends an invitation from the team management tools
+2. The system emails a secure acceptance link to the prospective user
+3. The user opens the email, follows the link, completes signup, and is attached to the account
+4. The new member gains access to the account's businesses
 
 **User Permissions**:
 - Users can only access businesses within their account
@@ -177,18 +132,18 @@ CREATE POLICY "Users can view account businesses" ON businesses
 
 **Features**:
 - Session validation
-- Email confirmation checks
 - Account access verification
 - Role-based permissions
+- Onboarding gating for business/plan requirements
 
 ## Error Handling
 
 ### **Common Issues**
 
-1. **Email Not Confirmed**:
-   - Check if user clicked confirmation link
-   - Verify email confirmation is enabled in Supabase
-   - Check browser console for redirect URL logs
+1. **Signup API Error**:
+   - Confirm all required fields are being sent from the client
+   - Check browser devtools for the JSON response returned by `/api/auth/signup`
+   - Ensure required Supabase environment variables are configured
 
 2. **Account Creation Failed**:
    - Verify RLS policies are correctly configured
@@ -205,12 +160,13 @@ CREATE POLICY "Users can view account businesses" ON businesses
 **Enable Logging**:
 ```typescript
 // In sign-up component
-console.log('Sign-up redirect URL:', redirectUrl);
-console.log('Current origin:', window.location.origin);
+console.log('Submitting signup payload:', { email, firstName, lastName });
 
-// In callback route
-console.log('Auth callback triggered');
-console.log('User data:', user);
+// Around the fetch call
+console.log('Signup response:', result);
+
+// On the server route
+console.log('Signup POST received for:', email);
 ```
 
 ## Testing
@@ -221,30 +177,30 @@ console.log('User data:', user);
    ```bash
    npm run dev
    # Visit http://localhost:3001/auth/sign-up
-   # Complete sign-up process
-   # Check email confirmation link points to localhost:3001
+   # Complete the sign-up form and submit
+   # Confirm the success toast appears and no email is requested
    ```
 
-2. **Email Confirmation**:
-   - Click email confirmation link
-   - Verify redirect to localhost:3001/auth/callback
-   - Check account creation in database
+2. **Initial Sign-In**:
+   - Visit `/auth/sign-in`
+   - Sign in with the newly created credentials
+   - Confirm onboarding redirects trigger as expected
 
 3. **Multi-User Testing**:
    - Create multiple test accounts
-   - Test user invitations
+   - Send invitation emails and confirm delivery/link exchange
    - Verify account isolation
 
 ### **Production Testing**
 
 1. **Deploy and Test**:
-   - Ensure `site_url` is set to production domain
    - Test sign-up flow in production
-   - Verify email confirmation links work
+   - Verify immediate sign-in works without email delivery
 
 2. **Multi-Environment Verification**:
    - Test both local and production environments
    - Verify no cross-environment issues
+   - Confirm invitation emails deliver and link targets are environment-aware
 
 ## Maintenance
 
@@ -252,7 +208,7 @@ console.log('User data:', user);
 
 1. **Configuration Updates**:
    - Keep Supabase configuration in sync
-   - Update redirect URLs as needed
+   - Rotate and safeguard service-role credentials
    - Monitor authentication logs
 
 2. **Database Maintenance**:
@@ -269,43 +225,52 @@ console.log('User data:', user);
 
 **Key Metrics**:
 - Sign-up conversion rates
-- Email confirmation success rates
 - Account creation success rates
 - Multi-user adoption rates
+- Signup API error rates
+- Invitation email delivery rates
 
 **Alerts**:
 - Failed authentication attempts
 - Database connection issues
-- Email delivery failures
+- Elevated signup API failures
 
 ## Troubleshooting
 
-### **Email Confirmation Issues**
+### **Signup API Issues**
 
-**Problem**: Email links point to wrong environment
-**Solution**: 
-1. Check `supabase/config.toml` site_url setting
-2. Verify `additional_redirect_urls` includes both environments
-3. Run `supabase config push` to update remote configuration
-
-**Problem**: Email confirmation not working locally
+**Problem**: `/api/auth/signup` returns a 400 error
 **Solution**:
-1. Ensure development server is running on port 3001
-2. Check that localhost:3001 is in additional_redirect_urls
-3. Verify emailRedirectTo parameter in sign-up code
+1. Confirm the request payload includes first name, last name, email, and password
+2. Inspect the JSON error message for validation failures (password length, email format, duplicate user)
+3. Ensure `SUPABASE_SERVICE_ROLE_KEY` is available to the app route
+
+**Problem**: `/api/auth/signup` returns a 500 error about missing env vars
+**Solution**:
+1. Verify `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY` are set
+2. Restart the Next.js server after editing `.env.local`
+3. Re-run the signup flow to confirm the warning no longer appears
 
 ### **Account Creation Issues**
 
 **Problem**: "Account not found" errors
 **Solution**:
-1. Check account creation in callback route
-2. Verify RLS policies allow account creation
-3. Review database permissions
+1. Confirm the signup API request succeeded (2xx response)
+2. Verify `accounts` contains a row matching the new user's ID
+3. Review RLS policies to ensure inserts are permitted for the service-role client
 
 **Problem**: Multi-user access denied
 **Solution**:
 1. Verify user is in account_users table
 2. Check user role and permissions
 3. Review RLS policies for account access
+
+### **Invitation Email Issues**
+
+**Problem**: Invitation email not received
+**Solution**:
+1. Confirm the invitation record exists and the email address is correct
+2. Check Supabase email configuration (sender domain, rate limits)
+3. Resend the invite and inspect Supabase Auth logs for delivery status
 
 This documentation should be updated whenever changes are made to the authentication or multi-user systems. 

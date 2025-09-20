@@ -40,18 +40,18 @@ export async function POST(request: NextRequest) {
     // Create new account with only the fields that exist in the accounts table
     const accountData = {
       id: userId,
-              plan: 'no_plan', // Use 'no_plan' as the default for new users (matches DB default)
-      trial_start: new Date().toISOString(),
-      trial_end: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(), // 14 days trial
+      plan: 'no_plan',
+      trial_start: null,
+      trial_end: null,
       is_free_account: false,
       custom_prompt_page_count: 0,
       contact_count: 0,
       created_at: new Date().toISOString(),
-      // Include user information fields that exist in the table
-      first_name: first_name || email.split('@')[0], // Use provided first_name or email prefix as fallback
-      last_name: last_name || '', // Use provided last_name or empty string as fallback
-      email: email,
-      review_notifications_enabled: true
+      first_name: first_name || email.split('@')[0],
+      last_name: last_name || '',
+      email,
+      review_notifications_enabled: true,
+      created_by: userId,
     };
 
     const createAccountResponse = await fetch(`${supabaseUrl}/rest/v1/accounts`, {

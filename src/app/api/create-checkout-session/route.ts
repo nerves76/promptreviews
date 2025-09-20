@@ -22,7 +22,7 @@ const PRICE_IDS: Record<string, string> = {
 
 export async function POST(req: NextRequest) {
   try {
-    const { plan, userId, email } = await req.json();
+    const { plan, userId, email, billingPeriod = 'monthly' } = await req.json();
 
     if (!plan || !PRICE_IDS[plan]) {
       return NextResponse.json({ error: "Invalid plan" }, { status: 400 });
@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
     if (userId) {
       const { data: account, error } = await supabase
         .from("accounts")
-        .select("stripe_customer_id")
+        .select("stripe_customer_id, email")
         .eq("id", userId)
         .single();
       if (error) {
@@ -63,8 +63,26 @@ export async function POST(req: NextRequest) {
             { status: 400 },
           );
         }
+      } else if (account && account.email) {
+        // No customer id yet – create one up front so future webhooks can match
+        try {
+          const customer = await stripe.customers.create({
+            email: account.email,
+            metadata: { userId }
+          });
+          stripeCustomerId = customer.id;
+          await supabase
+            .from('accounts')
+            .update({ stripe_customer_id: customer.id })
+            .eq('id', userId);
+        } catch (customerError) {
+          console.error('Failed to create Stripe customer:', customerError);
+        }
       }
     }
+
+    const successUrl = `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/plan?success=1&change=upgrade&plan=${plan}&billing=${billingPeriod}&session_id={CHECKOUT_SESSION_ID}`;
+    const cancelUrl = `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/plan?canceled=1&plan=${plan}&billing=${billingPeriod}`;
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
@@ -73,9 +91,9 @@ export async function POST(req: NextRequest) {
         ? { customer: stripeCustomerId }
         : { customer_email: email }),
       line_items: [{ price: PRICE_IDS[plan], quantity: 1 }],
-      metadata: { userId, plan },
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?success=1`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?canceled=1`,
+      metadata: { userId: userId || '', plan, billingPeriod },
+      success_url: successUrl,
+      cancel_url: cancelUrl,
     });
 
     return NextResponse.json({ url: session.url });

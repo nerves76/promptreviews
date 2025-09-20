@@ -6,12 +6,15 @@ export interface PricingInput {
   subscriptionStatus?: string | null;
   isFreeAccount?: boolean | null;
   hasHadPaidPlan?: boolean | null;
+  isAdditionalAccount?: boolean | null;
 }
 
 export interface PricingDecision {
   requiresPayment: boolean;
   reason: string;
 }
+
+import { evaluateTrialEligibility } from "@/lib/billing/trialEligibility";
 
 export function evaluatePricingRequirement(input: PricingInput): PricingDecision {
   const plan = input.plan ?? null;
@@ -20,6 +23,7 @@ export function evaluatePricingRequirement(input: PricingInput): PricingDecision
   const subscriptionStatus = input.subscriptionStatus ?? null;
   const isFreeAccount = input.isFreeAccount ?? false;
   const hasHadPaidPlan = input.hasHadPaidPlan ?? false;
+  const isAdditionalAccount = input.isAdditionalAccount ?? false;
 
   if (!businessComplete) {
     return {
@@ -59,9 +63,20 @@ export function evaluatePricingRequirement(input: PricingInput): PricingDecision
   if (plan === 'grower') {
     const trialEnd = input.trialEnd ? new Date(input.trialEnd) : null;
     const now = new Date();
-    const trialActive = trialEnd && now <= trialEnd;
+    const trialActive = Boolean(trialEnd && now <= trialEnd);
+    const trialEligibility = evaluateTrialEligibility(
+      {
+        plan,
+        has_had_paid_plan: hasHadPaidPlan,
+        is_additional_account: isAdditionalAccount,
+      },
+      {
+        targetPlan: 'grower',
+        requireNoActivePlan: false,
+      }
+    );
 
-    if (trialActive && !hasHadPaidPlan) {
+    if (trialActive && trialEligibility.eligible) {
       return {
         requiresPayment: false,
         reason: 'Trial active',

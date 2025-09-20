@@ -1,0 +1,9 @@
+node_modules
+.next
+out
+build
+dist
+docs/
+docs-promptreviews/
+supabase/migrations/**
+public/**

@@ -143,11 +143,18 @@ export function useAccountSelection() {
         let selectedAccountId = getStoredAccountSelection(user.id);
 
         // Validate stored selection exists in available accounts
+        const pendingSelectionId = typeof window !== 'undefined'
+          ? sessionStorage.getItem('pendingAccountId')
+          : null;
+
         if (selectedAccountId && accounts.length > 0 && !accounts.find(acc => acc.account_id === selectedAccountId)) {
-          // Only clear if we actually have accounts loaded and the stored one isn't among them
-          console.log('[AccountSelection] Stored account not found in available accounts, clearing:', selectedAccountId);
-          selectedAccountId = null;
-          clearStoredAccountSelection(user.id);
+          if (pendingSelectionId === selectedAccountId) {
+            console.log('[AccountSelection] Pending account selection not yet available, keeping selection:', selectedAccountId);
+          } else {
+            console.log('[AccountSelection] Stored account not found in available accounts, clearing:', selectedAccountId);
+            selectedAccountId = null;
+            clearStoredAccountSelection(user.id);
+          }
         }
 
         // If we have a stored selection but no accounts loaded yet, keep it
@@ -174,6 +181,10 @@ export function useAccountSelection() {
           loading: false,
           error: null
         });
+
+        if (selectedAccountId && pendingSelectionId === selectedAccountId && accounts.find(acc => acc.account_id === selectedAccountId)) {
+          sessionStorage.removeItem('pendingAccountId');
+        }
 
       } catch (error) {
         console.error('Error loading account data:', error);

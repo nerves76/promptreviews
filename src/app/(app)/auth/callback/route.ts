@@ -317,13 +317,13 @@ export async function GET(request: NextRequest) {
               first_name: user.user_metadata?.first_name || '',
               last_name: user.user_metadata?.last_name || '',
               plan: 'no_plan',
-              trial_start: new Date().toISOString(),
-              trial_end: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
+              trial_start: null,
+              trial_end: null,
               is_free_account: false,
               custom_prompt_page_count: 0,
               contact_count: 0,
               review_notifications_enabled: true,
-              has_seen_welcome: false
+              created_by: userId,
             });
           
           if (insertError) {
@@ -501,8 +501,8 @@ export async function GET(request: NextRequest) {
             id: userId,
             user_id: userId,
             email: email,
-            trial_start: new Date().toISOString(),
-            trial_end: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
+            trial_start: null,
+            trial_end: null,
             is_free_account: false,
             custom_prompt_page_count: 0,
             contact_count: 0,
@@ -510,7 +510,8 @@ export async function GET(request: NextRequest) {
             last_name: user.user_metadata?.last_name || '',
             plan: 'no_plan',
             has_had_paid_plan: false,
-            review_notifications_enabled: true
+            review_notifications_enabled: true,
+            created_by: userId,
           })
           .select()
           .single();

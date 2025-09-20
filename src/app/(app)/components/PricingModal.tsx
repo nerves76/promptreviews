@@ -1,4 +1,8 @@
 import React, { useState } from "react";
+import {
+  TrialEligibilityResult,
+  deriveTrialMetadata,
+} from "@/lib/billing/trialEligibility";
 
 const tiers = [
   {
@@ -76,7 +80,6 @@ interface PricingModalProps {
   onSelectTier: (tierKey: string, billingPeriod: 'monthly' | 'annual') => void;
   asModal?: boolean;
   currentPlan?: string;
-  hasHadPaidPlan?: boolean;
   showCanceledMessage?: boolean;
   onClose?: () => void;
   onSignOut?: () => void;
@@ -88,7 +91,7 @@ interface PricingModalProps {
     message?: string;
   };
   isReactivation?: boolean;
-  hadPreviousTrial?: boolean;
+  trialEligibility?: TrialEligibilityResult;
 }
 
 const featureTooltips: Record<string, string> = {
@@ -109,20 +112,23 @@ export default function PricingModal({
   asModal = true,
   currentPlan,
   currentBillingPeriod,
-  hasHadPaidPlan = false,
   showCanceledMessage = false,
   onClose,
   onSignOut,
   isPlanSelectionRequired = false,
   reactivationOffer,
   isReactivation = false,
-  hadPreviousTrial = false,
+  trialEligibility,
 }: PricingModalProps & { currentBillingPeriod?: 'monthly' | 'annual' }) {
   const [tooltip, setTooltip] = useState<string | null>(null);
   const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(
     null,
   );
   const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'annual'>('monthly');
+  const trialMetadata = trialEligibility
+    ? deriveTrialMetadata(trialEligibility)
+    : { hasConsumedTrial: false, blockedByActivePlan: false };
+  const growerTrialEligible = trialEligibility?.eligible ?? false;
   
   const wrapperClass = asModal
     ? "fixed inset-0 z-50 flex items-start justify-center bg-black bg-opacity-80 overflow-y-auto py-8"
@@ -247,7 +253,8 @@ export default function PricingModal({
                 }}
               >
                 {/* Free trial banner for Grower plan */}
-                {isGrower && !hasHadPaidPlan && !hadPreviousTrial && 
+                {isGrower &&
+                 growerTrialEligible &&
                  (!currentPlan || currentPlan === "grower" || currentPlan === "free" || currentPlan === "none" || currentPlan === "no_plan") && (
                   <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-yellow-400 to-yellow-500 text-slate-blue font-bold px-4 py-1 rounded-full text-sm shadow-lg z-10 whitespace-nowrap">
                     14-DAY FREE TRIAL
@@ -312,8 +319,8 @@ export default function PricingModal({
                     if (
                       isGrower &&
                       f.toLowerCase().includes("free trial") &&
-                      (hasHadPaidPlan ||
-                        hadPreviousTrial ||
+                      (!growerTrialEligible ||
+                        trialMetadata.hasConsumedTrial ||
                         (currentPlan &&
                           currentPlan !== "grower" &&
                           currentPlan !== "free" &&
@@ -385,8 +392,7 @@ export default function PricingModal({
                   style={{ minHeight: 20 }}
                 >
                   {tier.key === "grower" &&
-                    !hasHadPaidPlan &&
-                    !hadPreviousTrial &&
+                    growerTrialEligible &&
                     "*No credit card necessary"}
                 </div>
               </div>

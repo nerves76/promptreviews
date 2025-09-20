@@ -22,6 +22,11 @@ export default function TrialBanner({
   const [isVisible, setIsVisible] = useState(true);
   const [trialEnd, setTrialEnd] = useState<Date | null>(propTrialEnd || null);
   const [plan, setPlan] = useState<string>(propPlan || "");
+  const [hasMounted, setHasMounted] = useState(false);
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
 
   // Use accountData if provided, otherwise use props
   useEffect(() => {
@@ -77,8 +82,14 @@ export default function TrialBanner({
 
   // Check if banner should be shown (memoized to prevent excessive calculations)
   const shouldShow = useMemo(() => {
+    if (!hasMounted) {
+      return false;
+    }
+
     // Check if user dismissed the banner
-    const hideBanner = sessionStorage.getItem('hideTrialBanner');
+    const hideBanner = typeof sessionStorage !== 'undefined'
+      ? sessionStorage.getItem('hideTrialBanner')
+      : null;
     
     if (hideBanner === 'true') {
       return false;
@@ -121,11 +132,13 @@ export default function TrialBanner({
     }
 
     return false;
-  }, [accountData, plan, trialEnd]);
+  }, [hasMounted, accountData, plan, trialEnd]);
 
   const handleDismiss = () => {
     setIsVisible(false);
-    sessionStorage.setItem('hideTrialBanner', 'true');
+    if (typeof sessionStorage !== 'undefined') {
+      sessionStorage.setItem('hideTrialBanner', 'true');
+    }
   };
 
   if (!isVisible || !shouldShow) {

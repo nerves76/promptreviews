@@ -20,7 +20,7 @@ This document summarizes all security improvements made in response to Reddit fe
   - Business/location deletion
   - Widget creation and updates
 - Added security headers to middleware
-- Created SameSite cookie configuration
+- Created SameSite cookie configuration for supporting cookies (Supabase continues managing primary auth tokens)
 
 #### Files Modified:
 - `/src/middleware.ts` - Added security headers
