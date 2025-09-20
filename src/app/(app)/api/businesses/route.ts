@@ -178,9 +178,19 @@ export async function POST(request: NextRequest) {
       .select('account_id')
       .in('account_id', userAccounts?.map(ua => ua.account_id) || []);
 
-    // If user has accounts with businesses and no specific account is selected,
-    // create a new additional account instead of using the default one
-    const shouldCreateNewAccount = existingBusinesses && existingBusinesses.length > 0 && !accountId;
+    // If user has accounts with businesses, check if the selected account already has a business
+    let shouldCreateNewAccount = false;
+    if (existingBusinesses && existingBusinesses.length > 0) {
+      // If an account is selected, check if it already has a business
+      if (accountId) {
+        const accountHasBusiness = existingBusinesses.some(b => b.account_id === accountId);
+        // If selected account has a business, we should create a new account
+        shouldCreateNewAccount = accountHasBusiness;
+      } else {
+        // No account selected but user has businesses - create new account
+        shouldCreateNewAccount = true;
+      }
+    }
 
     if (shouldCreateNewAccount) {
       console.log('[BUSINESSES] User has existing businesses, creating new additional account');
