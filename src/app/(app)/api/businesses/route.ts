@@ -167,6 +167,72 @@ export async function POST(request: NextRequest) {
 
     const supabase = createServiceRoleClient();
     
+    // Check if user already has accounts with businesses
+    const { data: userAccounts } = await supabase
+      .from('account_users')
+      .select('account_id')
+      .eq('user_id', user.id);
+
+    const { data: existingBusinesses } = await supabase
+      .from('businesses')
+      .select('account_id')
+      .in('account_id', userAccounts?.map(ua => ua.account_id) || []);
+
+    // If user has accounts with businesses and no specific account is selected,
+    // create a new additional account instead of using the default one
+    const shouldCreateNewAccount = existingBusinesses && existingBusinesses.length > 0 && !accountId;
+
+    if (shouldCreateNewAccount) {
+      console.log('[BUSINESSES] User has existing businesses, creating new additional account');
+
+      // Create a new additional account for this business
+      const { data: newAccount, error: createError } = await supabase
+        .from('accounts')
+        .insert({
+          email: user.email || businessData.business_email,
+          first_name: user.user_metadata?.first_name || businessData.first_name || '',
+          last_name: user.user_metadata?.last_name || businessData.last_name || '',
+          business_name: name,
+          plan: 'no_plan',
+          is_free_account: false,
+          is_additional_account: true,
+          trial_start: null,
+          trial_end: null,
+          custom_prompt_page_count: 0,
+          contact_count: 0,
+          review_notifications_enabled: true,
+          business_creation_complete: false, // Will be set to true after business creation
+          created_by: user.id,
+        })
+        .select('id')
+        .single();
+
+      if (createError) {
+        console.error('[BUSINESSES] Failed to create additional account:', createError);
+        return NextResponse.json(
+          { error: "Failed to create additional account", details: createError.message },
+          { status: 500 }
+        );
+      }
+
+      accountId = newAccount.id;
+
+      // Link user to the new account as owner
+      const { error: linkError } = await supabase
+        .from('account_users')
+        .insert({
+          account_id: accountId,
+          user_id: user.id,
+          role: 'owner',
+        });
+
+      if (linkError && linkError.code !== '23505') {
+        console.error('[BUSINESSES] Failed to link user to new account:', linkError);
+      }
+
+      console.log('[BUSINESSES] Created new additional account:', accountId);
+    }
+
     // If no accountId, check if account exists with user.id (created by trigger)
     if (!accountId) {
       console.log('[BUSINESSES] No account found via getRequestAccountId, checking if trigger created one');
@@ -217,7 +283,8 @@ export async function POST(request: NextRequest) {
             review_notifications_enabled: true,
             business_creation_complete: true, // Mark as complete since we're creating business
             created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
+            updated_at: new Date().toISOString(),
+            created_by: user.id,
           })
           .select('id')
           .single();
@@ -352,11 +419,27 @@ export async function POST(request: NextRequest) {
         );
       }
     }
-    
+    // Move account metadata fetch after potential account creation
+    let accountRecord: any = null;
+
     // DEVELOPMENT MODE BYPASS - Use existing account
     let bypassAccountValidation = false;
     if (process.env.NODE_ENV === 'development' && accountId === '12345678-1234-5678-9abc-123456789012') {
       bypassAccountValidation = true;
+    }
+
+    // Fetch account metadata now that we have final accountId
+    if (accountId) {
+      try {
+        const { data: accountRow } = await supabase
+          .from('accounts')
+          .select('is_additional_account, has_had_paid_plan, plan, trial_start, trial_end')
+          .eq('id', accountId)
+          .single();
+        accountRecord = accountRow;
+      } catch (metaError) {
+        console.warn('[BUSINESSES] Failed to fetch account metadata for update context:', metaError);
+      }
     }
 
     // Convert industry string to array if it's a string
@@ -509,10 +592,22 @@ export async function POST(request: NextRequest) {
 
 
     // 🔧 CRITICAL FIX: Update accounts.business_name, promotion_code, and business_creation_complete flag
+    // Only update business_name if this is not a newly created additional account
     const accountUpdates: any = {
-      business_name: name,
       business_creation_complete: true  // Mark that business creation is complete
     };
+
+    // Only update business_name if we didn't just create this as a new additional account
+    if (!shouldCreateNewAccount) {
+      accountUpdates.business_name = name;
+    }
+
+    if (accountRecord?.is_additional_account) {
+      accountUpdates.is_additional_account = true;
+      accountUpdates.plan = 'no_plan';
+      accountUpdates.trial_start = null;
+      accountUpdates.trial_end = null;
+    }
 
     // Add promotion code if provided
     if (businessData.promotion_code) {

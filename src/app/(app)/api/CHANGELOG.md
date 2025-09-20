@@ -1,5 +1,13 @@
 # API Changelog
 
+## [2025-09-20]
+### Fixed - Business Creation Flow
+- **Fixed business creation incorrectly updating existing accounts:**
+  - When user has existing businesses and creates a new one, system now creates a new additional account
+  - New additional accounts properly set `is_additional_account = true` flag
+  - Prevents renaming of user's default account when trying to create new business
+  - Properly returns new account ID to frontend for account switching
+
 ## [2025-09-03]
 ### Fixed - Loading States Standardization
 - **Standardized all loading components:**

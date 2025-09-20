@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient, createServiceRoleClient } from "@/auth/providers/supabase";
+import { createServiceRoleClient, createServerSupabaseClient } from "@/auth/providers/supabase";
 
 export async function POST(req: NextRequest) {
   try {
     // Get the user from the request
-    const supabase = createClient();
+    const supabase = await createServerSupabaseClient();
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
     if (authError || !user) {
@@ -31,13 +31,15 @@ export async function POST(req: NextRequest) {
         email: email,
         business_name: businessName || null,
         plan: 'no_plan',
-        trial_start: new Date().toISOString(),
-        trial_end: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
+        trial_start: null,
+        trial_end: null,
         is_free_account: false,
+        is_additional_account: true,
         business_creation_complete: false, // New account, business not created yet
         custom_prompt_page_count: 0,
         contact_count: 0,
         review_notifications_enabled: true,
+        created_by: user.id,
       })
       .select('id')
       .single();
@@ -58,14 +60,8 @@ export async function POST(req: NextRequest) {
         role: 'owner',
       });
 
-    if (linkError) {
+    if (linkError && linkError.code !== '23505') {
       console.error('Failed to link account to user:', linkError);
-      // Try to clean up the created account
-      await serviceClient
-        .from('accounts')
-        .delete()
-        .eq('id', newAccount.id);
-
       return NextResponse.json({
         error: "Failed to link account to user"
       }, { status: 500 });
@@ -75,6 +71,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: true,
       accountId: newAccount.id,
+      businessName: businessName || '',
       message: "Account created successfully"
     });
 

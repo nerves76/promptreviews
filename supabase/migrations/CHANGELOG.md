@@ -1,5 +1,21 @@
 # Database Migrations Changelog
 
+## [2025-09-20]
+### Migrations Added
+
+#### 20250920125016_simplify_account_user_trigger.sql
+- Simplified ensure_account_user trigger to reduce complexity
+- Removed triple user ID detection logic in favor of simpler approach
+- Prefer created_by field, fall back to auth.uid() only
+
+## [2025-09-18]
+### Migrations Added
+
+#### 20250918090000_add_created_by_to_accounts.sql
+- Added `created_by` column to `accounts` with auditing index and foreign key
+- Backfilled attribution using earliest owner membership
+- Updated auth triggers and `ensure_account_user` to set `created_by`
+
 ## [2025-09-01]
 ### Migrations Added
 

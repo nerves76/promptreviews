@@ -1,8 +1,11 @@
 "use client";
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { createClient } from "@/auth/providers/supabase";
-import PricingModal from "../../components/PricingModal";
 import AppLoader from "@/app/(app)/components/AppLoader";
+import {
+  deriveTrialMetadata,
+  evaluateTrialEligibility,
+} from "@/lib/billing/trialEligibility";
 import { useRouter, useSearchParams } from "next/navigation";
 import { tiers } from "../../components/PricingModal";
 import TopLoaderOverlay from "@/app/(app)/components/TopLoaderOverlay";
@@ -41,7 +44,6 @@ export default function PlanPage() {
   const [downgradeTarget, setDowngradeTarget] = useState<string | null>(null);
   const [downgradeFeatures, setDowngradeFeatures] = useState<string[]>([]);
   const [downgradeProcessing, setDowngradeProcessing] = useState(false);
-  const [hadPreviousTrial, setHadPreviousTrial] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [upgradeTarget, setUpgradeTarget] = useState<string | null>(null);
   const [upgradeFeatures, setUpgradeFeatures] = useState<string[]>([]);
@@ -58,6 +60,14 @@ export default function PlanPage() {
   const successModalShownRef = useRef(false);
   const router = useRouter();
   const searchParams = useSearchParams();
+  const trialEligibility = useMemo(
+    () => evaluateTrialEligibility(account ?? authAccount),
+    [account?.plan, account?.has_had_paid_plan, account?.is_additional_account, authAccount?.plan, authAccount?.has_had_paid_plan, authAccount?.is_additional_account]
+  );
+  const trialMetadata = useMemo(
+    () => deriveTrialMetadata(trialEligibility),
+    [trialEligibility]
+  );
   
   // Confirmation modal state
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -122,15 +132,20 @@ export default function PlanPage() {
         // Mark that we've shown the modal BEFORE setting state to prevent re-runs
         successModalShownRef.current = true;
         
-        // Determine if this is a first payment (from no_plan or expired trial)
+        // Determine if this is a first payment or new additional account
         const isFirstPayment = account && (
-          !account.has_had_paid_plan || 
+          !account.has_had_paid_plan ||
           (account.trial_end && new Date(account.trial_end) < new Date() && !account.stripe_subscription_id)
         );
-        
-        // Set action type from URL or session, considering first payment
+
+        // Check if this is a new additional account (created for multi-business)
+        const isNewAdditionalAccount = account?.is_additional_account && !account?.stripe_subscription_id;
+
+        // Set action type from URL or session, considering first payment and new accounts
         let action = change || savedAction || 'upgrade';
-        if (isFirstPayment && action === 'upgrade') {
+        if (isNewAdditionalAccount) {
+          action = 'new'; // New additional account
+        } else if (isFirstPayment && action === 'upgrade') {
           action = 'first_payment';
         }
         
@@ -190,8 +205,15 @@ export default function PlanPage() {
 
       // Get account ID from auth context
       const accountId = selectedAccountId || authAccount?.id;
+      const isSuccessFlow = success === '1' || (typeof window !== 'undefined' && sessionStorage.getItem('showPlanSuccessModal') === 'true');
       
       if (!accountId) {
+        if (isSuccessFlow) {
+          // Wait for account context to hydrate instead of redirecting and clearing the success UI
+          console.log('[Plan] Awaiting account context before redirect during success flow');
+          setIsLoading(false);
+          return;
+        }
         router.push("/dashboard/create-business");
         return;
       }
@@ -227,7 +249,6 @@ export default function PlanPage() {
       
       // Check if user already had a trial (trial_start exists and is in the past)
       const hadTrial = trialStart && trialStart < now && (accountData?.plan !== 'grower' || isTrialExpired || accountData?.has_had_paid_plan);
-      setHadPreviousTrial(Boolean(hadTrial));
       
       // Stop showing loader immediately - page can render now
       setIsLoading(false);
@@ -1069,7 +1090,9 @@ export default function PlanPage() {
         </div>
         <h2 className="text-2xl font-bold text-gray-900 mb-4">
           {lastAction === "new"
-            ? "Welcome to Prompt Reviews!"
+            ? account?.is_additional_account
+              ? "New Business Account Created!"
+              : "Welcome to Prompt Reviews!"
             : lastAction === "first_payment"
             ? "Payment successful!"
             : lastAction === "upgrade"
@@ -1078,7 +1101,9 @@ export default function PlanPage() {
         </h2>
         <p className="text-gray-600 mb-6">
           {lastAction === "new"
-            ? "Your account has been created and you're ready to start collecting reviews!"
+            ? account?.is_additional_account
+              ? "Your new business account has been created! Select a plan to start collecting reviews for this business."
+              : "Your account has been created and you're ready to start collecting reviews!"
             : lastAction === "first_payment"
             ? "Your payment was successful! You now have full access to all plan features."
             : lastAction === "upgrade"
@@ -1347,8 +1372,10 @@ export default function PlanPage() {
                       // For new users or users with no plan
                       if (isNewUser || !currentPlan || currentPlan === 'no_plan' || currentPlan === 'NULL') {
                         if (tier.key === "grower") {
-                          // If they already had a trial, show regular purchase option
-                          if (hadPreviousTrial) return "Get Started";
+                          // If they already exhausted the trial, show regular purchase option
+                          if (!trialEligibility.eligible || trialMetadata.hasConsumedTrial) {
+                            return "Get Started";
+                          }
                           return "Start Free Trial";
                         }
                         return "Get Started";
