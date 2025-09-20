@@ -618,6 +618,24 @@ const Dashboard = React.memo(function Dashboard() {
         return;
       }
 
+      // Check if this is an additional account (doesn't need pricing modal)
+      const isAdditionalAccount = account?.is_additional_account === true;
+
+      if (isAdditionalAccount) {
+        // For additional accounts, show success message instead of pricing modal
+        console.log('✅ Additional account created successfully');
+        setSuccessMessage('New business account created successfully! You can now start collecting reviews.');
+
+        // Clean up URL and mark as handled
+        if (typeof window !== "undefined") {
+          sessionStorage.setItem('businessCreatedHandled', 'true');
+          const newUrl = window.location.pathname;
+          window.history.replaceState({}, document.title, newUrl);
+        }
+        return;
+      }
+
+      // For primary accounts, continue with pricing modal flow
       // Clear any previous modal dismissal from sessionStorage since user just created business
       if (typeof window !== "undefined") {
         sessionStorage.removeItem('pricingModalDismissed');

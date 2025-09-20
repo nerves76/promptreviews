@@ -48,6 +48,8 @@ export default function CreateBusinessClient() {
   const redirectToDashboard = useCallback(() => {
     // Simple redirect - account switching is handled by SimpleBusinessForm via localStorage
     if (typeof window !== 'undefined') {
+      // Always redirect to dashboard with businessCreated flag
+      // Dashboard will handle whether to show pricing modal or success message
       window.location.replace("/dashboard?businessCreated=1");
     } else {
       centralizedRedirectToDashboard('Business creation completed');
@@ -263,7 +265,9 @@ export default function CreateBusinessClient() {
       sessionStorage.removeItem('pendingAccountId');
     }
 
-    if (typeof window !== 'undefined' && targetAccountId) {
+    // Only force pricing modal for primary accounts, not additional accounts
+    // Additional accounts should show success message on dashboard
+    if (typeof window !== 'undefined' && targetAccountId && accountData && !accountData.is_additional_account) {
       sessionStorage.setItem('forcePricingModalAccountId', targetAccountId);
     }
 
