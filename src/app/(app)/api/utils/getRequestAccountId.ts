@@ -21,6 +21,7 @@ export async function getRequestAccountId(
 ): Promise<string | null> {
   // Check if client specified a selected account
   const selectedAccountHeader = request.headers.get('x-selected-account');
+  console.log('[getRequestAccountId] Header value:', selectedAccountHeader);
   
   if (selectedAccountHeader) {
     // Validate that the user has access to this account

@@ -331,6 +331,8 @@ const SimpleBusinessForm = forwardRef<HTMLFormElement, SimpleBusinessFormProps>(
       };
 
       
+      console.log('[SimpleBusinessForm] Submitting with accountId:', accountId);
+
       const response = await fetch('/api/businesses', {
         method: 'POST',
         headers: {
@@ -339,6 +341,8 @@ const SimpleBusinessForm = forwardRef<HTMLFormElement, SimpleBusinessFormProps>(
         },
         body: JSON.stringify(businessData),
       });
+
+      console.log('[SimpleBusinessForm] Response status:', response.status);
       
 
       if (!response.ok) {

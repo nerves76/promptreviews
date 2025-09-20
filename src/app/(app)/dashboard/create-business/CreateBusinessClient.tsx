@@ -232,8 +232,10 @@ export default function CreateBusinessClient() {
     }
     const pendingAccountId = sessionStorage.getItem('pendingAccountId');
     if (pendingAccountId) {
+      console.log('[CreateBusinessClient] Found pendingAccountId:', pendingAccountId);
       setAccountId(pendingAccountId);
-      sessionStorage.removeItem('pendingAccountId');
+      // DON'T remove pendingAccountId yet - we might need it for form submission
+      // It will be cleared after successful business creation
     }
   }, []);
 
@@ -247,6 +249,11 @@ export default function CreateBusinessClient() {
   const handleBusinessCreated = useCallback(async () => {
     setIsSubmitting(false);
     setIsRedirecting(true);
+
+    // Clear pendingAccountId now that business is created
+    if (typeof window !== 'undefined') {
+      sessionStorage.removeItem('pendingAccountId');
+    }
 
     const targetAccountId = accountId || (typeof window !== 'undefined' ? sessionStorage.getItem('pendingAccountId') : null);
 
