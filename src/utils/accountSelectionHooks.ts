@@ -139,13 +139,13 @@ export function useAccountSelection() {
           is_primary: acc.account_id === primaryAccountId
         }));
         
-        // ALWAYS prefer stored selection if it exists and is valid
-        let selectedAccountId = getStoredAccountSelection(user.id);
-
-        // Validate stored selection exists in available accounts
+        // Check for pending account ID first (from newly created account)
         const pendingSelectionId = typeof window !== 'undefined'
           ? sessionStorage.getItem('pendingAccountId')
           : null;
+
+        // PRIORITY: Pending selection > Stored selection
+        let selectedAccountId = pendingSelectionId || getStoredAccountSelection(user.id);
 
         if (selectedAccountId && accounts.length > 0 && !accounts.find(acc => acc.account_id === selectedAccountId)) {
           if (pendingSelectionId === selectedAccountId) {
@@ -182,7 +182,10 @@ export function useAccountSelection() {
           error: null
         });
 
+        // If we successfully loaded the pending account, store it as the selected account
         if (selectedAccountId && pendingSelectionId === selectedAccountId && accounts.find(acc => acc.account_id === selectedAccountId)) {
+          console.log('[AccountSelection] Pending account found, storing as selected:', pendingSelectionId);
+          setStoredAccountSelection(user.id, pendingSelectionId);
           sessionStorage.removeItem('pendingAccountId');
         }
 

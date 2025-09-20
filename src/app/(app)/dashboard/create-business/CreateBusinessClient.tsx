@@ -250,11 +250,6 @@ export default function CreateBusinessClient() {
     setIsSubmitting(false);
     setIsRedirecting(true);
 
-    // Clear pendingAccountId now that business is created
-    if (typeof window !== 'undefined') {
-      sessionStorage.removeItem('pendingAccountId');
-    }
-
     const targetAccountId = accountId || (typeof window !== 'undefined' ? sessionStorage.getItem('pendingAccountId') : null);
 
     if (typeof window !== 'undefined' && targetAccountId) {

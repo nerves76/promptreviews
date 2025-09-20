@@ -36,6 +36,18 @@ export async function getRequestAccountId(
     if (accountUser) {
       return selectedAccountHeader;
     } else {
+      // Newly created accounts can hit replication lag on account_users; fall back to created_by attribution
+      const { data: accountRecord } = await supabaseAdmin
+        .from('accounts')
+        .select('id, created_by')
+        .eq('id', selectedAccountHeader)
+        .maybeSingle();
+
+      if (accountRecord?.created_by === userId) {
+        console.log(`[API] Allowing access to ${selectedAccountHeader} via created_by fallback for user ${userId}`);
+        return selectedAccountHeader;
+      }
+
       console.warn(`[API] User ${userId} doesn't have access to account ${selectedAccountHeader}, falling back to auto-selection`);
     }
   }
