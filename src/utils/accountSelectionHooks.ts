@@ -186,7 +186,7 @@ export function useAccountSelection() {
         if (selectedAccountId && pendingSelectionId === selectedAccountId && accounts.find(acc => acc.account_id === selectedAccountId)) {
           console.log('[AccountSelection] Pending account found, storing as selected:', pendingSelectionId);
           setStoredAccountSelection(user.id, pendingSelectionId);
-          sessionStorage.removeItem('pendingAccountId');
+          // DON'T remove pendingAccountId here - let create-business page handle it
         }
 
       } catch (error) {

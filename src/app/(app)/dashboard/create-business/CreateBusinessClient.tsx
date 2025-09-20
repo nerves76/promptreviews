@@ -178,6 +178,12 @@ export default function CreateBusinessClient() {
           accountToUse = pendingId || selectedAccountId || account?.id || null;
         }
 
+        // CRITICAL: If we have a pendingId, always use it (for newly created accounts)
+        if (pendingId) {
+          console.log('✅ CreateBusinessClient: Using pending account ID:', pendingId);
+          accountToUse = pendingId;
+        }
+
         setAccountId(accountToUse);
 
         // Fetch account data if we have an accountId

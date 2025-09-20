@@ -139,6 +139,7 @@ export async function POST(request: NextRequest) {
     // The business creation will handle account creation if needed
     const { getRequestAccountId } = await import("@/app/(app)/api/utils/getRequestAccountId");
     let accountId = await getRequestAccountId(request, user.id);
+    console.log('[BUSINESSES] Account ID from request:', accountId);
     
     // If no account exists, we'll create one during business creation
     // This happens for new users creating their first business
