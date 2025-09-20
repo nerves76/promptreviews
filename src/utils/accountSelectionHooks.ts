@@ -186,7 +186,14 @@ export function useAccountSelection() {
         if (selectedAccountId && pendingSelectionId === selectedAccountId && accounts.find(acc => acc.account_id === selectedAccountId)) {
           console.log('[AccountSelection] Pending account found, storing as selected:', pendingSelectionId);
           setStoredAccountSelection(user.id, pendingSelectionId);
-          // DON'T remove pendingAccountId here - let create-business page handle it
+          // Check if we're on the create-business page
+          const isCreateBusinessPage = typeof window !== 'undefined' &&
+            window.location.pathname === '/dashboard/create-business';
+          // Only clear if NOT on create-business page (let that page handle its own cleanup)
+          if (!isCreateBusinessPage) {
+            console.log('[AccountSelection] Clearing pendingAccountId (not on create-business page)');
+            sessionStorage.removeItem('pendingAccountId');
+          }
         }
 
       } catch (error) {

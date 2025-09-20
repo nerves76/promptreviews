@@ -240,8 +240,7 @@ export default function CreateBusinessClient() {
     if (pendingAccountId) {
       console.log('[CreateBusinessClient] Found pendingAccountId:', pendingAccountId);
       setAccountId(pendingAccountId);
-      // DON'T remove pendingAccountId yet - we might need it for form submission
-      // It will be cleared after successful business creation
+      // Will be cleared after successful business creation
     }
   }, []);
 
@@ -257,6 +256,12 @@ export default function CreateBusinessClient() {
     setIsRedirecting(true);
 
     const targetAccountId = accountId || (typeof window !== 'undefined' ? sessionStorage.getItem('pendingAccountId') : null);
+
+    // CRITICAL: Clear pendingAccountId now that we've used it
+    if (typeof window !== 'undefined') {
+      console.log('[CreateBusinessClient] Clearing pendingAccountId after successful use');
+      sessionStorage.removeItem('pendingAccountId');
+    }
 
     if (typeof window !== 'undefined' && targetAccountId) {
       sessionStorage.setItem('forcePricingModalAccountId', targetAccountId);
