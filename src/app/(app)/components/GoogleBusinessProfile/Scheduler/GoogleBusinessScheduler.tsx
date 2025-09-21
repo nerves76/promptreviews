@@ -396,7 +396,7 @@ export default function GoogleBusinessScheduler({
   return (
     <div className="space-y-6">
       <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
-        <div className="md:flex md:items-start md:justify-between mb-6">
+        <div className="space-y-3 mb-6">
           <div>
             <span className="block text-xs uppercase tracking-wide text-gray-500 mb-1">Step 3</span>
             <h2 className="text-xl font-semibold text-gray-900">Choose What to Schedule</h2>
@@ -404,30 +404,53 @@ export default function GoogleBusinessScheduler({
               Create a one-time post or upload photos to publish with tomorrow&apos;s batch. You can revisit and edit anything in the queue.
             </p>
           </div>
-          <div className="mt-4 md:mt-0 flex items-center space-x-2">
-            <button
-              onClick={() => {
-                setMode('post');
-                setSubmissionResult(null);
-              }}
-              className={`px-3 py-2 text-sm font-medium rounded-md border transition-colors ${
-                mode === 'post' ? 'bg-slate-600 text-white border-slate-600 shadow-sm' : 'border-gray-300 text-gray-700 hover:bg-gray-50'
-              }`}
-            >
-              <Icon name="FaPen" className="w-3 h-3 mr-2 inline" /> Post
-            </button>
-            <button
-              onClick={() => {
-                setMode('photo');
-                setSubmissionResult(null);
-              }}
-              className={`px-3 py-2 text-sm font-medium rounded-md border transition-colors ${
-                mode === 'photo' ? 'bg-slate-600 text-white border-slate-600 shadow-sm' : 'border-gray-300 text-gray-700 hover:bg-gray-50'
-              }`}
-            >
-              <Icon name="FaCamera" className="w-3 h-3 mr-2 inline" /> Photo Upload
-            </button>
-          </div>
+          <fieldset className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+            <legend className="sr-only">Content type</legend>
+            <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-6">
+              <label className={`flex items-center gap-3 rounded-md border px-3 py-2 cursor-pointer transition-colors ${
+                mode === 'post'
+                  ? 'border-slate-500 bg-white shadow-sm'
+                  : 'border-transparent bg-transparent hover:bg-white'
+              }`}>
+                <input
+                  type="radio"
+                  name="gbp-schedule-mode"
+                  value="post"
+                  checked={mode === 'post'}
+                  onChange={() => {
+                    setMode('post');
+                    setSubmissionResult(null);
+                  }}
+                  className="h-4 w-4 text-slate-600 focus:ring-slate-500"
+                />
+                <div>
+                  <p className="font-medium text-sm text-gray-900">Schedule a Post</p>
+                  <p className="text-xs text-gray-600">Publishes a Google Business update with optional media and CTA.</p>
+                </div>
+              </label>
+              <label className={`flex items-center gap-3 rounded-md border px-3 py-2 cursor-pointer transition-colors ${
+                mode === 'photo'
+                  ? 'border-slate-500 bg-white shadow-sm'
+                  : 'border-transparent bg-transparent hover:bg-white'
+              }`}>
+                <input
+                  type="radio"
+                  name="gbp-schedule-mode"
+                  value="photo"
+                  checked={mode === 'photo'}
+                  onChange={() => {
+                    setMode('photo');
+                    setSubmissionResult(null);
+                  }}
+                  className="h-4 w-4 text-slate-600 focus:ring-slate-500"
+                />
+                <div>
+                  <p className="font-medium text-sm text-gray-900">Upload Photos</p>
+                  <p className="text-xs text-gray-600">Adds media to each selected location&apos;s gallery with an optional caption.</p>
+                </div>
+              </label>
+            </div>
+          </fieldset>
         </div>
 
         {submissionResult && (
@@ -487,18 +510,18 @@ export default function GoogleBusinessScheduler({
           </div>
 
           {mode === 'post' ? (
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Post Content</label>
-                <textarea
-                  value={postContent}
-                  onChange={(event) => setPostContent(event.target.value)}
-                  rows={4}
-                  className="w-full rounded-md border-gray-300 focus:border-slate-500 focus:ring-slate-500"
-                  placeholder="Share your update..."
-                />
-                <p className="mt-1 text-xs text-gray-500">Google Business posts support up to 1,500 characters.</p>
-              </div>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Post Content</label>
+              <textarea
+                value={postContent}
+                onChange={(event) => setPostContent(event.target.value)}
+                rows={4}
+                className="w-full rounded-md border-gray-300 focus:border-slate-500 focus:ring-slate-500"
+                placeholder="Share your update..."
+              />
+              <p className="mt-1 text-xs text-gray-500">Google Business posts support up to 1,500 characters.</p>
+            </div>
 
               <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
                 <div className="flex items-center justify-between">
