@@ -7,6 +7,7 @@ import React from "react";
 const supabase = createClient();
 // Removed useAuthGuard - authentication is handled by dashboard layout with AuthContext
 import Icon from "@/components/Icon";
+import GlassSuccessModal from "@/app/(app)/components/GlassSuccessModal";
 import QRCodeModal from "../components/QRCodeModal";
 import QuoteDisplay from "../components/QuoteDisplay";
 import GettingStarted from "../components/GettingStarted";
@@ -725,73 +726,73 @@ const DashboardContent = React.memo(function DashboardContent({
 
           {/* Success Modal for Payment Confirmation */}
           {showSuccessModal && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-              <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full text-center relative">
-                <button
-                  onClick={handleCloseSuccessModal || (() => setShowSuccessModal(false))}
-                  className="absolute -top-3 -right-3 bg-white border border-gray-200 rounded-full shadow-lg hover:shadow-xl transition-shadow duration-200 flex items-center justify-center hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 z-50"
-                  style={{ width: 48, height: 48 }}
-                  aria-label="Close modal"
-                >
-                  <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-                {paymentChangeType === "downgrade" || paymentChangeType === "billing_update" ? (
-                  <>
-                    <h2 className="text-2xl font-bold mb-4 text-gray-800 relative z-10">
-                      {paymentChangeType === "billing_update" ? "Billing Updated" : "Plan Updated"}
-                    </h2>
-                    <p className="mb-6 text-lg text-gray-700 relative z-10">
-                      {paymentChangeType === "billing_update" 
-                        ? "Your billing settings have been updated successfully. Any changes to your subscription are now active."
-                        : `Your plan has been updated to ${
-                            account?.plan
-                              ? account.plan.charAt(0).toUpperCase() + account.plan.slice(1)
-                              : "your new plan"
-                          }.`
-                      }
-                    </p>
-                                         <button
-                       onClick={handleCloseSuccessModal || (() => setShowSuccessModal(false))}
-                       className="bg-gray-600 text-white px-6 py-2 rounded hover:bg-gray-700 font-semibold mt-2 relative z-10"
-                     >
-                       Continue
-                     </button>
-                  </>
-                ) : (
-                  <>
-                    {/* Crompty Image */}
-                    <div className="mb-3 flex justify-center">
-                      <img
-                        src="https://ltneloufqjktdplodvao.supabase.co/storage/v1/object/public/logos/prompt-assets/small-prompty-success.png"
-                        alt="Crompty Success"
-                        className="w-24 h-24 object-contain"
-                      />
-                    </div>
-                    <h2 className="text-2xl font-bold mb-4 text-slate-blue relative z-10">
-                      It's official!
-                    </h2>
-                    <p className="mb-6 text-lg text-gray-700 font-semibold relative z-10">
-                      You're a{" "}
-                      {account?.plan
-                        ? account.plan.charAt(0).toUpperCase() +
-                          account.plan.slice(1)
-                        : "Member"}
-                      .<br />
-                      Now let's get some amazing reviews and boost your online
-                      presence!
-                    </p>
-                    <button
-                      onClick={handleCloseSuccessModal || (() => setShowSuccessModal(false))}
-                      className="bg-slate-blue text-white px-6 py-2 rounded hover:bg-slate-blue/90 font-semibold mt-2 relative z-10"
-                    >
-                      Let's do this!
-                    </button>
-                  </>
-                )}
-              </div>
-            </div>
+            <GlassSuccessModal
+              isOpen={showSuccessModal}
+              onClose={handleCloseSuccessModal || (() => setShowSuccessModal(false))}
+              title={
+                paymentChangeType === "billing_update"
+                  ? "Billing Updated"
+                  : paymentChangeType === "new_additional_account"
+                  ? "New Account Created!"
+                  : paymentChangeType === "downgrade"
+                  ? "Plan Updated"
+                  : "It's official!"
+              }
+              message={
+                paymentChangeType === "billing_update"
+                  ? "Your billing settings have been updated successfully."
+                  : paymentChangeType === "new_additional_account"
+                  ? "Your new account is live and ready to customize."
+                  : paymentChangeType === "downgrade"
+                  ? account?.plan
+                    ? `Your plan is now set to ${account.plan.charAt(0).toUpperCase()}${account.plan.slice(1)}.`
+                    : "Your plan has been updated."
+                  : "You're officially onboard. Time to make review magic happen."
+              }
+              detail={
+                paymentChangeType === "billing_update"
+                  ? "Any changes to your subscription are active immediately."
+                  : paymentChangeType === "new_additional_account"
+                  ? undefined
+                  : paymentChangeType === "downgrade"
+                  ? "Feel free to explore the updated features—we've saved your settings."
+                  : "Invite teammates, share your review links, and let's grow this thing."
+              }
+              primaryAction={{
+                label:
+                  paymentChangeType === "new_additional_account"
+                    ? "Got it"
+                    : paymentChangeType === "downgrade"
+                    ? "Continue"
+                    : "Let's do this",
+                onClick: handleCloseSuccessModal || (() => setShowSuccessModal(false)),
+                iconName:
+                  paymentChangeType === "new_additional_account"
+                    ? "FaCheck"
+                    : paymentChangeType === "billing_update"
+                    ? "FaCheck"
+                    : "FaArrowRight",
+              }}
+              secondaryAction={
+                paymentChangeType === "billing_update"
+                  ? {
+                      label: "View billing",
+                      onClick: () => {
+                        (handleCloseSuccessModal || (() => setShowSuccessModal(false)))();
+                        window.location.href = "/dashboard/plan";
+                      },
+                      iconName: "FaReceipt",
+                    }
+                  : undefined
+              }
+              iconName={
+                paymentChangeType === "new_additional_account"
+                  ? "FaStar"
+                  : paymentChangeType === "billing_update"
+                  ? "FaFileInvoiceDollar"
+                  : "FaRegSmile"
+              }
+            />
           )}
 
           {/* Delete Confirmation Modal */}

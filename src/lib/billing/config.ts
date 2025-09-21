@@ -139,11 +139,13 @@ export const PORTAL_CONFIG = {
  */
 export const BILLING_URLS = {
   APP_URL: requiredEnvVars.NEXT_PUBLIC_APP_URL!,
-  PORTAL_RETURN_URL: optionalEnvVars.NEXT_PUBLIC_PORTAL_RETURN_URL || 
-    `${requiredEnvVars.NEXT_PUBLIC_APP_URL}/dashboard/plan?success=1&change=billing_period`,
+  PORTAL_RETURN_URL: optionalEnvVars.NEXT_PUBLIC_PORTAL_RETURN_URL ||
+    `${requiredEnvVars.NEXT_PUBLIC_APP_URL}/dashboard?success=1&change=billing_period`,
   // Include session_id in success URL so we can finalize checkout locally without webhooks
-  SUCCESS_URL: (changeType: string, plan: string, billing?: string) => 
-    `${requiredEnvVars.NEXT_PUBLIC_APP_URL}/dashboard/plan?success=1&change=${changeType}&plan=${plan}${billing ? `&billing=${billing}` : ''}&session_id={CHECKOUT_SESSION_ID}`,
+  SUCCESS_URL: (changeType: string, plan: string, billing?: string) => {
+    const additionalSuffix = changeType === 'new_additional_account' ? '&additional=1' : '';
+    return `${requiredEnvVars.NEXT_PUBLIC_APP_URL}/dashboard?success=1&change=${changeType}&plan=${plan}${billing ? `&billing=${billing}` : ''}${additionalSuffix}&session_id={CHECKOUT_SESSION_ID}`;
+  },
   CANCEL_URL: `${requiredEnvVars.NEXT_PUBLIC_APP_URL}/dashboard?canceled=1`,
 };
 

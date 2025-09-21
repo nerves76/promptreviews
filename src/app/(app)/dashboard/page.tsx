@@ -19,6 +19,7 @@ import { evaluateTrialEligibility } from "@/lib/billing/trialEligibility";
 import FiveStarSpinner from "../components/FiveStarSpinner";
 import PageCard from "../components/PageCard";
 import StandardLoader from "@/app/(app)/components/StandardLoader";
+import GlassSuccessModal from "@/app/(app)/components/GlassSuccessModal";
 import TopLoaderOverlay from "../components/TopLoaderOverlay";
 import { Button } from "@/app/(app)/components/ui/button";
 import Link from "next/link";
@@ -92,6 +93,8 @@ const Dashboard = React.memo(function Dashboard() {
   const [justCanceledStripe, setJustCanceledStripe] = useState(false);
   const [planSelectionRequired, setPlanSelectionRequired] = useState(false);
   const [paymentChangeType, setPaymentChangeType] = useState<string | null>(null);
+  const [pendingChangeType, setPendingChangeType] = useState<string | null>(null);
+  const [showLinkedAccountOverlay, setShowLinkedAccountOverlay] = useState(false);
   const [justCompletedPayment, setJustCompletedPayment] = useState(false);
   const [lastAccountUpdate, setLastAccountUpdate] = useState<Date | null>(null);
   const [isPendingPricingModal, setIsPendingPricingModal] = useState(false);
@@ -481,10 +484,73 @@ const Dashboard = React.memo(function Dashboard() {
     }
   }, [planSelectionRequired, showPricingModal]);
 
+  // Track if we've processed the success params already
+  const [successProcessed, setSuccessProcessed] = useState(false);
+
   // Handle URL parameters and celebrations
   useEffect(() => {
+    console.log("🔄 URL params useEffect triggered");
+    console.log("  - window defined?", typeof window !== "undefined");
+    console.log("  - successProcessed?", successProcessed);
+    console.log("  - accountLoading?", accountLoading);
+    console.log("  - Current URL:", typeof window !== "undefined" ? window.location.href : "N/A");
+
     if (typeof window === "undefined") return;
+
     const params = new URLSearchParams(window.location.search);
+    const hasSuccessParams = params.get("success") || params.get("session_id");
+    console.log("  - hasSuccessParams?", hasSuccessParams);
+    console.log("  - session_id:", params.get("session_id"));
+
+    const additionalParam = params.get("additional");
+    const inferredAdditional = additionalParam === "1";
+
+    if (!successProcessed && inferredAdditional && !hasSuccessParams) {
+      console.log("🎯 Fallback success detected from additional=1 param only");
+
+      setSuccessProcessed(true);
+      setPendingChangeType("new_additional_account");
+      setShowLinkedAccountOverlay(true);
+
+      if (modalTimeoutRef.current) {
+        clearTimeout(modalTimeoutRef.current);
+        modalTimeoutRef.current = null;
+      }
+
+      setShowPricingModal(false);
+      setPlanSelectionRequired(false);
+      setJustCompletedPayment(true);
+      if (typeof window !== "undefined") {
+        sessionStorage.removeItem('pricingModalDismissed');
+      }
+
+      console.log("🌟 SHOWING SUCCESS MODAL FROM additional=1 fallback");
+      setShowStarfallCelebration(true);
+      setShowSuccessModal(true);
+
+      clearSuccessParams({ keepAdditional: true });
+
+      return;
+    }
+
+    if (successProcessed) {
+      console.log("  ✋ Already processed success, skipping");
+      return; // Don't process twice
+    }
+
+    // For success params, we can process immediately - don't need to wait for account
+    // The account will be updated by the webhook anyway
+    if (!hasSuccessParams) {
+      // For other params that depend on account, wait for it to load
+      if (accountLoading) {
+        const hasOtherParams = params.get("portal_return") || params.get("reactivation") ||
+                               params.get("canceled") || params.get("businessCreated");
+        if (hasOtherParams) {
+          console.log("⏳ Waiting for account to load before processing non-success URL params");
+          return;
+        }
+      }
+    }
     
     
     // Handle return from Stripe Customer Portal
@@ -535,31 +601,97 @@ const Dashboard = React.memo(function Dashboard() {
       return;
     }
     
-    // Handle successful Stripe payment
-    if (params.get("success") === "1") {
-      const changeType = params.get("change");
-      const planName = params.get("plan");
-      
-      setPaymentChangeType(changeType);
-      
+    // Handle successful Stripe payment (with fallback for missing success param)
+    const hasSuccessParam = params.get("success") === "1";
+    const hasSessionId = params.get("session_id");
+    const changeType = params.get("change");
+    const planName = params.get("plan");
+    // FALLBACK: If we have a session_id but no success param, it's likely Stripe stripped params
+    // This happens when returning from checkout with a completed payment
+    if (hasSuccessParam || (hasSessionId && !params.get("canceled"))) {
+      // Mark as processed so we don't run this again
+      setSuccessProcessed(true);
+
+      // If we don't have change type but have session_id, assume it's a new signup
+      let actualChangeType = changeType || (hasSessionId ? "new" : null);
+      console.log("🎉 Payment success detected!");
+      console.log("  - hasSuccessParam:", hasSuccessParam);
+      console.log("  - hasSessionId:", hasSessionId);
+      console.log("  - changeType:", changeType);
+      console.log("  - actualChangeType:", actualChangeType);
+      console.log("  - planName:", planName);
+      console.log("  - additionalParam:", additionalParam);
+
+      if (hasSessionId && !hasSuccessParam) {
+        console.warn("⚠️ Stripe checkout completed but success param missing. Session ID:", hasSessionId);
+        console.log("📊 Inferring successful payment from session_id presence");
+      }
+
+      if (inferredAdditional && actualChangeType === "new") {
+        actualChangeType = "new_additional_account";
+      }
+
+      setPendingChangeType(actualChangeType);
+      if (actualChangeType === "new_additional_account") {
+        setShowLinkedAccountOverlay(true);
+      } else if (typeof window !== "undefined" && actualChangeType) {
+        sessionStorage.setItem('planSuccessAction', actualChangeType);
+        sessionStorage.setItem('showPlanSuccessModal', 'true');
+      }
+
       // Clear any pending modal timeout to prevent it from re-showing
       if (modalTimeoutRef.current) {
         clearTimeout(modalTimeoutRef.current);
         modalTimeoutRef.current = null;
       }
-      
+
       // Close pricing modal and refresh account data after successful payment
       setShowPricingModal(false);
       setPlanSelectionRequired(false);
       setJustCompletedPayment(true);
-      
+
       // Clear any dismissal flags since user now has a valid plan
       if (typeof window !== "undefined") {
         sessionStorage.removeItem('pricingModalDismissed');
       }
-      
-      // Refresh account data to get updated plan
+
+      // Show celebration for upgrades and new signups IMMEDIATELY
+      // Don't wait for account refresh - the user has paid, show success!
+      console.log("🎊 Checking if should show celebration...");
+      console.log("  - actualChangeType:", actualChangeType);
+      console.log("  - hasSessionId:", hasSessionId);
+      console.log("  - changeType:", changeType);
+      console.log(
+        "  - Will show celebration?",
+        actualChangeType === "upgrade" ||
+          actualChangeType === "new" ||
+          actualChangeType === "new_additional_account" ||
+          (hasSessionId && !changeType)
+      );
+
+      if (
+        actualChangeType === "upgrade" ||
+        actualChangeType === "new" ||
+        actualChangeType === "new_additional_account" ||
+        (hasSessionId && !changeType)
+      ) {
+        console.log("🌟 SHOWING STARFALL AND SUCCESS MODAL!");
+        console.log("  - Current showSuccessModal state:", showSuccessModal);
+        console.log("  - Current showStarfallCelebration state:", showStarfallCelebration);
+
+        setShowStarfallCelebration(true);
+        setShowSuccessModal(true);
+        console.log("✅ Both modals set to true immediately");
+      } else if (actualChangeType === "downgrade") {
+        console.log("📉 Showing downgrade success modal");
+        setTimeout(() => setShowSuccessModal(true), 500);
+      } else {
+        console.log("❌ Not showing any modal - actualChangeType:", actualChangeType);
+      }
+
+      // Refresh account data to get updated plan (but don't block the celebration)
       if (user?.id) {
+        console.log("🔄 Refreshing account data for user:", user.id);
         refreshAccount().then(() => {
           // Track when account was updated
           setLastAccountUpdate(new Date());
@@ -570,23 +702,15 @@ const Dashboard = React.memo(function Dashboard() {
           // Reset the flag even if refresh fails
           setTimeout(() => setJustCompletedPayment(false), 10000);
         });
+      } else {
+        console.log("⚠️ No user ID available for account refresh");
+        // Still reset the flag after a delay
+        setTimeout(() => setJustCompletedPayment(false), 10000);
       }
-      
-      // Show celebration for upgrades and new signups
-      if (changeType === "upgrade" || changeType === "new") {
-        setShowStarfallCelebration(true);
-        setTimeout(() => setShowSuccessModal(true), 1000);
-      } else if (changeType === "downgrade") {
-        setTimeout(() => setShowSuccessModal(true), 500);
-      }
-      
-      // Clean up the URL
-      params.delete("success");
-      params.delete("change");
-      params.delete("plan");
-      const newUrl = window.location.pathname + (params.toString() ? `?${params.toString()}` : "");
-      window.history.replaceState({}, document.title, newUrl);
-      
+
+      // Clean up the URL but keep the additional flag until the overlay is dismissed
+      clearSuccessParams({ keepAdditional: actualChangeType === "new_additional_account" });
+
       return;
     }
     
@@ -624,7 +748,10 @@ const Dashboard = React.memo(function Dashboard() {
       if (isAdditionalAccount) {
         // For additional accounts, show success message instead of pricing modal
         console.log('✅ Additional account created successfully');
-        setSuccessMessage('New business account created successfully! You can now start collecting reviews.');
+
+        // Show success modal with appropriate message
+        setShowSuccessModal(true);
+        setPaymentChangeType("new_additional_account");
 
         // Clean up URL and mark as handled
         if (typeof window !== "undefined") {
@@ -745,7 +872,40 @@ const Dashboard = React.memo(function Dashboard() {
       
       return;
     }
-  }, []);
+  }, [accountLoading, successProcessed, user, refreshAccount]); // Re-run when loading state changes
+
+  useEffect(() => {
+    if (!pendingChangeType) {
+      return;
+    }
+
+    if (pendingChangeType === "new_additional_account") {
+      if (paymentChangeType !== "new_additional_account") {
+        setPaymentChangeType("new_additional_account");
+      }
+      return;
+    }
+
+    const isAdditionalAccount = account?.is_additional_account === true;
+
+    if (pendingChangeType === "new" && isAdditionalAccount) {
+      if (paymentChangeType !== "new_additional_account") {
+        setPaymentChangeType("new_additional_account");
+      }
+      return;
+    }
+
+    if (paymentChangeType !== pendingChangeType) {
+      setPaymentChangeType(pendingChangeType);
+    }
+  }, [pendingChangeType, account?.is_additional_account, paymentChangeType]);
+
+  useEffect(() => {
+    if (showLinkedAccountOverlay && account && businessData?.hasBusinesses) {
+      setShowLinkedAccountOverlay(false);
+      // Keep URL params intact until overlay is manually dismissed
+    }
+  }, [showLinkedAccountOverlay, account, businessData?.hasBusinesses]);
 
   // Get URL search params
   const searchParams = useSearchParams();
@@ -834,6 +994,57 @@ const Dashboard = React.memo(function Dashboard() {
     };
   }, []);
 
+  const clearSuccessParams = useCallback((options?: { keepAdditional?: boolean }) => {
+    if (typeof window === "undefined") return;
+
+    const params = new URLSearchParams(window.location.search);
+    params.delete("success");
+    params.delete("change");
+    params.delete("plan");
+    params.delete("session_id");
+    params.delete("billing");
+    if (!options?.keepAdditional) {
+      params.delete("additional");
+    }
+
+    const newUrl = window.location.pathname + (params.toString() ? `?${params.toString()}` : "");
+    window.history.replaceState({}, document.title, newUrl);
+  }, []);
+
+  const handleCloseSuccessModal = () => {
+    clearSuccessParams();
+    setShowSuccessModal(false);
+    setPaymentChangeType(null);
+    setPendingChangeType(null);
+    setSuccessProcessed(false);
+    setShowLinkedAccountOverlay(false);
+  };
+
+  const showFallbackNewAccountModal =
+    showLinkedAccountOverlay ||
+    ((showSuccessModal || successProcessed) &&
+      paymentChangeType === "new_additional_account" &&
+      (!dashboardData || !businessData?.hasBusinesses || !account));
+
+  const forceSuccessView = showSuccessModal || successProcessed;
+
+  if (showFallbackNewAccountModal) {
+    return (
+      <GlassSuccessModal
+        isOpen={true}
+        title="New Account Created!"
+        message="We’re switching you to your new account."
+        detail="Give us a moment to load your setup screen. We’ll redirect you automatically once everything is ready."
+        onClose={handleCloseSuccessModal}
+        primaryAction={{
+          label: "Sounds good",
+          onClick: handleCloseSuccessModal,
+          iconName: "FaCheck",
+        }}
+      />
+    );
+  }
+
   // Early returns for loading and error states
   if (authLoading) {
     return <StandardLoader isLoading={true} />;
@@ -843,7 +1054,7 @@ const Dashboard = React.memo(function Dashboard() {
     return <StandardLoader isLoading={true} />; // Auth guard will handle redirect
   }
 
-  if (error) {
+  if (error && !forceSuccessView) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600">
         <div className="text-center bg-white/10 backdrop-blur-md rounded-lg p-8">
@@ -860,22 +1071,27 @@ const Dashboard = React.memo(function Dashboard() {
     );
   }
 
+  // Check if we have success parameters in the URL
+  const urlParams = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
+  const hasSuccessParams = urlParams && (urlParams.get("success") === "1" || urlParams.get("session_id"));
+
   // Show loading screen while essential data loads to prevent dashboard flash
   // This prevents briefly showing dashboard before redirect to create-business
   // Also show loading when pricing modal is pending after business creation
   // Note: We only check businessesLoading, not !businessData, because businessData can be null while loading
-  if (!account || businessesLoading || isPendingPricingModal) {
+  // EXCEPTION: If we have success parameters, we need to show the dashboard to display the success modal
+
+  if ((!account || businessesLoading || isPendingPricingModal) && !hasSuccessParams && !forceSuccessView) {
     return <StandardLoader isLoading={true} />;
   }
 
   // Early business check to prevent dashboard flash before BusinessGuard redirect
   // Only apply if not coming from business creation or other exempt flows
-  if (businessData && !businessData.hasBusinesses) {
-    const urlParams = new URLSearchParams(window.location.search);
-    const businessJustCreated = urlParams.get("businessCreated") === "1";
-    const businessCreationInProgress = typeof window !== "undefined" ? 
+  if (businessData && !businessData.hasBusinesses && !hasSuccessParams && !forceSuccessView) {
+    const businessJustCreated = urlParams?.get("businessCreated") === "1";
+    const businessCreationInProgress = typeof window !== "undefined" ?
       sessionStorage.getItem('businessCreationInProgress') === 'true' : false;
-    
+
     // If no business and not in an exempt flow, show loading while BusinessGuard redirects
     if (!businessJustCreated && !businessCreationInProgress) {
       return <StandardLoader isLoading={true} />;
@@ -975,6 +1191,7 @@ const Dashboard = React.memo(function Dashboard() {
         userId: account.id,
         email: user?.email,
         billingPeriod: billingPeriod,
+        isAdditionalAccount: account?.is_additional_account === true,
       };
       
       
@@ -1042,11 +1259,6 @@ const Dashboard = React.memo(function Dashboard() {
   const handleClosePostSaveModal = () => {
     setShowPostSaveModal(false);
     setSavedPromptPageUrl(null);
-  };
-
-  const handleCloseSuccessModal = () => {
-    setShowSuccessModal(false);
-    setPaymentChangeType(null);
   };
 
   const handleSignOut = async () => {

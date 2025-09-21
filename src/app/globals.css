@@ -215,6 +215,37 @@ body:has(.fixed.inset-0) {
     -webkit-backdrop-filter: blur(40px);
     backdrop-filter: blur(40px);
   }
+
+  /* Toast animations */
+  @keyframes slideInUp {
+    from {
+      transform: translateY(100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  @keyframes slideOutDown {
+    from {
+      transform: translateY(0);
+      opacity: 1;
+    }
+    to {
+      transform: translateY(100%);
+      opacity: 0;
+    }
+  }
+
+  .animate-slideInUp {
+    animation: slideInUp 0.3s ease-out;
+  }
+
+  .animate-slideOutDown {
+    animation: slideOutDown 0.3s ease-out forwards;
+  }
 }
 
 .animate-slideup {

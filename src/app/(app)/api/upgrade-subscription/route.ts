@@ -14,8 +14,24 @@ import { logPlanChange } from "@/lib/billing/audit";
 const stripe = createStripeClient();
 
 export async function POST(req: NextRequest) {
+  const { requireValidOrigin } = await import('@/lib/csrf-protection');
+  const csrfError = requireValidOrigin(req);
+  if (csrfError) return csrfError;
+
   try {
-    const { plan, userId, currentPlan, billingPeriod = 'monthly' }: { plan: string; userId: string; currentPlan: string; billingPeriod?: 'monthly' | 'annual' } = await req.json();
+    const {
+      plan,
+      userId,
+      currentPlan,
+      billingPeriod = 'monthly',
+      successPath,
+    }: {
+      plan: string;
+      userId: string;
+      currentPlan: string;
+      billingPeriod?: 'monthly' | 'annual';
+      successPath?: string;
+    } = await req.json();
     
     if (!plan || !isValidPlan(plan)) {
       return NextResponse.json({ error: "Invalid plan" }, { status: 400 });
@@ -135,7 +151,23 @@ export async function POST(req: NextRequest) {
     const changeType = currentPlan ? getPlanChangeType(currentPlan, plan) : 'new';
     const finalChangeType = changeType === 'same' ? 'billing_period' : changeType;
     
-    const redirectUrl = BILLING_URLS.SUCCESS_URL(finalChangeType, plan, billingPeriod);
+    const resolvePath = (candidate?: string | null, fallback = '/dashboard') => {
+      if (!candidate || typeof candidate !== 'string') return fallback;
+      const trimmed = candidate.trim();
+      if (!trimmed.startsWith('/')) return fallback;
+      if (trimmed.startsWith('//')) return fallback;
+      return trimmed;
+    };
+
+    const appUrl = BILLING_URLS.APP_URL;
+    const basePath = resolvePath(successPath, '/dashboard');
+    const [pathOnly, existingQuery] = basePath.split('?');
+    const params = new URLSearchParams(existingQuery || '');
+    params.set('success', '1');
+    params.set('change', finalChangeType);
+    params.set('plan', plan);
+    params.set('billing', billingPeriod);
+    const redirectUrl = `${appUrl}${pathOnly}?${params.toString()}`;
     
     
     return NextResponse.json({ 

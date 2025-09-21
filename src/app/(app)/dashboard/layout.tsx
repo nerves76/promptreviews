@@ -110,12 +110,13 @@ export default function DashboardLayout({
     }
 
     if (isInitialized && account) {
+      // REMOVED: Check for is_additional_account - all accounts need their own plan now
       const hasNoPlan = !account.plan || account.plan === 'no_plan' || account.plan === 'NULL';
 
       const isAllowedPath =
         pathname === '/dashboard' ||
-        pathname === '/dashboard/plan' ||
         pathname.startsWith('/dashboard/create-business');
+      // REMOVED: /dashboard/plan from allowed paths - we shouldn't redirect there
 
       if (hasNoPlan && !isAllowedPath) {
         router.push('/dashboard/create-business');

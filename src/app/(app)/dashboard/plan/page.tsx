@@ -2,6 +2,7 @@
 import { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { createClient } from "@/auth/providers/supabase";
 import AppLoader from "@/app/(app)/components/AppLoader";
+import GlassSuccessModal from "@/app/(app)/components/GlassSuccessModal";
 import {
   deriveTrialMetadata,
   evaluateTrialEligibility,
@@ -144,7 +145,7 @@ export default function PlanPage() {
         // Set action type from URL or session, considering first payment and new accounts
         let action = change || savedAction || 'upgrade';
         if (isNewAdditionalAccount) {
-          action = 'new'; // New additional account
+          action = 'new_additional_account'; // New linked account
         } else if (isFirstPayment && action === 'upgrade') {
           action = 'first_payment';
         }
@@ -360,13 +361,14 @@ export default function PlanPage() {
               const res = await fetch("/api/upgrade-subscription", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  plan: tierKey,
-                  userId: account.id,
-                  currentPlan: currentPlan,
-                  billingPeriod: billing,
-                }),
-              });
+                  body: JSON.stringify({
+                    plan: tierKey,
+                    userId: account.id,
+                    currentPlan: currentPlan,
+                    billingPeriod: billing,
+                    successPath: '/dashboard/plan',
+                  }),
+                });
               
               if (res.ok) {
                 // Redirect to success page
@@ -449,6 +451,9 @@ export default function PlanPage() {
                 billingPeriod: billing,
                 userId: account.id,
                 isReactivation: isReactivation,
+                isAdditionalAccount: account.is_additional_account === true,
+                successPath: '/dashboard/plan',
+                cancelPath: '/dashboard/plan',
               }),
             });
             
@@ -509,13 +514,14 @@ export default function PlanPage() {
                   const res = await fetch("/api/upgrade-subscription", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                      plan: tierKey,
-                      userId: account.id,
-                      currentPlan: currentPlan,
-                      billingPeriod: billing,
-                    }),
-                  });
+                  body: JSON.stringify({
+                    plan: tierKey,
+                    userId: account.id,
+                    currentPlan: currentPlan,
+                    billingPeriod: billing,
+                    successPath: '/dashboard/plan',
+                  }),
+                });
                   
                   if (res.ok) {
                     const data = await res.json();
@@ -608,6 +614,9 @@ export default function PlanPage() {
               email: user.email,
               billingPeriod: billing,
               isReactivation: isReactivation,
+              isAdditionalAccount: account.is_additional_account === true,
+              successPath: '/dashboard/plan',
+              cancelPath: '/dashboard/plan',
             }),
           });
           
@@ -659,13 +668,16 @@ export default function PlanPage() {
                 const res = await fetch("/api/create-checkout-session", {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({
-                    priceId: getPriceId(tierKey, billing),
-                    plan: tierKey,
-                    billingPeriod: billing,
-                    userId: account.id,
-                  }),
-                });
+                body: JSON.stringify({
+                  priceId: getPriceId(tierKey, billing),
+                  plan: tierKey,
+                  billingPeriod: billing,
+                  userId: account.id,
+                  isAdditionalAccount: account.is_additional_account === true,
+                  successPath: '/dashboard/plan',
+                  cancelPath: '/dashboard/plan',
+                }),
+              });
                 
                 if (res.ok) {
                   const data = await res.json();
@@ -795,13 +807,14 @@ export default function PlanPage() {
                 const res = await fetch("/api/upgrade-subscription", {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({
-                    plan: downgradeTarget,
-                    userId: account.id,
-                    currentPlan: currentPlan,
-                    billingPeriod: billingPeriod,
-                  }),
-                });
+                body: JSON.stringify({
+                  plan: downgradeTarget,
+                  userId: account.id,
+                  currentPlan: currentPlan,
+                  billingPeriod: billingPeriod,
+                  successPath: '/dashboard/plan',
+                }),
+              });
                 
                 if (res.ok) {
                   const data = await res.json();
@@ -892,13 +905,14 @@ export default function PlanPage() {
                 const res = await fetch("/api/upgrade-subscription", {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({
-                    plan: downgradeTarget,
-                    userId: account.id,
-                    currentPlan: currentPlan,
-                    billingPeriod: billingPeriod,
-                  }),
-                });
+                body: JSON.stringify({
+                  plan: downgradeTarget,
+                  userId: account.id,
+                  currentPlan: currentPlan,
+                  billingPeriod: billingPeriod,
+                  successPath: '/dashboard/plan',
+                }),
+              });
                 
                 if (res.ok) {
                   const data = await res.json();
@@ -964,16 +978,17 @@ export default function PlanPage() {
         
         if (hasStripeCustomer) {
           // Existing customer - use upgrade API
-          const res = await fetch("/api/upgrade-subscription", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              plan: upgradeTarget,
-              userId: account.id,
-              currentPlan: currentPlan,
-              billingPeriod: billingPeriod,
-            }),
-          });
+        const res = await fetch("/api/upgrade-subscription", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            plan: upgradeTarget,
+            userId: account.id,
+            currentPlan: currentPlan,
+            billingPeriod: billingPeriod,
+            successPath: '/dashboard/plan',
+          }),
+        });
           
           if (res.ok) {
           const data = await res.json();
@@ -1001,6 +1016,9 @@ export default function PlanPage() {
                 userId: account.id,
                 email: user.email,
                 billingPeriod: billingPeriod,
+                isAdditionalAccount: account.is_additional_account === true,
+                successPath: '/dashboard/plan',
+                cancelPath: '/dashboard/plan',
               }),
             });
             
@@ -1027,6 +1045,9 @@ export default function PlanPage() {
             userId: account.id,
             email: user.email,
             billingPeriod: billingPeriod,
+            isAdditionalAccount: account.is_additional_account === true,
+            successPath: '/dashboard/plan',
+            cancelPath: '/dashboard/plan',
           }),
         });
         
@@ -1059,85 +1080,38 @@ export default function PlanPage() {
   const isOwner = userRole === 'owner';
   const canManageBilling = isOwner;
 
-  // Render success modal even when loading to prevent it from disappearing
-  const successModalElement = showSuccessModal ? (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 animate-fadeIn">
-      <div className="bg-white rounded-lg p-8 max-w-md mx-4 text-center relative animate-scaleIn">
-        {/* Standardized close button - breaching corner */}
-        <button
-          onClick={() => {
-            sessionStorage.removeItem('showPlanSuccessModal');
-            sessionStorage.removeItem('planSuccessAction');
-            successModalShownRef.current = false;
-            setShowSuccessModal(false);
-            setStarAnimation(false); // Also hide star animation
-          }}
-          className="absolute -top-3 -right-3 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-shadow duration-200 z-10"
-          aria-label="Close modal"
-        >
-          <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
-        
-        {/* Crompty Image */}
-        <div className="mb-6 flex justify-center">
-          <img
-            src="https://ltneloufqjktdplodvao.supabase.co/storage/v1/object/public/logos/prompt-assets/small-prompty-success.png"
-            alt="Crompty Success"
-            className="w-24 h-24 object-contain"
-          />
-        </div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-4">
-          {lastAction === "new"
-            ? account?.is_additional_account
-              ? "New Business Account Created!"
-              : "Welcome to Prompt Reviews!"
-            : lastAction === "first_payment"
-            ? "Payment successful!"
-            : lastAction === "upgrade"
-            ? "Plan upgraded successfully!"
-            : "Plan updated successfully!"}
-        </h2>
-        <p className="text-gray-600 mb-6">
-          {lastAction === "new"
-            ? account?.is_additional_account
-              ? "Your new business account has been created! Select a plan to start collecting reviews for this business."
-              : "Your account has been created and you're ready to start collecting reviews!"
-            : lastAction === "first_payment"
-            ? "Your payment was successful! You now have full access to all plan features."
-            : lastAction === "upgrade"
-            ? "You now have access to all the features in your new plan. Any unused time from your previous subscription has been automatically credited to your account."
-            : "Your plan has been updated successfully. Proration has been automatically applied to your account."}
-        </p>
-        <button
-          onClick={() => {
-            setShowSuccessModal(false);
-            successModalShownRef.current = false;
-            sessionStorage.removeItem('showPlanSuccessModal');
-            sessionStorage.removeItem('planSuccessAction');
-            setStarAnimation(false); // Also hide star animation
-            router.push("/dashboard");
-          }}
-          className="bg-slate-blue text-white px-6 py-2 rounded-lg hover:bg-slate-blue/90 transition-colors"
-        >
-          Continue to Dashboard
-        </button>
-      </div>
-    </div>
-  ) : null;
+  const handleSuccessModalClose = useCallback(() => {
+    setShowSuccessModal(false);
+    successModalShownRef.current = false;
+    sessionStorage.removeItem('showPlanSuccessModal');
+    sessionStorage.removeItem('planSuccessAction');
+    setStarAnimation(false);
+    router.push("/dashboard");
+  }, [router]);
 
-  // Show success modal immediately if it should be shown
-  if (showSuccessModal) {
-    return (
-      <>
-        <div className="min-h-screen bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600 flex flex-col items-center justify-center">
-          {/* Background gradient */}
-        </div>
-        {successModalElement}
-      </>
-    );
-  }
+  const successTitle =
+    lastAction === "new" || lastAction === "new_additional_account"
+      ? account?.is_additional_account || lastAction === "new_additional_account"
+        ? "New Business Account Created!"
+        : "Welcome to Prompt Reviews!"
+      : lastAction === "first_payment"
+      ? "Payment successful!"
+      : lastAction === "upgrade"
+      ? "Plan upgraded successfully!"
+      : "Plan updated successfully!";
+
+  const successMessage =
+    lastAction === "new" || lastAction === "new_additional_account"
+      ? account?.is_additional_account || lastAction === "new_additional_account"
+        ? "Your new business account is ready. Select a plan to start collecting reviews."
+        : "Your account is live and ready to bring in more reviews!"
+      : lastAction === "first_payment"
+      ? "You now have full access to every feature in your plan."
+      : lastAction === "upgrade"
+      ? "All the features from your new plan are ready—unused time from your previous plan has been credited."
+      : "Your plan has been updated. Proration has already been applied to your account.";
+
+  const successIcon = "FaStar";
 
   if (isLoading) {
     return (
@@ -1149,7 +1123,7 @@ export default function PlanPage() {
 
   return (
     <>
-      <div className="min-h-screen text-white flex flex-col">
+      <div className="min-h-screen bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600 text-white flex flex-col">
         {/* Header */}
         <div className="max-w-6xl mx-auto w-full px-6 pt-12">
               <div className="text-center mb-12">
@@ -1191,36 +1165,6 @@ export default function PlanPage() {
               </div>
             )}
             
-            {/* Manual sync button for development */}
-            {process.env.NODE_ENV === 'development' && account && (
-              <div className="mt-4">
-                <button
-                  onClick={async () => {
-                    try {
-                      const res = await fetch('/api/manual-sync-subscription', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ userId: account.id })
-                      });
-                      const data = await res.json();
-                      if (res.ok) {
-                        alert('Subscription synced! Refreshing page...');
-                        window.location.reload();
-                      } else {
-                        console.error('Sync failed:', data);
-                        alert('Sync failed: ' + (data.error || 'Unknown error'));
-                      }
-                    } catch (err) {
-                      console.error('Sync error:', err);
-                      alert('Failed to sync: ' + err);
-                    }
-                  }}
-                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
-                >
-                  🔄 Sync Subscription (Dev Only)
-                </button>
-              </div>
-            )}
           </div>
         </div>
         
@@ -1407,12 +1351,24 @@ export default function PlanPage() {
               </div>
             ))}
           </div>
-        </div>
+      </div>
+      
+      {showSuccessModal && (
+        <GlassSuccessModal
+          isOpen={true}
+          title={successTitle}
+          message={successMessage}
+          onClose={handleSuccessModalClose}
+          primaryAction={{
+            label: "Continue to Dashboard",
+            onClick: handleSuccessModalClose,
+            iconName: "FaArrowRight",
+          }}
+          iconName={successIcon}
+        />
+      )}
 
-        {/* Success Modal is rendered at the top level to prevent unmounting */}
-        {successModalElement}
-
-        {/* Downgrade Confirmation Modal */}
+      {/* Downgrade Confirmation Modal */}
         {showDowngradeModal && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg p-8 max-w-md mx-4 relative">

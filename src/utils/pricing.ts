@@ -46,6 +46,10 @@ export function evaluatePricingRequirement(input: PricingInput): PricingDecision
     };
   }
 
+  // CRITICAL FIX: Additional accounts MUST have their own plan
+  // Each account needs its own subscription - this prevents unlimited free accounts
+  // Removed the check that was allowing additional accounts to bypass payment
+
   if (subscriptionStatus === 'active') {
     return {
       requiresPayment: false,

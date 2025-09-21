@@ -32,20 +32,26 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
     }
 
-    const { 
-      plan, 
-      userId, 
-      email, 
+    const {
+      plan,
+      userId,
+      email,
       billingPeriod = 'monthly',
       isReactivation = false,
-      reactivationOffer = null
-    }: { 
-      plan: string; 
-      userId: string; 
-      email?: string; 
+      reactivationOffer = null,
+      isAdditionalAccount: isAdditionalAccountOverride = undefined,
+      successPath,
+      cancelPath,
+    }: {
+      plan: string;
+      userId: string;
+      email?: string;
       billingPeriod?: 'monthly' | 'annual';
       isReactivation?: boolean;
       reactivationOffer?: any;
+      isAdditionalAccount?: boolean;
+      successPath?: string;
+      cancelPath?: string;
     } = requestBody;
     
     // Validate required fields
@@ -91,7 +97,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Failed to fetch account data" }, { status: 500 });
     }
 
-    const { stripe_customer_id, plan: currentPlan, email: accountEmail } = accountData;
+    const {
+      stripe_customer_id,
+      plan: currentPlan,
+      email: accountEmail,
+      is_additional_account: accountIsAdditional,
+    } = accountData;
     const userEmail = accountEmail || email;
     
     if (!userEmail) {
@@ -103,11 +114,20 @@ export async function POST(req: NextRequest) {
     if (currentPlan === "grower" && plan !== "grower") {
     }
 
-    // Determine change type
-    const changeType = currentPlan ? getPlanChangeType(currentPlan, plan) : 'new';
+    // Determine change type - properly detect new accounts vs upgrades
+    const isAdditionalAccount =
+      accountIsAdditional === true || isAdditionalAccountOverride === true;
+
+    let changeType = (!currentPlan || currentPlan === 'no_plan')
+      ? 'new'
+      : getPlanChangeType(currentPlan, plan);
+
+    if (changeType === 'new' && isAdditionalAccount) {
+      changeType = 'new_additional_account';
+    }
 
     // Create checkout session
-    
+
     // Check if existing customer ID is valid in current Stripe mode
     let validCustomerId = null;
     if (stripe_customer_id) {
@@ -117,7 +137,7 @@ export async function POST(req: NextRequest) {
       } catch (customerError: any) {
       }
     }
-    
+
     // If no valid Stripe customer exists yet, create one now and persist it
     if (!validCustomerId) {
       try {
@@ -134,7 +154,7 @@ export async function POST(req: NextRequest) {
         console.error('❌ Failed to create Stripe customer:', customerError);
       }
     }
-    
+
     // Debug configuration
     const priceId = getPriceId(plan, billingPeriod);
     if (!priceId) {
@@ -144,17 +164,62 @@ export async function POST(req: NextRequest) {
     // Check if user already had a trial
     const trialEvaluation = evaluateTrialEligibility(accountData);
     const trialMeta = deriveTrialMetadata(trialEvaluation);
-    
+
     const hadPreviousTrial = trialMeta.hasConsumedTrial;
-    
+
     // Configure session - add trial period only for grower plan if user hasn't had a trial
     const shouldGetTrial =
       plan === 'grower' &&
       trialEvaluation.eligible &&
       (!currentPlan || currentPlan === 'no_plan');
-    
-    const successUrl = `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/plan?success=1&change=upgrade&plan=${plan}&billing=${billingPeriod}&session_id={CHECKOUT_SESSION_ID}`;
-    const cancelUrl = `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/plan?canceled=1&plan=${plan}&billing=${billingPeriod}`;
+
+    const resolvePath = (candidate: string | undefined | null, fallback: string) => {
+      if (!candidate || typeof candidate !== "string") return fallback;
+      const trimmed = candidate.trim();
+      if (!trimmed.startsWith("/")) return fallback;
+      if (trimmed.startsWith("//")) return fallback;
+      return trimmed;
+    };
+
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+    const baseSuccessPath = resolvePath(successPath, "/dashboard");
+    const baseCancelPath = resolvePath(cancelPath, "/dashboard");
+
+    const parseBasePath = (path: string) => {
+      const [pathOnly, existingQuery] = path.split("?");
+      return {
+        pathOnly,
+        params: new URLSearchParams(existingQuery || ""),
+      };
+    };
+
+    const successBase = parseBasePath(baseSuccessPath);
+    successBase.params.set("success", "1");
+    if (changeType) {
+      successBase.params.set("change", changeType);
+    }
+    successBase.params.set("plan", plan);
+    if (billingPeriod) {
+      successBase.params.set("billing", billingPeriod);
+    }
+    if (isAdditionalAccount) {
+      successBase.params.set("additional", "1");
+    }
+
+    const successQuery = successBase.params.toString();
+    const successUrl = `${appUrl}${successBase.pathOnly}?${successQuery}${successQuery ? "&" : ""}session_id={CHECKOUT_SESSION_ID}`;
+
+    const cancelBase = parseBasePath(baseCancelPath);
+    cancelBase.params.set("canceled", "1");
+    cancelBase.params.set("plan", plan);
+    if (billingPeriod) {
+      cancelBase.params.set("billing", billingPeriod);
+    }
+    const cancelQuery = cancelBase.params.toString();
+    const cancelUrl = `${appUrl}${cancelBase.pathOnly}?${cancelQuery}`;
+
+    console.log('🔗 Checkout success URL:', successUrl);
+    console.log('📊 Change type:', changeType, 'Plan:', plan);
 
     let sessionConfig: any = {
       payment_method_types: ["card" as const],
@@ -166,6 +231,7 @@ export async function POST(req: NextRequest) {
         billingPeriod,
         userEmail: userEmail || "",
         changeType,
+        isAdditionalAccount: isAdditionalAccount ? 'true' : 'false',
         isReactivation: isReactivation ? 'true' : 'false',
         hadPreviousTrial: hadPreviousTrial ? 'true' : 'false'
       },
