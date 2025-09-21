@@ -417,7 +417,6 @@ export default function GoogleBusinessScheduler({
 
         <div className="grid gap-6">
           <div>
-            <span className="block text-xs uppercase tracking-wide text-gray-500 mb-1">Step 1</span>
             <label className="block text-sm font-medium text-gray-700 mb-2">Choose Locations</label>
             <LocationPicker
               mode="multi"
@@ -432,7 +431,6 @@ export default function GoogleBusinessScheduler({
           </div>
 
           <div>
-            <span className="block text-xs uppercase tracking-wide text-gray-500 mb-1">Step 2</span>
             <label className="block text-sm font-medium text-gray-700 mb-2">Schedule Date &amp; Timezone</label>
             <div className="flex flex-col md:flex-row md:space-x-3 space-y-3 md:space-y-0">
               <input
@@ -460,7 +458,7 @@ export default function GoogleBusinessScheduler({
           </div>
 
           <fieldset className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-            <legend className="block text-xs uppercase tracking-wide text-gray-500 mb-2">Step 3 · Content Type</legend>
+            <legend className="sr-only">Content Type</legend>
             <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-6">
               <label className={`flex items-center gap-3 rounded-md border px-3 py-2 cursor-pointer transition-colors ${
                 mode === 'post'
