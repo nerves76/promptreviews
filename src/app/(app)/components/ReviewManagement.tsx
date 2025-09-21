@@ -50,7 +50,10 @@ const STAR_RATINGS = {
 };
 
 export default function ReviewManagement({ locations, isConnected }: ReviewManagementProps) {
-  const [selectedLocation, setSelectedLocation] = useState<string>('');
+  // Auto-select single location
+  const [selectedLocation, setSelectedLocation] = useState<string>(() => {
+    return locations.length === 1 ? locations[0].id : '';
+  });
   const [isLocationDropdownOpen, setIsLocationDropdownOpen] = useState(false);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [isLoadingReviews, setIsLoadingReviews] = useState(false);
@@ -375,37 +378,53 @@ export default function ReviewManagement({ locations, isConnected }: ReviewManag
     <div className="space-y-6">
       {/* Location Selection */}
       <div className="bg-white rounded-lg border border-gray-200 p-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Select Business Location</h3>
-        
-        <div className="relative">
-          <button
-            onClick={() => setIsLocationDropdownOpen(!isLocationDropdownOpen)}
-            className="w-full text-left bg-white border border-gray-300 rounded-md px-3 py-2 flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-slate-blue"
-          >
-            <span className="truncate">
-              {selectedLocationData ? selectedLocationData.name : 'Select a location...'}
-            </span>
-            <Icon name="FaChevronDown" className={`w-4 h-4 transition-transform ${isLocationDropdownOpen ? 'rotate-180' : ''}`} size={16} />
-          </button>
+        <h3 className="text-lg font-medium text-gray-900 mb-4">
+          {locations.length === 1 ? 'Google Business Profile' : 'Select Business Location'}
+        </h3>
 
-          {isLocationDropdownOpen && (
-            <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
-              {locations.map((location) => (
-                <button
-                  key={location.id}
-                  onClick={() => {
-                    setSelectedLocation(location.id);
-                    setIsLocationDropdownOpen(false);
-                  }}
-                  className="w-full text-left px-3 py-2 hover:bg-gray-50 focus:bg-gray-50 focus:outline-none"
-                >
-                  <div className="font-medium text-gray-900">{location.name}</div>
-                  <div className="text-sm text-gray-600">{location.address}</div>
-                </button>
-              ))}
+        {locations.length === 1 ? (
+          // Single location - show as static text
+          <div className="px-4 py-3 border border-gray-200 rounded-md bg-gray-50">
+            <div className="flex items-center space-x-2">
+              <Icon name="FaGoogle" className="w-4 h-4 text-gray-600" size={16} />
+              <div>
+                <div className="font-medium text-gray-900">{locations[0].name}</div>
+                <div className="text-sm text-gray-600">{locations[0].address}</div>
+              </div>
             </div>
-          )}
-        </div>
+          </div>
+        ) : (
+          // Multiple locations - show dropdown
+          <div className="relative">
+            <button
+              onClick={() => setIsLocationDropdownOpen(!isLocationDropdownOpen)}
+              className="w-full text-left bg-white border border-gray-300 rounded-md px-3 py-2 flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-slate-blue"
+            >
+              <span className="truncate">
+                {selectedLocationData ? selectedLocationData.name : 'Select a location...'}
+              </span>
+              <Icon name="FaChevronDown" className={`w-4 h-4 transition-transform ${isLocationDropdownOpen ? 'rotate-180' : ''}`} size={16} />
+            </button>
+
+            {isLocationDropdownOpen && (
+              <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
+                {locations.map((location) => (
+                  <button
+                    key={location.id}
+                    onClick={() => {
+                      setSelectedLocation(location.id);
+                      setIsLocationDropdownOpen(false);
+                    }}
+                    className="w-full text-left px-3 py-2 hover:bg-gray-50 focus:bg-gray-50 focus:outline-none"
+                  >
+                    <div className="font-medium text-gray-900">{location.name}</div>
+                    <div className="text-sm text-gray-600">{location.address}</div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Error Display */}

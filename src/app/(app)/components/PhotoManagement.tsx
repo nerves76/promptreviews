@@ -5,7 +5,7 @@
 
 'use client';
 
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import Icon from '@/components/Icon';
 import { createClient } from '@/auth/providers/supabase';
 import LoadPhotosButton from '@/app/(app)/components/photos/LoadPhotosButton';
@@ -95,7 +95,10 @@ const photoCategories: PhotoCategory[] = [
 export default function PhotoManagement({ locations, isConnected }: PhotoManagementProps) {
   const [selectedCategory, setSelectedCategory] = useState<string>('cover');
   const [uploadedPhotos, setUploadedPhotos] = useState<UploadedPhoto[]>([]);
-  const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
+  // Auto-select single location
+  const [selectedLocations, setSelectedLocations] = useState<string[]>(() => {
+    return locations.length === 1 ? [locations[0].id] : [];
+  });
   const [isLocationDropdownOpen, setIsLocationDropdownOpen] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<UploadProgress[]>([]);
@@ -112,6 +115,13 @@ export default function PhotoManagement({ locations, isConnected }: PhotoManagem
 
   const currentCategory = photoCategories.find(cat => cat.id === selectedCategory);
   const categoryPhotos = uploadedPhotos.filter(photo => photo.category === selectedCategory);
+
+  // Auto-select single location when locations change
+  useEffect(() => {
+    if (locations.length === 1 && selectedLocations.length === 0) {
+      setSelectedLocations([locations[0].id]);
+    }
+  }, [locations]);
 
   // Handle location selection
   const handleLocationToggle = (locationId: string) => {
@@ -339,74 +349,85 @@ export default function PhotoManagement({ locations, isConnected }: PhotoManagem
           <span>Select Locations to Upload To</span>
         </h3>
         
-        <div className="relative">
-          <button
-            onClick={() => setIsLocationDropdownOpen(!isLocationDropdownOpen)}
-            className="w-full flex items-center justify-between p-3 border border-gray-300 rounded-lg bg-white hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent"
-          >
+        {locations.length === 1 ? (
+          // Single location - show as static text
+          <div className="px-4 py-3 border border-gray-200 rounded-md bg-gray-50">
             <div className="flex items-center space-x-2">
-                              <Icon name="FaMapMarker" className="w-4 h-4 text-gray-500" size={16} />
-              <span className="text-gray-700">
-                {selectedLocations.length === 0 
-                  ? 'Select locations to upload to...'
-                  : selectedLocations.length === locations.length
-                  ? `All locations selected (${locations.length})`
-                  : `${selectedLocations.length} location${selectedLocations.length !== 1 ? 's' : ''} selected`
-                }
-              </span>
+              <Icon name="FaGoogle" className="w-4 h-4 text-gray-600" size={16} />
+              <span className="text-gray-800 font-medium">{locations[0].name}</span>
             </div>
-                          {isLocationDropdownOpen ? (
+          </div>
+        ) : (
+          // Multiple locations - show dropdown
+          <div className="relative">
+            <button
+              onClick={() => setIsLocationDropdownOpen(!isLocationDropdownOpen)}
+              className="w-full flex items-center justify-between p-3 border border-gray-300 rounded-lg bg-white hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent"
+            >
+              <div className="flex items-center space-x-2">
+                <Icon name="FaMapMarker" className="w-4 h-4 text-gray-500" size={16} />
+                <span className="text-gray-700">
+                  {selectedLocations.length === 0
+                    ? 'Select locations to upload to...'
+                    : selectedLocations.length === locations.length
+                    ? `All locations selected (${locations.length})`
+                    : `${selectedLocations.length} location${selectedLocations.length !== 1 ? 's' : ''} selected`
+                  }
+                </span>
+              </div>
+              {isLocationDropdownOpen ? (
                 <Icon name="FaChevronUp" className="w-4 h-4 text-gray-500" size={16} />
               ) : (
                 <Icon name="FaChevronDown" className="w-4 h-4 text-gray-500" size={16} />
               )}
-          </button>
+            </button>
 
-          {isLocationDropdownOpen && (
-            <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
-              <div className="p-2 border-b border-gray-200">
-                <div className="flex space-x-2">
-                  <button
-                    onClick={selectAllLocations}
-                    className="text-sm text-slate-600 hover:text-slate-800"
-                  >
-                    Select All
-                  </button>
-                  <span className="text-gray-300">|</span>
-                  <button
-                    onClick={clearLocationSelection}
-                    className="text-sm text-slate-600 hover:text-slate-800"
-                  >
-                    Clear All
-                  </button>
+            {isLocationDropdownOpen && (
+              <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
+                <div className="p-2 border-b border-gray-200">
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={selectAllLocations}
+                      className="text-sm text-slate-600 hover:text-slate-800"
+                    >
+                      Select All
+                    </button>
+                    <span className="text-gray-300">|</span>
+                    <button
+                      onClick={clearLocationSelection}
+                      className="text-sm text-slate-600 hover:text-slate-800"
+                    >
+                      Clear All
+                    </button>
+                  </div>
+                </div>
+
+                <div className="max-h-48 overflow-y-auto">
+                  {locations.map((location) => (
+                    <div key={location.id} className="p-2 hover:bg-gray-50">
+                      <label className="flex items-center space-x-3 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={selectedLocations.includes(location.id)}
+                          onChange={() => handleLocationToggle(location.id)}
+                          className="rounded border-gray-300 text-slate-blue focus:ring-slate-blue"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium text-gray-900 truncate">
+                            {location.name}
+                          </div>
+                          <div className="text-sm text-gray-500 truncate">
+                            {location.address}
+                          </div>
+                        </div>
+                      </label>
+                    </div>
+                  ))}
                 </div>
               </div>
-              
-              <div className="max-h-48 overflow-y-auto">
-                {locations.map((location) => (
-                  <div key={location.id} className="p-2 hover:bg-gray-50">
-                    <label className="flex items-center space-x-3 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={selectedLocations.includes(location.id)}
-                        onChange={() => handleLocationToggle(location.id)}
-                        className="rounded border-gray-300 text-slate-blue focus:ring-slate-blue"
-                      />
-                      <div className="flex-1 min-w-0">
-                        <div className="font-medium text-gray-900 truncate">
-                          {location.name}
-                        </div>
-                        <div className="text-sm text-gray-500 truncate">
-                          {location.address}
-                        </div>
-                      </div>
-                    </label>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Load Existing Photos */}

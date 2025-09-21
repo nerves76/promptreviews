@@ -44,7 +44,10 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
   const formStorageKey = accountId ? `businessInfoEditorForm_${accountId}` : 'businessInfoEditorForm_noacct';
   const selectedLocationsKey = accountId ? `business-info-selected-locations_${accountId}` : 'business-info-selected-locations_noacct';
   
-  const [selectedLocationIds, setSelectedLocationIds] = useState<string[]>([]);
+  // Auto-select single location
+  const [selectedLocationIds, setSelectedLocationIds] = useState<string[]>(() => {
+    return locations.length === 1 ? [locations[0].id] : [];
+  });
   const [isLocationDropdownOpen, setIsLocationDropdownOpen] = useState(false);
   const [businessInfo, setBusinessInfo] = useState<BusinessInfo>(() => {
     // Try to restore from localStorage first
@@ -102,8 +105,13 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
     };
   }, []);
 
-  // Note: Removed auto-selection to allow users to uncheck all locations
-  
+  // Auto-select single location when locations change
+  useEffect(() => {
+    if (locations.length === 1 && selectedLocationIds.length === 0) {
+      setSelectedLocationIds([locations[0].id]);
+    }
+  }, [locations]);
+
   // Debug: Track selectedLocationIds changes
   useEffect(() => {
     // Persist selection to localStorage to survive component remounts
@@ -500,71 +508,87 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
         <label className="block text-sm font-medium text-gray-700 mb-2">
           Select Locations to Update
         </label>
-        
-        {/* Multi-Select Dropdown */}
-        <div className="relative location-dropdown">
-          <button
-            onClick={() => setIsLocationDropdownOpen(!isLocationDropdownOpen)}
-            className="w-full flex items-center justify-between p-3 border border-gray-300 rounded-lg bg-white hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent"
-          >
+
+        {/* Location Selector */}
+        {locations.length === 1 ? (
+          // Single location - show as static text
+          <div className="px-4 py-3 border border-gray-200 rounded-md bg-gray-50">
             <div className="flex items-center space-x-2">
-              <Icon name="FaStore" className="w-4 h-4 text-gray-500" size={16} />
-              <span className="text-gray-700">
-                {selectedLocationIds.length === 0 
-                  ? 'Select locations to update...'
-                  : selectedLocationIds.length === locations.length
-                  ? `All locations selected (${locations.length})`
-                  : `${selectedLocationIds.length} location${selectedLocationIds.length !== 1 ? 's' : ''} selected`
-                }
-              </span>
-            </div>
-            {isLocationDropdownOpen ? (
-              <Icon name="FaChevronUp" className="w-4 h-4 text-gray-500" size={16} />
-            ) : (
-              <Icon name="FaChevronDown" className="w-4 h-4 text-gray-500" size={16} />
-            )}
-          </button>
-
-          {isLocationDropdownOpen && (
-            <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-              {/* Select All Option */}
-              <div className="p-2 border-b border-gray-100">
-                <label className="flex items-center space-x-2 p-2 hover:bg-gray-50 rounded cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={selectedLocationIds.length === locations.length}
-                    onChange={handleSelectAllLocations}
-                    className="h-4 w-4 text-slate-blue focus:ring-slate-blue border-gray-300 rounded"
-                  />
-                  <span className="text-sm font-medium text-gray-700">
-                    Select All ({locations.length} locations)
-                  </span>
-                </label>
+              <Icon name="FaGoogle" className="w-4 h-4 text-gray-600" size={16} />
+              <div>
+                <span className="text-gray-800 font-medium">{locations[0].name}</span>
+                {locations[0].address && (
+                  <span className="text-xs text-gray-500 block">{locations[0].address}</span>
+                )}
               </div>
-
-              {/* Individual Location Options */}
-              {locations.map((location) => (
-                <label
-                  key={location.id}
-                  className="flex items-center space-x-2 p-2 hover:bg-gray-50 cursor-pointer"
-                >
-                  <input
-                    type="checkbox"
-                    checked={selectedLocationIds.includes(location.id)}
-                    onChange={() => handleLocationToggle(location.id)}
-                    className="h-4 w-4 text-slate-blue focus:ring-slate-blue border-gray-300 rounded"
-                  />
-                  <div className="flex-1">
-                    <span className="text-sm font-medium text-gray-900">{location.name}</span>
-                    {location.address && (
-                      <span className="text-xs text-gray-500 block">{location.address}</span>
-                    )}
-                  </div>
-                </label>
-              ))}
             </div>
-          )}
-        </div>
+          </div>
+        ) : (
+          // Multiple locations - show dropdown
+          <div className="relative location-dropdown">
+            <button
+              onClick={() => setIsLocationDropdownOpen(!isLocationDropdownOpen)}
+              className="w-full flex items-center justify-between p-3 border border-gray-300 rounded-lg bg-white hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent"
+            >
+              <div className="flex items-center space-x-2">
+                <Icon name="FaStore" className="w-4 h-4 text-gray-500" size={16} />
+                <span className="text-gray-700">
+                  {selectedLocationIds.length === 0
+                    ? 'Select locations to update...'
+                    : selectedLocationIds.length === locations.length
+                    ? `All locations selected (${locations.length})`
+                    : `${selectedLocationIds.length} location${selectedLocationIds.length !== 1 ? 's' : ''} selected`
+                  }
+                </span>
+              </div>
+              {isLocationDropdownOpen ? (
+                <Icon name="FaChevronUp" className="w-4 h-4 text-gray-500" size={16} />
+              ) : (
+                <Icon name="FaChevronDown" className="w-4 h-4 text-gray-500" size={16} />
+              )}
+            </button>
+
+            {isLocationDropdownOpen && (
+              <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                {/* Select All Option */}
+                <div className="p-2 border-b border-gray-100">
+                  <label className="flex items-center space-x-2 p-2 hover:bg-gray-50 rounded cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={selectedLocationIds.length === locations.length}
+                      onChange={handleSelectAllLocations}
+                      className="h-4 w-4 text-slate-blue focus:ring-slate-blue border-gray-300 rounded"
+                    />
+                    <span className="text-sm font-medium text-gray-700">
+                      Select All ({locations.length} locations)
+                    </span>
+                  </label>
+                </div>
+
+                {/* Individual Location Options */}
+                {locations.map((location) => (
+                  <label
+                    key={location.id}
+                    className="flex items-center space-x-2 p-2 hover:bg-gray-50 cursor-pointer"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedLocationIds.includes(location.id)}
+                      onChange={() => handleLocationToggle(location.id)}
+                      className="h-4 w-4 text-slate-blue focus:ring-slate-blue border-gray-300 rounded"
+                    />
+                    <div className="flex-1">
+                      <span className="text-sm font-medium text-gray-900">{location.name}</span>
+                      {location.address && (
+                        <span className="text-xs text-gray-500 block">{location.address}</span>
+                      )}
+                    </div>
+                  </label>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Selected Locations Preview */}
         {selectedLocationIds.length > 0 && selectedLocationIds.length <= 3 && (
