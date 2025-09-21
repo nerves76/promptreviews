@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { createStripeClient, SUPABASE_CONFIG, PRICE_IDS } from "@/lib/billing/config";
+import { createStripeClient, SUPABASE_CONFIG, PRICE_IDS, PLAN_LIMITS } from "@/lib/billing/config";
 
 const stripe = createStripeClient();
 
@@ -58,6 +58,11 @@ export async function POST(req: NextRequest) {
 
     // Update account immediately
     const supabase = createClient(SUPABASE_CONFIG.URL, SUPABASE_CONFIG.SERVICE_ROLE_KEY);
+    // Derive plan-specific limits
+    const planLimits = PLAN_LIMITS[actualPlan as keyof typeof PLAN_LIMITS] ?? PLAN_LIMITS.grower;
+    const maxUsers = planLimits?.maxUsers ?? 1;
+    const maxLocations = planLimits?.maxLocations ?? 0;
+
     const { error: updateError } = await supabase
       .from('accounts')
       .update({
@@ -67,6 +72,8 @@ export async function POST(req: NextRequest) {
         stripe_subscription_id: subscriptionId,
         subscription_status: subscription.status || 'active',
         has_had_paid_plan: true,
+        max_users: maxUsers,
+        max_locations: maxLocations,
         updated_at: new Date().toISOString(),
       })
       .eq('id', userId);
@@ -93,4 +100,3 @@ export async function POST(req: NextRequest) {
 export async function GET() {
   return NextResponse.json({ message: 'Use POST with { session_id, userId }' }, { status: 405 });
 }
-

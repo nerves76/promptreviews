@@ -9,7 +9,8 @@ import { createServerClient } from '@supabase/ssr';
 import { createServiceRoleClient } from '@/auth/providers/supabase';
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
-import { getRequestAccountId } from '../../utils/getRequestAccountId';
+import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
+import { PLAN_LIMITS } from '@/lib/billing/config';
 
 // 🔧 CONSOLIDATION: Shared server client creation for API routes
 // This eliminates duplicate client creation patterns
@@ -45,7 +46,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get account ID using secure method that validates access
-    const accountId = await getRequestAccountId(request, user.id);
+    const accountId = await getRequestAccountId(request, user.id, supabase);
     if (!accountId) {
       return NextResponse.json(
         { error: 'Account not found or access denied' },
@@ -229,16 +230,35 @@ async function processTeamMembers(supabase: any, supabaseAdmin: any, user: any, 
 
     // Since accounts can be an object or array, handle both cases
     const account = Array.isArray(accountUser.accounts) ? accountUser.accounts[0] : accountUser.accounts;
-    
+    const planLimits = PLAN_LIMITS[account?.plan as keyof typeof PLAN_LIMITS] ?? PLAN_LIMITS.grower;
+    let resolvedMaxUsers = account?.max_users ?? planLimits.maxUsers ?? 1;
+    const resolvedMaxLocations = planLimits.maxLocations ?? 0;
+
+    // Auto-heal legacy accounts missing updated limits
+    if (planLimits.maxUsers && resolvedMaxUsers < planLimits.maxUsers) {
+      try {
+        await supabaseAdmin
+          .from('accounts')
+          .update({
+            max_users: planLimits.maxUsers,
+            max_locations: resolvedMaxLocations,
+          })
+          .eq('id', accountUser.account_id);
+        resolvedMaxUsers = planLimits.maxUsers;
+      } catch (limitUpdateError) {
+        console.error('Failed to auto-update account limits:', limitUpdateError);
+      }
+    }
+
     const accountData = {
       id: account?.id,
       first_name: account?.first_name,
       last_name: account?.last_name,
       business_name: account?.business_name,
       plan: account?.plan,
-      max_users: account?.max_users,
+      max_users: resolvedMaxUsers,
       current_users: userCount || members.length,
-      can_add_more: (userCount || members.length) < (account?.max_users ?? 0)
+      can_add_more: (userCount || members.length) < resolvedMaxUsers
     };
 
     // Debug logging
@@ -288,7 +308,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Get account ID using secure method
-    const accountId = await getRequestAccountId(request, user.id);
+    const accountId = await getRequestAccountId(request, user.id, supabase);
     if (!accountId) {
       return NextResponse.json(
         { error: 'Account not found or access denied' },
@@ -441,7 +461,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     // Get account ID using secure method
-    const accountId = await getRequestAccountId(request, user.id);
+    const accountId = await getRequestAccountId(request, user.id, supabase);
     if (!accountId) {
       return NextResponse.json(
         { error: 'Account not found or access denied' },

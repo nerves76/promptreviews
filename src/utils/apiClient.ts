@@ -234,3 +234,6 @@ export { ApiClient };
  * // No need to worry about tokens or re-renders!
  * ```
  */
+
+// Default export for convenience
+export default apiClient;

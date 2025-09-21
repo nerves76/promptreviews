@@ -32,6 +32,7 @@ import BusinessProfileBanner from "@/app/(app)/components/BusinessProfileBanner"
 import { useAuth } from "@/auth";
 import { useBusinessData, useAuthUser, useAccountData, useAuthLoading } from "@/auth/hooks/granularAuthHooks";
 import PromptPageSettingsModal from "@/app/(app)/components/PromptPageSettingsModal";
+import { apiClient } from "@/utils/apiClient";
 
 const StylePage = dynamic(() => import("../dashboard/style/StyleModalPage"), { ssr: false });
 
@@ -39,7 +40,7 @@ function PromptPagesContent() {
   const supabase = useMemo(() => createClient(), []);
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { selectedAccountId } = useAuth();
+  const { selectedAccountId, accountLoading: primaryAccountLoading } = useAuth();
   const { hasBusiness, businessName } = useBusinessData();
   const { user: authUser } = useAuthUser();
   const { accountId: authAccountId } = useAccountData();
@@ -196,6 +197,10 @@ function PromptPagesContent() {
         
         // If no account ID, user needs to create a business first
         if (!authAccountId && !selectedAccountId) {
+          if (authLoading || primaryAccountLoading) {
+            // Wait for account context to finish loading before deciding
+            return;
+          }
           router.push('/dashboard/create-business');
           return;
         }
@@ -217,15 +222,9 @@ function PromptPagesContent() {
         // DEVELOPMENT MODE: Use API endpoint to bypass RLS issues
         if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined' && localStorage.getItem('dev_auth_bypass') === 'true') {
           try {
-            const response = await fetch(`/api/businesses?account_id=${accountId}`);
-            const apiResult = await response.json();
-            if (response.ok) {
-              businessProfiles = apiResult.businesses || [];
-              businessError = null;
-            } else {
-              businessProfiles = [];
-              businessError = { message: apiResult.error || 'API error' };
-            }
+            const apiResult = await apiClient.get(`/businesses?account_id=${accountId}`);
+            businessProfiles = apiResult.businesses || [];
+            businessError = null;
           } catch (err) {
             businessProfiles = [];
             businessError = { message: err instanceof Error ? err.message : 'Unknown error' };
@@ -284,17 +283,12 @@ function PromptPagesContent() {
             }
           } catch {}
 
-          const ensureRes = await fetch('/api/prompt-pages/ensure-universal', {
-            method: 'POST',
-            credentials: 'include',
-            headers: authHeaders,
-          });
-          if (ensureRes.ok) {
-            const ensureData = await ensureRes.json();
+          try {
+            const ensureData = await apiClient.post('/prompt-pages/ensure-universal', {});
             universalPage = ensureData.page || null;
-          } else {
+          } catch (error) {
             if (process.env.NODE_ENV === 'development') {
-              try { const err = await ensureRes.json(); console.warn('ensure-universal failed', ensureRes.status, err); } catch {}
+              console.warn('ensure-universal failed', error);
             }
             universalPage = null;
           }
@@ -358,20 +352,17 @@ function PromptPagesContent() {
       }
     }
     fetchData();
-  }, [authInitialized, authAccountId, authUser, selectedAccountId]);
+  }, [authInitialized, authAccountId, authUser, selectedAccountId, authLoading, primaryAccountLoading]);
 
   const fetchLocations = async (accountId: string) => {
     try {
-      const response = await fetch('/api/business-locations');
-      if (response.ok) {
-        const data = await response.json();
-        setLocations(data.locations || []);
-        setLocationLimits({
-          current: data.count || 0,
-          max: data.limit || 0,
-          canCreateMore: data.can_create_more || false,
-        });
-      }
+      const data = await apiClient.get('/business-locations');
+      setLocations(data.locations || []);
+      setLocationLimits({
+        current: data.count || 0,
+        max: data.limit || 0,
+        canCreateMore: data.can_create_more || false,
+      });
     } catch (error) {
       console.error('Error fetching locations:', error);
     }
@@ -379,35 +370,23 @@ function PromptPagesContent() {
 
   const handleCreateLocation = async (locationData: Partial<BusinessLocation>) => {
     try {
-      
-      const response = await fetch('/api/business-locations', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify(locationData),
-      });
-      
-      
-      if (response.ok) {
-        const data = await response.json();
-        setLocations(prev => [...prev, data.location]);
-        setLocationLimits(prev => ({ ...prev, current: prev.current + 1 }));
+
+      const data = await apiClient.post('/business-locations', locationData);
+
+      setLocations(prev => [...prev, data.location]);
+      setLocationLimits(prev => ({ ...prev, current: prev.current + 1 }));
         
-        // If a prompt page was created, add it to locationPromptPages
-        if (data.location.prompt_page_id) {
-          const { data: newPromptPage } = await supabase
-            .from("prompt_pages")
-            .select("*")
-            .eq("id", data.location.prompt_page_id)
-            .single();
-          
-          if (newPromptPage) {
-            setLocationPromptPages(prev => [...prev, newPromptPage]);
-          }
+      // If a prompt page was created, add it to locationPromptPages
+      if (data.location.prompt_page_id) {
+        const { data: newPromptPage } = await supabase
+          .from("prompt_pages")
+          .select("*")
+          .eq("id", data.location.prompt_page_id)
+          .single();
+
+        if (newPromptPage) {
+          setLocationPromptPages(prev => [...prev, newPromptPage]);
         }
-      } else {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to create location');
       }
     } catch (error) {
       console.error('Error creating location:', error);
@@ -417,24 +396,13 @@ function PromptPagesContent() {
 
   const handleUpdateLocation = async (locationData: Partial<BusinessLocation>) => {
     if (!editingLocation?.id) return;
-    
+
     try {
-      const response = await fetch(`/api/business-locations/${editingLocation.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify(locationData),
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        setLocations(prev => prev.map(loc => 
-          loc.id === editingLocation.id ? data.location : loc
-        ));
-      } else {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to update location');
-      }
+      const data = await apiClient.put(`/business-locations/${editingLocation.id}`, locationData);
+
+      setLocations(prev => prev.map(loc =>
+        loc.id === editingLocation.id ? data.location : loc
+      ));
     } catch (error) {
       console.error('Error updating location:', error);
       throw error;
@@ -445,27 +413,19 @@ function PromptPagesContent() {
     if (!confirm('Are you sure you want to delete this location? This will also delete its prompt page.')) {
       return;
     }
-    
+
     try {
-      const response = await fetch(`/api/business-locations/${locationId}`, {
-        method: 'DELETE',
-        credentials: 'include',
-      });
-      
-      if (response.ok) {
-        setLocations(prev => prev.filter(loc => loc.id !== locationId));
-        setLocationLimits(prev => ({ 
+      await apiClient.delete(`/business-locations/${locationId}`);
+
+      setLocations(prev => prev.filter(loc => loc.id !== locationId));
+      setLocationLimits(prev => ({ 
           ...prev, 
           current: prev.current - 1,
           canCreateMore: prev.current - 1 < prev.max
         }));
-        
+
         // Remove associated prompt pages
         setLocationPromptPages(prev => prev.filter(page => page.business_location_id !== locationId));
-      } else {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to delete location');
-      }
     } catch (error) {
       console.error('Error deleting location:', error);
       alert('Failed to delete location. Please try again.');
@@ -510,15 +470,10 @@ function PromptPagesContent() {
             } else {
               // If we can't find it in the state yet, try to get it from the API
               try {
-                const response = await fetch('/api/business-locations', {
-                  credentials: 'include',
-                });
-                if (response.ok) {
-                  const locationsData = await response.json();
-                  const latestLocation = locationsData.locations?.[0];
-                  if (latestLocation?.prompt_page_slug) {
-                    data.url = `${window.location.origin}/r/${latestLocation.prompt_page_slug}`;
-                  }
+                const locationsData = await apiClient.get('/business-locations');
+                const latestLocation = locationsData.locations?.[0];
+                if (latestLocation?.prompt_page_slug) {
+                  data.url = `${window.location.origin}/r/${latestLocation.prompt_page_slug}`;
                 }
               } catch (error) {
                 console.error('Error fetching latest location:', error);
@@ -606,19 +561,7 @@ function PromptPagesContent() {
 
     try {
       // Use authAccountId directly since that's the account we're authenticated as
-      const response = await fetch(`/api/businesses/${authAccountId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(settingsData),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to save settings');
-      }
-
-      const updatedBusiness = await response.json();
+      const updatedBusiness = await apiClient.put(`/businesses/${authAccountId}`, settingsData);
       setBusiness(updatedBusiness);
       
       // Don't show success message here - it's shown in the modal

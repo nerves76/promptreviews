@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
+import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
+import { createServiceRoleClient } from '@/auth/providers/supabase';
 
 export async function POST(request: NextRequest) {
   try {
@@ -20,7 +22,7 @@ export async function POST(request: NextRequest) {
     );
 
     const { data: { user }, error: authError } = await supabase.auth.getUser();
-    
+
     if (authError || !user) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
@@ -31,12 +33,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid merge parameters' }, { status: 400 });
     }
 
-    // Verify all contacts belong to the user
-    const { data: contacts, error: contactsError } = await supabase
+    // Get the proper account ID using the header and validate access
+    const supabaseAdmin = createServiceRoleClient();
+    const accountId = await getRequestAccountId(request, user.id);
+    if (!accountId) {
+      return NextResponse.json({ error: 'No valid account found or access denied' }, { status: 403 });
+    }
+
+    // Verify all contacts belong to the account
+    const { data: contacts, error: contactsError } = await supabaseAdmin
       .from('contacts')
       .select('id, account_id')
       .in('id', contactIdsToMerge)
-      .eq('account_id', user.id);
+      .eq('account_id', accountId);
 
     if (contactsError) throw contactsError;
     if (!contacts || contacts.length !== contactIdsToMerge.length) {
@@ -49,16 +58,16 @@ export async function POST(request: NextRequest) {
     // Start transaction by using a series of operations
     try {
       // 1. Update the primary contact with merged fields
-      const { error: updateError } = await supabase
+      const { error: updateError } = await supabaseAdmin
         .from('contacts')
         .update(fieldsToKeep)
         .eq('id', primaryContactId)
-        .eq('account_id', user.id);
+        .eq('account_id', accountId);
 
       if (updateError) throw updateError;
 
       // 2. Transfer all review submissions from duplicate contacts to primary contact
-      const { error: reviewsUpdateError } = await supabase
+      const { error: reviewsUpdateError } = await supabaseAdmin
         .from('review_submissions')
         .update({ contact_id: primaryContactId })
         .in('contact_id', contactsToDelete);
@@ -66,7 +75,7 @@ export async function POST(request: NextRequest) {
       if (reviewsUpdateError) throw reviewsUpdateError;
 
       // 3. Transfer all prompt pages from duplicate contacts to primary contact
-      const { error: promptPagesUpdateError } = await supabase
+      const { error: promptPagesUpdateError } = await supabaseAdmin
         .from('prompt_pages')
         .update({ contact_id: primaryContactId })
         .in('contact_id', contactsToDelete);
@@ -74,21 +83,21 @@ export async function POST(request: NextRequest) {
       if (promptPagesUpdateError) throw promptPagesUpdateError;
 
       // 4. Delete the duplicate contacts
-      const { error: deleteError } = await supabase
+      const { error: deleteError } = await supabaseAdmin
         .from('contacts')
         .delete()
         .in('id', contactsToDelete)
-        .eq('account_id', user.id);
+        .eq('account_id', accountId);
 
       if (deleteError) throw deleteError;
 
       // Get counts of transferred items for response
-      const { count: reviewsCount } = await supabase
+      const { count: reviewsCount } = await supabaseAdmin
         .from('review_submissions')
         .select('*', { count: 'exact', head: true })
         .eq('contact_id', primaryContactId);
 
-      const { count: promptPagesCount } = await supabase
+      const { count: promptPagesCount } = await supabaseAdmin
         .from('prompt_pages')
         .select('*', { count: 'exact', head: true })
         .eq('contact_id', primaryContactId);

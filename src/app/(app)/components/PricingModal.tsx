@@ -67,6 +67,7 @@ const tiers = [
     features: [
       "5 team members",
       "Workflow management",
+      "Up to 10 business locations",
       "500 Prompt Pages",
       "10,000 contacts",
       "Review widget",

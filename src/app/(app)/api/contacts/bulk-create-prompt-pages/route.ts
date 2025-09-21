@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSessionOrMock, createClient, createServiceRoleClient } from '@/auth/providers/supabase';
 import { slugify } from '@/utils/slugify';
 import { preparePromptPageData } from '@/utils/promptPageDataMapping';
+import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
 
 export async function POST(request: NextRequest) {
   try {
@@ -43,23 +44,16 @@ export async function POST(request: NextRequest) {
 
     // Parse request body
     const { contactIds, promptType, includeReviews, account_id } = await request.json();
-    
-    // Get account ID from request body
-    const accountId = account_id;
-    if (!accountId) {
-      return NextResponse.json({ error: 'account_id is required' }, { status: 400 });
-    }
-    
-    // Validate user has access to this account
-    const { data: accountUser } = await supabaseAdmin
-      .from('account_users')
-      .select('account_id')
-      .eq('user_id', user.id)
-      .eq('account_id', accountId)
-      .single();
 
-    if (!accountUser) {
-      return NextResponse.json({ error: 'Access denied to this account' }, { status: 403 });
+    // Get the proper account ID using the header and validate access
+    const accountId = await getRequestAccountId(request, user.id);
+    if (!accountId) {
+      return NextResponse.json({ error: 'No valid account found or access denied' }, { status: 403 });
+    }
+
+    // Validate account_id from request body matches the selected account
+    if (account_id && account_id !== accountId) {
+      return NextResponse.json({ error: 'Account ID mismatch' }, { status: 403 });
     }
     
     if (!contactIds || !Array.isArray(contactIds) || contactIds.length === 0) {

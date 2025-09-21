@@ -19,6 +19,7 @@ import PhotoPromptPageForm from "../components/PhotoPromptPageForm";
 import EmployeePromptPageForm from "../components/EmployeePromptPageForm";
 import EventPromptPageForm from "../components/EventPromptPageForm";
 import { useGlobalLoader } from "../components/GlobalLoaderProvider";
+import { apiClient } from "@/utils/apiClient";
 
 interface ReviewPlatformLink {
   platform: string;
@@ -1111,9 +1112,13 @@ export default function CreatePromptPageClient({
           throw new Error(`No user found. Please sign in again and try saving. Last error: ${userError?.message || 'Unknown error'}`);
         }
 
+        if (!accountId) {
+          throw new Error("No account selected. Please select an account and try again.");
+        }
+
       const { allowed, reason } = await checkAccountLimits(
         supabase,
-        user.id,
+        accountId,
         "prompt_page",
       );
       if (!allowed) {
@@ -1129,7 +1134,7 @@ export default function CreatePromptPageClient({
       const { data: businessesData, error: businessError } = await supabase
         .from("businesses")
         .select("*")
-        .eq("account_id", user.id)
+        .eq("account_id", accountId)
         .order('created_at', { ascending: true }); // Get oldest business first
       
       if (businessError) {
@@ -1151,7 +1156,7 @@ export default function CreatePromptPageClient({
       // Prepare the data for insertion
       let insertData = {
         ...formData,
-        account_id: user.id,
+        account_id: accountId,
         status: formData.review_type === "product" ? "published" : "draft",
         campaign_type: formData.campaign_type || campaignType,
         // Convert camelCase to snake_case
@@ -1274,44 +1279,31 @@ export default function CreatePromptPageClient({
         // Auto-create contact for individual prompt pages
         if (formData.campaign_type === 'individual' && formData.first_name) {
           try {
-            
-            const contactResponse = await fetch('/api/contacts/create-from-prompt-page', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+            const contactResult = await apiClient.post('/contacts/create-from-prompt-page', {
+              promptPageData: {
+                first_name: formData.first_name,
+                last_name: formData.last_name,
+                email: formData.email,
+                phone: formData.phone,
+                business_name: formData.business_name,
+                role: formData.role,
+                address_line1: formData.address_line1,
+                address_line2: formData.address_line2,
+                city: formData.city,
+                state: formData.state,
+                postal_code: formData.postal_code,
+                country: formData.country,
+                category: formData.category,
+                notes: formData.notes,
               },
-              body: JSON.stringify({
-                promptPageData: {
-                  first_name: formData.first_name,
-                  last_name: formData.last_name,
-                  email: formData.email,
-                  phone: formData.phone,
-                  business_name: formData.business_name,
-                  role: formData.role,
-                  address_line1: formData.address_line1,
-                  address_line2: formData.address_line2,
-                  city: formData.city,
-                  state: formData.state,
-                  postal_code: formData.postal_code,
-                  country: formData.country,
-                  category: formData.category,
-                  notes: formData.notes,
-                },
-                promptPageId: data.id
-              }),
+              promptPageId: data.id,
             });
 
-            if (contactResponse.ok) {
-              const contactResult = await contactResponse.json();
-              
-              // Update success message to mention contact creation
-              const contactName = `${formData.first_name} ${formData.last_name || ''}`.trim();
-              setSaveSuccess(`Prompt page created successfully! Contact '${contactName}' was also created.`);
+            const contactName = `${formData.first_name} ${formData.last_name || ''}`.trim();
+            if (contactResult?.message) {
+              setSaveSuccess(contactResult.message);
             } else {
-              console.error('❌ Failed to create contact:', await contactResponse.text());
-              // Don't fail the entire operation if contact creation fails
-              setSaveSuccess("Prompt page created successfully!");
+              setSaveSuccess(`Prompt page created successfully! Contact '${contactName}' was also created.`);
             }
           } catch (contactError) {
             console.error('❌ Error creating contact:', contactError);
@@ -1429,9 +1421,13 @@ export default function CreatePromptPageClient({
         throw new Error(`No user found. Please sign in again and try saving. Last error: ${userError?.message || 'Unknown error'}`);
       }
 
+      if (!accountId) {
+        throw new Error("No account selected. Please select an account and try again.");
+      }
+
       const limitResult = await checkAccountLimits(
         supabase,
-        user.id,
+        accountId,
         "prompt_page",
       );
       
@@ -1445,17 +1441,11 @@ export default function CreatePromptPageClient({
         return;
       }
 
-      // Use account ID from auth context
-      const currentAccountId = accountId;
-      if (!currentAccountId) {
-        throw new Error("No account found for user - account context not available");
-      }
-      
       // IMPORTANT: Don't use .single() as accounts can have multiple businesses
       const { data: businessesData, error: businessError } = await supabase
         .from("businesses")
         .select("*")
-        .eq("account_id", currentAccountId)
+        .eq("account_id", accountId)
         .order('created_at', { ascending: true }); // Get oldest business first consistently
       
       // Handle multiple businesses - use the first one (oldest)
@@ -1480,7 +1470,7 @@ export default function CreatePromptPageClient({
       // Debug logging to see what's in formData
       
       const insertData = {
-        account_id: currentAccountId,
+        account_id: accountId,
         // Note: business_name column doesn't exist - removed
         review_type: mergedFormData.review_type || "service", // Use the review_type from form data
         status: "draft", // Start as draft for individual prompt pages
@@ -1619,37 +1609,25 @@ export default function CreatePromptPageClient({
       // The contact creation API handles account limits and RLS policies
       if (campaignType === 'individual' && mergedFormData.first_name) {
         try {
-          const contactResponse = await fetch('/api/contacts/create-from-prompt-page', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+          await apiClient.post('/contacts/create-from-prompt-page', {
+            promptPageData: {
+              first_name: mergedFormData.first_name,
+              last_name: mergedFormData.last_name,
+              email: mergedFormData.email,
+              phone: mergedFormData.phone,
+              business_name: mergedFormData.business_name,
+              role: mergedFormData.role,
+              address_line1: mergedFormData.address_line1,
+              address_line2: mergedFormData.address_line2,
+              city: mergedFormData.city,
+              state: mergedFormData.state,
+              postal_code: mergedFormData.postal_code,
+              country: mergedFormData.country,
+              category: mergedFormData.category,
+              notes: mergedFormData.notes,
             },
-            body: JSON.stringify({
-              promptPageData: {
-                first_name: mergedFormData.first_name,
-                last_name: mergedFormData.last_name,
-                email: mergedFormData.email,
-                phone: mergedFormData.phone,
-                business_name: mergedFormData.business_name,
-                role: mergedFormData.role,
-                address_line1: mergedFormData.address_line1,
-                address_line2: mergedFormData.address_line2,
-                city: mergedFormData.city,
-                state: mergedFormData.state,
-                postal_code: mergedFormData.postal_code,
-                country: mergedFormData.country,
-                category: mergedFormData.category,
-                notes: mergedFormData.notes,
-              },
-              promptPageId: data.id
-            }),
+            promptPageId: data.id,
           });
-
-          if (!contactResponse.ok) {
-            // Don't fail the entire operation if contact creation fails
-            console.error('Failed to create contact for individual prompt page');
-          }
         } catch (contactError) {
           // Don't fail the entire operation if contact creation fails
           console.error('Error creating contact for individual prompt page:', contactError);
@@ -1923,7 +1901,7 @@ export default function CreatePromptPageClient({
           pageTitle="Create product prompt page"
           supabase={supabase}
           businessProfile={businessProfile}
-          accountId={currentUser?.id || ""}
+          accountId={accountId || ""}
           isLoading={isSaving}
           error={saveError}
           successMessage={saveSuccess}

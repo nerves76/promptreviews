@@ -206,7 +206,7 @@ const Dashboard = React.memo(function Dashboard() {
           }
         })(),
         
-        checkAccountLimits(supabase, user.id, "prompt_page")
+        selectedAccountId ? checkAccountLimits(supabase, selectedAccountId, "prompt_page") : Promise.resolve({ allowed: false, reason: "No account selected" })
       ]);
 
       // Process results with better error handling

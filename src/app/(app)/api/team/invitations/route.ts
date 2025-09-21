@@ -7,6 +7,7 @@
 
 import { createServerSupabaseClient } from '@/auth/providers/supabase';
 import { NextRequest, NextResponse } from 'next/server';
+import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
 
 export async function GET(request: NextRequest) {
   const supabase = await createServerSupabaseClient();
@@ -22,11 +23,21 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Get the user's account
+    // Get account ID using secure method that validates access
+    const accountId = await getRequestAccountId(request, user.id, supabase);
+    if (!accountId) {
+      return NextResponse.json(
+        { error: 'Account not found or access denied' },
+        { status: 403 }
+      );
+    }
+
+    // Get the user's role in this account
     const { data: accountUser, error: accountError } = await supabase
       .from('account_users')
       .select('account_id, role')
       .eq('user_id', user.id)
+      .eq('account_id', accountId)
       .single();
 
     if (accountError || !accountUser) {
@@ -55,7 +66,7 @@ export async function GET(request: NextRequest) {
         expires_at,
         invited_by
       `)
-      .eq('account_id', accountUser.account_id)
+      .eq('account_id', accountId)
       .is('accepted_at', null)
       .order('created_at', { ascending: false });
 
@@ -115,11 +126,21 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    // Get the user's account
+    // Get account ID using secure method that validates access
+    const accountId = await getRequestAccountId(request, user.id, supabase);
+    if (!accountId) {
+      return NextResponse.json(
+        { error: 'Account not found or access denied' },
+        { status: 403 }
+      );
+    }
+
+    // Get the user's role in this account
     const { data: accountUser, error: accountError } = await supabase
       .from('account_users')
       .select('account_id, role')
       .eq('user_id', user.id)
+      .eq('account_id', accountId)
       .single();
 
     if (accountError || !accountUser) {
@@ -142,7 +163,7 @@ export async function DELETE(request: NextRequest) {
       .from('account_invitations')
       .delete()
       .eq('id', invitationId)
-      .eq('account_id', accountUser.account_id);
+      .eq('account_id', accountId);
 
     if (deleteError) {
       console.error('Error deleting invitation:', deleteError);

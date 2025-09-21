@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSessionOrMock, createClient, createServiceRoleClient } from '@/auth/providers/supabase';
 import { checkAccountLimits } from '@/utils/accountLimits';
+import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
 
 export async function POST(request: NextRequest) {
   try {
@@ -44,27 +45,20 @@ export async function POST(request: NextRequest) {
 
     // Parse request body
     const contactData = await request.json();
-    
-    // Get account ID from request body
-    const accountId = contactData.account_id;
+
+    // Get the proper account ID using the header and validate access
+    const accountId = await getRequestAccountId(request, user.id);
     if (!accountId) {
-      return NextResponse.json({ error: 'account_id is required' }, { status: 400 });
+      return NextResponse.json({ error: 'No valid account found or access denied' }, { status: 403 });
     }
 
-    // Validate user has access to this account
-    const { data: accountUser } = await supabaseAdmin
-      .from('account_users')
-      .select('account_id')
-      .eq('user_id', user.id)
-      .eq('account_id', accountId)
-      .single();
-    
-    if (!accountUser) {
-      return NextResponse.json({ error: 'Access denied to this account' }, { status: 403 });
+    // Validate account_id from request body matches the selected account
+    if (contactData.account_id && contactData.account_id !== accountId) {
+      return NextResponse.json({ error: 'Account ID mismatch' }, { status: 403 });
     }
 
     // Check account limits for contact creation
-    const limitCheck = await checkAccountLimits(supabaseAdmin, user.id, 'contact');
+    const limitCheck = await checkAccountLimits(supabaseAdmin, accountId, 'contact');
     if (!limitCheck.allowed) {
       console.error('❌ Contacts API - Limit check failed:', limitCheck);
       return NextResponse.json({ 

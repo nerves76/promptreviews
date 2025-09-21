@@ -14,7 +14,7 @@ import { useAuth } from '@/auth';
 import { useAccountData } from '@/auth/hooks/granularAuthHooks';
 // Page-level loading uses the global overlay
 import { useGlobalLoader } from "@/app/(app)/components/GlobalLoaderProvider";
-import { createClient } from '@/auth/providers/supabase';
+import { apiClient } from '@/utils/apiClient';
 
 interface TeamMember {
   user_id: string;
@@ -155,23 +155,6 @@ export default function TeamPage() {
     return () => clearTimeout(saveTimeout);
   }, [bulkEmails, bulkRole, bulkInviteStorageKey]);
   
-  // Helper function to get authentication headers
-  const getAuthHeaders = async () => {
-    const supabase = createClient();
-    const { data: { session } } = await supabase.auth.getSession();
-    
-    
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-    };
-    
-    if (session?.access_token) {
-      headers['Authorization'] = `Bearer ${session.access_token}`;
-    } else {
-    }
-    
-    return headers;
-  };
 
   // Auth guard - redirect if not authenticated
   useEffect(() => {
@@ -201,24 +184,18 @@ export default function TeamPage() {
       setLoading(true);
       setError(null);
 
-      // Get authentication headers
-      const headers = await getAuthHeaders();
-
       // Fetch members - pass selected account if available
       const accountId = selectedAccountId || user?.id;
-      const membersUrl = accountId ? `/api/team/members?account_id=${accountId}` : '/api/team/members';
-      const membersResponse = await fetch(membersUrl, { headers });
-      if (!membersResponse.ok) {
-        throw new Error('Failed to fetch team members');
-      }
-      const membersData = await membersResponse.json();
+      const membersUrl = accountId ? `/team/members?account_id=${accountId}` : '/team/members';
+      const membersData = await apiClient.get(membersUrl);
 
       // Fetch invitations (only if user is owner)
       let invitationsData = { invitations: [] };
       if (membersData.current_user_role === 'owner') {
-        const invitationsResponse = await fetch('/api/team/invitations', { headers });
-        if (invitationsResponse.ok) {
-          invitationsData = await invitationsResponse.json();
+        try {
+          invitationsData = await apiClient.get('/team/invitations');
+        } catch (err) {
+          console.warn('Failed to fetch invitations:', err);
         }
       }
 
@@ -237,18 +214,11 @@ export default function TeamPage() {
 
   // Single useEffect for initial data loading
   useEffect(() => {
-    let isMounted = true;
-    
-    
-    // Fetch team data if user is authenticated and auth is loaded
-    // Simplified logic: just proceed if user is ready
+    // Fetch team data once authentication state and account selection are ready
     if (user?.id && !authLoading && !fetchingRef.current) {
+      fetchTeamData();
     }
-    
-    return () => {
-      isMounted = false;
-    };
-  }, [user?.id, authLoading, selectedAccountId]); // Simplified dependencies
+  }, [user?.id, authLoading, selectedAccountId, fetchTeamData]);
 
   // Helper function to set loading state for specific actions
   const setActionLoading = (action: string, isLoading: boolean) => {
@@ -293,41 +263,34 @@ export default function TeamPage() {
     const result = await withLoadingState(
       'sendInvitation',
       async () => {
-        const headers = await getAuthHeaders();
-        const response = await fetch('/api/team/invite', {
-          method: 'POST',
-          headers,
-          body: JSON.stringify({
+        try {
+          const data = await apiClient.post('/team/invite', {
             email: inviteEmail.trim(),
             role: inviteRole,
-          }),
-        });
+          });
 
-        const data = await response.json();
+          // Show warnings if present
+          if (data.warnings && data.warnings.length > 0) {
+            console.warn('Invitation warnings:', data.warnings);
+          }
 
-        if (!response.ok) {
+          return data;
+        } catch (error: any) {
           // Enhanced error handling with specific suggestions
-          if (response.status === 429) {
+          if (error.status === 429) {
             throw new Error('Rate limit exceeded. Please wait a moment before sending another invitation.');
           }
-          if (response.status === 409) {
-            throw new Error(data.error || 'This email address already has a pending invitation.');
+          if (error.status === 409) {
+            throw new Error(error.message || 'This email address already has a pending invitation.');
           }
-          if (data.details && Array.isArray(data.details)) {
-            throw new Error(`Email validation failed: ${data.details.join(', ')}`);
+          if (error.details && Array.isArray(error.details)) {
+            throw new Error(`Email validation failed: ${error.details.join(', ')}`);
           }
-          if (data.suggestions && Array.isArray(data.suggestions)) {
-            throw new Error(`${data.error || 'Email validation failed'}. ${data.suggestions.join(' ')}`);
+          if (error.suggestions && Array.isArray(error.suggestions)) {
+            throw new Error(`${error.message || 'Email validation failed'}. ${error.suggestions.join(' ')}`);
           }
-          throw new Error(data.error || 'Failed to send invitation');
+          throw new Error(error.message || 'Failed to send invitation');
         }
-
-        // Show warnings if present
-        if (data.warnings && data.warnings.length > 0) {
-          console.warn('Invitation warnings:', data.warnings);
-        }
-
-        return data;
       },
       `Invitation sent successfully to ${inviteEmail}! They'll receive an email with instructions to join your team.`
     );
@@ -367,9 +330,6 @@ export default function TeamPage() {
         throw new Error('Maximum 10 team member invitations at once');
       }
 
-      // Get authentication headers
-      const headers = await getAuthHeaders();
-
       let successCount = 0;
       let errorCount = 0;
       const errors: string[] = [];
@@ -377,28 +337,17 @@ export default function TeamPage() {
       // Send invitations one by one
       for (const email of emailList) {
         try {
-          const response = await fetch('/api/team/invite', {
-            method: 'POST',
-            headers,
-            body: JSON.stringify({
-              email: email,
-              role: bulkRole,
-            }),
+          await apiClient.post('/team/invite', {
+            email: email,
+            role: bulkRole,
           });
-
-          if (response.ok) {
-            successCount++;
-          } else {
-            const data = await response.json();
-            errorCount++;
-            errors.push(`${email}: ${data.error || 'Failed to send'}`);
-          }
+          successCount++;
 
           // Small delay between invitations
           await new Promise(resolve => setTimeout(resolve, 200));
-        } catch (err) {
+        } catch (error: any) {
           errorCount++;
-          errors.push(`${email}: Network error`);
+          errors.push(`${email}: ${error.message || 'Failed to send'}`);
         }
       }
 
@@ -441,17 +390,7 @@ export default function TeamPage() {
     const result = await withLoadingState(
       `cancel-${invitationId}`,
       async () => {
-        const headers = await getAuthHeaders();
-        const response = await fetch(`/api/team/invitations?id=${invitationId}`, {
-          method: 'DELETE',
-          headers,
-        });
-
-        if (!response.ok) {
-          throw new Error('Failed to cancel invitation');
-        }
-
-        return response.json();
+        return await apiClient.delete(`/team/invitations?id=${invitationId}`);
       },
       `Invitation to ${email} has been cancelled.`
     );
@@ -466,34 +405,23 @@ export default function TeamPage() {
     const result = await withLoadingState(
       `resend-${invitationId}`,
       async () => {
-        const headers = await getAuthHeaders();
-        const response = await fetch('/api/team/invitations/resend', {
-          method: 'POST',
-          headers,
-          body: JSON.stringify({
+        try {
+          return await apiClient.post('/team/invitations/resend', {
             invitation_id: invitationId
-          }),
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-          if (response.status === 429) {
+          });
+        } catch (error: any) {
+          if (error.status === 429) {
             throw new Error('Rate limit exceeded. Please wait before resending.');
           }
-          if (response.status === 401) {
+          if (error.status === 401) {
             console.error('🔒 Resend failed - Authentication error:', {
-              status: response.status,
-              error: data.error,
-              debug: data.debug,
-              headers: headers
+              status: error.status,
+              error: error.message
             });
-            throw new Error(`Authentication failed: ${data.error}. Please refresh the page and try again.`);
+            throw new Error(`Authentication failed: ${error.message}. Please refresh the page and try again.`);
           }
-          throw new Error(data.error || 'Failed to resend invitation');
+          throw new Error(error.message || 'Failed to resend invitation');
         }
-
-        return data;
       },
       `Invitation resent to ${email}! They'll receive a fresh email with updated expiration.`
     );
@@ -510,27 +438,15 @@ export default function TeamPage() {
     }
 
     try {
-      // Get authentication headers
-      const headers = await getAuthHeaders();
-
-      const response = await fetch(`/api/team/members?user_id=${memberUserId}`, {
-        method: 'DELETE',
-        headers,
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to remove team member');
-      }
+      await apiClient.delete(`/team/members?user_id=${memberUserId}`);
 
       setSuccess(`${memberEmail} has been removed from your team.`);
       await fetchTeamData(); // Refresh data
-      
+
       // Clear success message after 5 seconds
       setTimeout(() => setSuccess(null), 5000);
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to remove team member';
+    } catch (error: any) {
+      const errorMessage = error.message || 'Failed to remove team member';
       setError(errorMessage);
       // Clear error message after 5 seconds
       setTimeout(() => setError(null), 5000);
@@ -540,31 +456,18 @@ export default function TeamPage() {
   // Change member role
   const changeMemberRole = async (memberUserId: string, memberEmail: string, newRole: string) => {
     try {
-      // Get authentication headers
-      const headers = await getAuthHeaders();
-
-      const response = await fetch('/api/team/members', {
-        method: 'PATCH',
-        headers,
-        body: JSON.stringify({
-          user_id: memberUserId,
-          role: newRole
-        }),
+      await apiClient.patch('/team/members', {
+        user_id: memberUserId,
+        role: newRole
       });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to change member role');
-      }
 
       setSuccess(`${memberEmail}'s role has been updated to ${newRole}.`);
       await fetchTeamData(); // Refresh data
-      
+
       // Clear success message after 5 seconds
       setTimeout(() => setSuccess(null), 5000);
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to change member role';
+    } catch (error: any) {
+      const errorMessage = error.message || 'Failed to change member role';
       setError(errorMessage);
       // Clear error message after 5 seconds
       setTimeout(() => setError(null), 5000);
@@ -578,22 +481,9 @@ export default function TeamPage() {
       setError(null);
       setSuccess(null);
 
-      // Get authentication headers
-      const headers = await getAuthHeaders();
-
-      const response = await fetch('/api/team/add-chris', {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({
-          account_id: selectedAccount?.account_id || teamData?.account?.id
-        }),
+      const data = await apiClient.post('/team/add-chris', {
+        account_id: selectedAccountId || teamData?.account?.id
       });
-
-      const data = await response.json();
-
-      if (!response.ok && !data.already_member) {
-        throw new Error(data.error || 'Failed to add Chris for support');
-      }
 
       if (data.already_member) {
         setSuccess('Chris is already a member of this account! 👍');
@@ -601,12 +491,12 @@ export default function TeamPage() {
         setSuccess('Chris has been added for development and support assistance! 🎉');
       }
       await fetchTeamData(); // Refresh data
-      
+
       // Clear success message after 8 seconds
       setTimeout(() => setSuccess(null), 8000);
-    } catch (err) {
-      console.error('Error in addChris:', err);
-      const errorMessage = err instanceof Error ? err.message : 'Failed to add Chris';
+    } catch (error: any) {
+      console.error('Error in addChris:', error);
+      const errorMessage = error.message || 'Failed to add Chris';
       setError(errorMessage);
       // Clear error message after 5 seconds
       setTimeout(() => setError(null), 5000);

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useAuthGuard } from "@/utils/authGuard";
 import { createClient, getSessionOrMock } from "@/auth/providers/supabase";
+import { apiClient } from '@/utils/apiClient';
 import Icon from "@/components/Icon";
 import AppLoader from "@/app/(app)/components/AppLoader";
 import PageCard from "@/app/(app)/components/PageCard";
@@ -15,9 +16,11 @@ import ContactMergeModal from "@/app/(app)/components/ContactMergeModal";
 import CommunicationHistory from "@/app/(app)/components/communication/CommunicationHistory";
 import UpcomingReminders from "@/app/(app)/components/communication/UpcomingReminders";
 import { checkAccountLimits } from "@/utils/accountLimits";
+import { useAuth } from "@/auth";
 
 export default function UploadContactsPage() {
   const supabase = createClient();
+  const { selectedAccountId } = useAuth();
 
   useAuthGuard();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -90,14 +93,14 @@ export default function UploadContactsPage() {
   const checkContactLimits = async () => {
     try {
       const { data: { session } } = await getSessionOrMock(supabase);
-      if (session?.user) {
-        const limitCheck = await checkAccountLimits(supabase, session.user.id, 'contact');
+      if (session?.user && selectedAccountId) {
+        const limitCheck = await checkAccountLimits(supabase, selectedAccountId, 'contact');
         setCanAddContacts(limitCheck.allowed);
         if (!limitCheck.allowed) {
           const message = limitCheck.reason || 'Contact creation not allowed for your account plan';
           setContactLimitMessage(message);
         }
-              }
+      }
     } catch (error) {
       console.error('Error checking contact limits:', error);
     }
@@ -736,24 +739,11 @@ export default function UploadContactsPage() {
     setBulkProgress({ created: 0, failed: 0, total: selectedContactIds.length });
 
     try {
-      const response = await fetch('/api/contacts/bulk-create-prompt-pages', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
-        },
-        body: JSON.stringify({
-          contactIds: selectedContactIds,
-          promptType: promptType,
-          includeReviews: includeReviews
-        }),
+      const result = await apiClient.post('/contacts/bulk-create-prompt-pages', {
+        contactIds: selectedContactIds,
+        promptType: promptType,
+        includeReviews: includeReviews
       });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.error || 'Failed to create prompt pages');
-      }
 
       setBulkProgress({
         created: result.created,
@@ -787,17 +777,7 @@ export default function UploadContactsPage() {
     setError('');
     
     try {
-      const response = await fetch('/api/contacts/find-duplicates', {
-        headers: {
-          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
-        },
-      });
-
-      const data = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to find duplicates');
-      }
+      const data = await apiClient.get('/contacts/find-duplicates');
 
       setDuplicateGroups(data.duplicateGroups || []);
       
@@ -819,25 +799,12 @@ export default function UploadContactsPage() {
     
     try {
       const contactIds = selectedDuplicateGroup.contacts.map((c: any) => c.id);
-      
-      const response = await fetch('/api/contacts/merge', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
-        },
-        body: JSON.stringify({
-          primaryContactId,
-          fieldsToKeep,
-          contactIdsToMerge: contactIds
-        }),
-      });
 
-      const result = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(result.error || 'Failed to merge contacts');
-      }
+      const result = await apiClient.post('/contacts/merge', {
+        primaryContactId,
+        fieldsToKeep,
+        contactIdsToMerge: contactIds
+      });
 
       setSuccess(`Successfully merged ${result.deletedContacts + 1} contacts with ${result.transferredReviews} reviews and ${result.transferredPromptPages} prompt pages!`);
       setTimeout(() => setSuccess(''), 5000);
@@ -964,16 +931,35 @@ export default function UploadContactsPage() {
             <button
               onClick={async () => {
                 try {
-                  const response = await fetch('/api/contacts/export', {
-                    headers: {
-                      'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
-                    },
-                  });
-                  
+                  // For blob responses, we need to use raw fetch but with apiClient's authentication approach
+                  const { tokenManager } = await import('@/auth/services/TokenManager');
+                  const token = await tokenManager.getAccessToken();
+
+                  const headers: Record<string, string> = {};
+                  if (token) {
+                    headers['Authorization'] = `Bearer ${token}`;
+
+                    // Get selected account
+                    try {
+                      const payload = JSON.parse(atob(token.split('.')[1]));
+                      if (payload.sub) {
+                        const accountKey = `promptreviews_selected_account_${payload.sub}`;
+                        const selectedAccount = localStorage.getItem(accountKey);
+                        if (selectedAccount) {
+                          headers['X-Selected-Account'] = selectedAccount;
+                        }
+                      }
+                    } catch (e) {
+                      // Token parsing failed, ignore
+                    }
+                  }
+
+                  const response = await fetch('/api/contacts/export', { headers });
+
                   if (!response.ok) {
                     throw new Error('Export failed');
                   }
-                  
+
                   // Create download
                   const blob = await response.blob();
                   const url = window.URL.createObjectURL(blob);

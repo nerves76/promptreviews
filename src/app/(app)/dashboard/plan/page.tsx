@@ -26,16 +26,7 @@ export default function PlanPage() {
   const [user, setUser] = useState<any>(null);
   const [userRole, setUserRole] = useState<'owner' | 'member' | null>(null);
   // Check for success state immediately
-  const [isLoading, setIsLoading] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const urlParams = new URLSearchParams(window.location.search);
-      const hasSuccess = urlParams.get('success') === '1';
-      const hasSessionSuccess = sessionStorage.getItem('showPlanSuccessModal') === 'true';
-      const shouldLoad = !hasSuccess && !hasSessionSuccess;
-      return shouldLoad;
-    }
-    return true;
-  });
+  const [isLoading, setIsLoading] = useState(true);
   const [currentPlan, setCurrentPlan] = useState<string | null>(null);
   // Don't initialize from sessionStorage to avoid hydration mismatch
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -121,6 +112,14 @@ export default function PlanPage() {
   const sessionId = searchParams?.get('session_id');
   const canceled = searchParams?.get('canceled');
   const isReactivation = searchParams?.get('reactivation') === 'true';
+
+  // Align initial loading state on client after hydration to avoid mismatches
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const hasSessionSuccess = sessionStorage.getItem('showPlanSuccessModal') === 'true';
+    const shouldLoad = !(success === '1' || hasSessionSuccess);
+    setIsLoading(shouldLoad);
+  }, [success]);
   
   useEffect(() => {
     if (typeof window !== 'undefined') {

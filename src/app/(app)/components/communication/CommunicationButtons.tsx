@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { Button } from "@/app/(app)/components/ui/button";
 import Icon from "@/components/Icon";
 import CommunicationTrackingModal from "./CommunicationTrackingModal";
+import { apiClient } from "@/utils/apiClient";
 
 interface Contact {
   id: string;
@@ -80,39 +81,22 @@ export default function CommunicationButtons({
     
     try {
       // Create communication record
-      const response = await fetch('/api/communication/records', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          contactId: data.contactId,
-          promptPageId: data.promptPageId,
-          communicationType: data.communicationType,
-          subject: data.subject,
-          message: data.message,
-          followUpReminder: data.followUpReminder
-        }),
+      await apiClient.post('/communication/records', {
+        contactId: data.contactId,
+        promptPageId: data.promptPageId,
+        communicationType: data.communicationType,
+        subject: data.subject,
+        message: data.message,
+        followUpReminder: data.followUpReminder
       });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to create communication record');
-      }
 
       // Update prompt page status if changed
       if (data.newStatus !== promptPage.status) {
-        const statusResponse = await fetch('/api/prompt-pages/update-status', {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ id: promptPage.id, status: data.newStatus }),
+        await apiClient.patch('/prompt-pages/update-status', {
+          id: promptPage.id,
+          status: data.newStatus
         });
-
-        if (statusResponse.ok) {
-          onStatusUpdated?.(data.newStatus);
-        }
+        onStatusUpdated?.(data.newStatus);
       }
 
       // Callback to parent component
@@ -127,18 +111,10 @@ export default function CommunicationButtons({
 
   const handleStatusUpdate = async (newStatus: string) => {
     try {
-      const response = await fetch('/api/prompt-pages/update-status', {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ id: promptPage.id, status: newStatus }),
+      await apiClient.patch('/prompt-pages/update-status', {
+        id: promptPage.id,
+        status: newStatus
       });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to update status');
-      }
 
       onStatusUpdated?.(newStatus);
     } catch (error: any) {

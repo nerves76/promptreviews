@@ -13,6 +13,8 @@ import { randomBytes } from 'crypto';
 import { sendTeamInvitationEmail } from '@/utils/emailTemplates';
 import { checkInvitationRateLimit, recordInvitationSuccess } from '@/middleware/invitationRateLimit';
 import { validateInvitationEmail } from '@/utils/emailValidation';
+import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
+import { PLAN_LIMITS } from '@/lib/billing/config';
 
 // 🔧 CONSOLIDATION: Shared server client creation for API routes
 // This eliminates duplicate client creation patterns
@@ -64,6 +66,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Get account ID using secure method that validates access
+    const accountId = await getRequestAccountId(request, user.id, supabase);
+    if (!accountId) {
+      return NextResponse.json(
+        { error: 'Account not found or access denied' },
+        { status: 403 }
+      );
+    }
+
     // Get the user's account and business information
     const { data: accountUser, error: accountError } = await supabase
       .from('account_users')
@@ -80,6 +91,7 @@ export async function POST(request: NextRequest) {
         )
       `)
       .eq('user_id', user.id)
+      .eq('account_id', accountId)
       .single();
 
     if (accountError || !accountUser) {
@@ -90,7 +102,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check rate limits early
-    const rateLimitResult = await checkInvitationRateLimit(request, accountUser.account_id);
+    const rateLimitResult = await checkInvitationRateLimit(request, accountId);
     if (!rateLimitResult.allowed) {
       return NextResponse.json(
         { error: rateLimitResult.error },
@@ -110,10 +122,43 @@ export async function POST(request: NextRequest) {
     }
 
     // Get accounts data (handle both array and object formats)
-    const accounts = Array.isArray(accountUser.accounts) ? accountUser.accounts[0] : accountUser.accounts;
-    
+    let accountRecord = Array.isArray(accountUser.accounts) ? accountUser.accounts[0] : accountUser.accounts;
+
+    // Ensure account limits are aligned with plan
+    const planLimits = PLAN_LIMITS[accountRecord?.plan as keyof typeof PLAN_LIMITS] ?? PLAN_LIMITS.grower;
+    const desiredMaxUsers = planLimits.maxUsers ?? 1;
+    const desiredMaxLocations = planLimits.maxLocations ?? 0;
+
+    if (desiredMaxUsers && (accountRecord?.max_users ?? 0) < desiredMaxUsers) {
+      try {
+        const { data: updatedAccounts, error: updateError } = await supabaseAdmin
+          .from('accounts')
+          .update({
+            max_users: desiredMaxUsers,
+            max_locations: desiredMaxLocations,
+          })
+          .eq('id', accountId)
+          .select('max_users, max_locations')
+          .maybeSingle();
+
+        if (updateError) {
+          console.error('Failed to auto-update account limits before invitation:', updateError);
+        } else if (updatedAccounts) {
+          accountRecord = { ...accountRecord, ...updatedAccounts };
+        } else {
+          accountRecord = {
+            ...accountRecord,
+            max_users: desiredMaxUsers,
+            max_locations: desiredMaxLocations,
+          };
+        }
+      } catch (limitUpdateError) {
+        console.error('Unexpected error auto-updating account limits:', limitUpdateError);
+      }
+    }
+
     // Advanced email validation
-    const accountDomain = accounts?.email ? accounts.email.split('@')[1] : undefined;
+    const accountDomain = accountRecord?.email ? accountRecord.email.split('@')[1] : undefined;
     
     const emailValidation = validateInvitationEmail(email.trim(), {
       accountDomain,
@@ -139,12 +184,12 @@ export async function POST(request: NextRequest) {
     const { data: business, error: businessError } = await supabase
       .from('businesses')
       .select('name')
-      .eq('account_id', accountUser.account_id)
+      .eq('account_id', accountId)
       .single();
 
     // Check if account can add more users
     const { data: canAdd, error: canAddError } = await supabase
-      .rpc('can_add_user_to_account', { account_uuid: accountUser.account_id });
+      .rpc('can_add_user_to_account', { account_uuid: accountId });
 
     if (canAddError) {
       console.error('Error checking if can add user:', canAddError);
@@ -159,9 +204,9 @@ export async function POST(request: NextRequest) {
         { 
           error: 'User limit reached',
           details: {
-            current_users: accounts?.max_users,
-            max_users: accounts?.max_users,
-            plan: accounts?.plan
+            current_users: accountRecord?.max_users,
+            max_users: accountRecord?.max_users,
+            plan: accountRecord?.plan
           }
         },
         { status: 400 }
@@ -182,7 +227,7 @@ export async function POST(request: NextRequest) {
     const { data: existingMember, error: memberCheckError } = await supabase
       .from('account_users')
       .select('user_id')
-      .eq('account_id', accountUser.account_id)
+      .eq('account_id', accountId)
       .eq('user_id', foundUserId || '')
       .single();
 
@@ -197,7 +242,7 @@ export async function POST(request: NextRequest) {
     const { data: existingInvitation, error: inviteCheckError } = await supabase
       .from('account_invitations')
       .select('id, accepted_at, expires_at, role, created_at')
-      .eq('account_id', accountUser.account_id)
+      .eq('account_id', accountId)
       .eq('email', emailValidation.email)
       .single();
 
@@ -261,7 +306,7 @@ export async function POST(request: NextRequest) {
     const { data: invitation, error: inviteError } = await supabase
       .from('account_invitations')
       .insert({
-        account_id: accountUser.account_id,
+        account_id: accountId,
         email: emailValidation.email,
         role,
         invited_by: user.id,
@@ -280,7 +325,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Send email invitation
-    const inviterName = `${accounts?.first_name || ''} ${accounts?.last_name || ''}`.trim() || 'Someone';
+    const inviterName = `${accountRecord?.first_name || ''} ${accountRecord?.last_name || ''}`.trim() || 'Someone';
     const businessName = business?.name || 'their business';
     const formattedExpirationDate = new Date(invitation.expires_at).toLocaleDateString('en-US', {
       weekday: 'long',
@@ -316,7 +361,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Record successful invitation for rate limiting
-    recordInvitationSuccess(accountUser.account_id);
+    recordInvitationSuccess(accountId);
 
     // Log successful invitation for audit trail
 

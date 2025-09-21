@@ -4,20 +4,26 @@ import { parse } from "csv-parse/sync";
 import slugify from "slugify";
 import { checkAccountLimits } from "@/utils/accountLimits";
 import { authenticateApiRequest } from "@/utils/apiAuth";
+import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
 
 export async function POST(request: NextRequest) {
   try {
     
     // Authenticate the request
     const { user, supabase, error: authError } = await authenticateApiRequest(request);
-    
+
     if (authError || !user) {
       return NextResponse.json({ error: authError || "Authentication required" }, { status: 401 });
     }
 
+    // Get the proper account ID using the header and validate access
+    const accountId = await getRequestAccountId(request, user.id, supabase);
+    if (!accountId) {
+      return NextResponse.json({ error: 'No valid account found or access denied' }, { status: 403 });
+    }
 
     // ENFORCE ACCOUNT LIMITS
-    const limitCheck = await checkAccountLimits(supabase, user.id, "contact");
+    const limitCheck = await checkAccountLimits(supabase, accountId, "contact");
     if (!limitCheck.allowed) {
       return NextResponse.json(
         { error: limitCheck.reason || `Limit reached for your plan (${limitCheck.limit || 'unknown'} contacts). Upgrade required to add contacts.` },
@@ -157,7 +163,7 @@ export async function POST(request: NextRequest) {
 
     // Prepare contacts for insertion
     const contacts = validRecords.map((record: any) => ({
-      account_id: user.id,
+      account_id: accountId,
       first_name: record.first_name?.trim() || null,
       last_name: record.last_name?.trim() || null,
       email: record.email?.trim() || null,
