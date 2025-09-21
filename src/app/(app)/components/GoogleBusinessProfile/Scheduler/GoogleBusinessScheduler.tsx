@@ -396,11 +396,12 @@ export default function GoogleBusinessScheduler({
   return (
     <div className="space-y-6">
       <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
-        <div className="md:flex md:items-center md:justify-between mb-6">
+        <div className="md:flex md:items-start md:justify-between mb-6">
           <div>
-            <h2 className="text-xl font-semibold text-gray-900">Schedule Google Business Content</h2>
+            <span className="block text-xs uppercase tracking-wide text-gray-500 mb-1">Step 3</span>
+            <h2 className="text-xl font-semibold text-gray-900">Choose What to Schedule</h2>
             <p className="text-sm text-gray-600">
-              Posts send during the daily morning batch. Photos upload directly to each selected location.
+              Create a one-time post or upload photos to publish with tomorrow&apos;s batch. You can revisit and edit anything in the queue.
             </p>
           </div>
           <div className="mt-4 md:mt-0 flex items-center space-x-2">
@@ -410,7 +411,7 @@ export default function GoogleBusinessScheduler({
                 setSubmissionResult(null);
               }}
               className={`px-3 py-2 text-sm font-medium rounded-md border transition-colors ${
-                mode === 'post' ? 'bg-slate-600 text-white border-slate-600' : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                mode === 'post' ? 'bg-slate-600 text-white border-slate-600 shadow-sm' : 'border-gray-300 text-gray-700 hover:bg-gray-50'
               }`}
             >
               <Icon name="FaPen" className="w-3 h-3 mr-2 inline" /> Post
@@ -421,7 +422,7 @@ export default function GoogleBusinessScheduler({
                 setSubmissionResult(null);
               }}
               className={`px-3 py-2 text-sm font-medium rounded-md border transition-colors ${
-                mode === 'photo' ? 'bg-slate-600 text-white border-slate-600' : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                mode === 'photo' ? 'bg-slate-600 text-white border-slate-600 shadow-sm' : 'border-gray-300 text-gray-700 hover:bg-gray-50'
               }`}
             >
               <Icon name="FaCamera" className="w-3 h-3 mr-2 inline" /> Photo Upload
@@ -443,7 +444,23 @@ export default function GoogleBusinessScheduler({
 
         <div className="grid gap-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Schedule Date</label>
+            <span className="block text-xs uppercase tracking-wide text-gray-500 mb-1">Step 1</span>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Choose Locations</label>
+            <LocationPicker
+              mode="multi"
+              locations={locationOptions}
+              selectedIds={selectedLocationIds}
+              onChange={setSelectedLocationIds}
+              includeSelectAll
+              maxSelections={maxLocations ?? undefined}
+              className="w-full"
+              helperText={maxLocations ? `Your plan allows up to ${maxLocations} locations per schedule.` : 'You can adjust locations any time before the batch runs.'}
+            />
+          </div>
+
+          <div>
+            <span className="block text-xs uppercase tracking-wide text-gray-500 mb-1">Step 2</span>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Schedule Date &amp; Timezone</label>
             <div className="flex flex-col md:flex-row md:space-x-3 space-y-3 md:space-y-0">
               <input
                 type="date"
@@ -466,21 +483,7 @@ export default function GoogleBusinessScheduler({
                 )}
               </select>
             </div>
-            <p className="mt-1 text-xs text-gray-500">Content publishes during the daily batch window in the selected timezone.</p>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Locations</label>
-            <LocationPicker
-              mode="multi"
-              locations={locationOptions}
-              selectedIds={selectedLocationIds}
-              onChange={setSelectedLocationIds}
-              includeSelectAll
-              maxSelections={maxLocations ?? undefined}
-              className="w-full"
-              helperText={maxLocations ? `Your plan allows up to ${maxLocations} locations per schedule.` : undefined}
-            />
+            <p className="mt-1 text-xs text-gray-500">Posts and photos go out during the morning batch in the timezone you choose.</p>
           </div>
 
           {mode === 'post' ? (
