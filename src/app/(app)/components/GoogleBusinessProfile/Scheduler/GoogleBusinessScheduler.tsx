@@ -507,19 +507,62 @@ export default function GoogleBusinessScheduler({
             </div>
           </fieldset>
 
-          {mode === 'post' ? (
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Post Content</label>
-              <textarea
-                value={postContent}
-                onChange={(event) => setPostContent(event.target.value)}
-                rows={4}
-                className="w-full rounded-md border-gray-300 focus:border-slate-500 focus:ring-slate-500"
-                placeholder="Share your update..."
-              />
-              <p className="mt-1 text-xs text-gray-500">Google Business posts support up to 1,500 characters.</p>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-medium text-gray-700">
+                {mode === 'post' ? 'Optional Images' : 'Photos to Upload'}
+              </label>
+              <div className="text-xs text-gray-500">
+                {mediaItems.length} attached · Max 10
+              </div>
             </div>
+            <div className="flex flex-wrap gap-3">
+              {mediaItems.map((media, index) => (
+                <div key={`${media.path}-${index}`} className="relative group">
+                  <img
+                    src={media.previewUrl}
+                    alt={media.originalName ?? 'Upload preview'}
+                    className="h-24 w-24 rounded-md object-cover border border-gray-200"
+                  />
+                  <button
+                    onClick={() => removeMediaItem(index)}
+                    className="absolute -top-2 -right-2 bg-white border border-gray-300 rounded-full p-1 text-gray-600 shadow-sm hover:bg-gray-100"
+                    title="Remove"
+                  >
+                    <Icon name="FaTimes" className="w-3 h-3" />
+                  </button>
+                </div>
+              ))}
+              {mediaItems.length < 10 && (
+                <label className={`border border-dashed border-gray-300 rounded-md h-24 w-24 flex items-center justify-center text-sm text-gray-500 cursor-pointer hover:border-slate-400 hover:text-slate-600 ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    className="hidden"
+                    multiple
+                    disabled={isUploading}
+                    onChange={(event) => handleFileUpload(event.target.files)}
+                  />
+                  {isUploading ? 'Uploading…' : 'Add'}
+                </label>
+              )}
+            </div>
+            <p className="text-xs text-gray-500">Images are compressed before upload to keep storage usage lean. Max 10 MB each.</p>
+          </div>
+
+          {mode === 'post' ? (
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Post Content</label>
+                <textarea
+                  value={postContent}
+                  onChange={(event) => setPostContent(event.target.value)}
+                  rows={4}
+                  className="w-full rounded-md border-gray-300 focus:border-slate-500 focus:ring-slate-500"
+                  placeholder="Share your update..."
+                />
+                <p className="mt-1 text-xs text-gray-500">Google Business posts support up to 1,500 characters.</p>
+              </div>
 
               <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
                 <div className="flex items-center justify-between">
@@ -572,49 +615,6 @@ export default function GoogleBusinessScheduler({
               />
             </div>
           )}
-
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <label className="text-sm font-medium text-gray-700">
-                {mode === 'post' ? 'Optional Images' : 'Photos to Upload'}
-              </label>
-              <div className="text-xs text-gray-500">
-                {mediaItems.length} attached · Max 10
-              </div>
-            </div>
-            <div className="flex flex-wrap gap-3">
-              {mediaItems.map((media, index) => (
-                <div key={`${media.path}-${index}`} className="relative group">
-                  <img
-                    src={media.previewUrl}
-                    alt={media.originalName ?? 'Upload preview'}
-                    className="h-24 w-24 rounded-md object-cover border border-gray-200"
-                  />
-                  <button
-                    onClick={() => removeMediaItem(index)}
-                    className="absolute -top-2 -right-2 bg-white border border-gray-300 rounded-full p-1 text-gray-600 shadow-sm hover:bg-gray-100"
-                    title="Remove"
-                  >
-                    <Icon name="FaTimes" className="w-3 h-3" />
-                  </button>
-                </div>
-              ))}
-              {mediaItems.length < 10 && (
-                <label className={`border border-dashed border-gray-300 rounded-md h-24 w-24 flex items-center justify-center text-sm text-gray-500 cursor-pointer hover:border-slate-400 hover:text-slate-600 ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}>
-                  <input
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp"
-                    className="hidden"
-                    multiple
-                    disabled={isUploading}
-                    onChange={(event) => handleFileUpload(event.target.files)}
-                  />
-                  {isUploading ? 'Uploading…' : 'Add'}
-                </label>
-              )}
-            </div>
-            <p className="text-xs text-gray-500">Images are compressed before upload to keep storage usage lean. Max 10 MB each.</p>
-          </div>
 
           <div className="flex items-center justify-end space-x-3 pt-2 border-t border-gray-100">
             {editingId && (
