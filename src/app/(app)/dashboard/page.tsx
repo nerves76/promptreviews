@@ -257,10 +257,6 @@ const Dashboard = React.memo(function Dashboard() {
             if (universalPromptPage?.slug) {
               universalUrl = `${window.location.origin}/r/${universalPromptPage.slug}`;
             }
-          } else {
-            if (process.env.NODE_ENV === 'development') {
-              try { const err = await ensureRes.json(); console.warn('ensure-universal failed', ensureRes.status, err); } catch {}
-            }
           }
         } catch {}
       }
@@ -346,11 +342,7 @@ const Dashboard = React.memo(function Dashboard() {
       
       // Only warn if user is authenticated with ID but no account after loading
       if (isAuthenticated && user?.id && !account) {
-        console.warn('⚠️ Dashboard: No account found for user:', {
-          userId: user.id,
-          email: user.email || 'no-email'
-        });
-        // Don't auto-create - let the user go through proper onboarding
+        // Account will be provisioned during onboarding; no console noise needed
       }
     }
   }, [authLoading, accountLoading, isAuthenticated, user?.id, account?.id]);
@@ -489,25 +481,15 @@ const Dashboard = React.memo(function Dashboard() {
 
   // Handle URL parameters and celebrations
   useEffect(() => {
-    console.log("🔄 URL params useEffect triggered");
-    console.log("  - window defined?", typeof window !== "undefined");
-    console.log("  - successProcessed?", successProcessed);
-    console.log("  - accountLoading?", accountLoading);
-    console.log("  - Current URL:", typeof window !== "undefined" ? window.location.href : "N/A");
-
     if (typeof window === "undefined") return;
 
     const params = new URLSearchParams(window.location.search);
     const hasSuccessParams = params.get("success") || params.get("session_id");
-    console.log("  - hasSuccessParams?", hasSuccessParams);
-    console.log("  - session_id:", params.get("session_id"));
 
     const additionalParam = params.get("additional");
     const inferredAdditional = additionalParam === "1";
 
     if (!successProcessed && inferredAdditional && !hasSuccessParams) {
-      console.log("🎯 Fallback success detected from additional=1 param only");
-
       setSuccessProcessed(true);
       setPendingChangeType("new_additional_account");
       setShowLinkedAccountOverlay(true);
@@ -524,7 +506,6 @@ const Dashboard = React.memo(function Dashboard() {
         sessionStorage.removeItem('pricingModalDismissed');
       }
 
-      console.log("🌟 SHOWING SUCCESS MODAL FROM additional=1 fallback");
       setShowStarfallCelebration(true);
       setShowSuccessModal(true);
 
@@ -534,7 +515,6 @@ const Dashboard = React.memo(function Dashboard() {
     }
 
     if (successProcessed) {
-      console.log("  ✋ Already processed success, skipping");
       return; // Don't process twice
     }
 
@@ -546,7 +526,6 @@ const Dashboard = React.memo(function Dashboard() {
         const hasOtherParams = params.get("portal_return") || params.get("reactivation") ||
                                params.get("canceled") || params.get("businessCreated");
         if (hasOtherParams) {
-          console.log("⏳ Waiting for account to load before processing non-success URL params");
           return;
         }
       }
@@ -614,17 +593,7 @@ const Dashboard = React.memo(function Dashboard() {
 
       // If we don't have change type but have session_id, assume it's a new signup
       let actualChangeType = changeType || (hasSessionId ? "new" : null);
-      console.log("🎉 Payment success detected!");
-      console.log("  - hasSuccessParam:", hasSuccessParam);
-      console.log("  - hasSessionId:", hasSessionId);
-      console.log("  - changeType:", changeType);
-      console.log("  - actualChangeType:", actualChangeType);
-      console.log("  - planName:", planName);
-      console.log("  - additionalParam:", additionalParam);
-
       if (hasSessionId && !hasSuccessParam) {
-        console.warn("⚠️ Stripe checkout completed but success param missing. Session ID:", hasSessionId);
-        console.log("📊 Inferring successful payment from session_id presence");
       }
 
       if (inferredAdditional && actualChangeType === "new") {
@@ -657,41 +626,20 @@ const Dashboard = React.memo(function Dashboard() {
 
       // Show celebration for upgrades and new signups IMMEDIATELY
       // Don't wait for account refresh - the user has paid, show success!
-      console.log("🎊 Checking if should show celebration...");
-      console.log("  - actualChangeType:", actualChangeType);
-      console.log("  - hasSessionId:", hasSessionId);
-      console.log("  - changeType:", changeType);
-      console.log(
-        "  - Will show celebration?",
-        actualChangeType === "upgrade" ||
-          actualChangeType === "new" ||
-          actualChangeType === "new_additional_account" ||
-          (hasSessionId && !changeType)
-      );
-
       if (
         actualChangeType === "upgrade" ||
         actualChangeType === "new" ||
         actualChangeType === "new_additional_account" ||
         (hasSessionId && !changeType)
       ) {
-        console.log("🌟 SHOWING STARFALL AND SUCCESS MODAL!");
-        console.log("  - Current showSuccessModal state:", showSuccessModal);
-        console.log("  - Current showStarfallCelebration state:", showStarfallCelebration);
-
         setShowStarfallCelebration(true);
         setShowSuccessModal(true);
-        console.log("✅ Both modals set to true immediately");
       } else if (actualChangeType === "downgrade") {
-        console.log("📉 Showing downgrade success modal");
         setTimeout(() => setShowSuccessModal(true), 500);
-      } else {
-        console.log("❌ Not showing any modal - actualChangeType:", actualChangeType);
       }
 
       // Refresh account data to get updated plan (but don't block the celebration)
       if (user?.id) {
-        console.log("🔄 Refreshing account data for user:", user.id);
         refreshAccount().then(() => {
           // Track when account was updated
           setLastAccountUpdate(new Date());
@@ -703,8 +651,7 @@ const Dashboard = React.memo(function Dashboard() {
           setTimeout(() => setJustCompletedPayment(false), 10000);
         });
       } else {
-        console.log("⚠️ No user ID available for account refresh");
-        // Still reset the flag after a delay
+        // No user ID available, still reset the flag after a delay
         setTimeout(() => setJustCompletedPayment(false), 10000);
       }
 
@@ -747,8 +694,6 @@ const Dashboard = React.memo(function Dashboard() {
 
       if (isAdditionalAccount) {
         // For additional accounts, show success message instead of pricing modal
-        console.log('✅ Additional account created successfully');
-
         // Show success modal with appropriate message
         setShowSuccessModal(true);
         setPaymentChangeType("new_additional_account");
@@ -776,35 +721,27 @@ const Dashboard = React.memo(function Dashboard() {
       // Force reload of account data to pick up the newly created account
       // The account switch already happened via localStorage in SimpleBusinessForm
       if (refreshAccount) {
-        console.log('🔄 Refreshing account data after business creation');
         // Wait for refresh to complete before checking payment status
         refreshAccount().then(async () => {
-          console.log('✅ Account data refreshed for account:', selectedAccountId || account?.id);
-
           // Check payment status using the centralized API
           try {
             const accountToCheck = selectedAccountId || account?.id;
-            if (!accountToCheck) {
-              console.warn('[Dashboard] Skipping payment check – no account ID available yet');
-              setIsPendingPricingModal(false);
-              return;
-            }
+              if (!accountToCheck) {
+                setIsPendingPricingModal(false);
+                return;
+              }
             const response = await fetch(`/api/accounts/payment-status?accountId=${accountToCheck}`);
 
             if (response.ok) {
               const data = await response.json();
-              console.log('[Dashboard] Post-business creation payment check:', data.reason);
-
               if (data.requiresPayment) {
                 // Clear the pending state and show modal
                 setIsPendingPricingModal(false);
                 setShowPricingModal(true);
                 setPlanSelectionRequired(true); // Make it required so user can't dismiss
-                console.log('🎯 Showing pricing modal for new business');
               } else {
                 // No payment required, clear pending state
                 setIsPendingPricingModal(false);
-                console.log('✅ No payment required for this account');
               }
             } else {
               console.error('Failed to check payment status after business creation');
@@ -835,7 +772,6 @@ const Dashboard = React.memo(function Dashboard() {
           try {
             const accountToCheck = selectedAccountId || account?.id;
             if (!accountToCheck) {
-              console.warn('[Dashboard] Fallback payment check skipped – account ID not ready');
               setIsPendingPricingModal(false);
               return;
             }
@@ -1231,13 +1167,11 @@ const Dashboard = React.memo(function Dashboard() {
 
     // Block closing if user has completed business creation but has no valid plan
     if (account?.business_creation_complete && hasInvalidPlan) {
-      console.log('[Dashboard] Blocking modal close - no valid plan selected');
       return;
     }
 
     // Also block if API says payment is required
     if (planSelectionRequired) {
-      console.log('[Dashboard] Blocking modal close - payment required by API');
       return;
     }
 

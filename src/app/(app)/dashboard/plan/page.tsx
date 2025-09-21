@@ -211,7 +211,6 @@ export default function PlanPage() {
       if (!accountId) {
         if (isSuccessFlow) {
           // Wait for account context to hydrate instead of redirecting and clearing the success UI
-          console.log('[Plan] Awaiting account context before redirect during success flow');
           setIsLoading(false);
           return;
         }
