@@ -1680,127 +1680,100 @@ export default function SocialPostingDashboard() {
             <nav className="hidden md:flex -mb-px space-x-4">
               <button
                 onClick={() => changeTab('connect')}
-                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                className={`py-2 px-2 border-b-2 font-medium text-sm ${
                   activeTab === 'connect'
                     ? 'border-slate-blue text-slate-blue'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
               >
-                <div className="flex items-center space-x-2">
-                  <Icon name="FaGoogle" className="w-4 h-4" />
-                  <span>Connect</span>
-                </div>
+                Connect
               </button>
               <button
                 onClick={() => changeTab('overview')}
-                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                className={`py-2 px-2 border-b-2 font-medium text-sm ${
                   activeTab === 'overview'
                     ? 'border-slate-blue text-slate-blue'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
               >
-                <div className="flex items-center space-x-2">
-                  <Icon name="MdBarChart" className="w-4 h-4" size={16} />
-                  <span>Overview</span>
-                </div>
+                Overview
               </button>
               <button
                 onClick={() => changeTab('business-info')}
                 disabled={!isConnected || locations.length === 0}
-                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                className={`py-2 px-2 border-b-2 font-medium text-sm ${
                   activeTab === 'business-info' && isConnected && locations.length > 0
                     ? 'border-slate-blue text-slate-blue'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 } ${(!isConnected || locations.length === 0) ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
-                <div className="flex items-center space-x-2">
-                  <Icon name="FaStore" className="w-4 h-4" size={16} />
-                  <span>Business Info</span>
-                </div>
+                Business Info
               </button>
               <button
                 onClick={() => changeTab('services')}
                 disabled={!isConnected || locations.length === 0}
-                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                className={`py-2 px-2 border-b-2 font-medium text-sm ${
                   activeTab === 'services' && isConnected && locations.length > 0
                     ? 'border-slate-blue text-slate-blue'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 } ${(!isConnected || locations.length === 0) ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
-                <div className="flex items-center space-x-2">
-                  <Icon name="FaHandshake" className="w-4 h-4" size={16} />
-                  <span>Services</span>
-                </div>
+                Services
               </button>
               <button
                 onClick={() => changeTab('create-post')}
                 disabled={!isConnected || locations.length === 0}
-                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                className={`py-2 px-2 border-b-2 font-medium text-sm ${
                   activeTab === 'create-post' && isConnected && locations.length > 0
                     ? 'border-slate-blue text-slate-blue'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 } ${(!isConnected || locations.length === 0) ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
-                <div className="flex items-center space-x-2">
-                  <Icon name="FaPlus" className="w-4 h-4" size={16} />
-                  <span>Post</span>
-                </div>
+                Post
               </button>
               <button
                 onClick={() => changeTab('schedule')}
                 disabled={!isConnected || locations.length === 0}
-                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                className={`py-2 px-2 border-b-2 font-medium text-sm ${
                   activeTab === 'schedule' && isConnected && locations.length > 0
                     ? 'border-slate-blue text-slate-blue'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 } ${(!isConnected || locations.length === 0) ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
-                <div className="flex items-center space-x-2">
-                  <Icon name="FaClock" className="w-4 h-4" size={16} />
-                  <span>Schedule</span>
-                </div>
+                Schedule
               </button>
               <button
                 onClick={() => changeTab('photos')}
                 disabled={!isConnected || locations.length === 0}
-                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                className={`py-2 px-2 border-b-2 font-medium text-sm ${
                   activeTab === 'photos' && isConnected && locations.length > 0
                     ? 'border-slate-blue text-slate-blue'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 } ${(!isConnected || locations.length === 0) ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
-                <div className="flex items-center space-x-2">
-                  <Icon name="FaImage" className="w-4 h-4" size={16} />
-                  <span>Photos</span>
-                </div>
+                Photos
               </button>
               <button
                 onClick={() => changeTab('reviews')}
                 disabled={!isConnected || locations.length === 0}
-                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                className={`py-2 px-2 border-b-2 font-medium text-sm ${
                   activeTab === 'reviews' && isConnected && locations.length > 0
                     ? 'border-slate-blue text-slate-blue'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 } ${(!isConnected || locations.length === 0) ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
-                <div className="flex items-center space-x-2">
-                  <Icon name="FaStar" className="w-4 h-4" size={16} />
-                  <span>Reviews</span>
-                </div>
+                Reviews
               </button>
               <button
                 onClick={() => changeTab('more')}
                 disabled={!isConnected || locations.length === 0}
-                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                className={`py-2 px-2 border-b-2 font-medium text-sm ${
                   activeTab === 'more' && isConnected && locations.length > 0
                     ? 'border-slate-blue text-slate-blue'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 } ${(!isConnected || locations.length === 0) ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
-                <div className="flex items-center space-x-2">
-                  <Icon name="FiMoreHorizontal" className="w-4 h-4" size={16} />
-                  <span>More</span>
-                </div>
+                More
               </button>
             </nav>
 
@@ -1816,10 +1789,7 @@ export default function SocialPostingDashboard() {
                         : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
                     }`}
                   >
-                    <div className="flex items-center space-x-3">
-                      <Icon name="FaGoogle" className="w-4 h-4" />
-                      <span>Connect</span>
-                    </div>
+                    Connect
                   </button>
                   <button
                     onClick={() => changeTab('overview')}
@@ -1829,10 +1799,7 @@ export default function SocialPostingDashboard() {
                         : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
                     }`}
                   >
-                    <div className="flex items-center space-x-3">
-                      <Icon name="MdBarChart" className="w-4 h-4" size={16} />
-                      <span>Overview</span>
-                    </div>
+                    Overview
                   </button>
                   <button
                     onClick={() => changeTab('business-info')}
@@ -1845,10 +1812,7 @@ export default function SocialPostingDashboard() {
                           : 'text-gray-400 cursor-not-allowed'
                     }`}
                   >
-                    <div className="flex items-center space-x-3">
-                      <Icon name="FaStore" className="w-4 h-4" size={16} />
-                      <span>Business Info</span>
-                    </div>
+                    Business Info
                   </button>
                   <button
                     onClick={() => changeTab('services')}
@@ -1861,10 +1825,7 @@ export default function SocialPostingDashboard() {
                           : 'text-gray-400 cursor-not-allowed'
                     }`}
                   >
-                    <div className="flex items-center space-x-3">
-                      <Icon name="FaHandshake" className="w-4 h-4" size={16} />
-                      <span>Services</span>
-                    </div>
+                    Services
                   </button>
                   <button
                     onClick={() => changeTab('more')}
@@ -1877,10 +1838,7 @@ export default function SocialPostingDashboard() {
                           : 'text-gray-400 cursor-not-allowed'
                     }`}
                   >
-                    <div className="flex items-center space-x-3">
-                      <Icon name="FiMoreHorizontal" className="w-4 h-4" size={16} />
-                      <span>More</span>
-                    </div>
+                    More
                   </button>
                   <button
                     onClick={() => changeTab('create-post')}
@@ -1893,10 +1851,20 @@ export default function SocialPostingDashboard() {
                           : 'text-gray-400 cursor-not-allowed'
                     }`}
                   >
-                    <div className="flex items-center space-x-3">
-                      <Icon name="FaPlus" className="w-4 h-4" size={16} />
-                      <span>Post</span>
-                    </div>
+                    Post
+                  </button>
+                  <button
+                    onClick={() => changeTab('schedule')}
+                    disabled={!isConnected}
+                    className={`w-full text-left px-3 py-2 rounded-md text-sm font-medium ${
+                      activeTab === 'schedule' && isConnected
+                        ? 'bg-slate-blue text-white'
+                        : isConnected 
+                          ? 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                          : 'text-gray-400 cursor-not-allowed'
+                    }`}
+                  >
+                    Schedule
                   </button>
                   <button
                     onClick={() => changeTab('schedule')}
@@ -1925,10 +1893,7 @@ export default function SocialPostingDashboard() {
                           : 'text-gray-400 cursor-not-allowed'
                     }`}
                   >
-                    <div className="flex items-center space-x-3">
-                      <Icon name="FaImage" className="w-4 h-4" size={16} />
-                      <span>Photos</span>
-                    </div>
+                    Photos
                   </button>
                   <button
                     onClick={() => changeTab('reviews')}
@@ -1941,10 +1906,7 @@ export default function SocialPostingDashboard() {
                           : 'text-gray-400 cursor-not-allowed'
                     }`}
                   >
-                    <div className="flex items-center space-x-3">
-                      <Icon name="FaStar" className="w-4 h-4" size={16} />
-                      <span>Reviews</span>
-                    </div>
+                    Reviews
                   </button>
                 </div>
               </div>
