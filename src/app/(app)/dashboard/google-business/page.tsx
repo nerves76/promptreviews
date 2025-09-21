@@ -5,7 +5,7 @@
 
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import Icon from '@/components/Icon';
 import PageCard from '@/app/(app)/components/PageCard';
 import PageLoader from '@/app/(app)/components/PageLoader';
@@ -17,7 +17,6 @@ import { createClient } from '@/auth/providers/supabase';
 import { useBusinessData, useAuthUser, useAccountData, useSubscriptionData } from '@/auth/hooks/granularAuthHooks';
 import UnrespondedReviewsWidget from '@/app/(app)/components/UnrespondedReviewsWidget';
 import { safeTransformLocations, validateTransformedLocations } from '@/lib/google-business/safe-transformer';
-import LocationSelector from '@/components/GoogleBusinessProfile/LocationSelector';
 import { getMaxLocationsForPlan, getPlanDisplayName } from '@/auth/utils/planUtils';
 // Using V2 to force webpack to reload
 import LocationSelectionModal from '@/components/GoogleBusinessProfile/LocationSelectionModalV2';
@@ -25,6 +24,8 @@ import OverviewStats from '@/components/GoogleBusinessProfile/OverviewStats';
 import BusinessHealthMetrics from '@/components/GoogleBusinessProfile/BusinessHealthMetrics';
 import HelpModal from '@/app/(app)/components/help/HelpModal';
 import ButtonSpinner from '@/components/ButtonSpinner';
+import LocationPicker from '@/components/GoogleBusinessProfile/LocationPicker';
+import GoogleBusinessScheduler from '@/app/(app)/components/GoogleBusinessProfile/Scheduler/GoogleBusinessScheduler';
 // Using built-in alert for notifications instead of react-toastify
 
 interface GoogleBusinessLocation {
@@ -114,6 +115,42 @@ export default function SocialPostingDashboard() {
     }
     return [];
   });
+  const [selectedLocationId, setSelectedLocationId] = useState<string>('');
+
+  useEffect(() => {
+    if (selectedLocations.length === 0) {
+      return;
+    }
+
+    const validLocationIds = new Set(locations.map(loc => loc.id));
+    const filteredSelection = selectedLocations.filter(id => validLocationIds.has(id));
+
+    if (filteredSelection.length !== selectedLocations.length) {
+      setSelectedLocations(filteredSelection);
+    }
+  }, [locations, selectedLocations]);
+
+  const scopedSelectedLocations = useMemo(() => {
+    if (selectedLocations.length === 0) {
+      return [] as GoogleBusinessLocation[];
+    }
+
+    const locationMap = new Map(locations.map(loc => [loc.id, loc]));
+
+    return selectedLocations
+      .map(id => locationMap.get(id))
+      .filter((loc): loc is GoogleBusinessLocation => Boolean(loc));
+  }, [locations, selectedLocations]);
+
+  const scopedLocations = scopedSelectedLocations.length > 0 ? scopedSelectedLocations : locations;
+  const resolvedSelectedLocation = (() => {
+    if (!selectedLocationId) {
+      return scopedLocations[0];
+    }
+
+    const match = scopedLocations.find(loc => loc.id === selectedLocationId);
+    return match || scopedLocations[0];
+  })();
   
   // Enforce single-location UI and selection rules
   useEffect(() => {
@@ -130,7 +167,6 @@ export default function SocialPostingDashboard() {
     }
   }, [locations, currentPlan]);
   
-  const [isLocationDropdownOpen, setIsLocationDropdownOpen] = useState(false);
   // Initialize postContent with saved data
   const [postContent, setPostContent] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -177,7 +213,10 @@ export default function SocialPostingDashboard() {
   const [showPostTypesHelpModal, setShowPostTypesHelpModal] = useState(false);
   const [showLocationSelectionModal, setShowLocationSelectionModal] = useState(false);
   const [pendingLocations, setPendingLocations] = useState<GoogleBusinessLocation[]>([]);
-  
+
+  const planLocationLimit = useMemo(() => getMaxLocationsForPlan(currentPlan), [currentPlan]);
+  const todayIso = useMemo(() => new Date().toISOString().split('T')[0], []);
+
   // Plan access state for Growers
   const [hasGBPAccess, setHasGBPAccess] = useState(true);
   const [gbpAccessMessage, setGbpAccessMessage] = useState("");
@@ -192,7 +231,6 @@ export default function SocialPostingDashboard() {
   const initialLoadDone = useRef(false); // Track if initial load has been completed
 
   // Overview page state
-  const [selectedLocationId, setSelectedLocationId] = useState<string>('');
   const [overviewData, setOverviewData] = useState<any>(null);
   const [overviewLoading, setOverviewLoading] = useState(false);
   const [overviewError, setOverviewError] = useState<string | null>(null);
@@ -206,12 +244,12 @@ export default function SocialPostingDashboard() {
   }, [imageUrls]);
 
   // Tab state with URL parameter support and dynamic default based on connection
-  const [activeTab, setActiveTab] = useState<'connect' | 'overview' | 'create-post' | 'photos' | 'business-info' | 'services' | 'more' | 'reviews'>(() => {
+  const [activeTab, setActiveTab] = useState<'connect' | 'overview' | 'create-post' | 'schedule' | 'photos' | 'business-info' | 'services' | 'more' | 'reviews'>(() => {
     // Initialize from URL parameter if available
     if (typeof window !== 'undefined') {
       const urlParams = new URLSearchParams(window.location.search);
-      const tabParam = urlParams.get('tab') as 'connect' | 'overview' | 'create-post' | 'photos' | 'business-info' | 'services' | 'more' | 'reviews';
-      if (tabParam && ['connect', 'overview', 'create-post', 'photos', 'business-info', 'services', 'more', 'reviews'].includes(tabParam)) {
+      const tabParam = urlParams.get('tab') as 'connect' | 'overview' | 'create-post' | 'schedule' | 'photos' | 'business-info' | 'services' | 'more' | 'reviews';
+      if (tabParam && ['connect', 'overview', 'create-post', 'schedule', 'photos', 'business-info', 'services', 'more', 'reviews'].includes(tabParam)) {
         return tabParam;
       }
     }
@@ -246,7 +284,7 @@ export default function SocialPostingDashboard() {
   }, [currentPlan]);
 
   // Update URL when tab changes
-  const changeTab = (newTab: 'connect' | 'overview' | 'create-post' | 'photos' | 'business-info' | 'services' | 'more' | 'reviews') => {
+  const changeTab = (newTab: 'connect' | 'overview' | 'create-post' | 'schedule' | 'photos' | 'business-info' | 'services' | 'more' | 'reviews') => {
     setActiveTab(newTab);
     setIsMobileMenuOpen(false); // Close mobile menu when tab changes
     
@@ -413,19 +451,6 @@ export default function SocialPostingDashboard() {
     // IMPORTANT: No automatic refresh after initial load to prevent form resets
   }, []); // Empty dependencies - this should only run once on mount
 
-  // Add effect to close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as Element;
-      if (isLocationDropdownOpen && !target.closest('.location-dropdown')) {
-        setIsLocationDropdownOpen(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [isLocationDropdownOpen]);
-
   // Persist state to localStorage
   useEffect(() => {
     localStorage.setItem('google-business-connected', isConnected.toString());
@@ -478,17 +503,17 @@ export default function SocialPostingDashboard() {
 
   // Auto-select first location when locations load
   useEffect(() => {
-    if (locations.length > 0 && !selectedLocationId) {
-      setSelectedLocationId(locations[0].id);
+    if (selectedLocations.length > 0) {
+      if (!selectedLocations.includes(selectedLocationId)) {
+        setSelectedLocationId(selectedLocations[0]);
+      }
+      return;
     }
-  }, [locations, selectedLocationId]);
 
-  // Keep single-selection list in sync with selectedLocationId
-  useEffect(() => {
-    if (selectedLocations.length === 1 && selectedLocationId !== selectedLocations[0]) {
-      setSelectedLocationId(selectedLocations[0]);
+    if (!selectedLocationId && scopedLocations.length > 0) {
+      setSelectedLocationId(scopedLocations[0].id);
     }
-  }, [selectedLocations, selectedLocationId]);
+  }, [selectedLocations, selectedLocationId, scopedLocations]);
 
   // Fetch overview data when tab becomes active
   useEffect(() => {
@@ -1636,6 +1661,7 @@ export default function SocialPostingDashboard() {
                 {activeTab === 'connect' && 'Connect'}
                 {activeTab === 'overview' && 'Overview'}
                 {activeTab === 'create-post' && 'Post'}
+                {activeTab === 'schedule' && 'Schedule'}
                 {activeTab === 'photos' && 'Photos'}
                 {activeTab === 'business-info' && 'Business Info'}
                 {activeTab === 'services' && 'Services'}
@@ -1718,6 +1744,20 @@ export default function SocialPostingDashboard() {
                 <div className="flex items-center space-x-2">
                   <Icon name="FaPlus" className="w-4 h-4" size={16} />
                   <span>Post</span>
+                </div>
+              </button>
+              <button
+                onClick={() => changeTab('schedule')}
+                disabled={!isConnected || locations.length === 0}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'schedule' && isConnected && locations.length > 0
+                    ? 'border-slate-blue text-slate-blue'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                } ${(!isConnected || locations.length === 0) ? 'opacity-50 cursor-not-allowed' : ''}`}
+              >
+                <div className="flex items-center space-x-2">
+                  <Icon name="FaClock" className="w-4 h-4" size={16} />
+                  <span>Schedule</span>
                 </div>
               </button>
               <button
@@ -1856,6 +1896,22 @@ export default function SocialPostingDashboard() {
                     <div className="flex items-center space-x-3">
                       <Icon name="FaPlus" className="w-4 h-4" size={16} />
                       <span>Post</span>
+                    </div>
+                  </button>
+                  <button
+                    onClick={() => changeTab('schedule')}
+                    disabled={!isConnected}
+                    className={`w-full text-left px-3 py-2 rounded-md text-sm font-medium ${
+                      activeTab === 'schedule' && isConnected
+                        ? 'bg-slate-blue text-white'
+                        : isConnected 
+                          ? 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                          : 'text-gray-400 cursor-not-allowed'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-3">
+                      <Icon name="FaClock" className="w-4 h-4" size={16} />
+                      <span>Schedule</span>
                     </div>
                   </button>
                   <button
@@ -2150,34 +2206,25 @@ export default function SocialPostingDashboard() {
               {/* Always show the impressive charts and stats */}
               {(
                 <div className="space-y-6">
-                  {/* Location display/selector - static label when only one applicable */}
-                  {(locations.length === 1 || (currentPlan === 'grower' && selectedLocationId)) ? (
-                    <div className="px-4 py-3 border border-gray-200 rounded-md bg-gray-50 text-gray-800">
-                      <div className="flex items-center space-x-2">
-                        <Icon name="FaGoogle" className="w-4 h-4 text-gray-600" />
-                        <span className="font-medium">Google Business Profile:</span>
-                        <span>{locations.find(l => l.id === (selectedLocationId || locations[0]?.id))?.name || 'Selected location'}</span>
+                  <LocationPicker
+                    mode="single"
+                    label="Google Business Profile"
+                    locations={scopedLocations}
+                    selectedId={resolvedSelectedLocation?.id}
+                    onSelect={(id) => handleLocationChange(id)}
+                    isLoading={isLoadingPlatforms || (isConnected && scopedLocations.length === 0)}
+                    disabled={!isConnected || scopedLocations.length === 0}
+                    placeholder="Select a location"
+                    emptyState={isConnected ? (
+                      <div className="px-4 py-3 border border-dashed border-gray-300 rounded-md text-sm text-gray-600 bg-gray-50">
+                        No Google Business locations found. Fetch your locations to get started.
                       </div>
-                    </div>
-                  ) : (
-                    <LocationSelector
-                      locations={locations.length > 0 && locations[0].name ? locations.map(loc => ({
-                        id: loc.id,
-                        name: loc.name || 'Loading...',
-                        address: loc.address || ''
-                      })) : isConnected ? [] : [
-                        {
-                          id: 'demo-location',
-                          name: 'Your Business Name',
-                          address: '123 Main Street, Your City, State 12345'
-                        }
-                      ]}
-                      selectedLocationId={selectedLocationId || (locations.length > 0 ? locations[0].id : 'demo-location')}
-                      onLocationChange={handleLocationChange}
-                      isConnected={isConnected}
-                      isLoading={isLoadingPlatforms || (isConnected && locations.length === 0)}
-                    />
-                  )}
+                    ) : (
+                      <div className="px-4 py-3 border border-dashed border-gray-300 rounded-md text-sm text-gray-600 bg-gray-50">
+                        Connect your Google Business Profile to load locations.
+                      </div>
+                    )}
+                  />
 
                   {/* Error State */}
                   {overviewError && (
@@ -2324,146 +2371,69 @@ export default function SocialPostingDashboard() {
               ) : (
                 <div className="space-y-6">
                   {/* Location Selection */}
-                  <div className="bg-white rounded-lg border border-gray-200 p-6">
-                    <h3 className="text-lg font-semibold mb-4">Select Locations</h3>
-                    
-                    {locations.length === 0 ? (
-                      <div className="text-center py-8">
-                        <Icon name="FaMapMarker" className="w-8 h-8 text-gray-400 mx-auto mb-3" />
-                        {hasAttemptedFetch ? (
-                          <>
-                            <p className="text-gray-600 mb-4">No business locations found</p>
-                            <p className="text-sm text-gray-500 mb-4">
-                              Your Google Business Profile might not have any locations, or they couldn't be retrieved.
-                            </p>
-                          </>
-                        ) : (
-                          <>
-                            <p className="text-gray-600 mb-4">Ready to get started</p>
-                            <p className="text-sm text-gray-500 mb-4">
-                              Fetch your business locations from Google Business Profile to begin posting.
-                            </p>
-                          </>
-                        )}
-                        <div className="flex flex-col sm:flex-row gap-2 justify-center">
-                          <button
-                            onClick={() => handleFetchLocations()}
-                            disabled={fetchingLocations === 'google-business-profile' || Boolean(rateLimitedUntil && Date.now() < rateLimitedUntil)}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                              fetchingLocations === 'google-business-profile' || Boolean(rateLimitedUntil && Date.now() < rateLimitedUntil)
-                                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                                : 'bg-slate-blue text-white hover:bg-slate-700'
-                            }`}
-                          >
-                            {fetchingLocations === 'google-business-profile' ? (
-                              <>
-                                <Icon name="FaSpinner" className="w-4 h-4 animate-spin mr-2" />
-                                Fetching...
-                              </>
-                            ) : rateLimitedUntil && Date.now() < rateLimitedUntil ? (
-                              `Rate limited (${Math.ceil((rateLimitedUntil - Date.now()) / 1000)}s)`
-                            ) : (
-                              <>
-                                Fetch Locations
-                              </>
-                            )}
-                          </button>
-                          <button
-                            onClick={() => changeTab('connect')}
-                            className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors text-sm"
-                          >
-                            Or go to Connect Tab →
-                          </button>
-                        </div>
-                      </div>
-                    ) : (
-                      (locations.length === 1 || (currentPlan === 'grower' && selectedLocations.length === 1)) ? (
-                        <div className="px-4 py-3 border border-gray-200 rounded-md bg-gray-50 text-gray-800">
-                          <div className="flex items-center space-x-2">
-                            <Icon name="FaGoogle" className="w-4 h-4 text-gray-600" />
-                            <span className="font-medium">Google Business Profile:</span>
-                            <span>{locations.find(l => l.id === (selectedLocations[0] || locations[0]?.id))?.name || 'Selected location'}</span>
-                          </div>
-                        </div>
-                      ) : (
-                      <div className="location-dropdown relative">
-                        <button
-                          onClick={() => setIsLocationDropdownOpen(!isLocationDropdownOpen)}
-                          className="w-full flex items-center justify-between px-4 py-3 border border-gray-300 rounded-md bg-white hover:bg-gray-50 focus:ring-2 focus:ring-slate-blue focus:border-slate-blue"
-                        >
-                          <div className="flex items-center space-x-2">
-                            <Icon name="FaMapMarker" className="w-4 h-4 text-gray-500" />
-                            <span className="text-gray-700">
-                              {selectedLocations.length === 0 
-                                ? 'Select business locations' 
-                                : selectedLocations.length === 1 
-                                  ? locations.find(l => l.id === selectedLocations[0])?.name || 'Selected location'
-                                  : `${selectedLocations.length} locations selected`
-                              }
-                            </span>
-                          </div>
-                          {isLocationDropdownOpen ? (
-                            <Icon name="FaChevronUp" className="w-4 h-4 text-gray-500" />
+                  <div className="bg-white rounded-lg border border-gray-200 p-6 space-y-4">
+                    <h3 className="text-lg font-semibold">Select Locations</h3>
+                    <LocationPicker
+                      mode="multi"
+                      label="Google Business Locations"
+                      locations={locations}
+                      selectedIds={selectedLocations}
+                      onChange={setSelectedLocations}
+                      maxSelections={currentPlan === 'grower' ? 1 : undefined}
+                      onMaxSelection={() => alert('The Grower plan supports a single Google Business location. Upgrade your plan to post to multiple locations.')}
+                      placeholder="Select business locations"
+                      isLoading={isLoadingPlatforms}
+                      helperText={locations.length > 0 ? 'Posts will publish to every selected location.' : undefined}
+                      includeSelectAll={currentPlan !== 'grower'}
+                      emptyState={(
+                        <div className="text-center py-8">
+                          <Icon name="FaMapMarker" className="w-8 h-8 text-gray-400 mx-auto mb-3" />
+                          {hasAttemptedFetch ? (
+                            <>
+                              <p className="text-gray-600 mb-4">No business locations found</p>
+                              <p className="text-sm text-gray-500 mb-4">
+                                Your Google Business Profile might not have any locations, or they couldn't be retrieved.
+                              </p>
+                            </>
                           ) : (
-                            <Icon name="FaChevronDown" className="w-4 h-4 text-gray-500" />
+                            <>
+                              <p className="text-gray-600 mb-4">Ready to get started</p>
+                              <p className="text-sm text-gray-500 mb-4">
+                                Fetch your business locations from Google Business Profile to begin posting.
+                              </p>
+                            </>
                           )}
-                        </button>
-                        
-                        {isLocationDropdownOpen && (
-                          <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-50 max-h-60 overflow-y-auto">
-                            {locations.map((location) => (
-                              <div
-                                key={location.id}
-                                className="flex items-center space-x-3 px-4 py-3 hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
-                              >
-                                <input
-                                  type="checkbox"
-                                  id={`location-checkbox-${location.id}`}
-                                  checked={selectedLocations.includes(location.id)}
-                                  onChange={(e) => {
-                                    /**
-                                     * CRITICAL: Individual checkbox selection
-                                     * Must create new array to trigger React re-render
-                                     * Using div instead of label to prevent event issues
-                                     */
-                                    // Enforce Grower plan limit: max 1 selected
-                                    if (currentPlan === 'grower' && e.target.checked && !selectedLocations.includes(location.id) && selectedLocations.length >= 1) {
-                                      return;
-                                    }
-                                    if (e.target.checked) {
-                                      // Only add if not already in the list
-                                      if (!selectedLocations.includes(location.id)) {
-                                        const newSelection = [...selectedLocations, location.id];
-                                        setSelectedLocations(newSelection);
-                                      }
-                                    } else {
-                                      const newSelection = selectedLocations.filter(id => id !== location.id);
-                                      setSelectedLocations(newSelection);
-                                    }
-                                  }}
-                                  className="w-4 h-4 text-slate-blue border-gray-300 rounded focus:ring-slate-blue"
-                                />
-                                <div className="flex-1 min-w-0">
-                                  <div className="font-medium text-gray-900 truncate">
-                                    {location.name && location.name !== 'Unknown Location' ? (
-                                      location.name
-                                    ) : location.id && typeof location.id === 'string' ? (
-                                      `Business ${location.id.replace('locations/', '').substring(0, 8)}...`
-                                    ) : (
-                                      'Unnamed Business'
-                                    )}
-                                  </div>
-                                  {location.address && (
-                                    <div className="text-sm text-gray-500 truncate">{location.address}</div>
-                                  )}
-                                </div>
-                              </div>
-                            ))}
+                          <div className="flex flex-col sm:flex-row gap-2 justify-center">
+                            <button
+                              onClick={() => handleFetchLocations()}
+                              disabled={fetchingLocations === 'google-business-profile' || Boolean(rateLimitedUntil && Date.now() < rateLimitedUntil)}
+                              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                                fetchingLocations === 'google-business-profile' || Boolean(rateLimitedUntil && Date.now() < rateLimitedUntil)
+                                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                  : 'bg-slate-blue text-white hover:bg-slate-700'
+                              }`}
+                            >
+                              {fetchingLocations === 'google-business-profile' ? (
+                                <>
+                                  <Icon name="FaSpinner" className="w-4 h-4 animate-spin mr-2" />
+                                  Fetching...
+                                </>
+                              ) : rateLimitedUntil && Date.now() < rateLimitedUntil ? (
+                                `Rate limited (${Math.ceil((rateLimitedUntil - Date.now()) / 1000)}s)`
+                              ) : (
+                                <>Fetch Locations</>
+                              )}
+                            </button>
+                            <button
+                              onClick={() => changeTab('connect')}
+                              className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors text-sm"
+                            >
+                              Or go to Connect Tab →
+                            </button>
                           </div>
-                        )}
-                      </div>
-                      )
-                    )}
+                        </div>
+                      )}
+                    />
                   </div>
 
                   {/* Post Creation Form */}
@@ -2658,6 +2628,15 @@ export default function SocialPostingDashboard() {
             </div>
           )}
 
+          {activeTab === 'schedule' && (
+            <GoogleBusinessScheduler
+              locations={locations}
+              isConnected={isConnected}
+              maxLocations={planLocationLimit ?? undefined}
+              minimumDate={todayIso}
+            />
+          )}
+
           {activeTab === 'photos' && (
             <div className="space-y-6">
               {!isConnected ? (
@@ -2687,7 +2666,7 @@ export default function SocialPostingDashboard() {
                 </div>
               ) : (
                 <PhotoManagement 
-                  locations={locations}
+                  locations={scopedLocations}
                   isConnected={isConnected}
                 />
               )}
@@ -2725,7 +2704,7 @@ export default function SocialPostingDashboard() {
               ) : (
                 <BusinessInfoEditor 
                   key="business-info-editor" 
-                  locations={locations}
+                  locations={scopedLocations}
                   isConnected={isConnected}
                 />
               )}
@@ -2763,7 +2742,7 @@ export default function SocialPostingDashboard() {
               ) : (
                 <ServicesEditor 
                   key="services-editor" 
-                  locations={locations}
+                  locations={scopedLocations}
                   isConnected={isConnected}
                 />
               )}
@@ -3116,9 +3095,11 @@ export default function SocialPostingDashboard() {
                 </div>
               ) : (
                 <>
-                  <UnrespondedReviewsWidget />
+                  <UnrespondedReviewsWidget 
+                    locationIds={selectedLocationId ? [selectedLocationId] : selectedLocations}
+                  />
                   <ReviewManagement 
-                    locations={locations}
+                    locations={scopedLocations}
                     isConnected={isConnected}
                   />
                 </>
@@ -3217,41 +3198,21 @@ export default function SocialPostingDashboard() {
               </p>
               
               {/* Location Selection (static when single/grower) */}
-              {locations.length > 0 && (
-                (locations.length === 1 || (currentPlan === 'grower' && selectedLocationId)) ? (
-                  <div className="mb-4">
-                    <div className="px-3 py-2 border border-gray-200 rounded-md bg-gray-50 text-gray-800">
-                      <div className="flex items-center space-x-2">
-                        <Icon name="FaGoogle" className="w-4 h-4 text-gray-600" />
-                        <span className="font-medium">Google Business Profile:</span>
-                        <span>{locations.find(l => l.id === (selectedLocationId || locations[0]?.id))?.name || 'Selected location'}</span>
-                      </div>
-                    </div>
+              <LocationPicker
+                mode="single"
+                label="Select Location to Import From"
+                locations={scopedLocations}
+                selectedId={(selectedLocationId && scopedLocations.some(loc => loc.id === selectedLocationId)) ? selectedLocationId : resolvedSelectedLocation?.id}
+                onSelect={(id) => setSelectedLocationId(id)}
+                isLoading={isLoadingPlatforms}
+                disabled={isImportingReviews}
+                placeholder="Choose a location"
+                emptyState={(
+                  <div className="px-3 py-2 border border-dashed border-gray-300 rounded-md text-sm text-gray-600 bg-gray-50">
+                    No Google Business locations available. Fetch locations to import reviews.
                   </div>
-                ) : (
-                  <div className="mb-4">
-                    <label htmlFor="import-location-select" className="block text-sm font-medium text-gray-700 mb-2">
-                      Select Location to Import From:
-                    </label>
-                    <select
-                      id="import-location-select"
-                      value={selectedLocationId || ''}
-                      onChange={(e) => setSelectedLocationId(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      disabled={isImportingReviews}
-                    >
-                      {!selectedLocationId && (
-                        <option value="">-- Select a location --</option>
-                      )}
-                      {locations.map((location) => (
-                        <option key={location.id} value={location.id}>
-                          {location.name || `Business ${location.id.substring(0, 8)}...`}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                )
-              )}
+                )}
+              />
 
               <div className="space-y-3">
                 <p className="text-sm font-medium text-gray-700">Import Options:</p>

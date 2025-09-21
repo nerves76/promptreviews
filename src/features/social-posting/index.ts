@@ -6,6 +6,7 @@
 
 // Core universal functionality
 export * from './core/types/platform';
+export * from './core/types/scheduled';
 export * from './core/services/PostManager';
 
 // Platform-specific integrations

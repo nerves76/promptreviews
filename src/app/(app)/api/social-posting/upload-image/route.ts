@@ -1,11 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabaseClient } from '@/auth/providers/supabase';
+import { createHash } from 'crypto';
 
 export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
     const file = formData.get("file");
-    const folder = formData.get("folder") || "social-posts";
+    const folderFromPayload = formData.get("folder");
+    const folder = typeof folderFromPayload === 'string' && folderFromPayload.trim().length > 0
+      ? folderFromPayload.trim()
+      : 'social-posts/scheduled';
+    const bucket = process.env.GBP_SCHEDULED_MEDIA_BUCKET || 'testimonial-photos';
 
     if (!file || typeof file === "string") {
       return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
@@ -36,13 +41,18 @@ export async function POST(req: NextRequest) {
     }
 
     // Generate a unique filename with folder structure
-    const ext = file.name.split(".").pop();
-    const filename = `${folder}/user_${user.id}_${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+    const ext = file.name.includes('.') ? file.name.split(".").pop() : undefined;
+    const safeExt = ext ? `.${ext}` : '';
+    const filename = `${folder.replace(/\/+$/,'')}/user_${user.id}_${Date.now()}_${Math.random().toString(36).slice(2)}${safeExt}`;
+
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    const checksum = createHash('sha256').update(buffer).digest('hex');
 
     // Upload to Supabase Storage
     const { data, error } = await supabase.storage
-      .from("testimonial-photos")
-      .upload(filename, file, {
+      .from(bucket)
+      .upload(filename, buffer, {
         cacheControl: "3600",
         upsert: false,
         contentType: file.type,
@@ -55,10 +65,18 @@ export async function POST(req: NextRequest) {
 
     // Get public URL
     const { data: publicUrlData } = supabase.storage
-      .from("testimonial-photos")
+      .from(bucket)
       .getPublicUrl(filename);
     
-    return NextResponse.json({ url: publicUrlData.publicUrl });
+    return NextResponse.json({
+      url: publicUrlData.publicUrl,
+      bucket,
+      path: filename,
+      size: file.size,
+      mime: file.type,
+      checksum,
+      originalName: file.name,
+    });
   } catch (err) {
     console.error('Server error:', err);
     return NextResponse.json({ error: "Server error" }, { status: 500 });

@@ -200,11 +200,23 @@ export class GoogleBusinessProfileClient {
 
       const url = `${apiBaseUrl}${endpoint}`;
       
-      const headers = {
+      const baseHeaders: Record<string, string> = {
         'Authorization': `Bearer ${this.accessToken}`,
-        'Content-Type': 'application/json',
         'X-GOOG-API-FORMAT-VERSION': '2', // Enable detailed error messages
-        ...options.headers,
+      };
+
+      const customHeaders = options.headers instanceof Headers
+        ? Object.fromEntries(options.headers.entries())
+        : (options.headers as Record<string, string> | undefined) ?? {};
+
+      const isFormData = typeof FormData !== 'undefined' && options.body instanceof FormData;
+      if (!isFormData) {
+        baseHeaders['Content-Type'] = 'application/json';
+      }
+
+      const headers = {
+        ...baseHeaders,
+        ...customHeaders,
       };
 
       const response = await fetch(url, {
@@ -542,8 +554,12 @@ export class GoogleBusinessProfileClient {
   async uploadMedia(
     accountId: string,
     locationId: string,
-    imageFile: File,
-    mediaFormat: 'PHOTO' | 'VIDEO' = 'PHOTO'
+    imageFile: Blob,
+    options?: {
+      mediaFormat?: 'PHOTO' | 'VIDEO';
+      filename?: string;
+      description?: string;
+    }
   ): Promise<{ success: boolean; mediaItem?: any; error?: string }> {
     try {
 
@@ -561,12 +577,14 @@ export class GoogleBusinessProfileClient {
 
       // Create FormData for file upload
       const formData = new FormData();
-      formData.append('media', imageFile);
+      const filename = options?.filename ?? `upload-${Date.now()}.jpg`;
+      formData.append('media', imageFile, filename);
       
       // Create media metadata
       const mediaMetadata = {
-        mediaFormat: mediaFormat,
+        mediaFormat: options?.mediaFormat ?? 'PHOTO',
         sourceUrl: '', // Will be filled by Google after upload
+        description: options?.description,
       };
 
       formData.append('metadata', JSON.stringify(mediaMetadata));
@@ -574,10 +592,7 @@ export class GoogleBusinessProfileClient {
       const response = await this.makeRequest(url, {
         method: 'POST',
         body: formData,
-        // Don't set Content-Type header - let the browser set it for FormData
-        headers: {
-          'Authorization': `Bearer ${this.accessToken}`,
-        },
+        // Don't set Content-Type header - FormData handles it
       });
 
       return {
@@ -728,7 +743,7 @@ export class GoogleBusinessProfileClient {
    * Fetches unresponded reviews from the last 30 days
    * Used for review reminder system
    */
-  async getUnrespondedReviews(locationId?: string): Promise<{
+  async getUnrespondedReviews(locationFilter?: string | string[]): Promise<{
     locationId: string;
     locationName: string;
     accountId: string;
@@ -750,6 +765,42 @@ export class GoogleBusinessProfileClient {
     }>;
   }[]> {
     
+    const buildIdVariants = (value: string) => {
+      const variants = new Set<string>();
+      const trimmed = (value || '').trim();
+
+      if (!trimmed) {
+        return variants;
+      }
+
+      variants.add(trimmed);
+
+      if (trimmed.startsWith('locations/')) {
+        variants.add(trimmed.replace('locations/', ''));
+      }
+
+      const segments = trimmed.split('/');
+      const lastSegment = segments[segments.length - 1];
+
+      if (lastSegment) {
+        variants.add(lastSegment);
+        variants.add(`locations/${lastSegment}`);
+      }
+
+      return variants;
+    };
+
+    const filterSet = locationFilter
+      ? (() => {
+          const set = new Set<string>();
+          const values = Array.isArray(locationFilter) ? locationFilter : [locationFilter];
+          values.forEach(id => {
+            buildIdVariants(id).forEach(variant => set.add(variant));
+          });
+          return set;
+        })()
+      : null;
+
     try {
       // Get all accounts
       const accounts = await this.listAccounts();
@@ -770,17 +821,31 @@ export class GoogleBusinessProfileClient {
         const locations = await this.listLocations(accountId);
         
         for (const location of locations) {
-          const locationId = location.name.replace('locations/', '');
+          const rawLocationName = location.name || '';
+          const locationSegments = rawLocationName.split('/');
+          const shortLocationId = locationSegments[locationSegments.length - 1] || rawLocationName;
+          const canonicalLocationId = shortLocationId.startsWith('locations/') ? shortLocationId : `locations/${shortLocationId}`;
           const locationName = location.title || 'Unknown Location';
 
-          // Skip if specific location requested and this isn't it
-          if (locationId && locationId !== locationId) {
-            continue;
+          if (filterSet) {
+            const locationVariants = buildIdVariants(canonicalLocationId);
+            let matchesFilter = false;
+
+            for (const variant of locationVariants) {
+              if (filterSet.has(variant)) {
+                matchesFilter = true;
+                break;
+              }
+            }
+
+            if (!matchesFilter) {
+              continue;
+            }
           }
 
           try {
             // Fetch reviews for this location
-            const reviews = await this.getReviews(locationId);
+            const reviews = await this.getReviews(canonicalLocationId);
             
             // Filter for unresponded reviews from last 30 days
             const unrespondedReviews = reviews.filter(review => {
@@ -792,7 +857,7 @@ export class GoogleBusinessProfileClient {
 
             if (unrespondedReviews.length > 0) {
               results.push({
-                locationId,
+                locationId: canonicalLocationId,
                 locationName,
                 accountId,
                 accountName,
