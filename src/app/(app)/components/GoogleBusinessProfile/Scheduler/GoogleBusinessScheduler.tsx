@@ -178,7 +178,8 @@ export default function GoogleBusinessScheduler({
     console.log('[Scheduler] Fetching queue...');
     setIsLoadingQueue(true);
     try {
-      const response = await fetch('/api/social-posting/scheduled');
+      // Add cache-busting to ensure fresh data
+      const response = await fetch(`/api/social-posting/scheduled?t=${Date.now()}`);
       const data = await response.json();
       if (!response.ok || !data.success) {
         throw new Error(data.error || 'Failed to fetch scheduled items');
@@ -186,10 +187,12 @@ export default function GoogleBusinessScheduler({
       console.log('[Scheduler] Queue fetched:', {
         upcoming: data.data.upcoming?.length ?? 0,
         past: data.data.past?.length ?? 0,
+        timestamp: new Date().toISOString(),
         upcomingStatuses: data.data.upcoming?.map((item: any) => ({
           id: item.id,
           status: item.status,
-          scheduledDate: item.scheduledDate
+          scheduledDate: item.scheduledDate,
+          updatedAt: item.updatedAt
         })),
         pastStatuses: data.data.past?.slice(0, 5).map((item: any) => ({
           id: item.id,
@@ -197,10 +200,11 @@ export default function GoogleBusinessScheduler({
           scheduledDate: item.scheduledDate
         }))
       });
-      setQueue({
-        upcoming: data.data.upcoming ?? [],
-        past: data.data.past ?? [],
-      });
+      // Force a new object reference to trigger React re-render
+      setQueue(() => ({
+        upcoming: [...(data.data.upcoming ?? [])],
+        past: [...(data.data.past ?? [])],
+      }));
     } catch (error) {
       console.error('[Scheduler] Failed to load queue', error);
       setQueue({ upcoming: [], past: [] });
@@ -398,29 +402,56 @@ export default function GoogleBusinessScheduler({
 
       console.log('[Scheduler] Success! Setting result message');
       const wasEdit = !!editingId;
-      const successMessage = wasEdit ? 'Schedule updated successfully!' : 'Scheduled successfully!';
+      const editedItemId = editingId; // Capture the ID before clearing
+      const successMessage = wasEdit ? '✓ Schedule updated successfully! The date and details have been saved.' : '✓ Scheduled successfully!';
       console.log('[Scheduler] Setting success message:', successMessage);
 
-      // Set the success message BEFORE resetting form
+      // Set the success message FIRST
       const resultToSet = { success: true, message: successMessage };
       console.log('[Scheduler] Setting submission result:', resultToSet);
       setSubmissionResult(resultToSet);
 
-      // Fetch the updated queue BEFORE resetting form
-      console.log('[Scheduler] Fetching updated queue');
-      await fetchQueue();
-      console.log('[Scheduler] Queue updated after', wasEdit ? 'edit' : 'create');
-
-      // Reset form AFTER setting message and fetching queue
-      // Use setTimeout to ensure state updates are processed
-      setTimeout(() => {
+      // Only reset form for new posts, not edits
+      if (!wasEdit) {
+        console.log('[Scheduler] Resetting form for new post');
         resetForm();
-      }, 50);
+      } else {
+        // For edits, just clear the editing state
+        console.log('[Scheduler] Clearing edit mode');
+        setEditingId(null);
+      }
 
-      // Keep success message visible for 5 seconds
+      // Fetch the updated queue - force cache bypass for edits
+      console.log('[Scheduler] Fetching updated queue after', wasEdit ? 'edit' : 'create');
+
+      // Add a small delay for edits to ensure the backend has committed the changes
+      if (wasEdit) {
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+
+      // Fetch updated queue
+      await fetchQueue();
+      console.log('[Scheduler] Queue refresh completed');
+
+      // For edits, scroll to the edited item and add a visual highlight
+      if (wasEdit && typeof window !== 'undefined') {
+        setTimeout(() => {
+          const editedElement = document.querySelector(`[data-schedule-id="${editedItemId}"]`);
+          if (editedElement) {
+            editedElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            // Add a brief highlight animation
+            editedElement.classList.add('ring-2', 'ring-green-500', 'ring-offset-2');
+            setTimeout(() => {
+              editedElement.classList.remove('ring-2', 'ring-green-500', 'ring-offset-2');
+            }, 3000);
+          }
+        }, 100);
+      }
+
+      // Keep success message visible for longer for edits
       setTimeout(() => {
         setSubmissionResult(null);
-      }, 5000);
+      }, wasEdit ? 7000 : 5000);
     } catch (error) {
       console.error('[Scheduler] Submit failed with error:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to schedule content';
@@ -867,8 +898,11 @@ export default function GoogleBusinessScheduler({
                   {queue.upcoming.map((item) => (
                     <div
                       key={item.id}
-                      className={`border border-gray-200 rounded-lg p-4 transition-opacity ${
-                        cancellingIds.has(item.id) ? 'opacity-50' : ''
+                      data-schedule-id={item.id}
+                      className={`border rounded-lg p-4 transition-all ${
+                        cancellingIds.has(item.id) ? 'opacity-50 border-gray-200' :
+                        editingId === item.id ? 'border-blue-400 bg-blue-50/30' :
+                        'border-gray-200'
                       }`}
                     >
                       <div className="flex gap-4">
@@ -894,7 +928,7 @@ export default function GoogleBusinessScheduler({
                               <div className="flex items-center space-x-2 text-sm text-gray-500">
                                 <span>{item.postKind === 'photo' ? 'Photo Upload' : 'Post'}</span>
                                 <span>•</span>
-                                <span>Scheduled: {new Date(item.scheduledDate).toLocaleDateString()}</span>
+                                <span>Scheduled: {new Date(item.scheduledDate + 'T12:00:00Z').toLocaleDateString('en-US', { timeZone: item.timezone || 'America/New_York' })}</span>
                               </div>
                               {/* Location names */}
                               {item.selectedLocations && item.selectedLocations.length > 0 && (
@@ -972,7 +1006,7 @@ export default function GoogleBusinessScheduler({
                 <h4 className="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3">Recent Activity</h4>
                 <div className="space-y-3">
                   {queue.past.slice(0, 10).map((item) => (
-                    <div key={item.id} className="border border-gray-200 rounded-lg p-4">
+                    <div key={`${item.id}-${item.scheduledDate}-${item.updatedAt}`} className="border border-gray-200 rounded-lg p-4">
                       <div className="flex gap-4">
                         {/* Image thumbnail or placeholder */}
                         <div className="flex-shrink-0">
@@ -996,7 +1030,7 @@ export default function GoogleBusinessScheduler({
                               <div className="flex items-center space-x-2 text-sm text-gray-500">
                                 <span>{item.postKind === 'photo' ? 'Photo Upload' : 'Post'}</span>
                                 <span>•</span>
-                                <span>Scheduled: {new Date(item.scheduledDate).toLocaleDateString()}</span>
+                                <span>Scheduled: {new Date(item.scheduledDate + 'T12:00:00Z').toLocaleDateString('en-US', { timeZone: item.timezone || 'America/New_York' })}</span>
                               </div>
                               {/* Location names */}
                               {item.selectedLocations && item.selectedLocations.length > 0 && (
