@@ -177,10 +177,10 @@ export default function GoogleBusinessScheduler({
   }, [fetchQueue]);
 
   useEffect(() => {
-    if (locationOptions.length === 1 && selectedLocationIds.length === 0) {
+    if (locationOptions.length === 1) {
       setSelectedLocationIds([locationOptions[0].id]);
     }
-  }, [locationOptions, selectedLocationIds]);
+  }, [locationOptions]);
 
   const handleFileUpload = useCallback(async (files: FileList | null) => {
     if (!files || files.length === 0) return;
