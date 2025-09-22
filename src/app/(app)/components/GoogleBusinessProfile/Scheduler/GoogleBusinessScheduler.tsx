@@ -186,8 +186,16 @@ export default function GoogleBusinessScheduler({
       console.log('[Scheduler] Queue fetched:', {
         upcoming: data.data.upcoming?.length ?? 0,
         past: data.data.past?.length ?? 0,
-        upcomingStatuses: data.data.upcoming?.map((item: any) => ({ id: item.id, status: item.status })),
-        pastStatuses: data.data.past?.slice(0, 5).map((item: any) => ({ id: item.id, status: item.status }))
+        upcomingStatuses: data.data.upcoming?.map((item: any) => ({
+          id: item.id,
+          status: item.status,
+          scheduledDate: item.scheduledDate
+        })),
+        pastStatuses: data.data.past?.slice(0, 5).map((item: any) => ({
+          id: item.id,
+          status: item.status,
+          scheduledDate: item.scheduledDate
+        }))
       });
       setQueue({
         upcoming: data.data.upcoming ?? [],
@@ -393,18 +401,21 @@ export default function GoogleBusinessScheduler({
       const successMessage = wasEdit ? 'Schedule updated successfully!' : 'Scheduled successfully!';
       console.log('[Scheduler] Setting success message:', successMessage);
 
-      // Reset form (which also clears editingId)
-      resetForm();
-
-      // Then set the success message
+      // Set the success message BEFORE resetting form
       const resultToSet = { success: true, message: successMessage };
       console.log('[Scheduler] Setting submission result:', resultToSet);
       setSubmissionResult(resultToSet);
-      console.log('[Scheduler] Submission result set. Fetching updated queue');
 
-      // Immediately fetch the updated queue
+      // Fetch the updated queue BEFORE resetting form
+      console.log('[Scheduler] Fetching updated queue');
       await fetchQueue();
       console.log('[Scheduler] Queue updated after', wasEdit ? 'edit' : 'create');
+
+      // Reset form AFTER setting message and fetching queue
+      // Use setTimeout to ensure state updates are processed
+      setTimeout(() => {
+        resetForm();
+      }, 50);
 
       // Keep success message visible for 5 seconds
       setTimeout(() => {
