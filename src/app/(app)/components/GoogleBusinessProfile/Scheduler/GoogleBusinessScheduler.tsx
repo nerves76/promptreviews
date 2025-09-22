@@ -143,6 +143,7 @@ export default function GoogleBusinessScheduler({
   const [isLoadingQueue, setIsLoadingQueue] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isLoadingEdit, setIsLoadingEdit] = useState(false);
+  const [cancellingIds, setCancellingIds] = useState<Set<string>>(new Set());
 
   const locationOptions = useMemo(() => (
     locations.map((loc) => ({ id: loc.id, name: loc.name }))
@@ -446,7 +447,11 @@ export default function GoogleBusinessScheduler({
 
   const handleCancel = useCallback(async (id: string) => {
     console.log('[Scheduler] Cancelling item:', id);
+
+    // Add to cancelling set for immediate UI feedback
+    setCancellingIds(prev => new Set(prev).add(id));
     setSubmissionResult(null);
+
     try {
       const response = await fetch(`/api/social-posting/scheduled/${id}`, { method: 'DELETE' });
       console.log('[Scheduler] Cancel response status:', response.status);
@@ -471,7 +476,7 @@ export default function GoogleBusinessScheduler({
       console.log('[Scheduler] Fetching updated queue after cancel');
       await fetchQueue();
 
-      setSubmissionResult({ success: true, message: 'Scheduled item cancelled.' });
+      setSubmissionResult({ success: true, message: 'Scheduled item cancelled successfully.' });
       // Keep message visible for 5 seconds
       setTimeout(() => {
         setSubmissionResult(null);
@@ -479,6 +484,17 @@ export default function GoogleBusinessScheduler({
     } catch (error) {
       console.error('[Scheduler] Cancel failed', error);
       setSubmissionResult({ success: false, message: error instanceof Error ? error.message : 'Failed to cancel scheduled item' });
+      // Keep error visible for longer
+      setTimeout(() => {
+        setSubmissionResult(null);
+      }, 7000);
+    } finally {
+      // Remove from cancelling set
+      setCancellingIds(prev => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
     }
   }, [fetchQueue, editingId, resetForm]);
 
@@ -790,7 +806,12 @@ export default function GoogleBusinessScheduler({
                 <h4 className="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3">Upcoming</h4>
                 <div className="space-y-3">
                   {queue.upcoming.map((item) => (
-                    <div key={item.id} className="border border-gray-200 rounded-lg p-4">
+                    <div
+                      key={item.id}
+                      className={`border border-gray-200 rounded-lg p-4 transition-opacity ${
+                        cancellingIds.has(item.id) ? 'opacity-50' : ''
+                      }`}
+                    >
                       <div className="flex gap-4">
                         {/* Image thumbnail or placeholder */}
                         <div className="flex-shrink-0">
@@ -842,9 +863,14 @@ export default function GoogleBusinessScheduler({
                               </button>
                               <button
                                 onClick={() => handleCancel(item.id)}
-                                className="px-2 py-1 text-xs font-medium border border-rose-200 rounded-md text-rose-600 hover:bg-rose-50"
+                                disabled={cancellingIds.has(item.id)}
+                                className={`px-2 py-1 text-xs font-medium border rounded-md ${
+                                  cancellingIds.has(item.id)
+                                    ? 'border-gray-200 text-gray-400 bg-gray-50 cursor-not-allowed'
+                                    : 'border-rose-200 text-rose-600 hover:bg-rose-50'
+                                }`}
                               >
-                                Cancel
+                                {cancellingIds.has(item.id) ? 'Cancelling...' : 'Cancel'}
                               </button>
                             </div>
                           </div>
