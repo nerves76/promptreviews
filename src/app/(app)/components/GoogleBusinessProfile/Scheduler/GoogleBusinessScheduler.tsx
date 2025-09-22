@@ -176,6 +176,12 @@ export default function GoogleBusinessScheduler({
     fetchQueue();
   }, [fetchQueue]);
 
+  useEffect(() => {
+    if (locationOptions.length === 1 && selectedLocationIds.length === 0) {
+      setSelectedLocationIds([locationOptions[0].id]);
+    }
+  }, [locationOptions, selectedLocationIds]);
+
   const handleFileUpload = useCallback(async (files: FileList | null) => {
     if (!files || files.length === 0) return;
     setIsUploading(true);
@@ -399,7 +405,7 @@ export default function GoogleBusinessScheduler({
         <div className="mb-6">
           <h2 className="text-xl font-semibold text-gray-900">Schedule Google Business Content</h2>
           <p className="text-sm text-gray-600">
-            Work through each step below to pick locations, choose your publish date, and decide whether you&apos;re posting an update or uploading photos.
+            Pick your locations, choose when to publish, and decide whether you&apos;re posting an update or scheduling a photo upload.
           </p>
         </div>
 
@@ -417,17 +423,23 @@ export default function GoogleBusinessScheduler({
 
         <div className="grid gap-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Choose Locations</label>
-            <LocationPicker
-              mode="multi"
-              locations={locationOptions}
-              selectedIds={selectedLocationIds}
-              onChange={setSelectedLocationIds}
-              includeSelectAll
-              maxSelections={maxLocations ?? undefined}
-              className="w-full"
-              helperText={maxLocations ? `Your plan allows up to ${maxLocations} locations per schedule.` : 'You can adjust locations any time before the batch runs.'}
-            />
+            <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">Locations:</p>
+            {locationOptions.length <= 1 ? (
+              <div className="rounded-md border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700">
+                Google Business Profile: {locationOptions[0]?.name || 'No locations connected'}
+              </div>
+            ) : (
+              <LocationPicker
+                mode="multi"
+                locations={locationOptions}
+                selectedIds={selectedLocationIds}
+                onChange={setSelectedLocationIds}
+                includeSelectAll
+                maxSelections={maxLocations ?? undefined}
+                className="bg-gray-50 rounded-lg p-4"
+                helperText={maxLocations ? `Your plan allows up to ${maxLocations} locations per schedule.` : 'You can adjust locations any time before the batch runs.'}
+              />
+            )}
           </div>
 
           <div>

@@ -15,6 +15,7 @@ import { getAccountIdForUser } from '@/auth/utils/accounts';
 import CategorySearch from './business-info/CategorySearch';
 import ServiceItemsEditor from './business-info/ServiceItemsEditor';
 import LoadBusinessInfoButton from './business-info/LoadBusinessInfoButton';
+import LocationPicker from '@/components/GoogleBusinessProfile/LocationPicker';
 
 // Import shared types
 import { BusinessInfo, BusinessCategory, ServiceItem } from '@/types/business-info';
@@ -32,7 +33,6 @@ export default function ServicesEditor({ locations, isConnected }: ServicesEdito
   const [selectedLocationIds, setSelectedLocationIds] = useState<string[]>(() => {
     return locations.length === 1 ? [locations[0].id] : [];
   });
-  const [isLocationDropdownOpen, setIsLocationDropdownOpen] = useState(false);
   
   // Initialize business info with stored data or defaults
   const [businessInfo, setBusinessInfo] = useState<BusinessInfo>(() => {
@@ -90,17 +90,6 @@ export default function ServicesEditor({ locations, isConnected }: ServicesEdito
   }, [businessInfo, formStorageKey]);
 
   // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as Element;
-      if (isLocationDropdownOpen && !target.closest('.location-dropdown')) {
-        setIsLocationDropdownOpen(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [isLocationDropdownOpen]);
 
   const handleInputChange = (field: keyof BusinessInfo, value: any) => {
     const newInfo = {
@@ -220,112 +209,75 @@ export default function ServicesEditor({ locations, isConnected }: ServicesEdito
     localStorage.removeItem(formStorageKey);
   };
 
-  const toggleLocationSelection = (locationId: string) => {
-    setSelectedLocationIds(prev => {
-      if (prev.includes(locationId)) {
-        return prev.filter(id => id !== locationId);
-      } else {
-        return [...prev, locationId];
-      }
-    });
-  };
-
-  const selectAllLocations = () => {
-    setSelectedLocationIds(locations.map(loc => loc.id));
-  };
-
-  const deselectAllLocations = () => {
-    setSelectedLocationIds([]);
-  };
+  const hasSingleLocation = locations.length <= 1;
+  const resolvedSingleLocation = hasSingleLocation ? locations[0] : undefined;
 
   return (
     <div className="space-y-6">
-      <div className="bg-white shadow rounded-lg p-6">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">
-          Categories & Services
-        </h2>
-        <p className="text-sm text-gray-600 mb-6">
-          Manage your business categories and services. These help customers find and understand your offerings.
-        </p>
-
-        {/* Location Selector */}
-        {locations.length === 1 ? (
-          // Single location - show as static text, auto-select it
-          <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Google Business Profile
-            </label>
-            <div className="px-4 py-3 border border-gray-200 rounded-md bg-gray-50">
-              <div className="flex items-center space-x-2">
-                <Icon name="FaGoogle" className="w-4 h-4 text-gray-600" size={16} />
-                <span className="text-gray-800 font-medium">{locations[0].name}</span>
-              </div>
-            </div>
+      <div className="bg-white border border-gray-200 rounded-lg p-6">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+          <div className="flex-1 min-w-0">
+            <h2 className="text-xl font-semibold text-gray-900">Categories &amp; Services</h2>
+            <p className="text-sm text-gray-600 mt-1">
+              Manage the categories and services that appear on Google. Accurate details help customers understand what you offer.
+            </p>
           </div>
-        ) : (
-          // Multiple locations - show dropdown
-          <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Select locations to update
-            </label>
-            <div className="relative location-dropdown">
-              <button
-                type="button"
-                onClick={() => setIsLocationDropdownOpen(!isLocationDropdownOpen)}
-                className="w-full border border-gray-300 rounded-md px-4 py-2 bg-white text-left focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-700">
-                    {selectedLocationIds.length === 0
-                      ? 'Select locations...'
-                      : selectedLocationIds.length === 1
-                      ? locations.find(loc => loc.id === selectedLocationIds[0])?.name || 'Selected location'
-                      : `${selectedLocationIds.length} locations selected`}
-                  </span>
-                  <Icon name="FaChevronDown" className="w-4 h-4 text-gray-400" size={16} />
-                </div>
-              </button>
-
-              {isLocationDropdownOpen && (
-                <div className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-y-auto">
-                  <div className="p-2 border-b border-gray-200 sticky top-0 bg-white">
-                    <div className="flex space-x-2">
-                      <button
-                        type="button"
-                        onClick={selectAllLocations}
-                        className="text-xs text-slate-blue hover:text-slate-blue-dark"
-                      >
-                        Select all
-                      </button>
-                      <span className="text-gray-300">|</span>
-                      <button
-                        type="button"
-                        onClick={deselectAllLocations}
-                        className="text-xs text-slate-blue hover:text-slate-blue-dark"
-                      >
-                        Clear all
-                      </button>
-                    </div>
-                  </div>
-                  {locations.map(location => (
-                    <label
-                      key={location.id}
-                      className="flex items-center px-3 py-2 hover:bg-gray-50 cursor-pointer"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={selectedLocationIds.includes(location.id)}
-                        onChange={() => toggleLocationSelection(location.id)}
-                        className="mr-3 h-4 w-4 text-slate-blue focus:ring-slate-blue border-gray-300 rounded"
-                      />
-                      <span className="text-sm text-gray-700">{location.name}</span>
-                    </label>
-                  ))}
-                </div>
+          <div className="flex-shrink-0 flex items-center gap-2">
+            <button
+              onClick={handleReset}
+              disabled={selectedLocationIds.length === 0 || isSaving}
+              className={`flex items-center space-x-2 px-4 py-2 rounded-md font-medium border ${
+                selectedLocationIds.length > 0 && !isSaving
+                  ? 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                  : 'border-gray-200 text-gray-400 cursor-not-allowed'
+              }`}
+              title="Clear all form data and start over"
+            >
+              <Icon name="FaUndo" className="w-4 h-4" size={16} />
+              <span>Clear form</span>
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={selectedLocationIds.length === 0 || isSaving || !hasChanges}
+              className={`flex items-center space-x-2 px-4 py-2 rounded-md font-medium ${
+                selectedLocationIds.length > 0 && !isSaving && hasChanges
+                  ? 'bg-slate-blue text-white hover:bg-slate-blue/90'
+                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              }`}
+            >
+              {isSaving ? (
+                <>
+                  <Icon name="FaSpinner" className="w-4 h-4 animate-spin" size={16} />
+                  <span>Publishing...</span>
+                </>
+              ) : (
+                <>
+                  <Icon name="FaUpload" className="w-4 h-4" size={16} />
+                  <span>Publish to Google</span>
+                </>
               )}
-            </div>
+            </button>
           </div>
-        )}
+        </div>
+
+        <div className="mt-6">
+          <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">Locations:</p>
+          {hasSingleLocation ? (
+            <div className="rounded-md border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700">
+              Google Business Profile: {resolvedSingleLocation?.name || 'No locations connected'}
+            </div>
+          ) : (
+            <LocationPicker
+              className="bg-gray-50 rounded-lg p-4"
+              mode="multi"
+              locations={locations}
+              selectedIds={selectedLocationIds}
+              onChange={(ids) => setSelectedLocationIds(ids)}
+              includeSelectAll
+              helperText="Updates will apply to every selected location."
+            />
+          )}
+        </div>
       </div>
 
       {selectedLocationIds.length > 0 && (
@@ -535,44 +487,6 @@ export default function ServicesEditor({ locations, isConnected }: ServicesEdito
             </>
           )}
 
-          {/* Publish/Clear Buttons */}
-          <div className="flex justify-end space-x-4">
-            <button
-              onClick={handleSave}
-              disabled={selectedLocationIds.length === 0 || isSaving || !hasChanges}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-md font-medium ${
-                selectedLocationIds.length > 0 && !isSaving && hasChanges
-                  ? 'bg-slate-blue text-white hover:bg-slate-blue-dark'
-                  : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-              }`}
-            >
-              {isSaving ? (
-                <>
-                  <Icon name="FaSpinner" className="w-4 h-4 animate-spin" size={16} />
-                  <span>Publishing...</span>
-                </>
-              ) : (
-                <>
-                  <Icon name="FaUpload" className="w-4 h-4" size={16} />
-                  <span>Publish to Google</span>
-                </>
-              )}
-            </button>
-            
-            <button
-              onClick={handleReset}
-              disabled={selectedLocationIds.length === 0 || isSaving}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-md font-medium border ${
-                selectedLocationIds.length > 0 && !isSaving
-                  ? 'border-gray-300 text-gray-700 hover:bg-gray-50'
-                  : 'border-gray-200 text-gray-400 cursor-not-allowed'
-              }`}
-              title="Clear all form data and start over"
-            >
-              <Icon name="FaUndo" className="w-4 h-4" size={16} />
-              <span>Clear form</span>
-            </button>
-          </div>
         </div>
       )}
     </div>

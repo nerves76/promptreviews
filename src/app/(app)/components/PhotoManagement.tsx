@@ -9,6 +9,7 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 import Icon from '@/components/Icon';
 import { createClient } from '@/auth/providers/supabase';
 import LoadPhotosButton from '@/app/(app)/components/photos/LoadPhotosButton';
+import LocationPicker from '@/components/GoogleBusinessProfile/LocationPicker';
 
 interface GoogleBusinessLocation {
   id: string;
@@ -99,7 +100,6 @@ export default function PhotoManagement({ locations, isConnected }: PhotoManagem
   const [selectedLocations, setSelectedLocations] = useState<string[]>(() => {
     return locations.length === 1 ? [locations[0].id] : [];
   });
-  const [isLocationDropdownOpen, setIsLocationDropdownOpen] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<UploadProgress[]>([]);
   const [uploadResults, setUploadResults] = useState<{ success: number; failed: number; total: number } | null>(null);
@@ -124,22 +124,6 @@ export default function PhotoManagement({ locations, isConnected }: PhotoManagem
   }, [locations]);
 
   // Handle location selection
-  const handleLocationToggle = (locationId: string) => {
-    setSelectedLocations(prev => 
-      prev.includes(locationId)
-        ? prev.filter(id => id !== locationId)
-        : [...prev, locationId]
-    );
-  };
-
-  const selectAllLocations = () => {
-    setSelectedLocations(locations.map(loc => loc.id));
-  };
-
-  const clearLocationSelection = () => {
-    setSelectedLocations([]);
-  };
-
   // Handle file uploads
   const handleFileSelect = useCallback((files: FileList | null) => {
     if (!files || !currentCategory) return;
@@ -330,104 +314,39 @@ export default function PhotoManagement({ locations, isConnected }: PhotoManagem
     return null;
   }
 
+  const hasSingleLocation = locations.length <= 1;
+  const resolvedSingleLocation = hasSingleLocation ? locations[0] : undefined;
+
   return (
     <div className="space-y-8">
-      {/* Header */}
-      <div>
-        <h2 className="text-2xl font-bold text-slate-blue mb-2">
-          Google Business Profile Optimization
-        </h2>
-        <p className="text-gray-600">
-          Optimize your Google Business Profile with Prompty power! Update regularly for best results.
-        </p>
-      </div>
+      <div className="bg-white border border-gray-200 rounded-lg p-6">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+          <div>
+            <h2 className="text-xl font-semibold text-gray-900">Google Business Photos</h2>
+            <p className="text-sm text-gray-600 mt-1">
+              Upload fresh images or review what&apos;s already live to keep your profile engaging.
+            </p>
+          </div>
+        </div>
 
-      {/* Location Selection */}
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold text-slate-blue flex items-center space-x-2">
-                      <Icon name="FaMapMarker" className="w-4 h-4 text-slate-blue" size={16} />
-          <span>Select Locations to Upload To</span>
-        </h3>
-        
-        {locations.length === 1 ? (
-          // Single location - show as static text
-          <div className="px-4 py-3 border border-gray-200 rounded-md bg-gray-50">
-            <div className="flex items-center space-x-2">
-              <Icon name="FaGoogle" className="w-4 h-4 text-gray-600" size={16} />
-              <span className="text-gray-800 font-medium">{locations[0].name}</span>
+        <div className="mt-6">
+          <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">Locations:</p>
+          {hasSingleLocation ? (
+            <div className="rounded-md border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700">
+              Google Business Profile: {resolvedSingleLocation?.name || 'No locations connected'}
             </div>
-          </div>
-        ) : (
-          // Multiple locations - show dropdown
-          <div className="relative">
-            <button
-              onClick={() => setIsLocationDropdownOpen(!isLocationDropdownOpen)}
-              className="w-full flex items-center justify-between p-3 border border-gray-300 rounded-lg bg-white hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent"
-            >
-              <div className="flex items-center space-x-2">
-                <Icon name="FaMapMarker" className="w-4 h-4 text-gray-500" size={16} />
-                <span className="text-gray-700">
-                  {selectedLocations.length === 0
-                    ? 'Select locations to upload to...'
-                    : selectedLocations.length === locations.length
-                    ? `All locations selected (${locations.length})`
-                    : `${selectedLocations.length} location${selectedLocations.length !== 1 ? 's' : ''} selected`
-                  }
-                </span>
-              </div>
-              {isLocationDropdownOpen ? (
-                <Icon name="FaChevronUp" className="w-4 h-4 text-gray-500" size={16} />
-              ) : (
-                <Icon name="FaChevronDown" className="w-4 h-4 text-gray-500" size={16} />
-              )}
-            </button>
-
-            {isLocationDropdownOpen && (
-              <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
-                <div className="p-2 border-b border-gray-200">
-                  <div className="flex space-x-2">
-                    <button
-                      onClick={selectAllLocations}
-                      className="text-sm text-slate-600 hover:text-slate-800"
-                    >
-                      Select All
-                    </button>
-                    <span className="text-gray-300">|</span>
-                    <button
-                      onClick={clearLocationSelection}
-                      className="text-sm text-slate-600 hover:text-slate-800"
-                    >
-                      Clear All
-                    </button>
-                  </div>
-                </div>
-
-                <div className="max-h-48 overflow-y-auto">
-                  {locations.map((location) => (
-                    <div key={location.id} className="p-2 hover:bg-gray-50">
-                      <label className="flex items-center space-x-3 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={selectedLocations.includes(location.id)}
-                          onChange={() => handleLocationToggle(location.id)}
-                          className="rounded border-gray-300 text-slate-blue focus:ring-slate-blue"
-                        />
-                        <div className="flex-1 min-w-0">
-                          <div className="font-medium text-gray-900 truncate">
-                            {location.name}
-                          </div>
-                          <div className="text-sm text-gray-500 truncate">
-                            {location.address}
-                          </div>
-                        </div>
-                      </label>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
+          ) : (
+            <LocationPicker
+              className="bg-gray-50 rounded-lg p-4"
+              mode="multi"
+              locations={locations}
+              selectedIds={selectedLocations}
+              onChange={(ids) => setSelectedLocations(ids)}
+              includeSelectAll
+              helperText="Photos will be uploaded to every selected location."
+            />
+          )}
+        </div>
       </div>
 
       {/* Load Existing Photos */}

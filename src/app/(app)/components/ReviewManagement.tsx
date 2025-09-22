@@ -12,6 +12,7 @@
 import { useState, useEffect } from 'react';
 import Icon from '@/components/Icon';
 import ReviewResponseGenerator from './ReviewResponseGenerator';
+import LocationPicker from '@/components/GoogleBusinessProfile/LocationPicker';
 
 interface GoogleBusinessLocation {
   id: string;
@@ -54,7 +55,6 @@ export default function ReviewManagement({ locations, isConnected }: ReviewManag
   const [selectedLocation, setSelectedLocation] = useState<string>(() => {
     return locations.length === 1 ? locations[0].id : '';
   });
-  const [isLocationDropdownOpen, setIsLocationDropdownOpen] = useState(false);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [isLoadingReviews, setIsLoadingReviews] = useState(false);
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
@@ -374,57 +374,38 @@ export default function ReviewManagement({ locations, isConnected }: ReviewManag
 
   const selectedLocationData = locations.find(loc => loc.id === selectedLocation);
 
+  const hasSingleLocation = locations.length <= 1;
+  const resolvedSingleLocation = hasSingleLocation ? locations[0] : undefined;
+
   return (
     <div className="space-y-6">
-      {/* Location Selection */}
-      <div className="bg-white rounded-lg border border-gray-200 p-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">
-          {locations.length === 1 ? 'Google Business Profile' : 'Select Business Location'}
-        </h3>
+      <div className="bg-white border border-gray-200 rounded-lg p-6">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+          <div>
+            <h2 className="text-xl font-semibold text-gray-900">Manage Reviews</h2>
+            <p className="text-sm text-gray-600 mt-1">
+              Reply quickly to improve your visibility on Google and keep customers happy.
+            </p>
+          </div>
+        </div>
 
-        {locations.length === 1 ? (
-          // Single location - show as static text
-          <div className="px-4 py-3 border border-gray-200 rounded-md bg-gray-50">
-            <div className="flex items-center space-x-2">
-              <Icon name="FaGoogle" className="w-4 h-4 text-gray-600" size={16} />
-              <div>
-                <div className="font-medium text-gray-900">{locations[0].name}</div>
-                <div className="text-sm text-gray-600">{locations[0].address}</div>
-              </div>
+        <div className="mt-6">
+          <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">Locations:</p>
+          {hasSingleLocation ? (
+            <div className="rounded-md border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700">
+              Google Business Profile: {resolvedSingleLocation?.name || 'No locations connected'}
             </div>
-          </div>
-        ) : (
-          // Multiple locations - show dropdown
-          <div className="relative">
-            <button
-              onClick={() => setIsLocationDropdownOpen(!isLocationDropdownOpen)}
-              className="w-full text-left bg-white border border-gray-300 rounded-md px-3 py-2 flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-slate-blue"
-            >
-              <span className="truncate">
-                {selectedLocationData ? selectedLocationData.name : 'Select a location...'}
-              </span>
-              <Icon name="FaChevronDown" className={`w-4 h-4 transition-transform ${isLocationDropdownOpen ? 'rotate-180' : ''}`} size={16} />
-            </button>
-
-            {isLocationDropdownOpen && (
-              <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
-                {locations.map((location) => (
-                  <button
-                    key={location.id}
-                    onClick={() => {
-                      setSelectedLocation(location.id);
-                      setIsLocationDropdownOpen(false);
-                    }}
-                    className="w-full text-left px-3 py-2 hover:bg-gray-50 focus:bg-gray-50 focus:outline-none"
-                  >
-                    <div className="font-medium text-gray-900">{location.name}</div>
-                    <div className="text-sm text-gray-600">{location.address}</div>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
+          ) : (
+            <LocationPicker
+              className="bg-gray-50 rounded-lg p-4"
+              mode="single"
+              locations={locations}
+              selectedId={selectedLocation || locations[0]?.id}
+              onSelect={(id) => setSelectedLocation(id)}
+              placeholder="Select a location..."
+            />
+          )}
+        </div>
       </div>
 
       {/* Error Display */}

@@ -2316,70 +2316,83 @@ export default function SocialPostingDashboard() {
                 </div>
               ) : (
                 <div className="space-y-6">
-                  {/* Location Selection */}
-                  <div className="bg-white rounded-lg border border-gray-200 p-6 space-y-4">
-                    <h3 className="text-lg font-semibold">Select Locations</h3>
-                    <LocationPicker
-                      mode="multi"
-                      label="Google Business Locations"
-                      locations={locations}
-                      selectedIds={selectedLocations}
-                      onChange={setSelectedLocations}
-                      maxSelections={currentPlan === 'grower' ? 1 : undefined}
-                      onMaxSelection={() => alert('The Grower plan supports a single Google Business location. Upgrade your plan to post to multiple locations.')}
-                      placeholder="Select business locations"
-                      isLoading={isLoadingPlatforms}
-                      helperText={locations.length > 0 ? 'Posts will publish to every selected location.' : undefined}
-                      includeSelectAll={currentPlan !== 'grower'}
-                      emptyState={(
-                        <div className="text-center py-8">
-                          <Icon name="FaMapMarker" className="w-8 h-8 text-gray-400 mx-auto mb-3" />
-                          {hasAttemptedFetch ? (
-                            <>
-                              <p className="text-gray-600 mb-4">No business locations found</p>
-                              <p className="text-sm text-gray-500 mb-4">
-                                Your Google Business Profile might not have any locations, or they couldn't be retrieved.
-                              </p>
-                            </>
-                          ) : (
-                            <>
-                              <p className="text-gray-600 mb-4">Ready to get started</p>
-                              <p className="text-sm text-gray-500 mb-4">
-                                Fetch your business locations from Google Business Profile to begin posting.
-                              </p>
-                            </>
-                          )}
-                          <div className="flex flex-col sm:flex-row gap-2 justify-center">
-                            <button
-                              onClick={() => handleFetchLocations()}
-                              disabled={fetchingLocations === 'google-business-profile' || Boolean(rateLimitedUntil && Date.now() < rateLimitedUntil)}
-                              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                                fetchingLocations === 'google-business-profile' || Boolean(rateLimitedUntil && Date.now() < rateLimitedUntil)
-                                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                                  : 'bg-slate-blue text-white hover:bg-slate-700'
-                              }`}
-                            >
-                              {fetchingLocations === 'google-business-profile' ? (
-                                <>
-                                  <Icon name="FaSpinner" className="w-4 h-4 animate-spin mr-2" />
-                                  Fetching...
-                                </>
-                              ) : rateLimitedUntil && Date.now() < rateLimitedUntil ? (
-                                `Rate limited (${Math.ceil((rateLimitedUntil - Date.now()) / 1000)}s)`
-                              ) : (
-                                <>Fetch Locations</>
-                              )}
-                            </button>
-                            <button
-                              onClick={() => changeTab('connect')}
-                              className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors text-sm"
-                            >
-                              Or go to Connect Tab →
-                            </button>
-                          </div>
+                  <div className="bg-white border border-gray-200 rounded-lg p-6">
+                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900">Create a Google Business Post</h3>
+                        <p className="text-sm text-gray-600 mt-1">
+                          Share news, offers, or updates with the locations you select below.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="mt-6">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">Locations:</p>
+                      {scopedLocations.length <= 1 ? (
+                        <div className="rounded-md border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700">
+                          Google Business Profile: {scopedLocations[0]?.name || 'No locations connected'}
                         </div>
+                      ) : (
+                        <LocationPicker
+                          mode="multi"
+                          locations={locations}
+                          selectedIds={selectedLocations}
+                          onChange={setSelectedLocations}
+                          includeSelectAll={currentPlan !== 'grower'}
+                          maxSelections={currentPlan === 'grower' ? 1 : undefined}
+                          className="bg-gray-50 rounded-lg p-4"
+                          helperText={locations.length > 0 ? 'Posts will publish to every selected location.' : undefined}
+                          emptyState={(
+                            <div className="text-center py-8">
+                              <Icon name="FaMapMarker" className="w-8 h-8 text-gray-400 mx-auto mb-3" />
+                              {hasAttemptedFetch ? (
+                                <>
+                                  <p className="text-gray-600 mb-4">No business locations found</p>
+                                  <p className="text-sm text-gray-500 mb-4">
+                                    Your Google Business Profile might not have any locations, or they couldn't be retrieved.
+                                  </p>
+                                </>
+                              ) : (
+                                <>
+                                  <p className="text-gray-600 mb-4">Ready to get started</p>
+                                  <p className="text-sm text-gray-500 mb-4">
+                                    Fetch your business locations from Google Business Profile to begin posting.
+                                  </p>
+                                </>
+                              )}
+                              <div className="flex flex-col sm:flex-row gap-2 justify-center">
+                                <button
+                                  onClick={() => handleFetchLocations()}
+                                  disabled={fetchingLocations === 'google-business-profile' || Boolean(rateLimitedUntil && Date.now() < rateLimitedUntil)}
+                                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                                    fetchingLocations === 'google-business-profile' || Boolean(rateLimitedUntil && Date.now() < rateLimitedUntil)
+                                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                      : 'bg-slate-blue text-white hover:bg-slate-700'
+                                  }`}
+                                >
+                                  {fetchingLocations === 'google-business-profile' ? (
+                                    <>
+                                      <Icon name="FaSpinner" className="w-4 h-4 animate-spin mr-2" />
+                                      Fetching...
+                                    </>
+                                  ) : rateLimitedUntil && Date.now() < rateLimitedUntil ? (
+                                    `Rate limited (${Math.ceil((rateLimitedUntil - Date.now()) / 1000)}s)`
+                                  ) : (
+                                    <>Fetch Locations</>
+                                  )}
+                                </button>
+                                <button
+                                  onClick={() => changeTab('connect')}
+                                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors text-sm"
+                                >
+                                  Or go to Connect Tab →
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        />
                       )}
-                    />
+                    </div>
                   </div>
 
                   {/* Post Creation Form */}

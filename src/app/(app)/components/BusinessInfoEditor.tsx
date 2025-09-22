@@ -18,6 +18,7 @@ import BusinessDescriptionAnalyzer from './BusinessDescriptionAnalyzer';
 import AddressEditor from './business-info/AddressEditor';
 import ContactInfoEditor from './business-info/ContactInfoEditor';
 import HelpModal from './help/HelpModal';
+import LocationPicker from '@/components/GoogleBusinessProfile/LocationPicker';
 
 // Import shared types
 import { BusinessInfo, BusinessCategory, ServiceItem, Address, PhoneNumbers } from '@/types/business-info';
@@ -48,7 +49,6 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
   const [selectedLocationIds, setSelectedLocationIds] = useState<string[]>(() => {
     return locations.length === 1 ? [locations[0].id] : [];
   });
-  const [isLocationDropdownOpen, setIsLocationDropdownOpen] = useState(false);
   const [businessInfo, setBusinessInfo] = useState<BusinessInfo>(() => {
     // Try to restore from localStorage first
     if (typeof window !== 'undefined') {
@@ -186,18 +186,6 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
     }
   }, [selectedLocationIds, hasChanges]);
 
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as Element;
-      if (isLocationDropdownOpen && !target.closest('.location-dropdown')) {
-        setIsLocationDropdownOpen(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [isLocationDropdownOpen]);
 
   // Restore form data if it gets unexpectedly reset while user has changes
   useEffect(() => {
@@ -342,24 +330,6 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
   };
 
   // Handle location selection
-  const handleLocationToggle = (locationId: string) => {
-    setSelectedLocationIds(prev => {
-      if (prev.includes(locationId)) {
-        return prev.filter(id => id !== locationId);
-      } else {
-        return [...prev, locationId];
-      }
-    });
-  };
-
-  const handleSelectAllLocations = () => {
-    if (selectedLocationIds.length === locations.length) {
-      setSelectedLocationIds([]);
-    } else {
-      setSelectedLocationIds(locations.map(loc => loc.id));
-    }
-  };
-
   const handleDescriptionAnalyzed = (analysis: any) => {
     // Don't auto-apply the optimized description - let user choose to apply it
     // The BusinessDescriptionAnalyzer component will handle showing the preview and apply button
@@ -460,156 +430,64 @@ export default function BusinessInfoEditor({ locations, isConnected }: BusinessI
         </div>
       )}
 
-      {/* Header with Save & Publish button */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-        <div className="flex-1 min-w-0">
-          <h3 className="text-lg font-medium text-gray-900">
-            {selectedLocationIds.length === 1 ? 'Business info editor' : 'Multi-location business info editor'}
-          </h3>
-          <p className="text-sm text-gray-600 mt-1">
-            {selectedLocationIds.length === 1 
-              ? (detailsLoaded 
-                  ? 'Review and update your business information. Changes sync to Google Business Profile.'
-                  : 'Load current information or enter new business details. Changes sync to Google Business Profile.'
-                )
-              : 'Update description and hours across multiple locations at once. Changes sync to Google Business Profile.'
-            }
-          </p>
-        </div>
-        
-        {/* Save & Publish button - Stacked on mobile, parallel on desktop */}
-        <div className="flex-shrink-0">
-          <button
-            onClick={handleSave}
-            disabled={selectedLocationIds.length === 0 || isSaving}
-            className={`flex items-center space-x-2 px-4 py-2 rounded-md font-medium w-full sm:w-auto ${
-              selectedLocationIds.length > 0 && !isSaving
-                ? 'bg-slate-blue text-white hover:bg-slate-blue/90'
-                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-            }`}
-          >
-            {isSaving ? (
-              <Icon name="FaSpinner" className="w-4 h-4 animate-spin" size={16} />
-            ) : (
-              <Icon name="FaSave" className="w-4 h-4" size={16} />
-            )}
-            <span>
-              {isSaving 
-                ? (selectedLocationIds.length === 1 ? 'Publishing...' : `Publishing ${selectedLocationIds.length} locations...`)
-                : 'Save & publish'
+      <div className="bg-white border border-gray-200 rounded-lg p-6">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+          <div className="flex-1 min-w-0">
+            <h3 className="text-lg font-semibold text-gray-900">Business Profile Information</h3>
+            <p className="text-sm text-gray-600 mt-1">
+              {selectedLocationIds.length <= 1 
+                ? (detailsLoaded 
+                    ? 'Review and update your business information. Changes sync to Google Business Profile.'
+                    : 'Load current information or enter new business details. Changes sync to Google Business Profile.'
+                  )
+                : 'Update description and hours across multiple locations at once. Changes sync to Google Business Profile.'
               }
-            </span>
-          </button>
+            </p>
+          </div>
+          <div className="flex-shrink-0">
+            <button
+              onClick={handleSave}
+              disabled={selectedLocationIds.length === 0 || isSaving}
+              className={`flex items-center space-x-2 px-4 py-2 rounded-md font-medium w-full sm:w-auto ${
+                selectedLocationIds.length > 0 && !isSaving
+                  ? 'bg-slate-blue text-white hover:bg-slate-blue/90'
+                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              }`}
+            >
+              {isSaving ? (
+                <Icon name="FaSpinner" className="w-4 h-4 animate-spin" size={16} />
+              ) : (
+                <Icon name="FaSave" className="w-4 h-4" size={16} />
+              )}
+              <span>
+                {isSaving 
+                  ? (selectedLocationIds.length === 1 ? 'Publishing...' : `Publishing ${selectedLocationIds.length} locations...`)
+                  : 'Save & publish'
+                }
+              </span>
+            </button>
+          </div>
+        </div>
+
+        <div className="mt-6">
+          <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">Locations:</p>
+          {locations.length <= 1 ? (
+            <div className="rounded-md border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700">
+              Google Business Profile: {locations[0]?.name || 'No locations connected'}
+            </div>
+          ) : (
+            <LocationPicker
+              mode="multi"
+              locations={locations}
+              selectedIds={selectedLocationIds}
+              onChange={(ids) => setSelectedLocationIds(ids)}
+              includeSelectAll
+              className="bg-gray-50 rounded-lg p-4"
+              helperText="Changes apply to every selected location."
+            />
+          )}
         </div>
       </div>
-
-      {/* Location Selector */}
-      <div className="bg-gray-50 rounded-lg p-4">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Select Locations to Update
-        </label>
-
-        {/* Location Selector */}
-        {locations.length === 1 ? (
-          // Single location - show as static text
-          <div className="px-4 py-3 border border-gray-200 rounded-md bg-gray-50">
-            <div className="flex items-center space-x-2">
-              <Icon name="FaGoogle" className="w-4 h-4 text-gray-600" size={16} />
-              <div>
-                <span className="text-gray-800 font-medium">{locations[0].name}</span>
-                {locations[0].address && (
-                  <span className="text-xs text-gray-500 block">{locations[0].address}</span>
-                )}
-              </div>
-            </div>
-          </div>
-        ) : (
-          // Multiple locations - show dropdown
-          <div className="relative location-dropdown">
-            <button
-              onClick={() => setIsLocationDropdownOpen(!isLocationDropdownOpen)}
-              className="w-full flex items-center justify-between p-3 border border-gray-300 rounded-lg bg-white hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent"
-            >
-              <div className="flex items-center space-x-2">
-                <Icon name="FaStore" className="w-4 h-4 text-gray-500" size={16} />
-                <span className="text-gray-700">
-                  {selectedLocationIds.length === 0
-                    ? 'Select locations to update...'
-                    : selectedLocationIds.length === locations.length
-                    ? `All locations selected (${locations.length})`
-                    : `${selectedLocationIds.length} location${selectedLocationIds.length !== 1 ? 's' : ''} selected`
-                  }
-                </span>
-              </div>
-              {isLocationDropdownOpen ? (
-                <Icon name="FaChevronUp" className="w-4 h-4 text-gray-500" size={16} />
-              ) : (
-                <Icon name="FaChevronDown" className="w-4 h-4 text-gray-500" size={16} />
-              )}
-            </button>
-
-            {isLocationDropdownOpen && (
-              <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                {/* Select All Option */}
-                <div className="p-2 border-b border-gray-100">
-                  <label className="flex items-center space-x-2 p-2 hover:bg-gray-50 rounded cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={selectedLocationIds.length === locations.length}
-                      onChange={handleSelectAllLocations}
-                      className="h-4 w-4 text-slate-blue focus:ring-slate-blue border-gray-300 rounded"
-                    />
-                    <span className="text-sm font-medium text-gray-700">
-                      Select All ({locations.length} locations)
-                    </span>
-                  </label>
-                </div>
-
-                {/* Individual Location Options */}
-                {locations.map((location) => (
-                  <label
-                    key={location.id}
-                    className="flex items-center space-x-2 p-2 hover:bg-gray-50 cursor-pointer"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={selectedLocationIds.includes(location.id)}
-                      onChange={() => handleLocationToggle(location.id)}
-                      className="h-4 w-4 text-slate-blue focus:ring-slate-blue border-gray-300 rounded"
-                    />
-                    <div className="flex-1">
-                      <span className="text-sm font-medium text-gray-900">{location.name}</span>
-                      {location.address && (
-                        <span className="text-xs text-gray-500 block">{location.address}</span>
-                      )}
-                    </div>
-                  </label>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Selected Locations Preview */}
-        {selectedLocationIds.length > 0 && selectedLocationIds.length <= 3 && (
-          <div className="mt-3 flex flex-wrap gap-2">
-            {selectedLocationIds.map((locationId) => {
-              const location = locations.find(loc => loc.id === locationId);
-              return (
-                <span
-                  key={locationId}
-                  className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-slate-blue text-white"
-                >
-                  {location?.name || locationId}
-                </span>
-              );
-            })}
-          </div>
-        )}
-
-      </div>
-
-
 
       {selectedLocationIds.length > 0 && (
         <div className="space-y-6">
