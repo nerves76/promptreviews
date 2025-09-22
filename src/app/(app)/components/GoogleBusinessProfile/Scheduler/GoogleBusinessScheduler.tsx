@@ -609,7 +609,7 @@ export default function GoogleBusinessScheduler({
                 </label>
               )}
             </div>
-            <p className="text-xs text-gray-500">Images are automatically optimized to ~500KB for fast loading. Accepts JPG, PNG, or GIF up to 10MB.</p>
+            <p className="text-xs text-gray-500">Images are automatically compressed to ~300KB for fast loading. Accepts JPG, PNG, or GIF up to 10MB.</p>
           </div>
 
           {mode === 'post' ? (

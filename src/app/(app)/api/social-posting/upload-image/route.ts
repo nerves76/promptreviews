@@ -17,17 +17,20 @@ export async function POST(req: NextRequest) {
     }
 
     // Validate file type and size
-    const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
     if (!allowedTypes.includes(file.type)) {
-      return NextResponse.json({ 
-        error: "Invalid file type. Only PNG, JPG, or WebP images are allowed." 
+      return NextResponse.json({
+        error: "Invalid file type. Only PNG, JPG, GIF, or WebP images are allowed."
       }, { status: 400 });
     }
-    
-    // 10MB limit for social media images
-    if (file.size > 10 * 1024 * 1024) {
+
+    // Supabase has strict limits - check compressed file size
+    const MAX_UPLOAD_SIZE = 1 * 1024 * 1024; // 1MB max for Supabase
+    if (file.size > MAX_UPLOAD_SIZE) {
+      const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+      console.error(`File too large: ${file.name} is ${sizeMB}MB, max is 1MB`);
       return NextResponse.json(
-        { error: "File too large (max 10MB)" },
+        { error: `Image is ${sizeMB}MB after compression. Maximum size is 1MB. Please use a smaller image.` },
         { status: 400 },
       );
     }
