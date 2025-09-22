@@ -338,7 +338,12 @@ export default function GoogleBusinessScheduler({
         body.caption = caption.trim() || null;
       }
 
-      console.log('[Scheduler] Request body:', body);
+      console.log('[Scheduler] Request body:', {
+        ...body,
+        isEdit: !!editingId,
+        editingId,
+        dateChanged: editingId ? 'Check if date changed in UI' : 'N/A'
+      });
 
       if (ctaEnabled) {
         const allowTel = ctaType === 'CALL';
@@ -375,20 +380,20 @@ export default function GoogleBusinessScheduler({
       }
 
       console.log('[Scheduler] Success! Setting result message');
-      const successMessage = editingId ? 'Schedule updated!' : 'Scheduled successfully!';
+      const wasEdit = !!editingId;
+      const successMessage = wasEdit ? 'Schedule updated successfully!' : 'Scheduled successfully!';
       console.log('[Scheduler] Setting success message:', successMessage);
 
-      // Reset form first but preserve the message
+      // Reset form (which also clears editingId)
       resetForm();
 
       // Then set the success message
       setSubmissionResult({ success: true, message: successMessage });
       console.log('[Scheduler] Submission result set. Fetching updated queue');
 
-      // Fetch queue after a small delay to ensure state updates
-      setTimeout(() => {
-        fetchQueue();
-      }, 100);
+      // Immediately fetch the updated queue
+      await fetchQueue();
+      console.log('[Scheduler] Queue updated after', wasEdit ? 'edit' : 'create');
 
       // Keep success message visible for 5 seconds
       setTimeout(() => {
