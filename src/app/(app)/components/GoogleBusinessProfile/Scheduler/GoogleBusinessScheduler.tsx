@@ -51,9 +51,11 @@ const DEFAULT_TIMEZONE = typeof Intl !== 'undefined'
   : 'America/Los_Angeles';
 
 const compressionOptions = {
-  maxSizeMB: 3,
-  maxWidthOrHeight: 2048,
+  maxSizeMB: 0.5, // 500KB is plenty for social media posts
+  maxWidthOrHeight: 1200, // Google Business posts don't need more than this
   useWebWorker: true,
+  fileType: 'image/jpeg', // Use JPEG as Google Business doesn't support WebP
+  initialQuality: 0.85, // Good quality/size balance
 };
 
 function formatStatusLabel(status: string): string {

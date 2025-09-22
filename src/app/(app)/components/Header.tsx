@@ -603,9 +603,9 @@ const Header = React.memo(function Header() {
                       style={{ zIndex: 2147483646 }}
                       onClick={() => setAccountMenuOpen(false)}
                     />
-                    <div 
+                    <div
                       ref={accountMenuRef}
-                      className="fixed bg-gray-900/95 backdrop-blur-md rounded-lg shadow-2xl border border-white/30 py-2"
+                      className="fixed bg-white/10 backdrop-blur-xl rounded-lg shadow-2xl border border-white/20 py-2"
                       style={{ 
                         zIndex: 2147483647,
                         top: accountButtonRef.current ? accountButtonRef.current.getBoundingClientRect().bottom + 8 : 0,
@@ -797,7 +797,7 @@ const Header = React.memo(function Header() {
               onClick={() => setMenuOpen(false)}
             />
             {/* Menu Content */}
-            <div className="absolute top-20 left-4 right-4 bg-gray-900/95 backdrop-blur-md shadow-2xl rounded-xl border border-white/30">
+            <div className="absolute top-20 left-4 right-4 bg-white/10 backdrop-blur-xl shadow-2xl rounded-xl border border-white/20">
               <div className="px-2 pt-2 pb-3 space-y-1 flex flex-col">
                 <Link
                   href={hasBusiness ? "/dashboard" : "#"}

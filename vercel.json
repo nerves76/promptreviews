@@ -18,6 +18,14 @@
     {
       "path": "/api/cron/send-review-reminders",
       "schedule": "0 10 1 * *"
+    },
+    {
+      "path": "/api/cron/process-google-business-scheduled",
+      "schedule": "0 13 * * *"
+    },
+    {
+      "path": "/api/cron/cleanup-google-business-scheduled",
+      "schedule": "0 14 15 * *"
     }
   ],
   "buildCommand": "npm run build",
