@@ -425,13 +425,25 @@ export default function GoogleBusinessScheduler({
 
         {submissionResult && (
           <div
-            className={`mb-4 rounded-md border px-4 py-3 text-sm ${
+            className={`mb-4 rounded-md border px-4 py-3 text-sm flex items-center justify-between ${
               submissionResult.success
                 ? 'border-emerald-200 bg-emerald-50 text-emerald-800'
                 : 'border-rose-200 bg-rose-50 text-rose-700'
             }`}
           >
-            {submissionResult.message}
+            <div className="flex items-center space-x-3">
+              <Icon
+                name={submissionResult.success ? 'FaCheckCircle' : 'FaExclamationTriangle'}
+                className={`w-4 h-4 ${submissionResult.success ? 'text-emerald-500' : 'text-rose-500'}`}
+              />
+              <span>{submissionResult.message}</span>
+            </div>
+            <button
+              onClick={() => setSubmissionResult(null)}
+              className="text-xs text-gray-500 hover:text-gray-700"
+            >
+              Dismiss
+            </button>
           </div>
         )}
 
@@ -595,7 +607,7 @@ export default function GoogleBusinessScheduler({
                     onClick={() => setCtaEnabled((prev) => !prev)}
                     className={`text-xs font-medium px-2 py-1 rounded ${ctaEnabled ? 'bg-slate-600 text-white' : 'bg-white border border-gray-300 text-gray-600'}`}
                   >
-                    {ctaEnabled ? 'Enabled' : 'Disabled'}
+                    {ctaEnabled ? 'Disable' : 'Enable'}
                   </button>
                 </div>
                 {ctaEnabled && (
