@@ -304,13 +304,22 @@ export default function GoogleBusinessScheduler({
   }, [locations, selectedLocationIds]);
 
   const submitSchedule = useCallback(async () => {
-    console.log('[Scheduler] Starting submission', { canSubmit, mode, scheduledDate, timezone, locations: payloadLocations });
+    console.log('[Scheduler] Starting submission', {
+      canSubmit,
+      mode,
+      scheduledDate,
+      timezone,
+      locations: payloadLocations,
+      isEditMode: !!editingId,
+      editingId
+    });
     if (!canSubmit) {
       console.log('[Scheduler] Cannot submit - validation failed');
       return;
     }
     setIsSubmitting(true);
     setSubmissionResult(null);
+    console.log('[Scheduler] Form submission started for', editingId ? `edit ID: ${editingId}` : 'new post');
 
     try {
       const body: any = {
@@ -388,7 +397,9 @@ export default function GoogleBusinessScheduler({
       resetForm();
 
       // Then set the success message
-      setSubmissionResult({ success: true, message: successMessage });
+      const resultToSet = { success: true, message: successMessage };
+      console.log('[Scheduler] Setting submission result:', resultToSet);
+      setSubmissionResult(resultToSet);
       console.log('[Scheduler] Submission result set. Fetching updated queue');
 
       // Immediately fetch the updated queue
@@ -421,6 +432,13 @@ export default function GoogleBusinessScheduler({
       }
 
       const record = data.data as GoogleBusinessScheduledPost & { results?: GoogleBusinessScheduledPostResult[] };
+
+      console.log('[Scheduler] Loading edit data:', {
+        id: record.id,
+        currentDate: record.scheduledDate,
+        timezone: record.timezone,
+        postKind: record.postKind
+      });
 
       setEditingId(record.id);
       setMode(record.postKind);
