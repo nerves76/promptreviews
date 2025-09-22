@@ -791,39 +791,63 @@ export default function GoogleBusinessScheduler({
                 <div className="space-y-3">
                   {queue.upcoming.map((item) => (
                     <div key={item.id} className="border border-gray-200 rounded-lg p-4">
-                      <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-                        <div>
-                          <div className="flex items-center space-x-2 text-sm text-gray-500">
-                            <span>{item.postKind === 'photo' ? 'Photo Upload' : 'Post'}</span>
-                            <span>•</span>
-                            <span>{new Date(item.scheduledDate).toLocaleDateString()}</span>
-                            <span>•</span>
-                            <span>{item.selectedLocations?.length || 0} location(s)</span>
-                          </div>
-                          {item.postKind === 'post' && item.content?.summary && (
-                            <p className="mt-2 text-sm text-gray-700 line-clamp-2">{item.content.summary}</p>
-                          )}
-                          {item.postKind === 'photo' && item.caption && (
-                            <p className="mt-2 text-sm text-gray-700 line-clamp-2">{item.caption}</p>
+                      <div className="flex gap-4">
+                        {/* Image thumbnail or placeholder */}
+                        <div className="flex-shrink-0">
+                          {item.mediaPaths && item.mediaPaths.length > 0 ? (
+                            <img
+                              src={item.mediaPaths[0].publicUrl}
+                              alt="Scheduled media"
+                              className="w-20 h-20 object-cover rounded-lg border border-gray-200"
+                            />
+                          ) : (
+                            <div className="w-20 h-20 bg-gray-100 rounded-lg border border-gray-200 flex items-center justify-center">
+                              <Icon name={item.postKind === 'photo' ? 'FaImage' : 'FaFileAlt'} className="w-6 h-6 text-gray-400" />
+                            </div>
                           )}
                         </div>
-                        <div className="mt-3 md:mt-0 flex items-center space-x-2">
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusBadgeClasses(item.status)}`}>
-                            {formatStatusLabel(item.status)}
-                          </span>
-                          <button
-                            onClick={() => handleEdit(item.id)}
-                            className="px-2 py-1 text-xs font-medium border border-gray-300 rounded-md text-gray-600 hover:bg-gray-50"
-                            disabled={isLoadingEdit}
-                          >
-                            Edit
-                          </button>
-                          <button
-                            onClick={() => handleCancel(item.id)}
-                            className="px-2 py-1 text-xs font-medium border border-rose-200 rounded-md text-rose-600 hover:bg-rose-50"
-                          >
-                            Cancel
-                          </button>
+
+                        {/* Content */}
+                        <div className="flex-grow">
+                          <div className="flex flex-col md:flex-row md:items-start md:justify-between">
+                            <div className="flex-grow">
+                              <div className="flex items-center space-x-2 text-sm text-gray-500">
+                                <span>{item.postKind === 'photo' ? 'Photo Upload' : 'Post'}</span>
+                                <span>•</span>
+                                <span>{new Date(item.scheduledDate).toLocaleDateString()}</span>
+                                <span>•</span>
+                                <span>{item.selectedLocations?.length || 0} location(s)</span>
+                              </div>
+                              {item.postKind === 'post' && item.content?.summary && (
+                                <p className="mt-2 text-sm text-gray-700 line-clamp-2">{item.content.summary}</p>
+                              )}
+                              {item.postKind === 'photo' && item.caption && (
+                                <p className="mt-2 text-sm text-gray-700 line-clamp-2">{item.caption}</p>
+                              )}
+                              {/* Show multiple images indicator */}
+                              {item.mediaPaths && item.mediaPaths.length > 1 && (
+                                <p className="mt-1 text-xs text-gray-500">+{item.mediaPaths.length - 1} more image{item.mediaPaths.length > 2 ? 's' : ''}</p>
+                              )}
+                            </div>
+                            <div className="mt-3 md:mt-0 md:ml-4 flex items-center space-x-2">
+                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusBadgeClasses(item.status)}`}>
+                                {formatStatusLabel(item.status)}
+                              </span>
+                              <button
+                                onClick={() => handleEdit(item.id)}
+                                className="px-2 py-1 text-xs font-medium border border-gray-300 rounded-md text-gray-600 hover:bg-gray-50"
+                                disabled={isLoadingEdit}
+                              >
+                                Edit
+                              </button>
+                              <button
+                                onClick={() => handleCancel(item.id)}
+                                className="px-2 py-1 text-xs font-medium border border-rose-200 rounded-md text-rose-600 hover:bg-rose-50"
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -838,31 +862,55 @@ export default function GoogleBusinessScheduler({
                 <div className="space-y-3">
                   {queue.past.slice(0, 10).map((item) => (
                     <div key={item.id} className="border border-gray-200 rounded-lg p-4">
-                      <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-                        <div>
-                          <div className="flex items-center space-x-2 text-sm text-gray-500">
-                            <span>{item.postKind === 'photo' ? 'Photo Upload' : 'Post'}</span>
-                            <span>•</span>
-                            <span>{new Date(item.scheduledDate).toLocaleDateString()}</span>
-                            <span>•</span>
-                            <span>{item.selectedLocations?.length || 0} location(s)</span>
-                          </div>
-                          {item.postKind === 'post' && item.content?.summary && (
-                            <p className="mt-2 text-sm text-gray-700 line-clamp-2">{item.content.summary}</p>
-                          )}
-                          {item.postKind === 'photo' && item.caption && (
-                            <p className="mt-2 text-sm text-gray-700 line-clamp-2">{item.caption}</p>
-                          )}
-                          {item.errorLog?.locations?.length > 0 && (
-                            <div className="mt-2 text-xs text-rose-600">
-                              {item.errorLog.locations.length} failure(s):{' '}
-                              {item.errorLog.locations.map((entry: any) => entry.locationId).join(', ')}
+                      <div className="flex gap-4">
+                        {/* Image thumbnail or placeholder */}
+                        <div className="flex-shrink-0">
+                          {item.mediaPaths && item.mediaPaths.length > 0 ? (
+                            <img
+                              src={item.mediaPaths[0].publicUrl}
+                              alt="Posted media"
+                              className="w-20 h-20 object-cover rounded-lg border border-gray-200"
+                            />
+                          ) : (
+                            <div className="w-20 h-20 bg-gray-100 rounded-lg border border-gray-200 flex items-center justify-center">
+                              <Icon name={item.postKind === 'photo' ? 'FaImage' : 'FaFileAlt'} className="w-6 h-6 text-gray-400" />
                             </div>
                           )}
                         </div>
-                        <span className={`mt-3 md:mt-0 px-2 py-1 rounded-full text-xs font-medium self-start md:self-auto ${statusBadgeClasses(item.status)}`}>
-                          {formatStatusLabel(item.status)}
-                        </span>
+
+                        {/* Content */}
+                        <div className="flex-grow">
+                          <div className="flex flex-col md:flex-row md:items-start md:justify-between">
+                            <div className="flex-grow">
+                              <div className="flex items-center space-x-2 text-sm text-gray-500">
+                                <span>{item.postKind === 'photo' ? 'Photo Upload' : 'Post'}</span>
+                                <span>•</span>
+                                <span>{new Date(item.scheduledDate).toLocaleDateString()}</span>
+                                <span>•</span>
+                                <span>{item.selectedLocations?.length || 0} location(s)</span>
+                              </div>
+                              {item.postKind === 'post' && item.content?.summary && (
+                                <p className="mt-2 text-sm text-gray-700 line-clamp-2">{item.content.summary}</p>
+                              )}
+                              {item.postKind === 'photo' && item.caption && (
+                                <p className="mt-2 text-sm text-gray-700 line-clamp-2">{item.caption}</p>
+                              )}
+                              {/* Show multiple images indicator */}
+                              {item.mediaPaths && item.mediaPaths.length > 1 && (
+                                <p className="mt-1 text-xs text-gray-500">+{item.mediaPaths.length - 1} more image{item.mediaPaths.length > 2 ? 's' : ''}</p>
+                              )}
+                              {item.errorLog?.locations?.length > 0 && (
+                                <div className="mt-2 text-xs text-rose-600">
+                                  {item.errorLog.locations.length} failure(s):{' '}
+                                  {item.errorLog.locations.map((entry: any) => entry.locationId).join(', ')}
+                                </div>
+                              )}
+                            </div>
+                            <span className={`mt-3 md:mt-0 md:ml-4 px-2 py-1 rounded-full text-xs font-medium self-start md:self-auto ${statusBadgeClasses(item.status)}`}>
+                              {formatStatusLabel(item.status)}
+                            </span>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   ))}
