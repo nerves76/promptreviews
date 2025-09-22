@@ -12,6 +12,15 @@ import { GoogleBusinessProfileClient } from '@/features/social-posting/platforms
 export async function GET(request: NextRequest) {
   try {
     
+    // Resolve optional location filters from query params
+    const searchParams = request.nextUrl.searchParams;
+    const locationIdsParam = searchParams.get('locationIds');
+    const locationIds = locationIdsParam
+      ? locationIdsParam.split(',')
+          .map(id => decodeURIComponent(id).trim())
+          .filter(Boolean)
+      : undefined;
+
     // Create server-side Supabase client that handles session cookies
     const cookieStore = await cookies();
     const supabase = createServerClient(
@@ -61,7 +70,7 @@ export async function GET(request: NextRequest) {
     });
 
     // Fetch unresponded reviews
-    const unrespondedReviews = await gbpClient.getUnrespondedReviews();
+    const unrespondedReviews = await gbpClient.getUnrespondedReviews(locationIds);
 
     // Calculate summary statistics
     const totalReviews = unrespondedReviews.reduce((sum, location) => sum + location.reviews.length, 0);

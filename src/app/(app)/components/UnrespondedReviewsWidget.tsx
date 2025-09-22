@@ -7,7 +7,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { FaExclamationTriangle, FaComments, FaArrowRight } from 'react-icons/fa';
 import Link from 'next/link';
 
@@ -36,33 +36,116 @@ interface UnrespondedReviewsData {
 
 interface UnrespondedReviewsWidgetProps {
   className?: string;
+  locationIds?: string[];
 }
 
-export default function UnrespondedReviewsWidget({ className = '' }: UnrespondedReviewsWidgetProps) {
+const buildIdVariants = (value: string) => {
+  const variants = new Set<string>();
+  const trimmed = (value || '').trim();
+
+  if (!trimmed) {
+    return variants;
+  }
+
+  variants.add(trimmed);
+
+  if (trimmed.startsWith('locations/')) {
+    variants.add(trimmed.replace('locations/', ''));
+  }
+
+  const segments = trimmed.split('/');
+  const lastSegment = segments[segments.length - 1];
+
+  if (lastSegment) {
+    variants.add(lastSegment);
+    variants.add(`locations/${lastSegment}`);
+  }
+
+  return variants;
+};
+
+export default function UnrespondedReviewsWidget({ className = '', locationIds = [] }: UnrespondedReviewsWidgetProps) {
   const [data, setData] = useState<UnrespondedReviewsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchUnrespondedReviews();
-  }, []);
+  const normalizedLocationIds = useMemo(() => {
+    return (locationIds || [])
+      .map(id => id?.trim())
+      .filter((id): id is string => Boolean(id));
+  }, [locationIds]);
 
-  const fetchUnrespondedReviews = async () => {
+  const allowedIdVariants = useMemo(() => {
+    const set = new Set<string>();
+    normalizedLocationIds.forEach(id => {
+      buildIdVariants(id).forEach(variant => set.add(variant));
+    });
+    return set;
+  }, [normalizedLocationIds]);
+
+  const locationFilterKey = useMemo(() => {
+    if (normalizedLocationIds.length === 0) {
+      return '';
+    }
+    return normalizedLocationIds.slice().sort().join('|');
+  }, [normalizedLocationIds]);
+
+  useEffect(() => {
+    fetchUnrespondedReviews(normalizedLocationIds);
+  }, [locationFilterKey]);
+
+  const fetchUnrespondedReviews = async (filterIds: string[]) => {
     try {
       setLoading(true);
       setError(null);
 
-      const response = await fetch('/api/reviews-management/unresponded-reviews');
+      const query = filterIds.length > 0
+        ? `?locationIds=${encodeURIComponent(filterIds.join(','))}`
+        : '';
+
+      const response = await fetch(`/api/reviews-management/unresponded-reviews${query}`);
       const result = await response.json();
 
-      if (!response.ok) {
+      if (!response.ok || result.success === false) {
         throw new Error(result.error || 'Failed to fetch unresponded reviews');
       }
 
-      setData(result);
+      let resolvedData: UnrespondedReviewsData = result;
+
+      if (allowedIdVariants.size > 0 && Array.isArray(result.locations)) {
+        const filteredLocations = result.locations.filter((location: UnrespondedReviewsData['locations'][number]) => {
+          if (!location?.locationId) {
+            return false;
+          }
+
+          const variants = buildIdVariants(location.locationId);
+          for (const variant of variants) {
+            if (allowedIdVariants.has(variant)) {
+              return true;
+            }
+          }
+          return false;
+        });
+
+        const totalReviews = filteredLocations.reduce((sum, location) => sum + (location.reviews?.length || 0), 0);
+        const accountCount = new Set(filteredLocations.map(location => location.accountId)).size;
+
+        resolvedData = {
+          ...result,
+          summary: {
+            totalReviews,
+            accountCount,
+            locationCount: filteredLocations.length,
+          },
+          locations: filteredLocations,
+        };
+      }
+
+      setData(resolvedData);
     } catch (err) {
       console.error('Error fetching unresponded reviews:', err);
       setError(err instanceof Error ? err.message : 'Failed to load review data');
+      setData(null);
     } finally {
       setLoading(false);
     }
