@@ -133,7 +133,11 @@ export default function GoogleBusinessScheduler({
     }
     return [];
   });
-  const [scheduledDate, setScheduledDate] = useState(() => minimumDate || new Date().toISOString().split('T')[0]);
+  const [scheduledDate, setScheduledDate] = useState(() => {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    return minimumDate || tomorrow.toISOString().split('T')[0];
+  });
   const [timezone, setTimezone] = useState(DEFAULT_TIMEZONE);
   const [mediaItems, setMediaItems] = useState<SchedulerMedia[]>([]);
   const [isUploading, setIsUploading] = useState(false);
@@ -149,7 +153,10 @@ export default function GoogleBusinessScheduler({
     locations.map((loc) => ({ id: loc.id, name: loc.name }))
   ), [locations]);
 
-  const minDate = minimumDate || new Date().toISOString().split('T')[0];
+  // Set minimum date to tomorrow (can't schedule for today or past)
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const minDate = minimumDate || tomorrow.toISOString().split('T')[0];
 
   const resetForm = useCallback(() => {
     setMode('post');
@@ -282,6 +289,9 @@ export default function GoogleBusinessScheduler({
     if (!isConnected) return false;
     if (selectedLocationIds.length === 0) return false;
     if (!scheduledDate || scheduledDate < minDate) return false;
+    // Additional check: ensure date is not today or in the past
+    const today = new Date().toISOString().split('T')[0];
+    if (scheduledDate <= today) return false;
     if (mode === 'post') {
       return postContent.trim().length > 0;
     }
@@ -606,7 +616,7 @@ export default function GoogleBusinessScheduler({
                 )}
               </select>
             </div>
-            <p className="mt-1 text-xs text-gray-500">Posts and photos go out during the morning batch in the timezone you choose.</p>
+            <p className="mt-1 text-xs text-gray-500">Posts must be scheduled at least one day in advance. They'll publish during the morning batch (6 AM) in your selected timezone.</p>
           </div>
 
           <fieldset className="bg-gray-50 border border-gray-200 rounded-lg p-4">
