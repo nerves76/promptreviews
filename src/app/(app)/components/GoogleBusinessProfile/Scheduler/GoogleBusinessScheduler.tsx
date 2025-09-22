@@ -860,7 +860,7 @@ export default function GoogleBusinessScheduler({
                               <div className="flex items-center space-x-2 text-sm text-gray-500">
                                 <span>{item.postKind === 'photo' ? 'Photo Upload' : 'Post'}</span>
                                 <span>•</span>
-                                <span>{new Date(item.scheduledDate).toLocaleDateString()}</span>
+                                <span>Scheduled: {new Date(item.scheduledDate).toLocaleDateString()}</span>
                                 <span>•</span>
                                 <span>{item.selectedLocations?.length || 0} location(s)</span>
                               </div>
@@ -936,7 +936,7 @@ export default function GoogleBusinessScheduler({
                               <div className="flex items-center space-x-2 text-sm text-gray-500">
                                 <span>{item.postKind === 'photo' ? 'Photo Upload' : 'Post'}</span>
                                 <span>•</span>
-                                <span>{new Date(item.scheduledDate).toLocaleDateString()}</span>
+                                <span>Scheduled: {new Date(item.scheduledDate).toLocaleDateString()}</span>
                                 <span>•</span>
                                 <span>{item.selectedLocations?.length || 0} location(s)</span>
                               </div>
