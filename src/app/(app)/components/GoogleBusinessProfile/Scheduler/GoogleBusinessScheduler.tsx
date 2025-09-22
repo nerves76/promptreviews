@@ -162,7 +162,7 @@ export default function GoogleBusinessScheduler({
     setTimezone(DEFAULT_TIMEZONE);
     setMediaItems([]);
     setEditingId(null);
-    setSubmissionResult(null);
+    // Don't clear submission result here - let user see the success/error message
   }, [minDate]);
 
   const fetchQueue = useCallback(async () => {
@@ -286,7 +286,11 @@ export default function GoogleBusinessScheduler({
   }, [locations, selectedLocationIds]);
 
   const submitSchedule = useCallback(async () => {
-    if (!canSubmit) return;
+    console.log('[Scheduler] Starting submission', { canSubmit, mode, scheduledDate, timezone, locations: payloadLocations });
+    if (!canSubmit) {
+      console.log('[Scheduler] Cannot submit - validation failed');
+      return;
+    }
     setIsSubmitting(true);
     setSubmissionResult(null);
 
@@ -316,6 +320,8 @@ export default function GoogleBusinessScheduler({
         body.caption = caption.trim() || null;
       }
 
+      console.log('[Scheduler] Request body:', body);
+
       if (ctaEnabled) {
         const allowTel = ctaType === 'CALL';
         if (!isValidUrl(body.content?.callToAction?.url ?? '', allowTel)) {
@@ -327,24 +333,46 @@ export default function GoogleBusinessScheduler({
         ? `/api/social-posting/scheduled/${editingId}`
         : '/api/social-posting/scheduled';
 
+      console.log('[Scheduler] Sending request to:', endpoint);
       const response = await fetch(endpoint, {
         method: editingId ? 'PATCH' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       });
 
-      const data = await response.json();
+      console.log('[Scheduler] Response status:', response.status);
+
+      let data;
+      try {
+        data = await response.json();
+        console.log('[Scheduler] Response data:', data);
+      } catch (jsonError) {
+        console.error('[Scheduler] Failed to parse response as JSON:', jsonError);
+        throw new Error('Server returned invalid response');
+      }
+
       if (!response.ok || !data.success) {
+        console.error('[Scheduler] API error:', data.error || 'Unknown error');
         throw new Error(data.error || 'Failed to schedule content');
       }
 
+      console.log('[Scheduler] Success! Setting result message');
       setSubmissionResult({ success: true, message: editingId ? 'Schedule updated!' : 'Scheduled successfully!' });
+      console.log('[Scheduler] Fetching updated queue');
       await fetchQueue();
+      console.log('[Scheduler] Resetting form');
       resetForm();
+      // Keep success message visible for 5 seconds
+      setTimeout(() => {
+        setSubmissionResult(null);
+      }, 5000);
     } catch (error) {
-      console.error('[Scheduler] Submit failed', error);
-      setSubmissionResult({ success: false, message: error instanceof Error ? error.message : 'Failed to schedule content' });
+      console.error('[Scheduler] Submit failed with error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to schedule content';
+      console.log('[Scheduler] Setting error message:', errorMessage);
+      setSubmissionResult({ success: false, message: errorMessage });
     } finally {
+      console.log('[Scheduler] Setting isSubmitting to false');
       setIsSubmitting(false);
     }
   }, [canSubmit, mode, scheduledDate, timezone, payloadLocations, mediaItems, postContent, ctaEnabled, ctaType, ctaUrl, caption, editingId, fetchQueue, resetForm]);

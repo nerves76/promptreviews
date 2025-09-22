@@ -268,10 +268,12 @@ model sso_providers {
   resource_id       String?
   created_at        DateTime?           @db.Timestamptz(6)
   updated_at        DateTime?           @db.Timestamptz(6)
+  disabled          Boolean?
   saml_providers    saml_providers[]
   saml_relay_states saml_relay_states[]
   sso_domains       sso_domains[]
 
+  @@index([resource_id], map: "sso_providers_resource_id_pattern_idx")
   @@schema("auth")
 }
 
@@ -280,66 +282,67 @@ model sso_providers {
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 /// This model contains an expression index which requires additional setup for migrations. Visit https://pris.ly/d/expression-indexes for more info.
 model users {
-  instance_id                   String?                         @db.Uuid
-  id                            String                          @id @db.Uuid
-  aud                           String?                         @db.VarChar(255)
-  role                          String?                         @db.VarChar(255)
-  email                         String?                         @db.VarChar(255)
-  encrypted_password            String?                         @db.VarChar(255)
-  email_confirmed_at            DateTime?                       @db.Timestamptz(6)
-  invited_at                    DateTime?                       @db.Timestamptz(6)
-  confirmation_token            String?                         @db.VarChar(255)
-  confirmation_sent_at          DateTime?                       @db.Timestamptz(6)
-  recovery_token                String?                         @db.VarChar(255)
-  recovery_sent_at              DateTime?                       @db.Timestamptz(6)
-  email_change_token_new        String?                         @db.VarChar(255)
-  email_change                  String?                         @db.VarChar(255)
-  email_change_sent_at          DateTime?                       @db.Timestamptz(6)
-  last_sign_in_at               DateTime?                       @db.Timestamptz(6)
-  raw_app_meta_data             Json?
-  raw_user_meta_data            Json?
-  is_super_admin                Boolean?
-  created_at                    DateTime?                       @db.Timestamptz(6)
-  updated_at                    DateTime?                       @db.Timestamptz(6)
-  phone                         String?                         @unique
-  phone_confirmed_at            DateTime?                       @db.Timestamptz(6)
-  phone_change                  String?                         @default("")
-  phone_change_token            String?                         @default("") @db.VarChar(255)
-  phone_change_sent_at          DateTime?                       @db.Timestamptz(6)
-  confirmed_at                  DateTime?                       @default(dbgenerated("LEAST(email_confirmed_at, phone_confirmed_at)")) @db.Timestamptz(6)
-  email_change_token_current    String?                         @default("") @db.VarChar(255)
-  email_change_confirm_status   Int?                            @default(0) @db.SmallInt
-  banned_until                  DateTime?                       @db.Timestamptz(6)
-  reauthentication_token        String?                         @default("") @db.VarChar(255)
-  reauthentication_sent_at      DateTime?                       @db.Timestamptz(6)
-  is_sso_user                   Boolean                         @default(false)
-  deleted_at                    DateTime?                       @db.Timestamptz(6)
-  is_anonymous                  Boolean                         @default(false)
-  identities                    identities[]
-  mfa_factors                   mfa_factors[]
-  one_time_tokens               one_time_tokens[]
-  sessions                      sessions[]
-  account_invitations           account_invitations[]
-  account_users                 account_users[]
-  accounts                      accounts[]
-  admins                        admins?
-  ai_usage                      ai_usage[]
-  announcements                 announcements[]
-  audit_logs                    audit_logs[]
-  billing_audit_log             billing_audit_log[]
-  contacts                      contacts[]
-  critical_function_errors      critical_function_errors[]
-  critical_function_successes   critical_function_successes[]
-  email_domain_policies         email_domain_policies[]
-  feedback                      feedback[]
-  google_api_rate_limits        google_api_rate_limits[]
-  google_business_locations     google_business_locations[]
-  google_business_media_uploads google_business_media_uploads[]
-  google_business_profiles      google_business_profiles?
-  quotes                        quotes[]
-  review_reminder_logs          review_reminder_logs[]
-  review_reminder_settings      review_reminder_settings?
-  selected_gbp_locations        selected_gbp_locations[]
+  instance_id                     String?                           @db.Uuid
+  id                              String                            @id @db.Uuid
+  aud                             String?                           @db.VarChar(255)
+  role                            String?                           @db.VarChar(255)
+  email                           String?                           @db.VarChar(255)
+  encrypted_password              String?                           @db.VarChar(255)
+  email_confirmed_at              DateTime?                         @db.Timestamptz(6)
+  invited_at                      DateTime?                         @db.Timestamptz(6)
+  confirmation_token              String?                           @db.VarChar(255)
+  confirmation_sent_at            DateTime?                         @db.Timestamptz(6)
+  recovery_token                  String?                           @db.VarChar(255)
+  recovery_sent_at                DateTime?                         @db.Timestamptz(6)
+  email_change_token_new          String?                           @db.VarChar(255)
+  email_change                    String?                           @db.VarChar(255)
+  email_change_sent_at            DateTime?                         @db.Timestamptz(6)
+  last_sign_in_at                 DateTime?                         @db.Timestamptz(6)
+  raw_app_meta_data               Json?
+  raw_user_meta_data              Json?
+  is_super_admin                  Boolean?
+  created_at                      DateTime?                         @db.Timestamptz(6)
+  updated_at                      DateTime?                         @db.Timestamptz(6)
+  phone                           String?                           @unique
+  phone_confirmed_at              DateTime?                         @db.Timestamptz(6)
+  phone_change                    String?                           @default("")
+  phone_change_token              String?                           @default("") @db.VarChar(255)
+  phone_change_sent_at            DateTime?                         @db.Timestamptz(6)
+  confirmed_at                    DateTime?                         @default(dbgenerated("LEAST(email_confirmed_at, phone_confirmed_at)")) @db.Timestamptz(6)
+  email_change_token_current      String?                           @default("") @db.VarChar(255)
+  email_change_confirm_status     Int?                              @default(0) @db.SmallInt
+  banned_until                    DateTime?                         @db.Timestamptz(6)
+  reauthentication_token          String?                           @default("") @db.VarChar(255)
+  reauthentication_sent_at        DateTime?                         @db.Timestamptz(6)
+  is_sso_user                     Boolean                           @default(false)
+  deleted_at                      DateTime?                         @db.Timestamptz(6)
+  is_anonymous                    Boolean                           @default(false)
+  identities                      identities[]
+  mfa_factors                     mfa_factors[]
+  one_time_tokens                 one_time_tokens[]
+  sessions                        sessions[]
+  account_invitations             account_invitations[]
+  account_users                   account_users[]
+  accounts                        accounts[]
+  admins                          admins?
+  ai_usage                        ai_usage[]
+  announcements                   announcements[]
+  audit_logs                      audit_logs[]
+  billing_audit_log               billing_audit_log[]
+  contacts                        contacts[]
+  critical_function_errors        critical_function_errors[]
+  critical_function_successes     critical_function_successes[]
+  email_domain_policies           email_domain_policies[]
+  feedback                        feedback[]
+  google_api_rate_limits          google_api_rate_limits[]
+  google_business_locations       google_business_locations[]
+  google_business_media_uploads   google_business_media_uploads[]
+  google_business_profiles        google_business_profiles?
+  google_business_scheduled_posts google_business_scheduled_posts[]
+  quotes                          quotes[]
+  review_reminder_logs            review_reminder_logs[]
+  review_reminder_settings        review_reminder_settings?
+  selected_gbp_locations          selected_gbp_locations[]
 
   @@index([instance_id])
   @@index([is_anonymous])
@@ -400,67 +403,68 @@ model account_users {
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model accounts {
-  id                           String                    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  plan                         String                    @default("no_plan")
-  trial_start                  DateTime?                 @db.Timestamptz(6)
-  trial_end                    DateTime?                 @db.Timestamptz(6)
-  is_free_account              Boolean?                  @default(false)
-  custom_prompt_page_count     Int?                      @default(0)
-  contact_count                Int?                      @default(0)
-  created_at                   DateTime?                 @default(now()) @db.Timestamptz(6)
-  updated_at                   DateTime?                 @default(now()) @db.Timestamptz(6)
-  business_name                String?
-  first_name                   String?
-  last_name                    String?
-  stripe_customer_id           String?
-  stripe_subscription_id       String?
-  subscription_status          String?
-  has_had_paid_plan            Boolean                   @default(false)
-  email                        String?
-  plan_lookup_key              String?
-  review_notifications_enabled Boolean?                  @default(true)
-  user_id                      String?                   @db.Uuid
-  max_users                    Int?                      @default(1)
-  location_count               Int?                      @default(0)
-  max_locations                Int?                      @default(0)
-  deleted_at                   DateTime?                 @db.Timestamptz(6)
-  is_admin                     Boolean?                  @default(false)
-  free_plan_level              String?
-  promotion_code               String?
-  max_contacts                 Int?                      @default(0)
-  max_prompt_pages             Int?                      @default(3)
-  prompt_page_count            Int?                      @default(0)
-  reactivated_at               DateTime?                 @db.Timestamptz(6)
-  reactivation_count           Int?                      @default(0)
-  last_cancellation_reason     String?
-  onboarding_step              String?                   @default("incomplete")
-  business_creation_complete   Boolean?                  @default(false)
-  billing_period               String?                   @default("monthly")
-  max_gbp_locations            Int?                      @default(5)
-  email_review_notifications   Boolean?                  @default(true)
-  gbp_insights_enabled         Boolean?                  @default(true)
-  is_additional_account        Boolean?                  @default(false)
-  had_paid_plan                Boolean?                  @default(false)
-  created_by_user_id           String?                   @db.Uuid
-  created_by                   String?                   @db.Uuid
-  account_events               account_events[]
-  account_invitations          account_invitations[]
-  account_users                account_users[]
-  users                        users?                    @relation(fields: [created_by], references: [id], onUpdate: NoAction)
-  audit_logs                   audit_logs[]
-  billing_audit_log            billing_audit_log[]
-  business_locations           business_locations[]
-  businesses                   businesses[]
-  communication_records        communication_records[]
-  communication_templates      communication_templates[]
-  email_domain_policies        email_domain_policies[]
-  follow_up_reminders          follow_up_reminders[]
-  onboarding_tasks             onboarding_tasks[]
-  prompt_pages                 prompt_pages[]
-  review_reminder_logs         review_reminder_logs[]
-  selected_gbp_locations       selected_gbp_locations[]
-  trial_reminder_logs          trial_reminder_logs[]
-  widgets                      widgets[]
+  id                              String                            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  plan                            String                            @default("no_plan")
+  trial_start                     DateTime?                         @db.Timestamptz(6)
+  trial_end                       DateTime?                         @db.Timestamptz(6)
+  is_free_account                 Boolean?                          @default(false)
+  custom_prompt_page_count        Int?                              @default(0)
+  contact_count                   Int?                              @default(0)
+  created_at                      DateTime?                         @default(now()) @db.Timestamptz(6)
+  updated_at                      DateTime?                         @default(now()) @db.Timestamptz(6)
+  business_name                   String?
+  first_name                      String?
+  last_name                       String?
+  stripe_customer_id              String?
+  stripe_subscription_id          String?
+  subscription_status             String?
+  has_had_paid_plan               Boolean                           @default(false)
+  email                           String?
+  plan_lookup_key                 String?
+  review_notifications_enabled    Boolean?                          @default(true)
+  user_id                         String?                           @db.Uuid
+  max_users                       Int?                              @default(1)
+  location_count                  Int?                              @default(0)
+  max_locations                   Int?                              @default(0)
+  deleted_at                      DateTime?                         @db.Timestamptz(6)
+  is_admin                        Boolean?                          @default(false)
+  free_plan_level                 String?
+  promotion_code                  String?
+  max_contacts                    Int?                              @default(0)
+  max_prompt_pages                Int?                              @default(3)
+  prompt_page_count               Int?                              @default(0)
+  reactivated_at                  DateTime?                         @db.Timestamptz(6)
+  reactivation_count              Int?                              @default(0)
+  last_cancellation_reason        String?
+  onboarding_step                 String?                           @default("incomplete")
+  business_creation_complete      Boolean?                          @default(false)
+  billing_period                  String?                           @default("monthly")
+  max_gbp_locations               Int?                              @default(5)
+  email_review_notifications      Boolean?                          @default(true)
+  gbp_insights_enabled            Boolean?                          @default(true)
+  is_additional_account           Boolean?                          @default(false)
+  had_paid_plan                   Boolean?                          @default(false)
+  created_by_user_id              String?                           @db.Uuid
+  created_by                      String?                           @db.Uuid
+  account_events                  account_events[]
+  account_invitations             account_invitations[]
+  account_users                   account_users[]
+  users                           users?                            @relation(fields: [created_by], references: [id], onUpdate: NoAction)
+  audit_logs                      audit_logs[]
+  billing_audit_log               billing_audit_log[]
+  business_locations              business_locations[]
+  businesses                      businesses[]
+  communication_records           communication_records[]
+  communication_templates         communication_templates[]
+  email_domain_policies           email_domain_policies[]
+  follow_up_reminders             follow_up_reminders[]
+  google_business_scheduled_posts google_business_scheduled_posts[]
+  onboarding_tasks                onboarding_tasks[]
+  prompt_pages                    prompt_pages[]
+  review_reminder_logs            review_reminder_logs[]
+  selected_gbp_locations          selected_gbp_locations[]
+  trial_reminder_logs             trial_reminder_logs[]
+  widgets                         widgets[]
 
   @@index([created_at], map: "idx_accounts_created_at")
   @@index([created_by], map: "idx_accounts_created_by")
@@ -1366,7 +1370,7 @@ model quotes {
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model review_drafts {
-  id                 String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  id                 String    @id @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
   prompt_page_id     String?   @db.Uuid
   platform           String?
   review_text        String?
@@ -1622,6 +1626,76 @@ model selected_gbp_locations {
   @@schema("public")
 }
 
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model oauth_clients {
+  id                 String                  @id @db.Uuid
+  client_id          String                  @unique
+  client_secret_hash String
+  registration_type  oauth_registration_type
+  redirect_uris      String
+  grant_types        String
+  client_name        String?
+  client_uri         String?
+  logo_uri           String?
+  created_at         DateTime                @default(now()) @db.Timestamptz(6)
+  updated_at         DateTime                @default(now()) @db.Timestamptz(6)
+  deleted_at         DateTime?               @db.Timestamptz(6)
+
+  @@index([client_id])
+  @@index([deleted_at])
+  @@schema("auth")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model google_business_scheduled_post_results {
+  id                              String                                       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  scheduled_post_id               String                                       @db.Uuid
+  location_id                     String
+  location_name                   String?
+  status                          google_business_scheduled_post_result_status @default(pending)
+  published_at                    DateTime?                                    @db.Timestamptz(6)
+  error_message                   String?
+  google_resource_id              String?
+  created_at                      DateTime                                     @default(now()) @db.Timestamptz(6)
+  updated_at                      DateTime                                     @default(now()) @db.Timestamptz(6)
+  google_business_scheduled_posts google_business_scheduled_posts              @relation(fields: [scheduled_post_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([location_id], map: "idx_google_business_scheduled_post_results_location")
+  @@index([scheduled_post_id], map: "idx_google_business_scheduled_post_results_post")
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model google_business_scheduled_posts {
+  id                                     String                                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  account_id                             String                                   @db.Uuid
+  user_id                                String                                   @db.Uuid
+  post_kind                              google_business_scheduled_post_kind      @default(post)
+  post_type                              String?
+  content                                Json?
+  caption                                String?
+  scheduled_date                         DateTime                                 @db.Date
+  timezone                               String
+  selected_locations                     Json                                     @default("[]")
+  media_paths                            Json                                     @default("[]")
+  status                                 google_business_scheduled_post_status    @default(pending)
+  published_at                           DateTime?                                @db.Timestamptz(6)
+  error_log                              Json?
+  created_at                             DateTime                                 @default(now()) @db.Timestamptz(6)
+  updated_at                             DateTime                                 @default(now()) @db.Timestamptz(6)
+  google_business_scheduled_post_results google_business_scheduled_post_results[]
+  accounts                               accounts                                 @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users                                  users                                    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([account_id], map: "idx_google_business_scheduled_posts_account")
+  @@index([status, scheduled_date], map: "idx_google_business_scheduled_posts_status_date")
+  @@index([user_id], map: "idx_google_business_scheduled_posts_user")
+  @@schema("public")
+}
+
 enum aal_level {
   aal1
   aal2
@@ -1700,6 +1774,40 @@ enum prompt_page_type {
 enum prompt_page_visibility {
   public
   individual
+
+  @@schema("public")
+}
+
+enum oauth_registration_type {
+  dynamic
+  manual
+
+  @@schema("auth")
+}
+
+enum google_business_scheduled_post_kind {
+  post
+  photo
+
+  @@schema("public")
+}
+
+enum google_business_scheduled_post_result_status {
+  pending
+  processing
+  success
+  failed
+
+  @@schema("public")
+}
+
+enum google_business_scheduled_post_status {
+  pending
+  processing
+  completed
+  partial_success
+  failed
+  cancelled
 
   @@schema("public")
 }
