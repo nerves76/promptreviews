@@ -2152,25 +2152,45 @@ export default function SocialPostingDashboard() {
               {/* Always show the impressive charts and stats */}
               {(
                 <div className="space-y-6">
-                  <LocationPicker
-                    mode="single"
-                    label="Google Business Profile"
-                    locations={scopedLocations}
-                    selectedId={resolvedSelectedLocation?.id}
-                    onSelect={(id) => handleLocationChange(id)}
-                    isLoading={isLoadingPlatforms || (isConnected && scopedLocations.length === 0)}
-                    disabled={!isConnected || scopedLocations.length === 0}
-                    placeholder="Select a location"
-                    emptyState={isConnected ? (
-                      <div className="px-4 py-3 border border-dashed border-gray-300 rounded-md text-sm text-gray-600 bg-gray-50">
-                        No Google Business locations found. Fetch your locations to get started.
+                  <div className="bg-white border border-gray-200 rounded-lg p-6">
+                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                      <div>
+                        <h2 className="text-xl font-semibold text-gray-900">Overview</h2>
+                        <p className="text-sm text-gray-600 mt-1">
+                          Monitor reviews, profile health, and engagement for your Google Business locations.
+                        </p>
                       </div>
-                    ) : (
-                      <div className="px-4 py-3 border border-dashed border-gray-300 rounded-md text-sm text-gray-600 bg-gray-50">
-                        Connect your Google Business Profile to load locations.
-                      </div>
-                    )}
-                  />
+                    </div>
+
+                    <div className="mt-6">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">Locations:</p>
+                      {scopedLocations.length <= 1 ? (
+                        <div className="rounded-md border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700">
+                          Google Business Profile: {scopedLocations[0]?.name || 'No locations connected'}
+                        </div>
+                      ) : (
+                        <LocationPicker
+                          className="bg-gray-50 rounded-lg p-4"
+                          mode="single"
+                          locations={scopedLocations}
+                          selectedId={resolvedSelectedLocation?.id}
+                          onSelect={(id) => handleLocationChange(id)}
+                          isLoading={isLoadingPlatforms || (isConnected && scopedLocations.length === 0)}
+                          disabled={!isConnected || scopedLocations.length === 0}
+                          placeholder="Select a location"
+                          emptyState={isConnected ? (
+                            <div className="px-4 py-3 border border-dashed border-gray-300 rounded-md text-sm text-gray-600 bg-gray-50">
+                              No Google Business locations found. Fetch your locations to get started.
+                            </div>
+                          ) : (
+                            <div className="px-4 py-3 border border-dashed border-gray-300 rounded-md text-sm text-gray-600 bg-gray-50">
+                              Connect your Google Business Profile to load locations.
+                            </div>
+                          )}
+                        />
+                      )}
+                    </div>
+                  </div>
 
                   {/* Error State */}
                   {overviewError && (
