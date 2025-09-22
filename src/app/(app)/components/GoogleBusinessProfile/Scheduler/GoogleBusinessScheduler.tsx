@@ -50,12 +50,14 @@ const DEFAULT_TIMEZONE = typeof Intl !== 'undefined'
   ? Intl.DateTimeFormat().resolvedOptions().timeZone
   : 'America/Los_Angeles';
 
-const compressionOptions = {
+const compressionOptions: any = {
   maxSizeMB: 0.5, // 500KB is plenty for social media posts
   maxWidthOrHeight: 1200, // Google Business posts don't need more than this
   useWebWorker: true,
-  fileType: 'image/jpeg', // Use JPEG as Google Business doesn't support WebP
+  // Only convert PNG to JPEG, keep JPEG as JPEG
+  fileType: 'image/jpeg',
   initialQuality: 0.85, // Good quality/size balance
+  alwaysKeepResolution: false, // Allow resizing for compression
 };
 
 function formatStatusLabel(status: string): string {
@@ -205,12 +207,33 @@ export default function GoogleBusinessScheduler({
 
     try {
       for (const file of Array.from(files)) {
-        const compressed = await imageCompression(file, compressionOptions);
+        // Validate file type before compression
+        const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+        if (!validTypes.includes(file.type.toLowerCase())) {
+          throw new Error(`${file.name} is not a supported format. Please use JPG, PNG, or GIF images.`);
+        }
+
+        // Warn about large files (over 10MB)
+        if (file.size > 10 * 1024 * 1024) {
+          throw new Error(`${file.name} is too large (${(file.size / (1024 * 1024)).toFixed(1)}MB). Please choose an image under 10MB.`);
+        }
+
+        console.log('[Scheduler] Starting compression for:', file.name, 'Size:', (file.size / 1024).toFixed(1), 'KB');
+
+        let compressed;
+        try {
+          compressed = await imageCompression(file, compressionOptions);
+          console.log('[Scheduler] Compressed to:', (compressed.size / 1024).toFixed(1), 'KB');
+        } catch (compressionError) {
+          console.error('[Scheduler] Compression failed:', compressionError);
+          throw new Error(`Failed to compress ${file.name}. Please try a different image.`);
+        }
 
         const formData = new FormData();
         formData.append('file', compressed, file.name);
         formData.append('folder', 'social-posts/scheduled');
 
+        console.log('[Scheduler] Uploading compressed image...');
         const response = await fetch('/api/social-posting/upload-image', {
           method: 'POST',
           body: formData,
@@ -218,6 +241,7 @@ export default function GoogleBusinessScheduler({
 
         const data = await response.json();
         if (!response.ok) {
+          console.error('[Scheduler] Upload API error:', data);
           throw new Error(data.error || 'Failed to upload image');
         }
 
@@ -575,7 +599,7 @@ export default function GoogleBusinessScheduler({
                 <label className={`border border-dashed border-gray-300 rounded-md h-24 w-24 flex items-center justify-center text-sm text-gray-500 cursor-pointer hover:border-slate-400 hover:text-slate-600 ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}>
                   <input
                     type="file"
-                    accept="image/jpeg,image/png,image/webp"
+                    accept="image/jpeg,image/jpg,image/png,image/gif"
                     className="hidden"
                     multiple
                     disabled={isUploading}
@@ -585,7 +609,7 @@ export default function GoogleBusinessScheduler({
                 </label>
               )}
             </div>
-            <p className="text-xs text-gray-500">Images are compressed before upload to keep storage usage lean. Max 10 MB each.</p>
+            <p className="text-xs text-gray-500">Images are automatically optimized to ~500KB for fast loading. Accepts JPG, PNG, or GIF up to 10MB.</p>
           </div>
 
           {mode === 'post' ? (
