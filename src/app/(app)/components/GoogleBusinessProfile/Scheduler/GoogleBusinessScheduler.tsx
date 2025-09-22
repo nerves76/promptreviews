@@ -357,11 +357,21 @@ export default function GoogleBusinessScheduler({
       }
 
       console.log('[Scheduler] Success! Setting result message');
-      setSubmissionResult({ success: true, message: editingId ? 'Schedule updated!' : 'Scheduled successfully!' });
-      console.log('[Scheduler] Fetching updated queue');
-      await fetchQueue();
-      console.log('[Scheduler] Resetting form');
+      const successMessage = editingId ? 'Schedule updated!' : 'Scheduled successfully!';
+      console.log('[Scheduler] Setting success message:', successMessage);
+
+      // Reset form first but preserve the message
       resetForm();
+
+      // Then set the success message
+      setSubmissionResult({ success: true, message: successMessage });
+      console.log('[Scheduler] Submission result set. Fetching updated queue');
+
+      // Fetch queue after a small delay to ensure state updates
+      setTimeout(() => {
+        fetchQueue();
+      }, 100);
+
       // Keep success message visible for 5 seconds
       setTimeout(() => {
         setSubmissionResult(null);
@@ -435,18 +445,37 @@ export default function GoogleBusinessScheduler({
   }, []);
 
   const handleCancel = useCallback(async (id: string) => {
+    console.log('[Scheduler] Cancelling item:', id);
     setSubmissionResult(null);
     try {
       const response = await fetch(`/api/social-posting/scheduled/${id}`, { method: 'DELETE' });
-      const data = await response.json();
+      console.log('[Scheduler] Cancel response status:', response.status);
+
+      let data;
+      try {
+        data = await response.json();
+        console.log('[Scheduler] Cancel response data:', data);
+      } catch (jsonError) {
+        console.error('[Scheduler] Failed to parse cancel response as JSON:', jsonError);
+        throw new Error('Server returned invalid response');
+      }
+
       if (!response.ok || !data.success) {
         throw new Error(data.error || 'Failed to cancel scheduled post');
       }
+
       if (editingId === id) {
         resetForm();
       }
+
+      console.log('[Scheduler] Fetching updated queue after cancel');
       await fetchQueue();
+
       setSubmissionResult({ success: true, message: 'Scheduled item cancelled.' });
+      // Keep message visible for 5 seconds
+      setTimeout(() => {
+        setSubmissionResult(null);
+      }, 5000);
     } catch (error) {
       console.error('[Scheduler] Cancel failed', error);
       setSubmissionResult({ success: false, message: error instanceof Error ? error.message : 'Failed to cancel scheduled item' });
