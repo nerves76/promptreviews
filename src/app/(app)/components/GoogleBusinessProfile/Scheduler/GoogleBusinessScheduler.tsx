@@ -168,6 +168,7 @@ export default function GoogleBusinessScheduler({
 
   const fetchQueue = useCallback(async () => {
     if (!isConnected) return;
+    console.log('[Scheduler] Fetching queue...');
     setIsLoadingQueue(true);
     try {
       const response = await fetch('/api/social-posting/scheduled');
@@ -175,6 +176,12 @@ export default function GoogleBusinessScheduler({
       if (!response.ok || !data.success) {
         throw new Error(data.error || 'Failed to fetch scheduled items');
       }
+      console.log('[Scheduler] Queue fetched:', {
+        upcoming: data.data.upcoming?.length ?? 0,
+        past: data.data.past?.length ?? 0,
+        upcomingStatuses: data.data.upcoming?.map((item: any) => ({ id: item.id, status: item.status })),
+        pastStatuses: data.data.past?.slice(0, 5).map((item: any) => ({ id: item.id, status: item.status }))
+      });
       setQueue({
         upcoming: data.data.upcoming ?? [],
         past: data.data.past ?? [],
@@ -473,7 +480,15 @@ export default function GoogleBusinessScheduler({
         resetForm();
       }
 
-      console.log('[Scheduler] Fetching updated queue after cancel');
+      console.log('[Scheduler] Cancel successful, fetching updated queue');
+
+      // Optimistically remove the item from upcoming queue
+      setQueue(prev => ({
+        upcoming: prev.upcoming.filter(item => item.id !== id),
+        past: prev.past
+      }));
+
+      // Then fetch the latest data from server
       await fetchQueue();
 
       setSubmissionResult({ success: true, message: 'Scheduled item cancelled successfully.' });
