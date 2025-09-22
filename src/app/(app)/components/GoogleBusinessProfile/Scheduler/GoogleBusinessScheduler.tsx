@@ -51,12 +51,12 @@ const DEFAULT_TIMEZONE = typeof Intl !== 'undefined'
   : 'America/Los_Angeles';
 
 const compressionOptions: any = {
-  maxSizeMB: 0.5, // 500KB is plenty for social media posts
-  maxWidthOrHeight: 1200, // Google Business posts don't need more than this
+  maxSizeMB: 0.3, // 300KB to be extra safe with Supabase limits
+  maxWidthOrHeight: 1080, // Reduce further for better compression
   useWebWorker: true,
   // Only convert PNG to JPEG, keep JPEG as JPEG
   fileType: 'image/jpeg',
-  initialQuality: 0.85, // Good quality/size balance
+  initialQuality: 0.8, // Slightly lower quality for smaller files
   alwaysKeepResolution: false, // Allow resizing for compression
 };
 
