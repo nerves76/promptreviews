@@ -901,12 +901,24 @@ export default function GoogleBusinessScheduler({
                                 <div className="mt-1 text-xs text-gray-600">
                                   <Icon name="FaMapMarkerAlt" className="inline w-3 h-3 mr-1 text-gray-400" />
                                   {item.selectedLocations.length === 1 ? (
-                                    <span>{item.selectedLocations[0].name || item.selectedLocations[0].id}</span>
+                                    <span>{
+                                      item.selectedLocations[0].name ||
+                                      locations.find(l => l.id === item.selectedLocations[0].id)?.name ||
+                                      item.selectedLocations[0].id
+                                    }</span>
                                   ) : item.selectedLocations.length <= 3 ? (
-                                    <span>{item.selectedLocations.map((loc: any) => loc.name || loc.id).join(', ')}</span>
+                                    <span>{item.selectedLocations.map((loc: any) =>
+                                      loc.name ||
+                                      locations.find(l => l.id === loc.id)?.name ||
+                                      loc.id
+                                    ).join(', ')}</span>
                                   ) : (
                                     <span>
-                                      {item.selectedLocations.slice(0, 2).map((loc: any) => loc.name || loc.id).join(', ')}
+                                      {item.selectedLocations.slice(0, 2).map((loc: any) =>
+                                        loc.name ||
+                                        locations.find(l => l.id === loc.id)?.name ||
+                                        loc.id
+                                      ).join(', ')}
                                       {' '}and {item.selectedLocations.length - 2} more
                                     </span>
                                   )}
@@ -991,12 +1003,24 @@ export default function GoogleBusinessScheduler({
                                 <div className="mt-1 text-xs text-gray-600">
                                   <Icon name="FaMapMarkerAlt" className="inline w-3 h-3 mr-1 text-gray-400" />
                                   {item.selectedLocations.length === 1 ? (
-                                    <span>{item.selectedLocations[0].name || item.selectedLocations[0].id}</span>
+                                    <span>{
+                                      item.selectedLocations[0].name ||
+                                      locations.find(l => l.id === item.selectedLocations[0].id)?.name ||
+                                      item.selectedLocations[0].id
+                                    }</span>
                                   ) : item.selectedLocations.length <= 3 ? (
-                                    <span>{item.selectedLocations.map((loc: any) => loc.name || loc.id).join(', ')}</span>
+                                    <span>{item.selectedLocations.map((loc: any) =>
+                                      loc.name ||
+                                      locations.find(l => l.id === loc.id)?.name ||
+                                      loc.id
+                                    ).join(', ')}</span>
                                   ) : (
                                     <span>
-                                      {item.selectedLocations.slice(0, 2).map((loc: any) => loc.name || loc.id).join(', ')}
+                                      {item.selectedLocations.slice(0, 2).map((loc: any) =>
+                                        loc.name ||
+                                        locations.find(l => l.id === loc.id)?.name ||
+                                        loc.id
+                                      ).join(', ')}
                                       {' '}and {item.selectedLocations.length - 2} more
                                     </span>
                                   )}
