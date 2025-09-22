@@ -2609,7 +2609,8 @@ export default function SocialPostingDashboard() {
 
           {activeTab === 'schedule' && (
             <GoogleBusinessScheduler
-              locations={locations}
+              locations={scopedLocations}
+              initialLocationIds={selectedLocations}
               isConnected={isConnected}
               maxLocations={planLocationLimit ?? undefined}
               minimumDate={todayIso}

@@ -30,6 +30,7 @@ interface GoogleBusinessSchedulerProps {
   isConnected: boolean;
   maxLocations?: number;
   minimumDate?: string;
+  initialLocationIds?: string[];
 }
 
 const CALL_TO_ACTION_OPTIONS = [
@@ -111,6 +112,7 @@ export default function GoogleBusinessScheduler({
   isConnected,
   maxLocations,
   minimumDate,
+  initialLocationIds,
 }: GoogleBusinessSchedulerProps) {
   const [mode, setMode] = useState<'post' | 'photo'>('post');
   const [postContent, setPostContent] = useState('');
@@ -118,7 +120,15 @@ export default function GoogleBusinessScheduler({
   const [ctaEnabled, setCtaEnabled] = useState(false);
   const [ctaType, setCtaType] = useState('LEARN_MORE');
   const [ctaUrl, setCtaUrl] = useState('');
-  const [selectedLocationIds, setSelectedLocationIds] = useState<string[]>([]);
+  const [selectedLocationIds, setSelectedLocationIds] = useState<string[]>(() => {
+    if (initialLocationIds && initialLocationIds.length > 0) {
+      return initialLocationIds;
+    }
+    if (locations.length === 1) {
+      return [locations[0].id];
+    }
+    return [];
+  });
   const [scheduledDate, setScheduledDate] = useState(() => minimumDate || new Date().toISOString().split('T')[0]);
   const [timezone, setTimezone] = useState(DEFAULT_TIMEZONE);
   const [mediaItems, setMediaItems] = useState<SchedulerMedia[]>([]);
@@ -177,10 +187,14 @@ export default function GoogleBusinessScheduler({
   }, [fetchQueue]);
 
   useEffect(() => {
+    if (initialLocationIds && initialLocationIds.length > 0) {
+      setSelectedLocationIds(initialLocationIds);
+      return;
+    }
     if (locationOptions.length === 1) {
       setSelectedLocationIds([locationOptions[0].id]);
     }
-  }, [locationOptions]);
+  }, [initialLocationIds, locationOptions]);
 
   const handleFileUpload = useCallback(async (files: FileList | null) => {
     if (!files || files.length === 0) return;
