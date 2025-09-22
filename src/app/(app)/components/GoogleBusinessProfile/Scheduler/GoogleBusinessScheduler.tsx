@@ -895,9 +895,23 @@ export default function GoogleBusinessScheduler({
                                 <span>{item.postKind === 'photo' ? 'Photo Upload' : 'Post'}</span>
                                 <span>•</span>
                                 <span>Scheduled: {new Date(item.scheduledDate).toLocaleDateString()}</span>
-                                <span>•</span>
-                                <span>{item.selectedLocations?.length || 0} location(s)</span>
                               </div>
+                              {/* Location names */}
+                              {item.selectedLocations && item.selectedLocations.length > 0 && (
+                                <div className="mt-1 text-xs text-gray-600">
+                                  <Icon name="FaMapMarkerAlt" className="inline w-3 h-3 mr-1 text-gray-400" />
+                                  {item.selectedLocations.length === 1 ? (
+                                    <span>{item.selectedLocations[0].name || item.selectedLocations[0].id}</span>
+                                  ) : item.selectedLocations.length <= 3 ? (
+                                    <span>{item.selectedLocations.map((loc: any) => loc.name || loc.id).join(', ')}</span>
+                                  ) : (
+                                    <span>
+                                      {item.selectedLocations.slice(0, 2).map((loc: any) => loc.name || loc.id).join(', ')}
+                                      {' '}and {item.selectedLocations.length - 2} more
+                                    </span>
+                                  )}
+                                </div>
+                              )}
                               {item.postKind === 'post' && item.content?.summary && (
                                 <p className="mt-2 text-sm text-gray-700 line-clamp-2">{item.content.summary}</p>
                               )}
@@ -971,9 +985,23 @@ export default function GoogleBusinessScheduler({
                                 <span>{item.postKind === 'photo' ? 'Photo Upload' : 'Post'}</span>
                                 <span>•</span>
                                 <span>Scheduled: {new Date(item.scheduledDate).toLocaleDateString()}</span>
-                                <span>•</span>
-                                <span>{item.selectedLocations?.length || 0} location(s)</span>
                               </div>
+                              {/* Location names */}
+                              {item.selectedLocations && item.selectedLocations.length > 0 && (
+                                <div className="mt-1 text-xs text-gray-600">
+                                  <Icon name="FaMapMarkerAlt" className="inline w-3 h-3 mr-1 text-gray-400" />
+                                  {item.selectedLocations.length === 1 ? (
+                                    <span>{item.selectedLocations[0].name || item.selectedLocations[0].id}</span>
+                                  ) : item.selectedLocations.length <= 3 ? (
+                                    <span>{item.selectedLocations.map((loc: any) => loc.name || loc.id).join(', ')}</span>
+                                  ) : (
+                                    <span>
+                                      {item.selectedLocations.slice(0, 2).map((loc: any) => loc.name || loc.id).join(', ')}
+                                      {' '}and {item.selectedLocations.length - 2} more
+                                    </span>
+                                  )}
+                                </div>
+                              )}
                               {item.postKind === 'post' && item.content?.summary && (
                                 <p className="mt-2 text-sm text-gray-700 line-clamp-2">{item.content.summary}</p>
                               )}
