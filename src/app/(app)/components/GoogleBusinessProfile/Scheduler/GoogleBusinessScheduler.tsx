@@ -498,8 +498,8 @@ export default function GoogleBusinessScheduler({
                   className="h-4 w-4 text-slate-600 focus:ring-slate-500"
                 />
                 <div>
-                  <p className="font-medium text-sm text-gray-900">Upload Photos</p>
-                  <p className="text-xs text-gray-600">Adds media to each selected location&apos;s gallery with an optional caption.</p>
+                  <p className="font-medium text-sm text-gray-900">Schedule a Photo</p>
+                  <p className="text-xs text-gray-600">Adds the image to each selected location&apos;s gallery on the scheduled day.</p>
                 </div>
               </label>
             </div>
