@@ -1644,10 +1644,9 @@ export default function SocialPostingDashboard() {
               {isConnected && (
                 <button
                   onClick={() => setShowImportModal(true)}
-                  className="w-full sm:w-auto flex items-center justify-center space-x-2 px-4 py-2 text-sm text-green-700 border border-green-300 rounded-md hover:bg-green-50 transition-colors"
+                  className="w-full sm:w-auto px-4 py-2 text-sm text-green-700 border border-green-300 rounded-md hover:bg-green-50 transition-colors"
                 >
-                  <Icon name="FaImport" className="w-4 h-4" size={16} />
-                  <span>Import Reviews</span>
+                  Import Reviews
                 </button>
               )}
             </div>
@@ -1676,11 +1675,11 @@ export default function SocialPostingDashboard() {
               </button>
             </div>
 
-            {/* Desktop Navigation */}
-            <nav className="hidden md:flex -mb-px space-x-4">
+            {/* Desktop Navigation - Updated to wrap on smaller screens */}
+            <nav className="hidden md:flex -mb-px flex-wrap gap-2">
               <button
                 onClick={() => changeTab('connect')}
-                className={`py-2 px-3 border-b-2 font-medium text-sm rounded-t-md transition-colors ${
+                className={`py-2 px-3 border-b-2 font-medium text-sm rounded-t-md transition-colors whitespace-nowrap ${
                   activeTab === 'connect'
                     ? 'border-slate-blue text-slate-blue bg-white shadow-sm'
                     : 'border-transparent text-gray-600 hover:text-gray-800 hover:bg-gray-100'
@@ -1690,7 +1689,7 @@ export default function SocialPostingDashboard() {
               </button>
               <button
                 onClick={() => changeTab('overview')}
-                className={`py-2 px-3 border-b-2 font-medium text-sm rounded-t-md transition-colors ${
+                className={`py-2 px-3 border-b-2 font-medium text-sm rounded-t-md transition-colors whitespace-nowrap ${
                   activeTab === 'overview'
                     ? 'border-slate-blue text-slate-blue bg-white shadow-sm'
                     : 'border-transparent text-gray-600 hover:text-gray-800 hover:bg-gray-100'
@@ -1701,7 +1700,7 @@ export default function SocialPostingDashboard() {
               <button
                 onClick={() => changeTab('business-info')}
                 disabled={!isConnected || locations.length === 0}
-                className={`py-2 px-3 border-b-2 font-medium text-sm rounded-t-md transition-colors ${
+                className={`py-2 px-3 border-b-2 font-medium text-sm rounded-t-md transition-colors whitespace-nowrap ${
                   activeTab === 'business-info' && isConnected && locations.length > 0
                     ? 'border-slate-blue text-slate-blue bg-white shadow-sm'
                     : 'border-transparent text-gray-600 hover:text-gray-800 hover:bg-gray-100'
@@ -1712,7 +1711,7 @@ export default function SocialPostingDashboard() {
               <button
                 onClick={() => changeTab('services')}
                 disabled={!isConnected || locations.length === 0}
-                className={`py-2 px-3 border-b-2 font-medium text-sm rounded-t-md transition-colors ${
+                className={`py-2 px-3 border-b-2 font-medium text-sm rounded-t-md transition-colors whitespace-nowrap ${
                   activeTab === 'services' && isConnected && locations.length > 0
                     ? 'border-slate-blue text-slate-blue bg-white shadow-sm'
                     : 'border-transparent text-gray-600 hover:text-gray-800 hover:bg-gray-100'
@@ -1723,7 +1722,7 @@ export default function SocialPostingDashboard() {
               <button
                 onClick={() => changeTab('create-post')}
                 disabled={!isConnected || locations.length === 0}
-                className={`py-2 px-3 border-b-2 font-medium text-sm rounded-t-md transition-colors ${
+                className={`py-2 px-3 border-b-2 font-medium text-sm rounded-t-md transition-colors whitespace-nowrap ${
                   activeTab === 'create-post' && isConnected && locations.length > 0
                     ? 'border-slate-blue text-slate-blue bg-white shadow-sm'
                     : 'border-transparent text-gray-600 hover:text-gray-800 hover:bg-gray-100'
@@ -1734,7 +1733,7 @@ export default function SocialPostingDashboard() {
               <button
                 onClick={() => changeTab('schedule')}
                 disabled={!isConnected || locations.length === 0}
-                className={`py-2 px-3 border-b-2 font-medium text-sm rounded-t-md transition-colors ${
+                className={`py-2 px-3 border-b-2 font-medium text-sm rounded-t-md transition-colors whitespace-nowrap ${
                   activeTab === 'schedule' && isConnected && locations.length > 0
                     ? 'border-slate-blue text-slate-blue bg-white shadow-sm'
                     : 'border-transparent text-gray-600 hover:text-gray-800 hover:bg-gray-100'
@@ -1745,7 +1744,7 @@ export default function SocialPostingDashboard() {
               <button
                 onClick={() => changeTab('photos')}
                 disabled={!isConnected || locations.length === 0}
-                className={`py-2 px-3 border-b-2 font-medium text-sm rounded-t-md transition-colors ${
+                className={`py-2 px-3 border-b-2 font-medium text-sm rounded-t-md transition-colors whitespace-nowrap ${
                   activeTab === 'photos' && isConnected && locations.length > 0
                     ? 'border-slate-blue text-slate-blue bg-white shadow-sm'
                     : 'border-transparent text-gray-600 hover:text-gray-800 hover:bg-gray-100'
@@ -1756,7 +1755,7 @@ export default function SocialPostingDashboard() {
               <button
                 onClick={() => changeTab('reviews')}
                 disabled={!isConnected || locations.length === 0}
-                className={`py-2 px-3 border-b-2 font-medium text-sm rounded-t-md transition-colors ${
+                className={`py-2 px-3 border-b-2 font-medium text-sm rounded-t-md transition-colors whitespace-nowrap ${
                   activeTab === 'reviews' && isConnected && locations.length > 0
                     ? 'border-slate-blue text-slate-blue bg-white shadow-sm'
                     : 'border-transparent text-gray-600 hover:text-gray-800 hover:bg-gray-100'
@@ -1767,7 +1766,7 @@ export default function SocialPostingDashboard() {
               <button
                 onClick={() => changeTab('more')}
                 disabled={!isConnected || locations.length === 0}
-                className={`py-2 px-3 border-b-2 font-medium text-sm rounded-t-md transition-colors ${
+                className={`py-2 px-3 border-b-2 font-medium text-sm rounded-t-md transition-colors whitespace-nowrap ${
                   activeTab === 'more' && isConnected && locations.length > 0
                     ? 'border-slate-blue text-slate-blue bg-white shadow-sm'
                     : 'border-transparent text-gray-600 hover:text-gray-800 hover:bg-gray-100'
@@ -3156,8 +3155,7 @@ export default function SocialPostingDashboard() {
               </svg>
             </button>
             
-            <div className="flex items-center space-x-3 mb-4">
-              <Icon name="FaImport" className="w-6 h-6 text-green-600" />
+            <div className="mb-4">
               <h3 className="text-lg font-semibold text-gray-900">Import Google Reviews</h3>
             </div>
             
@@ -3207,7 +3205,6 @@ export default function SocialPostingDashboard() {
                         <div className="font-medium text-gray-900">Import All Reviews</div>
                         <div className="text-sm text-gray-500">Import all reviews from this location</div>
                       </div>
-                      <Icon name="FaImport" className="w-4 h-4 text-gray-400" />
                     </div>
                   </button>
                   
@@ -3221,7 +3218,6 @@ export default function SocialPostingDashboard() {
                         <div className="font-medium text-gray-900">Import New Reviews Only</div>
                         <div className="text-sm text-gray-500">Skip reviews that already exist</div>
                       </div>
-                      <Icon name="FaPlus" className="w-4 h-4 text-gray-400" />
                     </div>
                   </button>
                 </div>
