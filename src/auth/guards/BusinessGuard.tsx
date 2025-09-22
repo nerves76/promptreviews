@@ -207,28 +207,11 @@ function BusinessGuard({ children }: BusinessGuardProps) {
       if (account.is_additional_account) {
         return;
       }
-      // LOG THE RAW VALUE TO SEE WHAT'S ACTUALLY THERE
-      console.log('[BusinessGuard] RAW account.business_creation_complete value:', {
-        accountId: account.id,
-        raw_value: account.business_creation_complete,
-        type: typeof account.business_creation_complete,
-        stringified: JSON.stringify(account.business_creation_complete),
-        full_account: JSON.stringify(account)
-      });
-
       const businessCreationComplete = account.business_creation_complete === true || debugBypass;
-
-      // Add detailed logging in development
-      console.log('[BusinessGuard] Navigation check:', {
-        accountId: account.id,
-        businessCreationComplete,
-        pathname,
-        shouldRedirect: !businessCreationComplete
-      });
 
       // ONLY redirect if business_creation_complete is false
       if (!businessCreationComplete) {
-        console.log('[BusinessGuard] Redirecting owner to business onboarding flow:', {
+        console.log('[BusinessGuard] Redirecting to business onboarding:', {
           accountId: account.id,
           pathname,
         });
@@ -240,11 +223,6 @@ function BusinessGuard({ children }: BusinessGuardProps) {
         // Use replace to avoid stacking history entries
         router.replace('/dashboard/create-business');
         return;
-      } else {
-        console.log('[BusinessGuard] NOT redirecting - business_creation_complete is true:', {
-          accountId: account.id,
-          businessCreationComplete
-        });
       }
       // If business_creation_complete is true, let them through
       // The dashboard will handle showing pricing modal if needed

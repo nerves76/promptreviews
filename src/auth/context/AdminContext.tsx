@@ -131,7 +131,7 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
           checkAdminStatus();
         }
       }
-    }, 60000); // Check every minute
+    }, 5 * 60000); // Check every 5 minutes instead of every minute
 
     return () => clearInterval(interval);
   }, [isAuthenticated, adminCacheTime, checkAdminStatus]);
