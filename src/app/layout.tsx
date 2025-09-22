@@ -13,6 +13,7 @@ import BodyWrapper from "./(app)/components/BodyWrapper";
 import { inter, fontVariables } from "./fonts";
 import IconSpriteInjector from "./(app)/components/IconSpriteInjector";
 import GlobalLocalStorageMigration from "./(app)/components/GlobalLocalStorageMigration";
+import { GlobalRefreshMonitor } from "./(app)/components/GlobalRefreshMonitor";
 
 export const metadata: Metadata = {
   title: "PromptReviews - Get More Reviews",
@@ -44,6 +45,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <ClientRoot>
               <IconSpriteInjector />
               <GlobalLocalStorageMigration />
+              <GlobalRefreshMonitor />
               <AppMain>{children}</AppMain>
             </ClientRoot>
           </BodyWrapper>

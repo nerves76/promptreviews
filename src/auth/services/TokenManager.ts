@@ -88,18 +88,34 @@ class TokenManager {
     if (this.refreshTimer) {
       clearTimeout(this.refreshTimer);
     }
-    
+
     if (!this.session) return;
-    
+
     // Calculate time until token expires (with 5 minute buffer)
     const expiresAt = this.session.expires_at;
     if (!expiresAt) return;
-    
+
     const expiresIn = (expiresAt * 1000) - Date.now();
     const refreshIn = Math.max(expiresIn - (5 * 60 * 1000), 10000); // At least 10 seconds
-    
-    console.log(`⏱️ TokenManager: Scheduling token refresh in ${Math.round(refreshIn / 1000)} seconds (${Math.round(refreshIn / 60000)} minutes)`);
-    
+
+    console.log(`⏱️ TokenManager: Scheduling token refresh`, {
+      refreshInSeconds: Math.round(refreshIn / 1000),
+      refreshInMinutes: Math.round(refreshIn / 60000),
+      expiresAt: new Date(expiresAt * 1000).toISOString(),
+      now: new Date().toISOString()
+    });
+
+    // Add debugging for unexpectedly short refresh times
+    if (refreshIn < 60000) { // Less than 1 minute
+      console.error('⚠️ TokenManager: WARNING - Refresh scheduled in less than 1 minute!', {
+        refreshInSeconds: refreshIn / 1000,
+        expiresAt: new Date(expiresAt * 1000).toISOString(),
+        now: new Date().toISOString(),
+        expiresIn: expiresIn / 1000,
+        bufferUsed: '55 minutes'
+      });
+    }
+
     this.refreshTimer = setTimeout(() => {
       console.log('🔄 TokenManager: Starting proactive token refresh');
       this.refreshTokenProactively();
