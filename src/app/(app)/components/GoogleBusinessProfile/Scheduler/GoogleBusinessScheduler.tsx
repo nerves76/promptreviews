@@ -136,7 +136,7 @@ export default function GoogleBusinessScheduler({
   const [scheduledDate, setScheduledDate] = useState(() => {
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
-    return minimumDate || tomorrow.toISOString().split('T')[0];
+    return tomorrow.toISOString().split('T')[0];
   });
   const [timezone, setTimezone] = useState(DEFAULT_TIMEZONE);
   const [mediaItems, setMediaItems] = useState<SchedulerMedia[]>([]);
@@ -154,9 +154,12 @@ export default function GoogleBusinessScheduler({
   ), [locations]);
 
   // Set minimum date to tomorrow (can't schedule for today or past)
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  const minDate = minimumDate || tomorrow.toISOString().split('T')[0];
+  const tomorrow = useMemo(() => {
+    const date = new Date();
+    date.setDate(date.getDate() + 1);
+    return date.toISOString().split('T')[0];
+  }, []);
+  const minDate = tomorrow;
 
   const resetForm = useCallback(() => {
     setMode('post');
@@ -165,13 +168,13 @@ export default function GoogleBusinessScheduler({
     setCtaEnabled(false);
     setCtaType('LEARN_MORE');
     setCtaUrl('');
-    setSelectedLocationIds([]);
-    setScheduledDate(minDate);
+    setSelectedLocationIds(locations.length === 1 ? [locations[0].id] : []);
+    setScheduledDate(tomorrow);
     setTimezone(DEFAULT_TIMEZONE);
     setMediaItems([]);
     setEditingId(null);
     // Don't clear submission result here - let user see the success/error message
-  }, [minDate]);
+  }, [locations, tomorrow]);
 
   const fetchQueue = useCallback(async () => {
     if (!isConnected) return;
@@ -298,12 +301,25 @@ export default function GoogleBusinessScheduler({
   }, []);
 
   const canSubmit = useMemo(() => {
+    console.log('[Scheduler] Checking canSubmit:', {
+      isConnected,
+      selectedLocationIds: selectedLocationIds.length,
+      scheduledDate,
+      minDate,
+      mode,
+      hasContent: mode === 'post' ? postContent.trim().length > 0 : mediaItems.length > 0
+    });
+
     if (!isConnected) return false;
     if (selectedLocationIds.length === 0) return false;
-    if (!scheduledDate || scheduledDate < minDate) return false;
-    // Additional check: ensure date is not today or in the past
-    const today = new Date().toISOString().split('T')[0];
-    if (scheduledDate <= today) return false;
+    if (!scheduledDate) return false;
+
+    // Check if date is valid (must be tomorrow or later)
+    if (scheduledDate < minDate) {
+      console.log('[Scheduler] Date too early:', scheduledDate, '<', minDate);
+      return false;
+    }
+
     if (mode === 'post') {
       return postContent.trim().length > 0;
     }
@@ -681,7 +697,7 @@ export default function GoogleBusinessScheduler({
                 )}
               </select>
             </div>
-            <p className="mt-1 text-xs text-gray-500">Posts must be scheduled at least one day in advance. They'll publish during the morning batch (6 AM) in your selected timezone.</p>
+            <p className="mt-1 text-xs text-gray-500">Posts must be scheduled at least one day in advance (tomorrow or later). They'll publish during the morning batch (6 AM) in your selected timezone.</p>
           </div>
 
           <fieldset className="bg-gray-50 border border-gray-200 rounded-lg p-4">
