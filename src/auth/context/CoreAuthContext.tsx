@@ -74,6 +74,8 @@ export function CoreAuthProvider({ children }: { children: React.ReactNode }) {
   const [isInitialized, setIsInitialized] = useState(false); // Always start with initialized false
   const [error, setError] = useState<string | null>(null);
   const [refreshingSession, setRefreshingSession] = useState(false);
+  const manualSignOutRef = useRef(false);
+  const sessionRecoveryInProgress = useRef(false);
 
   // Memoized computed states to prevent recalculation
   const isAuthenticated = useMemo(() => !!user && !!session, [user, session]);
@@ -183,6 +185,7 @@ export function CoreAuthProvider({ children }: { children: React.ReactNode }) {
   const signOut = useCallback(async () => {
     setIsLoading(true);
     setError(null);
+    manualSignOutRef.current = true;
     
     try {
       const { error } = await supabase.auth.signOut();
@@ -199,10 +202,55 @@ export function CoreAuthProvider({ children }: { children: React.ReactNode }) {
     } catch (error) {
       console.error('Sign out error:', error);
       setError('Failed to sign out');
+      manualSignOutRef.current = false;
     } finally {
       setIsLoading(false);
     }
   }, [router]);
+
+  const attemptSessionRecovery = useCallback(async () => {
+    if (sessionRecoveryInProgress.current) {
+      return false;
+    }
+
+    sessionRecoveryInProgress.current = true;
+    setRefreshingSession(true);
+
+    try {
+      console.warn('⚠️ Auth: Unexpected sign-out detected, attempting silent recovery');
+
+      const { data: { session: currentSession } } = await supabase.auth.getSession();
+      if (currentSession) {
+        console.warn('✅ Auth: Session recovered via getSession()');
+        setSession(currentSession);
+        setUser(currentSession.user);
+        tokenManager.updateSession(currentSession);
+        return true;
+      }
+
+      const { data: refreshed, error: refreshError } = await supabase.auth.refreshSession();
+
+      if (refreshError) {
+        console.error('❌ Auth: Silent refresh failed:', refreshError);
+      }
+
+      if (refreshed?.session) {
+        console.warn('✅ Auth: Session recovered via refreshSession()');
+        setSession(refreshed.session);
+        setUser(refreshed.session.user);
+        tokenManager.updateSession(refreshed.session);
+        return true;
+      }
+
+      return false;
+    } catch (error) {
+      console.error('💥 Auth: Session recovery attempt failed:', error);
+      return false;
+    } finally {
+      sessionRecoveryInProgress.current = false;
+      setRefreshingSession(false);
+    }
+  }, []);
 
   // Initialize auth state
   useEffect(() => {
@@ -278,9 +326,18 @@ export function CoreAuthProvider({ children }: { children: React.ReactNode }) {
 
         // Handle specific events
         switch (event) {
-          case 'SIGNED_OUT':
-            router.push('/auth/sign-in');
+          case 'SIGNED_OUT': {
+            if (manualSignOutRef.current) {
+              manualSignOutRef.current = false;
+              break;
+            }
+
+            const recovered = await attemptSessionRecovery();
+            if (!recovered) {
+              router.push('/auth/sign-in');
+            }
             break;
+          }
           case 'PASSWORD_RECOVERY':
             router.push('/reset-password');
             break;
@@ -301,7 +358,7 @@ export function CoreAuthProvider({ children }: { children: React.ReactNode }) {
     return () => {
       subscription.unsubscribe();
     };
-  }, [router, user?.id]);
+  }, [router, user?.id, attemptSessionRecovery]);
 
   // Memoize the entire context value to prevent unnecessary re-renders
   const value = useMemo<CoreAuthContextType>(() => ({
