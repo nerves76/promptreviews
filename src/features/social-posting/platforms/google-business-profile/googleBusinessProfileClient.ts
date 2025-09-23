@@ -644,26 +644,53 @@ export class GoogleBusinessProfileClient {
    * Fetches reviews for a specific location
    */
   async getReviews(locationId: string): Promise<any[]> {
-    
+
     try {
       // First get the account ID if we don't have it
       const accounts = await this.listAccounts();
       if (accounts.length === 0) {
         throw new Error('No Google Business Profile accounts found');
       }
-      
+
       // Use the first account ID
       const accountId = accounts[0].name.replace('accounts/', '');
       const cleanLocationId = locationId.replace('locations/', '');
-      
-      // Use the v4 API for reviews
-      const endpoint = `/v4/accounts/${accountId}/locations/${cleanLocationId}/reviews`;
-      
-      const response = await this.makeRequest(endpoint, {
-        method: 'GET'
-      }, 0, GOOGLE_BUSINESS_PROFILE.LEGACY_BASE_URL) as { reviews?: any[] };
 
-      return response?.reviews || [];
+      let allReviews: any[] = [];
+      let pageToken: string | undefined = undefined;
+      let pageCount = 0;
+      const maxPages = 20; // Safety limit to prevent infinite loops
+
+      // Fetch all pages of reviews
+      do {
+        // Build endpoint with pagination parameters
+        const params = new URLSearchParams();
+        params.append('pageSize', '50'); // Maximum allowed per page
+        if (pageToken) {
+          params.append('pageToken', pageToken);
+        }
+
+        const endpoint = `/v4/accounts/${accountId}/locations/${cleanLocationId}/reviews?${params.toString()}`;
+
+        const response = await this.makeRequest(endpoint, {
+          method: 'GET'
+        }, 0, GOOGLE_BUSINESS_PROFILE.LEGACY_BASE_URL) as {
+          reviews?: any[];
+          nextPageToken?: string;
+        };
+
+        if (response?.reviews) {
+          allReviews = allReviews.concat(response.reviews);
+          console.log(`📊 Fetched ${response.reviews.length} reviews (Total: ${allReviews.length})`);
+        }
+
+        pageToken = response?.nextPageToken;
+        pageCount++;
+
+      } while (pageToken && pageCount < maxPages);
+
+      console.log(`✅ Fetched all ${allReviews.length} reviews across ${pageCount} pages`);
+      return allReviews;
 
     } catch (error) {
       console.error('❌ Failed to fetch reviews:', error);

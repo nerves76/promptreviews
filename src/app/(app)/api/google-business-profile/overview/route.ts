@@ -237,8 +237,9 @@ export async function GET(request: NextRequest) {
 
       const engagementData = {
         unrespondedReviews: reviewsData.filter((review: any) => !review.reviewReply).length,
+        totalReviews: reviewsData.length,  // Add total reviews count
         totalQuestions: 0, // Would need Q&A API
-        unansweredQuestions: 0, // Would need Q&A API  
+        unansweredQuestions: 0, // Would need Q&A API
         recentPosts: recentPostsData.length,
         recentPhotos: recentPhotos.length,
         lastPostDate: getLatestDate(postsData, 'createTime'),

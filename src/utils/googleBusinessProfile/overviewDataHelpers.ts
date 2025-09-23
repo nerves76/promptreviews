@@ -17,6 +17,8 @@ export interface ProfileCompletenessData {
   businessDescriptionMaxLength: number;
   seoScore: number;
   photosByCategory: Record<string, number>;
+  businessAttributes?: number;  // Number of attributes set
+  productsCount?: number;  // Number of products listed
 }
 
 export interface ReviewTrendsData {
@@ -44,6 +46,7 @@ export interface OptimizationOpportunity {
 
 export interface EngagementData {
   unrespondedReviews: number;
+  totalReviews?: number;  // Total number of reviews
   totalQuestions: number;
   unansweredQuestions: number;
   recentPosts: number;
@@ -109,6 +112,32 @@ export function calculateProfileCompleteness(
   // Process photos by category
   const photosByCategory = processPhotosByCategory(photos);
 
+  // Count business attributes more intelligently
+  // Attributes vary by business type but common important ones include:
+  // - Accessibility (wheelchair_accessible, etc.)
+  // - Amenities (wi-fi, parking, outdoor seating, etc.)
+  // - Service options (takeout, delivery, dine-in, etc.)
+  // - Health & safety (if still available in your region)
+  let businessAttributes = 0;
+
+  if (location.attributes) {
+    // Count individual attributes that are explicitly set (not just groups)
+    // Attributes can be nested in different formats depending on the API response
+    for (const [key, value] of Object.entries(location.attributes)) {
+      if (value && typeof value === 'object') {
+        // If it's a group of attributes (like "payments" or "accessibility")
+        const subAttributes = Object.values(value).filter(v => v !== null && v !== undefined);
+        businessAttributes += subAttributes.length;
+      } else if (value !== null && value !== undefined) {
+        // If it's a direct attribute value
+        businessAttributes++;
+      }
+    }
+  }
+
+  // Count products (if available)
+  const productsCount = location.products?.length || 0;
+
   return {
     categoriesUsed,
     maxCategories,
@@ -117,7 +146,9 @@ export function calculateProfileCompleteness(
     businessDescriptionLength,
     businessDescriptionMaxLength: maxDescriptionLength,
     seoScore,
-    photosByCategory
+    photosByCategory,
+    businessAttributes,
+    productsCount
   };
 }
 
@@ -276,11 +307,15 @@ function calculateSEOScore(description: string, location: BusinessLocation): num
   const lowerDesc = description.toLowerCase();
   const words = description.trim().split(/\s+/).length;
   
-  // Length score (0-2 points) - prioritize hitting 250+ characters
-  if (description.length >= 250 && description.length <= 750) {
-    score += 2;
-  } else if (description.length >= 200 && description.length < 250) {
-    score += 1;
+  // Length score (0-2 points) - prioritize hitting 500-600 characters for optimal SEO
+  if (description.length >= 500 && description.length <= 600) {
+    score += 2;  // Optimal range
+  } else if (description.length >= 400 && description.length < 500) {
+    score += 1.5;  // Good length
+  } else if (description.length >= 300 && description.length < 400) {
+    score += 1;  // Acceptable but could be better
+  } else if (description.length >= 200 && description.length < 300) {
+    score += 0.5;  // Too short
   }
   
   // Business name inclusion (0-2 points)
@@ -344,12 +379,12 @@ export function identifyOptimizationOpportunities(
     });
   }
 
-  if (profileData.businessDescriptionLength < 100) {
+  if (profileData.businessDescriptionLength < 500) {
     opportunities.push({
       id: 'business-description',
       title: 'Improve Business Description',
-      description: 'Add a detailed business description to improve search visibility',
-      priority: 'high',
+      description: `Your description is only ${profileData.businessDescriptionLength} characters. Aim for 500-600 characters (out of 750 max) for optimal SEO impact`,
+      priority: profileData.businessDescriptionLength < 200 ? 'high' : 'medium',
       actionUrl: '/dashboard/google-business?tab=business-info'
     });
   }
@@ -448,6 +483,54 @@ export function identifyOptimizationOpportunities(
       description: 'Make it easy for customers to contact you directly',
       priority: 'low',
       actionUrl: '/dashboard/google-business?tab=business-info'
+    });
+  }
+
+  // Check for business hours
+  if (!location.regularHours?.periods || location.regularHours.periods.length === 0) {
+    opportunities.push({
+      id: 'add-business-hours',
+      title: 'Set Business Hours',
+      description: 'Help customers know when you\'re open - profiles with hours get 70% more searches',
+      priority: 'high',
+      actionUrl: '/dashboard/google-business?tab=business-info'
+    });
+  }
+
+  // Check for business attributes (accessibility, amenities, etc.)
+  if (!location.attributes || Object.keys(location.attributes).length < 5) {
+    opportunities.push({
+      id: 'add-attributes',
+      title: 'Add Business Attributes',
+      description: 'Highlight features like "wheelchair accessible", "free Wi-Fi", or service options to attract more customers',
+      priority: 'medium',
+      actionUrl: '/dashboard/google-business?tab=business-info'
+    });
+  }
+
+  // Check review response rate
+  if (engagementData.totalReviews > 0) {
+    const responseRate = ((engagementData.totalReviews - engagementData.unrespondedReviews) / engagementData.totalReviews) * 100;
+    if (responseRate < 80) {
+      opportunities.push({
+        id: 'improve-response-rate',
+        title: 'Improve Review Response Rate',
+        description: `Your response rate is ${responseRate.toFixed(0)}%. Aim for 100% to show customers you care`,
+        priority: 'medium',
+        actionUrl: '/dashboard/google-business?tab=reviews'
+      });
+    }
+  }
+
+  // Check for products - recommend for ALL businesses
+  // Service businesses can list packages, retail can list products
+  if (!location.products || location.products.length < 5) {
+    opportunities.push({
+      id: 'add-products',
+      title: 'Add Products or Service Packages',
+      description: 'Showcase at least 5 products or service packages with prices and photos directly in search results',
+      priority: 'medium',
+      actionUrl: '/dashboard/google-business?tab=products'
     });
   }
 
@@ -681,11 +764,14 @@ export function generateMockOverviewData(): {
       'EXTERIOR': 3,
       'TEAM': 1,
       'PRODUCT': 4
-    }
+    },
+    businessAttributes: 7,  // Mock: 7 out of 10 attributes set
+    productsCount: 3  // Mock: 3 products listed
   };
 
   const engagementData: EngagementData = {
     unrespondedReviews: 3,
+    totalReviews: 42,  // Mock: 42 total reviews
     totalQuestions: 15,
     unansweredQuestions: 2,
     recentPosts: 6,

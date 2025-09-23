@@ -19,10 +19,13 @@ interface ProfileData {
   businessDescriptionMaxLength: number;
   seoScore: number;
   photosByCategory: Record<string, number>;
+  businessAttributes?: number;  // Number of attributes set
+  productsCount?: number;  // Number of products listed
 }
 
 interface EngagementData {
   unrespondedReviews: number;
+  totalReviews?: number;  // Total number of reviews
   totalQuestions: number;
   unansweredQuestions: number;
   recentPosts: number;
@@ -242,20 +245,33 @@ export default function BusinessHealthMetrics({
   // Debug logging to see what data we're receiving
   const hasPerformanceData = performanceData && (performanceData.monthlyViews > 0 || performanceData.topSearchQueries?.length > 0);
 
+  // Calculate overall optimization score
+  const optimizationScore = Math.round(
+    categoryCompletion * 0.15 +                                              // 15% - Categories
+    serviceCountScore * 0.20 +                                               // 20% - Service count
+    serviceDescriptionCompletion * 0.15 +                                    // 15% - Service descriptions
+    Math.min(((profileData?.businessDescriptionLength || 0) / 600 * 100), 100) * 0.20 +  // 20% - Business description
+    Math.min(((profileData?.businessAttributes || 0) / 8 * 100), 100) * 0.15 +           // 15% - Attributes
+    Math.min(((profileData?.productsCount || 0) / 5 * 100), 100) * 0.15                  // 15% - Products
+  );
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       {/* Profile Optimization */}
-      <MetricCard 
-        title="Profile Optimization" 
+      <MetricCard
+        title="Profile Optimization"
         icon="FaStore"
         actions={
           hasProfileData ? (
-            <button
-              onClick={() => onQuickAction?.('edit-business-info')}
-              className="text-slate-blue hover:text-slate-700 text-sm font-medium"
-            >
-              Edit Info →
-            </button>
+            <div className="flex items-center space-x-2">
+              <span className="text-xs text-gray-500">Score:</span>
+              <span className={`text-lg font-bold ${
+                optimizationScore >= 80 ? 'text-green-600' :
+                optimizationScore >= 60 ? 'text-yellow-600' : 'text-red-600'
+              }`}>
+                {optimizationScore}%
+              </span>
+            </div>
           ) : null
         }
       >
@@ -269,7 +285,10 @@ export default function BusinessHealthMetrics({
                   {profileData?.categoriesUsed || 0}/{profileData?.maxCategories || 0}
                 </span>
               </div>
-              <ProgressBar percentage={categoryCompletion} animate={cardIsVisible} />
+              <ProgressBar percentage={categoryCompletion} className="bg-yellow-500" animate={cardIsVisible} />
+              <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-xs text-yellow-700">
+                💡 <strong>Goal:</strong> Select at least 5 relevant categories to improve search visibility.
+              </div>
             </div>
 
             {/* Services */}
@@ -287,6 +306,9 @@ export default function BusinessHealthMetrics({
                     </span>
                   </div>
                   <ProgressBar percentage={serviceCountScore} className="bg-blue-500" animate={cardIsVisible} />
+                  <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-700">
+                    💡 <strong>Goal:</strong> List 10+ services for optimal visibility.
+                  </div>
                 </div>
                 <div>
                   <div className="flex items-center justify-between mb-1">
@@ -295,14 +317,12 @@ export default function BusinessHealthMetrics({
                       {profileData?.servicesWithDescriptions || 0}/{profileData?.servicesCount || 0}
                     </span>
                   </div>
-                  <ProgressBar percentage={serviceDescriptionCompletion} className="bg-green-500" animate={cardIsVisible} />
+                  <ProgressBar percentage={serviceDescriptionCompletion} className="bg-emerald-500" animate={cardIsVisible} />
+                  <div className="mt-2 p-2 bg-emerald-50 border border-emerald-200 rounded text-xs text-emerald-700">
+                    💡 <strong>Goal:</strong> Add descriptions to all services for better engagement.
+                  </div>
                 </div>
               </div>
-              {(profileData?.servicesCount || 0) < 5 && (
-                <div className="mt-2 p-2 bg-amber-50 border border-amber-200 rounded text-xs text-amber-700">
-                  💡 <strong>Tip:</strong> Add 5-10 services for good baseline visibility, 10-20 for competitive industries.
-                </div>
-              )}
             </div>
 
             {/* Business Description */}
@@ -310,21 +330,58 @@ export default function BusinessHealthMetrics({
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium text-gray-700">Business Description</span>
                 <span className="text-sm text-gray-600">
-                  {profileData?.businessDescriptionLength || 0}/{profileData?.businessDescriptionMaxLength || 0}
+                  {profileData?.businessDescriptionLength || 0}/{profileData?.businessDescriptionMaxLength || 0} characters
                 </span>
               </div>
               <div className="flex items-center justify-between mb-1">
-                <span className="text-xs text-gray-600">SEO Score</span>
+                <span className="text-xs text-gray-600">Description Length</span>
                 <span className="text-xs font-medium text-gray-900">{profileData?.seoScore || 0}/10</span>
               </div>
               <ProgressBar percentage={businessDescriptionCompletion} className="bg-purple-500" animate={cardIsVisible} />
-              {(profileData?.businessDescriptionLength || 0) < 250 && (
-                <div className="mt-2 p-2 bg-amber-50 border border-amber-200 rounded text-xs text-amber-700">
-                  💡 <strong>Tip:</strong> Users only see the first 250 characters before "Read more". 
-                  Aim for 250+ characters to maximize visibility.
-                </div>
-              )}
+              <div className="mt-2 p-2 bg-purple-50 border border-purple-200 rounded text-xs text-purple-700">
+                💡 <strong>Goal:</strong> Write 500-600 characters for optimal SEO impact.
+              </div>
             </div>
+
+            {/* Business Attributes */}
+            {profileData?.businessAttributes !== undefined && (
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium text-gray-700">Business Attributes</span>
+                  <span className="text-sm text-gray-600">
+                    {profileData.businessAttributes}/8
+                  </span>
+                </div>
+                <ProgressBar
+                  percentage={Math.min((profileData.businessAttributes / 8) * 100, 100)}
+                  className="bg-orange-500"
+                  animate={cardIsVisible}
+                />
+                <div className="mt-2 p-2 bg-orange-50 border border-orange-200 rounded text-xs text-orange-700">
+                  💡 <strong>Goal:</strong> Add 8+ attributes like accessibility, amenities, and service options.
+                </div>
+              </div>
+            )}
+
+            {/* Products (for applicable businesses) */}
+            {profileData?.productsCount !== undefined && (
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium text-gray-700">Products Listed</span>
+                  <span className="text-sm text-gray-600">
+                    {profileData.productsCount}/5
+                  </span>
+                </div>
+                <ProgressBar
+                  percentage={Math.min((profileData.productsCount / 5) * 100, 100)}
+                  className="bg-pink-500"
+                  animate={cardIsVisible}
+                />
+                <div className="mt-2 p-2 bg-pink-50 border border-pink-200 rounded text-xs text-pink-700">
+                  💡 <strong>Goal:</strong> Showcase at least 5 products or service packages with prices and photos.
+                </div>
+              </div>
+            )}
 
             {/* Recent Photos */}
             <div>
@@ -334,18 +391,16 @@ export default function BusinessHealthMetrics({
                   {engagementData?.recentPhotos || 0}/2 this month
                 </span>
               </div>
-              <ProgressBar percentage={((engagementData?.recentPhotos || 0) / 2) * 100} className="bg-blue-500" animate={cardIsVisible} />
-              {(engagementData?.recentPhotos || 0) < 2 && (
-                <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-700">
-                  💡 <strong>Goal:</strong> Upload 2+ photos per month to stay active and improve search ranking.
-                  <button
-                    onClick={() => onQuickAction?.('manage-photos')}
-                    className="ml-2 text-blue-800 hover:text-blue-900 font-medium underline"
-                  >
-                    Upload Photos
-                  </button>
-                </div>
-              )}
+              <ProgressBar percentage={((engagementData?.recentPhotos || 0) / 2) * 100} className="bg-cyan-500" animate={cardIsVisible} />
+              <div className="mt-2 p-2 bg-cyan-50 border border-cyan-200 rounded text-xs text-cyan-700">
+                💡 <strong>Goal:</strong> Upload 2+ photos per month to stay active and improve search ranking.
+                <button
+                  onClick={() => onQuickAction?.('manage-photos')}
+                  className="ml-2 text-cyan-800 hover:text-cyan-900 font-medium underline"
+                >
+                  Upload Photos
+                </button>
+              </div>
               {engagementData?.lastPhotoDate && (
                 <div className="mt-1 text-xs text-gray-500">
                   Last photo: {new Date(engagementData.lastPhotoDate).toLocaleDateString()}
@@ -362,18 +417,16 @@ export default function BusinessHealthMetrics({
                     {engagementData.recentPosts}/4 this month
                   </span>
                 </div>
-                <ProgressBar percentage={(engagementData.recentPosts / 4) * 100} className="bg-green-500" animate={cardIsVisible} />
-                {engagementData.recentPosts < 4 && (
-                  <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded text-xs text-green-700">
-                    💡 <strong>Goal:</strong> Post 4+ times per month for consistent engagement and better visibility.
-                    <button
-                      onClick={() => onQuickAction?.('create-post')}
-                      className="ml-2 text-green-800 hover:text-green-900 font-medium underline"
-                    >
-                      Create Post
-                    </button>
-                  </div>
-                )}
+                <ProgressBar percentage={(engagementData.recentPosts / 4) * 100} className="bg-teal-500" animate={cardIsVisible} />
+                <div className="mt-2 p-2 bg-teal-50 border border-teal-200 rounded text-xs text-teal-700">
+                  💡 <strong>Goal:</strong> Post 4+ times per month for consistent engagement and better visibility.
+                  <button
+                    onClick={() => onQuickAction?.('create-post')}
+                    className="ml-2 text-teal-800 hover:text-teal-900 font-medium underline"
+                  >
+                    Create Post
+                  </button>
+                </div>
                 {engagementData.lastPostDate && (
                   <div className="mt-1 text-xs text-gray-500">
                     Last post: {new Date(engagementData.lastPostDate).toLocaleDateString()}
@@ -413,9 +466,35 @@ export default function BusinessHealthMetrics({
         }
       >
         {(cardIsVisible) => {
-          
+          const responseRate = engagementData.totalReviews && engagementData.totalReviews > 0
+            ? ((engagementData.totalReviews - engagementData.unrespondedReviews) / engagementData.totalReviews) * 100
+            : 0;
+
           return (
             <div className="space-y-4">
+            {/* Review Statistics */}
+            {engagementData.totalReviews !== undefined && (
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium text-gray-700">Total Reviews</span>
+                  <span className="text-lg font-bold text-gray-900">{engagementData.totalReviews}</span>
+                </div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm text-gray-600">Response Rate</span>
+                  <span className={`text-sm font-medium ${
+                    responseRate >= 80 ? 'text-green-600' : responseRate >= 50 ? 'text-yellow-600' : 'text-red-600'
+                  }`}>
+                    {responseRate.toFixed(0)}%
+                  </span>
+                </div>
+                <ProgressBar
+                  percentage={responseRate}
+                  className={responseRate >= 80 ? 'bg-green-500' : responseRate >= 50 ? 'bg-yellow-500' : 'bg-red-500'}
+                  animate={cardIsVisible}
+                />
+              </div>
+            )}
+
             {/* Unresponded Reviews */}
             <div className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
               <div className="flex items-center space-x-3">
