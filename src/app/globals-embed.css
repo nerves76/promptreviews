@@ -4,7 +4,8 @@
 
 /* Minimal styles for embed - transparent background */
 html {
-  height: 100%;
+  height: auto;
+  min-height: 100%;
   background: transparent !important;
   overflow: hidden;
 }
@@ -16,6 +17,7 @@ body {
   background-image: none !important;
   background-color: transparent !important;
   background-attachment: initial !important;
+  height: auto;
   min-height: 100%;
   overflow: hidden;
 }

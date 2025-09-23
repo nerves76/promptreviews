@@ -1633,7 +1633,13 @@ export default function SocialPostingDashboard() {
                   )}
                   {locations.length > 0 && (
                     <span className="text-gray-500">
-                      • {locations.length} location{locations.length !== 1 ? 's' : ''}
+                      • {selectedLocations.length > 0
+                        ? `${selectedLocations.length} selected of ${locations.length} location${locations.length !== 1 ? 's' : ''}`
+                        : `${locations.length} location${locations.length !== 1 ? 's' : ''} available`
+                      }
+                      {currentPlan === 'grower' && locations.length > 1 && (
+                        <span className="text-amber-600"> (Grower plan: 1 location limit)</span>
+                      )}
                     </span>
                   )}
                 </div>
@@ -2055,7 +2061,10 @@ export default function SocialPostingDashboard() {
                           Setup Complete!
                         </h4>
                         <p className="text-sm text-green-700 mb-3">
-                          Managing {locations.length} business location{locations.length !== 1 ? 's' : ''}. Your Google Business Profile is ready!
+                          {selectedLocations.length > 0
+                            ? `Managing ${selectedLocations.length} of ${locations.length} business location${locations.length !== 1 ? 's' : ''}.`
+                            : `${locations.length} business location${locations.length !== 1 ? 's' : ''} available.`
+                          } Your Google Business Profile is ready!
                         </p>
                         <div className="flex flex-wrap gap-2">
                           <button
