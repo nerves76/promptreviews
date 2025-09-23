@@ -188,7 +188,7 @@ export default function AnimatedInfographic({ isEmbed = false, debug = false }: 
     
     const interval = setInterval(() => {
       setBeamPosition(prev => {
-        const next = (prev + 0.4) % 95 // Complete cycle every 23.75 seconds (95/0.4 = 237.5 frames at 100ms) - reduced pause
+        const next = (prev + 0.5) % 95 // Slightly faster cycle (~19s: 95/0.5 steps at 100ms)
         
         // First beam: Customer to Prompt Page (20-50% of cycle)
         // Beam travels from 20-30%, reaching end at 30%
@@ -284,7 +284,7 @@ export default function AnimatedInfographic({ isEmbed = false, debug = false }: 
       
       setActivePlatforms(platforms)
       setPlatformStars(stars)
-    }, 6000) // Much slower interval - 6 seconds
+    }, 5000) // Slightly faster interval to match overall pacing
     return () => clearInterval(interval)
   }, [mounted, isVisible])
 
