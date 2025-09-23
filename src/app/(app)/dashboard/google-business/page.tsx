@@ -26,6 +26,7 @@ import HelpModal from '@/app/(app)/components/help/HelpModal';
 import ButtonSpinner from '@/components/ButtonSpinner';
 import LocationPicker from '@/components/GoogleBusinessProfile/LocationPicker';
 import GoogleBusinessScheduler from '@/app/(app)/components/GoogleBusinessProfile/Scheduler/GoogleBusinessScheduler';
+import { exportOverviewToPDF } from '@/utils/googleBusinessProfile/pdfExport';
 // Using built-in alert for notifications instead of react-toastify
 
 interface GoogleBusinessLocation {
@@ -230,8 +231,18 @@ export default function SocialPostingDashboard() {
   const loadingRef = useRef(false); // More persistent loading prevention
   const initialLoadDone = useRef(false); // Track if initial load has been completed
 
-  // Overview page state
-  const [overviewData, setOverviewData] = useState<any>(null);
+  // Overview page state - with localStorage persistence
+  const [overviewData, setOverviewData] = useState<any>(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('google-business-overview-data');
+      try {
+        return stored ? JSON.parse(stored) : null;
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  });
   const [overviewLoading, setOverviewLoading] = useState(false);
   const [overviewError, setOverviewError] = useState<string | null>(null);
 
@@ -464,6 +475,12 @@ export default function SocialPostingDashboard() {
     localStorage.setItem('google-business-selected-locations', JSON.stringify(selectedLocations));
   }, [selectedLocations]);
 
+  useEffect(() => {
+    if (overviewData) {
+      localStorage.setItem('google-business-overview-data', JSON.stringify(overviewData));
+    }
+  }, [overviewData]);
+
   // Clean up image URLs on unmount
   useEffect(() => {
     return () => {
@@ -515,10 +532,13 @@ export default function SocialPostingDashboard() {
     }
   }, [selectedLocations, selectedLocationId, scopedLocations]);
 
-  // Fetch overview data when tab becomes active
+  // Fetch overview data when tab becomes active (only if not already cached)
   useEffect(() => {
     if (activeTab === 'overview' && selectedLocationId && isConnected) {
-      fetchOverviewData(selectedLocationId);
+      // Only fetch if we don't have data or if the selected location changed
+      if (!overviewData || overviewData.locationId !== selectedLocationId) {
+        fetchOverviewData(selectedLocationId);
+      }
     }
   }, [activeTab, selectedLocationId, isConnected]);
 
@@ -798,8 +818,8 @@ export default function SocialPostingDashboard() {
    * 4. Wait 1.5s then reload platforms to confirm disconnection
    * 
    * State cleared:
-   * - localStorage: google-business-connected, locations, selected-locations, fetch-attempted
-   * - React state: isConnected, locations, selectedLocations, selectedLocationId, hasAttemptedFetch
+   * - localStorage: google-business-connected, locations, selected-locations, fetch-attempted, overview-data
+   * - React state: isConnected, locations, selectedLocations, selectedLocationId, hasAttemptedFetch, overviewData
    */
   const handleDisconnect = async () => {
     try {
@@ -851,7 +871,8 @@ export default function SocialPostingDashboard() {
       localStorage.removeItem('google-business-locations');
       localStorage.removeItem('google-business-selected-locations');
       localStorage.removeItem('google-business-fetch-attempted');
-      
+      localStorage.removeItem('google-business-overview-data');
+
       // Immediately update UI state to show disconnected
       setIsConnected(false);
       setConnectedEmail(null); // Clear the connected email
@@ -859,6 +880,7 @@ export default function SocialPostingDashboard() {
       setSelectedLocations([]);
       setSelectedLocationId('');
       setHasAttemptedFetch(false);
+      setOverviewData(null); // Clear the overview data state
       setIsLoading(false);
       setIsLoadingPlatforms(false); // Clear platforms loading state too
       
@@ -956,8 +978,10 @@ export default function SocialPostingDashboard() {
             // Clear connection state
             setIsConnected(false);
             setLocations([]);
+            setOverviewData(null);
             localStorage.removeItem('google-business-connected');
             localStorage.removeItem('google-business-locations');
+            localStorage.removeItem('google-business-overview-data');
             return;
           } else if (errorData.error === 'PERMISSION_ERROR') {
             setPostResult({ 
@@ -1496,7 +1520,8 @@ export default function SocialPostingDashboard() {
       const data = await response.json();
 
       if (data.success) {
-        setOverviewData(data.data);
+        // Include locationId in the stored data for cache validation
+        setOverviewData({ ...data.data, locationId });
       } else {
         setOverviewError(data.error || 'Failed to fetch overview data');
       }
@@ -1524,6 +1549,9 @@ export default function SocialPostingDashboard() {
       case 'manage-reviews':
         changeTab('reviews');
         break;
+      case 'manage-photos':
+        changeTab('photos');
+        break;
       case 'create-post':
         changeTab('create-post');
         break;
@@ -1532,6 +1560,28 @@ export default function SocialPostingDashboard() {
           window.open(data.url, '_blank');
         }
         break;
+    }
+  };
+
+  // Handle PDF export
+  const [isExportingPDF, setIsExportingPDF] = useState(false);
+
+  const handleExportPDF = async () => {
+    if (isExportingPDF) return;
+
+    setIsExportingPDF(true);
+    try {
+      const locationName = scopedLocations.find(loc => loc.id === selectedLocationId)?.name || 'Business Overview';
+      await exportOverviewToPDF('overview-content', {
+        filename: `google-business-optimization-report-${locationName.replace(/[^a-z0-9]/gi, '-').toLowerCase()}.pdf`,
+        locationName,
+        date: new Date()
+      });
+    } catch (error) {
+      console.error('Failed to export PDF:', error);
+      alert('Failed to generate PDF. Please try again.');
+    } finally {
+      setIsExportingPDF(false);
     }
   };
 
@@ -2147,7 +2197,7 @@ export default function SocialPostingDashboard() {
                 <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
                   <p className="text-yellow-800">
                     {gbpAccessMessage}
-                    <button 
+                    <button
                       onClick={() => window.open('/dashboard/plan', '_blank')}
                       className="ml-2 text-yellow-900 underline hover:no-underline"
                     >
@@ -2159,7 +2209,7 @@ export default function SocialPostingDashboard() {
               )}
               {/* Always show the impressive charts and stats */}
               {(
-                <div className="space-y-6">
+                <div id="overview-content" className="space-y-6">
                   <div className="bg-white border border-gray-200 rounded-lg p-6">
                     <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
                       <div>
@@ -2168,6 +2218,30 @@ export default function SocialPostingDashboard() {
                           Monitor reviews, profile health, and engagement for your Google Business locations.
                         </p>
                       </div>
+                      {/* Export Button - Show only when connected and has data */}
+                      {isConnected && scopedLocations.length > 0 && (
+                        <button
+                          onClick={handleExportPDF}
+                          disabled={isExportingPDF || overviewLoading}
+                          className={`flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                            isExportingPDF || overviewLoading
+                              ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                              : 'bg-slate-blue text-white hover:bg-blue-600'
+                          }`}
+                        >
+                          {isExportingPDF ? (
+                            <>
+                              <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />
+                              <span>Generating PDF...</span>
+                            </>
+                          ) : (
+                            <>
+                              <Icon name="MdDownload" className="w-4 h-4" />
+                              <span>Download PDF</span>
+                            </>
+                          )}
+                        </button>
+                      )}
                     </div>
 
                     <div className="mt-6">
@@ -2232,6 +2306,8 @@ export default function SocialPostingDashboard() {
                         { month: 'Jun', fiveStar: 0, fourStar: 0, threeStar: 0, twoStar: 0, oneStar: 0, noRating: 0 }
                       ]}
                       isLoading={overviewLoading}
+                      onLoadData={selectedLocationId ? () => fetchOverviewData(selectedLocationId) : undefined}
+                      dataLoaded={!!overviewData}
                     />
                   )}
 
