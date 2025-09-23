@@ -2262,6 +2262,7 @@ export default function SocialPostingDashboard() {
                     }}
                     engagementData={overviewData?.engagementData || {
                       unrespondedReviews: 3,
+                      totalReviews: 15,  // Add totalReviews for demo data
                       totalQuestions: 12,
                       unansweredQuestions: 2,
                       recentPosts: 1,

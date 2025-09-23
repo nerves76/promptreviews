@@ -202,14 +202,31 @@ export default function BusinessHealthMetrics({
     );
   }
 
-  const ProgressBar = ({ percentage, className = "bg-slate-blue", animate = false }: { percentage: number; className?: string; animate?: boolean }) => (
-    <div className="w-full bg-gray-200 rounded-full h-2">
-      <div 
-        className={`h-2 rounded-full transition-all duration-[2000ms] ease-out ${className}`}
-        style={{ width: animate ? `${Math.min(percentage, 100)}%` : '0%' }}
-      ></div>
-    </div>
-  );
+  const ProgressBar = ({ percentage, className = "bg-slate-blue", animate = false }: { percentage: number; className?: string; animate?: boolean }) => {
+    const [width, setWidth] = useState(() => animate ? '0%' : `${Math.min(percentage, 100)}%`);
+
+    useEffect(() => {
+      if (animate) {
+        // Small timeout to trigger CSS transition
+        const timer = setTimeout(() => {
+          setWidth(`${Math.min(percentage, 100)}%`);
+        }, 50);
+        return () => clearTimeout(timer);
+      } else {
+        // Set immediately if not animating
+        setWidth(`${Math.min(percentage, 100)}%`);
+      }
+    }, [animate, percentage]);
+
+    return (
+      <div className="w-full bg-gray-200 rounded-full h-2">
+        <div
+          className={`h-2 rounded-full transition-all duration-[2000ms] ease-out ${className}`}
+          style={{ width }}
+        />
+      </div>
+    );
+  };
 
   const MetricCard = ({ title, icon, children, actions }: { 
     title: string; 
@@ -271,14 +288,14 @@ export default function BusinessHealthMetrics({
         }
       >
         {(cardIsVisible) => {
-          const responseRate = engagementData.totalReviews && engagementData.totalReviews > 0
+          const responseRate = engagementData?.totalReviews && engagementData.totalReviews > 0
             ? ((engagementData.totalReviews - engagementData.unrespondedReviews) / engagementData.totalReviews) * 100
             : 0;
 
           return (
             <div className="space-y-4">
             {/* Review Statistics */}
-            {engagementData.totalReviews !== undefined && (
+            {engagementData?.totalReviews !== undefined && (
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm font-medium text-gray-700">Total Reviews</span>
@@ -306,17 +323,17 @@ export default function BusinessHealthMetrics({
                 <Icon name="FaExclamationTriangle" className="w-5 h-5 text-red-600" />
                 <span className="text-sm font-medium text-red-800">Reviews Need Response</span>
               </div>
-              <span className="text-lg font-bold text-red-600">{engagementData.unrespondedReviews}</span>
+              <span className="text-lg font-bold text-red-600">{engagementData?.unrespondedReviews || 0}</span>
             </div>
 
             {/* Q&A */}
             <div className="grid grid-cols-2 gap-3">
               <div className="text-center p-3 bg-gray-50 rounded-lg">
-                <div className="text-2xl font-bold text-gray-900">{engagementData.totalQuestions}</div>
+                <div className="text-2xl font-bold text-gray-900">{engagementData?.totalQuestions || 0}</div>
                 <div className="text-xs text-gray-600">Total Q&A</div>
               </div>
               <div className="text-center p-3 bg-yellow-50 rounded-lg">
-                <div className="text-2xl font-bold text-yellow-600">{engagementData.unansweredQuestions}</div>
+                <div className="text-2xl font-bold text-yellow-600">{engagementData?.unansweredQuestions || 0}</div>
                 <div className="text-xs text-gray-600">Unanswered</div>
               </div>
             </div>
