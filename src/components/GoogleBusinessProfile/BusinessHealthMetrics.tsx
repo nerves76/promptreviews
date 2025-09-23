@@ -256,8 +256,76 @@ export default function BusinessHealthMetrics({
   );
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      {/* Profile Optimization */}
+    <div className="space-y-6">
+      {/* Customer Engagement - Full Width */}
+      <MetricCard
+        title="Customer Engagement"
+        icon="FaUsers"
+        actions={
+          <button
+            onClick={() => onQuickAction?.('manage-reviews')}
+            className="text-slate-blue hover:text-slate-700 text-sm font-medium"
+          >
+            Manage →
+          </button>
+        }
+      >
+        {(cardIsVisible) => {
+          const responseRate = engagementData.totalReviews && engagementData.totalReviews > 0
+            ? ((engagementData.totalReviews - engagementData.unrespondedReviews) / engagementData.totalReviews) * 100
+            : 0;
+
+          return (
+            <div className="space-y-4">
+            {/* Review Statistics */}
+            {engagementData.totalReviews !== undefined && (
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium text-gray-700">Total Reviews</span>
+                  <span className="text-lg font-bold text-gray-900">{engagementData.totalReviews}</span>
+                </div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm text-gray-600">Response Rate</span>
+                  <span className={`text-sm font-medium ${
+                    responseRate >= 80 ? 'text-green-600' : responseRate >= 50 ? 'text-yellow-600' : 'text-red-600'
+                  }`}>
+                    {responseRate.toFixed(0)}%
+                  </span>
+                </div>
+                <ProgressBar
+                  percentage={responseRate}
+                  className={responseRate >= 80 ? 'bg-green-500' : responseRate >= 50 ? 'bg-yellow-500' : 'bg-red-500'}
+                  animate={cardIsVisible}
+                />
+              </div>
+            )}
+
+            {/* Unresponded Reviews */}
+            <div className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
+              <div className="flex items-center space-x-3">
+                <Icon name="FaExclamationTriangle" className="w-5 h-5 text-red-600" />
+                <span className="text-sm font-medium text-red-800">Reviews Need Response</span>
+              </div>
+              <span className="text-lg font-bold text-red-600">{engagementData.unrespondedReviews}</span>
+            </div>
+
+            {/* Q&A */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="text-center p-3 bg-gray-50 rounded-lg">
+                <div className="text-2xl font-bold text-gray-900">{engagementData.totalQuestions}</div>
+                <div className="text-xs text-gray-600">Total Q&A</div>
+              </div>
+              <div className="text-center p-3 bg-yellow-50 rounded-lg">
+                <div className="text-2xl font-bold text-yellow-600">{engagementData.unansweredQuestions}</div>
+                <div className="text-xs text-gray-600">Unanswered</div>
+              </div>
+            </div>
+          </div>
+          );
+        }}
+      </MetricCard>
+
+      {/* Profile Optimization - Full Width */}
       <MetricCard
         title="Profile Optimization"
         icon="FaStore"
@@ -287,7 +355,7 @@ export default function BusinessHealthMetrics({
               </div>
               <ProgressBar percentage={categoryCompletion} className="bg-yellow-500" animate={cardIsVisible} />
               <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-xs text-yellow-700">
-                💡 <strong>Goal:</strong> Select at least 5 relevant categories to improve search visibility.
+                💡 <strong>Goal:</strong> Select one main category and up to 9 additional categories.
               </div>
             </div>
 
@@ -450,74 +518,6 @@ export default function BusinessHealthMetrics({
             </button>
           </div>
         )}
-      </MetricCard>
-
-      {/* Customer Engagement */}
-      <MetricCard 
-        title="Customer Engagement" 
-        icon="FaUsers"
-        actions={
-          <button
-            onClick={() => onQuickAction?.('manage-reviews')}
-            className="text-slate-blue hover:text-slate-700 text-sm font-medium"
-          >
-            Manage →
-          </button>
-        }
-      >
-        {(cardIsVisible) => {
-          const responseRate = engagementData.totalReviews && engagementData.totalReviews > 0
-            ? ((engagementData.totalReviews - engagementData.unrespondedReviews) / engagementData.totalReviews) * 100
-            : 0;
-
-          return (
-            <div className="space-y-4">
-            {/* Review Statistics */}
-            {engagementData.totalReviews !== undefined && (
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-gray-700">Total Reviews</span>
-                  <span className="text-lg font-bold text-gray-900">{engagementData.totalReviews}</span>
-                </div>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm text-gray-600">Response Rate</span>
-                  <span className={`text-sm font-medium ${
-                    responseRate >= 80 ? 'text-green-600' : responseRate >= 50 ? 'text-yellow-600' : 'text-red-600'
-                  }`}>
-                    {responseRate.toFixed(0)}%
-                  </span>
-                </div>
-                <ProgressBar
-                  percentage={responseRate}
-                  className={responseRate >= 80 ? 'bg-green-500' : responseRate >= 50 ? 'bg-yellow-500' : 'bg-red-500'}
-                  animate={cardIsVisible}
-                />
-              </div>
-            )}
-
-            {/* Unresponded Reviews */}
-            <div className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
-              <div className="flex items-center space-x-3">
-                <Icon name="FaExclamationTriangle" className="w-5 h-5 text-red-600" />
-                <span className="text-sm font-medium text-red-800">Reviews Need Response</span>
-              </div>
-              <span className="text-lg font-bold text-red-600">{engagementData.unrespondedReviews}</span>
-            </div>
-
-            {/* Q&A */}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="text-center p-3 bg-gray-50 rounded-lg">
-                <div className="text-2xl font-bold text-gray-900">{engagementData.totalQuestions}</div>
-                <div className="text-xs text-gray-600">Total Q&A</div>
-              </div>
-              <div className="text-center p-3 bg-yellow-50 rounded-lg">
-                <div className="text-2xl font-bold text-yellow-600">{engagementData.unansweredQuestions}</div>
-                <div className="text-xs text-gray-600">Unanswered</div>
-              </div>
-            </div>
-          </div>
-          );
-        }}
       </MetricCard>
 
       {/* Business Performance - Only show if we have performance data */}
