@@ -15,17 +15,18 @@ import FAQsTab from './FAQsTab';
 import IssuesTab from './IssuesTab';
 import { trackEvent } from '@/utils/analytics';
 
-export default function HelpModal({ 
-  isOpen, 
-  onClose, 
+export default function HelpModal({
+  isOpen,
+  onClose,
   initialArticleId,
   initialKeywords,
   initialTab = 'tutorials'
 }: HelpModalProps) {
   const pathname = usePathname();
   const [activeTab, setActiveTab] = useState<TabType>(initialTab);
-  
+
   // Debug logging
+  console.log('HelpModal - initialArticleId:', initialArticleId);
   
   // Get context information from current page or use provided keywords
   const pageContext = getContextFromPath(pathname);

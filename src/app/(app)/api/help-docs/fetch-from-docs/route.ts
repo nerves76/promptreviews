@@ -10,13 +10,14 @@ const DOCS_BASE_URL = process.env.DOCS_URL || 'https://promptreviews.app/docs';
 export async function POST(req: NextRequest) {
   try {
     const { path, articleId } = await req.json();
-    
+
     if (!path && !articleId) {
       return NextResponse.json(
         { error: 'Path or articleId is required' },
         { status: 400 }
       );
     }
+
 
     // Construct the URL to fetch from
     let fetchUrl = DOCS_BASE_URL;
@@ -41,6 +42,20 @@ export async function POST(req: NextRequest) {
         'business-profile': '/business-profile',
         'faq': '/faq',
         'faq-comprehensive': '/faq-comprehensive',
+        // Google Biz Optimizer articles on docs site
+        'google-biz-optimizer/metrics/total-reviews': '/google-biz-optimizer/metrics/total-reviews',
+        'google-biz-optimizer/metrics/average-rating': '/google-biz-optimizer/metrics/average-rating',
+        'google-biz-optimizer/metrics/review-trends': '/google-biz-optimizer/metrics/review-trends',
+        'google-biz-optimizer/metrics/monthly-patterns': '/google-biz-optimizer/metrics/monthly-patterns',
+        'google-biz-optimizer/optimization/seo-score': '/google-biz-optimizer/optimization/seo-score',
+        'google-biz-optimizer/optimization/categories': '/google-biz-optimizer/optimization/categories',
+        'google-biz-optimizer/optimization/services': '/google-biz-optimizer/optimization/services',
+        'google-biz-optimizer/optimization/photos': '/google-biz-optimizer/optimization/photos',
+        'google-biz-optimizer/optimization/quick-wins': '/google-biz-optimizer/optimization/quick-wins',
+        'google-biz-optimizer/engagement/review-responses': '/google-biz-optimizer/engagement/review-responses',
+        'google-biz-optimizer/engagement/questions-answers': '/google-biz-optimizer/engagement/questions-answers',
+        'google-biz-optimizer/engagement/posts': '/google-biz-optimizer/engagement/posts',
+        'google-biz-optimizer/performance/customer-actions': '/google-biz-optimizer/performance/customer-actions',
       };
       
       const mappedPath = pathMap[articleId];

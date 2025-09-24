@@ -75,6 +75,20 @@ const helpCategories = [
       { id: 'google-services-seo', title: 'Services & SEO', path: '/google-business-services-seo' },
       { id: 'google-products', title: 'Products Guide', path: '/google-business-products' },
       { id: 'google-post-types', title: 'Post Types', path: '/google-business-post-types' },
+      // Google Biz Optimizer Help Articles
+      { id: 'google-biz-optimizer/metrics/total-reviews', title: 'Total Reviews - Why They Matter', path: '/docs/help/google-biz-optimizer/metrics/total-reviews.md' },
+      { id: 'google-biz-optimizer/metrics/average-rating', title: 'Average Star Rating Impact', path: '/docs/help/google-biz-optimizer/metrics/average-rating.md' },
+      { id: 'google-biz-optimizer/metrics/review-trends', title: 'Review Growth Trends', path: '/docs/help/google-biz-optimizer/metrics/review-trends.md' },
+      { id: 'google-biz-optimizer/metrics/monthly-patterns', title: 'Monthly Review Patterns', path: '/docs/help/google-biz-optimizer/metrics/monthly-patterns.md' },
+      { id: 'google-biz-optimizer/optimization/seo-score', title: 'SEO Score Explained', path: '/docs/help/google-biz-optimizer/optimization/seo-score.md' },
+      { id: 'google-biz-optimizer/optimization/categories', title: 'Business Categories Guide', path: '/docs/help/google-biz-optimizer/optimization/categories.md' },
+      { id: 'google-biz-optimizer/optimization/services', title: 'Services & Descriptions', path: '/docs/help/google-biz-optimizer/optimization/services.md' },
+      { id: 'google-biz-optimizer/optimization/photos', title: 'Photo Strategy Guide', path: '/docs/help/google-biz-optimizer/optimization/photos.md' },
+      { id: 'google-biz-optimizer/engagement/review-responses', title: 'Responding to Reviews', path: '/docs/help/google-biz-optimizer/engagement/review-responses.md' },
+      { id: 'google-biz-optimizer/engagement/questions-answers', title: 'Q&A Management', path: '/docs/help/google-biz-optimizer/engagement/questions-answers.md' },
+      { id: 'google-biz-optimizer/engagement/posts', title: 'Google Posts Strategy', path: '/docs/help/google-biz-optimizer/engagement/posts.md' },
+      { id: 'google-biz-optimizer/performance/customer-actions', title: 'Customer Actions', path: '/docs/help/google-biz-optimizer/performance/customer-actions.md' },
+      { id: 'google-biz-optimizer/optimization/quick-wins', title: 'Quick Wins & Priority Tasks', path: '/docs/help/google-biz-optimizer/optimization/quick-wins.md' },
     ]
   },
   {
@@ -140,8 +154,8 @@ const helpCategories = [
   }
 ];
 
-export default function TutorialsTabNew({ 
-  pathname, 
+export default function TutorialsTabNew({
+  pathname,
   contextKeywords,
   pageName,
   initialArticleId
@@ -152,6 +166,29 @@ export default function TutorialsTabNew({
   const [loadingContent, setLoadingContent] = useState(false);
   const [articleContent, setArticleContent] = useState<string>('');
   const contentRef = useRef<HTMLDivElement>(null);
+
+  // Handle initial article if provided - Store state for later loading
+  const [pendingInitialLoad, setPendingInitialLoad] = useState<{article: any, category: any} | null>(null);
+
+  useEffect(() => {
+    if (initialArticleId) {
+      console.log('TutorialsTabNew - Looking for article with ID:', initialArticleId);
+
+      // Search through all categories for the article
+      for (const category of helpCategories) {
+        const article = category.articles.find(a => a.id === initialArticleId);
+        if (article) {
+          console.log('TutorialsTabNew - Found article:', article);
+          // Set both the category and the article
+          setSelectedCategory(category);
+          setSelectedArticle(article);
+          // Store for loading after handleArticleClick is defined
+          setPendingInitialLoad({ article, category });
+          break;
+        }
+      }
+    }
+  }, [initialArticleId]);
 
   // Get featured articles based on current page context
   useEffect(() => {
@@ -203,70 +240,57 @@ export default function TutorialsTabNew({
   }, [pathname]);
 
   // Load article content from docs site
-  const loadArticleContent = async (articlePath: string) => {
+  const loadArticleContent = async (articlePathOrId: string) => {
     setLoadingContent(true);
     try {
+      // Check if this is a Google Biz Optimizer article ID or a regular path
+      const isGoogleBizOptimizer = articlePathOrId.startsWith('google-biz-optimizer/');
+
       const response = await fetch('/api/help-docs/fetch-from-docs', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ path: articlePath })
+        body: JSON.stringify(
+          isGoogleBizOptimizer
+            ? { articleId: articlePathOrId }
+            : { path: articlePathOrId }
+        )
       });
       
       if (response.ok) {
         const data = await response.json();
-        // Check if content is plain text/markdown and needs conversion
-        if (data.source === 'docs-site' && !data.content.includes('<')) {
-          // It's plain text/markdown, convert to simple HTML
-          const htmlContent = data.content
-            .split('\n\n')
-            .map((paragraph: string) => {
-              // Process markdown links [text](url)
-              let processed = paragraph.replace(
-                /\[([^\]]+)\]\(([^)]+)\)/g,
-                (match: string, text: string, url: string) => {
-                  // Convert relative URLs to docs site
-                  const absoluteUrl = url.startsWith('http') 
-                    ? url 
-                    : `https://promptreviews.app/docs${url.startsWith('/') ? url : '/' + url}`;
-                  // Only add target="_blank" for external non-docs links
-                  const target = absoluteUrl.includes('promptreviews.app/docs') ? '' : ' target="_blank" rel="noopener noreferrer"';
-                  return `<a href="${absoluteUrl}"${target} class="text-indigo-600 hover:text-indigo-700 underline cursor-pointer">${text}</a>`;
-                }
-              );
-              
-              // Check for headers
-              if (processed.startsWith('# ')) {
-                return `<h1 class="text-2xl font-bold mb-4">${processed.substring(2)}</h1>`;
-              } else if (processed.startsWith('## ')) {
-                return `<h2 class="text-xl font-semibold mb-3">${processed.substring(3)}</h2>`;
-              } else if (processed.startsWith('### ')) {
-                return `<h3 class="text-lg font-medium mb-2">${processed.substring(4)}</h3>`;
-              } else if (processed.startsWith('- ') || processed.startsWith('* ')) {
-                // Handle lists
-                const items = processed.split('\n').map((item: string) => 
-                  `<li>${item.replace(/^[*-]\s/, '')}</li>`
-                ).join('');
-                return `<ul class="list-disc pl-6 mb-4">${items}</ul>`;
-              } else if (processed.trim()) {
-                return `<p class="mb-4">${processed}</p>`;
-              }
-              return '';
-            })
-            .join('');
-          setArticleContent(htmlContent);
-        } else {
-          // It's already HTML
-          setArticleContent(data.content);
-        }
+        // Apply formatting to the content
+        const formattedContent = formatArticleContent(data.content);
+        setArticleContent(formattedContent);
       } else {
-        setArticleContent('<p>Failed to load article content. Please try again.</p>');
+        setArticleContent('<p class="text-red-600">Failed to load article content. Please try again.</p>');
       }
     } catch (error) {
       console.error('Error loading article:', error);
-      setArticleContent('<p>Error loading article. Please check your connection.</p>');
+      setArticleContent('<p class="text-red-600">Failed to load article content. Please try again.</p>');
     } finally {
       setLoadingContent(false);
     }
+  };
+
+  // Format content with proper styling - matching ArticleViewer pattern
+  const formatArticleContent = (html: string) => {
+    // Apply consistent formatting like ArticleViewer
+    return html
+      .replace(/<h1/g, '<h1 class="text-2xl font-bold mb-4 text-gray-900"')
+      .replace(/<h2/g, '<h2 class="text-xl font-semibold mb-3 mt-6 text-gray-800"')
+      .replace(/<h3/g, '<h3 class="text-lg font-medium mb-2 mt-4 text-gray-700"')
+      .replace(/<h4/g, '<h4 class="text-base font-medium mb-2 mt-3 text-gray-700"')
+      .replace(/<p/g, '<p class="mb-4 text-gray-600 leading-relaxed"')
+      .replace(/<ul/g, '<ul class="list-disc list-inside mb-4 space-y-2 ml-4"')
+      .replace(/<ol/g, '<ol class="list-decimal list-inside mb-4 space-y-2 ml-4"')
+      .replace(/<li/g, '<li class="text-gray-600"')
+      .replace(/<strong/g, '<strong class="font-semibold text-gray-800"')
+      .replace(/<em/g, '<em class="italic"')
+      .replace(/<code/g, '<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono"')
+      .replace(/<pre/g, '<pre class="bg-gray-50 p-4 rounded-lg overflow-x-auto mb-4"')
+      .replace(/<blockquote/g, '<blockquote class="border-l-4 border-slate-blue pl-4 italic my-4 text-gray-600"')
+      .replace(/<a /g, '<a class="text-indigo-600 hover:text-indigo-700 underline" ')
+      .replace(/<hr/g, '<hr class="my-6 border-gray-200"');
   };
 
   // Handle article click
@@ -277,11 +301,23 @@ export default function TutorialsTabNew({
       category: category.id,
       context: pathname
     });
-    
+
     setSelectedArticle(article);
     setSelectedCategory(category);
-    await loadArticleContent(article.path);
+    // For Google Biz Optimizer articles, use the ID instead of path
+    const contentIdentifier = article.id.startsWith('google-biz-optimizer/')
+      ? article.id
+      : article.path;
+    await loadArticleContent(contentIdentifier);
   };
+
+  // Load initial article if one was pending
+  useEffect(() => {
+    if (pendingInitialLoad) {
+      handleArticleClick(pendingInitialLoad.article, pendingInitialLoad.category);
+      setPendingInitialLoad(null);
+    }
+  }, [pendingInitialLoad]);
 
   // Handle featured article click
   const handleFeaturedClick = async (featured: any) => {
@@ -398,15 +434,9 @@ export default function TutorialsTabNew({
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
               </div>
             ) : (
-              <div 
+              <div
                 ref={contentRef}
-                className="prose prose-sm md:prose-base max-w-none 
-                  prose-headings:text-gray-900 prose-headings:font-bold
-                  prose-p:text-gray-800 prose-p:font-medium
-                  prose-li:text-gray-800 prose-li:font-medium
-                  prose-strong:text-gray-900 prose-strong:font-bold
-                  prose-a:text-indigo-700 prose-a:font-semibold hover:prose-a:text-indigo-900
-                  [&_*]:text-gray-800"
+                className="article-content"
                 dangerouslySetInnerHTML={{ __html: articleContent }}
               />
             )}

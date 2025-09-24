@@ -9,6 +9,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Icon from '@/components/Icon';
+import { GBPHelpBubble } from '@/components/ui/HelpBubble';
 
 interface MonthlyReviewData {
   month: string;
@@ -184,7 +185,16 @@ export default function OverviewStats({
       <div className="lg:col-span-2 bg-white rounded-lg border border-gray-200 p-6">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h2 className="text-xl font-bold text-slate-blue">Review Progress</h2>
+            <div className="flex items-start gap-1">
+              <h2 className="text-xl font-bold text-slate-blue">Review Progress</h2>
+              <div className="flex-shrink-0 mt-0.5">
+                <GBPHelpBubble
+                  metric="metrics/monthly-patterns"
+                  tooltip="Understanding review patterns"
+                  size="sm"
+                />
+              </div>
+            </div>
             <p className="text-sm text-gray-500">Last 12 months</p>
           </div>
           <div className="flex items-center space-x-4">
@@ -434,7 +444,16 @@ export default function OverviewStats({
         <div className="bg-white rounded-lg border border-gray-200 p-6">
           <div className="flex items-center justify-between mb-2">
             <div>
-              <h3 className="text-lg font-semibold text-slate-blue">Total Reviews</h3>
+              <div className="flex items-start gap-1">
+                <h3 className="text-lg font-semibold text-slate-blue">Total Reviews</h3>
+                <div className="flex-shrink-0 mt-0.5">
+                  <GBPHelpBubble
+                    metric="metrics/total-reviews"
+                    tooltip="Learn about review importance"
+                    size="sm"
+                  />
+                </div>
+              </div>
               <p className="text-xs text-gray-500">All time</p>
             </div>
             <Icon name="FaStar" className="w-6 h-6 text-slate-blue" />
@@ -445,11 +464,18 @@ export default function OverviewStats({
               <span className={`text-sm font-medium flex items-center ${
                 reviewTrend > 0 ? 'text-green-600' : 'text-red-600'
               }`}>
-                <Icon 
-                  name={reviewTrend > 0 ? "MdArrowUpward" : "MdArrowDownward"} 
-                  className="w-3 h-3 mr-1" 
+                <Icon
+                  name={reviewTrend > 0 ? "MdArrowUpward" : "MdArrowDownward"}
+                  className="w-3 h-3 mr-1"
                 />
                 {reviewTrend > 0 ? '+' : ''}{animatedReviewTrend} last 30 days
+                <div className="inline-flex flex-shrink-0 ml-1">
+                  <GBPHelpBubble
+                    metric="metrics/review-trends"
+                    tooltip="Review velocity impact"
+                    size="sm"
+                  />
+                </div>
               </span>
             )}
           </div>
@@ -459,7 +485,16 @@ export default function OverviewStats({
         <div className="bg-white rounded-lg border border-gray-200 p-6">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h3 className="text-lg font-semibold text-slate-blue">Average Star Rating</h3>
+              <div className="flex items-start gap-1">
+                <h3 className="text-lg font-semibold text-slate-blue">Average Star Rating</h3>
+                <div className="flex-shrink-0 mt-0.5">
+                  <GBPHelpBubble
+                    metric="metrics/average-rating"
+                    tooltip="Impact of star ratings"
+                    size="sm"
+                  />
+                </div>
+              </div>
               <p className="text-xs text-gray-500">All time</p>
             </div>
             <Icon name="FaStar" className="w-6 h-6 text-slate-blue" />

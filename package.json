@@ -80,6 +80,8 @@
     "react-icons": "^5.5.0",
     "react-select": "^5.10.1",
     "recharts": "^2.15.3",
+    "remark": "^15.0.1",
+    "remark-html": "^16.0.1",
     "resend": "^4.5.1",
     "slugify": "^1.6.6",
     "stripe": "^18.4.0",

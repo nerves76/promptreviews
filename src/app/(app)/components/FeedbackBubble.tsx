@@ -49,7 +49,7 @@ export default function FeedbackBubble() {
         }}
         aria-label="Help & Support"
       >
-        <Icon name="FaQuestionCircle" className="w-6 h-6 text-indigo-600 drop-shadow-sm" size={24} />
+        <Icon name="FaQuestionCircle" className="w-6 h-6 text-blue-100 drop-shadow-sm" size={24} />
         
         {/* Tooltip */}
         <div className="absolute bottom-full right-0 mb-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
