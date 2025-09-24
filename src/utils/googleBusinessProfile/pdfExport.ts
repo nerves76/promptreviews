@@ -161,10 +161,10 @@ export async function exportOverviewToPDF(
 
     // Add header function
     const addHeader = (pageNum: number = 1) => {
-      // Add logo (top right) - maintain 2:1 aspect ratio
+      // Add logo (top right) - maintain 2:1 aspect ratio, 30% smaller
       if (logoBase64) {
-        const logoWidth = 40; // Width for logo
-        const logoHeight = 20; // Height maintains 2:1 aspect ratio (1800x900 original)
+        const logoWidth = 28; // Width for logo (30% smaller than 40)
+        const logoHeight = 14; // Height maintains 2:1 aspect ratio
         pdf.addImage(logoBase64, 'PNG', pageWidth - margin - logoWidth, 10, logoWidth, logoHeight);
       }
 
@@ -191,7 +191,7 @@ export async function exportOverviewToPDF(
       pdf.setTextColor(59, 130, 246); // Blue color
       const brandText = 'promptreviews.app';
       const textWidth = pdf.getTextWidth(brandText);
-      pdf.textWithLink(brandText, pageWidth - margin - 40 + (40 - textWidth) / 2, 32, {
+      pdf.textWithLink(brandText, pageWidth - margin - 28 + (28 - textWidth) / 2, 26, {
         url: 'https://promptreviews.app'
       });
 
@@ -326,11 +326,11 @@ export async function exportOverviewToPDF(
     // Center content on last page
     const lastPageCenterY = pageHeight / 2;
 
-    // Add logo centered above the text - maintain 2:1 aspect ratio
+    // Add logo centered above the text - maintain 2:1 aspect ratio, 30% smaller
     if (logoBase64) {
-      const logoWidth = 60; // Larger logo on thank you page
-      const logoHeight = 30; // Height maintains 2:1 aspect ratio
-      pdf.addImage(logoBase64, 'PNG', (pageWidth - logoWidth) / 2, lastPageCenterY - 55, logoWidth, logoHeight);
+      const logoWidth = 42; // Larger logo on thank you page (30% smaller than 60)
+      const logoHeight = 21; // Height maintains 2:1 aspect ratio
+      pdf.addImage(logoBase64, 'PNG', (pageWidth - logoWidth) / 2, lastPageCenterY - 45, logoWidth, logoHeight);
     }
 
     pdf.setFontSize(24);

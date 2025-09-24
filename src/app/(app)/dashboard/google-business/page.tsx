@@ -2210,7 +2210,7 @@ export default function SocialPostingDashboard() {
               {/* Always show the impressive charts and stats */}
               {(
                 <div id="overview-content" className="space-y-6">
-                  <div className="bg-white border border-gray-200 rounded-lg p-6">
+                  <div className="bg-white border border-gray-200 rounded-lg p-6 pdf-hide">
                     <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
                       <div>
                         <h2 className="text-xl font-semibold text-gray-900">Overview</h2>
@@ -2293,12 +2293,11 @@ export default function SocialPostingDashboard() {
 
                   {/* Overview Stats - Show actual data or zero state for errors */}
                   {!overviewError && (
-                    <div className="pdf-hide">
-                      <OverviewStats
-                        totalReviews={overviewData?.reviewTrends?.totalReviews || 0}
-                        reviewTrend={overviewData?.reviewTrends?.reviewTrend || 0}
-                        averageRating={overviewData?.reviewTrends?.averageRating || 0}
-                        monthlyReviewData={overviewData?.reviewTrends?.monthlyReviewData || [
+                    <OverviewStats
+                      totalReviews={overviewData?.reviewTrends?.totalReviews || 0}
+                      reviewTrend={overviewData?.reviewTrends?.reviewTrend || 0}
+                      averageRating={overviewData?.reviewTrends?.averageRating || 0}
+                      monthlyReviewData={overviewData?.reviewTrends?.monthlyReviewData || [
                         { month: 'Jan', fiveStar: 0, fourStar: 0, threeStar: 0, twoStar: 0, oneStar: 0, noRating: 0 },
                         { month: 'Feb', fiveStar: 0, fourStar: 0, threeStar: 0, twoStar: 0, oneStar: 0, noRating: 0 },
                         { month: 'Mar', fiveStar: 0, fourStar: 0, threeStar: 0, twoStar: 0, oneStar: 0, noRating: 0 },
@@ -2308,7 +2307,6 @@ export default function SocialPostingDashboard() {
                       ]}
                       isLoading={overviewLoading}
                     />
-                    </div>
                   )}
 
                   <BusinessHealthMetrics
