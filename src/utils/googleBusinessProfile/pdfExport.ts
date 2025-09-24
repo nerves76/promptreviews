@@ -337,28 +337,20 @@ export async function exportOverviewToPDF(
     // Center content on last page
     const lastPageCenterY = pageHeight / 2;
 
-    // Add logo centered above the text - maintain 2:1 aspect ratio, 30% smaller
+    // Add logo centered - maintain 2:1 aspect ratio, 30% smaller
     if (logoBase64) {
       const logoWidth = 42; // Larger logo on thank you page (30% smaller than 60)
       const logoHeight = 21; // Height maintains 2:1 aspect ratio
-      pdf.addImage(logoBase64, 'PNG', (pageWidth - logoWidth) / 2, lastPageCenterY - 45, logoWidth, logoHeight);
+      pdf.addImage(logoBase64, 'PNG', (pageWidth - logoWidth) / 2, lastPageCenterY - 20, logoWidth, logoHeight);
     }
-
-    pdf.setFontSize(24);
-    pdf.setTextColor(33, 37, 41);
-    pdf.text('Thank You', pageWidth / 2, lastPageCenterY - 20, { align: 'center' });
-
-    pdf.setFontSize(14);
-    pdf.setTextColor(66, 66, 66);
-    pdf.text('For using PromptReviews', pageWidth / 2, lastPageCenterY - 8, { align: 'center' });
 
     pdf.setFontSize(12);
     pdf.setTextColor(59, 130, 246);
-    const websiteText = 'Visit us at promptreviews.app';
+    const websiteText = 'promptreviews.app';
     pdf.textWithLink(
       websiteText,
       pageWidth / 2,
-      lastPageCenterY + 8,
+      lastPageCenterY + 5,
       {
         url: 'https://promptreviews.app',
         align: 'center'
