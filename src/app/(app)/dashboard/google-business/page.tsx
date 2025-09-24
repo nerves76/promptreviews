@@ -2293,11 +2293,12 @@ export default function SocialPostingDashboard() {
 
                   {/* Overview Stats - Show actual data or zero state for errors */}
                   {!overviewError && (
-                    <OverviewStats
-                      totalReviews={overviewData?.reviewTrends?.totalReviews || 0}
-                      reviewTrend={overviewData?.reviewTrends?.reviewTrend || 0}
-                      averageRating={overviewData?.reviewTrends?.averageRating || 0}
-                      monthlyReviewData={overviewData?.reviewTrends?.monthlyReviewData || [
+                    <div className="pdf-hide">
+                      <OverviewStats
+                        totalReviews={overviewData?.reviewTrends?.totalReviews || 0}
+                        reviewTrend={overviewData?.reviewTrends?.reviewTrend || 0}
+                        averageRating={overviewData?.reviewTrends?.averageRating || 0}
+                        monthlyReviewData={overviewData?.reviewTrends?.monthlyReviewData || [
                         { month: 'Jan', fiveStar: 0, fourStar: 0, threeStar: 0, twoStar: 0, oneStar: 0, noRating: 0 },
                         { month: 'Feb', fiveStar: 0, fourStar: 0, threeStar: 0, twoStar: 0, oneStar: 0, noRating: 0 },
                         { month: 'Mar', fiveStar: 0, fourStar: 0, threeStar: 0, twoStar: 0, oneStar: 0, noRating: 0 },
@@ -2307,6 +2308,7 @@ export default function SocialPostingDashboard() {
                       ]}
                       isLoading={overviewLoading}
                     />
+                    </div>
                   )}
 
                   <BusinessHealthMetrics

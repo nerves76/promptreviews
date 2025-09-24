@@ -227,9 +227,8 @@ export async function exportOverviewToPDF(
     const imgWidth = contentWidth;
     const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
-    // Define content sections (approximate heights based on typical layout)
-    // We'll use a smaller height for the first page to ensure Customer Engagement starts on page 2
-    const firstPageContentHeight = contentAreaHeight * 0.6; // Use only 60% of first page for overview stats
+    // Define content sections - Overview is now hidden, so Customer Engagement can start on page 1
+    const firstPageContentHeight = contentAreaHeight * 0.85; // Use most of first page since Overview is hidden
     const remainingHeight = imgHeight - firstPageContentHeight;
     const regularPageHeight = contentAreaHeight;
 
