@@ -128,6 +128,18 @@ export async function exportOverviewToPDF(
       htmlEl.classList.add('translate-x-0', 'opacity-100');
       htmlEl.style.opacity = '1';
       htmlEl.style.transform = 'translateX(0)';
+      htmlEl.style.visibility = 'visible';
+
+      // Also force visibility on all child elements
+      const childElements = htmlEl.querySelectorAll('*');
+      childElements.forEach(child => {
+        const childEl = child as HTMLElement;
+        childEl.classList.remove('translate-x-12', 'opacity-0');
+        childEl.classList.add('translate-x-0', 'opacity-100');
+        childEl.style.opacity = '1';
+        childEl.style.transform = 'translateX(0)';
+        childEl.style.visibility = 'visible';
+      });
     });
 
     // Temporarily append the cloned element to capture it
@@ -137,8 +149,8 @@ export async function exportOverviewToPDF(
     clonedElement.style.width = element.offsetWidth + 'px';
     document.body.appendChild(clonedElement);
 
-    // Wait for any images to load
-    await new Promise(resolve => setTimeout(resolve, 500));
+    // Wait for any images to load and DOM to settle
+    await new Promise(resolve => setTimeout(resolve, 1000));
 
     // Convert the element to canvas with better settings
     const canvas = await html2canvas(clonedElement, {

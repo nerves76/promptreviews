@@ -616,7 +616,7 @@ export default function BusinessHealthMetrics({
       <div className="lg:col-span-2">
         <MetricCard title="Optimization Opportunities" icon="FaLightbulb">
           {(cardIsVisible) => (
-            <div className="space-y-3">
+            <div className="space-y-3 pdf-visible">
             {optimizationOpportunities.length === 0 ? (
               <div className="text-center py-4">
                 <Icon name="FaCheck" className="w-8 h-8 text-green-500 mx-auto mb-2" />
