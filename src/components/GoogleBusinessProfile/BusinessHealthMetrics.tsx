@@ -624,12 +624,12 @@ export default function BusinessHealthMetrics({
               </div>
             ) : (
               optimizationOpportunities.map((opportunity, index) => (
-                <div 
+                <div
                   key={opportunity.id}
-                  className={`p-3 rounded-lg border-l-4 transform transition-all duration-[1200ms] ease-out ${
-                    cardIsVisible 
-                      ? 'translate-x-0 opacity-100' 
-                      : 'translate-x-12 opacity-0'
+                  className={`p-3 rounded-lg border-l-4 pdf-visible ${
+                    cardIsVisible
+                      ? 'translate-x-0 opacity-100 transform transition-all duration-[1200ms] ease-out'
+                      : 'translate-x-12 opacity-0 transform transition-all duration-[1200ms] ease-out'
                   } ${
                     opportunity.priority === 'high' ? 'border-red-500 bg-red-50' :
                     opportunity.priority === 'medium' ? 'border-yellow-500 bg-yellow-50' :

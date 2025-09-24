@@ -119,6 +119,17 @@ export async function exportOverviewToPDF(
     const elementsToRemove = clonedElement.querySelectorAll('.no-print, button, .pdf-hide');
     elementsToRemove.forEach(el => el.remove());
 
+    // Force visibility for elements that should be visible in PDF
+    const pdfVisibleElements = clonedElement.querySelectorAll('.pdf-visible');
+    pdfVisibleElements.forEach(el => {
+      const htmlEl = el as HTMLElement;
+      // Remove animation classes and force visibility
+      htmlEl.classList.remove('translate-x-12', 'opacity-0');
+      htmlEl.classList.add('translate-x-0', 'opacity-100');
+      htmlEl.style.opacity = '1';
+      htmlEl.style.transform = 'translateX(0)';
+    });
+
     // Temporarily append the cloned element to capture it
     clonedElement.style.position = 'absolute';
     clonedElement.style.left = '-9999px';
