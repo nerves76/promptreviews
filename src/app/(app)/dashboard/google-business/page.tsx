@@ -2306,8 +2306,6 @@ export default function SocialPostingDashboard() {
                         { month: 'Jun', fiveStar: 0, fourStar: 0, threeStar: 0, twoStar: 0, oneStar: 0, noRating: 0 }
                       ]}
                       isLoading={overviewLoading}
-                      onLoadData={selectedLocationId ? () => fetchOverviewData(selectedLocationId) : undefined}
-                      dataLoaded={!!overviewData}
                     />
                   )}
 
