@@ -2,6 +2,45 @@ require("dotenv").config({
   path: require("path").resolve(process.cwd(), ".env.local"),
 });
 
+const DEFAULT_GBO_FRAME_ANCESTORS = [
+  'https://promptreviews.com',
+  'https://www.promptreviews.com',
+  'https://promptreviews.app',
+  'https://www.promptreviews.app',
+  'http://localhost:*',
+  'https://localhost:*',
+];
+
+function normalizeOrigin(origin) {
+  if (!origin) return null;
+  const trimmed = origin.trim();
+  if (!trimmed) return null;
+  return trimmed.endsWith('/') ? trimmed.slice(0, -1) : trimmed;
+}
+
+function buildGoogleBizOptimizerFrameAncestors() {
+  const configured = (process.env.EMBED_ALLOWED_ORIGINS || '')
+    .split(',')
+    .map(normalizeOrigin)
+    .filter(Boolean);
+
+  const merged = [];
+  for (const origin of [...DEFAULT_GBO_FRAME_ANCESTORS, ...configured]) {
+    const normalized = normalizeOrigin(origin);
+    if (normalized && !merged.includes(normalized)) {
+      merged.push(normalized);
+    }
+  }
+
+  return merged;
+}
+
+const gboFrameAncestorsList = buildGoogleBizOptimizerFrameAncestors();
+const gboFrameAncestorsValue = gboFrameAncestorsList.join(' ');
+const gboAllowFromOrigin = gboFrameAncestorsList.find(
+  (origin) => origin && !origin.includes('*') && origin.startsWith('http'),
+) || 'https://promptreviews.com';
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // Disable type checking during build for deployment
@@ -126,6 +165,62 @@ const nextConfig = {
             value: process.env.NODE_ENV === 'development' 
               ? 'no-store, no-cache, must-revalidate' 
               : 'public, max-age=3600',
+          },
+        ],
+      },
+      {
+        source: '/embed/google-business-optimizer',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: process.env.NODE_ENV === 'development'
+              ? 'no-store, no-cache, must-revalidate'
+              : 'public, max-age=600',
+          },
+          {
+            key: 'Content-Security-Policy',
+            value: `frame-ancestors ${gboFrameAncestorsValue};`,
+          },
+          {
+            key: 'Permissions-Policy',
+            value: 'interest-cohort=()',
+          },
+          {
+            key: 'X-Frame-Options',
+            value: `ALLOW-FROM ${gboAllowFromOrigin}`,
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'strict-origin-when-cross-origin',
+          },
+        ],
+      },
+      {
+        source: '/embed/google-business-optimizer/:path*',
+        headers: [
+          {
+            key: 'Content-Security-Policy',
+            value: `frame-ancestors ${gboFrameAncestorsValue};`,
+          },
+          {
+            key: 'Permissions-Policy',
+            value: 'interest-cohort=()',
+          },
+          {
+            key: 'X-Frame-Options',
+            value: `ALLOW-FROM ${gboAllowFromOrigin}`,
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'strict-origin-when-cross-origin',
           },
         ],
       },
@@ -298,7 +393,7 @@ const nextConfig = {
       },
       // All other routes should deny iframe embedding
       {
-        source: '/((?!prompty-power-game|emoji-sentiment-embed|embed/review-dashboard|demo/multi-business-posting|demo/multi-business-posting-embed|demo/review-trends-tablet).*)',
+        source: '/((?!prompty-power-game|emoji-sentiment-embed|embed/review-dashboard|embed/google-business-optimizer|demo/multi-business-posting|demo/multi-business-posting-embed|demo/review-trends-tablet).*)',
         headers: [
           {
             key: 'X-Content-Type-Options',

@@ -79,8 +79,16 @@ export default function TutorialsTab({
 
   // Automatically open the initial article if specified
   useEffect(() => {
-    if (initialArticleId && tutorials.length > 0 && !selectedArticle) {
+    console.log('TutorialsTab - initialArticleId:', initialArticleId);
+    console.log('TutorialsTab - tutorials length:', tutorials.length);
+    console.log('TutorialsTab - selectedArticle:', selectedArticle);
+    console.log('TutorialsTab - loadingTutorials:', loadingTutorials);
+
+    // Wait for tutorials to be loaded before trying to find the article
+    if (initialArticleId && tutorials.length > 0 && !selectedArticle && !loadingTutorials) {
       const articleToOpen = tutorials.find(t => t.id === initialArticleId);
+      console.log('TutorialsTab - searching for article with id:', initialArticleId);
+      console.log('TutorialsTab - articleToOpen found:', articleToOpen);
       if (articleToOpen) {
         setSelectedArticle(articleToOpen);
         // Track the auto-open
@@ -98,7 +106,7 @@ export default function TutorialsTab({
         });
       }
     }
-  }, [initialArticleId, tutorials, pathname]);
+  }, [initialArticleId, tutorials, pathname, selectedArticle, loadingTutorials]);
 
   const fetchTutorials = async () => {
     setLoadingTutorials(true);
@@ -244,6 +252,124 @@ export default function TutorialsTab({
         category: 'integrations',
         tags: ['google', 'business-profile', 'bulk', 'update', 'multiple', 'locations', 'business-info'],
         plans: ['builder', 'maven', 'enterprise'] // Builder+ only
+      },
+      // Google Biz Optimizer Help Articles
+      {
+        id: 'google-biz-optimizer/metrics/total-reviews',
+        title: 'Total Reviews - Why They Matter',
+        description: 'Learn about review importance, benchmarks, and growth strategies',
+        url: '/docs/help/google-biz-optimizer/metrics/total-reviews.md',
+        category: 'google-business',
+        tags: ['google', 'reviews', 'metrics', 'growth'],
+        plans: ['grower', 'builder', 'maven', 'enterprise']
+      },
+      {
+        id: 'google-biz-optimizer/metrics/average-rating',
+        title: 'Average Star Rating Impact',
+        description: 'Understanding rating psychology, conversion impact, and improvement tactics',
+        url: '/docs/help/google-biz-optimizer/metrics/average-rating.md',
+        category: 'google-business',
+        tags: ['google', 'rating', 'stars', 'conversion'],
+        plans: ['grower', 'builder', 'maven', 'enterprise']
+      },
+      {
+        id: 'google-biz-optimizer/metrics/review-trends',
+        title: 'Review Growth Trends',
+        description: 'Velocity importance, maintaining momentum, and recovery strategies',
+        url: '/docs/help/google-biz-optimizer/metrics/review-trends.md',
+        category: 'google-business',
+        tags: ['google', 'reviews', 'trends', 'velocity'],
+        plans: ['grower', 'builder', 'maven', 'enterprise']
+      },
+      {
+        id: 'google-biz-optimizer/metrics/monthly-patterns',
+        title: 'Monthly Review Patterns',
+        description: 'Reading charts, understanding seasonal trends, optimization timing',
+        url: '/docs/help/google-biz-optimizer/metrics/monthly-patterns.md',
+        category: 'google-business',
+        tags: ['google', 'reviews', 'patterns', 'analytics'],
+        plans: ['grower', 'builder', 'maven', 'enterprise']
+      },
+      {
+        id: 'google-biz-optimizer/optimization/seo-score',
+        title: 'SEO Score Explained',
+        description: 'Score factors, improvement strategies, industry benchmarks',
+        url: '/docs/help/google-biz-optimizer/optimization/seo-score.md',
+        category: 'google-business',
+        tags: ['google', 'seo', 'optimization', 'ranking'],
+        plans: ['grower', 'builder', 'maven', 'enterprise']
+      },
+      {
+        id: 'google-biz-optimizer/optimization/categories',
+        title: 'Business Categories Guide',
+        description: 'Category selection, primary vs secondary, ranking impact',
+        url: '/docs/help/google-biz-optimizer/optimization/categories.md',
+        category: 'google-business',
+        tags: ['google', 'categories', 'optimization'],
+        plans: ['grower', 'builder', 'maven', 'enterprise']
+      },
+      {
+        id: 'google-biz-optimizer/optimization/services',
+        title: 'Services & Descriptions',
+        description: 'Service optimization, keyword strategies, completeness',
+        url: '/docs/help/google-biz-optimizer/optimization/services.md',
+        category: 'google-business',
+        tags: ['google', 'services', 'descriptions', 'keywords'],
+        plans: ['grower', 'builder', 'maven', 'enterprise']
+      },
+      {
+        id: 'google-biz-optimizer/optimization/photos',
+        title: 'Photo Strategy Guide',
+        description: 'Photo categories, upload frequency, quality guidelines',
+        url: '/docs/help/google-biz-optimizer/optimization/photos.md',
+        category: 'google-business',
+        tags: ['google', 'photos', 'images', 'engagement'],
+        plans: ['grower', 'builder', 'maven', 'enterprise']
+      },
+      {
+        id: 'google-biz-optimizer/engagement/review-responses',
+        title: 'Responding to Reviews',
+        description: 'Response templates, timing, impact on rankings',
+        url: '/docs/help/google-biz-optimizer/engagement/review-responses.md',
+        category: 'google-business',
+        tags: ['google', 'reviews', 'responses', 'engagement'],
+        plans: ['grower', 'builder', 'maven', 'enterprise']
+      },
+      {
+        id: 'google-biz-optimizer/engagement/questions-answers',
+        title: 'Q&A Management',
+        description: 'Q&A importance, proactive FAQs, response strategies',
+        url: '/docs/help/google-biz-optimizer/engagement/questions-answers.md',
+        category: 'google-business',
+        tags: ['google', 'questions', 'answers', 'faq'],
+        plans: ['grower', 'builder', 'maven', 'enterprise']
+      },
+      {
+        id: 'google-biz-optimizer/engagement/posts',
+        title: 'Google Posts Strategy',
+        description: 'Post types, frequency, content ideas for engagement',
+        url: '/docs/help/google-biz-optimizer/engagement/posts.md',
+        category: 'google-business',
+        tags: ['google', 'posts', 'content', 'marketing'],
+        plans: ['grower', 'builder', 'maven', 'enterprise']
+      },
+      {
+        id: 'google-biz-optimizer/performance/customer-actions',
+        title: 'Customer Actions',
+        description: 'Understanding calls, directions, website clicks',
+        url: '/docs/help/google-biz-optimizer/performance/customer-actions.md',
+        category: 'google-business',
+        tags: ['google', 'actions', 'conversion', 'analytics'],
+        plans: ['grower', 'builder', 'maven', 'enterprise']
+      },
+      {
+        id: 'google-biz-optimizer/optimization/quick-wins',
+        title: 'Quick Wins & Priority Tasks',
+        description: 'Task prioritization, impact vs effort, implementation guide',
+        url: '/docs/help/google-biz-optimizer/optimization/quick-wins.md',
+        category: 'google-business',
+        tags: ['google', 'optimization', 'quick-wins', 'tasks'],
+        plans: ['grower', 'builder', 'maven', 'enterprise']
       },
       {
         id: '6',

@@ -1,18 +1,17 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
-import DocsLayout from '../docs-layout'
-import PageHeader from '../components/PageHeader'
-import PageFAQs from '../components/PageFAQs'
+import StandardOverviewLayout from '../../components/StandardOverviewLayout'
 import { pageFAQs } from '../utils/faqData'
-import { 
-  CheckCircle, 
-  Star, 
-  Users, 
-  Zap, 
-  ArrowRight, 
-  ArrowLeft,
+import {
+  CheckCircle,
+  Star,
+  Users,
+  Zap,
   Clock,
-  AlertCircle 
+  Settings,
+  MessageCircle,
+  Globe,
+  Target,
+  Sparkles
 } from 'lucide-react'
 
 export const metadata: Metadata = {
@@ -27,341 +26,164 @@ export const metadata: Metadata = {
     'business profile setup'
   ],
   alternates: {
-    canonical: 'https://docs.promptreviews.com/getting-started',
+    canonical: 'https://docs.promptreviews.app/getting-started',
   },
 }
 
-// JSON-LD structured data
-const pageJsonLd = {
-  '@context': 'https://schema.org',
-  '@type': 'HowTo',
-  name: 'Getting Started with Prompt Reviews',
-  description: 'Complete guide to setting up Prompt Reviews and collecting your first customer reviews',
-  image: 'https://docs.promptreviews.com/images/getting-started-hero.jpg',
-  estimatedCost: {
-    '@type': 'MonetaryAmount',
-    currency: 'USD',
-    value: '15.00',
-  },
-  supply: [
-    {
-      '@type': 'HowToSupply',
-      name: 'Prompt Reviews Account',
-    },
-    {
-      '@type': 'HowToSupply',
-      name: 'Business Information',
-    },
-    {
-      '@type': 'HowToSupply',
-      name: 'Customer Contact List',
-    },
-  ],
-  tool: [
-    {
-      '@type': 'HowToTool',
-      name: 'Review Collection Tools',
-    },
-  ],
-  step: [
-    {
-      '@type': 'HowToStep',
-      name: 'Account Setup & Business Profile',
-      text: 'Create your Prompt Reviews account and complete your business profile information',
-      url: 'https://docs.promptreviews.com/getting-started/account-setup',
-    },
-    {
-      '@type': 'HowToStep',
-      name: 'Choose Your Plan',
-      text: 'Select the right subscription plan for your business needs',
-      url: 'https://docs.promptreviews.com/getting-started/choosing-plan',
-    },
-    {
-      '@type': 'HowToStep',
-      name: 'Create First Prompt Page',
-      text: 'Build your first personalized review request page with AI-powered content generation',
-      url: 'https://docs.promptreviews.com/getting-started/first-prompt-page',
-    },
-  ],
-}
 
-const steps = [
+const keyFeatures = [
   {
-    title: 'Account Setup & Business Profile',
-    description: 'Complete your business information to use Prompt Reviews effectively.',
-    href: '/getting-started/account-setup',
-    time: '5 minutes',
-    difficulty: 'Easy',
-    completed: false,
-    plans: ['grower', 'builder', 'maven']
+    icon: CheckCircle,
+    title: 'Quick Setup Process',
+    description: 'Get your account set up and collecting reviews in under 30 minutes with our streamlined onboarding process.'
   },
   {
-    title: 'Choose Your Plan',
-    description: 'Select the subscription plan that best fits your business size and review collection needs.',
-    href: '/getting-started/choosing-plan',
-    time: '3 minutes',
-    difficulty: 'Easy',
-    completed: false,
-    plans: ['grower', 'builder', 'maven']
+    icon: Settings,
+    title: 'Business Profile Configuration',
+    description: 'Complete your business information to unlock all features and personalize your review requests.'
   },
   {
-    title: 'Create Your First Prompt Page',
-    description: 'Build a personalized review request page with AI-powered content generation.',
-    href: '/getting-started/first-prompt-page',
-    time: '10 minutes',
-    difficulty: 'Easy',
-    completed: false,
-    plans: ['grower', 'builder', 'maven']
-  },
-  {
-    title: 'Add Your First Contacts',
-    description: 'Import your customer database or manually add contacts to start sending review requests.',
-    href: '/getting-started/adding-contacts',
-    time: '8 minutes',
-    difficulty: 'Easy',
-    completed: false,
-    plans: ['builder', 'maven']
-  },
-  {
-    title: 'Send Your First Review Request',
-    description: 'Learn how to send personalized review requests via email, SMS, or QR code.',
-    href: '/getting-started/first-review-request',
-    time: '5 minutes',
-    difficulty: 'Easy',
-    completed: false,
-    plans: ['grower', 'builder', 'maven']
-  },
-  {
-    title: 'Set Up Your Review Widget',
-    description: 'Display your best reviews on your website with customizable review widgets.',
-    href: '/getting-started/review-widget',
-    time: '7 minutes',
-    difficulty: 'Medium',
-    completed: false,
-    plans: ['grower', 'builder', 'maven']
-  },
-]
-
-const tips = [
-  {
-    icon: Star,
-    title: 'AI-Powered Content',
-    description: 'AI-powered content generation helps create personalized review requests and optimize your prompt pages for better response rates.',
-  },
-  {
-    icon: Zap,
-    title: 'Quick Setup',
-    description: 'Most businesses are collecting their first reviews within 30 minutes of signing up.',
+    icon: MessageCircle,
+    title: 'First Prompt Page Creation',
+    description: 'Create your first personalized review request page with AI-powered content generation.'
   },
   {
     icon: Users,
-    title: 'Import Existing Contacts',
-    description: 'Upload your customer list via CSV to quickly start requesting reviews from existing customers.',
+    title: 'Contact Management Setup',
+    description: 'Import your existing customer database or manually add contacts to start requesting reviews.'
   },
+  {
+    icon: Star,
+    title: 'Review Collection Launch',
+    description: 'Send your first review requests and start collecting authentic customer feedback immediately.'
+  },
+  {
+    icon: Globe,
+    title: 'Website Integration',
+    description: 'Embed review widgets on your website to showcase positive reviews and build trust.'
+  }
 ]
+
+const howItWorks = [
+  {
+    number: 1,
+    title: 'Create Your Account',
+    description: 'Sign up for Prompt Reviews and complete your business profile information including name, address, and contact details.',
+    icon: Settings
+  },
+  {
+    number: 2,
+    title: 'Choose Your Plan',
+    description: 'Select the subscription plan that best fits your business needs and review collection goals.',
+    icon: Target
+  },
+  {
+    number: 3,
+    title: 'Build Your First Prompt Page',
+    description: 'Create a personalized review request page using our AI-powered content generation tools.',
+    icon: MessageCircle
+  },
+  {
+    number: 4,
+    title: 'Add Contacts & Start Collecting',
+    description: 'Import your customers and send your first review requests via email, SMS, or QR codes.',
+    icon: Users
+  }
+]
+
+const bestPractices = [
+  {
+    icon: Clock,
+    title: 'Start with Recent Customers',
+    description: 'Focus on customers who recently had positive experiences. They\'re more likely to leave glowing reviews and remember details clearly.'
+  },
+  {
+    icon: Sparkles,
+    title: 'Use AI Content Generation',
+    description: 'Take advantage of AI-powered content creation to personalize your review requests and improve response rates.'
+  },
+  {
+    icon: Target,
+    title: 'Test Different Approaches',
+    description: 'Try various prompt page types and messaging strategies to see what works best for your business and customers.'
+  },
+  {
+    icon: Zap,
+    title: 'Keep It Simple',
+    description: 'Make the review process as easy as possible. The fewer clicks and steps required, the more reviews you\'ll collect.'
+  }
+]
+
 
 export default function GettingStartedPage() {
   return (
-    <DocsLayout>
-      {/* JSON-LD structured data */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(pageJsonLd) }}
-      />
-
-      <div className="prose-docs">
-        {/* Header */}
-        <PageHeader
-          breadcrumbs={[
-            { label: 'Help', href: '/' }
-          ]}
-          currentPage="Getting Started"
-          categoryLabel="Quick Start Guide"
-          categoryIcon={CheckCircle}
-          categoryColor="green"
-          title="Getting started with Prompt Reviews"
-          description="Welcome to Prompt Reviews! This guide will help you set up your account and start collecting customer reviews in under 30 minutes."
-        />
-
-        <div className="max-w-4xl mx-auto mb-8">
-          <div className="flex items-center space-x-6 text-sm text-white/70">
-            <div className="flex items-center space-x-2">
-              <Clock className="w-4 h-4" />
-              <span>~30 minutes total</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Users className="w-4 h-4" />
-              <span>All plan levels</span>
-            </div>
-          </div>
-        </div>
-
-        {/* What You'll Learn */}
-        <div className="callout info">
-          <h3 className="text-lg font-semibold mb-3">What You'll Learn</h3>
-          <ul className="space-y-2 mb-0">
-            <li>How to set up your business profile and choose the right plan</li>
-            <li>Creating personalized prompt pages with AI-powered content generation</li>
-            <li>Importing and managing your customer contacts</li>
-            <li>Sending your first review requests via multiple channels</li>
-            <li>Embedding review widgets on your website</li>
-          </ul>
-        </div>
-
-        {/* Prerequisites */}
-        <div className="callout warning">
-          <h3 className="text-lg font-semibold mb-3">Before You Begin</h3>
-          <ul className="space-y-1 mb-0">
-            <li>Have your business information ready (name, address, phone, website)</li>
-            <li>Prepare a customer contact list (optional, but recommended)</li>
-            <li>Consider which review platforms you want to focus on (Google, Yelp, Facebook, etc.)</li>
-          </ul>
-        </div>
-
-        {/* Step-by-Step Guide */}
-        <h2>Step-by-Step Setup Process</h2>
-        
-        <div className="grid gap-6 mb-12">
-          {steps.map((step, index) => (
-            <Link
-              key={step.title}
-              href={step.href}
-              className="group block p-6 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg hover:border-primary-300 hover:shadow-md transition-all no-underline"
-            >
-              <div className="flex items-start space-x-4">
-                
-                <div className="flex-1">
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-lg font-semibold text-white group-hover:underline transition-colors mb-0">
-                      {step.title}
-                    </h3>
-                    <ArrowRight className="w-5 h-5 text-primary-500 group-hover:translate-x-1 transition-transform" />
-                  </div>
-                  
-                  <p className="text-white/70 mb-3">
-                    {step.description}
-                  </p>
-                  
-                  {/* Plan Tags */}
-                  <div className="flex flex-wrap gap-1 mb-3">
-                    {step.plans.map((plan) => (
-                      <span
-                        key={plan}
-                        className={`text-xs px-2 py-1 rounded-full font-medium ${
-                          plan === 'grower' ? 'bg-green-500/20 text-green-300' :
-                          plan === 'builder' ? 'bg-purple-500/20 text-purple-300' :
-                          'bg-yellow-500/20 text-yellow-300'
-                        }`}
-                      >
-                        {plan.charAt(0).toUpperCase() + plan.slice(1)}
-                      </span>
-                    ))}
-                  </div>
-                  
-                  <div className="flex items-center space-x-4 text-sm">
-                    <div className="flex items-center space-x-1 text-white/60">
-                      <Clock className="w-3 h-3" />
-                      <span>{step.time}</span>
-                    </div>
-                    <div className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                      step.difficulty === 'Easy' 
-                        ? 'bg-green-500/20 text-green-300'
-                        : step.difficulty === 'Medium'
-                        ? 'bg-yellow-500/20 text-yellow-300'
-                        : 'bg-red-500/20 text-red-300'
-                    }`}>
-                      {step.difficulty}
-                    </div>
-                    {step.completed && (
-                      <CheckCircle className="w-4 h-4 text-green-500" />
-                    )}
-                  </div>
-                </div>
-              </div>
-            </Link>
-          ))}
-        </div>
-
-        {/* Tips & Best Practices */}
-        <h2>Tips for Success</h2>
-        
-        <div className="grid md:grid-cols-3 gap-6 mb-12">
-          {tips.map((tip) => (
-            <div key={tip.title} className="p-6 bg-gray-50 rounded-lg">
-              <div className="flex items-center space-x-3 mb-4">
-                <div className="p-2 bg-primary-100 rounded-lg">
-                  <tip.icon className="w-5 h-5 text-primary-600" />
-                </div>
-                <h3 className="font-semibold text-white mb-0">{tip.title}</h3>
-              </div>
-              <p className="text-white/70 text-sm mb-0">{tip.description}</p>
-            </div>
-          ))}
-        </div>
-
-        {/* Screenshot Placeholder */}
-        <h2>Prompt Reviews Dashboard Overview</h2>
-        
-        <div className="screenshot-placeholder mb-8">
-          <div className="text-center">
-            <AlertCircle className="w-12 h-12 text-white/50 mx-auto mb-4" />
-            <p className="text-lg font-medium text-white/70 mb-2">Screenshot Coming Soon</p>
-            <p className="text-sm text-white/60">
-              Dashboard overview showing main navigation, prompt pages, and review statistics
+    <StandardOverviewLayout
+      title="Getting started with Prompt Reviews"
+      description="Welcome to Prompt Reviews! This comprehensive guide will help you set up your account and start collecting customer reviews in under 30 minutes."
+      categoryLabel="Quick Start Guide"
+      categoryIcon={CheckCircle}
+      categoryColor="green"
+      currentPage="Getting Started"
+      availablePlans={['grower', 'builder', 'maven']}
+      keyFeatures={keyFeatures}
+      howItWorks={howItWorks}
+      bestPractices={bestPractices}
+      faqs={pageFAQs['getting-started']}
+      callToAction={{
+        secondary: {
+          text: 'View Setup Guides',
+          href: '/getting-started/account-setup'
+        },
+        primary: {
+          text: 'Start Free Trial',
+          href: 'https://promptreviews.app/signup',
+          external: true
+        }
+      }}
+      overview={{
+        title: 'Everything You Need to Get Started',
+        content: (
+          <>
+            <p className="text-white/90 text-lg mb-6 text-center">
+              Most businesses are fully set up and collecting their first reviews within 30 minutes.
+              Our streamlined onboarding process makes it easy to get started, even if you've never
+              used a review collection platform before.
             </p>
-          </div>
-        </div>
 
-        {/* Navigation */}
-        <div className="flex items-center justify-between pt-8 border-t border-white/20">
-          <div className="flex-1">
-            {/* Back button - disabled since this is the first page */}
-            <button 
-              disabled
-              className="inline-flex items-center space-x-2 px-4 py-2 text-white/50 border border-white/20 rounded-lg cursor-not-allowed opacity-50"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              <span>Previous</span>
-            </button>
-          </div>
-          
-          <div className="flex-1 text-center">
-            <span className="text-sm text-white/60">Step 1 of 4</span>
-          </div>
-          
-          <div className="flex-1 text-right">
-            <Link
-              href="/getting-started/account-setup"
-              className="inline-flex items-center space-x-2 bg-primary-600 text-white px-6 py-2 rounded-lg hover:bg-primary-700 transition-colors font-medium"
-            >
-              <span>Next: Account Setup</span>
-              <ArrowRight className="w-4 h-4" />
-            </Link>
-          </div>
-        </div>
+            <div className="grid md:grid-cols-3 gap-6">
+              <div className="text-center">
+                <div className="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center mx-auto mb-3">
+                  <Clock className="w-6 h-6 text-white" />
+                </div>
+                <h3 className="font-semibold text-white mb-2">30 Minutes Total</h3>
+                <p className="text-white/80 text-sm">
+                  Complete setup from account creation to first review request
+                </p>
+              </div>
 
-        {/* FAQs Section */}
-        <PageFAQs 
-          faqs={pageFAQs['getting-started']}
-          pageTitle="Getting Started with Prompt Reviews"
-          pageUrl="https://docs.promptreviews.com/getting-started"
-        />
+              <div className="text-center">
+                <div className="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center mx-auto mb-3">
+                  <Sparkles className="w-6 h-6 text-white" />
+                </div>
+                <h3 className="font-semibold text-white mb-2">AI-Powered</h3>
+                <p className="text-white/80 text-sm">
+                  Let AI help you create personalized content and optimize requests
+                </p>
+              </div>
 
-        {/* Related Articles */}
-        <h2>Related Articles</h2>
-        
-        <div className="grid md:grid-cols-2 gap-4">
-          <Link href="/prompt-pages/types" className="block p-4 border border-white/20 rounded-lg hover:border-primary-300 transition-colors no-underline">
-            <h4 className="font-semibold text-white mb-2">Understanding Prompt Page Types</h4>
-            <p className="text-sm text-white/70 mb-0">Learn about the different types of review request pages you can create.</p>
-          </Link>
-          
-          <Link href="/troubleshooting/common-issues" className="block p-4 border border-white/20 rounded-lg hover:border-primary-300 transition-colors no-underline">
-            <h4 className="font-semibold text-white mb-2">Common Setup Issues</h4>
-            <p className="text-sm text-white/70 mb-0">Troubleshoot common problems during the initial setup process.</p>
-          </Link>
-        </div>
-      </div>
-    </DocsLayout>
+              <div className="text-center">
+                <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center mx-auto mb-3">
+                  <Users className="w-6 h-6 text-white" />
+                </div>
+                <h3 className="font-semibold text-white mb-2">All Skill Levels</h3>
+                <p className="text-white/80 text-sm">
+                  No technical skills required - intuitive interface for everyone
+                </p>
+              </div>
+            </div>
+          </>
+        )
+      }}
+    />
   )
 }

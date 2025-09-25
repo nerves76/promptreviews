@@ -1,4 +1,11 @@
-# Google Business Optimizer - Revised Lead Generation Plan
+# Google Biz Optimizer™ - Revised Lead Generation Plan
+
+## Branding & Positioning
+- **Tool Name:** Google Biz Optimizer™
+- **Tagline:** "Optimize Your Google Business Profile in Minutes"
+- **Value Prop:** "See exactly how to improve your Google Business Profile visibility and attract more customers"
+- **URL:** promptreviews.app/google-biz-optimizer
+- **Embed:** app.promptreviews.app/embed/google-biz-optimizer
 
 ## Core Strategy: "Show Value First"
 Display a fully functional dashboard with example data immediately, then offer personalized analysis after email capture.
@@ -374,6 +381,36 @@ window.addEventListener('message', function(e) {
 </script>
 ```
 
+```typescript
+// src/app/(embed)/google-business-optimizer/page.tsx
+useEffect(() => {
+  const resizeObserver = new ResizeObserver(() => {
+    window.parent.postMessage(
+      {
+        type: 'resize',
+        height: document.body.scrollHeight
+      },
+      'https://promptreviews.com'
+    );
+  });
+
+  resizeObserver.observe(document.body);
+
+  return () => resizeObserver.disconnect();
+}, []);
+```
+
+- Throttle the observer callback to 200ms to avoid message floods.
+- Keep an allowlist of parent origins (`promptreviews.com`, `promptreviews.app`) and power users can provide their own via env var.
+- Expose an optional `postMessage` handler for CTA events (e.g., `cta_clicked`) so marketing sites can hook analytics.
+
+## Widget-Specific UI Adjustments
+
+- Remove task list arrows/links that point users to in-app execution flows; replace with static descriptors so the embed stays self-contained.
+- Audit other action-oriented elements inside the dashboard and disable or relabel anything that would normally deep-link into the main app (e.g., settings shortcuts, external modals).
+- Provide tooltip copy or inline text indicating those actions are available after signup, preserving the conversion narrative without broken links.
+- Ensure these adjustments are scoped to the embed version via feature flags or props so the primary app retains full interactivity.
+
 ## Benefits of This Approach
 
 1. **Immediate Value** - Users see exactly what they'll get
@@ -393,6 +430,71 @@ analytics.track('email_submitted');
 analytics.track('google_auth_completed');
 analytics.track('real_data_loaded');
 ```
+
+## Security Strategy & Compliance
+
+**Token Handling**
+- Mint short-lived (30-60 min) JWT session tokens in `/api/embed/session/create` using a dedicated `EMBED_SESSION_SECRET`.
+- Return the signed token to the iframe and persist only `sha256` hashes in `optimizer_sessions` (see table schema).
+- Rotate the signing secret quarterly and invalidate outstanding sessions via a stored `session_key_version`.
+
+**Google OAuth Secrets**
+- Encrypt access/refresh tokens with AES-256-GCM; store cipher text, IV, and key version in the database.
+- Keep encryption keys in managed KMS (Supabase Vault or AWS KMS) and expose to the app as `ENCRYPTION_KEY` / `ENCRYPTION_KEY_VERSION` env vars.
+- Implement `encryptToken`/`decryptToken` helpers under `src/lib/crypto/googleTokenCipher.ts` and mark the module `server-only` to prevent bundling client-side.
+
+**MailerLite & Third Parties**
+- Call MailerLite from API routes (Next.js Route Handlers or server actions) so secrets never reach the browser.
+- Queue retries/asynchronous syncs through a server worker to avoid leaking API keys via network inspector tools.
+
+**Iframe Hardening**
+- Set `Content-Security-Policy: frame-ancestors https://promptreviews.com https://www.promptreviews.com https://promptreviews.app;` on the embed route; extend via config for partner domains.
+- Provide `Permissions-Policy: interest-cohort=()` and `X-Frame-Options: ALLOW-FROM https://promptreviews.com` fallbacks for legacy browsers.
+- Validate incoming `postMessage` events against the same allowlist before mutating UI or state.
+
+**Observability & Alerts**
+- Log session creation, token decrypt attempts, and Google API failures to a dedicated channel with rate limiting.
+- Alert on spikes in session creation from single IPs or repeated decrypt failures to catch brute force attempts early.
+
+**Data Lifecycle**
+- Auto-expire `optimizer_sessions` after 2 hours (configurable) and wipe encrypted tokens via nightly cron.
+- Purge unconverted `optimizer_leads` after 90 days unless tagged `keep_forever` for paying customers.
+- Provide a GDPR erasure endpoint (`/api/embed/lead/delete`) that cascades across leads, sessions, and MailerLite records.
+
+
+## Help Modal & Docs Integration
+
+- Preserve the existing help bubble behavior: every `?` icon inside the embed must open the shared help modal component with the same article routing logic used in the main app.
+- Ensure the modal fetches article content from the public docs site (`https://promptreviews.app/docs`) so updates stay in sync.
+- Expose an `onHelpArticleOpen` callback (or analytics event) when the modal is triggered from the embed to track education engagement.
+- Provide configuration to preload top Google Biz Optimizer articles for offline/SSR rendering while still deferring full content fetch to the docs service.
+- Respect the marketing host's scroll context: the modal should trap focus and prevent background scroll even when inside an iframe.
+
+### Help Modal Implementation Notes
+
+```typescript
+// src/components/embed/HelpBubble.tsx
+export function HelpBubble({ articleId }) {
+  return (
+    <button
+      className="help-bubble"
+      onClick={() => openHelpModal({ section: 'google-biz-optimizer', articleId })}
+      aria-label="Open help center"
+    >
+      ?
+    </button>
+  );
+}
+
+// src/components/embed/HelpModal.tsx reuse existing modal
+// - Accepts initialArticleId
+// - Loads content from docs service
+// - Emits analytics event
+```
+
+- Add regression tests that mount the embed in jsdom and assert `openHelpModal` loads the expected article.
+- Confirm the embed respects the parent site's dark/light theme overrides for the modal, if provided.
+
 
 ## Multi-Tenant Support for Multiple Businesses
 
@@ -504,11 +606,15 @@ For temporary session management without creating full accounts:
 -- migrations/[timestamp]_create_optimizer_sessions_table.sql
 CREATE TABLE optimizer_sessions (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-  session_token VARCHAR(255) UNIQUE NOT NULL,
+  session_token_hash CHAR(64) UNIQUE NOT NULL, -- SHA-256 hex digest of signed session token
+  session_scope JSONB DEFAULT '{}'::jsonb,
+  session_key_version VARCHAR(32) DEFAULT 'v1',
 
-  -- Google OAuth tokens (encrypted)
-  google_access_token TEXT,
-  google_refresh_token TEXT,
+  -- Google OAuth tokens (AES-256 encrypted at rest)
+  google_access_token_cipher TEXT,
+  google_refresh_token_cipher TEXT,
+  google_token_iv TEXT,
+  google_token_key_version VARCHAR(32),
   google_token_expires_at TIMESTAMP,
 
   -- Session data
@@ -545,7 +651,7 @@ CREATE POLICY "Read own lead data with session" ON optimizer_leads
   FOR SELECT USING (
     email IN (
       SELECT email FROM optimizer_sessions
-      WHERE session_token = current_setting('request.header.x-session-token', true)
+      WHERE session_token_hash = encode(digest(current_setting('request.header.x-session-token', true), 'sha256'), 'hex')
       AND expires_at > NOW()
     )
   );
@@ -625,6 +731,7 @@ graph TD
    - optimizer_leads table
    - optimizer_sessions table
    - RLS policies
+   - `CREATE EXTENSION IF NOT EXISTS pgcrypto;` for hashing helper
    - Cleanup triggers
 
 2. **Create Service Functions**
@@ -633,8 +740,16 @@ graph TD
    - createLead(email, utmParams)
    - updateLeadWithGoogleData(leadId, googleData)
    - calculateAndUpdateLeadScore(leadId)
-   - createSession(leadId, googleTokens)
-   - validateSession(sessionToken)
+   - createSession(leadId, scope): returns { signedToken, sessionId }
+   - validateSession(signedToken): verifies JWT + hashed token
+   - rotateSessionKeys(currentVersion)
+   ```
+
+   ```typescript
+   // src/lib/crypto/googleTokenCipher.ts
+   - encryptToken(rawToken, keyVersion?)
+   - decryptToken(cipherText, iv, keyVersion)
+   - hashSessionToken(signedToken)
    ```
 
 3. **Add Prisma Models**
@@ -653,6 +768,13 @@ graph TD
    - PUT `/api/embed/lead/update`
    - GET `/api/embed/lead/metrics`
    - POST `/api/embed/session/create`
+
+## Documentation Deliverables
+
+- Draft `docs/google-biz-optimizer/embed/README.md` covering iframe setup, origin allowlist, environment variables, and security expectations.
+- Update `docs/help/google-biz-optimizer/HELP_ARTICLES_INDEX.md` with a link to the embed guide once live.
+- Add inline docs to API handlers (JSDoc) summarizing expected payloads for `lead` and `session` endpoints.
+- Maintain a public test page (`test-embed.html`) that renders the iframe with sample configuration for manual QA.
 
 ## Questions Before Implementation
 
@@ -882,4 +1004,319 @@ GROUP BY source_business, source_domain, utm_campaign;
    - PromptReviews → Free trial → Subscription
    - Consulting → Free analysis → Paid engagement
 
-Should we proceed with creating the database migrations first, or would you like to refine any aspect of this plan?
+## Educational Content Strategy
+
+### 1. Help Content Architecture
+
+```typescript
+// src/data/helpContent/googleBusinessMetrics.ts
+export const HELP_ARTICLES = {
+  'review-velocity': {
+    id: 'review-velocity',
+    title: 'Understanding Review Velocity',
+    category: 'metrics',
+    excerpt: 'Why the pace of new reviews matters more than total count',
+    content: `
+      # Review Velocity: Your Hidden Ranking Factor
+
+      Google doesn't just look at your total reviews - they care about momentum.
+      A business with 50 reviews getting 10/month often outranks one with 200 old reviews.
+
+      ## What's a Good Velocity?
+      - **Excellent**: 5+ reviews/month
+      - **Good**: 2-4 reviews/month
+      - **Needs Work**: <2 reviews/month
+
+      ## How to Improve
+      1. Set up automated review invitations
+      2. Train staff to ask at peak satisfaction moments
+      3. Make it easy with QR codes and SMS links
+    `,
+    relatedArticles: ['review-response-time', 'review-quality'],
+    ctaText: 'Automate Review Collection',
+    ctaLink: '/features/review-invitations'
+  },
+
+  'profile-completeness': {
+    id: 'profile-completeness',
+    title: 'Profile Completeness Score',
+    category: 'optimization',
+    excerpt: 'Each missing field reduces your visibility by up to 7%',
+    content: `
+      # Your Profile is Your Foundation
+
+      Google confirmed: Complete profiles get 70% more clicks.
+
+      ## Critical Fields (Must Have)
+      - Business description (750 chars)
+      - All available categories
+      - Complete hours (including holidays)
+      - Photos in each category
+
+      ## Often Missed Opportunities
+      - Service descriptions
+      - Product catalogs
+      - Attributes (wheelchair access, WiFi, etc.)
+      - COVID-19 updates
+    `,
+    videoUrl: 'https://youtube.com/watch?v=...',
+    relatedArticles: ['categories-strategy', 'photo-optimization']
+  },
+
+  'search-visibility': {
+    id: 'search-visibility',
+    title: 'Search Visibility Metrics',
+    category: 'performance',
+    excerpt: 'How often you appear vs competitors',
+    content: `...`,
+    premium: true // Some content for paid users only
+  }
+};
+```
+
+### 2. Inline Help System for Embed
+
+```typescript
+// src/components/embed/HelpModal.tsx
+export function HelpModal({ articleId, isOpen, onClose }) {
+  const article = HELP_ARTICLES[articleId];
+
+  return (
+    <Modal isOpen={isOpen} onClose={onClose}>
+      <div className="max-w-2xl">
+        <article className="prose">
+          <h1>{article.title}</h1>
+          <div dangerouslySetInnerHTML={{ __html: markdown(article.content) }} />
+
+          {/* Lead capture opportunity */}
+          {!userEmail && (
+            <div className="mt-8 p-6 bg-blue-50 rounded-lg">
+              <h3>Want the Full Guide?</h3>
+              <p>Get our complete GMB optimization checklist</p>
+              <EmailCaptureForm
+                incentive="optimization-guide"
+                source={currentSource}
+              />
+            </div>
+          )}
+
+          {/* Source-specific CTA */}
+          {currentSource === 'consulting' ? (
+            <button className="mt-4">
+              Need help implementing this? Let's talk →
+            </button>
+          ) : (
+            <button className="mt-4">
+              Automate this with PromptReviews →
+            </button>
+          )}
+        </article>
+
+        {/* Related articles to increase engagement */}
+        <div className="mt-8 border-t pt-8">
+          <h3>Related Topics</h3>
+          <div className="grid grid-cols-2 gap-4">
+            {article.relatedArticles.map(id => (
+              <button
+                onClick={() => openArticle(id)}
+                className="text-left p-4 border rounded hover:bg-gray-50"
+              >
+                <h4>{HELP_ARTICLES[id].title}</h4>
+                <p className="text-sm text-gray-600">{HELP_ARTICLES[id].excerpt}</p>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    </Modal>
+  );
+}
+```
+
+### 3. Integration with Metrics Display
+
+```typescript
+// src/components/GoogleBusinessProfile/core/OverviewStats.tsx
+export function MetricDisplay({
+  label,
+  value,
+  change,
+  helpArticleId,
+  showHelp = true
+}) {
+  return (
+    <div className="relative group">
+      <div className="flex items-center gap-2">
+        <span className="text-sm text-gray-600">{label}</span>
+        {showHelp && helpArticleId && (
+          <button
+            onClick={() => openHelpModal(helpArticleId)}
+            className="opacity-0 group-hover:opacity-100 transition-opacity"
+            aria-label={`Learn more about ${label}`}
+          >
+            <Icon name="FaQuestionCircle" className="w-3 h-3 text-gray-400 hover:text-blue-500" />
+          </button>
+        )}
+      </div>
+      <div className="text-2xl font-bold">{value}</div>
+      {change && (
+        <div className={`text-sm ${change > 0 ? 'text-green-600' : 'text-red-600'}`}>
+          {change > 0 ? '+' : ''}{change}% this month
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Usage in stats
+<MetricDisplay
+  label="Review Velocity"
+  value="3.2/month"
+  change={15}
+  helpArticleId="review-velocity"
+/>
+```
+
+### 4. SEO-Friendly Documentation Site
+
+```typescript
+// src/app/(public)/docs/[category]/[slug]/page.tsx
+// These same articles become public SEO pages
+
+export async function generateStaticParams() {
+  return Object.values(HELP_ARTICLES).map(article => ({
+    category: article.category,
+    slug: article.id
+  }));
+}
+
+export default function DocPage({ params }) {
+  const article = HELP_ARTICLES[params.slug];
+
+  return (
+    <>
+      {/* SEO Meta */}
+      <Head>
+        <title>{article.title} - Google Business Profile Guide</title>
+        <meta name="description" content={article.excerpt} />
+        <link rel="canonical" href={`/docs/${article.category}/${article.id}`} />
+      </Head>
+
+      {/* Content with schema markup */}
+      <article itemScope itemType="https://schema.org/Article">
+        <h1 itemProp="headline">{article.title}</h1>
+        <div itemProp="articleBody">
+          {/* Article content */}
+        </div>
+
+        {/* Lead capture for SEO traffic */}
+        <div className="mt-12 p-8 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl">
+          <h2>Free Google Business Profile Analysis</h2>
+          <p>See how your profile scores on all these metrics</p>
+          <button onClick={openOptimizer}>
+            Analyze My Profile →
+          </button>
+        </div>
+      </article>
+    </>
+  );
+}
+```
+
+### 5. Progressive Education Strategy
+
+```typescript
+// Different levels of content based on user state
+const EDUCATION_LEVELS = {
+  // First-time visitor (embed)
+  novice: {
+    showBasicHelp: true,
+    showAdvancedMetrics: false,
+    defaultArticles: ['what-is-gmb', 'why-reviews-matter'],
+    tooltipsEnabled: true
+  },
+
+  // Has given email
+  engaged: {
+    showBasicHelp: true,
+    showAdvancedMetrics: true,
+    defaultArticles: ['profile-optimization', 'review-strategy'],
+    tooltipsEnabled: true,
+    showVideoTutorials: true
+  },
+
+  // Paying customer
+  advanced: {
+    showBasicHelp: false, // They know basics
+    showAdvancedMetrics: true,
+    defaultArticles: ['advanced-seo', 'competitor-analysis'],
+    tooltipsEnabled: false,
+    showVideoTutorials: true,
+    showApiDocs: true
+  }
+};
+```
+
+### 6. Content Creation Priority
+
+```markdown
+## Phase 1: Core Metrics Education (Week 1)
+1. Review Velocity & Trends
+2. Profile Completeness Score
+3. Response Rate & Time
+4. Search Visibility
+5. Customer Actions
+
+## Phase 2: Optimization Guides (Week 2)
+1. Category Strategy
+2. Photo Optimization
+3. Description Writing
+4. Review Response Templates
+5. Post Strategy
+
+## Phase 3: Advanced Topics (Week 3)
+1. Local SEO Factors
+2. Competitor Analysis
+3. Multi-Location Management
+4. API Integration
+5. Reporting & Analytics
+```
+
+### 7. A/B Testing Educational Approaches
+
+```typescript
+// Test different education triggers
+const EDUCATION_VARIANTS = {
+  A: 'hover-for-help', // Question mark on hover
+  B: 'always-visible',  // Always show (?) icon
+  C: 'first-time-tooltip', // Auto-show tooltip first time
+  D: 'inline-explanation' // Brief text under metric
+};
+
+// Track engagement
+analytics.track('help_article_opened', {
+  article_id: 'review-velocity',
+  trigger: 'hover_icon',
+  source_business: 'promptreviews',
+  user_state: 'no_email'
+});
+```
+
+## Benefits of Integrated Education
+
+1. **Trust Building**: Shows expertise, builds authority
+2. **Lead Quality**: Educated leads convert better
+3. **SEO Value**: Help docs rank for "how to" queries
+4. **Reduced Support**: Self-service education
+5. **Engagement**: More time on site, more touches
+6. **Differentiation**: Competitors just show numbers
+
+## Implementation Order
+
+1. **Start with articles** (can begin while building tool)
+2. **Add to existing dashboard** (test what resonates)
+3. **Integrate into embed** (proven content)
+4. **Create public docs site** (SEO benefit)
+5. **Add progressive disclosure** (optimize conversion)
+
+Should we start by creating the educational content, or would you prefer to build the tool first and add education later?

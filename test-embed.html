@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Test Infographic Embed</title>
+    <title>Google Biz Optimizer Embed QA</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -22,13 +22,50 @@
     </style>
 </head>
 <body>
-    <h1>Testing PromptReviews Infographic Embed</h1>
-    <p>This page tests the infographic embed on an external site.</p>
-    
+    <h1>Google Biz Optimizer Embed QA</h1>
+    <p>This page loads the live embed from the local Next.js dev server and verifies postMessage resizing.</p>
+
     <div class="embed-container">
-        <div id="promptreviews-infographic"></div>
+        <iframe
+            src="http://localhost:3002/embed/google-business-optimizer"
+            style="width: 100%; height: 1600px; border: none;"
+            id="gbp-optimizer-frame"
+            loading="lazy"
+            referrerpolicy="strict-origin-when-cross-origin"
+            allow="clipboard-read; clipboard-write">
+        </iframe>
     </div>
 
-    <script async src="http://localhost:3002/api/infographic-widget"></script>
+    <script>
+    const optimizerAllowedOrigins = [
+        'http://localhost:3002',
+        'https://app.promptreviews.app',
+        'https://www.promptreviews.app'
+    ];
+
+    window.addEventListener('message', function (event) {
+        if (!optimizerAllowedOrigins.includes(event.origin)) return;
+
+        const message = event.data || {};
+
+        switch (message.type) {
+            case 'google-business-optimizer:ready':
+                if (event.source) {
+                    event.source.postMessage(
+                        { type: 'google-business-optimizer:request-resize' },
+                        event.origin
+                    );
+                }
+                break;
+            case 'google-business-optimizer:resize':
+                if (typeof message.height === 'number') {
+                    document.getElementById('gbp-optimizer-frame').style.height = `${message.height}px`;
+                }
+                break;
+            default:
+                break;
+        }
+    });
+    </script>
 </body>
 </html>

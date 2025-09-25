@@ -1,19 +1,23 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
-import DocsLayout from '../docs-layout'
-import PageHeader from '../components/PageHeader'
-import { 
-  Code, 
-  Smartphone, 
-  Monitor, 
-  Palette, 
+import StandardOverviewLayout from '../../components/StandardOverviewLayout'
+import { pageFAQs } from '../utils/faqData'
+import {
+  Code,
+  Smartphone,
+  Monitor,
+  Palette,
   Copy,
   CheckCircle,
   ArrowRight,
   Settings,
   Zap,
   Star,
-  Globe
+  Globe,
+  Layout,
+  Eye,
+  Paintbrush,
+  Target,
+  BarChart3
 } from 'lucide-react'
 
 export const metadata: Metadata = {
@@ -28,299 +32,149 @@ export const metadata: Metadata = {
     'website reviews'
   ],
   alternates: {
-    canonical: 'https://docs.promptreviews.com/widgets',
+    canonical: 'https://docs.promptreviews.app/widgets',
   },
 }
 
+const keyFeatures = [
+  {
+    icon: Layout,
+    title: 'Multiple Layout Options',
+    description: 'Choose from list view, card layout, compact sidebar view, or full-width testimonial style to match your website design.'
+  },
+  {
+    icon: Paintbrush,
+    title: 'Complete Customization',
+    description: 'Customize colors, fonts, borders, shadows, and star rating colors to perfectly match your brand identity.'
+  },
+  {
+    icon: Settings,
+    title: 'Advanced Filtering',
+    description: 'Filter reviews by rating, date, or keywords. Set minimum star ratings and control review text length.'
+  },
+  {
+    icon: Zap,
+    title: 'Real-Time Updates',
+    description: 'Widgets automatically update when new reviews come in. Changes to your widget settings appear instantly.'
+  },
+  {
+    icon: Smartphone,
+    title: 'Mobile Responsive',
+    description: 'All widgets are fully responsive and look perfect on phones, tablets, and desktops automatically.'
+  },
+  {
+    icon: BarChart3,
+    title: 'Performance Analytics',
+    description: 'Track widget views, engagement, and performance metrics to optimize your social proof strategy.'
+  }
+];
+
+const howItWorks = [
+  {
+    number: 1,
+    title: 'Create Your Widget',
+    description: 'Go to the Widgets section in your dashboard and click "Create New Widget". Choose which reviews to display and configure your basic settings.',
+    icon: Code
+  },
+  {
+    number: 2,
+    title: 'Customize Appearance',
+    description: 'Customize colors, fonts, layout, and display options. Filter reviews by rating or date and preview your widget in real-time.',
+    icon: Palette
+  },
+  {
+    number: 3,
+    title: 'Get Embed Code',
+    description: 'Copy the generated embed code. It\'s just a simple HTML snippet that works like embedding a YouTube video.',
+    icon: Copy
+  },
+  {
+    number: 4,
+    title: 'Add to Your Website',
+    description: 'Paste the embed code into your website\'s HTML. The widget will automatically load and display your reviews beautifully.',
+    icon: Globe
+  }
+];
+
+const bestPractices = [
+  {
+    icon: Target,
+    title: 'Strategic Placement',
+    description: 'Place widgets where they have maximum impact - homepage testimonial sections, product pages, or checkout pages to build trust at crucial moments.'
+  },
+  {
+    icon: Eye,
+    title: 'Show Your Best Reviews',
+    description: 'Use filtering to showcase 4-5 star reviews. Focus on reviews that mention specific benefits or outcomes that matter to your prospects.'
+  },
+  {
+    icon: Monitor,
+    title: 'Match Your Brand',
+    description: 'Customize colors, fonts, and styling to seamlessly integrate with your website. Widgets should feel like a natural part of your site.'
+  },
+  {
+    icon: Zap,
+    title: 'Keep It Fresh',
+    description: 'Regularly update which reviews you display. Fresh, recent reviews are more compelling than outdated ones, even if they\'re positive.'
+  }
+];
+
+const overviewContent = (
+  <>
+    <p className="text-white/90 text-lg mb-6 text-center">
+      Review widgets allow you to display your customer reviews directly on your website. Create custom widgets that match your brand,
+      choose which reviews to show, and embed them anywhere on your site.
+    </p>
+
+    <div className="grid md:grid-cols-2 gap-6">
+      <div className="bg-white/5 rounded-lg p-6">
+        <Star className="w-8 h-8 text-yellow-400 mb-4" />
+        <h3 className="text-xl font-semibold text-white mb-2">Showcase Social Proof</h3>
+        <p className="text-white/80 mb-4">
+          Display star ratings, reviewer names, dates, review text, and verified badges to build trust with website visitors.
+        </p>
+      </div>
+
+      <div className="bg-white/5 rounded-lg p-6">
+        <Monitor className="w-8 h-8 text-blue-400 mb-4" />
+        <h3 className="text-xl font-semibold text-white mb-2">Perfect Integration</h3>
+        <p className="text-white/80 mb-4">
+          Widgets seamlessly integrate with any website using simple HTML code. No technical skills required.
+        </p>
+      </div>
+    </div>
+  </>
+);
+
 export default function WidgetsPage() {
   return (
-    <DocsLayout>
-      {/* Hero Section */}
-      <PageHeader
-        breadcrumbs={[
-          { label: 'Help', href: '/' }
-        ]}
-        currentPage="Review Widgets"
-        categoryLabel="Review Widgets"
-        categoryIcon={Code}
-        categoryColor="blue"
-        title="Review widgets for your website"
-        description="Create customizable widgets to display your reviews on any website. Choose from different layouts, customize colors and styling, and embed with simple HTML code."
-      />
-
-      {/* Plan Indicator */}
-      <div className="mb-6">
-        <div className="flex flex-wrap gap-2">
-          <span className="text-sm text-white/60">Available on:</span>
-          <span className="bg-green-500/20 text-green-300 text-xs px-2 py-1 rounded-full font-medium">Grower</span>
-          <span className="bg-purple-500/20 text-purple-300 text-xs px-2 py-1 rounded-full font-medium">Builder</span>
-          <span className="bg-yellow-500/20 text-yellow-300 text-xs px-2 py-1 rounded-full font-medium">Maven</span>
-        </div>
-      </div>
-
-      {/* Widget Overview */}
-      <div className="max-w-4xl mx-auto mb-16">
-        <h2 className="text-3xl font-bold text-white mb-8">What Are Review Widgets?</h2>
-        
-        <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6 mb-8">
-          <p className="text-white/90 mb-4">
-            Review widgets allow you to display your customer reviews directly on your website. Create custom widgets that match your brand, 
-            choose which reviews to show, and embed them anywhere on your site.
-          </p>
-          <p className="text-white/90">
-            Each widget is fully customizable with different layouts, colors, and display options. You can filter reviews by rating, 
-            date, or specific keywords to showcase your best customer feedback.
-          </p>
-        </div>
-
-        <div className="grid md:grid-cols-2 gap-6">
-          <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6">
-            <Star className="w-8 h-8 text-yellow-400 mb-4" />
-            <h3 className="text-xl font-semibold text-white mb-2">Widget Display</h3>
-            <p className="text-white/80 mb-4">
-              Show your reviews in a beautiful, customizable widget on your website.
-            </p>
-            <ul className="text-sm text-white/70 space-y-1">
-              <li>• Display star ratings</li>
-              <li>• Show reviewer names and dates</li>
-              <li>• Include review text</li>
-              <li>• Add verified badges</li>
-            </ul>
-          </div>
-          
-          <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6">
-            <Monitor className="w-8 h-8 text-blue-400 mb-4" />
-            <h3 className="text-xl font-semibold text-white mb-2">Layout Options</h3>
-            <p className="text-white/80 mb-4">
-              Choose from different layout styles to match your website design.
-            </p>
-            <ul className="text-sm text-white/70 space-y-1">
-              <li>• List view for multiple reviews</li>
-              <li>• Card layout with borders</li>
-              <li>• Compact view for sidebars</li>
-              <li>• Full-width testimonial style</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-
-      {/* Installation Process */}
-      <div className="max-w-4xl mx-auto mb-16">
-        <h2 className="text-3xl font-bold text-white mb-8">How to Create and Install Widgets</h2>
-        
-        <div className="space-y-6">
-          <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6">
-            <div className="flex items-center space-x-3 mb-4">
-              <div className="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center font-semibold">1</div>
-              <h3 className="text-xl font-semibold text-white">Create Your Widget</h3>
-            </div>
-            <p className="text-white/90 mb-4">
-              Go to the Widgets section in your dashboard and click "Create New Widget". Choose which reviews to display.
-            </p>
-          </div>
-
-          <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6">
-            <div className="flex items-center space-x-3 mb-4">
-              <div className="w-8 h-8 bg-purple-500 text-white rounded-full flex items-center justify-center font-semibold">2</div>
-              <h3 className="text-xl font-semibold text-white">Customize Your Widget</h3>
-            </div>
-            <p className="text-white/90 mb-4">
-              Customize colors, fonts, layout, and display options. Filter reviews by rating or date. Preview your widget in real-time.
-            </p>
-          </div>
-
-          <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6">
-            <div className="flex items-center space-x-3 mb-4">
-              <div className="w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center font-semibold">3</div>
-              <h3 className="text-xl font-semibold text-white">Embed on Your Website</h3>
-            </div>
-            <p className="text-white/90 mb-4">
-              Copy the generated embed code and paste it into your website's HTML. The widget will automatically load and display your reviews.
-            </p>
-            <div className="bg-white/5 rounded-lg p-4 font-mono text-sm text-green-300">
-              {`<!-- Prompt Reviews Widget -->`}<br/>
-              {`<div id="prompt-reviews-widget-[id]"></div>`}<br/>
-              {`<script src="https://app.promptreviews.com/widget/[id].js"></script>`}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Widget Customization */}
-      <div className="max-w-4xl mx-auto mb-16">
-        <h2 className="text-3xl font-bold text-white mb-8">Widget Customization</h2>
-        
-        <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-8">
-          <div className="grid md:grid-cols-2 gap-8">
-            <div>
-              <h3 className="text-xl font-semibold text-white mb-4 flex items-center">
-                <Palette className="w-5 h-5 mr-2" />
-                Style Options
-              </h3>
-              <ul className="space-y-2 text-white/80">
-                <li className="flex items-start space-x-2">
-                  <CheckCircle className="w-4 h-4 text-green-300 mt-0.5" />
-                  <span>Background colors</span>
-                </li>
-                <li className="flex items-start space-x-2">
-                  <CheckCircle className="w-4 h-4 text-green-300 mt-0.5" />
-                  <span>Text colors and fonts</span>
-                </li>
-                <li className="flex items-start space-x-2">
-                  <CheckCircle className="w-4 h-4 text-green-300 mt-0.5" />
-                  <span>Border radius and shadows</span>
-                </li>
-                <li className="flex items-start space-x-2">
-                  <CheckCircle className="w-4 h-4 text-green-300 mt-0.5" />
-                  <span>Star rating colors</span>
-                </li>
-              </ul>
-            </div>
-            
-            <div>
-              <h3 className="text-xl font-semibold text-white mb-4 flex items-center">
-                <Settings className="w-5 h-5 mr-2" />
-                Display Options
-              </h3>
-              <ul className="space-y-2 text-white/80">
-                <li className="flex items-start space-x-2">
-                  <CheckCircle className="w-4 h-4 text-green-300 mt-0.5" />
-                  <span>Number of reviews to show</span>
-                </li>
-                <li className="flex items-start space-x-2">
-                  <CheckCircle className="w-4 h-4 text-green-300 mt-0.5" />
-                  <span>Minimum star rating filter</span>
-                </li>
-                <li className="flex items-start space-x-2">
-                  <CheckCircle className="w-4 h-4 text-green-300 mt-0.5" />
-                  <span>Show/hide dates</span>
-                </li>
-                <li className="flex items-start space-x-2">
-                  <CheckCircle className="w-4 h-4 text-green-300 mt-0.5" />
-                  <span>Review text length</span>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Use Cases */}
-      <div className="max-w-4xl mx-auto mb-16">
-        <h2 className="text-3xl font-bold text-white mb-8">Where to Use Widgets</h2>
-        
-        <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-8">
-          <p className="text-white/90 mb-6">
-            Review widgets can be embedded anywhere on your website to build trust and credibility.
-          </p>
-          
-          <div className="grid md:grid-cols-2 gap-6">
-            <div>
-              <h3 className="font-semibold text-white mb-3">Popular Placements</h3>
-              <ul className="space-y-2 text-white/80">
-                <li className="flex items-start space-x-2">
-                  <span className="text-green-300">→</span>
-                  <span>Homepage testimonial section</span>
-                </li>
-                <li className="flex items-start space-x-2">
-                  <span className="text-green-300">→</span>
-                  <span>Product or service pages</span>
-                </li>
-                <li className="flex items-start space-x-2">
-                  <span className="text-green-300">→</span>
-                  <span>Sidebar on blog posts</span>
-                </li>
-                <li className="flex items-start space-x-2">
-                  <span className="text-green-300">→</span>
-                  <span>Footer for social proof</span>
-                </li>
-              </ul>
-            </div>
-            
-            <div>
-              <h3 className="font-semibold text-white mb-3">Benefits</h3>
-              <ul className="space-y-2 text-white/80">
-                <li className="flex items-start space-x-2">
-                  <span className="text-blue-300">→</span>
-                  <span>Build trust with visitors</span>
-                </li>
-                <li className="flex items-start space-x-2">
-                  <span className="text-blue-300">→</span>
-                  <span>Increase conversion rates</span>
-                </li>
-                <li className="flex items-start space-x-2">
-                  <span className="text-blue-300">→</span>
-                  <span>Show real customer feedback</span>
-                </li>
-                <li className="flex items-start space-x-2">
-                  <span className="text-blue-300">→</span>
-                  <span>Improve SEO with fresh content</span>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Widget Management */}
-      <div className="max-w-4xl mx-auto mb-16">
-        <h2 className="text-3xl font-bold text-white mb-8">Managing Your Widgets</h2>
-        
-        <div className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 backdrop-blur-md border border-white/20 rounded-xl p-8">
-          <div className="space-y-6">
-            <div>
-              <h3 className="text-xl font-semibold text-white mb-3">Widget Dashboard</h3>
-              <p className="text-white/80 mb-4">
-                Manage all your widgets from a central dashboard. Create new widgets, edit existing ones, 
-                and track performance metrics.
-              </p>
-            </div>
-            
-            <div className="grid md:grid-cols-3 gap-4 text-sm">
-              <div className="bg-white/5 rounded-lg p-3">
-                <p className="text-white/90 font-medium mb-1">Multiple Widgets</p>
-                <p className="text-white/70">Create unlimited widgets for different pages</p>
-              </div>
-              <div className="bg-white/5 rounded-lg p-3">
-                <p className="text-white/90 font-medium mb-1">Real-time Updates</p>
-                <p className="text-white/70">Changes appear instantly on your site</p>
-              </div>
-              <div className="bg-white/5 rounded-lg p-3">
-                <p className="text-white/90 font-medium mb-1">Analytics</p>
-                <p className="text-white/70">Track views and engagement</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Next Steps */}
-      <div className="max-w-4xl mx-auto">
-        <div className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 p-8 text-center">
-          <h2 className="text-2xl font-bold text-white mb-4">Ready to Add Reviews to Your Website?</h2>
-          <p className="text-white/80 mb-6 max-w-2xl mx-auto">
-            Start showcasing your customer reviews and build trust with website visitors.
-          </p>
-          
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link
-              href="/troubleshooting"
-              className="inline-flex items-center space-x-2 bg-white/10 text-white px-6 py-3 rounded-lg hover:bg-white/20 border border-white/30 transition-colors font-medium backdrop-blur-sm"
-            >
-              <span>Troubleshooting Guide</span>
-              <ArrowRight className="w-4 h-4" />
-            </Link>
-            
-            <a
-              href="https://promptreviews.app/dashboard/widgets"
-              className="inline-flex items-center space-x-2 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
-            >
-              <span>Go to Widgets Dashboard</span>
-              <Code className="w-4 h-4" />
-            </a>
-          </div>
-        </div>
-      </div>
-    </DocsLayout>
+    <StandardOverviewLayout
+      title="Review widgets for your website"
+      description="Create customizable widgets to display your reviews on any website. Choose from different layouts, customize colors and styling, and embed with simple HTML code."
+      categoryLabel="Review Widgets"
+      categoryIcon={Code}
+      categoryColor="blue"
+      currentPage="Review Widgets"
+      availablePlans={['grower', 'builder', 'maven']}
+      keyFeatures={keyFeatures}
+      howItWorks={howItWorks}
+      bestPractices={bestPractices}
+      faqs={pageFAQs['widgets']}
+      callToAction={{
+        secondary: {
+          text: 'Troubleshooting Guide',
+          href: '/troubleshooting'
+        },
+        primary: {
+          text: 'Create Your Widget',
+          href: 'https://promptreviews.app/dashboard/widgets',
+          external: true
+        }
+      }}
+      overview={{
+        title: 'What Are Review Widgets?',
+        content: overviewContent
+      }}
+    />
   )
 }

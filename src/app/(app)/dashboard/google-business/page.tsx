@@ -1664,7 +1664,7 @@ export default function SocialPostingDashboard() {
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between space-y-4 sm:space-y-0">
             <div className="text-left">
               <h1 className="text-3xl font-bold text-slate-blue mb-2">
-                Google Business Profile Optimization
+                Google Biz Optimizer
               </h1>
               <p className="text-gray-600">
                 Optimize your Google Business Profile with Prompty power! Update regularly for best results.

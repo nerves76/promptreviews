@@ -4,6 +4,45 @@ import type { NextRequest } from "next/server";
 // Docs site URL for proxying
 const DOCS_SITE_URL = 'https://docs-site-7mwbiq8mr-nerves76s-projects.vercel.app';
 
+const DEFAULT_GBO_FRAME_ANCESTORS = [
+  'https://promptreviews.com',
+  'https://www.promptreviews.com',
+  'https://promptreviews.app',
+  'https://www.promptreviews.app',
+  'http://localhost:*',
+  'https://localhost:*',
+];
+
+function normalizeOrigin(origin: string | null | undefined) {
+  if (!origin) return null;
+  const trimmed = origin.trim();
+  if (!trimmed) return null;
+  return trimmed.endsWith('/') ? trimmed.slice(0, -1) : trimmed;
+}
+
+function buildGoogleBizOptimizerFrameAncestors() {
+  const configured = (process.env.EMBED_ALLOWED_ORIGINS || '')
+    .split(',')
+    .map((origin) => normalizeOrigin(origin))
+    .filter((origin): origin is string => Boolean(origin));
+
+  const merged: string[] = [];
+  for (const origin of [...DEFAULT_GBO_FRAME_ANCESTORS, ...configured]) {
+    const normalized = normalizeOrigin(origin);
+    if (normalized && !merged.includes(normalized)) {
+      merged.push(normalized);
+    }
+  }
+
+  return merged;
+}
+
+const gboFrameAncestorsList = buildGoogleBizOptimizerFrameAncestors();
+const gboFrameAncestorsHeaderValue = gboFrameAncestorsList.join(' ');
+const gboAllowFromOrigin = gboFrameAncestorsList.find(
+  (origin) => origin && !origin.includes('*') && origin.startsWith('http'),
+) || 'https://promptreviews.com';
+
 export async function middleware(req: NextRequest) {
   // CRITICAL: Skip middleware for ALL Next.js internal routes and static assets
   // This MUST happen first to prevent interference with CSS/JS serving
@@ -40,11 +79,22 @@ export async function middleware(req: NextRequest) {
     );
     return res;
   }
+
+  if (req.nextUrl.pathname.startsWith('/embed/google-business-optimizer')) {
+    const res = NextResponse.next();
+    res.headers.set('Content-Security-Policy', `frame-ancestors ${gboFrameAncestorsHeaderValue};`);
+    res.headers.set('Permissions-Policy', 'interest-cohort=()');
+    res.headers.set('X-Frame-Options', `ALLOW-FROM ${gboAllowFromOrigin}`);
+    res.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+    res.headers.set('X-Content-Type-Options', 'nosniff');
+    return res;
+  }
   
   const res = NextResponse.next();
   
   // Add security headers to all responses (except widget embeds and API)
-  if (!req.nextUrl.pathname.startsWith('/infographic-embed') && 
+  if (!req.nextUrl.pathname.startsWith('/infographic-embed') &&
+      !req.nextUrl.pathname.startsWith('/embed/google-business-optimizer') &&
       !req.nextUrl.pathname.startsWith('/api/widgets/')) {
     // Security headers that won't break anything
     res.headers.set('X-Content-Type-Options', 'nosniff');

@@ -385,6 +385,60 @@ export const pageFAQs = {
       question: 'How do I encourage photo and video reviews?',
       answer: 'Make it easy with dedicated photo/video prompt pages, show examples of great visual reviews, and explain how photos help other customers. Visual reviews get more engagement and build stronger trust.'
     }
+  ],
+
+  // API Documentation FAQs
+  'api': [
+    {
+      question: 'How do I get started with the PromptReviews API?',
+      answer: 'First, log into your PromptReviews dashboard and navigate to Settings > API Keys. Generate a new API key with the permissions you need. Then make a test request to /api/auth/me to verify your authentication is working.',
+      plans: ['grower', 'builder', 'maven']
+    },
+    {
+      question: 'What authentication methods do you support?',
+      answer: 'We support API key authentication (recommended for server-to-server) and OAuth 2.0 (for user-facing applications). API keys should be sent in the Authorization header as "Bearer YOUR_API_KEY".',
+      plans: ['grower', 'builder', 'maven']
+    },
+    {
+      question: 'Are there rate limits on API requests?',
+      answer: 'Yes, we have generous rate limits: 1,000 requests per hour for authenticated requests and 100 requests per hour for public APIs. Premium plans have higher limits. Rate limit headers are included in all responses.',
+      plans: ['grower', 'builder', 'maven']
+    },
+    {
+      question: 'Can I display reviews on my website using the API?',
+      answer: 'Absolutely! Use our public review APIs to fetch and display reviews without authentication. You can filter by rating, date, or specific criteria. Perfect for building custom review displays.',
+      plans: ['grower', 'builder', 'maven']
+    },
+    {
+      question: 'How do webhooks work?',
+      answer: 'Webhooks send HTTP POST requests to your specified URL when events occur (new review, review response, etc.). Your endpoint should return a 200 status code to acknowledge receipt. We include signatures for verification.',
+      plans: ['builder', 'maven']
+    },
+    {
+      question: 'What data format do you use?',
+      answer: 'All API endpoints use JSON for both requests and responses. Dates are in ISO 8601 format, and we use consistent field naming conventions across all endpoints.',
+      plans: ['grower', 'builder', 'maven']
+    },
+    {
+      question: 'Can I manage prompt pages via the API?',
+      answer: 'Yes! You can create, update, and manage prompt pages programmatically. This includes setting page content, customization options, and retrieving analytics data.',
+      plans: ['grower', 'builder', 'maven']
+    },
+    {
+      question: 'Is there a sandbox environment for testing?',
+      answer: 'Yes, we provide a sandbox environment where you can test API calls without affecting your live data. Contact support to get sandbox access credentials.',
+      plans: ['grower', 'builder', 'maven']
+    },
+    {
+      question: 'What are the different API endpoint categories?',
+      answer: 'Our API includes Authentication & Account management, Prompt Pages creation and management, Reviews collection and responses, Widgets for website display, Contact management, and Webhook configuration endpoints.',
+      plans: ['grower', 'builder', 'maven']
+    },
+    {
+      question: 'Can I bulk import data using the API?',
+      answer: 'Yes, we provide bulk operation endpoints for importing contacts, creating multiple prompt pages, and managing reviews in batches. This is perfect for migrating from other systems or setting up large-scale operations.',
+      plans: ['builder', 'maven']
+    }
   ]
 }
 
@@ -489,6 +543,74 @@ export const consolidatedFAQs = [
       {
         question: 'Can AI write fake reviews?',
         answer: 'No, we never write fake reviews. AI helps customers express genuine experiences better, but customers always write their own authentic reviews.'
+      }
+    ]
+  },
+  {
+    category: 'API & Integration',
+    faqs: [
+      {
+        question: 'How do I get started with the PromptReviews API?',
+        answer: 'Generate API keys in your dashboard under Settings > API Keys. Make a test request to /api/auth/me to verify authentication is working properly.'
+      },
+      {
+        question: 'What authentication methods do you support?',
+        answer: 'We support API key authentication (server-to-server) and OAuth 2.0 (user-facing apps). Send API keys in the Authorization header as "Bearer YOUR_API_KEY".'
+      },
+      {
+        question: 'Can I display reviews on my website using the API?',
+        answer: 'Yes! Use our public review APIs to fetch and display reviews without authentication. Filter by rating, date, or other criteria for custom displays.'
+      }
+    ]
+  },
+  {
+    category: 'Widgets & Display',
+    faqs: [
+      {
+        question: 'What are review widgets?',
+        answer: 'Review widgets are embeddable displays that showcase your best reviews on your website. They update automatically as new reviews come in, providing social proof to visitors.'
+      },
+      {
+        question: 'How do I install a widget on my website?',
+        answer: 'We provide a simple embed code that you copy and paste into your website HTML. No coding knowledge required - it works like embedding a YouTube video.'
+      },
+      {
+        question: 'Can I customize the widget appearance?',
+        answer: 'Yes! You can customize colors, layout (grid, carousel, list), size, which reviews to display, and more. The widget can match your website design perfectly.'
+      }
+    ]
+  },
+  {
+    category: 'Analytics & Insights',
+    faqs: [
+      {
+        question: 'What metrics can I track?',
+        answer: 'Track review volume, average ratings, response rates, prompt page conversion rates, platform distribution, sentiment trends, and more to optimize your strategy.'
+      },
+      {
+        question: 'Can I see which prompt pages perform best?',
+        answer: 'Yes! Each prompt page has detailed analytics showing views, clicks, conversion rates, and reviews generated. This helps identify your most effective pages.'
+      },
+      {
+        question: 'Can I export analytics reports?',
+        answer: 'Yes, you can export analytics data in CSV format for deeper analysis or presentations. Create custom date ranges and filter by specific metrics.'
+      }
+    ]
+  },
+  {
+    category: 'Review Strategies',
+    faqs: [
+      {
+        question: 'What\'s the best time to request reviews?',
+        answer: 'The optimal time is 1-3 days after service completion when the experience is fresh but the customer isn\'t overwhelmed. For products, wait 1-2 weeks after delivery.'
+      },
+      {
+        question: 'What\'s the Double-Dip strategy?',
+        answer: 'The Double-Dip strategy involves first asking for feedback privately, then requesting public reviews from satisfied customers. This helps catch issues before they become negative public reviews.'
+      },
+      {
+        question: 'How do I encourage photo and video reviews?',
+        answer: 'Use dedicated photo/video prompt pages, show examples of great visual reviews, and explain how photos help other customers. Visual reviews get more engagement.'
       }
     ]
   },
