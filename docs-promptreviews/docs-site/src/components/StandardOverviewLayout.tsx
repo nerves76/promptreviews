@@ -103,9 +103,9 @@ export default function StandardOverviewLayout({
           description={description}
         />
 
-        {/* Plan Indicator */}
-        <div className="mb-12">
-          <div className="flex flex-wrap gap-2 justify-center">
+        {/* Plan Indicator - Moved directly under title, left aligned */}
+        <div className="mb-12 -mt-8">
+          <div className="flex flex-wrap gap-2">
             <span className="text-sm text-white/60">Available on:</span>
             {availablePlans.map((plan) => (
               <span key={plan} className={`text-xs px-2 py-1 rounded-full font-medium ${planLabels[plan].color}`}>
