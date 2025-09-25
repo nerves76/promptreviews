@@ -1,5 +1,8 @@
 import GoogleBusinessOptimizerEmbed from './GoogleBusinessOptimizerEmbed';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 function resolveAllowedOrigins(): string[] {
   const raw = process.env.EMBED_ALLOWED_ORIGINS ?? '';
   return raw

@@ -7,7 +7,7 @@ html {
   height: auto;
   min-height: 100%;
   background: transparent !important;
-  overflow: hidden;
+  overflow: visible;
 }
 
 body {
@@ -19,7 +19,8 @@ body {
   background-attachment: initial !important;
   height: auto;
   min-height: 100%;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: visible;
 }
 
 /* Remove the gradient pseudo-element */

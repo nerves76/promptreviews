@@ -1,6 +1,9 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import Icon from '@/components/Icon';
+import OverviewStats from '@/components/GoogleBusinessProfile/OverviewStats';
+import BusinessHealthMetrics from '@/components/GoogleBusinessProfile/BusinessHealthMetrics';
 
 const RESIZE_EVENT_TYPE = 'google-business-optimizer:resize';
 const REQUEST_RESIZE_EVENT_TYPE = 'google-business-optimizer:request-resize';
@@ -161,13 +164,92 @@ export default function GoogleBusinessOptimizerEmbed({
     };
   }, [targetOrigins]);
 
-  const metrics = useMemo(
-    () => [
-      { label: 'Visibility Score', value: '82', change: '+6% vs last month' },
-      { label: 'Review Response Rate', value: '92%', change: 'Respond within 12 hrs' },
-      { label: 'Profile Completeness', value: '78%', change: 'Add services + Q&A' },
-      { label: 'Search Appearances', value: '12.4k', change: '+1.8k last 30 days' },
-    ],
+  const overviewStatsData = useMemo(
+    () => ({
+      totalReviews: 247,
+      reviewTrend: 23,
+      averageRating: 4.7,
+      monthlyReviewData: [
+        { month: 'Oct', fiveStar: 18, fourStar: 3, threeStar: 1, twoStar: 0, oneStar: 0, noRating: 0 },
+        { month: 'Nov', fiveStar: 19, fourStar: 4, threeStar: 1, twoStar: 0, oneStar: 0, noRating: 0 },
+        { month: 'Dec', fiveStar: 21, fourStar: 5, threeStar: 2, twoStar: 0, oneStar: 1, noRating: 0 },
+        { month: 'Jan', fiveStar: 24, fourStar: 6, threeStar: 2, twoStar: 0, oneStar: 0, noRating: 0 },
+        { month: 'Feb', fiveStar: 27, fourStar: 5, threeStar: 1, twoStar: 1, oneStar: 0, noRating: 0 },
+        { month: 'Mar', fiveStar: 31, fourStar: 6, threeStar: 2, twoStar: 0, oneStar: 0, noRating: 0 },
+      ],
+    }),
+    [],
+  );
+
+  const businessHealthData = useMemo(
+    () => ({
+      profileData: {
+        categoriesUsed: 3,
+        maxCategories: 9,
+        servicesCount: 12,
+        servicesWithDescriptions: 9,
+        businessDescriptionLength: 640,
+        businessDescriptionMaxLength: 750,
+        seoScore: 82,
+        photosByCategory: {
+          LOGO: 1,
+          COVER: 2,
+          INTERIOR: 14,
+          EXTERIOR: 9,
+          TEAM: 4,
+          PRODUCT: 16,
+        },
+        businessAttributes: 12,
+        productsCount: 6,
+      },
+      engagementData: {
+        unrespondedReviews: 8,
+        totalReviews: 247,
+        totalQuestions: 17,
+        unansweredQuestions: 2,
+        recentPosts: 2,
+        recentPhotos: 5,
+        lastPostDate: '3 days ago',
+        lastPhotoDate: '1 week ago',
+      },
+      performanceData: {
+        monthlyViews: 12400,
+        viewsTrend: 12,
+        topSearchQueries: ['artisan bread near me', 'downtown seattle bakery', 'gluten free cupcakes'],
+        customerActions: {
+          websiteClicks: 420,
+          phoneCalls: 138,
+          directionRequests: 352,
+          photoViews: 18400,
+        },
+      },
+      opportunities: [
+        {
+          id: 'respond-reviews',
+          priority: 'high',
+          title: 'Reply to 8 new reviews',
+          description: 'Keep response time under 12 hours to protect your customer experience badge.',
+        },
+        {
+          id: 'add-services',
+          priority: 'medium',
+          title: 'Publish 3 seasonal services',
+          description: 'Highlight catering, wreath workshops, and private events for holiday discovery.',
+        },
+        {
+          id: 'post-update',
+          priority: 'medium',
+          title: 'Share a March specials post',
+          description: 'Posts weekly keep you in the Updates carousel and boost discovery searches.',
+        },
+        {
+          id: 'upload-photos',
+          priority: 'low',
+          title: 'Add 6 fresh product photos',
+          description: 'Profiles with current photos see 35% more site visits on average.',
+        },
+      ],
+    }),
     [],
   );
 
@@ -195,82 +277,66 @@ export default function GoogleBusinessOptimizerEmbed({
   return (
     <div
       ref={containerRef}
-      className="min-h-screen w-full bg-gradient-to-b from-slate-50 via-white to-slate-100 text-slate-800"
+      className="min-h-screen w-full bg-slate-50 text-slate-800"
     >
-      <header className="bg-[#3341b8] text-white px-6 py-10 shadow-lg">
-        <div className="mx-auto flex max-w-5xl flex-col gap-4 text-center sm:text-left">
-          <p className="text-sm uppercase tracking-[0.25rem] text-indigo-200">Google Biz Optimizer™</p>
-          <h1 className="text-3xl font-semibold sm:text-4xl">See how your profile could perform at its best</h1>
-          <p className="max-w-2xl text-indigo-100">
-            Explore a live dashboard with sample data. When you’re ready, connect your own Google Business
-            Profile for a tailored optimization plan.
-          </p>
-          <div className="flex flex-col items-center gap-3 sm:flex-row">
-            <button className="rounded-full bg-white px-8 py-3 text-sm font-semibold text-[#3341b8] shadow-md transition hover:bg-slate-100">
-              Analyze my business →
-            </button>
-            <button className="rounded-full border border-white/70 px-8 py-3 text-sm font-semibold text-white transition hover:bg-white/10">
-              Download sample report
-            </button>
-          </div>
-        </div>
-      </header>
-
-      <main className="mx-auto flex w-full max-w-5xl flex-col gap-10 px-6 py-10">
-        <section className="grid gap-6 sm:grid-cols-2">
-          {metrics.map((metric) => (
-            <article
-              key={metric.label}
-              className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-md"
-            >
-              <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-                {metric.label}
+      <main className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-6 py-10">
+        <section className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide text-emerald-600">
+                Viewing Example Dashboard
               </p>
-              <p className="mt-4 text-3xl font-bold text-slate-900">{metric.value}</p>
-              <p className="mt-2 text-sm text-slate-500">{metric.change}</p>
-            </article>
-          ))}
-        </section>
-
-        <section className="rounded-2xl border border-slate-200/80 bg-white p-8 shadow-sm">
-          <h2 className="text-xl font-semibold text-slate-900">This week’s quick wins</h2>
-          <p className="mt-2 text-sm text-slate-500">
-            These high-impact optimizations are prioritized for local search visibility. Upgrade to sync your
-            real results in seconds.
-          </p>
-          <ul className="mt-6 space-y-5">
-            {opportunityItems.map((item) => (
-              <li key={item.title} className="flex flex-col gap-1 rounded-xl border border-slate-200/70 p-4">
-                <div className="flex items-center justify-between">
-                  <p className="text-base font-medium text-slate-900">{item.title}</p>
-                  <span className="rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-[#3341b8]">
-                    {item.impact}
-                  </span>
-                </div>
-                <p className="text-sm text-slate-500">{item.detail}</p>
-              </li>
-            ))}
-          </ul>
-        </section>
-
-        <section className="rounded-2xl bg-[#3341b8] px-8 py-10 text-white">
-          <h2 className="text-2xl font-semibold">Ready to see your real data?</h2>
-          <p className="mt-2 max-w-2xl text-indigo-100">
-            Connect your Google Business Profile to unlock live insights, automated monitoring, and a
-            weekly action plan tuned to your location.
-          </p>
-          <div className="mt-6 flex flex-col gap-4 sm:flex-row">
-            <button className="rounded-full bg-white px-6 py-3 text-sm font-semibold text-[#3341b8] shadow hover:bg-slate-100">
-              Start free analysis
-            </button>
-            <button className="rounded-full border border-white/60 px-6 py-3 text-sm font-semibold text-white/90 hover:bg-white/10">
-              View sample checklist
-            </button>
+              <h1 className="mt-2 text-2xl font-semibold text-gray-900">Sarah&apos;s Boutique Bakery</h1>
+              <p className="text-sm text-gray-600">Downtown Seattle · Main Street</p>
+            </div>
+            <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3">
+              <p className="text-xs uppercase tracking-wide text-emerald-600">Momentum this quarter</p>
+              <p className="text-lg font-semibold text-emerald-700">+124 reviews acquired</p>
+              <p className="text-xs text-emerald-600/80">Embed the Optimizer to preview live results for your own locations.</p>
+            </div>
           </div>
-          <p className="mt-4 text-xs uppercase tracking-[0.2em] text-indigo-200">
-            No credit card required · Secure Google OAuth · GDPR compliant
-          </p>
+
+          <div className="mt-6 border-t border-gray-200 pt-6">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h2 className="text-xl font-semibold text-gray-900">Overview</h2>
+                <p className="text-sm text-gray-600">
+                  Monitor reviews, profile health, and engagement for your Google Business locations.
+                </p>
+              </div>
+              <button
+                className="flex items-center gap-2 rounded-full border border-dashed border-gray-300 px-4 py-2 text-sm font-medium text-gray-500"
+                type="button"
+                disabled
+              >
+                <Icon name="MdDownload" className="h-4 w-4" />
+                Download PDF (full app)
+              </button>
+            </div>
+
+            <div className="mt-6">
+              <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">Locations</p>
+              <div className="rounded-md border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700">
+                Google Business Profile: Sarah&apos;s Boutique Bakery · Main Street
+              </div>
+            </div>
+          </div>
         </section>
+
+        <OverviewStats
+          totalReviews={overviewStatsData.totalReviews}
+          reviewTrend={overviewStatsData.reviewTrend}
+          averageRating={overviewStatsData.averageRating}
+          monthlyReviewData={overviewStatsData.monthlyReviewData}
+        />
+
+        <BusinessHealthMetrics
+          locationId="example-location"
+          profileData={businessHealthData.profileData}
+          engagementData={businessHealthData.engagementData}
+          performanceData={businessHealthData.performanceData}
+          optimizationOpportunities={businessHealthData.opportunities}
+        />
       </main>
     </div>
   );

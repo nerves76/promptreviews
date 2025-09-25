@@ -9,17 +9,11 @@ export const metadata: Metadata = {
 };
 
 // Minimal root layout for embeds - uses minimal CSS without gradient
-export default function EmbedRootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function EmbedRootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className="">
-      <body style={{ margin: 0, padding: 0, background: 'transparent' }}>
-        <IconSpriteInjector />
-        {children}
-      </body>
-    </html>
+    <div className="gb-embed-shell" style={{ margin: 0, padding: 0 }}>
+      <IconSpriteInjector />
+      {children}
+    </div>
   );
 }
