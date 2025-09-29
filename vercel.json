@@ -26,6 +26,10 @@
     {
       "path": "/api/cron/cleanup-google-business-scheduled",
       "schedule": "0 14 15 * *"
+    },
+    {
+      "path": "/api/cron/send-optimizer-emails",
+      "schedule": "0 */2 * * *"
     }
   ],
   "buildCommand": "npm run build",

@@ -129,6 +129,7 @@ Configure these in the Next.js app that serves the embed and API routes:
 | Height not updating | Parent origin not allowlisted | Confirm `allowedOrigins` in host script matches marketing domain |
 | Google auth popup blocked | Browser prevented popups | Trigger auth from direct user interaction (button click) |
 | Leads missing in Supabase | Session token hash mismatch | Ensure API route hashes the JWT before persisting |
+| Need debug payloads locally | Request missing session header | Call `/api/embed/google-business/data` with `Authorization: Bearer <token>` or simpler `x-session-token: <token>`; grab the token with `localStorage.getItem('google-biz-optimizer-token')` in DevTools |
 
 ## Resources
 

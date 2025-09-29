@@ -55,21 +55,34 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Parse state to get return URL - always stay on Connect tab
-          let returnUrl = '/dashboard/google-business?tab=connect';
+    // Parse state to check if this is an embed flow
+    let returnUrl = '/dashboard/google-business?tab=connect';
+    let isEmbed = false;
     if (state) {
       try {
         const stateData = JSON.parse(decodeURIComponent(state));
         returnUrl = stateData.returnUrl || '/dashboard/google-business?tab=connect';
-        // Make sure we stay on the Connect tab
-        if (!returnUrl.includes('tab=')) {
+        isEmbed = stateData.embed === true;
+
+        // If this is an embed flow, redirect to the embed-specific callback
+        if (isEmbed) {
+          // Forward to embed-specific callback with all params
+          const embedCallbackUrl = new URL('/api/embed/auth/google-business/callback', request.url);
+          embedCallbackUrl.searchParams.set('code', code);
+          embedCallbackUrl.searchParams.set('state', state);
+          if (error) embedCallbackUrl.searchParams.set('error', error);
+          return NextResponse.redirect(embedCallbackUrl);
+        }
+
+        // Only add tab=connect for non-embed dashboard pages
+        if (!returnUrl.includes('tab=') && returnUrl.includes('/dashboard/google-business')) {
           returnUrl = returnUrl.includes('?') ? `${returnUrl}&tab=connect` : `${returnUrl}?tab=connect`;
         }
       } catch (e) {
       }
     }
 
-    // 🔧 FIX: Add retry logic for authentication check
+    // 🔧 FIX: Add retry logic for authentication check (skip for embeds)
     // Sometimes the session isn't immediately available after OAuth redirect
     // IMPORTANT: Don't fail auth during OAuth - it might just be session refresh timing
     let user = null;
@@ -77,9 +90,11 @@ export async function GET(request: NextRequest) {
     let retryCount = 0;
     const maxRetries = 10; // Increased retries for OAuth flow
     
-    // First, try to refresh the session to ensure we have the latest
-    try {
-      const { data: { session: refreshedSession }, error: refreshError } = await supabase.auth.refreshSession();
+    // Skip auth check for embed flows
+    if (!isEmbed) {
+      // First, try to refresh the session to ensure we have the latest
+      try {
+        const { data: { session: refreshedSession }, error: refreshError } = await supabase.auth.refreshSession();
       if (refreshedSession?.user && !refreshError) {
         user = refreshedSession.user;
       } else {
@@ -133,8 +148,9 @@ export async function GET(request: NextRequest) {
         }
       }
     }
-    
-    if (authError || !user) {
+    } // End if (!isEmbed)
+
+    if (!isEmbed && (authError || !user)) {
       
       // IMPORTANT: During OAuth, the session might be in transition
       // Don't fail the OAuth flow - continue and let the client-side handle auth

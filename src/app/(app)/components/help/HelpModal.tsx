@@ -25,8 +25,7 @@ export default function HelpModal({
   const pathname = usePathname();
   const [activeTab, setActiveTab] = useState<TabType>(initialTab);
 
-  // Debug logging
-  console.log('HelpModal - initialArticleId:', initialArticleId);
+  // Debug logging removed to reduce console noise
   
   // Get context information from current page or use provided keywords
   const pageContext = getContextFromPath(pathname);

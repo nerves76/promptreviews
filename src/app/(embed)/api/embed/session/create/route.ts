@@ -75,6 +75,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'email is required' }, { status: 400 });
     }
 
+    let isNewLead = false;
     if (!leadId) {
       const lead = await createLead({
         email,
@@ -86,6 +87,7 @@ export async function POST(request: NextRequest) {
         referrerUrl: body.referrerUrl,
       });
       leadId = lead.id;
+      isNewLead = true;
     }
 
     const session = await createSession({
@@ -96,11 +98,34 @@ export async function POST(request: NextRequest) {
       expiresInMinutes: body.expiresInMinutes,
     });
 
+    // Send welcome email for new leads (async, don't wait for it)
+    if (isNewLead && leadId) {
+      try {
+        console.log(`Triggering welcome email for new optimizer lead: ${leadId}`);
+
+        // Make async call to welcome email API
+        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://app.promptreviews.app';
+        fetch(`${baseUrl}/api/optimizer/send-welcome-email`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ leadId }),
+        }).catch(error => {
+          console.error(`Failed to trigger welcome email for lead ${leadId}:`, error);
+        });
+      } catch (error) {
+        // Don't fail the session creation if email fails
+        console.error(`Error triggering welcome email for lead ${leadId}:`, error);
+      }
+    }
+
     return NextResponse.json({
       token: session.token,
       expiresAt: session.expiresAt,
       sessionId: session.sessionId,
       sessionKeyVersion: session.sessionKeyVersion,
+      leadId: leadId,
     });
   } catch (error) {
     console.error('Failed to create optimizer embed session', error);
