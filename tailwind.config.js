@@ -9,8 +9,9 @@ module.exports = {
   safelist: [
     // Backdrop filter and transparency classes for dropdowns and glassmorphic elements
     "backdrop-blur-xl", "backdrop-blur-md", "backdrop-blur-sm", "backdrop-blur", "backdrop-filter",
-    "bg-white/70", "bg-white/85", "bg-white/90", "bg-white/95", "border-white/30",
+    "bg-white/70", "bg-white/85", "bg-white/90", "bg-white/95", "border-white/30", "border-white/20",
     "bg-white/10", "bg-white/20", "hover:bg-white/20", "hover:bg-white/30",
+    "bg-black/40",
     // Dark glass effect classes for menus and dropdowns
     "bg-gray-800/90", "bg-gray-800/85", "bg-gray-900/95", "bg-gray-900/90", "bg-gray-900/85",
     "bg-black/70", "bg-black/80", "bg-black/85", "bg-black/90", "bg-black/95",

@@ -85,6 +85,8 @@ function filterBusinessProfile(business: any) {
     // Card styling (needed for proper display)
     card_bg: business.card_bg,
     card_text: business.card_text,
+    card_placeholder_color: business.card_placeholder_color,
+    input_text_color: business.input_text_color,
     card_inner_shadow: business.card_inner_shadow,
     card_shadow_color: business.card_shadow_color,
     card_shadow_intensity: business.card_shadow_intensity,
@@ -303,6 +305,15 @@ export async function GET(
           gradient_start: '#4F46E5',
           gradient_middle: '#818CF8',
           gradient_end: '#C7D2FE',
+          card_bg: '#FFFFFF',
+          card_text: '#FFFFFF',
+          card_placeholder_color: '#9CA3AF',
+          input_text_color: '#1F2937',
+          card_transparency: 0.95,
+          card_border_width: 1,
+          card_border_color: '#FFFFFF',
+          card_border_transparency: 0.5,
+          card_inner_shadow: false,
           created_at: new Date().toISOString(), // Will be filtered out
           updated_at: new Date().toISOString() // Will be filtered out
         };

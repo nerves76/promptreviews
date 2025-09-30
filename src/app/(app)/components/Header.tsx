@@ -535,7 +535,7 @@ const Header = React.memo(function Header() {
                     />
                     <div
                       ref={menuRef}
-                      className="fixed w-80 bg-gray-900/95 backdrop-blur-md rounded-lg shadow-2xl border border-white/30"
+                      className="fixed w-80 bg-white/10 backdrop-blur-xl rounded-lg shadow-2xl border border-white/20"
                       style={{
                         maxHeight: '400px',
                         overflowY: 'auto',
@@ -705,17 +705,23 @@ const Header = React.memo(function Header() {
                   
                   {/* Mobile Account Switcher Dropdown - Rendered in Portal */}
                   {mobileAccountSwitcherOpen && mounted && createPortal(
-                    <div
-                      ref={mobileAccountDropdownRef}
-                      className="fixed left-4 right-4 bg-gray-900/95 backdrop-blur-md rounded-lg shadow-2xl border border-white/30 overflow-hidden"
-                      style={{
-                        zIndex: 2147483648,
-                        top: mobileAccountSwitcherRef.current ? mobileAccountSwitcherRef.current.getBoundingClientRect().bottom + 8 : 0,
-                        maxWidth: '400px',
-                        marginLeft: 'auto',
-                        marginRight: 'auto'
-                      }}
-                    >
+                    <>
+                      <div
+                        className="fixed inset-0 bg-black/40"
+                        style={{ zIndex: 2147483647 }}
+                        onClick={() => setMobileAccountSwitcherOpen(false)}
+                      />
+                      <div
+                        ref={mobileAccountDropdownRef}
+                        className="fixed left-4 right-4 bg-white/10 backdrop-blur-xl rounded-lg shadow-2xl border border-white/20 overflow-hidden"
+                        style={{
+                          zIndex: 2147483648,
+                          top: mobileAccountSwitcherRef.current ? mobileAccountSwitcherRef.current.getBoundingClientRect().bottom + 8 : 0,
+                          maxWidth: '400px',
+                          marginLeft: 'auto',
+                          marginRight: 'auto'
+                        }}
+                      >
                       {/* Inline account switcher content since AccountSwitcher component has its own button */}
                       <div className="px-4 py-3 border-b border-white/20">
                         <div className="flex items-center gap-2">
@@ -768,7 +774,8 @@ const Header = React.memo(function Header() {
                           </button>
                         ))}
                       </div>
-                    </div>,
+                    </div>
+                    </>,
                     document.body
                   )}
                 </>

@@ -27,7 +27,6 @@ import { getAccessibleColor, applyCardTransparency } from "@/utils/colorUtils";
 import { getFallingIcon, getFallingIconColor } from "@/app/(app)/components/prompt-modules/fallingStarsConfig";
 import { GLASSY_DEFAULTS, INPUT_TEXT_COLOR } from "@/app/(app)/config/styleDefaults";
 import dynamic from "next/dynamic";
-import "./input-text-override.css";
 // 🔧 CONSOLIDATED: Single import from supabaseClient module
 import { createClient, getUserOrMock } from "@/auth/providers/supabase";
 import { getAccountIdForUser } from "@/auth/utils/accounts";
@@ -140,6 +139,8 @@ interface BusinessProfile {
   address_zip?: string;
   card_bg: string;
   card_text: string;
+  card_placeholder_color?: string;
+  input_text_color?: string;
   card_inner_shadow?: boolean;
   card_shadow_color?: string;
   card_shadow_intensity?: number;
@@ -226,6 +227,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
     card_border_color: "#FFFFFF",
     card_border_transparency: 0.5,
     card_placeholder_color: "#9CA3AF",
+    input_text_color: "#1F2937",
     card_inner_shadow: true,
     card_shadow_color: "#FFFFFF",
     card_shadow_intensity: 0.30,
@@ -520,6 +522,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
             card_bg: '#FFFFFF',
             card_text: '#1A1A1A',
             card_placeholder_color: '#9CA3AF',
+            input_text_color: '#1F2937',
             card_transparency: 0.95,
             card_border_width: 1,
             card_border_color: '#FFFFFF',
@@ -1958,11 +1961,12 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                                 value={feedbackFirstName}
                                 onChange={(e) => setFeedbackFirstName(e.target.value)}
                                 placeholder="John"
-                                className="mt-1 block w-full rounded-lg focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm py-3 px-4 !text-gray-800"
+                                className="mt-1 block w-full rounded-lg focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm py-3 px-4 prompt-input"
                                 style={{
                                   background: businessProfile?.card_bg || "#F9FAFB",
                                   boxShadow: "inset 0 2px 4px 0 rgba(0,0,0,0.2), inset 0 1px 2px 0 rgba(0,0,0,0.15)",
                                   border: "none",
+                                  color: '#000000',
                                 }}
                                 required
                               />
@@ -1981,11 +1985,12 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                                 value={feedbackLastName}
                                 onChange={(e) => setFeedbackLastName(e.target.value)}
                                 placeholder="Smith"
-                                className="mt-1 block w-full rounded-lg focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm py-3 px-4 !text-gray-800"
+                                className="mt-1 block w-full rounded-lg focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm py-3 px-4 prompt-input"
                                 style={{
                                   background: businessProfile?.card_bg || "#F9FAFB",
                                   boxShadow: "inset 0 2px 4px 0 rgba(0,0,0,0.2), inset 0 1px 2px 0 rgba(0,0,0,0.15)",
                                   border: "none",
+                                  color: '#000000',
                                 }}
                                 required
                               />
@@ -2006,11 +2011,12 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                                 value={feedbackEmail}
                                 onChange={(e) => setFeedbackEmail(e.target.value)}
                                 placeholder="john@example.com"
-                                className="mt-1 block w-full rounded-lg focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm py-3 px-4 !text-gray-800"
+                                className="mt-1 block w-full rounded-lg focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm py-3 px-4 prompt-input"
                                 style={{
                                   background: businessProfile?.card_bg || "#F9FAFB",
                                   boxShadow: "inset 0 2px 4px 0 rgba(0,0,0,0.2), inset 0 1px 2px 0 rgba(0,0,0,0.15)",
                                   border: "none",
+                                  color: '#000000',
                                 }}
                               />
                             </div>
@@ -2027,11 +2033,12 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                                 value={feedbackPhone}
                                 onChange={(e) => setFeedbackPhone(e.target.value)}
                                 placeholder="(555) 123-4567"
-                                className="mt-1 block w-full rounded-lg focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm py-3 px-4 !text-gray-800"
+                                className="mt-1 block w-full rounded-lg focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm py-3 px-4 prompt-input"
                                 style={{
                                   background: businessProfile?.card_bg || "#F9FAFB",
                                   boxShadow: "inset 0 2px 4px 0 rgba(0,0,0,0.2), inset 0 1px 2px 0 rgba(0,0,0,0.15)",
                                   border: "none",
+                                  color: '#000000',
                                 }}
                               />
                             </div>
@@ -2047,7 +2054,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                             </label>
                             <textarea
                               id="feedback"
-                              className="w-full rounded-lg border border-gray-300 p-4 min-h-[120px] focus:ring-2 focus:ring-indigo-400 !text-gray-800"
+                              className="w-full rounded-lg p-4 min-h-[120px] focus:ring-2 focus:ring-indigo-400 prompt-input"
                               placeholder={mergedEmojiFeedbackMessage}
                               value={feedback}
                               onChange={(e) => setFeedback(e.target.value)}
@@ -2055,7 +2062,8 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                               style={{
                                 background: businessProfile?.card_bg || "#F9FAFB",
                                 boxShadow: "inset 0 2px 4px 0 rgba(0,0,0,0.2), inset 0 1px 2px 0 rgba(0,0,0,0.15)",
-                                  border: "none",
+                                border: "none",
+                                color: businessProfile?.input_text_color || '#1F2937',
                               }}
                             />
                           </div>
@@ -2219,11 +2227,12 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                               value={photoReviewerFirstName}
                               onChange={(e) => setPhotoReviewerFirstName(e.target.value)}
                               placeholder="Sally"
-                              className="w-full mt-1 mb-2 p-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                              className="w-full mt-1 mb-2 p-3 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm prompt-input"
                               style={{
                                 background: businessProfile?.card_bg || "#F9FAFB",
                                 boxShadow: "inset 0 2px 4px 0 rgba(0,0,0,0.2), inset 0 1px 2px 0 rgba(0,0,0,0.15)",
-                                  border: "none",
+                                border: "none",
+                                color: businessProfile?.input_text_color || '#1F2937',
                               }}
                               required
                             />
@@ -2241,11 +2250,12 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                               value={photoReviewerLastName}
                               onChange={(e) => setPhotoReviewerLastName(e.target.value)}
                               placeholder="Walden"
-                              className="w-full mt-1 mb-2 p-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                              className="w-full mt-1 mb-2 p-3 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm prompt-input"
                               style={{
                                 background: businessProfile?.card_bg || "#F9FAFB",
                                 boxShadow: "inset 0 2px 4px 0 rgba(0,0,0,0.2), inset 0 1px 2px 0 rgba(0,0,0,0.15)",
-                                  border: "none",
+                                border: "none",
+                                color: businessProfile?.input_text_color || '#1F2937',
                               }}
                               required
                             />
@@ -2267,11 +2277,12 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                               value={photoReviewerRole}
                               onChange={(e) => setPhotoReviewerRole(e.target.value)}
                               placeholder="Customer"
-                              className="w-full mt-1 mb-2 p-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                              className="w-full mt-1 mb-2 p-3 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm prompt-input"
                               style={{
                                 background: businessProfile?.card_bg || "#F9FAFB",
                                 boxShadow: "inset 0 2px 4px 0 rgba(0,0,0,0.2), inset 0 1px 2px 0 rgba(0,0,0,0.15)",
-                                  border: "none",
+                                border: "none",
+                                color: businessProfile?.input_text_color || '#1F2937',
                               }}
                             />
                           </div>
@@ -2290,12 +2301,13 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                             value={testimonial}
                             onChange={(e) => setTestimonial(e.target.value)}
                             placeholder={promptPage?.no_platform_review_template || "Share your experience..."}
-                            className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm !text-gray-800"
+                            className="w-full p-3 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm prompt-input"
                             rows={4}
                             style={{
                               background: businessProfile?.card_bg || "#F9FAFB",
                               boxShadow: "inset 0 2px 4px 0 rgba(0,0,0,0.2), inset 0 1px 2px 0 rgba(0,0,0,0.15)",
-                                  border: "none",
+                              border: "none",
+                              color: businessProfile?.input_text_color || '#1F2937',
                             }}
                             required
                           />
@@ -2792,7 +2804,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
               Copy Your Review
             </h2>
             <textarea
-              className="w-full rounded-lg border p-3 mb-4 text-base focus:outline-none !text-gray-800"
+              className="w-full rounded-lg border p-3 mb-4 text-base focus:outline-none prompt-input"
               value={fallbackModalText}
               readOnly
               rows={5}
@@ -2801,7 +2813,8 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
               style={{
                 background: businessProfile?.card_bg || "#F9FAFB",
                 borderColor: businessProfile?.primary_color || "#4F46E5",
-                boxShadow: `0 0 0 2px ${businessProfile?.primary_color || "#4F46E5"}33`
+                boxShadow: `0 0 0 2px ${businessProfile?.primary_color || "#4F46E5"}33`,
+                ['--input-text-color' as any]: businessProfile?.input_text_color || '#1F2937',
               }}
             />
             {copySuccess && (

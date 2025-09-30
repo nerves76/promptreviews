@@ -24,7 +24,7 @@ const helpCategories = [
     id: 'getting-started',
     title: 'Getting started',
     description: 'Complete guide to setting up your account',
-    icon: 'FaCheckCircle',
+    icon: 'FaRocket',
     color: 'green',
     articles: [
       { id: 'quickstart-overview', title: 'Overview', path: '/getting-started' },
@@ -40,7 +40,7 @@ const helpCategories = [
     id: 'prompt-pages',
     title: 'Prompt pages',
     description: 'Create and manage review collection pages',
-    icon: 'PromptPageIcon',
+    icon: 'FaGlobe',
     color: 'blue',
     articles: [
       { id: 'prompt-overview', title: 'Overview', path: '/prompt-pages' },
@@ -198,13 +198,13 @@ export default function TutorialsTabNew({
       // Map pages to relevant articles
       if (pathname.includes('dashboard')) {
         featured.push(
-          { id: 'quickstart-overview', title: 'Getting Started Guide', category: 'getting-started', icon: 'FaCheckCircle' },
-          { id: 'prompt-universal', title: 'Create Universal Prompt Page', category: 'prompt-pages', icon: 'PromptPageIcon' },
+          { id: 'quickstart-overview', title: 'Getting Started Guide', category: 'getting-started', icon: 'FaRocket' },
+          { id: 'prompt-universal', title: 'Create Universal Prompt Page', category: 'prompt-pages', icon: 'FaGlobe' },
           { id: 'reviews-dashboard', title: 'Managing Reviews', category: 'reviews', icon: 'FaStar' }
         );
       } else if (pathname.includes('plan')) {
         featured.push(
-          { id: 'quickstart-choosing-plan', title: 'Choosing the Right Plan', category: 'getting-started', icon: 'FaCheckCircle' },
+          { id: 'quickstart-choosing-plan', title: 'Choosing the Right Plan', category: 'getting-started', icon: 'FaRocket' },
           { id: 'billing', title: 'Billing Information', category: 'settings', icon: 'FaCreditCard' }
         );
       } else if (pathname.includes('google-business')) {
@@ -217,7 +217,7 @@ export default function TutorialsTabNew({
         featured.push(
           { id: 'widgets-overview', title: 'Widget Types', category: 'widgets', icon: 'FaCode' },
           { id: 'style-settings', title: 'Customize Widget Style', category: 'widgets', icon: 'FaPaintBrush' },
-          { id: 'quickstart-widget', title: 'Widget Setup Guide', category: 'getting-started', icon: 'FaCheckCircle' }
+          { id: 'quickstart-widget', title: 'Widget Setup Guide', category: 'getting-started', icon: 'FaRocket' }
         );
       } else if (pathname.includes('contacts')) {
         featured.push(
@@ -227,8 +227,8 @@ export default function TutorialsTabNew({
       } else {
         // Default featured articles
         featured.push(
-          { id: 'quickstart-overview', title: 'Getting Started Guide', category: 'getting-started', icon: 'FaCheckCircle' },
-          { id: 'prompt-overview', title: 'Understanding Prompt Pages', category: 'prompt-pages', icon: 'PromptPageIcon' },
+          { id: 'quickstart-overview', title: 'Getting Started Guide', category: 'getting-started', icon: 'FaRocket' },
+          { id: 'prompt-overview', title: 'Understanding Prompt Pages', category: 'prompt-pages', icon: 'FaGlobe' },
           { id: 'reviews-dashboard', title: 'Reviews Dashboard', category: 'reviews-management', icon: 'FaStar' }
         );
       }

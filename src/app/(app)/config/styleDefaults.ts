@@ -19,7 +19,7 @@ export const GLASSY_DEFAULTS = {
   gradient_middle: '#7864C8',
   gradient_end: '#914AAE',
   card_bg: '#FFFFFF',
-  card_text: '#FFFFFF',
+  card_text: '#FFFFFF', // White text for glassy design
   card_placeholder_color: '#9CA3AF',
   card_transparency: 0.30,
   card_border_width: 1,
@@ -29,9 +29,10 @@ export const GLASSY_DEFAULTS = {
   card_shadow_color: '#FFFFFF',
   card_shadow_intensity: 0.30,
   kickstarters_background_design: false,
+  input_text_color: '#1F2937', // Default dark text for inputs
 } as const;
 
-// Input field text should always be dark for readability, regardless of card_text color
+// Input field text color - now customizable via style settings
 export const INPUT_TEXT_COLOR = '#1F2937';
 
 export type StyleDefaults = typeof GLASSY_DEFAULTS;

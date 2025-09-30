@@ -131,6 +131,7 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
       card_bg: "#1E3A8A",
       card_text: "#F1F5F9",
       card_placeholder_color: "#94A3B8",
+      input_text_color: "#F1F5F9",
       card_inner_shadow: true,
       card_shadow_color: "#000000",
       card_shadow_intensity: 0.30,
@@ -154,6 +155,7 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
       card_bg: "#FEFCF3",
       card_text: "#1F2937",
       card_placeholder_color: "#9CA3AF",
+      input_text_color: "#1F2937",
       card_inner_shadow: true,
       card_shadow_color: "#92400E",
       card_shadow_intensity: 0.20,
@@ -177,6 +179,7 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
       card_bg: "#F5F3F0",
       card_text: "#1F2937",
       card_placeholder_color: "#6B7280",
+      input_text_color: "#1F2937",
       card_inner_shadow: false,
       card_shadow_color: "#000000",
       card_shadow_intensity: 0.10,
@@ -200,6 +203,7 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
       card_bg: "#FFFFFF",
       card_text: "#1F2937",
       card_placeholder_color: "#9CA3AF",
+      input_text_color: "#1F2937",
       card_inner_shadow: false,
       card_shadow_color: "#000000",
       card_shadow_intensity: 0.15,
@@ -391,6 +395,7 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
           // Newer/optional columns (use the default from our presets if missing in DB)
           gradient_middle: business.gradient_middle || "#7864C8",
           card_placeholder_color: business.card_placeholder_color || settings.card_placeholder_color,
+          input_text_color: business.input_text_color || '#1F2937',
           card_inner_shadow: (business.card_inner_shadow ?? settings.card_inner_shadow) as boolean,
           card_shadow_color: business.card_shadow_color || settings.card_shadow_color,
           card_shadow_intensity: (business.card_shadow_intensity ?? settings.card_shadow_intensity) as number,
@@ -518,6 +523,7 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
         // Advanced fields
         gradient_middle: settings.gradient_middle || null,
         card_placeholder_color: settings.card_placeholder_color,
+        input_text_color: settings.input_text_color || '#1F2937',
         card_inner_shadow: settings.card_inner_shadow,
         card_shadow_color: settings.card_shadow_color,
         card_shadow_intensity: settings.card_shadow_intensity,
@@ -949,37 +955,51 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
             placeholder="#FFFFFF"
           />
         </div>
-          <div className="bg-white rounded-lg shadow p-6">
-              <div className="flex items-center mb-3">
-                <label className="text-sm font-medium text-gray-700">Card Text Color</label>
-                <Tooltip text="Text color for content inside review cards and sections" />
-              </div>
-              <input type="color" value={settings.card_text} onChange={e => setSettings(s => ({ ...s, card_text: e.target.value }))} className="w-full h-10 rounded cursor-pointer" />
-              <input 
-                type="text" 
-                value={settings.card_text} 
-                onChange={e => handleHexInputChange('card_text', e.target.value)}
-                className="w-full mt-2 px-2 py-1 text-xs border rounded bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent" 
-                placeholder="#1A1A1A"
-              />
-            </div>
-          <div className="bg-white rounded-lg shadow p-6">
-              <div className="flex items-center mb-3">
-                <label className="text-sm font-medium text-gray-700">Placeholder Text Color</label>
-                <Tooltip text="Color for placeholder text in input fields and text areas" />
-              </div>
-              <input type="color" value={settings.card_placeholder_color} onChange={e => setSettings(s => ({ ...s, card_placeholder_color: e.target.value }))} className="w-full h-10 rounded cursor-pointer" />
-              <input 
-                type="text" 
-                value={settings.card_placeholder_color} 
-                onChange={e => handleHexInputChange('card_placeholder_color', e.target.value)}
-                className="w-full mt-2 px-2 py-1 text-xs border rounded bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent" 
-                placeholder="#9CA3AF"
-              />
-            </div>
+        <div className="bg-white rounded-lg shadow p-6">
+          <div className="flex items-center mb-3">
+            <label className="text-sm font-medium text-gray-700">Card Text Color</label>
+            <Tooltip text="Text color for content inside review cards and sections" />
+          </div>
+          <input type="color" value={settings.card_text} onChange={e => setSettings(s => ({ ...s, card_text: e.target.value }))} className="w-full h-10 rounded cursor-pointer" />
+          <input
+            type="text"
+            value={settings.card_text}
+            onChange={e => handleHexInputChange('card_text', e.target.value)}
+            className="w-full mt-2 px-2 py-1 text-xs border rounded bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent"
+            placeholder="#1A1A1A"
+          />
+        </div>
+        <div className="bg-white rounded-lg shadow p-6">
+          <div className="flex items-center mb-3">
+            <label className="text-sm font-medium text-gray-700">Input Text Color</label>
+            <Tooltip text="Text color for input fields and textareas (the text users type)" />
+          </div>
+          <input type="color" value={settings.input_text_color || '#1F2937'} onChange={e => setSettings(s => ({ ...s, input_text_color: e.target.value }))} className="w-full h-10 rounded cursor-pointer" />
+          <input
+            type="text"
+            value={settings.input_text_color || '#1F2937'}
+            onChange={e => handleHexInputChange('input_text_color', e.target.value)}
+            className="w-full mt-2 px-2 py-1 text-xs border rounded bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent"
+            placeholder="#1F2937"
+          />
+        </div>
+        <div className="bg-white rounded-lg shadow p-6">
+          <div className="flex items-center mb-3">
+            <label className="text-sm font-medium text-gray-700">Placeholder Text Color</label>
+            <Tooltip text="Color for placeholder text in input fields and text areas" />
+          </div>
+          <input type="color" value={settings.card_placeholder_color} onChange={e => setSettings(s => ({ ...s, card_placeholder_color: e.target.value }))} className="w-full h-10 rounded cursor-pointer" />
+          <input
+            type="text"
+            value={settings.card_placeholder_color}
+            onChange={e => handleHexInputChange('card_placeholder_color', e.target.value)}
+            className="w-full mt-2 px-2 py-1 text-xs border rounded bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent"
+            placeholder="#9CA3AF"
+          />
+        </div>
           </div>
         </div>
-        
+
         {/* Card Styling Settings */}
         <div className="mt-8 p-6 bg-white/95 backdrop-blur-sm rounded-xl border border-white/30">
           <h3 className="text-lg font-semibold text-gray-800 mb-4">Card Styling</h3>

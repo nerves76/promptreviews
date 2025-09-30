@@ -1,16 +1,11 @@
-/* Force input and textarea text to be dark for readability */
-/* Target all inputs and textareas on prompt pages */
-input[type="text"],
-input[type="email"],
-input[type="tel"],
-input[type="url"],
-textarea {
-  color: #1F2937 !important;
+/* Input and textarea text color using CSS variable for customization */
+input.prompt-input,
+textarea.prompt-input {
+  color: var(--input-text-color, #1F2937) !important;
 }
 
-/* Also ensure placeholders are visible */
+/* Placeholder styling */
 input::placeholder,
 textarea::placeholder {
-  color: #9CA3AF !important;
   opacity: 1 !important;
 }
