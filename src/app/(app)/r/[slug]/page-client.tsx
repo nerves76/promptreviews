@@ -2712,29 +2712,28 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
               })()}
               {/* PromptReviews Advertisement (always visible) */}
               <div
-                className="mt-12 mb-12 rounded-2xl shadow p-4 md:p-8 animate-slideup"
+                className="mt-12 mb-12 rounded-2xl shadow-lg p-4 md:p-8 animate-slideup relative backdrop-blur-sm"
                 style={{
-                  backgroundColor: applyCardTransparency(
+                  background: applyCardTransparency(
                     businessProfile?.card_bg || '#FFFFFF',
-                    businessProfile?.card_transparency ?? 0.30
+                    businessProfile?.card_transparency ?? 0.95
                   ),
-                  backdropFilter: (businessProfile?.card_transparency ?? 0.30) < 0.95 ? 'blur(12px)' : 'none',
-                  color: businessProfile?.card_text || '#1F2937',
-                  borderWidth: businessProfile?.card_border_width || 1,
-                  borderColor: applyCardTransparency(
-                    businessProfile?.card_border_color || '#FFFFFF',
-                    businessProfile?.card_border_transparency ?? 0.5
-                  ),
-                  borderStyle: 'solid',
-                  boxShadow: businessProfile?.card_inner_shadow
-                    ? `inset 0 2px 4px 0 ${applyCardTransparency(
-                        businessProfile?.card_shadow_color || '#FFFFFF',
-                        businessProfile?.card_shadow_intensity ?? 0.30
-                      )}`
-                    : 'none',
+                  color: `${INPUT_TEXT_COLOR} !important`,
+                  border: getCardBorderStyle(),
+                  backdropFilter: 'blur(8px)'
                 }}
               >
-                <div className="flex flex-col md:flex-row items-center text-center md:text-left gap-4 md:gap-8 md:items-center">
+                {businessProfile?.card_inner_shadow && (
+                  <div
+                    className="pointer-events-none absolute inset-0 rounded-2xl"
+                    style={{
+                      boxShadow: `inset 0 0 32px 0 ${businessProfile.card_shadow_color || '#222222'}${Math.round((businessProfile.card_shadow_intensity || 0.2) * 255).toString(16).padStart(2, '0')}`,
+                      borderRadius: '1rem',
+                      zIndex: 0,
+                    }}
+                  />
+                )}
+                <div className="flex flex-col md:flex-row items-center text-center md:text-left gap-4 md:gap-8 md:items-center relative">
                   <div className="flex-shrink-0 flex items-center justify-center w-full md:w-48 mb-0">
                     <a
                       href="https://promptreviews.app"
