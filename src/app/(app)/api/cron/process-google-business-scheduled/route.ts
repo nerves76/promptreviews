@@ -427,13 +427,29 @@ async function processJob(
 
 export async function GET(request: NextRequest) {
   try {
-    const expectedToken = process.env.CRON_SECRET_TOKEN;
-    if (!expectedToken) {
-      return NextResponse.json({ success: false, error: 'Cron secret not configured' }, { status: 500 });
+    // Vercel cron jobs use CRON_SECRET in authorization header automatically
+    const expectedToken = process.env.CRON_SECRET_TOKEN || process.env.CRON_SECRET;
+
+    // In production, Vercel adds the Authorization header for cron jobs
+    // In development or manual testing, we check for the Bearer token
+    const authHeader = request.headers.get('authorization');
+
+    // Check if the auth header matches either CRON_SECRET or CRON_SECRET_TOKEN
+    // Vercel might send either one depending on configuration
+    if (!authHeader) {
+      return NextResponse.json({ success: false, error: 'Unauthorized - no auth header' }, { status: 401 });
     }
 
-    const authHeader = request.headers.get('authorization');
-    if (authHeader !== `Bearer ${expectedToken}`) {
+    const validAuth =
+      (process.env.CRON_SECRET && authHeader === `Bearer ${process.env.CRON_SECRET}`) ||
+      (process.env.CRON_SECRET_TOKEN && authHeader === `Bearer ${process.env.CRON_SECRET_TOKEN}`);
+
+    if (!validAuth) {
+      // Log for debugging (remove in production)
+      console.log('[Cron] Auth failed');
+      console.log('[Cron] Received header:', authHeader.substring(0, 20) + '...');
+      console.log('[Cron] CRON_SECRET set:', !!process.env.CRON_SECRET);
+      console.log('[Cron] CRON_SECRET_TOKEN set:', !!process.env.CRON_SECRET_TOKEN);
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
