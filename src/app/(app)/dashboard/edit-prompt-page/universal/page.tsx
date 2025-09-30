@@ -490,21 +490,23 @@ export default function UniversalEditPromptPage() {
                 businessProfile={businessProfile}
               />
             )}
+
+            {/* Save & Publish button - positioned at bottom right of PageCard */}
+            {!isLoading && !error && initialData && (
+              <div className="flex justify-end mt-6">
+                <button
+                  type="button"
+                  className="bg-slate-blue text-white px-6 py-3 rounded-lg font-semibold shadow-lg hover:bg-slate-blue/90 transition-all transform hover:scale-105 flex items-center gap-2"
+                  onClick={handleSave}
+                  disabled={isSaving}
+                >
+                  <Icon name="FaSave" className="w-5 h-5" />
+                  {isSaving ? "Saving..." : "Save & publish"}
+                </button>
+              </div>
+            )}
           </div>
         </PageCard>
-
-        {/* Floating Save & Publish button - bottom right */}
-        <div className="fixed bottom-8 right-8 z-50">
-          <button
-            type="button"
-            className="bg-slate-blue text-white px-6 py-3 rounded-lg font-semibold shadow-lg hover:bg-slate-blue/90 transition-all transform hover:scale-105 flex items-center gap-2"
-            onClick={handleSave}
-            disabled={isSaving}
-          >
-            <Icon name="FaSave" className="w-5 h-5" />
-            {isSaving ? "Saving..." : "Save & publish"}
-          </button>
-        </div>
         </>
       )}
 
