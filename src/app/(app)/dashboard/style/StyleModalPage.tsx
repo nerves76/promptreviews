@@ -177,16 +177,16 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
       gradient_middle: "#93C5FD",
       gradient_end: "#FEF3C7",
       card_bg: "#F5F3F0",
-      card_text: "#1F2937",
+      card_text: "#14532D",
       card_placeholder_color: "#6B7280",
       input_text_color: "#1F2937",
       card_inner_shadow: false,
       card_shadow_color: "#000000",
       card_shadow_intensity: 0.10,
-      card_transparency: 0.95,
+      card_transparency: 1,
       card_border_width: 2,
-      card_border_color: "#A78BFA",
-      card_border_transparency: 0.3,
+      card_border_color: "#16A34A",
+      card_border_transparency: 0.5,
       kickstarters_background_design: false,
     },
     snazzy: {
@@ -197,8 +197,8 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
       secondary_color: "#EA580C",
       background_type: "gradient",
       background_color: "#FFFFFF",
-      gradient_start: "#FED7AA",
-      gradient_middle: "#FB923C",
+      gradient_start: "#fff5eb",
+      gradient_middle: "#fbb174",
       gradient_end: "#E11D48",
       card_bg: "#FFFFFF",
       card_text: "#1F2937",
@@ -207,7 +207,7 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
       card_inner_shadow: false,
       card_shadow_color: "#000000",
       card_shadow_intensity: 0.15,
-      card_transparency: 0.95,
+      card_transparency: 1,
       card_border_width: 2,
       card_border_color: "#FB923C",
       card_border_transparency: 0.5,
@@ -763,11 +763,11 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
                 className="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
               >
                 <option value="custom">Custom - Your unique style</option>
-                <option value="glassy">Glassy - Like a martini for reviews</option>
+                <option value="glassy">Glassy - Like a crystal goblet for your praise</option>
                 <option value="solid">Solidy - Dependable like a bullet-proof briefcase</option>
                 <option value="paper">Papery - Leather-bound books, rich mahogany</option>
                 <option value="outdoorsy">Outdoorsy - Like a Patagonia jacket for your reviews</option>
-                <option value="snazzy">Snazzy - 5-star Karaoke night</option>
+                <option value="snazzy">Snazzy - It's peachy-keen</option>
               </select>
             </div>
           </div>

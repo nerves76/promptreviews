@@ -1795,11 +1795,12 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
         >
           <button
             onClick={() => setShowSaveMenu(!showSaveMenu)}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg shadow-md transition-all duration-200 group border font-medium"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg shadow-md transition-all duration-200 group font-medium"
             style={{
               backgroundColor: applyCardTransparency(businessProfile?.card_bg || '#FFFFFF', businessProfile?.card_transparency ?? 0.95),
-              borderColor: businessProfile?.card_border_color || "#FFFFFF",
-              borderWidth: businessProfile?.card_border_width || 1,
+              border: businessProfile?.card_border_width
+                ? `${businessProfile.card_border_width}px solid rgba(${parseInt(businessProfile.card_border_color?.slice(1, 3) || 'FF', 16)}, ${parseInt(businessProfile.card_border_color?.slice(3, 5) || 'FF', 16)}, ${parseInt(businessProfile.card_border_color?.slice(5, 7) || 'FF', 16)}, ${businessProfile.card_border_transparency ?? 0.5})`
+                : undefined,
               color: businessProfile?.primary_color || "#2563EB",
               backdropFilter: 'blur(5px)',
               WebkitBackdropFilter: 'blur(5px)'
@@ -2130,13 +2131,14 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                       className={`absolute rounded-full shadow-lg p-2 flex items-center justify-center ${
                         (businessProfile?.card_transparency ?? 0.95) < 1 ? 'backdrop-blur-2xl' : ''
                       }`}
-                      style={{ 
+                      style={{
                         top: '-20px',
                         left: '-20px',
-                        zIndex: 20, 
-                        backgroundColor: (businessProfile?.card_transparency ?? 0.95) < 1
-                          ? `rgba(255,255,255, ${Math.min(0.55, Math.max(0.2, 1 - ((businessProfile?.card_transparency ?? 0.95)) + 0.2))})`
-                          : applyCardTransparency(businessProfile?.card_bg || '#FFFFFF', businessProfile?.card_transparency ?? 0.95),
+                        zIndex: 20,
+                        backgroundColor: applyCardTransparency(businessProfile?.card_bg || '#FFFFFF', businessProfile?.card_transparency ?? 0.95),
+                        border: businessProfile?.card_border_width
+                          ? `${businessProfile.card_border_width}px solid rgba(${parseInt(businessProfile.card_border_color?.slice(1, 3) || 'FF', 16)}, ${parseInt(businessProfile.card_border_color?.slice(3, 5) || 'FF', 16)}, ${parseInt(businessProfile.card_border_color?.slice(5, 7) || 'FF', 16)}, ${businessProfile.card_border_transparency ?? 0.5})`
+                          : undefined,
                         backdropFilter: (businessProfile?.card_transparency ?? 0.95) < 1 ? 'blur(12px)' : undefined,
                         WebkitBackdropFilter: (businessProfile?.card_transparency ?? 0.95) < 1 ? 'blur(12px)' : undefined
                       }}
@@ -2754,7 +2756,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                       aria-label="Prompt Reviews Home"
                     >
                       <PromptReviewsLogo
-                        color="#fff"
+                        color={businessProfile?.primary_color || "#fff"}
                         size={360}
                         className="h-32 w-auto"
                       />
@@ -2762,18 +2764,25 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                   </div>
                   <div className="flex-1 flex flex-col justify-center">
                     <div className="flex items-center gap-2 mb-4 justify-center md:justify-start">
-                      <span className="text-lg font-semibold text-white">
+                      <span
+                        className="text-lg font-semibold"
+                        style={{ color: businessProfile?.primary_color || "#fff" }}
+                      >
                         Powered by Prompt Reviews
                       </span>
                     </div>
-                    <p className="max-w-2xl text-white text-sm md:text-base">
+                    <p
+                      className="max-w-2xl text-sm md:text-base"
+                      style={{ color: businessProfile?.primary_color || "#fff" }}
+                    >
                       Make it easy and fun for your customers or clients to post reviews online. Grow your online presence on traditional and AI search platforms.
                     </p>
                     <a
                       href="https://promptreviews.app"
                       target="_blank"
                       rel="noopener"
-                      className="mt-4 font-medium hover:opacity-80 transition-opacity inline-block underline text-white"
+                      className="mt-4 font-medium hover:opacity-80 transition-opacity inline-block underline"
+                      style={{ color: businessProfile?.primary_color || "#fff" }}
                     >
                       Learn more about Prompt Reviews →
                     </a>

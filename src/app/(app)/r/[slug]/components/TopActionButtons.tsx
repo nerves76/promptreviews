@@ -72,11 +72,12 @@ export default function TopActionButtons({
       >
         <button
           onClick={onSaveClick}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 border-2 shadow-md"
+          className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 shadow-md"
           style={{
-            backgroundColor: applyCardTransparency(businessProfile?.card_bg || '#FFFFFF', businessProfile?.card_transparency ?? 0.30),
-            borderColor: businessProfile?.card_border_color || "#FFFFFF",
-            borderWidth: businessProfile?.card_border_width || 1,
+            backgroundColor: applyCardTransparency(businessProfile?.card_bg || '#FFFFFF', businessProfile?.card_transparency ?? 1),
+            border: businessProfile?.card_border_width
+              ? `${businessProfile.card_border_width}px solid rgba(${parseInt(businessProfile.card_border_color?.slice(1, 3) || 'FF', 16)}, ${parseInt(businessProfile.card_border_color?.slice(3, 5) || 'FF', 16)}, ${parseInt(businessProfile.card_border_color?.slice(5, 7) || 'FF', 16)}, ${businessProfile.card_border_transparency ?? 0.5})`
+              : undefined,
             color: businessProfile?.card_text || "#FFFFFF",
             backdropFilter: (businessProfile?.card_transparency ?? 1) < 1 ? 'blur(5px)' : undefined,
             WebkitBackdropFilter: (businessProfile?.card_transparency ?? 1) < 1 ? 'blur(5px)' : undefined,
