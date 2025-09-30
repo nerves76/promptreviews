@@ -142,7 +142,7 @@ export function AccountSwitcher() {
           />
           <div
             ref={dropdownRef}
-            className="fixed w-80 bg-gray-900/90 backdrop-blur-md rounded-lg shadow-2xl border border-white/30 py-2 overflow-hidden"
+            className="fixed w-80 bg-white/10 backdrop-blur-xl rounded-lg shadow-2xl border border-white/20 py-2 overflow-hidden"
             style={{
               zIndex: 2147483648, // One higher than other header elements
               top: buttonRef.current ? buttonRef.current.getBoundingClientRect().bottom + 8 : 0,
