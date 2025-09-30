@@ -572,14 +572,11 @@ export class GoogleBusinessProfileClient {
         .replace('{accountId}', cleanAccountId)
         .replace('{locationId}', cleanLocationId);
 
-      const url = `${GOOGLE_BUSINESS_PROFILE.LEGACY_BASE_URL}${endpoint}`;
-
-
       // Create FormData for file upload
       const formData = new FormData();
       const filename = options?.filename ?? `upload-${Date.now()}.jpg`;
       formData.append('media', imageFile, filename);
-      
+
       // Create media metadata
       const mediaMetadata = {
         mediaFormat: options?.mediaFormat ?? 'PHOTO',
@@ -589,11 +586,13 @@ export class GoogleBusinessProfileClient {
 
       formData.append('metadata', JSON.stringify(mediaMetadata));
 
-      const response = await this.makeRequest(url, {
+      // Pass just the endpoint path, not the full URL
+      // makeRequest will handle adding the base URL
+      const response = await this.makeRequest(endpoint, {
         method: 'POST',
         body: formData,
         // Don't set Content-Type header - FormData handles it
-      });
+      }, 0, GOOGLE_BUSINESS_PROFILE.LEGACY_BASE_URL);
 
       return {
         success: true,
