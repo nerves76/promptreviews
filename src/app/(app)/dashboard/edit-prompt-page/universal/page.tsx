@@ -426,8 +426,8 @@ export default function UniversalEditPromptPage() {
       // Revalidate the prompt page cache to ensure fresh data
       await revalidatePromptPage(updatedPage.slug);
     }
-    // Redirect to prompt-pages public tab to show the modal
-    window.location.href = "/prompt-pages?tab=public";
+    // Redirect to prompt-pages to show the modal
+    router.push("/prompt-pages");
     setIsSaving(false);
   };
 

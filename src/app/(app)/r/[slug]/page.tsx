@@ -8,6 +8,7 @@
 import { notFound } from 'next/navigation';
 import { createServiceRoleClient } from '@/auth/providers/supabase';
 import { Metadata } from 'next';
+import { GLASSY_DEFAULTS } from '@/app/(app)/config/styleDefaults';
 
 // Force dynamic rendering to prevent caching issues with account isolation
 export const dynamic = 'force-dynamic';
@@ -78,23 +79,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
         address: promptPage.location || null,
         category: promptPage.category || null,
         description: null,
-        primary_font: 'Inter',
-        secondary_font: 'Roboto', 
-        primary_color: '#2563EB',
-        secondary_color: '#2563EB',
-        background_color: '#FFFFFF',
-        background_type: 'gradient',
-        gradient_start: '#2563EB',
-        gradient_middle: '#7864C8',
-        gradient_end: '#914AAE',
+        ...GLASSY_DEFAULTS,
         text_color: '#1F2937',
-        card_bg: '#FFFFFF',
-        card_text: '#FFFFFF',
-        card_placeholder_color: '#9CA3AF',
-        card_transparency: 0.95,
-        card_border_width: 1,
-        card_border_color: '#FFFFFF',
-        card_border_transparency: 0.5,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       };
@@ -215,23 +201,8 @@ async function getPromptPageData(slug: string): Promise<PromptPageData | null> {
           default_offer_title: 'Review Rewards',
           default_offer_body: '',
           default_offer_url: '',
-          primary_font: 'Inter',
-          secondary_font: 'Roboto',
-          primary_color: '#6366F1',
-          secondary_color: '#818CF8',
-          background_color: '#FFFFFF',
+          ...GLASSY_DEFAULTS,
           text_color: '#1F2937',
-          background_type: 'gradient',
-          gradient_start: '#2563EB',
-          gradient_middle: '#7864C8',
-          gradient_end: '#914AAE',
-          card_bg: '#FFFFFF',
-          card_text: '#FFFFFF',
-          card_placeholder_color: '#9CA3AF',
-          card_transparency: 0.95,
-          card_border_width: 1,
-          card_border_color: '#FFFFFF',
-          card_border_transparency: 0.5,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         }

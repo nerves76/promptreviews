@@ -8,6 +8,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceRoleClient } from "@/auth/providers/supabase";
 import { verifyAccountAuth } from "../middleware/auth";
+import { GLASSY_DEFAULTS } from "@/app/(app)/config/styleDefaults";
 
 export async function GET(request: NextRequest) {
   try {
@@ -413,26 +414,8 @@ export async function POST(request: NextRequest) {
       // Referral source tracking
       referral_source: businessData.referral_source || null,
       referral_source_other: businessData.referral_source_other || null,
-      // Glassmorphic design defaults
-      primary_font: 'Inter',
-      secondary_font: 'Roboto',
-      primary_color: '#2563EB',
-      secondary_color: '#2563EB',
-      background_type: 'gradient',
-      background_color: '#FFFFFF',
-      gradient_start: '#2563EB',
-      gradient_middle: '#7864C8',
-      gradient_end: '#914AAE',
-      card_bg: '#FFFFFF',
-      card_text: '#FFFFFF',
-      card_placeholder_color: '#9CA3AF',
-      card_transparency: 0.70, // Changed from 0.30 to meet database constraint (0.50-1.00)
-      card_border_width: 1,
-      card_border_color: '#FFFFFF',
-      card_border_transparency: 0.5,
-      card_inner_shadow: true,
-      card_shadow_color: '#FFFFFF',
-      card_shadow_intensity: 0.30,
+      // Glassmorphic design defaults - using centralized config
+      ...GLASSY_DEFAULTS,
       updated_at: new Date().toISOString(), // 🔧 FIX: Set updated_at to current time to prevent validation loop
     };
 

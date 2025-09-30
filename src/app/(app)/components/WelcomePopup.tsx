@@ -195,9 +195,17 @@ Here's your first tip: [icon] <— click here`;
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto pointer-events-none">
-      <div className="min-h-full flex items-start justify-center p-4 pt-20">
-        <div className="relative w-full max-w-4xl pointer-events-auto">
+    <div className="fixed inset-0 z-50 overflow-y-auto">
+      {/* Dark backdrop */}
+      <div
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
+        onClick={onClose}
+        aria-hidden="true"
+      />
+
+      {/* Content container */}
+      <div className="min-h-full flex items-center justify-center p-4 pointer-events-none">
+        <div className="relative w-full max-w-4xl pointer-events-auto z-10">
           {/* Glassmorphic close button */}
           <button
             className="absolute -top-3 -right-3 bg-white/70 backdrop-blur-sm border border-white/40 rounded-full shadow-lg flex items-center justify-center hover:bg-white/90 focus:outline-none z-20 transition-colors p-2"

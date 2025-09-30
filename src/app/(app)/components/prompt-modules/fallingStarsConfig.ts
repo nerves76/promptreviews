@@ -11,6 +11,7 @@ import {
   // ⚡ IMMEDIATE LOAD: Print-optimized icons for fast display
   FaStar,
   FaHeart,
+  FaGrinHearts,
   FaBolt,
   FaSun,
   FaMoon,
@@ -34,6 +35,7 @@ export const POPULAR_FALLING_ICONS: {
   // General & Popular (immediate load) - print-optimized icons only
   { key: "star", label: "Stars", icon: FaStar, color: "text-yellow-500", category: "General" },
   { key: "heart", label: "Hearts", icon: FaHeart, color: "text-red-500", category: "General" },
+  { key: "grin-hearts", label: "Star Eyes", icon: FaGrinHearts, color: "text-pink-400", category: "General" },
   { key: "bolt", label: "Lightning", icon: FaBolt, color: "text-blue-500", category: "General" },
   
   // Nature & Weather (immediate load) - print-optimized icons only

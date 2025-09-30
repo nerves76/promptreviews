@@ -25,7 +25,9 @@ import PageCard from "@/app/(app)/components/PageCard";
 import imageCompression from 'browser-image-compression';
 import { getAccessibleColor, applyCardTransparency } from "@/utils/colorUtils";
 import { getFallingIcon, getFallingIconColor } from "@/app/(app)/components/prompt-modules/fallingStarsConfig";
+import { GLASSY_DEFAULTS, INPUT_TEXT_COLOR } from "@/app/(app)/config/styleDefaults";
 import dynamic from "next/dynamic";
+import "./input-text-override.css";
 // 🔧 CONSOLIDATED: Single import from supabaseClient module
 import { createClient, getUserOrMock } from "@/auth/providers/supabase";
 import { getAccountIdForUser } from "@/auth/utils/accounts";
@@ -198,11 +200,11 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
   } : {
     name: "",
     logo_url: null,
-    primary_font: "Inter",
-    secondary_font: "Inter",
-    primary_color: "#6366F1",
-    secondary_color: "#818CF8",
-    background_color: "#FFFFFF",
+    primary_font: GLASSY_DEFAULTS.primary_font,
+    secondary_font: GLASSY_DEFAULTS.secondary_font,
+    primary_color: GLASSY_DEFAULTS.primary_color,
+    secondary_color: GLASSY_DEFAULTS.secondary_color,
+    background_color: GLASSY_DEFAULTS.background_color,
     text_color: "#1F2937",
     facebook_url: null,
     instagram_url: null,
@@ -505,11 +507,11 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
           const defaultProfile = {
             business_name: 'Business',
             name: 'Business',
-            primary_font: 'Inter',
-            secondary_font: 'Roboto',
-            primary_color: '#6366F1',
-            secondary_color: '#818CF8',
-            background_color: '#FFFFFF',
+            primary_font: GLASSY_DEFAULTS.primary_font,
+            secondary_font: GLASSY_DEFAULTS.secondary_font,
+            primary_color: GLASSY_DEFAULTS.primary_color,
+            secondary_color: GLASSY_DEFAULTS.secondary_color,
+            background_color: GLASSY_DEFAULTS.background_color,
             text_color: '#1F2937',
             background_type: 'gradient',
             gradient_start: '#2563EB',
@@ -1916,7 +1918,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                   <div className="w-full flex justify-center my-8">
                     <div className="mb-8 rounded-2xl shadow-lg p-8 animate-slideup relative max-w-[1000px] w-full backdrop-blur-sm" style={{
                       background: applyCardTransparency(businessProfile?.card_bg || "#FFFFFF", businessProfile?.card_transparency ?? 0.95),
-                      color: businessProfile?.card_text || "#1A1A1A",
+                      color: `${INPUT_TEXT_COLOR} !important`,
                       position: 'relative',
                       border: getCardBorderStyle(),
                       backdropFilter: 'blur(8px)'
@@ -1956,10 +1958,9 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                                 value={feedbackFirstName}
                                 onChange={(e) => setFeedbackFirstName(e.target.value)}
                                 placeholder="John"
-                                className="mt-1 block w-full rounded-lg focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm py-3 px-4"
+                                className="mt-1 block w-full rounded-lg focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm py-3 px-4 !text-gray-800"
                                 style={{
                                   background: businessProfile?.card_bg || "#F9FAFB",
-                                  color: businessProfile?.card_text || "#1A1A1A",
                                   boxShadow: "inset 0 2px 4px 0 rgba(0,0,0,0.2), inset 0 1px 2px 0 rgba(0,0,0,0.15)",
                                   border: "none",
                                 }}
@@ -1980,10 +1981,9 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                                 value={feedbackLastName}
                                 onChange={(e) => setFeedbackLastName(e.target.value)}
                                 placeholder="Smith"
-                                className="mt-1 block w-full rounded-lg focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm py-3 px-4"
+                                className="mt-1 block w-full rounded-lg focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm py-3 px-4 !text-gray-800"
                                 style={{
                                   background: businessProfile?.card_bg || "#F9FAFB",
-                                  color: businessProfile?.card_text || "#1A1A1A",
                                   boxShadow: "inset 0 2px 4px 0 rgba(0,0,0,0.2), inset 0 1px 2px 0 rgba(0,0,0,0.15)",
                                   border: "none",
                                 }}
@@ -2006,10 +2006,9 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                                 value={feedbackEmail}
                                 onChange={(e) => setFeedbackEmail(e.target.value)}
                                 placeholder="john@example.com"
-                                className="mt-1 block w-full rounded-lg focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm py-3 px-4"
+                                className="mt-1 block w-full rounded-lg focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm py-3 px-4 !text-gray-800"
                                 style={{
                                   background: businessProfile?.card_bg || "#F9FAFB",
-                                  color: businessProfile?.card_text || "#1A1A1A",
                                   boxShadow: "inset 0 2px 4px 0 rgba(0,0,0,0.2), inset 0 1px 2px 0 rgba(0,0,0,0.15)",
                                   border: "none",
                                 }}
@@ -2028,10 +2027,9 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                                 value={feedbackPhone}
                                 onChange={(e) => setFeedbackPhone(e.target.value)}
                                 placeholder="(555) 123-4567"
-                                className="mt-1 block w-full rounded-lg focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm py-3 px-4"
+                                className="mt-1 block w-full rounded-lg focus:ring-2 focus:ring-indigo-400 focus:outline-none sm:text-sm py-3 px-4 !text-gray-800"
                                 style={{
                                   background: businessProfile?.card_bg || "#F9FAFB",
-                                  color: businessProfile?.card_text || "#1A1A1A",
                                   boxShadow: "inset 0 2px 4px 0 rgba(0,0,0,0.2), inset 0 1px 2px 0 rgba(0,0,0,0.15)",
                                   border: "none",
                                 }}
@@ -2049,14 +2047,13 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                             </label>
                             <textarea
                               id="feedback"
-                              className="w-full rounded-lg border border-gray-300 p-4 min-h-[120px] focus:ring-2 focus:ring-indigo-400"
+                              className="w-full rounded-lg border border-gray-300 p-4 min-h-[120px] focus:ring-2 focus:ring-indigo-400 !text-gray-800"
                               placeholder={mergedEmojiFeedbackMessage}
                               value={feedback}
                               onChange={(e) => setFeedback(e.target.value)}
                               required
                               style={{
                                 background: businessProfile?.card_bg || "#F9FAFB",
-                                color: businessProfile?.card_text || "#1A1A1A",
                                 boxShadow: "inset 0 2px 4px 0 rgba(0,0,0,0.2), inset 0 1px 2px 0 rgba(0,0,0,0.15)",
                                   border: "none",
                               }}
@@ -2103,7 +2100,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                     className="rounded-xl shadow-lg p-6 relative backdrop-blur-sm"
                     style={{
                       background: applyCardTransparency(businessProfile?.card_bg || "#FFFFFF", businessProfile?.card_transparency ?? 0.95),
-                      color: businessProfile?.card_text || "#1A1A1A",
+                      color: `${INPUT_TEXT_COLOR} !important`,
                       fontFamily: businessProfile?.primary_font || "Inter",
                       border: getCardBorderStyle(),
                       backdropFilter: 'blur(8px)'
@@ -2225,7 +2222,6 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                               className="w-full mt-1 mb-2 p-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                               style={{
                                 background: businessProfile?.card_bg || "#F9FAFB",
-                                color: businessProfile?.card_text || "#1A1A1A",
                                 boxShadow: "inset 0 2px 4px 0 rgba(0,0,0,0.2), inset 0 1px 2px 0 rgba(0,0,0,0.15)",
                                   border: "none",
                               }}
@@ -2248,7 +2244,6 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                               className="w-full mt-1 mb-2 p-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                               style={{
                                 background: businessProfile?.card_bg || "#F9FAFB",
-                                color: businessProfile?.card_text || "#1A1A1A",
                                 boxShadow: "inset 0 2px 4px 0 rgba(0,0,0,0.2), inset 0 1px 2px 0 rgba(0,0,0,0.15)",
                                   border: "none",
                               }}
@@ -2275,7 +2270,6 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                               className="w-full mt-1 mb-2 p-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                               style={{
                                 background: businessProfile?.card_bg || "#F9FAFB",
-                                color: businessProfile?.card_text || "#1A1A1A",
                                 boxShadow: "inset 0 2px 4px 0 rgba(0,0,0,0.2), inset 0 1px 2px 0 rgba(0,0,0,0.15)",
                                   border: "none",
                               }}
@@ -2296,11 +2290,10 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                             value={testimonial}
                             onChange={(e) => setTestimonial(e.target.value)}
                             placeholder={promptPage?.no_platform_review_template || "Share your experience..."}
-                            className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                            className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm !text-gray-800"
                             rows={4}
                             style={{
                               background: businessProfile?.card_bg || "#F9FAFB",
-                              color: businessProfile?.card_text || "#1A1A1A",
                               boxShadow: "inset 0 2px 4px 0 rgba(0,0,0,0.2), inset 0 1px 2px 0 rgba(0,0,0,0.15)",
                                   border: "none",
                             }}
@@ -2529,7 +2522,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                     
                     <p 
                       className="text-center mb-8"
-                      style={{ color: businessProfile?.card_text || "#374151" }}
+                      style={{ color: `${INPUT_TEXT_COLOR} !important` }}
                     >
                       Your feedback can help us learn and grow. Please consider sharing your feedback privately so we can address it promptly.
                     </p>
@@ -2615,7 +2608,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                 return (hasWebsite || hasSocialLinks) && (
                   <div className="mb-8 rounded-2xl shadow-lg p-8 animate-slideup relative backdrop-blur-sm" style={{
                     background: applyCardTransparency(businessProfile?.card_bg || "#FFFFFF", businessProfile?.card_transparency ?? 0.95),
-                    color: businessProfile?.card_text || "#1A1A1A",
+                    color: `${INPUT_TEXT_COLOR} !important`,
                     border: getCardBorderStyle(),
                     backdropFilter: 'blur(8px)'
                   }}>
@@ -2721,7 +2714,24 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
               <div
                 className="mt-12 mb-12 rounded-2xl shadow p-4 md:p-8 animate-slideup"
                 style={{
-                  background: getAccessibleColor(businessProfile?.primary_color || "#4F46E5")
+                  backgroundColor: applyCardTransparency(
+                    businessProfile?.card_bg || '#FFFFFF',
+                    businessProfile?.card_transparency ?? 0.30
+                  ),
+                  backdropFilter: (businessProfile?.card_transparency ?? 0.30) < 0.95 ? 'blur(12px)' : 'none',
+                  color: businessProfile?.card_text || '#1F2937',
+                  borderWidth: businessProfile?.card_border_width || 1,
+                  borderColor: applyCardTransparency(
+                    businessProfile?.card_border_color || '#FFFFFF',
+                    businessProfile?.card_border_transparency ?? 0.5
+                  ),
+                  borderStyle: 'solid',
+                  boxShadow: businessProfile?.card_inner_shadow
+                    ? `inset 0 2px 4px 0 ${applyCardTransparency(
+                        businessProfile?.card_shadow_color || '#FFFFFF',
+                        businessProfile?.card_shadow_intensity ?? 0.30
+                      )}`
+                    : 'none',
                 }}
               >
                 <div className="flex flex-col md:flex-row items-center text-center md:text-left gap-4 md:gap-8 md:items-center">
@@ -2771,7 +2781,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
           }}>
             <button
               className="absolute top-3 right-3 hover:opacity-70 text-2xl font-bold focus:outline-none"
-              style={{ color: businessProfile?.card_text || "#1A1A1A" }}
+              style={{ color: `${INPUT_TEXT_COLOR} !important` }}
               onClick={() => setShowFallbackModal(false)}
               aria-label="Close"
             >
@@ -2783,7 +2793,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
               Copy Your Review
             </h2>
             <textarea
-              className="w-full rounded-lg border p-3 mb-4 text-base focus:outline-none"
+              className="w-full rounded-lg border p-3 mb-4 text-base focus:outline-none !text-gray-800"
               value={fallbackModalText}
               readOnly
               rows={5}
@@ -2791,7 +2801,6 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
               onClick={(e) => (e.target as HTMLTextAreaElement).select()}
               style={{
                 background: businessProfile?.card_bg || "#F9FAFB",
-                color: businessProfile?.card_text || "#1A1A1A",
                 borderColor: businessProfile?.primary_color || "#4F46E5",
                 boxShadow: `0 0 0 2px ${businessProfile?.primary_color || "#4F46E5"}33`
               }}
@@ -2822,7 +2831,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
               </button>
               <div className="flex items-center justify-center my-1">
                 <span className="text-base font-medium px-2" style={{
-                  color: businessProfile?.card_text || "#1A1A1A"
+                  color: `${INPUT_TEXT_COLOR} !important`
                 }}>
                   and then
                 </span>
@@ -2901,7 +2910,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
             
             <p 
               className="text-center mb-8"
-              style={{ color: businessProfile?.card_text || "#374151" }}
+              style={{ color: `${INPUT_TEXT_COLOR} !important` }}
             >
               Your feedback can help us learn and grow. Please consider sharing your feedback privately so we can address it promptly.
             </p>

@@ -6,6 +6,7 @@ import { markTaskAsCompleted } from "@/utils/onboardingTasks";
 
 const supabase = createClient();
 import Icon from "@/components/Icon";
+import { GLASSY_DEFAULTS } from "@/app/(app)/config/styleDefaults";
 
 // Only include fonts that are actually loaded and used in the project
 const fontOptions = [
@@ -110,26 +111,11 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
   const presets = {
     glassy: {
       name: "Glassy",
+      ...GLASSY_DEFAULTS,
+      // Override fonts for the Glassy preset
       primary_font: "Playfair Display",
       secondary_font: "Lato",
-      primary_color: "#2563EB",
-      secondary_color: "#2563EB",
-      background_type: "gradient",
-      background_color: "#FFFFFF",
-      gradient_start: "#2563EB",
-      gradient_middle: "#7864C8",
-      gradient_end: "#914AAE",
-      card_bg: "#FFFFFF",
-      card_text: "#FFFFFF",
-      card_placeholder_color: "#9CA3AF",
-      card_inner_shadow: true,
-      card_shadow_color: "#FFFFFF",
-      card_shadow_intensity: 0.30,
-      card_transparency: 0.30,
       card_border_width: 2,
-      card_border_color: "#FFFFFF",
-      card_border_transparency: 0.5,
-      kickstarters_background_design: false,
     },
     solid: {
       name: "Solidy",
@@ -225,28 +211,10 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
     }
   };
 
-  // Default to Glassy preset settings
+  // Default to Glassy preset settings - using centralized config
   const [settings, setSettings] = React.useState({
-    primary_font: "Inter",
-    secondary_font: "Roboto",
-    primary_color: "#2563EB",
-    secondary_color: "#2563EB",
-    background_type: "gradient",
-    background_color: "#FFFFFF",
-    gradient_start: "#2563EB",
-    gradient_middle: "#7864C8",
-    gradient_end: "#914AAE",
-    card_bg: "#FFFFFF",
-    card_text: "#FFFFFF",
-    card_placeholder_color: "#9CA3AF",
-    card_inner_shadow: true,
-    card_shadow_color: "#FFFFFF",
-    card_shadow_intensity: 0.30,
-    card_transparency: 0.30,
-    card_border_width: 1,
-    card_border_color: "#FFFFFF",
-    card_border_transparency: 0.5,
-    kickstarters_background_design: false,
+    ...GLASSY_DEFAULTS,
+    card_border_width: 1, // Ensure number type
   });
 
   // Store the business ID for updates
@@ -411,14 +379,14 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
           primary_font: business.primary_font || "Inter",
           secondary_font: business.secondary_font || "Roboto",
           primary_color: business.primary_color || "#2563EB",
-          secondary_color: business.secondary_color || "#2563EB",
+          secondary_color: business.secondary_color || "#FFFFFF",
           background_type: business.background_type || "gradient",
           background_color: business.background_color || "#FFFFFF",
           gradient_start: business.gradient_start || "#2563EB",
           gradient_end: business.gradient_end || "#914AAE",
           card_bg: business.card_bg || "#FFFFFF",
           card_text: business.card_text || "#1A1A1A",
-          card_transparency: business.card_transparency ?? 0.95,
+          card_transparency: business.card_transparency ?? 0.30,
 
           // Newer/optional columns (use the default from our presets if missing in DB)
           gradient_middle: business.gradient_middle || "#7864C8",
@@ -678,26 +646,8 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
   async function handleReset() {
     if (window.confirm('Are you sure you want to reset all style settings to default? This cannot be undone.')) {
       const defaultSettings = {
-        primary_font: "Inter",
-        secondary_font: "Roboto",
-        primary_color: "#2563EB",
-        secondary_color: "#2563EB",
-        background_type: "gradient",
-        background_color: "#FFFFFF",
-        gradient_start: "#2563EB",
-        gradient_middle: "#7864C8",
-        gradient_end: "#914AAE",
-        card_bg: "#FFFFFF",
-        card_text: "#FFFFFF",
-        card_placeholder_color: "#9CA3AF",
-        card_inner_shadow: true,
-        card_shadow_color: "#FFFFFF",
-        card_shadow_intensity: 0.30,
-        card_transparency: 0.30,
-        card_border_width: 2,
-        card_border_color: "#FFFFFF",
-        card_border_transparency: 0.5,
-        kickstarters_background_design: false,
+        ...GLASSY_DEFAULTS,
+        card_border_width: 1,
       };
       
       setSettings(defaultSettings);

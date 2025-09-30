@@ -409,7 +409,7 @@ export default function BusinessProfileForm({
           <div className="mb-4">
             <label className="block font-semibold text-sm text-gray-500 mb-1 flex items-center">
               Industries you serve (if applicable)
-              <Tooltip text="This helps Prompt AI understand your target audience and tailor reviews for your typical clients or customers." />
+              <RobotTooltip text="This helps Prompt AI understand your target audience and tailor reviews for your typical clients or customers." />
             </label>
             <textarea
               name="industries_served"
