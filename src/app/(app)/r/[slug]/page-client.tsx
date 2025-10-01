@@ -1967,7 +1967,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                                   background: businessProfile?.card_bg || "#F9FAFB",
                                   boxShadow: "inset 0 2px 4px 0 rgba(0,0,0,0.2), inset 0 1px 2px 0 rgba(0,0,0,0.15)",
                                   border: "none",
-                                  color: '#000000',
+                                  color: businessProfile?.input_text_color || '#1F2937',
                                 }}
                                 required
                               />
@@ -1991,7 +1991,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                                   background: businessProfile?.card_bg || "#F9FAFB",
                                   boxShadow: "inset 0 2px 4px 0 rgba(0,0,0,0.2), inset 0 1px 2px 0 rgba(0,0,0,0.15)",
                                   border: "none",
-                                  color: '#000000',
+                                  color: businessProfile?.input_text_color || '#1F2937',
                                 }}
                                 required
                               />
@@ -2017,7 +2017,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                                   background: businessProfile?.card_bg || "#F9FAFB",
                                   boxShadow: "inset 0 2px 4px 0 rgba(0,0,0,0.2), inset 0 1px 2px 0 rgba(0,0,0,0.15)",
                                   border: "none",
-                                  color: '#000000',
+                                  color: businessProfile?.input_text_color || '#1F2937',
                                 }}
                               />
                             </div>
@@ -2039,7 +2039,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                                   background: businessProfile?.card_bg || "#F9FAFB",
                                   boxShadow: "inset 0 2px 4px 0 rgba(0,0,0,0.2), inset 0 1px 2px 0 rgba(0,0,0,0.15)",
                                   border: "none",
-                                  color: '#000000',
+                                  color: businessProfile?.input_text_color || '#1F2937',
                                 }}
                               />
                             </div>

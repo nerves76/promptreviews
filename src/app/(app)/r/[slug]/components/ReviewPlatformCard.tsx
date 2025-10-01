@@ -240,10 +240,10 @@ export default function ReviewPlatformCard({
                 className="w-full mt-1 mb-2 p-3 rounded-lg focus:ring-2 focus:ring-indigo-500 sm:text-sm"
                 style={{
                   background: applyCardTransparency(
-                    businessProfile?.card_bg || "#F9FAFB", 
+                    businessProfile?.card_bg || "#F9FAFB",
                     Math.min(1, (businessProfile?.card_transparency ?? 0.30) + 0.4)
                   ),
-                  color: businessProfile?.card_text || "#1A1A1A",
+                  color: businessProfile?.input_text_color || "#1A1A1A",
                   boxShadow: "inset 0 2px 4px 0 rgba(0,0,0,0.2), inset 0 1px 2px 0 rgba(0,0,0,0.15)",
                   border: "none",
                 }}
@@ -267,10 +267,10 @@ export default function ReviewPlatformCard({
                 className="w-full mt-1 mb-2 p-3 rounded-lg focus:ring-2 focus:ring-indigo-500 sm:text-sm"
                 style={{
                   background: applyCardTransparency(
-                    businessProfile?.card_bg || "#F9FAFB", 
+                    businessProfile?.card_bg || "#F9FAFB",
                     Math.min(1, (businessProfile?.card_transparency ?? 0.30) + 0.4)
                   ),
-                  color: businessProfile?.card_text || "#1A1A1A",
+                  color: businessProfile?.input_text_color || "#1A1A1A",
                   boxShadow: "inset 0 2px 4px 0 rgba(0,0,0,0.2), inset 0 1px 2px 0 rgba(0,0,0,0.15)",
                   border: "none",
                 }}
@@ -298,10 +298,10 @@ export default function ReviewPlatformCard({
                 className="w-full mt-1 mb-2 p-3 rounded-lg focus:ring-2 focus:ring-indigo-500 sm:text-sm"
                 style={{
                   background: applyCardTransparency(
-                    businessProfile?.card_bg || "#F9FAFB", 
+                    businessProfile?.card_bg || "#F9FAFB",
                     Math.min(1, (businessProfile?.card_transparency ?? 0.30) + 0.4)
                   ),
-                  color: businessProfile?.card_text || "#1A1A1A",
+                  color: businessProfile?.input_text_color || "#1A1A1A",
                   boxShadow: "inset 0 2px 4px 0 rgba(0,0,0,0.2), inset 0 1px 2px 0 rgba(0,0,0,0.15)",
                   border: "none",
                 }}
@@ -396,10 +396,10 @@ export default function ReviewPlatformCard({
               rows={4}
               style={{
                 background: applyCardTransparency(
-                  businessProfile?.card_bg || "#F9FAFB", 
+                  businessProfile?.card_bg || "#F9FAFB",
                   Math.min(1, (businessProfile?.card_transparency ?? 0.30) + 0.4)
                 ),
-                color: businessProfile?.card_text || "#1A1A1A",
+                color: businessProfile?.input_text_color || "#1A1A1A",
                 boxShadow: "inset 0 2px 4px 0 rgba(0,0,0,0.2), inset 0 1px 2px 0 rgba(0,0,0,0.15)",
                 border: "none",
               }}
