@@ -24,21 +24,17 @@ Customer actions are the measurable steps people take after viewing your Google 
 **Average rate:** 4-6% of profile views
 **Walk-in rate:** 20-25% same day
 
-### 4. Message Clicks
-**What it measures:** Direct message initiation
-**Why it matters:** Customer engagement
-**Response needed:** Within 1 hour
-**Conversion rate:** 25% to sales
+### 4. Photo Views
+**What it measures:** How often people open your photo gallery
+**Why it matters:** Visual proof builds trust before a call or visit
+**Signal to watch:** Sudden drops can mean stale or low-quality images
 
-## Action Rates by Industry
+## Action Focus by Industry
 
-| Industry | Website | Calls | Directions | Messages |
-|----------|---------|-------|------------|----------|
-| Restaurants | 8% | 12% | 15% | 3% |
-| Services | 12% | 18% | 8% | 5% |
-| Retail | 15% | 8% | 12% | 4% |
-| Healthcare | 20% | 25% | 10% | 7% |
-| Hotels | 25% | 10% | 5% | 8% |
+- **Restaurants & Hospitality:** Photo views and direction requests tend to dominate — keep visuals fresh.
+- **Service Businesses:** Phone calls and website clicks signal high-intent leads — highlight booking options.
+- **Retail:** Website clicks and photo views help shoppers confirm inventory and ambiance.
+- **Healthcare:** Phone calls and website visits support appointment scheduling and insurance checks.
 
 ## Optimizing Each Action Type
 
@@ -81,18 +77,18 @@ Customer actions are the measurable steps people take after viewing your Google 
 - Accessibility information
 - Real-time traffic integration
 
-### Maximizing Messages
+### Boosting Photo Views
 **Quick Wins:**
-- Enable messaging feature
-- Set up auto-responses
-- Respond within 1 hour
-- Add FAQ suggestions
+- Upload recent photos that showcase real experiences
+- Add captions in posts inviting people to explore the gallery
+- Feature seasonal shots or new products prominently
+- Remove low-quality or outdated images
 
 **Advanced Tactics:**
-- Chatbot integration
-- Lead qualification scripts
-- Appointment booking via message
-- CRM integration
+- Schedule quarterly photo shoots to refresh content
+- Track which photos draw the most attention and replicate the style
+- Align photo updates with marketing campaigns or promotions
+- Embed the same visuals on your website for consistent branding
 
 ## The Customer Journey Analysis
 
@@ -129,7 +125,7 @@ Customer actions are the measurable steps people take after viewing your Google 
 **Calls:** 10 AM - 2 PM weekdays
 **Directions:** 5-7 PM weekdays, 11 AM - 3 PM weekends
 **Website:** 8-10 PM all days
-**Messages:** 7-9 PM all days
+**Photo views:** Evenings and weekends when customers research options
 
 ### Seasonal Variations
 - Q4: +35% all actions (holiday)
@@ -171,7 +167,7 @@ Customer actions are the measurable steps people take after viewing your Google 
 - Actual store visits from directions
 - Call outcomes/sales
 - Website conversion after click
-- Message conversation results
+- Photo gallery engagement beyond view counts
 - Cross-device behavior
 
 ### Supplementary Tracking
@@ -223,7 +219,7 @@ Customers typically:
 **High-value customers:**
 - Website + call combination
 - Multiple direction requests
-- Message before purchase
+- Deep photo engagement before purchase
 - Leave reviews after
 
 ## Action-Based Marketing
@@ -232,7 +228,7 @@ Customers typically:
 - Website visitors → Display ads
 - Callers → SMS campaigns
 - Direction requests → Geo-fencing
-- Messages → Email nurture
+- Photo viewers → Remarketing ads highlighting visuals
 
 ---
-*Want to improve your action rates? [Get a free analysis](mailto:support@promptreviews.app)*
+*Want to improve your action rates? [Get a free analysis](https://promptreviews.app/optimize-google-business-profile/)*

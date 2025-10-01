@@ -4,13 +4,7 @@ Understanding your Google Business Profile metrics is crucial for growing your o
 
 ## Quick Navigation
 
-- [Profile Views & Discovery](./profile-views.md)
-- [Customer Actions](./customer-actions.md)
-- [Reviews & Ratings](./reviews-ratings.md)
-- [Profile Completeness](./profile-completeness.md)
-- [Response Rate & Time](./response-metrics.md)
-- [Photo Engagement](./photo-engagement.md)
-- [Search Performance](./search-performance.md)
+Additional deep-dive guides are being prepared. For now, use this overview alongside the in-product help bubbles to understand each metric.
 
 ## Why These Metrics Matter
 

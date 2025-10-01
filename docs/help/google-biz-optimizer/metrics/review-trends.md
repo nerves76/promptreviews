@@ -86,11 +86,10 @@ Example: 500 customers/month × 10% = 50 reviews target
 
 ## What Google Biz Optimizer Monitors
 
-- 30-day vs 90-day trends
-- Week-over-week changes
-- Competitor velocity comparison
-- Predictive trend analysis
-- Alert thresholds
+- Reviews collected in the last 30 days
+- Month-by-month review totals for the past year
+- Star rating mix inside each month
+- Changes in review momentum you can act on manually
 
 ## Quick Win
 

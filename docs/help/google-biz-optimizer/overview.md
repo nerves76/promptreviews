@@ -4,7 +4,7 @@ Welcome to the Google Biz Optimizer help center. Learn how to maximize your Goog
 
 ## What is Google Biz Optimizer?
 
-Google Biz Optimizer is a powerful analytics and optimization tool that helps you understand and improve your Google Business Profile performance. Get actionable insights, track progress, and discover opportunities to outrank competitors in local search.
+Google Biz Optimizer is a powerful analytics and optimization tool that helps you understand and improve your Google Business Profile performance. Get actionable insights, track progress, and surface opportunities to strengthen your local visibility.
 
 ## Quick Links to Common Topics
 
@@ -26,9 +26,8 @@ Google Biz Optimizer is a powerful analytics and optimization tool that helps yo
 - [Google Posts Strategy](./engagement/posts.md)
 
 ### Performance Tracking
-- [Profile Views & Discovery](./performance/views.md)
-- [Customer Actions](./performance/actions.md)
-- [Search Queries](./performance/search-queries.md)
+- [Customer Actions](./performance/customer-actions.md)
+- Profile view and search query guides (coming soon)
 
 ## Getting Started Checklist
 
@@ -44,11 +43,10 @@ New to Google Business Profile optimization? Follow these steps:
 
 Our tool analyzes your Google Business Profile and provides:
 
-- **Instant Health Check** - See what's working and what needs improvement
+- **Instant Health Check** - See what's working and what needs attention
 - **Actionable Tasks** - Prioritized list of optimization opportunities
 - **Progress Tracking** - Monitor improvements over time
-- **Competitive Insights** - Understand how you compare to others
-- **PDF Reports** - Share results with your team
+- **PDF Reports** - Export key metrics for stakeholders
 
 ## Need More Help?
 

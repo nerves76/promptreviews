@@ -79,7 +79,7 @@ Located in: `/src/components/GoogleBusinessProfile/BusinessHealthMetrics.tsx`
 
 #### Performance Metrics Section
 13. 🔄 **Profile Views** (Pending)
-    - File: `performance/views.md`
+    - File: *(planned)* `performance/views.md`
     - Link from: Monthly views count
     - Key Topics: View types, discovery vs direct, improvement tactics
 
@@ -89,7 +89,7 @@ Located in: `/src/components/GoogleBusinessProfile/BusinessHealthMetrics.tsx`
     - Key Topics: Action types, conversion optimization, tracking
 
 15. 🔄 **Search Queries** (Pending)
-    - File: `performance/search-queries.md`
+    - File: *(planned)* `performance/search-queries.md`
     - Link from: Top search queries list
     - Key Topics: Query types, keyword research, optimization
 
@@ -114,16 +114,16 @@ Located in: `/src/components/GoogleBusinessProfile/BusinessHealthMetrics.tsx`
 - 🔄 Business Description
 - 🔄 Photos
 
-### Phase 3: Engagement & Performance (TODO)
-- 🔄 Questions & Answers
-- 🔄 Google Posts
+### Phase 3: Engagement & Performance (In Progress)
+- ✅ Questions & Answers
+- ✅ Google Posts
+- ✅ Customer Actions
 - 🔄 Profile Views
-- 🔄 Customer Actions
 - 🔄 Search Queries
 
-### Phase 4: Supporting Content (TODO)
-- 🔄 Monthly Patterns
-- 🔄 Quick Wins
+### Phase 4: Supporting Content (Ongoing)
+- ✅ Monthly Patterns
+- ✅ Quick Wins
 - 🔄 Video tutorials
 - 🔄 Industry-specific guides
 

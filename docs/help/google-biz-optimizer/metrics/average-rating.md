@@ -56,11 +56,10 @@ To reach a 4.5 average, you need:
 
 ## What Google Biz Optimizer Tracks
 
-- Current average rating with trend analysis
-- Rating distribution breakdown
-- Competitor rating comparisons
-- Projected rating based on recent reviews
-- Alerts for rating drops
+- Current average rating based on all Google reviews
+- Rating distribution across 1-5 star reviews
+- Month-to-month shifts in star mix via the review chart
+- Recent review counts so you can spot changes early
 
 ## Industry Benchmarks
 

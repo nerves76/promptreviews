@@ -47,10 +47,10 @@ Google uses review signals as a ranking factor. Businesses with more reviews typ
 ## What Google Biz Optimizer Does
 
 The tool tracks your total review count and:
-- Shows your review growth rate
-- Compares you to competitors
-- Alerts you to review velocity changes
-- Suggests optimal times to request reviews
+- Highlights how many reviews you have today
+- Shows changes in the last 30 days
+- Visualizes monthly review volume for the past year
+- Helps you identify months that need additional outreach
 
 ## Quick Win
 

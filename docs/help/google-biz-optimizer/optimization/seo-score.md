@@ -2,73 +2,50 @@
 
 ## What is the SEO Score?
 
-Your Google Business Profile SEO Score is a comprehensive metric (0-100) that measures how well-optimized your profile is for local search visibility. It combines multiple ranking factors that Google uses to determine your position in search results.
+Your Google Business Profile SEO Score is a lightweight metric (0-10) that measures how complete and compelling your business description is. The score is generated directly from the information available in Google Biz Optimizer and focuses on improvements you can make without leaving the app.
 
 ## Score Breakdown
 
 ### Score Ranges
-- **90-100:** Excellent - Maximum visibility potential
-- **70-89:** Good - Competitive positioning
-- **50-69:** Average - Missing opportunities
-- **Below 50:** Poor - Significant improvements needed
+- **8-10:** Strong description — only fine-tuning needed
+- **5-7:** Solid base — expand for better performance
+- **0-4:** Missing essentials — invest in a richer description
 
 ## Key Factors in Your Score
 
-### 1. Profile Completeness (30%)
-- Business name, address, phone
-- Hours of operation
-- Website and booking links
-- Business description
-- Services and products
-- Attributes and amenities
+### 1. Description Length
+- Targets the 500-600 character sweet spot Google recommends
+- Rewards detailed, customer-friendly copy
 
-### 2. Keyword Optimization (25%)
-- Primary category selection
-- Secondary categories
-- Service descriptions
-- Business description keywords
-- Post content relevance
+### 2. Business Name Mention
+- Confirms your description reinforces brand recognition
 
-### 3. Review Signals (20%)
-- Total review count
-- Average rating
-- Review velocity
-- Response rate
-- Keyword mentions in reviews
+### 3. Local Keywords
+- Checks for city and state references that help customers understand where you serve
 
-### 4. Engagement Metrics (15%)
-- Photo quantity and quality
-- Google Posts frequency
-- Q&A participation
-- Update frequency
+### 4. Category Alignment
+- Looks for your primary category terms inside the description
 
-### 5. Citation Consistency (10%)
-- NAP (Name, Address, Phone) accuracy
-- Website matching
-- Directory listings alignment
+### 5. Readability
+- Encourages concise sentences (under ~20 words) so the copy is easy to scan
+
+### 6. Clear Call to Action
+- Rewards descriptions that tell customers how to take the next step (call, visit, book, etc.)
 
 ## How to Improve Your Score
 
-### Quick Wins (Can add 10-20 points)
-1. **Complete all profile fields** - Even optional ones matter
-2. **Add 10+ photos** - Cover all categories
-3. **Write detailed service descriptions** - 750+ characters each
-4. **Select all relevant categories** - Up to 10 allowed
-5. **Add business attributes** - WiFi, parking, accessibility
+### Quick Wins
+1. **Expand your description** — aim for at least 500 characters without rambling
+2. **Work in your business name naturally** to reinforce branding
+3. **Mention your city and region** so customers know where you operate
+4. **Reference your primary service** using the same words as your Google category
+5. **Add a simple CTA** such as “Call us to schedule” or “Visit today”
 
-### Medium-term Improvements (Add 15-30 points)
-1. **Build review volume** - Aim for 50+ reviews
-2. **Maintain 4.0+ rating** - Quality service focus
-3. **Post weekly updates** - Events, offers, news
-4. **Respond to all reviews** - Within 48 hours
-5. **Answer customer questions** - Be the expert
-
-### Advanced Optimization (Final 10-15 points)
-1. **Local keyword research** - Optimize for search terms
-2. **Competitor analysis** - Identify gaps
-3. **Citation building** - 50+ directory listings
-4. **Schema markup** - On your website
-5. **Link building** - Local partnerships
+### Continued Improvements
+1. **Refresh copy each quarter** to keep it current
+2. **Highlight new services or guarantees** as they launch
+3. **Read it aloud** to confirm it flows like a conversation
+4. **Link to fuller details on your site** for curious customers
 
 ## Industry-Specific Tips
 
@@ -89,28 +66,19 @@ Your Google Business Profile SEO Score is a comprehensive metric (0-100) that me
 
 ## Common Mistakes That Hurt Score
 
-1. **Keyword stuffing** - Unnatural repetition
-2. **Category misuse** - Selecting irrelevant categories
-3. **Fake reviews** - Google penalizes heavily
-4. **Inconsistent information** - Different hours/phone across web
-5. **Neglecting updates** - Stale information signals
+1. **Thin descriptions** — fewer than 200 characters
+2. **Skipping location mentions** — customers can’t tell where you serve
+3. **Leaving out your main service** — generic copy helps no one
+4. **Using long, complex sentences** — hard to read on mobile
+5. **No call to action** — misses a chance to convert visitors
 
-## The Algorithm Behind the Score
+## How the Score Works
 
-Google Biz Optimizer uses 50+ data points including:
-- Direct Google API data
-- Competitor benchmarking
-- Industry standards
-- Search trend analysis
-- User behavior patterns
+Google Biz Optimizer analyzes the text of your description and awards points for each of the six criteria above. The total is capped at 10 so you can quickly see whether you have the essentials covered or still need to expand.
 
 ## What a High Score Means
 
-### 85+ Score Benefits:
-- **3x more discovery searches** - "near me" queries
-- **2x higher click-through rate** - From search results
-- **45% more direction requests** - Physical visits
-- **Top 3 local pack** - Premium placement
+Higher scores indicate a complete, customer-friendly description. While Google determines rankings using many off-platform signals, a detailed description gives customers clarity and sets you up for stronger engagement.
 
 ## Monitoring Your Progress
 
@@ -121,11 +89,11 @@ Google Biz Optimizer uses 50+ data points including:
 
 ## Quick Win Strategy
 
-**The 80/20 Rule:** Focus on these for maximum impact:
-1. Complete profile (20% effort, 40% impact)
-2. Get to 50 reviews (30% effort, 30% impact)
-3. Add 20 photos (10% effort, 15% impact)
-4. Post weekly (20% effort, 15% impact)
+Focus on the description updates that move the score most:
+1. Expand to 2-3 short paragraphs that highlight what you do best
+2. Name-drop your business and service area once each
+3. Mention your flagship service with a benefits-focused sentence
+4. Close with a clear call to action (call, book, visit, etc.)
 
 ---
-*Want a detailed SEO audit? [Get your free report](mailto:support@promptreviews.app)*
+*Want a detailed SEO audit? [Get your free report](https://promptreviews.app/optimize-google-business-profile/)*
