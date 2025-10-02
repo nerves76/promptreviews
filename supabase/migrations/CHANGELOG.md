@@ -3,6 +3,15 @@
 ## [2025-10-02]
 ### Migrations Added
 
+#### 20251002001007_add_style_preset_to_businesses.sql
+- **BUG FIX**: Added style_preset column to properly track selected design preset
+- **Issue**: After saving design changes, preset selection would switch to wrong preset (e.g., glassy -> snazzy)
+- **Root Cause**: System tried to guess which preset matched saved settings by comparing all fields (fragile and error-prone)
+- **Solution**: Added style_preset TEXT column to businesses table to explicitly store selected preset name
+- **Code Updates**: StyleModalPage now saves selectedPreset value when saving and loads it when fetching
+- **Behavior**: Preset selection now persists correctly across save/reload cycles
+- **Fallback**: Falls back to checkIfMatchesPreset detection for existing data without saved preset
+
 #### 20251002001006_fix_universal_prompt_page_status_filter.sql
 - **HOTFIX**: Fix universal prompt page access by removing status filter
 - **Issue**: Migration 20251002001000 added status filter that broke universal prompt pages in non-in_queue statuses

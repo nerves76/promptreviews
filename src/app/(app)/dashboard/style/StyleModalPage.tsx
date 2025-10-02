@@ -407,9 +407,17 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
 
         setSettings(newSettings);
 
-        // After loading settings, check if they match any preset
-        const matchingPreset = checkIfMatchesPreset(newSettings);
-        setSelectedPreset(matchingPreset || 'custom');
+        // Use the saved style_preset if available, otherwise try to detect it
+        if (business.style_preset) {
+          // Use the explicitly saved preset
+          setSelectedPreset(business.style_preset);
+          console.log('[StyleModal] Loaded saved preset:', business.style_preset);
+        } else {
+          // Fallback: try to detect which preset matches (legacy behavior)
+          const matchingPreset = checkIfMatchesPreset(newSettings);
+          setSelectedPreset(matchingPreset || 'custom');
+          console.log('[StyleModal] No saved preset, detected:', matchingPreset || 'custom');
+        }
       } else {
         // No business data, check default settings
         const matchingPreset = checkIfMatchesPreset(settings);
@@ -508,6 +516,8 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
       // Prepare the update payload
       const updatePayload = {
         businessId,
+        // Style preset selection (saves which preset was chosen)
+        style_preset: selectedPreset || 'custom',
         // Core fields
         primary_font: settings.primary_font,
         secondary_font: settings.secondary_font,
