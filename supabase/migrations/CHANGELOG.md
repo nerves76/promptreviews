@@ -1,5 +1,17 @@
 # Database Migrations Changelog
 
+## [2025-10-02]
+### Migrations Added
+
+#### 20251002000000_reenable_account_invitations_rls.sql
+- **SECURITY FIX**: Re-enabled RLS on account_invitations table with proper owner-only policies
+- **BEFORE**: RLS was completely disabled (migrations 0088, 0132), allowing any authenticated user to view all invitations
+- **AFTER**: Only account owners can view, create, update, or delete invitations for their accounts
+- All policies use `account_id IN (SELECT account_id FROM account_users WHERE user_id = auth.uid() AND role = 'owner')`
+- Invitation acceptance flows updated to use service role client for token-based lookups
+- Prevents enumeration of team invitations across accounts
+- Maintains secure token-based acceptance flow for new users
+
 ## [2025-10-01]
 ### Migrations Added
 

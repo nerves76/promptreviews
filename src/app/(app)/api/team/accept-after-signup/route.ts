@@ -25,6 +25,9 @@ export async function POST(request: NextRequest) {
     }
   );
 
+  // Create service role client for RLS bypass
+  const supabaseAdmin = createServiceRoleClient();
+
   try {
     // Get request body
     const { token } = await request.json();
@@ -46,8 +49,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get invitation by token
-    const { data: invitation, error: invitationError } = await supabase
+    // Get invitation by token using service role to bypass RLS
+    // RLS is enabled with owner-only policies, so we need service role for token lookups
+    const { data: invitation, error: invitationError } = await supabaseAdmin
       .from('account_invitations')
       .select(`
         id,
@@ -183,8 +187,8 @@ export async function POST(request: NextRequest) {
     } else {
     }
 
-    // Mark invitation as accepted
-    const { error: updateError } = await supabase
+    // Mark invitation as accepted using service role to bypass RLS
+    const { error: updateError } = await supabaseAdmin
       .from('account_invitations')
       .update({ accepted_at: new Date().toISOString() })
       .eq('id', invitation.id);
