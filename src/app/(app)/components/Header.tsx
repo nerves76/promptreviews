@@ -5,7 +5,6 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import Icon from "@/components/Icon";
-import { createPortal } from "react-dom";
 import { createClient, getUserOrMock } from "@/auth/providers/supabase";
 import { useAuth } from "@/auth";
 import { trackEvent, GA_EVENTS } from '@/utils/analytics';
@@ -14,6 +13,7 @@ import PromptReviewsLogo from "@/app/(app)/dashboard/components/PromptReviewsLog
 import { AccountSwitcher } from './AccountSwitcher';
 import GetReviewsDropdown from './GetReviewsDropdown';
 import { useAccountSelection } from '@/utils/accountSelectionHooks';
+import DropdownPortal from './DropdownPortal';
 
 const CowboyUserIcon = () => {
   const [imageError, setImageError] = useState(false);
@@ -526,25 +526,20 @@ const Header = React.memo(function Header() {
                   )}
                 </button>
                 {/* Notifications Dropdown - Rendered in Portal */}
-                {showNotifications && mounted && createPortal(
-                  <>
-                    <div
-                      className="fixed inset-0 bg-black/40"
-                      style={{ zIndex: 2147483648 }}
-                      onClick={() => setShowNotifications(false)}
-                    />
-                    <div
-                      ref={menuRef}
-                      className="fixed w-80 bg-white/10 backdrop-blur-xl rounded-lg shadow-2xl border border-white/20"
-                      style={{
-                        maxHeight: '400px',
-                        overflowY: 'auto',
-                        zIndex: 2147483649, // Higher than account switcher to ensure it's on top
-                        top: notificationsButtonRef.current ? notificationsButtonRef.current.getBoundingClientRect().bottom + 8 : 0,
-                        right: window.innerWidth - (notificationsButtonRef.current ? notificationsButtonRef.current.getBoundingClientRect().right : 0)
-                      }}
-                    >
-                    <div className="p-4">
+                <DropdownPortal
+                  isOpen={showNotifications}
+                  mounted={mounted}
+                  buttonRef={notificationsButtonRef}
+                  ref={menuRef}
+                  align="right"
+                  width="320px"
+                  style={{
+                    maxHeight: '400px',
+                    overflowY: 'auto',
+                    zIndex: 2147483649
+                  }}
+                >
+                  <div className="p-4">
                       <h3 className="text-lg font-semibold text-white mb-3">Recent activity</h3>
                       {recentNotifications.length === 0 ? (
                         <div className="text-center py-8 text-gray-400">
@@ -568,10 +563,7 @@ const Header = React.memo(function Header() {
                         </div>
                       )}
                     </div>
-                    </div>
-                  </>,
-                  document.body
-                )}
+                  </DropdownPortal>
               </div>
             </div>
             
@@ -596,24 +588,16 @@ const Header = React.memo(function Header() {
                   <CowboyUserIcon />
                 </button>
                 {/* Account Menu Dropdown - Rendered in Portal */}
-                {accountMenuOpen && mounted && createPortal(
-                  <>
-                    <div
-                      className="fixed inset-0 bg-black/40"
-                      style={{ zIndex: 2147483646 }}
-                      onClick={() => setAccountMenuOpen(false)}
-                    />
-                    <div
-                      ref={accountMenuRef}
-                      className="fixed bg-white/10 backdrop-blur-xl rounded-lg shadow-2xl border border-white/20 py-2"
-                      style={{ 
-                        zIndex: 2147483647,
-                        top: accountButtonRef.current ? accountButtonRef.current.getBoundingClientRect().bottom + 8 : 0,
-                        right: window.innerWidth - (accountButtonRef.current ? accountButtonRef.current.getBoundingClientRect().right : 0),
-                        width: '256px'
-                      }}
-                    >
-                    <Link href="/dashboard/account" className="flex items-center px-4 py-3 text-white hover:bg-white/10 transition-colors duration-200" onClick={() => setAccountMenuOpen(false)}>
+                <DropdownPortal
+                  isOpen={accountMenuOpen}
+                  mounted={mounted}
+                  buttonRef={accountButtonRef}
+                  ref={accountMenuRef}
+                  align="right"
+                  className="py-2"
+                  style={{ zIndex: 2147483647 }}
+                >
+                  <Link href="/dashboard/account" className="flex items-center px-4 py-3 text-white hover:bg-white/10 transition-colors duration-200" onClick={() => setAccountMenuOpen(false)}>
                       <Icon name="FaUser" className="w-5 h-5 mr-3 text-white" size={20} />
                       <div className="flex-1">
                         <div className="font-medium">Account</div>
@@ -674,10 +658,7 @@ const Header = React.memo(function Header() {
                         <div className="text-sm text-red-300">End your session</div>
                       </div>
                     </button>
-                    </div>
-                  </>,
-                  document.body
-                )}
+                </DropdownPortal>
               </div>
             ) : (
               <Link href="/auth/sign-in" className="inline-flex items-center px-4 py-2 border border-white/30 text-sm font-medium rounded-md bg-white/10 text-white hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white/30 transition-colors duration-200">
@@ -704,25 +685,21 @@ const Header = React.memo(function Header() {
                   </button>
                   
                   {/* Mobile Account Switcher Dropdown - Rendered in Portal */}
-                  {mobileAccountSwitcherOpen && mounted && createPortal(
-                    <>
-                      <div
-                        className="fixed inset-0 bg-black/40"
-                        style={{ zIndex: 2147483647 }}
-                        onClick={() => setMobileAccountSwitcherOpen(false)}
-                      />
-                      <div
-                        ref={mobileAccountDropdownRef}
-                        className="fixed left-4 right-4 bg-white/10 backdrop-blur-xl rounded-lg shadow-2xl border border-white/20 overflow-hidden"
-                        style={{
-                          zIndex: 2147483648,
-                          top: mobileAccountSwitcherRef.current ? mobileAccountSwitcherRef.current.getBoundingClientRect().bottom + 8 : 0,
-                          maxWidth: '400px',
-                          marginLeft: 'auto',
-                          marginRight: 'auto'
-                        }}
-                      >
-                      {/* Inline account switcher content since AccountSwitcher component has its own button */}
+                  <DropdownPortal
+                    isOpen={mobileAccountSwitcherOpen}
+                    mounted={mounted}
+                    buttonRef={mobileAccountSwitcherRef}
+                    ref={mobileAccountDropdownRef}
+                    className="left-4 right-4 overflow-hidden"
+                    style={{
+                      zIndex: 2147483648,
+                      top: mobileAccountSwitcherRef.current ? mobileAccountSwitcherRef.current.getBoundingClientRect().bottom + 8 : 0,
+                      maxWidth: '400px',
+                      marginLeft: 'auto',
+                      marginRight: 'auto'
+                    }}
+                  >
+                    {/* Inline account switcher content since AccountSwitcher component has its own button */}
                       <div className="px-4 py-3 border-b border-white/20">
                         <div className="flex items-center gap-2">
                           <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -774,10 +751,7 @@ const Header = React.memo(function Header() {
                           </button>
                         ))}
                       </div>
-                    </div>
-                    </>,
-                    document.body
-                  )}
+                  </DropdownPortal>
                 </>
               ) : null}
               
@@ -793,19 +767,17 @@ const Header = React.memo(function Header() {
           </div>
         </div>
         {/* Mobile Menu Dropdown - Rendered in Portal */}
-        {menuOpen && mounted && createPortal(
-          <div 
-            className="fixed inset-0 md:hidden"
-            style={{ zIndex: 2147483647 }}
-          >
-            {/* Backdrop */}
-            <div 
-              className="absolute inset-0 bg-black/20 backdrop-blur-sm"
-              onClick={() => setMenuOpen(false)}
-            />
-            {/* Menu Content */}
-            <div className="absolute top-20 left-4 right-4 bg-white/10 backdrop-blur-xl shadow-2xl rounded-xl border border-white/20">
-              <div className="px-2 pt-2 pb-3 space-y-1 flex flex-col">
+        <DropdownPortal
+          isOpen={menuOpen}
+          mounted={mounted}
+          buttonRef={{ current: null } as React.RefObject<HTMLElement>}
+          className="md:hidden left-4 right-4"
+          style={{
+            top: 80,
+            zIndex: 2147483647
+          }}
+        >
+          <div className="px-2 pt-2 pb-3 space-y-1 flex flex-col">
                 <Link
                   href={hasBusiness ? "/dashboard" : "#"}
                   onClick={(e) => {
@@ -1072,11 +1044,8 @@ const Header = React.memo(function Header() {
                     Sign in
                   </Link>
                 )}
-              </div>
             </div>
-          </div>,
-          document.body
-        )}
+        </DropdownPortal>
       </nav>
     </header>
   );

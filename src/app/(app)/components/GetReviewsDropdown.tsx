@@ -5,10 +5,10 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { createPortal } from "react-dom";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import Icon from "@/components/Icon";
+import DropdownPortal from "./DropdownPortal";
 
 // Custom [P] icon component for Prompt Pages
 const PromptPagesIcon = ({ className }: { className?: string }) => (
@@ -99,51 +99,40 @@ const GetReviewsDropdown: React.FC<GetReviewsDropdownProps> = ({
       </button>
 
       {/* Render dropdown in portal to escape stacking context */}
-      {isOpen && mounted && createPortal(
-        <>
-          <div
-            className="fixed inset-0 bg-black/40"
-            style={{ zIndex: 2147483647 }}
-            onClick={() => setIsOpen(false)}
-          />
-          <div
-            ref={dropdownRef}
-            className="fixed bg-white/10 backdrop-blur-xl rounded-lg shadow-2xl border border-white/20 py-2"
-            style={{
-              top: buttonRef.current ? buttonRef.current.getBoundingClientRect().bottom + 4 : 0,
-              left: buttonRef.current ? buttonRef.current.getBoundingClientRect().left : 0,
-              width: '256px',
-              zIndex: 2147483648
-            }}>
-          {menuItems.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={() => {
-                onNavigate();
-                setIsOpen(false);
-              }}
-              className={`${
-                pathname === item.href || pathname.startsWith(item.href + '/')
-                  ? "bg-white/10 text-white"
-                  : "text-white hover:bg-white/10"
-              } flex items-center px-4 py-3 transition-colors duration-200`}
-            >
-              {typeof item.icon === 'string' ? (
-                <Icon name={item.icon as any} className="w-5 h-5 mr-3 text-white" size={20} />
-              ) : (
-                <item.icon className="w-5 h-5 mr-3 text-white" />
-              )}
-              <div className="flex-1">
-                <div className="font-medium text-white">{item.label}</div>
-                <div className="text-sm text-white/80">{item.description}</div>
-              </div>
-            </Link>
-          ))}
-          </div>
-        </>,
-        document.body
-      )}
+      <DropdownPortal
+        isOpen={isOpen}
+        mounted={mounted}
+        buttonRef={buttonRef}
+        ref={dropdownRef}
+        className="py-2"
+        style={{ zIndex: 2147483648, top: buttonRef.current ? buttonRef.current.getBoundingClientRect().bottom + 4 : 0 }}
+      >
+        {menuItems.map((item) => (
+          <Link
+            key={item.href}
+            href={item.href}
+            onClick={() => {
+              onNavigate();
+              setIsOpen(false);
+            }}
+            className={`${
+              pathname === item.href || pathname.startsWith(item.href + '/')
+                ? "bg-white/10 text-white"
+                : "text-white hover:bg-white/10"
+            } flex items-center px-4 py-3 transition-colors duration-200`}
+          >
+            {typeof item.icon === 'string' ? (
+              <Icon name={item.icon as any} className="w-5 h-5 mr-3 text-white" size={20} />
+            ) : (
+              <item.icon className="w-5 h-5 mr-3 text-white" />
+            )}
+            <div className="flex-1">
+              <div className="font-medium text-white">{item.label}</div>
+              <div className="text-sm text-white/80">{item.description}</div>
+            </div>
+          </Link>
+        ))}
+      </DropdownPortal>
     </div>
   );
 };
