@@ -206,6 +206,7 @@ export default function KickstartersCarousel({
             <span
               className="text-xs tracking-wide font-medium"
               style={{
+                fontFamily: businessProfile?.primary_font || 'Inter',
                 color: actualBackgroundDesign
                   ? (businessProfile?.primary_color || '#2563EB')
                   : (businessProfile?.card_text || '#1F2937')
@@ -223,6 +224,7 @@ export default function KickstartersCarousel({
                 : 'hover:opacity-80'
             }`}
             style={{
+              fontFamily: businessProfile?.secondary_font || 'Roboto',
               fontSize: '1rem',
               lineHeight: '1.5rem',
               color: actualBackgroundDesign
@@ -240,6 +242,7 @@ export default function KickstartersCarousel({
               onClick={() => setShowViewAll(true)}
               className="text-[10px] font-medium hover:underline transition-colors focus:outline-none focus:ring-2 focus:ring-blue-300 rounded px-1"
               style={{
+                fontFamily: businessProfile?.primary_font || 'Inter',
                 color: actualBackgroundDesign
                   ? (businessProfile?.primary_color || '#2563EB')
                   : (businessProfile?.card_text || '#1F2937')
