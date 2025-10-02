@@ -3,6 +3,19 @@
 ## [2025-10-02]
 ### Migrations Added
 
+#### 20251002001006_fix_universal_prompt_page_status_filter.sql
+- **HOTFIX**: Fix universal prompt page access by removing status filter
+- **Issue**: Migration 20251002001000 added status filter that broke universal prompt pages in non-in_queue statuses
+- **Impact**: Universal prompt pages with status = complete, in_progress, sent, follow_up, or draft returned 404
+- **Root Cause**: Policy restricted to `is_universal = true AND status = 'in_queue'` but status is not a gating signal for public access
+- **Fix**: Removed status filter - anon policy now allows access to ANY universal prompt page: `USING (is_universal = true)`
+- **Why Necessary**: Universal pages should be publicly accessible regardless of workflow status
+- **Security Note**: Status is a workflow tracking field, not an access control field; universal pages are designed to be publicly shared
+
+#### 20251002001005_hotfix_restore_public_prompt_page_access.sql
+- **MIGRATION SUPERSEDED**: This migration ran with incorrect policy (attempted to allow all in_queue pages)
+- **Superseded by**: 20251002001006 which correctly removes status filter for universal pages only
+
 #### 20251002001004_restrict_public_leaderboard_access.sql
 - **SECURITY HARDENING**: Restricted public_leaderboard view to prevent unrestricted direct database access
 - **BEFORE**: View had GRANT SELECT TO anon/authenticated, allowing unlimited direct queries from any Supabase client
