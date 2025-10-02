@@ -3,6 +3,15 @@
 ## [2025-10-02]
 ### Migrations Added
 
+#### 20251002001001_restrict_admin_views_access.sql
+- **CRITICAL SECURITY FIX**: Fixed global data leak in admin views exposed to all authenticated users
+- **reactivation_metrics view**: View showed GLOBAL reactivation statistics across ALL accounts (total counts, averages)
+- **account_users_readable view**: View exposed user emails and business details from joined tables across ALL accounts
+- **BEFORE**: Both views had GRANT SELECT TO authenticated/anon/public, exposing platform-wide admin data to any logged-in user
+- **AFTER**: Only service_role can SELECT from these views
+- Admin routes must use service role client after checking caller is an admin
+- Prevents platform-wide metrics enumeration and protects sensitive admin data
+
 #### 20251002001000_harden_prompt_pages_rls.sql
 - **CRITICAL SECURITY FIX**: Fixed permissive public policy and broken authenticated policies on prompt_pages
 - **Issue 1 - Public enumeration**: Policy allowed TO public with USING (status = 'in_queue'), exposing ALL queued prompt pages across ALL accounts to any session
