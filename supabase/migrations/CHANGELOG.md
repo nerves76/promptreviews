@@ -3,6 +3,16 @@
 ## [2025-10-01]
 ### Migrations Added
 
+#### 20251001000002_fix_rls_account_isolation.sql
+- **CRITICAL SECURITY FIX**: Fixed world-readable RLS policies across multiple tables
+- **widgets table**: Replaced `auth.uid()` checks with proper account_users junction table queries; restricted anon access to only active widgets
+- **widget_reviews table**: Added account scoping via widgets join; restricted anon access to reviews for active widgets only
+- **analytics_events table**: Replaced `USING (true)` with account filtering via prompt_pages join; prevents cross-account analytics exposure
+- **admins table**: Restricted SELECT to admins only (was readable by all authenticated users)
+- All authenticated policies now use `account_id IN (SELECT account_id FROM account_users WHERE user_id = auth.uid())` pattern
+- Prevents enumeration of admin accounts, widget configurations, and analytics data across tenants
+- Anonymous access now properly restricted to only active/public resources
+
 #### 20251001000000_add_account_id_to_review_submissions.sql
 - Added `account_id` UUID column to `review_submissions` table for account isolation
 - Backfilled `account_id` from associated `prompt_pages` table
