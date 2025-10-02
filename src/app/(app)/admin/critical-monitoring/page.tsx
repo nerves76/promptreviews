@@ -48,24 +48,28 @@ export default function CriticalMonitoringDashboard() {
       const health = await performCriticalHealthCheck();
       setHealthStatus(health);
 
-      // Get recent errors
+      // Get critical monitoring data from admin API (uses service role to bypass RLS)
       const supabase = createClient();
-      const { data: errors } = await supabase
-        .from('critical_function_errors')
-        .select('*')
-        .order('timestamp', { ascending: false })
-        .limit(20);
+      const { data: { session } } = await supabase.auth.getSession();
 
-      if (errors) setRecentErrors(errors);
+      if (!session?.access_token) {
+        throw new Error('No session found');
+      }
 
-      // Get function health metrics
-      const { data: healthData } = await supabase
-        .from('critical_function_health')
-        .select('*')
-        .order('hour', { ascending: false })
-        .limit(50);
+      const response = await fetch('/api/admin/critical-monitoring', {
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`
+        }
+      });
 
-      if (healthData) setFunctionHealth(healthData);
+      if (!response.ok) {
+        throw new Error('Failed to fetch monitoring data');
+      }
+
+      const data = await response.json();
+
+      if (data.errors) setRecentErrors(data.errors);
+      if (data.healthData) setFunctionHealth(data.healthData);
 
     } catch (error) {
       console.error('Failed to load monitoring data:', error);

@@ -3,6 +3,16 @@
 ## [2025-10-02]
 ### Migrations Added
 
+#### 20251002001003_restrict_critical_function_health_access.sql
+- **CRITICAL SECURITY FIX**: Fixed global data leak in critical_function_health view exposed to all authenticated users
+- **critical_function_health view**: View aggregated GLOBAL operational telemetry across ALL accounts (function names, failure rates, runtime)
+- **BEFORE**: View had GRANT SELECT TO authenticated, exposing platform-wide critical function metrics to any logged-in user
+- **AFTER**: Only service_role can SELECT from the view
+- **Code Updates**: Created /api/admin/critical-monitoring route that verifies admin status before using service role to query view
+- **Code Updates**: Updated /admin/critical-monitoring page to call API route instead of direct Supabase query
+- Admin UI now properly proxies access through authenticated admin API that checks permissions
+- Prevents exposure of operational intelligence and platform architecture details to customers
+
 #### 20251002001002_harden_game_leaderboard_security.sql
 - **SECURITY HARDENING**: Full security lockdown for game leaderboard tables
 - **game_leaderboard table**: Added missing UPDATE/DELETE prevention policies
