@@ -290,10 +290,16 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
         gradient_end: settings.gradient_end,
         card_bg: settings.card_bg,
         card_text: settings.card_text,
+        card_placeholder_color: settings.card_placeholder_color,
+        input_text_color: settings.input_text_color,
         card_inner_shadow: settings.card_inner_shadow,
         card_shadow_color: settings.card_shadow_color,
         card_shadow_intensity: settings.card_shadow_intensity,
         card_transparency: settings.card_transparency,
+        card_border_width: settings.card_border_width,
+        card_border_color: settings.card_border_color,
+        card_border_transparency: settings.card_border_transparency,
+        kickstarters_background_design: settings.kickstarters_background_design,
       });
     }
   }, [settings, onStyleUpdate, isInitialized]);

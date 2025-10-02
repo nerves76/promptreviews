@@ -24,6 +24,7 @@ import LocationCard from "@/app/(app)/components/LocationCard";
 import { BusinessLocation, LocationWithPromptPage } from "@/types/business";
 import { hasLocationAccess, formatLocationAddress, getLocationDisplayName } from "@/utils/locationUtils";
 import CommunicationButtons from "@/app/(app)/components/communication/CommunicationButtons";
+import WelcomePopup from "@/app/(app)/components/WelcomePopup";
 
 import EmojiEmbedButton from "@/app/(app)/components/EmojiEmbedButton";
 // Page-level loading uses global overlay
@@ -94,11 +95,20 @@ function PromptPagesContent() {
   const [isNavigating, setIsNavigating] = useState(false); // Add navigation loading state
   const [showBusinessRequiredModal, setShowBusinessRequiredModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [showWelcomePopup, setShowWelcomePopup] = useState(false);
 
   // Check if user has access to individual prompt pages (exclude grower plan)
   const hasIndividualAccess = (plan?: string): boolean => {
     if (!plan) return false;
     return plan !== 'grower';
+  };
+
+  // Handler for closing the welcome popup
+  const handleWelcomeClose = () => {
+    setShowWelcomePopup(false);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('hasSeenPromptPagesWelcome', 'true');
+    }
   };
 
   // Handle tab changes and update URL
@@ -342,6 +352,14 @@ function PromptPagesContent() {
         // Fetch locations if user has access
         if (accountData && hasLocationAccess(accountData.plan)) {
           await fetchLocations(accountId);
+        }
+
+        // Check if this is the first time visiting the prompt-pages page
+        if (typeof window !== 'undefined') {
+          const hasSeenPromptPagesWelcome = localStorage.getItem('hasSeenPromptPagesWelcome');
+          if (!hasSeenPromptPagesWelcome) {
+            setShowWelcomePopup(true);
+          }
         }
       } catch (err) {
         console.error('❌ Data fetch error:', err);
@@ -1244,25 +1262,25 @@ function PromptPagesContent() {
         initialSettings={{
           // Review Platforms
           review_platforms: business?.review_platforms || [],
-          
+
           // Keywords
           keywords: business?.keywords || '',
-          
+
           // AI Dos and Don'ts
           ai_dos: business?.ai_dos || '',
           ai_donts: business?.ai_donts || '',
-          
+
           // Special Offer
           default_offer_enabled: business?.default_offer_enabled || false,
           default_offer_title: business?.default_offer_title || 'Special Offer',
           default_offer_body: business?.default_offer_body || '',
           default_offer_url: business?.default_offer_url || '',
           default_offer_timelock: business?.default_offer_timelock || false,
-          
+
           // AI Settings
           ai_button_enabled: business?.ai_button_enabled || false,
           fix_grammar_enabled: business?.fix_grammar_enabled || false,
-          
+
           // Emoji Sentiment
           emoji_sentiment_enabled: business?.emoji_sentiment_enabled || false,
           emoji_sentiment_question: business?.emoji_sentiment_question || 'How was your experience?',
@@ -1270,20 +1288,20 @@ function PromptPagesContent() {
           emoji_thank_you_message: business?.emoji_thank_you_message || 'Thank you for your feedback!',
           emoji_feedback_popup_header: business?.emoji_feedback_popup_header || 'How can we improve?',
           emoji_feedback_page_header: business?.emoji_feedback_page_header || 'Your feedback helps us grow',
-          
+
           // Falling Stars (corrected field names)
           falling_enabled: business?.falling_enabled !== undefined ? business.falling_enabled : true,
           falling_icon: business?.falling_icon || 'star',
           falling_icon_color: business?.falling_icon_color || '#FFD700',
-          
+
           // Friendly Note (corrected field names)
           show_friendly_note: business?.show_friendly_note || false,
           friendly_note: business?.friendly_note || '',
-          
+
           // Recent Reviews
           recent_reviews_enabled: business?.recent_reviews_enabled || false,
           recent_reviews_scope: business?.recent_reviews_scope || 'current_page',
-          
+
           // Kickstarters
           kickstarters_enabled: business?.kickstarters_enabled !== undefined ? business.kickstarters_enabled : true,
           selected_kickstarters: business?.selected_kickstarters || [],
@@ -1292,6 +1310,25 @@ function PromptPagesContent() {
         }}
         businessName={business?.name || businessName}
         accountId={selectedAccountId || authAccountId}
+      />
+
+      {/* Welcome Popup for first-time visitors */}
+      <WelcomePopup
+        isOpen={showWelcomePopup}
+        onClose={handleWelcomeClose}
+        title="A few notes about Prompt Pages"
+        message={`A few things to go over:
+
+Use [icon] Settings to set global preferences and AI DOs and Don'ts (Very important if you want your reviews to sound authentic and mention what you want them to mention. Hint: The more details you add the better your AI reviews will turn out.
+
+**Universal Prompt Page**
+The Universal Prompt Page is for general use and is great if you are prompting many for reviews. This works great for adding a QR code to your front desk or to an email newsletter, etc.
+
+**Prompt Page Types**
+There are various Prompt Page Types for collecting different kinds of reviews. These Prompt Pages allow you to collect reviews for events, products, services, etc. You can even set up Prompt Pages for your employees so they can collect reviews about their performance.`}
+        imageUrl="https://ltneloufqjktdplodvao.supabase.co/storage/v1/object/public/logos/prompt-assets/prompty-teaching-about-your-business.png"
+        imageAlt="Prompty teaching about Prompt Pages"
+        buttonText="Got it!"
       />
 
     </div>

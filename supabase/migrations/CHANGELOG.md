@@ -8,6 +8,7 @@
 - **Issue**: After saving design changes, preset selection would switch to wrong preset (e.g., glassy -> snazzy)
 - **Root Cause**: System tried to guess which preset matched saved settings by comparing all fields (fragile and error-prone)
 - **Solution**: Added style_preset TEXT column to businesses table to explicitly store selected preset name
+- **Valid Values**: glassy, solid, paper, outdoorsy, snazzy, or custom
 - **Code Updates**: StyleModalPage now saves selectedPreset value when saving and loads it when fetching
 - **Behavior**: Preset selection now persists correctly across save/reload cycles
 - **Fallback**: Falls back to checkIfMatchesPreset detection for existing data without saved preset
