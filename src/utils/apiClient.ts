@@ -15,15 +15,34 @@ interface ApiRequestOptions extends RequestInit {
 }
 
 // Helper to get selected account from localStorage
-function getSelectedAccountId(): string | null {
+async function getSelectedAccountId(): Promise<string | null> {
   if (typeof window === 'undefined') return null;
-  
+
   try {
-    // Try to get the user ID from the token manager to build the correct key
-    const storedUserId = localStorage.getItem('promptreviews_last_user_id');
-    if (!storedUserId) return null;
-    
-    const accountKey = `promptreviews_selected_account_${storedUserId}`;
+    // First, try to get user ID from localStorage (fast path)
+    let userId = localStorage.getItem('promptreviews_last_user_id');
+
+    // If not found in localStorage, extract from current token
+    if (!userId) {
+      const token = await tokenManager.getAccessToken();
+      if (token) {
+        try {
+          const payload = JSON.parse(atob(token.split('.')[1]));
+          userId = payload.sub;
+          // Store for future use
+          if (userId) {
+            localStorage.setItem('promptreviews_last_user_id', userId);
+          }
+        } catch (e) {
+          console.error('Error parsing token for user ID:', e);
+          return null;
+        }
+      }
+    }
+
+    if (!userId) return null;
+
+    const accountKey = `promptreviews_selected_account_${userId}`;
     return localStorage.getItem(accountKey);
   } catch (error) {
     console.error('Error reading selected account:', error);
@@ -42,12 +61,12 @@ class ApiClient {
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
     };
-    
+
     if (!skipAuth) {
       const token = await tokenManager.getAccessToken();
       if (token) {
         headers['Authorization'] = `Bearer ${token}`;
-        
+
         // Also store the user ID for future reference when we have a token
         try {
           const payload = JSON.parse(atob(token.split('.')[1]));
@@ -59,15 +78,15 @@ class ApiClient {
         }
       }
     }
-    
+
     // Include selected account header for authenticated requests
     if (!skipAuth && includeSelectedAccount) {
-      const selectedAccountId = getSelectedAccountId();
+      const selectedAccountId = await getSelectedAccountId();
       if (selectedAccountId) {
         headers['X-Selected-Account'] = selectedAccountId;
       }
     }
-    
+
     return headers;
   }
   

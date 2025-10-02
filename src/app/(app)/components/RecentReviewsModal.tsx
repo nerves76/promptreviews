@@ -1,14 +1,20 @@
 /**
  * RecentReviewsModal Component
- * 
+ *
  * Displays recent reviews in a modal with privacy protection (initials only).
  * Uses business branding and follows app modal standards with red X close button.
  * Only shows when 3+ reviews are available and feature is enabled.
+ *
+ * Security:
+ * - Handles 403 errors when account isolation prevents access
+ * - Uses apiClient for proper authentication and account header injection
+ * - Shows user-friendly message when access is denied (account mismatch)
  */
 
 "use client";
 import React, { useState, useEffect } from "react";
 import Icon from "@/components/Icon";
+import { apiClient } from "@/utils/apiClient";
 
 interface Review {
   initials: string;
@@ -43,6 +49,7 @@ export default function RecentReviewsModal({
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [accessDenied, setAccessDenied] = useState(false);
 
   // Fetch reviews when modal opens
   useEffect(() => {
@@ -54,14 +61,20 @@ export default function RecentReviewsModal({
   const fetchReviews = async () => {
     setLoading(true);
     setError(null);
+    setAccessDenied(false);
 
     try {
-      const response = await fetch(`/api/recent-reviews/${promptPageId}`);
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to fetch reviews');
-      }
+      // Use apiClient which automatically handles:
+      // - Authentication tokens via TokenManager
+      // - X-Selected-Account header injection (with fallback to token extraction)
+      // - Proper credentials handling
+      const data = await apiClient.get<{
+        hasEnoughReviews: boolean;
+        reviews?: Review[];
+        message?: string;
+      }>(`/recent-reviews/${promptPageId}`, {
+        skipAuth: false, // Ensure auth is included if available
+      });
 
       if (data.hasEnoughReviews) {
         setReviews(data.reviews || []);
@@ -69,9 +82,17 @@ export default function RecentReviewsModal({
         setReviews([]);
         setError(data.message || 'Not enough reviews available');
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error fetching recent reviews:', err);
-      setError(err instanceof Error ? err.message : 'Failed to load reviews');
+
+      if (err.status === 403) {
+        // Account mismatch or unauthorized access
+        setAccessDenied(true);
+        setError('Recent reviews are not available for the selected account');
+      } else {
+        setError(err instanceof Error ? err.message : 'Failed to load reviews');
+      }
+
       setReviews([]);
     } finally {
       setLoading(false);
@@ -105,7 +126,7 @@ export default function RecentReviewsModal({
       >
         {/* Standardized red X close button */}
         <button
-          className="absolute top-3 right-3 bg-white border border-gray-200 rounded-full shadow-lg hover:shadow-xl transition-shadow duration-200 flex items-center justify-center hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 z-50"
+          className="absolute -top-3 -right-3 bg-white border border-gray-200 rounded-full shadow-lg hover:shadow-xl transition-shadow duration-200 flex items-center justify-center hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 z-50"
           style={{ width: 48, height: 48 }}
           onClick={onClose}
           aria-label="Close modal"
@@ -118,15 +139,15 @@ export default function RecentReviewsModal({
         {/* Modal Header */}
         <div className="p-6 pb-4 border-b border-gray-200">
           <div className="flex items-center space-x-3">
-            <Icon 
-              name="FaComments" 
+            <Icon
+              name="FaCommentDots"
               className="w-6 h-6"
               style={{ color: businessProfile?.primary_color || "#4F46E5" }}
               size={24}
             />
-            <h2 
+            <h2
               className="text-xl font-bold"
-              style={{ 
+              style={{
                 color: businessProfile?.primary_color || "#4F46E5",
                 fontFamily: businessProfile?.primary_font || "Inter"
               }}
@@ -152,14 +173,23 @@ export default function RecentReviewsModal({
 
           {error && (
             <div className="text-center py-8">
-              <Icon name="FaExclamationTriangle" className="w-8 h-8 text-gray-400 mx-auto mb-3" size={32} />
+              <Icon
+                name={accessDenied ? "FaLock" : "FaExclamationTriangle"}
+                className="w-8 h-8 text-gray-400 mx-auto mb-3"
+                size={32}
+              />
               <p className="text-gray-600">{error}</p>
+              {accessDenied && (
+                <p className="text-sm text-gray-500 mt-2">
+                  This may occur when viewing prompt pages from a different account
+                </p>
+              )}
             </div>
           )}
 
           {!loading && !error && reviews.length === 0 && (
             <div className="text-center py-8">
-              <Icon name="FaComments" className="w-8 h-8 text-gray-400 mx-auto mb-3" size={32} />
+              <Icon name="FaCommentDots" className="w-8 h-8 text-gray-400 mx-auto mb-3" size={32} />
               <p className="text-gray-600">No recent reviews available</p>
             </div>
           )}

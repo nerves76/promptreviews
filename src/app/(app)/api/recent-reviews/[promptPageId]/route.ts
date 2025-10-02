@@ -1,14 +1,17 @@
 /**
  * API Route: Recent Reviews
- * 
+ *
  * Fetches recent reviews for a prompt page with privacy protection and filtering.
  * Only returns reviews if 3+ are available and feature is enabled.
  * Uses initials for privacy and filters out feedback/incomplete reviews.
+ *
+ * SECURITY: Enforces account isolation for authenticated users and public-only access for anonymous users.
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
+import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
 
 // Helper function to generate initials from names
 function generateInitials(firstName?: string, lastName?: string): string {
@@ -111,15 +114,66 @@ export async function GET(
       }
     );
 
+    // Check authentication status
+    const { data: { user } } = await supabase.auth.getUser();
+
     // Get prompt page and verify it exists
     const { data: promptPage, error: promptPageError } = await supabase
       .from('prompt_pages')
-      .select('id, account_id, recent_reviews_enabled, recent_reviews_scope')
+      .select('id, account_id, recent_reviews_enabled, recent_reviews_scope, is_universal, status')
       .eq('id', promptPageId)
       .single();
 
     if (promptPageError || !promptPage) {
       return NextResponse.json({ error: 'Prompt page not found' }, { status: 404 });
+    }
+
+    // SECURITY: Handle authenticated vs anonymous access
+    let accountId: string;
+
+    // Check if this is a public page (accessible to anyone)
+    const isPublicPage = promptPage.is_universal === true &&
+                        promptPage.status === 'published' &&
+                        promptPage.recent_reviews_enabled === true;
+
+    if (user) {
+      // AUTHENTICATED REQUEST
+      const requestAccountId = await getRequestAccountId(request, user.id, supabase);
+
+      if (!requestAccountId) {
+        return NextResponse.json({
+          error: 'Unable to determine account context'
+        }, { status: 403 });
+      }
+
+      // For public pages, allow any authenticated user to view
+      // For non-public pages, enforce strict account isolation
+      if (!isPublicPage && promptPage.account_id !== requestAccountId) {
+        console.warn(
+          `[recent-reviews] Account mismatch for non-public page: user ${user.id} with account ${requestAccountId} ` +
+          `tried to access prompt page ${promptPageId} from account ${promptPage.account_id}`
+        );
+        return NextResponse.json({
+          error: 'Access denied: Prompt page does not belong to your selected account'
+        }, { status: 403 });
+      }
+
+      // Use the prompt page's account (not the user's selected account)
+      // This ensures we return reviews from the correct account even for multi-account users
+      accountId = promptPage.account_id;
+    } else {
+      // ANONYMOUS REQUEST: Only allow for public prompt pages
+      if (!isPublicPage) {
+        console.warn(
+          `[recent-reviews] Anonymous access denied for non-public prompt page ${promptPageId} ` +
+          `(is_universal: ${promptPage.is_universal}, status: ${promptPage.status}, enabled: ${promptPage.recent_reviews_enabled})`
+        );
+        return NextResponse.json({
+          error: 'Access denied: This page is not publicly accessible'
+        }, { status: 403 });
+      }
+
+      accountId = promptPage.account_id;
     }
 
     // Check if feature is enabled for this prompt page
@@ -131,14 +185,13 @@ export async function GET(
       });
     }
 
-    const accountId = promptPage.account_id;
     const reviewScope = promptPage.recent_reviews_scope || 'current_page';
 
     // Determine which prompt pages to include based on scope
     let promptPageIds: string[];
-    
+
     if (reviewScope === 'all_pages') {
-      // Get all prompt pages for this account
+      // SECURITY: Get all prompt pages for THIS ACCOUNT ONLY
       const { data: accountPromptPages, error: pagesError } = await supabase
         .from('prompt_pages')
         .select('id')

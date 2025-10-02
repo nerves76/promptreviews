@@ -1,5 +1,23 @@
 # Database Migrations Changelog
 
+## [2025-10-01]
+### Migrations Added
+
+#### 20251001000000_add_account_id_to_review_submissions.sql
+- Added `account_id` UUID column to `review_submissions` table for account isolation
+- Backfilled `account_id` from associated `prompt_pages` table
+- Created indexes for performance on account-based queries
+- Added trigger function `auto_populate_review_submission_account_id()` to automatically populate account_id on INSERT/UPDATE
+- Added trigger `trigger_auto_populate_review_submission_account_id` to ensure account_id is always set from prompt_page
+
+#### 20251001000001_update_review_submissions_rls_policies.sql
+- **SECURITY FIX**: Replaced permissive RLS policies with account-based access control
+- Dropped old policies: "Allow select for authenticated users", "Allow public read access for submitted reviews", "Users manage their reviews"
+- Created new authenticated policy: Users can only view/manage reviews for accounts they belong to (via account_users table)
+- Created new anonymous policy: Only allows viewing submitted reviews from universal prompt pages with recent_reviews_enabled=true
+- Preserved anonymous INSERT policy for public review submissions
+- Enforces proper account isolation to prevent cross-account data leakage
+
 ## [2025-09-20]
 ### Migrations Added
 

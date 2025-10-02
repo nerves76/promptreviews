@@ -1,14 +1,20 @@
 /**
  * RecentReviewsButton Component
- * 
+ *
  * Button that appears on public prompt pages below the business name.
  * Only shows when the Recent Reviews feature is enabled AND there are 3+ reviews available.
  * Opens the RecentReviewsModal when clicked.
+ *
+ * Security:
+ * - Handles 403 errors when account isolation prevents access
+ * - Uses apiClient for proper authentication and account header injection
+ * - Gracefully hides when access is denied (account mismatch)
  */
 
 "use client";
 import React, { useState, useEffect } from "react";
 import Icon from "@/components/Icon";
+import { apiClient } from "@/utils/apiClient";
 
 interface RecentReviewsButtonProps {
   /** Prompt page ID to check for reviews */
@@ -34,6 +40,7 @@ export default function RecentReviewsButton({
   const [loading, setLoading] = useState(true);
   const [reviewCount, setReviewCount] = useState(0);
   const [hasEnoughReviews, setHasEnoughReviews] = useState(false);
+  const [accessDenied, setAccessDenied] = useState(false);
 
   // Check if there are enough reviews when component mounts
   useEffect(() => {
@@ -47,27 +54,39 @@ export default function RecentReviewsButton({
 
   const checkReviewCount = async () => {
     try {
-      const response = await fetch(`/api/recent-reviews/${promptPageId}`);
-      const data = await response.json();
+      // Use apiClient which automatically handles:
+      // - Authentication tokens via TokenManager
+      // - X-Selected-Account header injection (with fallback to token extraction)
+      // - Proper credentials handling
+      const data = await apiClient.get<{
+        hasEnoughReviews: boolean;
+        totalCount: number;
+      }>(`/recent-reviews/${promptPageId}`, {
+        skipAuth: false, // Ensure auth is included if available
+      });
 
-      if (response.ok) {
-        setHasEnoughReviews(data.hasEnoughReviews);
-        setReviewCount(data.totalCount || 0);
-      } else {
+      setHasEnoughReviews(data.hasEnoughReviews);
+      setReviewCount(data.totalCount || 0);
+      setAccessDenied(false);
+    } catch (error: any) {
+      if (error.status === 403) {
+        // Account mismatch or unauthorized access - silently hide the button
         setHasEnoughReviews(false);
         setReviewCount(0);
+        setAccessDenied(true);
+      } else {
+        console.error('Error checking review count:', error);
+        setHasEnoughReviews(false);
+        setReviewCount(0);
+        setAccessDenied(false);
       }
-    } catch (error) {
-      console.error('Error checking review count:', error);
-      setHasEnoughReviews(false);
-      setReviewCount(0);
     } finally {
       setLoading(false);
     }
   };
 
-  // Don't render anything if feature is disabled or not enough reviews
-  if (!enabled || loading || !hasEnoughReviews) {
+  // Don't render anything if feature is disabled, loading, not enough reviews, or access denied
+  if (!enabled || loading || !hasEnoughReviews || accessDenied) {
     return null;
   }
 
