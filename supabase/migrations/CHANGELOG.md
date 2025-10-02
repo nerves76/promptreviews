@@ -3,6 +3,17 @@
 ## [2025-10-02]
 ### Migrations Added
 
+#### 20251002001000_harden_prompt_pages_rls.sql
+- **CRITICAL SECURITY FIX**: Fixed permissive public policy and broken authenticated policies on prompt_pages
+- **Issue 1 - Public enumeration**: Policy allowed TO public with USING (status = 'in_queue'), exposing ALL queued prompt pages across ALL accounts to any session
+- **Issue 2 - Broken auth policies**: Used `auth.uid() = account_id` which is incorrect (compares user_id to account_id UUID)
+- **BEFORE**: Any user could enumerate all prompt pages with status = 'in_queue' regardless of account
+- **AFTER**: Anonymous users can only view published universal pages (is_universal = true AND status = 'published')
+- **BEFORE**: Authenticated policies were ineffective due to UUID type mismatch
+- **AFTER**: Authenticated policies properly use account_users junction table
+- All authenticated policies now use `account_id IN (SELECT account_id FROM account_users WHERE user_id = auth.uid())`
+- Prevents cross-account prompt page enumeration and ensures proper multi-account access
+
 #### 20251002000000_reenable_account_invitations_rls.sql
 - **SECURITY FIX**: Re-enabled RLS on account_invitations table with proper owner-only policies
 - **BEFORE**: RLS was completely disabled (migrations 0088, 0132), allowing any authenticated user to view all invitations
