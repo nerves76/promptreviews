@@ -7,12 +7,75 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
+// Simple in-memory rate limiting for leaderboard queries
+// In production, use Redis or similar distributed cache
+const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
+const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute
+const MAX_REQUESTS_PER_WINDOW = 20; // 20 requests per minute per IP
+
+/**
+ * Extract client IP address from request headers
+ */
+function getClientIP(request: NextRequest): string {
+  const forwardedFor = request.headers.get('x-forwarded-for');
+  if (forwardedFor) {
+    return forwardedFor.split(',')[0].trim();
+  }
+  const realIP = request.headers.get('x-real-ip');
+  if (realIP) return realIP;
+  const cfConnectingIP = request.headers.get('cf-connecting-ip');
+  if (cfConnectingIP) return cfConnectingIP;
+  return 'unknown';
+}
+
+/**
+ * Check rate limit for IP address
+ */
+function checkRateLimit(ip: string): boolean {
+  const now = Date.now();
+  const record = rateLimitStore.get(ip);
+
+  // Clean up expired records periodically
+  if (Math.random() < 0.01) {
+    for (const [key, value] of rateLimitStore.entries()) {
+      if (value.resetTime < now) {
+        rateLimitStore.delete(key);
+      }
+    }
+  }
+
+  if (!record || record.resetTime < now) {
+    // New window
+    rateLimitStore.set(ip, {
+      count: 1,
+      resetTime: now + RATE_LIMIT_WINDOW
+    });
+    return true;
+  }
+
+  if (record.count >= MAX_REQUESTS_PER_WINDOW) {
+    return false;
+  }
+
+  record.count++;
+  return true;
+}
+
 export async function GET(request: NextRequest) {
   try {
+    // Check rate limit
+    const clientIP = getClientIP(request);
+    if (!checkRateLimit(clientIP)) {
+      return NextResponse.json(
+        { error: 'Rate limit exceeded. Please try again later.' },
+        { status: 429 }
+      );
+    }
+
     const { searchParams } = new URL(request.url);
     const limit = Math.min(parseInt(searchParams.get('limit') || '10'), 100); // Max 100, default 10
 
-    // Get top scores from public view
+    // Get top scores from public view (requires service_role due to restricted access)
     const { data: scores, error } = await supabase
       .from('public_leaderboard')
       .select('player_handle, business_name, score, level_reached, created_at, email_domain, website')

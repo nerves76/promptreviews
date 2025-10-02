@@ -3,6 +3,15 @@
 ## [2025-10-02]
 ### Migrations Added
 
+#### 20251002001004_restrict_public_leaderboard_access.sql
+- **SECURITY HARDENING**: Restricted public_leaderboard view to prevent unrestricted direct database access
+- **BEFORE**: View had GRANT SELECT TO anon/authenticated, allowing unlimited direct queries from any Supabase client
+- **AFTER**: Only service_role can SELECT from the view
+- **Access Control**: Leaderboard data still public, but now accessed exclusively through /api/game/leaderboard endpoint
+- **Rate Limiting**: API endpoint enforces 20 requests per minute per IP to prevent scraping and abuse
+- **Benefits**: Prevents scraping, enables monitoring, reduces DB load through controlled access
+- Leaderboard remains publicly viewable but with proper abuse prevention controls
+
 #### 20251002001003_restrict_critical_function_health_access.sql
 - **CRITICAL SECURITY FIX**: Fixed global data leak in critical_function_health view exposed to all authenticated users
 - **critical_function_health view**: View aggregated GLOBAL operational telemetry across ALL accounts (function names, failure rates, runtime)
