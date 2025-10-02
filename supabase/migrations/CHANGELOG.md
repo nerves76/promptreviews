@@ -3,6 +3,19 @@
 ## [2025-10-02]
 ### Migrations Added
 
+#### 20251002001002_harden_game_leaderboard_security.sql
+- **SECURITY HARDENING**: Full security lockdown for game leaderboard tables
+- **game_leaderboard table**: Added missing UPDATE/DELETE prevention policies
+- **game_scores table**: Revoked direct SELECT access to hide PII (emails, IP addresses)
+- **BEFORE**: Anyone could read raw email addresses and IP addresses from game_scores table
+- **AFTER**: Public must use public_leaderboard view which masks emails (shows ***@domain.com)
+- **Rate Limiting**: DB-enforced 10 submissions per 5 minutes per IP (via trigger)
+- **Daily Limits**: DB-enforced 50 submissions per 24 hours per IP (prevents spam)
+- **Score Validation**: Triggers prevent impossibly high scores based on level reached
+- **Speed Checks**: Warns about suspiciously fast completion times (potential cheating)
+- **API Updates**: submit-score route now captures real IP/user-agent and handles rate limit errors with 429 status
+- Prevents score tampering, PII exposure, spam submissions, and cheating
+
 #### 20251002001001_restrict_admin_views_access.sql
 - **CRITICAL SECURITY FIX**: Fixed global data leak in admin views exposed to all authenticated users
 - **reactivation_metrics view**: View showed GLOBAL reactivation statistics across ALL accounts (total counts, averages)
@@ -17,7 +30,7 @@
 - **Issue 1 - Public enumeration**: Policy allowed TO public with USING (status = 'in_queue'), exposing ALL queued prompt pages across ALL accounts to any session
 - **Issue 2 - Broken auth policies**: Used `auth.uid() = account_id` which is incorrect (compares user_id to account_id UUID)
 - **BEFORE**: Any user could enumerate all prompt pages with status = 'in_queue' regardless of account
-- **AFTER**: Anonymous users can only view published universal pages (is_universal = true AND status = 'published')
+- **AFTER**: Anonymous users can only view universal pages that are still in queue (is_universal = true AND status = 'in_queue')
 - **BEFORE**: Authenticated policies were ineffective due to UUID type mismatch
 - **AFTER**: Authenticated policies properly use account_users junction table
 - All authenticated policies now use `account_id IN (SELECT account_id FROM account_users WHERE user_id = auth.uid())`

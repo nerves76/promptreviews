@@ -101,10 +101,10 @@ CREATE POLICY "Public can view universal prompt pages"
 -- DOCUMENTATION
 -- ============================================================================
 
-COMMENT ON TABLE public.prompt_pages IS 'Prompt pages for collecting reviews. RLS enabled with account-based access for authenticated users and restricted public access for published universal pages only.';
+COMMENT ON TABLE public.prompt_pages IS 'Prompt pages for collecting reviews. RLS enabled with account-based access for authenticated users and restricted public access for universal pages that remain in queue.';
 
 -- Summary of changes:
 -- BEFORE: Public policy allowed anyone to read ANY prompt_page with status = 'in_queue'
--- AFTER: Anonymous users can only read published universal pages (is_universal = true AND status = 'published')
+-- AFTER: Anonymous users can only read universal pages that are still in queue (is_universal = true AND status = 'in_queue')
 -- BEFORE: Authenticated policies likely used account_id = auth.uid() (wrong)
 -- AFTER: Authenticated policies use proper account_users junction table lookup

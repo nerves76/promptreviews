@@ -7,10 +7,31 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-// Rate limiting - simple in-memory store (use Redis in production)
-const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
-const RATE_LIMIT_WINDOW = 5 * 60 * 1000; // 5 minutes
-const MAX_SUBMISSIONS_PER_WINDOW = 10; // Max 10 submissions per 5 minutes per IP
+/**
+ * Extract client IP address from request headers
+ * Checks various headers in order of precedence
+ */
+function getClientIP(request: NextRequest): string | null {
+  // Check Vercel/CF headers first
+  const forwardedFor = request.headers.get('x-forwarded-for');
+  if (forwardedFor) {
+    // x-forwarded-for can be comma-separated list, take first IP
+    return forwardedFor.split(',')[0].trim();
+  }
+
+  const realIP = request.headers.get('x-real-ip');
+  if (realIP) {
+    return realIP;
+  }
+
+  // Fallback to other headers
+  const cfConnectingIP = request.headers.get('cf-connecting-ip');
+  if (cfConnectingIP) {
+    return cfConnectingIP;
+  }
+
+  return null;
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -97,7 +118,11 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Insert score into database (simplified - remove duplicate check for now)
+    // Capture IP address and user agent for rate limiting and analytics
+    const ipAddress = getClientIP(request);
+    const userAgent = request.headers.get('user-agent');
+
+    // Insert score into database with security checks enforced by DB triggers
     const { data: insertedScore, error: insertError } = await supabase
       .from('game_scores')
       .insert([
@@ -110,8 +135,8 @@ export async function POST(request: NextRequest) {
           level_reached,
           play_time_seconds: play_time_seconds || 0,
           game_data: game_data || {},
-          ip_address: null,
-          user_agent: null
+          ip_address: ipAddress,
+          user_agent: userAgent
         }
       ])
       .select('id, player_handle, score, level_reached, created_at')
@@ -119,6 +144,25 @@ export async function POST(request: NextRequest) {
 
     if (insertError) {
       console.error('Score insertion error:', insertError);
+
+      // Handle specific error types from DB triggers
+      // Rate limit errors (SQLSTATE 23P01 - check_violation)
+      if (insertError.code === '23P01') {
+        return NextResponse.json(
+          { error: insertError.message || 'Rate limit exceeded. Please try again later.' },
+          { status: 429 }
+        );
+      }
+
+      // Score validation errors (SQLSTATE 23514 - check_violation)
+      if (insertError.code === '23514') {
+        return NextResponse.json(
+          { error: insertError.message || 'Invalid score detected.' },
+          { status: 400 }
+        );
+      }
+
+      // Generic database error
       return NextResponse.json(
         { error: 'Failed to save score' },
         { status: 500 }
