@@ -120,8 +120,8 @@ export default function RecentReviewsModal({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-fadein">
-      <div 
-        className="rounded-2xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-hidden relative animate-slideup shadow-2xl border-2 border-white backdrop-blur-sm"
+      <div
+        className="rounded-2xl max-w-2xl w-full mx-4 max-h-[90vh] relative animate-slideup shadow-2xl border-2 border-white backdrop-blur-sm"
         style={{ backgroundColor: businessProfile?.card_bg ? `${businessProfile.card_bg}90` : "rgba(255, 255, 255, 0.9)" }}
       >
         {/* Standardized red X close button */}
@@ -137,7 +137,7 @@ export default function RecentReviewsModal({
         </button>
 
         {/* Modal Header */}
-        <div className="p-6 pb-4 border-b border-gray-200">
+        <div className="p-6 pb-4 border-b border-gray-200 rounded-t-2xl overflow-hidden">
           <div className="flex items-center space-x-3">
             <Icon
               name="FaCommentDots"
@@ -161,7 +161,7 @@ export default function RecentReviewsModal({
         </div>
 
         {/* Modal Content */}
-        <div className="p-6 overflow-y-auto max-h-[60vh]">
+        <div className="p-6 overflow-y-auto max-h-[60vh] rounded-b-2xl">
           {loading && (
             <div className="flex items-center justify-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2" 
