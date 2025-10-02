@@ -118,7 +118,7 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
       card_border_width: 2,
     },
     solid: {
-      name: "Solidy",
+      name: "Solidly",
       primary_font: "Montserrat",
       secondary_font: "Open Sans",
       primary_color: "#60A5FA",
@@ -142,7 +142,7 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
       kickstarters_background_design: false,
     },
     paper: {
-      name: "Paper",
+      name: "Papery",
       primary_font: "Merriweather",
       secondary_font: "Georgia",
       primary_color: "#6B2C2C",
