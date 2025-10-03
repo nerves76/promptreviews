@@ -307,18 +307,18 @@ export default function TutorialsTabNew({
       // Catch any remaining plan names not in spans
       .replace(/\b(grower|builder|maven)\b/gi, '<span class="inline-block px-3 py-1 text-sm font-bold rounded-full bg-slate-900 text-white mx-1 my-1">$1</span>');
 
-    // Apply consistent formatting - force dark text on everything and kill all indentation
+    // Apply consistent formatting - force dark text and kill left indentation only (preserve bottom spacing)
     let final = formatted
-      .replace(/<div[^>]*>/g, '<div style="margin: 0 !important; padding: 0 !important; margin-left: 0 !important; padding-left: 0 !important; text-indent: 0 !important;">')
-      .replace(/<section[^>]*>/g, '<section style="margin: 0 !important; padding: 0 !important; margin-left: 0 !important; padding-left: 0 !important; text-indent: 0 !important;">')
-      .replace(/<h1[^>]*>/g, '<h1 style="color: #111827 !important; margin: 0 !important; padding: 0 !important; margin-left: 0 !important; padding-left: 0 !important; text-indent: 0 !important;" class="text-2xl font-bold mb-2">')
-      .replace(/<h2[^>]*>/g, '<h2 style="color: #111827 !important; margin: 0 !important; padding: 0 !important; margin-left: 0 !important; padding-left: 0 !important; text-indent: 0 !important;" class="text-xl font-bold mb-2">')
-      .replace(/<h3[^>]*>/g, '<h3 style="color: #111827 !important; margin: 0 !important; padding: 0 !important; margin-left: 0 !important; padding-left: 0 !important; text-indent: 0 !important;" class="text-lg font-bold mb-2">')
-      .replace(/<h4[^>]*>/g, '<h4 style="color: #111827 !important; margin: 0 !important; padding: 0 !important; margin-left: 0 !important; padding-left: 0 !important; text-indent: 0 !important;" class="text-base font-bold mb-1">')
-      .replace(/<p[^>]*>/g, '<p style="color: #111827; margin: 0; padding: 0; margin-left: 0; padding-left: 0; text-indent: 0;" class="mb-3 leading-relaxed">')
-      .replace(/<ul/g, '<ul style="margin: 0; padding: 0; padding-left: 1.5rem; margin-left: 0; text-indent: 0;" class="list-disc mb-4 space-y-2"')
-      .replace(/<ol/g, '<ol style="margin: 0; padding: 0; padding-left: 1.5rem; margin-left: 0; text-indent: 0;" class="list-decimal mb-4 space-y-2"')
-      .replace(/<li[^>]*>/g, '<li style="color: #111827; margin: 0; margin-left: 0; text-indent: 0;">')
+      .replace(/<div[^>]*>/g, '<div style="margin-top: 0 !important; margin-left: 0 !important; padding: 0 !important; padding-left: 0 !important; text-indent: 0 !important;">')
+      .replace(/<section[^>]*>/g, '<section style="margin-top: 0 !important; margin-left: 0 !important; padding: 0 !important; padding-left: 0 !important; text-indent: 0 !important;">')
+      .replace(/<h1[^>]*>/g, '<h1 style="color: #111827 !important; margin-top: 0 !important; margin-left: 0 !important; padding: 0 !important; padding-left: 0 !important; text-indent: 0 !important;" class="text-2xl font-bold mb-4">')
+      .replace(/<h2[^>]*>/g, '<h2 style="color: #111827 !important; margin-top: 0 !important; margin-left: 0 !important; padding: 0 !important; padding-left: 0 !important; text-indent: 0 !important;" class="text-xl font-bold mb-3 mt-6">')
+      .replace(/<h3[^>]*>/g, '<h3 style="color: #111827 !important; margin-top: 0 !important; margin-left: 0 !important; padding: 0 !important; padding-left: 0 !important; text-indent: 0 !important;" class="text-lg font-bold mb-2 mt-4">')
+      .replace(/<h4[^>]*>/g, '<h4 style="color: #111827 !important; margin-top: 0 !important; margin-left: 0 !important; padding: 0 !important; padding-left: 0 !important; text-indent: 0 !important;" class="text-base font-bold mb-2 mt-3">')
+      .replace(/<p[^>]*>/g, '<p style="color: #111827; margin-top: 0; margin-left: 0; padding: 0; padding-left: 0; text-indent: 0;" class="mb-3 leading-relaxed">')
+      .replace(/<ul/g, '<ul style="margin-top: 0; margin-left: 0; padding: 0; padding-left: 1.5rem; text-indent: 0;" class="list-disc mb-4 space-y-2"')
+      .replace(/<ol/g, '<ol style="margin-top: 0; margin-left: 0; padding: 0; padding-left: 1.5rem; text-indent: 0;" class="list-decimal mb-4 space-y-2"')
+      .replace(/<li[^>]*>/g, '<li style="color: #111827; margin-left: 0; text-indent: 0;">')
       .replace(/<strong[^>]*>/g, '<strong style="color: #111827 !important;" class="font-bold">')
       .replace(/<em[^>]*>/g, '<em style="color: #111827;">')
       .replace(/<code/g, '<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono text-gray-900"')
