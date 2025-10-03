@@ -300,14 +300,14 @@ export default function TutorialsTabNew({
 
     // Apply consistent formatting - force dark text on everything
     let final = formatted
-      .replace(/<h1[^>]*>/g, '<h1 style="color: #111827 !important; margin-top: 0 !important;" class="text-2xl font-bold mb-4">')
-      .replace(/<h2[^>]*>/g, '<h2 style="color: #111827 !important; margin-top: 0 !important;" class="text-xl font-bold mb-3">')
-      .replace(/<h3[^>]*>/g, '<h3 style="color: #111827 !important; margin-top: 0 !important;" class="text-lg font-bold mb-2">')
-      .replace(/<h4[^>]*>/g, '<h4 style="color: #111827 !important; margin-top: 0 !important;" class="text-base font-bold mb-2">')
-      .replace(/<p[^>]*>/g, '<p style="color: #111827; margin-top: 0;" class="mb-4 leading-relaxed">')
-      .replace(/<ul/g, '<ul style="margin-top: 0;" class="list-disc list-inside mb-4 space-y-2 ml-4"')
-      .replace(/<ol/g, '<ol style="margin-top: 0;" class="list-decimal list-inside mb-4 space-y-2 ml-4"')
-      .replace(/<li[^>]*>/g, '<li style="color: #111827;">')
+      .replace(/<h1[^>]*>/g, '<h1 style="color: #111827 !important; margin: 0 !important; padding: 0;" class="text-2xl font-bold mb-2">')
+      .replace(/<h2[^>]*>/g, '<h2 style="color: #111827 !important; margin: 0 !important; padding: 0;" class="text-xl font-bold mb-2">')
+      .replace(/<h3[^>]*>/g, '<h3 style="color: #111827 !important; margin: 0 !important; padding: 0;" class="text-lg font-bold mb-2">')
+      .replace(/<h4[^>]*>/g, '<h4 style="color: #111827 !important; margin: 0 !important; padding: 0;" class="text-base font-bold mb-1">')
+      .replace(/<p[^>]*>/g, '<p style="color: #111827; margin: 0; padding: 0;" class="mb-3 leading-relaxed">')
+      .replace(/<ul/g, '<ul style="margin: 0; padding: 0; padding-left: 1.5rem;" class="list-disc mb-4 space-y-2"')
+      .replace(/<ol/g, '<ol style="margin: 0; padding: 0; padding-left: 1.5rem;" class="list-decimal mb-4 space-y-2"')
+      .replace(/<li[^>]*>/g, '<li style="color: #111827; margin: 0;">')
       .replace(/<strong[^>]*>/g, '<strong style="color: #111827 !important;" class="font-bold">')
       .replace(/<em[^>]*>/g, '<em style="color: #111827;">')
       .replace(/<code/g, '<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono text-gray-900"')
@@ -316,10 +316,12 @@ export default function TutorialsTabNew({
       .replace(/<a /g, '<a class="text-indigo-600 hover:text-indigo-700 underline font-semibold" ')
       .replace(/<hr/g, '<hr class="my-6 border-gray-200"');
 
-    // Remove any leading whitespace, empty divs, or breaks at the very start
+    // Remove any leading/trailing whitespace, empty elements, and normalize spacing
     final = final
-      .replace(/^\s*(<br\s*\/?>|<div[^>]*>\s*<\/div>|\s)+/i, '')
-      .replace(/^(<div[^>]*>\s*)+/i, '');
+      .trim()
+      .replace(/^\s*(<br\s*\/?>|<div[^>]*>\s*<\/div>|<p>\s*<\/p>)+/gi, '')
+      .replace(/^(<div[^>]*>\s*)+/i, '')
+      .replace(/(<\/div>\s*)+$/i, '');
 
     return final;
   };
@@ -438,11 +440,11 @@ export default function TutorialsTabNew({
   // Show article viewer if article is selected
   if (selectedArticle) {
     return (
-      <div className="h-full flex flex-col" style={{ 
+      <div className="h-full flex flex-col" style={{
         background: 'linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 50%, #ddd6fe 100%)'
       }}>
         {/* Header with back button */}
-        <div className="p-4 md:p-6 pb-0">
+        <div className="px-4 md:px-6 pt-4 md:pt-6 pb-2">
           <button
             onClick={handleBackToCategories}
             className="flex items-center space-x-2 text-indigo-700 hover:text-indigo-900 font-medium mb-4"
@@ -452,14 +454,14 @@ export default function TutorialsTabNew({
           </button>
 
           <h2 className="text-lg md:text-xl font-bold text-gray-900 mb-1">{selectedArticle.title}</h2>
-          <div className="text-sm text-gray-600 font-medium">
+          <div className="text-sm text-gray-600 font-medium mb-0">
             From: {selectedCategory.title}
           </div>
         </div>
 
         {/* Article content area */}
         <div className="flex-1 overflow-y-auto">
-          <div className="min-h-full px-4 md:px-6">
+          <div className="px-4 md:px-6">
             {loadingContent ? (
               <div className="flex justify-center py-8">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
@@ -468,7 +470,7 @@ export default function TutorialsTabNew({
               <div
                 ref={contentRef}
                 className="article-content"
-                style={{ marginTop: 0, paddingTop: 0 }}
+                style={{ margin: 0, padding: 0 }}
                 dangerouslySetInnerHTML={{ __html: articleContent }}
               />
             )}
