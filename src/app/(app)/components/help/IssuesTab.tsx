@@ -133,7 +133,7 @@ export default function IssuesTab({
 
       {/* Category Selection */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-3">
+        <label className="block text-sm font-medium text-white mb-3">
           What type of feedback do you have?
         </label>
         <div className="space-y-2">
@@ -143,7 +143,7 @@ export default function IssuesTab({
               className={`flex items-center p-3 border rounded-lg cursor-pointer transition-colors ${
                 category === option.value
                   ? 'border-slate-blue bg-slate-blue/5'
-                  : 'border-gray-200 hover:border-gray-300'
+                  : 'border-white/20 hover:border-white/30'
               }`}
             >
               <input
@@ -154,20 +154,20 @@ export default function IssuesTab({
                 onChange={(e) => setCategory(e.target.value as FeedbackCategory)}
                 className="sr-only"
               />
-              <Icon 
-                name={option.icon as any} 
+              <Icon
+                name={option.icon as any}
                 className={`w-5 h-5 mr-3 ${
-                  category === option.value ? 'text-slate-blue' : 'text-gray-400'
-                }`} 
-                size={20} 
+                  category === option.value ? 'text-slate-blue' : 'text-white/60'
+                }`}
+                size={20}
               />
               <div>
                 <div className={`font-medium ${
-                  category === option.value ? 'text-slate-blue' : 'text-gray-900'
+                  category === option.value ? 'text-slate-blue' : 'text-white'
                 }`}>
                   {option.label}
                 </div>
-                <div className="text-sm text-gray-500">{option.description}</div>
+                <div className="text-sm text-white/80">{option.description}</div>
               </div>
             </label>
           ))}
@@ -175,22 +175,22 @@ export default function IssuesTab({
       </div>
 
       {/* Context info */}
-      <div className="p-3 bg-gray-50 rounded-lg">
+      <div className="p-3 bg-white/10 rounded-lg border border-white/20">
         <div className="flex items-center space-x-2 mb-1">
-          <Icon name="FaInfoCircle" className="w-4 h-4 text-gray-500" size={16} />
-          <span className="text-sm font-medium text-gray-700">Context Information</span>
+          <Icon name="FaInfoCircle" className="w-4 h-4 text-white/80" size={16} />
+          <span className="text-sm font-medium text-white">Context Information</span>
         </div>
-        <p className="text-xs text-gray-600">
+        <p className="text-xs text-white/90">
           Current page: {pathname}
         </p>
-        <p className="text-xs text-gray-500 mt-1">
+        <p className="text-xs text-white/70 mt-1">
           This information helps us better understand and resolve your issue.
         </p>
       </div>
 
       {/* Message */}
       <div>
-        <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-2">
+        <label htmlFor="message" className="block text-sm font-medium text-white mb-2">
           Your feedback *
         </label>
         <textarea
@@ -198,9 +198,9 @@ export default function IssuesTab({
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           rows={5}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent resize-none"
+          className="w-full px-3 py-2 border border-white/20 bg-white/10 rounded-md focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent resize-none text-white placeholder-white/50"
           placeholder={
-            category === 'bug_report' 
+            category === 'bug_report'
               ? "Describe the issue you're experiencing..."
               : category === 'feature_request'
               ? "Describe the feature you'd like to see..."
@@ -209,14 +209,14 @@ export default function IssuesTab({
           required
           disabled={isSubmitting}
         />
-        <p className="text-xs text-gray-500 mt-1">
+        <p className="text-xs text-white/70 mt-1">
           {message.length}/1000 characters
         </p>
       </div>
 
       {/* Email (Optional) */}
       <div>
-        <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+        <label htmlFor="email" className="block text-sm font-medium text-white mb-2">
           Email (optional)
         </label>
         <input
@@ -224,11 +224,11 @@ export default function IssuesTab({
           id="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent"
+          className="w-full px-3 py-2 border border-white/20 bg-white/10 rounded-md focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent text-white placeholder-white/50"
           placeholder="your@email.com"
           disabled={isSubmitting}
         />
-        <p className="text-sm text-gray-500 mt-1">
+        <p className="text-sm text-white/70 mt-1">
           We'll only use this to follow up on your feedback if needed.
         </p>
       </div>
