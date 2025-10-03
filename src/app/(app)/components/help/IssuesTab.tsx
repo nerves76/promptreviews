@@ -157,13 +157,13 @@ export default function IssuesTab({
               <Icon
                 name={option.icon as any}
                 className={`w-5 h-5 mr-3 ${
-                  category === option.value ? 'text-slate-blue' : 'text-white/60'
+                  category === option.value ? 'text-white' : 'text-white/60'
                 }`}
                 size={20}
               />
               <div>
                 <div className={`font-medium ${
-                  category === option.value ? 'text-slate-blue' : 'text-white'
+                  category === option.value ? 'text-white' : 'text-white'
                 }`}>
                   {option.label}
                 </div>
