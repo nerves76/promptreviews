@@ -3,12 +3,12 @@ import { Globe, QrCode, Link2, Zap, Shield, Clock } from 'lucide-react';
 import DocsLayout from '../../../docs-layout';
 
 export const metadata: Metadata = {
-  title: 'Universal Prompt Pages - One Page for All Reviews | Prompt Reviews',
-  description: 'Learn how to create Universal prompt pages - the all-purpose review collection solution for any business type.',
-  keywords: 'universal prompt pages, general reviews, QR code reviews, all-purpose reviews, simple review pages',
+  title: 'The Universal Prompt Page - One Page for All Reviews | Prompt Reviews',
+  description: 'Learn about the Universal Prompt Page - the all-purpose review collection solution for any business type.',
+  keywords: 'universal prompt page, general reviews, QR code reviews, all-purpose reviews, simple review pages',
   openGraph: {
-    title: 'Universal Prompt Pages - Simple Review Collection',
-    description: 'Create Universal prompt pages for simple, effective review collection that works for any business.',
+    title: 'The Universal Prompt Page - Simple Review Collection',
+    description: 'Learn about the Universal Prompt Page for simple, effective review collection that works for any business.',
   },
 };
 
@@ -23,32 +23,25 @@ export default function UniversalPromptPages() {
               <Globe className="w-6 h-6 text-cyan-300" />
             </div>
             <h1 className="text-4xl font-bold text-white">
-              Universal Prompt Pages
+              The Universal Prompt Page
             </h1>
           </div>
           <p className="text-xl text-white/80">
-            The all-purpose review collection solution. One page that works for any customer, any time, anywhere. 
+            The all-purpose review collection solution. One page that works for any customer, any time, anywhere.
             Perfect for businesses that want a simple, always-ready review collection tool.
           </p>
         </div>
 
-        {/* Why Choose Universal Pages */}
+        {/* Why Choose Universal Page */}
         <div className="bg-white/10 backdrop-blur-md rounded-lg shadow-sm border border-white/20 p-8 mb-12">
-          <h2 className="text-2xl font-bold text-white mb-6">Why Choose Universal Prompt Pages?</h2>
-          <div className="grid md:grid-cols-3 gap-6">
+          <h2 className="text-2xl font-bold text-white mb-6">Why Choose The Universal Prompt Page?</h2>
+          <div className="grid md:grid-cols-2 gap-6">
             <div className="text-center">
               <div className="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center mx-auto mb-4">
                 <Zap className="w-6 h-6 text-blue-300" />
               </div>
               <h3 className="font-semibold text-white mb-2">Always Ready</h3>
               <p className="text-white/70 text-sm">One link that works for every customer interaction</p>
-            </div>
-            <div className="text-center">
-              <div className="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <Shield className="w-6 h-6 text-green-300" />
-              </div>
-              <h3 className="font-semibold text-white mb-2">No Duplicates</h3>
-              <p className="text-white/70 text-sm">Prevents customers from leaving multiple reviews</p>
             </div>
             <div className="text-center">
               <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center mx-auto mb-4">
@@ -199,7 +192,7 @@ export default function UniversalPromptPages() {
 
         {/* How It Works */}
         <div className="mb-12">
-          <h2 className="text-2xl font-bold text-white mb-6">How Universal Pages Work</h2>
+          <h2 className="text-2xl font-bold text-white mb-6">How The Universal Prompt Page Works</h2>
           <div className="space-y-4">
             <div className="bg-white/10 backdrop-blur-md rounded-lg shadow-sm border border-white/20 p-6">
               <div className="flex items-center space-x-3 mb-3">
@@ -278,30 +271,6 @@ export default function UniversalPromptPages() {
                 Track which placement locations generate the most scans and reviews.
               </p>
             </div>
-          </div>
-        </div>
-
-        {/* CTA */}
-        <div className="bg-gradient-to-r from-cyan-500 to-blue-600 rounded-lg p-8 text-center">
-          <h2 className="text-2xl font-bold text-white mb-4">
-            Ready to Create Your Universal Page?
-          </h2>
-          <p className="text-white/90 mb-6 max-w-2xl mx-auto">
-            Set up your one-page review solution that works everywhere, every time. Create once, use forever.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a
-              href="https://promptreviews.app/dashboard"
-              className="inline-flex items-center px-6 py-3 bg-white/20 text-white backdrop-blur-sm font-medium rounded-lg hover:bg-white/30 transition-colors"
-            >
-              Create Universal Page
-            </a>
-            <a
-              href="/prompt-pages/types"
-              className="inline-flex items-center px-6 py-3 border border-white text-white font-medium rounded-lg hover:bg-white/10 transition-colors"
-            >
-              View All Types
-            </a>
           </div>
         </div>
       </div>
