@@ -279,13 +279,16 @@ export default function TutorialsTabNew({
       .replace(/<svg[^>]*>[\s\S]*?<\/svg>/gi, '') // Remove SVG icons
       .replace(/<i[^>]*class="[^"]*(?:fa-|icon-)[^"]*"[^>]*><\/i>/gi, ''); // Remove FontAwesome icons
 
-    // Fix "Available on" text - make it dark and bold
+    // Fix "Available on:" text - completely replace the span with dark text
     formatted = formatted
-      .replace(/>Available on:</gi, ' class="text-gray-900 font-semibold">Available on:')
-      // Target plan pill/badge styling - make them high contrast
-      .replace(/<span([^>]*class="[^"]*)(grower|builder|maven)([^"]*"[^>]*)>/gi,
+      .replace(/<span[^>]*>Available on:<\/span>/gi, '<span class="text-gray-900 font-semibold">Available on:</span>')
+      // Remove any pastel/light backgrounds from plan badges and replace with high contrast
+      .replace(/<span([^>]*class="[^"]*bg-(?:gray|slate|blue|indigo|purple|pink|rose|amber|yellow|lime|green|emerald|teal|cyan|sky|violet|fuchsia)-(?:50|100|200|300)[^"]*"[^>]*)>(grower|builder|maven)<\/span>/gi,
         '<span class="inline-block px-3 py-1 text-sm font-bold rounded-full bg-slate-800 text-white mx-1">$2</span>')
-      // Catch any remaining plan names that might not be in spans
+      // Catch spans with plan names that might have other classes
+      .replace(/<span([^>]*)>(grower|builder|maven)<\/span>/gi,
+        '<span class="inline-block px-3 py-1 text-sm font-bold rounded-full bg-slate-800 text-white mx-1">$2</span>')
+      // Catch any remaining plan names not in spans
       .replace(/\b(grower|builder|maven)\b/gi, '<span class="inline-block px-3 py-1 text-sm font-bold rounded-full bg-slate-800 text-white mx-1">$1</span>');
 
     // Apply consistent formatting like ArticleViewer
@@ -425,7 +428,7 @@ export default function TutorialsTabNew({
         background: 'linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 50%, #ddd6fe 100%)'
       }}>
         {/* Header with back button */}
-        <div className="p-4 md:p-6 pb-2">
+        <div className="p-4 md:p-6 pb-0">
           <button
             onClick={handleBackToCategories}
             className="flex items-center space-x-2 text-indigo-700 hover:text-indigo-900 font-medium mb-4"
@@ -435,14 +438,14 @@ export default function TutorialsTabNew({
           </button>
 
           <h2 className="text-lg md:text-xl font-bold text-gray-900 mb-1">{selectedArticle.title}</h2>
-          <div className="text-sm text-gray-600 font-medium mb-0">
+          <div className="text-sm text-gray-600 font-medium">
             From: {selectedCategory.title}
           </div>
         </div>
 
         {/* Article content area */}
         <div className="flex-1 overflow-y-auto">
-          <div className="min-h-full p-4 md:p-6 pt-4">
+          <div className="min-h-full p-4 md:p-6 pt-0">
             {loadingContent ? (
               <div className="flex justify-center py-8">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
