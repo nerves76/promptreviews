@@ -199,7 +199,7 @@ export default function TutorialsTabNew({
       if (pathname.includes('dashboard')) {
         featured.push(
           { id: 'quickstart-overview', title: 'Getting Started Guide', category: 'getting-started', icon: 'FaRocket' },
-          { id: 'prompt-universal', title: 'Create Universal Prompt Page', category: 'prompt-pages', icon: 'FaGlobe' },
+          { id: 'prompt-universal', title: 'The Universal Prompt Page', category: 'prompt-pages', icon: 'FaGlobe' },
           { id: 'reviews-dashboard', title: 'Managing Reviews', category: 'reviews', icon: 'FaStar' }
         );
       } else if (pathname.includes('plan')) {
@@ -274,21 +274,35 @@ export default function TutorialsTabNew({
 
   // Format content with proper styling - matching ArticleViewer pattern
   const formatArticleContent = (html: string) => {
+    // Remove icon elements that don't render properly
+    let formatted = html
+      .replace(/<svg[^>]*>[\s\S]*?<\/svg>/gi, '') // Remove SVG icons
+      .replace(/<i[^>]*class="[^"]*(?:fa-|icon-)[^"]*"[^>]*><\/i>/gi, ''); // Remove FontAwesome icons
+
+    // Fix "Available on" text - make it dark and bold
+    formatted = formatted
+      .replace(/>Available on:</gi, ' class="text-gray-900 font-semibold">Available on:')
+      // Target plan pill/badge styling - make them high contrast
+      .replace(/<span([^>]*class="[^"]*)(grower|builder|maven)([^"]*"[^>]*)>/gi,
+        '<span class="inline-block px-3 py-1 text-sm font-bold rounded-full bg-slate-800 text-white mx-1">$2</span>')
+      // Catch any remaining plan names that might not be in spans
+      .replace(/\b(grower|builder|maven)\b/gi, '<span class="inline-block px-3 py-1 text-sm font-bold rounded-full bg-slate-800 text-white mx-1">$1</span>');
+
     // Apply consistent formatting like ArticleViewer
-    return html
-      .replace(/<h1/g, '<h1 class="text-2xl font-bold mb-4 text-gray-900"')
+    return formatted
+      .replace(/<h1/g, '<h1 class="text-2xl font-bold mb-4 mt-0 text-gray-900"')
       .replace(/<h2/g, '<h2 class="text-xl font-semibold mb-3 mt-6 text-gray-800"')
       .replace(/<h3/g, '<h3 class="text-lg font-medium mb-2 mt-4 text-gray-700"')
       .replace(/<h4/g, '<h4 class="text-base font-medium mb-2 mt-3 text-gray-700"')
-      .replace(/<p/g, '<p class="mb-4 text-gray-600 leading-relaxed"')
+      .replace(/<p/g, '<p class="mb-4 text-gray-800 leading-relaxed"')
       .replace(/<ul/g, '<ul class="list-disc list-inside mb-4 space-y-2 ml-4"')
       .replace(/<ol/g, '<ol class="list-decimal list-inside mb-4 space-y-2 ml-4"')
-      .replace(/<li/g, '<li class="text-gray-600"')
-      .replace(/<strong/g, '<strong class="font-semibold text-gray-800"')
+      .replace(/<li/g, '<li class="text-gray-800"')
+      .replace(/<strong/g, '<strong class="font-semibold text-gray-900"')
       .replace(/<em/g, '<em class="italic"')
-      .replace(/<code/g, '<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono"')
+      .replace(/<code/g, '<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono text-gray-900"')
       .replace(/<pre/g, '<pre class="bg-gray-50 p-4 rounded-lg overflow-x-auto mb-4"')
-      .replace(/<blockquote/g, '<blockquote class="border-l-4 border-slate-blue pl-4 italic my-4 text-gray-600"')
+      .replace(/<blockquote/g, '<blockquote class="border-l-4 border-slate-blue pl-4 italic my-4 text-gray-800"')
       .replace(/<a /g, '<a class="text-indigo-600 hover:text-indigo-700 underline" ')
       .replace(/<hr/g, '<hr class="my-6 border-gray-200"');
   };
@@ -411,7 +425,7 @@ export default function TutorialsTabNew({
         background: 'linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 50%, #ddd6fe 100%)'
       }}>
         {/* Header with back button */}
-        <div className="p-4 md:p-6 pb-0">
+        <div className="p-4 md:p-6 pb-2">
           <button
             onClick={handleBackToCategories}
             className="flex items-center space-x-2 text-indigo-700 hover:text-indigo-900 font-medium mb-4"
@@ -419,16 +433,16 @@ export default function TutorialsTabNew({
             <Icon name="FaArrowLeft" className="w-4 h-4" size={16} />
             <span>Back to Help</span>
           </button>
-          
-          <h2 className="text-lg md:text-xl font-bold text-gray-900 mb-2">{selectedArticle.title}</h2>
-          <div className="text-sm text-gray-800 font-medium mb-4">
+
+          <h2 className="text-lg md:text-xl font-bold text-gray-900 mb-1">{selectedArticle.title}</h2>
+          <div className="text-sm text-gray-600 font-medium mb-0">
             From: {selectedCategory.title}
           </div>
         </div>
-        
+
         {/* Article content area */}
         <div className="flex-1 overflow-y-auto">
-          <div className="min-h-full p-4 md:p-6 pt-2">
+          <div className="min-h-full p-4 md:p-6 pt-4">
             {loadingContent ? (
               <div className="flex justify-center py-8">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
@@ -516,7 +530,7 @@ export default function TutorialsTabNew({
                   <h4 className="font-medium text-sm md:text-base text-gray-900 group-hover:text-indigo-700">
                     {category.title}
                   </h4>
-                  <p className="text-xs text-gray-500 mt-0.5">
+                  <p className="text-xs text-gray-700 mt-0.5">
                     {category.description}
                   </p>
                 </div>
