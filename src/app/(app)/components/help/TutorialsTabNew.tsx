@@ -279,6 +279,11 @@ export default function TutorialsTabNew({
       .replace(/<svg[^>]*>[\s\S]*?<\/svg>/gi, '') // Remove SVG icons
       .replace(/<i[^>]*class="[^"]*(?:fa-|icon-)[^"]*"[^>]*><\/i>/gi, ''); // Remove FontAwesome icons
 
+    // Remove any pill/badge containers that might wrap titles with light text
+    formatted = formatted
+      .replace(/<div[^>]*class="[^"]*(?:pill|badge|tag|rounded-full)[^"]*"[^>]*>([\s\S]*?)<\/div>/gi, '$1')
+      .replace(/<span[^>]*class="[^"]*(?:pill|badge|tag|rounded-full)[^"]*text-white[^"]*"[^>]*>([\s\S]*?)<\/span>/gi, '$1');
+
     // Fix "Available on:" text issues - remove the broken span completely and rebuild
     formatted = formatted
       .replace(/Available on:\/span>/gi, 'Available on:')
@@ -293,18 +298,18 @@ export default function TutorialsTabNew({
       // Catch any remaining plan names not in spans
       .replace(/\b(grower|builder|maven)\b/gi, '<span class="inline-block px-3 py-1 text-sm font-bold rounded-full bg-slate-900 text-white mx-1 my-1">$1</span>');
 
-    // Apply consistent formatting like ArticleViewer
+    // Apply consistent formatting - force dark text on everything
     return formatted
-      .replace(/<h1/g, '<h1 class="text-2xl font-bold mb-4 mt-0 text-gray-900"')
-      .replace(/<h2/g, '<h2 class="text-xl font-bold mb-3 mt-6 text-gray-900"')
-      .replace(/<h3/g, '<h3 class="text-lg font-bold mb-2 mt-4 text-gray-900"')
-      .replace(/<h4/g, '<h4 class="text-base font-bold mb-2 mt-3 text-gray-900"')
-      .replace(/<p/g, '<p class="mb-4 text-gray-900 leading-relaxed"')
+      .replace(/<h1[^>]*>/g, '<h1 style="color: #111827 !important;" class="text-2xl font-bold mb-4 mt-0">')
+      .replace(/<h2[^>]*>/g, '<h2 style="color: #111827 !important;" class="text-xl font-bold mb-3 mt-0">')
+      .replace(/<h3[^>]*>/g, '<h3 style="color: #111827 !important;" class="text-lg font-bold mb-2 mt-0">')
+      .replace(/<h4[^>]*>/g, '<h4 style="color: #111827 !important;" class="text-base font-bold mb-2 mt-0">')
+      .replace(/<p[^>]*>/g, '<p style="color: #111827;" class="mb-4 leading-relaxed">')
       .replace(/<ul/g, '<ul class="list-disc list-inside mb-4 space-y-2 ml-4"')
       .replace(/<ol/g, '<ol class="list-decimal list-inside mb-4 space-y-2 ml-4"')
-      .replace(/<li/g, '<li class="text-gray-900"')
-      .replace(/<strong/g, '<strong class="font-bold text-gray-900"')
-      .replace(/<em/g, '<em class="italic text-gray-900"')
+      .replace(/<li[^>]*>/g, '<li style="color: #111827;">')
+      .replace(/<strong[^>]*>/g, '<strong style="color: #111827 !important;" class="font-bold">')
+      .replace(/<em[^>]*>/g, '<em style="color: #111827;">')
       .replace(/<code/g, '<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono text-gray-900"')
       .replace(/<pre/g, '<pre class="bg-gray-50 p-4 rounded-lg overflow-x-auto mb-4"')
       .replace(/<blockquote/g, '<blockquote class="border-l-4 border-slate-blue pl-4 italic my-4 text-gray-900"')
