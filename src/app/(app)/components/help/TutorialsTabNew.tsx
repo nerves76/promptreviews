@@ -274,67 +274,32 @@ export default function TutorialsTabNew({
 
   // Format content with proper styling - matching ArticleViewer pattern
   const formatArticleContent = (html: string) => {
-    // Remove icon elements that don't render properly
+    // Remove icon elements and containers that don't render properly
     let formatted = html
       .replace(/<svg[^>]*>[\s\S]*?<\/svg>/gi, '') // Remove SVG icons
-      .replace(/<i[^>]*class="[^"]*(?:fa-|icon-)[^"]*"[^>]*><\/i>/gi, ''); // Remove FontAwesome icons
+      .replace(/<i[^>]*class="[^"]*(?:fa-|icon-)[^"]*"[^>]*><\/i>/gi, '') // Remove FontAwesome icons
+      .replace(/<div[^>]*class="[^"]*w-12[^"]*"[^>]*>\s*<\/div>/gi, ''); // Remove empty w-12 icon containers
 
-    // Strip ALL existing style attributes first to eliminate source styling conflicts
-    formatted = formatted
-      .replace(/\s+style="[^"]*"/gi, '')
-      .replace(/\s+style='[^']*'/gi, '');
-
-    // Remove only EMPTY w-12 icon container divs (don't remove content-filled ones)
-    formatted = formatted
-      .replace(/<div[^>]*class="[^"]*w-12[^"]*"[^>]*>\s*<\/div>/gi, '');
-
-    // Remove any pill/badge containers that might wrap titles with light text
-    formatted = formatted
-      .replace(/<div[^>]*class="[^"]*(?:pill|badge|tag|rounded-full)[^"]*"[^>]*>([\s\S]*?)<\/div>/gi, '$1')
-      .replace(/<span[^>]*class="[^"]*(?:pill|badge|tag|rounded-full)[^"]*text-white[^"]*"[^>]*>([\s\S]*?)<\/span>/gi, '$1');
-
-    // Fix "Available on:" text issues - remove the broken span completely and rebuild
+    // Fix "Available on:" text and plan badges
     formatted = formatted
       .replace(/Available on:\/span>/gi, 'Available on:')
-      .replace(/<span[^>]*>\s*Available on:\s*<\/span>/gi, '<div class="text-gray-900 font-semibold mb-2">Available on:</div>')
-      .replace(/Available on:/gi, '<div class="text-gray-900 font-semibold mb-2">Available on:</div>')
-      // Remove any pastel/light backgrounds from plan badges and replace with high contrast
-      .replace(/<span([^>]*class="[^"]*bg-(?:gray|slate|blue|indigo|purple|pink|rose|amber|yellow|lime|green|emerald|teal|cyan|sky|violet|fuchsia)-(?:50|100|200|300)[^"]*"[^>]*)>(grower|builder|maven)<\/span>/gi,
-        '<span class="inline-block px-3 py-1 text-sm font-bold rounded-full bg-slate-900 text-white mx-1 my-1">$2</span>')
-      // Catch spans with plan names that might have other classes
+      .replace(/Available on:/gi, '<strong>Available on:</strong>')
+      // Fix plan badges - make them dark
       .replace(/<span([^>]*)>(grower|builder|maven)<\/span>/gi,
-        '<span class="inline-block px-3 py-1 text-sm font-bold rounded-full bg-slate-900 text-white mx-1 my-1">$2</span>')
-      // Catch any remaining plan names not in spans
-      .replace(/\b(grower|builder|maven)\b/gi, '<span class="inline-block px-3 py-1 text-sm font-bold rounded-full bg-slate-900 text-white mx-1 my-1">$1</span>');
+        '<span class="inline-block px-2 py-1 text-xs font-bold rounded bg-slate-900 text-white mx-1">$2</span>');
 
-    // Apply consistent formatting - force dark text and kill left indentation only (preserve bottom spacing)
-    let final = formatted
-      .replace(/<div[^>]*>/g, '<div style="margin-top: 0 !important; margin-left: 0 !important; padding: 0 !important; padding-left: 0 !important; text-indent: 0 !important;">')
-      .replace(/<section[^>]*>/g, '<section style="margin-top: 0 !important; margin-left: 0 !important; padding: 0 !important; padding-left: 0 !important; text-indent: 0 !important;">')
-      .replace(/<h1[^>]*>/g, '<h1 style="color: #111827 !important; margin-top: 0 !important; margin-left: 0 !important; padding: 0 !important; padding-left: 0 !important; text-indent: 0 !important;" class="text-2xl font-bold mb-4">')
-      .replace(/<h2[^>]*>/g, '<h2 style="color: #111827 !important; margin-top: 0 !important; margin-left: 0 !important; padding: 0 !important; padding-left: 0 !important; text-indent: 0 !important;" class="text-xl font-bold mb-3 mt-6">')
-      .replace(/<h3[^>]*>/g, '<h3 style="color: #111827 !important; margin-top: 0 !important; margin-left: 0 !important; padding: 0 !important; padding-left: 0 !important; text-indent: 0 !important;" class="text-lg font-bold mb-2 mt-4">')
-      .replace(/<h4[^>]*>/g, '<h4 style="color: #111827 !important; margin-top: 0 !important; margin-left: 0 !important; padding: 0 !important; padding-left: 0 !important; text-indent: 0 !important;" class="text-base font-bold mb-2 mt-3">')
-      .replace(/<p[^>]*>/g, '<p style="color: #111827; margin-top: 0; margin-left: 0; padding: 0; padding-left: 0; text-indent: 0;" class="mb-3 leading-relaxed">')
-      .replace(/<ul/g, '<ul style="margin-top: 0; margin-left: 0; padding: 0; padding-left: 1.5rem; text-indent: 0;" class="list-disc mb-4 space-y-2"')
-      .replace(/<ol/g, '<ol style="margin-top: 0; margin-left: 0; padding: 0; padding-left: 1.5rem; text-indent: 0;" class="list-decimal mb-4 space-y-2"')
-      .replace(/<li[^>]*>/g, '<li style="color: #111827; margin-left: 0; text-indent: 0;">')
-      .replace(/<strong[^>]*>/g, '<strong style="color: #111827 !important;" class="font-bold">')
-      .replace(/<em[^>]*>/g, '<em style="color: #111827;">')
-      .replace(/<code/g, '<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono text-gray-900"')
-      .replace(/<pre/g, '<pre class="bg-gray-50 p-4 rounded-lg overflow-x-auto mb-4"')
-      .replace(/<blockquote/g, '<blockquote class="border-l-4 border-slate-blue pl-4 italic my-4 text-gray-900"')
-      .replace(/<a /g, '<a class="text-indigo-600 hover:text-indigo-700 underline font-semibold" ')
-      .replace(/<hr/g, '<hr class="my-6 border-gray-200"');
+    // Simple text color fixes - just ensure text is dark
+    formatted = formatted
+      .replace(/<h1([^>]*)>/g, '<h1$1 style="color: #111827;">')
+      .replace(/<h2([^>]*)>/g, '<h2$1 style="color: #111827;">')
+      .replace(/<h3([^>]*)>/g, '<h3$1 style="color: #111827;">')
+      .replace(/<h4([^>]*)>/g, '<h4$1 style="color: #111827;">')
+      .replace(/<p([^>]*)>/g, '<p$1 style="color: #111827;">')
+      .replace(/<li([^>]*)>/g, '<li$1 style="color: #111827;">')
+      .replace(/<strong([^>]*)>/g, '<strong$1 style="color: #111827;">')
+      .replace(/<span([^>]*)>/g, '<span$1 style="color: #111827;">');
 
-    // Remove any leading/trailing whitespace, empty elements, and normalize spacing
-    final = final
-      .trim()
-      .replace(/^\s*(<br\s*\/?>|<div[^>]*>\s*<\/div>|<p>\s*<\/p>)+/gi, '')
-      .replace(/^(<div[^>]*>\s*)+/i, '')
-      .replace(/(<\/div>\s*)+$/i, '');
-
-    return final;
+    return formatted.trim();
   };
 
   // Handle article click
