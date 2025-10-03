@@ -297,7 +297,11 @@ export default function TutorialsTabNew({
       .replace(/Available on:/gi, '<strong style="color: #000000;">Available on:</strong>')
       // Fix plan badges - dark background with white text
       .replace(/<span([^>]*)>(grower|builder|maven)<\/span>/gi,
-        '<span style="color: white !important;" class="inline-block px-2 py-1 text-xs font-bold rounded bg-slate-900 mx-1">$2</span>');
+        '<span style="color: white !important;" class="inline-block px-2 py-1 text-xs font-bold rounded bg-slate-900 mx-1">$2</span>')
+      // Fix pastel plan pills at top of articles (green/purple/yellow backgrounds)
+      .replace(/class="bg-green-500\/20 text-green-300([^"]*)"/gi, 'class="bg-slate-900 text-white$1"')
+      .replace(/class="bg-purple-500\/20 text-purple-300([^"]*)"/gi, 'class="bg-slate-900 text-white$1"')
+      .replace(/class="bg-yellow-500\/20 text-yellow-300([^"]*)"/gi, 'class="bg-slate-900 text-white$1"');
 
     return formatted.trim();
   };
