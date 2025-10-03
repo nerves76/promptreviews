@@ -459,7 +459,7 @@ export default function TutorialsTabNew({
 
         {/* Article content area */}
         <div className="flex-1 overflow-y-auto">
-          <div className="min-h-full p-4 md:p-6 pt-0">
+          <div className="min-h-full px-4 md:px-6">
             {loadingContent ? (
               <div className="flex justify-center py-8">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
@@ -468,6 +468,7 @@ export default function TutorialsTabNew({
               <div
                 ref={contentRef}
                 className="article-content"
+                style={{ marginTop: 0, paddingTop: 0 }}
                 dangerouslySetInnerHTML={{ __html: articleContent }}
               />
             )}
