@@ -157,7 +157,7 @@ export default function IssuesTab({
               <Icon
                 name={option.icon as any}
                 className={`w-5 h-5 mr-3 ${
-                  category === option.value ? 'text-slate-900' : 'text-white/60'
+                  category === option.value ? 'text-slate-900' : 'text-white/90'
                 }`}
                 size={20}
               />
@@ -168,7 +168,7 @@ export default function IssuesTab({
                   {option.label}
                 </div>
                 <div className={`text-sm ${
-                  category === option.value ? 'text-slate-700' : 'text-white/80'
+                  category === option.value ? 'text-slate-700' : 'text-white/95'
                 }`}>
                   {option.description}
                 </div>
@@ -188,7 +188,7 @@ export default function IssuesTab({
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           rows={5}
-          className="w-full px-3 py-2 border border-white/20 bg-white/10 rounded-md focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent resize-none text-white placeholder-white/50"
+          className="w-full px-3 py-2 border border-white/20 bg-white/10 rounded-md focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent resize-none text-white placeholder-white/70"
           placeholder={
             category === 'bug_report'
               ? "Describe the issue you're experiencing..."
@@ -199,7 +199,7 @@ export default function IssuesTab({
           required
           disabled={isSubmitting}
         />
-        <p className="text-xs text-white/70 mt-1">
+        <p className="text-xs text-white/90 mt-1">
           {message.length}/1000 characters
         </p>
       </div>
@@ -214,11 +214,11 @@ export default function IssuesTab({
           id="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full px-3 py-2 border border-white/20 bg-white/10 rounded-md focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent text-white placeholder-white/50"
+          className="w-full px-3 py-2 border border-white/20 bg-white/10 rounded-md focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent text-white placeholder-white/70"
           placeholder="your@email.com"
           disabled={isSubmitting}
         />
-        <p className="text-sm text-white/70 mt-1">
+        <p className="text-sm text-white/90 mt-1">
           We'll only use this to follow up on your feedback if needed.
         </p>
       </div>
