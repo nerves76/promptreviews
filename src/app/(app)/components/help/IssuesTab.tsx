@@ -20,7 +20,7 @@ const categoryOptions: CategoryOption[] = [
   {
     value: 'bug_report',
     label: 'Bug Report',
-    icon: 'FaWrench',
+    icon: 'FaBug',
     description: 'Something isn\'t working as expected'
   },
   {
