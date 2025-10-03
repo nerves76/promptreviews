@@ -20,13 +20,13 @@ const categoryOptions: CategoryOption[] = [
   {
     value: 'bug_report',
     label: 'Bug Report',
-    icon: 'FaExclamationTriangle',
+    icon: 'FaWrench',
     description: 'Something isn\'t working as expected'
   },
   {
     value: 'feature_request',
     label: 'Feature Request',
-    icon: 'FaHeart',
+    icon: 'FaLightbulb',
     description: 'I\'d like to see a new feature'
   },
   {
@@ -142,8 +142,8 @@ export default function IssuesTab({
               key={option.value}
               className={`flex items-center p-3 border rounded-lg cursor-pointer transition-colors ${
                 category === option.value
-                  ? 'border-slate-blue bg-slate-blue/5'
-                  : 'border-white/20 hover:border-white/30'
+                  ? 'border-white/30 bg-white/10'
+                  : 'border-white/20 bg-white/5 hover:border-white/30 hover:bg-white/10'
               }`}
             >
               <input
