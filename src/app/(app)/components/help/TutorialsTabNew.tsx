@@ -279,13 +279,6 @@ export default function TutorialsTabNew({
       .replace(/<svg[^>]*>[\s\S]*?<\/svg>/gi, '') // Remove SVG icons
       .replace(/<i[^>]*class="[^"]*(?:fa-|icon-)[^"]*"[^>]*><\/i>/gi, ''); // Remove FontAwesome icons
 
-    // Remove wrapper divs that cause indentation - be very aggressive
-    formatted = formatted
-      .replace(/<div[^>]*class="[^"]*(?:container|wrapper|content|article|body)[^"]*"[^>]*>/gi, '')
-      .replace(/<\/div>/gi, '')
-      .replace(/<section[^>]*>/gi, '')
-      .replace(/<\/section>/gi, '');
-
     // Remove any pill/badge containers that might wrap titles with light text
     formatted = formatted
       .replace(/<div[^>]*class="[^"]*(?:pill|badge|tag|rounded-full)[^"]*"[^>]*>([\s\S]*?)<\/div>/gi, '$1')
@@ -307,6 +300,8 @@ export default function TutorialsTabNew({
 
     // Apply consistent formatting - force dark text on everything
     let final = formatted
+      .replace(/<div[^>]*>/g, '<div style="margin: 0; padding: 0;">')
+      .replace(/<section[^>]*>/g, '<section style="margin: 0; padding: 0;">')
       .replace(/<h1[^>]*>/g, '<h1 style="color: #111827 !important; margin: 0 !important; padding: 0;" class="text-2xl font-bold mb-2">')
       .replace(/<h2[^>]*>/g, '<h2 style="color: #111827 !important; margin: 0 !important; padding: 0;" class="text-xl font-bold mb-2">')
       .replace(/<h3[^>]*>/g, '<h3 style="color: #111827 !important; margin: 0 !important; padding: 0;" class="text-lg font-bold mb-2">')
