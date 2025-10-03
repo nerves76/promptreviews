@@ -279,34 +279,36 @@ export default function TutorialsTabNew({
       .replace(/<svg[^>]*>[\s\S]*?<\/svg>/gi, '') // Remove SVG icons
       .replace(/<i[^>]*class="[^"]*(?:fa-|icon-)[^"]*"[^>]*><\/i>/gi, ''); // Remove FontAwesome icons
 
-    // Fix "Available on:" text - completely replace the span with dark text
+    // Fix "Available on:" text issues - remove the broken span completely and rebuild
     formatted = formatted
-      .replace(/<span[^>]*>Available on:<\/span>/gi, '<span class="text-gray-900 font-semibold">Available on:</span>')
+      .replace(/Available on:\/span>/gi, 'Available on:')
+      .replace(/<span[^>]*>\s*Available on:\s*<\/span>/gi, '<div class="text-gray-900 font-semibold mb-2">Available on:</div>')
+      .replace(/Available on:/gi, '<div class="text-gray-900 font-semibold mb-2">Available on:</div>')
       // Remove any pastel/light backgrounds from plan badges and replace with high contrast
       .replace(/<span([^>]*class="[^"]*bg-(?:gray|slate|blue|indigo|purple|pink|rose|amber|yellow|lime|green|emerald|teal|cyan|sky|violet|fuchsia)-(?:50|100|200|300)[^"]*"[^>]*)>(grower|builder|maven)<\/span>/gi,
-        '<span class="inline-block px-3 py-1 text-sm font-bold rounded-full bg-slate-800 text-white mx-1">$2</span>')
+        '<span class="inline-block px-3 py-1 text-sm font-bold rounded-full bg-slate-900 text-white mx-1 my-1">$2</span>')
       // Catch spans with plan names that might have other classes
       .replace(/<span([^>]*)>(grower|builder|maven)<\/span>/gi,
-        '<span class="inline-block px-3 py-1 text-sm font-bold rounded-full bg-slate-800 text-white mx-1">$2</span>')
+        '<span class="inline-block px-3 py-1 text-sm font-bold rounded-full bg-slate-900 text-white mx-1 my-1">$2</span>')
       // Catch any remaining plan names not in spans
-      .replace(/\b(grower|builder|maven)\b/gi, '<span class="inline-block px-3 py-1 text-sm font-bold rounded-full bg-slate-800 text-white mx-1">$1</span>');
+      .replace(/\b(grower|builder|maven)\b/gi, '<span class="inline-block px-3 py-1 text-sm font-bold rounded-full bg-slate-900 text-white mx-1 my-1">$1</span>');
 
     // Apply consistent formatting like ArticleViewer
     return formatted
       .replace(/<h1/g, '<h1 class="text-2xl font-bold mb-4 mt-0 text-gray-900"')
-      .replace(/<h2/g, '<h2 class="text-xl font-semibold mb-3 mt-6 text-gray-800"')
-      .replace(/<h3/g, '<h3 class="text-lg font-medium mb-2 mt-4 text-gray-700"')
-      .replace(/<h4/g, '<h4 class="text-base font-medium mb-2 mt-3 text-gray-700"')
-      .replace(/<p/g, '<p class="mb-4 text-gray-800 leading-relaxed"')
+      .replace(/<h2/g, '<h2 class="text-xl font-bold mb-3 mt-6 text-gray-900"')
+      .replace(/<h3/g, '<h3 class="text-lg font-bold mb-2 mt-4 text-gray-900"')
+      .replace(/<h4/g, '<h4 class="text-base font-bold mb-2 mt-3 text-gray-900"')
+      .replace(/<p/g, '<p class="mb-4 text-gray-900 leading-relaxed"')
       .replace(/<ul/g, '<ul class="list-disc list-inside mb-4 space-y-2 ml-4"')
       .replace(/<ol/g, '<ol class="list-decimal list-inside mb-4 space-y-2 ml-4"')
-      .replace(/<li/g, '<li class="text-gray-800"')
-      .replace(/<strong/g, '<strong class="font-semibold text-gray-900"')
-      .replace(/<em/g, '<em class="italic"')
+      .replace(/<li/g, '<li class="text-gray-900"')
+      .replace(/<strong/g, '<strong class="font-bold text-gray-900"')
+      .replace(/<em/g, '<em class="italic text-gray-900"')
       .replace(/<code/g, '<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono text-gray-900"')
       .replace(/<pre/g, '<pre class="bg-gray-50 p-4 rounded-lg overflow-x-auto mb-4"')
-      .replace(/<blockquote/g, '<blockquote class="border-l-4 border-slate-blue pl-4 italic my-4 text-gray-800"')
-      .replace(/<a /g, '<a class="text-indigo-600 hover:text-indigo-700 underline" ')
+      .replace(/<blockquote/g, '<blockquote class="border-l-4 border-slate-blue pl-4 italic my-4 text-gray-900"')
+      .replace(/<a /g, '<a class="text-indigo-600 hover:text-indigo-700 underline font-semibold" ')
       .replace(/<hr/g, '<hr class="my-6 border-gray-200"');
   };
 
