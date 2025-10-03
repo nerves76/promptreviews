@@ -178,20 +178,6 @@ export default function IssuesTab({
         </div>
       </div>
 
-      {/* Context info */}
-      <div className="p-3 bg-white/10 rounded-lg border border-white/20">
-        <div className="flex items-center space-x-2 mb-1">
-          <Icon name="FaInfoCircle" className="w-4 h-4 text-white/80" size={16} />
-          <span className="text-sm font-medium text-white">Context Information</span>
-        </div>
-        <p className="text-xs text-white/90">
-          Current page: {pathname}
-        </p>
-        <p className="text-xs text-white/70 mt-1">
-          This information helps us better understand and resolve your issue.
-        </p>
-      </div>
-
       {/* Message */}
       <div>
         <label htmlFor="message" className="block text-sm font-medium text-white mb-2">
