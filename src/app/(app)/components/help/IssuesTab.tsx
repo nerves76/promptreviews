@@ -142,8 +142,8 @@ export default function IssuesTab({
               key={option.value}
               className={`flex items-center p-3 border rounded-lg cursor-pointer transition-colors ${
                 category === option.value
-                  ? 'border-white/30 bg-white/10'
-                  : 'border-white/20 bg-white/5 hover:border-white/30 hover:bg-white/10'
+                  ? 'border-white/40 bg-white/20'
+                  : 'border-white/20 bg-white/10 hover:border-white/40 hover:bg-white/20'
               }`}
             >
               <input
