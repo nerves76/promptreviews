@@ -142,7 +142,7 @@ export default function IssuesTab({
               key={option.value}
               className={`flex items-center p-3 border rounded-lg cursor-pointer transition-colors ${
                 category === option.value
-                  ? 'border-white/40 bg-white/20'
+                  ? 'border-white bg-white'
                   : 'border-white/20 bg-white/10 hover:border-white/40 hover:bg-white/20'
               }`}
             >
@@ -157,17 +157,21 @@ export default function IssuesTab({
               <Icon
                 name={option.icon as any}
                 className={`w-5 h-5 mr-3 ${
-                  category === option.value ? 'text-white' : 'text-white/60'
+                  category === option.value ? 'text-slate-900' : 'text-white/60'
                 }`}
                 size={20}
               />
               <div>
                 <div className={`font-medium ${
-                  category === option.value ? 'text-white' : 'text-white'
+                  category === option.value ? 'text-slate-900' : 'text-white'
                 }`}>
                   {option.label}
                 </div>
-                <div className="text-sm text-white/80">{option.description}</div>
+                <div className={`text-sm ${
+                  category === option.value ? 'text-slate-700' : 'text-white/80'
+                }`}>
+                  {option.description}
+                </div>
               </div>
             </label>
           ))}
