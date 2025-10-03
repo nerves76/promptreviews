@@ -19,34 +19,54 @@ interface DropdownPortalProps {
 }
 
 const DropdownPortal = forwardRef<HTMLDivElement, DropdownPortalProps>(
-  ({ isOpen, mounted, children, buttonRef, className = '', style = {}, align = 'left', width = '256px' }, ref) => {
+  ({
+    isOpen,
+    mounted,
+    children,
+    buttonRef,
+    className = '',
+    style = {},
+    align = 'left',
+    width = '256px'
+  }, ref) => {
     if (!isOpen || !mounted) return null;
 
     const buttonRect = buttonRef.current?.getBoundingClientRect();
+    const { backgroundColor: providedBackground, ...positionalOverrides } = style;
 
-    // If custom positioning is provided via style, use it; otherwise use default positioning
-    const hasCustomPosition = style.left !== undefined || style.right !== undefined || style.top !== undefined;
-
-    const defaultStyle: React.CSSProperties = hasCustomPosition ? {
-      zIndex: 2147483647,
-      width,
-      ...style
-    } : {
+    const basePosition: React.CSSProperties = {
       top: buttonRect ? buttonRect.bottom + 8 : 0,
       ...(align === 'right'
         ? { right: window.innerWidth - (buttonRect?.right || 0) }
         : { left: buttonRect?.left || 0 }
-      ),
+      )
+    };
+
+    const customStyle: React.CSSProperties = { ...positionalOverrides };
+
+    if (positionalOverrides.top === undefined) {
+      customStyle.top = basePosition.top;
+    }
+
+    if (positionalOverrides.left === undefined && positionalOverrides.right === undefined) {
+      customStyle.left = basePosition.left;
+      customStyle.right = basePosition.right;
+    }
+
+    const defaultStyle: React.CSSProperties = {
       width,
       zIndex: 2147483647,
-      ...style
+      ...customStyle
     };
 
     return createPortal(
       <div
         ref={ref}
-        className={`fixed bg-gray-900/60 backdrop-blur-xl rounded-lg shadow-2xl border border-white/20 ${className}`}
-        style={defaultStyle}
+        className={`fixed backdrop-blur-xl rounded-lg shadow-2xl border border-white/20 ${className}`}
+        style={{
+          ...defaultStyle,
+          backgroundColor: providedBackground || 'rgba(15, 23, 42, 0.97)' // slate-900 with higher opacity for consistency
+        }}
       >
         {children}
       </div>,

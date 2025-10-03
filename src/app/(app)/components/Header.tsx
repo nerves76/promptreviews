@@ -771,9 +771,12 @@ const Header = React.memo(function Header() {
           isOpen={menuOpen}
           mounted={mounted}
           buttonRef={{ current: null } as React.RefObject<HTMLElement>}
-          className="md:hidden left-4 right-4"
+          className="md:hidden"
+          width="auto"
           style={{
             top: 80,
+            left: 16,
+            right: 16,
             zIndex: 2147483647
           }}
         >
