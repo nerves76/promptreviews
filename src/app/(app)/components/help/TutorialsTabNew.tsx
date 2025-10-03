@@ -279,6 +279,13 @@ export default function TutorialsTabNew({
       .replace(/<svg[^>]*>[\s\S]*?<\/svg>/gi, '') // Remove SVG icons
       .replace(/<i[^>]*class="[^"]*(?:fa-|icon-)[^"]*"[^>]*><\/i>/gi, ''); // Remove FontAwesome icons
 
+    // Remove wrapper divs that cause indentation - be very aggressive
+    formatted = formatted
+      .replace(/<div[^>]*class="[^"]*(?:container|wrapper|content|article|body)[^"]*"[^>]*>/gi, '')
+      .replace(/<\/div>/gi, '')
+      .replace(/<section[^>]*>/gi, '')
+      .replace(/<\/section>/gi, '');
+
     // Remove any pill/badge containers that might wrap titles with light text
     formatted = formatted
       .replace(/<div[^>]*class="[^"]*(?:pill|badge|tag|rounded-full)[^"]*"[^>]*>([\s\S]*?)<\/div>/gi, '$1')
