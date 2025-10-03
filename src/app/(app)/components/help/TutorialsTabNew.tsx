@@ -284,6 +284,11 @@ export default function TutorialsTabNew({
       .replace(/\s+style="[^"]*"/gi, '')
       .replace(/\s+style='[^']*'/gi, '');
 
+    // Remove icon container divs with w-12 h-12 that cause indentation
+    formatted = formatted
+      .replace(/<div[^>]*class="[^"]*w-12[^"]*"[^>]*><\/div>/gi, '')
+      .replace(/<div[^>]*class="[^"]*w-12[^"]*"[^>]*>[\s\S]*?<\/div>/gi, '');
+
     // Remove any pill/badge containers that might wrap titles with light text
     formatted = formatted
       .replace(/<div[^>]*class="[^"]*(?:pill|badge|tag|rounded-full)[^"]*"[^>]*>([\s\S]*?)<\/div>/gi, '$1')
