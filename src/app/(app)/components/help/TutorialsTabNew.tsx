@@ -280,15 +280,7 @@ export default function TutorialsTabNew({
       .replace(/<i[^>]*class="[^"]*(?:fa-|icon-)[^"]*"[^>]*><\/i>/gi, '') // Remove FontAwesome icons
       .replace(/<div[^>]*class="[^"]*w-12[^"]*"[^>]*>\s*<\/div>/gi, ''); // Remove empty w-12 icon containers
 
-    // Fix "Available on:" text and plan badges
-    formatted = formatted
-      .replace(/Available on:\/span>/gi, 'Available on:')
-      .replace(/Available on:/gi, '<strong>Available on:</strong>')
-      // Fix plan badges - make them dark
-      .replace(/<span([^>]*)>(grower|builder|maven)<\/span>/gi,
-        '<span class="inline-block px-2 py-1 text-xs font-bold rounded bg-slate-900 text-white mx-1">$2</span>');
-
-    // Simple text color fixes - just ensure text is dark
+    // Simple text color fixes - just ensure text is dark (do this first)
     formatted = formatted
       .replace(/<h1([^>]*)>/g, '<h1$1 style="color: #111827;">')
       .replace(/<h2([^>]*)>/g, '<h2$1 style="color: #111827;">')
@@ -296,8 +288,15 @@ export default function TutorialsTabNew({
       .replace(/<h4([^>]*)>/g, '<h4$1 style="color: #111827;">')
       .replace(/<p([^>]*)>/g, '<p$1 style="color: #111827;">')
       .replace(/<li([^>]*)>/g, '<li$1 style="color: #111827;">')
-      .replace(/<strong([^>]*)>/g, '<strong$1 style="color: #111827;">')
-      .replace(/<span([^>]*)>/g, '<span$1 style="color: #111827;">');
+      .replace(/<strong([^>]*)>/g, '<strong$1 style="color: #111827;">');
+
+    // Fix "Available on:" text and plan badges (do this after so it overrides)
+    formatted = formatted
+      .replace(/Available on:\/span>/gi, 'Available on:')
+      .replace(/Available on:/gi, '<strong>Available on:</strong>')
+      // Fix plan badges - dark background with white text
+      .replace(/<span([^>]*)>(grower|builder|maven)<\/span>/gi,
+        '<span style="color: white !important;" class="inline-block px-2 py-1 text-xs font-bold rounded bg-slate-900 mx-1">$2</span>');
 
     return formatted.trim();
   };
