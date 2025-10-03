@@ -299,14 +299,14 @@ export default function TutorialsTabNew({
       .replace(/\b(grower|builder|maven)\b/gi, '<span class="inline-block px-3 py-1 text-sm font-bold rounded-full bg-slate-900 text-white mx-1 my-1">$1</span>');
 
     // Apply consistent formatting - force dark text on everything
-    return formatted
-      .replace(/<h1[^>]*>/g, '<h1 style="color: #111827 !important;" class="text-2xl font-bold mb-4 mt-0">')
-      .replace(/<h2[^>]*>/g, '<h2 style="color: #111827 !important;" class="text-xl font-bold mb-3 mt-0">')
-      .replace(/<h3[^>]*>/g, '<h3 style="color: #111827 !important;" class="text-lg font-bold mb-2 mt-0">')
-      .replace(/<h4[^>]*>/g, '<h4 style="color: #111827 !important;" class="text-base font-bold mb-2 mt-0">')
-      .replace(/<p[^>]*>/g, '<p style="color: #111827;" class="mb-4 leading-relaxed">')
-      .replace(/<ul/g, '<ul class="list-disc list-inside mb-4 space-y-2 ml-4"')
-      .replace(/<ol/g, '<ol class="list-decimal list-inside mb-4 space-y-2 ml-4"')
+    let final = formatted
+      .replace(/<h1[^>]*>/g, '<h1 style="color: #111827 !important; margin-top: 0 !important;" class="text-2xl font-bold mb-4">')
+      .replace(/<h2[^>]*>/g, '<h2 style="color: #111827 !important; margin-top: 0 !important;" class="text-xl font-bold mb-3">')
+      .replace(/<h3[^>]*>/g, '<h3 style="color: #111827 !important; margin-top: 0 !important;" class="text-lg font-bold mb-2">')
+      .replace(/<h4[^>]*>/g, '<h4 style="color: #111827 !important; margin-top: 0 !important;" class="text-base font-bold mb-2">')
+      .replace(/<p[^>]*>/g, '<p style="color: #111827; margin-top: 0;" class="mb-4 leading-relaxed">')
+      .replace(/<ul/g, '<ul style="margin-top: 0;" class="list-disc list-inside mb-4 space-y-2 ml-4"')
+      .replace(/<ol/g, '<ol style="margin-top: 0;" class="list-decimal list-inside mb-4 space-y-2 ml-4"')
       .replace(/<li[^>]*>/g, '<li style="color: #111827;">')
       .replace(/<strong[^>]*>/g, '<strong style="color: #111827 !important;" class="font-bold">')
       .replace(/<em[^>]*>/g, '<em style="color: #111827;">')
@@ -315,6 +315,13 @@ export default function TutorialsTabNew({
       .replace(/<blockquote/g, '<blockquote class="border-l-4 border-slate-blue pl-4 italic my-4 text-gray-900"')
       .replace(/<a /g, '<a class="text-indigo-600 hover:text-indigo-700 underline font-semibold" ')
       .replace(/<hr/g, '<hr class="my-6 border-gray-200"');
+
+    // Remove any leading whitespace, empty divs, or breaks at the very start
+    final = final
+      .replace(/^\s*(<br\s*\/?>|<div[^>]*>\s*<\/div>|\s)+/i, '')
+      .replace(/^(<div[^>]*>\s*)+/i, '');
+
+    return final;
   };
 
   // Handle article click
