@@ -65,7 +65,7 @@ const DropdownPortal = forwardRef<HTMLDivElement, DropdownPortalProps>(
         className={`fixed backdrop-blur-xl rounded-lg shadow-2xl border border-white/20 ${className}`}
         style={{
           ...defaultStyle,
-          backgroundColor: providedBackground || 'rgba(15, 23, 42, 0.97)' // slate-900 with higher opacity for consistency
+          backgroundColor: providedBackground || 'rgba(30, 41, 59, 0.6)' // slate-800 at 60% opacity per request
         }}
       >
         {children}

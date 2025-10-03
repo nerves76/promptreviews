@@ -38,6 +38,11 @@ export const pageFAQs = {
   // Prompt Pages FAQs
   'prompt-pages': [
     {
+      question: 'How do I create my first Prompt Page?',
+      answer: 'First, note that a Universal Prompt Page is automatically created for all accounts! To create additional prompt pages, go to the "Get Reviews" menu and select "Prompt Pages". You\'ll see tabs for Individual, Public, or Locations (Maven plan only). Choose Individual if the page is for one person, Public if you\'re using a QR code or sending to a group, or Locations if you need a page for a specific business location. Once you\'re on the right tab, click to create a new Prompt Page and select your preferred page type. Learn more about the different prompt page types at https://docs.promptreviews.app/prompt-pages/types',
+      plans: ['grower', 'builder', 'maven']
+    },
+    {
       question: 'What exactly is a prompt page?',
       answer: 'A prompt page is a personalized review request page you create for specific situations, customers, or services. It\'s like a landing page designed specifically to make leaving reviews easy and engaging for your customers.',
       plans: ['grower', 'builder', 'maven']
@@ -481,6 +486,10 @@ export const consolidatedFAQs = [
   {
     category: 'Prompt Pages',
     faqs: [
+      {
+        question: 'How do I create my first Prompt Page?',
+        answer: 'First, note that a Universal Prompt Page is automatically created for all accounts! To create additional prompt pages, go to the "Get Reviews" menu and select "Prompt Pages". You\'ll see tabs for Individual, Public, or Locations (Maven plan only). Choose the right tab based on your needs, then click to create and select your page type.'
+      },
       {
         question: 'What exactly is a prompt page?',
         answer: 'A prompt page is a personalized review request page you create for specific situations, customers, or services. It\'s designed to make leaving reviews easy and engaging for your customers.'

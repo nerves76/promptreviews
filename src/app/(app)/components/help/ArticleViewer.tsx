@@ -129,18 +129,48 @@ export default function ArticleViewer({ article, onBack }: ArticleViewerProps) {
   };
 
   const formatContent = (html: string) => {
+    // Remove icon elements that don't render properly
+    let formatted = html
+      .replace(/<svg[^>]*>[\s\S]*?<\/svg>/gi, '') // Remove SVG icons
+      .replace(/<i[^>]*class="[^"]*(?:fa-|icon-)[^"]*"[^>]*><\/i>/gi, '') // Remove FontAwesome icons
+      .replace(/[\u{1F300}-\u{1F9FF}]/gu, ''); // Remove emoji if they're causing issues
+
+    // Fix "Available on" text color - change from white/light to dark
+    formatted = formatted
+      .replace(/<span([^>]*)class="([^"]*text-(?:white|gray-(?:100|200|300|400))[^"]*)"([^>]*)>Available on:/gi,
+        '<span$1 class="text-gray-900 font-semibold"$3>Available on:')
+      .replace(/>Available on:</gi, ' style="color: #111827; font-weight: 600;">Available on:')
+
+      // Improve plan pill contrast - replace light backgrounds with darker, high-contrast versions
+      .replace(/class="([^"]*)(?:bg-(?:gray|slate|blue|indigo)-(?:50|100|200))[^"]*([^"]*)"/gi, (match) => {
+        // Only replace if it's a plan badge/pill context
+        if (match.toLowerCase().includes('grower') || match.toLowerCase().includes('builder') || match.toLowerCase().includes('maven') ||
+            match.includes('badge') || match.includes('pill') || match.includes('plan')) {
+          return match
+            .replace(/bg-(?:gray|slate|blue|indigo)-(?:50|100|200)/g, 'bg-indigo-600')
+            .replace(/text-(?:gray|slate|blue|indigo)-(?:600|700|800|900)/g, 'text-white');
+        }
+        return match;
+      })
+
+      // Specifically target plan name badges/pills to ensure high contrast
+      .replace(/<span([^>]*class="[^"]*(?:badge|pill|tag)[^"]*"[^>]*)>(grower|builder|maven)<\/span>/gi,
+        '<span class="inline-block px-3 py-1 text-xs font-bold rounded-full bg-indigo-600 text-white">$2</span>');
+
     // Basic formatting for better display
-    return html
-      .replace(/<h1/g, '<h1 class="text-2xl font-bold mb-4 text-gray-900"')
+    return formatted
+      .replace(/<h1/g, '<h1 class="text-2xl font-bold mb-4 mt-2 text-gray-900"')
       .replace(/<h2/g, '<h2 class="text-xl font-semibold mb-3 mt-6 text-gray-800"')
       .replace(/<h3/g, '<h3 class="text-lg font-medium mb-2 mt-4 text-gray-700"')
-      .replace(/<p/g, '<p class="mb-4 text-gray-600 leading-relaxed"')
+      .replace(/<p/g, '<p class="mb-4 text-gray-700 leading-relaxed"')
       .replace(/<ul/g, '<ul class="list-disc list-inside mb-4 space-y-2"')
       .replace(/<ol/g, '<ol class="list-decimal list-inside mb-4 space-y-2"')
-      .replace(/<li/g, '<li class="text-gray-600"')
-      .replace(/<code/g, '<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono"')
+      .replace(/<li/g, '<li class="text-gray-700"')
+      .replace(/<code/g, '<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono text-gray-900"')
       .replace(/<pre/g, '<pre class="bg-gray-50 p-4 rounded-lg overflow-x-auto mb-4"')
-      .replace(/<blockquote/g, '<blockquote class="border-l-4 border-slate-blue pl-4 italic my-4"');
+      .replace(/<blockquote/g, '<blockquote class="border-l-4 border-slate-blue pl-4 italic my-4 text-gray-700"')
+      // Fix "Available on:" text specifically
+      .replace(/<span([^>]*)>Available on:<\/span>/gi, '<span$1 class="text-gray-900 font-semibold">Available on:</span>');
   };
 
   if (loading) {
@@ -165,7 +195,7 @@ export default function ArticleViewer({ article, onBack }: ArticleViewerProps) {
   return (
     <div className="p-6">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-3">
         <button
           onClick={onBack}
           className="flex items-center space-x-2 text-slate-blue hover:text-slate-blue/80"
@@ -173,7 +203,7 @@ export default function ArticleViewer({ article, onBack }: ArticleViewerProps) {
           <Icon name="FaChevronLeft" className="w-4 h-4" size={16} />
           <span>Back</span>
         </button>
-        
+
         <a
           href={article.url}
           target="_blank"
@@ -186,7 +216,7 @@ export default function ArticleViewer({ article, onBack }: ArticleViewerProps) {
       </div>
 
       {/* Article metadata */}
-      <div className="mb-6">
+      <div className="mb-3">
         <h1 className="text-2xl font-bold text-gray-900 mb-2">{article.title}</h1>
         <div className="flex flex-wrap gap-2">
           {article.tags.map((tag) => (

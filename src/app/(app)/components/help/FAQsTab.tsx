@@ -146,7 +146,7 @@ export default function FAQsTab({
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search FAQs..."
-            className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white/80 backdrop-blur-sm shadow-sm"
+            className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white/80 backdrop-blur-sm shadow-sm text-gray-900"
           />
         </div>
 
@@ -159,7 +159,7 @@ export default function FAQsTab({
               className={`px-3 py-1.5 text-sm rounded-full transition-colors ${
                 selectedCategory === category
                   ? 'bg-gradient-to-r from-purple-600 to-fuchsia-600 text-white shadow-sm'
-                  : 'bg-white/80 text-gray-700 hover:bg-white border border-gray-200/50'
+                  : 'bg-white/80 text-gray-900 hover:bg-white border border-gray-200/50'
               }`}
             >
               {formatCategoryName(category)}
@@ -172,14 +172,14 @@ export default function FAQsTab({
       {loadingFaqs ? (
         <div className="flex items-center justify-center py-12">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
-          <span className="ml-3 text-gray-600">Loading FAQs...</span>
+          <span className="ml-3 text-gray-800">Loading FAQs...</span>
         </div>
       ) : filteredFaqs.length === 0 ? (
         <div className="text-center py-12">
           <div className="w-16 h-16 bg-gradient-to-br from-purple-100 to-fuchsia-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <Icon name="FaSearch" className="w-8 h-8 text-purple-400" size={32} />
           </div>
-          <p className="text-gray-500">No FAQs found matching your search.</p>
+          <p className="text-gray-700">No FAQs found matching your search.</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -198,7 +198,7 @@ export default function FAQsTab({
                         {faq.question}
                       </h3>
                       <div className="flex items-center space-x-2">
-                        <span className="px-2 py-1 text-xs bg-gray-100/80 text-gray-600 rounded-full">
+                        <span className="px-2 py-1 text-xs bg-gray-100/80 text-gray-800 rounded-full">
                           {formatCategoryName(faq.category)}
                         </span>
                         {faq.plans && !faq.plans.includes('grower') && (
@@ -223,14 +223,14 @@ export default function FAQsTab({
               
               {expandedFaq === faq.id && (
                 <div className="px-4 pb-4 border-t border-gray-100/50">
-                  <div className="pt-3 text-sm text-gray-700 leading-relaxed">
+                  <div className="pt-3 text-sm text-gray-900 leading-relaxed">
                     {faq.answer}
                   </div>
                   {faq.tags.length > 0 && (
                     <div className="mt-3 pt-3 border-t border-gray-100/50">
                       <div className="flex flex-wrap gap-1">
                         {faq.tags.map((tag) => (
-                          <span key={tag} className="px-2 py-1 text-xs bg-gray-50/80 text-gray-500 rounded-full">
+                          <span key={tag} className="px-2 py-1 text-xs bg-gray-50/80 text-gray-800 rounded-full">
                             {tag}
                           </span>
                         ))}

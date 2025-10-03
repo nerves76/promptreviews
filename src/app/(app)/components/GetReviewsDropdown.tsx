@@ -4,7 +4,7 @@
 
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import Icon from "@/components/Icon";
@@ -35,12 +35,48 @@ const GetReviewsDropdown: React.FC<GetReviewsDropdownProps> = ({
   const [mounted, setMounted] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
   const router = useRouter();
   const pathname = usePathname();
-  
+
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  const updateDropdownPosition = useCallback(() => {
+    const buttonEl = buttonRef.current;
+    if (!buttonEl) return;
+
+    const rect = buttonEl.getBoundingClientRect();
+    const dropdownWidth = dropdownRef.current?.offsetWidth ?? 280; // fall back to typical width so the clamp works pre-measure
+    const viewportWidth = window.innerWidth;
+    const halfWidth = dropdownWidth / 2;
+    const centerX = rect.left + rect.width / 2;
+    const clampedCenter = Math.max(16 + halfWidth, Math.min(centerX, viewportWidth - 16 - halfWidth));
+
+    setDropdownPosition({
+      top: rect.bottom + 8,
+      left: clampedCenter
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    updateDropdownPosition();
+    const raf = requestAnimationFrame(updateDropdownPosition);
+
+    const handleReposition = () => updateDropdownPosition();
+
+    window.addEventListener('resize', handleReposition);
+    window.addEventListener('scroll', handleReposition, true);
+
+    return () => {
+      window.removeEventListener('resize', handleReposition);
+      window.removeEventListener('scroll', handleReposition, true);
+      cancelAnimationFrame(raf);
+    };
+  }, [isOpen, updateDropdownPosition]);
 
   // Close on outside click
   useEffect(() => {
@@ -105,7 +141,13 @@ const GetReviewsDropdown: React.FC<GetReviewsDropdownProps> = ({
         buttonRef={buttonRef}
         ref={dropdownRef}
         className="py-2"
-        style={{ zIndex: 2147483648, top: buttonRef.current ? buttonRef.current.getBoundingClientRect().bottom + 4 : 0 }}
+        width="min(320px, calc(100vw - 32px))"
+        style={{
+          zIndex: 2147483648,
+          top: dropdownPosition.top,
+          left: dropdownPosition.left,
+          transform: "translateX(-50%)"
+        }}
       >
         {menuItems.map((item) => (
           <Link

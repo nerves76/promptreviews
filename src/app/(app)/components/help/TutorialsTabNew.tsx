@@ -288,12 +288,13 @@ export default function TutorialsTabNew({
       .replace(/<h4([^>]*)>/g, '<h4$1 style="color: #111827;">')
       .replace(/<p([^>]*)>/g, '<p$1 style="color: #111827;">')
       .replace(/<li([^>]*)>/g, '<li$1 style="color: #111827;">')
-      .replace(/<strong([^>]*)>/g, '<strong$1 style="color: #111827;">');
+      .replace(/<strong([^>]*)>/g, '<strong$1 style="color: #111827;">')
+      .replace(/<a([^>]*)>/g, '<a$1 style="color: #1e40af !important; text-decoration: underline;">'); // Fix links - make them dark blue
 
     // Fix "Available on:" text and plan badges (do this after so it overrides)
     formatted = formatted
       .replace(/Available on:\/span>/gi, 'Available on:')
-      .replace(/Available on:/gi, '<strong>Available on:</strong>')
+      .replace(/Available on:/gi, '<strong style="color: #000000;">Available on:</strong>')
       // Fix plan badges - dark background with white text
       .replace(/<span([^>]*)>(grower|builder|maven)<\/span>/gi,
         '<span style="color: white !important;" class="inline-block px-2 py-1 text-xs font-bold rounded bg-slate-900 mx-1">$2</span>');

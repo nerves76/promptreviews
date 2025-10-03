@@ -32,19 +32,11 @@ const faqData = [
     plans: ['grower', 'builder', 'maven', 'enterprise']
   },
   {
-    id: 'faq-4',
-    question: 'How do I manage my customer contacts?',
-    answer: 'You can manage contacts through the Contacts section in your dashboard. Upload contacts via CSV, add them manually, or import from integrated CRM systems. You can organize contacts with tags and create smart lists for targeted campaigns.',
-    category: 'contacts',
-    tags: ['contacts', 'management', 'upload', 'crm'],
-    plans: ['builder', 'maven', 'enterprise'] // Builder+ feature
-  },
-  {
     id: 'faq-5',
     question: 'What review platforms do you support?',
-    answer: 'We currently support Google Business Profile, Facebook, Yelp, TripAdvisor, and custom review collection. Higher-tier plans include additional integrations and advanced features.',
+    answer: 'Prompt Reviews works with ANY review platform! We provide easy integration with popular platforms like Google Business Profile, Facebook, Yelp, TripAdvisor, Trustpilot, and many others. If you don\'t see the review site you want to add, simply choose "Other" and you can add any custom review platform.',
     category: 'integrations',
-    tags: ['platforms', 'google', 'facebook', 'yelp', 'integrations'],
+    tags: ['platforms', 'google', 'facebook', 'yelp', 'integrations', 'custom'],
     plans: ['grower', 'builder', 'maven', 'enterprise']
   },
   {
