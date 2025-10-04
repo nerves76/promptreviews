@@ -1,0 +1,62 @@
+{
+  "description": "Learn how to create effective Service prompt pages for restaurants, salons, and service-based businesses. Get more reviews with our proven approach.",
+  "keywords": [],
+  "canonical_url": "https://docs.promptreviews.app/prompt-pages/types/service",
+  "category": "prompt-pages",
+  "tags": [],
+  "category_label": "",
+  "category_icon": "",
+  "category_color": "blue",
+  "available_plans": [
+    "grower",
+    "builder",
+    "maven",
+    "enterprise"
+  ],
+  "key_features": [],
+  "how_it_works": [],
+  "best_practices": [
+    {
+      "title": "Keep Questions Specific",
+      "description": "Ask about specific aspects of your service rather than general satisfaction."
+    },
+    {
+      "title": "Use Positive Language",
+      "description": "Frame questions positively to encourage detailed, constructive feedback."
+    },
+    {
+      "title": "Include Multiple Touchpoints",
+      "description": "Cover different aspects of the customer journey from booking to follow-up."
+    },
+    {
+      "title": "Make It Personal",
+      "description": "Use your business name and personalize questions to your specific services."
+    }
+  ],
+  "_original": {
+    "metadata": {
+      "title": "Service Prompt Pages - Complete Guide | Prompt Reviews",
+      "description": "Learn how to create effective Service prompt pages for restaurants, salons, and service-based businesses. Get more reviews with our proven approach."
+    },
+    "layoutProps": {
+      "best_practices": [
+        {
+          "title": "Keep Questions Specific",
+          "description": "Ask about specific aspects of your service rather than general satisfaction."
+        },
+        {
+          "title": "Use Positive Language",
+          "description": "Frame questions positively to encourage detailed, constructive feedback."
+        },
+        {
+          "title": "Include Multiple Touchpoints",
+          "description": "Cover different aspects of the customer journey from booking to follow-up."
+        },
+        {
+          "title": "Make It Personal",
+          "description": "Use your business name and personalize questions to your specific services."
+        }
+      ]
+    }
+  }
+}

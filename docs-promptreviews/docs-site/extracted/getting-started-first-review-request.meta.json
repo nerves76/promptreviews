@@ -1,0 +1,26 @@
+{
+  "description": "Learn how to send personalized review requests via email, SMS, QR codes, and direct links using Prompt Reviews.",
+  "keywords": [],
+  "canonical_url": "https://docs.promptreviews.app/getting-started/first-review-request",
+  "category": "getting-started",
+  "tags": [],
+  "category_label": "",
+  "category_icon": "",
+  "category_color": "blue",
+  "available_plans": [
+    "grower",
+    "builder",
+    "maven",
+    "enterprise"
+  ],
+  "key_features": [],
+  "how_it_works": [],
+  "best_practices": [],
+  "_original": {
+    "metadata": {
+      "title": "Send Your First Review Request | Prompt Reviews",
+      "description": "Learn how to send personalized review requests via email, SMS, QR codes, and direct links using Prompt Reviews."
+    },
+    "layoutProps": {}
+  }
+}

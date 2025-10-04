@@ -1,0 +1,168 @@
+{
+  "description": "Your customer database is the foundation of successful review collection. Learn how to import, organize, and manage your contacts to get the most from your review requests.",
+  "keywords": [],
+  "canonical_url": "https://docs.promptreviews.app/contacts",
+  "category": "contacts",
+  "tags": [],
+  "category_label": "Contact Management",
+  "category_icon": "Users",
+  "category_color": "blue",
+  "available_plans": [
+    "builder",
+    "maven"
+  ],
+  "key_features": [
+    {
+      "icon": "Upload",
+      "title": "CSV Import",
+      "description": "Upload your existing customer list in seconds with automatic duplicate detection and error checking."
+    },
+    {
+      "icon": "Tags",
+      "title": "Smart Organization",
+      "description": "Organize contacts with custom tags, groups, and filters for targeted review campaigns."
+    },
+    {
+      "icon": "Target",
+      "title": "Segmentation",
+      "description": "Create groups based on customer behavior, purchase history, or relationship status."
+    },
+    {
+      "icon": "MessageSquare",
+      "title": "Multi-Channel Outreach",
+      "description": "Send review requests via email, SMS, or generate personalized QR codes for in-person interactions."
+    }
+  ],
+  "how_it_works": [
+    {
+      "icon": "Upload",
+      "title": "Import Your Contacts",
+      "description": "Upload your existing customer list via CSV or manually add contacts one by one. Our system supports most common formats and includes automatic duplicate detection.",
+      "number": 1
+    },
+    {
+      "icon": "Tags",
+      "title": "Organize & Segment",
+      "description": "Use tags, groups, and custom fields to organize your contacts. Create segments like ",
+      "number": 2
+    },
+    {
+      "icon": "MessageSquare",
+      "title": "Send Targeted Requests",
+      "description": "Launch personalized review request campaigns via email, SMS, or QR codes. Target specific groups with relevant messaging and optimal timing.",
+      "number": 3
+    },
+    {
+      "icon": "Target",
+      "title": "Track & Optimize",
+      "description": "Monitor response rates, identify top-performing segments, and continuously refine your approach for better results.",
+      "number": 4
+    }
+  ],
+  "best_practices": [
+    {
+      "icon": "CheckCircle",
+      "title": "Start with Happy Customers",
+      "description": "Focus on customers who had positive experiences first. They're more likely to leave glowing reviews. Use your CRM or sales data to identify satisfied customers."
+    },
+    {
+      "icon": "Target",
+      "title": "Quality Over Quantity",
+      "description": "A smaller list of engaged customers beats a large list of cold contacts every time. Aim for 100 quality contacts rather than 1000 random ones."
+    },
+    {
+      "icon": "MessageSquare",
+      "title": "Personalize Your Approach",
+      "description": "Use the information you have about each customer to make your review requests feel personal. Reference specific services, dates, or interactions in your requests."
+    },
+    {
+      "icon": "Clock",
+      "title": "Timing is Everything",
+      "description": "Send review requests when the experience is fresh but not overwhelming. Wait 1-3 days after service completion, before the next interaction."
+    }
+  ],
+  "_original": {
+    "metadata": {},
+    "layoutProps": {
+      "page_title": "Managing your customer contacts",
+      "page_description": "Your customer database is the foundation of successful review collection. Learn how to import, organize, and manage your contacts to get the most from your review requests.",
+      "category_label": "Contact Management",
+      "category_icon": "Users",
+      "category_color": "blue",
+      "available_plans": [
+        "builder",
+        "maven"
+      ],
+      "key_features": [
+        {
+          "icon": "Upload",
+          "title": "CSV Import",
+          "description": "Upload your existing customer list in seconds with automatic duplicate detection and error checking."
+        },
+        {
+          "icon": "Tags",
+          "title": "Smart Organization",
+          "description": "Organize contacts with custom tags, groups, and filters for targeted review campaigns."
+        },
+        {
+          "icon": "Target",
+          "title": "Segmentation",
+          "description": "Create groups based on customer behavior, purchase history, or relationship status."
+        },
+        {
+          "icon": "MessageSquare",
+          "title": "Multi-Channel Outreach",
+          "description": "Send review requests via email, SMS, or generate personalized QR codes for in-person interactions."
+        }
+      ],
+      "how_it_works": [
+        {
+          "icon": "Upload",
+          "title": "Import Your Contacts",
+          "description": "Upload your existing customer list via CSV or manually add contacts one by one. Our system supports most common formats and includes automatic duplicate detection.",
+          "number": 1
+        },
+        {
+          "icon": "Tags",
+          "title": "Organize & Segment",
+          "description": "Use tags, groups, and custom fields to organize your contacts. Create segments like ",
+          "number": 2
+        },
+        {
+          "icon": "MessageSquare",
+          "title": "Send Targeted Requests",
+          "description": "Launch personalized review request campaigns via email, SMS, or QR codes. Target specific groups with relevant messaging and optimal timing.",
+          "number": 3
+        },
+        {
+          "icon": "Target",
+          "title": "Track & Optimize",
+          "description": "Monitor response rates, identify top-performing segments, and continuously refine your approach for better results.",
+          "number": 4
+        }
+      ],
+      "best_practices": [
+        {
+          "icon": "CheckCircle",
+          "title": "Start with Happy Customers",
+          "description": "Focus on customers who had positive experiences first. They're more likely to leave glowing reviews. Use your CRM or sales data to identify satisfied customers."
+        },
+        {
+          "icon": "Target",
+          "title": "Quality Over Quantity",
+          "description": "A smaller list of engaged customers beats a large list of cold contacts every time. Aim for 100 quality contacts rather than 1000 random ones."
+        },
+        {
+          "icon": "MessageSquare",
+          "title": "Personalize Your Approach",
+          "description": "Use the information you have about each customer to make your review requests feel personal. Reference specific services, dates, or interactions in your requests."
+        },
+        {
+          "icon": "Clock",
+          "title": "Timing is Everything",
+          "description": "Send review requests when the experience is fresh but not overwhelming. Wait 1-3 days after service completion, before the next interaction."
+        }
+      ]
+    }
+  }
+}

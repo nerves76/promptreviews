@@ -1,0 +1,26 @@
+{
+  "description": "Create your Prompt Reviews account and set up your business profile to start collecting customer reviews.",
+  "keywords": [],
+  "canonical_url": "https://docs.promptreviews.app/getting-started/account-setup",
+  "category": "getting-started",
+  "tags": [],
+  "category_label": "",
+  "category_icon": "",
+  "category_color": "blue",
+  "available_plans": [
+    "grower",
+    "builder",
+    "maven",
+    "enterprise"
+  ],
+  "key_features": [],
+  "how_it_works": [],
+  "best_practices": [],
+  "_original": {
+    "metadata": {
+      "title": "Account Setup & Business Profile | Prompt Reviews",
+      "description": "Create your Prompt Reviews account and set up your business profile to start collecting customer reviews."
+    },
+    "layoutProps": {}
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "description": "Learn about the Universal Prompt Page - the all-purpose review collection solution for any business type.",
+  "keywords": [],
+  "canonical_url": "https://docs.promptreviews.app/prompt-pages/types/universal",
+  "category": "prompt-pages",
+  "tags": [],
+  "category_label": "",
+  "category_icon": "",
+  "category_color": "blue",
+  "available_plans": [
+    "grower",
+    "builder",
+    "maven",
+    "enterprise"
+  ],
+  "key_features": [],
+  "how_it_works": [],
+  "best_practices": [],
+  "_original": {
+    "metadata": {
+      "title": "The Universal Prompt Page - One Page for All Reviews | Prompt Reviews",
+      "description": "Learn about the Universal Prompt Page - the all-purpose review collection solution for any business type."
+    },
+    "layoutProps": {}
+  }
+}

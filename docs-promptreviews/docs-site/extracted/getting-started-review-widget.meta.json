@@ -1,0 +1,26 @@
+{
+  "description": "Learn how to create and embed customizable review widgets on your website to showcase customer testimonials.",
+  "keywords": [],
+  "canonical_url": "https://docs.promptreviews.app/getting-started/review-widget",
+  "category": "getting-started",
+  "tags": [],
+  "category_label": "",
+  "category_icon": "",
+  "category_color": "blue",
+  "available_plans": [
+    "grower",
+    "builder",
+    "maven",
+    "enterprise"
+  ],
+  "key_features": [],
+  "how_it_works": [],
+  "best_practices": [],
+  "_original": {
+    "metadata": {
+      "title": "Set Up Your Review Widget | Prompt Reviews",
+      "description": "Learn how to create and embed customizable review widgets on your website to showcase customer testimonials."
+    },
+    "layoutProps": {}
+  }
+}

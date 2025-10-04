@@ -1,0 +1,190 @@
+{
+  "description": "Create customizable widgets to display your reviews on any website. Choose from different layouts, customize colors and styling, and embed with simple HTML code.",
+  "keywords": [],
+  "canonical_url": "https://docs.promptreviews.app/widgets",
+  "category": "widgets",
+  "tags": [],
+  "category_label": "Review Widgets",
+  "category_icon": "Code",
+  "category_color": "blue",
+  "available_plans": [
+    "grower",
+    "builder",
+    "maven"
+  ],
+  "key_features": [
+    {
+      "icon": "Layout",
+      "title": "Multiple Layout Options",
+      "description": "Choose from list view, card layout, compact sidebar view, or full-width testimonial style to match your website design."
+    },
+    {
+      "icon": "Paintbrush",
+      "title": "Complete Customization",
+      "description": "Customize colors, fonts, borders, shadows, and star rating colors to perfectly match your brand identity."
+    },
+    {
+      "icon": "Settings",
+      "title": "Advanced Filtering",
+      "description": "Filter reviews by rating, date, or keywords. Set minimum star ratings and control review text length."
+    },
+    {
+      "icon": "Zap",
+      "title": "Real-Time Updates",
+      "description": "Widgets automatically update when new reviews come in. Changes to your widget settings appear instantly."
+    },
+    {
+      "icon": "Smartphone",
+      "title": "Mobile Responsive",
+      "description": "All widgets are fully responsive and look perfect on phones, tablets, and desktops automatically."
+    },
+    {
+      "icon": "BarChart",
+      "title": "Performance Analytics",
+      "description": "Track widget views, engagement, and performance metrics to optimize your social proof strategy."
+    }
+  ],
+  "how_it_works": [
+    {
+      "icon": "Code",
+      "title": "Create Your Widget",
+      "description": "Go to the Widgets section in your dashboard and click ",
+      "number": 1
+    },
+    {
+      "icon": "Palette",
+      "title": "Customize Appearance",
+      "description": "Customize colors, fonts, layout, and display options. Filter reviews by rating or date and preview your widget in real-time.",
+      "number": 2
+    },
+    {
+      "icon": "Copy",
+      "title": "Get Embed Code",
+      "description": "Copy the generated embed code. It's just a simple HTML snippet that works like embedding a YouTube video.",
+      "number": 3
+    },
+    {
+      "icon": "Globe",
+      "title": "Add to Your Website",
+      "description": "Paste the embed code into your website's HTML. The widget will automatically load and display your reviews beautifully.",
+      "number": 4
+    }
+  ],
+  "best_practices": [
+    {
+      "icon": "Target",
+      "title": "Strategic Placement",
+      "description": "Place widgets where they have maximum impact - homepage testimonial sections, product pages, or checkout pages to build trust at crucial moments."
+    },
+    {
+      "icon": "Eye",
+      "title": "Show Your Best Reviews",
+      "description": "Use filtering to showcase 4-5 star reviews. Focus on reviews that mention specific benefits or outcomes that matter to your prospects."
+    },
+    {
+      "icon": "Monitor",
+      "title": "Match Your Brand",
+      "description": "Customize colors, fonts, and styling to seamlessly integrate with your website. Widgets should feel like a natural part of your site."
+    },
+    {
+      "icon": "Zap",
+      "title": "Keep It Fresh",
+      "description": "Regularly update which reviews you display. Fresh, recent reviews are more compelling than outdated ones, even if they're positive."
+    }
+  ],
+  "_original": {
+    "metadata": {},
+    "layoutProps": {
+      "page_title": "Review widgets for your website",
+      "page_description": "Create customizable widgets to display your reviews on any website. Choose from different layouts, customize colors and styling, and embed with simple HTML code.",
+      "category_label": "Review Widgets",
+      "category_icon": "Code",
+      "category_color": "blue",
+      "available_plans": [
+        "grower",
+        "builder",
+        "maven"
+      ],
+      "key_features": [
+        {
+          "icon": "Layout",
+          "title": "Multiple Layout Options",
+          "description": "Choose from list view, card layout, compact sidebar view, or full-width testimonial style to match your website design."
+        },
+        {
+          "icon": "Paintbrush",
+          "title": "Complete Customization",
+          "description": "Customize colors, fonts, borders, shadows, and star rating colors to perfectly match your brand identity."
+        },
+        {
+          "icon": "Settings",
+          "title": "Advanced Filtering",
+          "description": "Filter reviews by rating, date, or keywords. Set minimum star ratings and control review text length."
+        },
+        {
+          "icon": "Zap",
+          "title": "Real-Time Updates",
+          "description": "Widgets automatically update when new reviews come in. Changes to your widget settings appear instantly."
+        },
+        {
+          "icon": "Smartphone",
+          "title": "Mobile Responsive",
+          "description": "All widgets are fully responsive and look perfect on phones, tablets, and desktops automatically."
+        },
+        {
+          "icon": "BarChart",
+          "title": "Performance Analytics",
+          "description": "Track widget views, engagement, and performance metrics to optimize your social proof strategy."
+        }
+      ],
+      "how_it_works": [
+        {
+          "icon": "Code",
+          "title": "Create Your Widget",
+          "description": "Go to the Widgets section in your dashboard and click ",
+          "number": 1
+        },
+        {
+          "icon": "Palette",
+          "title": "Customize Appearance",
+          "description": "Customize colors, fonts, layout, and display options. Filter reviews by rating or date and preview your widget in real-time.",
+          "number": 2
+        },
+        {
+          "icon": "Copy",
+          "title": "Get Embed Code",
+          "description": "Copy the generated embed code. It's just a simple HTML snippet that works like embedding a YouTube video.",
+          "number": 3
+        },
+        {
+          "icon": "Globe",
+          "title": "Add to Your Website",
+          "description": "Paste the embed code into your website's HTML. The widget will automatically load and display your reviews beautifully.",
+          "number": 4
+        }
+      ],
+      "best_practices": [
+        {
+          "icon": "Target",
+          "title": "Strategic Placement",
+          "description": "Place widgets where they have maximum impact - homepage testimonial sections, product pages, or checkout pages to build trust at crucial moments."
+        },
+        {
+          "icon": "Eye",
+          "title": "Show Your Best Reviews",
+          "description": "Use filtering to showcase 4-5 star reviews. Focus on reviews that mention specific benefits or outcomes that matter to your prospects."
+        },
+        {
+          "icon": "Monitor",
+          "title": "Match Your Brand",
+          "description": "Customize colors, fonts, and styling to seamlessly integrate with your website. Widgets should feel like a natural part of your site."
+        },
+        {
+          "icon": "Zap",
+          "title": "Keep It Fresh",
+          "description": "Regularly update which reviews you display. Fresh, recent reviews are more compelling than outdated ones, even if they're positive."
+        }
+      ]
+    }
+  }
+}

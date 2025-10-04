@@ -1,0 +1,190 @@
+{
+  "description": "Create personalized review request pages that make it easy for customers to leave detailed, authentic reviews. Choose from multiple types, customize everything, and watch your reviews grow.",
+  "keywords": [],
+  "canonical_url": "https://docs.promptreviews.app/prompt-pages",
+  "category": "prompt-pages",
+  "tags": [],
+  "category_label": "Prompt Pages",
+  "category_icon": "MessageCircle",
+  "category_color": "purple",
+  "available_plans": [
+    "grower",
+    "builder",
+    "maven"
+  ],
+  "key_features": [
+    {
+      "icon": "Heart",
+      "title": "Emoji Sentiment Flow",
+      "description": "Interactive emoji-based review collection that makes leaving reviews fun and engaging for customers."
+    },
+    {
+      "icon": "Bot",
+      "title": "AI-Powered Content",
+      "description": "AI-powered review generation and optimization to help customers write better reviews."
+    },
+    {
+      "icon": "QrCode",
+      "title": "QR Code Generation",
+      "description": "Generate QR codes for easy access to your prompt pages from anywhere."
+    },
+    {
+      "icon": "Palette",
+      "title": "Customization Options",
+      "description": "Brand your prompt pages with your business colors, logos, and messaging."
+    },
+    {
+      "icon": "BarChart",
+      "title": "Analytics & Insights",
+      "description": "Track performance and gain insights into your review collection efforts."
+    },
+    {
+      "icon": "Share",
+      "title": "Multi-Platform Sharing",
+      "description": "Distribute your prompt pages across all your marketing channels."
+    }
+  ],
+  "how_it_works": [
+    {
+      "icon": "Edit",
+      "title": "Create Your Page",
+      "description": "Choose your page type and add details. Include customer names, service info, or any context that makes the review personal.",
+      "number": 1
+    },
+    {
+      "icon": "Share",
+      "title": "Share Your Link",
+      "description": "Get your unique link, QR code, or NFC tag. Share it however works best—email, text, in-person, or on social media.",
+      "number": 2
+    },
+    {
+      "icon": "Star",
+      "title": "Customer Leaves Review",
+      "description": "Your customer lands on a beautiful, personalized page. They can write their own review or use AI assistance to help express their thoughts.",
+      "number": 3
+    },
+    {
+      "icon": "BarChart",
+      "title": "Track Your Success",
+      "description": "Monitor which prompt pages generate the most reviews. See conversion rates, track performance, and optimize your approach.",
+      "number": 4
+    }
+  ],
+  "best_practices": [
+    {
+      "icon": "Target",
+      "title": "Be Specific and Personal",
+      "description": "The more specific your prompt page, the more detailed and helpful the reviews you'll receive. Include customer names, specific services, and relevant context."
+    },
+    {
+      "icon": "Zap",
+      "title": "Make It Easy to Share",
+      "description": "Use multiple sharing methods - direct links, QR codes, NFC tags, or email. Meet customers where they are and make leaving reviews effortless."
+    },
+    {
+      "icon": "Lightbulb",
+      "title": "Test Different Page Types",
+      "description": "Experiment with different page types (service, product, photo, video) to see what works best for your business and customer base."
+    },
+    {
+      "icon": "BarChart",
+      "title": "Track and Optimize Performance",
+      "description": "Monitor which prompt pages perform best and use those insights to optimize your approach. Focus on what drives the most authentic reviews."
+    }
+  ],
+  "_original": {
+    "metadata": {},
+    "layoutProps": {
+      "page_title": "Prompt pages: Your review collection superpower",
+      "page_description": "Create personalized review request pages that make it easy for customers to leave detailed, authentic reviews. Choose from multiple types, customize everything, and watch your reviews grow.",
+      "category_label": "Prompt Pages",
+      "category_icon": "MessageCircle",
+      "category_color": "purple",
+      "available_plans": [
+        "grower",
+        "builder",
+        "maven"
+      ],
+      "key_features": [
+        {
+          "icon": "Heart",
+          "title": "Emoji Sentiment Flow",
+          "description": "Interactive emoji-based review collection that makes leaving reviews fun and engaging for customers."
+        },
+        {
+          "icon": "Bot",
+          "title": "AI-Powered Content",
+          "description": "AI-powered review generation and optimization to help customers write better reviews."
+        },
+        {
+          "icon": "QrCode",
+          "title": "QR Code Generation",
+          "description": "Generate QR codes for easy access to your prompt pages from anywhere."
+        },
+        {
+          "icon": "Palette",
+          "title": "Customization Options",
+          "description": "Brand your prompt pages with your business colors, logos, and messaging."
+        },
+        {
+          "icon": "BarChart",
+          "title": "Analytics & Insights",
+          "description": "Track performance and gain insights into your review collection efforts."
+        },
+        {
+          "icon": "Share",
+          "title": "Multi-Platform Sharing",
+          "description": "Distribute your prompt pages across all your marketing channels."
+        }
+      ],
+      "how_it_works": [
+        {
+          "icon": "Edit",
+          "title": "Create Your Page",
+          "description": "Choose your page type and add details. Include customer names, service info, or any context that makes the review personal.",
+          "number": 1
+        },
+        {
+          "icon": "Share",
+          "title": "Share Your Link",
+          "description": "Get your unique link, QR code, or NFC tag. Share it however works best—email, text, in-person, or on social media.",
+          "number": 2
+        },
+        {
+          "icon": "Star",
+          "title": "Customer Leaves Review",
+          "description": "Your customer lands on a beautiful, personalized page. They can write their own review or use AI assistance to help express their thoughts.",
+          "number": 3
+        },
+        {
+          "icon": "BarChart",
+          "title": "Track Your Success",
+          "description": "Monitor which prompt pages generate the most reviews. See conversion rates, track performance, and optimize your approach.",
+          "number": 4
+        }
+      ],
+      "best_practices": [
+        {
+          "icon": "Target",
+          "title": "Be Specific and Personal",
+          "description": "The more specific your prompt page, the more detailed and helpful the reviews you'll receive. Include customer names, specific services, and relevant context."
+        },
+        {
+          "icon": "Zap",
+          "title": "Make It Easy to Share",
+          "description": "Use multiple sharing methods - direct links, QR codes, NFC tags, or email. Meet customers where they are and make leaving reviews effortless."
+        },
+        {
+          "icon": "Lightbulb",
+          "title": "Test Different Page Types",
+          "description": "Experiment with different page types (service, product, photo, video) to see what works best for your business and customer base."
+        },
+        {
+          "icon": "BarChart",
+          "title": "Track and Optimize Performance",
+          "description": "Monitor which prompt pages perform best and use those insights to optimize your approach. Focus on what drives the most authentic reviews."
+        }
+      ]
+    }
+  }
+}

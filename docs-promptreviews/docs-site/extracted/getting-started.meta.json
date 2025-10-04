@@ -1,0 +1,190 @@
+{
+  "description": "Welcome to Prompt Reviews! This comprehensive guide will help you set up your account and start collecting customer reviews in under 30 minutes.",
+  "keywords": [],
+  "canonical_url": "https://docs.promptreviews.app/getting-started",
+  "category": "getting-started",
+  "tags": [],
+  "category_label": "Quick Start Guide",
+  "category_icon": "CheckCircle",
+  "category_color": "green",
+  "available_plans": [
+    "grower",
+    "builder",
+    "maven"
+  ],
+  "key_features": [
+    {
+      "icon": "CheckCircle",
+      "title": "Quick Setup Process",
+      "description": "Get your account set up and collecting reviews in under 30 minutes with our streamlined onboarding process."
+    },
+    {
+      "icon": "Settings",
+      "title": "Business Profile Configuration",
+      "description": "Complete your business information to unlock all features and personalize your review requests."
+    },
+    {
+      "icon": "MessageCircle",
+      "title": "First Prompt Page Creation",
+      "description": "Create your first personalized review request page with AI-powered content generation."
+    },
+    {
+      "icon": "Users",
+      "title": "Contact Management Setup",
+      "description": "Import your existing customer database or manually add contacts to start requesting reviews."
+    },
+    {
+      "icon": "Star",
+      "title": "Review Collection Launch",
+      "description": "Send your first review requests and start collecting authentic customer feedback immediately."
+    },
+    {
+      "icon": "Globe",
+      "title": "Website Integration",
+      "description": "Embed review widgets on your website to showcase positive reviews and build trust."
+    }
+  ],
+  "how_it_works": [
+    {
+      "icon": "Settings",
+      "title": "Create Your Account",
+      "description": "Sign up for Prompt Reviews and complete your business profile information including name, address, and contact details.",
+      "number": 1
+    },
+    {
+      "icon": "Target",
+      "title": "Choose Your Plan",
+      "description": "Select the subscription plan that best fits your business needs and review collection goals.",
+      "number": 2
+    },
+    {
+      "icon": "MessageCircle",
+      "title": "Build Your First Prompt Page",
+      "description": "Create a personalized review request page using our AI-powered content generation tools.",
+      "number": 3
+    },
+    {
+      "icon": "Users",
+      "title": "Add Contacts & Start Collecting",
+      "description": "Import your customers and send your first review requests via email, SMS, or QR codes.",
+      "number": 4
+    }
+  ],
+  "best_practices": [
+    {
+      "icon": "Clock",
+      "title": "Start with Recent Customers",
+      "description": "Focus on customers who recently had positive experiences. They're more likely to leave glowing reviews and remember details clearly."
+    },
+    {
+      "icon": "Sparkles",
+      "title": "Use AI Content Generation",
+      "description": "Take advantage of AI-powered content creation to personalize your review requests and improve response rates."
+    },
+    {
+      "icon": "Target",
+      "title": "Test Different Approaches",
+      "description": "Try various prompt page types and messaging strategies to see what works best for your business and customers."
+    },
+    {
+      "icon": "Zap",
+      "title": "Keep It Simple",
+      "description": "Make the review process as easy as possible. The fewer clicks and steps required, the more reviews you'll collect."
+    }
+  ],
+  "_original": {
+    "metadata": {},
+    "layoutProps": {
+      "page_title": "Getting started with Prompt Reviews",
+      "page_description": "Welcome to Prompt Reviews! This comprehensive guide will help you set up your account and start collecting customer reviews in under 30 minutes.",
+      "category_label": "Quick Start Guide",
+      "category_icon": "CheckCircle",
+      "category_color": "green",
+      "available_plans": [
+        "grower",
+        "builder",
+        "maven"
+      ],
+      "key_features": [
+        {
+          "icon": "CheckCircle",
+          "title": "Quick Setup Process",
+          "description": "Get your account set up and collecting reviews in under 30 minutes with our streamlined onboarding process."
+        },
+        {
+          "icon": "Settings",
+          "title": "Business Profile Configuration",
+          "description": "Complete your business information to unlock all features and personalize your review requests."
+        },
+        {
+          "icon": "MessageCircle",
+          "title": "First Prompt Page Creation",
+          "description": "Create your first personalized review request page with AI-powered content generation."
+        },
+        {
+          "icon": "Users",
+          "title": "Contact Management Setup",
+          "description": "Import your existing customer database or manually add contacts to start requesting reviews."
+        },
+        {
+          "icon": "Star",
+          "title": "Review Collection Launch",
+          "description": "Send your first review requests and start collecting authentic customer feedback immediately."
+        },
+        {
+          "icon": "Globe",
+          "title": "Website Integration",
+          "description": "Embed review widgets on your website to showcase positive reviews and build trust."
+        }
+      ],
+      "how_it_works": [
+        {
+          "icon": "Settings",
+          "title": "Create Your Account",
+          "description": "Sign up for Prompt Reviews and complete your business profile information including name, address, and contact details.",
+          "number": 1
+        },
+        {
+          "icon": "Target",
+          "title": "Choose Your Plan",
+          "description": "Select the subscription plan that best fits your business needs and review collection goals.",
+          "number": 2
+        },
+        {
+          "icon": "MessageCircle",
+          "title": "Build Your First Prompt Page",
+          "description": "Create a personalized review request page using our AI-powered content generation tools.",
+          "number": 3
+        },
+        {
+          "icon": "Users",
+          "title": "Add Contacts & Start Collecting",
+          "description": "Import your customers and send your first review requests via email, SMS, or QR codes.",
+          "number": 4
+        }
+      ],
+      "best_practices": [
+        {
+          "icon": "Clock",
+          "title": "Start with Recent Customers",
+          "description": "Focus on customers who recently had positive experiences. They're more likely to leave glowing reviews and remember details clearly."
+        },
+        {
+          "icon": "Sparkles",
+          "title": "Use AI Content Generation",
+          "description": "Take advantage of AI-powered content creation to personalize your review requests and improve response rates."
+        },
+        {
+          "icon": "Target",
+          "title": "Test Different Approaches",
+          "description": "Try various prompt page types and messaging strategies to see what works best for your business and customers."
+        },
+        {
+          "icon": "Zap",
+          "title": "Keep It Simple",
+          "description": "Make the review process as easy as possible. The fewer clicks and steps required, the more reviews you'll collect."
+        }
+      ]
+    }
+  }
+}

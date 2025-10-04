@@ -1,0 +1,26 @@
+{
+  "description": "Learn how to create your first personalized review request page with AI-powered content generation in Prompt Reviews.",
+  "keywords": [],
+  "canonical_url": "https://docs.promptreviews.app/getting-started/first-prompt-page",
+  "category": "getting-started",
+  "tags": [],
+  "category_label": "",
+  "category_icon": "",
+  "category_color": "blue",
+  "available_plans": [
+    "grower",
+    "builder",
+    "maven",
+    "enterprise"
+  ],
+  "key_features": [],
+  "how_it_works": [],
+  "best_practices": [],
+  "_original": {
+    "metadata": {
+      "title": "Create Your First Prompt Page | Prompt Reviews",
+      "description": "Learn how to create your first personalized review request page with AI-powered content generation in Prompt Reviews."
+    },
+    "layoutProps": {}
+  }
+}

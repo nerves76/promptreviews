@@ -1316,19 +1316,28 @@ function PromptPagesContent() {
       <WelcomePopup
         isOpen={showWelcomePopup}
         onClose={handleWelcomeClose}
-        title="A few notes about Prompt Pages"
-        message={`A few things to go over:
+        title="Prompt Pages and You!"
+        message={`Prompt Pages are brand-able and customizable review collection pages. You can enable a variety of features to make it easy for your customers to provide valuable reviews, testimonials, and feedback.
 
-Use [icon] Settings to set global preferences and AI DOs and Don'ts (Very important if you want your reviews to sound authentic and mention what you want them to mention. Hint: The more details you add the better your AI reviews will turn out.
+When a customer writes a review and clicks "Copy & submit" a few important things happen:
 
-**Universal Prompt Page**
-The Universal Prompt Page is for general use and is great if you are prompting many for reviews. This works great for adding a QR code to your front desk or to an email newsletter, etc.
+1. The review is saved to your Prompt Reviews account.
+2. The review is copied to the users clipboard
+3. The user is redirected to the review site.
+4. Your customer can then paste and submit their review.
 
 **Prompt Page Types**
-There are various Prompt Page Types for collecting different kinds of reviews. These Prompt Pages allow you to collect reviews for events, products, services, etc. You can even set up Prompt Pages for your employees so they can collect reviews about their performance.`}
+
+There are different kinds of Prompt Pages for different use cases. If this is your first Prompt Reviews rodeo, we recommend checking out the full Prompt Page tutorial in the Help menu.
+
+**Prompt Page Settings**
+
+These are global settings for all of your Prompt Pages. If you are using AI, you will want to fill out AI Dos and Don'ts as thoroughly as possible.
+
+Also, the help bubble in the bottom-right of your screen is always there for you when you get stuck!`}
         imageUrl="https://ltneloufqjktdplodvao.supabase.co/storage/v1/object/public/logos/prompt-assets/prompty-teaching-about-your-business.png"
         imageAlt="Prompty teaching about Prompt Pages"
-        buttonText="Got it!"
+        buttonText="Let's get some reviews!"
       />
 
     </div>
