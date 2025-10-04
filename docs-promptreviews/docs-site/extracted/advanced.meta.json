@@ -1,0 +1,187 @@
+{
+  "description": "Take your review management to the next level with analytics, automation, API access, and custom integrations.",
+  "keywords": [],
+  "canonical_url": "https://docs.promptreviews.app/advanced",
+  "category": "advanced",
+  "tags": [],
+  "category_label": "Advanced Features",
+  "category_icon": "",
+  "category_color": "pink",
+  "available_plans": [
+    "builder",
+    "maven"
+  ],
+  "key_features": [
+    {
+      "icon": "BarChart",
+      "title": "Advanced Analytics Dashboard",
+      "description": "Deep insights into review performance, customer sentiment, response rates, and platform distribution with exportable reports."
+    },
+    {
+      "icon": "Clock",
+      "title": "Automated Campaigns",
+      "description": "Set up scheduled review request campaigns based on triggers like service completion or time intervals."
+    },
+    {
+      "icon": "Code",
+      "title": "REST API Access",
+      "description": "Full API access for custom integrations with your existing tools and workflows, including prompt page management."
+    },
+    {
+      "icon": "Webhook",
+      "title": "Real-Time Webhooks",
+      "description": "Get instant notifications when important events occur - new reviews, responses, contacts added, and campaigns completed."
+    },
+    {
+      "icon": "Brain",
+      "title": "AI-Powered Optimization",
+      "description": "Let AI analyze your data to optimize request timing, messaging, and customer targeting for maximum response rates."
+    },
+    {
+      "icon": "Globe",
+      "title": "White Label & Custom Domains",
+      "description": "Use your own domain for prompt pages and widgets, plus remove Prompt Reviews branding on premium plans."
+    }
+  ],
+  "how_it_works": [
+    {
+      "icon": "Settings",
+      "title": "Access Advanced Tools",
+      "description": "Upgrade to Builder or Maven plans to unlock analytics, automation, and API access.",
+      "number": 1
+    },
+    {
+      "icon": "Zap",
+      "title": "Set Up Automation",
+      "description": "Create automated workflows and campaigns based on customer behavior and business triggers.",
+      "number": 2
+    },
+    {
+      "icon": "Database",
+      "title": "Integrate Your Systems",
+      "description": "Use our REST API and webhooks to connect Prompt Reviews with your existing business tools.",
+      "number": 3
+    },
+    {
+      "icon": "TrendingUp",
+      "title": "Analyze and Optimize",
+      "description": "Use advanced analytics to understand performance and let AI optimize your review collection strategy.",
+      "number": 4
+    }
+  ],
+  "best_practices": [
+    {
+      "icon": "Target",
+      "title": "Start with Analytics",
+      "description": "Before automating, understand your current performance. Use analytics to identify which prompt pages and strategies work best for your business."
+    },
+    {
+      "icon": "Zap",
+      "title": "Automate Gradually",
+      "description": "Begin with simple automation like scheduled follow-ups, then expand to complex workflows as you learn what works for your customers."
+    },
+    {
+      "icon": "CheckCircle",
+      "title": "Monitor API Usage",
+      "description": "Keep track of your API rate limits and webhook reliability. Set up proper error handling and monitoring for production integrations."
+    },
+    {
+      "icon": "Globe",
+      "title": "Leverage White Labeling",
+      "description": "For agencies and enterprise users, white labeling creates a seamless brand experience that builds trust with your customers."
+    }
+  ],
+  "_original": {
+    "metadata": {},
+    "layoutProps": {
+      "page_title": "Advanced features & analytics",
+      "page_description": "Take your review management to the next level with analytics, automation, API access, and custom integrations.",
+      "category_label": "Advanced Features",
+      "category_color": "pink",
+      "available_plans": [
+        "builder",
+        "maven"
+      ],
+      "key_features": [
+        {
+          "icon": "BarChart",
+          "title": "Advanced Analytics Dashboard",
+          "description": "Deep insights into review performance, customer sentiment, response rates, and platform distribution with exportable reports."
+        },
+        {
+          "icon": "Clock",
+          "title": "Automated Campaigns",
+          "description": "Set up scheduled review request campaigns based on triggers like service completion or time intervals."
+        },
+        {
+          "icon": "Code",
+          "title": "REST API Access",
+          "description": "Full API access for custom integrations with your existing tools and workflows, including prompt page management."
+        },
+        {
+          "icon": "Webhook",
+          "title": "Real-Time Webhooks",
+          "description": "Get instant notifications when important events occur - new reviews, responses, contacts added, and campaigns completed."
+        },
+        {
+          "icon": "Brain",
+          "title": "AI-Powered Optimization",
+          "description": "Let AI analyze your data to optimize request timing, messaging, and customer targeting for maximum response rates."
+        },
+        {
+          "icon": "Globe",
+          "title": "White Label & Custom Domains",
+          "description": "Use your own domain for prompt pages and widgets, plus remove Prompt Reviews branding on premium plans."
+        }
+      ],
+      "how_it_works": [
+        {
+          "icon": "Settings",
+          "title": "Access Advanced Tools",
+          "description": "Upgrade to Builder or Maven plans to unlock analytics, automation, and API access.",
+          "number": 1
+        },
+        {
+          "icon": "Zap",
+          "title": "Set Up Automation",
+          "description": "Create automated workflows and campaigns based on customer behavior and business triggers.",
+          "number": 2
+        },
+        {
+          "icon": "Database",
+          "title": "Integrate Your Systems",
+          "description": "Use our REST API and webhooks to connect Prompt Reviews with your existing business tools.",
+          "number": 3
+        },
+        {
+          "icon": "TrendingUp",
+          "title": "Analyze and Optimize",
+          "description": "Use advanced analytics to understand performance and let AI optimize your review collection strategy.",
+          "number": 4
+        }
+      ],
+      "best_practices": [
+        {
+          "icon": "Target",
+          "title": "Start with Analytics",
+          "description": "Before automating, understand your current performance. Use analytics to identify which prompt pages and strategies work best for your business."
+        },
+        {
+          "icon": "Zap",
+          "title": "Automate Gradually",
+          "description": "Begin with simple automation like scheduled follow-ups, then expand to complex workflows as you learn what works for your customers."
+        },
+        {
+          "icon": "CheckCircle",
+          "title": "Monitor API Usage",
+          "description": "Keep track of your API rate limits and webhook reliability. Set up proper error handling and monitoring for production integrations."
+        },
+        {
+          "icon": "Globe",
+          "title": "Leverage White Labeling",
+          "description": "For agencies and enterprise users, white labeling creates a seamless brand experience that builds trust with your customers."
+        }
+      ]
+    }
+  }
+}

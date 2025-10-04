@@ -1,0 +1,26 @@
+{
+  "description": "Connect Prompt Reviews with Google Business Profile and other platforms to streamline your review management workflow.",
+  "keywords": [],
+  "canonical_url": "https://docs.promptreviews.app/integrations",
+  "category": "integrations",
+  "tags": [],
+  "category_label": "",
+  "category_icon": "",
+  "category_color": "blue",
+  "available_plans": [
+    "grower",
+    "builder",
+    "maven",
+    "enterprise"
+  ],
+  "key_features": [],
+  "how_it_works": [],
+  "best_practices": [],
+  "_original": {
+    "metadata": {
+      "title": "Integrations Overview | Prompt Reviews",
+      "description": "Connect Prompt Reviews with Google Business Profile and other platforms to streamline your review management workflow."
+    },
+    "layoutProps": {}
+  }
+}

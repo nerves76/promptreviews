@@ -1,0 +1,26 @@
+{
+  "description": "Learn how to create Video prompt pages for collecting powerful video testimonials and reviews from customers.",
+  "keywords": [],
+  "canonical_url": "https://docs.promptreviews.app/prompt-pages/types/video",
+  "category": "prompt-pages",
+  "tags": [],
+  "category_label": "",
+  "category_icon": "",
+  "category_color": "blue",
+  "available_plans": [
+    "grower",
+    "builder",
+    "maven",
+    "enterprise"
+  ],
+  "key_features": [],
+  "how_it_works": [],
+  "best_practices": [],
+  "_original": {
+    "metadata": {
+      "title": "Video Prompt Pages - Video Testimonials Guide | Prompt Reviews",
+      "description": "Learn how to create Video prompt pages for collecting powerful video testimonials and reviews from customers."
+    },
+    "layoutProps": {}
+  }
+}

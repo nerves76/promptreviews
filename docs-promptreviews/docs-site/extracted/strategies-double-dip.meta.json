@@ -1,0 +1,23 @@
+{
+  "description": "",
+  "keywords": [],
+  "canonical_url": "https://docs.promptreviews.app/strategies/double-dip",
+  "category": "strategies",
+  "tags": [],
+  "category_label": "",
+  "category_icon": "",
+  "category_color": "blue",
+  "available_plans": [
+    "grower",
+    "builder",
+    "maven",
+    "enterprise"
+  ],
+  "key_features": [],
+  "how_it_works": [],
+  "best_practices": [],
+  "_original": {
+    "metadata": {},
+    "layoutProps": {}
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "slug": "billing",
+  "extraction_date": "2025-10-04T05:04:34.089Z",
+  "stats": {
+    "markdown_length": 2098,
+    "metadata_fields": 13,
+    "key_features_count": 4,
+    "how_it_works_count": 3,
+    "best_practices_count": 4
+  },
+  "extracted": {
+    "title": "Billing & Plans Management | Prompt Reviews",
+    "has_description": true,
+    "has_keywords": false,
+    "has_features": true,
+    "has_workflow": true,
+    "has_best_practices": true
+  },
+  "warnings": []
+}

@@ -1,0 +1,26 @@
+{
+  "description": "Learn how to import your customer database or manually add contacts to start sending personalized review requests.",
+  "keywords": [],
+  "canonical_url": "https://docs.promptreviews.app/getting-started/adding-contacts",
+  "category": "getting-started",
+  "tags": [],
+  "category_label": "",
+  "category_icon": "",
+  "category_color": "blue",
+  "available_plans": [
+    "grower",
+    "builder",
+    "maven",
+    "enterprise"
+  ],
+  "key_features": [],
+  "how_it_works": [],
+  "best_practices": [],
+  "_original": {
+    "metadata": {
+      "title": "Add Your First Contacts | Prompt Reviews",
+      "description": "Learn how to import your customer database or manually add contacts to start sending personalized review requests."
+    },
+    "layoutProps": {}
+  }
+}

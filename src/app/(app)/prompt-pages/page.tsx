@@ -25,6 +25,7 @@ import { BusinessLocation, LocationWithPromptPage } from "@/types/business";
 import { hasLocationAccess, formatLocationAddress, getLocationDisplayName } from "@/utils/locationUtils";
 import CommunicationButtons from "@/app/(app)/components/communication/CommunicationButtons";
 import WelcomePopup from "@/app/(app)/components/WelcomePopup";
+import HelpModal from "@/app/(app)/components/help/HelpModal";
 
 import EmojiEmbedButton from "@/app/(app)/components/EmojiEmbedButton";
 // Page-level loading uses global overlay
@@ -96,6 +97,8 @@ function PromptPagesContent() {
   const [showBusinessRequiredModal, setShowBusinessRequiredModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [showWelcomePopup, setShowWelcomePopup] = useState(false);
+  const [showHelpModal, setShowHelpModal] = useState(false);
+  const [helpArticleId, setHelpArticleId] = useState<string | undefined>(undefined);
 
   // Check if user has access to individual prompt pages (exclude grower plan)
   const hasIndividualAccess = (plan?: string): boolean => {
@@ -108,6 +111,18 @@ function PromptPagesContent() {
     setShowWelcomePopup(false);
     if (typeof window !== 'undefined') {
       localStorage.setItem('hasSeenPromptPagesWelcome', 'true');
+    }
+  };
+
+  // Handler for link clicks in welcome popup
+  const handleWelcomeLinkClick = (action: string, param?: string) => {
+    if (action === 'help') {
+      setShowWelcomePopup(false);
+      setHelpArticleId(param);
+      setShowHelpModal(true);
+    } else if (action === 'settings') {
+      setShowWelcomePopup(false);
+      setShowSettingsModal(true);
     }
   };
 
@@ -1316,7 +1331,8 @@ function PromptPagesContent() {
       <WelcomePopup
         isOpen={showWelcomePopup}
         onClose={handleWelcomeClose}
-        title="Prompt Pages and You!"
+        onLinkClick={handleWelcomeLinkClick}
+        title="Prompt Pages and YOU!"
         message={`Prompt Pages are brand-able and customizable review collection pages. You can enable a variety of features to make it easy for your customers to provide valuable reviews, testimonials, and feedback.
 
 When a customer writes a review and clicks "Copy & submit" a few important things happen:
@@ -1328,9 +1344,9 @@ When a customer writes a review and clicks "Copy & submit" a few important thing
 
 **Prompt Page Types**
 
-There are different kinds of Prompt Pages for different use cases. If this is your first Prompt Reviews rodeo, we recommend checking out the full Prompt Page tutorial in the Help menu.
+There are different kinds of Prompt Pages for different use cases. If this is your first Prompt Reviews rodeo, we recommend [checking out the full Prompt Page tutorial|help:prompt-overview].
 
-**Prompt Page Settings**
+**[Prompt Page Settings|settings]**
 
 These are global settings for all of your Prompt Pages. If you are using AI, you will want to fill out AI Dos and Don'ts as thoroughly as possible.
 
@@ -1338,6 +1354,16 @@ Also, the help bubble in the bottom-right of your screen is always there for you
         imageUrl="https://ltneloufqjktdplodvao.supabase.co/storage/v1/object/public/logos/prompt-assets/prompty-teaching-about-your-business.png"
         imageAlt="Prompty teaching about Prompt Pages"
         buttonText="Let's get some reviews!"
+      />
+
+      {/* Help Modal */}
+      <HelpModal
+        isOpen={showHelpModal}
+        onClose={() => {
+          setShowHelpModal(false);
+          setHelpArticleId(undefined);
+        }}
+        initialArticleId={helpArticleId}
       />
 
     </div>

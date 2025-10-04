@@ -1,0 +1,190 @@
+{
+  "description": "Our AI-powered system helps you create personalized, human-sounding review requests that actually work—without losing the personal touch that makes your business special.",
+  "keywords": [],
+  "canonical_url": "https://docs.promptreviews.app/ai-reviews",
+  "category": "ai-reviews",
+  "tags": [],
+  "category_label": "AI Features",
+  "category_icon": "Sparkles",
+  "category_color": "purple",
+  "available_plans": [
+    "grower",
+    "builder",
+    "maven"
+  ],
+  "key_features": [
+    {
+      "icon": "Brain",
+      "title": "Smart Personalization",
+      "description": "AI analyzes your business, customers, and context to create review requests that feel genuinely personal and human."
+    },
+    {
+      "icon": "Target",
+      "title": "Context-Aware Content",
+      "description": "Creates different messages for different situations - service completion, product purchase, or event attendance."
+    },
+    {
+      "icon": "Wand",
+      "title": "Review Writing Assistance",
+      "description": "Helps customers express their thoughts better with AI-powered suggestions while keeping reviews authentic."
+    },
+    {
+      "icon": "TrendingUp",
+      "title": "Performance Optimization",
+      "description": "Learns from your results and continuously improves your review request strategies over time."
+    },
+    {
+      "icon": "Shield",
+      "title": "Ethical AI Approach",
+      "description": "Designed to enhance human connection, not replace it. Helps you be more personal while staying authentic."
+    },
+    {
+      "icon": "Edit",
+      "title": "Grammar & Style Enhancement",
+      "description": "AI can polish grammar and improve clarity while preserving the customer's authentic voice and message."
+    }
+  ],
+  "how_it_works": [
+    {
+      "icon": "Users",
+      "title": "Understand Your Business",
+      "description": "AI learns about your business type, services, customer base, and review goals to provide relevant suggestions.",
+      "number": 1
+    },
+    {
+      "icon": "Target",
+      "title": "Analyze Customer Context",
+      "description": "Considers the customer's experience, relationship with your business, and what they're most likely to review.",
+      "number": 2
+    },
+    {
+      "icon": "MessageSquare",
+      "title": "Generate Personalized Content",
+      "description": "Creates review requests that feel personal, relevant, and authentic to each customer situation.",
+      "number": 3
+    },
+    {
+      "icon": "TrendingUp",
+      "title": "Learn and Improve",
+      "description": "Tracks performance and adjusts strategies to continuously improve your review collection success rates.",
+      "number": 4
+    }
+  ],
+  "best_practices": [
+    {
+      "icon": "Heart",
+      "title": "Keep It Personal",
+      "description": "Use AI to enhance your personal touch, not replace it. Always review and customize AI suggestions to match your voice."
+    },
+    {
+      "icon": "Clock",
+      "title": "Perfect Your Timing",
+      "description": "Send review requests when the experience is fresh but not overwhelming. AI helps identify optimal timing windows."
+    },
+    {
+      "icon": "Star",
+      "title": "Focus on Quality",
+      "description": "Target customers who had positive experiences. AI works best with satisfied customers who are likely to leave good reviews."
+    },
+    {
+      "icon": "Zap",
+      "title": "Test and Learn",
+      "description": "Experiment with different AI-generated approaches and let the system learn what works best for your specific business."
+    }
+  ],
+  "_original": {
+    "metadata": {},
+    "layoutProps": {
+      "page_title": "AI-powered review collection",
+      "page_description": "Our AI-powered system helps you create personalized, human-sounding review requests that actually work—without losing the personal touch that makes your business special.",
+      "category_label": "AI Features",
+      "category_icon": "Sparkles",
+      "category_color": "purple",
+      "available_plans": [
+        "grower",
+        "builder",
+        "maven"
+      ],
+      "key_features": [
+        {
+          "icon": "Brain",
+          "title": "Smart Personalization",
+          "description": "AI analyzes your business, customers, and context to create review requests that feel genuinely personal and human."
+        },
+        {
+          "icon": "Target",
+          "title": "Context-Aware Content",
+          "description": "Creates different messages for different situations - service completion, product purchase, or event attendance."
+        },
+        {
+          "icon": "Wand",
+          "title": "Review Writing Assistance",
+          "description": "Helps customers express their thoughts better with AI-powered suggestions while keeping reviews authentic."
+        },
+        {
+          "icon": "TrendingUp",
+          "title": "Performance Optimization",
+          "description": "Learns from your results and continuously improves your review request strategies over time."
+        },
+        {
+          "icon": "Shield",
+          "title": "Ethical AI Approach",
+          "description": "Designed to enhance human connection, not replace it. Helps you be more personal while staying authentic."
+        },
+        {
+          "icon": "Edit",
+          "title": "Grammar & Style Enhancement",
+          "description": "AI can polish grammar and improve clarity while preserving the customer's authentic voice and message."
+        }
+      ],
+      "how_it_works": [
+        {
+          "icon": "Users",
+          "title": "Understand Your Business",
+          "description": "AI learns about your business type, services, customer base, and review goals to provide relevant suggestions.",
+          "number": 1
+        },
+        {
+          "icon": "Target",
+          "title": "Analyze Customer Context",
+          "description": "Considers the customer's experience, relationship with your business, and what they're most likely to review.",
+          "number": 2
+        },
+        {
+          "icon": "MessageSquare",
+          "title": "Generate Personalized Content",
+          "description": "Creates review requests that feel personal, relevant, and authentic to each customer situation.",
+          "number": 3
+        },
+        {
+          "icon": "TrendingUp",
+          "title": "Learn and Improve",
+          "description": "Tracks performance and adjusts strategies to continuously improve your review collection success rates.",
+          "number": 4
+        }
+      ],
+      "best_practices": [
+        {
+          "icon": "Heart",
+          "title": "Keep It Personal",
+          "description": "Use AI to enhance your personal touch, not replace it. Always review and customize AI suggestions to match your voice."
+        },
+        {
+          "icon": "Clock",
+          "title": "Perfect Your Timing",
+          "description": "Send review requests when the experience is fresh but not overwhelming. AI helps identify optimal timing windows."
+        },
+        {
+          "icon": "Star",
+          "title": "Focus on Quality",
+          "description": "Target customers who had positive experiences. AI works best with satisfied customers who are likely to leave good reviews."
+        },
+        {
+          "icon": "Zap",
+          "title": "Test and Learn",
+          "description": "Experiment with different AI-generated approaches and let the system learn what works best for your specific business."
+        }
+      ]
+    }
+  }
+}

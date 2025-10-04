@@ -1,0 +1,20 @@
+{
+  "slug": "integrations",
+  "extraction_date": "2025-10-04T05:04:34.098Z",
+  "stats": {
+    "markdown_length": 270,
+    "metadata_fields": 13,
+    "key_features_count": 0,
+    "how_it_works_count": 0,
+    "best_practices_count": 0
+  },
+  "extracted": {
+    "title": "Integrations Overview | Prompt Reviews",
+    "has_description": true,
+    "has_keywords": false,
+    "has_features": false,
+    "has_workflow": false,
+    "has_best_practices": false
+  },
+  "warnings": []
+}

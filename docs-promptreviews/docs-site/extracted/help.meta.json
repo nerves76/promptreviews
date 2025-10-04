@@ -1,0 +1,26 @@
+{
+  "description": "Find help with getting started, troubleshooting issues, learning strategies, and mastering advanced features in Prompt Reviews.",
+  "keywords": [],
+  "canonical_url": "https://docs.promptreviews.app/help",
+  "category": "help",
+  "tags": [],
+  "category_label": "",
+  "category_icon": "",
+  "category_color": "blue",
+  "available_plans": [
+    "grower",
+    "builder",
+    "maven",
+    "enterprise"
+  ],
+  "key_features": [],
+  "how_it_works": [],
+  "best_practices": [],
+  "_original": {
+    "metadata": {
+      "title": "Help & Support Overview | Prompt Reviews",
+      "description": "Find help with getting started, troubleshooting issues, learning strategies, and mastering advanced features in Prompt Reviews."
+    },
+    "layoutProps": {}
+  }
+}

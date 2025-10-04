@@ -1,0 +1,190 @@
+{
+  "description": "Running into issues? Don't worry—most problems have simple solutions. Find quick fixes for common issues and get back to collecting great reviews.",
+  "keywords": [],
+  "canonical_url": "https://docs.promptreviews.app/troubleshooting",
+  "category": "troubleshooting",
+  "tags": [],
+  "category_label": "Need Help?",
+  "category_icon": "AlertTriangle",
+  "category_color": "orange",
+  "available_plans": [
+    "grower",
+    "builder",
+    "maven"
+  ],
+  "key_features": [
+    {
+      "icon": "Search",
+      "title": "Quick Issue Search",
+      "description": "Find solutions to your specific problems with our searchable troubleshooting guide."
+    },
+    {
+      "icon": "RefreshCw",
+      "title": "Step-by-Step Fixes",
+      "description": "Clear, actionable solutions for the most common issues and technical problems."
+    },
+    {
+      "icon": "Mail",
+      "title": "Email Delivery Help",
+      "description": "Resolve email delivery issues and improve your review request success rates."
+    },
+    {
+      "icon": "QrCode",
+      "title": "QR Code Troubleshooting",
+      "description": "Fix QR code scanning issues and ensure customers can easily access your prompt pages."
+    },
+    {
+      "icon": "Database",
+      "title": "Contact Import Solutions",
+      "description": "Resolve common problems when importing your customer database or contact lists."
+    },
+    {
+      "icon": "Settings",
+      "title": "Account & Setup Support",
+      "description": "Get help with login issues, profile updates, and account configuration problems."
+    }
+  ],
+  "how_it_works": [
+    {
+      "icon": "Search",
+      "title": "Identify Your Issue",
+      "description": "Use our search function or browse categories to find the specific problem you're experiencing.",
+      "number": 1
+    },
+    {
+      "icon": "RefreshCw",
+      "title": "Try Quick Fixes",
+      "description": "Start with our most common solutions like refreshing your browser or checking settings.",
+      "number": 2
+    },
+    {
+      "icon": "CheckCircle",
+      "title": "Follow Step-by-Step Solutions",
+      "description": "Work through our detailed troubleshooting steps specific to your issue category.",
+      "number": 3
+    },
+    {
+      "icon": "Mail",
+      "title": "Contact Support if Needed",
+      "description": "If the issue persists, contact our support team with the steps you've already tried.",
+      "number": 4
+    }
+  ],
+  "best_practices": [
+    {
+      "icon": "Users",
+      "title": "Start with Happy Customers",
+      "description": "Focus on customers who had positive experiences. They're more likely to leave glowing reviews and help troubleshoot issues."
+    },
+    {
+      "icon": "Clock",
+      "title": "Perfect Your Timing",
+      "description": "Send review requests when the experience is fresh but not overwhelming - typically 1-3 days after service completion."
+    },
+    {
+      "icon": "MessageSquare",
+      "title": "Personalize Every Request",
+      "description": "Use specific details about each customer's experience in your review requests to improve response rates."
+    },
+    {
+      "icon": "Shield",
+      "title": "Keep Your Data Clean",
+      "description": "Regularly update contact information and remove invalid email addresses to maintain high deliverability rates."
+    }
+  ],
+  "_original": {
+    "metadata": {},
+    "layoutProps": {
+      "page_title": "Troubleshooting guide",
+      "page_description": "Running into issues? Don't worry—most problems have simple solutions. Find quick fixes for common issues and get back to collecting great reviews.",
+      "category_label": "Need Help?",
+      "category_icon": "AlertTriangle",
+      "category_color": "orange",
+      "available_plans": [
+        "grower",
+        "builder",
+        "maven"
+      ],
+      "key_features": [
+        {
+          "icon": "Search",
+          "title": "Quick Issue Search",
+          "description": "Find solutions to your specific problems with our searchable troubleshooting guide."
+        },
+        {
+          "icon": "RefreshCw",
+          "title": "Step-by-Step Fixes",
+          "description": "Clear, actionable solutions for the most common issues and technical problems."
+        },
+        {
+          "icon": "Mail",
+          "title": "Email Delivery Help",
+          "description": "Resolve email delivery issues and improve your review request success rates."
+        },
+        {
+          "icon": "QrCode",
+          "title": "QR Code Troubleshooting",
+          "description": "Fix QR code scanning issues and ensure customers can easily access your prompt pages."
+        },
+        {
+          "icon": "Database",
+          "title": "Contact Import Solutions",
+          "description": "Resolve common problems when importing your customer database or contact lists."
+        },
+        {
+          "icon": "Settings",
+          "title": "Account & Setup Support",
+          "description": "Get help with login issues, profile updates, and account configuration problems."
+        }
+      ],
+      "how_it_works": [
+        {
+          "icon": "Search",
+          "title": "Identify Your Issue",
+          "description": "Use our search function or browse categories to find the specific problem you're experiencing.",
+          "number": 1
+        },
+        {
+          "icon": "RefreshCw",
+          "title": "Try Quick Fixes",
+          "description": "Start with our most common solutions like refreshing your browser or checking settings.",
+          "number": 2
+        },
+        {
+          "icon": "CheckCircle",
+          "title": "Follow Step-by-Step Solutions",
+          "description": "Work through our detailed troubleshooting steps specific to your issue category.",
+          "number": 3
+        },
+        {
+          "icon": "Mail",
+          "title": "Contact Support if Needed",
+          "description": "If the issue persists, contact our support team with the steps you've already tried.",
+          "number": 4
+        }
+      ],
+      "best_practices": [
+        {
+          "icon": "Users",
+          "title": "Start with Happy Customers",
+          "description": "Focus on customers who had positive experiences. They're more likely to leave glowing reviews and help troubleshoot issues."
+        },
+        {
+          "icon": "Clock",
+          "title": "Perfect Your Timing",
+          "description": "Send review requests when the experience is fresh but not overwhelming - typically 1-3 days after service completion."
+        },
+        {
+          "icon": "MessageSquare",
+          "title": "Personalize Every Request",
+          "description": "Use specific details about each customer's experience in your review requests to improve response rates."
+        },
+        {
+          "icon": "Shield",
+          "title": "Keep Your Data Clean",
+          "description": "Regularly update contact information and remove invalid email addresses to maintain high deliverability rates."
+        }
+      ]
+    }
+  }
+}

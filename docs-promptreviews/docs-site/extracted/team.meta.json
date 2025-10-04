@@ -1,0 +1,156 @@
+{
+  "description": "Add team members, manage permissions, and control account settings. Collaborate effectively while maintaining security and control.",
+  "keywords": [],
+  "canonical_url": "https://docs.promptreviews.app/team",
+  "category": "team",
+  "tags": [],
+  "category_label": "Team & Account",
+  "category_icon": "Users",
+  "category_color": "orange",
+  "available_plans": [
+    "builder",
+    "maven"
+  ],
+  "key_features": [
+    {
+      "icon": "UserPlus",
+      "title": "Team Invitations",
+      "description": "Easily invite team members by email and manage their access to different parts of your account. Role-based permissions ensure everyone has appropriate access levels."
+    },
+    {
+      "icon": "Shield",
+      "title": "Permission Control",
+      "description": "Set different access levels for team members - from full Admin access to limited Member permissions. Maintain security while enabling collaboration."
+    },
+    {
+      "icon": "Eye",
+      "title": "Activity Monitoring",
+      "description": "Track what team members are doing with activity logs and audit trails. Know who made changes and when for complete transparency."
+    },
+    {
+      "icon": "Settings",
+      "title": "Account Settings",
+      "description": "Manage general account settings, security preferences, notification settings, and other account-wide configurations from a central location."
+    }
+  ],
+  "how_it_works": [
+    {
+      "icon": "UserPlus",
+      "title": "Send Team Invitation",
+      "description": "Enter the team member's email address and select their role (Admin or Member). They'll receive an invitation email to join your account.",
+      "number": 1
+    },
+    {
+      "icon": "UserCheck",
+      "title": "Team Member Accepts",
+      "description": "The invited team member creates their account or signs in with their existing Prompt Reviews account to accept the invitation.",
+      "number": 2
+    },
+    {
+      "icon": "CheckCircle",
+      "title": "Collaboration Begins",
+      "description": "Team members can immediately access your account based on their assigned permissions and start collaborating on review management tasks.",
+      "number": 3
+    }
+  ],
+  "best_practices": [
+    {
+      "icon": "Shield",
+      "title": "Use Role-Based Access",
+      "description": "Assign appropriate permission levels to maintain security while enabling effective collaboration. Not everyone needs full admin access."
+    },
+    {
+      "icon": "Eye",
+      "title": "Regular Access Reviews",
+      "description": "Periodically review team member access and remove inactive users. Keep your team list current and secure."
+    },
+    {
+      "icon": "Lock",
+      "title": "Enable Two-Factor Auth",
+      "description": "Require two-factor authentication for all team members, especially those with admin privileges, to enhance account security."
+    },
+    {
+      "icon": "Settings",
+      "title": "Document Processes",
+      "description": "Create clear guidelines for team responsibilities, review response procedures, and escalation processes for consistency."
+    }
+  ],
+  "_original": {
+    "metadata": {},
+    "layoutProps": {
+      "page_title": "Team management & account settings",
+      "page_description": "Add team members, manage permissions, and control account settings. Collaborate effectively while maintaining security and control.",
+      "category_label": "Team & Account",
+      "category_icon": "Users",
+      "category_color": "orange",
+      "available_plans": [
+        "builder",
+        "maven"
+      ],
+      "key_features": [
+        {
+          "icon": "UserPlus",
+          "title": "Team Invitations",
+          "description": "Easily invite team members by email and manage their access to different parts of your account. Role-based permissions ensure everyone has appropriate access levels."
+        },
+        {
+          "icon": "Shield",
+          "title": "Permission Control",
+          "description": "Set different access levels for team members - from full Admin access to limited Member permissions. Maintain security while enabling collaboration."
+        },
+        {
+          "icon": "Eye",
+          "title": "Activity Monitoring",
+          "description": "Track what team members are doing with activity logs and audit trails. Know who made changes and when for complete transparency."
+        },
+        {
+          "icon": "Settings",
+          "title": "Account Settings",
+          "description": "Manage general account settings, security preferences, notification settings, and other account-wide configurations from a central location."
+        }
+      ],
+      "how_it_works": [
+        {
+          "icon": "UserPlus",
+          "title": "Send Team Invitation",
+          "description": "Enter the team member's email address and select their role (Admin or Member). They'll receive an invitation email to join your account.",
+          "number": 1
+        },
+        {
+          "icon": "UserCheck",
+          "title": "Team Member Accepts",
+          "description": "The invited team member creates their account or signs in with their existing Prompt Reviews account to accept the invitation.",
+          "number": 2
+        },
+        {
+          "icon": "CheckCircle",
+          "title": "Collaboration Begins",
+          "description": "Team members can immediately access your account based on their assigned permissions and start collaborating on review management tasks.",
+          "number": 3
+        }
+      ],
+      "best_practices": [
+        {
+          "icon": "Shield",
+          "title": "Use Role-Based Access",
+          "description": "Assign appropriate permission levels to maintain security while enabling effective collaboration. Not everyone needs full admin access."
+        },
+        {
+          "icon": "Eye",
+          "title": "Regular Access Reviews",
+          "description": "Periodically review team member access and remove inactive users. Keep your team list current and secure."
+        },
+        {
+          "icon": "Lock",
+          "title": "Enable Two-Factor Auth",
+          "description": "Require two-factor authentication for all team members, especially those with admin privileges, to enhance account security."
+        },
+        {
+          "icon": "Settings",
+          "title": "Document Processes",
+          "description": "Create clear guidelines for team responsibilities, review response procedures, and escalation processes for consistency."
+        }
+      ]
+    }
+  }
+}

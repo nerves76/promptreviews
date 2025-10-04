@@ -1,0 +1,26 @@
+{
+  "description": "Learn how to create Employee prompt pages to spotlight individual team members and collect reviews about specific employees.",
+  "keywords": [],
+  "canonical_url": "https://docs.promptreviews.app/prompt-pages/types/employee",
+  "category": "prompt-pages",
+  "tags": [],
+  "category_label": "",
+  "category_icon": "",
+  "category_color": "blue",
+  "available_plans": [
+    "grower",
+    "builder",
+    "maven",
+    "enterprise"
+  ],
+  "key_features": [],
+  "how_it_works": [],
+  "best_practices": [],
+  "_original": {
+    "metadata": {
+      "title": "Employee Prompt Pages - Team Member Reviews | Prompt Reviews",
+      "description": "Learn how to create Employee prompt pages to spotlight individual team members and collect reviews about specific employees."
+    },
+    "layoutProps": {}
+  }
+}

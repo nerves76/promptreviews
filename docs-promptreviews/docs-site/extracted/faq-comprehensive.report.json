@@ -1,0 +1,22 @@
+{
+  "slug": "faq-comprehensive",
+  "extraction_date": "2025-10-04T05:04:34.092Z",
+  "stats": {
+    "markdown_length": 81,
+    "metadata_fields": 13,
+    "key_features_count": 0,
+    "how_it_works_count": 0,
+    "best_practices_count": 0
+  },
+  "extracted": {
+    "has_description": false,
+    "has_keywords": false,
+    "has_features": false,
+    "has_workflow": false,
+    "has_best_practices": false
+  },
+  "warnings": [
+    "No title found",
+    "No description found"
+  ]
+}

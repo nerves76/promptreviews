@@ -1,0 +1,26 @@
+{
+  "description": "Explore all prompt page features: Emoji Sentiment Flow, AI-powered content generation, QR codes, customization, analytics, and more.",
+  "keywords": [],
+  "canonical_url": "https://docs.promptreviews.app/prompt-pages/features",
+  "category": "prompt-pages",
+  "tags": [],
+  "category_label": "",
+  "category_icon": "",
+  "category_color": "blue",
+  "available_plans": [
+    "grower",
+    "builder",
+    "maven",
+    "enterprise"
+  ],
+  "key_features": [],
+  "how_it_works": [],
+  "best_practices": [],
+  "_original": {
+    "metadata": {
+      "title": "Prompt Page Features - Emoji Sentiment Flow, AI-Powered Content & More | Prompt Reviews",
+      "description": "Explore all prompt page features: Emoji Sentiment Flow, AI-powered content generation, QR codes, customization, analytics, and more."
+    },
+    "layoutProps": {}
+  }
+}

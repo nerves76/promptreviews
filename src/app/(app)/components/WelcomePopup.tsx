@@ -26,18 +26,20 @@ interface WelcomePopupProps {
   imageAlt?: string;
   buttonText?: string;
   onButtonClick?: () => void;
+  onLinkClick?: (action: string, param?: string) => void;
 }
 
-export default function WelcomePopup({ 
-  isOpen, 
-  onClose, 
-  title, 
-  message, 
+export default function WelcomePopup({
+  isOpen,
+  onClose,
+  title,
+  message,
   userName,
-  imageUrl, 
+  imageUrl,
   imageAlt = "Welcome image",
   buttonText = "Get Started",
-  onButtonClick 
+  onButtonClick,
+  onLinkClick
 }: WelcomePopupProps) {
   const [showTooltip, setShowTooltip] = useState(false);
   const tooltipRef = useRef<HTMLDivElement>(null);
@@ -112,16 +114,69 @@ Here's your first tip: [icon] <— click here`;
     
     // Helper function to parse markdown formatting in text
     const parseMarkdown = (text: string) => {
-      // Handle bold text **text**
-      const boldRegex = /\*\*(.*?)\*\*/g;
-      const parts = text.split(boldRegex);
-      
-      return parts.map((part, index) => {
-        // Every odd index is the bold text content
-        if (index % 2 === 1) {
-          return <strong key={index} className="font-semibold">{part}</strong>;
+      // Handle links [text|action:param] or [text|action]
+      const linkRegex = /\[([^\]]+)\|([^\]]+)\]/g;
+      const withLinks = [];
+      let lastIndex = 0;
+      let match;
+
+      while ((match = linkRegex.exec(text)) !== null) {
+        // Add text before the link
+        if (match.index > lastIndex) {
+          withLinks.push(text.substring(lastIndex, match.index));
         }
-        return part;
+
+        const linkText = match[1];
+        const actionStr = match[2];
+        const [action, param] = actionStr.includes(':') ? actionStr.split(':', 2) : [actionStr, undefined];
+
+        // Add the clickable link
+        withLinks.push(
+          <button
+            key={match.index}
+            onClick={() => onLinkClick?.(action, param)}
+            className="text-slate-blue underline hover:text-indigo-600 font-medium cursor-pointer"
+            type="button"
+          >
+            {linkText}
+          </button>
+        );
+
+        lastIndex = match.index + match[0].length;
+      }
+
+      // Add remaining text
+      if (lastIndex < text.length) {
+        withLinks.push(text.substring(lastIndex));
+      }
+
+      // If no links found, handle bold text **text**
+      if (withLinks.length === 0) {
+        const boldRegex = /\*\*(.*?)\*\*/g;
+        const parts = text.split(boldRegex);
+
+        return parts.map((part, index) => {
+          // Every odd index is the bold text content
+          if (index % 2 === 1) {
+            return <strong key={index} className="font-semibold">{part}</strong>;
+          }
+          return part;
+        });
+      }
+
+      // Process bold text in the link-processed content
+      return withLinks.map((item, idx) => {
+        if (typeof item === 'string') {
+          const boldRegex = /\*\*(.*?)\*\*/g;
+          const parts = item.split(boldRegex);
+          return parts.map((part, subIdx) => {
+            if (subIdx % 2 === 1) {
+              return <strong key={`${idx}-${subIdx}`} className="font-semibold">{part}</strong>;
+            }
+            return <React.Fragment key={`${idx}-${subIdx}`}>{part}</React.Fragment>;
+          });
+        }
+        return <React.Fragment key={idx}>{item}</React.Fragment>;
       });
     };
     

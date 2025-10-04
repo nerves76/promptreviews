@@ -1,0 +1,26 @@
+{
+  "description": "Explore all the powerful features of Prompt Reviews including prompt pages, review widgets, AI-powered content, and more.",
+  "keywords": [],
+  "canonical_url": "https://docs.promptreviews.app/features",
+  "category": "features",
+  "tags": [],
+  "category_label": "",
+  "category_icon": "",
+  "category_color": "blue",
+  "available_plans": [
+    "grower",
+    "builder",
+    "maven",
+    "enterprise"
+  ],
+  "key_features": [],
+  "how_it_works": [],
+  "best_practices": [],
+  "_original": {
+    "metadata": {
+      "title": "Features Overview | Prompt Reviews",
+      "description": "Explore all the powerful features of Prompt Reviews including prompt pages, review widgets, AI-powered content, and more."
+    },
+    "layoutProps": {}
+  }
+}

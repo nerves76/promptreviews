@@ -1,0 +1,26 @@
+{
+  "description": "Learn how to create Event prompt pages for collecting reviews from workshops, conferences, weddings, and special occasions.",
+  "keywords": [],
+  "canonical_url": "https://docs.promptreviews.app/prompt-pages/types/event",
+  "category": "prompt-pages",
+  "tags": [],
+  "category_label": "",
+  "category_icon": "",
+  "category_color": "blue",
+  "available_plans": [
+    "grower",
+    "builder",
+    "maven",
+    "enterprise"
+  ],
+  "key_features": [],
+  "how_it_works": [],
+  "best_practices": [],
+  "_original": {
+    "metadata": {
+      "title": "Event Prompt Pages - Event Reviews Guide | Prompt Reviews",
+      "description": "Learn how to create Event prompt pages for collecting reviews from workshops, conferences, weddings, and special occasions."
+    },
+    "layoutProps": {}
+  }
+}

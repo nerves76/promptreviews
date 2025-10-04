@@ -1,0 +1,190 @@
+{
+  "description": "Increase your customer reviews by 300% with these 6 proven strategies. Learn the psychology, timing, and techniques that actually work for review collection.",
+  "keywords": [],
+  "canonical_url": "https://docs.promptreviews.app/strategies",
+  "category": "strategies",
+  "tags": [],
+  "category_label": "Review Collection",
+  "category_icon": "Target",
+  "category_color": "blue",
+  "available_plans": [
+    "grower",
+    "builder",
+    "maven"
+  ],
+  "key_features": [
+    {
+      "icon": "Target",
+      "title": "The Double-Dip Strategy",
+      "description": "Import existing Google reviews and turn them into prompt pages to collect reviews on other platforms - increasing reviews by 300%."
+    },
+    {
+      "icon": "Heart",
+      "title": "Psychology of Reciprocity",
+      "description": "Use proven psychological principles to increase review response rates after providing exceptional value to customers."
+    },
+    {
+      "icon": "Users",
+      "title": "Personal Outreach Mastery",
+      "description": "Why one-on-one connections are more effective than mass requests for building lasting customer relationships."
+    },
+    {
+      "icon": "Lightbulb",
+      "title": "Smart Non-AI Techniques",
+      "description": "Use kickstarters, recent reviews, and personalized templates to help customers write detailed, authentic reviews."
+    },
+    {
+      "icon": "Sparkles",
+      "title": "AI Novelty Factor",
+      "description": "Leverage the unique experience of AI-powered review writing to create delightful customer interactions."
+    },
+    {
+      "icon": "Zap",
+      "title": "Reviews on the Fly",
+      "description": "Collect reviews in-person by highlighting the speed and ease of your review process with QR codes and mobile optimization."
+    }
+  ],
+  "how_it_works": [
+    {
+      "icon": "Target",
+      "title": "Choose Your Strategy",
+      "description": "Select the approach that best fits your business model, customer relationships, and review collection goals.",
+      "number": 1
+    },
+    {
+      "icon": "Brain",
+      "title": "Understand the Psychology",
+      "description": "Learn why each strategy works by understanding customer psychology, timing, and motivation factors.",
+      "number": 2
+    },
+    {
+      "icon": "CheckCircle",
+      "title": "Implement the Technique",
+      "description": "Follow our step-by-step guides to implement your chosen strategies with proven templates and best practices.",
+      "number": 3
+    },
+    {
+      "icon": "TrendingUp",
+      "title": "Track and Optimize",
+      "description": "Monitor your results and combine multiple strategies to maximize your review collection effectiveness.",
+      "number": 4
+    }
+  ],
+  "best_practices": [
+    {
+      "icon": "Clock",
+      "title": "Perfect Your Timing",
+      "description": "Ask for reviews when customers are most satisfied—right after a great experience or successful service completion. The "
+    },
+    {
+      "icon": "MessageCircle",
+      "title": "Make It Personal",
+      "description": "Use customer names, reference specific interactions, and show you remember their experience. Personalization can increase response rates by up to 50%."
+    },
+    {
+      "icon": "Star",
+      "title": "Lower the Barrier",
+      "description": "Make the review process as easy as possible. Provide templates, bullet points, or AI assistance. Even simple bullet points can be incredibly valuable."
+    },
+    {
+      "icon": "TrendingUp",
+      "title": "Follow Up Strategically",
+      "description": "Don't just ask once. Follow up with different approaches, but always be respectful of their time. Multiple touchpoints can increase response rates by 2-3x."
+    }
+  ],
+  "_original": {
+    "metadata": {},
+    "layoutProps": {
+      "page_title": "How to get more customer reviews",
+      "page_description": "Increase your customer reviews by 300% with these 6 proven strategies. Learn the psychology, timing, and techniques that actually work for review collection.",
+      "category_label": "Review Collection",
+      "category_icon": "Target",
+      "category_color": "blue",
+      "available_plans": [
+        "grower",
+        "builder",
+        "maven"
+      ],
+      "key_features": [
+        {
+          "icon": "Target",
+          "title": "The Double-Dip Strategy",
+          "description": "Import existing Google reviews and turn them into prompt pages to collect reviews on other platforms - increasing reviews by 300%."
+        },
+        {
+          "icon": "Heart",
+          "title": "Psychology of Reciprocity",
+          "description": "Use proven psychological principles to increase review response rates after providing exceptional value to customers."
+        },
+        {
+          "icon": "Users",
+          "title": "Personal Outreach Mastery",
+          "description": "Why one-on-one connections are more effective than mass requests for building lasting customer relationships."
+        },
+        {
+          "icon": "Lightbulb",
+          "title": "Smart Non-AI Techniques",
+          "description": "Use kickstarters, recent reviews, and personalized templates to help customers write detailed, authentic reviews."
+        },
+        {
+          "icon": "Sparkles",
+          "title": "AI Novelty Factor",
+          "description": "Leverage the unique experience of AI-powered review writing to create delightful customer interactions."
+        },
+        {
+          "icon": "Zap",
+          "title": "Reviews on the Fly",
+          "description": "Collect reviews in-person by highlighting the speed and ease of your review process with QR codes and mobile optimization."
+        }
+      ],
+      "how_it_works": [
+        {
+          "icon": "Target",
+          "title": "Choose Your Strategy",
+          "description": "Select the approach that best fits your business model, customer relationships, and review collection goals.",
+          "number": 1
+        },
+        {
+          "icon": "Brain",
+          "title": "Understand the Psychology",
+          "description": "Learn why each strategy works by understanding customer psychology, timing, and motivation factors.",
+          "number": 2
+        },
+        {
+          "icon": "CheckCircle",
+          "title": "Implement the Technique",
+          "description": "Follow our step-by-step guides to implement your chosen strategies with proven templates and best practices.",
+          "number": 3
+        },
+        {
+          "icon": "TrendingUp",
+          "title": "Track and Optimize",
+          "description": "Monitor your results and combine multiple strategies to maximize your review collection effectiveness.",
+          "number": 4
+        }
+      ],
+      "best_practices": [
+        {
+          "icon": "Clock",
+          "title": "Perfect Your Timing",
+          "description": "Ask for reviews when customers are most satisfied—right after a great experience or successful service completion. The "
+        },
+        {
+          "icon": "MessageCircle",
+          "title": "Make It Personal",
+          "description": "Use customer names, reference specific interactions, and show you remember their experience. Personalization can increase response rates by up to 50%."
+        },
+        {
+          "icon": "Star",
+          "title": "Lower the Barrier",
+          "description": "Make the review process as easy as possible. Provide templates, bullet points, or AI assistance. Even simple bullet points can be incredibly valuable."
+        },
+        {
+          "icon": "TrendingUp",
+          "title": "Follow Up Strategically",
+          "description": "Don't just ask once. Follow up with different approaches, but always be respectful of their time. Multiple touchpoints can increase response rates by 2-3x."
+        }
+      ]
+    }
+  }
+}
