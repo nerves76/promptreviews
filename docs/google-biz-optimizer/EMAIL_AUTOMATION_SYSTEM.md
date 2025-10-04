@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document describes the complete email automation system implemented for the Google Biz Optimizer lead generation tool. The system automatically nurtures leads through a series of targeted emails designed to convert them into PromptReviews customers.
+This document describes the complete email automation system implemented for the Google Biz Optimizer lead generation tool. The system automatically nurtures leads through a series of targeted emails designed to convert them into Prompt Reviews customers.
 
 ## Email Sequence
 

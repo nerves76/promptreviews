@@ -115,9 +115,12 @@ export async function POST(req: NextRequest) {
         // Remove SVG and icon elements that don't render properly in help modal
         .replace(/<svg[^>]*>[\s\S]*?<\/svg>/gi, '')
         .replace(/<i[^>]*class="[^"]*(?:fa-|icon-)[^"]*"[^>]*><\/i>/gi, '')
-        // Remove empty icon containers
+        // Remove icon containers - more comprehensive cleanup
+        .replace(/<div[^>]*class="[^"]*(?:w-12|w-10|w-8|w-6)[^"]*h-(?:12|10|8|6)[^"]*"[^>]*>[\s\S]*?<\/div>/gi, '') // Remove w-12 h-12 type icon containers
         .replace(/<div[^>]*class="[^"]*icon[^"]*"[^>]*>[\s\S]*?<\/div>/gi, '')
-        .replace(/<span[^>]*class="[^"]*icon[^"]*"[^>]*>[\s\S]*?<\/span>/gi, '');
+        .replace(/<span[^>]*class="[^"]*icon[^"]*"[^>]*>[\s\S]*?<\/span>/gi, '')
+        // Remove Lucide icon wrapper divs (often bg-color/20 rounded-lg with icon inside)
+        .replace(/<div[^>]*class="[^"]*bg-(?:green|blue|purple|yellow|red|orange|pink|cyan|indigo|teal)-\d+\/\d+[^"]*rounded[^"]*"[^>]*>[\s\S]*?<\/div>/gi, '');
       
       // Remove navigation sections (Previous/Next buttons)
       content = content

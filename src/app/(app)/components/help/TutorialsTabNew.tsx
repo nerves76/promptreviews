@@ -278,7 +278,12 @@ export default function TutorialsTabNew({
     let formatted = html
       .replace(/<svg[^>]*>[\s\S]*?<\/svg>/gi, '') // Remove SVG icons
       .replace(/<i[^>]*class="[^"]*(?:fa-|icon-)[^"]*"[^>]*><\/i>/gi, '') // Remove FontAwesome icons
-      .replace(/<div[^>]*class="[^"]*w-12[^"]*"[^>]*>\s*<\/div>/gi, ''); // Remove empty w-12 icon containers
+      // Remove various icon container patterns
+      .replace(/<div[^>]*class="[^"]*(?:w-12|w-10|w-8|w-6)[^"]*h-(?:12|10|8|6)[^"]*"[^>]*>[\s\S]*?<\/div>/gi, '') // Remove w-X h-X icon containers
+      .replace(/<div[^>]*class="[^"]*icon[^"]*"[^>]*>[\s\S]*?<\/div>/gi, '') // Remove divs with 'icon' class
+      // Clean up extra whitespace left by removed elements
+      .replace(/\s{3,}/g, ' ') // Replace 3+ spaces with single space
+      .replace(/>\s+</g, '><'); // Remove whitespace between tags
 
     // Simple text color fixes - just ensure text is dark (do this first)
     formatted = formatted
