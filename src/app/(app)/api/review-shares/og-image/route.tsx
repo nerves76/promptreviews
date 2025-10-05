@@ -176,11 +176,25 @@ export async function GET(request: NextRequest) {
 
     const logoReference = extractStorageReference(businessLogo);
 
-    const businessLogoUrl = logoReference
+    let businessLogoUrl = logoReference
       ? 'externalUrl' in logoReference
         ? logoReference.externalUrl
         : `${appOrigin}/api/review-shares/logo?bucket=${encodeURIComponent(logoReference.bucket)}&path=${encodeURIComponent(logoReference.path)}`
       : null;
+
+    // Verify logo is accessible before using it
+    if (businessLogoUrl) {
+      try {
+        const logoCheck = await fetch(businessLogoUrl);
+        if (!logoCheck.ok) {
+          console.log('[OG Image] Business logo not accessible, hiding logo circle');
+          businessLogoUrl = null;
+        }
+      } catch (err) {
+        console.log('[OG Image] Business logo fetch failed, hiding logo circle');
+        businessLogoUrl = null;
+      }
+    }
 
     console.log('[OG Image] Using business logo URL:', businessLogoUrl || 'none');
 
@@ -195,11 +209,11 @@ export async function GET(request: NextRequest) {
     }
 
     // Adjust card padding and font size based on review length
-    const cardPadding = '30px 50px 40px 50px'; // Reduced padding to prevent overlap
+    const cardPadding = '40px 50px 50px 50px'; // Top padding for logo overlap
     const reviewFontSize = truncatedText.length > 120 ? '32px' : '36px';
-    const quoteSize = '100px'; // Reduced quote size
-    const quoteOpacity = 0.15;
-    const logoSize = 200; // Size of the circular business logo (doubled)
+    const quoteSize = '80px'; // Decorative quote marks
+    const quoteOpacity = 0.12;
+    const logoSize = 120; // Size of the circular business logo
 
     // Determine logo color based on background
     const isDark = isBackgroundDark(gradientStart, gradientEnd);
@@ -269,29 +283,31 @@ export async function GET(request: NextRequest) {
               </div>
             )}
 
-            {/* Opening Quote - Top Left */}
-            <span
-              style={{
-                position: 'absolute',
-                top: '20px',
-                left: '30px',
-                fontSize: quoteSize,
-                fontFamily: 'Georgia, serif',
-                color: textColor,
-                opacity: quoteOpacity,
-                lineHeight: '1',
-                display: 'flex',
-              }}
-            >
-              {String.fromCharCode(8220)}
-            </span>
+            {/* Opening Quote - Top Left - only show if no logo */}
+            {!businessLogoUrl && (
+              <span
+                style={{
+                  position: 'absolute',
+                  top: '30px',
+                  left: '40px',
+                  fontSize: quoteSize,
+                  fontFamily: 'Georgia, serif',
+                  color: textColor,
+                  opacity: quoteOpacity,
+                  lineHeight: '1',
+                  display: 'flex',
+                }}
+              >
+                {String.fromCharCode(8220)}
+              </span>
+            )}
 
             {/* Closing Quote - Bottom Right */}
             <span
               style={{
                 position: 'absolute',
-                bottom: '20px',
-                right: '30px',
+                bottom: '30px',
+                right: '40px',
                 fontSize: quoteSize,
                 fontFamily: 'Georgia, serif',
                 color: textColor,
@@ -313,45 +329,30 @@ export async function GET(request: NextRequest) {
               style={{
                 display: 'flex',
                 fontSize: reviewFontSize,
-                lineHeight: '1.4',
+                lineHeight: '1.5',
                 color: textColor,
                 textAlign: 'center',
                 fontFamily: 'system-ui, sans-serif',
-                marginBottom: '24px',
+                marginBottom: '20px',
                 maxWidth: '750px',
-                margin: '0 0 24px 0',
+                margin: '0 0 20px 0',
               }}
             >
               {truncatedText}
             </p>
 
-            {/* Reviewer Name */}
+            {/* Reviewer Name - subtle attribution */}
             <p
               style={{
                 display: 'flex',
-                fontSize: '22px',
-                color: secondaryColor,
-                fontWeight: 600,
-                marginBottom: '16px',
-                fontFamily: 'system-ui, sans-serif',
-                margin: '0 0 16px 0',
-              }}
-            >
-              — {reviewerName}
-            </p>
-
-            {/* Business Name */}
-            <p
-              style={{
-                display: 'flex',
-                fontSize: '18px',
-                color: primaryColor,
-                fontWeight: 700,
+                fontSize: '20px',
+                color: '#6B7280',
+                fontWeight: 500,
                 fontFamily: 'system-ui, sans-serif',
                 margin: 0,
               }}
             >
-              {businessName}
+              — {reviewerName}
             </p>
           </div>
 
