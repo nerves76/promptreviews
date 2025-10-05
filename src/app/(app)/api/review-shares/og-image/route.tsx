@@ -96,7 +96,7 @@ export async function GET(request: NextRequest) {
       .from('review_submissions')
       .select('*, prompt_pages!inner(account_id)')
       .eq('id', reviewId)
-      .single();
+      .maybeSingle();
 
     if (reviewSubmission) {
       review = reviewSubmission;
@@ -108,7 +108,7 @@ export async function GET(request: NextRequest) {
           .select('*')
           .eq('account_id', accountId)
           .limit(1)
-          .single();
+          .maybeSingle();
         business = businessData;
       }
     } else {
@@ -117,7 +117,7 @@ export async function GET(request: NextRequest) {
         .from('widget_reviews')
         .select('*')
         .eq('id', reviewId)
-        .single();
+        .maybeSingle();
 
       if (widgetReview?.account_id) {
         review = widgetReview;
@@ -126,7 +126,7 @@ export async function GET(request: NextRequest) {
           .select('*')
           .eq('account_id', widgetReview.account_id)
           .limit(1)
-          .single();
+          .maybeSingle();
         business = businessData;
       }
     }
