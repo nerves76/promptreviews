@@ -118,7 +118,7 @@ export default function UniversalEditPromptPage() {
         }
         
         
-        // Fetch universal prompt page
+        // Fetch universal prompt page (use maybeSingle to handle no rows gracefully)
         const { data: universalPage, error: universalError } = await supabase
           .from("prompt_pages")
           .select("*")
@@ -126,8 +126,8 @@ export default function UniversalEditPromptPage() {
           .eq("is_universal", true)
           .order("created_at", { ascending: false })
           .limit(1)
-          .single();
-          
+          .maybeSingle();
+
         if (universalError) {
           console.error("Universal page fetch error:", universalError);
           setError("Failed to fetch universal prompt page: " + universalError.message);
