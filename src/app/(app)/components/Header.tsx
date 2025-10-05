@@ -868,7 +868,7 @@ const Header = React.memo(function Header() {
                                 : "text-gray-500 cursor-not-allowed"
                           } block px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200`}
                         >
-                          Review Management
+                          Reviews
                         </Link>
                       </div>
                     </div>
