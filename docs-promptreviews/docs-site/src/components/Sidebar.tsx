@@ -58,7 +58,6 @@ const navigation: NavItem[] = [
     href: '/prompt-pages',
     icon: PromptPagesIcon,
     children: [
-      { title: 'Overview', href: '/prompt-pages' },
       { title: 'Prompt Page Settings', href: '/prompt-pages/settings' },
       {
         title: 'Page Types',
@@ -98,7 +97,6 @@ const navigation: NavItem[] = [
     href: '/strategies',
     icon: Target,
     children: [
-      { title: 'Overview', href: '/strategies' },
       { title: 'Double-Dip', href: '/strategies/double-dip' },
       { title: 'Reciprocity', href: '/strategies/reciprocity' },
       { title: 'Personal Outreach', href: '/strategies/personal-outreach' },
