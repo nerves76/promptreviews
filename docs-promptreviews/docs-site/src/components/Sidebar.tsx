@@ -253,7 +253,7 @@ export default function Sidebar({ className }: SidebarProps) {
                 <Link
                   href={section.href}
                   className={clsx(
-                    'flex items-center space-x-3 flex-1 px-3 py-2 text-sm transition-colors',
+                    'flex items-center space-x-3 flex-1 px-3 py-2 text-base transition-colors',
                     parentActive
                       ? 'text-white font-semibold'
                       : 'text-white/80 hover:text-white font-medium'
@@ -261,7 +261,7 @@ export default function Sidebar({ className }: SidebarProps) {
                 >
                   {section.icon && (
                     <section.icon className={clsx(
-                      'w-4 h-4',
+                      'w-5 h-5',
                       parentActive ? 'text-yellow-300' : 'text-white/60'
                     )} />
                   )}
@@ -270,16 +270,16 @@ export default function Sidebar({ className }: SidebarProps) {
                 <button
                   onClick={() => toggleSection(section.href)}
                   className={clsx(
-                    'px-2 py-2 text-sm transition-colors',
+                    'px-2 py-2 transition-colors',
                     parentActive
                       ? 'text-white'
                       : 'text-white/60 hover:text-white'
                   )}
                 >
                   {isExpanded ? (
-                    <ChevronDown className="w-4 h-4" />
+                    <ChevronDown className="w-5 h-5" />
                   ) : (
-                    <ChevronRight className="w-4 h-4" />
+                    <ChevronRight className="w-5 h-5" />
                   )}
                 </button>
               </div>
@@ -287,7 +287,7 @@ export default function Sidebar({ className }: SidebarProps) {
               <Link
                 href={section.href}
                 className={clsx(
-                  'flex items-center space-x-3 px-3 py-2 text-sm rounded-lg transition-colors',
+                  'flex items-center space-x-3 px-3 py-2 text-base rounded-lg transition-colors',
                   isActive(section.href)
                     ? 'bg-white/25 text-white font-semibold'
                     : 'text-white/80 hover:bg-white/10 hover:text-white font-medium'
@@ -295,7 +295,7 @@ export default function Sidebar({ className }: SidebarProps) {
               >
                 {section.icon && (
                   <section.icon className={clsx(
-                    'w-4 h-4',
+                    'w-5 h-5',
                     isActive(section.href) ? 'text-yellow-300' : 'text-white/60'
                   )} />
                 )}
