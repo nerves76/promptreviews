@@ -244,14 +244,19 @@ export default function Sidebar({ className }: SidebarProps) {
         return (
           <div key={section.href}>
             {hasChildren ? (
-              <div className="flex items-center rounded-lg overflow-hidden">
+              <div className={clsx(
+                'flex items-center rounded-lg transition-colors',
+                parentActive
+                  ? 'bg-white/25'
+                  : 'hover:bg-white/10'
+              )}>
                 <Link
                   href={section.href}
                   className={clsx(
-                    'flex items-center space-x-3 flex-1 px-3 py-2 text-sm font-medium transition-colors',
+                    'flex items-center space-x-3 flex-1 px-3 py-2 text-sm transition-colors',
                     parentActive
-                      ? 'bg-white/20 text-white'
-                      : 'text-white/80 hover:bg-white/10 hover:text-white'
+                      ? 'text-white font-semibold'
+                      : 'text-white/80 hover:text-white font-medium'
                   )}
                 >
                   {section.icon && (
@@ -308,14 +313,19 @@ export default function Sidebar({ className }: SidebarProps) {
                     <div key={child.href}>
                       {child.isExpandable && hasGrandchildren ? (
                         <>
-                          <div className="flex items-center rounded-lg overflow-hidden">
+                          <div className={clsx(
+                            'flex items-center rounded-lg transition-colors',
+                            isActive(child.href)
+                              ? 'bg-white/25'
+                              : 'hover:bg-white/10'
+                          )}>
                             <Link
                               href={child.href}
                               className={clsx(
                                 'flex-1 px-3 py-1.5 text-sm transition-colors',
                                 isActive(child.href)
-                                  ? 'bg-white/25 text-white font-semibold'
-                                  : 'text-white/60 hover:text-white hover:bg-white/10'
+                                  ? 'text-white font-semibold'
+                                  : 'text-white/60 hover:text-white'
                               )}
                             >
                               {child.title}
