@@ -72,7 +72,7 @@ export async function testCrossAccountAccess(
  */
 export async function testAuthenticationBypass(endpoint: string): Promise<SecurityTestResult> {
   try {
-    const testCases = [
+    const testCases: Array<{ name: string; headers: Record<string, string> }> = [
       { name: 'No Auth Header', headers: {} },
       { name: 'Invalid Bearer Token', headers: { authorization: 'Bearer invalid-token' } },
       { name: 'Malformed Auth Header', headers: { authorization: 'InvalidFormat' } },
@@ -82,7 +82,7 @@ export async function testAuthenticationBypass(endpoint: string): Promise<Securi
     const results = [];
     for (const testCase of testCases) {
       const testUrl = new URL(`http://localhost:3000${endpoint}`);
-      const testRequest = new NextRequest(testUrl, { headers: testCase.headers });
+      const testRequest = new NextRequest(testUrl, { headers: testCase.headers as HeadersInit });
       
       // In a real implementation, we would make the actual request
       results.push({
@@ -223,7 +223,7 @@ export async function testPrivilegeEscalation(
         headers: {
           ...test.headers,
           authorization: `Bearer fake-regular-token`
-        }
+        } as unknown as HeadersInit
       });
       
       results.push({

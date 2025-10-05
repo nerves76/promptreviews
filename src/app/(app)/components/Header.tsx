@@ -223,56 +223,6 @@ const Header = React.memo(function Header() {
         // For now, skip notifications if no account context is available
         // TODO: Move notifications to a component that can use auth context
         return;
-        
-        const { data, error } = await supabase
-          .from("review_submissions")
-          .select("id, first_name, last_name, platform, review_content, created_at, emoji_sentiment_selection, review_type")
-          .eq("business_id", accountId)
-          .gte("created_at", since)
-          .order("created_at", { ascending: false })
-          .limit(7);
-          
-        if (error) {
-          console.error('🚨 Header: Notifications fetch failed:', error);
-          // Log additional debugging info
-          console.error('🚨 Header: Error details:', {
-            message: error.message,
-            details: error.details,
-            hint: error.hint,
-            code: error.code
-          });
-          // Don't throw - just skip setting notifications to prevent reload
-          return;
-        }
-        
-        if (data) {
-          setNotifications(
-            data.map((r: any) => {
-              const name = r.first_name
-                ? r.last_name
-                  ? `${r.first_name} ${r.last_name}`
-                  : r.first_name
-                : "Anonymous";
-              
-              // Determine if this is positive or negative based on sentiment
-              const isNegativeSentiment = r.emoji_sentiment_selection && ["neutral", "unsatisfied", "frustrated", "angry"].includes(r.emoji_sentiment_selection.toLowerCase());
-              const isFeedback = r.review_type === "feedback" || isNegativeSentiment;
-              
-              const message = isFeedback
-                ? `New feedback from ${name}${r.platform ? ` via ${r.platform}` : ""}`
-                : `New review from ${name} on ${r.platform}`;
-              
-              return {
-                id: r.id,
-                message,
-                preview: r.review_content?.slice(0, 60) || "",
-                created_at: r.created_at,
-                read: false,
-                isFeedback,
-              };
-            }),
-          );
-        }
       } catch (error) {
         console.error('🚨 Header: Unexpected error in fetchNotifications:', error);
         // Don't throw - just log the error to prevent reload

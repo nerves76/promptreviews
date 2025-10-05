@@ -36,11 +36,11 @@ interface BusinessInfoEditorProps {
 }
 
 export default function BusinessInfoEditor({ locations, isConnected }: BusinessInfoEditorProps) {
-  const { selectedAccountId, account } = useAuth();
-  const accountId = selectedAccountId || account?.id;
-  
+  const { account } = useAuth();
+  const accountId = account?.id;
+
   // 🚨 DEBUG: Track component lifecycle
-  
+
   // Storage keys for form data and selections, namespaced by account to avoid cross-account bleed
   const formStorageKey = accountId ? `businessInfoEditorForm_${accountId}` : 'businessInfoEditorForm_noacct';
   const selectedLocationsKey = accountId ? `business-info-selected-locations_${accountId}` : 'business-info-selected-locations_noacct';

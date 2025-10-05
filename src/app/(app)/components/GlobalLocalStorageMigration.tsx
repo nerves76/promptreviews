@@ -4,8 +4,8 @@ import { useAuth } from "@/auth";
 
 // One-time client-side localStorage migration to improve account isolation
 export default function GlobalLocalStorageMigration() {
-  const { selectedAccountId, account } = useAuth();
-  const accountId = selectedAccountId || account?.id || null;
+  const { account } = useAuth();
+  const accountId = account?.id || null;
 
   useEffect(() => {
     if (typeof window === 'undefined') return;

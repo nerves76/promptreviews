@@ -35,7 +35,7 @@ export async function verifyAuth(request: NextRequest): Promise<AuthResult> {
   try {
     // Try different auth methods based on request type
     let user = null;
-    let authError = null;
+    let authError: { message?: string } | null = null;
 
     // Method 1: Check for Bearer token in Authorization header
     const authHeader = request.headers.get('authorization');
@@ -126,7 +126,7 @@ export async function verifyAuth(request: NextRequest): Promise<AuthResult> {
       } catch (cookieError) {
         // Cookie method failed, use existing error or set new one
         if (!authError) {
-          authError = cookieError;
+          authError = cookieError instanceof Error ? cookieError : { message: String(cookieError) };
         }
       }
     }

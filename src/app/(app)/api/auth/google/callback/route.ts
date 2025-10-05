@@ -183,6 +183,13 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    // At this point, user is guaranteed to be non-null
+    if (!user) {
+      const separator = returnUrl.includes('?') ? '&' : '?';
+      return NextResponse.redirect(
+        new URL(`${returnUrl}${separator}error=auth_failed&message=${encodeURIComponent('User authentication failed')}`, request.url)
+      );
+    }
 
     // Check environment variables
     const clientId = process.env.GOOGLE_CLIENT_ID;
