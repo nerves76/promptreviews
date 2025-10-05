@@ -177,38 +177,34 @@ export async function GET(request: NextRequest) {
 
     const logoReference = extractStorageReference(businessLogo);
 
-    let businessLogoUrl = logoReference
+    const businessLogoUrl = logoReference
       ? 'externalUrl' in logoReference
         ? logoReference.externalUrl
         : `${appOrigin}/api/review-shares/logo?bucket=${encodeURIComponent(logoReference.bucket)}&path=${encodeURIComponent(logoReference.path)}`
       : null;
 
-    // Verify logo is accessible before using it
-    if (businessLogoUrl) {
-      try {
-        const logoCheck = await fetch(businessLogoUrl);
-        if (!logoCheck.ok) {
-          console.log('[OG Image] Business logo not accessible, hiding logo circle');
-          businessLogoUrl = null;
-        }
-      } catch (err) {
-        console.log('[OG Image] Business logo fetch failed, hiding logo circle');
-        businessLogoUrl = null;
+    console.log('[OG Image] Business logo URL:', businessLogoUrl || 'none');
+
+    // Render stars as SVG to avoid font rendering issues
+    const renderStars = () => {
+      const stars = [];
+      for (let i = 0; i < 5; i++) {
+        const filled = i < starRating;
+        stars.push(
+          <svg
+            key={i}
+            width="36"
+            height="36"
+            viewBox="0 0 24 24"
+            fill={filled ? '#F59E0B' : '#D1D5DB'}
+            style={{ marginRight: '4px' }}
+          >
+            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+          </svg>
+        );
       }
-    }
-
-    console.log('[OG Image] Using business logo URL:', businessLogoUrl || 'none');
-
-    // Render stars with gold color
-    const starColor = '#F59E0B'; // Amber-500 gold color
-    const stars = [];
-    for (let i = 0; i < 5; i++) {
-      stars.push(
-        <span key={i} style={{ color: i < starRating ? starColor : '#D1D5DB', fontSize: '36px', marginRight: '4px' }}>
-          ★
-        </span>
-      );
-    }
+      return stars;
+    };
 
     // Adjust card padding and font size based on review length
     const cardPadding = '40px 50px 50px 50px'; // Top padding for logo overlap
@@ -252,57 +248,42 @@ export async function GET(request: NextRequest) {
           >
             {/* Business Logo - Half on card, half off */}
             {businessLogoUrl && (
-              <div
+              <img
+                src={businessLogoUrl}
+                width={logoSize}
+                height={logoSize}
+                alt="Business logo"
                 style={{
                   position: 'absolute',
                   top: `-${logoSize / 2}px`,
-                  left: '50%',
-                  transform: 'translateX(-50%)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
+                  left: `calc(50% - ${logoSize / 2}px)`,
                   width: `${logoSize}px`,
                   height: `${logoSize}px`,
                   borderRadius: '50%',
                   background: 'white',
                   border: '5px solid white',
                   boxShadow: '0 8px 24px rgba(0, 0, 0, 0.2)',
-                  overflow: 'hidden',
+                  objectFit: 'cover',
                 }}
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={businessLogoUrl}
-                  width={logoSize}
-                  height={logoSize}
-                  alt={businessName ? `${businessName} logo` : 'Business logo'}
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'cover',
-                  }}
-                />
-              </div>
+              />
             )}
 
-            {/* Opening Quote - Top Left - only show if no logo */}
-            {!businessLogoUrl && (
-              <span
-                style={{
-                  position: 'absolute',
-                  top: '30px',
-                  left: '40px',
-                  fontSize: quoteSize,
-                  fontFamily: 'Georgia, serif',
-                  color: textColor,
-                  opacity: quoteOpacity,
-                  lineHeight: '1',
-                  display: 'flex',
-                }}
-              >
-                {String.fromCharCode(8220)}
-              </span>
-            )}
+            {/* Opening Quote - Top Left - always show */}
+            <span
+              style={{
+                position: 'absolute',
+                top: '30px',
+                left: '40px',
+                fontSize: quoteSize,
+                fontFamily: 'Georgia, serif',
+                color: textColor,
+                opacity: quoteOpacity,
+                lineHeight: '1',
+                display: 'flex',
+              }}
+            >
+              "
+            </span>
 
             {/* Closing Quote - Bottom Right */}
             <span
@@ -318,12 +299,12 @@ export async function GET(request: NextRequest) {
                 display: 'flex',
               }}
             >
-              {String.fromCharCode(8221)}
+              "
             </span>
 
             {/* Star Rating */}
             <div style={{ display: 'flex', marginBottom: '24px', marginTop: businessLogoUrl ? `${logoSize / 2 + 20}px` : '0' }}>
-              {stars}
+              {renderStars()}
             </div>
 
             {/* Review Text */}
