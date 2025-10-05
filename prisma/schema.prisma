@@ -462,6 +462,7 @@ model accounts {
   onboarding_tasks                onboarding_tasks[]
   prompt_pages                    prompt_pages[]
   review_reminder_logs            review_reminder_logs[]
+  review_share_images             review_share_images[]
   selected_gbp_locations          selected_gbp_locations[]
   trial_reminder_logs             trial_reminder_logs[]
   widgets                         widgets[]
@@ -1809,5 +1810,24 @@ enum google_business_scheduled_post_status {
   failed
   cancelled
 
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model review_share_images {
+  id           String   @id
+  review_id    String   @db.Uuid
+  account_id   String   @db.Uuid
+  image_url    String
+  storage_path String
+  image_type   String   @default("quote_card")
+  generated_at DateTime @default(dbgenerated("timezone('utc'::text, now())")) @db.Timestamptz(6)
+  created_at   DateTime @default(dbgenerated("timezone('utc'::text, now())")) @db.Timestamptz(6)
+  updated_at   DateTime @default(dbgenerated("timezone('utc'::text, now())")) @db.Timestamptz(6)
+  accounts     accounts @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([review_id], map: "idx_review_share_images_review_id")
+  @@index([account_id], map: "idx_review_share_images_account_id")
+  @@index([generated_at], map: "idx_review_share_images_generated_at")
   @@schema("public")
 }

@@ -37,8 +37,8 @@ export default function EventPromptPages() {
           <h2 className="text-2xl font-bold text-white mb-6">Why Choose Event Prompt Pages?</h2>
           <div className="grid md:grid-cols-3 gap-6">
             <div className="text-center">
-              <div className="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <Clock className="w-6 h-6 text-blue-300" />
+              <div className="w-12 h-12 bg-white/10 rounded-lg flex items-center justify-center mx-auto mb-4">
+                <Clock className="w-6 h-6 text-yellow-300" />
               </div>
               <h3 className="font-semibold text-white mb-2">Time-Specific</h3>
               <p className="text-white/70 text-sm">Capture feedback while memories are fresh</p>
@@ -75,9 +75,9 @@ export default function EventPromptPages() {
                 <li>• Product launches</li>
                 <li>• Company celebrations</li>
               </ul>
-              <div className="bg-blue-500/20 border border-blue-400/30 rounded-lg p-3">
+              <div className="bg-white/10 border border-yellow-400/30 rounded-lg p-3">
                 <p className="text-white/80 text-sm">
-                  <strong className="text-blue-300">Focus:</strong> Professional value and networking
+                  <strong className="text-yellow-300">Focus:</strong> Professional value and networking
                 </p>
               </div>
             </div>
@@ -169,19 +169,19 @@ export default function EventPromptPages() {
                 <h3 className="text-xl font-semibold text-white mb-4">Feedback Options</h3>
                 <ul className="space-y-2 text-white/80">
                   <li className="flex items-start space-x-2">
-                    <span className="text-blue-300">✓</span>
+                    <span className="text-yellow-300">✓</span>
                     <span>Overall event rating</span>
                   </li>
                   <li className="flex items-start space-x-2">
-                    <span className="text-blue-300">✓</span>
+                    <span className="text-yellow-300">✓</span>
                     <span>Specific aspect ratings</span>
                   </li>
                   <li className="flex items-start space-x-2">
-                    <span className="text-blue-300">✓</span>
+                    <span className="text-yellow-300">✓</span>
                     <span>Photo sharing from event</span>
                   </li>
                   <li className="flex items-start space-x-2">
-                    <span className="text-blue-300">✓</span>
+                    <span className="text-yellow-300">✓</span>
                     <span>Improvement suggestions</span>
                   </li>
                 </ul>
@@ -260,29 +260,6 @@ export default function EventPromptPages() {
           </div>
         </div>
 
-        {/* CTA */}
-        <div className="bg-gradient-to-r from-yellow-500 to-orange-600 rounded-lg p-8 text-center">
-          <h2 className="text-2xl font-bold text-white mb-4">
-            Ready to Collect Event Feedback?
-          </h2>
-          <p className="text-white/90 mb-6 max-w-2xl mx-auto">
-            Start collecting valuable feedback from your events to improve future experiences and build social proof.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a
-              href="https://promptreviews.app/dashboard"
-              className="inline-flex items-center px-6 py-3 bg-white/20 text-white backdrop-blur-sm font-medium rounded-lg hover:bg-white/30 transition-colors"
-            >
-              Create Event Page
-            </a>
-            <a
-              href="/prompt-pages/types"
-              className="inline-flex items-center px-6 py-3 border border-white text-white font-medium rounded-lg hover:bg-white/10 transition-colors"
-            >
-              View All Types
-            </a>
-          </div>
-        </div>
       </div>
     </DocsLayout>
   );

@@ -37,8 +37,8 @@ export default function PhotoPromptPages() {
           <h2 className="text-2xl font-bold text-white mb-6">Why Choose Photo Prompt Pages?</h2>
           <div className="grid md:grid-cols-3 gap-6">
             <div className="text-center">
-              <div className="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <Image className="w-6 h-6 text-blue-300" />
+              <div className="w-12 h-12 bg-white/10 rounded-lg flex items-center justify-center mx-auto mb-4">
+                <Image className="w-6 h-6 text-yellow-300" />
               </div>
               <h3 className="font-semibold text-white mb-2">Visual Proof</h3>
               <p className="text-white/70 text-sm">Photos provide authentic proof of your work and results</p>
@@ -102,9 +102,9 @@ export default function PhotoPromptPages() {
                 <li>• Cleaning - Before/after results</li>
                 <li>• Interior design - Room makeovers</li>
               </ul>
-              <div className="bg-blue-500/20 border border-blue-400/30 rounded-lg p-3">
+              <div className="bg-white/10 border border-yellow-400/30 rounded-lg p-3">
                 <p className="text-white/80 text-sm">
-                  <strong className="text-blue-300">Example:</strong> "Show the completed project!"
+                  <strong className="text-yellow-300">Example:</strong> "Show the completed project!"
                 </p>
               </div>
             </div>
@@ -163,19 +163,19 @@ export default function PhotoPromptPages() {
                 </h3>
                 <ul className="space-y-2 text-white/80">
                   <li className="flex items-start space-x-2">
-                    <span className="text-blue-300">✓</span>
+                    <span className="text-yellow-300">✓</span>
                     <span>Photo galleries</span>
                   </li>
                   <li className="flex items-start space-x-2">
-                    <span className="text-blue-300">✓</span>
+                    <span className="text-yellow-300">✓</span>
                     <span>Lightbox viewing</span>
                   </li>
                   <li className="flex items-start space-x-2">
-                    <span className="text-blue-300">✓</span>
+                    <span className="text-yellow-300">✓</span>
                     <span>Social sharing</span>
                   </li>
                   <li className="flex items-start space-x-2">
-                    <span className="text-blue-300">✓</span>
+                    <span className="text-yellow-300">✓</span>
                     <span>Watermark options</span>
                   </li>
                 </ul>
@@ -218,29 +218,6 @@ export default function PhotoPromptPages() {
           </div>
         </div>
 
-        {/* CTA */}
-        <div className="bg-gradient-to-r from-pink-500 to-purple-600 rounded-lg p-8 text-center">
-          <h2 className="text-2xl font-bold text-white mb-4">
-            Ready to Collect Visual Reviews?
-          </h2>
-          <p className="text-white/90 mb-6 max-w-2xl mx-auto">
-            Start collecting photo reviews that showcase your work and build trust with potential customers.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a
-              href="https://promptreviews.app/dashboard"
-              className="inline-flex items-center px-6 py-3 bg-white/20 text-white backdrop-blur-sm font-medium rounded-lg hover:bg-white/30 transition-colors"
-            >
-              Create Photo Page
-            </a>
-            <a
-              href="/prompt-pages/types"
-              className="inline-flex items-center px-6 py-3 border border-white text-white font-medium rounded-lg hover:bg-white/10 transition-colors"
-            >
-              View All Types
-            </a>
-          </div>
-        </div>
       </div>
     </DocsLayout>
   );

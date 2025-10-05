@@ -120,7 +120,7 @@ export default function NonAIStrategiesPage() {
               
               <div className="text-center">
                 <div className="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center mx-auto mb-3">
-                  <Star className="w-6 h-6 text-blue-300" />
+                  <Star className="w-6 h-6 text-yellow-300" />
                 </div>
                 <h3 className="font-semibold text-white mb-2">Recent Examples</h3>
                 <p className="text-white/80 text-sm">
@@ -169,7 +169,7 @@ export default function NonAIStrategiesPage() {
             <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6">
               <div className="flex items-start space-x-4 mb-4">
                 <div className="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
-                  <Users className="w-6 h-6 text-blue-300" />
+                  <Users className="w-6 h-6 text-yellow-300" />
                 </div>
                 <div>
                   <h3 className="text-xl font-semibold text-white mb-2">Human Connection</h3>
@@ -297,7 +297,7 @@ export default function NonAIStrategiesPage() {
           
           <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-8">
             <div className="text-center mb-8">
-              <Star className="w-16 h-16 text-blue-300 mx-auto mb-4" />
+              <Star className="w-16 h-16 text-yellow-300 mx-auto mb-4" />
               <h3 className="text-xl font-semibold text-white mb-4">Show Customers What Good Reviews Look Like</h3>
               <p className="text-white/90">
                 Share recent, high-quality reviews from similar customers to show what makes a great review and 
@@ -310,7 +310,7 @@ export default function NonAIStrategiesPage() {
                 <h4 className="font-semibold text-white mb-4">Example Review to Share:</h4>
                 <div className="bg-white/10 rounded-lg p-4 border-l-4 border-blue-400">
                   <div className="flex items-center space-x-2 mb-2">
-                    <span className="text-blue-400">★★★★★</span>
+                    <span className="text-yellow-400">★★★★★</span>
                     <span className="text-white/80 text-sm">Recent Customer - 2 weeks ago</span>
                   </div>
                   <p className="text-white/90 italic">

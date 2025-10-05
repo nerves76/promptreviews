@@ -1,12 +1,11 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { 
-  BookOpen, 
-  Users, 
-  Building2, 
-  Code, 
-  Square, 
-  Star, 
+import {
+  BookOpen,
+  Users,
+  Building2,
+  Code,
+  Star,
   ArrowRight,
   Search,
   MessageSquare,
@@ -96,7 +95,7 @@ const features = [
     name: 'Prompt pages',
     description: 'Create personalized review request pages for services, products, events, and employee spotlights.',
     href: '/prompt-pages',
-    icon: Square,
+    icon: () => <span className="text-xl font-bold">[P]</span>,
     color: 'bg-blue-500',
     popular: true,
     plans: ['grower', 'builder', 'maven']
@@ -124,7 +123,7 @@ const features = [
     icon: Building2,
     color: 'bg-red-500',
     popular: true,
-    plans: ['builder', 'maven']
+    plans: ['grower', 'builder', 'maven']
   },
   {
     name: 'Widgets',
@@ -156,7 +155,7 @@ const quickActions = [
     description: 'Integrate with Google to manage reviews and posts directly from Prompt Reviews',
     href: '/google-business/connecting',
     time: '10 min read',
-    plans: ['builder', 'maven']
+    plans: ['grower', 'builder', 'maven']
   },
   {
     title: 'Set Up Review Widget',

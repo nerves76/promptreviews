@@ -84,7 +84,7 @@ const quickLinks = [
     title: 'Getting Started',
     description: 'New to Prompt Reviews? Start here.',
     href: '/getting-started',
-    color: 'bg-blue-500/20 text-blue-300'
+    color: 'bg-blue-500/20 text-yellow-300'
   },
   {
     icon: MessageSquare,

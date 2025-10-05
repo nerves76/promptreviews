@@ -3,6 +3,12 @@ import Icon, { IconName } from '@/components/Icon';
 import { applyCardTransparency, getContrastTextColor } from '@/utils/colorUtils';
 import ProcessIndicator from './ProcessIndicator';
 import ButtonSpinner from '@/components/ButtonSpinner';
+import {
+  countWords,
+  getWordLimitOrDefault,
+  isNearWordLimit,
+  PROMPT_PAGE_WORD_LIMITS,
+} from '@/constants/promptPageWordLimits';
 
 interface ReviewPlatformCardProps {
   platform: any;
@@ -76,6 +82,31 @@ export default function ReviewPlatformCard({
   const isUniversal = !!promptPage.is_universal;
   const aiButtonEnabled = promptPage?.ai_button_enabled !== false;
   const fixGrammarEnabled = promptPage?.fix_grammar_enabled !== false;
+  const reviewText = platformReviewTexts[idx] || '';
+  const configuredMin = typeof platform?.minWordCount === 'number'
+    ? Math.max(platform.minWordCount, PROMPT_PAGE_WORD_LIMITS.MIN_REVIEW_WORDS)
+    : PROMPT_PAGE_WORD_LIMITS.MIN_REVIEW_WORDS;
+  const wordLimit = getWordLimitOrDefault(platform?.wordCount);
+  const wordCount = countWords(reviewText);
+  const isOverLimit = wordCount > wordLimit;
+  const isUnderMin = wordCount > 0 && wordCount < configuredMin;
+  const nearLimit = !isOverLimit && isNearWordLimit(wordCount, wordLimit);
+  const canSubmit = wordCount >= configuredMin && wordCount <= wordLimit;
+  const progressValue = wordLimit > 0 ? Math.min(1, Math.max(0, wordCount / wordLimit)) : 0;
+  const baseTextColor = businessProfile?.card_text || '#1A1A1A';
+  const lineColor = isOverLimit
+    ? '#dc2626'
+    : isUnderMin
+      ? businessProfile?.secondary_color || baseTextColor
+      : baseTextColor;
+  const trackColor = applyCardTransparency(baseTextColor, 0.15);
+  const progressColor = isOverLimit
+    ? '#dc2626'
+    : nearLimit
+      ? businessProfile?.secondary_color || '#f97316'
+      : progressValue >= 0.5
+        ? '#16a34a'
+        : businessProfile?.primary_color || '#2563EB';
 
   // Helper function to get card border style
   const getCardBorderStyle = () => {
@@ -405,6 +436,29 @@ export default function ReviewPlatformCard({
               }}
               required
             />
+            <div
+              className="mt-2 text-xs font-semibold flex items-center gap-2"
+              style={{ color: lineColor }}
+            >
+              <span>{`Word count ${wordCount}/${wordLimit}`}</span>
+              <div
+                className="h-2 rounded-full overflow-hidden flex-1"
+                role="progressbar"
+                aria-valuemin={0}
+                aria-valuemax={wordLimit}
+                aria-valuenow={Math.min(wordCount, wordLimit)}
+                aria-label={`Review word count ${wordCount} of ${wordLimit} words`}
+                style={{ backgroundColor: trackColor, minWidth: '80px' }}
+              >
+                <div
+                  className="h-full transition-all duration-200"
+                  style={{
+                    width: `${Math.min(100, progressValue * 100)}%`,
+                    backgroundColor: progressColor,
+                  }}
+                />
+              </div>
+            </div>
           </div>
 
           {/* Action buttons */}
@@ -470,6 +524,7 @@ export default function ReviewPlatformCard({
                 borderColor: businessProfile?.secondary_color || "#4F46E5",
                 color: getContrastTextColor(businessProfile?.secondary_color || "#4F46E5"),
               }}
+              title={!canSubmit ? `Reviews must be between ${configuredMin} and ${wordLimit} words.` : undefined}
               onMouseEnter={(e) => {
                 if (isSubmitting !== idx && isCopied !== idx && isRedirecting !== idx && !e.currentTarget.disabled) {
                   e.currentTarget.style.backgroundColor = "transparent";

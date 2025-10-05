@@ -120,7 +120,7 @@ export default function NoveltyPage() {
               
               <div className="text-center">
                 <div className="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center mx-auto mb-3">
-                  <Star className="w-6 h-6 text-blue-300" />
+                  <Star className="w-6 h-6 text-yellow-300" />
                 </div>
                 <h3 className="font-semibold text-white mb-2">AI-Powered</h3>
                 <p className="text-white/80 text-sm">
@@ -170,7 +170,7 @@ export default function NoveltyPage() {
             <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6">
               <div className="flex items-start space-x-4 mb-4">
                 <div className="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
-                  <Users className="w-6 h-6 text-blue-300" />
+                  <Users className="w-6 h-6 text-yellow-300" />
                 </div>
                 <div>
                   <h3 className="text-xl font-semibold text-white mb-2">Social Sharing Potential</h3>
@@ -300,7 +300,7 @@ export default function NoveltyPage() {
             <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6">
               <div className="flex items-center space-x-3 mb-4">
                 <div className="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center">
-                  <Zap className="w-6 h-6 text-blue-300" />
+                  <Zap className="w-6 h-6 text-yellow-300" />
                 </div>
                 <h3 className="text-xl font-semibold text-white">Interactive Experience</h3>
               </div>

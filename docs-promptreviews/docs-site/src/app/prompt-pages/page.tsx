@@ -190,14 +190,9 @@ export default function PromptPagesPage() {
       bestPractices={bestPractices}
       faqs={pageFAQs['prompt-pages']}
       callToAction={{
-        secondary: {
+        primary: {
           text: 'Explore Page Types',
           href: '/prompt-pages/types'
-        },
-        primary: {
-          text: 'Create Your First Prompt Page',
-          href: 'https://promptreviews.app/dashboard/prompt-pages',
-          external: true
         }
       }}
       overview={{

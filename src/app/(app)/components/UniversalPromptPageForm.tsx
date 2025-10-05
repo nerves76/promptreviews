@@ -28,6 +28,7 @@ import {
 } from "./prompt-features";
 import { generateContextualReview } from "@/utils/aiReviewGeneration";
 import Icon from "@/components/Icon";
+import { getWordLimitOrDefault } from "@/constants/promptPageWordLimits";
 
 /**
  * UniversalPromptPageForm component
@@ -153,7 +154,7 @@ export default function UniversalPromptPageForm({
         universalPageData,
         reviewerData,
         formData.review_platforms[index].name || formData.review_platforms[index].platform || "Google Business Profile",
-        formData.review_platforms[index].wordCount || 200,
+        getWordLimitOrDefault(formData.review_platforms[index].wordCount),
         formData.review_platforms[index].customInstructions,
         "customer"
       );

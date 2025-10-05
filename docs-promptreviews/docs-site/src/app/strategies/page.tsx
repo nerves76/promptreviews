@@ -140,14 +140,9 @@ export default function StrategiesPage() {
       bestPractices={bestPractices}
       faqs={pageFAQs['strategies']}
       callToAction={{
-        secondary: {
+        primary: {
           text: 'Learn Double-Dip Strategy',
           href: '/strategies/double-dip'
-        },
-        primary: {
-          text: 'Start Collecting Reviews',
-          href: 'https://promptreviews.app/dashboard/prompt-pages',
-          external: true
         }
       }}
       overview={{

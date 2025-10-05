@@ -4,6 +4,7 @@
  * Centralizes the mapping between camelCase form data and snake_case database columns
  * to ensure consistency across all prompt page creation and update operations.
  */
+import { clampWordLimit, PROMPT_PAGE_WORD_LIMITS } from "@/constants/promptPageWordLimits";
 
 export interface FormData {
   // Basic fields
@@ -186,9 +187,7 @@ export function mapFormDataToDatabase(formData: FormData): DatabaseRow {
     mappedData.review_platforms = formData.review_platforms.map(
       (link: any) => ({
         ...link,
-        wordCount: link.wordCount
-          ? Math.max(200, Number(link.wordCount))
-          : 200,
+        wordCount: clampWordLimit(link?.wordCount ?? PROMPT_PAGE_WORD_LIMITS.DEFAULT),
       })
     );
   }

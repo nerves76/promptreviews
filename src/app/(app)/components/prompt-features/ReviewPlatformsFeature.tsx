@@ -17,6 +17,7 @@ import React, { useState, useEffect } from "react";
 import Icon from "@/components/Icon";
 import { Input } from "@/app/(app)/components/ui/input";
 import { Textarea } from "@/app/(app)/components/ui/textarea";
+import { clampWordLimit, PROMPT_PAGE_WORD_LIMITS } from "@/constants/promptPageWordLimits";
 
 export interface ReviewPlatform {
   name: string;
@@ -125,7 +126,7 @@ export default function ReviewPlatformsFeature({
       {
         name: "",
         url: "",
-        wordCount: 150,
+        wordCount: PROMPT_PAGE_WORD_LIMITS.DEFAULT,
         verified: false,
         verified_at: "",
       },
@@ -227,9 +228,9 @@ export default function ReviewPlatformsFeature({
                   <Input
                     type="number"
                     value={platform.wordCount}
-                    onChange={(e) => handlePlatformChange(idx, "wordCount", parseInt(e.target.value) || 0)}
-                    min="50"
-                    max="1000"
+                    onChange={(e) => handlePlatformChange(idx, "wordCount", clampWordLimit(e.target.value))}
+                    min={PROMPT_PAGE_WORD_LIMITS.MIN}
+                    max={PROMPT_PAGE_WORD_LIMITS.MAX}
                     disabled={disabled}
                   />
                 </div>

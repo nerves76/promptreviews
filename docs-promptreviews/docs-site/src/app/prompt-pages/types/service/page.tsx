@@ -159,8 +159,8 @@ export default function ServicePromptPages() {
           <h2 className="text-2xl font-bold text-white mb-6">Why Choose Service Prompt Pages?</h2>
           <div className="grid md:grid-cols-3 gap-6">
             <div className="text-center">
-              <div className="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <Star className="w-6 h-6 text-blue-300" />
+              <div className="w-12 h-12 bg-white/10 rounded-lg flex items-center justify-center mx-auto mb-4">
+                <Star className="w-6 h-6 text-yellow-300" />
               </div>
               <h3 className="font-semibold text-white mb-2">Service-Focused</h3>
               <p className="text-white/70 text-sm">Questions specifically designed for service-based businesses</p>
@@ -230,9 +230,9 @@ export default function ServicePromptPages() {
               <div key={index} className="bg-white/10 backdrop-blur-md rounded-lg shadow-sm border border-white/20 p-6">
                 <h3 className="font-semibold text-white mb-3">{practice.title}</h3>
                 <p className="text-white/80 mb-3">{practice.description}</p>
-                <div className="bg-blue-500/20 border border-blue-400/30 rounded-lg p-3">
+                <div className="bg-white/10 border border-yellow-400/30 rounded-lg p-3">
                   <p className="text-white/80 text-sm font-medium">Example:</p>
-                  <p className="text-blue-300 text-sm">{practice.example}</p>
+                  <p className="text-yellow-300 text-sm">{practice.example}</p>
                 </div>
               </div>
             ))}
@@ -304,38 +304,7 @@ export default function ServicePromptPages() {
           </div>
         </div>
 
-        {/* CTA */}
-        <div className="bg-gradient-to-r from-slate-blue to-indigo-600 rounded-lg p-8 text-center">
-          <h2 className="text-2xl font-bold text-white mb-4">
-            Ready to Create Your Service Prompt Page?
-          </h2>
-          <p className="text-white/90 mb-6 max-w-2xl mx-auto">
-            Start collecting better reviews from your service customers today. It only takes a few minutes to set up.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a
-              href="https://promptreviews.app/dashboard/create-prompt-page"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center px-6 py-3 bg-white/20 text-white backdrop-blur-sm font-medium rounded-lg hover:bg-white/30 transition-colors"
-            >
-              Create Service Prompt Page
-            </a>
-            <a
-              href="/prompt-pages/types"
-              className="inline-flex items-center px-6 py-3 border border-white text-white font-medium rounded-lg hover:bg-white/10 transition-colors"
-            >
-              View All Types
-            </a>
-          </div>
-        </div>
       </div>
-
-      {/* JSON-LD Script */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
     </DocsLayout>
   );
 }

@@ -82,7 +82,7 @@ export default function APIReferencePage() {
             <div className="space-y-8">
               <div>
                 <h3 className="text-lg font-semibold text-white mb-3">
-                  <span className="bg-blue-500/20 text-blue-300 px-2 py-1 rounded text-sm mr-3">GET</span>
+                  <span className="bg-blue-500/20 text-yellow-300 px-2 py-1 rounded text-sm mr-3">GET</span>
                   /api/auth/me
                 </h3>
                 <p className="text-white/80 mb-4">Get current authenticated user information.</p>
@@ -110,7 +110,7 @@ export default function APIReferencePage() {
 
               <div>
                 <h3 className="text-lg font-semibold text-white mb-3">
-                  <span className="bg-blue-500/20 text-blue-300 px-2 py-1 rounded text-sm mr-3">GET</span>
+                  <span className="bg-blue-500/20 text-yellow-300 px-2 py-1 rounded text-sm mr-3">GET</span>
                   /api/businesses
                 </h3>
                 <p className="text-white/80 mb-4">List all businesses for the authenticated account.</p>
@@ -140,7 +140,7 @@ export default function APIReferencePage() {
             <div className="space-y-8">
               <div>
                 <h3 className="text-lg font-semibold text-white mb-3">
-                  <span className="bg-blue-500/20 text-blue-300 px-2 py-1 rounded text-sm mr-3">GET</span>
+                  <span className="bg-blue-500/20 text-yellow-300 px-2 py-1 rounded text-sm mr-3">GET</span>
                   /api/reviews
                 </h3>
                 <p className="text-white/80 mb-4">Fetch reviews for your business with filtering options.</p>
@@ -228,14 +228,14 @@ export default function APIReferencePage() {
         <div className="mb-12">
           <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-8">
             <h2 className="text-2xl font-bold text-white mb-6 flex items-center">
-              <Database className="w-6 h-6 mr-3 text-blue-400" />
+              <Database className="w-6 h-6 mr-3 text-yellow-400" />
               Prompt Pages
             </h2>
 
             <div className="space-y-8">
               <div>
                 <h3 className="text-lg font-semibold text-white mb-3">
-                  <span className="bg-blue-500/20 text-blue-300 px-2 py-1 rounded text-sm mr-3">GET</span>
+                  <span className="bg-blue-500/20 text-yellow-300 px-2 py-1 rounded text-sm mr-3">GET</span>
                   /api/prompt-pages
                 </h3>
                 <p className="text-white/80 mb-4">List all prompt pages for your account.</p>
@@ -391,25 +391,6 @@ function verifySignature(payload, signature, secret) {
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-
-        {/* Call to Action */}
-        <div className="text-center">
-          <div className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 p-8">
-            <h2 className="text-2xl font-bold text-white mb-4">Ready to Start Building?</h2>
-            <p className="text-white/80 mb-6">
-              Generate your API keys and start integrating PromptReviews into your applications.
-            </p>
-            <a
-              href="https://promptreviews.app/dashboard/settings/api"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center space-x-2 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
-            >
-              <Key className="w-4 h-4" />
-              <span>Generate API Keys</span>
-            </a>
           </div>
         </div>
       </div>

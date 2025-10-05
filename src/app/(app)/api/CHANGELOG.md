@@ -1,5 +1,62 @@
 # API Changelog
 
+## [2025-10-04]
+### Added - Share Image Generation System
+**New Endpoints:**
+- `POST /api/review-shares/generate-image` - Generate or retrieve share images for reviews
+  - Priority-based selection: existing photo → cached → generated → fallback
+  - Automatic caching in Supabase Storage (`share-review-images` bucket)
+  - Support for regeneration flag to force new image creation
+  - Account-scoped security validation
+  - Graceful error handling with text-only fallback
+
+- `GET /api/review-shares/og-image?reviewId={id}` - Dynamic OG image generation
+  - Edge runtime for fast performance
+  - Uses @vercel/og for server-side rendering
+  - Applies Prompt Page and Business styling (colors, fonts, gradients)
+  - 1200x630px PNG output (Open Graph standard)
+  - Star rating visualization with colored stars
+  - Truncated review text (150-200 characters max)
+  - Business name and branding
+  - Reviewer attribution
+
+- `DELETE /api/review-shares/generate-image?reviewId={id}` - Delete cached images
+  - Removes images from Supabase Storage
+  - Deletes metadata from review_share_images table
+  - Account-scoped deletion for security
+
+**Utilities:**
+- `/src/utils/shareImageStyles.ts` - Style extraction and formatting helpers
+- `/src/utils/shareImageGeneration.ts` - Client-side API wrapper
+- `/src/types/review-share-images.ts` - TypeScript interfaces
+
+**Database:**
+- Storage bucket `share-review-images` with RLS policies (public read, auth write)
+- Table `review_share_images` for tracking generated images
+- Prisma model for type-safe database access
+
+**Dependencies:**
+- Added `@vercel/og@^0.8.5` for OG image generation
+
+**Documentation:**
+- `/docs/SHARE_IMAGE_GENERATION.md` - Full technical documentation
+- `/docs/SHARE_IMAGE_EXAMPLES.md` - Visual examples and specifications
+- `/docs/SHARE_IMAGE_QUICK_START.md` - Quick start guide for developers
+- `/scripts/test-share-image-generation.js` - Comprehensive test suite
+
+**Security:**
+- Bearer token authentication required for generation/deletion
+- Review ownership verification (review → business → account)
+- Account-scoped data access via RLS policies
+- CSRF protection via origin validation
+- Public read access for social media compatibility
+
+**Performance:**
+- Automatic caching: ~2s first generation, ~100ms cached retrieval
+- Edge runtime for fast OG image rendering
+- CDN caching for public URLs
+- Preloading support for improved UX
+
 ## [2025-09-20]
 ### Fixed - Business Creation Flow
 - **Fixed business creation incorrectly updating existing accounts:**

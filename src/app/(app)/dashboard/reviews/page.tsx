@@ -14,6 +14,9 @@ import {
   EMOJI_SENTIMENT_ICONS,
 } from "@/app/(app)/components/prompt-modules/emojiSentimentConfig";
 import { platformOptions } from "@/app/(app)/components/prompt-features/ReviewPlatformsFeature";
+import ShareButton from "@/app/(app)/components/reviews/ShareButton";
+import { ToastContainer, useToast } from "@/app/(app)/components/reviews/Toast";
+import { SharePlatform } from "@/app/(app)/components/reviews/utils/shareHandlers";
 
 interface Review {
   id: string;
@@ -219,7 +222,9 @@ function getPlatformIcon(platform: string): { icon: any; label: string } {
     return { icon: "SiHomeadvisor", label: "HomeAdvisor" };
   if (lower.includes("trustpilot"))
     return { icon: "SiTrustpilot", label: "Trustpilot" };
-  return { icon: "FaRegStar", label: platform || "Other" };
+  if (lower.includes("other") || !platform)
+    return { icon: "FaStar", label: "Other" };
+  return { icon: "FaStar", label: platform || "Other" };
 }
 
 // Helper to check if a review is new (within 7 days)
@@ -271,8 +276,10 @@ export default function ReviewsPage() {
   const { loading: authLoading, shouldRedirect } = useAuthGuard();
   const supabase = createClient();
   const { selectedAccountId } = useAccountData();
+  const { toasts, closeToast, success, error: showError } = useToast();
 
   const [reviews, setReviews] = useState<Review[]>([]);
+  const [business, setBusiness] = useState<{ id: string; name: string; website?: string } | null>(null);
   const [grouped, setGrouped] = useState<ReviewerGroup[]>([]);
   const [platformGrouped, setPlatformGrouped] = useState<PlatformGroup[]>([]);
   const [expanded, setExpanded] = useState<{ [key: string]: boolean }>({});
@@ -318,10 +325,27 @@ export default function ReviewsPage() {
   useEffect(() => {
     const fetchReviews = async () => {
       if (!accountId) return; // Wait for account ID to be available
-      
+
       setLoading(true);
       setError(null);
       try {
+        // Fetch business data for this account
+        const { data: businessData } = await supabase
+          .from('businesses')
+          .select('id, name, business_website')
+          .eq('account_id', accountId)
+          .order('created_at', { ascending: true })
+          .limit(1)
+          .maybeSingle();
+
+        if (businessData) {
+          setBusiness({
+            id: businessData.id,
+            name: businessData.name,
+            website: businessData.business_website,
+          });
+        }
+
         // Get all prompt page IDs for this account first
         const { data: promptPages, error: promptPagesError } = await supabase
           .from('prompt_pages')
@@ -611,6 +635,29 @@ export default function ReviewsPage() {
     setTimeout(() => setSampleNotice(null), 7000);
   };
 
+  // Handle share success
+  const handleShareSuccess = (platform: SharePlatform) => {
+    const platformName = platform.charAt(0).toUpperCase() + platform.slice(1);
+    success(`Review shared on ${platformName}!`);
+  };
+
+  // Handle share error
+  const handleShareError = (errorMessage: string) => {
+    showError(errorMessage);
+  };
+
+  // Generate share URL for a review
+  const getReviewShareUrl = (review: Review): string => {
+    // Use business website as the share URL
+    // This will drive traffic to the customer's website
+    if (business?.website) {
+      return business.website;
+    }
+
+    // No fallback URL - return empty string if no website configured
+    return '';
+  };
+
   if (authLoading || loading) {
     return (
       <PageCard>
@@ -624,9 +671,11 @@ export default function ReviewsPage() {
   }
 
   return (
-    <PageCard>
-      {/* Title Row */}
-      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-16 w-full gap-2 relative">
+    <>
+      <ToastContainer toasts={toasts} onClose={closeToast} />
+      <PageCard>
+        {/* Title Row */}
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-16 w-full gap-2 relative">
         <div className="absolute z-10" style={{ left: "-69px", top: "-37px" }}>
           <div className="rounded-full bg-white w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center shadow-lg">
             <Icon name="FaStar" className="w-6 h-6 sm:w-7 sm:h-7 text-slate-blue" size={28} />
@@ -637,7 +686,7 @@ export default function ReviewsPage() {
             Reviews
           </h1>
           <p className="text-gray-600 text-base max-w-md mt-0 mb-10">
-            Manage and track all your customer reviews in one place.
+            Manage and track all your customer reviews in one place. Share your reviews on Bluesky, Pinterest, Facebook, and more.
           </p>
         </div>
       </div>
@@ -936,6 +985,23 @@ export default function ReviewsPage() {
                         >
                           {review.verified ? "Un-verify" : "Mark as Verified"}
                         </button>
+                        {!review.id.startsWith("sample-") && (
+                          <ShareButton
+                            review={{
+                              id: review.id,
+                              first_name: review.first_name,
+                              last_name: review.last_name,
+                              review_content: review.review_content,
+                              platform: review.platform,
+                              emoji_sentiment_selection: review.emoji_sentiment_selection,
+                            }}
+                            shareUrl={getReviewShareUrl(review)}
+                            productName={business?.name ? `${business.name} just got praise!` : "Just got praise!"}
+                            imageUrl={`/api/review-shares/og-image?reviewId=${review.id}`}
+                            onShareSuccess={handleShareSuccess}
+                            onShareError={handleShareError}
+                          />
+                        )}
                       </div>
                       <button
                         className="text-xs text-red-600 hover:underline"
@@ -985,8 +1051,9 @@ export default function ReviewsPage() {
         </div>
       )}
 
-      {/* Add responsive bottom padding to the card */}
-      <div className="pb-8 md:pb-12 lg:pb-16" />
-    </PageCard>
+        {/* Add responsive bottom padding to the card */}
+        <div className="pb-8 md:pb-12 lg:pb-16" />
+      </PageCard>
+    </>
   );
 }

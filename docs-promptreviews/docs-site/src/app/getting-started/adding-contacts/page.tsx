@@ -55,7 +55,7 @@ export default function AddingContactsPage() {
             </p>
             <div className="grid md:grid-cols-3 gap-4 mt-6">
               <div className="text-center">
-                <Upload className="w-8 h-8 text-blue-300 mx-auto mb-2" />
+                <Upload className="w-8 h-8 text-yellow-300 mx-auto mb-2" />
                 <h4 className="text-sm font-semibold text-white">Bulk Import</h4>
                 <p className="text-xs text-white/70 mt-1">Upload CSV files</p>
               </div>
@@ -82,7 +82,7 @@ export default function AddingContactsPage() {
             <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6">
               <div className="flex items-center space-x-3 mb-4">
                 <div className="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center">
-                  <FileSpreadsheet className="w-5 h-5 text-blue-300" />
+                  <FileSpreadsheet className="w-5 h-5 text-yellow-300" />
                 </div>
                 <h3 className="text-xl font-semibold text-white">Method 1: CSV Import (Recommended)</h3>
               </div>
@@ -140,7 +140,7 @@ export default function AddingContactsPage() {
                       </tbody>
                     </table>
                   </div>
-                  <button className="mt-3 inline-flex items-center text-blue-300 hover:underline text-sm">
+                  <button className="mt-3 inline-flex items-center text-yellow-300 hover:underline text-sm">
                     <Download className="w-4 h-4 mr-1" />
                     Download CSV Template
                   </button>
@@ -279,23 +279,23 @@ export default function AddingContactsPage() {
                 <h4 className="font-semibold text-white mb-2">Tag Benefits</h4>
                 <ul className="space-y-2 text-white/80 text-sm">
                   <li className="flex items-start space-x-2">
-                    <CheckCircle className="w-4 h-4 text-blue-300 mt-0.5" />
+                    <CheckCircle className="w-4 h-4 text-yellow-300 mt-0.5" />
                     <span>Send targeted review requests</span>
                   </li>
                   <li className="flex items-start space-x-2">
-                    <CheckCircle className="w-4 h-4 text-blue-300 mt-0.5" />
+                    <CheckCircle className="w-4 h-4 text-yellow-300 mt-0.5" />
                     <span>Track campaign performance</span>
                   </li>
                   <li className="flex items-start space-x-2">
-                    <CheckCircle className="w-4 h-4 text-blue-300 mt-0.5" />
+                    <CheckCircle className="w-4 h-4 text-yellow-300 mt-0.5" />
                     <span>Personalize messaging</span>
                   </li>
                   <li className="flex items-start space-x-2">
-                    <CheckCircle className="w-4 h-4 text-blue-300 mt-0.5" />
+                    <CheckCircle className="w-4 h-4 text-yellow-300 mt-0.5" />
                     <span>Filter and search quickly</span>
                   </li>
                   <li className="flex items-start space-x-2">
-                    <CheckCircle className="w-4 h-4 text-blue-300 mt-0.5" />
+                    <CheckCircle className="w-4 h-4 text-yellow-300 mt-0.5" />
                     <span>Create automated workflows</span>
                   </li>
                 </ul>
@@ -308,7 +308,7 @@ export default function AddingContactsPage() {
         <div className="mb-12">
           <div className="bg-blue-500/20 border border-blue-400/30 rounded-xl p-6">
             <div className="flex items-start space-x-3">
-              <Info className="w-6 h-6 text-blue-300 flex-shrink-0 mt-1" />
+              <Info className="w-6 h-6 text-yellow-300 flex-shrink-0 mt-1" />
               <div>
                 <h3 className="text-lg font-semibold text-white mb-2">Data Privacy & Compliance</h3>
                 <ul className="space-y-2 text-white/80">

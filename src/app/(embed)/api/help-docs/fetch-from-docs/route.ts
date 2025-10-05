@@ -5,7 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 
-const DOCS_BASE_URL = process.env.DOCS_URL || 'https://promptreviews.app/docs';
+const DOCS_BASE_URL = process.env.DOCS_URL || 'https://docs.promptreviews.app';
 
 export async function POST(req: NextRequest) {
   try {
@@ -22,7 +22,8 @@ export async function POST(req: NextRequest) {
     // Construct the URL to fetch from
     let fetchUrl = DOCS_BASE_URL;
     if (path) {
-      fetchUrl = `${DOCS_BASE_URL}${path}`;
+      const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+      fetchUrl = `${DOCS_BASE_URL}${normalizedPath}`;
     } else if (articleId) {
       // Map article IDs to docs paths
       const pathMap: Record<string, string> = {

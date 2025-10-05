@@ -1,13 +1,30 @@
 /**
  * API endpoint that fetches content from the docs site
  * This ensures all help content comes from the single source of truth
+ *
+ * @deprecated This endpoint is being phased out in favor of the new CMS-based
+ * /api/docs/articles/[slug] endpoint. It remains available for backward compatibility
+ * with legacy help content not yet migrated to the database.
+ *
+ * Migration path:
+ * 1. Import all docs content to the articles table
+ * 2. Update all references to use /api/docs/articles/[slug]
+ * 3. Remove this endpoint once migration is complete
+ *
+ * TODO: Remove after CMS migration is complete (Target: Q1 2026)
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 
-const DOCS_BASE_URL = process.env.DOCS_URL || 'https://promptreviews.app/docs';
+const DOCS_BASE_URL = process.env.DOCS_URL || 'https://docs.promptreviews.app';
 
 export async function POST(req: NextRequest) {
+  // Log deprecation warning
+  console.warn(
+    '[DEPRECATED] /api/help-docs/fetch-from-docs is deprecated. ' +
+    'Please migrate to /api/docs/articles/[slug] for CMS-based content.'
+  );
+
   try {
     const { path, articleId } = await req.json();
 
@@ -22,7 +39,8 @@ export async function POST(req: NextRequest) {
     // Construct the URL to fetch from
     let fetchUrl = DOCS_BASE_URL;
     if (path) {
-      fetchUrl = `${DOCS_BASE_URL}${path}`;
+      const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+      fetchUrl = `${DOCS_BASE_URL}${normalizedPath}`;
     } else if (articleId) {
       // Map article IDs to docs paths
       const pathMap: Record<string, string> = {
@@ -220,6 +238,12 @@ export async function POST(req: NextRequest) {
 
 // GET endpoint to list available articles
 export async function GET() {
+  // Log deprecation warning
+  console.warn(
+    '[DEPRECATED] /api/help-docs/fetch-from-docs GET endpoint is deprecated. ' +
+    'Please use /api/docs/search or /api/docs/contextual for article discovery.'
+  );
+
   // Return a list of available articles with their IDs and paths
   const articles = [
     {

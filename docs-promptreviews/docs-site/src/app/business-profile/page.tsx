@@ -119,14 +119,9 @@ export default function BusinessProfilePage() {
       bestPractices={bestPractices}
       faqs={faqs}
       callToAction={{
-        secondary: {
+        primary: {
           text: 'Learn About Prompt Pages',
           href: '/prompt-pages'
-        },
-        primary: {
-          text: 'Go to Business Profile',
-          href: 'https://app.promptreviews.app/dashboard/business-profile',
-          external: true
         }
       }}
       overview={{
@@ -150,7 +145,7 @@ export default function BusinessProfilePage() {
                 <p className="text-xs text-white/70">More authentic feedback</p>
               </div>
               <div className="bg-white/5 rounded-lg p-4">
-                <Building className="w-8 h-8 text-blue-300 mb-2" />
+                <Building className="w-8 h-8 text-yellow-300 mb-2" />
                 <h4 className="text-sm font-semibold text-white mb-1">Brand Consistency</h4>
                 <p className="text-xs text-white/70">Unified presence</p>
               </div>

@@ -49,7 +49,7 @@ interface StandardOverviewLayoutProps {
   currentPage: string
 
   // Plan availability
-  availablePlans: ('grower' | 'builder' | 'maven')[]
+  availablePlans: ('grower' | 'builder' | 'maven' | 'enterprise')[]
 
   // Content sections
   keyFeatures: Feature[]
@@ -58,7 +58,7 @@ interface StandardOverviewLayoutProps {
   faqs: { question: string; answer: string }[]
 
   // Call to action
-  callToAction: CallToAction
+  callToAction?: CallToAction
 
   // Optional overview section
   overview?: {
@@ -70,7 +70,8 @@ interface StandardOverviewLayoutProps {
 const planLabels = {
   grower: { label: 'Grower', color: 'bg-green-500/20 text-green-300' },
   builder: { label: 'Builder', color: 'bg-purple-500/20 text-purple-300' },
-  maven: { label: 'Maven', color: 'bg-yellow-500/20 text-yellow-300' }
+  maven: { label: 'Maven', color: 'bg-yellow-500/20 text-yellow-300' },
+  enterprise: { label: 'Enterprise', color: 'bg-blue-500/20 text-yellow-300' }
 }
 
 export default function StandardOverviewLayout({
@@ -199,39 +200,6 @@ export default function StandardOverviewLayout({
           pageTitle={currentPage}
           pageUrl={`https://docs.promptreviews.app/${currentPage.toLowerCase().replace(/\s+/g, '-')}`}
         />
-
-        {/* Call to Action */}
-        <div className="mt-16">
-          <div className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 p-8 text-center">
-            <h2 className="text-2xl font-bold text-white mb-4">Ready to Get Started?</h2>
-            <p className="text-white/80 mb-6 max-w-2xl mx-auto">
-              Take advantage of these powerful features to grow your business.
-            </p>
-
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              {callToAction.secondary && (
-                <Link
-                  href={callToAction.secondary.href}
-                  className="inline-flex items-center space-x-2 bg-white/10 text-white px-6 py-3 rounded-lg hover:bg-white/20 border border-white/30 transition-colors font-medium backdrop-blur-sm"
-                >
-                  <span>{callToAction.secondary.text}</span>
-                  <ArrowRight className="w-4 h-4" />
-                </Link>
-              )}
-
-              {callToAction.primary && (
-                <Link
-                  href={callToAction.primary.href}
-                  className="inline-flex items-center space-x-2 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
-                  {...(callToAction.primary.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
-                >
-                  <span>{callToAction.primary.text}</span>
-                  <CheckCircle className="w-4 h-4" />
-                </Link>
-              )}
-            </div>
-          </div>
-        </div>
       </div>
     </DocsLayout>
   )

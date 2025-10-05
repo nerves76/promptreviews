@@ -164,14 +164,9 @@ export default function AIReviewsPage() {
       bestPractices={bestPractices}
       faqs={pageFAQs['ai-reviews']}
       callToAction={{
-        secondary: {
+        primary: {
           text: 'Learn About Prompt Pages',
           href: '/prompt-pages'
-        },
-        primary: {
-          text: 'Try AI Features',
-          href: 'https://promptreviews.app/dashboard',
-          external: true
         }
       }}
       overview={{

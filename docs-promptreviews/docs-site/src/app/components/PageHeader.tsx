@@ -22,7 +22,7 @@ export default function PageHeader({
 }: PageHeaderProps) {
   const colorClasses = {
     orange: 'bg-orange-500/20 text-orange-300',
-    blue: 'bg-blue-500/20 text-blue-300',
+    blue: 'bg-blue-500/20 text-yellow-300',
     green: 'bg-green-500/20 text-green-300',
     purple: 'bg-purple-500/20 text-purple-300',
     pink: 'bg-pink-500/20 text-pink-300',

@@ -111,14 +111,9 @@ export default function StyleSettingsPage() {
         }
       ]}
       callToAction={{
-        secondary: {
+        primary: {
           text: 'View Prompt Pages',
           href: '/prompt-pages'
-        },
-        primary: {
-          text: 'Open Style Editor',
-          href: 'https://app.promptreviews.app/dashboard/style',
-          external: true
         }
       }}
     />

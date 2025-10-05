@@ -18,6 +18,7 @@ import { Input } from "@/app/(app)/components/ui/input";
 import { Textarea } from "@/app/(app)/components/ui/textarea";
 import { useFallingStars } from "@/hooks/useFallingStars";
 import { getFallingIcon } from "@/app/(app)/components/prompt-modules/fallingStarsConfig";
+import { getWordLimitOrDefault } from "@/constants/promptPageWordLimits";
 import RobotTooltip from "./RobotTooltip";
 import SectionHeader from "./SectionHeader";
 import ServicePromptPageForm from "./ServicePromptPageForm";
@@ -336,7 +337,7 @@ export default function PromptPageForm({
         pageData,
         reviewerData,
         formData.review_platforms[index].platform,
-        formData.review_platforms[index].wordCount || 200,
+        getWordLimitOrDefault(formData.review_platforms[index].wordCount),
         formData.review_platforms[index].customInstructions
       );
       setFormData((prev: any) => ({

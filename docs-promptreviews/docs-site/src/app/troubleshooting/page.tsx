@@ -137,14 +137,9 @@ export default function TroubleshootingPage() {
       bestPractices={bestPractices}
       faqs={pageFAQs['troubleshooting']}
       callToAction={{
-        secondary: {
+        primary: {
           text: 'Getting Started Guide',
           href: '/getting-started'
-        },
-        primary: {
-          text: 'Contact Support',
-          href: 'https://promptreviews.app/contact',
-          external: true
         }
       }}
       overview={{

@@ -223,7 +223,7 @@ export default function IntegrationsOverviewPage() {
                   <span>Widget customization</span>
                 </li>
               </ul>
-              <Link href="/api" className="inline-flex items-center text-blue-300 hover:text-blue-200">
+              <Link href="/api" className="inline-flex items-center text-yellow-300 hover:text-yellow-200">
                 <span>API Documentation</span>
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Link>
@@ -248,7 +248,7 @@ export default function IntegrationsOverviewPage() {
                   <span>Campaign updates</span>
                 </li>
               </ul>
-              <Link href="/api/reference#webhooks" className="inline-flex items-center text-blue-300 hover:text-blue-200">
+              <Link href="/api/reference#webhooks" className="inline-flex items-center text-yellow-300 hover:text-yellow-200">
                 <span>Webhook Guide</span>
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Link>

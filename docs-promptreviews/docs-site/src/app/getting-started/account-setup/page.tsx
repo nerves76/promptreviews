@@ -48,7 +48,7 @@ export default function AccountSetupPage() {
                 <h3 className="text-xl font-semibold text-white">Visit the Sign-Up Page</h3>
               </div>
               <p className="text-white/90 mb-4">
-                Go to <a href="https://app.promptreviews.com/signup" className="text-blue-300 hover:underline">app.promptreviews.com/signup</a> to create your account.
+                Go to <a href="https://app.promptreviews.com/signup" className="text-yellow-300 hover:underline">app.promptreviews.com/signup</a> to create your account.
               </p>
               <ul className="space-y-2 text-white/80">
                 <li className="flex items-start space-x-2">
@@ -105,7 +105,7 @@ export default function AccountSetupPage() {
             <div className="grid md:grid-cols-2 gap-6">
               <div>
                 <h3 className="text-lg font-semibold text-white mb-3 flex items-center">
-                  <Building className="w-5 h-5 mr-2 text-blue-300" />
+                  <Building className="w-5 h-5 mr-2 text-yellow-300" />
                   Business Information
                 </h3>
                 <ul className="space-y-2 text-white/80">
@@ -141,7 +141,7 @@ export default function AccountSetupPage() {
           
           <div className="bg-blue-500/20 border border-blue-400/30 rounded-xl p-6">
             <div className="flex items-start space-x-3">
-              <Shield className="w-6 h-6 text-blue-300 flex-shrink-0 mt-1" />
+              <Shield className="w-6 h-6 text-yellow-300 flex-shrink-0 mt-1" />
               <div>
                 <h3 className="text-lg font-semibold text-white mb-2">Your Data is Secure</h3>
                 <ul className="space-y-2 text-white/80">

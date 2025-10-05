@@ -155,14 +155,9 @@ export default function AdvancedPage() {
       bestPractices={bestPractices}
       faqs={advancedFAQs}
       callToAction={{
-        secondary: {
+        primary: {
           text: 'View Troubleshooting',
           href: '/troubleshooting'
-        },
-        primary: {
-          text: 'Access Analytics Dashboard',
-          href: 'https://promptreviews.app/dashboard/analytics',
-          external: true
         }
       }}
       overview={{

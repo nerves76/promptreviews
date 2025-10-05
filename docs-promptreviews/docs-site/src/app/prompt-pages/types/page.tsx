@@ -183,9 +183,9 @@ export default function PromptPageTypes() {
               <a
                 key={type.id}
                 href={`#${type.id}`}
-                className="flex flex-col items-center p-4 bg-white/10 backdrop-blur-md rounded-lg border border-white/20 hover:border-blue-400 hover:shadow-md transition-all"
+                className="flex flex-col items-center p-4 bg-white/10 backdrop-blur-md rounded-lg border border-white/20 hover:border-yellow-400 hover:shadow-md transition-all"
               >
-                <type.icon className="w-8 h-8 text-slate-blue mb-2" />
+                <type.icon className="w-8 h-8 text-yellow-300 mb-2" />
                 <span className="text-sm font-medium text-white text-center">
                   {type.title}
                 </span>
@@ -222,7 +222,7 @@ export default function PromptPageTypes() {
                         <ul className="space-y-2">
                           {type.features.map((feature, idx) => (
                             <li key={idx} className="flex items-start space-x-2">
-                              <div className="w-1.5 h-1.5 bg-slate-blue rounded-full mt-2 flex-shrink-0"></div>
+                              <div className="w-1.5 h-1.5 bg-yellow-400 rounded-full mt-2 flex-shrink-0"></div>
                               <span className="text-white/80">{feature}</span>
                             </li>
                           ))}
@@ -256,31 +256,10 @@ export default function PromptPageTypes() {
                         </ul>
                       </div>
 
-                      <div className="bg-blue-500/20 backdrop-blur-sm border border-blue-400/30 rounded-lg p-4">
-                        <h4 className="font-semibold text-blue-300 mb-2">Real Example</h4>
+                      <div className="bg-yellow-500/10 backdrop-blur-sm border border-yellow-400/30 rounded-lg p-4">
+                        <h4 className="font-semibold text-yellow-300 mb-2">Real Example</h4>
                         <p className="text-white/80 text-sm">{type.example}</p>
                       </div>
-                    </div>
-                  </div>
-
-                  {/* CTA */}
-                  <div className="mt-8 pt-6 border-t border-white/20">
-                    <div className="flex flex-col sm:flex-row items-center justify-between">
-                      <div>
-                        <h4 className="font-semibold text-white">Ready to create your {type.title}?</h4>
-                        <p className="text-white/70 text-sm mt-1">Get started in just a few minutes</p>
-                      </div>
-                      <a
-                        href="https://promptreviews.app/dashboard/create-prompt-page"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="mt-4 sm:mt-0 inline-flex items-center px-6 py-3 bg-slate-blue text-white font-medium rounded-lg hover:bg-slate-blue/90 transition-colors"
-                      >
-                        Create {type.title}
-                        <svg className="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                        </svg>
-                      </a>
                     </div>
                   </div>
                 </div>

@@ -39,7 +39,7 @@ export default function FirstReviewRequestPage() {
             
             <div className="grid md:grid-cols-4 gap-4">
               <div className="text-center bg-white/5 rounded-lg p-4">
-                <Mail className="w-8 h-8 text-blue-300 mx-auto mb-2" />
+                <Mail className="w-8 h-8 text-yellow-300 mx-auto mb-2" />
                 <h4 className="text-sm font-semibold text-white">Email</h4>
                 <p className="text-xs text-white/70 mt-1">Most popular</p>
               </div>
@@ -71,7 +71,7 @@ export default function FirstReviewRequestPage() {
             <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6">
               <div className="flex items-center space-x-3 mb-4">
                 <div className="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center">
-                  <Mail className="w-5 h-5 text-blue-300" />
+                  <Mail className="w-5 h-5 text-yellow-300" />
                 </div>
                 <h3 className="text-xl font-semibold text-white">Method 1: Email Campaigns</h3>
               </div>
@@ -85,27 +85,27 @@ export default function FirstReviewRequestPage() {
                   <h4 className="font-semibold text-white mb-2">Steps to Send Email Requests:</h4>
                   <ol className="space-y-2 text-white/80">
                     <li className="flex items-start space-x-2">
-                      <span className="text-blue-300">1.</span>
+                      <span className="text-yellow-300">1.</span>
                       <span>Go to <strong>Contacts</strong> and select recipients</span>
                     </li>
                     <li className="flex items-start space-x-2">
-                      <span className="text-blue-300">2.</span>
+                      <span className="text-yellow-300">2.</span>
                       <span>Click <strong>"Send Review Request"</strong></span>
                     </li>
                     <li className="flex items-start space-x-2">
-                      <span className="text-blue-300">3.</span>
+                      <span className="text-yellow-300">3.</span>
                       <span>Choose <strong>"Email"</strong> as the delivery method</span>
                     </li>
                     <li className="flex items-start space-x-2">
-                      <span className="text-blue-300">4.</span>
+                      <span className="text-yellow-300">4.</span>
                       <span>Select your prompt page</span>
                     </li>
                     <li className="flex items-start space-x-2">
-                      <span className="text-blue-300">5.</span>
+                      <span className="text-yellow-300">5.</span>
                       <span>Customize the email template (or use AI-generated)</span>
                     </li>
                     <li className="flex items-start space-x-2">
-                      <span className="text-blue-300">6.</span>
+                      <span className="text-yellow-300">6.</span>
                       <span>Preview and send immediately or schedule</span>
                     </li>
                   </ol>
@@ -288,7 +288,7 @@ export default function FirstReviewRequestPage() {
           
           <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6">
             <div className="flex items-start space-x-3 mb-4">
-              <Clock className="w-6 h-6 text-blue-300 flex-shrink-0" />
+              <Clock className="w-6 h-6 text-yellow-300 flex-shrink-0" />
               <div className="w-full">
                 <h3 className="text-lg font-semibold text-white mb-3">When to Send Review Requests</h3>
                 
@@ -345,7 +345,7 @@ export default function FirstReviewRequestPage() {
             </div>
             
             <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6">
-              <Smartphone className="w-8 h-8 text-blue-300 mb-3" />
+              <Smartphone className="w-8 h-8 text-yellow-300 mb-3" />
               <h3 className="font-semibold text-white mb-2">Optimize for Mobile</h3>
               <ul className="space-y-1 text-white/80 text-sm">
                 <li>• Short subject lines</li>
@@ -375,31 +375,6 @@ export default function FirstReviewRequestPage() {
                 </ul>
               </div>
             </div>
-          </div>
-        </div>
-
-        {/* Next Steps */}
-        <div className="bg-gradient-to-r from-pink-500 to-rose-600 rounded-lg p-8 text-center">
-          <h2 className="text-2xl font-bold text-white mb-4">
-            Ready to Display Your Reviews?
-          </h2>
-          <p className="text-white/90 mb-6 max-w-2xl mx-auto">
-            Now that you're collecting reviews, let's set up widgets to showcase them on your website.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link
-              href="/getting-started/review-widget"
-              className="inline-flex items-center px-6 py-3 bg-white/20 text-white backdrop-blur-sm font-medium rounded-lg hover:bg-white/30 transition-colors"
-            >
-              Set Up Widget
-              <ArrowRight className="ml-2 w-4 h-4" />
-            </Link>
-            <Link
-              href="/getting-started"
-              className="inline-flex items-center px-6 py-3 border border-white text-white font-medium rounded-lg hover:bg-white/10 transition-colors"
-            >
-              Back to Overview
-            </Link>
           </div>
         </div>
       </div>

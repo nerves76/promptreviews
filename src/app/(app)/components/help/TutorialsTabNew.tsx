@@ -9,7 +9,8 @@ import Icon, { IconName } from '@/components/Icon';
 import { Tutorial } from './types';
 import { calculateRelevanceScore } from './contextMapper';
 import { trackEvent } from '@/utils/analytics';
-import ArticleViewer from './ArticleViewer';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 interface TutorialsTabProps {
   pathname: string;
@@ -44,6 +45,7 @@ const helpCategories = [
     color: 'blue',
     articles: [
       { id: 'prompt-overview', title: 'Overview', path: '/prompt-pages' },
+      { id: 'prompt-settings', title: 'Prompt Page Settings', path: '/prompt-pages/settings' },
       { id: 'prompt-features', title: 'Features', path: '/prompt-pages/features' },
       { id: 'prompt-universal', title: 'Universal Page', path: '/prompt-pages/types/universal' },
       { id: 'prompt-service', title: 'Service Pages', path: '/prompt-pages/types/service' },
@@ -165,6 +167,7 @@ export default function TutorialsTabNew({
   const [selectedArticle, setSelectedArticle] = useState<any>(null);
   const [loadingContent, setLoadingContent] = useState(false);
   const [articleContent, setArticleContent] = useState<string>('');
+  const [isHtmlContent, setIsHtmlContent] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
 
   // Handle initial article if provided - Store state for later loading
@@ -190,138 +193,293 @@ export default function TutorialsTabNew({
     }
   }, [initialArticleId]);
 
-  // Get featured articles based on current page context
+  // Get featured articles based on current page context - now using CMS API
   useEffect(() => {
-    const getFeaturedArticles = () => {
-      const featured = [];
-      
-      // Map pages to relevant articles
-      if (pathname.includes('dashboard')) {
-        featured.push(
-          { id: 'quickstart-overview', title: 'Getting Started Guide', category: 'getting-started', icon: 'FaRocket' },
-          { id: 'prompt-universal', title: 'The Universal Prompt Page', category: 'prompt-pages', icon: 'FaGlobe' },
-          { id: 'reviews-dashboard', title: 'Managing Reviews', category: 'reviews', icon: 'FaStar' }
-        );
-      } else if (pathname.includes('plan')) {
-        featured.push(
-          { id: 'quickstart-choosing-plan', title: 'Choosing the Right Plan', category: 'getting-started', icon: 'FaRocket' },
-          { id: 'billing', title: 'Billing Information', category: 'settings', icon: 'FaCreditCard' }
-        );
-      } else if (pathname.includes('google-business')) {
-        featured.push(
-          { id: 'google-overview', title: 'Google Business Integration', category: 'google-business', icon: 'FaGoogle' },
-          { id: 'google-services-seo', title: 'Boost SEO with Services', category: 'google-business', icon: 'FaSearch' },
-          { id: 'google-products', title: 'Products Guide', category: 'google-business', icon: 'FaBox' }
-        );
-      } else if (pathname.includes('widget')) {
-        featured.push(
-          { id: 'widgets-overview', title: 'Widget Types', category: 'widgets', icon: 'FaCode' },
-          { id: 'style-settings', title: 'Customize Widget Style', category: 'widgets', icon: 'FaPaintBrush' },
-          { id: 'quickstart-widget', title: 'Widget Setup Guide', category: 'getting-started', icon: 'FaRocket' }
-        );
-      } else if (pathname.includes('contacts')) {
-        featured.push(
-          { id: 'contacts-overview', title: 'Managing Contacts', category: 'contacts', icon: 'FaUsers' },
-          { id: 'quickstart-contacts', title: 'Import Your First Contacts', category: 'getting-started', icon: 'FaUpload' }
-        );
-      } else {
-        // Default featured articles
-        featured.push(
-          { id: 'quickstart-overview', title: 'Getting Started Guide', category: 'getting-started', icon: 'FaRocket' },
-          { id: 'prompt-overview', title: 'Understanding Prompt Pages', category: 'prompt-pages', icon: 'FaGlobe' },
-          { id: 'reviews-dashboard', title: 'Reviews Dashboard', category: 'reviews-management', icon: 'FaStar' }
-        );
+    const getFeaturedArticles = async () => {
+      try {
+        const response = await fetch('/api/docs/contextual', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            route: pathname,
+            limit: 3,
+            // userPlan can be added later for plan-based filtering
+          })
+        });
+
+    if (response.ok) {
+      const data = await response.json();
+      // Transform Article type to featured article format
+      const featured = data.articles.map((article: any) => ({
+        id: article.slug,
+        title: article.title,
+        category: article.metadata?.category || 'general',
+        icon: article.metadata?.category_icon || 'FaQuestionCircle',
+        slug: article.slug,
+        path: `/${article.slug}`,
+        content: article.content || ''
+      }));
+
+      setFeaturedArticles(featured.length > 0 ? featured : getDefaultFeatured());
+    } else {
+      // Fallback to hardcoded featured articles
+      setFeaturedArticles(getDefaultFeatured());
+    }
+      } catch (error) {
+        console.error('Error fetching featured articles:', error);
+        setFeaturedArticles(getDefaultFeatured());
       }
-      
-      setFeaturedArticles(featured);
     };
-    
+
+    const getDefaultFeatured = () => {
+      // Fallback featured articles if API fails
+      if (pathname.includes('prompt-pages') || pathname.includes('edit-prompt-page')) {
+        return [
+          { id: 'prompt-pages-settings', title: 'Prompt Page Settings', category: 'prompt-pages', icon: 'FaCog', slug: 'prompt-pages/settings', path: '/prompt-pages/settings' },
+          { id: 'prompt-pages-types-universal', title: 'The Universal Prompt Page', category: 'prompt-pages', icon: 'FaGlobe', slug: 'prompt-pages/types/universal', path: '/prompt-pages/types/universal' },
+          { id: 'prompt-pages-features', title: 'Prompt Page Features', category: 'prompt-pages', icon: 'FaStar', slug: 'prompt-pages/features', path: '/prompt-pages/features' },
+        ];
+      } else if (pathname.includes('widget')) {
+        return [
+          { id: 'widgets', title: 'Widget Types', category: 'widgets', icon: 'FaCode', slug: 'widgets', path: '/widgets' },
+          { id: 'style-settings', title: 'Customize Widget Style', category: 'widgets', icon: 'FaPaintBrush', slug: 'style-settings', path: '/style-settings' },
+        ];
+      } else if (pathname.includes('contacts')) {
+        return [
+          { id: 'contacts', title: 'Managing Contacts', category: 'contacts', icon: 'FaUsers', slug: 'contacts', path: '/contacts' },
+        ];
+      } else {
+        // Default for dashboard
+        return [
+          { id: 'getting-started', title: 'Getting Started Guide', category: 'getting-started', icon: 'FaRocket', slug: 'getting-started', path: '/getting-started' },
+        ];
+      }
+    };
+
     getFeaturedArticles();
   }, [pathname]);
 
-  // Load article content from docs site
-  const loadArticleContent = async (articlePathOrId: string) => {
+  // Load article content from CMS - updated to use new API
+  const loadArticleContent = async (identifier: { slug?: string; path?: string; legacyId?: string; content?: string }) => {
+    if (identifier.content) {
+      setArticleContent(identifier.content);
+      setIsHtmlContent(false);
+      return;
+    }
     setLoadingContent(true);
     try {
-      // Check if this is a Google Biz Optimizer article ID or a regular path
-      const isGoogleBizOptimizer = articlePathOrId.startsWith('google-biz-optimizer/');
+      const slug = identifier.slug;
+
+      if (slug) {
+        // Use the new /api/docs/articles/[slug] endpoint
+        const response = await fetch(`/api/docs/articles/${encodeURIComponent(slug)}`);
+
+        if (response.ok) {
+          const data = await response.json();
+          // The new API returns { article, source }
+          // Article content is in markdown format
+          setArticleContent(data.article.content);
+          setIsHtmlContent(false);
+        } else {
+          console.warn('New API failed, falling back to legacy fetch-from-docs API');
+          await loadArticleContentLegacy(identifier);
+        }
+      } else {
+        // No slug available yet - use legacy path/id immediately
+        await loadArticleContentLegacy(identifier);
+      }
+    } catch (error) {
+      console.error('Error loading article:', error);
+      // Fallback to old API
+      await loadArticleContentLegacy(identifier);
+    } finally {
+      setLoadingContent(false);
+    }
+  };
+
+  // Legacy fallback for articles not yet in CMS
+  const loadArticleContentLegacy = async (identifier: { path?: string; legacyId?: string; slug?: string }) => {
+    try {
+      const legacyId = identifier.legacyId || '';
+      const normalizedPath = normalizePath(identifier.path, identifier.slug);
+      const isGoogleBizOptimizer = legacyId.startsWith('google-biz-optimizer/');
 
       const response = await fetch('/api/help-docs/fetch-from-docs', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(
           isGoogleBizOptimizer
-            ? { articleId: articlePathOrId }
-            : { path: articlePathOrId }
+            ? { articleId: legacyId }
+            : { path: normalizedPath }
         )
       });
-      
+
       if (response.ok) {
         const data = await response.json();
-        // Apply formatting to the content
-        const formattedContent = formatArticleContent(data.content);
-        setArticleContent(formattedContent);
+        setArticleContent(formatLegacyHtml(data.content));
+        setIsHtmlContent(true);
       } else {
-        setArticleContent('<p class="text-red-600">Failed to load article content. Please try again.</p>');
+        setArticleContent('**Failed to load article content. Please try again.**');
+        setIsHtmlContent(false);
       }
     } catch (error) {
-      console.error('Error loading article:', error);
-      setArticleContent('<p class="text-red-600">Failed to load article content. Please try again.</p>');
-    } finally {
-      setLoadingContent(false);
+      console.error('Error loading article with legacy API:', error);
+      setArticleContent('**Failed to load article content. Please try again.**');
+      setIsHtmlContent(false);
     }
   };
 
-  // Format content with proper styling - matching ArticleViewer pattern
-  const formatArticleContent = (html: string) => {
-    // Remove icon elements and containers that don't render properly
-    let formatted = html
-      .replace(/<svg[^>]*>[\s\S]*?<\/svg>/gi, '') // Remove SVG icons
-      .replace(/<i[^>]*class="[^"]*(?:fa-|icon-)[^"]*"[^>]*><\/i>/gi, '') // Remove FontAwesome icons
-      // Remove various icon container patterns
-      .replace(/<div[^>]*class="[^"]*(?:w-12|w-10|w-8|w-6)[^"]*h-(?:12|10|8|6)[^"]*"[^>]*>[\s\S]*?<\/div>/gi, '') // Remove w-X h-X icon containers
-      .replace(/<div[^>]*class="[^"]*icon[^"]*"[^>]*>[\s\S]*?<\/div>/gi, '') // Remove divs with 'icon' class
-      // Clean up extra whitespace left by removed elements
-      .replace(/\s{3,}/g, ' ') // Replace 3+ spaces with single space
-      .replace(/>\s+</g, '><'); // Remove whitespace between tags
+  const normalizeSlug = (value?: string): string | undefined => {
+    if (!value) return undefined;
 
-    // Simple text color fixes - just ensure text is dark (do this first)
+    const withoutDomain = value.replace(/^https?:\/\/[^/]+\//, '');
+    let cleaned = withoutDomain
+      .replace(/^docs\//, '')
+      .replace(/^docs\/help\//, '')
+      .replace(/^help\//, '')
+      .replace(/^\//, '')
+      .replace(/\.md$/i, '');
+
+    if (cleaned.startsWith('docs/')) {
+      cleaned = cleaned.replace(/^docs\//, '');
+    }
+
+    return cleaned;
+  };
+
+  const normalizePath = (value?: string, fallbackSlug?: string): string => {
+    if (value) {
+      if (value.startsWith('http')) {
+        try {
+          const url = new URL(value);
+          return url.pathname || '/';
+        } catch (_error) {
+          // Fall through to general handling
+        }
+      }
+
+      const withLeadingSlash = value.startsWith('/') ? value : `/${value}`;
+      return withLeadingSlash.replace(/\.md$/i, '');
+    }
+
+    if (fallbackSlug) {
+      return `/${fallbackSlug}`;
+    }
+
+    return '/';
+  };
+
+  const formatLegacyHtml = (html: string) => {
+    if (!html) return '';
+    let formatted = html
+      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+      .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '')
+      .replace(/<svg[^>]*>[\s\S]*?<\/svg>/gi, '')
+      .replace(/<i[^>]*class="[^"]*(?:fa-|icon-)[^"]*"[^>]*>[\s\S]*?<\/i>/gi, '')
+      .replace(/<div[^>]*class="[^"]*(?:w-12|w-10|w-8|w-6)[^"]*h-(?:12|10|8|6)[^"]*"[^>]*>[\s\S]*?<\/div>/gi, '')
+      .replace(/<div[^>]*class="[^"]*icon[^"]*"[^>]*>[\s\S]*?<\/div>/gi, '')
+      .replace(/\s{3,}/g, ' ')
+      .replace(/>\s+</g, '><');
+
     formatted = formatted
       .replace(/<h1([^>]*)>/g, '<h1$1 style="color: #111827;">')
       .replace(/<h2([^>]*)>/g, '<h2$1 style="color: #111827;">')
       .replace(/<h3([^>]*)>/g, '<h3$1 style="color: #111827;">')
-      .replace(/<h4([^>]*)>/g, '<h4$1 style="color: #111827;">')
       .replace(/<p([^>]*)>/g, '<p$1 style="color: #111827;">')
       .replace(/<li([^>]*)>/g, '<li$1 style="color: #111827;">')
       .replace(/<strong([^>]*)>/g, '<strong$1 style="color: #111827;">')
-      .replace(/<a([^>]*)>/g, '<a$1 style="color: #1e40af !important; text-decoration: underline;">'); // Fix links - make them dark blue
-
-    // Fix "Available on:" text and plan badges (do this after so it overrides)
-    formatted = formatted
+      .replace(/<a([^>]*)>/g, '<a$1 style="color: #1e40af; text-decoration: underline;">')
       .replace(/Available on:\/span>/gi, 'Available on:')
       .replace(/Available on:/gi, '<strong style="color: #000000;">Available on:</strong>')
-      // Fix plan badges - dark background with white text
       .replace(/<span([^>]*)>(grower|builder|maven)<\/span>/gi,
-        '<span style="color: white !important;" class="inline-block px-2 py-1 text-xs font-bold rounded bg-slate-900 mx-1">$2</span>')
-      // Fix category label pills (like "Quick Start Guide") - keep colored backgrounds but make text black
-      .replace(/text-green-300/gi, 'text-gray-900')
-      .replace(/text-blue-300/gi, 'text-gray-900')
-      .replace(/text-purple-300/gi, 'text-gray-900')
-      .replace(/text-yellow-300/gi, 'text-gray-900')
-      .replace(/text-pink-300/gi, 'text-gray-900')
-      .replace(/text-red-300/gi, 'text-gray-900')
-      .replace(/text-orange-300/gi, 'text-gray-900')
-      .replace(/text-cyan-300/gi, 'text-gray-900')
-      .replace(/text-indigo-300/gi, 'text-gray-900')
-      .replace(/text-teal-300/gi, 'text-gray-900');
+        '<span style="color: white;" class="inline-block px-2 py-1 text-xs font-bold rounded bg-slate-900 mx-1">$2</span>')
+      .replace(/text-green-300/gi, 'text-slate-900')
+      .replace(/text-blue-300/gi, 'text-slate-900')
+      .replace(/text-purple-300/gi, 'text-slate-900')
+      .replace(/text-yellow-300/gi, 'text-slate-900')
+      .replace(/text-pink-300/gi, 'text-slate-900')
+      .replace(/text-red-300/gi, 'text-slate-900')
+      .replace(/text-orange-300/gi, 'text-slate-900')
+      .replace(/text-cyan-300/gi, 'text-slate-900')
+      .replace(/text-indigo-300/gi, 'text-slate-900')
+      .replace(/text-teal-300/gi, 'text-slate-900');
 
     return formatted.trim();
   };
 
-  // Handle article click
+  // Render article content with consistent styling inside the modal
+  const renderMarkdown = (content: string) => (
+    <ReactMarkdown
+      remarkPlugins={[remarkGfm]}
+      components={{
+        h1: ({ node, ...props }) => (
+          <h1 className="text-xl font-bold text-slate-900 mb-4" {...props} />
+        ),
+        h2: ({ node, ...props }) => (
+          <h2 className="text-lg font-semibold text-slate-900 mt-6 mb-3" {...props} />
+        ),
+        h3: ({ node, ...props }) => (
+          <h3 className="text-base font-semibold text-slate-900 mt-4 mb-2" {...props} />
+        ),
+        p: ({ node, ...props }) => (
+          <p className="text-sm leading-6 text-slate-700 mb-3" {...props} />
+        ),
+        ul: ({ node, ordered, ...props }) => (
+          <ul className="list-disc pl-5 space-y-2 text-sm text-slate-700 mb-3" {...props} />
+        ),
+        ol: ({ node, ordered, ...props }) => (
+          <ol className="list-decimal pl-5 space-y-2 text-sm text-slate-700 mb-3" {...props} />
+        ),
+        li: ({ node, ...props }) => (
+          <li className="leading-6" {...props} />
+        ),
+        a: ({ node, ...props }) => (
+          <a className="text-indigo-600 underline" target="_blank" rel="noopener noreferrer" {...props} />
+        ),
+        blockquote: ({ node, ...props }) => (
+          <blockquote className="border-l-4 border-indigo-200 pl-4 italic text-slate-600 my-4" {...props} />
+        ),
+        code: ({ inline, className, children, ...props }) => {
+          if (inline) {
+            return (
+              <code className="bg-slate-200/80 text-slate-800 px-1.5 py-0.5 rounded text-xs" {...props}>
+                {children}
+              </code>
+            );
+          }
+          return (
+            <pre className="bg-slate-900/90 text-slate-50 rounded-lg p-4 overflow-x-auto text-xs" {...props}>
+              <code>{children}</code>
+            </pre>
+          );
+        },
+        hr: ({ node, ...props }) => (
+          <hr className="my-6 border-slate-200" {...props} />
+        ),
+        table: ({ node, ...props }) => (
+          <div className="overflow-x-auto my-4">
+            <table className="w-full text-sm text-left text-slate-700" {...props} />
+          </div>
+        ),
+        thead: ({ node, ...props }) => (
+          <thead className="bg-slate-100 text-slate-900" {...props} />
+        ),
+        th: ({ node, ...props }) => (
+          <th className="px-4 py-2 font-semibold" {...props} />
+        ),
+        td: ({ node, ...props }) => (
+          <td className="px-4 py-2" {...props} />
+        ),
+      }}
+    >
+      {content}
+    </ReactMarkdown>
+  );
+
+  // Handle article click - updated to use slug
   const handleArticleClick = async (article: any, category: any) => {
     trackEvent('help_article_clicked', {
-      article_id: article.id,
+      article_id: article.slug || article.id,
       article_title: article.title,
       category: category.id,
       context: pathname
@@ -329,11 +487,16 @@ export default function TutorialsTabNew({
 
     setSelectedArticle(article);
     setSelectedCategory(category);
-    // For Google Biz Optimizer articles, use the ID instead of path
-    const contentIdentifier = article.id.startsWith('google-biz-optimizer/')
-      ? article.id
-      : article.path;
-    await loadArticleContent(contentIdentifier);
+
+    const slug = normalizeSlug(article.slug || article.path || article.id);
+    const path = normalizePath(article.path || article.slug, slug);
+
+    await loadArticleContent({
+      slug,
+      path,
+      legacyId: article.id,
+      content: article.content
+    });
   };
 
   // Load initial article if one was pending
@@ -344,16 +507,25 @@ export default function TutorialsTabNew({
     }
   }, [pendingInitialLoad]);
 
-  // Handle featured article click
+  // Handle featured article click - updated for slug-based system
   const handleFeaturedClick = async (featured: any) => {
-    const category = helpCategories.find(cat => 
-      cat.articles.some(art => art.id === featured.id)
-    );
-    const article = category?.articles.find(art => art.id === featured.id);
-    
-    if (article && category) {
-      await handleArticleClick(article, category);
-    }
+    // With the new CMS, featured articles have slugs we can use directly
+    const fallbackSlug = normalizeSlug(featured.slug || featured.id);
+    const articleToLoad = {
+      id: featured.slug || featured.id,
+      slug: fallbackSlug,
+      title: featured.title,
+      path: featured.path || normalizePath(featured.slug || featured.id, fallbackSlug),
+      content: featured.content
+    };
+
+    const mockCategory = {
+      id: featured.category,
+      title: featured.category.replace(/-/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase()),
+      icon: featured.icon
+    };
+
+    await handleArticleClick(articleToLoad, mockCategory);
   };
 
   // Back to categories
@@ -361,6 +533,7 @@ export default function TutorialsTabNew({
     setSelectedArticle(null);
     setSelectedCategory(null);
     setArticleContent('');
+    setIsHtmlContent(false);
   };
 
   // Handle clicks on links within article content
@@ -427,7 +600,7 @@ export default function TutorialsTabNew({
         contentRef.current.removeEventListener('click', handleLinkClick);
       }
     };
-  }, [articleContent]);
+  }, [articleContent, isHtmlContent]);
 
   // Show article viewer if article is selected
   if (selectedArticle) {
@@ -461,10 +634,15 @@ export default function TutorialsTabNew({
             ) : (
               <div
                 ref={contentRef}
-                className="article-content"
+                className="article-content prose prose-sm max-w-none"
                 style={{ margin: 0, padding: 0 }}
-                dangerouslySetInnerHTML={{ __html: articleContent }}
-              />
+              >
+                {isHtmlContent ? (
+                  <div dangerouslySetInnerHTML={{ __html: articleContent }} />
+                ) : (
+                  renderMarkdown(articleContent)
+                )}
+              </div>
             )}
           </div>
         </div>

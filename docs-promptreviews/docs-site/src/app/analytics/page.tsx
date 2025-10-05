@@ -95,14 +95,9 @@ export default function AnalyticsPage() {
       bestPractices={bestPractices}
       faqs={pageFAQs['analytics']}
       callToAction={{
-        secondary: {
+        primary: {
           text: 'Optimize Prompt Pages',
           href: '/prompt-pages'
-        },
-        primary: {
-          text: 'View Analytics',
-          href: 'https://app.promptreviews.app/dashboard/analytics',
-          external: true
         }
       }}
     />

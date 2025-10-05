@@ -37,8 +37,8 @@ export default function EmployeePromptPages() {
           <h2 className="text-2xl font-bold text-white mb-6">Why Choose Employee Prompt Pages?</h2>
           <div className="grid md:grid-cols-3 gap-6">
             <div className="text-center">
-              <div className="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <Award className="w-6 h-6 text-blue-300" />
+              <div className="w-12 h-12 bg-white/10 rounded-lg flex items-center justify-center mx-auto mb-4">
+                <Award className="w-6 h-6 text-yellow-300" />
               </div>
               <h3 className="font-semibold text-white mb-2">Recognition</h3>
               <p className="text-white/70 text-sm">Recognize and reward exceptional team members</p>
@@ -72,9 +72,9 @@ export default function EmployeePromptPages() {
                 <li>• Restaurants & cafes</li>
                 <li>• Hotels & hospitality</li>
               </ul>
-              <div className="bg-blue-500/20 border border-blue-400/30 rounded-lg p-3">
+              <div className="bg-white/10 border border-yellow-400/30 rounded-lg p-3">
                 <p className="text-white/80 text-sm">
-                  <strong className="text-blue-300">Why:</strong> Customers often prefer specific service providers
+                  <strong className="text-yellow-300">Why:</strong> Customers often prefer specific service providers
                 </p>
               </div>
             </div>
@@ -157,19 +157,19 @@ export default function EmployeePromptPages() {
                 <h3 className="text-xl font-semibold text-white mb-4">Review Options</h3>
                 <ul className="space-y-2 text-white/80">
                   <li className="flex items-start space-x-2">
-                    <span className="text-blue-300">✓</span>
+                    <span className="text-yellow-300">✓</span>
                     <span>Service quality rating</span>
                   </li>
                   <li className="flex items-start space-x-2">
-                    <span className="text-blue-300">✓</span>
+                    <span className="text-yellow-300">✓</span>
                     <span>Communication skills</span>
                   </li>
                   <li className="flex items-start space-x-2">
-                    <span className="text-blue-300">✓</span>
+                    <span className="text-yellow-300">✓</span>
                     <span>Expertise assessment</span>
                   </li>
                   <li className="flex items-start space-x-2">
-                    <span className="text-blue-300">✓</span>
+                    <span className="text-yellow-300">✓</span>
                     <span>Would recommend rating</span>
                   </li>
                 </ul>
@@ -214,7 +214,7 @@ export default function EmployeePromptPages() {
             
             <div className="bg-white/10 backdrop-blur-md rounded-lg shadow-sm border border-white/20 p-6">
               <div className="flex items-center space-x-2 mb-3">
-                <Users className="w-5 h-5 text-blue-300" />
+                <Users className="w-5 h-5 text-yellow-300" />
                 <h3 className="font-semibold text-white">Customer Loyalty</h3>
               </div>
               <p className="text-white/80 text-sm">
@@ -258,29 +258,6 @@ export default function EmployeePromptPages() {
           </div>
         </div>
 
-        {/* CTA */}
-        <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg p-8 text-center">
-          <h2 className="text-2xl font-bold text-white mb-4">
-            Ready to Spotlight Your Team?
-          </h2>
-          <p className="text-white/90 mb-6 max-w-2xl mx-auto">
-            Start recognizing your employees and collecting valuable feedback about individual team members.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a
-              href="https://promptreviews.app/dashboard"
-              className="inline-flex items-center px-6 py-3 bg-white/20 text-white backdrop-blur-sm font-medium rounded-lg hover:bg-white/30 transition-colors"
-            >
-              Create Employee Page
-            </a>
-            <a
-              href="/prompt-pages/types"
-              className="inline-flex items-center px-6 py-3 border border-white text-white font-medium rounded-lg hover:bg-white/10 transition-colors"
-            >
-              View All Types
-            </a>
-          </div>
-        </div>
       </div>
     </DocsLayout>
   );

@@ -37,8 +37,8 @@ export default function UniversalPromptPages() {
           <h2 className="text-2xl font-bold text-white mb-6">Why Choose The Universal Prompt Page?</h2>
           <div className="grid md:grid-cols-2 gap-6">
             <div className="text-center">
-              <div className="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <Zap className="w-6 h-6 text-blue-300" />
+              <div className="w-12 h-12 bg-yellow-500/20 rounded-lg flex items-center justify-center mx-auto mb-4">
+                <Zap className="w-6 h-6 text-yellow-300" />
               </div>
               <h3 className="font-semibold text-white mb-2">Always Ready</h3>
               <p className="text-white/70 text-sm">One link that works for every customer interaction</p>
@@ -75,16 +75,16 @@ export default function UniversalPromptPages() {
 
             <div className="bg-white/10 backdrop-blur-md rounded-lg shadow-sm border border-white/20 p-6">
               <div className="flex items-center space-x-2 mb-3">
-                <Link2 className="w-5 h-5 text-blue-300" />
+                <Link2 className="w-5 h-5 text-white" />
                 <h3 className="text-lg font-bold text-white">One Simple Link</h3>
               </div>
               <p className="text-white/80 text-sm mb-3">
-                A single, memorable link that you can share via email, text, social media, or anywhere 
+                A single, memorable link that you can share via email, text, social media, or anywhere
                 else. No need to create different pages for different situations.
               </p>
-              <div className="bg-blue-500/20 border border-blue-400/30 rounded-lg p-3">
+              <div className="bg-white/10 border border-white/30 rounded-lg p-3">
                 <p className="text-white/80 text-sm">
-                  <strong className="text-blue-300">Example:</strong> promptreviews.com/r/yourbusiness
+                  <strong className="text-yellow-300">Example:</strong> promptreviews.com/r/yourbusiness
                 </p>
               </div>
             </div>
@@ -169,19 +169,19 @@ export default function UniversalPromptPages() {
                 <h3 className="text-xl font-semibold text-white mb-4">Use Specific When:</h3>
                 <ul className="space-y-2 text-white/80">
                   <li className="flex items-start space-x-2">
-                    <span className="text-blue-300">✓</span>
+                    <span className="text-yellow-300">✓</span>
                     <span>You need targeted feedback</span>
                   </li>
                   <li className="flex items-start space-x-2">
-                    <span className="text-blue-300">✓</span>
+                    <span className="text-yellow-300">✓</span>
                     <span>Tracking specific services/products</span>
                   </li>
                   <li className="flex items-start space-x-2">
-                    <span className="text-blue-300">✓</span>
+                    <span className="text-yellow-300">✓</span>
                     <span>Personalization matters</span>
                   </li>
                   <li className="flex items-start space-x-2">
-                    <span className="text-blue-300">✓</span>
+                    <span className="text-yellow-300">✓</span>
                     <span>Different customer segments</span>
                   </li>
                 </ul>

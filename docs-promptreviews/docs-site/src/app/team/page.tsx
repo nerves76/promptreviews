@@ -119,14 +119,9 @@ export default function TeamPage() {
       bestPractices={bestPractices}
       faqs={pageFAQs['team']}
       callToAction={{
-        secondary: {
+        primary: {
           text: 'View Plans',
           href: '/billing'
-        },
-        primary: {
-          text: 'Manage Team',
-          href: 'https://app.promptreviews.app/dashboard/team',
-          external: true
         }
       }}
       overview={{

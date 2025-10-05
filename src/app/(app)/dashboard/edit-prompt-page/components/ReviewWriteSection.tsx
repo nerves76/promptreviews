@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import Icon from "@/components/Icon";
 import { Input } from "@/app/(app)/components/ui/input";
 import { Textarea } from "@/app/(app)/components/ui/textarea";
+import { clampWordLimit, PROMPT_PAGE_WORD_LIMITS } from "@/constants/promptPageWordLimits";
 
 export interface ReviewWritePlatform {
   name: string;
@@ -98,7 +99,7 @@ const ReviewWriteSection: React.FC<ReviewWriteSectionProps> = ({
       {
         name: "",
         url: "",
-        wordCount: 200,
+        wordCount: PROMPT_PAGE_WORD_LIMITS.DEFAULT,
         reviewText: "",
         verified: false,
         verified_at: "",
@@ -221,15 +222,15 @@ const ReviewWriteSection: React.FC<ReviewWriteSectionProps> = ({
                   <Input
                     type="number"
                     className="w-full border px-3 py-2 rounded-lg bg-white"
-                    placeholder="200"
+                    placeholder={String(PROMPT_PAGE_WORD_LIMITS.DEFAULT)}
                     value={platform.wordCount || ""}
-                    min={20}
-                    max={1000}
+                    min={PROMPT_PAGE_WORD_LIMITS.MIN}
+                    max={PROMPT_PAGE_WORD_LIMITS.MAX}
                     onChange={(e) =>
                       handlePlatformChange(
                         idx,
                         "wordCount",
-                        Number(e.target.value),
+                        clampWordLimit(e.target.value),
                       )
                     }
                     required

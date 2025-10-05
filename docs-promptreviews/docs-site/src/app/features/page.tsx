@@ -103,7 +103,7 @@ export default function FeaturesOverviewPage() {
           {/* AI-Powered Reviews */}
           <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6 hover:bg-white/15 transition-colors">
             <div className="flex items-center mb-4">
-              <Bot className="w-8 h-8 text-blue-300 mr-3" />
+              <Bot className="w-8 h-8 text-yellow-300 mr-3" />
               <h2 className="text-xl font-semibold text-white">AI-Powered Reviews</h2>
             </div>
             <p className="text-white/80 mb-4">
@@ -123,7 +123,7 @@ export default function FeaturesOverviewPage() {
                 <span>Sentiment preservation</span>
               </li>
             </ul>
-            <Link href="/ai-reviews" className="inline-flex items-center text-blue-300 hover:text-blue-200">
+            <Link href="/ai-reviews" className="inline-flex items-center text-yellow-300 hover:text-yellow-200">
               <span>Discover AI Features</span>
               <ArrowRight className="w-4 h-4 ml-2" />
             </Link>
@@ -206,30 +206,6 @@ export default function FeaturesOverviewPage() {
                 </tr>
               </tbody>
             </table>
-          </div>
-        </div>
-
-        {/* CTA */}
-        <div className="bg-gradient-to-r from-blue-500/20 to-purple-500/20 backdrop-blur-md border border-white/20 rounded-xl p-8 text-center">
-          <h2 className="text-2xl font-bold text-white mb-4">Ready to Start Collecting Reviews?</h2>
-          <p className="text-white/80 mb-6">
-            Choose the features that fit your business needs and start building your online reputation today.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link
-              href="/getting-started"
-              className="inline-flex items-center justify-center bg-white/10 hover:bg-white/20 text-white px-6 py-3 rounded-lg transition-colors backdrop-blur-sm border border-white/20"
-            >
-              <span>Getting Started Guide</span>
-              <ArrowRight className="w-4 h-4 ml-2" />
-            </Link>
-            <Link
-              href="/billing"
-              className="inline-flex items-center justify-center bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg transition-colors"
-            >
-              <span>View Plans & Pricing</span>
-              <ArrowRight className="w-4 h-4 ml-2" />
-            </Link>
           </div>
         </div>
       </div>

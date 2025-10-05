@@ -189,14 +189,9 @@ export default function ReviewsPage() {
       bestPractices={bestPractices}
       faqs={pageFAQs['reviews']}
       callToAction={{
-        secondary: {
+        primary: {
           text: 'Google Business Integration',
           href: '/google-business'
-        },
-        primary: {
-          text: 'View Your Reviews',
-          href: 'https://promptreviews.app/dashboard/reviews',
-          external: true
         }
       }}
       overview={{

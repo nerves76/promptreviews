@@ -45,7 +45,7 @@ export default function HelpOverviewPage() {
           {/* Getting Started */}
           <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6 hover:bg-white/15 transition-colors">
             <div className="flex items-center mb-4">
-              <BookOpen className="w-8 h-8 text-blue-300 mr-3" />
+              <BookOpen className="w-8 h-8 text-yellow-300 mr-3" />
               <h2 className="text-xl font-semibold text-white">Getting Started</h2>
             </div>
             <p className="text-white/80 mb-4">
@@ -69,7 +69,7 @@ export default function HelpOverviewPage() {
                 <span>Widget installation guide</span>
               </li>
             </ul>
-            <Link href="/getting-started" className="inline-flex items-center text-blue-300 hover:text-blue-200">
+            <Link href="/getting-started" className="inline-flex items-center text-yellow-300 hover:text-yellow-200">
               <span>Start Your Journey</span>
               <ArrowRight className="w-4 h-4 ml-2" />
             </Link>
@@ -188,7 +188,7 @@ export default function HelpOverviewPage() {
               href="/getting-started/first-prompt-page"
               className="bg-white/5 hover:bg-white/10 rounded-lg p-4 transition-colors group"
             >
-              <h3 className="font-semibold text-white mb-1 group-hover:text-blue-300">Creating Your First Prompt Page</h3>
+              <h3 className="font-semibold text-white mb-1 group-hover:text-yellow-300">Creating Your First Prompt Page</h3>
               <p className="text-white/60 text-sm">Step-by-step guide to creating an effective review request page</p>
             </Link>
 
@@ -196,7 +196,7 @@ export default function HelpOverviewPage() {
               href="/strategies/double-dip"
               className="bg-white/5 hover:bg-white/10 rounded-lg p-4 transition-colors group"
             >
-              <h3 className="font-semibold text-white mb-1 group-hover:text-blue-300">The Double-Dip Strategy</h3>
+              <h3 className="font-semibold text-white mb-1 group-hover:text-yellow-300">The Double-Dip Strategy</h3>
               <p className="text-white/60 text-sm">Increase review rates by 300% with this proven method</p>
             </Link>
 
@@ -204,7 +204,7 @@ export default function HelpOverviewPage() {
               href="/widgets"
               className="bg-white/5 hover:bg-white/10 rounded-lg p-4 transition-colors group"
             >
-              <h3 className="font-semibold text-white mb-1 group-hover:text-blue-300">Installing Review Widgets</h3>
+              <h3 className="font-semibold text-white mb-1 group-hover:text-yellow-300">Installing Review Widgets</h3>
               <p className="text-white/60 text-sm">Add review displays to your website in minutes</p>
             </Link>
 
@@ -212,7 +212,7 @@ export default function HelpOverviewPage() {
               href="/troubleshooting#email-delivery"
               className="bg-white/5 hover:bg-white/10 rounded-lg p-4 transition-colors group"
             >
-              <h3 className="font-semibold text-white mb-1 group-hover:text-blue-300">Fixing Email Delivery Issues</h3>
+              <h3 className="font-semibold text-white mb-1 group-hover:text-yellow-300">Fixing Email Delivery Issues</h3>
               <p className="text-white/60 text-sm">Ensure your review requests reach customers</p>
             </Link>
 
@@ -220,7 +220,7 @@ export default function HelpOverviewPage() {
               href="/google-business"
               className="bg-white/5 hover:bg-white/10 rounded-lg p-4 transition-colors group"
             >
-              <h3 className="font-semibold text-white mb-1 group-hover:text-blue-300">Connecting Google Business</h3>
+              <h3 className="font-semibold text-white mb-1 group-hover:text-yellow-300">Connecting Google Business</h3>
               <p className="text-white/60 text-sm">Integrate with Google Business Profile for better management</p>
             </Link>
 
@@ -228,7 +228,7 @@ export default function HelpOverviewPage() {
               href="/contacts"
               className="bg-white/5 hover:bg-white/10 rounded-lg p-4 transition-colors group"
             >
-              <h3 className="font-semibold text-white mb-1 group-hover:text-blue-300">Importing Customer Contacts</h3>
+              <h3 className="font-semibold text-white mb-1 group-hover:text-yellow-300">Importing Customer Contacts</h3>
               <p className="text-white/60 text-sm">Bulk import contacts for targeted campaigns</p>
             </Link>
           </div>
@@ -292,9 +292,9 @@ export default function HelpOverviewPage() {
 
           <div className="grid md:grid-cols-3 gap-4 mb-6">
             <div className="text-center">
-              <Search className="w-8 h-8 text-blue-300 mx-auto mb-2" />
+              <Search className="w-8 h-8 text-yellow-300 mx-auto mb-2" />
               <h3 className="font-semibold text-white mb-1">Search FAQs</h3>
-              <Link href="/faq" className="text-blue-300 hover:text-blue-200 text-sm">
+              <Link href="/faq" className="text-yellow-300 hover:text-yellow-200 text-sm">
                 Browse all FAQs →
               </Link>
             </div>

@@ -35,6 +35,7 @@ import {
   createLocationPromptPageData,
 } from "@/utils/locationUtils";
 import { ChevronRightIcon, ChevronDownIcon } from "@heroicons/react/24/outline";
+import { getWordLimitOrDefault } from "@/constants/promptPageWordLimits";
 
 export default function ProductPromptPageForm({
   mode,
@@ -263,7 +264,7 @@ export default function ProductPromptPageForm({
         productPageData,
         reviewerData,
         platform.name || platform.platform || "Google Business Profile",
-        platform.wordCount || 200,
+        getWordLimitOrDefault(platform.wordCount),
         platform.customInstructions || "",
         "customer"
       );

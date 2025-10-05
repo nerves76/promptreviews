@@ -27,6 +27,7 @@ import React from "react";
 import AppLoader from "@/app/(app)/components/AppLoader";
 import RobotTooltip from "@/app/(app)/components/RobotTooltip";
 import { createClient } from "@/auth/providers/supabase";
+import { clampWordLimit, getWordLimitOrDefault, PROMPT_PAGE_WORD_LIMITS } from "@/constants/promptPageWordLimits";
 
 interface ReviewPlatformLink {
   name: string;
@@ -466,7 +467,7 @@ export default function EditPromptPage() {
       ...prev,
       review_platforms: [
         ...prev.review_platforms,
-        { name: "", url: "", wordCount: 200 },
+        { name: "", url: "", wordCount: PROMPT_PAGE_WORD_LIMITS.DEFAULT },
       ],
     }));
   };
@@ -491,7 +492,7 @@ export default function EditPromptPage() {
               ...link,
               [field]:
                 field === "wordCount"
-                  ? Math.max(200, Number(value) || 200)
+                  ? clampWordLimit(value)
                   : value,
             }
           : link,
@@ -559,7 +560,7 @@ export default function EditPromptPage() {
         pageData,
         reviewerData,
         formData.review_platforms[index].name,
-        formData.review_platforms[index].wordCount || 200,
+        getWordLimitOrDefault(formData.review_platforms[index].wordCount),
         formData.review_platforms[index].customInstructions,
         reviewerType
       );
@@ -639,7 +640,7 @@ export default function EditPromptPage() {
                   .map((link: any) => ({
                     name: link.name,
                     url: link.url,
-                    wordCount: Math.max(200, Number(link.wordCount) || 200),
+                    wordCount: clampWordLimit(link?.wordCount ?? PROMPT_PAGE_WORD_LIMITS.DEFAULT),
                     customInstructions: link.customInstructions || "",
                     reviewText: link.reviewText || "",
                   }))
@@ -700,9 +701,7 @@ export default function EditPromptPage() {
             .map((link) => ({
               name: link.name,
               url: link.url,
-              wordCount: link.wordCount
-                ? Math.max(200, Number(link.wordCount))
-                : 200,
+              wordCount: clampWordLimit(link?.wordCount ?? PROMPT_PAGE_WORD_LIMITS.DEFAULT),
               customInstructions: link.customInstructions || "",
               reviewText: link.reviewText || "",
             }))

@@ -119,14 +119,9 @@ export default function GoogleBusinessPage() {
       bestPractices={bestPractices}
       faqs={pageFAQs['google-business']}
       callToAction={{
-        secondary: {
+        primary: {
           text: 'Website Widgets',
           href: '/widgets'
-        },
-        primary: {
-          text: 'Connect Google Business',
-          href: 'https://app.promptreviews.app/dashboard/google-business',
-          external: true
         }
       }}
     />

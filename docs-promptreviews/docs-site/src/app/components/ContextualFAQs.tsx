@@ -78,13 +78,13 @@ export default function ContextualFAQs({
         {/* FAQ Header */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center space-x-3">
-            <HelpCircle className="w-6 h-6 text-blue-400" />
+            <HelpCircle className="w-6 h-6 text-yellow-400" />
             <h2 className="text-2xl font-bold text-white">{title}</h2>
           </div>
           {showViewAll && (
             <Link
               href="/faq"
-              className="inline-flex items-center space-x-2 text-blue-300 hover:text-blue-200 text-sm transition-colors group"
+              className="inline-flex items-center space-x-2 text-yellow-300 hover:text-yellow-200 text-sm transition-colors group"
             >
               <span>View All FAQs</span>
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -105,7 +105,7 @@ export default function ContextualFAQs({
                 className="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-white/5 transition-colors group"
               >
                 <div className="flex-1 pr-4">
-                  <h3 className="font-semibold text-white group-hover:text-blue-300 transition-colors">
+                  <h3 className="font-semibold text-white group-hover:text-yellow-300 transition-colors">
                     {faq.question}
                   </h3>
                   {showPlans && faq.plans && (
@@ -205,9 +205,9 @@ export function QuickFAQ({ question, answer, className = '' }: QuickFAQProps) {
       >
         <h4 className="font-medium text-white text-sm">{question}</h4>
         {isOpen ? (
-          <ChevronUp className="w-4 h-4 text-blue-300 flex-shrink-0" />
+          <ChevronUp className="w-4 h-4 text-yellow-300 flex-shrink-0" />
         ) : (
-          <ChevronDown className="w-4 h-4 text-blue-300 flex-shrink-0" />
+          <ChevronDown className="w-4 h-4 text-yellow-300 flex-shrink-0" />
         )}
       </button>
 

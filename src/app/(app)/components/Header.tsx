@@ -858,6 +858,27 @@ const Header = React.memo(function Header() {
                           Prompt Pages
                         </Link>
                         <Link
+                          href={hasBusiness ? "/dashboard/widget" : "#"}
+                          onClick={(e) => {
+                            if (!hasBusiness) {
+                              e.preventDefault();
+                              router.push("/dashboard/create-business");
+                              setMenuOpen(false);
+                            } else {
+                              setMenuOpen(false);
+                            }
+                          }}
+                          className={`${
+                            isActive("/dashboard/widget")
+                              ? "bg-white/20 text-white"
+                              : hasBusiness 
+                                ? "text-white hover:bg-white/10"
+                                : "text-gray-500 cursor-not-allowed"
+                          } block px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200`}
+                        >
+                          Widgets
+                        </Link>
+                        <Link
                           href={hasBusiness ? "/dashboard/contacts" : "#"}
                           onClick={(e) => {
                             if (!hasBusiness) {

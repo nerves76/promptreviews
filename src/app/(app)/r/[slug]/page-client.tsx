@@ -23,7 +23,7 @@ import ButtonSpinner from "@/components/ButtonSpinner";
 import PromptReviewsLogo from "@/app/(app)/dashboard/components/PromptReviewsLogo";
 import PageCard from "@/app/(app)/components/PageCard";
 import imageCompression from 'browser-image-compression';
-import { getAccessibleColor, applyCardTransparency } from "@/utils/colorUtils";
+import { getAccessibleColor, applyCardTransparency, getContrastTextColor } from "@/utils/colorUtils";
 import { getFallingIcon, getFallingIconColor } from "@/app/(app)/components/prompt-modules/fallingStarsConfig";
 import { GLASSY_DEFAULTS, INPUT_TEXT_COLOR } from "@/app/(app)/config/styleDefaults";
 import dynamic from "next/dynamic";
@@ -31,6 +31,11 @@ import dynamic from "next/dynamic";
 import { createClient, getUserOrMock } from "@/auth/providers/supabase";
 import { getAccountIdForUser } from "@/auth/utils/accounts";
 import offerConfig from "@/app/(app)/components/prompt-modules/offerConfig";
+import {
+  countWords,
+  getWordLimitOrDefault,
+  PROMPT_PAGE_WORD_LIMITS,
+} from "@/constants/promptPageWordLimits";
 
 // ⚡ PERFORMANCE: Dynamic imports for heavy React components only
 const OfferCard = dynamic(() => import("../../components/OfferCard"), { 
@@ -302,6 +307,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
   const [showFallbackModal, setShowFallbackModal] = useState(false);
   const [fallbackModalText, setFallbackModalText] = useState("");
   const [fallbackModalUrl, setFallbackModalUrl] = useState("");
+  const [fallbackModalPlatform, setFallbackModalPlatform] = useState("");
   const aiButtonEnabled = promptPage?.ai_button_enabled !== false;
   // Add state for showing the review form after sentiment
   const [showReviewForm, setShowReviewForm] = useState(false);
@@ -814,6 +820,16 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
     );
   };
 
+  const getPlatformForIndex = (idx: number) => {
+    if (promptPage?.review_platforms && promptPage.review_platforms[idx]) {
+      return promptPage.review_platforms[idx];
+    }
+    if (businessProfile?.review_platforms && businessProfile.review_platforms[idx]) {
+      return businessProfile.review_platforms[idx];
+    }
+    return null;
+  };
+
   const handleReviewTextChange = (idx: number, value: string) => {
     setPlatformReviewTexts((prev) =>
       prev.map((text, i) => (i === idx ? value : text)),
@@ -827,8 +843,26 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
       setIsSubmitting(null);
       return;
     }
-    if (!platformReviewTexts[idx]) {
+    if (!platformReviewTexts[idx] || !platformReviewTexts[idx].trim()) {
       setSubmitError("Please write your review before submitting.");
+      setIsSubmitting(null);
+      return;
+    }
+    const platform = getPlatformForIndex(idx);
+    const wordLimit = getWordLimitOrDefault(platform?.wordCount);
+    const configuredMin = typeof platform?.minWordCount === 'number'
+      ? Math.max(platform.minWordCount, PROMPT_PAGE_WORD_LIMITS.MIN_REVIEW_WORDS)
+      : PROMPT_PAGE_WORD_LIMITS.MIN_REVIEW_WORDS;
+    const currentWordCount = countWords(platformReviewTexts[idx] || '');
+    if (currentWordCount < configuredMin) {
+      const needed = configuredMin - currentWordCount;
+      setSubmitError(`Please add ${needed} more word${needed === 1 ? '' : 's'} to meet the minimum of ${configuredMin}.`);
+      setIsSubmitting(null);
+      return;
+    }
+    if (currentWordCount > wordLimit) {
+      const excess = currentWordCount - wordLimit;
+      setSubmitError(`Please trim ${excess} word${excess === 1 ? '' : 's'} to stay within the ${wordLimit}-word limit.`);
       setIsSubmitting(null);
       return;
     }
@@ -905,6 +939,14 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
           // Show custom fallback modal
           setFallbackModalText(platformReviewTexts[idx]);
           setFallbackModalUrl(url);
+          // Use same logic as ReviewPlatformCard for platform name
+          const platform = promptPage.review_platforms[idx];
+          const platformName = (platform.platform || platform.name) === "Google Business Profile"
+            ? "Google"
+            : (platform.platform || platform.name) === "Other" && platform.customPlatform
+              ? platform.customPlatform
+              : (platform.platform || platform.name);
+          setFallbackModalPlatform(platformName || "the review site");
           setShowFallbackModal(true);
           setCopySuccess(null);
           copied = false;
@@ -954,7 +996,12 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
     
     setAiLoading(idx);
     try {
-      const platform = promptPage.review_platforms[idx];
+    const platform = getPlatformForIndex(idx);
+    if (!platform) {
+      setSubmitError("Unable to find platform details for this review.");
+      return;
+    }
+    const wordLimit = getWordLimitOrDefault(platform.wordCount);
       
       // Use the centralized AI generation utility
       const { generateContextualReview } = await import('@/utils/aiReviewGeneration');
@@ -967,11 +1014,16 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
           role: reviewerRoles[idx] || "",
         },
         platform.platform || platform.name || "review site",
-        150 // word count limit
+        wordLimit
       );
       
+      const generatedCount = countWords(generatedReview);
+      const safeReview = generatedCount > wordLimit
+        ? generatedReview.split(/\s+/).slice(0, wordLimit).join(" ")
+        : generatedReview;
+
       setPlatformReviewTexts((prev) =>
-        prev.map((t, i) => (i === idx ? generatedReview : t)),
+        prev.map((t, i) => (i === idx ? safeReview : t)),
       );
       setAiRewriteCounts((prev) => {
         const newCounts = prev.map((c, i) => (i === idx ? c + 1 : c));
@@ -1023,6 +1075,13 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
       setSubmitError("Please write a review first before fixing grammar.");
       return;
     }
+
+    const platform = getPlatformForIndex(idx);
+    if (!platform) {
+      setSubmitError("Unable to find platform details for this review.");
+      return;
+    }
+    const wordLimit = getWordLimitOrDefault(platform.wordCount);
     
     setFixGrammarLoading(idx);
     try {
@@ -1050,8 +1109,14 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
         }
       );
       
+      const cleaned = data.text?.trim() || "";
+      const cleanedCount = countWords(cleaned);
+      const boundedText = cleanedCount > wordLimit
+        ? cleaned.split(/\s+/).slice(0, wordLimit).join(" ")
+        : cleaned;
+
       setPlatformReviewTexts((prev) =>
-        prev.map((t, i) => (i === idx ? data.text : t)),
+        prev.map((t, i) => (i === idx ? boundedText : t)),
       );
       setFixGrammarCounts((prev) => {
         const newCounts = prev.map((c, i) => (i === idx ? c + 1 : c));
@@ -1968,6 +2033,8 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                                   boxShadow: "inset 0 2px 4px 0 rgba(0,0,0,0.2), inset 0 1px 2px 0 rgba(0,0,0,0.15)",
                                   border: "none",
                                   color: businessProfile?.input_text_color || '#1F2937',
+                                  WebkitTextFillColor: businessProfile?.input_text_color || '#1F2937',
+                                  WebkitTextFillColor: businessProfile?.input_text_color || '#1F2937',
                                 }}
                                 required
                               />
@@ -1992,6 +2059,8 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                                   boxShadow: "inset 0 2px 4px 0 rgba(0,0,0,0.2), inset 0 1px 2px 0 rgba(0,0,0,0.15)",
                                   border: "none",
                                   color: businessProfile?.input_text_color || '#1F2937',
+                                  WebkitTextFillColor: businessProfile?.input_text_color || '#1F2937',
+                                  WebkitTextFillColor: businessProfile?.input_text_color || '#1F2937',
                                 }}
                                 required
                               />
@@ -2018,6 +2087,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                                   boxShadow: "inset 0 2px 4px 0 rgba(0,0,0,0.2), inset 0 1px 2px 0 rgba(0,0,0,0.15)",
                                   border: "none",
                                   color: businessProfile?.input_text_color || '#1F2937',
+                                  WebkitTextFillColor: businessProfile?.input_text_color || '#1F2937',
                                 }}
                               />
                             </div>
@@ -2040,6 +2110,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                                   boxShadow: "inset 0 2px 4px 0 rgba(0,0,0,0.2), inset 0 1px 2px 0 rgba(0,0,0,0.15)",
                                   border: "none",
                                   color: businessProfile?.input_text_color || '#1F2937',
+                                  WebkitTextFillColor: businessProfile?.input_text_color || '#1F2937',
                                 }}
                               />
                             </div>
@@ -2065,6 +2136,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                                 boxShadow: "inset 0 2px 4px 0 rgba(0,0,0,0.2), inset 0 1px 2px 0 rgba(0,0,0,0.15)",
                                 border: "none",
                                 color: businessProfile?.input_text_color || '#1F2937',
+                                  WebkitTextFillColor: businessProfile?.input_text_color || '#1F2937',
                               }}
                             />
                           </div>
@@ -2235,6 +2307,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                                 boxShadow: "inset 0 2px 4px 0 rgba(0,0,0,0.2), inset 0 1px 2px 0 rgba(0,0,0,0.15)",
                                 border: "none",
                                 color: businessProfile?.input_text_color || '#1F2937',
+                                  WebkitTextFillColor: businessProfile?.input_text_color || '#1F2937',
                               }}
                               required
                             />
@@ -2258,6 +2331,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                                 boxShadow: "inset 0 2px 4px 0 rgba(0,0,0,0.2), inset 0 1px 2px 0 rgba(0,0,0,0.15)",
                                 border: "none",
                                 color: businessProfile?.input_text_color || '#1F2937',
+                                  WebkitTextFillColor: businessProfile?.input_text_color || '#1F2937',
                               }}
                               required
                             />
@@ -2285,6 +2359,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                                 boxShadow: "inset 0 2px 4px 0 rgba(0,0,0,0.2), inset 0 1px 2px 0 rgba(0,0,0,0.15)",
                                 border: "none",
                                 color: businessProfile?.input_text_color || '#1F2937',
+                                  WebkitTextFillColor: businessProfile?.input_text_color || '#1F2937',
                               }}
                             />
                           </div>
@@ -2310,6 +2385,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                               boxShadow: "inset 0 2px 4px 0 rgba(0,0,0,0.2), inset 0 1px 2px 0 rgba(0,0,0,0.15)",
                               border: "none",
                               color: businessProfile?.input_text_color || '#1F2937',
+                                  WebkitTextFillColor: businessProfile?.input_text_color || '#1F2937',
                             }}
                             required
                           />
@@ -2799,18 +2875,25 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
             background: businessProfile?.card_bg ? `${businessProfile.card_bg}90` : "rgba(249, 250, 251, 0.9)",
             borderColor: "white"
           }}>
+            {/* Standardized red X close button */}
             <button
-              className="absolute top-3 right-3 hover:opacity-70 text-2xl font-bold focus:outline-none"
-              style={{ color: `${INPUT_TEXT_COLOR} !important` }}
+              className="absolute -top-5 -right-5 border border-gray-200 rounded-full shadow-lg hover:shadow-xl transition-shadow duration-200 flex items-center justify-center hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 z-50"
+              style={{
+                width: 41,
+                height: 41,
+                background: businessProfile?.card_bg ? `${businessProfile.card_bg}90` : "rgba(249, 250, 251, 0.9)"
+              }}
               onClick={() => setShowFallbackModal(false)}
               aria-label="Close"
             >
-              ×
+              <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
             </button>
             <h2 className="text-2xl font-bold mb-6 text-center" style={{
               color: businessProfile?.primary_color || "#4F46E5"
             }}>
-              Copy Your Review
+              Copy & submit your review on {fallbackModalPlatform || "the review site"}
             </h2>
             <textarea
               className="w-full rounded-lg border p-3 mb-4 text-base focus:outline-none prompt-input"
@@ -2823,7 +2906,8 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                 background: businessProfile?.card_bg || "#F9FAFB",
                 borderColor: businessProfile?.primary_color || "#4F46E5",
                 boxShadow: `0 0 0 2px ${businessProfile?.primary_color || "#4F46E5"}33`,
-                ['--input-text-color' as any]: businessProfile?.input_text_color || '#1F2937',
+                color: businessProfile?.input_text_color || '#1F2937',
+                WebkitTextFillColor: businessProfile?.input_text_color || '#1F2937',
               }}
             />
             {copySuccess && (
@@ -2835,11 +2919,10 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
             )}
             <div className="flex flex-col gap-3 justify-end mt-2">
               <button
-                className="w-full px-6 py-3 rounded-lg font-bold text-lg shadow-lg hover:opacity-90 focus:outline-none transition"
+                className="w-full px-6 py-3 rounded-lg font-semibold text-base shadow-lg hover:opacity-90 focus:outline-none transition"
                 style={{
                   backgroundColor: businessProfile?.secondary_color || "#4F46E5",
-                  color: "#fff",
-                  letterSpacing: "0.03em",
+                  color: getContrastTextColor(businessProfile?.secondary_color || "#4F46E5"),
                 }}
                 onClick={async () => {
                   try {
@@ -2858,10 +2941,10 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                 </span>
               </div>
               <button
-                className="w-full px-6 py-3 rounded-lg font-semibold shadow hover:opacity-90 focus:outline-none transition"
+                className="w-full px-6 py-3 rounded-lg font-semibold text-base shadow hover:opacity-90 focus:outline-none transition"
                 style={{
                   backgroundColor: businessProfile?.primary_color || "#4F46E5",
-                  color: "#fff"
+                  color: getContrastTextColor(businessProfile?.primary_color || "#4F46E5")
                 }}
                 onClick={() => {
                   if (fallbackModalUrl) {
@@ -2874,7 +2957,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                   setShowFallbackModal(false);
                 }}
               >
-                Go to Review Site
+                Continue to {fallbackModalPlatform || "review site"}
               </button>
             </div>
           </div>

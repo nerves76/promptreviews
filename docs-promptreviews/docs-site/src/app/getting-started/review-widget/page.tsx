@@ -59,7 +59,7 @@ export default function ReviewWidgetPage() {
                 <p className="text-xs text-white/70 mt-1">Match your brand style</p>
               </div>
               <div className="text-center bg-white/5 rounded-lg p-4">
-                <Monitor className="w-8 h-8 text-blue-300 mx-auto mb-2" />
+                <Monitor className="w-8 h-8 text-yellow-300 mx-auto mb-2" />
                 <h4 className="text-sm font-semibold text-white">Responsive</h4>
                 <p className="text-xs text-white/70 mt-1">Works on all devices</p>
               </div>

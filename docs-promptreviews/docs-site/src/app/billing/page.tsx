@@ -94,17 +94,26 @@ export default function BillingPage() {
       howItWorks={howItWorks}
       bestPractices={bestPractices}
       faqs={pageFAQs['billing']}
-      callToAction={{
-        secondary: {
-          text: 'View All Plans',
-          href: '/getting-started/choosing-plan'
-        },
+callToAction={{
         primary: {
-          text: 'Manage Billing',
-          href: 'https://app.promptreviews.app/dashboard/plan',
-          external: true
+          text: 'Upgrade or Downgrade',
+          href: '/billing/upgrades-downgrades'
         }
       }}
+      relatedArticles={[
+        {
+          title: 'Upgrades & Downgrades',
+          description: 'Learn how to change your plan',
+          href: '/billing/upgrades-downgrades',
+          icon: RefreshCw
+        },
+        {
+          title: 'Choosing a Plan',
+          description: 'Compare plans and features',
+          href: '/getting-started/choosing-plan',
+          icon: Users
+        }
+      ]}
     />
   );
 }

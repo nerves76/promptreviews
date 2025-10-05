@@ -8,6 +8,8 @@
 import { useState, useEffect } from 'react';
 import Icon from '@/components/Icon';
 import { Tutorial } from './types';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 interface ArticleViewerProps {
   article: Tutorial;
@@ -26,29 +28,88 @@ export default function ArticleViewer({ article, onBack }: ArticleViewerProps) {
   const fetchArticleContent = async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
-      // Extract the article path from the URL
-      const urlParts = article.url.split('/docs/');
-      const articlePath = urlParts[1] || article.id;
-      
-      // Fetch the article content
-      const response = await fetch(`/api/help-docs/content?path=${articlePath}`);
-      
-      if (!response.ok) {
-        throw new Error('Failed to load article');
+      // Try the new CMS API first - use article.id as the slug
+      const slug = article.id;
+      const response = await fetch(`/api/docs/articles/${encodeURIComponent(slug)}`);
+
+      if (response.ok) {
+        const data = await response.json();
+        // Content is in markdown format - store as-is for ReactMarkdown
+        setContent(data.article.content);
+      } else {
+        // Fallback to legacy API
+        console.warn('CMS API failed, trying legacy API');
+        await fetchArticleContentLegacy();
       }
-      
-      const data = await response.json();
-      setContent(data.content || getDefaultContent());
     } catch (err) {
-      console.error('Error fetching article:', err);
-      setError('Unable to load article content');
-      // Fallback to default content
-      setContent(getDefaultContent());
+      console.error('Error fetching article from CMS:', err);
+      // Try legacy API as fallback
+      try {
+        await fetchArticleContentLegacy();
+      } catch (legacyErr) {
+        console.error('Error fetching article from legacy API:', legacyErr);
+        setError('Unable to load article content');
+        setContent(getDefaultContent());
+      }
     } finally {
       setLoading(false);
     }
+  };
+
+  // Legacy API fallback for backward compatibility
+  const fetchArticleContentLegacy = async () => {
+    const urlParts = article.url.split('/docs/');
+    const articlePath = urlParts[1] || article.id;
+
+    const response = await fetch(`/api/help-docs/content?path=${articlePath}`);
+
+    if (!response.ok) {
+      throw new Error('Failed to load article from legacy API');
+    }
+
+    const data = await response.json();
+    setContent(data.content || getDefaultContent());
+  };
+
+  // Simple markdown to HTML converter
+  const convertMarkdownToHtml = (markdown: string): string => {
+    let html = markdown
+      // Headers
+      .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+      .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+      .replace(/^# (.*$)/gim, '<h1>$1</h1>')
+      // Bold and italic
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.+?)\*/g, '<em>$1</em>')
+      // Links
+      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>')
+      // Code blocks
+      .replace(/```(\w+)?\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>')
+      // Inline code
+      .replace(/`([^`]+)`/g, '<code>$1</code>')
+      // Lists
+      .replace(/^\* (.+)$/gim, '<li>$1</li>')
+      .replace(/^- (.+)$/gim, '<li>$1</li>')
+      .replace(/^\d+\. (.+)$/gim, '<li>$1</li>')
+      // Blockquotes
+      .replace(/^> (.+)$/gim, '<blockquote>$1</blockquote>')
+      // Line breaks
+      .replace(/\n\n/g, '</p><p>')
+      .replace(/\n/g, '<br>');
+
+    // Wrap in paragraphs if not already wrapped
+    if (!html.startsWith('<h') && !html.startsWith('<ul>') && !html.startsWith('<ol>') && !html.startsWith('<p>')) {
+      html = `<p>${html}</p>`;
+    }
+
+    // Wrap consecutive list items in ul/ol tags
+    html = html.replace(/(<li>.*<\/li>\s*)+/g, (match) => {
+      return `<ul>${match}</ul>`;
+    });
+
+    return html;
   };
 
   const getDefaultContent = () => {
@@ -241,10 +302,53 @@ export default function ArticleViewer({ article, onBack }: ArticleViewerProps) {
       )}
 
       {/* Article content */}
-      <div 
-        className="prose prose-gray max-w-none"
-        dangerouslySetInnerHTML={{ __html: formatContent(content) }}
-      />
+      <div className="prose prose-gray max-w-none markdown-content">
+        <ReactMarkdown
+          remarkPlugins={[remarkGfm]}
+          components={{
+            h1: ({ node, ...props }) => (
+              <h1 className="text-2xl font-bold mb-4 mt-2 text-gray-900" {...props} />
+            ),
+            h2: ({ node, ...props }) => (
+              <h2 className="text-xl font-semibold mb-3 mt-6 text-gray-800" {...props} />
+            ),
+            h3: ({ node, ...props }) => (
+              <h3 className="text-lg font-medium mb-2 mt-4 text-gray-700" {...props} />
+            ),
+            p: ({ node, ...props }) => (
+              <p className="mb-4 text-gray-700 leading-relaxed" {...props} />
+            ),
+            ul: ({ node, ...props }) => (
+              <ul className="list-disc list-inside mb-4 space-y-2" {...props} />
+            ),
+            ol: ({ node, ...props }) => (
+              <ol className="list-decimal list-inside mb-4 space-y-2" {...props} />
+            ),
+            li: ({ node, ...props }) => (
+              <li className="text-gray-700" {...props} />
+            ),
+            code: ({ node, inline, ...props }: any) => {
+              if (inline) {
+                return (
+                  <code className="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono text-gray-900" {...props} />
+                );
+              }
+              return <code className="block" {...props} />;
+            },
+            pre: ({ node, ...props }) => (
+              <pre className="bg-gray-50 p-4 rounded-lg overflow-x-auto mb-4" {...props} />
+            ),
+            blockquote: ({ node, ...props }) => (
+              <blockquote className="border-l-4 border-slate-blue pl-4 italic my-4 text-gray-700" {...props} />
+            ),
+            a: ({ node, ...props }) => (
+              <a className="text-blue-600 hover:text-blue-800 underline" {...props} />
+            ),
+          }}
+        >
+          {content}
+        </ReactMarkdown>
+      </div>
 
       {/* Related articles - placeholder for future implementation */}
     </div>

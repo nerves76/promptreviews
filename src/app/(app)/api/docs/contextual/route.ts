@@ -12,7 +12,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getContextualArticles, filterArticlesByPlan } from '@/lib/docs/articles';
 
-export const revalidate = 300; // 5 minutes
+// No caching for contextual API - responses vary by route parameter
+export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
   try {

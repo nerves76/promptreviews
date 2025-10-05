@@ -463,8 +463,8 @@ export default function PromptPageFeatures() {
               <div key={feature.id} className="bg-white/10 backdrop-blur-md rounded-lg shadow-sm border border-white/20 overflow-hidden">
                 <div className="p-6">
                   <div className="flex items-center space-x-3 mb-4">
-                    <div className="w-10 h-10 bg-slate-blue/10 rounded-lg flex items-center justify-center">
-                      <feature.icon className="w-5 h-5 text-slate-blue" />
+                    <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+                      <feature.icon className="w-5 h-5 text-white" />
                     </div>
                     <div>
                       <h3 className="text-lg font-semibold text-white">{feature.title}</h3>
@@ -473,7 +473,7 @@ export default function PromptPageFeatures() {
                   </div>
                   <a
                     href={`#${feature.id}`}
-                    className="inline-flex items-center text-slate-blue hover:underline font-medium"
+                    className="inline-flex items-center text-white hover:underline font-medium"
                   >
                     Learn more
                     <svg className="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -519,7 +519,7 @@ export default function PromptPageFeatures() {
                         <ul className="space-y-2">
                           {feature.details.howItWorks.map((step, idx) => (
                             <li key={idx} className="flex items-start space-x-2">
-                              <div className="w-1.5 h-1.5 bg-slate-blue rounded-full mt-2 flex-shrink-0"></div>
+                              <div className="w-1.5 h-1.5 bg-white rounded-full mt-2 flex-shrink-0"></div>
                               <span className="text-white/80">{step}</span>
                             </li>
                           ))}
@@ -553,8 +553,8 @@ export default function PromptPageFeatures() {
                         </ul>
                       </div>
 
-                      <div className="bg-blue-500/20 backdrop-blur-sm border border-blue-400/30 rounded-lg p-4">
-                        <h4 className="font-semibold text-blue-300 mb-2">Examples</h4>
+                      <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-4">
+                        <h4 className="font-semibold text-white mb-2">Examples</h4>
                         <ul className="space-y-1">
                           {feature.details.examples.map((example, idx) => (
                             <li key={idx} className="text-white/80 text-sm">• {example}</li>
@@ -611,32 +611,6 @@ export default function PromptPageFeatures() {
                 </tbody>
               </table>
             </div>
-          </div>
-        </div>
-
-        {/* CTA */}
-        <div className="mt-16 bg-gradient-to-r from-slate-blue to-indigo-600 rounded-lg p-8 text-center">
-          <h2 className="text-2xl font-bold text-white mb-4">
-            Ready to Experience These Features?
-          </h2>
-          <p className="text-white/90 mb-6 max-w-2xl mx-auto">
-            Start using these powerful features to collect better reviews and grow your business.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a
-              href="https://promptreviews.app/dashboard/create-prompt-page"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center px-6 py-3 bg-white/20 text-white backdrop-blur-sm font-medium rounded-lg hover:bg-white/30 transition-colors"
-            >
-              Create Your First Prompt Page
-            </a>
-            <a
-              href="/prompt-pages/types"
-              className="inline-flex items-center px-6 py-3 border border-white text-white font-medium rounded-lg hover:bg-white/10 transition-colors"
-            >
-              Choose Your Type
-            </a>
           </div>
         </div>
       </div>

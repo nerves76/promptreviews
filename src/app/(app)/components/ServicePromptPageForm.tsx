@@ -30,6 +30,7 @@ import SectionHeader from "./SectionHeader";
 import { TopNavigation, BottomNavigation } from "./sections/StepNavigation";
 import { generateContextualReview } from "@/utils/aiReviewGeneration";
 import Icon from "@/components/Icon";
+import { getWordLimitOrDefault } from "@/constants/promptPageWordLimits";
 import FiveStarSpinner from "./FiveStarSpinner";
 
 /**
@@ -387,7 +388,7 @@ export default function ServicePromptPageForm({
         servicePageData,
         reviewerData,
         platform.name || platform.platform || "Google Business Profile",
-        platform.wordCount || 200,
+        getWordLimitOrDefault(platform.wordCount),
         platform.customInstructions || "",
         "customer"
       );

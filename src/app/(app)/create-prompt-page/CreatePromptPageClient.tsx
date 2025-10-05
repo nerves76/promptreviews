@@ -20,6 +20,7 @@ import EmployeePromptPageForm from "../components/EmployeePromptPageForm";
 import EventPromptPageForm from "../components/EventPromptPageForm";
 import { useGlobalLoader } from "../components/GlobalLoaderProvider";
 import { apiClient } from "@/utils/apiClient";
+import { clampWordLimit, getWordLimitOrDefault, PROMPT_PAGE_WORD_LIMITS } from "@/constants/promptPageWordLimits";
 
 interface ReviewPlatformLink {
   platform: string;
@@ -591,7 +592,7 @@ export default function CreatePromptPageClient({
             updates.formDataUpdates.review_platforms = platforms.map((p: any) => ({
               name: p.name || p.platform || "",
               url: p.url || "",
-              wordCount: p.wordCount || 200,
+              wordCount: getWordLimitOrDefault(p.wordCount),
               customInstructions: p.customInstructions || "",
               reviewText: p.reviewText || "",
               customPlatform: p.customPlatform || "",
@@ -844,7 +845,9 @@ export default function CreatePromptPageClient({
         const reviewPlatforms = contactReviews.map(review => ({
           platform: review.platform || 'Other',
           url: '', // Will be filled in by user
-          wordCount: review.review_content ? review.review_content.split(' ').length : 200,
+          wordCount: review.review_content
+            ? clampWordLimit(review.review_content.split(' ').length)
+            : PROMPT_PAGE_WORD_LIMITS.DEFAULT,
           customInstructions: `Original ${review.star_rating}-star review from ${new Date(review.created_at).toLocaleDateString()}`,
           reviewText: review.review_content || '',
         }));
@@ -965,7 +968,7 @@ export default function CreatePromptPageClient({
         pageData,
         reviewerData,
         formData.review_platforms[index].platform,
-        formData.review_platforms[index].wordCount || 200,
+        getWordLimitOrDefault(formData.review_platforms[index].wordCount),
         formData.review_platforms[index].customInstructions
       );
       setFormData((prev) => ({
@@ -1212,9 +1215,7 @@ export default function CreatePromptPageClient({
         insertData.review_platforms = formData.review_platforms?.map(
           (link: any) => ({
             ...link,
-            wordCount: link.wordCount
-              ? Math.max(200, Number(link.wordCount))
-              : 200,
+            wordCount: clampWordLimit(link?.wordCount ?? PROMPT_PAGE_WORD_LIMITS.DEFAULT),
           }),
         ) || [];
       }

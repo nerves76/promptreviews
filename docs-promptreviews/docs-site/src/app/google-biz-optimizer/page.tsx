@@ -79,29 +79,29 @@ export default function GoogleBizOptimizerPage() {
           {/* Metrics Section */}
           <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6 hover:bg-white/15 transition-colors">
             <div className="flex items-center mb-4">
-              <BarChart3 className="w-6 h-6 text-blue-300 mr-3" />
+              <BarChart3 className="w-6 h-6 text-yellow-300 mr-3" />
               <h2 className="text-xl font-semibold text-white">Key Metrics</h2>
             </div>
             <p className="text-white/70 mb-4">
               Understand the metrics that matter most for your Google Business Profile success.
             </p>
             <div className="space-y-3">
-              <Link href="/google-biz-optimizer/metrics/total-reviews" className="flex items-center text-blue-300 hover:text-blue-200">
+              <Link href="/google-biz-optimizer/metrics/total-reviews" className="flex items-center text-yellow-300 hover:text-yellow-200">
                 <Star className="w-4 h-4 mr-2" />
                 <span>Total Reviews Impact</span>
                 <ArrowRight className="w-4 h-4 ml-auto" />
               </Link>
-              <Link href="/google-biz-optimizer/metrics/average-rating" className="flex items-center text-blue-300 hover:text-blue-200">
+              <Link href="/google-biz-optimizer/metrics/average-rating" className="flex items-center text-yellow-300 hover:text-yellow-200">
                 <Star className="w-4 h-4 mr-2" />
                 <span>Average Rating Psychology</span>
                 <ArrowRight className="w-4 h-4 ml-auto" />
               </Link>
-              <Link href="/google-biz-optimizer/metrics/review-trends" className="flex items-center text-blue-300 hover:text-blue-200">
+              <Link href="/google-biz-optimizer/metrics/review-trends" className="flex items-center text-yellow-300 hover:text-yellow-200">
                 <TrendingUp className="w-4 h-4 mr-2" />
                 <span>Review Growth Trends</span>
                 <ArrowRight className="w-4 h-4 ml-auto" />
               </Link>
-              <Link href="/google-biz-optimizer/metrics/monthly-patterns" className="flex items-center text-blue-300 hover:text-blue-200">
+              <Link href="/google-biz-optimizer/metrics/monthly-patterns" className="flex items-center text-yellow-300 hover:text-yellow-200">
                 <BarChart3 className="w-4 h-4 mr-2" />
                 <span>Monthly Review Patterns</span>
                 <ArrowRight className="w-4 h-4 ml-auto" />
@@ -119,27 +119,27 @@ export default function GoogleBizOptimizerPage() {
               Proven techniques to improve your visibility and ranking in local search results.
             </p>
             <div className="space-y-3">
-              <Link href="/google-biz-optimizer/optimization/seo-score" className="flex items-center text-blue-300 hover:text-blue-200">
+              <Link href="/google-biz-optimizer/optimization/seo-score" className="flex items-center text-yellow-300 hover:text-yellow-200">
                 <Search className="w-4 h-4 mr-2" />
                 <span>SEO Score Factors</span>
                 <ArrowRight className="w-4 h-4 ml-auto" />
               </Link>
-              <Link href="/google-biz-optimizer/optimization/categories" className="flex items-center text-blue-300 hover:text-blue-200">
+              <Link href="/google-biz-optimizer/optimization/categories" className="flex items-center text-yellow-300 hover:text-yellow-200">
                 <CheckCircle className="w-4 h-4 mr-2" />
                 <span>Business Categories</span>
                 <ArrowRight className="w-4 h-4 ml-auto" />
               </Link>
-              <Link href="/google-biz-optimizer/optimization/services" className="flex items-center text-blue-300 hover:text-blue-200">
+              <Link href="/google-biz-optimizer/optimization/services" className="flex items-center text-yellow-300 hover:text-yellow-200">
                 <Lightbulb className="w-4 h-4 mr-2" />
                 <span>Services & Descriptions</span>
                 <ArrowRight className="w-4 h-4 ml-auto" />
               </Link>
-              <Link href="/google-biz-optimizer/optimization/photos" className="flex items-center text-blue-300 hover:text-blue-200">
+              <Link href="/google-biz-optimizer/optimization/photos" className="flex items-center text-yellow-300 hover:text-yellow-200">
                 <Image className="w-4 h-4 mr-2" />
                 <span>Photo Strategy</span>
                 <ArrowRight className="w-4 h-4 ml-auto" />
               </Link>
-              <Link href="/google-biz-optimizer/optimization/quick-wins" className="flex items-center text-blue-300 hover:text-blue-200">
+              <Link href="/google-biz-optimizer/optimization/quick-wins" className="flex items-center text-yellow-300 hover:text-yellow-200">
                 <CheckCircle className="w-4 h-4 mr-2" />
                 <span>Quick Wins</span>
                 <ArrowRight className="w-4 h-4 ml-auto" />
@@ -157,17 +157,17 @@ export default function GoogleBizOptimizerPage() {
               Build trust and loyalty through strategic customer interaction and response management.
             </p>
             <div className="space-y-3">
-              <Link href="/google-biz-optimizer/engagement/review-responses" className="flex items-center text-blue-300 hover:text-blue-200">
+              <Link href="/google-biz-optimizer/engagement/review-responses" className="flex items-center text-yellow-300 hover:text-yellow-200">
                 <MessageSquare className="w-4 h-4 mr-2" />
                 <span>Review Response Templates</span>
                 <ArrowRight className="w-4 h-4 ml-auto" />
               </Link>
-              <Link href="/google-biz-optimizer/engagement/questions-answers" className="flex items-center text-blue-300 hover:text-blue-200">
+              <Link href="/google-biz-optimizer/engagement/questions-answers" className="flex items-center text-yellow-300 hover:text-yellow-200">
                 <Users className="w-4 h-4 mr-2" />
                 <span>Q&A Management</span>
                 <ArrowRight className="w-4 h-4 ml-auto" />
               </Link>
-              <Link href="/google-biz-optimizer/engagement/posts" className="flex items-center text-blue-300 hover:text-blue-200">
+              <Link href="/google-biz-optimizer/engagement/posts" className="flex items-center text-yellow-300 hover:text-yellow-200">
                 <Globe className="w-4 h-4 mr-2" />
                 <span>Google Posts Strategy</span>
                 <ArrowRight className="w-4 h-4 ml-auto" />
@@ -185,7 +185,7 @@ export default function GoogleBizOptimizerPage() {
               Track and optimize customer actions to maximize ROI from your Google Business Profile.
             </p>
             <div className="space-y-3">
-              <Link href="/google-biz-optimizer/performance/customer-actions" className="flex items-center text-blue-300 hover:text-blue-200">
+              <Link href="/google-biz-optimizer/performance/customer-actions" className="flex items-center text-yellow-300 hover:text-yellow-200">
                 <Phone className="w-4 h-4 mr-2" />
                 <span>Customer Actions Analysis</span>
                 <ArrowRight className="w-4 h-4 ml-auto" />

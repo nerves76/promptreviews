@@ -130,7 +130,7 @@ export default function ReciprocityPage() {
               
               <div className="text-center">
                 <div className="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center mx-auto mb-3">
-                  <Star className="w-6 h-6 text-blue-300" />
+                  <Star className="w-6 h-6 text-yellow-300" />
                 </div>
                 <h3 className="font-semibold text-white mb-2">Get Reviews</h3>
                 <p className="text-white/80 text-sm">
@@ -148,7 +148,7 @@ export default function ReciprocityPage() {
           <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-8">
             <div className="flex items-start space-x-4 mb-6">
               <div className="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
-                <TrendingUp className="w-6 h-6 text-blue-300" />
+                <TrendingUp className="w-6 h-6 text-yellow-300" />
               </div>
               <div>
                 <h3 className="text-xl font-semibold text-white mb-2">Dr. Robert Cialdini's Research</h3>
@@ -257,7 +257,7 @@ export default function ReciprocityPage() {
               </p>
               <div className="flex flex-wrap gap-3">
                 <div className="flex items-center space-x-2 bg-white/10 px-3 py-2 rounded-lg">
-                  <MessageCircle className="w-4 h-4 text-blue-400" />
+                  <MessageCircle className="w-4 h-4 text-yellow-400" />
                   <span className="text-sm text-white/90">"Would you help us by..."</span>
                 </div>
                 <div className="flex items-center space-x-2 bg-white/10 px-3 py-2 rounded-lg">

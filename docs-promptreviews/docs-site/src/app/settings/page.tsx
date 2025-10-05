@@ -44,7 +44,7 @@ export default function SettingsOverviewPage() {
           {/* Business Profile */}
           <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6 hover:bg-white/15 transition-colors">
             <div className="flex items-center mb-4">
-              <Building className="w-8 h-8 text-blue-300 mr-3" />
+              <Building className="w-8 h-8 text-yellow-300 mr-3" />
               <h2 className="text-xl font-semibold text-white">Business Profile</h2>
             </div>
             <p className="text-white/80 mb-4">
@@ -56,7 +56,7 @@ export default function SettingsOverviewPage() {
               <li className="text-white/70 text-sm">• Services and unique value</li>
               <li className="text-white/70 text-sm">• AI optimization settings</li>
             </ul>
-            <Link href="/business-profile" className="inline-flex items-center text-blue-300 hover:text-blue-200">
+            <Link href="/business-profile" className="inline-flex items-center text-yellow-300 hover:text-yellow-200">
               <span>Configure Profile</span>
               <ArrowRight className="w-4 h-4 ml-2" />
             </Link>
@@ -181,7 +181,7 @@ export default function SettingsOverviewPage() {
               href="https://app.promptreviews.app/dashboard/business-profile"
               className="bg-white/5 hover:bg-white/10 rounded-lg p-4 transition-colors text-center group"
             >
-              <Building className="w-8 h-8 text-blue-300 mx-auto mb-2 group-hover:scale-110 transition-transform" />
+              <Building className="w-8 h-8 text-yellow-300 mx-auto mb-2 group-hover:scale-110 transition-transform" />
               <span className="text-white text-sm">Update Business Info</span>
             </Link>
 
@@ -234,7 +234,7 @@ export default function SettingsOverviewPage() {
           <div className="space-y-4">
             <div className="flex items-start space-x-3">
               <div className="w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
-                <span className="text-blue-300 font-bold">1</span>
+                <span className="text-yellow-300 font-bold">1</span>
               </div>
               <div>
                 <h3 className="font-semibold text-white mb-1">Complete Your Profile First</h3>
@@ -283,32 +283,6 @@ export default function SettingsOverviewPage() {
                 </p>
               </div>
             </div>
-          </div>
-        </div>
-
-        {/* CTA */}
-        <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-8 text-center">
-          <Globe className="w-12 h-12 text-blue-300 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-white mb-4">Ready to Configure Your Account?</h2>
-          <p className="text-white/80 mb-6 max-w-2xl mx-auto">
-            Take a few minutes to complete your settings. A well-configured account leads to
-            better review collection results and smoother team collaboration.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link
-              href="/getting-started"
-              className="inline-flex items-center justify-center bg-white/10 hover:bg-white/20 text-white px-6 py-3 rounded-lg transition-colors backdrop-blur-sm border border-white/20"
-            >
-              <span>Setup Guide</span>
-              <ArrowRight className="w-4 h-4 ml-2" />
-            </Link>
-            <Link
-              href="https://app.promptreviews.app/dashboard/business-profile"
-              className="inline-flex items-center justify-center bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg transition-colors"
-            >
-              <span>Go to Settings</span>
-              <ArrowRight className="w-4 h-4 ml-2" />
-            </Link>
           </div>
         </div>
       </div>

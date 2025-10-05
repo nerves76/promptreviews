@@ -187,7 +187,7 @@ const overviewContent = (
 
         <div className="bg-white/5 rounded-lg p-4">
           <h4 className="font-medium text-white mb-2 flex items-center">
-            <FileText className="w-4 h-4 mr-2 text-blue-400" />
+            <FileText className="w-4 h-4 mr-2 text-yellow-400" />
             Prompt Pages
           </h4>
           <div className="space-y-1 text-sm text-white/70">
@@ -258,14 +258,9 @@ export default function APIDocumentationPage() {
       bestPractices={bestPractices}
       faqs={pageFAQs['api']}
       callToAction={{
-        secondary: {
+        primary: {
           text: 'View API Reference',
           href: '/api/reference'
-        },
-        primary: {
-          text: 'Generate API Key',
-          href: 'https://promptreviews.app/dashboard/settings/api',
-          external: true
         }
       }}
       overview={{

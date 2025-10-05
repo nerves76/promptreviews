@@ -98,7 +98,7 @@ export default function DoubleDipPage() {
         <div className="mb-12">
           <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-8">
             <div className="text-center mb-8">
-              <Target className="w-16 h-16 text-blue-300 mx-auto mb-4" />
+              <Target className="w-16 h-16 text-yellow-300 mx-auto mb-4" />
                              <h2 className="text-2xl font-bold text-white mb-4">How to Get Reviews on Multiple Platforms</h2>
                <p className="text-white/90 text-lg">
                  The Double-Dip strategy takes your existing Google reviews and turns them into opportunities 
@@ -110,7 +110,7 @@ export default function DoubleDipPage() {
             <div className="grid md:grid-cols-3 gap-6">
               <div className="text-center">
                 <div className="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center mx-auto mb-3">
-                  <RefreshCw className="w-6 h-6 text-blue-300" />
+                  <RefreshCw className="w-6 h-6 text-yellow-300" />
                 </div>
                 <h3 className="font-semibold text-white mb-2">Import & Transform</h3>
                 <p className="text-white/80 text-sm">
@@ -176,7 +176,7 @@ export default function DoubleDipPage() {
               
               <div className="bg-blue-500/20 border border-blue-400/30 rounded-lg p-4 mb-4">
                 <p className="text-white/90 text-sm">
-                  <strong className="text-blue-300">✨ Key Feature:</strong> Their Google review is imported automatically, allowing customers to:
+                  <strong className="text-yellow-300">✨ Key Feature:</strong> Their Google review is imported automatically, allowing customers to:
                 </p>
                 <ul className="text-white/80 text-sm mt-2 space-y-1 ml-4">
                   <li>• Reference their previous review for consistency</li>
@@ -231,7 +231,7 @@ export default function DoubleDipPage() {
                   <span className="text-sm text-white/90">Update Google review</span>
                 </div>
                 <div className="flex items-center space-x-2 bg-white/10 px-3 py-2 rounded-lg">
-                  <MessageCircle className="w-4 h-4 text-blue-400" />
+                  <MessageCircle className="w-4 h-4 text-yellow-400" />
                   <span className="text-sm text-white/90">Post on Facebook</span>
                 </div>
                 <div className="flex items-center space-x-2 bg-white/10 px-3 py-2 rounded-lg">
@@ -271,11 +271,11 @@ export default function DoubleDipPage() {
                 </p>
                 <p className="text-white/90 mb-3">
                   We're trying to grow our web presence on Facebook and we would love it if you could share your experience there as well. 
-                  If you click this <span className="text-blue-300 underline">LINK</span> you will see I provided your original review 
+                  If you click this <span className="text-yellow-300 underline">LINK</span> you will see I provided your original review 
                   (which you can edit or rewrite with the AI button).
                 </p>
                 <div className="bg-blue-500/20 rounded px-3 py-2 inline-block mb-3">
-                  <span className="text-blue-300 font-mono text-sm">https://promptreviews.app/r/kitchen-reno-sarah</span>
+                  <span className="text-yellow-300 font-mono text-sm">https://promptreviews.app/r/kitchen-reno-sarah</span>
                 </div>
                 <p className="text-white/90 mb-3">
                   Then just click "Copy & submit" and you will be redirected to Facebook where you can post the review. 
@@ -298,7 +298,7 @@ export default function DoubleDipPage() {
                 </div>
                 
                 <div className="flex space-x-3 mb-3">
-                  <button className="bg-blue-500/20 border border-blue-400/50 text-blue-300 px-4 py-2 rounded-lg text-sm">
+                  <button className="bg-blue-500/20 border border-blue-400/50 text-yellow-300 px-4 py-2 rounded-lg text-sm">
                     📋 Copy & Submit to Facebook
                   </button>
                   <button className="bg-purple-500/20 border border-purple-400/50 text-purple-300 px-4 py-2 rounded-lg text-sm">
@@ -397,7 +397,7 @@ export default function DoubleDipPage() {
             <div className="grid md:grid-cols-3 gap-4 mb-6">
               <div className="text-center">
                 <div className="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center mx-auto mb-3">
-                  <span className="text-2xl font-bold text-blue-300">1</span>
+                  <span className="text-2xl font-bold text-yellow-300">1</span>
                 </div>
                 <p className="text-white/80 text-sm">Google Review</p>
               </div>

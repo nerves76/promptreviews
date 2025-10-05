@@ -121,7 +121,7 @@ export default function PersonalOutreachPage() {
               
               <div className="text-center">
                 <div className="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center mx-auto mb-3">
-                  <Heart className="w-6 h-6 text-blue-300" />
+                  <Heart className="w-6 h-6 text-yellow-300" />
                 </div>
                 <h3 className="font-semibold text-white mb-2">Build Trust</h3>
                 <p className="text-white/80 text-sm">
@@ -170,7 +170,7 @@ export default function PersonalOutreachPage() {
             <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6">
               <div className="flex items-start space-x-4 mb-4">
                 <div className="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
-                  <Heart className="w-6 h-6 text-blue-300" />
+                  <Heart className="w-6 h-6 text-yellow-300" />
                 </div>
                 <div>
                   <h3 className="text-xl font-semibold text-white mb-2">Builds Genuine Relationships</h3>
@@ -351,7 +351,7 @@ export default function PersonalOutreachPage() {
               <div className="grid md:grid-cols-3 gap-4">
                 <div className="text-center">
                   <div className="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center mx-auto mb-3">
-                    <Mail className="w-6 h-6 text-blue-300" />
+                    <Mail className="w-6 h-6 text-yellow-300" />
                   </div>
                   <h4 className="font-semibold text-white mb-2">Email</h4>
                   <p className="text-white/80 text-sm">

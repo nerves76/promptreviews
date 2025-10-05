@@ -130,14 +130,9 @@ export default function GettingStartedPage() {
       bestPractices={bestPractices}
       faqs={pageFAQs['getting-started']}
       callToAction={{
-        secondary: {
+        primary: {
           text: 'View Setup Guides',
           href: '/getting-started/account-setup'
-        },
-        primary: {
-          text: 'Start Free Trial',
-          href: 'https://promptreviews.app/signup',
-          external: true
         }
       }}
       overview={{

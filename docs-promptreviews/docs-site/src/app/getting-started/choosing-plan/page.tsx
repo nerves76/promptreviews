@@ -116,7 +116,7 @@ export default function ChoosingPlanPage() {
         {/* Annual Billing Banner */}
         <div className="mb-8 bg-blue-500/20 border border-blue-400/30 rounded-xl p-6">
           <div className="flex items-start space-x-3">
-            <Zap className="w-6 h-6 text-blue-300 flex-shrink-0 mt-1" />
+            <Zap className="w-6 h-6 text-yellow-300 flex-shrink-0 mt-1" />
             <div>
               <h3 className="text-lg font-semibold text-white mb-2">Save 15% with Annual Billing</h3>
               <p className="text-white/80">
@@ -224,7 +224,7 @@ export default function ChoosingPlanPage() {
             
             <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6">
               <h3 className="font-semibold text-white mb-2 flex items-center">
-                <Building className="w-5 h-5 mr-2 text-blue-300" />
+                <Building className="w-5 h-5 mr-2 text-yellow-300" />
                 Google Business Profile Management
               </h3>
               <p className="text-white/80 text-sm">
@@ -283,7 +283,7 @@ export default function ChoosingPlanPage() {
           
           <div className="bg-blue-500/20 border border-blue-400/30 rounded-xl p-6">
             <div className="flex items-start space-x-3">
-              <Info className="w-6 h-6 text-blue-300 flex-shrink-0 mt-1" />
+              <Info className="w-6 h-6 text-yellow-300 flex-shrink-0 mt-1" />
               <div>
                 <h3 className="text-lg font-semibold text-white mb-2">Which Plan Is Right for You?</h3>
                 <ul className="space-y-2 text-white/80 text-sm">
@@ -297,31 +297,6 @@ export default function ChoosingPlanPage() {
                 </p>
               </div>
             </div>
-          </div>
-        </div>
-
-        {/* Next Steps */}
-        <div className="bg-gradient-to-r from-purple-500 to-pink-600 rounded-lg p-8 text-center">
-          <h2 className="text-2xl font-bold text-white mb-4">
-            Ready to Create Your First Prompt Page?
-          </h2>
-          <p className="text-white/90 mb-6 max-w-2xl mx-auto">
-            Now that you've selected your plan, let's create your first prompt page to start collecting reviews.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link
-              href="/getting-started/first-prompt-page"
-              className="inline-flex items-center px-6 py-3 bg-white/20 text-white backdrop-blur-sm font-medium rounded-lg hover:bg-white/30 transition-colors"
-            >
-              Create First Prompt Page
-              <ArrowRight className="ml-2 w-4 h-4" />
-            </Link>
-            <Link
-              href="/getting-started"
-              className="inline-flex items-center px-6 py-3 border border-white text-white font-medium rounded-lg hover:bg-white/10 transition-colors"
-            >
-              Back to Overview
-            </Link>
           </div>
         </div>
       </div>

@@ -37,8 +37,8 @@ export default function ProductPromptPages() {
           <h2 className="text-2xl font-bold text-white mb-6">Why Choose Product Prompt Pages?</h2>
           <div className="grid md:grid-cols-3 gap-6">
             <div className="text-center">
-              <div className="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <Package className="w-6 h-6 text-blue-300" />
+              <div className="w-12 h-12 bg-white/10 rounded-lg flex items-center justify-center mx-auto mb-4">
+                <Package className="w-6 h-6 text-yellow-300" />
               </div>
               <h3 className="font-semibold text-white mb-2">Product-Focused</h3>
               <p className="text-white/70 text-sm">Questions specifically about product quality and features</p>
@@ -121,9 +121,9 @@ export default function ProductPromptPages() {
             <div className="bg-white/10 backdrop-blur-md rounded-lg shadow-sm border border-white/20 p-6">
               <h3 className="font-semibold text-white mb-3">Include Product Details</h3>
               <p className="text-white/80 mb-3">Add product images, specifications, and SKU numbers to help customers remember what they purchased.</p>
-              <div className="bg-blue-500/20 border border-blue-400/30 rounded-lg p-3">
+              <div className="bg-white/10 border border-yellow-400/30 rounded-lg p-3">
                 <p className="text-white/80 text-sm">
-                  <strong className="text-blue-300">Tip:</strong> Include the product photo to jog customer memory
+                  <strong className="text-yellow-300">Tip:</strong> Include the product photo to jog customer memory
                 </p>
               </div>
             </div>
@@ -195,29 +195,6 @@ export default function ProductPromptPages() {
           </ol>
         </div>
 
-        {/* CTA */}
-        <div className="bg-gradient-to-r from-green-500 to-blue-600 rounded-lg p-8 text-center">
-          <h2 className="text-2xl font-bold text-white mb-4">
-            Ready to Collect Product Reviews?
-          </h2>
-          <p className="text-white/90 mb-6 max-w-2xl mx-auto">
-            Start collecting detailed product reviews that help customers make purchase decisions and boost your sales.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a
-              href="https://promptreviews.app/dashboard"
-              className="inline-flex items-center px-6 py-3 bg-white/20 text-white backdrop-blur-sm font-medium rounded-lg hover:bg-white/30 transition-colors"
-            >
-              Create Product Page
-            </a>
-            <a
-              href="/prompt-pages/types"
-              className="inline-flex items-center px-6 py-3 border border-white text-white font-medium rounded-lg hover:bg-white/10 transition-colors"
-            >
-              View All Types
-            </a>
-          </div>
-        </div>
       </div>
     </DocsLayout>
   );

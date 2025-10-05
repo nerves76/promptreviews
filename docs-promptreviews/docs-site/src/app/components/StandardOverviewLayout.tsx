@@ -123,7 +123,7 @@ export default function StandardOverviewLayout({
                   {feature.link && (
                     <Link
                       href={feature.link}
-                      className="inline-flex items-center text-blue-300 hover:text-blue-200 text-sm"
+                      className="inline-flex items-center text-yellow-300 hover:text-yellow-200 text-sm"
                     >
                       Learn more <ArrowRight className="w-3 h-3 ml-1" />
                     </Link>
@@ -237,7 +237,7 @@ export default function StandardOverviewLayout({
 
 function getIconColor(color: string): string {
   const colorMap: { [key: string]: string } = {
-    blue: 'text-blue-400',
+    blue: 'text-yellow-400',
     green: 'text-green-400',
     purple: 'text-purple-400',
     yellow: 'text-yellow-400',
@@ -246,5 +246,5 @@ function getIconColor(color: string): string {
     pink: 'text-pink-400',
     cyan: 'text-cyan-400',
   }
-  return colorMap[color] || 'text-blue-400'
+  return colorMap[color] || 'text-yellow-400'
 }

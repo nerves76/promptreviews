@@ -136,7 +136,7 @@ const overviewContent = (
       </div>
 
       <div className="bg-white/5 rounded-lg p-6">
-        <Monitor className="w-8 h-8 text-blue-400 mb-4" />
+        <Monitor className="w-8 h-8 text-yellow-400 mb-4" />
         <h3 className="text-xl font-semibold text-white mb-2">Perfect Integration</h3>
         <p className="text-white/80 mb-4">
           Widgets seamlessly integrate with any website using simple HTML code. No technical skills required.
@@ -161,14 +161,9 @@ export default function WidgetsPage() {
       bestPractices={bestPractices}
       faqs={pageFAQs['widgets']}
       callToAction={{
-        secondary: {
+        primary: {
           text: 'Troubleshooting Guide',
           href: '/troubleshooting'
-        },
-        primary: {
-          text: 'Create Your Widget',
-          href: 'https://promptreviews.app/dashboard/widgets',
-          external: true
         }
       }}
       overview={{
