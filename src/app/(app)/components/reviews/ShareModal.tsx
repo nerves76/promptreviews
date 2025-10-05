@@ -311,9 +311,35 @@ export default function ShareModal({
                 {/* Image Preview */}
                 {dynamicImageUrl && (
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Share Image Preview
-                    </label>
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="block text-sm font-medium text-gray-700">
+                        Share Image Preview
+                      </label>
+                      {!imageLoading && !imageError && (
+                        <button
+                          onClick={async () => {
+                            try {
+                              const response = await fetch(dynamicImageUrl);
+                              const blob = await response.blob();
+                              const url = window.URL.createObjectURL(blob);
+                              const a = document.createElement('a');
+                              a.href = url;
+                              a.download = `review-${review.id}.png`;
+                              document.body.appendChild(a);
+                              a.click();
+                              window.URL.revokeObjectURL(url);
+                              document.body.removeChild(a);
+                            } catch (err) {
+                              console.error('Failed to download image:', err);
+                            }
+                          }}
+                          className="text-xs text-[#452F9F] hover:text-[#452F9F]/80 font-medium flex items-center gap-1"
+                        >
+                          <Icon name="FaDownload" className="w-3 h-3" size={12} />
+                          Download Image
+                        </button>
+                      )}
+                    </div>
                     {imageLoading && !imageError && (
                       <div className="w-full max-w-md h-48 bg-gray-100 rounded-lg border border-gray-200 flex items-center justify-center">
                         <div className="text-center">
@@ -340,6 +366,11 @@ export default function ShareModal({
                         setImageError(true);
                       }}
                     />
+                    {!imageLoading && !imageError && (
+                      <p className="text-xs text-gray-500 mt-2">
+                        💡 For LinkedIn: Download the image, then manually upload it when sharing
+                      </p>
+                    )}
                   </div>
                 )}
 
