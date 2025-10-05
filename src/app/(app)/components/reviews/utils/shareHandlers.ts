@@ -41,9 +41,19 @@ export function shareToFacebook(data: ShareData): void {
  * Share to LinkedIn
  */
 export function shareToLinkedIn(data: ShareData): void {
-  // LinkedIn's newer share URL format - just use text
-  const shareUrl = `https://www.linkedin.com/feed/?shareActive=true&text=${encodeURIComponent(data.text)}`;
-  window.open(shareUrl, '_blank', 'width=600,height=600,noopener,noreferrer');
+  // LinkedIn's share URL - include URL if available so LinkedIn can scrape OG tags for image
+  if (data.url) {
+    // Use LinkedIn's sharing endpoint with URL
+    const params = new URLSearchParams({
+      url: data.url,
+    });
+    const shareUrl = `https://www.linkedin.com/sharing/share-offsite/?${params.toString()}`;
+    window.open(shareUrl, '_blank', 'width=600,height=600,noopener,noreferrer');
+  } else {
+    // Fallback to text-only share
+    const shareUrl = `https://www.linkedin.com/feed/?shareActive=true&text=${encodeURIComponent(data.text)}`;
+    window.open(shareUrl, '_blank', 'width=600,height=600,noopener,noreferrer');
+  }
 }
 
 /**

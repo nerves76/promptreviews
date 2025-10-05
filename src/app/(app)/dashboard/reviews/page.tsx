@@ -997,7 +997,7 @@ export default function ReviewsPage() {
                             }}
                             shareUrl={getReviewShareUrl(review)}
                             productName={business?.name ? `${business.name} just got praise!` : "Just got praise!"}
-                            imageUrl={`/api/review-shares/og-image?reviewId=${review.id}`}
+                            imageUrl={`${window.location.origin}/api/review-shares/og-image?reviewId=${review.id}`}
                             onShareSuccess={handleShareSuccess}
                             onShareError={handleShareError}
                           />

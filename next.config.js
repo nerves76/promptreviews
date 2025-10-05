@@ -432,6 +432,20 @@ const nextConfig = {
 
     ];
   },
+  async redirects() {
+    return [
+      {
+        source: '/docs',
+        destination: 'https://docs.promptreviews.app/docs',
+        permanent: false,
+      },
+      {
+        source: '/docs/:path*',
+        destination: 'https://docs.promptreviews.app/docs/:path*',
+        permanent: false,
+      },
+    ];
+  },
 };
 
 module.exports = nextConfig;
