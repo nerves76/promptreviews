@@ -282,10 +282,10 @@ export default function Sidebar({ className }: SidebarProps) {
               <Link
                 href={section.href}
                 className={clsx(
-                  'flex items-center space-x-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors',
+                  'flex items-center space-x-3 px-3 py-2 text-sm rounded-lg transition-colors',
                   isActive(section.href)
-                    ? 'bg-white/20 text-white border-l-2 border-yellow-300'
-                    : 'text-white/80 hover:bg-white/10 hover:text-white'
+                    ? 'bg-white/25 text-white font-semibold'
+                    : 'text-white/80 hover:bg-white/10 hover:text-white font-medium'
                 )}
               >
                 {section.icon && (
@@ -308,13 +308,13 @@ export default function Sidebar({ className }: SidebarProps) {
                     <div key={child.href}>
                       {child.isExpandable && hasGrandchildren ? (
                         <>
-                          <div className="flex items-center border-l-2 border-white/20 rounded-lg overflow-hidden">
+                          <div className="flex items-center rounded-lg overflow-hidden">
                             <Link
                               href={child.href}
                               className={clsx(
                                 'flex-1 px-3 py-1.5 text-sm transition-colors',
                                 isActive(child.href)
-                                  ? 'bg-white/20 text-white'
+                                  ? 'bg-white/25 text-white font-semibold'
                                   : 'text-white/60 hover:text-white hover:bg-white/10'
                               )}
                             >
@@ -343,10 +343,10 @@ export default function Sidebar({ className }: SidebarProps) {
                                   key={grandchild.href}
                                   href={grandchild.href}
                                   className={clsx(
-                                    'block px-3 py-1.5 text-sm rounded-lg transition-colors border-l-2',
+                                    'block px-3 py-1.5 text-sm rounded-lg transition-colors',
                                     isActive(grandchild.href)
-                                      ? 'bg-white/20 text-white border-yellow-300'
-                                      : 'text-white/60 hover:text-white hover:bg-white/10 border-white/20'
+                                      ? 'bg-white/25 text-white font-semibold'
+                                      : 'text-white/60 hover:text-white hover:bg-white/10'
                                   )}
                                 >
                                   {grandchild.title}
@@ -359,10 +359,10 @@ export default function Sidebar({ className }: SidebarProps) {
                         <Link
                           href={child.href}
                           className={clsx(
-                            'block px-3 py-1.5 text-sm rounded-lg transition-colors border-l-2',
+                            'block px-3 py-1.5 text-sm rounded-lg transition-colors',
                             isActive(child.href)
-                              ? 'bg-white/20 text-white border-yellow-300'
-                              : 'text-white/60 hover:text-white hover:bg-white/10 border-white/20'
+                              ? 'bg-white/25 text-white font-semibold'
+                              : 'text-white/60 hover:text-white hover:bg-white/10'
                           )}
                         >
                           {child.title}
