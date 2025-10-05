@@ -158,43 +158,12 @@ export async function GET(request: NextRequest) {
     const secondaryColor = business.secondary_color || '#FFFFFF'; // White for glassy
     const textColor = business.text_color || '#1F2937';
     const businessName = business.name || 'Customer Review';
-    const businessLogo = business.logo_url;
+    // Skip business logo for now - causing rendering issues
+    const businessLogoUrl = null;
 
     const backgroundStyle = backgroundType === 'gradient'
       ? `linear-gradient(135deg, ${gradientStart} 0%, ${gradientMiddle} 50%, ${gradientEnd} 100%)`
       : (business.background_color || '#FFFFFF');
-
-    const appOrigin = (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3002').replace(/\/$/, '');
-
-    const extractStorageReference = (value: string | null) => {
-      if (!value) return null;
-      try {
-        const url = new URL(value);
-        const match = url.pathname.match(/\/storage\/v1\/object\/public\/(.+?)\/(.+)/);
-        if (match) {
-          return { bucket: match[1], path: match[2] };
-        }
-        return { externalUrl: url.toString() };
-      } catch (err) {
-        const sanitized = value
-          .replace(/^storage\/v1\/object\/public\//, '')
-          .replace(/^public\//, '')
-          .replace(/^\//, '');
-        const [bucket, ...rest] = sanitized.split('/');
-        if (!bucket || rest.length === 0) return null;
-        return { bucket, path: rest.join('/') };
-      }
-    };
-
-    const logoReference = extractStorageReference(businessLogo);
-
-    const businessLogoUrl = logoReference
-      ? 'externalUrl' in logoReference
-        ? logoReference.externalUrl
-        : `${appOrigin}/api/review-shares/logo?bucket=${encodeURIComponent(logoReference.bucket)}&path=${encodeURIComponent(logoReference.path)}`
-      : null;
-
-    console.log('[OG Image] Business logo URL:', businessLogoUrl || 'none');
 
     // Render stars as SVG to avoid font rendering issues
     const renderStars = () => {
