@@ -199,11 +199,12 @@ export async function GET(request: NextRequest) {
 
     console.log('[OG Image] Using business logo URL:', businessLogoUrl || 'none');
 
-    // Render stars
+    // Render stars with gold color
+    const starColor = '#F59E0B'; // Amber-500 gold color
     const stars = [];
     for (let i = 0; i < 5; i++) {
       stars.push(
-        <span key={i} style={{ color: i < starRating ? primaryColor : '#D1D5DB', fontSize: '36px', marginRight: '4px' }}>
+        <span key={i} style={{ color: i < starRating ? starColor : '#D1D5DB', fontSize: '36px', marginRight: '4px' }}>
           ★
         </span>
       );
@@ -256,7 +257,7 @@ export async function GET(request: NextRequest) {
                   position: 'absolute',
                   top: `-${logoSize / 2}px`,
                   left: '50%',
-                  marginLeft: `-${logoSize / 2}px`,
+                  transform: 'translateX(-50%)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',

@@ -58,12 +58,13 @@ export default function ShareModal({
   const [includeReviewerName, setIncludeReviewerName] = useState(false);
   const [imageLoading, setImageLoading] = useState(true);
   const [imageError, setImageError] = useState(false);
+  const [imageTimestamp, setImageTimestamp] = useState(Date.now());
 
   const reviewerName = `${review.first_name} ${review.last_name}`;
 
-  // Generate dynamic image URL based on includeReviewerName option
+  // Generate dynamic image URL based on includeReviewerName option with cache busting
   const dynamicImageUrl = imageUrl
-    ? `${imageUrl.split('?')[0]}?reviewId=${review.id}${includeReviewerName ? '&includeReviewerName=true' : ''}`
+    ? `${imageUrl.split('?')[0]}?reviewId=${review.id}${includeReviewerName ? '&includeReviewerName=true' : ''}&t=${imageTimestamp}`
     : undefined;
 
   // Generate share text when platform or settings change
@@ -85,11 +86,12 @@ export default function ShareModal({
     setShareText(generatedText);
   }, [selectedPlatform, includeReviewerName, review, shareUrl, productName, reviewerName]);
 
-  // Reset image loading when includeReviewerName changes
+  // Reset image loading and cache-bust when includeReviewerName changes
   useEffect(() => {
     if (imageUrl) {
       setImageLoading(true);
       setImageError(false);
+      setImageTimestamp(Date.now()); // Force new image URL to bypass cache
     }
   }, [includeReviewerName, imageUrl]);
 
