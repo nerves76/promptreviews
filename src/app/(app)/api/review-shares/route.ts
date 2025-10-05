@@ -91,13 +91,13 @@ export async function POST(request: NextRequest) {
       .from('review_submissions')
       .select('id, business_id')
       .eq('id', review_id)
-      .single();
+      .maybeSingle();
 
     const { data: widgetReview } = await supabase
       .from('widget_reviews')
       .select('id, business_id')
       .eq('id', review_id)
-      .single();
+      .maybeSingle();
 
     const review = reviewSubmission || widgetReview;
 
@@ -114,7 +114,7 @@ export async function POST(request: NextRequest) {
         .from('businesses')
         .select('account_id')
         .eq('id', review.business_id)
-        .single();
+        .maybeSingle();
 
       if (!business || business.account_id !== accountId) {
         return NextResponse.json(
@@ -213,13 +213,13 @@ export async function GET(request: NextRequest) {
       .from('review_submissions')
       .select('id, business_id')
       .eq('id', reviewId)
-      .single();
+      .maybeSingle();
 
     const { data: widgetReview } = await supabase
       .from('widget_reviews')
       .select('id, business_id')
       .eq('id', reviewId)
-      .single();
+      .maybeSingle();
 
     const review = reviewSubmission || widgetReview;
 
@@ -236,7 +236,7 @@ export async function GET(request: NextRequest) {
         .from('businesses')
         .select('account_id')
         .eq('id', review.business_id)
-        .single();
+        .maybeSingle();
 
       if (!business || business.account_id !== accountId) {
         return NextResponse.json(
