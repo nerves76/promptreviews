@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "postinstall": "prisma generate",
     "start": "next start",
     "dev": "DISABLE_SENTRY=true next dev -p 3002",
     "dev:webpack": "DISABLE_SENTRY=true next dev -p 3002",
