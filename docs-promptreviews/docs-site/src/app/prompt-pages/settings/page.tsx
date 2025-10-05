@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
+import DocsLayout from '../../docs-layout';
 import {
   Settings,
   Globe,
@@ -32,7 +33,8 @@ export const metadata: Metadata = {
 
 export default function PromptPageSettingsPage() {
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
+    <DocsLayout>
+      <div className="max-w-4xl mx-auto px-4 py-8">
       {/* Breadcrumb */}
       <div className="flex items-center text-sm text-white/60 mb-6">
         <Link href="/" className="hover:text-white">Home</Link>
@@ -397,6 +399,7 @@ export default function PromptPageSettingsPage() {
           </Link>
         </div>
       </div>
-    </div>
+      </div>
+    </DocsLayout>
   );
 }

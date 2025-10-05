@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
-import { Smartphone, ChevronRight, Tablet, Monitor, Zap, Eye, TouchSquare, Wifi } from 'lucide-react';
+import { Smartphone, ChevronRight, Tablet, Monitor, Zap, Eye, Hand, Wifi } from 'lucide-react';
 
 export const metadata: Metadata = {
   title: 'Mobile Optimization - Perfect Review Experience on Any Device | Prompt Reviews',
@@ -62,7 +62,7 @@ export default function MobilePage() {
 
           <div className="bg-white/5 rounded-lg p-4">
             <div className="flex items-center gap-2 mb-2">
-              <TouchSquare className="w-5 h-5 text-green-300" />
+              <Hand className="w-5 h-5 text-green-300" />
               <h3 className="font-semibold text-white">Touch-Friendly Interface</h3>
             </div>
             <p className="text-sm text-white/70">

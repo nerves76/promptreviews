@@ -44,10 +44,13 @@ const navigation: NavItem[] = [
     href: '/getting-started',
     icon: BookOpen,
     children: [
-      { title: 'Quick Start Guide', href: '/getting-started#quick-start' },
-      { title: 'Account Setup', href: '/getting-started#account-setup' },
+      { title: 'Account Setup', href: '/getting-started/account-setup' },
       { title: 'Business Profile Setup', href: '/business-profile' },
-      { title: 'First Prompt Page', href: '/getting-started#first-prompt-page' },
+      { title: 'Adding Contacts', href: '/getting-started/adding-contacts' },
+      { title: 'Choosing a Plan', href: '/getting-started/choosing-plan' },
+      { title: 'First Prompt Page', href: '/getting-started/first-prompt-page' },
+      { title: 'First Review Request', href: '/getting-started/first-review-request' },
+      { title: 'Review Widget Setup', href: '/getting-started/review-widget' },
     ]
   },
   {
@@ -107,42 +110,29 @@ const navigation: NavItem[] = [
   {
     title: 'AI-Assisted Reviews',
     href: '/ai-reviews',
-    icon: Star,
-    children: [
-      { title: 'Prompty AI', href: '/ai-reviews#prompty-ai' },
-      { title: 'How It Works', href: '/ai-reviews#how-it-works' },
-      { title: 'Best Practices', href: '/ai-reviews#best-practices' },
-    ]
+    icon: Star
   },
   {
     title: 'Contact Management',
     href: '/contacts',
-    icon: Users,
-    children: [
-      { title: 'Import Contacts', href: '/contacts#import' },
-      { title: 'Organize Contacts', href: '/contacts#organize' },
-      { title: 'Send Requests', href: '/contacts#send-requests' },
-    ]
+    icon: Users
   },
   {
     title: 'Review Management',
     href: '/reviews',
-    icon: MessageSquare,
-    children: [
-      { title: 'Track Reviews', href: '/reviews#track' },
-      { title: 'Respond to Reviews', href: '/reviews#respond' },
-      { title: 'Analytics', href: '/reviews#analytics' },
-    ]
+    icon: MessageSquare
   },
   {
     title: 'Google Business Profile',
     href: '/google-business',
     icon: Building2,
     children: [
-      { title: 'Connect Profile', href: '/google-business#connect' },
-      { title: 'Manage Reviews', href: '/google-business#reviews' },
-      { title: 'Multiple Locations', href: '/google-business#locations' },
-      { title: 'Google Posts', href: '/google-business#posts' },
+      { title: 'Business Info', href: '/google-business/business-info' },
+      { title: 'Image Upload', href: '/google-business/image-upload' },
+      { title: 'Categories & Services', href: '/google-business/categories-services' },
+      { title: 'Scheduling', href: '/google-business/scheduling' },
+      { title: 'Bulk Updates', href: '/google-business/bulk-updates' },
+      { title: 'Review Import', href: '/google-business/review-import' },
     ]
   },
   {
@@ -168,12 +158,7 @@ const navigation: NavItem[] = [
   {
     title: 'Team & Account',
     href: '/team',
-    icon: Settings,
-    children: [
-      { title: 'Team Roles', href: '/team#roles' },
-      { title: 'Add Members', href: '/team#add-members' },
-      { title: 'Account Settings', href: '/team#settings' },
-    ]
+    icon: Settings
   },
   {
     title: 'Analytics',
@@ -187,7 +172,6 @@ const navigation: NavItem[] = [
     children: [
       { title: 'Troubleshooting', href: '/troubleshooting' },
       { title: 'FAQ', href: '/faq' },
-      { title: 'Contact Support', href: '/troubleshooting#support' },
     ]
   },
 ]
@@ -262,16 +246,16 @@ export default function Sidebar({ className }: SidebarProps) {
         return (
           <div key={section.href}>
             {hasChildren ? (
-              <button
-                onClick={() => toggleSection(section.href)}
-                className={clsx(
-                  'flex items-center justify-between w-full px-3 py-2 text-sm font-medium rounded-lg transition-colors',
-                  parentActive
-                    ? 'bg-white/20 text-white'
-                    : 'text-white/80 hover:bg-white/10 hover:text-white'
-                )}
-              >
-                <div className="flex items-center space-x-3">
+              <div className="flex items-center rounded-lg overflow-hidden">
+                <Link
+                  href={section.href}
+                  className={clsx(
+                    'flex items-center space-x-3 flex-1 px-3 py-2 text-sm font-medium transition-colors',
+                    parentActive
+                      ? 'bg-white/20 text-white'
+                      : 'text-white/80 hover:bg-white/10 hover:text-white'
+                  )}
+                >
                   {section.icon && (
                     <section.icon className={clsx(
                       'w-4 h-4',
@@ -279,13 +263,23 @@ export default function Sidebar({ className }: SidebarProps) {
                     )} />
                   )}
                   <span>{section.title}</span>
-                </div>
-                {isExpanded ? (
-                  <ChevronDown className="w-4 h-4" />
-                ) : (
-                  <ChevronRight className="w-4 h-4" />
-                )}
-              </button>
+                </Link>
+                <button
+                  onClick={() => toggleSection(section.href)}
+                  className={clsx(
+                    'px-2 py-2 text-sm transition-colors',
+                    parentActive
+                      ? 'text-white'
+                      : 'text-white/60 hover:text-white'
+                  )}
+                >
+                  {isExpanded ? (
+                    <ChevronDown className="w-4 h-4" />
+                  ) : (
+                    <ChevronRight className="w-4 h-4" />
+                  )}
+                </button>
+              </div>
             ) : (
               <Link
                 href={section.href}
@@ -344,7 +338,7 @@ export default function Sidebar({ className }: SidebarProps) {
                               )}
                             </button>
                           </div>
-                          {childExpanded && (
+                          {childExpanded && child.children && (
                             <div className="ml-4 mt-1 space-y-1">
                               {child.children.map((grandchild) => (
                                 <Link
