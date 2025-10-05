@@ -68,12 +68,19 @@ export async function GET(request: NextRequest) {
       return new Response('Missing reviewId parameter', { status: 400 });
     }
 
-    // Fetch the logo image
-    const logoUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3002'}/images/prompt-reviews-logo.png`;
-    const logoResponse = await fetch(logoUrl);
-    const logoArrayBuffer = await logoResponse.arrayBuffer();
-    const logoBase64 = Buffer.from(logoArrayBuffer).toString('base64');
-    const logoDataUrl = `data:image/png;base64,${logoBase64}`;
+    // Fetch the logo image with error handling
+    let logoDataUrl = '';
+    try {
+      const logoUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3002'}/images/prompt-reviews-logo.png`;
+      const logoResponse = await fetch(logoUrl);
+      if (logoResponse.ok) {
+        const logoArrayBuffer = await logoResponse.arrayBuffer();
+        const logoBase64 = Buffer.from(logoArrayBuffer).toString('base64');
+        logoDataUrl = `data:image/png;base64,${logoBase64}`;
+      }
+    } catch (err) {
+      console.error('[OG Image] Failed to fetch PromptReviews logo:', err);
+    }
 
     // Create Supabase client with service role key
     const supabase = createClient(
@@ -125,12 +132,16 @@ export async function GET(request: NextRequest) {
     }
 
     if (!review) {
+      console.error('[OG Image] Review not found for ID:', reviewId);
       return new Response('Review not found', { status: 404 });
     }
 
     if (!business) {
+      console.error('[OG Image] Business not found for review ID:', reviewId);
       return new Response('Business not found', { status: 404 });
     }
+
+    console.log('[OG Image] Successfully loaded review and business data');
 
     // Extract review details
     const reviewText = review.review_content || 'Great service!';
@@ -342,24 +353,26 @@ export async function GET(request: NextRequest) {
           </div>
 
           {/* Logo - Bottom Right */}
-          <div
-            style={{
-              position: 'absolute',
-              bottom: '20px',
-              right: '28px',
-              display: 'flex',
-            }}
-          >
-          <img
-            src={logoDataUrl}
-            width={140}
-            alt="Prompt Reviews logo"
-            style={{
-              filter: isDark ? 'invert(1)' : 'none',
-              opacity: isDark ? 0.9 : 0.7,
-            }}
-          />
-          </div>
+          {logoDataUrl && (
+            <div
+              style={{
+                position: 'absolute',
+                bottom: '20px',
+                right: '28px',
+                display: 'flex',
+              }}
+            >
+              <img
+                src={logoDataUrl}
+                width={140}
+                alt="Prompt Reviews logo"
+                style={{
+                  filter: isDark ? 'invert(1)' : 'none',
+                  opacity: isDark ? 0.9 : 0.7,
+                }}
+              />
+            </div>
+          )}
         </div>
       ),
       {
@@ -368,11 +381,16 @@ export async function GET(request: NextRequest) {
       }
     );
   } catch (error) {
-    console.error('Error generating OG image:', error);
+    console.error('[OG Image] Error generating OG image:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const errorStack = error instanceof Error ? error.stack : '';
+
     return new Response(
       JSON.stringify({
         error: 'Error generating image',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        message: errorMessage,
+        stack: errorStack,
+        reviewId: new URL(request.url).searchParams.get('reviewId'),
       }),
       {
         status: 500,
