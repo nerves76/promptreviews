@@ -1,0 +1,321 @@
+{
+  "contextualTests": [
+    {
+      "route": "/dashboard",
+      "routeName": "Dashboard Home",
+      "success": true,
+      "responseTime": 362,
+      "articleCount": 1,
+      "articles": [
+        {
+          "slug": "getting-started",
+          "title": "Getting Started with Prompt Reviews",
+          "category": "getting-started"
+        }
+      ],
+      "source": "database"
+    },
+    {
+      "route": "/dashboard/widget",
+      "routeName": "Widget Management",
+      "success": true,
+      "responseTime": 28,
+      "articleCount": 3,
+      "articles": [
+        {
+          "slug": "reviews",
+          "title": "Track & manage all your reviews",
+          "category": "reviews"
+        },
+        {
+          "slug": "widgets",
+          "title": "Review Widgets Documentation",
+          "category": "integration"
+        },
+        {
+          "slug": "getting-started",
+          "title": "Getting Started with Prompt Reviews",
+          "category": "getting-started"
+        }
+      ],
+      "source": "database"
+    },
+    {
+      "route": "/dashboard/contacts",
+      "routeName": "Contacts",
+      "success": true,
+      "responseTime": 36,
+      "articleCount": 2,
+      "articles": [
+        {
+          "slug": "contacts",
+          "title": "Managing your customer contacts",
+          "category": "contacts"
+        },
+        {
+          "slug": "getting-started",
+          "title": "Getting Started with Prompt Reviews",
+          "category": "getting-started"
+        }
+      ],
+      "source": "database"
+    },
+    {
+      "route": "/dashboard/team",
+      "routeName": "Team Management",
+      "success": true,
+      "responseTime": 28,
+      "articleCount": 2,
+      "articles": [
+        {
+          "slug": "team",
+          "title": "Team management & account settings",
+          "category": "team"
+        },
+        {
+          "slug": "getting-started",
+          "title": "Getting Started with Prompt Reviews",
+          "category": "getting-started"
+        }
+      ],
+      "source": "database"
+    },
+    {
+      "route": "/dashboard/reviews",
+      "routeName": "Reviews",
+      "success": true,
+      "responseTime": 28,
+      "articleCount": 2,
+      "articles": [
+        {
+          "slug": "reviews",
+          "title": "Track & manage all your reviews",
+          "category": "reviews"
+        },
+        {
+          "slug": "getting-started",
+          "title": "Getting Started with Prompt Reviews",
+          "category": "getting-started"
+        }
+      ],
+      "source": "database"
+    },
+    {
+      "route": "/dashboard/business-profile",
+      "routeName": "Business Profile",
+      "success": true,
+      "responseTime": 27,
+      "articleCount": 3,
+      "articles": [
+        {
+          "slug": "business-profile",
+          "title": "Business Profile Setup Guide | Prompt Reviews",
+          "category": "business-profile"
+        },
+        {
+          "slug": "style-settings",
+          "title": "Style Settings - Customize Your Prompt Pages | Prompt Reviews",
+          "category": "style-settings"
+        },
+        {
+          "slug": "getting-started",
+          "title": "Getting Started with Prompt Reviews",
+          "category": "getting-started"
+        }
+      ],
+      "source": "database"
+    },
+    {
+      "route": "/dashboard/edit-prompt-page/universal",
+      "routeName": "Universal Prompt Page",
+      "success": true,
+      "responseTime": 21,
+      "articleCount": 2,
+      "articles": [
+        {
+          "slug": "prompt-pages",
+          "title": "Prompt Pages Overview",
+          "category": "features"
+        },
+        {
+          "slug": "getting-started",
+          "title": "Getting Started with Prompt Reviews",
+          "category": "getting-started"
+        }
+      ],
+      "source": "database"
+    },
+    {
+      "route": "/dashboard/prompt-pages",
+      "routeName": "Prompt Pages",
+      "success": true,
+      "responseTime": 17,
+      "articleCount": 1,
+      "articles": [
+        {
+          "slug": "getting-started",
+          "title": "Getting Started with Prompt Reviews",
+          "category": "getting-started"
+        }
+      ],
+      "source": "database"
+    }
+  ],
+  "articleTests": [
+    {
+      "slug": "getting-started",
+      "success": true,
+      "responseTime": 482,
+      "hasContent": true,
+      "contentLength": 748,
+      "title": "Getting Started with Prompt Reviews",
+      "source": "database"
+    },
+    {
+      "slug": "reviews",
+      "success": true,
+      "responseTime": 60,
+      "hasContent": true,
+      "contentLength": 2252,
+      "title": "Track & manage all your reviews",
+      "source": "database"
+    },
+    {
+      "slug": "widgets",
+      "success": true,
+      "responseTime": 45,
+      "hasContent": true,
+      "contentLength": 1031,
+      "title": "Review Widgets Documentation",
+      "source": "database"
+    },
+    {
+      "slug": "contacts",
+      "success": true,
+      "responseTime": 45,
+      "hasContent": true,
+      "contentLength": 2071,
+      "title": "Managing your customer contacts",
+      "source": "database"
+    },
+    {
+      "slug": "team",
+      "success": true,
+      "responseTime": 42,
+      "hasContent": true,
+      "contentLength": 1993,
+      "title": "Team management & account settings",
+      "source": "database"
+    },
+    {
+      "slug": "business-profile",
+      "success": true,
+      "responseTime": 47,
+      "hasContent": true,
+      "contentLength": 2067,
+      "title": "Business Profile Setup Guide | Prompt Reviews",
+      "source": "database"
+    },
+    {
+      "slug": "style-settings",
+      "success": true,
+      "responseTime": 48,
+      "hasContent": true,
+      "contentLength": 1878,
+      "title": "Style Settings - Customize Your Prompt Pages | Prompt Reviews",
+      "source": "database"
+    },
+    {
+      "slug": "prompt-pages",
+      "success": true,
+      "responseTime": 50,
+      "hasContent": true,
+      "contentLength": 661,
+      "title": "Prompt Pages Overview",
+      "source": "database"
+    }
+  ],
+  "performanceMetrics": [
+    {
+      "type": "contextual",
+      "route": "/dashboard",
+      "responseTime": 362
+    },
+    {
+      "type": "contextual",
+      "route": "/dashboard/widget",
+      "responseTime": 28
+    },
+    {
+      "type": "contextual",
+      "route": "/dashboard/contacts",
+      "responseTime": 36
+    },
+    {
+      "type": "contextual",
+      "route": "/dashboard/team",
+      "responseTime": 28
+    },
+    {
+      "type": "contextual",
+      "route": "/dashboard/reviews",
+      "responseTime": 28
+    },
+    {
+      "type": "contextual",
+      "route": "/dashboard/business-profile",
+      "responseTime": 27
+    },
+    {
+      "type": "contextual",
+      "route": "/dashboard/edit-prompt-page/universal",
+      "responseTime": 21
+    },
+    {
+      "type": "contextual",
+      "route": "/dashboard/prompt-pages",
+      "responseTime": 17
+    },
+    {
+      "type": "article",
+      "slug": "getting-started",
+      "responseTime": 482
+    },
+    {
+      "type": "article",
+      "slug": "reviews",
+      "responseTime": 60
+    },
+    {
+      "type": "article",
+      "slug": "widgets",
+      "responseTime": 45
+    },
+    {
+      "type": "article",
+      "slug": "contacts",
+      "responseTime": 45
+    },
+    {
+      "type": "article",
+      "slug": "team",
+      "responseTime": 42
+    },
+    {
+      "type": "article",
+      "slug": "business-profile",
+      "responseTime": 47
+    },
+    {
+      "type": "article",
+      "slug": "style-settings",
+      "responseTime": 48
+    },
+    {
+      "type": "article",
+      "slug": "prompt-pages",
+      "responseTime": 50
+    }
+  ],
+  "errors": []
+}

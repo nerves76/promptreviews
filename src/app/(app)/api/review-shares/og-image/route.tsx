@@ -62,6 +62,7 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const reviewId = searchParams.get('reviewId');
+    const includeReviewerName = searchParams.get('includeReviewerName') === 'true';
 
     if (!reviewId) {
       return new Response('Missing reviewId parameter', { status: 400 });
@@ -333,27 +334,29 @@ export async function GET(request: NextRequest) {
                 color: textColor,
                 textAlign: 'center',
                 fontFamily: 'system-ui, sans-serif',
-                marginBottom: '20px',
                 maxWidth: '750px',
-                margin: '0 0 20px 0',
+                margin: 0,
               }}
             >
               {truncatedText}
             </p>
 
-            {/* Reviewer Name - subtle attribution */}
-            <p
-              style={{
-                display: 'flex',
-                fontSize: '20px',
-                color: '#6B7280',
-                fontWeight: 500,
-                fontFamily: 'system-ui, sans-serif',
-                margin: 0,
-              }}
-            >
-              — {reviewerName}
-            </p>
+            {/* Reviewer Name - optional, subtle attribution */}
+            {includeReviewerName && (
+              <p
+                style={{
+                  display: 'flex',
+                  fontSize: '20px',
+                  color: '#6B7280',
+                  fontWeight: 500,
+                  fontFamily: 'system-ui, sans-serif',
+                  marginTop: '20px',
+                  margin: '20px 0 0 0',
+                }}
+              >
+                — {reviewerName}
+              </p>
+            )}
           </div>
 
           {/* Logo - Bottom Right */}

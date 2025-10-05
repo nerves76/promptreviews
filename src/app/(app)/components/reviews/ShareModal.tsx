@@ -61,6 +61,11 @@ export default function ShareModal({
 
   const reviewerName = `${review.first_name} ${review.last_name}`;
 
+  // Generate dynamic image URL based on includeReviewerName option
+  const dynamicImageUrl = imageUrl
+    ? `${imageUrl.split('?')[0]}?reviewId=${review.id}${includeReviewerName ? '&includeReviewerName=true' : ''}`
+    : undefined;
+
   // Generate share text when platform or settings change
   useEffect(() => {
     if (!selectedPlatform) return;
@@ -79,6 +84,14 @@ export default function ShareModal({
 
     setShareText(generatedText);
   }, [selectedPlatform, includeReviewerName, review, shareUrl, productName, reviewerName]);
+
+  // Reset image loading when includeReviewerName changes
+  useEffect(() => {
+    if (imageUrl) {
+      setImageLoading(true);
+      setImageError(false);
+    }
+  }, [includeReviewerName, imageUrl]);
 
   const handlePlatformClick = async (platform: SharePlatform) => {
     try {
@@ -288,7 +301,7 @@ export default function ShareModal({
                 </div>
 
                 {/* Image Preview */}
-                {imageUrl && (
+                {dynamicImageUrl && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Share Image Preview
@@ -309,7 +322,8 @@ export default function ShareModal({
                       </div>
                     )}
                     <img
-                      src={imageUrl}
+                      key={dynamicImageUrl}
+                      src={dynamicImageUrl}
                       alt="Share preview"
                       className={`w-full max-w-md rounded-lg border border-gray-200 shadow-sm ${imageLoading || imageError ? 'hidden' : ''}`}
                       onLoad={() => setImageLoading(false)}

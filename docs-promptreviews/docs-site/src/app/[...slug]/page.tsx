@@ -4,6 +4,8 @@ import { ChevronRight } from 'lucide-react';
 import { getArticleBySlug, getAllArticles } from '@/lib/articles';
 import { getIconComponent } from '@/lib/iconMapper';
 import { notFound } from 'next/navigation';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 interface PageProps {
   params: Promise<{ slug: string[] }>;
@@ -72,14 +74,7 @@ export default async function DynamicDocsPage({ params }: PageProps) {
 
       {/* Header */}
       <div className="mb-8">
-        <div className="flex items-center gap-3 mb-4">
-          {metadata.category_icon && (
-            <div className={`p-3 bg-gradient-to-br ${metadata.category_color || 'from-blue-500 to-indigo-600'} rounded-xl`}>
-              <span className="text-3xl">{metadata.category_icon}</span>
-            </div>
-          )}
-          <h1 className="text-4xl font-bold text-white">{article.title}</h1>
-        </div>
+        <h1 className="text-4xl font-bold text-white mb-4">{article.title}</h1>
         {metadata.description && (
           <p className="text-xl text-white/80">
             {metadata.description}
@@ -87,85 +82,115 @@ export default async function DynamicDocsPage({ params }: PageProps) {
         )}
       </div>
 
-      {/* Main Content - Overview */}
-      {article.content && article.content.length > 50 && (
-        <div className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 p-6 mb-8">
-          <div className="text-white/80 whitespace-pre-wrap">
-            {article.content}
-          </div>
+      {/* Markdown Content */}
+      <div className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 p-8">
+        <style jsx global>{`
+          .markdown-content h1 {
+            font-size: 2em;
+            font-weight: 700;
+            margin-top: 0;
+            margin-bottom: 1rem;
+            color: #fff;
+            border-bottom: 2px solid rgba(255,255,255,0.2);
+            padding-bottom: 0.5rem;
+          }
+          .markdown-content h2 {
+            font-size: 1.75em;
+            font-weight: 600;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            color: #fff;
+          }
+          .markdown-content h3 {
+            font-size: 1.35em;
+            font-weight: 600;
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+            color: rgba(255,255,255,0.95);
+          }
+          .markdown-content h4 {
+            font-size: 1.15em;
+            font-weight: 600;
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+            color: rgba(255,255,255,0.9);
+          }
+          .markdown-content p {
+            margin-bottom: 1rem;
+            color: rgba(255,255,255,0.8);
+            line-height: 1.7;
+          }
+          .markdown-content ul,
+          .markdown-content ol {
+            margin-bottom: 1rem;
+            padding-left: 1.5rem;
+            color: rgba(255,255,255,0.8);
+          }
+          .markdown-content li {
+            margin-bottom: 0.5rem;
+            line-height: 1.6;
+          }
+          .markdown-content strong {
+            color: #fff;
+            font-weight: 600;
+          }
+          .markdown-content code {
+            background-color: rgba(0,0,0,0.3);
+            padding: 0.2em 0.4em;
+            border-radius: 0.25rem;
+            font-size: 0.9em;
+            color: rgba(255,255,255,0.95);
+            font-family: 'Courier New', monospace;
+          }
+          .markdown-content pre {
+            background-color: rgba(0,0,0,0.4);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            overflow-x: auto;
+            margin-bottom: 1rem;
+          }
+          .markdown-content pre code {
+            background-color: transparent;
+            padding: 0;
+          }
+          .markdown-content blockquote {
+            border-left: 4px solid rgba(255,255,255,0.4);
+            padding-left: 1rem;
+            margin-left: 0;
+            margin-bottom: 1rem;
+            color: rgba(255,255,255,0.7);
+            font-style: italic;
+          }
+          .markdown-content a {
+            color: #60a5fa;
+            text-decoration: underline;
+          }
+          .markdown-content a:hover {
+            color: #93c5fd;
+          }
+          .markdown-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 1rem;
+          }
+          .markdown-content th,
+          .markdown-content td {
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 0.5rem;
+            text-align: left;
+            color: rgba(255,255,255,0.8);
+          }
+          .markdown-content th {
+            background-color: rgba(255,255,255,0.1);
+            font-weight: 600;
+            color: #fff;
+          }
+        `}</style>
+        <div className="markdown-content">
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>
+            {article.content || 'No content available.'}
+          </ReactMarkdown>
         </div>
-      )}
-
-      {/* How It Works */}
-      {howItWorks.length > 0 && (
-        <div className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 p-6 mb-8">
-          <h2 className="text-2xl font-bold text-white mb-6">How it works</h2>
-          <ol className="space-y-4">
-            {howItWorks.map((step) => (
-              <li key={step.number} className="flex gap-4">
-                <span className="flex-shrink-0 w-8 h-8 bg-indigo-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
-                  {step.number}
-                </span>
-                <div>
-                  <h4 className="font-semibold text-white mb-1">{step.title}</h4>
-                  <p className="text-white/70 text-sm">{step.description}</p>
-                </div>
-              </li>
-            ))}
-          </ol>
-        </div>
-      )}
-
-      {/* Key Features */}
-      {keyFeatures.length > 0 && (
-        <div className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 p-6 mb-8">
-          <h2 className="text-2xl font-bold text-white mb-6">
-            {slug.includes('features') ? 'Key features' : 'Features'}
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {keyFeatures.map((feature, i) => (
-              <div key={i} className="bg-white/5 rounded-lg p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  {getIconComponent(feature.icon)}
-                  <h3 className="font-semibold text-white">{feature.title}</h3>
-                </div>
-                <p className="text-sm text-white/70">
-                  {feature.description}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Best Practices */}
-      {bestPractices.length > 0 && (
-        <div className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 p-6 mb-8">
-          <h2 className="text-2xl font-bold text-white mb-6">Best practices</h2>
-          <div className="space-y-3">
-            {bestPractices.map((practice, i) => (
-              <div key={i} className="flex items-start gap-3">
-                {typeof getIconComponent(practice.icon) === 'string' ? (
-                  <span className="text-xl flex-shrink-0">{practice.icon}</span>
-                ) : (
-                  <div className="flex-shrink-0">{getIconComponent(practice.icon)}</div>
-                )}
-                <div>
-                  <h4 className="font-medium text-white">{practice.title}</h4>
-                  <p className="text-sm text-white/70 mt-1">{practice.description}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Related Features - Placeholder for future */}
-      <div className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 p-6">
-        <h2 className="text-2xl font-bold text-white mb-4">Related articles</h2>
-        <p className="text-white/60 text-sm">
-          Explore more documentation topics
-        </p>
       </div>
     </div>
   );

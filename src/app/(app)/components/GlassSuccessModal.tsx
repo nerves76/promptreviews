@@ -1,12 +1,12 @@
 "use client";
 
 import { ReactNode } from "react";
-import Icon from "@/components/Icon";
+import Icon, { IconName } from "@/components/Icon";
 
 interface ActionButton {
   label: string;
   onClick: () => void;
-  iconName?: string;
+  iconName?: IconName;
   variant?: "primary" | "secondary";
 }
 
@@ -18,7 +18,7 @@ interface GlassSuccessModalProps {
   onClose: () => void;
   primaryAction?: ActionButton;
   secondaryAction?: ActionButton;
-  iconName?: string;
+  iconName?: IconName;
   children?: ReactNode;
   dismissOnBackdrop?: boolean;
 }

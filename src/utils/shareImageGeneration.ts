@@ -108,9 +108,21 @@ export async function deleteShareImage(
  * Get OG image URL for a review (direct URL, no storage)
  * Useful for dynamic Open Graph meta tags
  */
-export function getOgImageUrl(reviewId: string, baseUrl?: string): string {
-  const base = baseUrl || (typeof window !== 'undefined' ? window.location.origin : '');
-  return `${base}/api/review-shares/og-image?reviewId=${reviewId}`;
+export function getOgImageUrl(
+  reviewId: string,
+  options?: {
+    baseUrl?: string;
+    includeReviewerName?: boolean;
+  }
+): string {
+  const base = options?.baseUrl || (typeof window !== 'undefined' ? window.location.origin : '');
+  const params = new URLSearchParams({ reviewId });
+
+  if (options?.includeReviewerName) {
+    params.set('includeReviewerName', 'true');
+  }
+
+  return `${base}/api/review-shares/og-image?${params.toString()}`;
 }
 
 /**

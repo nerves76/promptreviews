@@ -103,13 +103,34 @@ interface BestPractice {
 function extractHowItWorks(fileContent: string): HowItWorksStep[] {
   const steps: HowItWorksStep[] = [];
 
-  // Find the "How it works" heading and its container
+  // First, try to extract from TypeScript const howItWorks array
+  const tsArrayMatch = fileContent.match(/const howItWorks\s*=\s*\[([\s\S]*?)\]\s*(?:export|const|function|$)/);
+  if (tsArrayMatch) {
+    const arrayContent = tsArrayMatch[1];
+    // Extract each object (allowing multiline descriptions)
+    const objectMatches = arrayContent.matchAll(/\{\s*number:\s*(\d+),\s*icon:\s*\w+,\s*title:\s*['"`]([^'"`]+)['"`],\s*description:\s*['"`]([^'"`]+)['"`]\s*\}/gs);
+
+    for (const match of objectMatches) {
+      const number = parseInt(match[1]);
+      const title = match[2];
+      const description = match[3];
+
+      steps.push({
+        number,
+        icon: '▶️',
+        title,
+        description
+      });
+    }
+
+    if (steps.length > 0) return steps;
+  }
+
+  // Fallback: Find the "How it works" heading and its container in JSX
   const howItWorksMatch = fileContent.match(/<h2[^>]*>How it works<\/h2>\s*<ol[\s\S]*?<\/ol>/i);
   if (!howItWorksMatch) return steps;
 
   const section = howItWorksMatch[0];
-
-  // Extract each list item
   const listItemRegex = /<li className="flex gap-4">\s*<span[^>]*>(\d+)<\/span>\s*<div>([\s\S]*?)<\/div>\s*<\/li>/g;
   let match;
 
@@ -117,11 +138,9 @@ function extractHowItWorks(fileContent: string): HowItWorksStep[] {
     const stepNumber = parseInt(match[1]);
     const content = match[2];
 
-    // Extract title from h4
     const titleMatch = content.match(/<h4[^>]*>(.*?)<\/h4>/);
     const title = titleMatch ? titleMatch[1].trim() : '';
 
-    // Extract description from p
     const descMatch = content.match(/<p[^>]*>(.*?)<\/p>/);
     const description = descMatch ? descMatch[1].trim() : '';
 
@@ -144,28 +163,41 @@ function extractHowItWorks(fileContent: string): HowItWorksStep[] {
 function extractKeyFeatures(fileContent: string): KeyFeature[] {
   const features: KeyFeature[] = [];
 
-  // Look for sections with "capabilities", "features", or "benefits" in the heading
+  // First, try to extract from TypeScript const keyFeatures array
+  const tsArrayMatch = fileContent.match(/const keyFeatures\s*=\s*\[([\s\S]*?)\]\s*(?:export|const|function|$)/);
+  if (tsArrayMatch) {
+    const arrayContent = tsArrayMatch[1];
+    // Extract each object in the array
+    const objectMatches = arrayContent.matchAll(/\{\s*icon:\s*(\w+),\s*title:\s*['"`]([^'"`]+)['"`],\s*description:\s*['"`]([^'"`]+)['"`]\s*\}/g);
+
+    for (const match of objectMatches) {
+      const iconName = match[1];
+      const title = match[2];
+      const description = match[3];
+      const icon = iconToEmoji(iconName);
+
+      features.push({ icon, title, description });
+    }
+
+    if (features.length > 0) return features;
+  }
+
+  // Fallback: Look for rendered JSX sections
   const sectionMatch = fileContent.match(/<h2[^>]*>(AI capabilities|Key features|Features)<\/h2>\s*<div className="grid[^"]*">([\s\S]*?)<\/div>\s*<\/div>/i);
   if (!sectionMatch) return features;
 
   const gridContent = sectionMatch[2];
-
-  // Split by card opening tags
   const cardSections = gridContent.split(/<div className="bg-white\/5 rounded-lg p-4">/).filter(c => c.trim());
 
   for (const cardSection of cardSections) {
-    // Skip if no icon
     if (!cardSection.includes('className="w-5 h-5')) continue;
 
-    // Extract icon name
     const iconMatch = cardSection.match(/<(\w+) className="w-5 h-5/);
     const icon = iconMatch ? iconToEmoji(iconMatch[1]) : '📌';
 
-    // Extract title from h3
     const titleMatch = cardSection.match(/<h3[^>]*>(.*?)<\/h3>/);
     const title = titleMatch ? titleMatch[1].trim() : '';
 
-    // Extract description from p tag (flexible to handle multi-line)
     const descMatch = cardSection.match(/<p[^>]*>\s*([\s\S]*?)\s*<\/p>/);
     const description = descMatch ? descMatch[1].trim().replace(/\s+/g, ' ') : '';
 
@@ -323,10 +355,39 @@ function parseStaticPageEnhanced(filePath: string): ExtractedArticle | null {
       return null;
     }
 
+    // Convert structured metadata to markdown and append to content
+    let fullContent = content + '\n\n';
+
+    // Add Key Features section if exists
+    if (metadata.key_features && metadata.key_features.length > 0) {
+      fullContent += '## Key Features\n\n';
+      for (const feature of metadata.key_features) {
+        fullContent += `### ${feature.icon} ${feature.title}\n\n`;
+        fullContent += `${feature.description}\n\n`;
+      }
+    }
+
+    // Add How It Works section if exists
+    if (metadata.how_it_works && metadata.how_it_works.length > 0) {
+      fullContent += '## How It Works\n\n';
+      for (const step of metadata.how_it_works) {
+        fullContent += `${step.number}. **${step.title}**\n\n`;
+        fullContent += `   ${step.description}\n\n`;
+      }
+    }
+
+    // Add Best Practices section if exists
+    if (metadata.best_practices && metadata.best_practices.length > 0) {
+      fullContent += '## Best Practices\n\n';
+      for (const practice of metadata.best_practices) {
+        fullContent += `- ${practice.icon} **${practice.title}**: ${practice.description}\n\n`;
+      }
+    }
+
     return {
       slug,
       title: metadata.title,
-      content,
+      content: fullContent.trim(),
       metadata,
       status: 'published'
     };
@@ -342,7 +403,21 @@ function parseStaticPageEnhanced(filePath: string): ExtractedArticle | null {
 function extractMainContent(fileContent: string): string {
   let content = '';
 
-  // First, extract the header description (the paragraph after h1)
+  // Try to extract from StandardOverviewLayout description prop
+  const layoutDescMatch = fileContent.match(/description=["']([^"']+)["']/);
+  if (layoutDescMatch) {
+    content = layoutDescMatch[1];
+    return content;
+  }
+
+  // Fallback: extract from metadata description
+  const metadataDescMatch = fileContent.match(/description:\s*['"`]([^'"`]+)['"`]/);
+  if (metadataDescMatch) {
+    content = metadataDescMatch[1];
+    return content;
+  }
+
+  // Last resort: extract the header description (the paragraph after h1)
   const headerDescMatch = fileContent.match(/<h1[^>]*>.*?<\/h1>\s*<\/div>\s*<p[^>]*>(.*?)<\/p>/);
   if (headerDescMatch) {
     content += headerDescMatch[1].trim() + '\n\n';
