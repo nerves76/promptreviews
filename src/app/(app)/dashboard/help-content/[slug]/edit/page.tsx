@@ -7,6 +7,8 @@ import { Button } from "@/app/(app)/components/ui/button";
 import { Input } from "@/app/(app)/components/ui/input";
 import PageCard from "@/app/(app)/components/PageCard";
 import StandardLoader from "@/app/(app)/components/StandardLoader";
+import HelpContentBreadcrumbs from "../../components/HelpContentBreadcrumbs";
+import DeployDocsButton from "../../components/DeployDocsButton";
 import MarkdownEditor, {
   MarkdownPreview,
 } from "../../components/MarkdownEditor";
@@ -60,6 +62,20 @@ export default function ArticleEditorPage() {
   const [showMetadataEditor, setShowMetadataEditor] = useState(false);
   const autosaveTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [slugError, setSlugError] = useState<string | null>(null);
+
+  const currentBreadcrumbLabel = isNewArticle
+    ? "Create Article"
+    : article.title?.trim()
+    ? article.title
+    : loading
+    ? "Loading article"
+    : slug;
+
+  const breadcrumbItems = [
+    { label: "Dashboard", href: "/dashboard" },
+    { label: "Help Content", href: "/dashboard/help-content" },
+    { label: currentBreadcrumbLabel },
+  ];
 
   // Fetch article if editing existing
   useEffect(() => {
@@ -294,20 +310,21 @@ export default function ArticleEditorPage() {
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <HelpContentBreadcrumbs items={breadcrumbItems} className="mb-4" />
         {/* Header */}
         <div className="mb-6">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">
+              <h1 className="text-3xl font-bold text-white">
                 {isNewArticle ? "Create New Article" : "Edit Article"}
               </h1>
               {hasUnsavedChanges && (
-                <p className="text-sm text-yellow-600 mt-1">
+                <p className="text-sm text-amber-200 mt-1">
                   You have unsaved changes
                 </p>
               )}
               {lastSaved && !hasUnsavedChanges && (
-                <p className="text-sm text-green-600 mt-1">
+                <p className="text-sm text-green-200 mt-1">
                   Last saved: {lastSaved.toLocaleTimeString()}
                 </p>
               )}
@@ -316,6 +333,7 @@ export default function ArticleEditorPage() {
               <Button
                 variant="outline"
                 onClick={() => router.push("/dashboard/help-content")}
+                className="border-white/30 text-white hover:bg-white/10 hover:text-white"
               >
                 Cancel
               </Button>
@@ -323,6 +341,7 @@ export default function ArticleEditorPage() {
                 variant="outline"
                 onClick={() => handleSave("draft")}
                 disabled={saving || !hasUnsavedChanges}
+                className="border-white/30 text-white hover:bg-white/10 hover:text-white"
               >
                 {saving ? "Saving..." : "Save Draft"}
               </Button>
@@ -352,6 +371,10 @@ export default function ArticleEditorPage() {
               <span className="text-sm text-gray-600">Auto-saving...</span>
             )}
           </div>
+        </div>
+
+        <div className="mb-6 flex justify-end">
+          <DeployDocsButton className="items-end" messageFullWidth />
         </div>
 
         {error && (

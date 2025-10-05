@@ -9,7 +9,7 @@ import { ImageResponse } from '@vercel/og';
 import { NextRequest } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-export const runtime = 'edge';
+export const runtime = 'nodejs';
 
 /**
  * Truncate review text to specified length with ellipsis

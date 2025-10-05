@@ -7,6 +7,8 @@ import { Button } from "@/app/(app)/components/ui/button";
 import { Input } from "@/app/(app)/components/ui/input";
 import PageCard from "@/app/(app)/components/PageCard";
 import StandardLoader from "@/app/(app)/components/StandardLoader";
+import HelpContentBreadcrumbs from "./components/HelpContentBreadcrumbs";
+import DeployDocsButton from "./components/DeployDocsButton";
 
 interface Article {
   id: string;
@@ -46,9 +48,6 @@ export default function HelpContentPage() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
-  const [deploying, setDeploying] = useState(false);
-  const [deployMessage, setDeployMessage] = useState<string | null>(null);
-  const [deployError, setDeployError] = useState<string | null>(null);
 
   // Fetch articles
   const fetchArticles = async () => {
@@ -134,37 +133,6 @@ export default function HelpContentPage() {
     }
   };
 
-  const triggerDeploy = async () => {
-    try {
-      setDeploying(true);
-      setDeployError(null);
-      setDeployMessage(null);
-
-      const response = await fetch("/api/admin/help-content/deploy", {
-        method: "POST",
-      });
-
-      const data = await response.json().catch(() => ({}));
-
-      if (!response.ok) {
-        throw new Error((data as any)?.error || "Failed to trigger deploy");
-      }
-
-      const deployment = (data as any)?.deployment;
-      const inspectUrl = deployment?.url || deployment?.inspectUrl || null;
-
-      setDeployMessage(
-        inspectUrl
-          ? `Deployment started. Track progress at ${inspectUrl}.`
-          : "Deployment started. Changes will go live when Vercel finishes building."
-      );
-    } catch (error: any) {
-      setDeployError(error?.message || "Failed to trigger deploy");
-    } finally {
-      setDeploying(false);
-    }
-  };
-
   const getUniqueCategories = () => {
     const categories = new Set<string>();
     articles.forEach((article) => {
@@ -210,24 +178,28 @@ export default function HelpContentPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
+          <HelpContentBreadcrumbs
+            items={[
+              { label: "Dashboard", href: "/dashboard" },
+              { label: "Help Content" },
+            ]}
+            className="mb-4"
+          />
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">
+              <h1 className="text-3xl font-bold text-white">
                 Help Content Management
               </h1>
-              <p className="text-gray-600 mt-1">
+              <p className="text-white/80 mt-1">
                 Manage documentation articles and help content
               </p>
             </div>
             <div className="flex items-center gap-3">
-              <Button
-                onClick={triggerDeploy}
-                disabled={deploying}
-                variant="outline"
+              <DeployDocsButton
                 size="lg"
-              >
-                {deploying ? "Triggering deploy..." : "Push updates live"}
-              </Button>
+                messageFullWidth
+                className="items-end"
+              />
               <Button
                 onClick={() => router.push("/dashboard/help-content/new")}
                 size="lg"
@@ -236,18 +208,6 @@ export default function HelpContentPage() {
               </Button>
             </div>
           </div>
-
-          {(deployMessage || deployError) && (
-            <div
-              className={`mb-6 rounded-lg border px-4 py-3 text-sm ${
-                deployError
-                  ? "border-red-200 bg-red-50 text-red-700"
-                  : "border-emerald-200 bg-emerald-50 text-emerald-700"
-              }`}
-            >
-              {deployError || deployMessage}
-            </div>
-          )}
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
             <div className="bg-white rounded-lg shadow p-4">

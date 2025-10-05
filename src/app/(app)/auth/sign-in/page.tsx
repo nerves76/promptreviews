@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/auth";
 import { trackEvent, GA_EVENTS } from '@/utils/analytics';
@@ -11,6 +11,7 @@ export default function SignIn() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
@@ -134,7 +135,11 @@ export default function SignIn() {
       await new Promise(resolve => setTimeout(resolve, 500));
       
       // Now redirect using router for proper Next.js navigation
-      router.push("/dashboard");
+      const redirectParam = searchParams?.get('redirect');
+      const decodedRedirect = redirectParam ? decodeURIComponent(redirectParam) : null;
+      const redirectTarget = decodedRedirect && decodedRedirect.startsWith('/') ? decodedRedirect : '/dashboard';
+
+      router.push(redirectTarget);
     } catch (error: any) {
       console.error("💥 Sign in process failed:", error);
       setError(error.message || "An unexpected error occurred. Please try again.");
