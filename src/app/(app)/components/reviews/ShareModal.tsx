@@ -113,7 +113,7 @@ export default function ShareModal({
         url: shareUrl,
         text: shareText,
         title: productName,
-        imageUrl,
+        imageUrl: dynamicImageUrl,
         emailSubject: buildEmailSubject(productName),
       };
 
