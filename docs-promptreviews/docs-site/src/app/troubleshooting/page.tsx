@@ -25,6 +25,10 @@ import {
 import * as Icons from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
+// Revalidate every 60 seconds - allows CMS updates to show without redeployment
+export const revalidate = 60
+
+
 const fallbackDescription = 'Find solutions to common Prompt Reviews issues. From setup problems to review collection challenges, get quick answers and step-by-step fixes.'
 
 function resolveIcon(iconName: string | undefined, fallback: LucideIcon): LucideIcon {

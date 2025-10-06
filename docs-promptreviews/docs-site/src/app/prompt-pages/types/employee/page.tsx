@@ -6,6 +6,10 @@ import StandardOverviewLayout from '../../../../components/StandardOverviewLayou
 import { pageFAQs } from '../../../utils/faqData'
 import { getArticleBySlug } from '@/lib/docs/articles'
 
+// Revalidate every 60 seconds - allows CMS updates to show without redeployment
+export const revalidate = 60
+
+
 const { User, Sparkles } = Icons
 
 const fallbackDescription = 'Spotlight individual team members with dedicated review pages. Perfect for recognizing exceptional service, building employee morale, and helping customers connect with specific team members.'

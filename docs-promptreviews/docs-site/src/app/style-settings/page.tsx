@@ -7,6 +7,10 @@ import { Palette, Type, Droplet, Square, Eye, Sliders, CheckCircle, ArrowRight, 
 import * as Icons from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
+// Revalidate every 60 seconds - allows CMS updates to show without redeployment
+export const revalidate = 60
+
+
 const fallbackDescription = 'Learn how to customize the appearance of your prompt pages with fonts, colors, backgrounds, and card styling to match your brand.'
 
 function resolveIcon(iconName: string | undefined, fallback: LucideIcon): LucideIcon {

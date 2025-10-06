@@ -6,6 +6,10 @@ import StandardOverviewLayout from '../../../../components/StandardOverviewLayou
 import { pageFAQs } from '../../../utils/faqData'
 import { getArticleBySlug } from '@/lib/docs/articles'
 
+// Revalidate every 60 seconds - allows CMS updates to show without redeployment
+export const revalidate = 60
+
+
 const { Camera, Sparkles } = Icons
 
 const fallbackDescription = 'Collect reviews with customer photos to create powerful visual testimonials. Perfect for businesses where visual results matter - hair salons, restaurants, home improvement, fitness, and more.'

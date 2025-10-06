@@ -17,6 +17,10 @@ import {
 } from 'lucide-react'
 import { getArticleBySlug } from '@/lib/docs/articles'
 
+// Revalidate every 60 seconds - allows CMS updates to show without redeployment
+export const revalidate = 60
+
+
 const fallbackTitle = 'Stand Out from Competitors: Unique Review Collection Methods'
 const fallbackDescription = 'Learn how to use unique experiences to get more customer reviews. Stand out from competitors with innovative review collection methods that create memorable customer experiences.'
 

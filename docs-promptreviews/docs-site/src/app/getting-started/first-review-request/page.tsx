@@ -4,6 +4,10 @@ import DocsLayout from '../../docs-layout'
 import MarkdownRenderer from '../../components/MarkdownRenderer'
 import { getArticleBySlug } from '@/lib/docs/articles'
 
+// Revalidate every 60 seconds - allows CMS updates to show without redeployment
+export const revalidate = 60
+
+
 const fallbackDescription = 'Learn how to send personalized review requests via email, SMS, QR codes, and direct links using Prompt Reviews.'
 
 export async function generateMetadata(): Promise<Metadata> {

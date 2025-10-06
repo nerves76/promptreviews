@@ -4,6 +4,10 @@ import Link from 'next/link'
 import MarkdownRenderer from '../../../components/MarkdownRenderer'
 import { getArticleBySlug } from '@/lib/docs/articles'
 import {
+
+// Revalidate every 60 seconds - allows CMS updates to show without redeployment
+export const revalidate = 60
+
   ArrowUp,
   ArrowDown,
   RefreshCw,

@@ -17,6 +17,10 @@ import {
 } from 'lucide-react'
 import { getArticleBySlug } from '@/lib/docs/articles'
 
+// Revalidate every 60 seconds - allows CMS updates to show without redeployment
+export const revalidate = 60
+
+
 const fallbackTitle = 'Review Writing Help: Templates, Examples & Tips for Customers'
 const fallbackDescription = 'Learn how to help customers write better reviews without AI. Use templates, examples, and tips to improve review quality and increase response rates.'
 

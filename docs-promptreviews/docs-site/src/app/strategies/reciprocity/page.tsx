@@ -17,6 +17,10 @@ import {
 } from 'lucide-react'
 import { getArticleBySlug } from '@/lib/docs/articles'
 
+// Revalidate every 60 seconds - allows CMS updates to show without redeployment
+export const revalidate = 60
+
+
 const fallbackTitle = 'The Psychology of Getting Customer Reviews: Dr. Cialdini\'s Method'
 const fallbackDescription = 'Learn how to use psychology to get more customer reviews. Master Dr. Cialdini\'s reciprocity principle to increase review response rates naturally.'
 

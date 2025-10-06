@@ -22,6 +22,10 @@ import {
 import * as Icons from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
+// Revalidate every 60 seconds - allows CMS updates to show without redeployment
+export const revalidate = 60
+
+
 const fallbackDescription = 'Master Google Business Profile optimization with industry benchmarks, actionable strategies, and ROI-focused insights.'
 
 function resolveIcon(iconName: string | undefined, fallback: LucideIcon): LucideIcon {

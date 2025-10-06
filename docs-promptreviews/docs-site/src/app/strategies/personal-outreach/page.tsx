@@ -18,6 +18,10 @@ import {
 } from 'lucide-react'
 import { getArticleBySlug } from '@/lib/docs/articles'
 
+// Revalidate every 60 seconds - allows CMS updates to show without redeployment
+export const revalidate = 60
+
+
 const fallbackTitle = 'Personal vs Mass Marketing for Reviews: Which Gets Better Results?'
 const fallbackDescription = 'Discover why personal customer outreach gets more reviews than mass marketing. Learn how one-on-one connections build trust and loyalty for better review collection.'
 

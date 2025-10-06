@@ -6,6 +6,10 @@ import MarkdownRenderer from '../../components/MarkdownRenderer'
 import { pageFAQs } from '../utils/faqData'
 import { getArticleBySlug } from '@/lib/docs/articles'
 import {
+
+// Revalidate every 60 seconds - allows CMS updates to show without redeployment
+export const revalidate = 60
+
   Users,
   Upload,
   Plus,

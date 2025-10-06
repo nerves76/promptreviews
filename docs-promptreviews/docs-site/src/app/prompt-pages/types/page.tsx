@@ -6,6 +6,10 @@ import StandardOverviewLayout from '../../../components/StandardOverviewLayout'
 import { pageFAQs } from '../../utils/faqData'
 import { getArticleBySlug } from '@/lib/docs/articles'
 
+// Revalidate every 60 seconds - allows CMS updates to show without redeployment
+export const revalidate = 60
+
+
 const { FileText, Sparkles } = Icons
 
 const fallbackDescription = 'Choose the perfect prompt page type for your business. Each type is designed for specific use cases and offers unique features to help you collect better reviews.'

@@ -6,6 +6,10 @@ import StandardOverviewLayout from '../../../../components/StandardOverviewLayou
 import { pageFAQs } from '../../../utils/faqData'
 import { getArticleBySlug } from '@/lib/docs/articles'
 
+// Revalidate every 60 seconds - allows CMS updates to show without redeployment
+export const revalidate = 60
+
+
 const { MessageCircle, Sparkles } = Icons
 
 const fallbackDescription = 'Perfect for restaurants, salons, professional services, and any business that provides services to customers. Collect detailed, service-specific reviews that help you improve and grow.'
