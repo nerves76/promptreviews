@@ -1,15 +1,62 @@
-import { Metadata } from 'next';
-import StandardOverviewLayout from '../../components/StandardOverviewLayout';
-import { pageFAQs } from '../utils/faqData';
-import { BarChart3, TrendingUp, Users, Star, Calendar, Filter, Download, Eye, MousePointer, Smile, MessageSquare, Clock, ArrowRight, CheckCircle, PieChart, Activity, Target } from 'lucide-react';
+import type { Metadata } from 'next'
+import { notFound } from 'next/navigation'
+import StandardOverviewLayout from '../../components/StandardOverviewLayout'
+import MarkdownRenderer from '../../components/MarkdownRenderer'
+import { pageFAQs } from '../utils/faqData'
+import { getArticleBySlug } from '@/lib/docs/articles'
+import { BarChart3, TrendingUp, Users, Star, Calendar, Filter, Download, Eye, MousePointer, Smile, MessageSquare, Clock, ArrowRight, CheckCircle, PieChart, Activity, Target } from 'lucide-react'
 
-export const metadata: Metadata = {
-  title: 'Analytics & Insights Guide | Prompt Reviews',
-  description: 'Understand your review collection performance with comprehensive analytics, metrics tracking, and actionable insights in Prompt Reviews.',
-  keywords: 'analytics, metrics, review tracking, performance insights, data analysis, prompt reviews',
-};
+const fallbackDescription = 'Understand your review collection performance with comprehensive analytics, metrics tracking, and actionable insights in Prompt Reviews.'
 
-export default function AnalyticsPage() {
+export async function generateMetadata(): Promise<Metadata> {
+  try {
+    const article = await getArticleBySlug('analytics')
+    if (!article) {
+      return {
+        title: 'Analytics & Insights Guide | Prompt Reviews',
+        description: fallbackDescription,
+        keywords: ['analytics', 'metrics', 'review tracking', 'performance insights', 'data analysis', 'prompt reviews'],
+        alternates: {
+          canonical: 'https://docs.promptreviews.app/analytics',
+        },
+      }
+    }
+
+    const seoTitle = article.metadata?.seo_title || article.title
+    const seoDescription = article.metadata?.seo_description || article.metadata?.description || fallbackDescription
+
+    return {
+      title: `${seoTitle} | Prompt Reviews`,
+      description: seoDescription,
+      keywords: article.metadata?.keywords ?? ['analytics', 'metrics', 'review tracking', 'performance insights', 'data analysis', 'prompt reviews'],
+      alternates: {
+        canonical: article.metadata?.canonical_url ?? 'https://docs.promptreviews.app/analytics',
+      },
+    }
+  } catch (error) {
+    console.error('generateMetadata analytics error:', error)
+    return {
+      title: 'Analytics & Insights Guide | Prompt Reviews',
+      description: fallbackDescription,
+      alternates: {
+        canonical: 'https://docs.promptreviews.app/analytics',
+      },
+    }
+  }
+}
+
+export default async function AnalyticsPage() {
+  let article = null
+
+  try {
+    article = await getArticleBySlug('analytics')
+  } catch (error) {
+    console.error('Error fetching analytics article:', error)
+  }
+
+  if (!article) {
+    notFound()
+  }
   // Key features for analytics
   const keyFeatures = [
     {
@@ -99,6 +146,10 @@ export default function AnalyticsPage() {
           text: 'Optimize Prompt Pages',
           href: '/prompt-pages'
         }
+      }}
+      overview={{
+        title: 'Analytics Overview',
+        content: <MarkdownRenderer content={article.content} />
       }}
     />
   );

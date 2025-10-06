@@ -1,7 +1,13 @@
-import { Metadata } from 'next';
+import type { Metadata } from 'next'
+import { notFound } from 'next/navigation'
+import * as Icons from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 import StandardOverviewLayout from '../../components/StandardOverviewLayout'
+import MarkdownRenderer from '../../components/MarkdownRenderer'
 import { pageFAQs } from '../utils/faqData'
-import {
+import { getArticleBySlug } from '@/lib/docs/articles'
+
+const {
   MessageCircle,
   Star,
   Camera,
@@ -24,26 +30,12 @@ import {
   Lightbulb,
   Sparkles,
   Edit
-} from 'lucide-react';
+} = Icons
 
-export const metadata: Metadata = {
-  title: 'Prompt Pages - Create Personalized Review Request Pages | Prompt Reviews Help',
-  description: 'Learn how to create and customize prompt pages for collecting customer reviews. From universal pages to service-specific templates.',
-  keywords: [
-    'prompt pages',
-    'review request pages',
-    'review collection',
-    'customer feedback pages',
-    'QR code reviews',
-    'personalized review pages'
-  ],
-  alternates: {
-    canonical: 'https://docs.promptreviews.app/prompt-pages',
-  },
-}
+const fallbackDescription = 'Create personalized review request pages that make it easy for customers to leave detailed, authentic reviews. Choose from multiple types, customize everything, and watch your reviews grow.'
 
 
-const keyFeatures = [
+const defaultKeyFeatures = [
   {
     icon: Heart,
     title: 'Emoji Sentiment Flow',
@@ -80,9 +72,9 @@ const keyFeatures = [
     description: 'Distribute your prompt pages across all your marketing channels.',
     href: '/prompt-pages/features#multi-platform-sharing'
   }
-];
+]
 
-const howItWorks = [
+const defaultHowItWorks = [
   {
     number: 1,
     title: 'Create Your Page',
@@ -107,9 +99,9 @@ const howItWorks = [
     description: 'Monitor which prompt pages generate the most reviews. See conversion rates, track performance, and optimize your approach.',
     icon: BarChart3
   }
-];
+]
 
-const bestPractices = [
+const defaultBestPractices = [
   {
     icon: Target,
     title: 'Be Specific and Personal',
@@ -130,7 +122,7 @@ const bestPractices = [
     title: 'Track and Optimize Performance',
     description: 'Monitor which prompt pages perform best and use those insights to optimize your approach. Focus on what drives the most authentic reviews.'
   }
-];
+]
 
 const overviewContent = (
   <>
@@ -172,32 +164,210 @@ const overviewContent = (
       </div>
     </div>
   </>
-);
+)
 
-export default function PromptPagesPage() {
+function resolveIcon(iconName: string | undefined, fallback: LucideIcon): LucideIcon {
+  if (!iconName) return fallback
+  const normalized = iconName.trim()
+  const lookup = Icons as Record<string, unknown>
+  const candidates = [
+    normalized,
+    normalized.toLowerCase(),
+    normalized.toUpperCase(),
+    normalized.charAt(0).toUpperCase() + normalized.slice(1),
+    normalized.replace(/[-_\s]+/g, ''),
+  ]
+
+  for (const key of candidates) {
+    const maybeIcon = lookup[key]
+    if (typeof maybeIcon === 'function') {
+      return maybeIcon as LucideIcon
+    }
+  }
+
+  return fallback
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  try {
+    const article = await getArticleBySlug('prompt-pages')
+    if (!article) {
+      return {
+        title: 'Prompt Pages - Create Personalized Review Request Pages | Prompt Reviews Help',
+        description: fallbackDescription,
+        alternates: {
+          canonical: 'https://docs.promptreviews.app/docs/prompt-pages',
+        },
+      }
+    }
+
+    const seoTitle = article.metadata?.seo_title || article.title
+    const seoDescription = article.metadata?.seo_description || article.metadata?.description || fallbackDescription
+
+    return {
+      title: `${seoTitle} | Prompt Reviews`,
+      description: seoDescription,
+      keywords: article.metadata?.keywords ?? [],
+      alternates: {
+        canonical: article.metadata?.canonical_url ?? 'https://docs.promptreviews.app/docs/prompt-pages',
+      },
+    }
+  } catch (error) {
+    console.error('generateMetadata prompt-pages error:', error)
+    return {
+      title: 'Prompt Pages - Create Personalized Review Request Pages | Prompt Reviews Help',
+      description: fallbackDescription,
+      alternates: {
+        canonical: 'https://docs.promptreviews.app/docs/prompt-pages',
+      },
+    }
+  }
+}
+
+interface MetadataFeature {
+  icon?: string
+  title: string
+  description: string
+  href?: string
+}
+
+interface MetadataStep {
+  number?: number
+  icon?: string
+  title: string
+  description: string
+}
+
+interface MetadataBestPractice {
+  icon?: string
+  title: string
+  description: string
+}
+
+export default async function PromptPagesPage() {
+  let article = null
+
+  try {
+    article = await getArticleBySlug('prompt-pages')
+  } catch (error) {
+    console.error('Error fetching prompt-pages article:', error)
+  }
+
+  if (!article) {
+    notFound()
+  }
+
+  const metadata = article.metadata ?? {}
+
+  const getString = (value: unknown): string | undefined => {
+    if (typeof value === 'string' && value.trim().length > 0) {
+      return value.trim()
+    }
+    return undefined
+  }
+
+  const availablePlans: ('grower' | 'builder' | 'maven' | 'enterprise')[] =
+    Array.isArray(metadata.available_plans) && metadata.available_plans.length
+      ? (metadata.available_plans as ('grower' | 'builder' | 'maven' | 'enterprise')[])
+      : ['grower', 'builder', 'maven']
+
+  const mappedKeyFeatures = Array.isArray(metadata.key_features) && metadata.key_features.length
+    ? (metadata.key_features as MetadataFeature[]).map((feature) => ({
+        icon: resolveIcon(feature.icon, Heart),
+        title: feature.title,
+        description: feature.description,
+        href: feature.href,
+      }))
+    : defaultKeyFeatures
+
+  const mappedHowItWorks = Array.isArray(metadata.how_it_works) && metadata.how_it_works.length
+    ? (metadata.how_it_works as MetadataStep[]).map((step, index) => ({
+        number: step.number ?? index + 1,
+        title: step.title,
+        description: step.description,
+        icon: resolveIcon(step.icon, Edit),
+      }))
+    : defaultHowItWorks
+
+  const mappedBestPractices = Array.isArray(metadata.best_practices) && metadata.best_practices.length
+    ? (metadata.best_practices as MetadataBestPractice[]).map((practice) => ({
+        icon: resolveIcon(practice.icon, Target),
+        title: practice.title,
+        description: practice.description,
+      }))
+    : defaultBestPractices
+
+  const CategoryIcon = resolveIcon(
+    typeof metadata.category_icon === 'string' && metadata.category_icon.trim().length
+      ? metadata.category_icon
+      : 'MessageCircle',
+    MessageCircle,
+  )
+
+  const overviewMarkdown = getString((metadata as Record<string, unknown>).overview_markdown)
+  const overviewTitle = getString((metadata as Record<string, unknown>).overview_title) || 'What Are Prompt Pages?'
+
+  const overviewNode = overviewMarkdown
+    ? <MarkdownRenderer content={overviewMarkdown} />
+    : overviewContent
+
+  const callToActionMeta = (metadata as Record<string, unknown>).call_to_action
+  const parseCTAButton = (value: any) => {
+    const text = getString(value?.text)
+    const href = getString(value?.href)
+    if (!text || !href) return undefined
+    return {
+      text,
+      href,
+      external: Boolean(value?.external),
+    }
+  }
+
+  const fallbackCTA = {
+    primary: {
+      text: 'Explore Page Types',
+      href: '/prompt-pages/types',
+    },
+  } as const
+
+  const callToAction = (callToActionMeta && typeof callToActionMeta === 'object')
+    ? {
+        primary: parseCTAButton((callToActionMeta as any).primary) || fallbackCTA.primary,
+        secondary: parseCTAButton((callToActionMeta as any).secondary),
+      }
+    : fallbackCTA
+
+  const faqMetadata = Array.isArray((metadata as Record<string, unknown>).faqs)
+    ? ((metadata as Record<string, unknown>).faqs as { question: string; answer: string }[])
+    : null
+
+  const faqsTitle = getString((metadata as Record<string, unknown>).faqs_title)
+
+  const keyFeaturesTitle = getString((metadata as Record<string, unknown>).key_features_title)
+  const howItWorksTitle = getString((metadata as Record<string, unknown>).how_it_works_title)
+  const bestPracticesTitle = getString((metadata as Record<string, unknown>).best_practices_title)
+
   return (
     <StandardOverviewLayout
-      title="Prompt pages: Your review collection superpower"
-      description="Create personalized review request pages that make it easy for customers to leave detailed, authentic reviews. Choose from multiple types, customize everything, and watch your reviews grow."
-      categoryLabel="Prompt Pages"
-      categoryIcon={MessageCircle}
-      categoryColor="purple"
+      title={article.title || 'Prompt pages: Your review collection superpower'}
+      description={metadata.description ?? fallbackDescription}
+      categoryLabel={metadata.category_label || 'Prompt Pages'}
+      categoryIcon={CategoryIcon}
+      categoryColor={metadata.category_color || 'purple'}
       currentPage="Prompt Pages"
-      breadcrumbs={[{ label: 'Help', href: '/' }]}
-      availablePlans={['grower', 'builder', 'maven']}
-      keyFeatures={keyFeatures}
-      howItWorks={howItWorks}
-      bestPractices={bestPractices}
-      faqs={pageFAQs['prompt-pages']}
-      callToAction={{
-        primary: {
-          text: 'Explore Page Types',
-          href: '/prompt-pages/types'
-        }
-      }}
+      availablePlans={availablePlans}
+      keyFeatures={mappedKeyFeatures}
+      keyFeaturesTitle={keyFeaturesTitle}
+      howItWorks={mappedHowItWorks}
+      howItWorksTitle={howItWorksTitle}
+      bestPractices={mappedBestPractices}
+      bestPracticesTitle={bestPracticesTitle}
+      faqs={faqMetadata && faqMetadata.length ? faqMetadata : pageFAQs['prompt-pages']}
+      faqsTitle={faqsTitle}
+      callToAction={callToAction}
       overview={{
-        title: 'What Are Prompt Pages?',
-        content: overviewContent
+        title: overviewTitle,
+        content: overviewNode,
       }}
     />
   )

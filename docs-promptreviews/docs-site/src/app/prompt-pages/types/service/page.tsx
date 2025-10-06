@@ -1,310 +1,207 @@
-/**
- * Service Prompt Pages Documentation
- * Complete guide to creating and optimizing Service prompt pages
- */
+import type { Metadata } from 'next'
+import { notFound } from 'next/navigation'
+import * as Icons from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
+import StandardOverviewLayout from '../../../components/StandardOverviewLayout'
+import { pageFAQs } from '../../../utils/faqData'
+import { getArticleBySlug } from '@/lib/docs/articles'
 
-import { Metadata } from 'next';
-import { MessageCircle, Star, Users, MapPin, Clock, Phone } from 'lucide-react';
-import DocsLayout from '../../../docs-layout';
+const { MessageCircle, Sparkles } = Icons
 
-export const metadata: Metadata = {
-  title: 'Service Prompt Pages - Complete Guide | Prompt Reviews',
-  description: 'Learn how to create effective Service prompt pages for restaurants, salons, and service-based businesses. Get more reviews with our proven approach.',
-  keywords: 'service prompt pages, restaurant reviews, salon reviews, service business reviews, local business reviews',
-  openGraph: {
-    title: 'Service Prompt Pages - Perfect for Service-Based Businesses',
-    description: 'Create effective Service prompt pages to collect better reviews from your customers.',
-  },
-};
+const fallbackDescription = 'Perfect for restaurants, salons, professional services, and any business that provides services to customers. Collect detailed, service-specific reviews that help you improve and grow.'
 
-// JSON-LD structured data
-const jsonLd = {
-  "@context": "https://schema.org",
-  "@type": "HowTo",
-  "name": "Create Service Prompt Pages",
-  "description": "Step-by-step guide to creating effective Service prompt pages for service-based businesses",
-  "image": "https://docs.promptreviews.app/images/service-prompt-page.png",
-  "totalTime": "PT10M",
-  "estimatedCost": {
-    "@type": "MonetaryAmount",
-    "currency": "USD",
-    "value": "0"
-  },
-  "supply": [
-    {
-      "@type": "HowToSupply",
-      "name": "Business information"
-    },
-    {
-      "@type": "HowToSupply", 
-      "name": "Service details"
-    }
-  ],
-  "step": [
-    {
-      "@type": "HowToStep",
-      "name": "Choose Service prompt page type",
-      "text": "Select 'Service' when creating your prompt page"
-    },
-    {
-      "@type": "HowToStep",
-      "name": "Add business information",
-      "text": "Include your business name, address, and contact details"
-    },
-    {
-      "@type": "HowToStep",
-      "name": "Customize review prompts",
-      "text": "Add service-specific questions and prompts"
-    },
-    {
-      "@type": "HowToStep",
-      "name": "Brand your page",
-      "text": "Add your logo, colors, and branding elements"
-    }
+function resolveIcon(iconName: string | undefined, fallback: LucideIcon): LucideIcon {
+  if (!iconName) return fallback
+  const normalized = iconName.trim()
+  const lookup = Icons as Record<string, unknown>
+  const candidates = [
+    normalized,
+    normalized.toLowerCase(),
+    normalized.toUpperCase(),
+    normalized.charAt(0).toUpperCase() + normalized.slice(1),
+    normalized.replace(/[-_\s]+/g, ''),
   ]
-};
 
-const serviceExamples = [
-  {
-    business: 'Restaurant',
-    examples: [
-      'How was the food quality and taste?',
-      'How was the service and staff friendliness?',
-      'How was the atmosphere and ambiance?',
-      'Would you recommend us to friends and family?'
-    ],
-    tips: [
-      'Ask about specific dishes or menu items',
-      'Include questions about portion sizes and value',
-      'Ask about cleanliness and hygiene',
-      'Get feedback on wait times and reservations'
-    ]
-  },
-  {
-    business: 'Hair Salon',
-    examples: [
-      'How satisfied are you with your haircut/style?',
-      'How was the stylist\'s expertise and communication?',
-      'How was the salon atmosphere and cleanliness?',
-      'Would you return and recommend us?'
-    ],
-    tips: [
-      'Ask about specific services received',
-      'Include questions about consultation process',
-      'Get feedback on pricing and value',
-      'Ask about appointment booking experience'
-    ]
-  },
-  {
-    business: 'Professional Services',
-    examples: [
-      'How was the quality of service provided?',
-      'How was the communication and responsiveness?',
-      'How was the expertise and professionalism?',
-      'Would you recommend our services?'
-    ],
-    tips: [
-      'Focus on expertise and results',
-      'Ask about communication and follow-up',
-      'Include questions about value and ROI',
-      'Get feedback on problem-solving approach'
-    ]
+  for (const key of candidates) {
+    const maybeIcon = lookup[key]
+    if (typeof maybeIcon === 'function') {
+      return maybeIcon as LucideIcon
+    }
   }
-];
 
-const bestPractices = [
-  {
-    title: 'Keep Questions Specific',
-    description: 'Ask about specific aspects of your service rather than general satisfaction.',
-    example: 'Instead of "How was your experience?" ask "How was the food quality and presentation?"'
-  },
-  {
-    title: 'Use Positive Language',
-    description: 'Frame questions positively to encourage detailed, constructive feedback.',
-    example: 'Ask "What did you enjoy most about our service?" rather than "What could we improve?"'
-  },
-  {
-    title: 'Include Multiple Touchpoints',
-    description: 'Cover different aspects of the customer journey from booking to follow-up.',
-    example: 'Ask about booking experience, service delivery, and post-service follow-up'
-  },
-  {
-    title: 'Make It Personal',
-    description: 'Use your business name and personalize questions to your specific services.',
-    example: 'Instead of generic questions, ask about your specific menu items or services'
+  return fallback
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  try {
+    const article = await getArticleBySlug('prompt-pages/types/service')
+    if (!article) {
+      return {
+        title: 'Service Prompt Pages - Complete Guide | Prompt Reviews',
+        description: fallbackDescription,
+        alternates: {
+          canonical: 'https://docs.promptreviews.app/prompt-pages/types/service',
+        },
+      }
+    }
+
+    const seoTitle = article.metadata?.seo_title || article.title
+    const seoDescription = article.metadata?.seo_description || article.metadata?.description || fallbackDescription
+
+    return {
+      title: `${seoTitle} | Prompt Reviews`,
+      description: seoDescription,
+      keywords: article.metadata?.keywords ?? [],
+      alternates: {
+        canonical: article.metadata?.canonical_url ?? 'https://docs.promptreviews.app/prompt-pages/types/service',
+      },
+    }
+  } catch (error) {
+    console.error('generateMetadata service error:', error)
+    return {
+      title: 'Service Prompt Pages | Prompt Reviews',
+      description: fallbackDescription,
+      alternates: {
+        canonical: 'https://docs.promptreviews.app/prompt-pages/types/service',
+      },
+    }
   }
-];
+}
 
-export default function ServicePromptPages() {
+interface MetadataFeature {
+  icon?: string
+  title: string
+  description: string
+  href?: string
+}
+
+interface MetadataStep {
+  number?: number
+  icon?: string
+  title: string
+  description: string
+}
+
+interface MetadataBestPractice {
+  icon?: string
+  title: string
+  description: string
+}
+
+export default async function ServicePromptPagesPage() {
+  let article = null
+
+  try {
+    article = await getArticleBySlug('prompt-pages/types/service')
+  } catch (error) {
+    console.error('Error fetching service article:', error)
+  }
+
+  if (!article) {
+    notFound()
+  }
+
+  const metadata = article.metadata ?? {}
+
+  const getString = (value: unknown): string | undefined => {
+    if (typeof value === 'string' && value.trim().length > 0) {
+      return value.trim()
+    }
+    return undefined
+  }
+
+  const availablePlans: ('grower' | 'builder' | 'maven' | 'enterprise')[] =
+    Array.isArray(metadata.available_plans) && metadata.available_plans.length
+      ? (metadata.available_plans as ('grower' | 'builder' | 'maven' | 'enterprise')[])
+      : ['grower', 'builder', 'maven']
+
+  const mappedKeyFeatures = Array.isArray(metadata.key_features) && metadata.key_features.length
+    ? (metadata.key_features as MetadataFeature[]).map((feature) => ({
+        icon: resolveIcon(feature.icon, Sparkles),
+        title: feature.title,
+        description: feature.description,
+        href: feature.href,
+      }))
+    : []
+
+  const mappedHowItWorks = Array.isArray(metadata.how_it_works) && metadata.how_it_works.length
+    ? (metadata.how_it_works as MetadataStep[]).map((step, index) => ({
+        number: step.number ?? index + 1,
+        title: step.title,
+        description: step.description,
+        icon: resolveIcon(step.icon, Sparkles),
+      }))
+    : []
+
+  const mappedBestPractices = Array.isArray(metadata.best_practices) && metadata.best_practices.length
+    ? (metadata.best_practices as MetadataBestPractice[]).map((practice) => ({
+        icon: resolveIcon(practice.icon, Sparkles),
+        title: practice.title,
+        description: practice.description,
+      }))
+    : []
+
+  const CategoryIcon = resolveIcon(
+    typeof metadata.category_icon === 'string' && metadata.category_icon.trim().length
+      ? metadata.category_icon
+      : 'MessageCircle',
+    MessageCircle,
+  )
+
+  const callToActionMeta = (metadata as Record<string, unknown>).call_to_action
+  const parseCTAButton = (value: any) => {
+    const text = getString(value?.text)
+    const href = getString(value?.href)
+    if (!text || !href) return undefined
+    return {
+      text,
+      href,
+      external: Boolean(value?.external),
+    }
+  }
+
+  const fallbackCTA = {
+    primary: {
+      text: 'View All Page Types',
+      href: '/prompt-pages/types',
+    },
+  } as const
+
+  const callToAction = (callToActionMeta && typeof callToActionMeta === 'object')
+    ? {
+        primary: parseCTAButton((callToActionMeta as any).primary) || fallbackCTA.primary,
+        secondary: parseCTAButton((callToActionMeta as any).secondary),
+      }
+    : fallbackCTA
+
+  const faqMetadata = Array.isArray((metadata as Record<string, unknown>).faqs)
+    ? ((metadata as Record<string, unknown>).faqs as { question: string; answer: string }[])
+    : null
+
+  const faqsTitle = getString((metadata as Record<string, unknown>).faqs_title)
+  const keyFeaturesTitle = getString((metadata as Record<string, unknown>).key_features_title)
+  const howItWorksTitle = getString((metadata as Record<string, unknown>).how_it_works_title)
+  const bestPracticesTitle = getString((metadata as Record<string, unknown>).best_practices_title)
+
   return (
-    <DocsLayout>
-
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="mb-12">
-          <div className="flex items-center space-x-3 mb-6">
-            <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center">
-              <MessageCircle className="w-6 h-6 text-purple-300" />
-            </div>
-            <h1 className="text-4xl font-bold text-white">
-              Service Prompt Pages
-            </h1>
-          </div>
-          <p className="text-xl text-white/80">
-            Perfect for restaurants, salons, professional services, and any business that provides services to customers. Collect detailed, service-specific reviews that help you improve and grow.
-          </p>
-        </div>
-        {/* Quick Overview */}
-        <div className="bg-white/10 backdrop-blur-md rounded-lg shadow-sm border border-white/20 p-8 mb-12">
-          <h2 className="text-2xl font-bold text-white mb-6">Why Choose Service Prompt Pages?</h2>
-          <div className="grid md:grid-cols-3 gap-6">
-            <div className="text-center">
-              <div className="w-12 h-12 bg-white/10 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <Star className="w-6 h-6 text-yellow-300" />
-              </div>
-              <h3 className="font-semibold text-white mb-2">Service-Focused</h3>
-              <p className="text-white/70 text-sm">Questions specifically designed for service-based businesses</p>
-            </div>
-            <div className="text-center">
-              <div className="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <Users className="w-6 h-6 text-green-300" />
-              </div>
-              <h3 className="font-semibold text-white mb-2">Customer-Centric</h3>
-              <p className="text-white/70 text-sm">Focus on customer experience and satisfaction</p>
-            </div>
-            <div className="text-center">
-              <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <MapPin className="w-6 h-6 text-purple-300" />
-              </div>
-              <h3 className="font-semibold text-white mb-2">Local SEO</h3>
-              <p className="text-white/70 text-sm">Optimized for local search and business visibility</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Service Examples */}
-        <div className="mb-12">
-          <h2 className="text-2xl font-bold text-white mb-6">Service-Specific Examples</h2>
-          <div className="space-y-8">
-            {serviceExamples.map((service, index) => (
-              <div key={index} className="bg-white/10 backdrop-blur-md rounded-lg shadow-sm border border-white/20 overflow-hidden">
-                <div className="bg-gradient-to-r from-slate-blue to-indigo-600 px-6 py-4">
-                  <h3 className="text-xl font-bold text-white">{service.business}</h3>
-                </div>
-                <div className="p-6">
-                  <div className="grid lg:grid-cols-2 gap-8">
-                    <div>
-                      <h4 className="font-semibold text-white mb-3">Example Questions</h4>
-                      <ul className="space-y-2">
-                        {service.examples.map((example, idx) => (
-                          <li key={idx} className="flex items-start space-x-2">
-                            <div className="w-1.5 h-1.5 bg-slate-blue rounded-full mt-2 flex-shrink-0"></div>
-                            <span className="text-white/80 text-sm">{example}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-white mb-3">Pro Tips</h4>
-                      <ul className="space-y-2">
-                        {service.tips.map((tip, idx) => (
-                          <li key={idx} className="flex items-start space-x-2">
-                            <div className="w-1.5 h-1.5 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
-                            <span className="text-white/80 text-sm">{tip}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Best Practices */}
-        <div className="mb-12">
-          <h2 className="text-2xl font-bold text-white mb-6">Best Practices</h2>
-          <div className="grid md:grid-cols-2 gap-6">
-            {bestPractices.map((practice, index) => (
-              <div key={index} className="bg-white/10 backdrop-blur-md rounded-lg shadow-sm border border-white/20 p-6">
-                <h3 className="font-semibold text-white mb-3">{practice.title}</h3>
-                <p className="text-white/80 mb-3">{practice.description}</p>
-                <div className="bg-white/10 border border-yellow-400/30 rounded-lg p-3">
-                  <p className="text-white/80 text-sm font-medium">Example:</p>
-                  <p className="text-yellow-300 text-sm">{practice.example}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Setup Guide */}
-        <div className="bg-white/10 backdrop-blur-md rounded-lg shadow-sm border border-white/20 p-8 mb-12">
-          <h2 className="text-2xl font-bold text-white mb-6">Quick Setup Guide</h2>
-          <div className="grid md:grid-cols-2 gap-8">
-            <div>
-              <h3 className="font-semibold text-white mb-4">Step-by-Step Process</h3>
-              <ol className="space-y-4">
-                <li className="flex items-start space-x-3">
-                  <div className="w-6 h-6 bg-slate-blue text-white rounded-full flex items-center justify-center text-sm font-medium flex-shrink-0">1</div>
-                  <div>
-                    <p className="font-medium text-white">Choose Service Type</p>
-                    <p className="text-white/70 text-sm">Select "Service" when creating your prompt page</p>
-                  </div>
-                </li>
-                <li className="flex items-start space-x-3">
-                  <div className="w-6 h-6 bg-slate-blue text-white rounded-full flex items-center justify-center text-sm font-medium flex-shrink-0">2</div>
-                  <div>
-                    <p className="font-medium text-white">Add Business Info</p>
-                    <p className="text-white/70 text-sm">Include name, address, hours, and contact details</p>
-                  </div>
-                </li>
-                <li className="flex items-start space-x-3">
-                  <div className="w-6 h-6 bg-slate-blue text-white rounded-full flex items-center justify-center text-sm font-medium flex-shrink-0">3</div>
-                  <div>
-                    <p className="font-medium text-white">Customize Questions</p>
-                    <p className="text-white/70 text-sm">Add service-specific review prompts</p>
-                  </div>
-                </li>
-                <li className="flex items-start space-x-3">
-                  <div className="w-6 h-6 bg-slate-blue text-white rounded-full flex items-center justify-center text-sm font-medium flex-shrink-0">4</div>
-                  <div>
-                    <p className="font-medium text-white">Brand Your Page</p>
-                    <p className="text-white/70 text-sm">Add logo, colors, and custom messaging</p>
-                  </div>
-                </li>
-              </ol>
-            </div>
-            <div>
-              <h3 className="font-semibold text-white mb-4">What You'll Get</h3>
-              <ul className="space-y-3">
-                <li className="flex items-center space-x-2">
-                  <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
-                  <span className="text-white/80">Service-optimized review questions</span>
-                </li>
-                <li className="flex items-center space-x-2">
-                  <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
-                  <span className="text-white/80">Business information display</span>
-                </li>
-                <li className="flex items-center space-x-2">
-                  <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
-                  <span className="text-white/80">Local SEO optimization</span>
-                </li>
-                <li className="flex items-center space-x-2">
-                  <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
-                  <span className="text-white/80">Professional appearance</span>
-                </li>
-                <li className="flex items-center space-x-2">
-                  <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
-                  <span className="text-white/80">Easy customer engagement</span>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-
-      </div>
-    </DocsLayout>
-  );
+    <StandardOverviewLayout
+      title={article.title || 'Service Prompt Pages'}
+      description={metadata.description ?? fallbackDescription}
+      categoryLabel={metadata.category_label || 'Page Types'}
+      categoryIcon={CategoryIcon}
+      categoryColor={metadata.category_color || 'purple'}
+      currentPage="Service"
+      availablePlans={availablePlans}
+      keyFeatures={mappedKeyFeatures}
+      keyFeaturesTitle={keyFeaturesTitle}
+      howItWorks={mappedHowItWorks}
+      howItWorksTitle={howItWorksTitle}
+      bestPractices={mappedBestPractices}
+      bestPracticesTitle={bestPracticesTitle}
+      faqs={faqMetadata && faqMetadata.length ? faqMetadata : pageFAQs['prompt-pages/types/service']}
+      faqsTitle={faqsTitle}
+      callToAction={callToAction}
+      content={article.content}
+    />
+  )
 }

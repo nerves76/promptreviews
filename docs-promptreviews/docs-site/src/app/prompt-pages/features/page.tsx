@@ -4,14 +4,14 @@
  */
 
 import { Metadata } from 'next';
-import { 
-  Heart, 
-  Brain, 
-  QrCode, 
-  Palette, 
-  Share2, 
-  Shield, 
-  BarChart3, 
+import {
+  Heart,
+  Brain,
+  QrCode,
+  Palette,
+  Share2,
+  Shield,
+  BarChart3,
   Smartphone,
   Globe,
   Zap,
@@ -29,16 +29,32 @@ import {
 } from 'lucide-react';
 import DocsLayout from '../../docs-layout';
 import PageHeader from '../../components/PageHeader';
+import { getArticleBySlug } from '@/lib/articles';
 
-export const metadata: Metadata = {
-  title: 'Prompt Page Features - Emoji Sentiment Flow, AI-Powered Content & More | Prompt Reviews',
-  description: 'Explore all prompt page features: Emoji Sentiment Flow, AI-powered content generation, QR codes, customization, analytics, and more.',
-  keywords: 'prompt page features, emoji sentiment flow, prompty ai, qr codes, review analytics, customization',
-  openGraph: {
-    title: 'Prompt Page Features - Complete Guide',
-    description: 'Discover all the powerful features that make prompt pages effective for review collection.',
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const article = await getArticleBySlug('prompt-pages/features');
+
+  if (!article) {
+    return {
+      title: 'Prompt Page Features | Prompt Reviews',
+      description: 'Explore all prompt page features: Emoji Sentiment Flow, AI-powered content generation, QR codes, customization, analytics, and more.',
+      keywords: 'prompt page features, emoji sentiment flow, prompty ai, qr codes, review analytics, customization',
+    };
+  }
+
+  const seoTitle = article.metadata?.seo_title || article.title;
+  const seoDescription = article.metadata?.seo_description || article.metadata?.description || '';
+
+  return {
+    title: `${seoTitle} | Prompt Reviews`,
+    description: seoDescription,
+    keywords: article.metadata?.keywords || [],
+    openGraph: {
+      title: `${seoTitle}`,
+      description: seoDescription,
+    },
+  };
+}
 
 // JSON-LD structured data
 const jsonLd = {
@@ -419,7 +435,9 @@ const features = [
   }
 ];
 
-export default function PromptPageFeatures() {
+export default async function PromptPageFeatures() {
+  const article = await getArticleBySlug('prompt-pages/features');
+
   return (
     <DocsLayout>
 
@@ -623,3 +641,5 @@ export default function PromptPageFeatures() {
     </DocsLayout>
   );
 }
+
+export const revalidate = 300; // Revalidate every 5 minutes

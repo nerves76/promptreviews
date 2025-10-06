@@ -1,224 +1,207 @@
-import { Metadata } from 'next';
-import { Camera, Image, Upload, Sparkles, Heart, Eye } from 'lucide-react';
-import DocsLayout from '../../../docs-layout';
+import type { Metadata } from 'next'
+import { notFound } from 'next/navigation'
+import * as Icons from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
+import StandardOverviewLayout from '../../../components/StandardOverviewLayout'
+import { pageFAQs } from '../../../utils/faqData'
+import { getArticleBySlug } from '@/lib/docs/articles'
 
-export const metadata: Metadata = {
-  title: 'Photo Prompt Pages - Visual Reviews Guide | Prompt Reviews',
-  description: 'Learn how to create Photo prompt pages for collecting visual reviews with customer photos. Perfect for showcasing real results.',
-  keywords: 'photo prompt pages, visual reviews, photo testimonials, before after photos, customer photos',
-  openGraph: {
-    title: 'Photo Prompt Pages - Collect Visual Reviews',
-    description: 'Create Photo prompt pages to collect reviews with customer photos for powerful visual testimonials.',
-  },
-};
+const { Camera, Sparkles } = Icons
 
-export default function PhotoPromptPages() {
+const fallbackDescription = 'Collect reviews with customer photos to create powerful visual testimonials. Perfect for businesses where visual results matter - hair salons, restaurants, home improvement, fitness, and more.'
+
+function resolveIcon(iconName: string | undefined, fallback: LucideIcon): LucideIcon {
+  if (!iconName) return fallback
+  const normalized = iconName.trim()
+  const lookup = Icons as Record<string, unknown>
+  const candidates = [
+    normalized,
+    normalized.toLowerCase(),
+    normalized.toUpperCase(),
+    normalized.charAt(0).toUpperCase() + normalized.slice(1),
+    normalized.replace(/[-_\s]+/g, ''),
+  ]
+
+  for (const key of candidates) {
+    const maybeIcon = lookup[key]
+    if (typeof maybeIcon === 'function') {
+      return maybeIcon as LucideIcon
+    }
+  }
+
+  return fallback
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  try {
+    const article = await getArticleBySlug('prompt-pages/types/photo')
+    if (!article) {
+      return {
+        title: 'Photo Prompt Pages - Visual Reviews Guide | Prompt Reviews',
+        description: fallbackDescription,
+        alternates: {
+          canonical: 'https://docs.promptreviews.app/prompt-pages/types/photo',
+        },
+      }
+    }
+
+    const seoTitle = article.metadata?.seo_title || article.title
+    const seoDescription = article.metadata?.seo_description || article.metadata?.description || fallbackDescription
+
+    return {
+      title: `${seoTitle} | Prompt Reviews`,
+      description: seoDescription,
+      keywords: article.metadata?.keywords ?? [],
+      alternates: {
+        canonical: article.metadata?.canonical_url ?? 'https://docs.promptreviews.app/prompt-pages/types/photo',
+      },
+    }
+  } catch (error) {
+    console.error('generateMetadata photo error:', error)
+    return {
+      title: 'Photo Prompt Pages | Prompt Reviews',
+      description: fallbackDescription,
+      alternates: {
+        canonical: 'https://docs.promptreviews.app/prompt-pages/types/photo',
+      },
+    }
+  }
+}
+
+interface MetadataFeature {
+  icon?: string
+  title: string
+  description: string
+  href?: string
+}
+
+interface MetadataStep {
+  number?: number
+  icon?: string
+  title: string
+  description: string
+}
+
+interface MetadataBestPractice {
+  icon?: string
+  title: string
+  description: string
+}
+
+export default async function PhotoPromptPagesPage() {
+  let article = null
+
+  try {
+    article = await getArticleBySlug('prompt-pages/types/photo')
+  } catch (error) {
+    console.error('Error fetching photo article:', error)
+  }
+
+  if (!article) {
+    notFound()
+  }
+
+  const metadata = article.metadata ?? {}
+
+  const getString = (value: unknown): string | undefined => {
+    if (typeof value === 'string' && value.trim().length > 0) {
+      return value.trim()
+    }
+    return undefined
+  }
+
+  const availablePlans: ('grower' | 'builder' | 'maven' | 'enterprise')[] =
+    Array.isArray(metadata.available_plans) && metadata.available_plans.length
+      ? (metadata.available_plans as ('grower' | 'builder' | 'maven' | 'enterprise')[])
+      : ['builder', 'maven']
+
+  const mappedKeyFeatures = Array.isArray(metadata.key_features) && metadata.key_features.length
+    ? (metadata.key_features as MetadataFeature[]).map((feature) => ({
+        icon: resolveIcon(feature.icon, Sparkles),
+        title: feature.title,
+        description: feature.description,
+        href: feature.href,
+      }))
+    : []
+
+  const mappedHowItWorks = Array.isArray(metadata.how_it_works) && metadata.how_it_works.length
+    ? (metadata.how_it_works as MetadataStep[]).map((step, index) => ({
+        number: step.number ?? index + 1,
+        title: step.title,
+        description: step.description,
+        icon: resolveIcon(step.icon, Sparkles),
+      }))
+    : []
+
+  const mappedBestPractices = Array.isArray(metadata.best_practices) && metadata.best_practices.length
+    ? (metadata.best_practices as MetadataBestPractice[]).map((practice) => ({
+        icon: resolveIcon(practice.icon, Sparkles),
+        title: practice.title,
+        description: practice.description,
+      }))
+    : []
+
+  const CategoryIcon = resolveIcon(
+    typeof metadata.category_icon === 'string' && metadata.category_icon.trim().length
+      ? metadata.category_icon
+      : 'Camera',
+    Camera,
+  )
+
+  const callToActionMeta = (metadata as Record<string, unknown>).call_to_action
+  const parseCTAButton = (value: any) => {
+    const text = getString(value?.text)
+    const href = getString(value?.href)
+    if (!text || !href) return undefined
+    return {
+      text,
+      href,
+      external: Boolean(value?.external),
+    }
+  }
+
+  const fallbackCTA = {
+    primary: {
+      text: 'View All Page Types',
+      href: '/prompt-pages/types',
+    },
+  } as const
+
+  const callToAction = (callToActionMeta && typeof callToActionMeta === 'object')
+    ? {
+        primary: parseCTAButton((callToActionMeta as any).primary) || fallbackCTA.primary,
+        secondary: parseCTAButton((callToActionMeta as any).secondary),
+      }
+    : fallbackCTA
+
+  const faqMetadata = Array.isArray((metadata as Record<string, unknown>).faqs)
+    ? ((metadata as Record<string, unknown>).faqs as { question: string; answer: string }[])
+    : null
+
+  const faqsTitle = getString((metadata as Record<string, unknown>).faqs_title)
+  const keyFeaturesTitle = getString((metadata as Record<string, unknown>).key_features_title)
+  const howItWorksTitle = getString((metadata as Record<string, unknown>).how_it_works_title)
+  const bestPracticesTitle = getString((metadata as Record<string, unknown>).best_practices_title)
+
   return (
-    <DocsLayout>
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="mb-12">
-          <div className="flex items-center space-x-3 mb-6">
-            <div className="w-12 h-12 bg-pink-500/20 rounded-lg flex items-center justify-center">
-              <Camera className="w-6 h-6 text-pink-300" />
-            </div>
-            <h1 className="text-4xl font-bold text-white">
-              Photo Prompt Pages
-            </h1>
-          </div>
-          <p className="text-xl text-white/80">
-            Collect reviews with customer photos to create powerful visual testimonials. Perfect for businesses 
-            where visual results matter - hair salons, restaurants, home improvement, fitness, and more.
-          </p>
-        </div>
-
-        {/* Why Choose Photo Pages */}
-        <div className="bg-white/10 backdrop-blur-md rounded-lg shadow-sm border border-white/20 p-8 mb-12">
-          <h2 className="text-2xl font-bold text-white mb-6">Why Choose Photo Prompt Pages?</h2>
-          <div className="grid md:grid-cols-3 gap-6">
-            <div className="text-center">
-              <div className="w-12 h-12 bg-white/10 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <Image className="w-6 h-6 text-yellow-300" />
-              </div>
-              <h3 className="font-semibold text-white mb-2">Visual Proof</h3>
-              <p className="text-white/70 text-sm">Photos provide authentic proof of your work and results</p>
-            </div>
-            <div className="text-center">
-              <div className="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <Heart className="w-6 h-6 text-green-300" />
-              </div>
-              <h3 className="font-semibold text-white mb-2">Higher Engagement</h3>
-              <p className="text-white/70 text-sm">Visual reviews get 5x more engagement than text alone</p>
-            </div>
-            <div className="text-center">
-              <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <Sparkles className="w-6 h-6 text-purple-300" />
-              </div>
-              <h3 className="font-semibold text-white mb-2">Marketing Gold</h3>
-              <p className="text-white/70 text-sm">Customer photos become valuable marketing content</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Industry Examples */}
-        <div className="mb-12">
-          <h2 className="text-2xl font-bold text-white mb-6">Perfect For These Industries</h2>
-          <div className="grid md:grid-cols-2 gap-6">
-            <div className="bg-white/10 backdrop-blur-md rounded-lg shadow-sm border border-white/20 p-6">
-              <h3 className="text-lg font-bold text-white mb-3">Beauty & Wellness</h3>
-              <ul className="space-y-2 text-white/80 text-sm mb-4">
-                <li>• Hair salons - Before/after transformations</li>
-                <li>• Nail salons - Manicure/pedicure results</li>
-                <li>• Makeup artists - Client makeovers</li>
-                <li>• Skincare - Treatment progress photos</li>
-              </ul>
-              <div className="bg-pink-500/20 border border-pink-400/30 rounded-lg p-3">
-                <p className="text-white/80 text-sm">
-                  <strong className="text-pink-300">Example:</strong> "Show us your new hairstyle!"
-                </p>
-              </div>
-            </div>
-
-            <div className="bg-white/10 backdrop-blur-md rounded-lg shadow-sm border border-white/20 p-6">
-              <h3 className="text-lg font-bold text-white mb-3">Food & Hospitality</h3>
-              <ul className="space-y-2 text-white/80 text-sm mb-4">
-                <li>• Restaurants - Dish presentations</li>
-                <li>• Cafes - Coffee art and pastries</li>
-                <li>• Bakeries - Custom cakes and treats</li>
-                <li>• Hotels - Room and amenity photos</li>
-              </ul>
-              <div className="bg-orange-500/20 border border-orange-400/30 rounded-lg p-3">
-                <p className="text-white/80 text-sm">
-                  <strong className="text-orange-300">Example:</strong> "Share a photo of your meal!"
-                </p>
-              </div>
-            </div>
-
-            <div className="bg-white/10 backdrop-blur-md rounded-lg shadow-sm border border-white/20 p-6">
-              <h3 className="text-lg font-bold text-white mb-3">Home Services</h3>
-              <ul className="space-y-2 text-white/80 text-sm mb-4">
-                <li>• Contractors - Renovation projects</li>
-                <li>• Landscaping - Garden transformations</li>
-                <li>• Cleaning - Before/after results</li>
-                <li>• Interior design - Room makeovers</li>
-              </ul>
-              <div className="bg-white/10 border border-yellow-400/30 rounded-lg p-3">
-                <p className="text-white/80 text-sm">
-                  <strong className="text-yellow-300">Example:</strong> "Show the completed project!"
-                </p>
-              </div>
-            </div>
-
-            <div className="bg-white/10 backdrop-blur-md rounded-lg shadow-sm border border-white/20 p-6">
-              <h3 className="text-lg font-bold text-white mb-3">Fitness & Health</h3>
-              <ul className="space-y-2 text-white/80 text-sm mb-4">
-                <li>• Gyms - Member transformations</li>
-                <li>• Personal trainers - Client progress</li>
-                <li>• Nutritionists - Diet results</li>
-                <li>• Yoga studios - Class experiences</li>
-              </ul>
-              <div className="bg-green-500/20 border border-green-400/30 rounded-lg p-3">
-                <p className="text-white/80 text-sm">
-                  <strong className="text-green-300">Example:</strong> "Share your fitness journey!"
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Photo Upload Features */}
-        <div className="mb-12">
-          <h2 className="text-2xl font-bold text-white mb-6">Photo Upload Features</h2>
-          <div className="bg-white/10 backdrop-blur-md rounded-lg shadow-sm border border-white/20 p-8">
-            <div className="grid md:grid-cols-2 gap-8">
-              <div>
-                <h3 className="text-xl font-semibold text-white mb-4 flex items-center">
-                  <Upload className="w-5 h-5 mr-2" />
-                  Upload Options
-                </h3>
-                <ul className="space-y-2 text-white/80">
-                  <li className="flex items-start space-x-2">
-                    <span className="text-green-300">✓</span>
-                    <span>Multiple photo uploads</span>
-                  </li>
-                  <li className="flex items-start space-x-2">
-                    <span className="text-green-300">✓</span>
-                    <span>Before/after comparisons</span>
-                  </li>
-                  <li className="flex items-start space-x-2">
-                    <span className="text-green-300">✓</span>
-                    <span>Direct camera capture</span>
-                  </li>
-                  <li className="flex items-start space-x-2">
-                    <span className="text-green-300">✓</span>
-                    <span>Gallery selection</span>
-                  </li>
-                </ul>
-              </div>
-              
-              <div>
-                <h3 className="text-xl font-semibold text-white mb-4 flex items-center">
-                  <Eye className="w-5 h-5 mr-2" />
-                  Display Features
-                </h3>
-                <ul className="space-y-2 text-white/80">
-                  <li className="flex items-start space-x-2">
-                    <span className="text-yellow-300">✓</span>
-                    <span>Photo galleries</span>
-                  </li>
-                  <li className="flex items-start space-x-2">
-                    <span className="text-yellow-300">✓</span>
-                    <span>Lightbox viewing</span>
-                  </li>
-                  <li className="flex items-start space-x-2">
-                    <span className="text-yellow-300">✓</span>
-                    <span>Social sharing</span>
-                  </li>
-                  <li className="flex items-start space-x-2">
-                    <span className="text-yellow-300">✓</span>
-                    <span>Watermark options</span>
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Best Practices */}
-        <div className="mb-12">
-          <h2 className="text-2xl font-bold text-white mb-6">Best Practices for Photo Reviews</h2>
-          <div className="space-y-4">
-            <div className="bg-white/10 backdrop-blur-md rounded-lg shadow-sm border border-white/20 p-6">
-              <h3 className="font-semibold text-white mb-2">Make It Easy</h3>
-              <p className="text-white/80 text-sm">
-                Provide clear instructions on what photos to upload. Consider adding example photos to guide customers.
-              </p>
-            </div>
-            
-            <div className="bg-white/10 backdrop-blur-md rounded-lg shadow-sm border border-white/20 p-6">
-              <h3 className="font-semibold text-white mb-2">Respect Privacy</h3>
-              <p className="text-white/80 text-sm">
-                Always get permission before sharing customer photos. Include privacy options in your prompt page.
-              </p>
-            </div>
-            
-            <div className="bg-white/10 backdrop-blur-md rounded-lg shadow-sm border border-white/20 p-6">
-              <h3 className="font-semibold text-white mb-2">Incentivize Uploads</h3>
-              <p className="text-white/80 text-sm">
-                Consider offering incentives for photo reviews, like discounts or entries into contests.
-              </p>
-            </div>
-            
-            <div className="bg-white/10 backdrop-blur-md rounded-lg shadow-sm border border-white/20 p-6">
-              <h3 className="font-semibold text-white mb-2">Moderate Content</h3>
-              <p className="text-white/80 text-sm">
-                Review photos before displaying them publicly to ensure quality and appropriateness.
-              </p>
-            </div>
-          </div>
-        </div>
-
-      </div>
-    </DocsLayout>
-  );
+    <StandardOverviewLayout
+      title={article.title || 'Photo Prompt Pages'}
+      description={metadata.description ?? fallbackDescription}
+      categoryLabel={metadata.category_label || 'Page Types'}
+      categoryIcon={CategoryIcon}
+      categoryColor={metadata.category_color || 'pink'}
+      currentPage="Photo"
+      availablePlans={availablePlans}
+      keyFeatures={mappedKeyFeatures}
+      keyFeaturesTitle={keyFeaturesTitle}
+      howItWorks={mappedHowItWorks}
+      howItWorksTitle={howItWorksTitle}
+      bestPractices={mappedBestPractices}
+      bestPracticesTitle={bestPracticesTitle}
+      faqs={faqMetadata && faqMetadata.length ? faqMetadata : pageFAQs['prompt-pages/types/photo']}
+      faqsTitle={faqsTitle}
+      callToAction={callToAction}
+      content={article.content}
+    />
+  )
 }

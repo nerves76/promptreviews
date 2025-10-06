@@ -1,266 +1,207 @@
-import { Metadata } from 'next';
-import { Calendar, PartyPopper, Clock, MapPin, Users, Sparkles } from 'lucide-react';
-import DocsLayout from '../../../docs-layout';
+import type { Metadata } from 'next'
+import { notFound } from 'next/navigation'
+import * as Icons from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
+import StandardOverviewLayout from '../../../components/StandardOverviewLayout'
+import { pageFAQs } from '../../../utils/faqData'
+import { getArticleBySlug } from '@/lib/docs/articles'
 
-export const metadata: Metadata = {
-  title: 'Event Prompt Pages - Event Reviews Guide | Prompt Reviews',
-  description: 'Learn how to create Event prompt pages for collecting reviews from workshops, conferences, weddings, and special occasions.',
-  keywords: 'event prompt pages, event reviews, workshop feedback, conference reviews, wedding reviews',
-  openGraph: {
-    title: 'Event Prompt Pages - Collect Event Feedback',
-    description: 'Create Event prompt pages to collect feedback from attendees and showcase successful events.',
-  },
-};
+const { Calendar, Sparkles } = Icons
 
-export default function EventPromptPages() {
+const fallbackDescription = 'Capture feedback from events, workshops, conferences, and special occasions. Perfect for event planners, venues, educators, and anyone hosting memorable experiences.'
+
+function resolveIcon(iconName: string | undefined, fallback: LucideIcon): LucideIcon {
+  if (!iconName) return fallback
+  const normalized = iconName.trim()
+  const lookup = Icons as Record<string, unknown>
+  const candidates = [
+    normalized,
+    normalized.toLowerCase(),
+    normalized.toUpperCase(),
+    normalized.charAt(0).toUpperCase() + normalized.slice(1),
+    normalized.replace(/[-_\s]+/g, ''),
+  ]
+
+  for (const key of candidates) {
+    const maybeIcon = lookup[key]
+    if (typeof maybeIcon === 'function') {
+      return maybeIcon as LucideIcon
+    }
+  }
+
+  return fallback
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  try {
+    const article = await getArticleBySlug('prompt-pages/types/event')
+    if (!article) {
+      return {
+        title: 'Event Prompt Pages - Event Reviews Guide | Prompt Reviews',
+        description: fallbackDescription,
+        alternates: {
+          canonical: 'https://docs.promptreviews.app/prompt-pages/types/event',
+        },
+      }
+    }
+
+    const seoTitle = article.metadata?.seo_title || article.title
+    const seoDescription = article.metadata?.seo_description || article.metadata?.description || fallbackDescription
+
+    return {
+      title: `${seoTitle} | Prompt Reviews`,
+      description: seoDescription,
+      keywords: article.metadata?.keywords ?? [],
+      alternates: {
+        canonical: article.metadata?.canonical_url ?? 'https://docs.promptreviews.app/prompt-pages/types/event',
+      },
+    }
+  } catch (error) {
+    console.error('generateMetadata event error:', error)
+    return {
+      title: 'Event Prompt Pages | Prompt Reviews',
+      description: fallbackDescription,
+      alternates: {
+        canonical: 'https://docs.promptreviews.app/prompt-pages/types/event',
+      },
+    }
+  }
+}
+
+interface MetadataFeature {
+  icon?: string
+  title: string
+  description: string
+  href?: string
+}
+
+interface MetadataStep {
+  number?: number
+  icon?: string
+  title: string
+  description: string
+}
+
+interface MetadataBestPractice {
+  icon?: string
+  title: string
+  description: string
+}
+
+export default async function EventPromptPagesPage() {
+  let article = null
+
+  try {
+    article = await getArticleBySlug('prompt-pages/types/event')
+  } catch (error) {
+    console.error('Error fetching event article:', error)
+  }
+
+  if (!article) {
+    notFound()
+  }
+
+  const metadata = article.metadata ?? {}
+
+  const getString = (value: unknown): string | undefined => {
+    if (typeof value === 'string' && value.trim().length > 0) {
+      return value.trim()
+    }
+    return undefined
+  }
+
+  const availablePlans: ('grower' | 'builder' | 'maven' | 'enterprise')[] =
+    Array.isArray(metadata.available_plans) && metadata.available_plans.length
+      ? (metadata.available_plans as ('grower' | 'builder' | 'maven' | 'enterprise')[])
+      : ['builder', 'maven']
+
+  const mappedKeyFeatures = Array.isArray(metadata.key_features) && metadata.key_features.length
+    ? (metadata.key_features as MetadataFeature[]).map((feature) => ({
+        icon: resolveIcon(feature.icon, Sparkles),
+        title: feature.title,
+        description: feature.description,
+        href: feature.href,
+      }))
+    : []
+
+  const mappedHowItWorks = Array.isArray(metadata.how_it_works) && metadata.how_it_works.length
+    ? (metadata.how_it_works as MetadataStep[]).map((step, index) => ({
+        number: step.number ?? index + 1,
+        title: step.title,
+        description: step.description,
+        icon: resolveIcon(step.icon, Sparkles),
+      }))
+    : []
+
+  const mappedBestPractices = Array.isArray(metadata.best_practices) && metadata.best_practices.length
+    ? (metadata.best_practices as MetadataBestPractice[]).map((practice) => ({
+        icon: resolveIcon(practice.icon, Sparkles),
+        title: practice.title,
+        description: practice.description,
+      }))
+    : []
+
+  const CategoryIcon = resolveIcon(
+    typeof metadata.category_icon === 'string' && metadata.category_icon.trim().length
+      ? metadata.category_icon
+      : 'Calendar',
+    Calendar,
+  )
+
+  const callToActionMeta = (metadata as Record<string, unknown>).call_to_action
+  const parseCTAButton = (value: any) => {
+    const text = getString(value?.text)
+    const href = getString(value?.href)
+    if (!text || !href) return undefined
+    return {
+      text,
+      href,
+      external: Boolean(value?.external),
+    }
+  }
+
+  const fallbackCTA = {
+    primary: {
+      text: 'View All Page Types',
+      href: '/prompt-pages/types',
+    },
+  } as const
+
+  const callToAction = (callToActionMeta && typeof callToActionMeta === 'object')
+    ? {
+        primary: parseCTAButton((callToActionMeta as any).primary) || fallbackCTA.primary,
+        secondary: parseCTAButton((callToActionMeta as any).secondary),
+      }
+    : fallbackCTA
+
+  const faqMetadata = Array.isArray((metadata as Record<string, unknown>).faqs)
+    ? ((metadata as Record<string, unknown>).faqs as { question: string; answer: string }[])
+    : null
+
+  const faqsTitle = getString((metadata as Record<string, unknown>).faqs_title)
+  const keyFeaturesTitle = getString((metadata as Record<string, unknown>).key_features_title)
+  const howItWorksTitle = getString((metadata as Record<string, unknown>).how_it_works_title)
+  const bestPracticesTitle = getString((metadata as Record<string, unknown>).best_practices_title)
+
   return (
-    <DocsLayout>
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="mb-12">
-          <div className="flex items-center space-x-3 mb-6">
-            <div className="w-12 h-12 bg-yellow-500/20 rounded-lg flex items-center justify-center">
-              <Calendar className="w-6 h-6 text-yellow-300" />
-            </div>
-            <h1 className="text-4xl font-bold text-white">
-              Event Prompt Pages
-            </h1>
-          </div>
-          <p className="text-xl text-white/80">
-            Capture feedback from events, workshops, conferences, and special occasions. Perfect for event planners, 
-            venues, educators, and anyone hosting memorable experiences.
-          </p>
-        </div>
-
-        {/* Why Choose Event Pages */}
-        <div className="bg-white/10 backdrop-blur-md rounded-lg shadow-sm border border-white/20 p-8 mb-12">
-          <h2 className="text-2xl font-bold text-white mb-6">Why Choose Event Prompt Pages?</h2>
-          <div className="grid md:grid-cols-3 gap-6">
-            <div className="text-center">
-              <div className="w-12 h-12 bg-white/10 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <Clock className="w-6 h-6 text-yellow-300" />
-              </div>
-              <h3 className="font-semibold text-white mb-2">Time-Specific</h3>
-              <p className="text-white/70 text-sm">Capture feedback while memories are fresh</p>
-            </div>
-            <div className="text-center">
-              <div className="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <Users className="w-6 h-6 text-green-300" />
-              </div>
-              <h3 className="font-semibold text-white mb-2">Attendee Insights</h3>
-              <p className="text-white/70 text-sm">Understand what resonated with your audience</p>
-            </div>
-            <div className="text-center">
-              <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <Sparkles className="w-6 h-6 text-purple-300" />
-              </div>
-              <h3 className="font-semibold text-white mb-2">Social Proof</h3>
-              <p className="text-white/70 text-sm">Build credibility for future events</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Event Types */}
-        <div className="mb-12">
-          <h2 className="text-2xl font-bold text-white mb-6">Perfect For These Events</h2>
-          <div className="grid md:grid-cols-2 gap-6">
-            <div className="bg-white/10 backdrop-blur-md rounded-lg shadow-sm border border-white/20 p-6">
-              <div className="flex items-center space-x-2 mb-3">
-                <PartyPopper className="w-5 h-5 text-yellow-300" />
-                <h3 className="text-lg font-bold text-white">Corporate Events</h3>
-              </div>
-              <ul className="space-y-2 text-white/80 text-sm mb-4">
-                <li>• Conferences & summits</li>
-                <li>• Team building events</li>
-                <li>• Product launches</li>
-                <li>• Company celebrations</li>
-              </ul>
-              <div className="bg-white/10 border border-yellow-400/30 rounded-lg p-3">
-                <p className="text-white/80 text-sm">
-                  <strong className="text-yellow-300">Focus:</strong> Professional value and networking
-                </p>
-              </div>
-            </div>
-
-            <div className="bg-white/10 backdrop-blur-md rounded-lg shadow-sm border border-white/20 p-6">
-              <div className="flex items-center space-x-2 mb-3">
-                <MapPin className="w-5 h-5 text-pink-300" />
-                <h3 className="text-lg font-bold text-white">Social Events</h3>
-              </div>
-              <ul className="space-y-2 text-white/80 text-sm mb-4">
-                <li>• Weddings & receptions</li>
-                <li>• Birthday parties</li>
-                <li>• Anniversary celebrations</li>
-                <li>• Reunions & gatherings</li>
-              </ul>
-              <div className="bg-pink-500/20 border border-pink-400/30 rounded-lg p-3">
-                <p className="text-white/80 text-sm">
-                  <strong className="text-pink-300">Focus:</strong> Experience and atmosphere
-                </p>
-              </div>
-            </div>
-
-            <div className="bg-white/10 backdrop-blur-md rounded-lg shadow-sm border border-white/20 p-6">
-              <div className="flex items-center space-x-2 mb-3">
-                <Users className="w-5 h-5 text-green-300" />
-                <h3 className="text-lg font-bold text-white">Educational Events</h3>
-              </div>
-              <ul className="space-y-2 text-white/80 text-sm mb-4">
-                <li>• Workshops & masterclasses</li>
-                <li>• Seminars & webinars</li>
-                <li>• Training sessions</li>
-                <li>• Certification courses</li>
-              </ul>
-              <div className="bg-green-500/20 border border-green-400/30 rounded-lg p-3">
-                <p className="text-white/80 text-sm">
-                  <strong className="text-green-300">Focus:</strong> Learning outcomes and value
-                </p>
-              </div>
-            </div>
-
-            <div className="bg-white/10 backdrop-blur-md rounded-lg shadow-sm border border-white/20 p-6">
-              <div className="flex items-center space-x-2 mb-3">
-                <Sparkles className="w-5 h-5 text-purple-300" />
-                <h3 className="text-lg font-bold text-white">Entertainment Events</h3>
-              </div>
-              <ul className="space-y-2 text-white/80 text-sm mb-4">
-                <li>• Concerts & performances</li>
-                <li>• Festivals & fairs</li>
-                <li>• Sports events</li>
-                <li>• Art exhibitions</li>
-              </ul>
-              <div className="bg-purple-500/20 border border-purple-400/30 rounded-lg p-3">
-                <p className="text-white/80 text-sm">
-                  <strong className="text-purple-300">Focus:</strong> Entertainment value and experience
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Event-Specific Features */}
-        <div className="mb-12">
-          <h2 className="text-2xl font-bold text-white mb-6">Event-Specific Features</h2>
-          <div className="bg-white/10 backdrop-blur-md rounded-lg shadow-sm border border-white/20 p-8">
-            <div className="grid md:grid-cols-2 gap-8">
-              <div>
-                <h3 className="text-xl font-semibold text-white mb-4">Event Details</h3>
-                <ul className="space-y-2 text-white/80">
-                  <li className="flex items-start space-x-2">
-                    <span className="text-green-300">✓</span>
-                    <span>Event name and date</span>
-                  </li>
-                  <li className="flex items-start space-x-2">
-                    <span className="text-green-300">✓</span>
-                    <span>Venue information</span>
-                  </li>
-                  <li className="flex items-start space-x-2">
-                    <span className="text-green-300">✓</span>
-                    <span>Ticket type tracking</span>
-                  </li>
-                  <li className="flex items-start space-x-2">
-                    <span className="text-green-300">✓</span>
-                    <span>Session/speaker feedback</span>
-                  </li>
-                </ul>
-              </div>
-              
-              <div>
-                <h3 className="text-xl font-semibold text-white mb-4">Feedback Options</h3>
-                <ul className="space-y-2 text-white/80">
-                  <li className="flex items-start space-x-2">
-                    <span className="text-yellow-300">✓</span>
-                    <span>Overall event rating</span>
-                  </li>
-                  <li className="flex items-start space-x-2">
-                    <span className="text-yellow-300">✓</span>
-                    <span>Specific aspect ratings</span>
-                  </li>
-                  <li className="flex items-start space-x-2">
-                    <span className="text-yellow-300">✓</span>
-                    <span>Photo sharing from event</span>
-                  </li>
-                  <li className="flex items-start space-x-2">
-                    <span className="text-yellow-300">✓</span>
-                    <span>Improvement suggestions</span>
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Sample Questions */}
-        <div className="mb-12">
-          <h2 className="text-2xl font-bold text-white mb-6">Sample Event Review Questions</h2>
-          <div className="space-y-4">
-            <div className="bg-white/10 backdrop-blur-md rounded-lg shadow-sm border border-white/20 p-6">
-              <h3 className="font-semibold text-white mb-3">Conference/Workshop</h3>
-              <ul className="space-y-1 text-white/80 text-sm">
-                <li>• How valuable was the content presented?</li>
-                <li>• Which session was most beneficial?</li>
-                <li>• How was the venue and facilities?</li>
-                <li>• Would you attend our next event?</li>
-              </ul>
-            </div>
-            
-            <div className="bg-white/10 backdrop-blur-md rounded-lg shadow-sm border border-white/20 p-6">
-              <h3 className="font-semibold text-white mb-3">Wedding/Social Event</h3>
-              <ul className="space-y-1 text-white/80 text-sm">
-                <li>• How was the venue and atmosphere?</li>
-                <li>• How was the food and service?</li>
-                <li>• What was your favorite moment?</li>
-                <li>• Would you recommend our venue?</li>
-              </ul>
-            </div>
-            
-            <div className="bg-white/10 backdrop-blur-md rounded-lg shadow-sm border border-white/20 p-6">
-              <h3 className="font-semibold text-white mb-3">Entertainment Event</h3>
-              <ul className="space-y-1 text-white/80 text-sm">
-                <li>• How was the overall experience?</li>
-                <li>• Was the event worth the price?</li>
-                <li>• How was the organization and flow?</li>
-                <li>• Would you attend similar events?</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-
-        {/* Best Practices */}
-        <div className="mb-12">
-          <h2 className="text-2xl font-bold text-white mb-6">Best Practices</h2>
-          <div className="grid md:grid-cols-2 gap-4">
-            <div className="bg-white/10 backdrop-blur-md rounded-lg shadow-sm border border-white/20 p-6">
-              <h3 className="font-semibold text-white mb-2">Send Quickly</h3>
-              <p className="text-white/80 text-sm">
-                Request feedback within 24-48 hours while the experience is fresh.
-              </p>
-            </div>
-            
-            <div className="bg-white/10 backdrop-blur-md rounded-lg shadow-sm border border-white/20 p-6">
-              <h3 className="font-semibold text-white mb-2">Be Specific</h3>
-              <p className="text-white/80 text-sm">
-                Reference specific aspects of the event in your questions.
-              </p>
-            </div>
-            
-            <div className="bg-white/10 backdrop-blur-md rounded-lg shadow-sm border border-white/20 p-6">
-              <h3 className="font-semibold text-white mb-2">Keep It Short</h3>
-              <p className="text-white/80 text-sm">
-                Limit to 5-7 questions for higher completion rates.
-              </p>
-            </div>
-            
-            <div className="bg-white/10 backdrop-blur-md rounded-lg shadow-sm border border-white/20 p-6">
-              <h3 className="font-semibold text-white mb-2">Offer Incentives</h3>
-              <p className="text-white/80 text-sm">
-                Consider early-bird discounts for next event to reviewers.
-              </p>
-            </div>
-          </div>
-        </div>
-
-      </div>
-    </DocsLayout>
-  );
+    <StandardOverviewLayout
+      title={article.title || 'Event Prompt Pages'}
+      description={metadata.description ?? fallbackDescription}
+      categoryLabel={metadata.category_label || 'Page Types'}
+      categoryIcon={CategoryIcon}
+      categoryColor={metadata.category_color || 'yellow'}
+      currentPage="Event"
+      availablePlans={availablePlans}
+      keyFeatures={mappedKeyFeatures}
+      keyFeaturesTitle={keyFeaturesTitle}
+      howItWorks={mappedHowItWorks}
+      howItWorksTitle={howItWorksTitle}
+      bestPractices={mappedBestPractices}
+      bestPracticesTitle={bestPracticesTitle}
+      faqs={faqMetadata && faqMetadata.length ? faqMetadata : pageFAQs['prompt-pages/types/event']}
+      faqsTitle={faqsTitle}
+      callToAction={callToAction}
+      content={article.content}
+    />
+  )
 }

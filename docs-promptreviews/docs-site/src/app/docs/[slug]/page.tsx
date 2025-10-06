@@ -30,19 +30,22 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 
   const { title, metadata, updated_at } = article
-  const description = metadata.description || `Learn about ${title} in the Prompt Reviews documentation.`
+
+  // Use SEO-specific fields if available, otherwise fallback to regular title/description
+  const seoTitle = metadata.seo_title || title
+  const seoDescription = metadata.seo_description || metadata.description || `Learn about ${title} in the Prompt Reviews documentation.`
   const canonicalUrl = metadata.canonical_url || `https://docs.promptreviews.app/docs/${slug}`
 
   return {
-    title: `${title} | Prompt Reviews Documentation`,
-    description,
+    title: `${seoTitle} | Prompt Reviews Documentation`,
+    description: seoDescription,
     keywords: metadata.keywords || [],
     alternates: {
       canonical: canonicalUrl,
     },
     openGraph: {
-      title: `${title} | Prompt Reviews Documentation`,
-      description,
+      title: `${seoTitle} | Prompt Reviews Documentation`,
+      description: seoDescription,
       url: canonicalUrl,
       type: 'article',
       publishedTime: article.published_at || article.created_at,
@@ -51,8 +54,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     },
     twitter: {
       card: 'summary_large_image',
-      title: `${title} | Prompt Reviews`,
-      description,
+      title: `${seoTitle} | Prompt Reviews`,
+      description: seoDescription,
     },
   }
 }

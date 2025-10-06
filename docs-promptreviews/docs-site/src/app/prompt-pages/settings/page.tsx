@@ -1,6 +1,9 @@
-import { Metadata } from 'next';
-import Link from 'next/link';
-import DocsLayout from '../../docs-layout';
+import type { Metadata } from 'next'
+import { notFound } from 'next/navigation'
+import Link from 'next/link'
+import DocsLayout from '../../docs-layout'
+import MarkdownRenderer from '../../components/MarkdownRenderer'
+import { getArticleBySlug } from '@/lib/docs/articles'
 import {
   Settings,
   Globe,
@@ -13,28 +16,94 @@ import {
   Wrench,
   Info,
   ChevronRight
-} from 'lucide-react';
+} from 'lucide-react'
 
-export const metadata: Metadata = {
-  title: 'Prompt Page Settings - Global Defaults & AI Configuration | Prompt Reviews Help',
-  description: 'Learn how to configure global settings that affect all your prompt pages, including AI guidelines, keywords, and default features for new pages.',
-  keywords: [
-    'prompt page settings',
-    'AI guidelines',
-    'prompt page defaults',
-    'global settings',
-    'keywords',
-    'AI dos and donts'
-  ],
-  alternates: {
-    canonical: 'https://docs.promptreviews.app/prompt-pages/settings',
-  },
+const fallbackDescription = 'Learn how to configure global settings that affect all your prompt pages, including AI guidelines, keywords, and default features for new pages.'
+
+export async function generateMetadata(): Promise<Metadata> {
+  try {
+    const article = await getArticleBySlug('prompt-pages/settings')
+    if (!article) {
+      return {
+        title: 'Prompt Page Settings - Global Defaults & AI Configuration | Prompt Reviews Help',
+        description: fallbackDescription,
+        alternates: {
+          canonical: 'https://docs.promptreviews.app/docs/prompt-pages/settings',
+        },
+      }
+    }
+
+    const seoTitle = article.metadata?.seo_title || article.title
+    const seoDescription = article.metadata?.seo_description || article.metadata?.description || fallbackDescription
+
+    return {
+      title: `${seoTitle} | Prompt Reviews`,
+      description: seoDescription,
+      keywords: article.metadata?.keywords ?? [],
+      alternates: {
+        canonical: article.metadata?.canonical_url ?? 'https://docs.promptreviews.app/docs/prompt-pages/settings',
+      },
+    }
+  } catch (error) {
+    console.error('generateMetadata prompt-pages/settings error:', error)
+    return {
+      title: 'Prompt Page Settings - Global Defaults & AI Configuration | Prompt Reviews Help',
+      description: fallbackDescription,
+      alternates: {
+        canonical: 'https://docs.promptreviews.app/docs/prompt-pages/settings',
+      },
+    }
+  }
 }
 
-export default function PromptPageSettingsPage() {
+export default async function PromptPageSettingsPage() {
+  let article = null
+
+  try {
+    article = await getArticleBySlug('prompt-pages/settings')
+  } catch (error) {
+    console.error('Error fetching prompt-pages/settings article:', error)
+  }
+
+  // Use CMS content if available, otherwise use default hardcoded content
+  const metadata = article?.metadata ?? {}
+  const useMarkdown = article && article.content && article.content.trim().length > 0
+
   return (
     <DocsLayout>
-      <div className="max-w-4xl mx-auto px-4 py-8">
+      <div className="max-w-4xl mx-auto px-4 py-8">{useMarkdown ? (
+        <>
+          {/* Breadcrumb */}
+          <div className="flex items-center text-sm text-white/60 mb-6">
+            <Link href="/" className="hover:text-white">Home</Link>
+            <ChevronRight className="w-4 h-4 mx-2" />
+            <Link href="/prompt-pages" className="hover:text-white">Prompt Pages</Link>
+            <ChevronRight className="w-4 h-4 mx-2" />
+            <span className="text-white">Settings</span>
+          </div>
+
+          {/* Header */}
+          <div className="mb-8">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-3 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl">
+                <Settings className="w-8 h-8 text-white" />
+              </div>
+              <h1 className="text-4xl font-bold text-white">{article?.title || 'Prompt page settings'}</h1>
+            </div>
+            {metadata.description && (
+              <p className="text-xl text-white/80">
+                {metadata.description}
+              </p>
+            )}
+          </div>
+
+          {/* Markdown Content */}
+          <div className="prose prose-invert max-w-none">
+            <MarkdownRenderer content={article!.content} />
+          </div>
+        </>
+      ) : (
+        <>
       {/* Breadcrumb */}
       <div className="flex items-center text-sm text-white/60 mb-6">
         <Link href="/" className="hover:text-white">Home</Link>
@@ -399,7 +468,9 @@ export default function PromptPageSettingsPage() {
           </Link>
         </div>
       </div>
+      </>
+      )}
       </div>
     </DocsLayout>
-  );
+  )
 }

@@ -1,14 +1,33 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
 import { Smartphone, ChevronRight, Tablet, Monitor, Zap, Eye, Hand, Wifi } from 'lucide-react';
+import { getArticleBySlug } from '@/lib/articles';
+import { getIconComponent } from '@/lib/iconMapper';
 
-export const metadata: Metadata = {
-  title: 'Mobile Optimization - Perfect Review Experience on Any Device | Prompt Reviews',
-  description: 'Prompt pages are fully optimized for mobile devices with responsive design, touch-friendly interfaces, and fast loading for the best mobile experience.',
-  keywords: ['mobile optimization', 'responsive design', 'mobile-friendly', 'touch interface', 'mobile reviews'],
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const article = await getArticleBySlug('prompt-pages/features/mobile');
 
-export default function MobilePage() {
+  if (!article) {
+    return {
+      title: 'Mobile Optimization | Prompt Reviews',
+    };
+  }
+
+  const seoTitle = article.metadata?.seo_title || article.title;
+  const seoDescription = article.metadata?.seo_description || article.metadata?.description || '';
+
+  return {
+    title: `${seoTitle} | Prompt Reviews`,
+    description: seoDescription,
+    keywords: article.metadata?.keywords || [],
+  };
+}
+
+export default async function MobilePage() {
+  const article = await getArticleBySlug('prompt-pages/features/mobile');
+
+  const keyFeatures = article?.metadata?.key_features || [];
+  const howItWorks = article?.metadata?.how_it_works || [];
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
       {/* Breadcrumb */}
@@ -137,39 +156,22 @@ export default function MobilePage() {
       </div>
 
       {/* How It Works */}
-      <div className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 p-6 mb-8">
-        <h2 className="text-2xl font-bold text-white mb-6">How mobile optimization works</h2>
-        <ol className="space-y-4">
-          <li className="flex gap-4">
-            <span className="flex-shrink-0 w-8 h-8 bg-indigo-500 text-white rounded-full flex items-center justify-center text-sm font-bold">1</span>
-            <div>
-              <h4 className="font-semibold text-white mb-1">Automatic device detection</h4>
-              <p className="text-white/70 text-sm">System detects screen size, device type, and capabilities</p>
-            </div>
-          </li>
-          <li className="flex gap-4">
-            <span className="flex-shrink-0 w-8 h-8 bg-indigo-500 text-white rounded-full flex items-center justify-center text-sm font-bold">2</span>
-            <div>
-              <h4 className="font-semibold text-white mb-1">Layout adaptation</h4>
-              <p className="text-white/70 text-sm">Page layout and components adjust to fit screen perfectly</p>
-            </div>
-          </li>
-          <li className="flex gap-4">
-            <span className="flex-shrink-0 w-8 h-8 bg-indigo-500 text-white rounded-full flex items-center justify-center text-sm font-bold">3</span>
-            <div>
-              <h4 className="font-semibold text-white mb-1">Touch interface activation</h4>
-              <p className="text-white/70 text-sm">Touch-optimized controls and gestures enable for mobile devices</p>
-            </div>
-          </li>
-          <li className="flex gap-4">
-            <span className="flex-shrink-0 w-8 h-8 bg-indigo-500 text-white rounded-full flex items-center justify-center text-sm font-bold">4</span>
-            <div>
-              <h4 className="font-semibold text-white mb-1">Performance optimization</h4>
-              <p className="text-white/70 text-sm">Images, scripts, and assets load efficiently for fast mobile experience</p>
-            </div>
-          </li>
-        </ol>
-      </div>
+      {howItWorks.length > 0 && (
+        <div className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 p-6 mb-8">
+          <h2 className="text-2xl font-bold text-white mb-6">How mobile optimization works</h2>
+          <ol className="space-y-4">
+            {howItWorks.map((step) => (
+              <li key={step.number} className="flex gap-4">
+                <span className="flex-shrink-0 w-8 h-8 bg-indigo-500 text-white rounded-full flex items-center justify-center text-sm font-bold">{step.number}</span>
+                <div>
+                  <h4 className="font-semibold text-white mb-1">{step.title}</h4>
+                  <p className="text-white/70 text-sm">{step.description}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </div>
+      )}
 
       {/* Benefits */}
       <div className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 p-6 mb-8">
@@ -308,3 +310,5 @@ export default function MobilePage() {
     </div>
   );
 }
+
+export const revalidate = 300; // Revalidate every 5 minutes

@@ -1,7 +1,10 @@
 import type { Metadata } from 'next'
+import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import StandardOverviewLayout from '../../components/StandardOverviewLayout'
+import MarkdownRenderer from '../../components/MarkdownRenderer'
 import { pageFAQs } from '../utils/faqData'
+import { getArticleBySlug } from '@/lib/docs/articles'
 import {
   Users,
   Upload,
@@ -19,23 +22,71 @@ import {
   AlertTriangle
 } from 'lucide-react'
 
-export const metadata: Metadata = {
-  title: 'Contact Management - Import, Organize & Manage Customer Database | Prompt Reviews',
-  description: 'Learn how to import, organize, and manage your customer contacts in Prompt Reviews. From CSV uploads to manual entry, discover best practices for building your review request database.',
-  keywords: [
-    'contact management',
-    'customer database',
-    'CSV import',
-    'contact organization',
-    'review request contacts',
-    'customer list management'
-  ],
-  alternates: {
-    canonical: 'https://docs.promptreviews.app/contacts',
-  },
+const fallbackDescription = 'Learn how to import, organize, and manage your customer contacts in Prompt Reviews. From CSV uploads to manual entry, discover best practices for building your review request database.'
+
+export async function generateMetadata(): Promise<Metadata> {
+  try {
+    const article = await getArticleBySlug('contacts')
+    if (!article) {
+      return {
+        title: 'Contact Management - Import, Organize & Manage Customer Database | Prompt Reviews',
+        description: fallbackDescription,
+        keywords: [
+          'contact management',
+          'customer database',
+          'CSV import',
+          'contact organization',
+          'review request contacts',
+          'customer list management'
+        ],
+        alternates: {
+          canonical: 'https://docs.promptreviews.app/contacts',
+        },
+      }
+    }
+
+    const seoTitle = article.metadata?.seo_title || article.title
+    const seoDescription = article.metadata?.seo_description || article.metadata?.description || fallbackDescription
+
+    return {
+      title: `${seoTitle} | Prompt Reviews`,
+      description: seoDescription,
+      keywords: article.metadata?.keywords ?? [
+        'contact management',
+        'customer database',
+        'CSV import',
+        'contact organization',
+        'review request contacts',
+        'customer list management'
+      ],
+      alternates: {
+        canonical: article.metadata?.canonical_url ?? 'https://docs.promptreviews.app/contacts',
+      },
+    }
+  } catch (error) {
+    console.error('generateMetadata contacts error:', error)
+    return {
+      title: 'Contact Management - Import, Organize & Manage Customer Database | Prompt Reviews',
+      description: fallbackDescription,
+      alternates: {
+        canonical: 'https://docs.promptreviews.app/contacts',
+      },
+    }
+  }
 }
 
-export default function ContactsPage() {
+export default async function ContactsPage() {
+  let article = null
+
+  try {
+    article = await getArticleBySlug('contacts')
+  } catch (error) {
+    console.error('Error fetching contacts article:', error)
+  }
+
+  if (!article) {
+    notFound()
+  }
   // Key features data
   const keyFeatures = [
     {
@@ -138,20 +189,7 @@ export default function ContactsPage() {
       }}
       overview={{
         title: 'Why Your Contact List Matters',
-        content: (
-          <>
-            <p className="text-white/90 mb-3">
-              The quality of your customer database directly impacts your review collection success.
-              A well-organized list of engaged customers will generate more and better reviews than
-              a large list of cold contacts.
-            </p>
-            <p className="text-white/80">
-              <strong>Think of it this way:</strong> You wouldn't send a wedding invitation to everyone
-              in your phone book. You'd send it to people who care about you and would want to celebrate.
-              The same principle applies to review requests.
-            </p>
-          </>
-        )
+        content: <MarkdownRenderer content={article.content} />
       }}
     />
   );

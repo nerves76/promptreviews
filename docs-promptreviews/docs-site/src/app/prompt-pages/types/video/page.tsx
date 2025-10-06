@@ -1,282 +1,207 @@
-import { Metadata } from 'next';
-import { Video, Play, Mic, Award, TrendingUp, Users } from 'lucide-react';
-import DocsLayout from '../../../docs-layout';
+import type { Metadata } from 'next'
+import { notFound } from 'next/navigation'
+import * as Icons from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
+import StandardOverviewLayout from '../../../components/StandardOverviewLayout'
+import { pageFAQs } from '../../../utils/faqData'
+import { getArticleBySlug } from '@/lib/docs/articles'
 
-export const metadata: Metadata = {
-  title: 'Video Prompt Pages - Video Testimonials Guide | Prompt Reviews',
-  description: 'Learn how to create Video prompt pages for collecting powerful video testimonials and reviews from customers.',
-  keywords: 'video prompt pages, video testimonials, video reviews, customer testimonials, video feedback',
-  openGraph: {
-    title: 'Video Prompt Pages - Collect Video Testimonials',
-    description: 'Create Video prompt pages to collect authentic video testimonials that build trust and credibility.',
-  },
-};
+const { Video, Sparkles } = Icons
 
-export default function VideoPromptPages() {
+const fallbackDescription = 'Collect powerful video testimonials that showcase authentic customer experiences. Perfect for high-value services, personal brands, and businesses where trust is paramount.'
+
+function resolveIcon(iconName: string | undefined, fallback: LucideIcon): LucideIcon {
+  if (!iconName) return fallback
+  const normalized = iconName.trim()
+  const lookup = Icons as Record<string, unknown>
+  const candidates = [
+    normalized,
+    normalized.toLowerCase(),
+    normalized.toUpperCase(),
+    normalized.charAt(0).toUpperCase() + normalized.slice(1),
+    normalized.replace(/[-_\s]+/g, ''),
+  ]
+
+  for (const key of candidates) {
+    const maybeIcon = lookup[key]
+    if (typeof maybeIcon === 'function') {
+      return maybeIcon as LucideIcon
+    }
+  }
+
+  return fallback
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  try {
+    const article = await getArticleBySlug('prompt-pages/types/video')
+    if (!article) {
+      return {
+        title: 'Video Prompt Pages - Video Testimonials Guide | Prompt Reviews',
+        description: fallbackDescription,
+        alternates: {
+          canonical: 'https://docs.promptreviews.app/prompt-pages/types/video',
+        },
+      }
+    }
+
+    const seoTitle = article.metadata?.seo_title || article.title
+    const seoDescription = article.metadata?.seo_description || article.metadata?.description || fallbackDescription
+
+    return {
+      title: `${seoTitle} | Prompt Reviews`,
+      description: seoDescription,
+      keywords: article.metadata?.keywords ?? [],
+      alternates: {
+        canonical: article.metadata?.canonical_url ?? 'https://docs.promptreviews.app/prompt-pages/types/video',
+      },
+    }
+  } catch (error) {
+    console.error('generateMetadata video error:', error)
+    return {
+      title: 'Video Prompt Pages | Prompt Reviews',
+      description: fallbackDescription,
+      alternates: {
+        canonical: 'https://docs.promptreviews.app/prompt-pages/types/video',
+      },
+    }
+  }
+}
+
+interface MetadataFeature {
+  icon?: string
+  title: string
+  description: string
+  href?: string
+}
+
+interface MetadataStep {
+  number?: number
+  icon?: string
+  title: string
+  description: string
+}
+
+interface MetadataBestPractice {
+  icon?: string
+  title: string
+  description: string
+}
+
+export default async function VideoPromptPagesPage() {
+  let article = null
+
+  try {
+    article = await getArticleBySlug('prompt-pages/types/video')
+  } catch (error) {
+    console.error('Error fetching video article:', error)
+  }
+
+  if (!article) {
+    notFound()
+  }
+
+  const metadata = article.metadata ?? {}
+
+  const getString = (value: unknown): string | undefined => {
+    if (typeof value === 'string' && value.trim().length > 0) {
+      return value.trim()
+    }
+    return undefined
+  }
+
+  const availablePlans: ('grower' | 'builder' | 'maven' | 'enterprise')[] =
+    Array.isArray(metadata.available_plans) && metadata.available_plans.length
+      ? (metadata.available_plans as ('grower' | 'builder' | 'maven' | 'enterprise')[])
+      : ['maven']
+
+  const mappedKeyFeatures = Array.isArray(metadata.key_features) && metadata.key_features.length
+    ? (metadata.key_features as MetadataFeature[]).map((feature) => ({
+        icon: resolveIcon(feature.icon, Sparkles),
+        title: feature.title,
+        description: feature.description,
+        href: feature.href,
+      }))
+    : []
+
+  const mappedHowItWorks = Array.isArray(metadata.how_it_works) && metadata.how_it_works.length
+    ? (metadata.how_it_works as MetadataStep[]).map((step, index) => ({
+        number: step.number ?? index + 1,
+        title: step.title,
+        description: step.description,
+        icon: resolveIcon(step.icon, Sparkles),
+      }))
+    : []
+
+  const mappedBestPractices = Array.isArray(metadata.best_practices) && metadata.best_practices.length
+    ? (metadata.best_practices as MetadataBestPractice[]).map((practice) => ({
+        icon: resolveIcon(practice.icon, Sparkles),
+        title: practice.title,
+        description: practice.description,
+      }))
+    : []
+
+  const CategoryIcon = resolveIcon(
+    typeof metadata.category_icon === 'string' && metadata.category_icon.trim().length
+      ? metadata.category_icon
+      : 'Video',
+    Video,
+  )
+
+  const callToActionMeta = (metadata as Record<string, unknown>).call_to_action
+  const parseCTAButton = (value: any) => {
+    const text = getString(value?.text)
+    const href = getString(value?.href)
+    if (!text || !href) return undefined
+    return {
+      text,
+      href,
+      external: Boolean(value?.external),
+    }
+  }
+
+  const fallbackCTA = {
+    primary: {
+      text: 'View All Page Types',
+      href: '/prompt-pages/types',
+    },
+  } as const
+
+  const callToAction = (callToActionMeta && typeof callToActionMeta === 'object')
+    ? {
+        primary: parseCTAButton((callToActionMeta as any).primary) || fallbackCTA.primary,
+        secondary: parseCTAButton((callToActionMeta as any).secondary),
+      }
+    : fallbackCTA
+
+  const faqMetadata = Array.isArray((metadata as Record<string, unknown>).faqs)
+    ? ((metadata as Record<string, unknown>).faqs as { question: string; answer: string }[])
+    : null
+
+  const faqsTitle = getString((metadata as Record<string, unknown>).faqs_title)
+  const keyFeaturesTitle = getString((metadata as Record<string, unknown>).key_features_title)
+  const howItWorksTitle = getString((metadata as Record<string, unknown>).how_it_works_title)
+  const bestPracticesTitle = getString((metadata as Record<string, unknown>).best_practices_title)
+
   return (
-    <DocsLayout>
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="mb-12">
-          <div className="flex items-center space-x-3 mb-6">
-            <div className="w-12 h-12 bg-red-500/20 rounded-lg flex items-center justify-center">
-              <Video className="w-6 h-6 text-red-300" />
-            </div>
-            <h1 className="text-4xl font-bold text-white">
-              Video Prompt Pages
-            </h1>
-          </div>
-          <p className="text-xl text-white/80">
-            Collect powerful video testimonials that showcase authentic customer experiences. Perfect for 
-            high-value services, personal brands, and businesses where trust is paramount.
-          </p>
-        </div>
-
-        {/* Why Choose Video Pages */}
-        <div className="bg-white/10 backdrop-blur-md rounded-lg shadow-sm border border-white/20 p-8 mb-12">
-          <h2 className="text-2xl font-bold text-white mb-6">Why Choose Video Prompt Pages?</h2>
-          <div className="grid md:grid-cols-3 gap-6">
-            <div className="text-center">
-              <div className="w-12 h-12 bg-white/10 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <Award className="w-6 h-6 text-yellow-300" />
-              </div>
-              <h3 className="font-semibold text-white mb-2">Maximum Authenticity</h3>
-              <p className="text-white/70 text-sm">Video testimonials are the most trusted form of social proof</p>
-            </div>
-            <div className="text-center">
-              <div className="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <TrendingUp className="w-6 h-6 text-green-300" />
-              </div>
-              <h3 className="font-semibold text-white mb-2">Higher Conversion</h3>
-              <p className="text-white/70 text-sm">Video testimonials increase conversion rates by up to 80%</p>
-            </div>
-            <div className="text-center">
-              <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <Users className="w-6 h-6 text-purple-300" />
-              </div>
-              <h3 className="font-semibold text-white mb-2">Personal Connection</h3>
-              <p className="text-white/70 text-sm">Viewers connect emotionally with video testimonials</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Perfect For */}
-        <div className="mb-12">
-          <h2 className="text-2xl font-bold text-white mb-6">Perfect For These Businesses</h2>
-          <div className="grid md:grid-cols-2 gap-6">
-            <div className="bg-white/10 backdrop-blur-md rounded-lg shadow-sm border border-white/20 p-6">
-              <h3 className="text-lg font-bold text-white mb-3">High-Value Services</h3>
-              <ul className="space-y-2 text-white/80 text-sm mb-4">
-                <li>• Business consultants</li>
-                <li>• Financial advisors</li>
-                <li>• Real estate agents</li>
-                <li>• Legal services</li>
-              </ul>
-              <div className="bg-white/10 border border-yellow-400/30 rounded-lg p-3">
-                <p className="text-white/80 text-sm">
-                  <strong className="text-yellow-300">Why:</strong> Build trust for high-stakes decisions
-                </p>
-              </div>
-            </div>
-
-            <div className="bg-white/10 backdrop-blur-md rounded-lg shadow-sm border border-white/20 p-6">
-              <h3 className="text-lg font-bold text-white mb-3">Personal Brands</h3>
-              <ul className="space-y-2 text-white/80 text-sm mb-4">
-                <li>• Life coaches</li>
-                <li>• Personal trainers</li>
-                <li>• Course creators</li>
-                <li>• Speakers & authors</li>
-              </ul>
-              <div className="bg-green-500/20 border border-green-400/30 rounded-lg p-3">
-                <p className="text-white/80 text-sm">
-                  <strong className="text-green-300">Why:</strong> Show transformation and impact
-                </p>
-              </div>
-            </div>
-
-            <div className="bg-white/10 backdrop-blur-md rounded-lg shadow-sm border border-white/20 p-6">
-              <h3 className="text-lg font-bold text-white mb-3">Healthcare & Wellness</h3>
-              <ul className="space-y-2 text-white/80 text-sm mb-4">
-                <li>• Medical practices</li>
-                <li>• Therapy services</li>
-                <li>• Wellness centers</li>
-                <li>• Alternative medicine</li>
-              </ul>
-              <div className="bg-purple-500/20 border border-purple-400/30 rounded-lg p-3">
-                <p className="text-white/80 text-sm">
-                  <strong className="text-purple-300">Why:</strong> Share patient success stories
-                </p>
-              </div>
-            </div>
-
-            <div className="bg-white/10 backdrop-blur-md rounded-lg shadow-sm border border-white/20 p-6">
-              <h3 className="text-lg font-bold text-white mb-3">Education & Training</h3>
-              <ul className="space-y-2 text-white/80 text-sm mb-4">
-                <li>• Online courses</li>
-                <li>• Bootcamps</li>
-                <li>• Workshops</li>
-                <li>• Certification programs</li>
-              </ul>
-              <div className="bg-orange-500/20 border border-orange-400/30 rounded-lg p-3">
-                <p className="text-white/80 text-sm">
-                  <strong className="text-orange-300">Why:</strong> Showcase student outcomes
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Video Recording Features */}
-        <div className="mb-12">
-          <h2 className="text-2xl font-bold text-white mb-6">Video Recording Features</h2>
-          <div className="bg-white/10 backdrop-blur-md rounded-lg shadow-sm border border-white/20 p-8">
-            <div className="grid md:grid-cols-2 gap-8">
-              <div>
-                <h3 className="text-xl font-semibold text-white mb-4 flex items-center">
-                  <Play className="w-5 h-5 mr-2" />
-                  Recording Options
-                </h3>
-                <ul className="space-y-2 text-white/80">
-                  <li className="flex items-start space-x-2">
-                    <span className="text-green-300">✓</span>
-                    <span>In-browser recording</span>
-                  </li>
-                  <li className="flex items-start space-x-2">
-                    <span className="text-green-300">✓</span>
-                    <span>Mobile device support</span>
-                  </li>
-                  <li className="flex items-start space-x-2">
-                    <span className="text-green-300">✓</span>
-                    <span>Upload existing videos</span>
-                  </li>
-                  <li className="flex items-start space-x-2">
-                    <span className="text-green-300">✓</span>
-                    <span>Time limits (30s-5min)</span>
-                  </li>
-                </ul>
-              </div>
-              
-              <div>
-                <h3 className="text-xl font-semibold text-white mb-4 flex items-center">
-                  <Mic className="w-5 h-5 mr-2" />
-                  Production Quality
-                </h3>
-                <ul className="space-y-2 text-white/80">
-                  <li className="flex items-start space-x-2">
-                    <span className="text-yellow-300">✓</span>
-                    <span>HD video quality</span>
-                  </li>
-                  <li className="flex items-start space-x-2">
-                    <span className="text-yellow-300">✓</span>
-                    <span>Clear audio capture</span>
-                  </li>
-                  <li className="flex items-start space-x-2">
-                    <span className="text-yellow-300">✓</span>
-                    <span>Background blur option</span>
-                  </li>
-                  <li className="flex items-start space-x-2">
-                    <span className="text-yellow-300">✓</span>
-                    <span>Preview before submit</span>
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Tips for Success */}
-        <div className="mb-12">
-          <h2 className="text-2xl font-bold text-white mb-6">Tips for Getting Great Video Reviews</h2>
-          <div className="grid md:grid-cols-2 gap-4">
-            <div className="bg-white/10 backdrop-blur-md rounded-lg shadow-sm border border-white/20 p-6">
-              <h3 className="font-semibold text-white mb-2">Provide Prompts</h3>
-              <p className="text-white/80 text-sm">
-                Give customers 3-5 questions to answer in their video to guide their testimonial.
-              </p>
-            </div>
-            
-            <div className="bg-white/10 backdrop-blur-md rounded-lg shadow-sm border border-white/20 p-6">
-              <h3 className="font-semibold text-white mb-2">Keep It Short</h3>
-              <p className="text-white/80 text-sm">
-                Request 30-60 second videos for higher completion rates and better engagement.
-              </p>
-            </div>
-            
-            <div className="bg-white/10 backdrop-blur-md rounded-lg shadow-sm border border-white/20 p-6">
-              <h3 className="font-semibold text-white mb-2">Timing Matters</h3>
-              <p className="text-white/80 text-sm">
-                Request videos when customers are most excited about their results.
-              </p>
-            </div>
-            
-            <div className="bg-white/10 backdrop-blur-md rounded-lg shadow-sm border border-white/20 p-6">
-              <h3 className="font-semibold text-white mb-2">Make It Easy</h3>
-              <p className="text-white/80 text-sm">
-                Ensure one-click recording with no downloads or sign-ups required.
-              </p>
-            </div>
-            
-            <div className="bg-white/10 backdrop-blur-md rounded-lg shadow-sm border border-white/20 p-6">
-              <h3 className="font-semibold text-white mb-2">Show Examples</h3>
-              <p className="text-white/80 text-sm">
-                Display sample videos so customers know what you're looking for.
-              </p>
-            </div>
-            
-            <div className="bg-white/10 backdrop-blur-md rounded-lg shadow-sm border border-white/20 p-6">
-              <h3 className="font-semibold text-white mb-2">Offer Incentives</h3>
-              <p className="text-white/80 text-sm">
-                Consider offering discounts or bonuses for video testimonials.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Using Video Testimonials */}
-        <div className="mb-12">
-          <h2 className="text-2xl font-bold text-white mb-6">How to Use Video Testimonials</h2>
-          <div className="bg-white/10 backdrop-blur-md rounded-lg shadow-sm border border-white/20 p-8">
-            <ul className="space-y-4">
-              <li className="flex items-start space-x-3">
-                <span className="text-yellow-300 text-xl">→</span>
-                <div>
-                  <p className="font-medium text-white">Website Homepage</p>
-                  <p className="text-white/70 text-sm">Feature video testimonials prominently above the fold</p>
-                </div>
-              </li>
-              <li className="flex items-start space-x-3">
-                <span className="text-yellow-300 text-xl">→</span>
-                <div>
-                  <p className="font-medium text-white">Sales Pages</p>
-                  <p className="text-white/70 text-sm">Include relevant testimonials near calls-to-action</p>
-                </div>
-              </li>
-              <li className="flex items-start space-x-3">
-                <span className="text-yellow-300 text-xl">→</span>
-                <div>
-                  <p className="font-medium text-white">Social Media</p>
-                  <p className="text-white/70 text-sm">Share video testimonials as social proof content</p>
-                </div>
-              </li>
-              <li className="flex items-start space-x-3">
-                <span className="text-yellow-300 text-xl">→</span>
-                <div>
-                  <p className="font-medium text-white">Email Marketing</p>
-                  <p className="text-white/70 text-sm">Include video testimonials in nurture sequences</p>
-                </div>
-              </li>
-              <li className="flex items-start space-x-3">
-                <span className="text-yellow-300 text-xl">→</span>
-                <div>
-                  <p className="font-medium text-white">Ad Campaigns</p>
-                  <p className="text-white/70 text-sm">Use testimonials in video ads for higher conversion</p>
-                </div>
-              </li>
-            </ul>
-          </div>
-        </div>
-
-      </div>
-    </DocsLayout>
-  );
+    <StandardOverviewLayout
+      title={article.title || 'Video Prompt Pages'}
+      description={metadata.description ?? fallbackDescription}
+      categoryLabel={metadata.category_label || 'Page Types'}
+      categoryIcon={CategoryIcon}
+      categoryColor={metadata.category_color || 'red'}
+      currentPage="Video"
+      availablePlans={availablePlans}
+      keyFeatures={mappedKeyFeatures}
+      keyFeaturesTitle={keyFeaturesTitle}
+      howItWorks={mappedHowItWorks}
+      howItWorksTitle={howItWorksTitle}
+      bestPractices={mappedBestPractices}
+      bestPracticesTitle={bestPracticesTitle}
+      faqs={faqMetadata && faqMetadata.length ? faqMetadata : pageFAQs['prompt-pages/types/video']}
+      faqsTitle={faqsTitle}
+      callToAction={callToAction}
+      content={article.content}
+    />
+  )
 }

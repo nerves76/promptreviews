@@ -1,355 +1,66 @@
-import { Metadata } from 'next';
-import Link from 'next/link';
-import DocsLayout from '../../docs-layout';
-import PageHeader from '../../components/PageHeader';
-import { FileText, Plus, Palette, Brain, Eye, Save, ArrowRight, Info, CheckCircle, Settings } from 'lucide-react';
+import type { Metadata } from 'next'
+import { notFound } from 'next/navigation'
+import DocsLayout from '../../docs-layout'
+import MarkdownRenderer from '../../components/MarkdownRenderer'
+import { getArticleBySlug } from '@/lib/docs/articles'
 
-export const metadata: Metadata = {
-  title: 'Create Your First Prompt Page | Prompt Reviews',
-  description: 'Learn how to create your first personalized review request page with AI-powered content generation in Prompt Reviews.',
-  keywords: 'create prompt page, review request page, AI content generation, prompt reviews tutorial',
-};
+const fallbackDescription = 'Learn how to create your first personalized review request page with AI-powered content generation in Prompt Reviews.'
 
-export default function FirstPromptPage() {
+export async function generateMetadata(): Promise<Metadata> {
+  try {
+    const article = await getArticleBySlug('getting-started/first-prompt-page')
+    if (!article) {
+      return {
+        title: 'Create Your First Prompt Page | Prompt Reviews',
+        description: fallbackDescription,
+        keywords: ['create prompt page', 'review request page', 'AI content generation', 'prompt reviews tutorial'],
+        alternates: {
+          canonical: 'https://docs.promptreviews.app/getting-started/first-prompt-page',
+        },
+      }
+    }
+
+    const seoTitle = article.metadata?.seo_title || article.title
+    const seoDescription = article.metadata?.seo_description || article.metadata?.description || fallbackDescription
+
+    return {
+      title: `${seoTitle} | Prompt Reviews`,
+      description: seoDescription,
+      keywords: article.metadata?.keywords ?? ['create prompt page', 'review request page', 'AI content generation', 'prompt reviews tutorial'],
+      alternates: {
+        canonical: article.metadata?.canonical_url ?? 'https://docs.promptreviews.app/getting-started/first-prompt-page',
+      },
+    }
+  } catch (error) {
+    console.error('generateMetadata first-prompt-page error:', error)
+    return {
+      title: 'Create Your First Prompt Page | Prompt Reviews',
+      description: fallbackDescription,
+      alternates: {
+        canonical: 'https://docs.promptreviews.app/getting-started/first-prompt-page',
+      },
+    }
+  }
+}
+
+export default async function FirstPromptPagePage() {
+  let article = null
+
+  try {
+    article = await getArticleBySlug('getting-started/first-prompt-page')
+  } catch (error) {
+    console.error('Error fetching first-prompt-page article:', error)
+  }
+
+  if (!article) {
+    notFound()
+  }
+
   return (
     <DocsLayout>
       <div className="max-w-4xl mx-auto">
-        <PageHeader
-          breadcrumbs={[
-            { label: 'Help', href: '/' },
-            { label: 'Getting Started', href: '/getting-started' }
-          ]}
-          currentPage="First Prompt Page"
-          categoryLabel="Step 3"
-          categoryIcon={FileText}
-          categoryColor="green"
-          title="Create your first prompt page"
-          description="Build a personalized review request page with AI-powered content generation to start collecting customer reviews."
-        />
-
-        {/* Plan Indicator */}
-        <div className="mb-6">
-          <div className="flex flex-wrap gap-2">
-            <span className="text-sm text-white/60">Available on:</span>
-            <span className="bg-green-500/20 text-green-300 text-xs px-2 py-1 rounded-full font-medium">Grower</span>
-            <span className="bg-purple-500/20 text-purple-300 text-xs px-2 py-1 rounded-full font-medium">Builder</span>
-            <span className="bg-yellow-500/20 text-yellow-300 text-xs px-2 py-1 rounded-full font-medium">Maven</span>
-          </div>
-        </div>
-
-        {/* What is a Prompt Page */}
-        <div className="mb-12">
-          <h2 className="text-2xl font-bold text-white mb-6">What is a Prompt Page?</h2>
-          
-          <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6">
-            <p className="text-white/90 mb-4">
-              A prompt page is your personalized review collection landing page. It's where customers go to leave reviews 
-              about their experience with your business. Each page is customized with your branding, messaging, and 
-              review platform links.
-            </p>
-            <div className="grid md:grid-cols-3 gap-4 mt-6">
-              <div className="text-center">
-                <div className="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center mx-auto mb-2">
-                  <Brain className="w-6 h-6 text-yellow-300" />
-                </div>
-                <h4 className="text-sm font-semibold text-white">AI-Powered</h4>
-                <p className="text-xs text-white/70 mt-1">Content generated by AI</p>
-              </div>
-              <div className="text-center">
-                <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center mx-auto mb-2">
-                  <Palette className="w-6 h-6 text-purple-300" />
-                </div>
-                <h4 className="text-sm font-semibold text-white">Customizable</h4>
-                <p className="text-xs text-white/70 mt-1">Match your brand</p>
-              </div>
-              <div className="text-center">
-                <div className="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center mx-auto mb-2">
-                  <CheckCircle className="w-6 h-6 text-green-300" />
-                </div>
-                <h4 className="text-sm font-semibold text-white">Effective</h4>
-                <p className="text-xs text-white/70 mt-1">Higher completion rates</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Step-by-Step Creation Process */}
-        <div className="mb-12">
-          <h2 className="text-2xl font-bold text-white mb-6">Creating Your Prompt Page</h2>
-          
-          <div className="space-y-6">
-            {/* Step 1 */}
-            <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6">
-              <div className="flex items-center space-x-3 mb-4">
-                <div className="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center font-semibold">1</div>
-                <h3 className="text-xl font-semibold text-white">Navigate to Prompt Pages</h3>
-              </div>
-              <p className="text-white/90 mb-4">
-                From your dashboard, click on <strong>"Prompt Pages"</strong> in the main navigation, 
-                then click the <strong>"Create New Page"</strong> button.
-              </p>
-              <div className="bg-blue-500/20 border border-blue-400/30 rounded-lg p-4">
-                <p className="text-sm text-white/80">
-                  <strong>Tip:</strong> You can also use the quick action button (+) in the dashboard header for faster access.
-                </p>
-              </div>
-            </div>
-
-            {/* Step 2 */}
-            <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6">
-              <div className="flex items-center space-x-3 mb-4">
-                <div className="w-8 h-8 bg-purple-500 text-white rounded-full flex items-center justify-center font-semibold">2</div>
-                <h3 className="text-xl font-semibold text-white">Choose Your Page Type</h3>
-              </div>
-              <p className="text-white/90 mb-4">
-                Select the type of prompt page that best fits your needs:
-              </p>
-              <ul className="space-y-2 text-white/80">
-                <li className="flex items-start space-x-2">
-                  <span className="text-purple-300">•</span>
-                  <span><strong>Service:</strong> For service-based businesses</span>
-                </li>
-                <li className="flex items-start space-x-2">
-                  <span className="text-purple-300">•</span>
-                  <span><strong>Product:</strong> For e-commerce and retail</span>
-                </li>
-                <li className="flex items-start space-x-2">
-                  <span className="text-purple-300">•</span>
-                  <span><strong>Event:</strong> For workshops and events</span>
-                </li>
-                <li className="flex items-start space-x-2">
-                  <span className="text-purple-300">•</span>
-                  <span><strong>Universal:</strong> All-purpose solution</span>
-                </li>
-              </ul>
-                              <Link href="/prompt-pages/types" className="inline-block mt-4 text-purple-300 hover:underline text-sm">
-                Learn more about page types →
-              </Link>
-            </div>
-
-            {/* Step 3 */}
-            <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6">
-              <div className="flex items-center space-x-3 mb-4">
-                <div className="w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center font-semibold">3</div>
-                <h3 className="text-xl font-semibold text-white">Enter Basic Information</h3>
-              </div>
-              <p className="text-white/90 mb-4">
-                Fill in the essential details for your prompt page:
-              </p>
-              <div className="space-y-3">
-                <div className="bg-white/5 rounded-lg p-3">
-                  <label className="text-sm font-medium text-white/70 block mb-1">Page Name</label>
-                  <p className="text-white/80 text-sm">Internal name for your reference (e.g., "Main Service Page")</p>
-                </div>
-                <div className="bg-white/5 rounded-lg p-3">
-                  <label className="text-sm font-medium text-white/70 block mb-1">Business/Service Name</label>
-                  <p className="text-white/80 text-sm">What customers will see as the main title</p>
-                </div>
-                <div className="bg-white/5 rounded-lg p-3">
-                  <label className="text-sm font-medium text-white/70 block mb-1">Description</label>
-                  <p className="text-white/80 text-sm">Brief description of your service or product</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Step 4 */}
-            <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6">
-              <div className="flex items-center space-x-3 mb-4">
-                <div className="w-8 h-8 bg-yellow-500 text-white rounded-full flex items-center justify-center font-semibold">4</div>
-                <h3 className="text-xl font-semibold text-white">Let AI Generate Content</h3>
-              </div>
-              <p className="text-white/90 mb-4">
-                Click <strong>"Generate with AI"</strong> to let our AI create personalized content for your page:
-              </p>
-              <ul className="space-y-2 text-white/80">
-                <li className="flex items-start space-x-2">
-                  <CheckCircle className="w-4 h-4 text-green-300 mt-0.5" />
-                  <span>Welcome message tailored to your business</span>
-                </li>
-                <li className="flex items-start space-x-2">
-                  <CheckCircle className="w-4 h-4 text-green-300 mt-0.5" />
-                  <span>Review request text optimized for conversions</span>
-                </li>
-                <li className="flex items-start space-x-2">
-                  <CheckCircle className="w-4 h-4 text-green-300 mt-0.5" />
-                  <span>Thank you message for completed reviews</span>
-                </li>
-              </ul>
-              <div className="mt-4 bg-yellow-500/20 border border-yellow-400/30 rounded-lg p-4">
-                <p className="text-sm text-white/80">
-                  <strong>Note:</strong> You can edit all AI-generated content to match your voice and style.
-                </p>
-              </div>
-            </div>
-
-            {/* Step 5 */}
-            <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6">
-              <div className="flex items-center space-x-3 mb-4">
-                <div className="w-8 h-8 bg-indigo-500 text-white rounded-full flex items-center justify-center font-semibold">5</div>
-                <h3 className="text-xl font-semibold text-white">Customize Design & Branding</h3>
-              </div>
-              <p className="text-white/90 mb-4">
-                Make the page yours with customization options:
-              </p>
-              <div className="grid md:grid-cols-2 gap-4">
-                <div>
-                  <h4 className="font-semibold text-white mb-2">Visual Elements</h4>
-                  <ul className="space-y-1 text-white/80 text-sm">
-                    <li>• Upload your logo</li>
-                    <li>• Choose brand colors</li>
-                    <li>• Select emoji style</li>
-                    <li>• Add background images</li>
-                  </ul>
-                </div>
-                <div>
-                  <h4 className="font-semibold text-white mb-2">Content Options</h4>
-                  <ul className="space-y-1 text-white/80 text-sm">
-                    <li>• Edit welcome message</li>
-                    <li>• Customize questions</li>
-                    <li>• Add testimonials</li>
-                    <li>• Include contact info</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-
-            {/* Step 6 */}
-            <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6">
-              <div className="flex items-center space-x-3 mb-4">
-                <div className="w-8 h-8 bg-pink-500 text-white rounded-full flex items-center justify-center font-semibold">6</div>
-                <h3 className="text-xl font-semibold text-white">Connect Review Platforms</h3>
-              </div>
-              <p className="text-white/90 mb-4">
-                Add links to your review platforms where customers can leave reviews:
-              </p>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                {['Google', 'Facebook', 'Yelp', 'Trustpilot'].map(platform => (
-                  <div key={platform} className="bg-white/5 rounded-lg p-3 text-center">
-                    <p className="text-sm text-white/80">{platform}</p>
-                  </div>
-                ))}
-              </div>
-              <p className="text-sm text-white/70 mt-4">
-                Don't have all links? No problem! You can add them later in the settings.
-              </p>
-            </div>
-
-            {/* Step 7 */}
-            <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6">
-              <div className="flex items-center space-x-3 mb-4">
-                <div className="w-8 h-8 bg-teal-500 text-white rounded-full flex items-center justify-center font-semibold">7</div>
-                <h3 className="text-xl font-semibold text-white">Preview and Publish</h3>
-              </div>
-              <p className="text-white/90 mb-4">
-                Review your prompt page and make final adjustments:
-              </p>
-              <ul className="space-y-2 text-white/80">
-                <li className="flex items-start space-x-2">
-                  <Eye className="w-4 h-4 text-teal-300 mt-0.5" />
-                  <span>Click "Preview" to see how it looks to customers</span>
-                </li>
-                <li className="flex items-start space-x-2">
-                  <Settings className="w-4 h-4 text-teal-300 mt-0.5" />
-                  <span>Make any final edits or adjustments</span>
-                </li>
-                <li className="flex items-start space-x-2">
-                  <Save className="w-4 h-4 text-teal-300 mt-0.5" />
-                  <span>Click "Publish" to make your page live</span>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-
-        {/* Best Practices */}
-        <div className="mb-12">
-          <h2 className="text-2xl font-bold text-white mb-6">Best Practices</h2>
-          
-          <div className="grid md:grid-cols-2 gap-4">
-            <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6">
-              <h3 className="font-semibold text-white mb-2">Keep It Simple</h3>
-              <p className="text-white/80 text-sm">
-                Don't overwhelm customers with too many questions. Focus on making the review process quick and easy.
-              </p>
-            </div>
-            
-            <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6">
-              <h3 className="font-semibold text-white mb-2">Use Your Brand Voice</h3>
-              <p className="text-white/80 text-sm">
-                Edit AI-generated content to match your brand's tone and personality for authenticity.
-              </p>
-            </div>
-            
-            <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6">
-              <h3 className="font-semibold text-white mb-2">Mobile-First Design</h3>
-              <p className="text-white/80 text-sm">
-                Most customers will access your page on mobile. Always preview on different devices.
-              </p>
-            </div>
-            
-            <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6">
-              <h3 className="font-semibold text-white mb-2">Test Before Sharing</h3>
-              <p className="text-white/80 text-sm">
-                Send the page to yourself first to experience the full customer journey.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Common Questions */}
-        <div className="mb-12">
-          <h2 className="text-2xl font-bold text-white mb-6">Common Questions</h2>
-          
-          <div className="space-y-4">
-            <details className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6">
-              <summary className="font-semibold text-white cursor-pointer">Can I create multiple prompt pages?</summary>
-              <p className="text-white/80 text-sm mt-3">
-                Yes! Depending on your plan, you can create multiple pages for different services, locations, or customer segments.
-              </p>
-            </details>
-            
-            <details className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6">
-              <summary className="font-semibold text-white cursor-pointer">Can I edit my page after publishing?</summary>
-              <p className="text-white/80 text-sm mt-3">
-                Absolutely! You can edit your prompt page anytime. Changes are reflected immediately.
-              </p>
-            </details>
-            
-            <details className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6">
-              <summary className="font-semibold text-white cursor-pointer">How do I share my prompt page?</summary>
-              <p className="text-white/80 text-sm mt-3">
-                After publishing, you'll get a unique URL, QR code, and embed code. You can share these via email, SMS, 
-                social media, or print materials.
-              </p>
-            </details>
-          </div>
-        </div>
-
-        {/* Next Steps */}
-        <div className="bg-gradient-to-r from-green-500 to-teal-600 rounded-lg p-8 text-center">
-          <h2 className="text-2xl font-bold text-white mb-4">
-            Page Created? Let's Add Contacts!
-          </h2>
-          <p className="text-white/90 mb-6 max-w-2xl mx-auto">
-            Now that your prompt page is ready, let's add customer contacts to start sending review requests.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link
-              href="/getting-started/adding-contacts"
-              className="inline-flex items-center px-6 py-3 bg-white/20 text-white backdrop-blur-sm font-medium rounded-lg hover:bg-white/30 transition-colors"
-            >
-              Add Contacts
-              <ArrowRight className="ml-2 w-4 h-4" />
-            </Link>
-            <Link
-              href="/getting-started"
-              className="inline-flex items-center px-6 py-3 border border-white text-white font-medium rounded-lg hover:bg-white/10 transition-colors"
-            >
-              Back to Overview
-            </Link>
-          </div>
-        </div>
+        <MarkdownRenderer content={article.content} />
       </div>
     </DocsLayout>
-  );
+  )
 }

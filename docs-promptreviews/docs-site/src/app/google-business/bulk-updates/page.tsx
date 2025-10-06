@@ -1,177 +1,278 @@
-import { Metadata } from 'next';
-import Link from 'next/link';
-import DocsLayout from '../../docs-layout';
-import { Layers, ChevronRight, Building2, MapPin } from 'lucide-react';
+import type { Metadata } from 'next'
+import { notFound } from 'next/navigation'
+import * as Icons from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
+import StandardOverviewLayout from '../../../components/StandardOverviewLayout'
+import MarkdownRenderer from '../../../components/MarkdownRenderer'
+import { getArticleBySlug } from '@/lib/docs/articles'
 
-export const metadata: Metadata = {
-  title: 'Bulk Updates - Google Business Profile | Prompt Reviews Help',
-  description: 'Learn how to manage multiple Google Business Profile locations with bulk updates and edits.',
-  alternates: {
-    canonical: 'https://docs.promptreviews.app/google-business/bulk-updates',
+const {
+  Layers,
+  Building2,
+  MapPin,
+} = Icons
+
+const fallbackDescription = 'Efficiently manage multiple Google Business Profile locations with bulk editing capabilities.'
+
+const defaultKeyFeatures = [
+  {
+    icon: Layers,
+    title: 'Bulk post creation',
+    description: 'Create Google Business Profile posts and publish them to multiple locations at once. Perfect for announcing sales, events, or new products across all your locations.',
   },
+  {
+    icon: MapPin,
+    title: 'Location selection',
+    description: 'Easily switch between locations or select multiple locations at once. The system remembers your last selected location for convenience.',
+  },
+  {
+    icon: Building2,
+    title: 'Photo management',
+    description: 'Upload photos to multiple locations simultaneously. Great for chain businesses that want to maintain consistent branding across all locations.',
+  }
+]
+
+const defaultHowItWorks = [
+  {
+    number: 1,
+    title: 'Connect locations',
+    description: 'Connect all your Google Business Profile locations using OAuth',
+  },
+  {
+    number: 2,
+    title: 'Select locations',
+    description: 'In the Google Business dashboard, select the locations you want to update',
+  },
+  {
+    number: 3,
+    title: 'Create content',
+    description: 'Create your post, upload photos, or update information',
+  },
+  {
+    number: 4,
+    title: 'Publish',
+    description: 'Review your selections and publish to all chosen locations at once',
+  }
+]
+
+const defaultBestPractices = [
+  {
+    icon: Building2,
+    title: 'Maintain consistency',
+    description: 'Use bulk updates to ensure all locations have the same branding and messaging',
+  },
+  {
+    icon: MapPin,
+    title: 'Customize when needed',
+    description: 'Some updates (like location-specific events) should only go to certain locations',
+  },
+  {
+    icon: Layers,
+    title: 'Schedule posts strategically',
+    description: 'Use bulk scheduling to plan campaigns across all locations in advance',
+  }
+]
+
+function resolveIcon(iconName: string | undefined, fallback: LucideIcon): LucideIcon {
+  if (!iconName) return fallback
+  const normalized = iconName.trim()
+  const lookup = Icons as Record<string, unknown>
+  const candidates = [
+    normalized,
+    normalized.toLowerCase(),
+    normalized.toUpperCase(),
+    normalized.charAt(0).toUpperCase() + normalized.slice(1),
+    normalized.replace(/[-_\s]+/g, ''),
+  ]
+
+  for (const key of candidates) {
+    const maybeIcon = lookup[key]
+    if (typeof maybeIcon === 'function') {
+      return maybeIcon as LucideIcon
+    }
+  }
+
+  return fallback
 }
 
-export default function BulkUpdatesPage() {
+export async function generateMetadata(): Promise<Metadata> {
+  try {
+    const article = await getArticleBySlug('google-business/bulk-updates')
+    if (!article) {
+      return {
+        title: 'Bulk Updates - Google Business Profile | Prompt Reviews Help',
+        description: fallbackDescription,
+        alternates: {
+          canonical: 'https://docs.promptreviews.app/google-business/bulk-updates',
+        },
+      }
+    }
+
+    const seoTitle = article.metadata?.seo_title || article.title
+    const seoDescription = article.metadata?.seo_description || article.metadata?.description || fallbackDescription
+
+    return {
+      title: `${seoTitle} | Prompt Reviews`,
+      description: seoDescription,
+      keywords: article.metadata?.keywords ?? [],
+      alternates: {
+        canonical: article.metadata?.canonical_url ?? 'https://docs.promptreviews.app/google-business/bulk-updates',
+      },
+    }
+  } catch (error) {
+    console.error('generateMetadata google-business/bulk-updates error:', error)
+    return {
+      title: 'Bulk Updates | Prompt Reviews',
+      description: fallbackDescription,
+      alternates: {
+        canonical: 'https://docs.promptreviews.app/google-business/bulk-updates',
+      },
+    }
+  }
+}
+
+interface MetadataFeature {
+  icon?: string
+  title: string
+  description: string
+  href?: string
+}
+
+interface MetadataStep {
+  number?: number
+  icon?: string
+  title: string
+  description: string
+}
+
+interface MetadataBestPractice {
+  icon?: string
+  title: string
+  description: string
+}
+
+export default async function BulkUpdatesPage() {
+  let article = null
+
+  try {
+    article = await getArticleBySlug('google-business/bulk-updates')
+  } catch (error) {
+    console.error('Error fetching google-business/bulk-updates article:', error)
+  }
+
+  if (!article) {
+    notFound()
+  }
+
+  const metadata = article.metadata ?? {}
+
+  const getString = (value: unknown): string | undefined => {
+    if (typeof value === 'string' && value.trim().length > 0) {
+      return value.trim()
+    }
+    return undefined
+  }
+
+  const availablePlans: ('grower' | 'builder' | 'maven' | 'enterprise')[] =
+    Array.isArray(metadata.available_plans) && metadata.available_plans.length
+      ? (metadata.available_plans as ('grower' | 'builder' | 'maven' | 'enterprise')[])
+      : ['builder', 'maven']
+
+  const mappedKeyFeatures = Array.isArray(metadata.key_features) && metadata.key_features.length
+    ? (metadata.key_features as MetadataFeature[]).map((feature) => ({
+        icon: resolveIcon(feature.icon, Layers),
+        title: feature.title,
+        description: feature.description,
+        href: feature.href,
+      }))
+    : defaultKeyFeatures
+
+  const mappedHowItWorks = Array.isArray(metadata.how_it_works) && metadata.how_it_works.length
+    ? (metadata.how_it_works as MetadataStep[]).map((step, index) => ({
+        number: step.number ?? index + 1,
+        title: step.title,
+        description: step.description,
+        icon: resolveIcon(step.icon, Layers),
+      }))
+    : defaultHowItWorks
+
+  const mappedBestPractices = Array.isArray(metadata.best_practices) && metadata.best_practices.length
+    ? (metadata.best_practices as MetadataBestPractice[]).map((practice) => ({
+        icon: resolveIcon(practice.icon, Building2),
+        title: practice.title,
+        description: practice.description,
+      }))
+    : defaultBestPractices
+
+  const CategoryIcon = resolveIcon(
+    typeof metadata.category_icon === 'string' && metadata.category_icon.trim().length
+      ? metadata.category_icon
+      : 'Layers',
+    Layers,
+  )
+
+  const overviewMarkdown = getString((metadata as Record<string, unknown>).overview_markdown)
+  const overviewTitle = getString((metadata as Record<string, unknown>).overview_title) || 'Overview'
+
+  const overviewNode = overviewMarkdown ? <MarkdownRenderer content={overviewMarkdown} /> : undefined
+
+  const callToActionMeta = (metadata as Record<string, unknown>).call_to_action
+  const parseCTAButton = (value: any) => {
+    const text = getString(value?.text)
+    const href = getString(value?.href)
+    if (!text || !href) return undefined
+    return {
+      text,
+      href,
+      external: Boolean(value?.external),
+    }
+  }
+
+  const fallbackCTA = {
+    primary: {
+      text: 'Business Info',
+      href: '/google-business/business-info',
+    },
+  } as const
+
+  const callToAction = (callToActionMeta && typeof callToActionMeta === 'object')
+    ? {
+        primary: parseCTAButton((callToActionMeta as any).primary) || fallbackCTA.primary,
+        secondary: parseCTAButton((callToActionMeta as any).secondary),
+      }
+    : fallbackCTA
+
+  const faqMetadata = Array.isArray((metadata as Record<string, unknown>).faqs)
+    ? ((metadata as Record<string, unknown>).faqs as { question: string; answer: string }[])
+    : null
+
+  const faqsTitle = getString((metadata as Record<string, unknown>).faqs_title)
+  const keyFeaturesTitle = getString((metadata as Record<string, unknown>).key_features_title)
+  const howItWorksTitle = getString((metadata as Record<string, unknown>).how_it_works_title)
+  const bestPracticesTitle = getString((metadata as Record<string, unknown>).best_practices_title)
+
   return (
-    <DocsLayout>
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        <div className="flex items-center text-sm text-white/60 mb-6">
-          <Link href="/" className="hover:text-white">Home</Link>
-          <ChevronRight className="w-4 h-4 mx-2" />
-          <Link href="/google-business" className="hover:text-white">Google Business Profile</Link>
-          <ChevronRight className="w-4 h-4 mx-2" />
-          <span className="text-white">Bulk Updates</span>
-        </div>
-
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="p-3 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl">
-              <Layers className="w-8 h-8 text-white" />
-            </div>
-            <h1 className="text-4xl font-bold text-white">Bulk updates</h1>
-          </div>
-          <p className="text-xl text-white/80">
-            Efficiently manage multiple Google Business Profile locations with bulk editing capabilities.
-          </p>
-        </div>
-
-        <div className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 p-6 mb-8">
-          <h2 className="text-2xl font-bold text-white mb-4">Overview</h2>
-          <p className="text-white/80">
-            Managing multiple Google Business Profile locations is simple with Prompt Reviews. Update posts, photos, and information across all your locations at once, saving time and ensuring consistency.
-          </p>
-        </div>
-
-        {/* Plan Limitations */}
-        <div className="bg-gradient-to-br from-blue-500/10 to-indigo-500/10 border border-blue-500/20 rounded-xl p-6 mb-8">
-          <h2 className="text-2xl font-bold text-white mb-4">Plan-based location limits</h2>
-          <div className="space-y-3">
-            <div className="flex gap-3">
-              <span className="text-yellow-300">•</span>
-              <span className="text-white/80"><strong className="text-white">Grower Plan:</strong> Manage 1 Google Business Profile location</span>
-            </div>
-            <div className="flex gap-3">
-              <span className="text-yellow-300">•</span>
-              <span className="text-white/80"><strong className="text-white">Builder & Maven Plans:</strong> Manage multiple locations simultaneously</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Multi-Location Features */}
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold text-white mb-6">Multi-location features</h2>
-          <div className="space-y-4">
-            <div className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 p-6">
-              <div className="flex items-start gap-3">
-                <Layers className="w-6 h-6 text-yellow-300 flex-shrink-0 mt-1" />
-                <div>
-                  <h3 className="text-lg font-bold text-white mb-2">Bulk post creation</h3>
-                  <p className="text-white/80 mb-3">
-                    Create Google Business Profile posts and publish them to multiple locations at once. Perfect for announcing sales, events, or new products across all your locations.
-                  </p>
-                  <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3">
-                    <p className="text-sm text-yellow-200">
-                      <strong>Tip:</strong> Select specific locations or choose "All locations" to broadcast your message everywhere.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 p-6">
-              <div className="flex items-start gap-3">
-                <MapPin className="w-6 h-6 text-yellow-300 flex-shrink-0 mt-1" />
-                <div>
-                  <h3 className="text-lg font-bold text-white mb-2">Location selection</h3>
-                  <p className="text-white/80 mb-3">
-                    Easily switch between locations or select multiple locations at once. The system remembers your last selected location for convenience.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 p-6">
-              <div className="flex items-start gap-3">
-                <Building2 className="w-6 h-6 text-yellow-300 flex-shrink-0 mt-1" />
-                <div>
-                  <h3 className="text-lg font-bold text-white mb-2">Photo management</h3>
-                  <p className="text-white/80">
-                    Upload photos to multiple locations simultaneously. Great for chain businesses that want to maintain consistent branding across all locations.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* How to Use */}
-        <div className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 p-6 mb-8">
-          <h2 className="text-2xl font-bold text-white mb-4">Using multi-location management</h2>
-          <div className="space-y-3">
-            <div className="flex gap-3">
-              <span className="text-yellow-300 font-bold">1.</span>
-              <span className="text-white/80">Connect all your Google Business Profile locations using OAuth</span>
-            </div>
-            <div className="flex gap-3">
-              <span className="text-yellow-300 font-bold">2.</span>
-              <span className="text-white/80">In the Google Business dashboard, select the locations you want to update</span>
-            </div>
-            <div className="flex gap-3">
-              <span className="text-yellow-300 font-bold">3.</span>
-              <span className="text-white/80">Create your post, upload photos, or update information</span>
-            </div>
-            <div className="flex gap-3">
-              <span className="text-yellow-300 font-bold">4.</span>
-              <span className="text-white/80">Review your selections and publish to all chosen locations at once</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Best Practices */}
-        <div className="bg-gradient-to-br from-purple-500/10 to-indigo-500/10 border border-purple-500/20 rounded-xl p-6 mb-8">
-          <h2 className="text-2xl font-bold text-white mb-4">Best practices</h2>
-          <ul className="space-y-3 text-white/80">
-            <li className="flex gap-3">
-              <span className="text-green-400">✓</span>
-              <span><strong className="text-white">Maintain consistency:</strong> Use bulk updates to ensure all locations have the same branding and messaging</span>
-            </li>
-            <li className="flex gap-3">
-              <span className="text-green-400">✓</span>
-              <span><strong className="text-white">Customize when needed:</strong> Some updates (like location-specific events) should only go to certain locations</span>
-            </li>
-            <li className="flex gap-3">
-              <span className="text-green-400">✓</span>
-              <span><strong className="text-white">Upgrade for more locations:</strong> If you have multiple locations, consider the Builder or Maven plan for full access</span>
-            </li>
-            <li className="flex gap-3">
-              <span className="text-green-400">✓</span>
-              <span><strong className="text-white">Schedule posts strategically:</strong> Use bulk scheduling to plan campaigns across all locations in advance</span>
-            </li>
-          </ul>
-        </div>
-
-        <div className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 p-6">
-          <h2 className="text-2xl font-bold text-white mb-4">Related articles</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Link href="/google-business/business-info" className="flex items-center gap-3 p-4 bg-white/5 hover:bg-white/10 rounded-lg border border-white/10 transition-colors group">
-              <Building2 className="w-5 h-5 text-yellow-300" />
-              <div className="flex-1">
-                <div className="font-semibold text-white group-hover:underline">Business Info</div>
-                <div className="text-xs text-white/60">Manage core business details</div>
-              </div>
-              <ChevronRight className="w-4 h-4 text-white/40 group-hover:text-white/60" />
-            </Link>
-            <Link href="/billing/upgrades-downgrades" className="flex items-center gap-3 p-4 bg-white/5 hover:bg-white/10 rounded-lg border border-white/10 transition-colors group">
-              <MapPin className="w-5 h-5 text-green-300" />
-              <div className="flex-1">
-                <div className="font-semibold text-white group-hover:underline">Plan Upgrades</div>
-                <div className="text-xs text-white/60">Unlock multiple locations</div>
-              </div>
-              <ChevronRight className="w-4 h-4 text-white/40 group-hover:text-white/60" />
-            </Link>
-          </div>
-        </div>
-      </div>
-    </DocsLayout>
-  );
+    <StandardOverviewLayout
+      title={article.title || 'Bulk updates'}
+      description={metadata.description ?? fallbackDescription}
+      categoryLabel={metadata.category_label || 'Google Business Profile'}
+      categoryIcon={CategoryIcon}
+      categoryColor={metadata.category_color || 'purple'}
+      currentPage="Bulk Updates"
+      availablePlans={availablePlans}
+      keyFeatures={mappedKeyFeatures}
+      keyFeaturesTitle={keyFeaturesTitle}
+      howItWorks={mappedHowItWorks}
+      howItWorksTitle={howItWorksTitle}
+      bestPractices={mappedBestPractices}
+      bestPracticesTitle={bestPracticesTitle}
+      faqs={faqMetadata && faqMetadata.length ? faqMetadata : []}
+      faqsTitle={faqsTitle}
+      callToAction={callToAction}
+      overview={overviewNode ? {
+        title: overviewTitle,
+        content: overviewNode,
+      } : undefined}
+    />
+  )
 }

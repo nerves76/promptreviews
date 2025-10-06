@@ -13,9 +13,13 @@ export async function generateMetadata(): Promise<Metadata> {
     };
   }
 
+  // Use SEO-specific fields if available, otherwise fallback to regular title/description
+  const seoTitle = article.metadata?.seo_title || article.title;
+  const seoDescription = article.metadata?.seo_description || article.metadata?.description || '';
+
   return {
-    title: `${article.title} | Prompt Reviews`,
-    description: article.metadata?.description || '',
+    title: `${seoTitle} | Prompt Reviews`,
+    description: seoDescription,
     keywords: article.metadata?.keywords || [],
   };
 }

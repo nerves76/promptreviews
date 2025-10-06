@@ -1,0 +1,164 @@
+{
+  "articles": [
+    {
+      "slug": "getting-started",
+      "title": "Getting started with Prompt Reviews",
+      "content": "Welcome to Prompt Reviews! This comprehensive guide will help you set up your account and start collecting customer reviews in under 30 minutes.\n\nMost businesses are fully set up and collecting their first reviews within 30 minutes. Our streamlined onboarding process makes it easy to get started, even if you've never used a review collection platform before.",
+      "status": "published",
+      "metadata": {
+        "description": "Welcome to Prompt Reviews! This comprehensive guide will help you set up your account and start collecting customer reviews in under 30 minutes.",
+        "keywords": ["Prompt Reviews setup", "getting started guide", "review collection tutorial", "customer review automation", "business profile setup"],
+        "canonical_url": "https://docs.promptreviews.app/getting-started",
+        "category": "getting-started",
+        "category_label": "Quick Start Guide",
+        "category_icon": "CheckCircle",
+        "category_color": "green",
+        "available_plans": ["grower", "builder", "maven"],
+        "seo_title": "Getting Started with Prompt Reviews - Complete Setup Guide",
+        "seo_description": "Learn how to set up your Prompt Reviews account, create your first prompt page, and start collecting customer reviews in under 30 minutes."
+      }
+    },
+    {
+      "slug": "getting-started/account-setup",
+      "title": "Account setup & business profile",
+      "content": "Create your Prompt Reviews account and complete your business information to get started.\n\n## Creating Your Account\n\nGetting started with Prompt Reviews begins with creating your account and setting up your business profile. This foundational step ensures that all your review requests are personalized and professional.\n\n## Setting Up Your Business Profile\n\nYour business profile is crucial for creating effective prompt pages and collecting reviews. Complete profile information helps our AI generate better content and makes your review requests more trustworthy to customers.",
+      "status": "published",
+      "metadata": {
+        "description": "Create your Prompt Reviews account and set up your business profile to start collecting customer reviews.",
+        "keywords": ["account setup", "business profile", "prompt reviews registration", "sign up"],
+        "canonical_url": "https://docs.promptreviews.app/getting-started/account-setup",
+        "category": "getting-started",
+        "category_label": "Step 1",
+        "category_icon": "UserPlus",
+        "category_color": "blue",
+        "available_plans": ["grower", "builder", "maven"],
+        "seo_title": "Account Setup & Business Profile | Prompt Reviews"
+      }
+    },
+    {
+      "slug": "getting-started/choosing-plan",
+      "title": "Choose your plan",
+      "content": "Select the subscription plan that best fits your business size and review collection needs.\n\n## Free Trial Available\n\nStart with the Grower plan and get a 14-day free trial - no credit card required! Perfect for testing the waters before upgrading to a paid plan with more features.\n\n## Save with Annual Billing\n\nChoose annual billing and save 15% on any plan! Pay yearly and get the equivalent of almost 2 months free. Perfect for businesses ready to commit to growing their online reputation.",
+      "status": "published",
+      "metadata": {
+        "description": "Select the perfect Prompt Reviews plan for your business. Compare features and pricing to find what works best for you.",
+        "keywords": ["prompt reviews pricing", "plans", "subscription", "free trial", "pricing comparison"],
+        "canonical_url": "https://docs.promptreviews.app/getting-started/choosing-plan",
+        "category": "getting-started",
+        "category_label": "Step 2",
+        "category_icon": "CreditCard",
+        "category_color": "purple",
+        "available_plans": ["grower", "builder", "maven"],
+        "seo_title": "Choose Your Plan | Prompt Reviews"
+      }
+    },
+    {
+      "slug": "getting-started/first-prompt-page",
+      "title": "Create your first prompt page",
+      "content": "Build a personalized review request page with AI-powered content generation to start collecting customer reviews.\n\n## What is a Prompt Page?\n\nA prompt page is your personalized review collection landing page. It's where customers go to leave reviews about their experience with your business. Each page is customized with your branding, messaging, and review platform links.\n\nPrompt pages are AI-powered, customizable, and proven to deliver higher completion rates than generic review requests.",
+      "status": "published",
+      "metadata": {
+        "description": "Learn how to create your first personalized review request page with AI-powered content generation in Prompt Reviews.",
+        "keywords": ["create prompt page", "review request page", "AI content generation", "prompt reviews tutorial"],
+        "canonical_url": "https://docs.promptreviews.app/getting-started/first-prompt-page",
+        "category": "getting-started",
+        "category_label": "Step 3",
+        "category_icon": "FileText",
+        "category_color": "green",
+        "available_plans": ["grower", "builder", "maven"],
+        "seo_title": "Create Your First Prompt Page | Prompt Reviews"
+      }
+    },
+    {
+      "slug": "getting-started/adding-contacts",
+      "title": "Add your first contacts",
+      "content": "Import your customer database or manually add contacts to start sending personalized review requests.\n\n## Managing Your Contacts\n\nContacts are the foundation of your review collection strategy. Prompt Reviews offers multiple ways to add and manage your customer contacts, making it easy to start requesting reviews immediately.\n\n**Note**: Contact management is available on Builder and Maven plans only.",
+      "status": "published",
+      "metadata": {
+        "description": "Learn how to import your customer database or manually add contacts to start sending personalized review requests.",
+        "keywords": ["add contacts", "import customers", "CSV upload", "contact management", "prompt reviews"],
+        "canonical_url": "https://docs.promptreviews.app/getting-started/adding-contacts",
+        "category": "getting-started",
+        "category_label": "Step 4",
+        "category_icon": "Users",
+        "category_color": "indigo",
+        "available_plans": ["builder", "maven"],
+        "seo_title": "Add Your First Contacts | Prompt Reviews"
+      }
+    },
+    {
+      "slug": "getting-started/first-review-request",
+      "title": "Send your first review request",
+      "content": "Learn how to send personalized review requests to your customers through multiple channels.\n\n## Review Request Methods\n\nPrompt Reviews offers multiple ways to reach your customers where they're most comfortable. Choose the method that works best for your business and customer preferences.\n\n- **Email**: Most popular, rich content\n- **SMS**: Highest open rate (98%), mobile-first\n- **QR Code**: Perfect for in-person interactions\n- **Direct Link**: Most flexible, share anywhere",
+      "status": "published",
+      "metadata": {
+        "description": "Learn how to send personalized review requests via email, SMS, QR codes, and direct links using Prompt Reviews.",
+        "keywords": ["send review request", "email reviews", "SMS reviews", "QR code reviews", "prompt reviews"],
+        "canonical_url": "https://docs.promptreviews.app/getting-started/first-review-request",
+        "category": "getting-started",
+        "category_label": "Step 5",
+        "category_icon": "Send",
+        "category_color": "pink",
+        "available_plans": ["grower", "builder", "maven"],
+        "seo_title": "Send Your First Review Request | Prompt Reviews"
+      }
+    },
+    {
+      "slug": "getting-started/review-widget",
+      "title": "Set up your review widget",
+      "content": "Display your best reviews on your website with customizable widgets that match your brand.\n\n## What is a Review Widget?\n\nReview widgets are embeddable components that display your customer reviews directly on your website. They automatically update with new reviews and can be customized to match your site's design.\n\n- **Build Trust**: Show real customer feedback\n- **Customizable**: Match your brand style\n- **Responsive**: Works on all devices",
+      "status": "published",
+      "metadata": {
+        "description": "Learn how to create and embed customizable review widgets on your website to showcase customer testimonials.",
+        "keywords": ["review widget", "embed reviews", "website integration", "review display", "prompt reviews"],
+        "canonical_url": "https://docs.promptreviews.app/getting-started/review-widget",
+        "category": "getting-started",
+        "category_label": "Step 6",
+        "category_icon": "Code",
+        "category_color": "teal",
+        "available_plans": ["grower", "builder", "maven"],
+        "seo_title": "Set Up Your Review Widget | Prompt Reviews"
+      }
+    }
+  ],
+  "import_instructions": {
+    "method_1_api": {
+      "description": "Use the admin API to create articles programmatically",
+      "endpoint": "POST /api/admin/help-content",
+      "auth": "Bearer token with admin permissions",
+      "example": "See /scripts/migrate-getting-started-to-cms.ts"
+    },
+    "method_2_manual": {
+      "description": "Manually create articles through admin dashboard",
+      "steps": [
+        "Log into admin dashboard",
+        "Navigate to Help Content management",
+        "Click 'Create Article'",
+        "Copy JSON data for each article",
+        "Paste into form fields",
+        "Save and publish"
+      ]
+    },
+    "method_3_database": {
+      "description": "Direct database insert (requires SQL access)",
+      "note": "Convert JSON to SQL INSERT statements for articles table"
+    }
+  },
+  "conversion_template": {
+    "file_pattern": "src/app/getting-started/[page]/page.tsx",
+    "required_changes": [
+      "Import getArticleBySlug from @/lib/docs/articles",
+      "Import MarkdownRenderer component",
+      "Add icon resolution utility function",
+      "Add generateMetadata() async function",
+      "Convert component to async function",
+      "Fetch article with await getArticleBySlug(slug)",
+      "Map metadata to component props with fallbacks",
+      "Handle both markdown and JSX overview content"
+    ],
+    "reference_files": [
+      "/src/app/ai-reviews/page.tsx - Complete example",
+      "/src/app/getting-started/page.tsx - Completed conversion"
+    ]
+  }
+}

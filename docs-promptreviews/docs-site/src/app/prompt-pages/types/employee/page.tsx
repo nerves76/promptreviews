@@ -1,264 +1,207 @@
-import { Metadata } from 'next';
-import { User, Users, Award, Heart, Target, TrendingUp } from 'lucide-react';
-import DocsLayout from '../../../docs-layout';
+import type { Metadata } from 'next'
+import { notFound } from 'next/navigation'
+import * as Icons from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
+import StandardOverviewLayout from '../../../components/StandardOverviewLayout'
+import { pageFAQs } from '../../../utils/faqData'
+import { getArticleBySlug } from '@/lib/docs/articles'
 
-export const metadata: Metadata = {
-  title: 'Employee Prompt Pages - Team Member Reviews | Prompt Reviews',
-  description: 'Learn how to create Employee prompt pages to spotlight individual team members and collect reviews about specific employees.',
-  keywords: 'employee prompt pages, team member reviews, staff reviews, employee recognition, individual reviews',
-  openGraph: {
-    title: 'Employee Prompt Pages - Spotlight Your Team',
-    description: 'Create Employee prompt pages to recognize team members and collect customer feedback about specific employees.',
-  },
-};
+const { User, Sparkles } = Icons
 
-export default function EmployeePromptPages() {
+const fallbackDescription = 'Spotlight individual team members with dedicated review pages. Perfect for recognizing exceptional service, building employee morale, and helping customers connect with specific team members.'
+
+function resolveIcon(iconName: string | undefined, fallback: LucideIcon): LucideIcon {
+  if (!iconName) return fallback
+  const normalized = iconName.trim()
+  const lookup = Icons as Record<string, unknown>
+  const candidates = [
+    normalized,
+    normalized.toLowerCase(),
+    normalized.toUpperCase(),
+    normalized.charAt(0).toUpperCase() + normalized.slice(1),
+    normalized.replace(/[-_\s]+/g, ''),
+  ]
+
+  for (const key of candidates) {
+    const maybeIcon = lookup[key]
+    if (typeof maybeIcon === 'function') {
+      return maybeIcon as LucideIcon
+    }
+  }
+
+  return fallback
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  try {
+    const article = await getArticleBySlug('prompt-pages/types/employee')
+    if (!article) {
+      return {
+        title: 'Employee Prompt Pages - Team Member Reviews | Prompt Reviews',
+        description: fallbackDescription,
+        alternates: {
+          canonical: 'https://docs.promptreviews.app/prompt-pages/types/employee',
+        },
+      }
+    }
+
+    const seoTitle = article.metadata?.seo_title || article.title
+    const seoDescription = article.metadata?.seo_description || article.metadata?.description || fallbackDescription
+
+    return {
+      title: `${seoTitle} | Prompt Reviews`,
+      description: seoDescription,
+      keywords: article.metadata?.keywords ?? [],
+      alternates: {
+        canonical: article.metadata?.canonical_url ?? 'https://docs.promptreviews.app/prompt-pages/types/employee',
+      },
+    }
+  } catch (error) {
+    console.error('generateMetadata employee error:', error)
+    return {
+      title: 'Employee Prompt Pages | Prompt Reviews',
+      description: fallbackDescription,
+      alternates: {
+        canonical: 'https://docs.promptreviews.app/prompt-pages/types/employee',
+      },
+    }
+  }
+}
+
+interface MetadataFeature {
+  icon?: string
+  title: string
+  description: string
+  href?: string
+}
+
+interface MetadataStep {
+  number?: number
+  icon?: string
+  title: string
+  description: string
+}
+
+interface MetadataBestPractice {
+  icon?: string
+  title: string
+  description: string
+}
+
+export default async function EmployeePromptPagesPage() {
+  let article = null
+
+  try {
+    article = await getArticleBySlug('prompt-pages/types/employee')
+  } catch (error) {
+    console.error('Error fetching employee article:', error)
+  }
+
+  if (!article) {
+    notFound()
+  }
+
+  const metadata = article.metadata ?? {}
+
+  const getString = (value: unknown): string | undefined => {
+    if (typeof value === 'string' && value.trim().length > 0) {
+      return value.trim()
+    }
+    return undefined
+  }
+
+  const availablePlans: ('grower' | 'builder' | 'maven' | 'enterprise')[] =
+    Array.isArray(metadata.available_plans) && metadata.available_plans.length
+      ? (metadata.available_plans as ('grower' | 'builder' | 'maven' | 'enterprise')[])
+      : ['builder', 'maven']
+
+  const mappedKeyFeatures = Array.isArray(metadata.key_features) && metadata.key_features.length
+    ? (metadata.key_features as MetadataFeature[]).map((feature) => ({
+        icon: resolveIcon(feature.icon, Sparkles),
+        title: feature.title,
+        description: feature.description,
+        href: feature.href,
+      }))
+    : []
+
+  const mappedHowItWorks = Array.isArray(metadata.how_it_works) && metadata.how_it_works.length
+    ? (metadata.how_it_works as MetadataStep[]).map((step, index) => ({
+        number: step.number ?? index + 1,
+        title: step.title,
+        description: step.description,
+        icon: resolveIcon(step.icon, Sparkles),
+      }))
+    : []
+
+  const mappedBestPractices = Array.isArray(metadata.best_practices) && metadata.best_practices.length
+    ? (metadata.best_practices as MetadataBestPractice[]).map((practice) => ({
+        icon: resolveIcon(practice.icon, Sparkles),
+        title: practice.title,
+        description: practice.description,
+      }))
+    : []
+
+  const CategoryIcon = resolveIcon(
+    typeof metadata.category_icon === 'string' && metadata.category_icon.trim().length
+      ? metadata.category_icon
+      : 'User',
+    User,
+  )
+
+  const callToActionMeta = (metadata as Record<string, unknown>).call_to_action
+  const parseCTAButton = (value: any) => {
+    const text = getString(value?.text)
+    const href = getString(value?.href)
+    if (!text || !href) return undefined
+    return {
+      text,
+      href,
+      external: Boolean(value?.external),
+    }
+  }
+
+  const fallbackCTA = {
+    primary: {
+      text: 'View All Page Types',
+      href: '/prompt-pages/types',
+    },
+  } as const
+
+  const callToAction = (callToActionMeta && typeof callToActionMeta === 'object')
+    ? {
+        primary: parseCTAButton((callToActionMeta as any).primary) || fallbackCTA.primary,
+        secondary: parseCTAButton((callToActionMeta as any).secondary),
+      }
+    : fallbackCTA
+
+  const faqMetadata = Array.isArray((metadata as Record<string, unknown>).faqs)
+    ? ((metadata as Record<string, unknown>).faqs as { question: string; answer: string }[])
+    : null
+
+  const faqsTitle = getString((metadata as Record<string, unknown>).faqs_title)
+  const keyFeaturesTitle = getString((metadata as Record<string, unknown>).key_features_title)
+  const howItWorksTitle = getString((metadata as Record<string, unknown>).how_it_works_title)
+  const bestPracticesTitle = getString((metadata as Record<string, unknown>).best_practices_title)
+
   return (
-    <DocsLayout>
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="mb-12">
-          <div className="flex items-center space-x-3 mb-6">
-            <div className="w-12 h-12 bg-indigo-500/20 rounded-lg flex items-center justify-center">
-              <User className="w-6 h-6 text-indigo-300" />
-            </div>
-            <h1 className="text-4xl font-bold text-white">
-              Employee Prompt Pages
-            </h1>
-          </div>
-          <p className="text-xl text-white/80">
-            Spotlight individual team members with dedicated review pages. Perfect for recognizing exceptional 
-            service, building employee morale, and helping customers connect with specific team members.
-          </p>
-        </div>
-
-        {/* Why Choose Employee Pages */}
-        <div className="bg-white/10 backdrop-blur-md rounded-lg shadow-sm border border-white/20 p-8 mb-12">
-          <h2 className="text-2xl font-bold text-white mb-6">Why Choose Employee Prompt Pages?</h2>
-          <div className="grid md:grid-cols-3 gap-6">
-            <div className="text-center">
-              <div className="w-12 h-12 bg-white/10 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <Award className="w-6 h-6 text-yellow-300" />
-              </div>
-              <h3 className="font-semibold text-white mb-2">Recognition</h3>
-              <p className="text-white/70 text-sm">Recognize and reward exceptional team members</p>
-            </div>
-            <div className="text-center">
-              <div className="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <Heart className="w-6 h-6 text-green-300" />
-              </div>
-              <h3 className="font-semibold text-white mb-2">Morale Boost</h3>
-              <p className="text-white/70 text-sm">Build team morale with positive customer feedback</p>
-            </div>
-            <div className="text-center">
-              <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <Users className="w-6 h-6 text-purple-300" />
-              </div>
-              <h3 className="font-semibold text-white mb-2">Personal Connection</h3>
-              <p className="text-white/70 text-sm">Help customers connect with specific team members</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Perfect For */}
-        <div className="mb-12">
-          <h2 className="text-2xl font-bold text-white mb-6">Perfect For These Businesses</h2>
-          <div className="grid md:grid-cols-2 gap-6">
-            <div className="bg-white/10 backdrop-blur-md rounded-lg shadow-sm border border-white/20 p-6">
-              <h3 className="text-lg font-bold text-white mb-3">Service Businesses</h3>
-              <ul className="space-y-2 text-white/80 text-sm mb-4">
-                <li>• Hair salons & barbershops</li>
-                <li>• Spa & wellness centers</li>
-                <li>• Restaurants & cafes</li>
-                <li>• Hotels & hospitality</li>
-              </ul>
-              <div className="bg-white/10 border border-yellow-400/30 rounded-lg p-3">
-                <p className="text-white/80 text-sm">
-                  <strong className="text-yellow-300">Why:</strong> Customers often prefer specific service providers
-                </p>
-              </div>
-            </div>
-
-            <div className="bg-white/10 backdrop-blur-md rounded-lg shadow-sm border border-white/20 p-6">
-              <h3 className="text-lg font-bold text-white mb-3">Sales Teams</h3>
-              <ul className="space-y-2 text-white/80 text-sm mb-4">
-                <li>• Real estate agents</li>
-                <li>• Car dealerships</li>
-                <li>• Insurance agents</li>
-                <li>• Financial advisors</li>
-              </ul>
-              <div className="bg-green-500/20 border border-green-400/30 rounded-lg p-3">
-                <p className="text-white/80 text-sm">
-                  <strong className="text-green-300">Why:</strong> Build trust through individual agent reviews
-                </p>
-              </div>
-            </div>
-
-            <div className="bg-white/10 backdrop-blur-md rounded-lg shadow-sm border border-white/20 p-6">
-              <h3 className="text-lg font-bold text-white mb-3">Healthcare</h3>
-              <ul className="space-y-2 text-white/80 text-sm mb-4">
-                <li>• Doctors & specialists</li>
-                <li>• Dentists & hygienists</li>
-                <li>• Therapists & counselors</li>
-                <li>• Veterinarians</li>
-              </ul>
-              <div className="bg-purple-500/20 border border-purple-400/30 rounded-lg p-3">
-                <p className="text-white/80 text-sm">
-                  <strong className="text-purple-300">Why:</strong> Patients choose providers based on reviews
-                </p>
-              </div>
-            </div>
-
-            <div className="bg-white/10 backdrop-blur-md rounded-lg shadow-sm border border-white/20 p-6">
-              <h3 className="text-lg font-bold text-white mb-3">Professional Services</h3>
-              <ul className="space-y-2 text-white/80 text-sm mb-4">
-                <li>• Consultants</li>
-                <li>• Lawyers</li>
-                <li>• Accountants</li>
-                <li>• Personal trainers</li>
-              </ul>
-              <div className="bg-orange-500/20 border border-orange-400/30 rounded-lg p-3">
-                <p className="text-white/80 text-sm">
-                  <strong className="text-orange-300">Why:</strong> Expertise validation through client feedback
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Employee Page Features */}
-        <div className="mb-12">
-          <h2 className="text-2xl font-bold text-white mb-6">Employee Page Features</h2>
-          <div className="bg-white/10 backdrop-blur-md rounded-lg shadow-sm border border-white/20 p-8">
-            <div className="grid md:grid-cols-2 gap-8">
-              <div>
-                <h3 className="text-xl font-semibold text-white mb-4">Profile Elements</h3>
-                <ul className="space-y-2 text-white/80">
-                  <li className="flex items-start space-x-2">
-                    <span className="text-green-300">✓</span>
-                    <span>Employee photo and bio</span>
-                  </li>
-                  <li className="flex items-start space-x-2">
-                    <span className="text-green-300">✓</span>
-                    <span>Role and specializations</span>
-                  </li>
-                  <li className="flex items-start space-x-2">
-                    <span className="text-green-300">✓</span>
-                    <span>Years of experience</span>
-                  </li>
-                  <li className="flex items-start space-x-2">
-                    <span className="text-green-300">✓</span>
-                    <span>Certifications and awards</span>
-                  </li>
-                </ul>
-              </div>
-              
-              <div>
-                <h3 className="text-xl font-semibold text-white mb-4">Review Options</h3>
-                <ul className="space-y-2 text-white/80">
-                  <li className="flex items-start space-x-2">
-                    <span className="text-yellow-300">✓</span>
-                    <span>Service quality rating</span>
-                  </li>
-                  <li className="flex items-start space-x-2">
-                    <span className="text-yellow-300">✓</span>
-                    <span>Communication skills</span>
-                  </li>
-                  <li className="flex items-start space-x-2">
-                    <span className="text-yellow-300">✓</span>
-                    <span>Expertise assessment</span>
-                  </li>
-                  <li className="flex items-start space-x-2">
-                    <span className="text-yellow-300">✓</span>
-                    <span>Would recommend rating</span>
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Benefits */}
-        <div className="mb-12">
-          <h2 className="text-2xl font-bold text-white mb-6">Benefits for Your Business</h2>
-          <div className="grid md:grid-cols-2 gap-6">
-            <div className="bg-white/10 backdrop-blur-md rounded-lg shadow-sm border border-white/20 p-6">
-              <div className="flex items-center space-x-2 mb-3">
-                <Target className="w-5 h-5 text-yellow-300" />
-                <h3 className="font-semibold text-white">Performance Insights</h3>
-              </div>
-              <p className="text-white/80 text-sm">
-                Get direct customer feedback about individual employee performance to identify stars and areas for improvement.
-              </p>
-            </div>
-            
-            <div className="bg-white/10 backdrop-blur-md rounded-lg shadow-sm border border-white/20 p-6">
-              <div className="flex items-center space-x-2 mb-3">
-                <TrendingUp className="w-5 h-5 text-green-300" />
-                <h3 className="font-semibold text-white">Competitive Advantage</h3>
-              </div>
-              <p className="text-white/80 text-sm">
-                Stand out by showcasing your team's expertise and excellent service through individual reviews.
-              </p>
-            </div>
-            
-            <div className="bg-white/10 backdrop-blur-md rounded-lg shadow-sm border border-white/20 p-6">
-              <div className="flex items-center space-x-2 mb-3">
-                <Heart className="w-5 h-5 text-pink-300" />
-                <h3 className="font-semibold text-white">Employee Retention</h3>
-              </div>
-              <p className="text-white/80 text-sm">
-                Boost employee satisfaction and retention by recognizing their contributions publicly.
-              </p>
-            </div>
-            
-            <div className="bg-white/10 backdrop-blur-md rounded-lg shadow-sm border border-white/20 p-6">
-              <div className="flex items-center space-x-2 mb-3">
-                <Users className="w-5 h-5 text-yellow-300" />
-                <h3 className="font-semibold text-white">Customer Loyalty</h3>
-              </div>
-              <p className="text-white/80 text-sm">
-                Build stronger customer relationships by connecting them with their favorite team members.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Implementation Tips */}
-        <div className="mb-12">
-          <h2 className="text-2xl font-bold text-white mb-6">Implementation Tips</h2>
-          <div className="space-y-4">
-            <div className="bg-white/10 backdrop-blur-md rounded-lg shadow-sm border border-white/20 p-6">
-              <h3 className="font-semibold text-white mb-2">Start with Top Performers</h3>
-              <p className="text-white/80 text-sm">
-                Begin by creating pages for your best employees to generate positive reviews quickly.
-              </p>
-            </div>
-            
-            <div className="bg-white/10 backdrop-blur-md rounded-lg shadow-sm border border-white/20 p-6">
-              <h3 className="font-semibold text-white mb-2">Include in Email Signatures</h3>
-              <p className="text-white/80 text-sm">
-                Add employee review links to email signatures for easy customer access.
-              </p>
-            </div>
-            
-            <div className="bg-white/10 backdrop-blur-md rounded-lg shadow-sm border border-white/20 p-6">
-              <h3 className="font-semibold text-white mb-2">Display on Name Tags</h3>
-              <p className="text-white/80 text-sm">
-                Add QR codes to employee name tags or business cards for in-person interactions.
-              </p>
-            </div>
-            
-            <div className="bg-white/10 backdrop-blur-md rounded-lg shadow-sm border border-white/20 p-6">
-              <h3 className="font-semibold text-white mb-2">Celebrate Successes</h3>
-              <p className="text-white/80 text-sm">
-                Share positive reviews in team meetings and on social media to boost morale.
-              </p>
-            </div>
-          </div>
-        </div>
-
-      </div>
-    </DocsLayout>
-  );
+    <StandardOverviewLayout
+      title={article.title || 'Employee Prompt Pages'}
+      description={metadata.description ?? fallbackDescription}
+      categoryLabel={metadata.category_label || 'Page Types'}
+      categoryIcon={CategoryIcon}
+      categoryColor={metadata.category_color || 'indigo'}
+      currentPage="Employee"
+      availablePlans={availablePlans}
+      keyFeatures={mappedKeyFeatures}
+      keyFeaturesTitle={keyFeaturesTitle}
+      howItWorks={mappedHowItWorks}
+      howItWorksTitle={howItWorksTitle}
+      bestPractices={mappedBestPractices}
+      bestPracticesTitle={bestPracticesTitle}
+      faqs={faqMetadata && faqMetadata.length ? faqMetadata : pageFAQs['prompt-pages/types/employee']}
+      faqsTitle={faqsTitle}
+      callToAction={callToAction}
+      content={article.content}
+    />
+  )
 }

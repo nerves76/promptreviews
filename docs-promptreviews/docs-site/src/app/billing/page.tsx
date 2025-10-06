@@ -1,15 +1,63 @@
-import { Metadata } from 'next';
-import StandardOverviewLayout from '../../components/StandardOverviewLayout';
-import { pageFAQs } from '../utils/faqData';
-import { CreditCard, Check, X, ArrowUp, ArrowDown, DollarSign, Calendar, Shield, AlertCircle, ArrowRight, Clock, Users, Percent, RefreshCw } from 'lucide-react';
+import type { Metadata } from 'next'
+import { notFound } from 'next/navigation'
+import StandardOverviewLayout from '../../components/StandardOverviewLayout'
+import MarkdownRenderer from '../../components/MarkdownRenderer'
+import { pageFAQs } from '../utils/faqData'
+import { getArticleBySlug } from '@/lib/docs/articles'
+import { CreditCard, Check, X, ArrowUp, ArrowDown, DollarSign, Calendar, Shield, AlertCircle, ArrowRight, Clock, Users, Percent, RefreshCw } from 'lucide-react'
 
-export const metadata: Metadata = {
-  title: 'Billing & Plans Management | Prompt Reviews',
-  description: 'Comprehensive guide to managing your Prompt Reviews subscription, upgrading/downgrading plans, billing history, and payment methods.',
-  keywords: 'billing, plans, subscription, upgrade, downgrade, payment methods, pricing, prompt reviews',
-};
+const fallbackDescription = 'Comprehensive guide to managing your Prompt Reviews subscription, upgrading/downgrading plans, billing history, and payment methods.'
 
-export default function BillingPage() {
+export async function generateMetadata(): Promise<Metadata> {
+  try {
+    const article = await getArticleBySlug('billing')
+    if (!article) {
+      return {
+        title: 'Billing & Plans Management | Prompt Reviews',
+        description: fallbackDescription,
+        keywords: ['billing', 'plans', 'subscription', 'upgrade', 'downgrade', 'payment methods', 'pricing', 'prompt reviews'],
+        alternates: {
+          canonical: 'https://docs.promptreviews.app/billing',
+        },
+      }
+    }
+
+    const seoTitle = article.metadata?.seo_title || article.title
+    const seoDescription = article.metadata?.seo_description || article.metadata?.description || fallbackDescription
+
+    return {
+      title: `${seoTitle} | Prompt Reviews`,
+      description: seoDescription,
+      keywords: article.metadata?.keywords ?? ['billing', 'plans', 'subscription', 'upgrade', 'downgrade', 'payment methods', 'pricing', 'prompt reviews'],
+      alternates: {
+        canonical: article.metadata?.canonical_url ?? 'https://docs.promptreviews.app/billing',
+      },
+    }
+  } catch (error) {
+    console.error('generateMetadata billing error:', error)
+    return {
+      title: 'Billing & Plans Management | Prompt Reviews',
+      description: fallbackDescription,
+      alternates: {
+        canonical: 'https://docs.promptreviews.app/billing',
+      },
+    }
+  }
+}
+
+export default async function BillingPage() {
+  let article = null
+
+  try {
+    article = await getArticleBySlug('billing')
+  } catch (error) {
+    console.error('Error fetching billing article:', error)
+  }
+
+  if (!article) {
+    notFound()
+  }
+
   // Key features for billing management
   const keyFeatures = [
     {
@@ -80,7 +128,6 @@ export default function BillingPage() {
     }
   ];
 
-
   return (
     <StandardOverviewLayout
       title="Billing & plans management"
@@ -99,6 +146,10 @@ export default function BillingPage() {
           text: 'Upgrade or Downgrade',
           href: '/billing/upgrades-downgrades'
         }
+      }}
+      overview={{
+        title: 'Billing Overview',
+        content: <MarkdownRenderer content={article.content} />
       }}
     />
   );

@@ -1,5 +1,8 @@
-import { Metadata } from 'next';
-import Link from 'next/link';
+import type { Metadata } from 'next'
+import { notFound } from 'next/navigation'
+import Link from 'next/link'
+import MarkdownRenderer from '../../../components/MarkdownRenderer'
+import { getArticleBySlug } from '@/lib/docs/articles'
 import {
   ArrowUp,
   ArrowDown,
@@ -13,25 +16,73 @@ import {
   Calendar,
   Shield,
   Info
-} from 'lucide-react';
+} from 'lucide-react'
 
-export const metadata: Metadata = {
-  title: 'Plan Upgrades & Downgrades - Switch Plans Anytime | Prompt Reviews Help',
-  description: 'Learn how to upgrade or downgrade your Prompt Reviews plan, understand prorated billing, and manage plan transitions smoothly.',
-  keywords: [
-    'upgrade plan',
-    'downgrade plan',
-    'change subscription',
-    'prorated billing',
-    'plan transition',
-    'switch plans'
-  ],
-  alternates: {
-    canonical: 'https://docs.promptreviews.app/billing/upgrades-downgrades',
-  },
+const fallbackDescription = 'Learn how to upgrade or downgrade your Prompt Reviews plan, understand prorated billing, and manage plan transitions smoothly.'
+
+export async function generateMetadata(): Promise<Metadata> {
+  try {
+    const article = await getArticleBySlug('billing/upgrades-downgrades')
+    if (!article) {
+      return {
+        title: 'Plan Upgrades & Downgrades - Switch Plans Anytime | Prompt Reviews Help',
+        description: fallbackDescription,
+        keywords: [
+          'upgrade plan',
+          'downgrade plan',
+          'change subscription',
+          'prorated billing',
+          'plan transition',
+          'switch plans'
+        ],
+        alternates: {
+          canonical: 'https://docs.promptreviews.app/billing/upgrades-downgrades',
+        },
+      }
+    }
+
+    const seoTitle = article.metadata?.seo_title || article.title
+    const seoDescription = article.metadata?.seo_description || article.metadata?.description || fallbackDescription
+
+    return {
+      title: `${seoTitle} | Prompt Reviews`,
+      description: seoDescription,
+      keywords: article.metadata?.keywords ?? [
+        'upgrade plan',
+        'downgrade plan',
+        'change subscription',
+        'prorated billing',
+        'plan transition',
+        'switch plans'
+      ],
+      alternates: {
+        canonical: article.metadata?.canonical_url ?? 'https://docs.promptreviews.app/billing/upgrades-downgrades',
+      },
+    }
+  } catch (error) {
+    console.error('generateMetadata billing/upgrades-downgrades error:', error)
+    return {
+      title: 'Plan Upgrades & Downgrades - Switch Plans Anytime | Prompt Reviews Help',
+      description: fallbackDescription,
+      alternates: {
+        canonical: 'https://docs.promptreviews.app/billing/upgrades-downgrades',
+      },
+    }
+  }
 }
 
-export default function UpgradesDowngradesPage() {
+export default async function UpgradesDowngradesPage() {
+  let article = null
+
+  try {
+    article = await getArticleBySlug('billing/upgrades-downgrades')
+  } catch (error) {
+    console.error('Error fetching billing/upgrades-downgrades article:', error)
+  }
+
+  if (!article) {
+    notFound()
+  }
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
       {/* Breadcrumb */}
@@ -41,6 +92,11 @@ export default function UpgradesDowngradesPage() {
         <Link href="/billing" className="hover:text-white">Billing</Link>
         <ChevronRight className="w-4 h-4 mx-2" />
         <span className="text-white">Upgrades & Downgrades</span>
+      </div>
+
+      {/* Article Content */}
+      <div className="mb-12">
+        <MarkdownRenderer content={article.content} />
       </div>
 
       {/* Header */}

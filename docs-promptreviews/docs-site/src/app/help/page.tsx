@@ -1,16 +1,61 @@
 import { Metadata } from 'next';
+import { notFound } from 'next/navigation'
 import DocsLayout from '../docs-layout';
 import PageHeader from '../components/PageHeader';
+import MarkdownRenderer from '../components/MarkdownRenderer'
 import Link from 'next/link';
+import { getArticleBySlug } from '@/lib/docs/articles'
 import { HelpCircle, BookOpen, AlertTriangle, Lightbulb, Zap, ArrowRight, Search, MessageSquare, Users, Sparkles } from 'lucide-react';
+import * as Icons from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 
-export const metadata: Metadata = {
-  title: 'Help & Support Overview | Prompt Reviews',
-  description: 'Find help with getting started, troubleshooting issues, learning strategies, and mastering advanced features in Prompt Reviews.',
-  keywords: 'help, support, getting started, troubleshooting, strategies, advanced features, prompt reviews',
-};
+const fallbackDescription = 'Find help with getting started, troubleshooting issues, learning strategies, and mastering advanced features in Prompt Reviews.'
 
-export default function HelpOverviewPage() {
+function resolveIcon(iconName: string | undefined, fallback: LucideIcon): LucideIcon {
+  if (!iconName) return fallback
+  const lookup = Icons as Record<string, unknown>
+  const maybeIcon = lookup[iconName]
+  if (typeof maybeIcon === 'function') return maybeIcon as LucideIcon
+  return fallback
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  try {
+    const article = await getArticleBySlug('help')
+    if (!article) {
+      return {
+        title: 'Help & Support Overview | Prompt Reviews',
+        description: fallbackDescription,
+        alternates: { canonical: 'https://docs.promptreviews.app/help' },
+      }
+    }
+
+    const seoTitle = article.metadata?.seo_title || article.title
+    const seoDescription = article.metadata?.seo_description || article.metadata?.description || fallbackDescription
+
+    return {
+      title: `${seoTitle} | Prompt Reviews`,
+      description: seoDescription,
+      keywords: article.metadata?.keywords ?? ['help', 'support', 'getting started', 'troubleshooting', 'strategies', 'advanced features', 'prompt reviews'],
+      alternates: { canonical: article.metadata?.canonical_url ?? 'https://docs.promptreviews.app/help' },
+    }
+  } catch (error) {
+    console.error('generateMetadata help error:', error)
+    return {
+      title: 'Help & Support Overview | Prompt Reviews',
+      description: fallbackDescription,
+      alternates: { canonical: 'https://docs.promptreviews.app/help' },
+    }
+  }
+}
+
+export default async function HelpOverviewPage() {
+  const article = await getArticleBySlug('help')
+  if (!article) {
+    notFound()
+  }
+
+  const CategoryIcon = resolveIcon(article.metadata?.category_icon, HelpCircle)
   return (
     <DocsLayout>
       <div className="max-w-4xl mx-auto">
@@ -18,27 +63,22 @@ export default function HelpOverviewPage() {
           breadcrumbs={[
             { label: 'Help', href: '/' }
           ]}
-          currentPage="Help & Support"
-          categoryLabel="Help & Support"
-          categoryIcon={HelpCircle}
-          categoryColor="green"
-          title="Help & support center"
-          description="Everything you need to succeed with Prompt Reviews"
+          currentPage={article.metadata?.current_page || "Help & Support"}
+          categoryLabel={article.metadata?.category_label || "Help & Support"}
+          categoryIcon={CategoryIcon}
+          categoryColor={(article.metadata?.category_color as any) || "green"}
+          title={article.title || "Help & support center"}
+          description={article.metadata?.description || "Everything you need to succeed with Prompt Reviews"}
         />
 
         {/* Introduction */}
-        <div className="mb-12">
-          <div className="bg-gradient-to-r from-green-500/10 to-blue-500/10 backdrop-blur-md border border-white/20 rounded-xl p-8">
-            <p className="text-white/90 text-lg mb-4">
-              Whether you're just getting started or looking to master advanced features,
-              our help center provides comprehensive guidance for every step of your review collection journey.
-            </p>
-            <p className="text-white/80">
-              From quick setup guides to proven strategies that increase review rates by 300%,
-              find the resources you need to build your online reputation effectively.
-            </p>
+        {article.content && (
+          <div className="mb-12">
+            <div className="bg-gradient-to-r from-green-500/10 to-blue-500/10 backdrop-blur-md border border-white/20 rounded-xl p-8">
+              <MarkdownRenderer content={article.content} />
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Main Help Sections */}
         <div className="grid md:grid-cols-2 gap-8 mb-12">

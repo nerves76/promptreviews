@@ -16,6 +16,8 @@ export interface Article {
     category_label?: string;
     category_icon?: string;
     category_color?: string;
+    seo_title?: string;
+    seo_description?: string;
     key_features?: Array<{
       icon: string;
       title: string;

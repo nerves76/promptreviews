@@ -1,7 +1,10 @@
 import type { Metadata } from 'next'
+import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import StandardOverviewLayout from '../../components/StandardOverviewLayout'
+import MarkdownRenderer from '../../components/MarkdownRenderer'
 import { pageFAQs } from '../utils/faqData'
+import { getArticleBySlug } from '@/lib/docs/articles'
 import {
   Users,
   Shield,
@@ -16,26 +19,63 @@ import {
   UserCheck,
   CreditCard
 } from 'lucide-react'
+import * as Icons from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 
-export const metadata: Metadata = {
-  title: 'Team & Account Management - Permissions & Collaboration | Prompt Reviews Help',
-  description: 'Learn how to manage team members, set permissions, and collaborate on review management in Prompt Reviews.',
-  keywords: [
-    'team management',
-    'user permissions',
-    'account settings',
-    'collaboration',
-    'team access',
-    'role management'
-  ],
-  alternates: {
-    canonical: 'https://docs.promptreviews.app/team',
-  },
+const fallbackDescription = 'Learn how to manage team members, set permissions, and collaborate on review management in Prompt Reviews.'
+
+function resolveIcon(iconName: string | undefined, fallback: LucideIcon): LucideIcon {
+  if (!iconName) return fallback
+  const lookup = Icons as Record<string, unknown>
+  const maybeIcon = lookup[iconName]
+  if (typeof maybeIcon === 'function') return maybeIcon as LucideIcon
+  return fallback
 }
 
-export default function TeamPage() {
+export async function generateMetadata(): Promise<Metadata> {
+  try {
+    const article = await getArticleBySlug('team')
+    if (!article) {
+      return {
+        title: 'Team & Account Management - Permissions & Collaboration | Prompt Reviews Help',
+        description: fallbackDescription,
+        alternates: { canonical: 'https://docs.promptreviews.app/team' },
+      }
+    }
+
+    const seoTitle = article.metadata?.seo_title || article.title
+    const seoDescription = article.metadata?.seo_description || article.metadata?.description || fallbackDescription
+
+    return {
+      title: `${seoTitle} | Prompt Reviews`,
+      description: seoDescription,
+      keywords: article.metadata?.keywords ?? ['team management', 'user permissions', 'account settings', 'collaboration', 'team access', 'role management'],
+      alternates: { canonical: article.metadata?.canonical_url ?? 'https://docs.promptreviews.app/team' },
+    }
+  } catch (error) {
+    console.error('generateMetadata team error:', error)
+    return {
+      title: 'Team & Account Management - Permissions & Collaboration | Prompt Reviews Help',
+      description: fallbackDescription,
+      alternates: { canonical: 'https://docs.promptreviews.app/team' },
+    }
+  }
+}
+
+export default async function TeamPage() {
+  const article = await getArticleBySlug('team')
+  if (!article) {
+    notFound()
+  }
+
+  const CategoryIcon = resolveIcon(article.metadata?.category_icon, Users)
+
   // Key features for team management
-  const keyFeatures = [
+  const keyFeatures = article.sections?.key_features?.map((feat: any) => ({
+    icon: resolveIcon(feat.icon, CheckCircle),
+    title: feat.title,
+    description: feat.description
+  })) || [
     {
       icon: UserPlus,
       title: 'Team Invitations',
@@ -59,7 +99,12 @@ export default function TeamPage() {
   ];
 
   // How team management works
-  const howItWorks = [
+  const howItWorks = article.sections?.how_it_works?.map((step: any) => ({
+    number: step.number,
+    title: step.title,
+    description: step.description,
+    icon: resolveIcon(step.icon, CheckCircle)
+  })) || [
     {
       number: 1,
       title: 'Send Team Invitation',
@@ -81,7 +126,11 @@ export default function TeamPage() {
   ];
 
   // Best practices for team management
-  const bestPractices = [
+  const bestPractices = article.sections?.best_practices?.map((practice: any) => ({
+    icon: resolveIcon(practice.icon, CheckCircle),
+    title: practice.title,
+    description: practice.description
+  })) || [
     {
       icon: Shield,
       title: 'Use Role-Based Access',
@@ -107,26 +156,28 @@ export default function TeamPage() {
 
   return (
     <StandardOverviewLayout
-      title="Team management & account settings"
-      description="Add team members, manage permissions, and control account settings. Collaborate effectively while maintaining security and control."
-      categoryLabel="Team & Account"
-      categoryIcon={Users}
-      categoryColor="orange"
-      currentPage="Team & Account"
-      availablePlans={['builder', 'maven']}
+      title={article.title || "Team management & account settings"}
+      description={article.metadata?.description || "Add team members, manage permissions, and control account settings. Collaborate effectively while maintaining security and control."}
+      categoryLabel={article.metadata?.category_label || "Team & Account"}
+      categoryIcon={CategoryIcon}
+      categoryColor={(article.metadata?.category_color as any) || "orange"}
+      currentPage={article.metadata?.current_page || "Team & Account"}
+      availablePlans={article.metadata?.available_plans as any || ['builder', 'maven']}
       keyFeatures={keyFeatures}
       howItWorks={howItWorks}
       bestPractices={bestPractices}
       faqs={pageFAQs['team']}
-      callToAction={{
+      callToAction={article.sections?.call_to_action || {
         primary: {
           text: 'View Plans',
           href: '/billing'
         }
       }}
       overview={{
-        title: 'Team Management Availability',
-        content: (
+        title: article.sections?.overview?.title || 'Team Management Availability',
+        content: article.sections?.overview?.content ? (
+          <MarkdownRenderer content={article.sections.overview.content} />
+        ) : (
           <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-6">
             <div className="flex items-start space-x-3">
               <AlertCircle className="w-6 h-6 text-yellow-300 mt-0.5 flex-shrink-0" />

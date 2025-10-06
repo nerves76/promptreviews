@@ -1,16 +1,66 @@
 import { Metadata } from 'next';
+import { notFound } from 'next/navigation'
 import StandardOverviewLayout from '../../components/StandardOverviewLayout';
+import MarkdownRenderer from '../../components/MarkdownRenderer'
+import { getArticleBySlug } from '@/lib/docs/articles'
 import { Palette, Type, Droplet, Square, Eye, Sliders, CheckCircle, ArrowRight, Info, Sparkles, Paintbrush, Monitor, Smartphone } from 'lucide-react';
+import * as Icons from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 
-export const metadata: Metadata = {
-  title: 'Style Settings - Customize Your Prompt Pages | Prompt Reviews',
-  description: 'Learn how to customize the appearance of your prompt pages with fonts, colors, backgrounds, and card styling to match your brand.',
-  keywords: 'style settings, branding, customization, fonts, colors, gradients, prompt pages, prompt reviews',
-};
+const fallbackDescription = 'Learn how to customize the appearance of your prompt pages with fonts, colors, backgrounds, and card styling to match your brand.'
 
-export default function StyleSettingsPage() {
+function resolveIcon(iconName: string | undefined, fallback: LucideIcon): LucideIcon {
+  if (!iconName) return fallback
+  const lookup = Icons as Record<string, unknown>
+  const maybeIcon = lookup[iconName]
+  if (typeof maybeIcon === 'function') return maybeIcon as LucideIcon
+  return fallback
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  try {
+    const article = await getArticleBySlug('style-settings')
+    if (!article) {
+      return {
+        title: 'Style Settings - Customize Your Prompt Pages | Prompt Reviews',
+        description: fallbackDescription,
+        alternates: { canonical: 'https://docs.promptreviews.app/style-settings' },
+      }
+    }
+
+    const seoTitle = article.metadata?.seo_title || article.title
+    const seoDescription = article.metadata?.seo_description || article.metadata?.description || fallbackDescription
+
+    return {
+      title: `${seoTitle} | Prompt Reviews`,
+      description: seoDescription,
+      keywords: article.metadata?.keywords ?? ['style settings', 'branding', 'customization', 'fonts', 'colors', 'gradients', 'prompt pages', 'prompt reviews'],
+      alternates: { canonical: article.metadata?.canonical_url ?? 'https://docs.promptreviews.app/style-settings' },
+    }
+  } catch (error) {
+    console.error('generateMetadata style-settings error:', error)
+    return {
+      title: 'Style Settings - Customize Your Prompt Pages | Prompt Reviews',
+      description: fallbackDescription,
+      alternates: { canonical: 'https://docs.promptreviews.app/style-settings' },
+    }
+  }
+}
+
+export default async function StyleSettingsPage() {
+  const article = await getArticleBySlug('style-settings')
+  if (!article) {
+    notFound()
+  }
+
+  const CategoryIcon = resolveIcon(article.metadata?.category_icon, Palette)
+
   // Key features for style customization
-  const keyFeatures = [
+  const keyFeatures = article.sections?.key_features?.map((feat: any) => ({
+    icon: resolveIcon(feat.icon, CheckCircle),
+    title: feat.title,
+    description: feat.description
+  })) || [
     {
       icon: Type,
       title: 'Typography Control',
@@ -34,7 +84,12 @@ export default function StyleSettingsPage() {
   ];
 
   // How style customization works
-  const howItWorks = [
+  const howItWorks = article.sections?.how_it_works?.map((step: any) => ({
+    number: step.number,
+    title: step.title,
+    description: step.description,
+    icon: resolveIcon(step.icon, CheckCircle)
+  })) || [
     {
       number: 1,
       title: 'Access Style Editor',
@@ -56,7 +111,11 @@ export default function StyleSettingsPage() {
   ];
 
   // Best practices for style customization
-  const bestPractices = [
+  const bestPractices = article.sections?.best_practices?.map((practice: any) => ({
+    icon: resolveIcon(practice.icon, CheckCircle),
+    title: practice.title,
+    description: practice.description
+  })) || [
     {
       icon: Eye,
       title: 'Maintain Readability',
@@ -82,17 +141,17 @@ export default function StyleSettingsPage() {
 
   return (
     <StandardOverviewLayout
-      title="Style settings"
-      description="Customize the visual appearance of your prompt pages to perfectly match your brand identity."
-      categoryLabel="Customization"
-      categoryIcon={Palette}
-      categoryColor="purple"
-      currentPage="Style Settings"
-      availablePlans={['grower', 'builder', 'maven']}
+      title={article.title || "Style settings"}
+      description={article.metadata?.description || "Customize the visual appearance of your prompt pages to perfectly match your brand identity."}
+      categoryLabel={article.metadata?.category_label || "Customization"}
+      categoryIcon={CategoryIcon}
+      categoryColor={(article.metadata?.category_color as any) || "purple"}
+      currentPage={article.metadata?.current_page || "Style Settings"}
+      availablePlans={article.metadata?.available_plans as any || ['grower', 'builder', 'maven']}
       keyFeatures={keyFeatures}
       howItWorks={howItWorks}
       bestPractices={bestPractices}
-      faqs={[
+      faqs={article.sections?.faqs || [
         {
           question: 'Do style changes apply to all prompt pages?',
           answer: 'Yes, style settings are global and apply to all your prompt pages. This ensures consistent branding across all customer touchpoints.'
@@ -110,12 +169,16 @@ export default function StyleSettingsPage() {
           answer: 'Currently, you have one active style configuration. You can reset to defaults or manually note your settings if you want to experiment with different looks.'
         }
       ]}
-      callToAction={{
+      callToAction={article.sections?.call_to_action || {
         primary: {
           text: 'View Prompt Pages',
           href: '/prompt-pages'
         }
       }}
+      overview={article.sections?.overview ? {
+        title: article.sections.overview.title,
+        content: <MarkdownRenderer content={article.sections.overview.content} />
+      } : undefined}
     />
   );
 }

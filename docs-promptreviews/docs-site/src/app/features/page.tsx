@@ -1,16 +1,63 @@
-import { Metadata } from 'next';
-import DocsLayout from '../docs-layout';
-import PageHeader from '../components/PageHeader';
-import Link from 'next/link';
-import { Star, Layout, MessageCircle, Bot, ArrowRight, Sparkles, Target, Share2 } from 'lucide-react';
+import type { Metadata } from 'next'
+import { notFound } from 'next/navigation'
+import DocsLayout from '../docs-layout'
+import PageHeader from '../components/PageHeader'
+import MarkdownRenderer from '../components/MarkdownRenderer'
+import Link from 'next/link'
+import { getArticleBySlug } from '@/lib/docs/articles'
+import { Star, Layout, MessageCircle, Bot, ArrowRight, Sparkles, Target, Share2 } from 'lucide-react'
 
-export const metadata: Metadata = {
-  title: 'Features Overview | Prompt Reviews',
-  description: 'Explore all the powerful features of Prompt Reviews including prompt pages, review widgets, AI-powered content, and more.',
-  keywords: 'features, review collection, widgets, AI reviews, prompt pages, prompt reviews',
-};
+const fallbackDescription = 'Explore all the powerful features of Prompt Reviews including prompt pages, review widgets, AI-powered content, and more.'
 
-export default function FeaturesOverviewPage() {
+export async function generateMetadata(): Promise<Metadata> {
+  try {
+    const article = await getArticleBySlug('features')
+    if (!article) {
+      return {
+        title: 'Features Overview | Prompt Reviews',
+        description: fallbackDescription,
+        keywords: ['features', 'review collection', 'widgets', 'AI reviews', 'prompt pages', 'prompt reviews'],
+        alternates: {
+          canonical: 'https://docs.promptreviews.app/features',
+        },
+      }
+    }
+
+    const seoTitle = article.metadata?.seo_title || article.title
+    const seoDescription = article.metadata?.seo_description || article.metadata?.description || fallbackDescription
+
+    return {
+      title: `${seoTitle} | Prompt Reviews`,
+      description: seoDescription,
+      keywords: article.metadata?.keywords ?? ['features', 'review collection', 'widgets', 'AI reviews', 'prompt pages', 'prompt reviews'],
+      alternates: {
+        canonical: article.metadata?.canonical_url ?? 'https://docs.promptreviews.app/features',
+      },
+    }
+  } catch (error) {
+    console.error('generateMetadata features error:', error)
+    return {
+      title: 'Features Overview | Prompt Reviews',
+      description: fallbackDescription,
+      alternates: {
+        canonical: 'https://docs.promptreviews.app/features',
+      },
+    }
+  }
+}
+
+export default async function FeaturesOverviewPage() {
+  let article = null
+
+  try {
+    article = await getArticleBySlug('features')
+  } catch (error) {
+    console.error('Error fetching features article:', error)
+  }
+
+  if (!article) {
+    notFound()
+  }
   return (
     <DocsLayout>
       <div className="max-w-4xl mx-auto">
@@ -25,6 +72,11 @@ export default function FeaturesOverviewPage() {
           title="Features overview"
           description="Everything you need to collect, manage, and showcase customer reviews"
         />
+
+        {/* Article Content */}
+        <div className="mb-12">
+          <MarkdownRenderer content={article.content} />
+        </div>
 
         {/* Introduction */}
         <div className="mb-12">

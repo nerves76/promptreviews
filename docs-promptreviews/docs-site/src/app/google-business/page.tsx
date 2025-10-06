@@ -1,7 +1,13 @@
 import type { Metadata } from 'next'
+import { notFound } from 'next/navigation'
+import * as Icons from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 import StandardOverviewLayout from '../../components/StandardOverviewLayout'
+import MarkdownRenderer from '../../components/MarkdownRenderer'
 import { pageFAQs } from '../utils/faqData'
-import {
+import { getArticleBySlug } from '@/lib/docs/articles'
+
+const {
   Building2,
   Link2,
   MapPin,
@@ -13,117 +19,278 @@ import {
   CheckCircle,
   ArrowRight,
   Users
-} from 'lucide-react'
+} = Icons
 
-export const metadata: Metadata = {
-  title: 'Google Business Profile Integration - Connect & Manage | Prompt Reviews Help',
-  description: 'Learn how to connect your Google Business Profile with Prompt Reviews. Manage reviews, posts, and multiple locations from one dashboard.',
-  keywords: [
-    'Google Business Profile',
-    'GBP integration',
-    'Google reviews',
-    'business listing',
-    'local SEO',
-    'review management'
-  ],
-  alternates: {
-    canonical: 'https://docs.promptreviews.app/google-business',
+const fallbackDescription = 'Connect your Google Business Profile to manage reviews, respond to customers, create posts, and handle multiple locations—all from your Prompt Reviews dashboard.'
+
+const defaultKeyFeatures = [
+  {
+    icon: Star,
+    title: 'Review Management',
+    description: 'View and respond to Google reviews directly from Prompt Reviews. Track review trends and maintain your reputation with quick response capabilities.',
   },
+  {
+    icon: MessageSquare,
+    title: 'Posts & Updates',
+    description: 'Create and schedule Google Business Profile posts about updates, offers, and events. Keep your profile active and engaging.',
+  },
+  {
+    icon: MapPin,
+    title: 'Multiple Locations',
+    description: 'Manage multiple business profiles from one dashboard. Perfect for franchises and multi-location businesses with centralized control.',
+  },
+  {
+    icon: Upload,
+    title: 'Review Import',
+    description: 'Import existing Google reviews to feature on your website, launch double-dip campaigns, or track customer engagement.',
+    href: '/double-dip-strategy'
+  }
+]
+
+const defaultHowItWorks = [
+  {
+    number: 1,
+    title: 'Sign In with Google',
+    description: 'Click "Connect Google Business" and sign in with the Google account that manages your business profile. You must be an owner or manager of the Google Business Profile to connect it.',
+    icon: Link2
+  },
+  {
+    number: 2,
+    title: 'Grant Permissions',
+    description: 'Authorize Prompt Reviews to access your business information, reviews, and posting capabilities. We only request the minimum permissions needed.',
+    icon: Shield
+  },
+  {
+    number: 3,
+    title: 'Select Your Business',
+    description: 'Choose which business location(s) to connect. You can add more locations later if needed. Perfect for multi-location businesses.',
+    icon: MapPin
+  }
+]
+
+const defaultBestPractices = [
+  {
+    icon: Clock,
+    title: 'Respond Quickly to Reviews',
+    description: 'Google rewards businesses that respond within 24 hours with increased visibility. Quick responses improve your local search ranking and show customers you care.'
+  },
+  {
+    icon: MessageSquare,
+    title: 'Keep Responses Personal',
+    description: 'Avoid generic copy-paste responses. Thank customers by name, address specific concerns, and include your business name naturally in responses.'
+  },
+  {
+    icon: Upload,
+    title: 'Post Regularly',
+    description: 'Keep your Google Business Profile active with weekly posts about updates, offers, and events. Posts appear for 7 days, so maintain a consistent schedule.'
+  },
+  {
+    icon: Shield,
+    title: 'Handle Negative Reviews Professionally',
+    description: 'Address concerns professionally without arguing. Offer to resolve issues offline and show potential customers how you handle problems.'
+  }
+]
+
+function resolveIcon(iconName: string | undefined, fallback: LucideIcon): LucideIcon {
+  if (!iconName) return fallback
+  const normalized = iconName.trim()
+  const lookup = Icons as Record<string, unknown>
+  const candidates = [
+    normalized,
+    normalized.toLowerCase(),
+    normalized.toUpperCase(),
+    normalized.charAt(0).toUpperCase() + normalized.slice(1),
+    normalized.replace(/[-_\s]+/g, ''),
+  ]
+
+  for (const key of candidates) {
+    const maybeIcon = lookup[key]
+    if (typeof maybeIcon === 'function') {
+      return maybeIcon as LucideIcon
+    }
+  }
+
+  return fallback
 }
 
-export default function GoogleBusinessPage() {
-  // Key features data
-  const keyFeatures = [
-    {
-      icon: Star,
-      title: 'Review Management',
-      description: 'View and respond to Google reviews directly from Prompt Reviews. Track review trends and maintain your reputation with quick response capabilities.',
-    },
-    {
-      icon: MessageSquare,
-      title: 'Posts & Updates',
-      description: 'Create and schedule Google Business Profile posts about updates, offers, and events. Keep your profile active and engaging.',
-    },
-    {
-      icon: MapPin,
-      title: 'Multiple Locations',
-      description: 'Manage multiple business profiles from one dashboard. Perfect for franchises and multi-location businesses with centralized control.',
-    },
-    {
-      icon: Upload,
-      title: 'Review Import',
-      description: 'Import existing Google reviews to feature on your website, launch double-dip campaigns, or track customer engagement.',
-      href: '/double-dip-strategy'
+export async function generateMetadata(): Promise<Metadata> {
+  try {
+    const article = await getArticleBySlug('google-business')
+    if (!article) {
+      return {
+        title: 'Google Business Profile Integration - Connect & Manage | Prompt Reviews Help',
+        description: fallbackDescription,
+        alternates: {
+          canonical: 'https://docs.promptreviews.app/google-business',
+        },
+      }
     }
-  ];
 
+    const seoTitle = article.metadata?.seo_title || article.title
+    const seoDescription = article.metadata?.seo_description || article.metadata?.description || fallbackDescription
 
-  // How it works steps
-  const howItWorks = [
-    {
-      number: 1,
-      title: 'Sign In with Google',
-      description: 'Click "Connect Google Business" and sign in with the Google account that manages your business profile. You must be an owner or manager of the Google Business Profile to connect it.',
-      icon: Link2
-    },
-    {
-      number: 2,
-      title: 'Grant Permissions',
-      description: 'Authorize Prompt Reviews to access your business information, reviews, and posting capabilities. We only request the minimum permissions needed.',
-      icon: Shield
-    },
-    {
-      number: 3,
-      title: 'Select Your Business',
-      description: 'Choose which business location(s) to connect. You can add more locations later if needed. Perfect for multi-location businesses.',
-      icon: MapPin
+    return {
+      title: `${seoTitle} | Prompt Reviews`,
+      description: seoDescription,
+      keywords: article.metadata?.keywords ?? [],
+      alternates: {
+        canonical: article.metadata?.canonical_url ?? 'https://docs.promptreviews.app/google-business',
+      },
     }
-  ];
-
-  // Best practices
-  const bestPractices = [
-    {
-      icon: Clock,
-      title: 'Respond Quickly to Reviews',
-      description: 'Google rewards businesses that respond within 24 hours with increased visibility. Quick responses improve your local search ranking and show customers you care.'
-    },
-    {
-      icon: MessageSquare,
-      title: 'Keep Responses Personal',
-      description: 'Avoid generic copy-paste responses. Thank customers by name, address specific concerns, and include your business name naturally in responses.'
-    },
-    {
-      icon: Upload,
-      title: 'Post Regularly',
-      description: 'Keep your Google Business Profile active with weekly posts about updates, offers, and events. Posts appear for 7 days, so maintain a consistent schedule.'
-    },
-    {
-      icon: Shield,
-      title: 'Handle Negative Reviews Professionally',
-      description: 'Address concerns professionally without arguing. Offer to resolve issues offline and show potential customers how you handle problems.'
+  } catch (error) {
+    console.error('generateMetadata google-business error:', error)
+    return {
+      title: 'Google Business Profile Integration | Prompt Reviews',
+      description: fallbackDescription,
+      alternates: {
+        canonical: 'https://docs.promptreviews.app/google-business',
+      },
     }
-  ];
+  }
+}
 
+interface MetadataFeature {
+  icon?: string
+  title: string
+  description: string
+  href?: string
+}
+
+interface MetadataStep {
+  number?: number
+  icon?: string
+  title: string
+  description: string
+}
+
+interface MetadataBestPractice {
+  icon?: string
+  title: string
+  description: string
+}
+
+export default async function GoogleBusinessPage() {
+  let article = null
+
+  try {
+    article = await getArticleBySlug('google-business')
+  } catch (error) {
+    console.error('Error fetching google-business article:', error)
+  }
+
+  if (!article) {
+    notFound()
+  }
+
+  const metadata = article.metadata ?? {}
+
+  const getString = (value: unknown): string | undefined => {
+    if (typeof value === 'string' && value.trim().length > 0) {
+      return value.trim()
+    }
+    return undefined
+  }
+
+  const availablePlans: ('grower' | 'builder' | 'maven' | 'enterprise')[] =
+    Array.isArray(metadata.available_plans) && metadata.available_plans.length
+      ? (metadata.available_plans as ('grower' | 'builder' | 'maven' | 'enterprise')[])
+      : ['grower', 'builder', 'maven']
+
+  const mappedKeyFeatures = Array.isArray(metadata.key_features) && metadata.key_features.length
+    ? (metadata.key_features as MetadataFeature[]).map((feature) => ({
+        icon: resolveIcon(feature.icon, Star),
+        title: feature.title,
+        description: feature.description,
+        href: feature.href,
+      }))
+    : defaultKeyFeatures
+
+  const mappedHowItWorks = Array.isArray(metadata.how_it_works) && metadata.how_it_works.length
+    ? (metadata.how_it_works as MetadataStep[]).map((step, index) => ({
+        number: step.number ?? index + 1,
+        title: step.title,
+        description: step.description,
+        icon: resolveIcon(step.icon, Users),
+      }))
+    : defaultHowItWorks
+
+  const mappedBestPractices = Array.isArray(metadata.best_practices) && metadata.best_practices.length
+    ? (metadata.best_practices as MetadataBestPractice[]).map((practice) => ({
+        icon: resolveIcon(practice.icon, Shield),
+        title: practice.title,
+        description: practice.description,
+      }))
+    : defaultBestPractices
+
+  const CategoryIcon = resolveIcon(
+    typeof metadata.category_icon === 'string' && metadata.category_icon.trim().length
+      ? metadata.category_icon
+      : 'Building2',
+    Building2,
+  )
+
+  const overviewMarkdown = getString((metadata as Record<string, unknown>).overview_markdown)
+  const overviewTitle = getString((metadata as Record<string, unknown>).overview_title) || 'Overview'
+
+  const overviewNode = overviewMarkdown ? <MarkdownRenderer content={overviewMarkdown} /> : undefined
+
+  const callToActionMeta = (metadata as Record<string, unknown>).call_to_action
+  const parseCTAButton = (value: any) => {
+    const text = getString(value?.text)
+    const href = getString(value?.href)
+    if (!text || !href) return undefined
+    return {
+      text,
+      href,
+      external: Boolean(value?.external),
+    }
+  }
+
+  const fallbackCTA = {
+    primary: {
+      text: 'Website Widgets',
+      href: '/widgets',
+    },
+  } as const
+
+  const callToAction = (callToActionMeta && typeof callToActionMeta === 'object')
+    ? {
+        primary: parseCTAButton((callToActionMeta as any).primary) || fallbackCTA.primary,
+        secondary: parseCTAButton((callToActionMeta as any).secondary),
+      }
+    : fallbackCTA
+
+  const faqMetadata = Array.isArray((metadata as Record<string, unknown>).faqs)
+    ? ((metadata as Record<string, unknown>).faqs as { question: string; answer: string }[])
+    : null
+
+  const faqsTitle = getString((metadata as Record<string, unknown>).faqs_title)
+  const keyFeaturesTitle = getString((metadata as Record<string, unknown>).key_features_title)
+  const howItWorksTitle = getString((metadata as Record<string, unknown>).how_it_works_title)
+  const bestPracticesTitle = getString((metadata as Record<string, unknown>).best_practices_title)
 
   return (
     <StandardOverviewLayout
-      title="Google Business profile integration"
-      description="Connect your Google Business Profile to manage reviews, respond to customers, create posts, and handle multiple locations—all from your Prompt Reviews dashboard."
-      categoryLabel="Google Business Profile"
-      categoryIcon={Building2}
-      categoryColor="red"
+      title={article.title || 'Google Business profile integration'}
+      description={metadata.description ?? fallbackDescription}
+      categoryLabel={metadata.category_label || 'Google Business Profile'}
+      categoryIcon={CategoryIcon}
+      categoryColor={metadata.category_color || 'red'}
       currentPage="Google Business Profile"
-      availablePlans={['grower', 'builder', 'maven']}
-      keyFeatures={keyFeatures}
-      howItWorks={howItWorks}
-      bestPractices={bestPractices}
-      faqs={pageFAQs['google-business']}
-      callToAction={{
-        primary: {
-          text: 'Website Widgets',
-          href: '/widgets'
-        }
-      }}
+      availablePlans={availablePlans}
+      keyFeatures={mappedKeyFeatures}
+      keyFeaturesTitle={keyFeaturesTitle}
+      howItWorks={mappedHowItWorks}
+      howItWorksTitle={howItWorksTitle}
+      bestPractices={mappedBestPractices}
+      bestPracticesTitle={bestPracticesTitle}
+      faqs={faqMetadata && faqMetadata.length ? faqMetadata : pageFAQs['google-business']}
+      faqsTitle={faqsTitle}
+      callToAction={callToAction}
+      overview={overviewNode ? {
+        title: overviewTitle,
+        content: overviewNode,
+      } : undefined}
     />
   )
 }

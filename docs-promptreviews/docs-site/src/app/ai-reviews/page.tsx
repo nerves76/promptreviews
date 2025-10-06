@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import * as Icons from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import StandardOverviewLayout from '../../components/StandardOverviewLayout'
+import MarkdownRenderer from '../../components/MarkdownRenderer'
 import { pageFAQs } from '../utils/faqData'
 import { getArticleBySlug } from '@/lib/docs/articles'
 
@@ -139,11 +140,10 @@ const overviewContent = (
   </>
 )
 
-const iconLookup = Icons as Record<string, unknown>
-
 function resolveIcon(iconName: string | undefined, fallback: LucideIcon): LucideIcon {
   if (!iconName) return fallback
   const normalized = iconName.trim()
+  const lookup = Icons as Record<string, unknown>
   const candidates = [
     normalized,
     normalized.toLowerCase(),
@@ -153,7 +153,7 @@ function resolveIcon(iconName: string | undefined, fallback: LucideIcon): Lucide
   ]
 
   for (const key of candidates) {
-    const maybeIcon = iconLookup[key]
+    const maybeIcon = lookup[key]
     if (typeof maybeIcon === 'function') {
       return maybeIcon as LucideIcon
     }
@@ -175,9 +175,13 @@ export async function generateMetadata(): Promise<Metadata> {
       }
     }
 
+    // Use SEO-specific fields if available, otherwise fallback to regular title/description
+    const seoTitle = article.metadata?.seo_title || article.title
+    const seoDescription = article.metadata?.seo_description || article.metadata?.description || fallbackDescription
+
     return {
-      title: `${article.title} | Prompt Reviews`,
-      description: article.metadata?.description ?? fallbackDescription,
+      title: `${seoTitle} | Prompt Reviews`,
+      description: seoDescription,
       keywords: article.metadata?.keywords ?? [],
       alternates: {
         canonical: article.metadata?.canonical_url ?? 'https://docs.promptreviews.app/docs/ai-reviews',
@@ -230,9 +234,17 @@ export default async function AIReviewsPage() {
 
   const metadata = article.metadata ?? {}
 
-  const availablePlans: ('grower' | 'builder' | 'maven' | 'enterprise')[] = Array.isArray(metadata.available_plans) && metadata.available_plans.length
-    ? (metadata.available_plans as ('grower' | 'builder' | 'maven' | 'enterprise')[])
-    : ['grower', 'builder', 'maven']
+  const getString = (value: unknown): string | undefined => {
+    if (typeof value === 'string' && value.trim().length > 0) {
+      return value.trim()
+    }
+    return undefined
+  }
+
+  const availablePlans: ('grower' | 'builder' | 'maven' | 'enterprise')[] =
+    Array.isArray(metadata.available_plans) && metadata.available_plans.length
+      ? (metadata.available_plans as ('grower' | 'builder' | 'maven' | 'enterprise')[])
+      : ['grower', 'builder', 'maven']
 
   const mappedKeyFeatures = Array.isArray(metadata.key_features) && metadata.key_features.length
     ? (metadata.key_features as MetadataFeature[]).map((feature) => ({
@@ -267,6 +279,49 @@ export default async function AIReviewsPage() {
     Sparkles,
   )
 
+  const overviewMarkdown = getString((metadata as Record<string, unknown>).overview_markdown)
+  const overviewTitle = getString((metadata as Record<string, unknown>).overview_title) || 'What Makes Our AI Different?'
+
+  const overviewNode = overviewMarkdown
+    ? <MarkdownRenderer content={overviewMarkdown} />
+    : overviewContent
+
+  const callToActionMeta = (metadata as Record<string, unknown>).call_to_action
+  const parseCTAButton = (value: any) => {
+    const text = getString(value?.text)
+    const href = getString(value?.href)
+    if (!text || !href) return undefined
+    return {
+      text,
+      href,
+      external: Boolean(value?.external),
+    }
+  }
+
+  const fallbackCTA = {
+    primary: {
+      text: 'Learn About Prompt Pages',
+      href: '/prompt-pages',
+    },
+  } as const
+
+  const callToAction = (callToActionMeta && typeof callToActionMeta === 'object')
+    ? {
+        primary: parseCTAButton((callToActionMeta as any).primary) || fallbackCTA.primary,
+        secondary: parseCTAButton((callToActionMeta as any).secondary),
+      }
+    : fallbackCTA
+
+  const faqMetadata = Array.isArray((metadata as Record<string, unknown>).faqs)
+    ? ((metadata as Record<string, unknown>).faqs as { question: string; answer: string }[])
+    : null
+
+  const faqsTitle = getString((metadata as Record<string, unknown>).faqs_title)
+
+  const keyFeaturesTitle = getString((metadata as Record<string, unknown>).key_features_title)
+  const howItWorksTitle = getString((metadata as Record<string, unknown>).how_it_works_title)
+  const bestPracticesTitle = getString((metadata as Record<string, unknown>).best_practices_title)
+
   return (
     <StandardOverviewLayout
       title={article.title || 'AI-powered review collection'}
@@ -277,18 +332,17 @@ export default async function AIReviewsPage() {
       currentPage="AI Reviews"
       availablePlans={availablePlans}
       keyFeatures={mappedKeyFeatures}
+      keyFeaturesTitle={keyFeaturesTitle}
       howItWorks={mappedHowItWorks}
+      howItWorksTitle={howItWorksTitle}
       bestPractices={mappedBestPractices}
-      faqs={pageFAQs['ai-reviews']}
-      callToAction={{
-        primary: {
-          text: 'Learn About Prompt Pages',
-          href: '/prompt-pages',
-        },
-      }}
+      bestPracticesTitle={bestPracticesTitle}
+      faqs={faqMetadata && faqMetadata.length ? faqMetadata : pageFAQs['ai-reviews']}
+      faqsTitle={faqsTitle}
+      callToAction={callToAction}
       overview={{
-        title: 'What Makes Our AI Different?',
-        content: overviewContent,
+        title: overviewTitle,
+        content: overviewNode,
       }}
     />
   )

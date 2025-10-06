@@ -1,16 +1,61 @@
 import { Metadata } from 'next';
+import { notFound } from 'next/navigation'
 import DocsLayout from '../docs-layout';
 import PageHeader from '../components/PageHeader';
+import MarkdownRenderer from '../components/MarkdownRenderer'
 import Link from 'next/link';
+import { getArticleBySlug } from '@/lib/docs/articles'
 import { Globe, Building2, TrendingUp, ArrowRight, CheckCircle, Star, MessageSquare, Upload, Users, Shield } from 'lucide-react';
+import * as Icons from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 
-export const metadata: Metadata = {
-  title: 'Integrations Overview | Prompt Reviews',
-  description: 'Connect Prompt Reviews with Google Business Profile and other platforms to streamline your review management workflow.',
-  keywords: 'integrations, google business profile, GBP, API, webhooks, third-party, prompt reviews',
-};
+const fallbackDescription = 'Connect Prompt Reviews with Google Business Profile and other platforms to streamline your review management workflow.'
 
-export default function IntegrationsOverviewPage() {
+function resolveIcon(iconName: string | undefined, fallback: LucideIcon): LucideIcon {
+  if (!iconName) return fallback
+  const lookup = Icons as Record<string, unknown>
+  const maybeIcon = lookup[iconName]
+  if (typeof maybeIcon === 'function') return maybeIcon as LucideIcon
+  return fallback
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  try {
+    const article = await getArticleBySlug('integrations')
+    if (!article) {
+      return {
+        title: 'Integrations Overview | Prompt Reviews',
+        description: fallbackDescription,
+        alternates: { canonical: 'https://docs.promptreviews.app/integrations' },
+      }
+    }
+
+    const seoTitle = article.metadata?.seo_title || article.title
+    const seoDescription = article.metadata?.seo_description || article.metadata?.description || fallbackDescription
+
+    return {
+      title: `${seoTitle} | Prompt Reviews`,
+      description: seoDescription,
+      keywords: article.metadata?.keywords ?? ['integrations', 'google business profile', 'GBP', 'API', 'webhooks', 'third-party', 'prompt reviews'],
+      alternates: { canonical: article.metadata?.canonical_url ?? 'https://docs.promptreviews.app/integrations' },
+    }
+  } catch (error) {
+    console.error('generateMetadata integrations error:', error)
+    return {
+      title: 'Integrations Overview | Prompt Reviews',
+      description: fallbackDescription,
+      alternates: { canonical: 'https://docs.promptreviews.app/integrations' },
+    }
+  }
+}
+
+export default async function IntegrationsOverviewPage() {
+  const article = await getArticleBySlug('integrations')
+  if (!article) {
+    notFound()
+  }
+
+  const CategoryIcon = resolveIcon(article.metadata?.category_icon, Globe)
   return (
     <DocsLayout>
       <div className="max-w-4xl mx-auto">
@@ -18,27 +63,22 @@ export default function IntegrationsOverviewPage() {
           breadcrumbs={[
             { label: 'Help', href: '/' }
           ]}
-          currentPage="Integrations"
-          categoryLabel="Integrations Overview"
-          categoryIcon={Globe}
-          categoryColor="purple"
-          title="Integrations overview"
-          description="Connect with the platforms that matter to your business"
+          currentPage={article.metadata?.current_page || "Integrations"}
+          categoryLabel={article.metadata?.category_label || "Integrations Overview"}
+          categoryIcon={CategoryIcon}
+          categoryColor={(article.metadata?.category_color as any) || "purple"}
+          title={article.title || "Integrations overview"}
+          description={article.metadata?.description || "Connect with the platforms that matter to your business"}
         />
 
         {/* Introduction */}
-        <div className="mb-12">
-          <div className="bg-gradient-to-r from-purple-500/10 to-blue-500/10 backdrop-blur-md border border-white/20 rounded-xl p-8">
-            <p className="text-white/90 text-lg mb-4">
-              Prompt Reviews integrates seamlessly with the tools and platforms you already use,
-              making it easy to manage your entire review ecosystem from one central dashboard.
-            </p>
-            <p className="text-white/80">
-              From Google Business Profile management to custom API integrations, we've built connections
-              that save you time and amplify your review collection efforts.
-            </p>
+        {article.content && (
+          <div className="mb-12">
+            <div className="bg-gradient-to-r from-purple-500/10 to-blue-500/10 backdrop-blur-md border border-white/20 rounded-xl p-8">
+              <MarkdownRenderer content={article.content} />
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Main Integrations */}
         <div className="space-y-8 mb-12">

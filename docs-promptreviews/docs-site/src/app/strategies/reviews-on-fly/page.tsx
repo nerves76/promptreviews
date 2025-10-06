@@ -1,10 +1,11 @@
 import type { Metadata } from 'next'
+import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import DocsLayout from '../../docs-layout'
 import PageHeader from '../../components/PageHeader'
-import { 
-  Zap, 
-  ArrowRight, 
+import {
+  Zap,
+  ArrowRight,
   ArrowLeft,
   Star,
   MessageSquare,
@@ -14,22 +15,45 @@ import {
   TrendingUp,
   Smartphone
 } from 'lucide-react'
+import { getArticleBySlug } from '@/lib/docs/articles'
 
-export const metadata: Metadata = {
-  title: 'Get Reviews While Customers Are Still Excited: In-Person Collection',
-  description: 'Learn how to get customer reviews instantly in-person. Capture reviews while customers are still excited about their experience for higher quality and response rates.',
-  keywords: [
-    'get reviews while customers are still excited',
-    'in-person review collection',
-    'instant customer reviews',
-    'capture reviews in person',
-    'customer reviews instantly',
-    'in-person review collection methods',
-    'get reviews when customers are happy'
-  ],
-  alternates: {
-    canonical: 'https://docs.promptreviews.com/strategies/reviews-on-fly',
-  },
+const fallbackTitle = 'Get Reviews While Customers Are Still Excited: In-Person Collection'
+const fallbackDescription = 'Learn how to get customer reviews instantly in-person. Capture reviews while customers are still excited about their experience for higher quality and response rates.'
+
+export async function generateMetadata(): Promise<Metadata> {
+  try {
+    const article = await getArticleBySlug('strategies/reviews-on-fly')
+    if (!article) {
+      return {
+        title: fallbackTitle,
+        description: fallbackDescription,
+        alternates: {
+          canonical: 'https://docs.promptreviews.app/strategies/reviews-on-fly',
+        },
+      }
+    }
+
+    const seoTitle = article.metadata?.seo_title || article.title || fallbackTitle
+    const seoDescription = article.metadata?.seo_description || article.metadata?.description || fallbackDescription
+
+    return {
+      title: `${seoTitle} | Prompt Reviews`,
+      description: seoDescription,
+      keywords: article.metadata?.keywords ?? [],
+      alternates: {
+        canonical: article.metadata?.canonical_url ?? 'https://docs.promptreviews.app/strategies/reviews-on-fly',
+      },
+    }
+  } catch (error) {
+    console.error('generateMetadata strategies/reviews-on-fly error:', error)
+    return {
+      title: fallbackTitle,
+      description: fallbackDescription,
+      alternates: {
+        canonical: 'https://docs.promptreviews.app/strategies/reviews-on-fly',
+      },
+    }
+  }
 }
 
 // JSON-LD structured data

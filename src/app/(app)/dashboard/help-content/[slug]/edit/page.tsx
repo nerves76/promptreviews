@@ -22,6 +22,8 @@ interface ArticleMetadata {
   category_icon?: string;
   category_color?: string;
   available_plans?: string[];
+  seo_title?: string;
+  seo_description?: string;
 }
 
 interface Article {
@@ -420,34 +422,78 @@ export default function ArticleEditorPage() {
               )}
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Category
-                </label>
-                <Input
-                  type="text"
-                  value={article.metadata.category || ""}
-                  onChange={(e) =>
-                    handleMetadataChange("category", e.target.value)
-                  }
-                  placeholder="e.g., getting-started, features"
-                />
-              </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Category
+              </label>
+              <Input
+                type="text"
+                value={article.metadata.category || ""}
+                onChange={(e) =>
+                  handleMetadataChange("category", e.target.value)
+                }
+                placeholder="e.g., getting-started, features"
+              />
+            </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Description
-                </label>
-                <Input
-                  type="text"
-                  value={article.metadata.description || ""}
-                  onChange={(e) =>
-                    handleMetadataChange("description", e.target.value)
-                  }
-                  placeholder="Brief description for SEO"
-                />
-              </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Description
+              </label>
+              <Input
+                type="text"
+                value={article.metadata.description || ""}
+                onChange={(e) =>
+                  handleMetadataChange("description", e.target.value)
+                }
+                placeholder="Brief description for page content"
+              />
+            </div>
+          </div>
+        </PageCard>
+
+        {/* SEO Settings */}
+        <PageCard className="mb-6">
+          <h2 className="text-xl font-bold text-gray-900 mb-4">SEO Settings</h2>
+          <p className="text-sm text-gray-600 mb-4">
+            Customize how this article appears in search engines. If left empty, the title and description above will be used.
+          </p>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                SEO Title
+              </label>
+              <Input
+                type="text"
+                value={article.metadata.seo_title || ""}
+                onChange={(e) =>
+                  handleMetadataChange("seo_title", e.target.value)
+                }
+                placeholder={article.title || "Custom title for search engines"}
+                maxLength={60}
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                {article.metadata.seo_title?.length || 0}/60 characters (optimal: 50-60)
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                SEO Meta Description
+              </label>
+              <textarea
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                rows={3}
+                value={article.metadata.seo_description || ""}
+                onChange={(e) =>
+                  handleMetadataChange("seo_description", e.target.value)
+                }
+                placeholder={article.metadata.description || "Custom description for search results"}
+                maxLength={160}
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                {article.metadata.seo_description?.length || 0}/160 characters (optimal: 120-160)
+              </p>
             </div>
 
             <div>

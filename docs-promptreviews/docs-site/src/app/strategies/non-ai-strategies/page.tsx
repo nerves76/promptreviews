@@ -1,10 +1,11 @@
 import type { Metadata } from 'next'
+import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import DocsLayout from '../../docs-layout'
 import PageHeader from '../../components/PageHeader'
-import { 
-  Lightbulb, 
-  ArrowRight, 
+import {
+  Lightbulb,
+  ArrowRight,
   ArrowLeft,
   Star,
   MessageSquare,
@@ -14,22 +15,45 @@ import {
   Sparkles,
   TrendingUp
 } from 'lucide-react'
+import { getArticleBySlug } from '@/lib/docs/articles'
 
-export const metadata: Metadata = {
-  title: 'Review Writing Help: Templates, Examples & Tips for Customers',
-  description: 'Learn how to help customers write better reviews without AI. Use templates, examples, and tips to improve review quality and increase response rates.',
-  keywords: [
-    'review writing help',
-    'review templates for customers',
-    'review examples for customers',
-    'help customers write reviews',
-    'review writing tips',
-    'review templates examples',
-    'how to help customers write reviews'
-  ],
-  alternates: {
-    canonical: 'https://docs.promptreviews.com/strategies/non-ai-strategies',
-  },
+const fallbackTitle = 'Review Writing Help: Templates, Examples & Tips for Customers'
+const fallbackDescription = 'Learn how to help customers write better reviews without AI. Use templates, examples, and tips to improve review quality and increase response rates.'
+
+export async function generateMetadata(): Promise<Metadata> {
+  try {
+    const article = await getArticleBySlug('strategies/non-ai-strategies')
+    if (!article) {
+      return {
+        title: fallbackTitle,
+        description: fallbackDescription,
+        alternates: {
+          canonical: 'https://docs.promptreviews.app/strategies/non-ai-strategies',
+        },
+      }
+    }
+
+    const seoTitle = article.metadata?.seo_title || article.title || fallbackTitle
+    const seoDescription = article.metadata?.seo_description || article.metadata?.description || fallbackDescription
+
+    return {
+      title: `${seoTitle} | Prompt Reviews`,
+      description: seoDescription,
+      keywords: article.metadata?.keywords ?? [],
+      alternates: {
+        canonical: article.metadata?.canonical_url ?? 'https://docs.promptreviews.app/strategies/non-ai-strategies',
+      },
+    }
+  } catch (error) {
+    console.error('generateMetadata strategies/non-ai-strategies error:', error)
+    return {
+      title: fallbackTitle,
+      description: fallbackDescription,
+      alternates: {
+        canonical: 'https://docs.promptreviews.app/strategies/non-ai-strategies',
+      },
+    }
+  }
 }
 
 // JSON-LD structured data

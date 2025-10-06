@@ -1,346 +1,207 @@
-/**
- * Prompt Page Types Documentation
- * Comprehensive guide to all prompt page types and their features
- */
+import type { Metadata } from 'next'
+import { notFound } from 'next/navigation'
+import * as Icons from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
+import StandardOverviewLayout from '../../components/StandardOverviewLayout'
+import { pageFAQs } from '../../utils/faqData'
+import { getArticleBySlug } from '@/lib/docs/articles'
 
-import { Metadata } from 'next';
-import { 
-  MessageCircle, 
-  Star, 
-  Camera, 
-  Video, 
-  Heart, 
-  Brain, 
-  QrCode, 
-  Palette,
-  Calendar,
-  User,
-  Globe,
-  FileText
-} from 'lucide-react';
-import DocsLayout from '../../docs-layout';
-import PageHeader from '../../components/PageHeader';
+const { FileText, Sparkles } = Icons
 
-export const metadata: Metadata = {
-  title: 'Prompt Page Types - Service, Product, Photo, Video & More | Prompt Reviews',
-  description: 'Learn about all prompt page types: Service, Product, Photo, Video, and Universal. Choose the right type for your business needs.',
-  keywords: 'prompt page types, service reviews, product reviews, photo reviews, video reviews, universal prompt page',
-  openGraph: {
-    title: 'Prompt Page Types - Choose the Right Review Collection Method',
-    description: 'Comprehensive guide to Service, Product, Photo, Video, and Universal prompt page types.',
-  },
-};
+const fallbackDescription = 'Choose the perfect prompt page type for your business. Each type is designed for specific use cases and offers unique features to help you collect better reviews.'
 
-// JSON-LD structured data
-const jsonLd = {
-  "@context": "https://schema.org",
-  "@type": "TechArticle",
-  "headline": "Prompt Page Types: Complete Guide",
-  "description": "Learn about all prompt page types and choose the right one for your business",
-  "author": {
-    "@type": "Organization",
-    "name": "Prompt Reviews"
-  },
-  "publisher": {
-    "@type": "Organization",
-    "name": "Prompt Reviews"
-  },
-  "mainEntity": {
-    "@type": "ItemList",
-    "itemListElement": [
-      {
-        "@type": "ListItem",
-        "position": 1,
-        "name": "Service Prompt Pages"
-      },
-      {
-        "@type": "ListItem",
-        "position": 2,
-        "name": "Product Prompt Pages"
-      },
-      {
-        "@type": "ListItem",
-        "position": 3,
-        "name": "Photo Prompt Pages"
-      },
-      {
-        "@type": "ListItem",
-        "position": 4,
-        "name": "Video Prompt Pages"
-      },
-      {
-        "@type": "ListItem",
-        "position": 5,
-        "name": "Universal Prompt Pages"
+function resolveIcon(iconName: string | undefined, fallback: LucideIcon): LucideIcon {
+  if (!iconName) return fallback
+  const normalized = iconName.trim()
+  const lookup = Icons as Record<string, unknown>
+  const candidates = [
+    normalized,
+    normalized.toLowerCase(),
+    normalized.toUpperCase(),
+    normalized.charAt(0).toUpperCase() + normalized.slice(1),
+    normalized.replace(/[-_\s]+/g, ''),
+  ]
+
+  for (const key of candidates) {
+    const maybeIcon = lookup[key]
+    if (typeof maybeIcon === 'function') {
+      return maybeIcon as LucideIcon
+    }
+  }
+
+  return fallback
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  try {
+    const article = await getArticleBySlug('prompt-pages/types')
+    if (!article) {
+      return {
+        title: 'Prompt Page Types - Service, Product, Photo, Video & More | Prompt Reviews',
+        description: fallbackDescription,
+        alternates: {
+          canonical: 'https://docs.promptreviews.app/prompt-pages/types',
+        },
       }
-    ]
-  }
-};
+    }
 
-const promptPageTypes = [
-  {
-    id: 'service',
-    title: 'Service Prompt Pages',
-    icon: MessageCircle,
-    description: 'Perfect for restaurants, salons, and service-based businesses',
-    url: '/prompt-pages/types/service',
-    features: ['Service-specific questions', 'Business information', 'Local SEO optimized'],
-    useCases: ['Restaurants', 'Hair salons', 'Professional services', 'Consultants'],
-    benefits: ['Higher review quality', 'Service-specific context', 'Better customer engagement'],
-    example: 'A restaurant creates a service prompt page asking "How was your dining experience?" with specific questions about food quality, service, and atmosphere.'
-  },
-  {
-    id: 'product',
-    title: 'Product Prompt Pages',
-    icon: Star,
-    description: 'Ideal for product-based businesses and e-commerce stores',
-    url: '/prompt-pages/types/product',
-    features: ['Product-focused reviews', 'Purchase verification', 'E-commerce integration'],
-    useCases: ['E-commerce stores', 'Retail businesses', 'Product manufacturers', 'Online marketplaces'],
-    benefits: ['Product-specific feedback', 'Purchase context', 'Better conversion tracking'],
-    example: 'An online store creates a product prompt page for a specific item, asking customers about their purchase experience and product satisfaction.'
-  },
-  {
-    id: 'photo',
-    title: 'Photo Prompt Pages',
-    icon: Camera,
-    description: 'Collect reviews with customer photos for visual social proof',
-    url: '/prompt-pages/types/photo',
-    features: ['Photo upload capability', 'Visual reviews', 'Social media sharing'],
-    useCases: ['Hair salons', 'Tattoo artists', 'Interior designers', 'Fashion retailers'],
-    benefits: ['Visual social proof', 'Higher engagement', 'Better marketing content'],
-    example: 'A hair salon creates a photo prompt page where customers can upload photos of their new haircut along with their review.'
-  },
-  {
-    id: 'video',
-    title: 'Video Prompt Pages',
-    icon: Video,
-    description: 'Collect video reviews for maximum engagement and authenticity',
-    url: '/prompt-pages/types/video',
-    features: ['Video recording', 'High engagement', 'Authentic testimonials'],
-    useCases: ['Personal trainers', 'Coaches', 'Consultants', 'Service providers'],
-    benefits: ['Maximum authenticity', 'Higher engagement', 'Compelling testimonials'],
-    example: 'A personal trainer creates a video prompt page where clients can record short video testimonials about their fitness journey.'
-  },
-  {
-    id: 'event',
-    title: 'Event Prompt Pages',
-    icon: Calendar,
-    description: 'Perfect for events, workshops, and special occasions',
-    url: '/prompt-pages/types/event',
-    features: ['Event-specific context', 'Date tracking', 'Attendee feedback'],
-    useCases: ['Event planners', 'Venues', 'Workshop hosts', 'Conference organizers'],
-    benefits: ['Event-specific feedback', 'Date-based tracking', 'Attendee engagement'],
-    example: 'A wedding venue creates an event prompt page for each wedding, asking guests about their experience at the specific event.'
-  },
-  {
-    id: 'employee',
-    title: 'Employee Prompt Pages',
-    icon: User,
-    description: 'Spotlight individual team members with dedicated review pages',
-    url: '/prompt-pages/types/employee',
-    features: ['Employee recognition', 'Personal touch', 'Team building'],
-    useCases: ['Service businesses', 'Sales teams', 'Consulting firms', 'Healthcare practices'],
-    benefits: ['Employee recognition', 'Personal connection', 'Team motivation'],
-    example: 'A consulting firm creates individual prompt pages for each consultant, allowing clients to leave specific feedback about their experience.'
-  },
-  {
-    id: 'universal',
-    title: 'Universal Prompt Pages',
-    icon: Globe,
-    description: 'One-page solution for any type of review collection',
-    url: '/prompt-pages/types/universal',
-    features: ['Works for any business', 'QR code generation', 'Universal compatibility'],
-    useCases: ['Any business type', 'General review collection', 'Business cards', 'Email signatures'],
-    benefits: ['Universal compatibility', 'Easy sharing', 'Always ready'],
-    example: 'A small business creates a universal prompt page that works for all customers, perfect for business cards and general use.'
-  }
-];
+    const seoTitle = article.metadata?.seo_title || article.title
+    const seoDescription = article.metadata?.seo_description || article.metadata?.description || fallbackDescription
 
-export default function PromptPageTypes() {
+    return {
+      title: `${seoTitle} | Prompt Reviews`,
+      description: seoDescription,
+      keywords: article.metadata?.keywords ?? [],
+      alternates: {
+        canonical: article.metadata?.canonical_url ?? 'https://docs.promptreviews.app/prompt-pages/types',
+      },
+    }
+  } catch (error) {
+    console.error('generateMetadata prompt-pages/types error:', error)
+    return {
+      title: 'Prompt Page Types | Prompt Reviews',
+      description: fallbackDescription,
+      alternates: {
+        canonical: 'https://docs.promptreviews.app/prompt-pages/types',
+      },
+    }
+  }
+}
+
+interface MetadataFeature {
+  icon?: string
+  title: string
+  description: string
+  href?: string
+}
+
+interface MetadataStep {
+  number?: number
+  icon?: string
+  title: string
+  description: string
+}
+
+interface MetadataBestPractice {
+  icon?: string
+  title: string
+  description: string
+}
+
+export default async function PromptPageTypesPage() {
+  let article = null
+
+  try {
+    article = await getArticleBySlug('prompt-pages/types')
+  } catch (error) {
+    console.error('Error fetching prompt-pages/types article:', error)
+  }
+
+  if (!article) {
+    notFound()
+  }
+
+  const metadata = article.metadata ?? {}
+
+  const getString = (value: unknown): string | undefined => {
+    if (typeof value === 'string' && value.trim().length > 0) {
+      return value.trim()
+    }
+    return undefined
+  }
+
+  const availablePlans: ('grower' | 'builder' | 'maven' | 'enterprise')[] =
+    Array.isArray(metadata.available_plans) && metadata.available_plans.length
+      ? (metadata.available_plans as ('grower' | 'builder' | 'maven' | 'enterprise')[])
+      : ['grower', 'builder', 'maven']
+
+  const mappedKeyFeatures = Array.isArray(metadata.key_features) && metadata.key_features.length
+    ? (metadata.key_features as MetadataFeature[]).map((feature) => ({
+        icon: resolveIcon(feature.icon, Sparkles),
+        title: feature.title,
+        description: feature.description,
+        href: feature.href,
+      }))
+    : []
+
+  const mappedHowItWorks = Array.isArray(metadata.how_it_works) && metadata.how_it_works.length
+    ? (metadata.how_it_works as MetadataStep[]).map((step, index) => ({
+        number: step.number ?? index + 1,
+        title: step.title,
+        description: step.description,
+        icon: resolveIcon(step.icon, Sparkles),
+      }))
+    : []
+
+  const mappedBestPractices = Array.isArray(metadata.best_practices) && metadata.best_practices.length
+    ? (metadata.best_practices as MetadataBestPractice[]).map((practice) => ({
+        icon: resolveIcon(practice.icon, Sparkles),
+        title: practice.title,
+        description: practice.description,
+      }))
+    : []
+
+  const CategoryIcon = resolveIcon(
+    typeof metadata.category_icon === 'string' && metadata.category_icon.trim().length
+      ? metadata.category_icon
+      : 'FileText',
+    FileText,
+  )
+
+  const callToActionMeta = (metadata as Record<string, unknown>).call_to_action
+  const parseCTAButton = (value: any) => {
+    const text = getString(value?.text)
+    const href = getString(value?.href)
+    if (!text || !href) return undefined
+    return {
+      text,
+      href,
+      external: Boolean(value?.external),
+    }
+  }
+
+  const fallbackCTA = {
+    primary: {
+      text: 'View All Page Types',
+      href: '/prompt-pages',
+    },
+  } as const
+
+  const callToAction = (callToActionMeta && typeof callToActionMeta === 'object')
+    ? {
+        primary: parseCTAButton((callToActionMeta as any).primary) || fallbackCTA.primary,
+        secondary: parseCTAButton((callToActionMeta as any).secondary),
+      }
+    : fallbackCTA
+
+  const faqMetadata = Array.isArray((metadata as Record<string, unknown>).faqs)
+    ? ((metadata as Record<string, unknown>).faqs as { question: string; answer: string }[])
+    : null
+
+  const faqsTitle = getString((metadata as Record<string, unknown>).faqs_title)
+  const keyFeaturesTitle = getString((metadata as Record<string, unknown>).key_features_title)
+  const howItWorksTitle = getString((metadata as Record<string, unknown>).how_it_works_title)
+  const bestPracticesTitle = getString((metadata as Record<string, unknown>).best_practices_title)
+
   return (
-    <DocsLayout>
-
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <PageHeader
-          breadcrumbs={[
-            { label: 'Help', href: '/' },
-            { label: 'Prompt Pages', href: '/prompt-pages' }
-          ]}
-          currentPage="Page Types"
-          categoryLabel="Page Types"
-          categoryIcon={FileText}
-          categoryColor="blue"
-          title="Prompt page types"
-          description="Choose the perfect prompt page type for your business. Each type is designed for specific use cases and offers unique features to help you collect better reviews."
-        />
-        {/* Quick Navigation */}
-        <div className="mb-12">
-          <h2 className="text-2xl font-bold text-white mb-6">Quick Navigation</h2>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-            {promptPageTypes.map((type) => (
-              <a
-                key={type.id}
-                href={`#${type.id}`}
-                className="flex flex-col items-center p-4 bg-white/10 backdrop-blur-md rounded-lg border border-white/20 hover:border-yellow-400 hover:shadow-md transition-all"
-              >
-                <type.icon className="w-8 h-8 text-yellow-300 mb-2" />
-                <span className="text-sm font-medium text-white text-center">
-                  {type.title}
-                </span>
-              </a>
-            ))}
-          </div>
-        </div>
-
-        {/* Detailed Types */}
-        <div className="space-y-16">
-          {promptPageTypes.map((type, index) => (
-            <section key={type.id} id={type.id} className="scroll-mt-20">
-              <div className="bg-white/10 backdrop-blur-md rounded-lg shadow-sm border border-white/20 overflow-hidden">
-                {/* Header */}
-                <div className="bg-gradient-to-r from-slate-blue to-indigo-600 px-6 py-8">
-                  <div className="flex items-center space-x-4">
-                    <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
-                      <type.icon className="w-6 h-6 text-white" />
-                    </div>
-                    <div>
-                      <h2 className="text-3xl font-bold text-white">{type.title}</h2>
-                      <p className="text-white/90 mt-1">{type.description}</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Content */}
-                <div className="p-6">
-                  <div className="grid lg:grid-cols-2 gap-8">
-                    {/* Left Column */}
-                    <div className="space-y-6">
-                      <div>
-                        <h3 className="text-lg font-semibold text-white mb-3">Key Features</h3>
-                        <ul className="space-y-2">
-                          {type.features.map((feature, idx) => (
-                            <li key={idx} className="flex items-start space-x-2">
-                              <div className="w-1.5 h-1.5 bg-yellow-400 rounded-full mt-2 flex-shrink-0"></div>
-                              <span className="text-white/80">{feature}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-
-                      <div>
-                        <h3 className="text-lg font-semibold text-white mb-3">Perfect For</h3>
-                        <ul className="space-y-2">
-                          {type.useCases.map((useCase, idx) => (
-                            <li key={idx} className="flex items-start space-x-2">
-                              <div className="w-1.5 h-1.5 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
-                              <span className="text-white/80">{useCase}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    </div>
-
-                    {/* Right Column */}
-                    <div className="space-y-6">
-                      <div>
-                        <h3 className="text-lg font-semibold text-white mb-3">Benefits</h3>
-                        <ul className="space-y-2">
-                          {type.benefits.map((benefit, idx) => (
-                            <li key={idx} className="flex items-start space-x-2">
-                              <div className="w-1.5 h-1.5 bg-purple-500 rounded-full mt-2 flex-shrink-0"></div>
-                              <span className="text-white/80">{benefit}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-
-                      <div className="bg-yellow-500/10 backdrop-blur-sm border border-yellow-400/30 rounded-lg p-4">
-                        <h4 className="font-semibold text-yellow-300 mb-2">Real Example</h4>
-                        <p className="text-white/80 text-sm">{type.example}</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </section>
-          ))}
-        </div>
-
-        {/* Comparison Table */}
-        <div className="mt-16">
-          <h2 className="text-2xl font-bold text-white mb-6">Quick Comparison</h2>
-          <div className="bg-white/10 backdrop-blur-md rounded-lg shadow-sm border border-white/20 overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-white/5">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-white/60 uppercase tracking-wider">
-                      Feature
-                    </th>
-                    {promptPageTypes.map((type) => (
-                      <th key={type.id} className="px-6 py-3 text-left text-xs font-medium text-white/60 uppercase tracking-wider">
-                        {type.title}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="bg-white/5 divide-y divide-white/10">
-                  <tr>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">
-                      Photo Upload
-                    </td>
-                    {promptPageTypes.map((type) => (
-                      <td key={type.id} className="px-6 py-4 whitespace-nowrap text-sm text-white/70">
-                        {type.id === 'photo' ? '✅' : type.id === 'video' ? '✅' : '❌'}
-                      </td>
-                    ))}
-                  </tr>
-                  <tr>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">
-                      Video Recording
-                    </td>
-                    {promptPageTypes.map((type) => (
-                      <td key={type.id} className="px-6 py-4 whitespace-nowrap text-sm text-white/70">
-                        {type.id === 'video' ? '✅' : '❌'}
-                      </td>
-                    ))}
-                  </tr>
-                  <tr>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">
-                      QR Code
-                    </td>
-                    {promptPageTypes.map((type) => (
-                      <td key={type.id} className="px-6 py-4 whitespace-nowrap text-sm text-white/70">
-                        {type.id === 'universal' ? '✅' : '✅'}
-                      </td>
-                    ))}
-                  </tr>
-                  <tr>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">
-                      AI-Powered Content
-                    </td>
-                    {promptPageTypes.map((type) => (
-                      <td key={type.id} className="px-6 py-4 whitespace-nowrap text-sm text-white/70">
-                        ✅
-                      </td>
-                    ))}
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-
-        {/* Next Steps */}
-      </div>
-
-      {/* JSON-LD Script */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
-    </DocsLayout>
-  );
+    <StandardOverviewLayout
+      title={article.title || 'Prompt page types'}
+      description={metadata.description ?? fallbackDescription}
+      categoryLabel={metadata.category_label || 'Page Types'}
+      categoryIcon={CategoryIcon}
+      categoryColor={metadata.category_color || 'blue'}
+      currentPage="Page Types"
+      availablePlans={availablePlans}
+      keyFeatures={mappedKeyFeatures}
+      keyFeaturesTitle={keyFeaturesTitle}
+      howItWorks={mappedHowItWorks}
+      howItWorksTitle={howItWorksTitle}
+      bestPractices={mappedBestPractices}
+      bestPracticesTitle={bestPracticesTitle}
+      faqs={faqMetadata && faqMetadata.length ? faqMetadata : pageFAQs['prompt-pages/types']}
+      faqsTitle={faqsTitle}
+      callToAction={callToAction}
+      content={article.content}
+    />
+  )
 }

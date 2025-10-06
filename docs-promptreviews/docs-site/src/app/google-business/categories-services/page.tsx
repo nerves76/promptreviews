@@ -1,151 +1,241 @@
-import { Metadata } from 'next';
-import Link from 'next/link';
-import DocsLayout from '../../docs-layout';
-import { Tag, ChevronRight, List, Building2 } from 'lucide-react';
+import type { Metadata } from 'next'
+import { notFound } from 'next/navigation'
+import * as Icons from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
+import StandardOverviewLayout from '../../../components/StandardOverviewLayout'
+import MarkdownRenderer from '../../../components/MarkdownRenderer'
+import { getArticleBySlug } from '@/lib/docs/articles'
 
-export const metadata: Metadata = {
-  title: 'Categories & Services - Google Business Profile | Prompt Reviews Help',
-  description: 'Learn how to set business categories and define services in your Google Business Profile.',
-  alternates: {
-    canonical: 'https://docs.promptreviews.app/google-business/categories-services',
+const {
+  Tag,
+  List,
+  Building2,
+} = Icons
+
+const fallbackDescription = 'Define your business categories and services to help customers find exactly what you offer.'
+
+const defaultKeyFeatures = [
+  {
+    icon: Tag,
+    title: 'Primary category',
+    description: 'Your main business category determines which Google Business Profile features are available and how you appear in search results. Choose the most specific category that accurately describes your core business.',
   },
+  {
+    icon: List,
+    title: 'Additional categories',
+    description: 'Add up to 9 additional categories (10 total including primary) to describe other aspects of your business. These help you appear in more search results.',
+  },
+  {
+    icon: Building2,
+    title: 'Services',
+    description: 'Service items help customers understand exactly what you offer. Each service can include a description to provide more detail.',
+  }
+]
+
+const defaultBestPractices = [
+  {
+    icon: Tag,
+    title: 'Choose accurate categories',
+    description: 'Incorrect categories can hurt your search ranking',
+  },
+  {
+    icon: List,
+    title: 'Research competitors',
+    description: 'See what categories successful competitors use',
+  },
+  {
+    icon: Building2,
+    title: 'Be comprehensive with services',
+    description: 'List all services you offer to capture more searches',
+  },
+  {
+    icon: Tag,
+    title: 'Use AI-generated descriptions',
+    description: 'Let Prompt Reviews write professional service descriptions that include relevant keywords',
+  }
+]
+
+function resolveIcon(iconName: string | undefined, fallback: LucideIcon): LucideIcon {
+  if (!iconName) return fallback
+  const normalized = iconName.trim()
+  const lookup = Icons as Record<string, unknown>
+  const candidates = [
+    normalized,
+    normalized.toLowerCase(),
+    normalized.toUpperCase(),
+    normalized.charAt(0).toUpperCase() + normalized.slice(1),
+    normalized.replace(/[-_\s]+/g, ''),
+  ]
+
+  for (const key of candidates) {
+    const maybeIcon = lookup[key]
+    if (typeof maybeIcon === 'function') {
+      return maybeIcon as LucideIcon
+    }
+  }
+
+  return fallback
 }
 
-export default function CategoriesServicesPage() {
+export async function generateMetadata(): Promise<Metadata> {
+  try {
+    const article = await getArticleBySlug('google-business/categories-services')
+    if (!article) {
+      return {
+        title: 'Categories & Services - Google Business Profile | Prompt Reviews Help',
+        description: fallbackDescription,
+        alternates: {
+          canonical: 'https://docs.promptreviews.app/google-business/categories-services',
+        },
+      }
+    }
+
+    const seoTitle = article.metadata?.seo_title || article.title
+    const seoDescription = article.metadata?.seo_description || article.metadata?.description || fallbackDescription
+
+    return {
+      title: `${seoTitle} | Prompt Reviews`,
+      description: seoDescription,
+      keywords: article.metadata?.keywords ?? [],
+      alternates: {
+        canonical: article.metadata?.canonical_url ?? 'https://docs.promptreviews.app/google-business/categories-services',
+      },
+    }
+  } catch (error) {
+    console.error('generateMetadata google-business/categories-services error:', error)
+    return {
+      title: 'Categories & Services | Prompt Reviews',
+      description: fallbackDescription,
+      alternates: {
+        canonical: 'https://docs.promptreviews.app/google-business/categories-services',
+      },
+    }
+  }
+}
+
+interface MetadataFeature {
+  icon?: string
+  title: string
+  description: string
+  href?: string
+}
+
+interface MetadataBestPractice {
+  icon?: string
+  title: string
+  description: string
+}
+
+export default async function CategoriesServicesPage() {
+  let article = null
+
+  try {
+    article = await getArticleBySlug('google-business/categories-services')
+  } catch (error) {
+    console.error('Error fetching google-business/categories-services article:', error)
+  }
+
+  if (!article) {
+    notFound()
+  }
+
+  const metadata = article.metadata ?? {}
+
+  const getString = (value: unknown): string | undefined => {
+    if (typeof value === 'string' && value.trim().length > 0) {
+      return value.trim()
+    }
+    return undefined
+  }
+
+  const availablePlans: ('grower' | 'builder' | 'maven' | 'enterprise')[] =
+    Array.isArray(metadata.available_plans) && metadata.available_plans.length
+      ? (metadata.available_plans as ('grower' | 'builder' | 'maven' | 'enterprise')[])
+      : ['builder', 'maven']
+
+  const mappedKeyFeatures = Array.isArray(metadata.key_features) && metadata.key_features.length
+    ? (metadata.key_features as MetadataFeature[]).map((feature) => ({
+        icon: resolveIcon(feature.icon, Tag),
+        title: feature.title,
+        description: feature.description,
+        href: feature.href,
+      }))
+    : defaultKeyFeatures
+
+  const mappedBestPractices = Array.isArray(metadata.best_practices) && metadata.best_practices.length
+    ? (metadata.best_practices as MetadataBestPractice[]).map((practice) => ({
+        icon: resolveIcon(practice.icon, Tag),
+        title: practice.title,
+        description: practice.description,
+      }))
+    : defaultBestPractices
+
+  const CategoryIcon = resolveIcon(
+    typeof metadata.category_icon === 'string' && metadata.category_icon.trim().length
+      ? metadata.category_icon
+      : 'Tag',
+    Tag,
+  )
+
+  const overviewMarkdown = getString((metadata as Record<string, unknown>).overview_markdown)
+  const overviewTitle = getString((metadata as Record<string, unknown>).overview_title) || 'Overview'
+
+  const overviewNode = overviewMarkdown ? <MarkdownRenderer content={overviewMarkdown} /> : undefined
+
+  const callToActionMeta = (metadata as Record<string, unknown>).call_to_action
+  const parseCTAButton = (value: any) => {
+    const text = getString(value?.text)
+    const href = getString(value?.href)
+    if (!text || !href) return undefined
+    return {
+      text,
+      href,
+      external: Boolean(value?.external),
+    }
+  }
+
+  const fallbackCTA = {
+    primary: {
+      text: 'Business Info',
+      href: '/google-business/business-info',
+    },
+  } as const
+
+  const callToAction = (callToActionMeta && typeof callToActionMeta === 'object')
+    ? {
+        primary: parseCTAButton((callToActionMeta as any).primary) || fallbackCTA.primary,
+        secondary: parseCTAButton((callToActionMeta as any).secondary),
+      }
+    : fallbackCTA
+
+  const faqMetadata = Array.isArray((metadata as Record<string, unknown>).faqs)
+    ? ((metadata as Record<string, unknown>).faqs as { question: string; answer: string }[])
+    : null
+
+  const faqsTitle = getString((metadata as Record<string, unknown>).faqs_title)
+  const keyFeaturesTitle = getString((metadata as Record<string, unknown>).key_features_title)
+  const bestPracticesTitle = getString((metadata as Record<string, unknown>).best_practices_title)
+
   return (
-    <DocsLayout>
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        <div className="flex items-center text-sm text-white/60 mb-6">
-          <Link href="/" className="hover:text-white">Home</Link>
-          <ChevronRight className="w-4 h-4 mx-2" />
-          <Link href="/google-business" className="hover:text-white">Google Business Profile</Link>
-          <ChevronRight className="w-4 h-4 mx-2" />
-          <span className="text-white">Categories & Services</span>
-        </div>
-
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl">
-              <Tag className="w-8 h-8 text-white" />
-            </div>
-            <h1 className="text-4xl font-bold text-white">Categories & services</h1>
-          </div>
-          <p className="text-xl text-white/80">
-            Define your business categories and services to help customers find exactly what you offer.
-          </p>
-        </div>
-
-        <div className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 p-6 mb-8">
-          <h2 className="text-2xl font-bold text-white mb-4">Overview</h2>
-          <p className="text-white/80">
-            Categories and services help Google understand your business and show you in relevant searches. Choose accurate categories and provide detailed service descriptions to improve your visibility.
-          </p>
-        </div>
-
-        {/* Categories Section */}
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold text-white mb-6">Business categories</h2>
-          <div className="space-y-4">
-            <div className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 p-6">
-              <div className="flex items-start gap-3">
-                <Tag className="w-6 h-6 text-yellow-300 flex-shrink-0 mt-1" />
-                <div>
-                  <h3 className="text-lg font-bold text-white mb-2">Primary category</h3>
-                  <p className="text-white/80 mb-3">
-                    Your main business category determines which Google Business Profile features are available and how you appear in search results. Choose the most specific category that accurately describes your core business.
-                  </p>
-                  <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3">
-                    <p className="text-sm text-yellow-200">
-                      <strong>Important:</strong> Your primary category cannot be changed frequently, so choose carefully.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 p-6">
-              <div className="flex items-start gap-3">
-                <List className="w-6 h-6 text-yellow-300 flex-shrink-0 mt-1" />
-                <div>
-                  <h3 className="text-lg font-bold text-white mb-2">Additional categories</h3>
-                  <p className="text-white/80 mb-3">
-                    Add up to 9 additional categories (10 total including primary) to describe other aspects of your business. These help you appear in more search results.
-                  </p>
-                  <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3">
-                    <p className="text-sm text-yellow-200">
-                      <strong>Example:</strong> A restaurant might use "Italian Restaurant" as primary, with "Pizza Restaurant" and "Wine Bar" as additional categories.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Services Section */}
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold text-white mb-6">Services</h2>
-          <div className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 p-6">
-            <p className="text-white/80 mb-4">
-              Service items help customers understand exactly what you offer. Each service can include a description to provide more detail.
-            </p>
-            <div className="space-y-3 mt-4">
-              <div className="flex gap-3">
-                <span className="text-green-400">✓</span>
-                <span className="text-white/80"><strong className="text-white">Be specific:</strong> "Oil Change & Filter Replacement" is better than just "Maintenance"</span>
-              </div>
-              <div className="flex gap-3">
-                <span className="text-green-400">✓</span>
-                <span className="text-white/80"><strong className="text-white">Use AI assistance:</strong> Prompt Reviews can generate professional service descriptions for you</span>
-              </div>
-              <div className="flex gap-3">
-                <span className="text-green-400">✓</span>
-                <span className="text-white/80"><strong className="text-white">Include keywords:</strong> Use terms customers search for when looking for your services</span>
-              </div>
-              <div className="flex gap-3">
-                <span className="text-green-400">✓</span>
-                <span className="text-white/80"><strong className="text-white">Update regularly:</strong> Add new services as your business evolves</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Best Practices */}
-        <div className="bg-gradient-to-br from-purple-500/10 to-indigo-500/10 border border-purple-500/20 rounded-xl p-6 mb-8">
-          <h2 className="text-2xl font-bold text-white mb-4">Best practices</h2>
-          <ul className="space-y-3 text-white/80">
-            <li className="flex gap-3">
-              <span className="text-green-400">✓</span>
-              <span><strong className="text-white">Choose accurate categories:</strong> Incorrect categories can hurt your search ranking</span>
-            </li>
-            <li className="flex gap-3">
-              <span className="text-green-400">✓</span>
-              <span><strong className="text-white">Research competitors:</strong> See what categories successful competitors use</span>
-            </li>
-            <li className="flex gap-3">
-              <span className="text-green-400">✓</span>
-              <span><strong className="text-white">Be comprehensive with services:</strong> List all services you offer to capture more searches</span>
-            </li>
-            <li className="flex gap-3">
-              <span className="text-green-400">✓</span>
-              <span><strong className="text-white">Use AI-generated descriptions:</strong> Let Prompt Reviews write professional service descriptions that include relevant keywords</span>
-            </li>
-          </ul>
-        </div>
-
-        <div className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 p-6">
-          <h2 className="text-2xl font-bold text-white mb-4">Related articles</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Link href="/google-business/business-info" className="flex items-center gap-3 p-4 bg-white/5 hover:bg-white/10 rounded-lg border border-white/10 transition-colors group">
-              <Building2 className="w-5 h-5 text-yellow-300" />
-              <div className="flex-1">
-                <div className="font-semibold text-white group-hover:underline">Business Info</div>
-              </div>
-              <ChevronRight className="w-4 h-4 text-white/40" />
-            </Link>
-          </div>
-        </div>
-      </div>
-    </DocsLayout>
-  );
+    <StandardOverviewLayout
+      title={article.title || 'Categories & services'}
+      description={metadata.description ?? fallbackDescription}
+      categoryLabel={metadata.category_label || 'Google Business Profile'}
+      categoryIcon={CategoryIcon}
+      categoryColor={metadata.category_color || 'blue'}
+      currentPage="Categories & Services"
+      availablePlans={availablePlans}
+      keyFeatures={mappedKeyFeatures}
+      keyFeaturesTitle={keyFeaturesTitle}
+      bestPractices={mappedBestPractices}
+      bestPracticesTitle={bestPracticesTitle}
+      faqs={faqMetadata && faqMetadata.length ? faqMetadata : []}
+      faqsTitle={faqsTitle}
+      callToAction={callToAction}
+      overview={overviewNode ? {
+        title: overviewTitle,
+        content: overviewNode,
+      } : undefined}
+    />
+  )
 }

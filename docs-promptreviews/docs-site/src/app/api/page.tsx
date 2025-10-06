@@ -1,6 +1,9 @@
-import { Metadata } from 'next';
+import type { Metadata } from 'next'
+import { notFound } from 'next/navigation'
 import StandardOverviewLayout from '../../components/StandardOverviewLayout'
+import MarkdownRenderer from '../../components/MarkdownRenderer'
 import { pageFAQs } from '../utils/faqData'
+import { getArticleBySlug } from '@/lib/docs/articles'
 import {
   Code2,
   Globe,
@@ -19,23 +22,61 @@ import {
   Terminal,
   Sparkles,
   Link2
-} from 'lucide-react';
+} from 'lucide-react'
 
-export const metadata: Metadata = {
-  title: 'API Documentation - Integrate with PromptReviews | Developer Guide',
-  description: 'Complete API documentation for PromptReviews. Learn how to integrate review collection, manage widgets, handle webhooks, and automate your review process.',
-  keywords: [
-    'PromptReviews API',
-    'review collection API',
-    'widget API',
-    'webhook integration',
-    'developer documentation',
-    'REST API',
-    'review management API'
-  ],
-  alternates: {
-    canonical: 'https://docs.promptreviews.app/api',
-  },
+const fallbackDescription = 'Complete API documentation for PromptReviews. Learn how to integrate review collection, manage widgets, handle webhooks, and automate your review process.'
+
+export async function generateMetadata(): Promise<Metadata> {
+  try {
+    const article = await getArticleBySlug('api')
+    if (!article) {
+      return {
+        title: 'API Documentation - Integrate with PromptReviews | Developer Guide',
+        description: fallbackDescription,
+        keywords: [
+          'PromptReviews API',
+          'review collection API',
+          'widget API',
+          'webhook integration',
+          'developer documentation',
+          'REST API',
+          'review management API'
+        ],
+        alternates: {
+          canonical: 'https://docs.promptreviews.app/api',
+        },
+      }
+    }
+
+    const seoTitle = article.metadata?.seo_title || article.title
+    const seoDescription = article.metadata?.seo_description || article.metadata?.description || fallbackDescription
+
+    return {
+      title: `${seoTitle} | Prompt Reviews`,
+      description: seoDescription,
+      keywords: article.metadata?.keywords ?? [
+        'PromptReviews API',
+        'review collection API',
+        'widget API',
+        'webhook integration',
+        'developer documentation',
+        'REST API',
+        'review management API'
+      ],
+      alternates: {
+        canonical: article.metadata?.canonical_url ?? 'https://docs.promptreviews.app/api',
+      },
+    }
+  } catch (error) {
+    console.error('generateMetadata api error:', error)
+    return {
+      title: 'API Documentation - Integrate with PromptReviews | Developer Guide',
+      description: fallbackDescription,
+      alternates: {
+        canonical: 'https://docs.promptreviews.app/api',
+      },
+    }
+  }
 }
 
 const keyFeatures = [
@@ -128,15 +169,24 @@ const bestPractices = [
 ];
 
 
-const overviewContent = (
-  <>
-    <p className="text-white/90 text-lg mb-6 text-center">
-      The PromptReviews API enables you to integrate review collection and management
-      directly into your applications, websites, and workflows. Build custom solutions
-      that fit perfectly with your business processes.
-    </p>
+export default async function APIDocumentationPage() {
+  let article = null
 
-    <div className="grid md:grid-cols-3 gap-6">
+  try {
+    article = await getArticleBySlug('api')
+  } catch (error) {
+    console.error('Error fetching api article:', error)
+  }
+
+  if (!article) {
+    notFound()
+  }
+
+  const overviewContent = (
+  <>
+    <MarkdownRenderer content={article.content} />
+
+    <div className="mt-8 grid md:grid-cols-3 gap-6">
       <div className="text-center">
         <div className="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center mx-auto mb-3">
           <Code2 className="w-6 h-6 text-white" />
@@ -242,8 +292,6 @@ curl -H "Authorization: Bearer YOUR_API_KEY" \\
     </div>
   </>
 );
-
-export default function APIDocumentationPage() {
   return (
     <StandardOverviewLayout
       title="PromptReviews API: Build powerful review integrations"

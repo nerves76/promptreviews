@@ -12,9 +12,10 @@ interface PageFAQsProps {
   faqs: FAQ[]
   pageTitle: string
   pageUrl: string
+  title?: string
 }
 
-export default function PageFAQs({ faqs, pageTitle, pageUrl }: PageFAQsProps) {
+export default function PageFAQs({ faqs, pageTitle, pageUrl, title = 'Frequently Asked Questions' }: PageFAQsProps) {
   const [openIndex, setOpenIndex] = React.useState<number | null>(null)
 
   // Generate JSON-LD schema for FAQs
@@ -41,7 +42,7 @@ export default function PageFAQs({ faqs, pageTitle, pageUrl }: PageFAQsProps) {
 
       {/* FAQ Section */}
       <div className="mt-12 mb-8">
-        <h2 className="text-2xl font-bold text-white mb-6">Frequently Asked Questions</h2>
+        <h2 className="text-2xl font-bold text-white mb-6">{title}</h2>
         
         <div className="space-y-4">
           {faqs.map((faq, index) => (

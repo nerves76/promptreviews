@@ -1,6 +1,9 @@
 import type { Metadata } from 'next'
+import { notFound } from 'next/navigation'
 import StandardOverviewLayout from '../../components/StandardOverviewLayout'
+import MarkdownRenderer from '../../components/MarkdownRenderer'
 import { pageFAQs } from '../utils/faqData'
+import { getArticleBySlug } from '@/lib/docs/articles'
 import {
   Code,
   Smartphone,
@@ -19,21 +22,47 @@ import {
   Target,
   BarChart3
 } from 'lucide-react'
+import * as Icons from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 
-export const metadata: Metadata = {
-  title: 'Widgets - Display Reviews on Your Website | Prompt Reviews Help',
-  description: 'Learn how to create and customize review widgets. Display customer reviews on your website with customizable widgets that match your brand.',
-  keywords: [
-    'review widget',
-    'website integration',
-    'embed reviews',
-    'review display',
-    'widget customization',
-    'website reviews'
-  ],
-  alternates: {
-    canonical: 'https://docs.promptreviews.app/widgets',
-  },
+const fallbackDescription = 'Learn how to create and customize review widgets. Display customer reviews on your website with customizable widgets that match your brand.'
+
+function resolveIcon(iconName: string | undefined, fallback: LucideIcon): LucideIcon {
+  if (!iconName) return fallback
+  const lookup = Icons as Record<string, unknown>
+  const maybeIcon = lookup[iconName]
+  if (typeof maybeIcon === 'function') return maybeIcon as LucideIcon
+  return fallback
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  try {
+    const article = await getArticleBySlug('widgets')
+    if (!article) {
+      return {
+        title: 'Widgets - Display Reviews on Your Website | Prompt Reviews Help',
+        description: fallbackDescription,
+        alternates: { canonical: 'https://docs.promptreviews.app/widgets' },
+      }
+    }
+
+    const seoTitle = article.metadata?.seo_title || article.title
+    const seoDescription = article.metadata?.seo_description || article.metadata?.description || fallbackDescription
+
+    return {
+      title: `${seoTitle} | Prompt Reviews`,
+      description: seoDescription,
+      keywords: article.metadata?.keywords ?? ['review widget', 'website integration', 'embed reviews'],
+      alternates: { canonical: article.metadata?.canonical_url ?? 'https://docs.promptreviews.app/widgets' },
+    }
+  } catch (error) {
+    console.error('generateMetadata widgets error:', error)
+    return {
+      title: 'Widgets - Display Reviews on Your Website | Prompt Reviews Help',
+      description: fallbackDescription,
+      alternates: { canonical: 'https://docs.promptreviews.app/widgets' },
+    }
+  }
 }
 
 const keyFeatures = [

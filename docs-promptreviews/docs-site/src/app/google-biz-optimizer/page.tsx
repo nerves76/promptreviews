@@ -1,7 +1,10 @@
 import type { Metadata } from 'next'
+import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import DocsLayout from '../docs-layout'
 import PageHeader from '../components/PageHeader'
+import MarkdownRenderer from '../components/MarkdownRenderer'
+import { getArticleBySlug } from '@/lib/docs/articles'
 import {
   TrendingUp,
   Star,
@@ -16,24 +19,56 @@ import {
   ArrowRight,
   Lightbulb
 } from 'lucide-react'
+import * as Icons from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 
-export const metadata: Metadata = {
-  title: 'Google Biz Optimizer™ - Comprehensive Guide | Prompt Reviews Help',
-  description: 'Master Google Business Profile optimization with industry benchmarks, actionable strategies, and ROI-focused insights.',
-  keywords: [
-    'Google Business Profile optimization',
-    'GBP metrics',
-    'local SEO',
-    'review management',
-    'business visibility',
-    'customer engagement'
-  ],
-  alternates: {
-    canonical: 'https://docs.promptreviews.com/google-biz-optimizer',
-  },
+const fallbackDescription = 'Master Google Business Profile optimization with industry benchmarks, actionable strategies, and ROI-focused insights.'
+
+function resolveIcon(iconName: string | undefined, fallback: LucideIcon): LucideIcon {
+  if (!iconName) return fallback
+  const lookup = Icons as Record<string, unknown>
+  const maybeIcon = lookup[iconName]
+  if (typeof maybeIcon === 'function') return maybeIcon as LucideIcon
+  return fallback
 }
 
-export default function GoogleBizOptimizerPage() {
+export async function generateMetadata(): Promise<Metadata> {
+  try {
+    const article = await getArticleBySlug('google-biz-optimizer')
+    if (!article) {
+      return {
+        title: 'Google Biz Optimizer™ - Comprehensive Guide | Prompt Reviews Help',
+        description: fallbackDescription,
+        alternates: { canonical: 'https://docs.promptreviews.app/google-biz-optimizer' },
+      }
+    }
+
+    const seoTitle = article.metadata?.seo_title || article.title
+    const seoDescription = article.metadata?.seo_description || article.metadata?.description || fallbackDescription
+
+    return {
+      title: `${seoTitle} | Prompt Reviews`,
+      description: seoDescription,
+      keywords: article.metadata?.keywords ?? ['Google Business Profile optimization', 'GBP metrics', 'local SEO', 'review management', 'business visibility', 'customer engagement'],
+      alternates: { canonical: article.metadata?.canonical_url ?? 'https://docs.promptreviews.app/google-biz-optimizer' },
+    }
+  } catch (error) {
+    console.error('generateMetadata google-biz-optimizer error:', error)
+    return {
+      title: 'Google Biz Optimizer™ - Comprehensive Guide | Prompt Reviews Help',
+      description: fallbackDescription,
+      alternates: { canonical: 'https://docs.promptreviews.app/google-biz-optimizer' },
+    }
+  }
+}
+
+export default async function GoogleBizOptimizerPage() {
+  const article = await getArticleBySlug('google-biz-optimizer')
+  if (!article) {
+    notFound()
+  }
+
+  const CategoryIcon = resolveIcon(article.metadata?.category_icon, TrendingUp)
   return (
     <DocsLayout>
       <div className="max-w-4xl mx-auto">
@@ -43,36 +78,39 @@ export default function GoogleBizOptimizerPage() {
             { label: 'Help', href: '/' }
           ]}
           currentPage="Google Biz Optimizer™"
-          categoryLabel="Google Biz Optimizer™"
-          categoryIcon={TrendingUp}
-          categoryColor="purple"
-          title="Google Biz Optimizer™"
-          description="Master your Google Business Profile with data-driven strategies and industry insights"
+          categoryLabel={article.metadata?.category_label || "Google Biz Optimizer™"}
+          categoryIcon={CategoryIcon}
+          categoryColor={(article.metadata?.category_color as any) || "purple"}
+          title={article.title || "Google Biz Optimizer™"}
+          description={article.metadata?.description || "Master your Google Business Profile with data-driven strategies and industry insights"}
         />
 
         {/* Plan Availability */}
-        <div className="mb-8">
-          <div className="flex flex-wrap gap-2">
-            <span className="text-sm text-white/60">Available on:</span>
-            <span className="bg-green-500/20 text-green-300 text-xs px-2 py-1 rounded-full font-medium">Grower</span>
-            <span className="bg-purple-500/20 text-purple-300 text-xs px-2 py-1 rounded-full font-medium">Builder</span>
-            <span className="bg-yellow-500/20 text-yellow-300 text-xs px-2 py-1 rounded-full font-medium">Maven</span>
+        {article.metadata?.available_plans && article.metadata.available_plans.length > 0 && (
+          <div className="mb-8">
+            <div className="flex flex-wrap gap-2">
+              <span className="text-sm text-white/60">Available on:</span>
+              {article.metadata.available_plans.map((plan: string) => (
+                <span key={plan} className={`text-xs px-2 py-1 rounded-full font-medium ${
+                  plan === 'grower' ? 'bg-green-500/20 text-green-300' :
+                  plan === 'builder' ? 'bg-purple-500/20 text-purple-300' :
+                  'bg-yellow-500/20 text-yellow-300'
+                }`}>
+                  {plan.charAt(0).toUpperCase() + plan.slice(1)}
+                </span>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Introduction */}
-        <div className="mb-12">
-          <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6">
-            <p className="text-white/90 mb-4">
-              The Google Biz Optimizer™ provides comprehensive insights, benchmarks, and actionable strategies
-              to maximize your Google Business Profile performance. Each metric includes industry standards,
-              psychological insights, and ROI calculations.
-            </p>
-            <p className="text-white/80">
-              Transform your local presence with data-driven optimization strategies that deliver measurable results.
-            </p>
+        {article.content && (
+          <div className="mb-12">
+            <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6">
+              <MarkdownRenderer content={article.content} />
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Categories Grid */}
         <div className="grid md:grid-cols-2 gap-8 mb-12">

@@ -1,10 +1,11 @@
 import type { Metadata } from 'next'
+import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import DocsLayout from '../../docs-layout'
 import PageHeader from '../../components/PageHeader'
-import { 
-  Sparkles, 
-  ArrowRight, 
+import {
+  Sparkles,
+  ArrowRight,
   ArrowLeft,
   Star,
   MessageSquare,
@@ -14,22 +15,45 @@ import {
   TrendingUp,
   Heart
 } from 'lucide-react'
+import { getArticleBySlug } from '@/lib/docs/articles'
 
-export const metadata: Metadata = {
-  title: 'Stand Out from Competitors: Unique Review Collection Methods',
-  description: 'Learn how to use unique experiences to get more customer reviews. Stand out from competitors with innovative review collection methods that create memorable customer experiences.',
-  keywords: [
-    'stand out from competitors',
-    'unique review collection methods',
-    'unique experiences to get reviews',
-    'innovative review collection',
-    'memorable customer experiences',
-    'unique review methods',
-    'how to stand out from competitors'
-  ],
-  alternates: {
-    canonical: 'https://docs.promptreviews.com/strategies/novelty',
-  },
+const fallbackTitle = 'Stand Out from Competitors: Unique Review Collection Methods'
+const fallbackDescription = 'Learn how to use unique experiences to get more customer reviews. Stand out from competitors with innovative review collection methods that create memorable customer experiences.'
+
+export async function generateMetadata(): Promise<Metadata> {
+  try {
+    const article = await getArticleBySlug('strategies/novelty')
+    if (!article) {
+      return {
+        title: fallbackTitle,
+        description: fallbackDescription,
+        alternates: {
+          canonical: 'https://docs.promptreviews.app/strategies/novelty',
+        },
+      }
+    }
+
+    const seoTitle = article.metadata?.seo_title || article.title || fallbackTitle
+    const seoDescription = article.metadata?.seo_description || article.metadata?.description || fallbackDescription
+
+    return {
+      title: `${seoTitle} | Prompt Reviews`,
+      description: seoDescription,
+      keywords: article.metadata?.keywords ?? [],
+      alternates: {
+        canonical: article.metadata?.canonical_url ?? 'https://docs.promptreviews.app/strategies/novelty',
+      },
+    }
+  } catch (error) {
+    console.error('generateMetadata strategies/novelty error:', error)
+    return {
+      title: fallbackTitle,
+      description: fallbackDescription,
+      alternates: {
+        canonical: 'https://docs.promptreviews.app/strategies/novelty',
+      },
+    }
+  }
 }
 
 // JSON-LD structured data

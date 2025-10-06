@@ -1,6 +1,9 @@
 import type { Metadata } from 'next'
+import { notFound } from 'next/navigation'
 import StandardOverviewLayout from '../../components/StandardOverviewLayout'
+import MarkdownRenderer from '../../components/MarkdownRenderer'
 import { pageFAQs } from '../utils/faqData'
+import { getArticleBySlug } from '@/lib/docs/articles'
 import {
   AlertTriangle,
   Search,
@@ -19,25 +22,63 @@ import {
   Star,
   Zap
 } from 'lucide-react'
+import * as Icons from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 
-export const metadata: Metadata = {
-  title: 'Troubleshooting - Common Issues & Solutions | Prompt Reviews Help',
-  description: 'Find solutions to common Prompt Reviews issues. From setup problems to review collection challenges, get quick answers and step-by-step fixes.',
-  keywords: [
-    'troubleshooting',
-    'common issues',
-    'review collection problems',
-    'setup help',
-    'technical support',
-    'FAQ'
-  ],
-  alternates: {
-    canonical: 'https://docs.promptreviews.app/troubleshooting',
-  },
+const fallbackDescription = 'Find solutions to common Prompt Reviews issues. From setup problems to review collection challenges, get quick answers and step-by-step fixes.'
+
+function resolveIcon(iconName: string | undefined, fallback: LucideIcon): LucideIcon {
+  if (!iconName) return fallback
+  const lookup = Icons as Record<string, unknown>
+  const maybeIcon = lookup[iconName]
+  if (typeof maybeIcon === 'function') return maybeIcon as LucideIcon
+  return fallback
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  try {
+    const article = await getArticleBySlug('troubleshooting')
+    if (!article) {
+      return {
+        title: 'Troubleshooting - Common Issues & Solutions | Prompt Reviews Help',
+        description: fallbackDescription,
+        alternates: { canonical: 'https://docs.promptreviews.app/troubleshooting' },
+      }
+    }
+
+    const seoTitle = article.metadata?.seo_title || article.title
+    const seoDescription = article.metadata?.seo_description || article.metadata?.description || fallbackDescription
+
+    return {
+      title: `${seoTitle} | Prompt Reviews`,
+      description: seoDescription,
+      keywords: article.metadata?.keywords ?? ['troubleshooting', 'common issues', 'review collection problems', 'setup help', 'technical support', 'FAQ'],
+      alternates: { canonical: article.metadata?.canonical_url ?? 'https://docs.promptreviews.app/troubleshooting' },
+    }
+  } catch (error) {
+    console.error('generateMetadata troubleshooting error:', error)
+    return {
+      title: 'Troubleshooting - Common Issues & Solutions | Prompt Reviews Help',
+      description: fallbackDescription,
+      alternates: { canonical: 'https://docs.promptreviews.app/troubleshooting' },
+    }
+  }
 }
 
 
-const keyFeatures = [
+export default async function TroubleshootingPage() {
+  const article = await getArticleBySlug('troubleshooting')
+  if (!article) {
+    notFound()
+  }
+
+  const CategoryIcon = resolveIcon(article.metadata?.category_icon, AlertTriangle)
+
+const keyFeatures = article.sections?.key_features?.map((feat: any) => ({
+  icon: resolveIcon(feat.icon, CheckCircle),
+  title: feat.title,
+  description: feat.description
+})) || [
   {
     icon: Search,
     title: 'Quick Issue Search',
@@ -70,7 +111,12 @@ const keyFeatures = [
   }
 ]
 
-const howItWorks = [
+const howItWorks = article.sections?.how_it_works?.map((step: any) => ({
+  number: step.number,
+  title: step.title,
+  description: step.description,
+  icon: resolveIcon(step.icon, CheckCircle)
+})) || [
   {
     number: 1,
     title: 'Identify Your Issue',
@@ -97,7 +143,11 @@ const howItWorks = [
   }
 ]
 
-const bestPractices = [
+const bestPractices = article.sections?.best_practices?.map((practice: any) => ({
+  icon: resolveIcon(practice.icon, CheckCircle),
+  title: practice.title,
+  description: practice.description
+})) || [
   {
     icon: Users,
     title: 'Start with Happy Customers',
@@ -120,31 +170,30 @@ const bestPractices = [
   }
 ]
 
-
-
-export default function TroubleshootingPage() {
   return (
     <StandardOverviewLayout
-      title="Troubleshooting guide"
-      description="Running into issues? Don't worry—most problems have simple solutions. Find quick fixes for common issues and get back to collecting great reviews."
-      categoryLabel="Need Help?"
-      categoryIcon={AlertTriangle}
-      categoryColor="orange"
-      currentPage="Troubleshooting"
-      availablePlans={['grower', 'builder', 'maven']}
+      title={article.title || "Troubleshooting guide"}
+      description={article.metadata?.description || "Running into issues? Don't worry—most problems have simple solutions. Find quick fixes for common issues and get back to collecting great reviews."}
+      categoryLabel={article.metadata?.category_label || "Need Help?"}
+      categoryIcon={CategoryIcon}
+      categoryColor={(article.metadata?.category_color as any) || "orange"}
+      currentPage={article.metadata?.current_page || "Troubleshooting"}
+      availablePlans={article.metadata?.available_plans as any || ['grower', 'builder', 'maven']}
       keyFeatures={keyFeatures}
       howItWorks={howItWorks}
       bestPractices={bestPractices}
       faqs={pageFAQs['troubleshooting']}
-      callToAction={{
+      callToAction={article.sections?.call_to_action || {
         primary: {
           text: 'Getting Started Guide',
           href: '/getting-started'
         }
       }}
       overview={{
-        title: 'Quick Solutions for Common Issues',
-        content: (
+        title: article.sections?.overview?.title || 'Quick Solutions for Common Issues',
+        content: article.sections?.overview?.content ? (
+          <MarkdownRenderer content={article.sections.overview.content} />
+        ) : (
           <>
             <p className="text-white/90 text-lg mb-6 text-center">
               Most technical issues can be resolved quickly with the right approach.

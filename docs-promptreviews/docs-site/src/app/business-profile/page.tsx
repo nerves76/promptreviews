@@ -1,14 +1,61 @@
-import { Metadata } from 'next';
-import StandardOverviewLayout from '../../components/StandardOverviewLayout';
-import { Building, Upload, Image, Info, Users, Star, Share, FileText, Brain, ArrowRight } from 'lucide-react';
+import type { Metadata } from 'next'
+import { notFound } from 'next/navigation'
+import StandardOverviewLayout from '../../components/StandardOverviewLayout'
+import MarkdownRenderer from '../../components/MarkdownRenderer'
+import { getArticleBySlug } from '@/lib/docs/articles'
+import { Building, Upload, Image, Info, Users, Star, Share, FileText, Brain, ArrowRight } from 'lucide-react'
 
-export const metadata: Metadata = {
-  title: 'Business Profile Setup Guide | Prompt Reviews',
-  description: 'Complete guide to setting up and optimizing your business profile in Prompt Reviews for better AI-generated reviews and customer engagement.',
-  keywords: 'business profile, company information, branding, logo upload, AI optimization, prompt reviews',
-};
+const fallbackDescription = 'Complete guide to setting up and optimizing your business profile in Prompt Reviews for better AI-generated reviews and customer engagement.'
 
-export default function BusinessProfilePage() {
+export async function generateMetadata(): Promise<Metadata> {
+  try {
+    const article = await getArticleBySlug('business-profile')
+    if (!article) {
+      return {
+        title: 'Business Profile Setup Guide | Prompt Reviews',
+        description: fallbackDescription,
+        keywords: ['business profile', 'company information', 'branding', 'logo upload', 'AI optimization', 'prompt reviews'],
+        alternates: {
+          canonical: 'https://docs.promptreviews.app/business-profile',
+        },
+      }
+    }
+
+    const seoTitle = article.metadata?.seo_title || article.title
+    const seoDescription = article.metadata?.seo_description || article.metadata?.description || fallbackDescription
+
+    return {
+      title: `${seoTitle} | Prompt Reviews`,
+      description: seoDescription,
+      keywords: article.metadata?.keywords ?? ['business profile', 'company information', 'branding', 'logo upload', 'AI optimization', 'prompt reviews'],
+      alternates: {
+        canonical: article.metadata?.canonical_url ?? 'https://docs.promptreviews.app/business-profile',
+      },
+    }
+  } catch (error) {
+    console.error('generateMetadata business-profile error:', error)
+    return {
+      title: 'Business Profile Setup Guide | Prompt Reviews',
+      description: fallbackDescription,
+      alternates: {
+        canonical: 'https://docs.promptreviews.app/business-profile',
+      },
+    }
+  }
+}
+
+export default async function BusinessProfilePage() {
+  let article = null
+
+  try {
+    article = await getArticleBySlug('business-profile')
+  } catch (error) {
+    console.error('Error fetching business-profile article:', error)
+  }
+
+  if (!article) {
+    notFound()
+  }
   // Key features data
   const keyFeatures = [
     {
@@ -128,12 +175,9 @@ export default function BusinessProfilePage() {
         title: 'What Is a Business Profile?',
         content: (
           <>
-            <p className="text-white/90 mb-6">
-              Your business profile is the foundation of your Prompt Reviews experience. It provides crucial information
-              that our AI uses to generate authentic, personalized review content and helps customers connect with your brand.
-            </p>
+            <MarkdownRenderer content={article.content} />
 
-            <div className="grid md:grid-cols-3 gap-4">
+            <div className="mt-6 grid md:grid-cols-3 gap-4">
               <div className="bg-white/5 rounded-lg p-4">
                 <Brain className="w-8 h-8 text-purple-300 mb-2" />
                 <h4 className="text-sm font-semibold text-white mb-1">AI Optimization</h4>

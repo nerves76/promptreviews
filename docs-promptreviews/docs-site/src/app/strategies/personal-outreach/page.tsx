@@ -1,10 +1,11 @@
 import type { Metadata } from 'next'
+import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import DocsLayout from '../../docs-layout'
 import PageHeader from '../../components/PageHeader'
-import { 
-  Users, 
-  ArrowRight, 
+import {
+  Users,
+  ArrowRight,
   ArrowLeft,
   MessageCircle,
   Heart,
@@ -15,22 +16,45 @@ import {
   Phone,
   Smile
 } from 'lucide-react'
+import { getArticleBySlug } from '@/lib/docs/articles'
 
-export const metadata: Metadata = {
-  title: 'Personal vs Mass Marketing for Reviews: Which Gets Better Results?',
-  description: 'Discover why personal customer outreach gets more reviews than mass marketing. Learn how one-on-one connections build trust and loyalty for better review collection.',
-  keywords: [
-    'personal vs mass marketing for reviews',
-    'personal customer outreach',
-    'one-on-one marketing reviews',
-    'mass marketing vs personal outreach',
-    'which gets more reviews',
-    'personal outreach vs mass marketing',
-    'customer relationship building for reviews'
-  ],
-  alternates: {
-    canonical: 'https://docs.promptreviews.com/strategies/personal-outreach',
-  },
+const fallbackTitle = 'Personal vs Mass Marketing for Reviews: Which Gets Better Results?'
+const fallbackDescription = 'Discover why personal customer outreach gets more reviews than mass marketing. Learn how one-on-one connections build trust and loyalty for better review collection.'
+
+export async function generateMetadata(): Promise<Metadata> {
+  try {
+    const article = await getArticleBySlug('strategies/personal-outreach')
+    if (!article) {
+      return {
+        title: fallbackTitle,
+        description: fallbackDescription,
+        alternates: {
+          canonical: 'https://docs.promptreviews.app/strategies/personal-outreach',
+        },
+      }
+    }
+
+    const seoTitle = article.metadata?.seo_title || article.title || fallbackTitle
+    const seoDescription = article.metadata?.seo_description || article.metadata?.description || fallbackDescription
+
+    return {
+      title: `${seoTitle} | Prompt Reviews`,
+      description: seoDescription,
+      keywords: article.metadata?.keywords ?? [],
+      alternates: {
+        canonical: article.metadata?.canonical_url ?? 'https://docs.promptreviews.app/strategies/personal-outreach',
+      },
+    }
+  } catch (error) {
+    console.error('generateMetadata strategies/personal-outreach error:', error)
+    return {
+      title: fallbackTitle,
+      description: fallbackDescription,
+      alternates: {
+        canonical: 'https://docs.promptreviews.app/strategies/personal-outreach',
+      },
+    }
+  }
 }
 
 // JSON-LD structured data

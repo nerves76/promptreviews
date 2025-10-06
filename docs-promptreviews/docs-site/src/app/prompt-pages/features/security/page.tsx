@@ -1,14 +1,33 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
 import { Shield, ChevronRight, Lock, Key, Eye, FileCheck, Globe, AlertCircle } from 'lucide-react';
+import { getArticleBySlug } from '@/lib/articles';
+import { getIconComponent } from '@/lib/iconMapper';
 
-export const metadata: Metadata = {
-  title: 'Security & Privacy - Enterprise-Grade Protection | Prompt Reviews',
-  description: 'Learn how we protect customer data with enterprise-grade security, end-to-end encryption, GDPR compliance, and comprehensive privacy controls.',
-  keywords: ['security', 'privacy', 'encryption', 'GDPR', 'CCPA', 'data protection'],
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const article = await getArticleBySlug('prompt-pages/features/security');
 
-export default function SecurityPage() {
+  if (!article) {
+    return {
+      title: 'Security & Privacy | Prompt Reviews',
+    };
+  }
+
+  const seoTitle = article.metadata?.seo_title || article.title;
+  const seoDescription = article.metadata?.seo_description || article.metadata?.description || '';
+
+  return {
+    title: `${seoTitle} | Prompt Reviews`,
+    description: seoDescription,
+    keywords: article.metadata?.keywords || [],
+  };
+}
+
+export default async function SecurityPage() {
+  const article = await getArticleBySlug('prompt-pages/features/security');
+
+  const keyFeatures = article?.metadata?.key_features || [];
+  const howItWorks = article?.metadata?.how_it_works || [];
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
       {/* Breadcrumb */}
@@ -113,39 +132,22 @@ export default function SecurityPage() {
       </div>
 
       {/* How It Works */}
-      <div className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 p-6 mb-8">
-        <h2 className="text-2xl font-bold text-white mb-6">How we protect your data</h2>
-        <ol className="space-y-4">
-          <li className="flex gap-4">
-            <span className="flex-shrink-0 w-8 h-8 bg-indigo-500 text-white rounded-full flex items-center justify-center text-sm font-bold">1</span>
-            <div>
-              <h4 className="font-semibold text-white mb-1">Encrypted transmission</h4>
-              <p className="text-white/70 text-sm">All data sent between customers and servers is encrypted with 256-bit SSL</p>
-            </div>
-          </li>
-          <li className="flex gap-4">
-            <span className="flex-shrink-0 w-8 h-8 bg-indigo-500 text-white rounded-full flex items-center justify-center text-sm font-bold">2</span>
-            <div>
-              <h4 className="font-semibold text-white mb-1">Secure storage</h4>
-              <p className="text-white/70 text-sm">Data stored in encrypted databases with strict access controls</p>
-            </div>
-          </li>
-          <li className="flex gap-4">
-            <span className="flex-shrink-0 w-8 h-8 bg-indigo-500 text-white rounded-full flex items-center justify-center text-sm font-bold">3</span>
-            <div>
-              <h4 className="font-semibold text-white mb-1">Access management</h4>
-              <p className="text-white/70 text-sm">Role-based permissions ensure only authorized users access data</p>
-            </div>
-          </li>
-          <li className="flex gap-4">
-            <span className="flex-shrink-0 w-8 h-8 bg-indigo-500 text-white rounded-full flex items-center justify-center text-sm font-bold">4</span>
-            <div>
-              <h4 className="font-semibold text-white mb-1">Continuous monitoring</h4>
-              <p className="text-white/70 text-sm">24/7 security monitoring and automatic threat detection</p>
-            </div>
-          </li>
-        </ol>
-      </div>
+      {howItWorks.length > 0 && (
+        <div className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 p-6 mb-8">
+          <h2 className="text-2xl font-bold text-white mb-6">How we protect your data</h2>
+          <ol className="space-y-4">
+            {howItWorks.map((step) => (
+              <li key={step.number} className="flex gap-4">
+                <span className="flex-shrink-0 w-8 h-8 bg-indigo-500 text-white rounded-full flex items-center justify-center text-sm font-bold">{step.number}</span>
+                <div>
+                  <h4 className="font-semibold text-white mb-1">{step.title}</h4>
+                  <p className="text-white/70 text-sm">{step.description}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </div>
+      )}
 
       {/* Privacy Features */}
       <div className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 p-6 mb-8">
@@ -333,3 +335,5 @@ export default function SecurityPage() {
     </div>
   );
 }
+
+export const revalidate = 300; // Revalidate every 5 minutes

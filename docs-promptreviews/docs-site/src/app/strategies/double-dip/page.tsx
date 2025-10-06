@@ -1,10 +1,11 @@
 import type { Metadata } from 'next'
+import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import DocsLayout from '../../docs-layout'
 import PageHeader from '../../components/PageHeader'
-import { 
-  Target, 
-  ArrowRight, 
+import {
+  Target,
+  ArrowRight,
   ArrowLeft,
   RefreshCw,
   Share2,
@@ -14,22 +15,45 @@ import {
   MessageCircle,
   CheckCircle
 } from 'lucide-react'
+import { getArticleBySlug } from '@/lib/docs/articles'
 
-export const metadata: Metadata = {
-  title: 'Double Your Reviews: Turn Google Reviews into Yelp, Facebook & More',
-  description: 'Learn how to get reviews on multiple platforms from one customer. Import Google reviews and turn them into Yelp, Facebook, and other platform reviews.',
-  keywords: [
-    'double your reviews',
-    'get reviews on multiple platforms',
-    'Google reviews to Yelp',
-    'cross platform reviews',
-    'multiple platform reviews',
-    'turn Google reviews into other reviews',
-    'review multiplication strategy'
-  ],
-  alternates: {
-    canonical: 'https://docs.promptreviews.com/strategies/double-dip',
-  },
+const fallbackTitle = 'Double Your Reviews: Turn Google Reviews into Yelp, Facebook & More'
+const fallbackDescription = 'Learn how to get reviews on multiple platforms from one customer. Import Google reviews and turn them into Yelp, Facebook, and other platform reviews.'
+
+export async function generateMetadata(): Promise<Metadata> {
+  try {
+    const article = await getArticleBySlug('strategies/double-dip')
+    if (!article) {
+      return {
+        title: fallbackTitle,
+        description: fallbackDescription,
+        alternates: {
+          canonical: 'https://docs.promptreviews.app/strategies/double-dip',
+        },
+      }
+    }
+
+    const seoTitle = article.metadata?.seo_title || article.title || fallbackTitle
+    const seoDescription = article.metadata?.seo_description || article.metadata?.description || fallbackDescription
+
+    return {
+      title: `${seoTitle} | Prompt Reviews`,
+      description: seoDescription,
+      keywords: article.metadata?.keywords ?? [],
+      alternates: {
+        canonical: article.metadata?.canonical_url ?? 'https://docs.promptreviews.app/strategies/double-dip',
+      },
+    }
+  } catch (error) {
+    console.error('generateMetadata strategies/double-dip error:', error)
+    return {
+      title: fallbackTitle,
+      description: fallbackDescription,
+      alternates: {
+        canonical: 'https://docs.promptreviews.app/strategies/double-dip',
+      },
+    }
+  }
 }
 
 // JSON-LD structured data

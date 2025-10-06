@@ -56,6 +56,10 @@ interface StandardOverviewLayoutProps {
   howItWorks: Step[]
   bestPractices: BestPractice[]
   faqs: { question: string; answer: string }[]
+  keyFeaturesTitle?: string
+  howItWorksTitle?: string
+  bestPracticesTitle?: string
+  faqsTitle?: string
 
   // Call to action
   callToAction?: CallToAction
@@ -65,6 +69,9 @@ interface StandardOverviewLayoutProps {
     title: string
     content: React.ReactNode
   }
+
+  // Optional markdown content (for CMS-driven pages)
+  content?: string
 }
 
 const planLabels = {
@@ -87,8 +94,13 @@ export default function StandardOverviewLayout({
   howItWorks,
   bestPractices,
   faqs,
+  keyFeaturesTitle,
+  howItWorksTitle,
+  bestPracticesTitle,
+  faqsTitle,
   callToAction,
-  overview
+  overview,
+  content
 }: StandardOverviewLayoutProps) {
   return (
     <DocsLayout>
@@ -128,7 +140,7 @@ export default function StandardOverviewLayout({
 
         {/* Key Features */}
         <div className="mb-16">
-          <h2 className="text-3xl font-bold text-white mb-8 text-center">Key Features</h2>
+          <h2 className="text-3xl font-bold text-white mb-8 text-center">{keyFeaturesTitle || 'Key Features'}</h2>
 
           <div className="grid md:grid-cols-2 gap-6">
             {keyFeatures.map((feature) => (
@@ -155,7 +167,7 @@ export default function StandardOverviewLayout({
 
         {/* How It Works */}
         <div className="mb-16">
-          <h2 className="text-3xl font-bold text-white mb-8 text-center">How It Works</h2>
+          <h2 className="text-3xl font-bold text-white mb-8 text-center">{howItWorksTitle || 'How It Works'}</h2>
 
           <div className="space-y-6">
             {howItWorks.map((step) => (
@@ -175,7 +187,7 @@ export default function StandardOverviewLayout({
 
         {/* Best Practices */}
         <div className="mb-16">
-          <h2 className="text-3xl font-bold text-white mb-8 text-center">Best Practices</h2>
+          <h2 className="text-3xl font-bold text-white mb-8 text-center">{bestPracticesTitle || 'Best Practices'}</h2>
 
           <div className="bg-gradient-to-r from-purple-500/10 to-pink-500/10 backdrop-blur-md border border-white/20 rounded-xl p-8">
             <div className="space-y-6">
@@ -197,6 +209,7 @@ export default function StandardOverviewLayout({
         {/* FAQs */}
         <PageFAQs
           faqs={faqs}
+          title={faqsTitle}
           pageTitle={currentPage}
           pageUrl={`https://docs.promptreviews.app/${currentPage.toLowerCase().replace(/\s+/g, '-')}`}
         />

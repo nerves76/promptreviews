@@ -1,14 +1,33 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
 import { Globe, ChevronRight, Star, MapPin, ThumbsUp, Building2, Zap, Link2 } from 'lucide-react';
+import { getArticleBySlug } from '@/lib/articles';
+import { getIconComponent } from '@/lib/iconMapper';
 
-export const metadata: Metadata = {
-  title: 'Platform Integration - Connect with Major Review Sites | Prompt Reviews',
-  description: 'Seamlessly connect your prompt pages with Google, Facebook, Yelp, and other major review platforms for maximum visibility and streamlined review management.',
-  keywords: ['platform integration', 'google reviews', 'facebook reviews', 'yelp', 'review platforms', 'api integration'],
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const article = await getArticleBySlug('prompt-pages/features/integration');
 
-export default function IntegrationPage() {
+  if (!article) {
+    return {
+      title: 'Platform Integration | Prompt Reviews',
+    };
+  }
+
+  const seoTitle = article.metadata?.seo_title || article.title;
+  const seoDescription = article.metadata?.seo_description || article.metadata?.description || '';
+
+  return {
+    title: `${seoTitle} | Prompt Reviews`,
+    description: seoDescription,
+    keywords: article.metadata?.keywords || [],
+  };
+}
+
+export default async function IntegrationPage() {
+  const article = await getArticleBySlug('prompt-pages/features/integration');
+
+  const keyFeatures = article?.metadata?.key_features || [];
+  const howItWorks = article?.metadata?.how_it_works || [];
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
       {/* Breadcrumb */}
@@ -113,39 +132,22 @@ export default function IntegrationPage() {
       </div>
 
       {/* How It Works */}
-      <div className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 p-6 mb-8">
-        <h2 className="text-2xl font-bold text-white mb-6">How it works</h2>
-        <ol className="space-y-4">
-          <li className="flex gap-4">
-            <span className="flex-shrink-0 w-8 h-8 bg-indigo-500 text-white rounded-full flex items-center justify-center text-sm font-bold">1</span>
-            <div>
-              <h4 className="font-semibold text-white mb-1">Connect your platforms</h4>
-              <p className="text-white/70 text-sm">Link your Google Business Profile, Facebook Page, and other platforms to PromptReviews</p>
-            </div>
-          </li>
-          <li className="flex gap-4">
-            <span className="flex-shrink-0 w-8 h-8 bg-indigo-500 text-white rounded-full flex items-center justify-center text-sm font-bold">2</span>
-            <div>
-              <h4 className="font-semibold text-white mb-1">Configure routing rules</h4>
-              <p className="text-white/70 text-sm">Set up which types of reviews go to which platforms (e.g., positive to Google, constructive to you)</p>
-            </div>
-          </li>
-          <li className="flex gap-4">
-            <span className="flex-shrink-0 w-8 h-8 bg-indigo-500 text-white rounded-full flex items-center justify-center text-sm font-bold">3</span>
-            <div>
-              <h4 className="font-semibold text-white mb-1">Customer leaves review</h4>
-              <p className="text-white/70 text-sm">Customers are automatically directed to the appropriate platform based on their sentiment</p>
-            </div>
-          </li>
-          <li className="flex gap-4">
-            <span className="flex-shrink-0 w-8 h-8 bg-indigo-500 text-white rounded-full flex items-center justify-center text-sm font-bold">4</span>
-            <div>
-              <h4 className="font-semibold text-white mb-1">Track all reviews centrally</h4>
-              <p className="text-white/70 text-sm">View and manage reviews from all platforms in one unified dashboard</p>
-            </div>
-          </li>
-        </ol>
-      </div>
+      {howItWorks.length > 0 && (
+        <div className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 p-6 mb-8">
+          <h2 className="text-2xl font-bold text-white mb-6">How it works</h2>
+          <ol className="space-y-4">
+            {howItWorks.map((step) => (
+              <li key={step.number} className="flex gap-4">
+                <span className="flex-shrink-0 w-8 h-8 bg-indigo-500 text-white rounded-full flex items-center justify-center text-sm font-bold">{step.number}</span>
+                <div>
+                  <h4 className="font-semibold text-white mb-1">{step.title}</h4>
+                  <p className="text-white/70 text-sm">{step.description}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </div>
+      )}
 
       {/* Integration Features */}
       <div className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 p-6 mb-8">
@@ -333,3 +335,5 @@ export default function IntegrationPage() {
     </div>
   );
 }
+
+export const revalidate = 300; // Revalidate every 5 minutes

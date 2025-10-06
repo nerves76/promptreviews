@@ -1,10 +1,11 @@
 import type { Metadata } from 'next'
+import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import DocsLayout from '../../docs-layout'
 import PageHeader from '../../components/PageHeader'
-import { 
-  Heart, 
-  ArrowRight, 
+import {
+  Heart,
+  ArrowRight,
   ArrowLeft,
   Gift,
   Users,
@@ -14,22 +15,45 @@ import {
   CheckCircle,
   Smile
 } from 'lucide-react'
+import { getArticleBySlug } from '@/lib/docs/articles'
 
-export const metadata: Metadata = {
-  title: 'The Psychology of Getting Customer Reviews: Dr. Cialdini\'s Method',
-  description: 'Learn how to use psychology to get more customer reviews. Master Dr. Cialdini\'s reciprocity principle to increase review response rates naturally.',
-  keywords: [
-    'psychology of getting customer reviews',
-    'Dr. Cialdini review method',
-    'use psychology to get reviews',
-    'reciprocity principle reviews',
-    'customer review psychology',
-    'psychological triggers for reviews',
-    'how psychology helps get reviews'
-  ],
-  alternates: {
-    canonical: 'https://docs.promptreviews.com/strategies/reciprocity',
-  },
+const fallbackTitle = 'The Psychology of Getting Customer Reviews: Dr. Cialdini\'s Method'
+const fallbackDescription = 'Learn how to use psychology to get more customer reviews. Master Dr. Cialdini\'s reciprocity principle to increase review response rates naturally.'
+
+export async function generateMetadata(): Promise<Metadata> {
+  try {
+    const article = await getArticleBySlug('strategies/reciprocity')
+    if (!article) {
+      return {
+        title: fallbackTitle,
+        description: fallbackDescription,
+        alternates: {
+          canonical: 'https://docs.promptreviews.app/strategies/reciprocity',
+        },
+      }
+    }
+
+    const seoTitle = article.metadata?.seo_title || article.title || fallbackTitle
+    const seoDescription = article.metadata?.seo_description || article.metadata?.description || fallbackDescription
+
+    return {
+      title: `${seoTitle} | Prompt Reviews`,
+      description: seoDescription,
+      keywords: article.metadata?.keywords ?? [],
+      alternates: {
+        canonical: article.metadata?.canonical_url ?? 'https://docs.promptreviews.app/strategies/reciprocity',
+      },
+    }
+  } catch (error) {
+    console.error('generateMetadata strategies/reciprocity error:', error)
+    return {
+      title: fallbackTitle,
+      description: fallbackDescription,
+      alternates: {
+        canonical: 'https://docs.promptreviews.app/strategies/reciprocity',
+      },
+    }
+  }
 }
 
 // JSON-LD structured data

@@ -1,24 +1,74 @@
-import { Metadata } from 'next';
-import DocsLayout from '../../docs-layout';
-import PageHeader from '../../components/PageHeader';
-import { Code2, Shield, Database, Webhook, Globe, Key } from 'lucide-react';
+import type { Metadata } from 'next'
+import { notFound } from 'next/navigation'
+import DocsLayout from '../../docs-layout'
+import PageHeader from '../../components/PageHeader'
+import MarkdownRenderer from '../../components/MarkdownRenderer'
+import { getArticleBySlug } from '@/lib/docs/articles'
+import { Code2, Shield, Database, Webhook, Globe, Key } from 'lucide-react'
 
-export const metadata: Metadata = {
-  title: 'API Reference - PromptReviews Developer Documentation',
-  description: 'Complete API reference for PromptReviews. Detailed endpoint documentation, request/response examples, and integration guides.',
-  keywords: [
-    'PromptReviews API reference',
-    'API endpoints',
-    'REST API documentation',
-    'developer guide',
-    'API examples'
-  ],
-  alternates: {
-    canonical: 'https://docs.promptreviews.app/api/reference',
-  },
+const fallbackDescription = 'Complete API reference for PromptReviews. Detailed endpoint documentation, request/response examples, and integration guides.'
+
+export async function generateMetadata(): Promise<Metadata> {
+  try {
+    const article = await getArticleBySlug('api/reference')
+    if (!article) {
+      return {
+        title: 'API Reference - PromptReviews Developer Documentation',
+        description: fallbackDescription,
+        keywords: [
+          'PromptReviews API reference',
+          'API endpoints',
+          'REST API documentation',
+          'developer guide',
+          'API examples'
+        ],
+        alternates: {
+          canonical: 'https://docs.promptreviews.app/api/reference',
+        },
+      }
+    }
+
+    const seoTitle = article.metadata?.seo_title || article.title
+    const seoDescription = article.metadata?.seo_description || article.metadata?.description || fallbackDescription
+
+    return {
+      title: `${seoTitle} | Prompt Reviews`,
+      description: seoDescription,
+      keywords: article.metadata?.keywords ?? [
+        'PromptReviews API reference',
+        'API endpoints',
+        'REST API documentation',
+        'developer guide',
+        'API examples'
+      ],
+      alternates: {
+        canonical: article.metadata?.canonical_url ?? 'https://docs.promptreviews.app/api/reference',
+      },
+    }
+  } catch (error) {
+    console.error('generateMetadata api/reference error:', error)
+    return {
+      title: 'API Reference - PromptReviews Developer Documentation',
+      description: fallbackDescription,
+      alternates: {
+        canonical: 'https://docs.promptreviews.app/api/reference',
+      },
+    }
+  }
 }
 
-export default function APIReferencePage() {
+export default async function APIReferencePage() {
+  let article = null
+
+  try {
+    article = await getArticleBySlug('api/reference')
+  } catch (error) {
+    console.error('Error fetching api/reference article:', error)
+  }
+
+  if (!article) {
+    notFound()
+  }
   return (
     <DocsLayout>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -34,6 +84,11 @@ export default function APIReferencePage() {
           title="API Reference & Integration Guide"
           description="Complete endpoint documentation with examples, authentication guides, and best practices for integrating with PromptReviews."
         />
+
+        {/* Article Content */}
+        <div className="mb-12">
+          <MarkdownRenderer content={article.content} />
+        </div>
 
         {/* Base URL and Authentication */}
         <div className="mb-12">

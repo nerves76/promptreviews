@@ -1,6 +1,9 @@
 import type { Metadata } from 'next'
+import { notFound } from 'next/navigation'
 import StandardOverviewLayout from '../../components/StandardOverviewLayout'
+import MarkdownRenderer from '../../components/MarkdownRenderer'
 import { pageFAQs } from '../utils/faqData'
+import { getArticleBySlug } from '@/lib/docs/articles'
 import {
   BarChart3,
   Zap,
@@ -16,20 +19,42 @@ import {
   Database
 } from 'lucide-react'
 
-export const metadata: Metadata = {
-  title: 'Advanced Features - Analytics, Automation & API | Prompt Reviews Help',
-  description: 'Explore advanced features in Prompt Reviews including analytics, automation, API access, and custom integrations.',
-  keywords: [
-    'advanced features',
-    'analytics',
-    'automation',
-    'API access',
-    'custom integrations',
-    'webhooks'
-  ],
-  alternates: {
-    canonical: 'https://docs.promptreviews.app/advanced',
-  },
+const fallbackDescription = 'Explore advanced features in Prompt Reviews including analytics, automation, API access, and custom integrations.'
+
+export async function generateMetadata(): Promise<Metadata> {
+  try {
+    const article = await getArticleBySlug('advanced')
+    if (!article) {
+      return {
+        title: 'Advanced Features - Analytics, Automation & API | Prompt Reviews Help',
+        description: fallbackDescription,
+        alternates: {
+          canonical: 'https://docs.promptreviews.app/advanced',
+        },
+      }
+    }
+
+    const seoTitle = article.metadata?.seo_title || article.title
+    const seoDescription = article.metadata?.seo_description || article.metadata?.description || fallbackDescription
+
+    return {
+      title: `${seoTitle} | Prompt Reviews`,
+      description: seoDescription,
+      keywords: article.metadata?.keywords ?? [],
+      alternates: {
+        canonical: article.metadata?.canonical_url ?? 'https://docs.promptreviews.app/advanced',
+      },
+    }
+  } catch (error) {
+    console.error('generateMetadata advanced error:', error)
+    return {
+      title: 'Advanced Features - Analytics, Automation & API | Prompt Reviews Help',
+      description: fallbackDescription,
+      alternates: {
+        canonical: 'https://docs.promptreviews.app/advanced',
+      },
+    }
+  }
 }
 
 const keyFeatures = [
@@ -115,8 +140,6 @@ const bestPractices = [
   }
 ]
 
-// Note: Advanced features FAQs are not specifically defined in faqData.ts
-// Using general FAQs for now, but we should add specific advanced features FAQs
 const advancedFAQs = [
   {
     question: 'What analytics can I track in Prompt Reviews?',
@@ -140,7 +163,19 @@ const advancedFAQs = [
   }
 ]
 
-export default function AdvancedPage() {
+export default async function AdvancedPage() {
+  let article = null
+
+  try {
+    article = await getArticleBySlug('advanced')
+  } catch (error) {
+    console.error('Error fetching advanced article:', error)
+  }
+
+  if (!article) {
+    notFound()
+  }
+
   return (
     <StandardOverviewLayout
       title="Advanced features & analytics"
@@ -162,47 +197,7 @@ export default function AdvancedPage() {
       }}
       overview={{
         title: 'Power User Features',
-        content: (
-          <>
-            <p className="text-white/90 text-lg mb-6 text-center">
-              Unlock the full potential of review management with advanced analytics,
-              automation, API access, and enterprise-grade customization options.
-              Perfect for growing businesses and agencies.
-            </p>
-
-            <div className="grid md:grid-cols-3 gap-6">
-              <div className="text-center">
-                <div className="w-12 h-12 bg-pink-500/20 rounded-lg flex items-center justify-center mx-auto mb-3">
-                  <BarChart3 className="w-6 h-6 text-white" />
-                </div>
-                <h3 className="font-semibold text-white mb-2">Deep Analytics</h3>
-                <p className="text-white/80 text-sm">
-                  Comprehensive insights into performance and customer behavior
-                </p>
-              </div>
-
-              <div className="text-center">
-                <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center mx-auto mb-3">
-                  <Zap className="w-6 h-6 text-white" />
-                </div>
-                <h3 className="font-semibold text-white mb-2">Smart Automation</h3>
-                <p className="text-white/80 text-sm">
-                  AI-powered workflows that optimize timing and messaging
-                </p>
-              </div>
-
-              <div className="text-center">
-                <div className="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center mx-auto mb-3">
-                  <Code className="w-6 h-6 text-white" />
-                </div>
-                <h3 className="font-semibold text-white mb-2">API Integration</h3>
-                <p className="text-white/80 text-sm">
-                  Connect with your existing tools and build custom workflows
-                </p>
-              </div>
-            </div>
-          </>
-        )
+        content: <MarkdownRenderer content={article.content} />
       }}
     />
   )

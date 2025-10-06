@@ -1,16 +1,62 @@
 import { Metadata } from 'next';
+import { notFound } from 'next/navigation'
 import DocsLayout from '../docs-layout';
 import PageHeader from '../components/PageHeader';
+import MarkdownRenderer from '../components/MarkdownRenderer'
 import Link from 'next/link';
+import { getArticleBySlug } from '@/lib/docs/articles'
 import { Settings, Building, Palette, Users, CreditCard, BarChart3, ArrowRight, Shield, Bell, Globe } from 'lucide-react';
+import * as Icons from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 
-export const metadata: Metadata = {
-  title: 'Settings & Configuration Overview | Prompt Reviews',
-  description: 'Manage your Prompt Reviews account settings, business profile, team members, billing, and customization options.',
-  keywords: 'settings, configuration, account management, business profile, team, billing, analytics, prompt reviews',
-};
+const fallbackDescription = 'Manage your Prompt Reviews account settings, business profile, team members, billing, and customization options.'
 
-export default function SettingsOverviewPage() {
+function resolveIcon(iconName: string | undefined, fallback: LucideIcon): LucideIcon {
+  if (!iconName) return fallback
+  const lookup = Icons as Record<string, unknown>
+  const maybeIcon = lookup[iconName]
+  if (typeof maybeIcon === 'function') return maybeIcon as LucideIcon
+  return fallback
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  try {
+    const article = await getArticleBySlug('settings')
+    if (!article) {
+      return {
+        title: 'Settings & Configuration Overview | Prompt Reviews',
+        description: fallbackDescription,
+        alternates: { canonical: 'https://docs.promptreviews.app/settings' },
+      }
+    }
+
+    const seoTitle = article.metadata?.seo_title || article.title
+    const seoDescription = article.metadata?.seo_description || article.metadata?.description || fallbackDescription
+
+    return {
+      title: `${seoTitle} | Prompt Reviews`,
+      description: seoDescription,
+      keywords: article.metadata?.keywords ?? ['settings', 'configuration', 'account management', 'business profile', 'team', 'billing', 'analytics', 'prompt reviews'],
+      alternates: { canonical: article.metadata?.canonical_url ?? 'https://docs.promptreviews.app/settings' },
+    }
+  } catch (error) {
+    console.error('generateMetadata settings error:', error)
+    return {
+      title: 'Settings & Configuration Overview | Prompt Reviews',
+      description: fallbackDescription,
+      alternates: { canonical: 'https://docs.promptreviews.app/settings' },
+    }
+  }
+}
+
+export default async function SettingsOverviewPage() {
+  const article = await getArticleBySlug('settings')
+  if (!article) {
+    notFound()
+  }
+
+  const CategoryIcon = resolveIcon(article.metadata?.category_icon, Settings)
+
   return (
     <DocsLayout>
       <div className="max-w-4xl mx-auto">
@@ -18,26 +64,22 @@ export default function SettingsOverviewPage() {
           breadcrumbs={[
             { label: 'Help', href: '/' }
           ]}
-          currentPage="Settings"
-          categoryLabel="Settings & Configuration"
-          categoryIcon={Settings}
-          categoryColor="gray"
-          title="Settings & configuration"
-          description="Customize and manage every aspect of your Prompt Reviews account"
+          currentPage={article.metadata?.current_page || "Settings"}
+          categoryLabel={article.metadata?.category_label || "Settings & Configuration"}
+          categoryIcon={CategoryIcon}
+          categoryColor={(article.metadata?.category_color as any) || "gray"}
+          title={article.title || "Settings & configuration"}
+          description={article.metadata?.description || "Customize and manage every aspect of your Prompt Reviews account"}
         />
 
         {/* Introduction */}
-        <div className="mb-12">
-          <div className="bg-gradient-to-r from-gray-500/10 to-blue-500/10 backdrop-blur-md border border-white/20 rounded-xl p-8">
-            <p className="text-white/90 text-lg mb-4">
-              Your settings dashboard is the control center for your Prompt Reviews account.
-              Configure your business profile, manage team access, customize branding, and monitor your subscription—all in one place.
-            </p>
-            <p className="text-white/80">
-              Each setting impacts how customers interact with your review requests and how your team collaborates on reputation management.
-            </p>
+        {article.content && (
+          <div className="mb-12">
+            <div className="bg-gradient-to-r from-gray-500/10 to-blue-500/10 backdrop-blur-md border border-white/20 rounded-xl p-8">
+              <MarkdownRenderer content={article.content} />
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Settings Categories Grid */}
         <div className="grid md:grid-cols-2 gap-8 mb-12">
