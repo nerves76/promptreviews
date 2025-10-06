@@ -450,7 +450,18 @@ Designed for a multi-agent workflow (human + AI). Each agent owns artifacts, han
 
 ---
 
-## 13. Testing Strategy
+## 13. Operational Safeguards
+
+- Guard launch behind feature flags (`community`, `community_realtime`, `community_digests`, `community_broadcasts`, `community_sharing`) so any issue can be rolled back instantly.
+- Require staging dry-runs for every migration and summary job using a seeded multi-account snapshot; capture results and rollback SQL in `/docs/community/migrations`.
+- Rehearse rollout in staging before enabling in production: test account switching, posting, `@everyone`, digest share, and rollback toggles end-to-end.
+- Maintain a lightweight regression checklist (stored in `/docs/community/checklists.md`) covering core flows; owners run it before expanding access beyond the internal team.
+- Keep a living status brief at `/docs/community/status.md` that each agent updates on handoff with current flags, open questions, and next actions.
+- Include feature-flag review, migration status, and guideline/broadcast checks in the agent handoff checklist to reduce missed steps or context loss.
+
+---
+
+## 14. Testing Strategy
 
 - **Unit Tests**: handle generator, mention parser, reaction toggles, permission checks, account-switching guards, digest share link generation.
 - **Integration Tests**: Supabase SQL tests verifying RLS across multi-account scenarios, summary posting functions, RPC functions (using supabase-js in CI).
@@ -461,7 +472,7 @@ Designed for a multi-agent workflow (human + AI). Each agent owns artifacts, han
 
 ---
 
-## 14. Analytics & Telemetry
+## 15. Analytics & Telemetry
 
 - Track events: `community_viewed`, `post_created`, `comment_created`, `reaction_added`, `mention_received`, `broadcast_everyone_sent`, `monthly_summary_posted`, `weekly_summary_posted`, `guidelines_acknowledged`, `account_switch_in_community`, `post_saved`, `digest_shared`.
 - Store event payloads in existing analytics pipeline keyed by `account_id`.
@@ -470,7 +481,7 @@ Designed for a multi-agent workflow (human + AI). Each agent owns artifacts, han
 
 ---
 
-## 15. Risks & Mitigations
+## 16. Risks & Mitigations
 
 - **Low Engagement**: seed conversation with Prompt Reviews team posts, add prompts in onboarding, highlight top posts in dashboard.
 - **Spam / Abuse**: throttle post creation (5 per minute), add soft profanity filter, allow admins to hide content quickly.
@@ -482,7 +493,7 @@ Designed for a multi-agent workflow (human + AI). Each agent owns artifacts, han
 
 ---
 
-## 16. Open Questions
+## 17. Open Questions
 
 - Do we need business-specific private channels in near term?
 - Should monthly summaries post in business-specific channels vs global ones?
@@ -495,7 +506,7 @@ Designed for a multi-agent workflow (human + AI). Each agent owns artifacts, han
 
 ---
 
-## 17. Next Steps
+## 18. Next Steps
 
 - Confirm product assumptions with stakeholders, including guidelines content, saved/pinned behavior, and digest sharing UX.
 - Assign agent owners and create initial tasks in tracking system.

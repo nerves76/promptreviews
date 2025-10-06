@@ -9,10 +9,12 @@
 
 import Stripe from 'stripe';
 
-// Initialize Stripe
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-07-30.basil'
-});
+// Lazy initialization to avoid build-time env var access
+function getStripeClient() {
+  return new Stripe(process.env.STRIPE_SECRET_KEY!, {
+    apiVersion: '2025-07-30.basil'
+  });
+}
 
 // ============================================
 // TYPES
@@ -64,7 +66,8 @@ const REACTIVATION_COUPONS = {
  * Ensure reactivation coupons exist in Stripe
  */
 export async function ensureReactivationCoupons(): Promise<void> {
-  
+  const stripe = getStripeClient();
+
   for (const [billingType, config] of Object.entries(REACTIVATION_COUPONS)) {
     try {
       // Check if coupon exists
@@ -173,17 +176,18 @@ export async function applyReactivationOffer(
  * Delete old coupons (cleanup)
  */
 export async function deleteOldReactivationCoupons(): Promise<void> {
+  const stripe = getStripeClient();
   const oldCouponIds = [
     'COMEBACK50',
-    'WINBACK25', 
+    'WINBACK25',
     'LOYALTY20',
     'PR_WELCOME_BACK_50',
     'PR_MISSED_YOU_25',
     'PR_VALUED_CUSTOMER_20',
     'PR_THANKS_20'
   ];
-  
-  
+
+
   for (const couponId of oldCouponIds) {
     try {
       await stripe.coupons.del(couponId);
@@ -200,15 +204,16 @@ export async function deleteOldReactivationCoupons(): Promise<void> {
  * CLI command to setup new coupons
  */
 export async function setupSimplifiedCoupons(): Promise<void> {
-  
+  const stripe = getStripeClient();
+
   try {
     // First, clean up old coupons
     await deleteOldReactivationCoupons();
-    
+
     // Then create new ones
     await ensureReactivationCoupons();
-    
-    
+
+
     // List the new coupons
     const coupons = await stripe.coupons.list({ limit: 10 });
     coupons.data

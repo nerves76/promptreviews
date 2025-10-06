@@ -7,7 +7,10 @@
 import { createServiceRoleClient } from '@/auth/providers/supabase';
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Lazy initialization to avoid build-time env var access
+function getResendClient() {
+  return new Resend(process.env.RESEND_API_KEY);
+}
 
 interface EmailTemplate {
   id: string;
@@ -108,8 +111,8 @@ export async function sendTemplatedEmail(
     if (!template) {
       // If template not found and we have fallbacks, use them
       if (fallbackSubject && fallbackHtml) {
-        
-        const result = await resend.emails.send({
+
+        const result = await getResendClient().emails.send({
           from: "Prompt Reviews <team@updates.promptreviews.app>",
           to: emailTo,
           subject: fallbackSubject,
@@ -145,7 +148,7 @@ export async function sendTemplatedEmail(
       : undefined;
 
     // Send the email
-    const result = await resend.emails.send({
+    const result = await getResendClient().emails.send({
       from: "Prompt Reviews <team@updates.promptreviews.app>",
       to: emailTo,
       subject,
@@ -206,8 +209,8 @@ export async function sendAdminNewUserNotification(
         results.push({ email: adminEmail, success: true });
       } else {
         // Fallback to direct email if template doesn't exist
-        
-        const result = await resend.emails.send({
+
+        const result = await getResendClient().emails.send({
           from: "Prompt Reviews <alerts@updates.promptreviews.app>",
           to: adminEmail,
           subject: `New user joined: ${userFirstName} ${userLastName}`,

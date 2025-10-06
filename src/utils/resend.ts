@@ -1,10 +1,16 @@
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY!);
+// Lazy initialization to avoid build-time env var access
+function getResendClient() {
+  return new Resend(process.env.RESEND_API_KEY!);
+}
 
-export { resend };
-// To enable hard-coding, the toggle script can swap the above line with:
-// const resend = new Resend("your-hardcoded-resend-key-here");
+// Export getter function instead of client instance
+export const resend = {
+  get client() {
+    return getResendClient();
+  }
+};
 
 export async function sendResendEmail({
   to,
@@ -20,7 +26,8 @@ export async function sendResendEmail({
   from?: string;
 }) {
   try {
-    const data = await resend.emails.send({
+    const resendClient = getResendClient();
+    const data = await resendClient.emails.send({
       from,
       to,
       subject,

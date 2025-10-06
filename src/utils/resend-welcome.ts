@@ -1,7 +1,10 @@
 import { Resend } from "resend";
 import { sendWelcomeEmail as sendTemplatedWelcomeEmail } from "./emailTemplates";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Lazy initialization to avoid build-time env var access
+function getResendClient() {
+  return new Resend(process.env.RESEND_API_KEY);
+}
 
 export const sendWelcomeEmail = async (email: string, name: string) => {
   try {
@@ -41,6 +44,7 @@ export const sendReviewNotificationEmail = async (
 Chris`;
 
   try {
+    const resend = getResendClient();
     const result = await resend.emails.send({
       from: "Prompt Reviews <hello@updates.promptreviews.app>",
       to: email,
