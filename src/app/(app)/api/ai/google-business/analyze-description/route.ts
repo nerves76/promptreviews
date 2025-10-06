@@ -10,9 +10,12 @@ import OpenAI from 'openai';
 import { createServerSupabaseClient } from '@/auth/providers/supabase';
 import { getAccountIdForUser } from '@/auth/utils/accounts';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+// Create OpenAI client inside request handler to avoid build-time env var access
+function getOpenAIClient() {
+  return new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+  });
+}
 
 interface AnalysisRequest {
   description: string;
@@ -119,6 +122,7 @@ Focus on:
 IMPORTANT: Aim for 400-700 characters for optimal impact and readability. This length provides comprehensive information while maintaining user engagement. Include multiple keywords, strong calls-to-action, and comprehensive details within this range for best results.`;
 
     // Call OpenAI API
+    const openai = getOpenAIClient();
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o',
       messages: [

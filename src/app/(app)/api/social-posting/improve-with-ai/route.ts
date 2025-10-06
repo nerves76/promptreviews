@@ -11,9 +11,12 @@ interface ImprovementRequest {
   imageCount?: number;
 }
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+// Create OpenAI client inside request handler to avoid build-time env var access
+function getOpenAIClient() {
+  return new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+  });
+}
 
 const AI_IMPROVEMENT_PROMPT = `You are a senior local SEO and copywriting expert writing Google Business Profile posts that improve local visibility and engagement.
 
@@ -107,6 +110,7 @@ export async function POST(request: NextRequest) {
     contextPrompt += `\n\nImprove the current post content to be more engaging, locally optimized, and effective for Google Business Profile. Keep the improved content under 1,500 characters.`;
 
     // Call OpenAI API
+    const openai = getOpenAIClient();
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o',
       messages: [
