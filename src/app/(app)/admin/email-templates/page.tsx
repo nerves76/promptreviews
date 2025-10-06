@@ -142,7 +142,18 @@ export default function EmailTemplatesPage() {
       businessName: 'Example Business',
       dashboardUrl: 'https://app.promptreviews.app/dashboard',
       loginUrl: 'https://app.promptreviews.app/auth/sign-in',
-      upgradeUrl: 'https://app.promptreviews.app/dashboard/plan'
+      upgradeUrl: 'https://app.promptreviews.app/dashboard/plan',
+      promptPagesUrl: 'https://app.promptreviews.app/dashboard/edit-prompt-page/universal',
+      businessProfileUrl: 'https://app.promptreviews.app/dashboard/business-profile',
+      widgetUrl: 'https://app.promptreviews.app/dashboard/widget',
+      reviewsUrl: 'https://app.promptreviews.app/dashboard/reviews',
+      contactsUrl: 'https://app.promptreviews.app/dashboard/contacts',
+      analyticsUrl: 'https://app.promptreviews.app/dashboard/analytics',
+      planUrl: 'https://app.promptreviews.app/dashboard/plan',
+      teamUrl: 'https://app.promptreviews.app/dashboard/team',
+      googleBusinessUrl: 'https://app.promptreviews.app/dashboard/google-business',
+      communityUrl: 'https://app.promptreviews.app/dashboard/community',
+      gameUrl: 'https://app.promptreviews.app/game'
     };
 
     let previewContent = formData.html_content;
@@ -345,14 +356,30 @@ export default function EmailTemplatesPage() {
               {/* Variable Reference */}
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <h4 className="font-medium text-blue-900 mb-2">Available Variables</h4>
-                <div className="text-sm text-blue-800 space-y-1">
-                  <p><code>{'{{firstName}}'}</code> - User's first name</p>
-                  <p><code>{'{{lastName}}'}</code> - User's last name</p>
-                  <p><code>{'{{email}}'}</code> - User's email address</p>
-                  <p><code>{'{{businessName}}'}</code> - Business name</p>
-                  <p><code>{'{{dashboardUrl}}'}</code> - Dashboard URL</p>
-                  <p><code>{'{{loginUrl}}'}</code> - Login URL</p>
-                  <p><code>{'{{upgradeUrl}}'}</code> - Upgrade URL</p>
+                <div className="text-sm text-blue-800 grid grid-cols-2 gap-x-4 gap-y-1">
+                  <div>
+                    <p className="font-medium text-blue-900 mb-1">User Info</p>
+                    <p><code>{'{{firstName}}'}</code> - User's first name</p>
+                    <p><code>{'{{lastName}}'}</code> - User's last name</p>
+                    <p><code>{'{{email}}'}</code> - User's email address</p>
+                    <p><code>{'{{businessName}}'}</code> - Business name</p>
+                  </div>
+                  <div>
+                    <p className="font-medium text-blue-900 mb-1">Page URLs</p>
+                    <p><code>{'{{dashboardUrl}}'}</code> - Main dashboard</p>
+                    <p><code>{'{{loginUrl}}'}</code> - Login page</p>
+                    <p><code>{'{{promptPagesUrl}}'}</code> - Prompt Pages</p>
+                    <p><code>{'{{businessProfileUrl}}'}</code> - Business profile</p>
+                    <p><code>{'{{widgetUrl}}'}</code> - Widget management</p>
+                    <p><code>{'{{reviewsUrl}}'}</code> - Reviews dashboard</p>
+                    <p><code>{'{{contactsUrl}}'}</code> - Contacts</p>
+                    <p><code>{'{{analyticsUrl}}'}</code> - Analytics</p>
+                    <p><code>{'{{planUrl}}'}</code> - Pricing/plan page</p>
+                    <p><code>{'{{teamUrl}}'}</code> - Team management</p>
+                    <p><code>{'{{googleBusinessUrl}}'}</code> - Google Business</p>
+                    <p><code>{'{{communityUrl}}'}</code> - Community page</p>
+                    <p><code>{'{{gameUrl}}'}</code> - Get Found Online game</p>
+                  </div>
                 </div>
               </div>
             </div>

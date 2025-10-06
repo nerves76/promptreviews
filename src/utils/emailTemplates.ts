@@ -127,16 +127,25 @@ export async function sendTemplatedEmail(
     }
 
     // Set default URLs if not provided
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://app.promptreviews.app';
     const defaultVariables: TemplateVariables = {
-      dashboardUrl: process.env.NEXT_PUBLIC_APP_URL 
-        ? `${process.env.NEXT_PUBLIC_APP_URL}/dashboard`
-        : 'https://app.promptreviews.app/dashboard',
-      loginUrl: process.env.NEXT_PUBLIC_APP_URL 
-        ? `${process.env.NEXT_PUBLIC_APP_URL}/auth/sign-in`
-        : 'https://app.promptreviews.app/auth/sign-in',
-      upgradeUrl: process.env.NEXT_PUBLIC_APP_URL 
-        ? `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/plan`
-        : 'https://app.promptreviews.app/dashboard/plan',
+      dashboardUrl: `${baseUrl}/dashboard`,
+      loginUrl: `${baseUrl}/auth/sign-in`,
+      upgradeUrl: `${baseUrl}/dashboard/plan`,
+
+      // Dashboard page URLs
+      promptPagesUrl: `${baseUrl}/dashboard/edit-prompt-page/universal`,
+      businessProfileUrl: `${baseUrl}/dashboard/business-profile`,
+      widgetUrl: `${baseUrl}/dashboard/widget`,
+      reviewsUrl: `${baseUrl}/dashboard/reviews`,
+      contactsUrl: `${baseUrl}/dashboard/contacts`,
+      analyticsUrl: `${baseUrl}/dashboard/analytics`,
+      planUrl: `${baseUrl}/dashboard/plan`,
+      teamUrl: `${baseUrl}/dashboard/team`,
+      googleBusinessUrl: `${baseUrl}/dashboard/google-business`,
+      communityUrl: `${baseUrl}/dashboard/community`,
+      gameUrl: `${baseUrl}/game`,
+
       ...emailVariables
     };
 
