@@ -5,11 +5,6 @@ import PageHeader from '../../components/PageHeader'
 import MarkdownRenderer from '../../components/MarkdownRenderer'
 import { getArticleBySlug } from '@/lib/docs/articles'
 import { Code2, Shield, Database, Webhook, Globe, Key } from 'lucide-react'
-
-// Revalidate every 60 seconds - allows CMS updates to show without redeployment
-export const revalidate = 60
-
-
 const fallbackDescription = 'Complete API reference for PromptReviews. Detailed endpoint documentation, request/response examples, and integration guides.'
 
 export async function generateMetadata(): Promise<Metadata> {

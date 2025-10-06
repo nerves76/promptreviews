@@ -18,10 +18,6 @@ import {
   Webhook,
   Database
 } from 'lucide-react'
-
-// Revalidate every 60 seconds - allows CMS updates to show without redeployment
-export const revalidate = 60
-
 const fallbackDescription = 'Explore advanced features in Prompt Reviews including analytics, automation, API access, and custom integrations.'
 
 export async function generateMetadata(): Promise<Metadata> {

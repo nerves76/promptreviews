@@ -22,10 +22,6 @@ import {
   ArrowRight,
   AlertTriangle
 } from 'lucide-react'
-
-// Revalidate every 60 seconds - allows CMS updates to show without redeployment
-export const revalidate = 60
-
 const fallbackDescription = 'Learn how to import, organize, and manage your customer contacts in Prompt Reviews. From CSV uploads to manual entry, discover best practices for building your review request database.'
 
 export async function generateMetadata(): Promise<Metadata> {

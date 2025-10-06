@@ -18,10 +18,6 @@ import {
   Info,
   ChevronRight
 } from 'lucide-react'
-
-// Revalidate every 60 seconds - allows CMS updates to show without redeployment
-export const revalidate = 60
-
 const fallbackDescription = 'Learn how to configure global settings that affect all your prompt pages, including AI guidelines, keywords, and default features for new pages.'
 
 export async function generateMetadata(): Promise<Metadata> {

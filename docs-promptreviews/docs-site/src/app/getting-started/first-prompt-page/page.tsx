@@ -3,11 +3,6 @@ import { notFound } from 'next/navigation'
 import DocsLayout from '../../docs-layout'
 import MarkdownRenderer from '../../components/MarkdownRenderer'
 import { getArticleBySlug } from '@/lib/docs/articles'
-
-// Revalidate every 60 seconds - allows CMS updates to show without redeployment
-export const revalidate = 60
-
-
 const fallbackDescription = 'Learn how to create your first personalized review request page with AI-powered content generation in Prompt Reviews.'
 
 export async function generateMetadata(): Promise<Metadata> {

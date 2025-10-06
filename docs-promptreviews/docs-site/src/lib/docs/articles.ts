@@ -75,10 +75,10 @@ function getSupabaseClient() {
     },
     global: {
       fetch: (url, options = {}) => {
-        // Configure Next.js fetch cache for ISR
+        // Disable caching - always fetch fresh data from database
         return fetch(url, {
           ...options,
-          next: { revalidate: 60, tags: ['articles'] }
+          cache: 'no-store'
         })
       }
     }

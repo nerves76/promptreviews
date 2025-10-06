@@ -7,11 +7,6 @@ import PageHeader from '../components/PageHeader'
 import MarkdownRenderer from '../components/MarkdownRenderer'
 import FAQClient from './faq-client'
 import { getArticleBySlug } from '@/lib/docs/articles'
-
-// Revalidate every 60 seconds - allows CMS updates to show without redeployment
-export const revalidate = 60
-
-
 const fallbackDescription = 'Complete FAQ covering all Prompt Reviews features - setup, prompt pages, AI reviews, Google Business integration, pricing, and technical support.'
 
 export async function generateMetadata(): Promise<Metadata> {

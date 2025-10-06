@@ -16,11 +16,6 @@ import {
   CheckCircle
 } from 'lucide-react'
 import { getArticleBySlug } from '@/lib/docs/articles'
-
-// Revalidate every 60 seconds - allows CMS updates to show without redeployment
-export const revalidate = 60
-
-
 const fallbackTitle = 'Double Your Reviews: Turn Google Reviews into Yelp, Facebook & More'
 const fallbackDescription = 'Learn how to get reviews on multiple platforms from one customer. Import Google reviews and turn them into Yelp, Facebook, and other platform reviews.'
 

@@ -3,11 +3,6 @@ import { notFound } from 'next/navigation'
 import DocsLayout from '../../docs-layout'
 import MarkdownRenderer from '../../components/MarkdownRenderer'
 import { getArticleBySlug } from '@/lib/docs/articles'
-
-// Revalidate every 60 seconds - allows CMS updates to show without redeployment
-export const revalidate = 60
-
-
 const fallbackDescription = 'Create your Prompt Reviews account and set up your business profile to start collecting customer reviews.'
 
 export async function generateMetadata(): Promise<Metadata> {

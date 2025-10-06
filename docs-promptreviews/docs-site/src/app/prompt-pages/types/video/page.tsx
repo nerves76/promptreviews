@@ -5,11 +5,6 @@ import type { LucideIcon } from 'lucide-react'
 import StandardOverviewLayout from '../../../../components/StandardOverviewLayout'
 import { pageFAQs } from '../../../utils/faqData'
 import { getArticleBySlug } from '@/lib/docs/articles'
-
-// Revalidate every 60 seconds - allows CMS updates to show without redeployment
-export const revalidate = 60
-
-
 const { Video, Sparkles } = Icons
 
 const fallbackDescription = 'Collect powerful video testimonials that showcase authentic customer experiences. Perfect for high-value services, personal brands, and businesses where trust is paramount.'

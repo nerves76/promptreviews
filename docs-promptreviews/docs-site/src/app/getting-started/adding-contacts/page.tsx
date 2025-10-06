@@ -3,11 +3,6 @@ import { notFound } from 'next/navigation'
 import DocsLayout from '../../docs-layout'
 import MarkdownRenderer from '../../components/MarkdownRenderer'
 import { getArticleBySlug } from '@/lib/docs/articles'
-
-// Revalidate every 60 seconds - allows CMS updates to show without redeployment
-export const revalidate = 60
-
-
 const fallbackDescription = 'Learn how to import your customer database or manually add contacts to start sending personalized review requests.'
 
 export async function generateMetadata(): Promise<Metadata> {

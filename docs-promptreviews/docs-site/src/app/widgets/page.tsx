@@ -24,11 +24,6 @@ import {
 } from 'lucide-react'
 import * as Icons from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
-
-// Revalidate every 60 seconds - allows CMS updates to show without redeployment
-export const revalidate = 60
-
-
 const fallbackDescription = 'Learn how to create and customize review widgets. Display customer reviews on your website with customizable widgets that match your brand.'
 
 function resolveIcon(iconName: string | undefined, fallback: LucideIcon): LucideIcon {

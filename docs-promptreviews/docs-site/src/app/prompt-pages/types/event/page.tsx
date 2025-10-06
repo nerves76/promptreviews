@@ -5,11 +5,6 @@ import type { LucideIcon } from 'lucide-react'
 import StandardOverviewLayout from '../../../../components/StandardOverviewLayout'
 import { pageFAQs } from '../../../utils/faqData'
 import { getArticleBySlug } from '@/lib/docs/articles'
-
-// Revalidate every 60 seconds - allows CMS updates to show without redeployment
-export const revalidate = 60
-
-
 const { Calendar, Sparkles } = Icons
 
 const fallbackDescription = 'Capture feedback from events, workshops, conferences, and special occasions. Perfect for event planners, venues, educators, and anyone hosting memorable experiences.'

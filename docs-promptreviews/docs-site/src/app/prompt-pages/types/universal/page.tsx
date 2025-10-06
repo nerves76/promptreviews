@@ -5,11 +5,6 @@ import type { LucideIcon } from 'lucide-react'
 import StandardOverviewLayout from '../../../../components/StandardOverviewLayout'
 import { pageFAQs } from '../../../utils/faqData'
 import { getArticleBySlug } from '@/lib/docs/articles'
-
-// Revalidate every 60 seconds - allows CMS updates to show without redeployment
-export const revalidate = 60
-
-
 const { Globe, Sparkles } = Icons
 
 const fallbackDescription = 'The all-purpose review collection solution. One page that works for any customer, any time, anywhere. Perfect for businesses that want a simple, always-ready review collection tool.'

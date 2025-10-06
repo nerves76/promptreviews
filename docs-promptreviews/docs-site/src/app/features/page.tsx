@@ -6,11 +6,6 @@ import MarkdownRenderer from '../components/MarkdownRenderer'
 import Link from 'next/link'
 import { getArticleBySlug } from '@/lib/docs/articles'
 import { Star, Layout, MessageCircle, Bot, ArrowRight, Sparkles, Target, Share2 } from 'lucide-react'
-
-// Revalidate every 60 seconds - allows CMS updates to show without redeployment
-export const revalidate = 60
-
-
 const fallbackDescription = 'Explore all the powerful features of Prompt Reviews including prompt pages, review widgets, AI-powered content, and more.'
 
 export async function generateMetadata(): Promise<Metadata> {

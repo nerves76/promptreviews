@@ -8,11 +8,6 @@ import { getArticleBySlug } from '@/lib/docs/articles'
 import { HelpCircle, BookOpen, AlertTriangle, Lightbulb, Zap, ArrowRight, Search, MessageSquare, Users, Sparkles } from 'lucide-react';
 import * as Icons from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
-
-// Revalidate every 60 seconds - allows CMS updates to show without redeployment
-export const revalidate = 60
-
-
 const fallbackDescription = 'Find help with getting started, troubleshooting issues, learning strategies, and mastering advanced features in Prompt Reviews.'
 
 function resolveIcon(iconName: string | undefined, fallback: LucideIcon): LucideIcon {

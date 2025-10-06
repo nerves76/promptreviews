@@ -18,10 +18,6 @@ import {
   Shield,
   Info
 } from 'lucide-react'
-
-// Revalidate every 60 seconds - allows CMS updates to show without redeployment
-export const revalidate = 60
-
 const fallbackDescription = 'Learn how to upgrade or downgrade your Prompt Reviews plan, understand prorated billing, and manage plan transitions smoothly.'
 
 export async function generateMetadata(): Promise<Metadata> {

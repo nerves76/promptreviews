@@ -24,10 +24,6 @@ import {
   Sparkles,
   Link2
 } from 'lucide-react'
-
-// Revalidate every 60 seconds - allows CMS updates to show without redeployment
-export const revalidate = 60
-
 const fallbackDescription = 'Complete API documentation for PromptReviews. Learn how to integrate review collection, manage widgets, handle webhooks, and automate your review process.'
 
 export async function generateMetadata(): Promise<Metadata> {

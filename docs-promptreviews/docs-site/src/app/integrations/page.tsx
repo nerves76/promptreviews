@@ -8,11 +8,6 @@ import { getArticleBySlug } from '@/lib/docs/articles'
 import { Globe, Building2, TrendingUp, ArrowRight, CheckCircle, Star, MessageSquare, Upload, Users, Shield } from 'lucide-react';
 import * as Icons from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
-
-// Revalidate every 60 seconds - allows CMS updates to show without redeployment
-export const revalidate = 60
-
-
 const fallbackDescription = 'Connect Prompt Reviews with Google Business Profile and other platforms to streamline your review management workflow.'
 
 function resolveIcon(iconName: string | undefined, fallback: LucideIcon): LucideIcon {

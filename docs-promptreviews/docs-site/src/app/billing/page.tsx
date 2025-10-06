@@ -5,11 +5,6 @@ import MarkdownRenderer from '../../components/MarkdownRenderer'
 import { pageFAQs } from '../utils/faqData'
 import { getArticleBySlug } from '@/lib/docs/articles'
 import { CreditCard, Check, X, ArrowUp, ArrowDown, DollarSign, Calendar, Shield, AlertCircle, ArrowRight, Clock, Users, Percent, RefreshCw } from 'lucide-react'
-
-// Revalidate every 60 seconds - allows CMS updates to show without redeployment
-export const revalidate = 60
-
-
 const fallbackDescription = 'Comprehensive guide to managing your Prompt Reviews subscription, upgrading/downgrading plans, billing history, and payment methods.'
 
 export async function generateMetadata(): Promise<Metadata> {
