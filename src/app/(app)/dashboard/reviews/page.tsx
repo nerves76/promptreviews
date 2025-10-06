@@ -406,15 +406,15 @@ export default function ReviewsPage() {
           const reviewIds = existingReviews.map(r => r.id);
           const { data: shareEvents } = await supabase
             .from('review_share_events')
-            .select('review_id, shared_at')
+            .select('review_id, timestamp')
             .in('review_id', reviewIds)
-            .order('shared_at', { ascending: false });
+            .order('timestamp', { ascending: false });
 
-          // Create a map of review_id to most recent shared_at
+          // Create a map of review_id to most recent timestamp
           const lastSharedMap = new Map<string, string>();
           shareEvents?.forEach(event => {
             if (!lastSharedMap.has(event.review_id)) {
-              lastSharedMap.set(event.review_id, event.shared_at);
+              lastSharedMap.set(event.review_id, event.timestamp);
             }
           });
 
