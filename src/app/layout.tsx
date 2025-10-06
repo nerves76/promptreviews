@@ -15,6 +15,11 @@ import IconSpriteInjector from "./(app)/components/IconSpriteInjector";
 import GlobalLocalStorageMigration from "./(app)/components/GlobalLocalStorageMigration";
 import { GlobalRefreshMonitor } from "./(app)/components/GlobalRefreshMonitor";
 import { UltimateRefreshDebugger } from "./(app)/components/UltimateRefreshDebugger";
+import { NavigationDebugger } from "./(app)/components/NavigationDebugger";
+
+const enableDebugTools =
+  process.env.NODE_ENV === "development" ||
+  process.env.NEXT_PUBLIC_REFRESH_DEBUG === "true";
 
 export const metadata: Metadata = {
   title: "PromptReviews - Get More Reviews",
@@ -47,7 +52,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <IconSpriteInjector />
               <GlobalLocalStorageMigration />
               <GlobalRefreshMonitor />
-              {process.env.NODE_ENV === "development" && <UltimateRefreshDebugger />}
+              {enableDebugTools && <UltimateRefreshDebugger />}
+              {enableDebugTools && <NavigationDebugger />}
               <AppMain>{children}</AppMain>
             </ClientRoot>
           </BodyWrapper>

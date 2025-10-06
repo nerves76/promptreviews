@@ -367,16 +367,21 @@ export function FeatureProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!isAuthenticated) return;
 
-    const interval = setInterval(() => {
-      if (adminCacheTime) {
-        const cacheAge = Date.now() - adminCacheTime;
-        if (cacheAge > ADMIN_CACHE_DURATION) {
-          checkAdminStatus();
+    // Only set the interval when refresh debugging is enabled
+    if (!process.env.NEXT_PUBLIC_REFRESH_DEBUG) {
+      const interval = setInterval(() => {
+        if (adminCacheTime) {
+          const cacheAge = Date.now() - adminCacheTime;
+          if (cacheAge > ADMIN_CACHE_DURATION) {
+            checkAdminStatus();
+          }
         }
-      }
-    }, 5 * 60000); // Check every 5 minutes instead of every minute
+      }, 5 * 60000); // Check every 5 minutes instead of every minute
 
-    return () => clearInterval(interval);
+      return () => clearInterval(interval);
+    }
+
+    return undefined;
   }, [isAuthenticated, adminCacheTime, checkAdminStatus]);
 
   // Check trial status periodically
