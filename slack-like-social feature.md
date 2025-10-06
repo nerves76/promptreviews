@@ -54,6 +54,8 @@ Phase 2 adds the ability to auto-share a Monthly Summary of reviews into a chose
    - From monthly/weekly analytics alerts or community summary post, user clicks "Share" → modal offers copy link / generate image / share to social options. Weeklies generated on-demand or via opt-in schedule.
 8. **View & Accept Community Guidelines**
    - Click "Community Guidelines" link in header → modal displays guidelines content, requires checkbox agreement before first post, and records acknowledgment timestamp.
+9. **Broadcast to Everyone (Phase 2)**
+   - Admin or account owner creates a post with `@everyone`; all active members receive in-app badge and optional email alert pointing back to the post.
 
 ---
 
@@ -61,7 +63,7 @@ Phase 2 adds the ability to auto-share a Monthly Summary of reviews into a chose
 
 - Link to community in main navigation with red dot indicator for unread mentions (Phase 2).
 - Respect account switching: community routes observe active account ID from context/query, and show guard message if user lacks access.
-- Support 4 static channels at launch: General, Strategy, Google-Business, Feature-Requests. Design schema & UI to allow additional categories (e.g., Promote, Wins) without code rewrites.
+- Support 3 static channels at launch: General, Strategy, Google-Business. Design schema & UI to allow additional categories (e.g., Promote, Wins) without code rewrites.
 - Posts can include title (required), body (markdown-lite, plain text stored), and optional external link (validated URL).
 - Comments are plain text with `@mention` parsing.
 - Reactions limited to preset icons: `thumbs_up`, `star`, `celebrate`, `clap`, `laugh`.
@@ -70,7 +72,8 @@ Phase 2 adds the ability to auto-share a Monthly Summary of reviews into a chose
 - Audit fields on all tables (`created_at`, `created_by`, `updated_at`). Soft delete via `deleted_at`.
 - Username system enforces unique, stable handles like `alex-fireside-7h3n`. Handles are non-editable by users but shown alongside display name.
 - Community guidelines modal accessible from `/community` header; users must check "I agree" before first post, otherwise posting UI remains disabled; content sourced from CMS or static markdown.
-- User-level community preferences (notifications, opt-out, digest sharing defaults) configurable from `/account` settings.
+- User-level community preferences (notifications, opt-out, digest sharing defaults, broadcast email opt-in) configurable from `/account` settings.
+- Reserved `@everyone` mention (Phase 2) available to account owners/admins; triggers broadcast notifications within account respecting member notification preferences.
 
 ---
 
@@ -106,6 +109,7 @@ Phase 2 adds the ability to auto-share a Monthly Summary of reviews into a chose
     add column if not exists display_name text,
     add column if not exists community_opt_out boolean default false,
     add column if not exists community_notify_mentions boolean default true,
+    add column if not exists community_notify_broadcasts boolean default true,
     add column if not exists community_guidelines_ack timestamptz,
     add column if not exists community_digest_share_default text check (community_digest_share_default in ('none','monthly','weekly')) default 'monthly';
   ```
@@ -209,6 +213,7 @@ create table if not exists mentions (
 );
 ```
 - `source_id` references `posts.id` or `post_comments.id` based on `source_type`.
+- `@everyone` posts insert one mention row per active member (excluding opt-out users) to drive broadcast notifications.
 
 #### `monthly_summaries`
 ```sql
@@ -286,8 +291,8 @@ create table if not exists saved_posts (
 - Subscribe to `posts`, `post_comments`, `post_reactions` changes via Supabase Realtime filtered by `channel_id` and `account_id`.
 - Broadcast-only mode for now; offline caching via SWR/React Query.
 - Mentions trigger in-app toast and badge increments (Phase 2). `mentions.read_at` updated when user views channel.
-- `/account` settings manages `community_notify_mentions`, digest frequency preference, and opt-out. Respect preferences when sending notifications or auto-posting summaries.
-- Phase 2 optional: Email digest for unread mentions older than 24h, shareable digest link notifications.
+- `/account` settings manages `community_notify_mentions`, `community_notify_broadcasts`, digest frequency preference, and opt-out. Respect preferences when sending notifications or auto-posting summaries.
+- Phase 2 optional: Email digest for unread mentions older than 24h, shareable digest link notifications, and `@everyone` broadcast emails only to members who keep broadcast alerts enabled.
 
 ---
 
@@ -307,6 +312,8 @@ Implement Supabase RPC functions to encapsulate business logic and enforce permi
 - `generate_digest_share_link(summary_type text, summary_id uuid)` returning signed URL / payload for share modal.
 - `save_post(post_id uuid)` / `unsave_post(post_id uuid)` (Phase 2 pinned/saved surface).
 - `acknowledge_guidelines()` to timestamp acceptance from modal.
+- `broadcast_everyone(post_id uuid)` (Phase 2) validates author role, expands `@everyone` into member mentions, and queues email alerts for opted-in members.
+- `update_community_preferences(community_notify_mentions boolean, community_notify_broadcasts boolean, community_digest_share_default text)` to persist `/account` settings changes.
 
 For summaries, consider a Supabase Edge Function scheduled via Cron triggering `prepare_monthly_summary` / `prepare_weekly_summary` (SQL or Node) that:
 1. Aggregates review data per account.
@@ -350,6 +357,7 @@ For summaries, consider a Supabase Edge Function scheduled via Cron triggering `
 - Provide admin UI toggle per account `community_auto_summary_enabled` and `community_digest_frequency` (`monthly`/`weekly`/`both`).
 - Add ability to pin/highlight posts: admins toggle `is_pinned`, saved posts view surfaces top pinned content.
 - Share button surfaces in dashboard alert banner and corresponding community post when digest exists.
+- Support `@everyone` broadcast mentions for account owners/admins, expanding to member mentions and optional email alert with post link.
 
 ---
 
@@ -388,7 +396,7 @@ Designed for a multi-agent workflow (human + AI). Each agent owns artifacts, han
    - Ensures idempotency and logging.
 
 6. **QA & Observability Agent**
-   - Draft manual test matrix covering multi-account scenarios, digest frequencies, share workflows.
+   - Draft manual test matrix covering multi-account scenarios, digest frequencies, broadcast opt-outs, share workflows.
    - Load sample data, run regression suite.
    - Configure logging dashboards (Supabase logs, Sentry breadcrumbs).
 
@@ -446,7 +454,7 @@ Designed for a multi-agent workflow (human + AI). Each agent owns artifacts, han
 
 - **Unit Tests**: handle generator, mention parser, reaction toggles, permission checks, account-switching guards, digest share link generation.
 - **Integration Tests**: Supabase SQL tests verifying RLS across multi-account scenarios, summary posting functions, RPC functions (using supabase-js in CI).
-- **E2E Tests**: Playwright flows for posting, commenting, reacting, mentions, summary post rendering, account switching, guidelines modal acknowledgment, digest share button interactions.
+- **E2E Tests**: Playwright flows for posting, commenting, reacting, mentions, `@everyone` broadcast, summary post rendering, account switching, guidelines modal acknowledgment, digest share button interactions, broadcast email opt-out enforcement.
 - **Performance**: load test feed queries with 10k posts per channel using k6 or Supabase load harness.
 - **Security**: ensure cross-account access blocked, sanitize user input, run OWASP dependency check.
 - **Observability**: log all RPC errors with correlation IDs, Sentry instrumentation on frontend interactions.
@@ -455,7 +463,7 @@ Designed for a multi-agent workflow (human + AI). Each agent owns artifacts, han
 
 ## 14. Analytics & Telemetry
 
-- Track events: `community_viewed`, `post_created`, `comment_created`, `reaction_added`, `mention_received`, `monthly_summary_posted`, `weekly_summary_posted`, `guidelines_acknowledged`, `account_switch_in_community`, `post_saved`, `digest_shared`.
+- Track events: `community_viewed`, `post_created`, `comment_created`, `reaction_added`, `mention_received`, `broadcast_everyone_sent`, `monthly_summary_posted`, `weekly_summary_posted`, `guidelines_acknowledged`, `account_switch_in_community`, `post_saved`, `digest_shared`.
 - Store event payloads in existing analytics pipeline keyed by `account_id`.
 - Build dashboard slices per account, per channel, and per feature stage.
 - Monitor mention response time to gauge engagement and check for cross-account anomalies.
@@ -469,6 +477,7 @@ Designed for a multi-agent workflow (human + AI). Each agent owns artifacts, han
 - **Realtime Drift**: provide manual refresh CTA, fallback to polling if websocket fails.
 - **Handle Collisions**: unique index + retry ensures safety; log collisions for audit.
 - **Monthly/Weekly Summary Overload**: allow opt-out and ensure scheduling respects business timezone preferences (phase 2 enhancement).
+- **Broadcast Fatigue**: limit `@everyone` usage to owners/admins and enforce per-day cap; honor user-level broadcast email opt-outs from `/account` settings.
 - **Account Bleed**: RLS with `account_id`, route guards, and analytics monitoring ensure no cross-account leakage; add Sentry breadcrumb tagging account context for audits.
 
 ---
@@ -481,6 +490,8 @@ Designed for a multi-agent workflow (human + AI). Each agent owns artifacts, han
 - How will we moderate and surface top posts (pin vs highlight vs new "Community Highlights" page)?
 - What share channels (social, email, download) do users value most for digest sharing?
 - Do weekly digests require different content than monthly (e.g., shorter highlights)?
+- What limits or approvals should apply to `@everyone` broadcasts and accompanying emails?
+- Should broadcast email opt-out live at the user level, account level, or both?
 
 ---
 

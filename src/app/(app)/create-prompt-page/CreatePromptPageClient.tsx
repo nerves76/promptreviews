@@ -6,7 +6,7 @@ import Icon from "@/components/Icon";
 import { checkAccountLimits } from "@/utils/accountLimits";
 import { useAuth } from "@/auth";
 import { Dialog } from "@headlessui/react";
-import { getUserOrMock, supabase } from "@/auth/providers/supabase";
+import { getUserOrMock, createClient } from "@/auth/providers/supabase";
 import { markTaskAsCompleted } from "@/utils/onboardingTasks";
 import dynamic from "next/dynamic";
 import { slugify } from "@/utils/slugify";
@@ -284,6 +284,7 @@ export default function CreatePromptPageClient({
     const loadBusinessProfile = async () => {
       setIsLoadingBusinessProfile(true);
       try {
+        const supabase = createClient();
         const {
           data: { user },
         } = await getUserOrMock(supabase);
@@ -832,6 +833,7 @@ export default function CreatePromptPageClient({
   const loadContactReviews = async (contactId: string) => {
     setLoadingReviews(true);
     try {
+      const supabase = createClient();
       const { data: contactReviews, error: reviewsError } = await supabase
         .from('review_submissions')
         .select('platform, star_rating, review_content, verified, created_at')
@@ -1080,6 +1082,7 @@ export default function CreatePromptPageClient({
       setSaveError(null);
       setSaveSuccess(null);
       try {
+        const supabase = createClient();
         // First, try to refresh the session to prevent session expiration issues
         try {
           await supabase.auth.refreshSession();
@@ -1385,8 +1388,9 @@ export default function CreatePromptPageClient({
     setSaveError(null);
     setSaveSuccess(null);
     setIsSaving(true);
-    
+
     try {
+      const supabase = createClient();
       // First, try to refresh the session to prevent session expiration issues
       try {
         await supabase.auth.refreshSession();
@@ -1709,8 +1713,9 @@ export default function CreatePromptPageClient({
       setSaveError(null);
       setSaveSuccess(null);
       try {
+      const supabase = createClient();
       // Get the campaign type from localStorage - this determines the page's behavior
-      const campaignType = typeof window !== 'undefined' 
+      const campaignType = typeof window !== 'undefined'
         ? localStorage.getItem('campaign_type') || 'individual'
         : 'individual';
 
@@ -1886,7 +1891,7 @@ export default function CreatePromptPageClient({
           initialData={serviceInitialData}
           onSave={handleServicePageSubmit}
           pageTitle="Create service prompt page"
-          supabase={supabase}
+          supabase={createClient()}
           businessProfile={businessProfile}
           onGenerateReview={handleGenerateAIReview}
         />
@@ -1900,7 +1905,7 @@ export default function CreatePromptPageClient({
           initialData={formData}
           onSave={handleServicePageSubmit}
           pageTitle="Create product prompt page"
-          supabase={supabase}
+          supabase={createClient()}
           businessProfile={businessProfile}
           accountId={accountId || ""}
           isLoading={isSaving}
@@ -1919,7 +1924,7 @@ export default function CreatePromptPageClient({
           initialData={formData}
           onSave={handleServicePageSubmit}
           pageTitle="Photo + Testimonial"
-          supabase={supabase}
+          supabase={createClient()}
           businessProfile={businessProfile}
           isLoading={isSaving}
           onPublishSuccess={(slug) => {
@@ -1959,7 +1964,7 @@ export default function CreatePromptPageClient({
           initialData={formData}
           onSave={handleServicePageSubmit}
           pageTitle="Employee Spotlight"
-          supabase={supabase}
+          supabase={createClient()}
           businessProfile={businessProfile}
           onPublishSuccess={(slug) => {
             setSavedPromptPageUrl(`/r/${slug}`);
@@ -1998,7 +2003,7 @@ export default function CreatePromptPageClient({
           initialData={formData}
           onSave={handleServicePageSubmit}
           pageTitle="Event Review Page"
-          supabase={supabase}
+          supabase={createClient()}
           businessProfile={businessProfile}
           onPublishSuccess={(slug) => {
             setSavedPromptPageUrl(`/r/${slug}`);
@@ -2038,7 +2043,7 @@ export default function CreatePromptPageClient({
         onSave={handleStep1Submit}
         onPublish={handleStep2Submit}
         pageTitle="Create Your Prompt Page"
-        supabase={supabase}
+        supabase={createClient()}
         businessProfile={businessProfile}
         step={step}
         onStepChange={setStep}

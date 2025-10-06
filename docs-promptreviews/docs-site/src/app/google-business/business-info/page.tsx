@@ -232,7 +232,7 @@ export default async function BusinessInfoPage() {
     Building2,
   )
 
-  const overviewMarkdown = getString((metadata as Record<string, unknown>).overview_markdown)
+  const overviewMarkdown = article.content || ''
   const overviewTitle = getString((metadata as Record<string, unknown>).overview_title) || 'Overview'
 
   const overviewNode = overviewMarkdown ? <MarkdownRenderer content={overviewMarkdown} /> : undefined

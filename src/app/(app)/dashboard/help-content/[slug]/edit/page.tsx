@@ -12,6 +12,7 @@ import DeployDocsButton from "../../components/DeployDocsButton";
 import MarkdownEditor, {
   MarkdownPreview,
 } from "../../components/MarkdownEditor";
+import ArticleContextsManager from "../../components/ArticleContextsManager";
 
 interface ArticleMetadata {
   description?: string;
@@ -635,6 +636,14 @@ export default function ArticleEditorPage() {
               placeholder="Write your article content in Markdown..."
             />
           )}
+        </PageCard>
+
+        {/* Featured Article Settings */}
+        <PageCard className="mb-6">
+          <ArticleContextsManager
+            articleId={article.id}
+            articleSlug={article.slug}
+          />
         </PageCard>
 
         {/* Markdown Help */}

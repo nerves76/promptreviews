@@ -304,7 +304,7 @@ export default async function PromptPagesPage() {
     MessageCircle,
   )
 
-  const overviewMarkdown = getString((metadata as Record<string, unknown>).overview_markdown)
+  const overviewMarkdown = article.content || ''
   const overviewTitle = getString((metadata as Record<string, unknown>).overview_title) || 'What Are Prompt Pages?'
 
   const overviewNode = overviewMarkdown

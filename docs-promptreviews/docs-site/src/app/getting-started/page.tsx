@@ -285,7 +285,7 @@ export default async function GettingStartedPage() {
     CheckCircle,
   )
 
-  const overviewMarkdown = getString((metadata as Record<string, unknown>).overview_markdown)
+  const overviewMarkdown = article.content || ''
   const overviewTitle = getString((metadata as Record<string, unknown>).overview_title) || 'Everything You Need to Get Started'
 
   const overviewNode = overviewMarkdown

@@ -114,11 +114,11 @@ export function resetClientInstance() {
 
 /**
  * Legacy exports for backward compatibility
- * 
- * DEPRECATED: Use createClient() instead
- * This will be removed in a future version
+ *
+ * DEPRECATED: Removed to prevent build-time errors
+ * Use createClient() instead
  */
-export const supabase = createClient();
+// export const supabase = createClient(); // Commented out - was causing build errors
 
 /**
  * Clear authentication session
@@ -293,7 +293,8 @@ export async function testAuth(email: string, password: string) {
   }
 }
 
-export default supabase;
+// Removed default export to prevent build-time errors
+// Use createClient() instead of importing the default export
 
 /**
  * PromptPage type
