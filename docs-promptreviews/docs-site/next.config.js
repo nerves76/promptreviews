@@ -8,28 +8,21 @@ const withMDX = require('@next/mdx')({
 })
 
 const nextConfig = {
-  // Static export for cPanel hosting
-  output: 'export',
-  
-  // Subdirectory deployment configuration
-  basePath: process.env.NODE_ENV === 'production' ? '/docs' : '',
-  assetPrefix: process.env.NODE_ENV === 'production' ? '/docs' : '',
-  trailingSlash: true,
+  // Dynamic deployment to Vercel (Supabase-driven content)
+  output: undefined,
+  basePath: '',
+  assetPrefix: '',
+  trailingSlash: false,
   
   pageExtensions: ['ts', 'tsx', 'js', 'jsx', 'md', 'mdx'],
   images: {
-    domains: ['docs.promptreviews.com', 'promptreviews.com'],
-    unoptimized: true, // Required for static export
+    domains: ['docs.promptreviews.app', 'promptreviews.app', 'docs.promptreviews.com', 'promptreviews.com'],
+    unoptimized: false,
   },
   async redirects() {
     return [
       {
         source: '/help',
-        destination: '/',
-        permanent: true,
-      },
-      {
-        source: '/docs',
         destination: '/',
         permanent: true,
       },

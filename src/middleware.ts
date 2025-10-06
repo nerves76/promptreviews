@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 // Docs site URL for proxying
-const DOCS_SITE_URL = 'https://docs-site-7mwbiq8mr-nerves76s-projects.vercel.app';
 
 const DEFAULT_GBO_FRAME_ANCESTORS = [
   'https://promptreviews.com',
@@ -105,16 +104,6 @@ export async function middleware(req: NextRequest) {
     res.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
   }
   
-  // Handle /docs routes - proxy to the docs site
-  if (req.nextUrl.pathname.startsWith('/docs')) {
-    const docsPath = req.nextUrl.pathname.replace('/docs', '') || '/';
-    const queryString = req.nextUrl.search;
-    const targetUrl = `${DOCS_SITE_URL}${docsPath}${queryString}`;
-    
-    console.log('Middleware: Proxying docs request to:', targetUrl);
-    return NextResponse.rewrite(targetUrl);
-  }
-
   // For now, don't do auth checks in middleware - let client-side handle it
   // This prevents issues with public pages and reduces complexity
   return res;

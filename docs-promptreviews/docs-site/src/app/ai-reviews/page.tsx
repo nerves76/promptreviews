@@ -1,12 +1,16 @@
 import type { Metadata } from 'next'
+import { notFound } from 'next/navigation'
+import * as Icons from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 import StandardOverviewLayout from '../../components/StandardOverviewLayout'
 import { pageFAQs } from '../utils/faqData'
-import {
+import { getArticleBySlug } from '@/lib/docs/articles'
+
+const {
   Sparkles,
   Star,
   MessageSquare,
   Zap,
-  ArrowRight,
   Brain,
   Target,
   Users,
@@ -17,27 +21,13 @@ import {
   Clock,
   Heart,
   Wand2,
-  Edit3
-} from 'lucide-react'
+  Edit3,
+} = Icons
 
-export const metadata: Metadata = {
-  title: 'AI-Powered Review Collection | Prompt Reviews',
-  description: 'Discover how AI-powered content generation helps create personalized review requests, optimizes your prompt pages, and makes review collection feel human and authentic.',
-  keywords: [
-    'AI review generation',
-    'AI-powered content',
-    'personalized review requests',
-    'review automation',
-    'customer review AI',
-    'review collection automation'
-  ],
-  alternates: {
-    canonical: 'https://docs.promptreviews.app/ai-reviews',
-  },
-}
+const fallbackDescription =
+  'Our AI-powered system helps you create personalized, human-sounding review requests that actually work—without losing the personal touch that makes your business special.'
 
-
-const keyFeatures = [
+const defaultKeyFeatures = [
   {
     icon: Brain,
     title: 'Smart Personalization',
@@ -66,11 +56,11 @@ const keyFeatures = [
   {
     icon: Edit3,
     title: 'Grammar & Style Enhancement',
-    description: 'AI can polish grammar and improve clarity while preserving the customer\'s authentic voice and message.'
+    description: "AI can polish grammar and improve clarity while preserving the customer's authentic voice and message."
   }
 ]
 
-const howItWorks = [
+const defaultHowItWorks = [
   {
     number: 1,
     title: 'Understand Your Business',
@@ -80,7 +70,7 @@ const howItWorks = [
   {
     number: 2,
     title: 'Analyze Customer Context',
-    description: 'Considers the customer\'s experience, relationship with your business, and what they\'re most likely to review.',
+    description: "Considers the customer's experience, relationship with your business, and what they're most likely to review.",
     icon: Target
   },
   {
@@ -97,7 +87,7 @@ const howItWorks = [
   }
 ]
 
-const bestPractices = [
+const defaultBestPractices = [
   {
     icon: Heart,
     title: 'Keep It Personal',
@@ -147,31 +137,142 @@ const overviewContent = (
       </div>
     </div>
   </>
-);
+)
 
-export default function AIReviewsPage() {
+function resolveIcon(iconName: string | undefined, fallback: LucideIcon): LucideIcon {
+  if (!iconName) return fallback
+  const normalized = iconName.trim()
+  const resolved = (Icons as Record<string, LucideIcon>)[normalized]
+  return resolved || fallback
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  try {
+    const article = await getArticleBySlug('ai-reviews')
+    if (!article) {
+      return {
+        title: 'AI-Powered Review Collection | Prompt Reviews',
+        description: fallbackDescription,
+        alternates: {
+          canonical: 'https://docs.promptreviews.app/docs/ai-reviews',
+        },
+      }
+    }
+
+    return {
+      title: `${article.title} | Prompt Reviews`,
+      description: article.metadata?.description ?? fallbackDescription,
+      keywords: article.metadata?.keywords ?? [],
+      alternates: {
+        canonical: article.metadata?.canonical_url ?? 'https://docs.promptreviews.app/docs/ai-reviews',
+      },
+    }
+  } catch (error) {
+    console.error('generateMetadata ai-reviews error:', error)
+    return {
+      title: 'AI-Powered Review Collection | Prompt Reviews',
+      description: fallbackDescription,
+      alternates: {
+        canonical: 'https://docs.promptreviews.app/docs/ai-reviews',
+      },
+    }
+  }
+}
+
+interface MetadataFeature {
+  icon?: string
+  title: string
+  description: string
+  href?: string
+}
+
+interface MetadataStep {
+  number?: number
+  icon?: string
+  title: string
+  description: string
+}
+
+interface MetadataBestPractice {
+  icon?: string
+  title: string
+  description: string
+}
+
+export default async function AIReviewsPage() {
+  let article = null
+
+  try {
+    article = await getArticleBySlug('ai-reviews')
+  } catch (error) {
+    console.error('Error fetching ai-reviews article:', error)
+  }
+
+  if (!article) {
+    notFound()
+  }
+
+  const metadata = article.metadata ?? {}
+
+  const availablePlans = Array.isArray(metadata.available_plans) && metadata.available_plans.length
+    ? (metadata.available_plans as ('grower' | 'builder' | 'maven' | 'enterprise')[])
+    : (['grower', 'builder', 'maven'] as const)
+
+  const mappedKeyFeatures = Array.isArray(metadata.key_features) && metadata.key_features.length
+    ? (metadata.key_features as MetadataFeature[]).map((feature) => ({
+        icon: resolveIcon(feature.icon, Sparkles),
+        title: feature.title,
+        description: feature.description,
+        href: feature.href,
+      }))
+    : defaultKeyFeatures
+
+  const mappedHowItWorks = Array.isArray(metadata.how_it_works) && metadata.how_it_works.length
+    ? (metadata.how_it_works as MetadataStep[]).map((step, index) => ({
+        number: step.number ?? index + 1,
+        title: step.title,
+        description: step.description,
+        icon: resolveIcon(step.icon, Users),
+      }))
+    : defaultHowItWorks
+
+  const mappedBestPractices = Array.isArray(metadata.best_practices) && metadata.best_practices.length
+    ? (metadata.best_practices as MetadataBestPractice[]).map((practice) => ({
+        icon: resolveIcon(practice.icon, Heart),
+        title: practice.title,
+        description: practice.description,
+      }))
+    : defaultBestPractices
+
+  const CategoryIcon = resolveIcon(
+    typeof metadata.category_icon === 'string' && metadata.category_icon.trim().length
+      ? metadata.category_icon
+      : 'Sparkles',
+    Sparkles,
+  )
+
   return (
     <StandardOverviewLayout
-      title="AI-powered review collection"
-      description="Our AI-powered system helps you create personalized, human-sounding review requests that actually work—without losing the personal touch that makes your business special."
-      categoryLabel="AI Features"
-      categoryIcon={Sparkles}
-      categoryColor="purple"
+      title={article.title || 'AI-powered review collection'}
+      description={metadata.description ?? fallbackDescription}
+      categoryLabel={metadata.category_label || 'AI Features'}
+      categoryIcon={CategoryIcon}
+      categoryColor={metadata.category_color || 'purple'}
       currentPage="AI Reviews"
-      availablePlans={['grower', 'builder', 'maven']}
-      keyFeatures={keyFeatures}
-      howItWorks={howItWorks}
-      bestPractices={bestPractices}
+      availablePlans={availablePlans}
+      keyFeatures={mappedKeyFeatures}
+      howItWorks={mappedHowItWorks}
+      bestPractices={mappedBestPractices}
       faqs={pageFAQs['ai-reviews']}
       callToAction={{
         primary: {
           text: 'Learn About Prompt Pages',
-          href: '/prompt-pages'
-        }
+          href: '/prompt-pages',
+        },
       }}
       overview={{
         title: 'What Makes Our AI Different?',
-        content: overviewContent
+        content: overviewContent,
       }}
     />
   )

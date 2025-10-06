@@ -432,17 +432,15 @@ const nextConfig = {
 
     ];
   },
-  async redirects() {
+  async rewrites() {
     return [
       {
         source: '/docs',
-        destination: 'https://docs.promptreviews.app/docs',
-        permanent: false,
+        destination: 'https://docs.promptreviews.app',
       },
       {
         source: '/docs/:path*',
-        destination: 'https://docs.promptreviews.app/docs/:path*',
-        permanent: false,
+        destination: 'https://docs.promptreviews.app/:path*',
       },
     ];
   },
