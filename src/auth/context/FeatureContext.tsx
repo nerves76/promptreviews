@@ -363,25 +363,36 @@ export function FeatureProvider({ children }: { children: React.ReactNode }) {
     }
   }, [isAuthenticated, account?.id, checkAdminStatus, clearCache]);
 
-  // Auto-refresh admin status periodically
+  // Refresh admin status when the user returns to the app (tab focus/visibility)
   useEffect(() => {
     if (!isAuthenticated) return;
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
 
-    // Only set the interval when refresh debugging is enabled
-    if (!process.env.NEXT_PUBLIC_REFRESH_DEBUG) {
-      const interval = setInterval(() => {
-        if (adminCacheTime) {
-          const cacheAge = Date.now() - adminCacheTime;
-          if (cacheAge > ADMIN_CACHE_DURATION) {
-            checkAdminStatus();
-          }
-        }
-      }, 5 * 60000); // Check every 5 minutes instead of every minute
+    const shouldRefresh = () => {
+      if (!adminCacheTime) return true;
+      const cacheAge = Date.now() - adminCacheTime;
+      return cacheAge > ADMIN_CACHE_DURATION;
+    };
 
-      return () => clearInterval(interval);
-    }
+    const handleFocus = () => {
+      if (shouldRefresh()) {
+        checkAdminStatus();
+      }
+    };
 
-    return undefined;
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        handleFocus();
+      }
+    };
+
+    window.addEventListener('focus', handleFocus);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, [isAuthenticated, adminCacheTime, checkAdminStatus]);
 
   // Check trial status periodically
