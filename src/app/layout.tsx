@@ -14,6 +14,7 @@ import { inter, fontVariables } from "./fonts";
 import IconSpriteInjector from "./(app)/components/IconSpriteInjector";
 import GlobalLocalStorageMigration from "./(app)/components/GlobalLocalStorageMigration";
 import { GlobalRefreshMonitor } from "./(app)/components/GlobalRefreshMonitor";
+import { UltimateRefreshDebugger } from "./(app)/components/UltimateRefreshDebugger";
 
 export const metadata: Metadata = {
   title: "PromptReviews - Get More Reviews",
@@ -46,6 +47,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <IconSpriteInjector />
               <GlobalLocalStorageMigration />
               <GlobalRefreshMonitor />
+              {process.env.NODE_ENV === "development" && <UltimateRefreshDebugger />}
               <AppMain>{children}</AppMain>
             </ClientRoot>
           </BodyWrapper>
@@ -54,4 +56,3 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     </html>
   );
 }
-

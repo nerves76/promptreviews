@@ -72,6 +72,15 @@ function getSupabaseClient() {
     auth: {
       autoRefreshToken: false,
       persistSession: false
+    },
+    global: {
+      fetch: (url, options = {}) => {
+        // Configure Next.js fetch cache for ISR
+        return fetch(url, {
+          ...options,
+          next: { revalidate: 60, tags: ['articles'] }
+        })
+      }
     }
   });
 }

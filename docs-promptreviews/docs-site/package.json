@@ -9,7 +9,8 @@
     "start": "next start -p 3001",
     "lint": "next lint",
     "deploy": "./scripts/sync.sh",
-    "deploy:auto": "./scripts/deploy.sh"
+    "deploy:auto": "./scripts/deploy.sh",
+    "revalidate": "npx ts-node scripts/trigger-revalidation.ts"
   },
   "dependencies": {
     "@mdx-js/loader": "^3.0.0",
