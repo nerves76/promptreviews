@@ -2,13 +2,17 @@ import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { createClient } from "@supabase/supabase-js";
 
-const stripeSecretKey = process.env.STRIPE_SECRET_KEY!;
-if (!stripeSecretKey) {
-  throw new Error("STRIPE_SECRET_KEY is not set");
+// Lazy initialization to avoid build-time env var access
+function getStripeClient() {
+  const stripeSecretKey = process.env.STRIPE_SECRET_KEY!;
+  if (!stripeSecretKey) {
+    throw new Error("STRIPE_SECRET_KEY is not set");
+  }
+  return new Stripe(stripeSecretKey);
 }
-const stripe = new Stripe(stripeSecretKey);
 
 export async function POST(req: NextRequest) {
+  const stripe = getStripeClient();
   console.log("🔔 Webhook endpoint called"); // Debug: confirm webhook is being called
   
   const sig = req.headers.get("stripe-signature");
