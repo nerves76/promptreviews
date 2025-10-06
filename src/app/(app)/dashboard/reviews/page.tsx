@@ -34,6 +34,7 @@ interface Review {
   platform_url?: string;
   imported_from_google?: boolean;
   contact_id?: string;
+  last_shared_at?: string | null;
 }
 
 interface ReviewerGroup {
@@ -401,7 +402,29 @@ export default function ReviewsPage() {
             })),
           );
         } else {
-          setReviews(existingReviews);
+          // Fetch last shared date for each review
+          const reviewIds = existingReviews.map(r => r.id);
+          const { data: shareEvents } = await supabase
+            .from('review_share_events')
+            .select('review_id, shared_at')
+            .in('review_id', reviewIds)
+            .order('shared_at', { ascending: false });
+
+          // Create a map of review_id to most recent shared_at
+          const lastSharedMap = new Map<string, string>();
+          shareEvents?.forEach(event => {
+            if (!lastSharedMap.has(event.review_id)) {
+              lastSharedMap.set(event.review_id, event.shared_at);
+            }
+          });
+
+          // Add last_shared_at to each review
+          const reviewsWithShares = existingReviews.map(review => ({
+            ...review,
+            last_shared_at: lastSharedMap.get(review.id) || null,
+          }));
+
+          setReviews(reviewsWithShares);
         }
       } catch (err) {
         console.error("Error:", err);
@@ -887,6 +910,12 @@ export default function ReviewsPage() {
                     <span className="text-xs text-gray-500 ml-2">
                       {new Date(review.created_at).toLocaleDateString()}
                     </span>
+                    {review.last_shared_at && (
+                      <span className="text-xs text-gray-500 ml-2 flex items-center gap-1">
+                        <Icon name="FaShare" className="w-3 h-3" size={12} />
+                        Last shared: {new Date(review.last_shared_at).toLocaleDateString()}
+                      </span>
+                    )}
                     {isNewReview(review.created_at) && (
                       <span className="ml-2 inline-block px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded">
                         New

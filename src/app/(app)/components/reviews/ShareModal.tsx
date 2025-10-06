@@ -43,6 +43,13 @@ interface ShareModalProps {
   onShareError: (error: string) => void;
 }
 
+interface ShareHistoryItem {
+  id: string;
+  platform: string;
+  shared_at: string;
+  shared_url?: string;
+}
+
 export default function ShareModal({
   isOpen,
   onClose,
@@ -59,6 +66,9 @@ export default function ShareModal({
   const [imageLoading, setImageLoading] = useState(true);
   const [imageError, setImageError] = useState(false);
   const [imageTimestamp, setImageTimestamp] = useState(Date.now());
+  const [shareHistory, setShareHistory] = useState<ShareHistoryItem[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [historyExpanded, setHistoryExpanded] = useState(false);
 
   const reviewerName = `${review.first_name} ${review.last_name}`;
 
@@ -134,6 +144,50 @@ export default function ShareModal({
     setSelectedPlatform(null);
   };
 
+  const handleDeleteShare = async (shareId: string) => {
+    if (!confirm('Delete this share record?')) return;
+
+    try {
+      const response = await fetch(`/api/review-shares?shareId=${shareId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete share');
+      }
+
+      // Remove from local state
+      setShareHistory((prev) => prev.filter((item) => item.id !== shareId));
+    } catch (error) {
+      console.error('Error deleting share:', error);
+      onShareError('Failed to delete share record');
+    }
+  };
+
+  const formatDate = (dateString: string): string => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffDays < 7) return `${diffDays}d ago`;
+    return date.toLocaleDateString();
+  };
+
+  const getPlatformIcon = (platform: string): { icon: string; color: string } => {
+    const config = SHARE_PLATFORMS.find(
+      (p) => p.key.toLowerCase() === platform.toLowerCase()
+    );
+    return config
+      ? { icon: config.icon, color: config.color }
+      : { icon: 'FaShare', color: 'text-gray-600' };
+  };
+
   const currentPlatformConfig = SHARE_PLATFORMS.find(
     (p) => p.key === selectedPlatform
   );
@@ -144,6 +198,33 @@ export default function ShareModal({
         shareText
       )
     : null;
+
+  // Fetch share history when modal opens
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const fetchHistory = async () => {
+      try {
+        setHistoryLoading(true);
+        const response = await fetch(`/api/review-shares?reviewId=${review.id}`);
+
+        if (response.ok) {
+          const data = await response.json();
+          setShareHistory(data.shares || []);
+          // Auto-expand if there's history
+          if (data.shares && data.shares.length > 0) {
+            setHistoryExpanded(true);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching share history:', error);
+      } finally {
+        setHistoryLoading(false);
+      }
+    };
+
+    fetchHistory();
+  }, [isOpen, review.id]);
 
   // Prevent body scroll when modal is open
   useEffect(() => {
@@ -191,6 +272,68 @@ export default function ShareModal({
                 <p className="text-sm text-gray-600 mb-6">
                   Choose a platform to share this review:
                 </p>
+
+                {/* Share History Dropdown */}
+                {shareHistory.length > 0 && (
+                  <div className="mb-6">
+                    <button
+                      onClick={() => setHistoryExpanded(!historyExpanded)}
+                      className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 hover:bg-gray-100 rounded-lg border border-gray-200 transition-colors"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Icon name="FaHistory" className="w-4 h-4 text-gray-600" size={16} />
+                        <span className="text-sm font-medium text-gray-700">
+                          Share History ({shareHistory.length})
+                        </span>
+                      </div>
+                      <Icon
+                        name={historyExpanded ? "FaChevronUp" : "FaChevronDown"}
+                        className="w-4 h-4 text-gray-400"
+                        size={16}
+                      />
+                    </button>
+
+                    {historyExpanded && (
+                      <div className="mt-2 border border-gray-200 rounded-lg overflow-hidden">
+                        <div className="max-h-48 overflow-y-auto">
+                          {shareHistory.map((share) => {
+                            const { icon, color } = getPlatformIcon(share.platform);
+                            return (
+                              <div
+                                key={share.id}
+                                className="flex items-center justify-between px-4 py-3 bg-white hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
+                              >
+                                <div className="flex items-center gap-3 flex-1 min-w-0">
+                                  <Icon
+                                    name={icon as any}
+                                    className={`w-5 h-5 ${color} flex-shrink-0`}
+                                    size={20}
+                                  />
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-sm font-medium text-gray-900 capitalize">
+                                      {share.platform}
+                                    </p>
+                                    <p className="text-xs text-gray-500">
+                                      {formatDate(share.shared_at)}
+                                    </p>
+                                  </div>
+                                </div>
+                                <button
+                                  onClick={() => handleDeleteShare(share.id)}
+                                  className="text-gray-400 hover:text-red-600 transition-colors ml-2"
+                                  aria-label="Delete share record"
+                                  title="Delete"
+                                >
+                                  <Icon name="FaTrash" className="w-4 h-4" size={16} />
+                                </button>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 <div className="grid grid-cols-3 gap-4">
                   {SHARE_PLATFORMS.map((platform) => (
