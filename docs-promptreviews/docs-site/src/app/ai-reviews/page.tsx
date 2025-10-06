@@ -139,11 +139,27 @@ const overviewContent = (
   </>
 )
 
+const iconLookup = Icons as Record<string, unknown>
+
 function resolveIcon(iconName: string | undefined, fallback: LucideIcon): LucideIcon {
   if (!iconName) return fallback
   const normalized = iconName.trim()
-  const resolved = (Icons as Record<string, LucideIcon>)[normalized]
-  return resolved || fallback
+  const candidates = [
+    normalized,
+    normalized.toLowerCase(),
+    normalized.toUpperCase(),
+    normalized.charAt(0).toUpperCase() + normalized.slice(1),
+    normalized.replace(/[-_\s]+/g, ''),
+  ]
+
+  for (const key of candidates) {
+    const maybeIcon = iconLookup[key]
+    if (typeof maybeIcon === 'function') {
+      return maybeIcon as LucideIcon
+    }
+  }
+
+  return fallback
 }
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -214,9 +230,9 @@ export default async function AIReviewsPage() {
 
   const metadata = article.metadata ?? {}
 
-  const availablePlans = Array.isArray(metadata.available_plans) && metadata.available_plans.length
+  const availablePlans: ('grower' | 'builder' | 'maven' | 'enterprise')[] = Array.isArray(metadata.available_plans) && metadata.available_plans.length
     ? (metadata.available_plans as ('grower' | 'builder' | 'maven' | 'enterprise')[])
-    : (['grower', 'builder', 'maven'] as const)
+    : ['grower', 'builder', 'maven']
 
   const mappedKeyFeatures = Array.isArray(metadata.key_features) && metadata.key_features.length
     ? (metadata.key_features as MetadataFeature[]).map((feature) => ({
