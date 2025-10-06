@@ -7,9 +7,6 @@ import { pageFAQs } from '../utils/faqData'
 import { getArticleBySlug } from '@/lib/docs/articles'
 import {
 
-// Revalidate every 60 seconds - allows CMS updates to show without redeployment
-export const revalidate = 60
-
   Users,
   Upload,
   Plus,
@@ -25,6 +22,9 @@ export const revalidate = 60
   ArrowRight,
   AlertTriangle
 } from 'lucide-react'
+
+// Revalidate every 60 seconds - allows CMS updates to show without redeployment
+export const revalidate = 60
 
 const fallbackDescription = 'Learn how to import, organize, and manage your customer contacts in Prompt Reviews. From CSV uploads to manual entry, discover best practices for building your review request database.'
 

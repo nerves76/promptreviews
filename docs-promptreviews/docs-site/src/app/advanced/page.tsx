@@ -5,10 +5,6 @@ import MarkdownRenderer from '../../components/MarkdownRenderer'
 import { pageFAQs } from '../utils/faqData'
 import { getArticleBySlug } from '@/lib/docs/articles'
 import {
-
-// Revalidate every 60 seconds - allows CMS updates to show without redeployment
-export const revalidate = 60
-
   BarChart3,
   Zap,
   Settings,
@@ -22,6 +18,9 @@ export const revalidate = 60
   Webhook,
   Database
 } from 'lucide-react'
+
+// Revalidate every 60 seconds - allows CMS updates to show without redeployment
+export const revalidate = 60
 
 const fallbackDescription = 'Explore advanced features in Prompt Reviews including analytics, automation, API access, and custom integrations.'
 

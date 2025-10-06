@@ -5,9 +5,6 @@ import MarkdownRenderer from '../../../components/MarkdownRenderer'
 import { getArticleBySlug } from '@/lib/docs/articles'
 import {
 
-// Revalidate every 60 seconds - allows CMS updates to show without redeployment
-export const revalidate = 60
-
   ArrowUp,
   ArrowDown,
   RefreshCw,
@@ -21,6 +18,9 @@ export const revalidate = 60
   Shield,
   Info
 } from 'lucide-react'
+
+// Revalidate every 60 seconds - allows CMS updates to show without redeployment
+export const revalidate = 60
 
 const fallbackDescription = 'Learn how to upgrade or downgrade your Prompt Reviews plan, understand prorated billing, and manage plan transitions smoothly.'
 
