@@ -33,7 +33,7 @@ export const PLATFORM_LIMITS: Record<string, PlatformLimits> = {
   },
   linkedin: {
     name: 'LinkedIn',
-    maxLength: 700,
+    maxLength: 3000,
     urlLength: 50, // LinkedIn shows full URLs
   },
   facebook: {
@@ -43,7 +43,7 @@ export const PLATFORM_LIMITS: Record<string, PlatformLimits> = {
   },
   reddit: {
     name: 'Reddit',
-    maxLength: 300, // Title limit for posts
+    maxLength: 10000, // Post body limit
     urlLength: 50,
   },
   pinterest: {
@@ -58,7 +58,7 @@ export const PLATFORM_LIMITS: Record<string, PlatformLimits> = {
   },
   sms: {
     name: 'SMS',
-    maxLength: 160,
+    maxLength: 400,
     urlLength: 30,
   },
 };

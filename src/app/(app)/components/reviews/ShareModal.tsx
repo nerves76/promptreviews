@@ -256,20 +256,24 @@ export default function ShareModal({
             </svg>
           </button>
 
-          <Dialog.Panel className="mx-auto w-full rounded-2xl border-2 border-white bg-white/90 shadow-2xl backdrop-blur-sm max-h-[90vh] overflow-hidden">
+          <Dialog.Panel className="mx-auto w-full rounded-2xl border border-white/30 bg-white/10 shadow-2xl backdrop-blur-2xl max-h-[90vh] overflow-hidden relative pb-4">
+            {/* Glass effect overlays */}
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/25 via-white/5 to-transparent rounded-2xl" />
+            <div className="pointer-events-none absolute -top-24 -right-20 h-56 w-56 rounded-full bg-purple-300/20 blur-3xl" />
+
             {/* Header */}
-            <div className="flex items-center justify-between p-6 border-b border-gray-200">
-              <Dialog.Title className="text-xl font-semibold text-gray-900">
+            <div className="flex items-center justify-between p-6 border-b border-white/20 relative z-10">
+              <Dialog.Title className="text-xl font-semibold text-white drop-shadow-md">
                 {selectedPlatform ? 'Share Review' : 'Share on Social Media'}
               </Dialog.Title>
             </div>
 
           {/* Content */}
-          <div className="overflow-y-auto max-h-[calc(90vh-140px)]">
+          <div className="overflow-y-auto max-h-[calc(90vh-140px)] relative z-10">
             {!selectedPlatform ? (
               /* Platform Selection */
               <div className="p-6">
-                <p className="text-sm text-gray-600 mb-6">
+                <p className="text-sm text-white/80 mb-6">
                   Choose a platform to share this review:
                 </p>
 
@@ -278,7 +282,7 @@ export default function ShareModal({
                   <div className="mb-6">
                     <button
                       onClick={() => setHistoryExpanded(!historyExpanded)}
-                      className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 hover:bg-gray-100 rounded-lg border border-gray-200 transition-colors"
+                      className="w-full flex items-center justify-between px-4 py-3 bg-white hover:bg-gray-50 rounded-lg border border-gray-200 transition-colors"
                     >
                       <div className="flex items-center gap-2">
                         <Icon name="FaHistory" className="w-4 h-4 text-gray-600" size={16} />
@@ -294,14 +298,14 @@ export default function ShareModal({
                     </button>
 
                     {historyExpanded && (
-                      <div className="mt-2 border border-gray-200 rounded-lg overflow-hidden">
+                      <div className="mt-2 border border-gray-200 rounded-lg overflow-hidden bg-white">
                         <div className="max-h-48 overflow-y-auto">
                           {shareHistory.map((share) => {
                             const { icon, color } = getPlatformIcon(share.platform);
                             return (
                               <div
                                 key={share.id}
-                                className="flex items-center justify-between px-4 py-3 bg-white hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
+                                className="flex items-center justify-between px-4 py-3 hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
                               >
                                 <div className="flex items-center gap-3 flex-1 min-w-0">
                                   <Icon
@@ -346,8 +350,8 @@ export default function ShareModal({
                         transition-all hover:scale-105
                         ${
                           platform.requiresImage && !imageUrl
-                            ? 'opacity-50 cursor-not-allowed border-gray-200'
-                            : 'border-gray-200 hover:border-[#452F9F] hover:bg-[#452F9F]/5'
+                            ? 'opacity-50 cursor-not-allowed border-gray-200 bg-white'
+                            : 'border-gray-200 hover:border-[#452F9F] hover:bg-gray-50 bg-white'
                         }
                       `}
                       title={
@@ -369,7 +373,7 @@ export default function ShareModal({
                 </div>
 
                 {/* Review Preview */}
-                <div className="mt-8 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                <div className="mt-8 p-4 bg-white rounded-lg border border-gray-200">
                   <h3 className="text-sm font-semibold text-gray-700 mb-2">
                     Review Preview
                   </h3>
@@ -394,7 +398,7 @@ export default function ShareModal({
                 {/* Back Button */}
                 <button
                   onClick={handleBackToPlatforms}
-                  className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
+                  className="flex items-center gap-2 text-sm text-white/80 hover:text-white transition-colors"
                 >
                   <Icon name="FaArrowLeft" className="w-4 h-4" size={16} />
                   Back to platforms
@@ -402,7 +406,7 @@ export default function ShareModal({
 
                 {/* Platform Info */}
                 {currentPlatformConfig && (
-                  <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
+                  <div className="flex items-center gap-3 p-4 bg-white rounded-lg border border-gray-200">
                     <Icon
                       name={currentPlatformConfig.icon as any}
                       className={`w-8 h-8 ${currentPlatformConfig.color}`}
@@ -421,14 +425,14 @@ export default function ShareModal({
 
                 {/* Share Text - Editable */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-white mb-2">
                     Share Text (editable)
                   </label>
                   <textarea
                     value={shareText}
                     onChange={(e) => setShareText(e.target.value)}
                     rows={6}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#452F9F] focus:border-transparent resize-none text-sm font-mono"
+                    className="w-full px-3 py-2 border border-gray-300 bg-white text-gray-900 placeholder-gray-400 rounded-lg focus:ring-2 focus:ring-[#452F9F] focus:border-transparent resize-none text-sm font-mono"
                     placeholder="Edit your share text..."
                   />
 
@@ -437,13 +441,13 @@ export default function ShareModal({
                     <div className="mt-2 flex items-center justify-between text-xs">
                       <span
                         className={
-                          charInfo.isOverLimit ? 'text-red-600' : 'text-gray-500'
+                          charInfo.isOverLimit ? 'text-red-400' : 'text-white'
                         }
                       >
                         {charInfo.current} / {charInfo.max} characters
                       </span>
                       {charInfo.isOverLimit && (
-                        <span className="text-red-600 font-medium">
+                        <span className="text-red-400 font-medium">
                           Over limit by {Math.abs(charInfo.remaining)}!
                         </span>
                       )}
@@ -454,11 +458,37 @@ export default function ShareModal({
                 {/* Image Preview */}
                 {dynamicImageUrl && (
                   <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <label className="block text-sm font-medium text-gray-700">
-                        Share Image Preview
-                      </label>
-                      {!imageLoading && !imageError && (
+                    <label className="block text-sm font-medium text-white mb-2">
+                      Share Image Preview
+                    </label>
+                    {imageLoading && !imageError && (
+                      <div className="w-full max-w-md h-48 bg-white/5 rounded-lg border border-white/20 flex items-center justify-center backdrop-blur-sm">
+                        <div className="text-center">
+                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-2"></div>
+                          <p className="text-sm text-white/70">Generating image...</p>
+                        </div>
+                      </div>
+                    )}
+                    {imageError && (
+                      <div className="w-full max-w-md p-4 bg-amber-500/20 border border-amber-400/40 rounded-lg backdrop-blur-sm">
+                        <p className="text-sm text-amber-100">
+                          Could not load preview image. Share will still work.
+                        </p>
+                      </div>
+                    )}
+                    <img
+                      key={dynamicImageUrl}
+                      src={dynamicImageUrl}
+                      alt="Share preview"
+                      className={`w-full max-w-md rounded-lg border border-white/30 shadow-sm ${imageLoading || imageError ? 'hidden' : ''}`}
+                      onLoad={() => setImageLoading(false)}
+                      onError={() => {
+                        setImageLoading(false);
+                        setImageError(true);
+                      }}
+                    />
+                    {!imageLoading && !imageError && (
+                      <>
                         <button
                           onClick={async () => {
                             try {
@@ -476,43 +506,17 @@ export default function ShareModal({
                               console.error('Failed to download image:', err);
                             }
                           }}
-                          className="text-xs text-[#452F9F] hover:text-[#452F9F]/80 font-medium flex items-center gap-1"
+                          className="mt-3 w-full max-w-md px-4 py-2 border-2 border-white/40 text-white hover:bg-white/10 rounded-lg font-medium text-sm flex items-center justify-center gap-2 transition-colors"
                         >
-                          <Icon name="FaDownload" className="w-3 h-3" size={12} />
+                          <Icon name="FaDownload" className="w-4 h-4" size={16} />
                           Download Image
                         </button>
-                      )}
-                    </div>
-                    {imageLoading && !imageError && (
-                      <div className="w-full max-w-md h-48 bg-gray-100 rounded-lg border border-gray-200 flex items-center justify-center">
-                        <div className="text-center">
-                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#452F9F] mx-auto mb-2"></div>
-                          <p className="text-sm text-gray-500">Generating image...</p>
-                        </div>
-                      </div>
-                    )}
-                    {imageError && (
-                      <div className="w-full max-w-md p-4 bg-amber-50 border border-amber-200 rounded-lg">
-                        <p className="text-sm text-amber-800">
-                          Could not load preview image. Share will still work.
-                        </p>
-                      </div>
-                    )}
-                    <img
-                      key={dynamicImageUrl}
-                      src={dynamicImageUrl}
-                      alt="Share preview"
-                      className={`w-full max-w-md rounded-lg border border-gray-200 shadow-sm ${imageLoading || imageError ? 'hidden' : ''}`}
-                      onLoad={() => setImageLoading(false)}
-                      onError={() => {
-                        setImageLoading(false);
-                        setImageError(true);
-                      }}
-                    />
-                    {!imageLoading && !imageError && (
-                      <p className="text-xs text-gray-500 mt-2">
-                        💡 For LinkedIn: Download the image, then manually upload it when sharing
-                      </p>
+                        {selectedPlatform === 'linkedin' && (
+                          <p className="text-xs text-white/70 mt-2">
+                            💡 For LinkedIn: Download the image, then manually upload it when sharing
+                          </p>
+                        )}
+                      </>
                     )}
                   </div>
                 )}
@@ -524,9 +528,9 @@ export default function ShareModal({
                       type="checkbox"
                       checked={includeReviewerName}
                       onChange={(e) => setIncludeReviewerName(e.target.checked)}
-                      className="w-4 h-4 text-[#452F9F] border-gray-300 rounded focus:ring-[#452F9F]"
+                      className="w-4 h-4 text-white border-white/30 rounded focus:ring-white/50"
                     />
-                    <span className="text-sm text-gray-700">
+                    <span className="text-sm text-white">
                       Include reviewer name ({reviewerName})
                     </span>
                   </label>
@@ -534,13 +538,13 @@ export default function ShareModal({
 
                 {/* Warning for character limit */}
                 {charInfo?.isOverLimit && (
-                  <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg flex items-start gap-2">
+                  <div className="p-3 bg-amber-500/20 border border-amber-400/40 rounded-lg flex items-start gap-2 backdrop-blur-sm">
                     <Icon
                       name="FaExclamationTriangle"
-                      className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5"
+                      className="w-5 h-5 text-amber-300 flex-shrink-0 mt-0.5"
                       size={20}
                     />
-                    <div className="text-sm text-amber-800">
+                    <div className="text-sm text-amber-100">
                       <p className="font-medium mb-1">Text too long</p>
                       <p>
                         Your text exceeds the {charInfo.platformName} character limit.
@@ -555,10 +559,10 @@ export default function ShareModal({
 
           {/* Footer */}
           {selectedPlatform && (
-            <div className="p-6 border-t border-gray-200 flex items-center justify-between">
+            <div className="px-6 pt-4 pb-6 border-t border-white/20 flex items-center justify-between relative z-10">
               <button
                 onClick={onClose}
-                className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors"
+                className="px-4 py-2 text-sm font-medium text-white/80 hover:text-white transition-colors"
               >
                 Cancel
               </button>
@@ -566,12 +570,12 @@ export default function ShareModal({
                 onClick={handleConfirmShare}
                 disabled={charInfo?.isOverLimit}
                 className={`
-                  px-6 py-2 rounded-lg text-sm font-semibold text-white
+                  px-6 py-2 rounded-lg text-sm font-semibold
                   transition-colors
                   ${
                     charInfo?.isOverLimit
-                      ? 'bg-gray-300 cursor-not-allowed'
-                      : 'bg-[#452F9F] hover:bg-[#452F9F]/90'
+                      ? 'bg-white/20 text-white/40 cursor-not-allowed'
+                      : 'bg-white text-slate-900 hover:bg-white/90'
                   }
                 `}
               >
