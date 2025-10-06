@@ -63,7 +63,7 @@ export default async function HelpOverviewPage() {
           breadcrumbs={[
             { label: 'Help', href: '/' }
           ]}
-          currentPage={article.metadata?.current_page || "Help & Support"}
+          currentPage="Help & Support"
           categoryLabel={article.metadata?.category_label || "Help & Support"}
           categoryIcon={CategoryIcon}
           categoryColor={(article.metadata?.category_color as any) || "green"}

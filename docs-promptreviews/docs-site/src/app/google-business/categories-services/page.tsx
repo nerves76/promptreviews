@@ -32,6 +32,33 @@ const defaultKeyFeatures = [
   }
 ]
 
+const defaultHowItWorks = [
+  {
+    number: 1,
+    icon: Tag,
+    title: 'Select primary category',
+    description: 'Choose the most specific category that describes your core business',
+  },
+  {
+    number: 2,
+    icon: List,
+    title: 'Add additional categories',
+    description: 'Select up to 9 more categories to cover all aspects of your business',
+  },
+  {
+    number: 3,
+    icon: Building2,
+    title: 'Define services',
+    description: 'List all services with detailed descriptions',
+  },
+  {
+    number: 4,
+    icon: Tag,
+    title: 'Save and verify',
+    description: 'Review your selections and save to your profile',
+  }
+]
+
 const defaultBestPractices = [
   {
     icon: Tag,
@@ -120,6 +147,13 @@ interface MetadataFeature {
   href?: string
 }
 
+interface MetadataStep {
+  number?: number
+  icon?: string
+  title: string
+  description: string
+}
+
 interface MetadataBestPractice {
   icon?: string
   title: string
@@ -161,6 +195,15 @@ export default async function CategoriesServicesPage() {
         href: feature.href,
       }))
     : defaultKeyFeatures
+
+  const mappedHowItWorks = Array.isArray(metadata.how_it_works) && metadata.how_it_works.length
+    ? (metadata.how_it_works as MetadataStep[]).map((step, index) => ({
+        number: step.number ?? index + 1,
+        title: step.title,
+        description: step.description,
+        icon: resolveIcon(step.icon, Tag),
+      }))
+    : defaultHowItWorks
 
   const mappedBestPractices = Array.isArray(metadata.best_practices) && metadata.best_practices.length
     ? (metadata.best_practices as MetadataBestPractice[]).map((practice) => ({
@@ -214,6 +257,7 @@ export default async function CategoriesServicesPage() {
 
   const faqsTitle = getString((metadata as Record<string, unknown>).faqs_title)
   const keyFeaturesTitle = getString((metadata as Record<string, unknown>).key_features_title)
+  const howItWorksTitle = getString((metadata as Record<string, unknown>).how_it_works_title)
   const bestPracticesTitle = getString((metadata as Record<string, unknown>).best_practices_title)
 
   return (
@@ -227,6 +271,8 @@ export default async function CategoriesServicesPage() {
       availablePlans={availablePlans}
       keyFeatures={mappedKeyFeatures}
       keyFeaturesTitle={keyFeaturesTitle}
+      howItWorks={mappedHowItWorks}
+      howItWorksTitle={howItWorksTitle}
       bestPractices={mappedBestPractices}
       bestPracticesTitle={bestPracticesTitle}
       faqs={faqMetadata && faqMetadata.length ? faqMetadata : []}

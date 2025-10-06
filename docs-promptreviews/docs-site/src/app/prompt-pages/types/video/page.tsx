@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import * as Icons from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
-import StandardOverviewLayout from '../../../components/StandardOverviewLayout'
+import StandardOverviewLayout from '../../../../components/StandardOverviewLayout'
 import { pageFAQs } from '../../../utils/faqData'
 import { getArticleBySlug } from '@/lib/docs/articles'
 
@@ -198,7 +198,7 @@ export default async function VideoPromptPagesPage() {
       howItWorksTitle={howItWorksTitle}
       bestPractices={mappedBestPractices}
       bestPracticesTitle={bestPracticesTitle}
-      faqs={faqMetadata && faqMetadata.length ? faqMetadata : pageFAQs['prompt-pages/types/video']}
+      faqs={faqMetadata && faqMetadata.length ? faqMetadata : []}
       faqsTitle={faqsTitle}
       callToAction={callToAction}
       content={article.content}

@@ -30,21 +30,25 @@ const defaultKeyFeatures = [
 const defaultHowItWorks = [
   {
     number: 1,
+    icon: Calendar,
     title: 'Choose platform',
     description: 'Choose a compatible scheduling platform that integrates with Google Business Profile',
   },
   {
     number: 2,
+    icon: Clock,
     title: 'Set availability',
     description: 'Set up your appointment availability, services, and pricing in the scheduling platform',
   },
   {
     number: 3,
+    icon: Building2,
     title: 'Connect',
     description: 'Connect your scheduling platform to your Google Business Profile through the platform\'s settings',
   },
   {
     number: 4,
+    icon: Calendar,
     title: 'Verify',
     description: 'Verify the "Book Online" button appears on your Google Business Profile',
   }

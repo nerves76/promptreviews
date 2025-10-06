@@ -56,7 +56,7 @@ export default async function StyleSettingsPage() {
   const CategoryIcon = resolveIcon(article.metadata?.category_icon, Palette)
 
   // Key features for style customization
-  const keyFeatures = article.sections?.key_features?.map((feat: any) => ({
+  const keyFeatures = article.metadata?.key_features?.map((feat: any) => ({
     icon: resolveIcon(feat.icon, CheckCircle),
     title: feat.title,
     description: feat.description
@@ -84,7 +84,7 @@ export default async function StyleSettingsPage() {
   ];
 
   // How style customization works
-  const howItWorks = article.sections?.how_it_works?.map((step: any) => ({
+  const howItWorks = article.metadata?.how_it_works?.map((step: any) => ({
     number: step.number,
     title: step.title,
     description: step.description,
@@ -111,7 +111,7 @@ export default async function StyleSettingsPage() {
   ];
 
   // Best practices for style customization
-  const bestPractices = article.sections?.best_practices?.map((practice: any) => ({
+  const bestPractices = article.metadata?.best_practices?.map((practice: any) => ({
     icon: resolveIcon(practice.icon, CheckCircle),
     title: practice.title,
     description: practice.description
@@ -146,12 +146,12 @@ export default async function StyleSettingsPage() {
       categoryLabel={article.metadata?.category_label || "Customization"}
       categoryIcon={CategoryIcon}
       categoryColor={(article.metadata?.category_color as any) || "purple"}
-      currentPage={article.metadata?.current_page || "Style Settings"}
+      currentPage="Style Settings"
       availablePlans={article.metadata?.available_plans as any || ['grower', 'builder', 'maven']}
       keyFeatures={keyFeatures}
       howItWorks={howItWorks}
       bestPractices={bestPractices}
-      faqs={article.sections?.faqs || [
+      faqs={[
         {
           question: 'Do style changes apply to all prompt pages?',
           answer: 'Yes, style settings are global and apply to all your prompt pages. This ensures consistent branding across all customer touchpoints.'
@@ -169,16 +169,13 @@ export default async function StyleSettingsPage() {
           answer: 'Currently, you have one active style configuration. You can reset to defaults or manually note your settings if you want to experiment with different looks.'
         }
       ]}
-      callToAction={article.sections?.call_to_action || {
+      callToAction={{
         primary: {
           text: 'View Prompt Pages',
           href: '/prompt-pages'
         }
       }}
-      overview={article.sections?.overview ? {
-        title: article.sections.overview.title,
-        content: <MarkdownRenderer content={article.sections.overview.content} />
-      } : undefined}
+      overview={undefined}
     />
   );
 }

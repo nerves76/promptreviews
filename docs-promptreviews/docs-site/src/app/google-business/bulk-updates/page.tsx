@@ -35,21 +35,25 @@ const defaultKeyFeatures = [
 const defaultHowItWorks = [
   {
     number: 1,
+    icon: Building2,
     title: 'Connect locations',
     description: 'Connect all your Google Business Profile locations using OAuth',
   },
   {
     number: 2,
+    icon: MapPin,
     title: 'Select locations',
     description: 'In the Google Business dashboard, select the locations you want to update',
   },
   {
     number: 3,
+    icon: Layers,
     title: 'Create content',
     description: 'Create your post, upload photos, or update information',
   },
   {
     number: 4,
+    icon: Building2,
     title: 'Publish',
     description: 'Review your selections and publish to all chosen locations at once',
   }

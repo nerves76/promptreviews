@@ -33,6 +33,33 @@ const defaultKeyFeatures = [
   }
 ]
 
+const defaultHowItWorks = [
+  {
+    number: 1,
+    icon: Upload,
+    title: 'Upload logo and cover',
+    description: 'Start by adding your logo and cover photo to establish your brand',
+  },
+  {
+    number: 2,
+    icon: Camera,
+    title: 'Add category photos',
+    description: 'Upload images for Interior, Exterior, At Work, Team, Products, and Services',
+  },
+  {
+    number: 3,
+    icon: Image,
+    title: 'Organize and caption',
+    description: 'Arrange photos by category and add descriptive captions',
+  },
+  {
+    number: 4,
+    icon: Star,
+    title: 'Review and publish',
+    description: 'Check all images meet quality guidelines and publish to your profile',
+  }
+]
+
 const defaultBestPractices = [
   {
     icon: Upload,
@@ -121,6 +148,13 @@ interface MetadataFeature {
   href?: string
 }
 
+interface MetadataStep {
+  number?: number
+  icon?: string
+  title: string
+  description: string
+}
+
 interface MetadataBestPractice {
   icon?: string
   title: string
@@ -162,6 +196,15 @@ export default async function ImageUploadPage() {
         href: feature.href,
       }))
     : defaultKeyFeatures
+
+  const mappedHowItWorks = Array.isArray(metadata.how_it_works) && metadata.how_it_works.length
+    ? (metadata.how_it_works as MetadataStep[]).map((step, index) => ({
+        number: step.number ?? index + 1,
+        title: step.title,
+        description: step.description,
+        icon: resolveIcon(step.icon, Upload),
+      }))
+    : defaultHowItWorks
 
   const mappedBestPractices = Array.isArray(metadata.best_practices) && metadata.best_practices.length
     ? (metadata.best_practices as MetadataBestPractice[]).map((practice) => ({
@@ -215,6 +258,7 @@ export default async function ImageUploadPage() {
 
   const faqsTitle = getString((metadata as Record<string, unknown>).faqs_title)
   const keyFeaturesTitle = getString((metadata as Record<string, unknown>).key_features_title)
+  const howItWorksTitle = getString((metadata as Record<string, unknown>).how_it_works_title)
   const bestPracticesTitle = getString((metadata as Record<string, unknown>).best_practices_title)
 
   return (
@@ -228,6 +272,8 @@ export default async function ImageUploadPage() {
       availablePlans={availablePlans}
       keyFeatures={mappedKeyFeatures}
       keyFeaturesTitle={keyFeaturesTitle}
+      howItWorks={mappedHowItWorks}
+      howItWorksTitle={howItWorksTitle}
       bestPractices={mappedBestPractices}
       bestPracticesTitle={bestPracticesTitle}
       faqs={faqMetadata && faqMetadata.length ? faqMetadata : []}

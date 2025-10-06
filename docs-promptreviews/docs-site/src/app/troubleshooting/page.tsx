@@ -74,7 +74,7 @@ export default async function TroubleshootingPage() {
 
   const CategoryIcon = resolveIcon(article.metadata?.category_icon, AlertTriangle)
 
-const keyFeatures = article.sections?.key_features?.map((feat: any) => ({
+const keyFeatures = article.metadata?.key_features?.map((feat: any) => ({
   icon: resolveIcon(feat.icon, CheckCircle),
   title: feat.title,
   description: feat.description
@@ -111,7 +111,7 @@ const keyFeatures = article.sections?.key_features?.map((feat: any) => ({
   }
 ]
 
-const howItWorks = article.sections?.how_it_works?.map((step: any) => ({
+const howItWorks = article.metadata?.how_it_works?.map((step: any) => ({
   number: step.number,
   title: step.title,
   description: step.description,
@@ -143,7 +143,7 @@ const howItWorks = article.sections?.how_it_works?.map((step: any) => ({
   }
 ]
 
-const bestPractices = article.sections?.best_practices?.map((practice: any) => ({
+const bestPractices = article.metadata?.best_practices?.map((practice: any) => ({
   icon: resolveIcon(practice.icon, CheckCircle),
   title: practice.title,
   description: practice.description
@@ -177,24 +177,21 @@ const bestPractices = article.sections?.best_practices?.map((practice: any) => (
       categoryLabel={article.metadata?.category_label || "Need Help?"}
       categoryIcon={CategoryIcon}
       categoryColor={(article.metadata?.category_color as any) || "orange"}
-      currentPage={article.metadata?.current_page || "Troubleshooting"}
+      currentPage="Troubleshooting"
       availablePlans={article.metadata?.available_plans as any || ['grower', 'builder', 'maven']}
       keyFeatures={keyFeatures}
       howItWorks={howItWorks}
       bestPractices={bestPractices}
       faqs={pageFAQs['troubleshooting']}
-      callToAction={article.sections?.call_to_action || {
+      callToAction={{
         primary: {
           text: 'Getting Started Guide',
           href: '/getting-started'
         }
       }}
       overview={{
-        title: article.sections?.overview?.title || 'Quick Solutions for Common Issues',
-        content: article.sections?.overview?.content ? (
-          <MarkdownRenderer content={article.sections.overview.content} />
-        ) : (
-          <>
+        title: 'Quick Solutions for Common Issues',
+        content: <>
             <p className="text-white/90 text-lg mb-6 text-center">
               Most technical issues can be resolved quickly with the right approach.
               Our troubleshooting guide covers the most common problems and provides
@@ -233,7 +230,6 @@ const bestPractices = article.sections?.best_practices?.map((practice: any) => (
               </div>
             </div>
           </>
-        )
       }}
     />
   )

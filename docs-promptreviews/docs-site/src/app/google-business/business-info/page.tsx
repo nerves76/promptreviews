@@ -44,6 +44,33 @@ const defaultKeyFeatures = [
   }
 ]
 
+const defaultHowItWorks = [
+  {
+    number: 1,
+    icon: Building2,
+    title: 'Review current information',
+    description: 'Check all your business information for accuracy',
+  },
+  {
+    number: 2,
+    icon: MapPin,
+    title: 'Update details',
+    description: 'Make necessary changes to your business information',
+  },
+  {
+    number: 3,
+    icon: Clock,
+    title: 'Set business hours',
+    description: 'Configure regular hours and special holiday hours',
+  },
+  {
+    number: 4,
+    icon: Globe,
+    title: 'Verify and save',
+    description: 'Review all changes and save to your profile',
+  }
+]
+
 const defaultBestPractices = [
   {
     icon: Building2,
@@ -132,6 +159,13 @@ interface MetadataFeature {
   href?: string
 }
 
+interface MetadataStep {
+  number?: number
+  icon?: string
+  title: string
+  description: string
+}
+
 interface MetadataBestPractice {
   icon?: string
   title: string
@@ -173,6 +207,15 @@ export default async function BusinessInfoPage() {
         href: feature.href,
       }))
     : defaultKeyFeatures
+
+  const mappedHowItWorks = Array.isArray(metadata.how_it_works) && metadata.how_it_works.length
+    ? (metadata.how_it_works as MetadataStep[]).map((step, index) => ({
+        number: step.number ?? index + 1,
+        title: step.title,
+        description: step.description,
+        icon: resolveIcon(step.icon, Building2),
+      }))
+    : defaultHowItWorks
 
   const mappedBestPractices = Array.isArray(metadata.best_practices) && metadata.best_practices.length
     ? (metadata.best_practices as MetadataBestPractice[]).map((practice) => ({
@@ -226,6 +269,7 @@ export default async function BusinessInfoPage() {
 
   const faqsTitle = getString((metadata as Record<string, unknown>).faqs_title)
   const keyFeaturesTitle = getString((metadata as Record<string, unknown>).key_features_title)
+  const howItWorksTitle = getString((metadata as Record<string, unknown>).how_it_works_title)
   const bestPracticesTitle = getString((metadata as Record<string, unknown>).best_practices_title)
 
   return (
@@ -239,6 +283,8 @@ export default async function BusinessInfoPage() {
       availablePlans={availablePlans}
       keyFeatures={mappedKeyFeatures}
       keyFeaturesTitle={keyFeaturesTitle}
+      howItWorks={mappedHowItWorks}
+      howItWorksTitle={howItWorksTitle}
       bestPractices={mappedBestPractices}
       bestPracticesTitle={bestPracticesTitle}
       faqs={faqMetadata && faqMetadata.length ? faqMetadata : []}

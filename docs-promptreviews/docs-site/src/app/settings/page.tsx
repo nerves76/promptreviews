@@ -64,7 +64,7 @@ export default async function SettingsOverviewPage() {
           breadcrumbs={[
             { label: 'Help', href: '/' }
           ]}
-          currentPage={article.metadata?.current_page || "Settings"}
+          currentPage="Settings"
           categoryLabel={article.metadata?.category_label || "Settings & Configuration"}
           categoryIcon={CategoryIcon}
           categoryColor={(article.metadata?.category_color as any) || "gray"}

@@ -35,21 +35,25 @@ const defaultKeyFeatures = [
 const defaultHowItWorks = [
   {
     number: 1,
+    icon: Download,
     title: 'Import reviews',
     description: 'Import Google reviews to identify satisfied customers',
   },
   {
     number: 2,
+    icon: Star,
     title: 'Filter reviewers',
     description: 'Filter by 4 and 5-star reviewers who are likely to leave positive reviews elsewhere',
   },
   {
     number: 3,
+    icon: Building2,
     title: 'Reach out',
     description: 'Reach out via email or SMS asking them to share their experience on Facebook, Yelp, or other platforms',
   },
   {
     number: 4,
+    icon: Star,
     title: 'Track results',
     description: 'Track which customers respond to avoid duplicate requests',
   }

@@ -71,7 +71,7 @@ export default async function TeamPage() {
   const CategoryIcon = resolveIcon(article.metadata?.category_icon, Users)
 
   // Key features for team management
-  const keyFeatures = article.sections?.key_features?.map((feat: any) => ({
+  const keyFeatures = article.metadata?.key_features?.map((feat: any) => ({
     icon: resolveIcon(feat.icon, CheckCircle),
     title: feat.title,
     description: feat.description
@@ -99,7 +99,7 @@ export default async function TeamPage() {
   ];
 
   // How team management works
-  const howItWorks = article.sections?.how_it_works?.map((step: any) => ({
+  const howItWorks = article.metadata?.how_it_works?.map((step: any) => ({
     number: step.number,
     title: step.title,
     description: step.description,
@@ -126,7 +126,7 @@ export default async function TeamPage() {
   ];
 
   // Best practices for team management
-  const bestPractices = article.sections?.best_practices?.map((practice: any) => ({
+  const bestPractices = article.metadata?.best_practices?.map((practice: any) => ({
     icon: resolveIcon(practice.icon, CheckCircle),
     title: practice.title,
     description: practice.description
@@ -161,23 +161,21 @@ export default async function TeamPage() {
       categoryLabel={article.metadata?.category_label || "Team & Account"}
       categoryIcon={CategoryIcon}
       categoryColor={(article.metadata?.category_color as any) || "orange"}
-      currentPage={article.metadata?.current_page || "Team & Account"}
+      currentPage="Team & Account"
       availablePlans={article.metadata?.available_plans as any || ['builder', 'maven']}
       keyFeatures={keyFeatures}
       howItWorks={howItWorks}
       bestPractices={bestPractices}
       faqs={pageFAQs['team']}
-      callToAction={article.sections?.call_to_action || {
+      callToAction={{
         primary: {
           text: 'View Plans',
           href: '/billing'
         }
       }}
       overview={{
-        title: article.sections?.overview?.title || 'Team Management Availability',
-        content: article.sections?.overview?.content ? (
-          <MarkdownRenderer content={article.sections.overview.content} />
-        ) : (
+        title: 'Team Management Availability',
+        content: (
           <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-6">
             <div className="flex items-start space-x-3">
               <AlertCircle className="w-6 h-6 text-yellow-300 mt-0.5 flex-shrink-0" />

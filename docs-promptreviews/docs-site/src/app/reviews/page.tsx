@@ -22,8 +22,18 @@ import {
   Target,
   Search
 } from 'lucide-react'
+import * as Icons from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 
 const fallbackDescription = 'Learn how to manage customer reviews in Prompt Reviews. Track submissions, verify publication, respond to feedback, and analyze review performance.'
+
+function resolveIcon(iconName: string | undefined, fallback: LucideIcon): LucideIcon {
+  if (!iconName) return fallback
+  const lookup = Icons as Record<string, unknown>
+  const maybeIcon = lookup[iconName]
+  if (typeof maybeIcon === 'function') return maybeIcon as LucideIcon
+  return fallback
+}
 
 export async function generateMetadata(): Promise<Metadata> {
   try {
@@ -82,6 +92,34 @@ export default async function ReviewsPage() {
     notFound()
   }
 
+  const metadata = article.metadata ?? {}
+
+  const mappedKeyFeatures = Array.isArray(metadata.key_features) && metadata.key_features.length
+    ? (metadata.key_features as any[]).map((feature: any) => ({
+        icon: resolveIcon(feature.icon, Star),
+        title: feature.title,
+        description: feature.description,
+        href: feature.href,
+      }))
+    : []
+
+  const mappedHowItWorks = Array.isArray(metadata.how_it_works) && metadata.how_it_works.length
+    ? (metadata.how_it_works as any[]).map((step: any, index: number) => ({
+        number: step.number ?? index + 1,
+        title: step.title,
+        description: step.description,
+        icon: resolveIcon(step.icon, Star),
+      }))
+    : []
+
+  const mappedBestPractices = Array.isArray(metadata.best_practices) && metadata.best_practices.length
+    ? (metadata.best_practices as any[]).map((practice: any) => ({
+        icon: resolveIcon(practice.icon, Star),
+        title: practice.title,
+        description: practice.description,
+      }))
+    : []
+
   return (
     <StandardOverviewLayout
       title={article.title || "Review Management"}
@@ -91,9 +129,9 @@ export default async function ReviewsPage() {
       categoryColor={(article.metadata?.category_color as any) || "yellow"}
       currentPage="Review Management"
       availablePlans={(article.metadata?.available_plans as any) || ['grower', 'builder', 'maven']}
-      keyFeatures={article.metadata?.key_features || []}
-      howItWorks={article.metadata?.how_it_works || []}
-      bestPractices={article.metadata?.best_practices || []}
+      keyFeatures={mappedKeyFeatures}
+      howItWorks={mappedHowItWorks}
+      bestPractices={mappedBestPractices}
       faqs={pageFAQs['reviews']}
       callToAction={{
         primary: {

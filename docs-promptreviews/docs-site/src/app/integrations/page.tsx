@@ -63,7 +63,7 @@ export default async function IntegrationsOverviewPage() {
           breadcrumbs={[
             { label: 'Help', href: '/' }
           ]}
-          currentPage={article.metadata?.current_page || "Integrations"}
+          currentPage="Integrations"
           categoryLabel={article.metadata?.category_label || "Integrations Overview"}
           categoryIcon={CategoryIcon}
           categoryColor={(article.metadata?.category_color as any) || "purple"}
