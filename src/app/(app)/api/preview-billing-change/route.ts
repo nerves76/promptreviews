@@ -9,9 +9,9 @@ import {
   getPlanOrder
 } from "@/lib/billing/config";
 
-const stripe = createStripeClient();
 
 export async function POST(req: NextRequest) {
+  const stripe = createStripeClient();
   try {
     const body = await req.json();
     

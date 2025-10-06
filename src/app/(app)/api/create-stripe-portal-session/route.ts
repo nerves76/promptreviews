@@ -3,9 +3,9 @@ import { createServerSupabaseClient } from "@/auth/providers/supabase";
 import { getRequestAccountId } from "@/app/(app)/api/utils/getRequestAccountId";
 import { createStripeClient, BILLING_URLS, PORTAL_CONFIG } from "@/lib/billing/config";
 
-const stripe = createStripeClient();
 
 export async function POST(req: NextRequest) {
+  const stripe = createStripeClient();
   // CSRF Protection - Check origin for billing management
   const { requireValidOrigin } = await import('@/lib/csrf-protection');
   const csrfError = requireValidOrigin(req);

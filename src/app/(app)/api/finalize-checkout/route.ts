@@ -2,11 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { createStripeClient, SUPABASE_CONFIG, PRICE_IDS, PLAN_LIMITS } from "@/lib/billing/config";
 
-const stripe = createStripeClient();
 
 // Finalize a Stripe Checkout by session_id and update the account immediately.
 // This is especially helpful in local dev where webhooks may not be running.
 export async function POST(req: NextRequest) {
+  const stripe = createStripeClient();
   try {
     const { session_id, userId } = await req.json();
 

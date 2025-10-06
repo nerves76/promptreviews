@@ -2,9 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { createStripeClient, PRICE_IDS, SUPABASE_CONFIG } from "@/lib/billing/config";
 
-const stripe = createStripeClient();
 
 export async function POST(req: NextRequest) {
+  const stripe = createStripeClient();
   try {
     const body = await req.json();
     const { userId } = body;

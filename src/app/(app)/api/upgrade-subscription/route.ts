@@ -11,9 +11,9 @@ import {
 } from "@/lib/billing/config";
 import { logPlanChange } from "@/lib/billing/audit";
 
-const stripe = createStripeClient();
 
 export async function POST(req: NextRequest) {
+  const stripe = createStripeClient();
   const { requireValidOrigin } = await import('@/lib/csrf-protection');
   const csrfError = requireValidOrigin(req);
   if (csrfError) return csrfError;

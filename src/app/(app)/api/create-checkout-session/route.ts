@@ -13,9 +13,9 @@ import {
   evaluateTrialEligibility,
 } from "@/lib/billing/trialEligibility";
 
-const stripe = createStripeClient();
 
 export async function POST(req: NextRequest) {
+  const stripe = createStripeClient();
   // CSRF Protection - Check origin for payment operations
   const { requireValidOrigin } = await import('@/lib/csrf-protection');
   const csrfError = requireValidOrigin(req);

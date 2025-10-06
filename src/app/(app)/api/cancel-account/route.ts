@@ -14,9 +14,9 @@ import { createServerSupabaseClient } from '@/auth/providers/supabase';
 import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
 import { createStripeClientWithRetry, STRIPE_CONFIG } from '@/lib/billing/config';
 
-const stripeWithRetry = createStripeClientWithRetry();
-
 export async function POST(request: NextRequest) {
+  // Create Stripe client inside request handler to avoid build-time env var access
+  const stripeWithRetry = createStripeClientWithRetry();
   try {
     const supabase = await createServerSupabaseClient();
 

@@ -8,60 +8,81 @@
 import Stripe from 'stripe';
 import { StripeWithRetry } from './retry';
 
-// Validate environment variables at module load time
-const requiredEnvVars = {
-  STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
-  STRIPE_PRICE_ID_GROWER: process.env.STRIPE_PRICE_ID_GROWER,
-  STRIPE_PRICE_ID_BUILDER: process.env.STRIPE_PRICE_ID_BUILDER,
-  STRIPE_PRICE_ID_MAVEN: process.env.STRIPE_PRICE_ID_MAVEN,
-  NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
-  NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
-  SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
-};
+// Environment variable getters - lazy evaluation to avoid build-time errors
+// These are only accessed when the functions are actually called at runtime
+function getRequiredEnvVars() {
+  return {
+    STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
+    STRIPE_PRICE_ID_GROWER: process.env.STRIPE_PRICE_ID_GROWER,
+    STRIPE_PRICE_ID_BUILDER: process.env.STRIPE_PRICE_ID_BUILDER,
+    STRIPE_PRICE_ID_MAVEN: process.env.STRIPE_PRICE_ID_MAVEN,
+    NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
+    NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
+    SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
+  };
+}
 
-// Optional environment variables
-const optionalEnvVars = {
-  STRIPE_PRICE_ID_GROWER_ANNUAL: process.env.STRIPE_PRICE_ID_GROWER_ANNUAL,
-  STRIPE_PRICE_ID_BUILDER_ANNUAL: process.env.STRIPE_PRICE_ID_BUILDER_ANNUAL,
-  STRIPE_PRICE_ID_MAVEN_ANNUAL: process.env.STRIPE_PRICE_ID_MAVEN_ANNUAL,
-  STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
-  NEXT_PUBLIC_PORTAL_RETURN_URL: process.env.NEXT_PUBLIC_PORTAL_RETURN_URL,
-};
+function getOptionalEnvVars() {
+  return {
+    STRIPE_PRICE_ID_GROWER_ANNUAL: process.env.STRIPE_PRICE_ID_GROWER_ANNUAL,
+    STRIPE_PRICE_ID_BUILDER_ANNUAL: process.env.STRIPE_PRICE_ID_BUILDER_ANNUAL,
+    STRIPE_PRICE_ID_MAVEN_ANNUAL: process.env.STRIPE_PRICE_ID_MAVEN_ANNUAL,
+    STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
+    NEXT_PUBLIC_PORTAL_RETURN_URL: process.env.NEXT_PUBLIC_PORTAL_RETURN_URL,
+  };
+}
 
-// Check for missing required environment variables
-const missingVars = Object.entries(requiredEnvVars)
-  .filter(([_, value]) => !value)
-  .map(([key]) => key);
+// Validate environment variables only when called (at runtime, not build time)
+function validateRequiredEnvVars() {
+  const requiredEnvVars = getRequiredEnvVars();
+  const missingVars = Object.entries(requiredEnvVars)
+    .filter(([_, value]) => !value)
+    .map(([key]) => key);
 
-if (missingVars.length > 0 && process.env.NODE_ENV !== 'test') {
-  throw new Error(`Missing required environment variables: ${missingVars.join(', ')}`);
+  if (missingVars.length > 0 && process.env.NODE_ENV !== 'test') {
+    throw new Error(`Missing required environment variables: ${missingVars.join(', ')}`);
+  }
+
+  return requiredEnvVars;
 }
 
 /**
- * Stripe API configuration
+ * Stripe API configuration - uses lazy getters to avoid build-time errors
  */
 export const STRIPE_CONFIG = {
   API_VERSION: '2025-06-30.basil' as Stripe.LatestApiVersion,
-  SECRET_KEY: requiredEnvVars.STRIPE_SECRET_KEY!,
-  WEBHOOK_SECRET: optionalEnvVars.STRIPE_WEBHOOK_SECRET,
-  IS_TEST_MODE: requiredEnvVars.STRIPE_SECRET_KEY?.startsWith('sk_test_') ?? false,
+  get SECRET_KEY() {
+    return process.env.STRIPE_SECRET_KEY!;
+  },
+  get WEBHOOK_SECRET() {
+    return process.env.STRIPE_WEBHOOK_SECRET;
+  },
+  get IS_TEST_MODE() {
+    return process.env.STRIPE_SECRET_KEY?.startsWith('sk_test_') ?? false;
+  },
 };
 
 /**
- * Price IDs for each plan and billing period
+ * Price IDs for each plan and billing period - uses getters for lazy evaluation
  */
 export const PRICE_IDS: Record<string, { monthly: string; annual: string }> = {
-  grower: {
-    monthly: requiredEnvVars.STRIPE_PRICE_ID_GROWER!,
-    annual: optionalEnvVars.STRIPE_PRICE_ID_GROWER_ANNUAL || requiredEnvVars.STRIPE_PRICE_ID_GROWER!,
+  get grower() {
+    return {
+      monthly: process.env.STRIPE_PRICE_ID_GROWER!,
+      annual: process.env.STRIPE_PRICE_ID_GROWER_ANNUAL || process.env.STRIPE_PRICE_ID_GROWER!,
+    };
   },
-  builder: {
-    monthly: requiredEnvVars.STRIPE_PRICE_ID_BUILDER!,
-    annual: optionalEnvVars.STRIPE_PRICE_ID_BUILDER_ANNUAL || requiredEnvVars.STRIPE_PRICE_ID_BUILDER!,
+  get builder() {
+    return {
+      monthly: process.env.STRIPE_PRICE_ID_BUILDER!,
+      annual: process.env.STRIPE_PRICE_ID_BUILDER_ANNUAL || process.env.STRIPE_PRICE_ID_BUILDER!,
+    };
   },
-  maven: {
-    monthly: requiredEnvVars.STRIPE_PRICE_ID_MAVEN!,
-    annual: optionalEnvVars.STRIPE_PRICE_ID_MAVEN_ANNUAL || requiredEnvVars.STRIPE_PRICE_ID_MAVEN!,
+  get maven() {
+    return {
+      monthly: process.env.STRIPE_PRICE_ID_MAVEN!,
+      annual: process.env.STRIPE_PRICE_ID_MAVEN_ANNUAL || process.env.STRIPE_PRICE_ID_MAVEN!,
+    };
   },
 };
 
@@ -135,36 +156,50 @@ export const PORTAL_CONFIG = {
 };
 
 /**
- * URLs for redirects
+ * URLs for redirects - uses getters for lazy evaluation
  */
 export const BILLING_URLS = {
-  APP_URL: requiredEnvVars.NEXT_PUBLIC_APP_URL!,
-  PORTAL_RETURN_URL: optionalEnvVars.NEXT_PUBLIC_PORTAL_RETURN_URL ||
-    `${requiredEnvVars.NEXT_PUBLIC_APP_URL}/dashboard?success=1&change=billing_period`,
+  get APP_URL() {
+    return process.env.NEXT_PUBLIC_APP_URL!;
+  },
+  get PORTAL_RETURN_URL() {
+    return process.env.NEXT_PUBLIC_PORTAL_RETURN_URL ||
+      `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?success=1&change=billing_period`;
+  },
   // Include session_id in success URL so we can finalize checkout locally without webhooks
   SUCCESS_URL: (changeType: string, plan: string, billing?: string) => {
     const additionalSuffix = changeType === 'new_additional_account' ? '&additional=1' : '';
-    return `${requiredEnvVars.NEXT_PUBLIC_APP_URL}/dashboard?success=1&change=${changeType}&plan=${plan}${billing ? `&billing=${billing}` : ''}${additionalSuffix}&session_id={CHECKOUT_SESSION_ID}`;
+    return `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?success=1&change=${changeType}&plan=${plan}${billing ? `&billing=${billing}` : ''}${additionalSuffix}&session_id={CHECKOUT_SESSION_ID}`;
   },
-  CANCEL_URL: `${requiredEnvVars.NEXT_PUBLIC_APP_URL}/dashboard?canceled=1`,
+  get CANCEL_URL() {
+    return `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?canceled=1`;
+  },
 };
 
 /**
- * Supabase configuration
+ * Supabase configuration - uses getters for lazy evaluation
  */
 export const SUPABASE_CONFIG = {
-  URL: requiredEnvVars.NEXT_PUBLIC_SUPABASE_URL!,
-  SERVICE_ROLE_KEY: requiredEnvVars.SUPABASE_SERVICE_ROLE_KEY!,
+  get URL() {
+    return process.env.NEXT_PUBLIC_SUPABASE_URL!;
+  },
+  get SERVICE_ROLE_KEY() {
+    return process.env.SUPABASE_SERVICE_ROLE_KEY!;
+  },
 };
 
 /**
  * Helper function to create a configured Stripe instance
+ * Validates required env vars at runtime when called
  */
 export function createStripeClient(): Stripe {
+  // Validate all required env vars when creating a Stripe client
+  validateRequiredEnvVars();
+
   if (!STRIPE_CONFIG.SECRET_KEY) {
     throw new Error('Stripe secret key is not configured');
   }
-  
+
   return new Stripe(STRIPE_CONFIG.SECRET_KEY, {
     apiVersion: STRIPE_CONFIG.API_VERSION,
   });
