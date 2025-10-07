@@ -141,12 +141,18 @@ export default function KeywordInspirationModal({
                       if (copiedIndex !== index) {
                         e.currentTarget.style.backgroundColor = secondaryColor;
                         e.currentTarget.style.color = hoverTextColor;
+                        // Update icon color on hover
+                        const icon = e.currentTarget.querySelector('svg');
+                        if (icon) icon.style.fill = hoverTextColor;
                       }
                     }}
                     onMouseLeave={(e) => {
                       if (copiedIndex !== index) {
                         e.currentTarget.style.backgroundColor = "transparent";
                         e.currentTarget.style.color = secondaryColor;
+                        // Reset icon color
+                        const icon = e.currentTarget.querySelector('svg');
+                        if (icon) icon.style.fill = secondaryColor;
                       }
                     }}
                     aria-label={`Copy ${keyword}`}
