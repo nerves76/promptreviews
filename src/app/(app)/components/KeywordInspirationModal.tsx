@@ -132,9 +132,9 @@ export default function KeywordInspirationModal({
                     onClick={() => copyToClipboard(keyword, index)}
                     className="ml-4 px-3 py-1.5 rounded-md border-2 font-medium text-sm transition-all duration-200 flex items-center space-x-2 focus:outline-none focus:ring-2 focus:ring-opacity-50 hover:shadow-md"
                     style={{
-                      borderColor: copiedIndex === index ? "#10B981" : secondaryColor,
-                      backgroundColor: copiedIndex === index ? "#10B981" : "transparent",
-                      color: copiedIndex === index ? "#FFFFFF" : secondaryColor,
+                      borderColor: copiedIndex === index ? "#6EE7B7" : secondaryColor,
+                      backgroundColor: copiedIndex === index ? "#6EE7B7" : "transparent",
+                      color: copiedIndex === index ? "#065F46" : secondaryColor,
                       fontFamily: businessProfile?.primary_font || "Inter",
                     }}
                     onMouseEnter={(e) => {
@@ -159,7 +159,7 @@ export default function KeywordInspirationModal({
                   >
                     {copiedIndex === index ? (
                       <>
-                        <Icon name="FaCheck" size={16} color="#FFFFFF" />
+                        <Icon name="FaCheck" size={16} color="#065F46" />
                         <span>Copied!</span>
                       </>
                     ) : (
