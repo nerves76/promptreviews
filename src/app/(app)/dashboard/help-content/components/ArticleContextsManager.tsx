@@ -62,7 +62,7 @@ export default function ArticleContextsManager({
     try {
       setLoading(true);
       const response = await fetch(
-        `/api/admin/help-content/${articleSlug}/contexts`
+        `/api/admin/help-content-contexts?slug=${encodeURIComponent(articleSlug)}`
       );
 
       if (!response.ok) {
@@ -86,7 +86,7 @@ export default function ArticleContextsManager({
     try {
       setSaving(true);
       const response = await fetch(
-        `/api/admin/help-content/${articleSlug}/contexts`,
+        `/api/admin/help-content-contexts?slug=${encodeURIComponent(articleSlug)}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -120,7 +120,7 @@ export default function ArticleContextsManager({
     try {
       setSaving(true);
       const response = await fetch(
-        `/api/admin/help-content/${articleSlug}/contexts/${contextId}`,
+        `/api/admin/help-content-contexts/${contextId}`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
@@ -148,7 +148,7 @@ export default function ArticleContextsManager({
     try {
       setSaving(true);
       const response = await fetch(
-        `/api/admin/help-content/${articleSlug}/contexts/${contextId}`,
+        `/api/admin/help-content-contexts/${contextId}`,
         {
           method: "DELETE",
         }

@@ -14,45 +14,28 @@ function getSupabaseAdmin() {
 }
 
 /**
- * PUT /api/admin/help-content/[...slug]/contexts/[id]
+ * PUT /api/admin/help-content-contexts/[id]
  * Update a featured route's priority or keywords
- * Supports multi-segment slugs like 'google-business/scheduling'
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { slug: string | string[]; id: string } }
+  { params }: { params: { id: string } }
 ) {
   try {
     const supabase = getSupabaseAdmin();
-    // Handle both single and multi-segment slugs
-    const slug = Array.isArray(params.slug) ? params.slug.join('/') : params.slug;
     const body = await request.json();
     const { priority, keywords, route_pattern } = body;
 
-    // Get article ID from slug to verify ownership
-    const { data: article, error: articleError } = await supabase
-      .from("articles")
-      .select("id")
-      .eq("slug", slug)
-      .single();
-
-    if (articleError || !article) {
-      return NextResponse.json(
-        { error: "Article not found" },
-        { status: 404 }
-      );
-    }
-
-    // Verify context belongs to this article
+    // Verify context exists
     const { data: existingContext } = await supabase
       .from("article_contexts")
       .select("article_id")
       .eq("id", params.id)
       .single();
 
-    if (!existingContext || existingContext.article_id !== article.id) {
+    if (!existingContext) {
       return NextResponse.json(
-        { error: "Context not found or does not belong to this article" },
+        { error: "Context not found" },
         { status: 404 }
       );
     }
@@ -90,43 +73,26 @@ export async function PUT(
 }
 
 /**
- * DELETE /api/admin/help-content/[...slug]/contexts/[id]
+ * DELETE /api/admin/help-content-contexts/[id]
  * Remove a featured route from an article
- * Supports multi-segment slugs like 'google-business/scheduling'
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { slug: string | string[]; id: string } }
+  { params }: { params: { id: string } }
 ) {
   try {
     const supabase = getSupabaseAdmin();
-    // Handle both single and multi-segment slugs
-    const slug = Array.isArray(params.slug) ? params.slug.join('/') : params.slug;
 
-    // Get article ID from slug to verify ownership
-    const { data: article, error: articleError } = await supabase
-      .from("articles")
-      .select("id")
-      .eq("slug", slug)
-      .single();
-
-    if (articleError || !article) {
-      return NextResponse.json(
-        { error: "Article not found" },
-        { status: 404 }
-      );
-    }
-
-    // Verify context belongs to this article
+    // Verify context exists
     const { data: existingContext } = await supabase
       .from("article_contexts")
       .select("article_id")
       .eq("id", params.id)
       .single();
 
-    if (!existingContext || existingContext.article_id !== article.id) {
+    if (!existingContext) {
       return NextResponse.json(
-        { error: "Context not found or does not belong to this article" },
+        { error: "Context not found" },
         { status: 404 }
       );
     }

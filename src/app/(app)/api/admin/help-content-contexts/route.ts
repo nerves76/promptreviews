@@ -14,18 +14,23 @@ function getSupabaseAdmin() {
 }
 
 /**
- * GET /api/admin/help-content/[...slug]/contexts
+ * GET /api/admin/help-content-contexts?slug=article-slug
  * Get all featured routes (contexts) for an article
  * Supports multi-segment slugs like 'google-business/scheduling'
  */
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { slug: string | string[] } }
-) {
+export async function GET(request: NextRequest) {
   try {
     const supabase = getSupabaseAdmin();
-    // Handle both single and multi-segment slugs
-    const slug = Array.isArray(params.slug) ? params.slug.join('/') : params.slug;
+    // Get slug from query parameter
+    const { searchParams } = new URL(request.url);
+    const slug = searchParams.get('slug');
+
+    if (!slug) {
+      return NextResponse.json(
+        { error: "slug query parameter is required" },
+        { status: 400 }
+      );
+    }
 
     // Get article ID from slug
     const { data: article, error: articleError } = await supabase
@@ -67,17 +72,22 @@ export async function GET(
 }
 
 /**
- * POST /api/admin/help-content/[slug]/contexts
+ * POST /api/admin/help-content-contexts?slug=article-slug
  * Add a new featured route for an article
  */
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { slug: string | string[] } }
-) {
+export async function POST(request: NextRequest) {
   try {
     const supabase = getSupabaseAdmin();
-    // Handle both single and multi-segment slugs
-    const slug = Array.isArray(params.slug) ? params.slug.join('/') : params.slug;
+    // Get slug from query parameter
+    const { searchParams } = new URL(request.url);
+    const slug = searchParams.get('slug');
+
+    if (!slug) {
+      return NextResponse.json(
+        { error: "slug query parameter is required" },
+        { status: 400 }
+      );
+    }
     const body = await request.json();
     const { route_pattern, priority, keywords } = body;
 
