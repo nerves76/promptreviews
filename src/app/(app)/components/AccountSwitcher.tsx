@@ -142,8 +142,9 @@ export function AccountSwitcher() {
           />
           <div
             ref={dropdownRef}
-            className="fixed w-80 bg-white/10 backdrop-blur-xl rounded-lg shadow-2xl border border-white/20 py-2 overflow-hidden"
+            className="fixed w-80 backdrop-blur-xl rounded-lg shadow-2xl border border-white/20 py-2 overflow-hidden"
             style={{
+              backgroundColor: 'rgba(46, 74, 125, 0.7)', // slate-blue brand color at 70% opacity
               zIndex: 2147483648, // One higher than other header elements
               top: buttonRef.current ? buttonRef.current.getBoundingClientRect().bottom + 8 : 0,
               left: buttonRef.current ? buttonRef.current.getBoundingClientRect().left : 0,
