@@ -296,29 +296,23 @@ export function usePosts(channelId: string) {
   // Delete post
   const deletePost = useCallback(
     async (postId: string) => {
-      // Debug: Check if we're authenticated
-      const { data: { user } } = await supabase.auth.getUser();
-      console.log('Delete attempt - User:', user?.id, 'Post:', postId);
+      // Use API endpoint instead of direct Supabase call to bypass RLS issues
+      const response = await fetch(`/api/community/posts/${postId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
 
-      if (!user) {
-        console.error('No authenticated user - cannot delete');
-        throw new Error('Not authenticated');
-      }
-
-      const { error: updateError } = await supabase
-        .from('posts')
-        .update({ deleted_at: new Date().toISOString() })
-        .eq('id', postId);
-
-      if (updateError) {
-        console.error('Delete error:', updateError);
-        throw updateError;
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to delete post');
       }
 
       // Remove from local state
       setPosts((prev) => prev.filter((p) => p.id !== postId));
     },
-    [supabase]
+    []
   );
 
   return {

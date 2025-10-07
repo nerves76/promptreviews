@@ -168,17 +168,23 @@ export function useComments(postId: string) {
   // Delete comment (soft delete)
   const deleteComment = useCallback(
     async (commentId: string) => {
-      const { error: updateError } = await supabase
-        .from('comments')
-        .update({ deleted_at: new Date().toISOString() })
-        .eq('id', commentId);
+      // Use API endpoint instead of direct Supabase call to bypass RLS issues
+      const response = await fetch(`/api/community/comments/${commentId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
 
-      if (updateError) throw updateError;
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to delete comment');
+      }
 
       // Remove from local state
       setComments((prev) => prev.filter((c) => c.id !== commentId));
     },
-    [supabase]
+    []
   );
 
   return {
