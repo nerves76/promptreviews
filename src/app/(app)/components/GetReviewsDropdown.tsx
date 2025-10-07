@@ -123,14 +123,14 @@ const GetReviewsDropdown: React.FC<GetReviewsDropdownProps> = ({
         onClick={() => {
           setIsOpen(!isOpen);
         }}
-        className="border-transparent text-white hover:border-white/30 hover:text-white/90 inline-flex items-center px-1 pt-1 border-b-4 text-base font-medium transition-colors duration-200 h-16"
+        className="border-transparent text-white hover:border-white/30 hover:text-white/90 inline-flex items-center px-1 pt-1 border-b-4 text-base font-medium transition-colors duration-200 h-16 text-left"
         disabled={businessLoading}
       >
-        <span className="mr-1">Get reviews</span>
-        <Icon 
-          name="FaStar" 
-          className={`w-4 h-4 transition-transform duration-300 ${isOpen ? 'animate-spin' : ''}`} 
-          size={16} 
+        <span className="mr-1 text-left">Get reviews</span>
+        <Icon
+          name="FaStar"
+          className={`w-4 h-4 transition-transform duration-300 ${isOpen ? 'animate-spin' : ''}`}
+          size={16}
         />
       </button>
 
