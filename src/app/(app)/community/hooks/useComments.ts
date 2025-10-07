@@ -168,11 +168,18 @@ export function useComments(postId: string) {
   // Delete comment (soft delete)
   const deleteComment = useCallback(
     async (commentId: string) => {
+      // Get auth token from Supabase session
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        throw new Error('Not authenticated');
+      }
+
       // Use API endpoint instead of direct Supabase call to bypass RLS issues
       const response = await fetch(`/api/community/comments/${commentId}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
         },
       });
 
@@ -184,7 +191,7 @@ export function useComments(postId: string) {
       // Remove from local state
       setComments((prev) => prev.filter((c) => c.id !== commentId));
     },
-    []
+    [supabase]
   );
 
   return {

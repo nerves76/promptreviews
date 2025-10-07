@@ -296,11 +296,18 @@ export function usePosts(channelId: string) {
   // Delete post
   const deletePost = useCallback(
     async (postId: string) => {
+      // Get auth token from Supabase session
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        throw new Error('Not authenticated');
+      }
+
       // Use API endpoint instead of direct Supabase call to bypass RLS issues
       const response = await fetch(`/api/community/posts/${postId}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
         },
       });
 
@@ -312,7 +319,7 @@ export function usePosts(channelId: string) {
       // Remove from local state
       setPosts((prev) => prev.filter((p) => p.id !== postId));
     },
-    []
+    [supabase]
   );
 
   return {
