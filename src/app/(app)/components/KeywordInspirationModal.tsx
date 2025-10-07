@@ -111,12 +111,18 @@ export default function KeywordInspirationModal({
               {keywords.map((keyword, index) => (
                 <div
                   key={index}
-                  className="bg-green-50 rounded-lg p-4 border border-green-200 flex items-center justify-between hover:bg-green-100 transition-colors"
+                  className="rounded-lg p-4 border-2 flex items-center justify-between transition-colors"
+                  style={{
+                    borderColor: businessProfile?.secondary_color || "#4F46E5",
+                  }}
                 >
                   {/* Keyword Text */}
                   <span
-                    className="text-gray-800 font-medium flex-1"
-                    style={{ fontFamily: businessProfile?.primary_font || "Inter" }}
+                    className="font-medium flex-1"
+                    style={{
+                      fontFamily: businessProfile?.primary_font || "Inter",
+                      color: businessProfile?.card_text || "#1F2937"
+                    }}
                   >
                     {keyword}
                   </span>
