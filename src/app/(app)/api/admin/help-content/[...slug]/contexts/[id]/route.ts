@@ -14,15 +14,18 @@ function getSupabaseAdmin() {
 }
 
 /**
- * PUT /api/admin/help-content/[slug]/contexts/[id]
+ * PUT /api/admin/help-content/[...slug]/contexts/[id]
  * Update a featured route's priority or keywords
+ * Supports multi-segment slugs like 'google-business/scheduling'
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { slug: string; id: string } }
+  { params }: { params: { slug: string | string[]; id: string } }
 ) {
   try {
     const supabase = getSupabaseAdmin();
+    // Handle both single and multi-segment slugs
+    const slug = Array.isArray(params.slug) ? params.slug.join('/') : params.slug;
     const body = await request.json();
     const { priority, keywords, route_pattern } = body;
 
@@ -30,7 +33,7 @@ export async function PUT(
     const { data: article, error: articleError } = await supabase
       .from("articles")
       .select("id")
-      .eq("slug", params.slug)
+      .eq("slug", slug)
       .single();
 
     if (articleError || !article) {
@@ -87,21 +90,24 @@ export async function PUT(
 }
 
 /**
- * DELETE /api/admin/help-content/[slug]/contexts/[id]
+ * DELETE /api/admin/help-content/[...slug]/contexts/[id]
  * Remove a featured route from an article
+ * Supports multi-segment slugs like 'google-business/scheduling'
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { slug: string; id: string } }
+  { params }: { params: { slug: string | string[]; id: string } }
 ) {
   try {
     const supabase = getSupabaseAdmin();
+    // Handle both single and multi-segment slugs
+    const slug = Array.isArray(params.slug) ? params.slug.join('/') : params.slug;
 
     // Get article ID from slug to verify ownership
     const { data: article, error: articleError } = await supabase
       .from("articles")
       .select("id")
-      .eq("slug", params.slug)
+      .eq("slug", slug)
       .single();
 
     if (articleError || !article) {

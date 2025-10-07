@@ -6,19 +6,21 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 /**
- * GET /api/admin/help-content/[slug]
+ * GET /api/admin/help-content/[...slug]
  * Get a single article by slug (including drafts)
+ * Supports multi-segment slugs like 'google-business/scheduling'
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { slug: string } }
+  { params }: { params: { slug: string | string[] } }
 ) {
   try {
     // Verify admin access
     await requireAdminAccess();
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
-    const { slug } = params;
+    // Handle both single and multi-segment slugs
+    const slug = Array.isArray(params.slug) ? params.slug.join('/') : params.slug;
 
     const { data, error } = await supabase
       .from('articles')
@@ -51,19 +53,21 @@ export async function GET(
 }
 
 /**
- * PUT /api/admin/help-content/[slug]
+ * PUT /api/admin/help-content/[...slug]
  * Update an article
+ * Supports multi-segment slugs like 'google-business/scheduling'
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { slug: string } }
+  { params }: { params: { slug: string | string[] } }
 ) {
   try {
     // Verify admin access
     await requireAdminAccess();
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
-    const { slug } = params;
+    // Handle both single and multi-segment slugs
+    const slug = Array.isArray(params.slug) ? params.slug.join('/') : params.slug;
     const body = await request.json();
 
     // Get existing article
@@ -144,19 +148,21 @@ export async function PUT(
 }
 
 /**
- * DELETE /api/admin/help-content/[slug]
+ * DELETE /api/admin/help-content/[...slug]
  * Delete an article
+ * Supports multi-segment slugs like 'google-business/scheduling'
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { slug: string } }
+  { params }: { params: { slug: string | string[] } }
 ) {
   try {
     // Verify admin access
     await requireAdminAccess();
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
-    const { slug } = params;
+    // Handle both single and multi-segment slugs
+    const slug = Array.isArray(params.slug) ? params.slug.join('/') : params.slug;
 
     const { error } = await supabase
       .from('articles')

@@ -43,18 +43,18 @@ export default function KeywordInspirationButton({
         onClick={onOpenModal}
         className="inline-flex items-center px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg border-2 font-medium text-xs sm:text-sm transition-all duration-200 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-opacity-50"
         style={{
-          borderColor: businessProfile?.primary_color || "#10B981",
-          color: businessProfile?.primary_color || "#10B981",
+          borderColor: businessProfile?.secondary_color || "#4F46E5",
+          color: businessProfile?.secondary_color || "#4F46E5",
           backgroundColor: "transparent",
           fontFamily: businessProfile?.primary_font || "Inter",
         }}
         onMouseEnter={(e) => {
-          e.currentTarget.style.backgroundColor = businessProfile?.primary_color || "#10B981";
+          e.currentTarget.style.backgroundColor = businessProfile?.secondary_color || "#4F46E5";
           e.currentTarget.style.color = "white";
         }}
         onMouseLeave={(e) => {
           e.currentTarget.style.backgroundColor = "transparent";
-          e.currentTarget.style.color = businessProfile?.primary_color || "#10B981";
+          e.currentTarget.style.color = businessProfile?.secondary_color || "#4F46E5";
         }}
         aria-label="View keyword inspiration"
       >

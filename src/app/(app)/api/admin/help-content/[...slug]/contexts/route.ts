@@ -14,21 +14,24 @@ function getSupabaseAdmin() {
 }
 
 /**
- * GET /api/admin/help-content/[slug]/contexts
+ * GET /api/admin/help-content/[...slug]/contexts
  * Get all featured routes (contexts) for an article
+ * Supports multi-segment slugs like 'google-business/scheduling'
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { slug: string } }
+  { params }: { params: { slug: string | string[] } }
 ) {
   try {
     const supabase = getSupabaseAdmin();
+    // Handle both single and multi-segment slugs
+    const slug = Array.isArray(params.slug) ? params.slug.join('/') : params.slug;
 
     // Get article ID from slug
     const { data: article, error: articleError } = await supabase
       .from("articles")
       .select("id")
-      .eq("slug", params.slug)
+      .eq("slug", slug)
       .single();
 
     if (articleError || !article) {
@@ -69,10 +72,12 @@ export async function GET(
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { slug: string } }
+  { params }: { params: { slug: string | string[] } }
 ) {
   try {
     const supabase = getSupabaseAdmin();
+    // Handle both single and multi-segment slugs
+    const slug = Array.isArray(params.slug) ? params.slug.join('/') : params.slug;
     const body = await request.json();
     const { route_pattern, priority, keywords } = body;
 
@@ -87,7 +92,7 @@ export async function POST(
     const { data: article, error: articleError } = await supabase
       .from("articles")
       .select("id")
-      .eq("slug", params.slug)
+      .eq("slug", slug)
       .single();
 
     if (articleError || !article) {

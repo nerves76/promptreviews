@@ -45,7 +45,8 @@ export default function ArticleEditorPage() {
   const router = useRouter();
   const params = useParams();
   const { user, isLoading: authLoading } = useCoreAuth();
-  const slug = params.slug as string;
+  // Handle both single and multi-segment slugs (e.g., 'new' or ['google-business', 'scheduling'])
+  const slug = Array.isArray(params.slug) ? params.slug.join('/') : params.slug as string;
   const isNewArticle = slug === "new";
 
   const [article, setArticle] = useState<Article>({
