@@ -458,8 +458,26 @@ export default function UniversalEditPromptPage() {
     setIsSaving(false);
   };
 
+  const saveButton = (
+    <button
+      onClick={() => {
+        const form = document.querySelector('form');
+        if (form) {
+          form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+        }
+      }}
+      disabled={isSaving}
+      className="bg-slate-blue text-white px-6 py-2 rounded-lg font-semibold shadow hover:bg-slate-blue/90 transition disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      {isSaving ? "Saving..." : "Save & publish"}
+    </button>
+  );
+
   return (
-    <PageCard icon={<Icon name="FaHome" className="w-9 h-9 text-slate-blue" size={36} />}>
+    <PageCard
+      icon={<Icon name="FaHome" className="w-9 h-9 text-slate-blue" size={36} />}
+      topRightAction={saveButton}
+    >
       <div className="flex flex-col mt-0 md:mt-[3px] mb-4">
         <h1 className="text-4xl font-bold text-slate-blue mt-0 mb-2">
           Universal prompt page
