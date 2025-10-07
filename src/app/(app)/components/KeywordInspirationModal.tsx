@@ -65,8 +65,12 @@ export default function KeywordInspirationModal({
       >
         {/* Standardized red X close button */}
         <button
-          className="absolute -top-3 -right-3 bg-white border border-gray-200 rounded-full shadow-lg hover:shadow-xl transition-shadow duration-200 flex items-center justify-center hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 z-50"
-          style={{ width: 48, height: 48 }}
+          className="absolute -top-3 -right-3 border border-gray-200 rounded-full shadow-lg hover:shadow-xl transition-shadow duration-200 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 z-50"
+          style={{
+            width: 48,
+            height: 48,
+            backgroundColor: businessProfile?.card_bg || "#FFFFFF"
+          }}
           onClick={onClose}
           aria-label="Close modal"
         >
