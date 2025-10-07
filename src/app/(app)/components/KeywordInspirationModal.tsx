@@ -83,7 +83,7 @@ export default function KeywordInspirationModal({
         <div className="p-6 pb-4 border-b border-gray-200 rounded-t-2xl overflow-hidden">
           <div className="flex items-center space-x-3">
             <Icon
-              name="FaLightbulb"
+              name="FaSparkles"
               className="w-6 h-6"
               style={{ color: businessProfile?.primary_color || "#10B981" }}
               size={24}
@@ -107,7 +107,7 @@ export default function KeywordInspirationModal({
         <div className="p-6 overflow-y-auto max-h-[60vh] rounded-b-2xl">
           {keywords.length === 0 ? (
             <div className="text-center py-8">
-              <Icon name="FaLightbulb" className="w-8 h-8 text-gray-400 mx-auto mb-3" size={32} />
+              <Icon name="FaSparkles" className="w-8 h-8 text-gray-400 mx-auto mb-3" size={32} />
               <p className="text-gray-600">No keywords available</p>
             </div>
           ) : (
