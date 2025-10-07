@@ -44,6 +44,8 @@ interface UniversalPromptFormState {
   recent_reviews_enabled: boolean;
   recent_reviews_scope: 'current_page' | 'all_pages';
   keywords?: string[];
+  keyword_inspiration_enabled?: boolean;
+  selected_keyword_inspirations?: string[];
 }
 
 // Helper to normalize platform names to match dropdown options
@@ -226,6 +228,11 @@ export default function UniversalEditPromptPage() {
 
           // Keywords with business default inheritance
           keywords: universalPage?.keywords ?? businessProfile?.keywords ?? [],
+
+          // Business default inheritance for keyword inspiration
+          keyword_inspiration_enabled: universalPage?.keyword_inspiration_enabled ?? businessProfile?.default_keyword_inspiration_enabled ?? false,
+          selected_keyword_inspirations: universalPage?.selected_keyword_inspirations ??
+            (Array.isArray(businessProfile?.default_selected_keyword_inspirations) ? businessProfile.default_selected_keyword_inspirations : []),
         };
         
         
@@ -349,6 +356,8 @@ export default function UniversalEditPromptPage() {
         recent_reviews_enabled: formState.recent_reviews_enabled,
         recent_reviews_scope: formState.recent_reviews_scope,
         keywords: formState.keywords,
+        keyword_inspiration_enabled: formState.keyword_inspiration_enabled,
+        selected_keyword_inspirations: formState.selected_keyword_inspirations,
         updated_at: new Date().toISOString()
       };
       
@@ -384,6 +393,8 @@ export default function UniversalEditPromptPage() {
         recent_reviews_enabled: formState.recent_reviews_enabled,
         recent_reviews_scope: formState.recent_reviews_scope,
         keywords: formState.keywords,
+        keyword_inspiration_enabled: formState.keyword_inspiration_enabled,
+        selected_keyword_inspirations: formState.selected_keyword_inspirations,
       }).eq("id", universalPage.id);
       
       error = dbError;

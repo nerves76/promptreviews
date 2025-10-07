@@ -755,6 +755,8 @@ model businesses {
   friendly_note                  String?              @default("")
   recent_reviews_enabled         Boolean?             @default(false)
   recent_reviews_scope           String?              @default("current_page")
+  default_keyword_inspiration_enabled Boolean?        @default(false)
+  default_selected_keyword_inspirations String[]      @default([])
   ai_button_enabled              Boolean?             @default(false)
   fix_grammar_enabled            Boolean?             @default(false)
   default_offer_timelock         Boolean?             @default(false)
@@ -1329,6 +1331,8 @@ model prompt_pages {
   custom_kickstarters                                                      Json?
   settings                                                                 Json?                     @default("{}")
   keywords                                                                 String[]                  @default([])
+  keyword_inspiration_enabled                                              Boolean?                  @default(false)
+  selected_keyword_inspirations                                            String[]                  @default([])
   analytics_events                                                         analytics_events[]
   business_locations_business_locations_prompt_page_idToprompt_pages       business_locations[]      @relation("business_locations_prompt_page_idToprompt_pages")
   communication_records                                                    communication_records[]

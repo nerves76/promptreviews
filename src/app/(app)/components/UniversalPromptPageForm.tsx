@@ -17,7 +17,7 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import ReviewWriteSection from "../dashboard/edit-prompt-page/components/ReviewWriteSection";
 import KeywordsInput from "./KeywordsInput";
-import { 
+import {
   OfferFeature,
   EmojiSentimentFeature,
   FallingStarsFeature,
@@ -25,6 +25,7 @@ import {
   PersonalizedNoteFeature,
   KickstartersFeature,
   RecentReviewsFeature,
+  KeywordInspirationFeature,
   type ReviewPlatform
 } from "./prompt-features";
 import { generateContextualReview } from "@/utils/aiReviewGeneration";
@@ -110,6 +111,11 @@ export default function UniversalPromptPageForm({
     
     recent_reviews_enabled: initialData?.recent_reviews_enabled ?? businessProfile?.default_recent_reviews_enabled ?? false,
     recent_reviews_scope: initialData?.recent_reviews_scope || businessProfile?.default_recent_reviews_scope || 'current_page',
+
+    keyword_inspiration_enabled: initialData?.keyword_inspiration_enabled ?? businessProfile?.default_keyword_inspiration_enabled ?? false,
+    selected_keyword_inspirations: Array.isArray(initialData?.selected_keyword_inspirations)
+      ? initialData.selected_keyword_inspirations
+      : (Array.isArray(businessProfile?.default_selected_keyword_inspirations) ? businessProfile.default_selected_keyword_inspirations : []),
   });
 
   const [aiGeneratingIndex, setAiGeneratingIndex] = useState<number | null>(null);
@@ -393,6 +399,21 @@ export default function UniversalPromptPageForm({
         onScopeChange={(scope) => {
           setFormData((prev: any) => ({ ...prev, recent_reviews_scope: scope }));
         }}
+        initialData={initialData}
+        editMode={true}
+      />
+
+      {/* Keyword Inspiration Feature */}
+      <KeywordInspirationFeature
+        enabled={formData.keyword_inspiration_enabled}
+        onEnabledChange={(enabled) => {
+          setFormData((prev: any) => ({ ...prev, keyword_inspiration_enabled: enabled }));
+        }}
+        selectedKeywords={formData.selected_keyword_inspirations}
+        onKeywordsChange={(keywords) => {
+          setFormData((prev: any) => ({ ...prev, selected_keyword_inspirations: keywords }));
+        }}
+        availableKeywords={keywords}
         initialData={initialData}
         editMode={true}
       />
