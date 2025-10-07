@@ -231,14 +231,11 @@ export default function UniversalPromptPageForm({
   };
 
   return (
-    <form 
+    <form
       onSubmit={handleSubmit}
-      className="max-w-4xl mx-auto bg-white px-6 py-8">
+      className="max-w-4xl mx-auto px-6 py-8">
       <div className="space-y-8">
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold leading-6 text-slate-blue">
-            {pageTitle}
-          </h1>
+        <div className="flex flex-col sm:flex-row sm:justify-end sm:items-center gap-4 mb-8">
           <button
             type="submit"
             className="inline-flex justify-center rounded-md border border-transparent bg-slate-blue py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
