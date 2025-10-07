@@ -9,6 +9,7 @@
 "use client";
 import React, { useState } from "react";
 import Icon from "@/components/Icon";
+import { getContrastTextColor } from "@/utils/colorUtils";
 
 interface KeywordInspirationModalProps {
   /** Whether the modal is open */
@@ -24,6 +25,7 @@ interface KeywordInspirationModalProps {
     primary_font?: string;
     business_name?: string;
     card_bg?: string;
+    card_text?: string;
   };
 }
 
@@ -34,6 +36,8 @@ export default function KeywordInspirationModal({
   businessProfile,
 }: KeywordInspirationModalProps) {
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+  const secondaryColor = businessProfile?.secondary_color || "#4F46E5";
+  const hoverTextColor = getContrastTextColor(secondaryColor);
 
   // Copy keyword to clipboard
   const copyToClipboard = async (keyword: string, index: number) => {
@@ -90,7 +94,7 @@ export default function KeywordInspirationModal({
               Keyword Inspiration
             </h2>
           </div>
-          <p className="text-gray-600 text-sm mt-2">
+          <p className="text-sm mt-2" style={{ color: businessProfile?.card_text || "#6B7280" }}>
             Click any keyword below to copy it and use it in your review
           </p>
         </div>
@@ -120,11 +124,24 @@ export default function KeywordInspirationModal({
                   {/* Copy Button */}
                   <button
                     onClick={() => copyToClipboard(keyword, index)}
-                    className="ml-4 px-3 py-1.5 rounded-md font-medium text-sm transition-all duration-200 flex items-center space-x-2 focus:outline-none focus:ring-2 focus:ring-opacity-50"
+                    className="ml-4 px-3 py-1.5 rounded-md border-2 font-medium text-sm transition-all duration-200 flex items-center space-x-2 focus:outline-none focus:ring-2 focus:ring-opacity-50 hover:shadow-md"
                     style={{
-                      backgroundColor: copiedIndex === index ? "#10B981" : businessProfile?.primary_color || "#10B981",
-                      color: "white",
+                      borderColor: copiedIndex === index ? "#10B981" : secondaryColor,
+                      backgroundColor: copiedIndex === index ? "#10B981" : "transparent",
+                      color: copiedIndex === index ? "#FFFFFF" : secondaryColor,
                       fontFamily: businessProfile?.primary_font || "Inter",
+                    }}
+                    onMouseEnter={(e) => {
+                      if (copiedIndex !== index) {
+                        e.currentTarget.style.backgroundColor = secondaryColor;
+                        e.currentTarget.style.color = hoverTextColor;
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (copiedIndex !== index) {
+                        e.currentTarget.style.backgroundColor = "transparent";
+                        e.currentTarget.style.color = secondaryColor;
+                      }
                     }}
                     aria-label={`Copy ${keyword}`}
                   >
