@@ -189,6 +189,8 @@ export async function GET(
         selected_kickstarters: [],
         recent_reviews_enabled: true,
         recent_reviews_scope: 'current_page',
+        keyword_inspiration_enabled: false,
+        selected_keyword_inspirations: [],
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       };
