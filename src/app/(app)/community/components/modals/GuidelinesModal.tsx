@@ -121,11 +121,11 @@ export function GuidelinesModal({ isOpen, requireAcceptance, onAccept, onClose, 
             </p>
 
             <h3 className="font-bold text-lg mb-3">A few notes:</h3>
-            <ul className="space-y-2 mb-6">
+            <ul className="space-y-2 mb-6 list-disc pl-6">
               <li>Ask lots of questions and you will get lots of answers</li>
-              <li>There is no private messaging.</li>
+              <li>There is no private messaging</li>
               <li>You can set your first name to anything you like but your business name will always be visible</li>
-              <li>Follow community guidelines or you may be banned.</li>
+              <li>Follow community guidelines or you may be banned</li>
             </ul>
 
             <h3 className="font-bold text-lg mb-3">Community Guidelines</h3>
