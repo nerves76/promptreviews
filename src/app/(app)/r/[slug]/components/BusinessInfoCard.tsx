@@ -9,6 +9,7 @@ import React from 'react';
 import Image from 'next/image';
 import { getFontClass } from '../utils/fontUtils';
 import RecentReviewsButton from '../../../components/RecentReviewsButton';
+import KeywordInspirationButton from '../../../components/KeywordInspirationButton';
 import { applyCardTransparency } from '@/utils/colorUtils';
 
 interface BusinessProfile {
@@ -36,9 +37,10 @@ interface BusinessInfoCardProps {
   reviewType?: string;
   promptPage?: any; // Add prompt page data for employee-specific logic
   onOpenRecentReviews?: () => void; // Callback to open recent reviews modal
+  onOpenKeywordInspiration?: () => void; // Callback to open keyword inspiration modal
 }
 
-export default function BusinessInfoCard({ businessProfile, reviewType, promptPage, onOpenRecentReviews }: BusinessInfoCardProps) {
+export default function BusinessInfoCard({ businessProfile, reviewType, promptPage, onOpenRecentReviews, onOpenKeywordInspiration }: BusinessInfoCardProps) {
   // For service pages, only show City, State. For location pages, show full address
   const shouldShowFullAddress = reviewType === 'location' || reviewType === 'universal';
   
@@ -175,6 +177,21 @@ export default function BusinessInfoCard({ businessProfile, reviewType, promptPa
         )}
       </div>
       
+      {/* Keyword Inspiration Button - Positioned separately at bottom-left */}
+      {promptPage?.keyword_inspiration_enabled && onOpenKeywordInspiration && (
+        <div className="absolute bottom-4 left-4 sm:bottom-4 sm:left-4" style={{
+          bottom: 'calc(1rem - 6px)',
+          left: 'calc(1rem - 6px)',
+        }}>
+          <KeywordInspirationButton
+            enabled={promptPage.keyword_inspiration_enabled}
+            selectedKeywords={promptPage.selected_keyword_inspirations}
+            businessProfile={businessProfile}
+            onOpenModal={onOpenKeywordInspiration}
+          />
+        </div>
+      )}
+
       {/* Recent Reviews Button - Positioned separately at bottom-right */}
       {promptPage?.id && promptPage?.recent_reviews_enabled && onOpenRecentReviews && (
         <div className="absolute bottom-4 right-4 sm:bottom-4 sm:right-4" style={{

@@ -45,8 +45,11 @@ const OfferCard = dynamic(() => import("../../components/OfferCard"), {
 const EmojiSentimentModal = dynamic(() => import("@/app/(app)/components/EmojiSentimentModal"), { 
   ssr: false 
 });
-const RecentReviewsModal = dynamic(() => import("@/app/(app)/components/RecentReviewsModal"), { 
-  ssr: false 
+const RecentReviewsModal = dynamic(() => import("@/app/(app)/components/RecentReviewsModal"), {
+  ssr: false
+});
+const KeywordInspirationModal = dynamic(() => import("@/app/(app)/components/KeywordInspirationModal"), {
+  ssr: false
 });
 const StyleModalPage = dynamic(() => import("../../dashboard/style/StyleModalPage"), { 
   ssr: false 
@@ -291,6 +294,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
   const [photoReviewerRole, setPhotoReviewerRole] = useState("");
   const [showSentimentModal, setShowSentimentModal] = useState(false);
   const [showRecentReviewsModal, setShowRecentReviewsModal] = useState(false);
+  const [showKeywordInspirationModal, setShowKeywordInspirationModal] = useState(false);
   const [kickstarterQuestions, setKickstarterQuestions] = useState<any[]>([]);
   const [sentiment, setSentiment] = useState<string | null>(null);
   const [feedback, setFeedback] = useState("");
@@ -1972,6 +1976,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                 reviewType={promptPage?.review_type}
                 promptPage={promptPage}
                 onOpenRecentReviews={() => setShowRecentReviewsModal(true)}
+                onOpenKeywordInspiration={() => setShowKeywordInspirationModal(true)}
               />
               {/* Product Module for Product Pages */}
               <ProductModule
@@ -3127,10 +3132,20 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
 
       {/* Recent Reviews Modal */}
       {showRecentReviewsModal && promptPage?.id && (
-        <RecentReviewsModal 
+        <RecentReviewsModal
           isOpen={showRecentReviewsModal}
-          onClose={() => setShowRecentReviewsModal(false)} 
+          onClose={() => setShowRecentReviewsModal(false)}
           promptPageId={promptPage.id}
+          businessProfile={businessProfile}
+        />
+      )}
+
+      {/* Keyword Inspiration Modal */}
+      {showKeywordInspirationModal && promptPage?.selected_keyword_inspirations && (
+        <KeywordInspirationModal
+          isOpen={showKeywordInspirationModal}
+          onClose={() => setShowKeywordInspirationModal(false)}
+          keywords={promptPage.selected_keyword_inspirations}
           businessProfile={businessProfile}
         />
       )}
