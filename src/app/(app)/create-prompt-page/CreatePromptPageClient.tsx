@@ -1163,7 +1163,7 @@ export default function CreatePromptPageClient({
       let insertData = {
         ...formData,
         account_id: accountId,
-        status: formData.review_type === "product" ? "published" : "draft",
+        status: formData.review_type === "product" ? "complete" : "draft",
         campaign_type: formData.campaign_type || campaignType,
         // Convert camelCase to snake_case
         emoji_sentiment_enabled: formData.emojiSentimentEnabled,

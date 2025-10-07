@@ -128,53 +128,9 @@ export async function GET(
       return NextResponse.json({ error: 'Prompt page not found' }, { status: 404 });
     }
 
-    // SECURITY: Handle authenticated vs anonymous access
-    let accountId: string;
-
-    // Check if this is a public page (accessible to anyone)
-    const isPublicPage = promptPage.is_universal === true &&
-                        promptPage.status === 'published' &&
-                        promptPage.recent_reviews_enabled === true;
-
-    if (user) {
-      // AUTHENTICATED REQUEST
-      const requestAccountId = await getRequestAccountId(request, user.id, supabase);
-
-      if (!requestAccountId) {
-        return NextResponse.json({
-          error: 'Unable to determine account context'
-        }, { status: 403 });
-      }
-
-      // For public pages, allow any authenticated user to view
-      // For non-public pages, enforce strict account isolation
-      if (!isPublicPage && promptPage.account_id !== requestAccountId) {
-        console.warn(
-          `[recent-reviews] Account mismatch for non-public page: user ${user.id} with account ${requestAccountId} ` +
-          `tried to access prompt page ${promptPageId} from account ${promptPage.account_id}`
-        );
-        return NextResponse.json({
-          error: 'Access denied: Prompt page does not belong to your selected account'
-        }, { status: 403 });
-      }
-
-      // Use the prompt page's account (not the user's selected account)
-      // This ensures we return reviews from the correct account even for multi-account users
-      accountId = promptPage.account_id;
-    } else {
-      // ANONYMOUS REQUEST: Only allow for public prompt pages
-      if (!isPublicPage) {
-        console.warn(
-          `[recent-reviews] Anonymous access denied for non-public prompt page ${promptPageId} ` +
-          `(is_universal: ${promptPage.is_universal}, status: ${promptPage.status}, enabled: ${promptPage.recent_reviews_enabled})`
-        );
-        return NextResponse.json({
-          error: 'Access denied: This page is not publicly accessible'
-        }, { status: 403 });
-      }
-
-      accountId = promptPage.account_id;
-    }
+    // Prompt pages are always publicly accessible by URL
+    // Use the prompt page's account to fetch reviews from the correct account
+    const accountId = promptPage.account_id;
 
     // Check if feature is enabled for this prompt page
     if (!promptPage.recent_reviews_enabled) {
