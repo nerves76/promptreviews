@@ -129,7 +129,7 @@ export function GuidelinesModal({ isOpen, requireAcceptance, onAccept, onClose, 
                 </button>
               )}
             </div>
-            <div className="relative w-full h-40 rounded-lg overflow-hidden bg-white/5">
+            <div className="relative w-full h-80 rounded-lg overflow-hidden bg-white/5">
               <Image
                 src="/images/the-prompt-reviews-community.png"
                 alt="Prompt Reviews Community"
