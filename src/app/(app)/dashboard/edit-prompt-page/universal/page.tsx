@@ -459,24 +459,33 @@ export default function UniversalEditPromptPage() {
   };
 
   return (
-    <>
-      {/* Standardized Form Header */}
-      {useStandardizedForm && (
-        <div className="w-full bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600 pb-16 md:pb-24 lg:pb-32">
-          <div className="flex flex-col mt-0 md:mt-[3px] mb-4 px-6 pt-8">
-            <h1 className="text-4xl font-bold text-white mt-0 mb-2">
-              Universal prompt page
-            </h1>
-            <p className="text-indigo-100 text-base max-w-md mt-0 mb-6">
-              The universal prompt page is designed to be shared with many.
-            </p>
-          </div>
+    <PageCard icon={<Icon name="FaHome" className="w-9 h-9 text-slate-blue" size={36} />}>
+      <div className="flex flex-col mt-0 md:mt-[3px] mb-4">
+        <h1 className="text-4xl font-bold text-slate-blue mt-0 mb-2">
+          Universal prompt page
+        </h1>
+        <p className="text-gray-600 text-base max-w-md mt-0 mb-6">
+          The universal prompt page is designed to be shared with many.
+        </p>
+      </div>
+
+      {/* Loading State */}
+      {isLoading && (
+        <div className="flex items-center justify-center py-8">
+          <div className="text-lg text-white">Loading...</div>
         </div>
       )}
 
-      
-      {/* Standardized Form - rendered outside PageCard */}
-      {useStandardizedForm && !isLoading && !error && initialData && (
+      {/* Error State */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+          <div className="text-red-800 font-medium">Error</div>
+          <div className="text-red-600">{error}</div>
+        </div>
+      )}
+
+      {/* Form */}
+      {!isLoading && !error && initialData && (
         <PromptPageForm
           mode="edit"
           initialData={{
@@ -497,20 +506,6 @@ export default function UniversalEditPromptPage() {
           }}
         />
       )}
-      
-      {/* Loading and Error States for Standardized Form */}
-      {useStandardizedForm && isLoading && (
-        <div className="flex items-center justify-center py-8">
-          <div className="text-lg text-gray-600">Loading...</div>
-        </div>
-      )}
-      
-      {useStandardizedForm && error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 m-6">
-          <div className="text-red-800 font-medium">Error</div>
-          <div className="text-red-600">{error}</div>
-        </div>
-      )}
-    </>
+    </PageCard>
   );
 }
