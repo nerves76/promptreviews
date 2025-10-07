@@ -8,6 +8,7 @@
 
 "use client";
 import React from "react";
+import { getContrastTextColor } from "@/utils/colorUtils";
 
 interface KeywordInspirationButtonProps {
   /** Whether the Keyword Inspiration feature is enabled */
@@ -31,6 +32,8 @@ export default function KeywordInspirationButton({
   onOpenModal,
 }: KeywordInspirationButtonProps) {
   const hasKeywords = selectedKeywords && selectedKeywords.length > 0;
+  const secondaryColor = businessProfile?.secondary_color || "#4F46E5";
+  const hoverTextColor = getContrastTextColor(secondaryColor);
 
   // Don't render if feature is disabled or no keywords selected
   if (!enabled || !hasKeywords) {
@@ -43,18 +46,18 @@ export default function KeywordInspirationButton({
         onClick={onOpenModal}
         className="inline-flex items-center px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg border-2 font-medium text-xs sm:text-sm transition-all duration-200 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-opacity-50"
         style={{
-          borderColor: businessProfile?.secondary_color || "#4F46E5",
-          color: businessProfile?.secondary_color || "#4F46E5",
+          borderColor: secondaryColor,
+          color: secondaryColor,
           backgroundColor: "transparent",
           fontFamily: businessProfile?.primary_font || "Inter",
         }}
         onMouseEnter={(e) => {
-          e.currentTarget.style.backgroundColor = businessProfile?.secondary_color || "#4F46E5";
-          e.currentTarget.style.color = "white";
+          e.currentTarget.style.backgroundColor = secondaryColor;
+          e.currentTarget.style.color = hoverTextColor;
         }}
         onMouseLeave={(e) => {
           e.currentTarget.style.backgroundColor = "transparent";
-          e.currentTarget.style.color = businessProfile?.secondary_color || "#4F46E5";
+          e.currentTarget.style.color = secondaryColor;
         }}
         aria-label="View keyword inspiration"
       >
