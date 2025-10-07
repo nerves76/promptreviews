@@ -177,10 +177,7 @@ export function InlinePostComposer({ channelName, onSubmit }: InlinePostComposer
           rows={3}
           disabled={isSubmitting}
         />
-        <div className="mt-2 flex items-center justify-between">
-          <p className="text-xs text-white/50">
-            <kbd className="px-2 py-1 bg-white/10 rounded">Enter</kbd> to send, <kbd className="px-2 py-1 bg-white/10 rounded">Shift + Enter</kbd> for new line
-          </p>
+        <div className="mt-2 flex items-center gap-3">
           {message.trim() && (
             <button
               type="submit"
@@ -190,6 +187,9 @@ export function InlinePostComposer({ channelName, onSubmit }: InlinePostComposer
               {isSubmitting ? 'Posting...' : 'Send'}
             </button>
           )}
+          <p className="text-xs text-white/50">
+            <kbd className="px-2 py-1 bg-white/10 rounded">Enter</kbd> to send, <kbd className="px-2 py-1 bg-white/10 rounded">Shift + Enter</kbd> for new line
+          </p>
         </div>
       </form>
     </div>
