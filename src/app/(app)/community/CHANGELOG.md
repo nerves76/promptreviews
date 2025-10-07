@@ -17,6 +17,7 @@
 - Relative timestamps (e.g., "2 hours ago")
 - Automatic URL detection and linkification
 - Account context tracking - posts show which business they were created under
+- Mobile-responsive design with hamburger menu and slide-in sidebar
 
 ### Security
 - Row Level Security (RLS) policies for all data access

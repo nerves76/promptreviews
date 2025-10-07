@@ -8,6 +8,8 @@ The community is organized into channels, starting with:
 - **#general** - Open discussions and announcements
 - **#feature-requests** - Request and vote on new features
 
+**Fully responsive** - works on desktop, tablet, and mobile with a hamburger menu and slide-in sidebar.
+
 ## Features
 
 ### Posts

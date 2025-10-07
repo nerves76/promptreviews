@@ -96,10 +96,14 @@
 - [ ] Channel descriptions
 - [ ] Channel-specific rules
 
-### Mobile
-- [ ] Mobile-optimized layout (currently desktop-first)
-- [ ] Swipe gestures
-- [ ] Bottom navigation
+### Mobile (Basic Support Implemented)
+- [x] Responsive layout with hamburger menu
+- [x] Slide-in sidebar for channel navigation
+- [x] Touch-friendly tap targets
+- [ ] Swipe gestures (swipe from edge to open sidebar)
+- [ ] Pull-to-refresh
+- [ ] Bottom navigation bar (alternative to top hamburger)
+- [ ] Optimized font sizes and spacing for small screens
 
 ### Integrations
 - [ ] Slack integration (post to Slack, get notifications)
