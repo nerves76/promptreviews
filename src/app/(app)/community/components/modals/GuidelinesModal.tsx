@@ -32,16 +32,23 @@ export function GuidelinesModal({ isOpen, requireAcceptance, onAccept, onClose, 
       if (!scrollRef.current) return;
 
       const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
-      const isAtBottom = scrollTop + clientHeight >= scrollHeight - 10; // 10px threshold
 
+      // If content doesn't need scrolling, consider it "scrolled to bottom"
+      if (scrollHeight <= clientHeight) {
+        setHasScrolledToBottom(true);
+        return;
+      }
+
+      const isAtBottom = scrollTop + clientHeight >= scrollHeight - 20; // 20px threshold for better UX
       setHasScrolledToBottom(isAtBottom);
     };
 
     const scrollElement = scrollRef.current;
     if (scrollElement) {
       scrollElement.addEventListener('scroll', handleScroll);
-      // Check initial state
-      handleScroll();
+
+      // Check initial state with a slight delay to ensure content is rendered
+      setTimeout(handleScroll, 100);
 
       return () => scrollElement.removeEventListener('scroll', handleScroll);
     }
