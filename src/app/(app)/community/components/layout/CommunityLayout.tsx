@@ -7,6 +7,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { Channel } from '../../types/community';
 import { ChannelList } from './ChannelList';
 import { CommunityHeader } from './CommunityHeader';
@@ -68,9 +69,19 @@ export function CommunityLayout({
             />
           </div>
 
+          {/* Community Image */}
+          <div className="mt-6 mb-4 relative w-full h-32 rounded-lg overflow-hidden">
+            <Image
+              src="/images/the-prompt-reviews-community.png"
+              alt="Prompt Reviews Community"
+              fill
+              className="object-cover"
+            />
+          </div>
+
           <button
             onClick={onGuidelinesClick}
-            className="mt-6 w-full flex items-center gap-2 px-3 py-2 text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-colors text-sm"
+            className="w-full flex items-center gap-2 px-3 py-2 text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-colors text-sm"
             aria-label="View community guidelines"
           >
             <svg
@@ -120,12 +131,22 @@ export function CommunityLayout({
             />
           </div>
 
+          {/* Community Image */}
+          <div className="mt-6 mb-4 relative w-full h-32 rounded-lg overflow-hidden">
+            <Image
+              src="/images/the-prompt-reviews-community.png"
+              alt="Prompt Reviews Community"
+              fill
+              className="object-cover"
+            />
+          </div>
+
           <button
             onClick={() => {
               onGuidelinesClick();
               setSidebarOpen(false);
             }}
-            className="mt-6 w-full flex items-center gap-2 px-3 py-2 text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-colors text-sm"
+            className="w-full flex items-center gap-2 px-3 py-2 text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-colors text-sm"
             aria-label="View community guidelines"
           >
             <svg
