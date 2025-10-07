@@ -153,12 +153,12 @@ export default function KeywordInspirationModal({
                   >
                     {copiedIndex === index ? (
                       <>
-                        <Icon name="FaCheck" className="w-4 h-4" size={16} />
+                        <Icon name="FaCheck" size={16} style={{ color: "#FFFFFF" }} />
                         <span>Copied!</span>
                       </>
                     ) : (
                       <>
-                        <Icon name="FaCopy" className="w-4 h-4" size={16} />
+                        <Icon name="FaCopy" size={16} style={{ color: "currentColor" }} />
                         <span>Copy</span>
                       </>
                     )}
