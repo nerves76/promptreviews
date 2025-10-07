@@ -113,9 +113,9 @@ export function GuidelinesModal({ isOpen, requireAcceptance, onAccept, onClose, 
       {/* Modal */}
       <div className="fixed inset-0 flex items-center justify-center p-4">
         <Dialog.Panel className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-2xl border-2 border-white max-w-3xl w-full max-h-[80vh] flex flex-col">
-          {/* Header with Image */}
+          {/* Header */}
           <div className="p-6 border-b border-gray-200">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between">
               <Dialog.Title className="text-2xl font-bold text-gray-900 text-center flex-1">Welcome to the Prompt Reviews Community!</Dialog.Title>
               {!requireAcceptance && (
                 <button
@@ -129,7 +129,12 @@ export function GuidelinesModal({ isOpen, requireAcceptance, onAccept, onClose, 
                 </button>
               )}
             </div>
-            <div className="relative w-full h-80 rounded-lg overflow-hidden bg-white/5">
+          </div>
+
+          {/* Content (scrollable) */}
+          <div ref={scrollRef} className="flex-1 overflow-y-auto p-6 prose prose-sm max-w-none">
+            {/* Community Image */}
+            <div className="relative w-full h-80 rounded-lg overflow-hidden bg-white/5 mb-6">
               <Image
                 src="/images/the-prompt-reviews-community.png"
                 alt="Prompt Reviews Community"
@@ -138,10 +143,6 @@ export function GuidelinesModal({ isOpen, requireAcceptance, onAccept, onClose, 
                 priority
               />
             </div>
-          </div>
-
-          {/* Content (scrollable) */}
-          <div ref={scrollRef} className="flex-1 overflow-y-auto p-6 prose prose-sm max-w-none">
             <p className="text-lg mb-4">
               This is a place for small business owners to collaborate, share wins, learn about review tactics, and get support.
             </p>
