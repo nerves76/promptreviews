@@ -22,53 +22,17 @@ interface GuidelinesModalProps {
 
 export function GuidelinesModal({ isOpen, requireAcceptance, onAccept, onClose, onDecline }: GuidelinesModalProps) {
   const [accepted, setAccepted] = useState(false);
-  const [hasScrolledToBottom, setHasScrolledToBottom] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const { toasts, closeToast, error } = useToast();
 
-  // Check if user has scrolled to bottom
-  useEffect(() => {
-    const handleScroll = () => {
-      if (!scrollRef.current) return;
-
-      const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
-
-      // If content doesn't need scrolling, consider it "scrolled to bottom"
-      if (scrollHeight <= clientHeight + 5) {
-        setHasScrolledToBottom(true);
-        return;
-      }
-
-      // More generous threshold - 50px from bottom
-      const isAtBottom = Math.abs(scrollHeight - clientHeight - scrollTop) <= 50;
-      setHasScrolledToBottom(isAtBottom);
-    };
-
-    const scrollElement = scrollRef.current;
-    if (scrollElement) {
-      scrollElement.addEventListener('scroll', handleScroll);
-
-      // Check initial state with delays to ensure content is rendered
-      setTimeout(handleScroll, 100);
-      setTimeout(handleScroll, 300);
-
-      return () => scrollElement.removeEventListener('scroll', handleScroll);
-    }
-  }, [isOpen]);
-
-  // Reset scroll state when modal opens
+  // Reset state when modal opens
   useEffect(() => {
     if (isOpen) {
-      setHasScrolledToBottom(false);
       setAccepted(false);
     }
   }, [isOpen]);
 
   const handleAccept = () => {
-    if (!hasScrolledToBottom && requireAcceptance) {
-      error('Please scroll to the bottom to continue');
-      return;
-    }
     if (!accepted && requireAcceptance) {
       error('Please check the box to accept the community guidelines');
       return;
@@ -212,18 +176,14 @@ export function GuidelinesModal({ isOpen, requireAcceptance, onAccept, onClose, 
           {/* Sticky Footer */}
           {requireAcceptance && (
             <div className="sticky bottom-0 p-6 border-t border-gray-200 bg-white/90 backdrop-blur-sm space-y-4">
-              {!hasScrolledToBottom && (
-                <p className="text-sm text-amber-600 font-medium">⬇️ Please scroll to the bottom to continue</p>
-              )}
               <label className="flex items-center gap-3 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={accepted}
                   onChange={(e) => setAccepted(e.target.checked)}
-                  disabled={!hasScrolledToBottom}
-                  className="w-5 h-5 text-[#452F9F] border-gray-300 rounded focus:ring-[#452F9F] disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-5 h-5 text-[#452F9F] border-gray-300 rounded focus:ring-[#452F9F]"
                 />
-                <span className={`text-sm ${hasScrolledToBottom ? 'text-gray-900' : 'text-gray-400'}`}>
+                <span className="text-sm text-gray-900">
                   I agree to follow these community guidelines
                 </span>
               </label>
@@ -235,7 +195,7 @@ export function GuidelinesModal({ isOpen, requireAcceptance, onAccept, onClose, 
                 <Button
                   onClick={handleAccept}
                   variant="default"
-                  disabled={!hasScrolledToBottom || !accepted}
+                  disabled={!accepted}
                   className="disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Accept & Join Community
