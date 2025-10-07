@@ -116,7 +116,7 @@ export function GuidelinesModal({ isOpen, requireAcceptance, onAccept, onClose, 
           {/* Header */}
           <div className="p-6 border-b border-gray-200">
             <div className="flex items-center justify-between">
-              <Dialog.Title className="text-2xl font-bold text-gray-900 text-center flex-1">Welcome to the Prompt Reviews Community!</Dialog.Title>
+              <Dialog.Title className="text-2xl font-bold text-gray-900 text-center flex-1">Welcome to the Prompt Reviews community!</Dialog.Title>
               {!requireAcceptance && (
                 <button
                   onClick={handleClose}
