@@ -6,9 +6,9 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { verifyAuth } from '../../../../utils/auth';
-import { createServiceClient } from '../../../../utils/supabase';
-import { validateCommentData, validatePagination } from '../../../../utils/validation';
+import { verifyAuth } from '../../../utils/auth';
+import { createServiceClient } from '../../../utils/supabase';
+import { validateCommentData, validatePagination } from '../../../utils/validation';
 
 /**
  * GET /api/community/posts/:id/comments
