@@ -17,7 +17,7 @@ interface BusinessProfile {
   industries_served?: string;
   tagline?: string;
   team_founder_info?: string;
-  keywords?: string;
+  keywords?: string | string[]; // Can be string (legacy) or array (new format)
   industry?: string[];
   industry_other?: string;
   ai_dos?: string;
@@ -35,33 +35,36 @@ interface PromptPageData {
   outcomes?: string;
   location?: string;
   client_name?: string;
-  
+
   // Universal page fields
   is_universal?: boolean;
   friendly_note?: string;
-  
+
   // Product page fields
   product_name?: string;
   product_subcopy?: string;
   features_or_benefits?: string[];
   category?: string;
-  
+
   // Photo page fields
   photo_context?: string;
   photo_description?: string;
-  
+
   // Location page fields
   location_name?: string;
   business_location_id?: string;
-  
+
   // Service page fields
   service_name?: string;
   service_description?: string;
-  
+
   // Additional context fields
   date_completed?: string;
   team_member?: string;
   assigned_team_members?: string;
+
+  // Page-level keywords (takes precedence over business keywords)
+  keywords?: string | string[];
 }
 
 interface ReviewerData {
@@ -72,8 +75,19 @@ interface ReviewerData {
 
 /**
  * Transform raw business profile data into AI generation format
+ * Note: Keywords can be overridden by page-level keywords
  */
-function createBusinessProfileForAI(businessProfile: BusinessProfile) {
+function createBusinessProfileForAI(businessProfile: BusinessProfile, pageKeywords?: string | string[]) {
+  // Use page-level keywords if provided, otherwise fall back to business profile keywords
+  let keywords = "";
+  if (pageKeywords) {
+    keywords = Array.isArray(pageKeywords) ? pageKeywords.join(", ") : pageKeywords;
+  } else if (businessProfile.keywords) {
+    keywords = Array.isArray(businessProfile.keywords)
+      ? businessProfile.keywords.join(", ")
+      : businessProfile.keywords;
+  }
+
   return {
     business_name: businessProfile.business_name || businessProfile.name || "Business",
     features_or_benefits: businessProfile.services_offered ? [businessProfile.services_offered] : [],
@@ -83,7 +97,7 @@ function createBusinessProfileForAI(businessProfile: BusinessProfile) {
     industries_served: businessProfile.industries_served || "",
     taglines: businessProfile.tagline || "",
     team_founder_info: businessProfile.team_founder_info || "",
-    keywords: businessProfile.keywords || "",
+    keywords: keywords,
     industry: businessProfile.industry || [],
     industry_other: businessProfile.industry_other || "",
     ai_dos: businessProfile.ai_dos || "",
@@ -158,6 +172,7 @@ function createPromptPageDataForAI(
 
 /**
  * Generate AI review with proper business context for any prompt page type
+ * Uses page-level keywords if available, otherwise falls back to business profile keywords
  */
 export async function generateContextualReview(
   businessProfile: BusinessProfile,
@@ -170,9 +185,10 @@ export async function generateContextualReview(
   additionalDos: string = "",
   additionalDonts: string = ""
 ): Promise<string> {
-  const businessProfileForAI = createBusinessProfileForAI(businessProfile);
+  // Pass page-level keywords to override business profile keywords
+  const businessProfileForAI = createBusinessProfileForAI(businessProfile, promptPage.keywords);
   const promptPageDataForAI = createPromptPageDataForAI(promptPage, reviewer);
-  
+
   return await generateAIReview(
     businessProfileForAI,
     promptPageDataForAI,

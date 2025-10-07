@@ -16,6 +16,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import ReviewWriteSection from "../dashboard/edit-prompt-page/components/ReviewWriteSection";
+import KeywordsInput from "./KeywordsInput";
 import { 
   OfferFeature,
   EmojiSentimentFeature,
@@ -115,6 +116,16 @@ export default function UniversalPromptPageForm({
   const [isSaving, setIsSaving] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
+  // Keywords state
+  const [keywords, setKeywords] = useState<string[]>(() => {
+    if (Array.isArray(initialData?.keywords) && initialData.keywords.length > 0) {
+      return initialData.keywords;
+    } else if (mode === "create" && Array.isArray(businessProfile?.keywords)) {
+      return businessProfile.keywords;
+    }
+    return [];
+  });
+
   // Handle AI review generation with simplified Universal context
   const handleGenerateAIReview = async (index: number) => {
     if (!businessProfile) {
@@ -133,6 +144,7 @@ export default function UniversalPromptPageForm({
         project_type: businessProfile.services_offered || "business services",
         product_description: businessProfile.description || "great business experience",
         friendly_note: formData.friendly_note,
+        keywords: keywords,
         // No customer/client specific details for Universal pages
         outcomes: "",
         client_name: "",
@@ -178,9 +190,13 @@ export default function UniversalPromptPageForm({
   const handleSave = async () => {
     setIsSaving(true);
     setFormError(null);
-    
+
     try {
-      await onSave(formData);
+      const saveData = {
+        ...formData,
+        keywords: keywords,
+      };
+      await onSave(saveData);
     } catch (error) {
       setFormError(error instanceof Error ? error.message : "Failed to save");
     } finally {
@@ -242,6 +258,30 @@ export default function UniversalPromptPageForm({
         hideReviewTemplateFields={true} // Universal pages are public so hide review template fields
         aiGeneratingIndex={aiGeneratingIndex}
       />
+
+      {/* Keywords Section */}
+      <div className="rounded-lg p-6 bg-slate-50 border border-slate-200 shadow">
+        <div className="flex items-center gap-3 mb-4">
+          <Icon name="FaSearch" className="w-7 h-7 text-slate-blue" size={28} />
+          <h3 className="text-2xl font-bold text-slate-blue">Keywords</h3>
+        </div>
+        <div className="mb-2">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Add keywords to help guide reviewers and improve SEO
+          </label>
+          <KeywordsInput
+            keywords={keywords}
+            onChange={setKeywords}
+            placeholder="Enter keywords separated by commas (e.g., best pizza Seattle, wood-fired oven, authentic Italian)"
+          />
+        </div>
+        <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+          <p className="text-xs text-blue-800">
+            <strong>How it works:</strong> Keywords are pre-populated from your global settings for new pages.
+            You can add, remove, or customize them for this specific prompt page without affecting your global keywords.
+          </p>
+        </div>
+      </div>
 
       {/* Special Offer Feature */}
       <OfferFeature

@@ -14,6 +14,7 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import CustomerDetailsSection from "./sections/CustomerDetailsSection";
 import ReviewWriteSection from "../dashboard/edit-prompt-page/components/ReviewWriteSection";
+import KeywordsInput from "./KeywordsInput";
 import { 
   OfferFeature,
   EmojiSentimentFeature,
@@ -112,6 +113,16 @@ export default function EventPromptPageForm({
     initialData?.fix_grammar_enabled !== false
   );
 
+  // Keywords state
+  const [keywords, setKeywords] = useState<string[]>(() => {
+    if (Array.isArray(initialData?.keywords) && initialData.keywords.length > 0) {
+      return initialData.keywords;
+    } else if (mode === "create" && Array.isArray(businessProfile?.keywords)) {
+      return businessProfile.keywords;
+    }
+    return [];
+  });
+
   // Initialize form data only once on mount or when initialData changes significantly
   useEffect(() => {
     const isInitialLoad = !formData || Object.keys(formData).length === 0;
@@ -175,6 +186,7 @@ export default function EventPromptPageForm({
       client_name: formData.first_name || '',
       client_role: formData.role || '',
       friendly_note: formData.friendly_note || '',
+      keywords: keywords,
     };
 
     try {
@@ -249,6 +261,8 @@ export default function EventPromptPageForm({
         // Explicitly include kickstarters fields to ensure they're saved
         kickstarters_enabled: formData.kickstarters_enabled,
         selected_kickstarters: formData.selected_kickstarters,
+        // Keywords
+        keywords: keywords,
       };
       const result = await onSave(saveData);
       if (onPublishSuccess && (result as any)?.slug) {
@@ -568,6 +582,30 @@ export default function EventPromptPageForm({
           hideReviewTemplateFields={campaignType === 'public'}
           aiGeneratingIndex={aiGeneratingIndex}
         />
+
+        {/* Keywords Section */}
+        <div className="rounded-lg p-6 bg-slate-50 border border-slate-200 shadow">
+          <div className="flex items-center gap-3 mb-4">
+            <Icon name="FaSearch" className="w-7 h-7 text-slate-blue" size={28} />
+            <h3 className="text-2xl font-bold text-slate-blue">Keywords</h3>
+          </div>
+          <div className="mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Add keywords to help guide reviewers and improve SEO
+            </label>
+            <KeywordsInput
+              keywords={keywords}
+              onChange={setKeywords}
+              placeholder="Enter keywords separated by commas (e.g., best pizza Seattle, wood-fired oven, authentic Italian)"
+            />
+          </div>
+          <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <p className="text-xs text-blue-800">
+              <strong>How it works:</strong> Keywords are pre-populated from your global settings for new pages.
+              You can add, remove, or customize them for this specific prompt page without affecting your global keywords.
+            </p>
+          </div>
+        </div>
 
         {/* Shared Feature Components */}
         <div className="space-y-8">

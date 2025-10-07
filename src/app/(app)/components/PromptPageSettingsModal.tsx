@@ -23,6 +23,7 @@ import Icon from "@/components/Icon";
 import RobotTooltip from './RobotTooltip';
 import { markTaskAsCompleted } from '@/utils/onboardingTasks';
 import { useAuthUser } from '@/auth/hooks/granularAuthHooks';
+import KeywordsInput from './KeywordsInput';
 
 // Import all the existing prompt feature modules
 import {
@@ -66,9 +67,9 @@ export default function PromptPageSettingsModal({
   const [formData, setFormData] = useState({
     // Review Platforms
     review_platforms: [],
-    
-    // Keywords
-    keywords: '',
+
+    // Keywords (stored as array)
+    keywords: [] as string[],
     
     // AI Dos and Don'ts
     ai_dos: '',
@@ -118,9 +119,17 @@ export default function PromptPageSettingsModal({
   // Update form data when initial settings change
   useEffect(() => {
     if (initialSettings) {
-      setFormData(prev => ({
+      // Convert keywords from string to array if needed
+      const keywords = Array.isArray(initialSettings.keywords)
+        ? initialSettings.keywords
+        : typeof initialSettings.keywords === 'string' && initialSettings.keywords
+          ? initialSettings.keywords.split(',').map((k: string) => k.trim()).filter(Boolean)
+          : [];
+
+      setFormData((prev: any) => ({
         ...prev,
-        ...initialSettings
+        ...initialSettings,
+        keywords
       }));
     }
   }, [initialSettings]);
@@ -163,13 +172,13 @@ export default function PromptPageSettingsModal({
   }, [isDragging, dragOffset]);
 
   const handleInputChange = (field: string, value: any) => {
-    setFormData(prev => ({
+    setFormData((prev: any) => ({
       ...prev,
       [field]: value
     }));
     // Clear any existing error for this field
     if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }));
+      setErrors((prev: any) => ({ ...prev, [field]: '' }));
     }
   };
 
@@ -177,11 +186,18 @@ export default function PromptPageSettingsModal({
     setIsSubmitting(true);
     setErrors({}); // Clear any previous errors
     try {
-      await onSave(formData);
-      
+      // Convert keywords array to comma-separated string for storage
+      const dataToSave = {
+        ...formData,
+        keywords: Array.isArray(formData.keywords) ? formData.keywords : []
+      };
+
+      await onSave(dataToSave);
+
       // Check if prompt-page-settings task should be completed
       // The task is complete if keywords and either AI dos or don'ts are filled in
-      if (accountId && formData.keywords?.trim() && (formData.ai_dos?.trim() || formData.ai_donts?.trim())) {
+      const hasKeywords = Array.isArray(formData.keywords) && formData.keywords.length > 0;
+      if (accountId && hasKeywords && (formData.ai_dos?.trim() || formData.ai_donts?.trim())) {
         // Mark the onboarding task as complete
         await markTaskAsCompleted(accountId, 'prompt-page-settings');
       }
@@ -308,16 +324,20 @@ export default function PromptPageSettingsModal({
                   {/* Keywords Section */}
                   <section className="mb-6">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                    Keywords (comma separated)
-                    <RobotTooltip text="Keywords help with SEO and AI-generated content across all pages." />
+                    Keywords
+                    <RobotTooltip text="These keywords will be pre-populated on all new prompt pages. Each page can then customize their keywords without affecting these global defaults." />
                   </h3>
-                  <textarea
-                    value={formData.keywords}
-                    onChange={(e) => handleInputChange('keywords', e.target.value)}
-                    rows={4}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent"
-                    placeholder="e.g., best therapist in Portland, amazing ADHD therapist, group sessions, works with most insurance companies, compassionate"
+                  <KeywordsInput
+                    keywords={formData.keywords || []}
+                    onChange={(keywords) => handleInputChange('keywords', keywords)}
+                    placeholder="Enter keywords separated by commas (e.g., best therapist Portland, ADHD specialist, group sessions, insurance accepted)"
                   />
+                  <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <p className="text-xs text-blue-800">
+                      <strong>How it works:</strong> These keywords will automatically appear on new prompt pages you create.
+                      You can then customize them for each page without changing these global defaults.
+                    </p>
+                  </div>
                 </section>
 
                 {/* AI Dos and Don'ts Section */}

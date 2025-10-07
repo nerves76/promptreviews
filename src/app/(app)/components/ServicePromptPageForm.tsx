@@ -32,6 +32,7 @@ import { generateContextualReview } from "@/utils/aiReviewGeneration";
 import Icon from "@/components/Icon";
 import { getWordLimitOrDefault } from "@/constants/promptPageWordLimits";
 import FiveStarSpinner from "./FiveStarSpinner";
+import KeywordsInput from "./KeywordsInput";
 
 /**
  * ServicePromptPageForm component
@@ -72,48 +73,61 @@ export default function ServicePromptPageForm({
   const router = useRouter();
   
   // Initialize all state hooks first (before any early returns)
-  const [formData, setFormData] = useState({
-    first_name: initialData?.first_name || "",
-    last_name: initialData?.last_name || "",
-    email: initialData?.email || "",
-    phone: initialData?.phone || "",
-    role: initialData?.role || "",
-    review_platforms: initialData?.review_platforms || [],
-    friendly_note: initialData?.friendly_note || "",
-    show_friendly_note: initialData?.show_friendly_note ?? false,
-    emoji_sentiment_enabled: initialData?.emoji_sentiment_enabled ?? false,
-    emoji_sentiment_question: initialData?.emoji_sentiment_question || "",
-    emoji_feedback_message: initialData?.emoji_feedback_message || "",
-    emoji_thank_you_message: initialData?.emoji_thank_you_message || "",
-    emoji_feedback_popup_header: initialData?.emoji_feedback_popup_header || "",
-    emoji_feedback_page_header: initialData?.emoji_feedback_page_header || "",
-    name: initialData?.name || "",
-    features_or_benefits: initialData?.features_or_benefits || [""],
-    services_offered: initialData?.services_offered || [""],
-    outcomes: initialData?.outcomes || [""],
-    offer_enabled: initialData?.offer_enabled ?? false,
-    offer_title: initialData?.offer_title || "",
-    offer_body: initialData?.offer_body || "",
-    offer_url: initialData?.offer_url || "",
-    // Handle both snake_case and camelCase for offer_timelock
-    offer_timelock: initialData?.offer_timelock ?? initialData?.offerTimelock ?? false,
-    aiButtonEnabled: initialData?.aiButtonEnabled ?? true,
-    falling_enabled: initialData?.falling_enabled ?? true,
-    falling_icon: initialData?.falling_icon || "star",
-    falling_icon_color: initialData?.falling_icon_color || "#fbbf24",
-    kickstarters_enabled: initialData?.kickstarters_enabled ?? false,
-    selected_kickstarters: Array.isArray(initialData?.selected_kickstarters) ? initialData.selected_kickstarters : [],
-    recent_reviews_enabled: initialData?.recent_reviews_enabled ?? false,
-    // Handle both snake_case and camelCase for recent_reviews_scope
-    recent_reviews_scope: initialData?.recent_reviews_scope || initialData?.recentReviewsScope || "current_page",
-    slug: initialData?.slug || "",
-    service_name: initialData?.service_name || "",
-    product_description: initialData?.product_description || "",
-    client_name: initialData?.client_name || "",
-    location: initialData?.location || "",
-    date_completed: initialData?.date_completed || "",
-    team_member: initialData?.team_member || "",
-    assigned_team_members: initialData?.assigned_team_members || [],
+  const [formData, setFormData] = useState(() => {
+    // Initialize keywords with business keywords if this is a new prompt page
+    let initialKeywords: string[] = [];
+    if (Array.isArray(initialData?.keywords) && initialData.keywords.length > 0) {
+      // Editing existing page - use saved keywords
+      initialKeywords = initialData.keywords;
+    } else if (mode === "create" && Array.isArray(businessProfile?.keywords)) {
+      // Creating new page - pre-populate with business keywords
+      initialKeywords = businessProfile.keywords;
+    }
+
+    return {
+      first_name: initialData?.first_name || "",
+      last_name: initialData?.last_name || "",
+      email: initialData?.email || "",
+      phone: initialData?.phone || "",
+      role: initialData?.role || "",
+      review_platforms: initialData?.review_platforms || [],
+      friendly_note: initialData?.friendly_note || "",
+      show_friendly_note: initialData?.show_friendly_note ?? false,
+      emoji_sentiment_enabled: initialData?.emoji_sentiment_enabled ?? false,
+      emoji_sentiment_question: initialData?.emoji_sentiment_question || "",
+      emoji_feedback_message: initialData?.emoji_feedback_message || "",
+      emoji_thank_you_message: initialData?.emoji_thank_you_message || "",
+      emoji_feedback_popup_header: initialData?.emoji_feedback_popup_header || "",
+      emoji_feedback_page_header: initialData?.emoji_feedback_page_header || "",
+      name: initialData?.name || "",
+      features_or_benefits: initialData?.features_or_benefits || [""],
+      services_offered: initialData?.services_offered || [""],
+      outcomes: initialData?.outcomes || [""],
+      offer_enabled: initialData?.offer_enabled ?? false,
+      offer_title: initialData?.offer_title || "",
+      offer_body: initialData?.offer_body || "",
+      offer_url: initialData?.offer_url || "",
+      // Handle both snake_case and camelCase for offer_timelock
+      offer_timelock: initialData?.offer_timelock ?? initialData?.offerTimelock ?? false,
+      aiButtonEnabled: initialData?.aiButtonEnabled ?? true,
+      falling_enabled: initialData?.falling_enabled ?? true,
+      falling_icon: initialData?.falling_icon || "star",
+      falling_icon_color: initialData?.falling_icon_color || "#fbbf24",
+      kickstarters_enabled: initialData?.kickstarters_enabled ?? false,
+      selected_kickstarters: Array.isArray(initialData?.selected_kickstarters) ? initialData.selected_kickstarters : [],
+      recent_reviews_enabled: initialData?.recent_reviews_enabled ?? false,
+      // Handle both snake_case and camelCase for recent_reviews_scope
+      recent_reviews_scope: initialData?.recent_reviews_scope || initialData?.recentReviewsScope || "current_page",
+      slug: initialData?.slug || "",
+      service_name: initialData?.service_name || "",
+      product_description: initialData?.product_description || "",
+      client_name: initialData?.client_name || "",
+      location: initialData?.location || "",
+      keywords: initialKeywords,
+      date_completed: initialData?.date_completed || "",
+      team_member: initialData?.team_member || "",
+      assigned_team_members: initialData?.assigned_team_members || [],
+    };
   });
   
   const [fixGrammarEnabled, setFixGrammarEnabled] = useState(initialData?.fix_grammar_enabled ?? true);
@@ -375,6 +389,7 @@ export default function ServicePromptPageForm({
         date_completed: formData.date_completed,
         team_member: formData.team_member,
         assigned_team_members: formData.assigned_team_members,
+        keywords: formData.keywords || [], // Use page-level keywords
       };
       
       const reviewerData = {
@@ -578,6 +593,30 @@ export default function ServicePromptPageForm({
           aiGeneratingIndex={aiGeneratingIndex}
         />
 
+        {/* Keywords Section */}
+        <div className="rounded-lg p-6 bg-slate-50 border border-slate-200 shadow">
+          <div className="flex items-center gap-3 mb-4">
+            <Icon name="FaSearch" className="w-7 h-7 text-slate-blue" size={28} />
+            <h3 className="text-2xl font-bold text-slate-blue">Keywords</h3>
+          </div>
+          <div className="mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Add keywords to help guide reviewers and improve SEO
+            </label>
+            <KeywordsInput
+              keywords={Array.isArray(formData.keywords) ? formData.keywords : []}
+              onChange={(keywords) => updateFormData('keywords', keywords)}
+              placeholder="Enter keywords separated by commas (e.g., best pizza Seattle, wood-fired oven, authentic Italian)"
+            />
+          </div>
+          <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <p className="text-xs text-blue-800">
+              <strong>How it works:</strong> Keywords are pre-populated from your global settings for new pages.
+              You can add, remove, or customize them for this specific prompt page without affecting your global keywords.
+            </p>
+          </div>
+        </div>
+
         {/* Kickstarters Section */}
         <KickstartersFeature
           enabled={formData.kickstarters_enabled}
@@ -619,7 +658,7 @@ export default function ServicePromptPageForm({
           timelock={formData.offer_timelock}
           onTimelockChange={(timelock) => updateFormData('offer_timelock', timelock)}
         />
-        
+
         {/* Personalized note section */}
         <div className="rounded-lg p-4 bg-slate-50 border border-slate-200 flex flex-col gap-2 shadow relative">
           <div className="flex items-center justify-between mb-2 px-2 py-2">
