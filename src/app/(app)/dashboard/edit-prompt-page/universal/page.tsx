@@ -8,9 +8,6 @@
 "use client";
 import React, { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import UniversalPromptPageForm, {
-  UniversalPromptFormState,
-} from "./UniversalPromptPageForm";
 import PromptPageForm from "@/app/(app)/components/PromptPageForm";
 import Icon from "@/components/Icon";
 import PageCard from "@/app/(app)/components/PageCard";
@@ -20,6 +17,34 @@ import Link from "next/link";
 import { markTaskAsCompleted } from "@/utils/onboardingTasks";
 import { useAuth } from "@/auth";
 import { revalidatePromptPage } from "@/app/(app)/actions/revalidate";
+
+// Interface for Universal Prompt Form State
+interface UniversalPromptFormState {
+  offer_enabled: boolean;
+  offer_title: string;
+  offer_body: string;
+  offer_url: string;
+  emoji_sentiment_enabled: boolean;
+  emoji_sentiment_question: string;
+  emoji_feedback_message: string;
+  emoji_thank_you_message: string;
+  emoji_feedback_popup_header: string;
+  emoji_feedback_page_header: string;
+  review_platforms: any[];
+  falling_enabled: boolean;
+  falling_icon: string;
+  falling_icon_color: string;
+  ai_button_enabled: boolean;
+  fix_grammar_enabled: boolean;
+  note_popup_enabled: boolean;
+  show_friendly_note: boolean;
+  friendly_note: string;
+  kickstarters_enabled: boolean;
+  selected_kickstarters: string[];
+  recent_reviews_enabled: boolean;
+  recent_reviews_scope: 'current_page' | 'all_pages';
+  keywords?: string[];
+}
 
 // Helper to normalize platform names to match dropdown options
 const normalizePlatformName = (name: string): string => {
@@ -44,10 +69,8 @@ export default function UniversalEditPromptPage() {
   const router = useRouter();
   const { user, account } = useAuth();
 
-  // Feature flag for testing new standardized form
-  const useStandardizedForm = false; // Set to true to use new form, false for old form
-
-  const formRef = useRef<any>(null);
+  // Using standardized form architecture (consistent with other prompt page types)
+  const useStandardizedForm = true;
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -223,18 +246,6 @@ export default function UniversalEditPromptPage() {
     }
     fetchData();
   }, [user, account?.id]); // Re-fetch when account changes
-
-  const handleSave = () => {
-    
-    // Skip review platform check - it has a stale closure issue
-    // The form component will handle its own validation
-    
-    // Trigger form submission (same as Service Prompt Page)
-    const form = document.querySelector('form');
-    if (form) {
-      form.dispatchEvent(new Event('submit', { bubbles: true }));
-    }
-  };
 
   const handleFormSave = async (formState: UniversalPromptFormState) => {
     setIsSaving(true);
@@ -436,85 +447,9 @@ export default function UniversalEditPromptPage() {
     setIsSaving(false);
   };
 
-  const saveButton = (
-    <button
-      type="button"
-      className="bg-slate-blue text-white px-6 py-2 rounded-lg font-semibold shadow hover:bg-slate-blue/90 transition"
-      onClick={handleSave}
-      disabled={isSaving}
-    >
-      {isSaving ? "Saving..." : "Save & publish"}
-    </button>
-  );
-
-  const actionButtons = !useStandardizedForm ? (
-    <div className="flex gap-3">
-      {saveButton}
-    </div>
-  ) : null;
-
   return (
     <>
-      {!useStandardizedForm && (
-        <>
-        <PageCard
-          icon={<Icon name="FaHome" className="w-9 h-9 text-slate-blue" size={36} />}
-          topRightAction={actionButtons}
-        >
-          <div className="flex flex-col mt-0 md:mt-[3px] mb-4">
-            <h1 className="text-4xl font-bold text-slate-blue mt-0 mb-2">
-              Universal prompt page
-            </h1>
-            <p className="text-gray-600 text-base max-w-md mt-0 mb-6">
-              The universal prompt page is designed to be shared with many.
-            </p>
-          </div>
-
-          {/* Content inside PageCard */}
-          <div className="pb-16">
-            {isLoading && (
-              <div className="flex items-center justify-center py-8">
-                <div className="text-lg text-white">Loading...</div>
-              </div>
-            )}
-            {error && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
-                <div className="text-red-800 font-medium">Error</div>
-                <div className="text-red-600">{error}</div>
-              </div>
-            )}
-            {!isLoading && !error && initialData && (
-              <UniversalPromptPageForm
-                ref={formRef}
-                onSave={handleFormSave}
-                isLoading={isSaving}
-                initialData={initialData}
-                showResetButton={showResetButton}
-                businessReviewPlatforms={businessReviewPlatforms}
-                slug={slug || undefined}
-                businessProfile={businessProfile}
-              />
-            )}
-
-            {/* Save & Publish button - positioned at bottom right of PageCard */}
-            {!isLoading && !error && initialData && (
-              <div className="flex justify-end mt-6">
-                <button
-                  type="button"
-                  className="bg-slate-blue text-white px-6 py-3 rounded-lg font-semibold shadow-lg hover:bg-slate-blue/90 transition-all transform hover:scale-105 flex items-center gap-2"
-                  onClick={handleSave}
-                  disabled={isSaving}
-                >
-                  <Icon name="FaSave" className="w-5 h-5" />
-                  {isSaving ? "Saving..." : "Save & publish"}
-                </button>
-              </div>
-            )}
-          </div>
-        </PageCard>
-        </>
-      )}
-
+      {/* Standardized Form Header */}
       {useStandardizedForm && (
         <div className="w-full bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600 pb-16 md:pb-24 lg:pb-32">
           <div className="flex flex-col mt-0 md:mt-[3px] mb-4 px-6 pt-8">
