@@ -233,6 +233,7 @@ const Header = React.memo(function Header() {
   }, []);
 
   const isActive = (path: string) => {
+    if (!mounted) return false; // Prevent hydration mismatch
     if (path === "/dashboard" && pathname === "/dashboard") return true;
     if (path !== "/dashboard" && pathname.startsWith(path)) return true;
     return false;
@@ -341,7 +342,7 @@ const Header = React.memo(function Header() {
           
           {/* Centered Desktop Nav */}
           <div className="hidden md:flex flex-1 justify-center">
-            <div className="flex space-x-8">
+            <div className="flex space-x-8 ml-8">
                             <Link
                 href={hasBusiness ? "/dashboard" : "#"}
                 onClick={(e) => {
@@ -412,7 +413,7 @@ const Header = React.memo(function Header() {
                       className={`${
                         isActive("/dashboard/google-business")
                           ? "border-white text-white"
-                          : hasBusiness 
+                          : hasBusiness
                             ? "border-transparent text-white hover:border-white/30 hover:text-white/90"
                             : "border-transparent text-white/50 cursor-not-allowed"
                       } inline-flex items-center px-1 pt-1 border-b-4 text-base font-medium transition-colors duration-200 h-16 relative group`}
@@ -420,6 +421,17 @@ const Header = React.memo(function Header() {
                       Google biz
                     </Link>
                   )}
+
+                  <Link
+                    href="/community"
+                    className={`${
+                      isActive("/community")
+                        ? "border-white text-white"
+                        : "border-transparent text-white hover:border-white/30 hover:text-white/90"
+                    } inline-flex items-center px-1 pt-1 border-b-4 text-base font-medium transition-colors duration-200 h-16`}
+                  >
+                    Community
+                  </Link>
 
                     {/* Social Posting temporarily hidden until feature is ready
                     <Link
@@ -889,7 +901,7 @@ const Header = React.memo(function Header() {
                           className={`${
                             isActive("/dashboard/google-business")
                               ? "bg-white/20 text-white"
-                              : hasBusiness 
+                              : hasBusiness
                                 ? "text-white hover:bg-white/10"
                                 : "text-gray-500 cursor-not-allowed"
                           } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
@@ -897,6 +909,18 @@ const Header = React.memo(function Header() {
                           Google biz
                         </Link>
                     )}
+
+                    <Link
+                      href="/community"
+                      onClick={() => setMenuOpen(false)}
+                      className={`${
+                        isActive("/community")
+                          ? "bg-white/20 text-white"
+                          : "text-white hover:bg-white/10"
+                      } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
+                    >
+                      Community
+                    </Link>
 
                     {/* Social Posting temporarily hidden until feature is ready
                     <Link
