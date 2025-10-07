@@ -34,12 +34,13 @@ export function GuidelinesModal({ isOpen, requireAcceptance, onAccept, onClose, 
       const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
 
       // If content doesn't need scrolling, consider it "scrolled to bottom"
-      if (scrollHeight <= clientHeight) {
+      if (scrollHeight <= clientHeight + 5) {
         setHasScrolledToBottom(true);
         return;
       }
 
-      const isAtBottom = scrollTop + clientHeight >= scrollHeight - 20; // 20px threshold for better UX
+      // More generous threshold - 50px from bottom
+      const isAtBottom = Math.abs(scrollHeight - clientHeight - scrollTop) <= 50;
       setHasScrolledToBottom(isAtBottom);
     };
 
@@ -47,8 +48,9 @@ export function GuidelinesModal({ isOpen, requireAcceptance, onAccept, onClose, 
     if (scrollElement) {
       scrollElement.addEventListener('scroll', handleScroll);
 
-      // Check initial state with a slight delay to ensure content is rendered
+      // Check initial state with delays to ensure content is rendered
       setTimeout(handleScroll, 100);
+      setTimeout(handleScroll, 300);
 
       return () => scrollElement.removeEventListener('scroll', handleScroll);
     }
