@@ -164,15 +164,24 @@ export default function CommunityPage() {
     if (!user) return;
 
     try {
-      // Get user's first name from metadata
-      const { data: { user: authUser } } = await supabase.auth.getUser();
-      const firstName = authUser?.user_metadata?.first_name ||
-                       authUser?.user_metadata?.firstName ||
+      // Get user's first name from metadata and verify auth
+      const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
+
+      if (authError || !authUser) {
+        console.error('Auth error:', authError);
+        throw new Error('Unable to verify user authentication');
+      }
+
+      const firstName = authUser.user_metadata?.first_name ||
+                       authUser.user_metadata?.firstName ||
                        'User';
+
+      // Use authUser.id (from fresh auth check) instead of user.id (from context)
+      const userId = authUser.id;
 
       // First, generate a username for the user
       const { data: usernameData, error: usernameError } = await supabase.rpc('generate_username', {
-        p_user_id: user.id
+        p_user_id: userId
       });
 
       if (usernameError) {
@@ -188,7 +197,7 @@ export default function CommunityPage() {
 
       // Then create/update the profile with first name as display name override
       const { error } = await supabase.from('community_profiles').upsert({
-        user_id: user.id,
+        user_id: userId,
         username: username,
         display_name_override: firstName,
         guidelines_ack_at: new Date().toISOString(),
@@ -206,6 +215,7 @@ export default function CommunityPage() {
       setRequireGuidelinesAcceptance(false);
     } catch (error: any) {
       console.error('Error accepting guidelines:', error?.message || error);
+      alert('There was an error joining the community. Please try again or contact support.');
     }
   };
 
