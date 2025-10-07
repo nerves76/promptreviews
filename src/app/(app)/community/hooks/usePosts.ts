@@ -296,12 +296,24 @@ export function usePosts(channelId: string) {
   // Delete post
   const deletePost = useCallback(
     async (postId: string) => {
+      // Debug: Check if we're authenticated
+      const { data: { user } } = await supabase.auth.getUser();
+      console.log('Delete attempt - User:', user?.id, 'Post:', postId);
+
+      if (!user) {
+        console.error('No authenticated user - cannot delete');
+        throw new Error('Not authenticated');
+      }
+
       const { error: updateError } = await supabase
         .from('posts')
         .update({ deleted_at: new Date().toISOString() })
         .eq('id', postId);
 
-      if (updateError) throw updateError;
+      if (updateError) {
+        console.error('Delete error:', updateError);
+        throw updateError;
+      }
 
       // Remove from local state
       setPosts((prev) => prev.filter((p) => p.id !== postId));
