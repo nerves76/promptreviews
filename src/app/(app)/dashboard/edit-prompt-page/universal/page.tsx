@@ -187,19 +187,22 @@ export default function UniversalEditPromptPage() {
           ai_button_enabled: universalPage?.ai_button_enabled !== false,
           fix_grammar_enabled: universalPage?.fix_grammar_enabled !== false,
           note_popup_enabled: universalPage?.note_popup_enabled ?? false,
-          
+
           // Business default inheritance for friendly note features
           show_friendly_note: universalPage?.show_friendly_note ?? businessProfile?.default_show_friendly_note ?? false,
           friendly_note: universalPage?.friendly_note || businessProfile?.default_friendly_note || "",
-          
-          // Business default inheritance for kickstarter features  
+
+          // Business default inheritance for kickstarter features
           kickstarters_enabled: universalPage?.kickstarters_enabled ?? businessProfile?.default_kickstarters_enabled ?? false,
-          selected_kickstarters: universalPage?.selected_kickstarters ?? 
+          selected_kickstarters: universalPage?.selected_kickstarters ??
             (Array.isArray(businessProfile?.default_selected_kickstarters) ? businessProfile.default_selected_kickstarters : []),
-          
+
           // Business default inheritance for recent reviews features
           recent_reviews_enabled: universalPage?.recent_reviews_enabled ?? businessProfile?.default_recent_reviews_enabled ?? false,
           recent_reviews_scope: universalPage?.recent_reviews_scope || businessProfile?.default_recent_reviews_scope || 'current_page',
+
+          // Keywords with business default inheritance
+          keywords: universalPage?.keywords ?? businessProfile?.keywords ?? [],
         };
         
         
@@ -334,6 +337,7 @@ export default function UniversalEditPromptPage() {
         selected_kickstarters: formState.selected_kickstarters,
         recent_reviews_enabled: formState.recent_reviews_enabled,
         recent_reviews_scope: formState.recent_reviews_scope,
+        keywords: formState.keywords,
         updated_at: new Date().toISOString()
       };
       
@@ -368,6 +372,7 @@ export default function UniversalEditPromptPage() {
         selected_kickstarters: formState.selected_kickstarters,
         recent_reviews_enabled: formState.recent_reviews_enabled,
         recent_reviews_scope: formState.recent_reviews_scope,
+        keywords: formState.keywords,
       }).eq("id", universalPage.id);
       
       error = dbError;

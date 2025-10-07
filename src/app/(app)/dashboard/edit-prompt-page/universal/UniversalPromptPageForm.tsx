@@ -4,7 +4,7 @@ import ReviewPlatformsSection, {
   ReviewPlatformLink,
 } from "../components/ReviewPlatformsSection";
 import { Input } from "@/app/(app)/components/ui/input";
-import { 
+import {
   OfferFeature,
   EmojiSentimentFeature,
   FallingStarsFeature,
@@ -16,6 +16,7 @@ import {
 import { useFallingStars } from "@/hooks/useFallingStars";
 import SectionHeader from "@/app/(app)/components/SectionHeader";
 import Icon from "@/components/Icon";
+import KeywordsInput from "@/app/(app)/components/KeywordsInput";
 
 export interface UniversalPromptFormState {
   offer_enabled: boolean;
@@ -41,6 +42,7 @@ export interface UniversalPromptFormState {
   selected_kickstarters: string[];
   recent_reviews_enabled: boolean;
   recent_reviews_scope: 'current_page' | 'all_pages';
+  keywords?: string[];
 }
 
 interface UniversalPromptPageFormProps {
@@ -144,6 +146,9 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
     const [recentReviewsScope, setRecentReviewsScope] = useState<'current_page' | 'all_pages'>(
       initialData?.recent_reviews_scope ?? 'current_page',
     );
+    const [keywords, setKeywords] = useState<string[]>(
+      initialData?.keywords ?? [],
+    );
 
     // AI Generation loading state
     const [aiGeneratingIndex, setAiGeneratingIndex] = useState<number | null>(null);
@@ -230,6 +235,7 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
             selected_kickstarters: selectedKickstarters,
             recent_reviews_enabled: recentReviewsEnabled,
             recent_reviews_scope: recentReviewsScope,
+            keywords: keywords,
           });
         },
         getCurrentState: () => ({
@@ -256,6 +262,7 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
           selected_kickstarters: selectedKickstarters,
           recent_reviews_enabled: recentReviewsEnabled,
           recent_reviews_scope: recentReviewsScope,
+          keywords: keywords,
         }),
       }),
       [
@@ -327,6 +334,7 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
             selected_kickstarters: selectedKickstarters,
             recent_reviews_enabled: recentReviewsEnabled,
             recent_reviews_scope: recentReviewsScope,
+            keywords: keywords,
           };
           
           onSave(formData);
@@ -345,6 +353,31 @@ const UniversalPromptPageForm = forwardRef<any, UniversalPromptPageFormProps>(
             }
           />
         </div>
+
+        {/* Keywords Section */}
+        <div className="mt-8 rounded-lg p-6 bg-slate-50 border border-slate-200 shadow">
+          <div className="flex items-center gap-3 mb-4">
+            <Icon name="FaSearch" className="w-7 h-7 text-slate-blue" size={28} />
+            <h3 className="text-2xl font-bold text-slate-blue">Keywords</h3>
+          </div>
+          <div className="mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Add keywords to help guide reviewers and improve SEO
+            </label>
+            <KeywordsInput
+              keywords={keywords}
+              onChange={setKeywords}
+              placeholder="Enter keywords separated by commas (e.g., best pizza Seattle, wood-fired oven, authentic Italian)"
+            />
+          </div>
+          <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <p className="text-xs text-blue-800">
+              <strong>How it works:</strong> Keywords are pre-populated from your global settings for new pages.
+              You can add, remove, or customize them for this specific prompt page without affecting your global keywords.
+            </p>
+          </div>
+        </div>
+
         {/* Shared Feature Components */}
         <div className="space-y-8">
           {/* Kickstarters Feature */}
