@@ -204,7 +204,7 @@ export function GuidelinesModal({ isOpen, requireAcceptance, onAccept, onClose, 
               <a href="mailto:support@promptreviews.app" className="text-[#452F9F] hover:underline">support@promptreviews.app</a>.
             </p>
 
-            <p className="text-sm text-gray-600 mt-8">Last updated: January 2025</p>
+            <p className="text-sm text-gray-600 mt-8">Last updated: October 2025</p>
           </div>
 
           {/* Sticky Footer */}
