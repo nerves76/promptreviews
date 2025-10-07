@@ -95,7 +95,7 @@ export default function KeywordInspirationModal({
             </h2>
           </div>
           <p className="text-sm mt-2" style={{ color: businessProfile?.card_text || "#6B7280" }}>
-            Click any keyword below to copy it and use it in your review
+            Click any keyword phrase below to copy it and use it in your review. This will help us get found online!
           </p>
         </div>
 
