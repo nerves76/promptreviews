@@ -16,14 +16,15 @@ import SectionHeader from "./SectionHeader";
 import CustomerDetailsSection from "./sections/CustomerDetailsSection";
 import ReviewWriteSection from "../dashboard/edit-prompt-page/components/ReviewWriteSection";
 import KeywordsInput from "./KeywordsInput";
-import { 
+import {
   PersonalizedNoteFeature,
   EmojiSentimentFeature,
   FallingStarsFeature,
   OfferFeature,
   KickstartersFeature,
   AISettingsFeature,
-  RecentReviewsFeature
+  RecentReviewsFeature,
+  KeywordInspirationFeature
 } from "./prompt-features";
 
 // Helper function to get falling icon
@@ -82,6 +83,10 @@ export default function PhotoPromptPageForm({
     friendly_note: initialData.friendly_note || "",
     name: initialData.name || "", // For public campaigns
     recent_reviews_enabled: initialData.recent_reviews_enabled ?? false,
+    keyword_inspiration_enabled: initialData.keyword_inspiration_enabled ?? businessProfile?.default_keyword_inspiration_enabled ?? false,
+    selected_keyword_inspirations: Array.isArray(initialData.selected_keyword_inspirations)
+      ? initialData.selected_keyword_inspirations
+      : (Array.isArray(businessProfile?.default_selected_keyword_inspirations) ? businessProfile.default_selected_keyword_inspirations : []),
     ...initialData,
   });
 
@@ -259,6 +264,9 @@ export default function PhotoPromptPageForm({
         // Explicitly include kickstarters fields to ensure they're saved
         kickstarters_enabled: formData.kickstarters_enabled,
         selected_kickstarters: formData.selected_kickstarters,
+        // Keyword inspiration fields
+        keyword_inspiration_enabled: formData.keyword_inspiration_enabled,
+        selected_keyword_inspirations: formData.selected_keyword_inspirations,
         // Keywords
         keywords: keywords,
       };
@@ -431,11 +439,29 @@ export default function PhotoPromptPageForm({
           {/* Recent Reviews Feature */}
           <RecentReviewsFeature
             enabled={formData.recent_reviews_enabled}
-            onEnabledChange={(enabled) => 
+            onEnabledChange={(enabled) =>
               setFormData((prev: any) => ({ ...prev, recent_reviews_enabled: enabled }))
             }
             initialData={{
               recent_reviews_enabled: formData.recent_reviews_enabled,
+            }}
+            editMode={true}
+          />
+
+          {/* Keyword Inspiration Feature */}
+          <KeywordInspirationFeature
+            enabled={formData.keyword_inspiration_enabled}
+            onEnabledChange={(enabled) =>
+              setFormData((prev: any) => ({ ...prev, keyword_inspiration_enabled: enabled }))
+            }
+            selectedKeywords={formData.selected_keyword_inspirations}
+            onKeywordsChange={(keywords) =>
+              setFormData((prev: any) => ({ ...prev, selected_keyword_inspirations: keywords }))
+            }
+            availableKeywords={keywords || []}
+            initialData={{
+              keyword_inspiration_enabled: formData.keyword_inspiration_enabled,
+              selected_keyword_inspirations: formData.selected_keyword_inspirations,
             }}
             editMode={true}
           />

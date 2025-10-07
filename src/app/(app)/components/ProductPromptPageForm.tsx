@@ -20,13 +20,14 @@ import { TopNavigation, BottomNavigation } from "./sections/StepNavigation";
 
 // Import step 2 components (already existing)
 import ReviewWriteSection from "../dashboard/edit-prompt-page/components/ReviewWriteSection";
-import { 
+import {
   OfferFeature,
   EmojiSentimentFeature,
   FallingStarsFeature,
   AISettingsFeature,
   KickstartersFeature,
-  RecentReviewsFeature
+  RecentReviewsFeature,
+  KeywordInspirationFeature
 } from "./prompt-features";
 import Icon from "@/components/Icon";
 import SectionHeader from "./SectionHeader";
@@ -136,6 +137,12 @@ export default function ProductPromptPageForm({
   // Handle both snake_case and camelCase for recent_reviews_scope
   const [recentReviewsScope, setRecentReviewsScope] = useState(initialData?.recent_reviews_scope || initialData?.recentReviewsScope || "current_page");
   const [selectedKickstarters, setSelectedKickstarters] = useState<string[]>(initialData?.selected_kickstarters ?? []);
+  const [keywordInspirationEnabled, setKeywordInspirationEnabled] = useState(initialData?.keyword_inspiration_enabled ?? businessProfile?.default_keyword_inspiration_enabled ?? false);
+  const [selectedKeywordInspirations, setSelectedKeywordInspirations] = useState<string[]>(
+    Array.isArray(initialData?.selected_keyword_inspirations)
+      ? initialData.selected_keyword_inspirations
+      : (Array.isArray(businessProfile?.default_selected_keyword_inspirations) ? businessProfile.default_selected_keyword_inspirations : [])
+  );
 
 
   // Helper function to update form data
@@ -385,6 +392,9 @@ export default function ProductPromptPageForm({
         friendlyNote: formData.friendly_note || "",
         recentReviewsEnabled,
         recent_reviews_scope: recentReviewsScope,
+        keywordInspirationEnabled,
+        keyword_inspiration_enabled: keywordInspirationEnabled,
+        selected_keyword_inspirations: selectedKeywordInspirations,
         keywords: keywords, // Include page-level keywords
       };
       
@@ -591,6 +601,20 @@ export default function ProductPromptPageForm({
           initialData={{
             recent_reviews_enabled: recentReviewsEnabled,
             recent_reviews_scope: recentReviewsScope,
+          }}
+          editMode={true}
+        />
+
+        {/* Keyword Inspiration Feature */}
+        <KeywordInspirationFeature
+          enabled={keywordInspirationEnabled}
+          onEnabledChange={(enabled) => setKeywordInspirationEnabled(enabled)}
+          selectedKeywords={selectedKeywordInspirations}
+          onKeywordsChange={(keywords) => setSelectedKeywordInspirations(keywords)}
+          availableKeywords={keywords || []}
+          initialData={{
+            keyword_inspiration_enabled: keywordInspirationEnabled,
+            selected_keyword_inspirations: selectedKeywordInspirations,
           }}
           editMode={true}
         />

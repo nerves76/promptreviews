@@ -15,14 +15,15 @@ import { useRouter } from "next/navigation";
 import CustomerDetailsSection from "./sections/CustomerDetailsSection";
 import ReviewWriteSection from "../dashboard/edit-prompt-page/components/ReviewWriteSection";
 import KeywordsInput from "./KeywordsInput";
-import { 
+import {
   OfferFeature,
   EmojiSentimentFeature,
   FallingStarsFeature,
   AISettingsFeature,
   PersonalizedNoteFeature,
   KickstartersFeature,
-  RecentReviewsFeature
+  RecentReviewsFeature,
+  KeywordInspirationFeature
 } from "./prompt-features";
 import { useFallingStars } from "@/hooks/useFallingStars";
 import { Input } from "@/app/(app)/components/ui/input";
@@ -77,6 +78,10 @@ export default function EventPromptPageForm({
     fallingEnabled: initialData.fallingEnabled ?? initialData.falling_enabled ?? true,
     show_friendly_note: initialData.show_friendly_note ?? false,
     recent_reviews_enabled: initialData.recent_reviews_enabled ?? false,
+    keyword_inspiration_enabled: initialData.keyword_inspiration_enabled ?? businessProfile?.default_keyword_inspiration_enabled ?? false,
+    selected_keyword_inspirations: Array.isArray(initialData.selected_keyword_inspirations)
+      ? initialData.selected_keyword_inspirations
+      : (Array.isArray(businessProfile?.default_selected_keyword_inspirations) ? businessProfile.default_selected_keyword_inspirations : []),
     // Event-specific fields (using eve_ prefix)
     eve_name: initialData.eve_name || '',
     eve_date: initialData.eve_date || '',
@@ -261,6 +266,9 @@ export default function EventPromptPageForm({
         // Explicitly include kickstarters fields to ensure they're saved
         kickstarters_enabled: formData.kickstarters_enabled,
         selected_kickstarters: formData.selected_kickstarters,
+        // Keyword inspiration fields
+        keyword_inspiration_enabled: formData.keyword_inspiration_enabled,
+        selected_keyword_inspirations: formData.selected_keyword_inspirations,
         // Keywords
         keywords: keywords,
       };
@@ -630,6 +638,20 @@ export default function EventPromptPageForm({
             onEnabledChange={(enabled) => updateFormData('recent_reviews_enabled', enabled)}
             initialData={{
               recent_reviews_enabled: formData.recent_reviews_enabled,
+            }}
+            editMode={true}
+          />
+
+          {/* Keyword Inspiration Feature */}
+          <KeywordInspirationFeature
+            enabled={formData.keyword_inspiration_enabled}
+            onEnabledChange={(enabled) => updateFormData('keyword_inspiration_enabled', enabled)}
+            selectedKeywords={formData.selected_keyword_inspirations}
+            onKeywordsChange={(keywords) => updateFormData('selected_keyword_inspirations', keywords)}
+            availableKeywords={keywords || []}
+            initialData={{
+              keyword_inspiration_enabled: formData.keyword_inspiration_enabled,
+              selected_keyword_inspirations: formData.selected_keyword_inspirations,
             }}
             editMode={true}
           />

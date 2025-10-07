@@ -15,13 +15,14 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import CustomerDetailsSection from "./sections/CustomerDetailsSection";
 import ReviewWriteSection from "../dashboard/edit-prompt-page/components/ReviewWriteSection";
-import { 
+import {
   OfferFeature,
   EmojiSentimentFeature,
   FallingStarsFeature,
   AISettingsFeature,
   KickstartersFeature,
-  RecentReviewsFeature
+  RecentReviewsFeature,
+  KeywordInspirationFeature
 } from "./prompt-features";
 import { useFallingStars } from "@/hooks/useFallingStars";
 import { Input } from "@/app/(app)/components/ui/input";
@@ -118,6 +119,10 @@ export default function ServicePromptPageForm({
       recent_reviews_enabled: initialData?.recent_reviews_enabled ?? false,
       // Handle both snake_case and camelCase for recent_reviews_scope
       recent_reviews_scope: initialData?.recent_reviews_scope || initialData?.recentReviewsScope || "current_page",
+      keyword_inspiration_enabled: initialData?.keyword_inspiration_enabled ?? businessProfile?.default_keyword_inspiration_enabled ?? false,
+      selected_keyword_inspirations: Array.isArray(initialData?.selected_keyword_inspirations)
+        ? initialData.selected_keyword_inspirations
+        : (Array.isArray(businessProfile?.default_selected_keyword_inspirations) ? businessProfile.default_selected_keyword_inspirations : []),
       slug: initialData?.slug || "",
       service_name: initialData?.service_name || "",
       product_description: initialData?.product_description || "",
@@ -335,8 +340,11 @@ export default function ServicePromptPageForm({
           // Explicitly include kickstarters fields to ensure they're saved
           kickstarters_enabled: formData.kickstarters_enabled,
           selected_kickstarters: formData.selected_kickstarters,
+          // Explicitly include keyword inspiration fields
+          keyword_inspiration_enabled: formData.keyword_inspiration_enabled,
+          selected_keyword_inspirations: formData.selected_keyword_inspirations,
         };
-        
+
 
 
         
@@ -644,7 +652,18 @@ export default function ServicePromptPageForm({
           }}
           editMode={true}
         />
-        
+
+        {/* Keyword Inspiration Section */}
+        <KeywordInspirationFeature
+          enabled={formData.keyword_inspiration_enabled}
+          onEnabledChange={(enabled) => updateFormData('keyword_inspiration_enabled', enabled)}
+          selectedKeywords={formData.selected_keyword_inspirations}
+          onKeywordsChange={(keywords) => updateFormData('selected_keyword_inspirations', keywords)}
+          availableKeywords={formData.keywords || []}
+          initialData={initialData}
+          editMode={true}
+        />
+
         {/* Offer Section */}
         <OfferFeature
           enabled={formData.offer_enabled}
