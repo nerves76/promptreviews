@@ -58,8 +58,7 @@ export default function KeywordInspirationButton({
         }}
         aria-label="View keyword inspiration"
       >
-        <span className="hidden sm:inline">Keyword inspiration</span>
-        <span className="sm:hidden">Keywords</span>
+        <span>Inspiration</span>
       </button>
     </div>
   );
