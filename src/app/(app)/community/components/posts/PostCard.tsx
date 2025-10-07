@@ -21,6 +21,7 @@ import { useReactions } from '../../hooks/useReactions';
 interface PostCardProps {
   post: Post;
   currentUserId: string;
+  accountId: string;
   onEdit?: () => void;
   onDelete?: () => void;
   onReact: (emoji: ReactionType) => void;
@@ -31,6 +32,7 @@ interface PostCardProps {
 export function PostCard({
   post,
   currentUserId,
+  accountId,
   onEdit,
   onDelete,
   onReact,
@@ -77,7 +79,7 @@ export function PostCard({
   // Handle comment creation
   const handleCommentSubmit = async (body: string) => {
     try {
-      await createComment(body);
+      await createComment(body, accountId);
       setLocalCommentCount((prev) => prev + 1);
     } catch (error) {
       console.error('Error creating comment:', error);

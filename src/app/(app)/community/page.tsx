@@ -125,8 +125,12 @@ export default function CommunityPage() {
 
   // Handle post creation
   const handleCreatePost = async (data: { title: string; body?: string }) => {
+    if (!account?.id) {
+      throw new Error('No account selected');
+    }
+
     try {
-      await createPost(data);
+      await createPost({ ...data, account_id: account.id });
     } catch (error) {
       console.error('Error creating post:', error);
       throw error;
@@ -245,6 +249,7 @@ export default function CommunityPage() {
             <PostFeed
               posts={posts}
               currentUserId={user.id}
+              accountId={account?.id || ''}
               isLoading={isLoading}
               hasMore={hasMore}
               onLoadMore={loadMore}

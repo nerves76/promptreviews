@@ -15,6 +15,7 @@ import { EmptyState } from '../shared/EmptyState';
 interface PostFeedProps {
   posts: Post[];
   currentUserId: string;
+  accountId: string;
   isLoading: boolean;
   hasMore: boolean;
   onLoadMore: () => void;
@@ -27,6 +28,7 @@ interface PostFeedProps {
 export function PostFeed({
   posts,
   currentUserId,
+  accountId,
   isLoading,
   hasMore,
   onLoadMore,
@@ -100,6 +102,7 @@ export function PostFeed({
           key={post.id}
           post={post}
           currentUserId={currentUserId}
+          accountId={accountId}
           onEdit={onPostEdit ? () => onPostEdit(post.id) : undefined}
           onDelete={onPostDelete ? () => onPostDelete(post.id) : undefined}
           onReact={(emoji) => onPostReact(post.id, emoji)}

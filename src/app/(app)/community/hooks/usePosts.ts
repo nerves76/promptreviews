@@ -73,23 +73,11 @@ export function usePosts(channelId: string) {
               return { ...post, author: null };
             }
 
-            // Get account info for the user
-            const { data: accountUser, error: accountError } = await supabase
-              .from('account_users')
-              .select('account_id')
-              .eq('user_id', post.author_id)
-              .limit(1)
-              .single();
-
-            if (accountError) {
-              console.error('Account fetch error for user', post.author_id, accountError);
-            }
-
-            // Get business info from the businesses table
+            // Get business info from the businesses table using the post's account_id
             const { data: business } = await supabase
               .from('businesses')
               .select('name, logo_url')
-              .eq('account_id', accountUser?.account_id || '')
+              .eq('account_id', post.account_id)
               .limit(1)
               .single();
 
@@ -97,7 +85,7 @@ export function usePosts(channelId: string) {
             const { data: adminData } = await supabase
               .from('admins')
               .select('account_id')
-              .eq('account_id', accountUser?.account_id || '')
+              .eq('account_id', post.account_id)
               .limit(1)
               .single();
 
@@ -205,18 +193,11 @@ export function usePosts(channelId: string) {
           }
 
           // Get account info for the user
-          const { data: accountUser } = await supabase
-            .from('account_users')
-            .select('account_id')
-            .eq('user_id', post.author_id)
-            .limit(1)
-            .single();
-
-          // Get business info from the businesses table
+          // Get business info from the businesses table using the post's account_id
           const { data: business } = await supabase
             .from('businesses')
             .select('name, logo_url')
-            .eq('account_id', accountUser?.account_id || '')
+            .eq('account_id', post.account_id)
             .limit(1)
             .single();
 
@@ -224,7 +205,7 @@ export function usePosts(channelId: string) {
           const { data: adminData } = await supabase
             .from('admins')
             .select('account_id')
-            .eq('account_id', accountUser?.account_id || '')
+            .eq('account_id', post.account_id)
             .limit(1)
             .single();
 
@@ -291,13 +272,14 @@ export function usePosts(channelId: string) {
 
   // Create post
   const createPost = useCallback(
-    async (data: { title: string; body?: string; external_url?: string }) => {
+    async (data: { title: string; body?: string; external_url?: string; account_id: string }) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
       const { error: insertError } = await supabase.from('posts').insert({
         channel_id: channelId,
         author_id: user.id,
+        account_id: data.account_id,
         title: data.title,
         body: data.body,
         external_url: data.external_url,
