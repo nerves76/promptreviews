@@ -116,7 +116,7 @@ export function GuidelinesModal({ isOpen, requireAcceptance, onAccept, onClose, 
           {/* Header with Image */}
           <div className="p-6 border-b border-gray-200">
             <div className="flex items-center justify-between mb-4">
-              <Dialog.Title className="text-2xl font-bold text-gray-900">Welcome to the Prompt Reviews Community</Dialog.Title>
+              <Dialog.Title className="text-2xl font-bold text-gray-900 text-center flex-1">Welcome to the Prompt Reviews Community!</Dialog.Title>
               {!requireAcceptance && (
                 <button
                   onClick={handleClose}
@@ -143,7 +143,7 @@ export function GuidelinesModal({ isOpen, requireAcceptance, onAccept, onClose, 
           {/* Content (scrollable) */}
           <div ref={scrollRef} className="flex-1 overflow-y-auto p-6 prose prose-sm max-w-none">
             <p className="text-lg mb-4">
-              This is a place for small business owners to collaborate, share wins, learn from each other, learn review capture tactics, and get support.
+              This is a place for small business owners to collaborate, share wins, learn about review tactics, and get support.
             </p>
 
             <h3 className="font-bold text-lg mb-3">A few notes:</h3>
