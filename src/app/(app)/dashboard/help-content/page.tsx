@@ -380,7 +380,7 @@ export default function HelpContentPage() {
                             size="sm"
                             onClick={() =>
                               router.push(
-                                `/dashboard/help-content/${article.slug}/edit`
+                                `/dashboard/help-content/edit/${article.slug}`
                               )
                             }
                           >
