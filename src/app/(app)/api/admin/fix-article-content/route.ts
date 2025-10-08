@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { requireAdminAccess } from "@/lib/admin/permissions";
-import fs from "fs/promises";
-import path from "path";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -17,14 +15,19 @@ function getSupabaseAdmin() {
 }
 
 /**
- * Extract markdown content from a page.tsx file
+ * Extract markdown content by fetching from the live docs site
  */
 async function extractPageMarkdown(pagePath: string) {
-  const docsRoot = path.join(process.cwd(), "../docs-promptreviews/docs-site");
-  const fullPath = path.join(docsRoot, "src", "app", pagePath, "page.tsx");
-
   try {
-    const content = await fs.readFile(fullPath, "utf-8");
+    // Fetch the raw page.tsx from GitHub
+    const githubUrl = `https://raw.githubusercontent.com/nerves76/promptreviews/main/docs-promptreviews/docs-site/src/app/${pagePath}/page.tsx`;
+
+    const response = await fetch(githubUrl);
+    if (!response.ok) {
+      return null;
+    }
+
+    const content = await response.text();
 
     // Try to find MarkdownRenderer content prop
     const markdownMatch = content.match(/content=\{`([\s\S]*?)`\}/);
@@ -34,7 +37,7 @@ async function extractPageMarkdown(pagePath: string) {
 
     return null;
   } catch (error) {
-    console.error(`Error reading ${fullPath}:`, error);
+    console.error(`Error fetching page for ${pagePath}:`, error);
     return null;
   }
 }

@@ -42,13 +42,14 @@ export default function FAQsTab({
   const fetchFaqs = async () => {
     setLoadingFaqs(true);
     try {
-      const response = await fetch('/api/help-docs/faqs', {
+      const response = await fetch('/api/docs/faqs', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          context: contextKeywords,
-          userPlan: userPlan,
-          category: selectedCategory === 'all' ? undefined : selectedCategory
+          contextKeywords,
+          plan: userPlan,
+          category: selectedCategory === 'all' ? undefined : selectedCategory,
+          search: searchQuery || undefined,
         })
       });
 
@@ -97,7 +98,7 @@ export default function FAQsTab({
     return (
       faq.question.toLowerCase().includes(query) ||
       faq.answer.toLowerCase().includes(query) ||
-      faq.tags.some(tag => tag.toLowerCase().includes(query)) ||
+      (faq.tags?.some(tag => tag.toLowerCase().includes(query)) ?? false) ||
       faq.category.toLowerCase().includes(query)
     );
   }).filter(faq => {
@@ -226,10 +227,10 @@ export default function FAQsTab({
                   <div className="pt-3 text-sm text-gray-900 leading-relaxed">
                     {faq.answer}
                   </div>
-                  {faq.tags.length > 0 && (
+                  {(faq.tags?.length ?? 0) > 0 && (
                     <div className="mt-3 pt-3 border-t border-gray-100/50">
                       <div className="flex flex-wrap gap-1">
-                        {faq.tags.map((tag) => (
+                        {faq.tags?.map((tag) => (
                           <span key={tag} className="px-2 py-1 text-xs bg-gray-50/80 text-gray-800 rounded-full">
                             {tag}
                           </span>

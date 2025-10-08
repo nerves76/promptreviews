@@ -1,391 +1,137 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import {
-  BookOpen,
-  Users,
-  MessageSquare,
-  Building2,
-  Code,
-  HelpCircle,
-  ChevronDown,
-  ChevronRight,
-  Star,
-  BarChart3,
-  Settings,
-  Target,
-  CreditCard
-} from 'lucide-react'
-import { clsx } from 'clsx'
-
-interface NavItem {
-  title: string
-  href: string
-  icon?: any
-  children?: NavItem[]
-  isExpandable?: boolean
-}
-
-// Custom [P] icon component for Prompt Pages
-const PromptPagesIcon = ({ className }: { className?: string }) => (
-  <span 
-    className={className} 
-    style={{ fontFamily: 'Inter, sans-serif', fontWeight: 'bold' }}
-  >
-    [P]
-  </span>
-)
-
-const navigation: NavItem[] = [
-  {
-    title: 'Getting Started',
-    href: '/getting-started',
-    icon: BookOpen,
-    children: [
-      { title: 'Account Setup', href: '/getting-started/account-setup' },
-      { title: 'Business Profile Setup', href: '/business-profile' },
-      { title: 'Adding Contacts', href: '/getting-started/adding-contacts' },
-      { title: 'Choosing a Plan', href: '/getting-started/choosing-plan' },
-      { title: 'First Prompt Page', href: '/getting-started/first-prompt-page' },
-      { title: 'First Review Request', href: '/getting-started/first-review-request' },
-      { title: 'Review Widget Setup', href: '/getting-started/review-widget' },
-    ]
-  },
-  {
-    title: 'Prompt Pages',
-    href: '/prompt-pages',
-    icon: PromptPagesIcon,
-    children: [
-      { title: 'Prompt Page Settings', href: '/prompt-pages/settings' },
-      {
-        title: 'Page Types',
-        href: '/prompt-pages/types',
-        isExpandable: true,
-        children: [
-          { title: 'Universal', href: '/prompt-pages/types/universal' },
-          { title: 'Service', href: '/prompt-pages/types/service' },
-          { title: 'Event', href: '/prompt-pages/types/event' },
-          { title: 'Employee', href: '/prompt-pages/types/employee' },
-          { title: 'Product', href: '/prompt-pages/types/product' },
-          { title: 'Photo', href: '/prompt-pages/types/photo' },
-          { title: 'Video', href: '/prompt-pages/types/video' },
-        ]
-      },
-      {
-        title: 'Features',
-        href: '/prompt-pages/features',
-        isExpandable: true,
-        children: [
-          { title: 'Emoji Sentiment Flow', href: '/prompt-pages/features/emoji-sentiment' },
-          { title: 'AI-Powered Content', href: '/prompt-pages/features/ai-powered' },
-          { title: 'QR Code Generation', href: '/prompt-pages/features/qr-codes' },
-          { title: 'Customization', href: '/prompt-pages/features/customization' },
-          { title: 'Analytics & Insights', href: '/prompt-pages/features/analytics' },
-          { title: 'Multi-Platform Sharing', href: '/prompt-pages/features/multi-platform' },
-          { title: 'Mobile Optimization', href: '/prompt-pages/features/mobile' },
-          { title: 'Security & Privacy', href: '/prompt-pages/features/security' },
-          { title: 'Platform Integration', href: '/prompt-pages/features/integration' },
-        ]
-      },
-      { title: 'Style Settings', href: '/style-settings' },
-    ]
-  },
-  {
-    title: 'Strategies',
-    href: '/strategies',
-    icon: Target,
-    children: [
-      { title: 'Double-Dip', href: '/strategies/double-dip' },
-      { title: 'Reciprocity', href: '/strategies/reciprocity' },
-      { title: 'Personal Outreach', href: '/strategies/personal-outreach' },
-      { title: 'Non-AI Strategies', href: '/strategies/non-ai-strategies' },
-      { title: 'Novelty Factor', href: '/strategies/novelty' },
-      { title: 'Reviews on the Fly', href: '/strategies/reviews-on-fly' },
-    ]
-  },
-  {
-    title: 'AI-Assisted Reviews',
-    href: '/ai-reviews',
-    icon: Star
-  },
-  {
-    title: 'Contact Management',
-    href: '/contacts',
-    icon: Users
-  },
-  {
-    title: 'Review Management',
-    href: '/reviews',
-    icon: MessageSquare
-  },
-  {
-    title: 'Google Business Profile',
-    href: '/google-business',
-    icon: Building2,
-    children: [
-      { title: 'Business Info', href: '/google-business/business-info' },
-      { title: 'Image Upload', href: '/google-business/image-upload' },
-      { title: 'Categories & Services', href: '/google-business/categories-services' },
-      { title: 'Scheduling', href: '/google-business/scheduling' },
-      { title: 'Bulk Updates', href: '/google-business/bulk-updates' },
-      { title: 'Review Import', href: '/google-business/review-import' },
-    ]
-  },
-  {
-    title: 'Widgets',
-    href: '/widgets',
-    icon: Code,
-    children: [
-      { title: 'Widget Types', href: '/widgets#types' },
-      { title: 'Installation', href: '/widgets#installation' },
-      { title: 'Customization', href: '/widgets#customization' },
-    ]
-  },
-  {
-    title: 'Billing & Plans',
-    href: '/billing',
-    icon: CreditCard,
-    children: [
-      { title: 'Overview', href: '/billing' },
-      { title: 'Upgrades & Downgrades', href: '/billing/upgrades-downgrades' },
-      { title: 'Choosing a Plan', href: '/getting-started/choosing-plan' },
-    ]
-  },
-  {
-    title: 'Team & Account',
-    href: '/team',
-    icon: Settings
-  },
-  {
-    title: 'Analytics',
-    href: '/analytics',
-    icon: BarChart3,
-  },
-  {
-    title: 'Help & Support',
-    href: '/troubleshooting',
-    icon: HelpCircle,
-    children: [
-      { title: 'Troubleshooting', href: '/troubleshooting' },
-      { title: 'FAQ', href: '/faq' },
-    ]
-  },
-]
+import * as Icons from 'lucide-react'
+import { ChevronDown, ChevronRight } from 'lucide-react'
+import clsx from 'clsx'
+import type { NavigationNode } from '@/lib/docs/articles'
 
 interface SidebarProps {
+  items: NavigationNode[]
   className?: string
 }
 
-export default function Sidebar({ className }: SidebarProps) {
+export default function Sidebar({ items, className }: SidebarProps) {
   const pathname = usePathname()
-  const [expandedSections, setExpandedSections] = useState<string[]>(() => {
-    // Auto-expand sections if current path matches (including nested children)
-    const sectionsToExpand: string[] = []
+  const [expanded, setExpanded] = useState<string[]>(() => {
+    const matches: string[] = []
 
-    navigation.forEach(section => {
-      if (pathname.startsWith(section.href)) {
-        sectionsToExpand.push(section.href)
-      }
-
-      // Check first-level children
-      section.children?.forEach(child => {
-        if (pathname === child.href || pathname.startsWith(child.href)) {
-          sectionsToExpand.push(section.href)
-          if (child.isExpandable && child.children) {
-            sectionsToExpand.push(child.href)
-          }
+    const traverse = (nodes: NavigationNode[], parents: string[]) => {
+      nodes.forEach((node) => {
+        if (!node) return
+        if (node.href && pathname.startsWith(node.href)) {
+          matches.push(...parents, node.id)
         }
-
-        // Check second-level children
-        child.children?.forEach(grandchild => {
-          if (pathname === grandchild.href) {
-            sectionsToExpand.push(section.href)
-            sectionsToExpand.push(child.href)
-          }
-        })
+        if (node.children && node.children.length > 0) {
+          traverse(node.children, [...parents, node.id])
+        }
       })
-    })
+    }
 
-    return sectionsToExpand
+    traverse(items ?? [], [])
+    return Array.from(new Set(matches))
   })
 
-  const toggleSection = (href: string) => {
-    setExpandedSections(prev =>
-      prev.includes(href)
-        ? prev.filter(section => section !== href)
-        : [...prev, href]
+  const toggleNode = (id: string) => {
+    setExpanded((prev) => {
+      if (prev.includes(id)) {
+        return prev.filter((item) => item !== id)
+      }
+      return [...prev, id]
+    })
+  }
+
+  const renderedItems = useMemo(() => renderNodes(items, pathname, expanded, toggleNode), [items, pathname, expanded])
+
+  if (!items || items.length === 0) {
+    return (
+      <div className={clsx('text-sm text-white/70', className)}>
+        Navigation coming soon.
+      </div>
     )
   }
 
-  const isActive = (href: string) => pathname === href
-
-  const isParentActive = (section: NavItem) => {
-    const checkChildren = (children?: NavItem[]): boolean => {
-      if (!children) return false
-      return children.some(child =>
-        pathname === child.href ||
-        pathname.startsWith(child.href) ||
-        checkChildren(child.children)
-      )
-    }
-
-    return pathname.startsWith(section.href) || checkChildren(section.children)
-  }
-
   return (
-    <nav className={clsx('flex flex-col space-y-1', className)}>
-      {navigation.map((section) => {
-        const isExpanded = expandedSections.includes(section.href)
-        const hasChildren = section.children && section.children.length > 0
-        const parentActive = isParentActive(section)
-
-        return (
-          <div key={section.href}>
-            {hasChildren ? (
-              <div className={clsx(
-                'flex items-center rounded-lg transition-colors',
-                parentActive
-                  ? 'bg-white/25'
-                  : 'hover:bg-white/10'
-              )}>
-                <Link
-                  href={section.href}
-                  className={clsx(
-                    'flex items-center space-x-3 flex-1 px-3 py-2 text-base transition-colors',
-                    parentActive
-                      ? 'text-white font-semibold'
-                      : 'text-white/80 hover:text-white font-medium'
-                  )}
-                >
-                  {section.icon && (
-                    <section.icon className={clsx(
-                      'w-5 h-5',
-                      parentActive ? 'text-yellow-300' : 'text-white/60'
-                    )} />
-                  )}
-                  <span>{section.title}</span>
-                </Link>
-                <button
-                  onClick={() => toggleSection(section.href)}
-                  className={clsx(
-                    'px-2 py-2 transition-colors',
-                    parentActive
-                      ? 'text-white'
-                      : 'text-white/60 hover:text-white'
-                  )}
-                >
-                  {isExpanded ? (
-                    <ChevronDown className="w-5 h-5" />
-                  ) : (
-                    <ChevronRight className="w-5 h-5" />
-                  )}
-                </button>
-              </div>
-            ) : (
-              <Link
-                href={section.href}
-                className={clsx(
-                  'flex items-center space-x-3 px-3 py-2 text-base rounded-lg transition-colors',
-                  isActive(section.href)
-                    ? 'bg-white/25 text-white font-semibold'
-                    : 'text-white/80 hover:bg-white/10 hover:text-white font-medium'
-                )}
-              >
-                {section.icon && (
-                  <section.icon className={clsx(
-                    'w-5 h-5',
-                    isActive(section.href) ? 'text-yellow-300' : 'text-white/60'
-                  )} />
-                )}
-                <span>{section.title}</span>
-              </Link>
-            )}
-
-            {hasChildren && isExpanded && section.children && (
-              <div className="ml-4 mt-1 space-y-1">
-                {section.children.map((child) => {
-                  const childExpanded = expandedSections.includes(child.href)
-                  const hasGrandchildren = child.children && child.children.length > 0
-
-                  return (
-                    <div key={child.href}>
-                      {child.isExpandable && hasGrandchildren ? (
-                        <>
-                          <div className={clsx(
-                            'flex items-center rounded-lg transition-colors',
-                            isActive(child.href)
-                              ? 'bg-white/25'
-                              : 'hover:bg-white/10'
-                          )}>
-                            <Link
-                              href={child.href}
-                              className={clsx(
-                                'flex-1 px-3 py-1.5 text-sm transition-colors',
-                                isActive(child.href)
-                                  ? 'text-white font-semibold'
-                                  : 'text-white/60 hover:text-white'
-                              )}
-                            >
-                              {child.title}
-                            </Link>
-                            <button
-                              onClick={() => toggleSection(child.href)}
-                              className={clsx(
-                                'px-2 py-1.5 transition-colors',
-                                isActive(child.href)
-                                  ? 'text-white'
-                                  : 'text-white/60 hover:text-white'
-                              )}
-                            >
-                              {childExpanded ? (
-                                <ChevronDown className="w-3 h-3" />
-                              ) : (
-                                <ChevronRight className="w-3 h-3" />
-                              )}
-                            </button>
-                          </div>
-                          {childExpanded && child.children && (
-                            <div className="ml-4 mt-1 space-y-1">
-                              {child.children.map((grandchild) => (
-                                <Link
-                                  key={grandchild.href}
-                                  href={grandchild.href}
-                                  className={clsx(
-                                    'block px-3 py-1.5 text-sm rounded-lg transition-colors',
-                                    isActive(grandchild.href)
-                                      ? 'bg-white/25 text-white font-semibold'
-                                      : 'text-white/60 hover:text-white hover:bg-white/10'
-                                  )}
-                                >
-                                  {grandchild.title}
-                                </Link>
-                              ))}
-                            </div>
-                          )}
-                        </>
-                      ) : (
-                        <Link
-                          href={child.href}
-                          className={clsx(
-                            'block px-3 py-1.5 text-sm rounded-lg transition-colors',
-                            isActive(child.href)
-                              ? 'bg-white/25 text-white font-semibold'
-                              : 'text-white/60 hover:text-white hover:bg-white/10'
-                          )}
-                        >
-                          {child.title}
-                        </Link>
-                      )}
-                    </div>
-                  )
-                })}
-              </div>
-            )}
-          </div>
-        )
-      })}
+    <nav className={clsx('space-y-2 text-sm text-white', className)}>
+      {renderedItems}
     </nav>
   )
+}
+
+function renderNodes(
+  nodes: NavigationNode[],
+  pathname: string,
+  expanded: string[],
+  toggleNode: (id: string) => void,
+  depth = 0
+): JSX.Element[] {
+  return nodes.map((node) => {
+    const isActive = node.href ? pathname === node.href : false
+    const isAncestorActive = node.href ? pathname.startsWith(node.href) : false
+    const hasChildren = !!node.children && node.children.length > 0
+    const open = hasChildren && expanded.includes(node.id)
+    const IconComponent = resolveIcon(node.icon)
+
+    return (
+      <div key={node.id} className="space-y-1">
+        <div className={clsx('flex items-center justify-between group', depth > 0 && 'pl-3')}>
+          <Link
+            href={node.href || '#'}
+            className={clsx(
+              'flex items-center gap-2 rounded-lg border border-transparent px-3 py-2 transition-colors',
+              isActive
+                ? 'bg-white text-slate-900'
+                : isAncestorActive
+                ? 'bg-white/10 text-white'
+                : 'text-white/80 hover:bg-white/10 hover:text-white'
+            )}
+          >
+            <IconComponent className="h-4 w-4" />
+            <span className="truncate text-sm font-medium">{node.title}</span>
+          </Link>
+
+          {hasChildren && (
+            <button
+              onClick={() => toggleNode(node.id)}
+              className="p-1 text-white/60 hover:text-white"
+              aria-label={open ? 'Collapse section' : 'Expand section'}
+            >
+              {open ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+            </button>
+          )}
+        </div>
+
+        {hasChildren && open && (
+          <div className="space-y-1 border-l border-white/10 pl-4">
+            {renderNodes(node.children ?? [], pathname, expanded, toggleNode, depth + 1)}
+          </div>
+        )}
+      </div>
+    )
+  })
+}
+
+function resolveIcon(name?: string | null) {
+  if (!name) {
+    return Icons.BookOpen
+  }
+
+  const candidates = [
+    name,
+    name.toLowerCase(),
+    name.toUpperCase(),
+    name.replace(/[-_\s]+/g, ''),
+    name.charAt(0).toUpperCase() + name.slice(1),
+  ]
+
+  for (const key of candidates) {
+    const IconCandidate = (Icons as Record<string, unknown>)[key]
+    if (typeof IconCandidate === 'function') {
+      return IconCandidate as typeof Icons.BookOpen
+    }
+  }
+
+  return Icons.BookOpen
 }

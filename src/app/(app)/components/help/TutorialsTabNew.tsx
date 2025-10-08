@@ -19,142 +19,110 @@ interface TutorialsTabProps {
   initialArticleId?: string;
 }
 
-// Define help categories that mirror the docs site structure
-const helpCategories = [
-  {
-    id: 'getting-started',
-    title: 'Getting started',
-    description: 'Complete guide to setting up your account',
-    icon: 'FaRocket',
-    color: 'green',
-    articles: [
-      { id: 'quickstart-overview', title: 'Overview', path: '/getting-started' },
-      { id: 'quickstart-business-setup', title: 'Account Setup', path: '/getting-started/account-setup' },
-      { id: 'quickstart-choosing-plan', title: 'Choose Your Plan', path: '/getting-started/choosing-plan' },
-      { id: 'quickstart-prompt-page', title: 'First Prompt Page', path: '/getting-started/first-prompt-page' },
-      { id: 'quickstart-contacts', title: 'Adding Contacts', path: '/getting-started/adding-contacts' },
-      { id: 'quickstart-review-request', title: 'First Review Request', path: '/getting-started/first-review-request' },
-      { id: 'quickstart-widget', title: 'Review Widget Setup', path: '/getting-started/review-widget' },
-    ]
-  },
-  {
-    id: 'prompt-pages',
-    title: 'Prompt pages',
-    description: 'Create and manage review collection pages',
-    icon: 'FaGlobe',
-    color: 'blue',
-    articles: [
-      { id: 'prompt-overview', title: 'Overview', path: '/prompt-pages' },
-      { id: 'prompt-settings', title: 'Prompt Page Settings', path: '/prompt-pages/settings' },
-      { id: 'prompt-features', title: 'Features', path: '/prompt-pages/features' },
-      { id: 'prompt-universal', title: 'Universal Page', path: '/prompt-pages/types/universal' },
-      { id: 'prompt-service', title: 'Service Pages', path: '/prompt-pages/types/service' },
-      { id: 'prompt-event', title: 'Event Pages', path: '/prompt-pages/types/event' },
-      { id: 'prompt-employee', title: 'Employee Pages', path: '/prompt-pages/types/employee' },
-      { id: 'prompt-product', title: 'Product Pages', path: '/prompt-pages/types/product' },
-      { id: 'prompt-photo', title: 'Photo Pages', path: '/prompt-pages/types/photo' },
-      { id: 'prompt-video', title: 'Video Pages', path: '/prompt-pages/types/video' },
-    ]
-  },
-  {
-    id: 'ai-reviews',
-    title: 'AI assisted reviews',
-    description: 'AI-powered review generation and management',
-    icon: 'prompty',
-    color: 'purple',
-    articles: [
-      { id: 'ai-overview', title: 'AI Features Overview', path: '/ai-reviews' },
-    ]
-  },
-  {
-    id: 'google-business',
-    title: 'Google Business Profile',
-    description: 'Integration with Google Business Profile',
-    icon: 'FaGoogle',
-    color: 'yellow',
-    articles: [
-      { id: 'google-overview', title: 'Overview', path: '/google-business' },
-      { id: 'google-services-seo', title: 'Services & SEO', path: '/google-business-services-seo' },
-      { id: 'google-products', title: 'Products Guide', path: '/google-business-products' },
-      { id: 'google-post-types', title: 'Post Types', path: '/google-business-post-types' },
-      // Google Biz Optimizer Help Articles
-      { id: 'google-biz-optimizer/metrics/total-reviews', title: 'Total Reviews - Why They Matter', path: '/docs/help/google-biz-optimizer/metrics/total-reviews.md' },
-      { id: 'google-biz-optimizer/metrics/average-rating', title: 'Average Star Rating Impact', path: '/docs/help/google-biz-optimizer/metrics/average-rating.md' },
-      { id: 'google-biz-optimizer/metrics/review-trends', title: 'Review Growth Trends', path: '/docs/help/google-biz-optimizer/metrics/review-trends.md' },
-      { id: 'google-biz-optimizer/metrics/monthly-patterns', title: 'Monthly Review Patterns', path: '/docs/help/google-biz-optimizer/metrics/monthly-patterns.md' },
-      { id: 'google-biz-optimizer/optimization/seo-score', title: 'SEO Score Explained', path: '/docs/help/google-biz-optimizer/optimization/seo-score.md' },
-      { id: 'google-biz-optimizer/optimization/categories', title: 'Business Categories Guide', path: '/docs/help/google-biz-optimizer/optimization/categories.md' },
-      { id: 'google-biz-optimizer/optimization/services', title: 'Services & Descriptions', path: '/docs/help/google-biz-optimizer/optimization/services.md' },
-      { id: 'google-biz-optimizer/optimization/photos', title: 'Photo Strategy Guide', path: '/docs/help/google-biz-optimizer/optimization/photos.md' },
-      { id: 'google-biz-optimizer/engagement/review-responses', title: 'Responding to Reviews', path: '/docs/help/google-biz-optimizer/engagement/review-responses.md' },
-      { id: 'google-biz-optimizer/engagement/questions-answers', title: 'Q&A Management', path: '/docs/help/google-biz-optimizer/engagement/questions-answers.md' },
-      { id: 'google-biz-optimizer/engagement/posts', title: 'Google Posts Strategy', path: '/docs/help/google-biz-optimizer/engagement/posts.md' },
-      { id: 'google-biz-optimizer/performance/customer-actions', title: 'Customer Actions', path: '/docs/help/google-biz-optimizer/performance/customer-actions.md' },
-      { id: 'google-biz-optimizer/optimization/quick-wins', title: 'Quick Wins & Priority Tasks', path: '/docs/help/google-biz-optimizer/optimization/quick-wins.md' },
-    ]
-  },
-  {
-    id: 'reviews-management',
-    title: 'Reviews & analytics',
-    description: 'View, manage, and analyze your reviews',
-    icon: 'FaStar',
-    color: 'orange',
-    articles: [
-      { id: 'reviews-dashboard', title: 'Reviews Dashboard', path: '/reviews' },
-      { id: 'analytics', title: 'Analytics', path: '/analytics' },
-    ]
-  },
-  {
-    id: 'widgets',
-    title: 'Review widgets',
-    description: 'Embed reviews on your website',
-    icon: 'FaCode',
-    color: 'indigo',
-    articles: [
-      { id: 'widgets-overview', title: 'Widget Types', path: '/widgets' },
-      { id: 'style-settings', title: 'Style Settings', path: '/style-settings' },
-    ]
-  },
-  {
-    id: 'contacts',
-    title: 'Contact management',
-    description: 'Manage your customer database',
-    icon: 'FaUsers',
-    color: 'teal',
-    articles: [
-      { id: 'contacts-overview', title: 'Managing Contacts', path: '/contacts' },
-    ]
-  },
-  {
-    id: 'strategies',
-    title: 'Review strategies',
-    description: 'Best practices for collecting reviews',
-    icon: 'FaLightbulb',
-    color: 'pink',
-    articles: [
-      { id: 'strategies-overview', title: 'Overview', path: '/strategies' },
-      { id: 'double-dip', title: 'Double Dip Strategy', path: '/strategies/double-dip' },
-      { id: 'reciprocity', title: 'Reciprocity', path: '/strategies/reciprocity' },
-      { id: 'novelty', title: 'Novelty Approach', path: '/strategies/novelty' },
-      { id: 'personal-outreach', title: 'Personal Outreach', path: '/strategies/personal-outreach' },
-      { id: 'reviews-on-fly', title: 'Reviews on the Fly', path: '/strategies/reviews-on-fly' },
-      { id: 'non-ai', title: 'Non-AI Strategies', path: '/strategies/non-ai-strategies' },
-    ]
-  },
-  {
-    id: 'settings',
-    title: 'Settings & configuration',
-    description: 'Account and business settings',
-    icon: 'FaCog',
-    color: 'gray',
-    articles: [
-      { id: 'business-profile', title: 'Business Profile', path: '/business-profile' },
-      { id: 'billing', title: 'Billing & Plans', path: '/billing' },
-      { id: 'team', title: 'Team Management', path: '/team' },
-      { id: 'advanced', title: 'Advanced Settings', path: '/advanced' },
-    ]
+interface HelpCategory {
+  id: string;
+  title: string;
+  icon?: IconName | string | null;
+  description?: string | null;
+  articles: Array<{
+    id: string;
+    title: string;
+    path: string;
+    slug: string;
+    icon?: IconName | string | null;
+    content?: string;
+  }>;
+}
+
+type NavigationNode = {
+  id?: string;
+  title?: string;
+  href?: string | null;
+  icon?: string | null;
+  children?: NavigationNode[];
+};
+
+function mapNavigationToCategories(nodes: NavigationNode[]): HelpCategory[] {
+  if (!Array.isArray(nodes)) {
+    return [];
   }
-];
+
+  return nodes
+    .map((node) => {
+      const articles = collectArticlesFromNode(node);
+
+      if (articles.length === 0) {
+        return null;
+      }
+
+      return {
+        id: node.id || slugFromPath(node.href) || (node.title ? node.title.toLowerCase().replace(/\s+/g, '-') : 'category'),
+        title: node.title || 'Documentation',
+        icon: node.icon,
+        description: null,
+        articles,
+      } as HelpCategory;
+    })
+    .filter((value): value is HelpCategory => Boolean(value));
+}
+
+function collectArticlesFromNode(node: NavigationNode | undefined): HelpCategory['articles'] {
+  if (!node) return [];
+
+  const results: HelpCategory['articles'] = [];
+  const seen = new Set<string>();
+
+  const visit = (current: NavigationNode, fallbackIcon?: string | null) => {
+    if (!current) return;
+
+    if (current.href) {
+      const slug = slugFromPath(current.href);
+      if (slug && !seen.has(slug)) {
+        seen.add(slug);
+        results.push({
+          id: slug,
+          slug,
+          title: current.title || slug,
+          path: normalizePathFromHref(current.href),
+          icon: current.icon || fallbackIcon,
+        });
+      }
+    }
+
+    if (Array.isArray(current.children)) {
+      current.children.forEach((child) => visit(child, current.icon || fallbackIcon));
+    }
+  };
+
+  visit(node, node.icon);
+  return results;
+}
+
+function slugFromPath(path?: string | null): string | undefined {
+  if (!path) return undefined;
+  return path.replace(/^https?:\/\/[^/]+\//, '').replace(/^\//, '').replace(/\.md$/i, '');
+}
+
+function normalizePathFromHref(href?: string | null): string {
+  if (!href) return '/';
+  if (href.startsWith('http')) {
+    try {
+      const url = new URL(href);
+      return url.pathname || '/';
+    } catch (_error) {
+      return `/${href.replace(/^https?:\/\/[^/]+\//, '')}`;
+    }
+  }
+
+  return href.startsWith('/') ? href.replace(/\.md$/i, '') : `/${href.replace(/\.md$/i, '')}`;
+}
+
+function formatCategoryLabel(value: string): string {
+  return value
+    .split(/[-_]/)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ');
+}
 
 export default function TutorialsTabNew({
   pathname,
@@ -162,36 +130,92 @@ export default function TutorialsTabNew({
   pageName,
   initialArticleId
 }: TutorialsTabProps) {
+  const [helpCategories, setHelpCategories] = useState<HelpCategory[]>([]);
+  const [navigationLoading, setNavigationLoading] = useState(true);
   const [featuredArticles, setFeaturedArticles] = useState<any[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<any>(null);
-  const [selectedArticle, setSelectedArticle] = useState<any>(null);
+  const [selectedCategory, setSelectedCategory] = useState<HelpCategory | null>(null);
+  const [selectedArticle, setSelectedArticle] = useState<HelpCategory['articles'][number] | null>(null);
   const [loadingContent, setLoadingContent] = useState(false);
   const [articleContent, setArticleContent] = useState<string>('');
   const [isHtmlContent, setIsHtmlContent] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
 
   // Handle initial article if provided - Store state for later loading
-  const [pendingInitialLoad, setPendingInitialLoad] = useState<{article: any, category: any} | null>(null);
+  const [pendingInitialLoad, setPendingInitialLoad] = useState<{
+    article: HelpCategory['articles'][number];
+    category: HelpCategory;
+  } | null>(null);
 
   useEffect(() => {
-    if (initialArticleId) {
-      console.log('TutorialsTabNew - Looking for article with ID:', initialArticleId);
-
-      // Search through all categories for the article
-      for (const category of helpCategories) {
-        const article = category.articles.find(a => a.id === initialArticleId);
-        if (article) {
-          console.log('TutorialsTabNew - Found article:', article);
-          // Set both the category and the article
-          setSelectedCategory(category);
-          setSelectedArticle(article);
-          // Store for loading after handleArticleClick is defined
-          setPendingInitialLoad({ article, category });
-          break;
+    const loadNavigation = async () => {
+      try {
+        setNavigationLoading(true);
+        const response = await fetch('/api/docs/navigation', { cache: 'no-store' });
+        if (!response.ok) {
+          throw new Error('Failed to fetch navigation');
         }
+
+        const data = await response.json();
+        const mappedCategories = mapNavigationToCategories(data.navigation || []);
+        setHelpCategories(mappedCategories);
+      } catch (error) {
+        console.error('Error fetching navigation:', error);
+        setHelpCategories([]);
+      } finally {
+        setNavigationLoading(false);
+      }
+    };
+
+    loadNavigation();
+  }, []);
+
+  useEffect(() => {
+    if (helpCategories.length === 0) {
+      setSelectedCategory(null);
+      return;
+    }
+
+    setSelectedCategory((previous) => {
+      if (!previous) {
+        return helpCategories[0];
+      }
+
+      const stillExists = helpCategories.find((category) => category.id === previous.id);
+      return stillExists ?? helpCategories[0];
+    });
+  }, [helpCategories]);
+
+  useEffect(() => {
+    if (!selectedCategory) {
+      setSelectedArticle(null);
+      return;
+    }
+
+    setSelectedArticle((previous) => {
+      if (!previous) {
+        return null;
+      }
+
+      const stillExists = selectedCategory.articles.find((article) => article.slug === previous.slug);
+      return stillExists ?? null;
+    });
+  }, [selectedCategory]);
+
+  useEffect(() => {
+    if (!initialArticleId || helpCategories.length === 0) {
+      return;
+    }
+
+    for (const category of helpCategories) {
+      const article = category.articles.find((item) => item.id === initialArticleId || item.slug === initialArticleId);
+      if (article) {
+        setSelectedCategory(category);
+        setSelectedArticle(article);
+        setPendingInitialLoad({ article, category });
+        break;
       }
     }
-  }, [initialArticleId]);
+  }, [initialArticleId, helpCategories]);
 
   // Get featured articles based on current page context - now using CMS API
   useEffect(() => {
@@ -477,7 +501,7 @@ export default function TutorialsTabNew({
   );
 
   // Handle article click - updated to use slug
-  const handleArticleClick = async (article: any, category: any) => {
+  const handleArticleClick = async (article: HelpCategory['articles'][number], category: HelpCategory) => {
     trackEvent('help_article_clicked', {
       article_id: article.slug || article.id,
       article_title: article.title,
@@ -509,29 +533,43 @@ export default function TutorialsTabNew({
 
   // Handle featured article click - updated for slug-based system
   const handleFeaturedClick = async (featured: any) => {
-    // With the new CMS, featured articles have slugs we can use directly
-    const fallbackSlug = normalizeSlug(featured.slug || featured.id);
-    const articleToLoad = {
-      id: featured.slug || featured.id,
-      slug: fallbackSlug,
+    const slug = normalizeSlug(featured.slug || featured.id);
+    if (!slug) {
+      return;
+    }
+
+    const path = normalizePath(featured.path || featured.slug, slug);
+
+    const existingCategory = helpCategories.find((category) =>
+      category.articles.some((article) => article.slug === slug)
+    );
+
+    const existingArticle = existingCategory?.articles.find((article) => article.slug === slug);
+
+    const fallbackArticle = existingArticle ?? {
+      id: slug,
+      slug,
       title: featured.title,
-      path: featured.path || normalizePath(featured.slug || featured.id, fallbackSlug),
-      content: featured.content
+      path,
+      icon: featured.icon,
+      content: featured.content,
     };
 
-    const mockCategory = {
-      id: featured.category,
-      title: featured.category.replace(/-/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase()),
-      icon: featured.icon
+    const categoryForArticle = existingCategory ?? {
+      id: featured.category || 'featured',
+      title: formatCategoryLabel(featured.category || 'Featured'),
+      icon: featured.icon,
+      description: null,
+      articles: [fallbackArticle],
     };
 
-    await handleArticleClick(articleToLoad, mockCategory);
+    await handleArticleClick(fallbackArticle, categoryForArticle);
   };
 
   // Back to categories
   const handleBackToCategories = () => {
     setSelectedArticle(null);
-    setSelectedCategory(null);
+    setSelectedCategory(helpCategories[0] ?? null);
     setArticleContent('');
     setIsHtmlContent(false);
   };
@@ -577,17 +615,17 @@ export default function TutorialsTabNew({
         }
         
         if (foundArticle && foundCategory) {
-          // Load the article within the modal
           handleArticleClick(foundArticle, foundCategory);
-        } else {
-          // If article not found in our categories, try to load it anyway
-          const newArticle = {
-            id: path.replace(/\//g, '-'),
+        } else if (helpCategories.length > 0) {
+          const slug = normalizeSlug(path) || path.replace(/\//g, '-');
+          const fallbackArticle = {
+            id: slug,
+            slug,
             title: target.textContent || 'Documentation',
-            path: path
+            path,
+            icon: 'FaBook'
           };
-          const category = helpCategories[0]; // Use first category as fallback
-          handleArticleClick(newArticle, category);
+          handleArticleClick(fallbackArticle, helpCategories[0]);
         }
       }
     };
@@ -699,39 +737,53 @@ export default function TutorialsTabNew({
         </h3>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2 pb-4">
-          {helpCategories.map((category) => {
-            // Get the overview article (first article in the category)
-            const overviewArticle = category.articles[0];
-            
-            return (
-              <button
-                key={category.id}
-                onClick={() => handleArticleClick(overviewArticle, category)}
-                className="flex items-center space-x-3 p-3 md:p-4 bg-white/90 backdrop-blur-sm border border-gray-200 rounded-lg hover:border-indigo-300 hover:bg-indigo-50/50 transition-colors text-left group"
-              >
-                <div className="flex-shrink-0">
-                  <Icon 
-                    name={category.icon as IconName} 
-                    className="w-5 h-5 md:w-6 md:h-6 text-slate-600 group-hover:text-indigo-600" 
-                    size={24} 
+          {navigationLoading ? (
+            <div className="col-span-2 text-center text-sm text-gray-600 py-6">
+              Loading help navigation…
+            </div>
+          ) : helpCategories.length === 0 ? (
+            <div className="col-span-2 text-center text-sm text-gray-600 py-6">
+              No help topics available yet.
+            </div>
+          ) : (
+            helpCategories.map((category) => {
+              const overviewArticle = category.articles[0];
+              if (!overviewArticle) {
+                return null;
+              }
+
+              return (
+                <button
+                  key={category.id}
+                  onClick={() => handleArticleClick(overviewArticle, category)}
+                  className="flex items-center space-x-3 p-3 md:p-4 bg-white/90 backdrop-blur-sm border border-gray-200 rounded-lg hover:border-indigo-300 hover:bg-indigo-50/50 transition-colors text-left group"
+                >
+                  <div className="flex-shrink-0">
+                    <Icon
+                      name={(category.icon as IconName) || 'FaBook'}
+                      className="w-5 h-5 md:w-6 md:h-6 text-slate-600 group-hover:text-indigo-600"
+                      size={24}
+                    />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-medium text-sm md:text-base text-gray-900 group-hover:text-indigo-700">
+                      {category.title}
+                    </h4>
+                    {category.description && (
+                      <p className="text-xs text-gray-700 mt-0.5">
+                        {category.description}
+                      </p>
+                    )}
+                  </div>
+                  <Icon
+                    name="FaChevronRight"
+                    className="w-4 h-4 text-gray-400 group-hover:text-indigo-600 flex-shrink-0"
+                    size={16}
                   />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h4 className="font-medium text-sm md:text-base text-gray-900 group-hover:text-indigo-700">
-                    {category.title}
-                  </h4>
-                  <p className="text-xs text-gray-700 mt-0.5">
-                    {category.description}
-                  </p>
-                </div>
-                <Icon 
-                  name="FaChevronRight" 
-                  className="w-4 h-4 text-gray-400 group-hover:text-indigo-600 flex-shrink-0" 
-                  size={16} 
-                />
-              </button>
-            );
-          })}
+                </button>
+              );
+            })
+          )}
         </div>
       </div>
     </div>

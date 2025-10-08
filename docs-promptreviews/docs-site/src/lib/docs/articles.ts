@@ -198,6 +198,30 @@ export async function getContextualArticles(route: string, limit = 6): Promise<A
 }
 
 // ============================================================================
+// NAVIGATION & FAQ HELPERS
+// ============================================================================
+
+export interface NavigationNode {
+  id: string;
+  title: string;
+  href: string | null;
+  icon?: string | null;
+  children?: NavigationNode[];
+}
+
+export async function getNavigationTree(): Promise<NavigationNode[]> {
+  const supabase = getSupabaseClient();
+
+  const { data, error } = await supabase.rpc('get_navigation_tree');
+
+  if (error) {
+    console.error('Error fetching navigation tree:', error);
+    throw error;
+  }
+
+  return (data || []) as NavigationNode[];
+}
+
 // DRAFT PREVIEW (for admin)
 // ============================================================================
 
