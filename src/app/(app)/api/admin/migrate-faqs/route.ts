@@ -42,19 +42,51 @@ export async function GET() {
 
     const fileContent = await response.text();
 
-    // Extract pageFAQs object using regex
-    const pageFAQsMatch = fileContent.match(/export const pageFAQs = \{([\s\S]*?)\n\};/);
-    if (!pageFAQsMatch) {
+    // Parse the FAQ data by converting it to JSON-like format
+    // Extract the pageFAQs object content
+    const startMarker = 'export const pageFAQs = {';
+    const startIdx = fileContent.indexOf(startMarker);
+    if (startIdx === -1) {
       throw new Error('Could not find pageFAQs export in faqData.ts');
     }
 
-    // Parse the FAQ data manually (since it's TypeScript, we can't just eval it)
-    // Extract each page's FAQs
-    const pageMatches = fileContent.matchAll(/'([^']+)':\s*\[([\s\S]*?)\],?\n\n/g);
+    // Find the matching closing brace
+    let braceCount = 0;
+    let endIdx = startIdx + startMarker.length;
+    for (let i = endIdx; i < fileContent.length; i++) {
+      if (fileContent[i] === '{') braceCount++;
+      if (fileContent[i] === '}') {
+        if (braceCount === 0) {
+          endIdx = i;
+          break;
+        }
+        braceCount--;
+      }
+    }
 
-    for (const match of pageMatches) {
-      const slug = match[1];
-      const faqsBlock = match[2];
+    const objectContent = fileContent.substring(startIdx + startMarker.length, endIdx);
+
+    // Extract each section by finding 'slug': [ ... ]
+    const sectionMatches = objectContent.matchAll(/'([^']+)':\s*\[/g);
+    const sections: { slug: string; startIdx: number }[] = [];
+
+    for (const match of sectionMatches) {
+      sections.push({
+        slug: match[1],
+        startIdx: match.index!
+      });
+    }
+
+    // Process each section
+    for (let i = 0; i < sections.length; i++) {
+      const section = sections[i];
+      const nextSection = sections[i + 1];
+      const slug = section.slug;
+
+      // Extract content between this section and next (or end)
+      const sectionStart = section.startIdx;
+      const sectionEnd = nextSection ? nextSection.startIdx : objectContent.length;
+      const sectionContent = objectContent.substring(sectionStart, sectionEnd);
 
       const detail: any = { slug, faqs: [] };
 
@@ -75,8 +107,9 @@ export async function GET() {
 
       detail.article_title = article.title;
 
-      // Extract individual FAQs from the block
-      const faqMatches = faqsBlock.matchAll(/\{\s*question:\s*'([^']+)',\s*answer:\s*'([^']+)',?[\s\S]*?\}/g);
+      // Extract FAQs using a more robust pattern
+      const faqPattern = /\{\s*question:\s*'([^']*(?:\\'[^']*)*)'\s*,\s*answer:\s*'([^']*(?:\\'[^']*)*)'/gs;
+      const faqMatches = sectionContent.matchAll(faqPattern);
 
       let order = 1;
       for (const faqMatch of faqMatches) {
