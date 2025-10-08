@@ -499,6 +499,23 @@ export default function ArticleEditorPage() {
             </div>
 
             <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Canonical URL
+              </label>
+              <Input
+                type="url"
+                value={article.metadata.canonical_url || `https://docs.promptreviews.app/docs/${article.slug}` || ""}
+                onChange={(e) =>
+                  handleMetadataChange("canonical_url", e.target.value)
+                }
+                placeholder={`https://docs.promptreviews.app/docs/${article.slug}`}
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                The preferred URL for this page (helps prevent duplicate content issues). Defaults to the docs site URL.
+              </p>
+            </div>
+
+            <div>
               <Button
                 variant="outline"
                 size="sm"
