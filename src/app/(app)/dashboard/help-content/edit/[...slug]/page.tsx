@@ -185,11 +185,11 @@ export default function ArticleEditorPage() {
   };
 
   const validateSlug = (slug: string): boolean => {
-    // Slug should be lowercase, alphanumeric with hyphens
-    const slugPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+    // Slug should be lowercase, alphanumeric with hyphens and forward slashes for nested paths
+    const slugPattern = /^[a-z0-9]+(?:[-\/][a-z0-9]+)*$/;
     if (!slugPattern.test(slug)) {
       setSlugError(
-        "Slug must be lowercase, alphanumeric, and use hyphens for spaces"
+        "Slug must be lowercase, alphanumeric, and use hyphens or slashes"
       );
       return false;
     }
