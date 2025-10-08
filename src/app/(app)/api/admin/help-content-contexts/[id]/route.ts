@@ -20,19 +20,20 @@ function getSupabaseAdmin() {
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await requireAdminAccess();
     const supabase = getSupabaseAdmin();
     const body = await request.json();
     const { priority, keywords, route_pattern } = body;
+    const { id } = await params;
 
     // Verify context exists
     const { data: existingContext } = await supabase
       .from("article_contexts")
       .select("article_id")
-      .eq("id", params.id)
+      .eq("id", id)
       .single();
 
     if (!existingContext) {
@@ -52,7 +53,7 @@ export async function PUT(
     const { data: context, error: updateError } = await supabase
       .from("article_contexts")
       .update(updates)
-      .eq("id", params.id)
+      .eq("id", id)
       .select()
       .single();
 
@@ -80,17 +81,18 @@ export async function PUT(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await requireAdminAccess();
     const supabase = getSupabaseAdmin();
+    const { id } = await params;
 
     // Verify context exists
     const { data: existingContext } = await supabase
       .from("article_contexts")
       .select("article_id")
-      .eq("id", params.id)
+      .eq("id", id)
       .single();
 
     if (!existingContext) {
@@ -104,7 +106,7 @@ export async function DELETE(
     const { error: deleteError } = await supabase
       .from("article_contexts")
       .delete()
-      .eq("id", params.id);
+      .eq("id", id);
 
     if (deleteError) {
       console.error("Error deleting context:", deleteError);
