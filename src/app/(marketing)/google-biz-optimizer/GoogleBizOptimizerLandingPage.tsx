@@ -33,10 +33,10 @@ export default function GoogleBizOptimizerLandingPage() {
                 Benefits
               </button>
               <button onClick={() => scrollToSection('how-it-works')} className="text-gray-600 hover:text-indigo-600 transition-colors">
-                How It Works
+                How it works
               </button>
               <button onClick={() => scrollToSection('sample-report')} className="text-gray-600 hover:text-indigo-600 transition-colors">
-                Sample Report
+                Sample report
               </button>
               <button onClick={() => scrollToSection('faq')} className="text-gray-600 hover:text-indigo-600 transition-colors">
                 FAQ
@@ -71,7 +71,7 @@ export default function GoogleBizOptimizerLandingPage() {
               <Link href="/embed/google-business-optimizer" className="group">
                 <button className="px-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 flex items-center space-x-2">
                   <Icon name="FaChartBar" size={20} color="white" />
-                  <span>Get My Free Report</span>
+                  <span>Get my free report</span>
                   <Icon name="FaArrowRight" size={16} color="white" className="group-hover:translate-x-1 transition-transform" />
                 </button>
               </Link>
@@ -119,7 +119,7 @@ export default function GoogleBizOptimizerLandingPage() {
               <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                 <Icon name="FaSearch" size={24} color="white" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">Increase Local Search Visibility</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">Increase local search visibility</h3>
               <p className="text-gray-600">
                 Appear higher in "near me" searches and local map results. Studies show optimized profiles get
                 <strong> 70% more clicks</strong> than unoptimized ones.
@@ -131,7 +131,7 @@ export default function GoogleBizOptimizerLandingPage() {
               <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                 <Icon name="FaUsers" size={24} color="white" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">Attract More Customers</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">Attract more customers</h3>
               <p className="text-gray-600">
                 Complete profiles with photos, hours, and reviews get <strong>42% more requests</strong> for driving directions
                 and <strong>35% more clicks</strong> to websites.
@@ -143,7 +143,7 @@ export default function GoogleBizOptimizerLandingPage() {
               <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                 <Icon name="FaTrophy" size={24} color="white" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">Build Customer Trust</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">Build customer trust</h3>
               <p className="text-gray-600">
                 Businesses with complete profiles and positive reviews are viewed as <strong>2.7x more trustworthy</strong>
                 by potential customers.
@@ -155,7 +155,7 @@ export default function GoogleBizOptimizerLandingPage() {
               <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                 <Icon name="FaPhone" size={24} color="white" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">Drive More Phone Calls</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">Drive more phone calls</h3>
               <p className="text-gray-600">
                 Optimized profiles generate <strong>3x more phone calls</strong> from customers ready to buy your
                 products or services.
@@ -167,7 +167,7 @@ export default function GoogleBizOptimizerLandingPage() {
               <div className="w-12 h-12 bg-gradient-to-br from-teal-500 to-cyan-600 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                 <Icon name="FaStar" size={24} color="white" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">Get More Reviews</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">Get more reviews</h3>
               <p className="text-gray-600">
                 Properly optimized profiles with review prompts get <strong>50% more reviews</strong>,
                 building social proof that drives more business.
@@ -179,7 +179,7 @@ export default function GoogleBizOptimizerLandingPage() {
               <div className="w-12 h-12 bg-gradient-to-br from-yellow-500 to-amber-600 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                 <Icon name="FaChartLine" size={24} color="white" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">Outrank Competitors</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">Outrank competitors</h3>
               <p className="text-gray-600">
                 Stay ahead of competitors who neglect their profiles. <strong>64% of businesses</strong>
                 have incomplete or outdated Google Business Profiles.
@@ -194,7 +194,7 @@ export default function GoogleBizOptimizerLandingPage() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              How It Works
+              How it works
             </h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
               Get your comprehensive optimization report in 3 simple steps
@@ -215,7 +215,7 @@ export default function GoogleBizOptimizerLandingPage() {
                     <Icon name="FaLink" size={24} className="text-indigo-600" />
                   </div>
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">Enter Your Google Maps URL</h3>
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">Enter your Google Maps URL</h3>
                 <p className="text-gray-600">
                   Simply paste your Google Business Profile URL or search for your business.
                   We'll find your listing in seconds.
@@ -257,7 +257,7 @@ export default function GoogleBizOptimizerLandingPage() {
                     <Icon name="MdDownload" size={24} className="text-indigo-600" />
                   </div>
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">Get Your Report</h3>
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">Get your report</h3>
                 <p className="text-gray-600">
                   Receive a professional PDF report with specific, actionable recommendations
                   to improve your local search ranking.
@@ -270,7 +270,7 @@ export default function GoogleBizOptimizerLandingPage() {
             <Link href="/embed/google-business-optimizer">
               <button className="px-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 flex items-center space-x-2 mx-auto">
                 <Icon name="FaRocket" size={20} color="white" />
-                <span>Start Your Free Analysis</span>
+                <span>Start your free analysis</span>
               </button>
             </Link>
           </div>
@@ -561,7 +561,7 @@ export default function GoogleBizOptimizerLandingPage() {
             <Link href="/embed/google-business-optimizer" className="group">
               <button className="px-8 py-4 bg-white text-indigo-600 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 flex items-center space-x-2">
                 <Icon name="FaChartBar" size={20} />
-                <span>Get My Free Report Now</span>
+                <span>Get my free report now</span>
                 <Icon name="FaArrowRight" size={16} className="group-hover:translate-x-1 transition-transform" />
               </button>
             </Link>

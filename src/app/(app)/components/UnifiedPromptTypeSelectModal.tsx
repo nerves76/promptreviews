@@ -82,7 +82,7 @@ export default function UnifiedPromptTypeSelectModal({
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
             <Dialog.Title className="text-xl font-semibold text-gray-900">
-              Create Prompt Page{mode === 'bulk' ? 's' : ''}
+              Create prompt page{mode === 'bulk' ? 's' : ''}
             </Dialog.Title>
             <button
               onClick={handleClose}
@@ -179,7 +179,7 @@ export default function UnifiedPromptTypeSelectModal({
                   : 'bg-gray-100 text-gray-400 cursor-not-allowed'
               }`}
             >
-              {mode === 'bulk' ? `Create ${selectedCount} Pages` : 'Create Page'}
+              {mode === 'bulk' ? `Create ${selectedCount} pages` : 'Create page'}
             </button>
           </div>
         </div>

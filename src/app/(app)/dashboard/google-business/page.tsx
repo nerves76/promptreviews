@@ -2633,11 +2633,11 @@ export default function SocialPostingDashboard() {
                                 onChange={(e) => setCTAType(e.target.value as any)}
                                 className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-slate-blue focus:border-slate-blue"
                               >
-                                <option value="LEARN_MORE">Learn More</option>
+                                <option value="LEARN_MORE">Learn more</option>
                                 <option value="CALL">Call</option>
                                 <option value="ORDER_ONLINE">Order Online</option>
                                 <option value="BOOK">Book</option>
-                                <option value="SIGN_UP">Sign Up</option>
+                                <option value="SIGN_UP">Sign up</option>
                                 <option value="BUY">Buy</option>
                               </select>
                             </div>

@@ -150,7 +150,7 @@ const ContactMergeModal: React.FC<ContactMergeModalProps> = ({
           <div className="flex items-center justify-between mb-6">
             <div>
               <Dialog.Title className="text-xl font-semibold text-gray-900">
-                Merge Duplicate Contacts
+                Merge duplicate contacts
               </Dialog.Title>
               <div className="flex items-center gap-2 mt-2">
                 <Icon name={reasonDisplay.icon as any} className={`w-4 h-4 ${reasonDisplay.color}`} />
@@ -207,17 +207,17 @@ const ContactMergeModal: React.FC<ContactMergeModalProps> = ({
               Choose which information to keep for each field:
             </h3>
             <div className="space-y-1">
-              {renderFieldSelector('first_name', 'First Name')}
-              {renderFieldSelector('last_name', 'Last Name')}
+              {renderFieldSelector('first_name', 'First name')}
+              {renderFieldSelector('last_name', 'Last name')}
               {renderFieldSelector('email', 'Email')}
               {renderFieldSelector('phone', 'Phone')}
-              {renderFieldSelector('business_name', 'Business Name')}
+              {renderFieldSelector('business_name', 'Business name')}
               {renderFieldSelector('role', 'Role')}
-              {renderFieldSelector('address_line1', 'Address Line 1')}
-              {renderFieldSelector('address_line2', 'Address Line 2')}
+              {renderFieldSelector('address_line1', 'Address line 1')}
+              {renderFieldSelector('address_line2', 'Address line 2')}
               {renderFieldSelector('city', 'City')}
               {renderFieldSelector('state', 'State')}
-              {renderFieldSelector('postal_code', 'Postal Code')}
+              {renderFieldSelector('postal_code', 'Postal code')}
               {renderFieldSelector('country', 'Country')}
               {renderFieldSelector('category', 'Category')}
               {renderFieldSelector('notes', 'Notes')}
@@ -267,7 +267,7 @@ const ContactMergeModal: React.FC<ContactMergeModalProps> = ({
                 }
               }}
             >
-              {merging ? 'Merging...' : `Merge ${contacts.length} Contacts`}
+              {merging ? 'Merging...' : `Merge ${contacts.length} contacts`}
             </button>
           </div>
         </div>

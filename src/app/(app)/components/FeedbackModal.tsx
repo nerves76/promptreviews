@@ -20,19 +20,19 @@ type FeedbackCategory = 'bug_report' | 'feature_request' | 'general_feedback';
 const categoryOptions = [
   {
     value: 'bug_report' as FeedbackCategory,
-    label: 'Bug Report',
+    label: 'Bug report',
     icon: 'FaExclamationTriangle',
     description: 'Something isn\'t working as expected'
   },
   {
     value: 'feature_request' as FeedbackCategory,
-    label: 'Feature Request',
+    label: 'Feature request',
     icon: 'FaHeart',
     description: 'I\'d like to see a new feature'
   },
   {
     value: 'general_feedback' as FeedbackCategory,
-    label: 'General Feedback',
+    label: 'General feedback',
     icon: 'FaCommentAlt',
     description: 'General thoughts or suggestions'
   }

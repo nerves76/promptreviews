@@ -1780,7 +1780,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
           <OfferCard
             title={offerTitle}
             message={offerBody}
-            buttonText={offerLearnMoreUrl ? "Learn More" : undefined}
+            buttonText={offerLearnMoreUrl ? "Learn more" : undefined}
             learnMoreUrl={offerLearnMoreUrl || undefined}
             iconColor="#facc15"
             isTimelockActive={isTimelockActive}
@@ -1876,7 +1876,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
             }}
           >
             <Icon name="FaHeart" className="w-5 h-5 transition-colors group-hover:text-red-500" size={20} style={{ color: businessProfile?.primary_color || "#2563EB" }} />
-            <span className={`hidden sm:inline${showOnlyHeart ? " sm:hidden" : ""}`}>{showOnlyHeart ? "" : "Save for Later"}</span>
+            <span className={`hidden sm:inline${showOnlyHeart ? " sm:hidden" : ""}`}>{showOnlyHeart ? "" : "Save for later"}</span>
             <span className={`inline sm:hidden${showOnlyHeart ? " hidden" : ""}`}>{showOnlyHeart ? "" : "Save"}</span>
           </button>
 
@@ -1888,7 +1888,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                 style={{ color: businessProfile?.primary_color || "#4F46E5" }}
               >
                 <Icon name="FaCalendarAlt" className="w-4 h-4" size={16} />
-                Add to Calendar
+                Add to calendar
               </button>
               <button
                 onClick={() => handleSaveOption("email")}
@@ -1904,7 +1904,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                 style={{ color: businessProfile?.primary_color || "#4F46E5" }}
               >
                 <Icon name="FaHome" className="w-4 h-4" size={16} />
-                Add to Home Screen
+                Add to home screen
               </button>
               {availableFeatures.clipboard && (
                 <button
@@ -1923,7 +1923,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                   style={{ color: businessProfile?.primary_color || "#4F46E5" }}
                 >
                   <Icon name="FaBookmark" className="w-4 h-4" size={16} />
-                  Add to Reading List
+                  Add to reading list
                 </button>
               )}
               <button
@@ -1938,7 +1938,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                 >
                   <path d="M20.5 3.5H3.5C2.67 3.5 2 4.17 2 5v14c0 .83.67 1.5 1.5 1.5h17c.83 0 1.5-.67 1.5-1.5V5c0-.83-.67-1.5-1.5-1.5zM12 19.5H4v-15h8v15zm8 0h-7v-15h7v15z" />
                 </svg>
-                Save to Pocket
+                Save to pocket
               </button>
               <button
                 onClick={() => handleSaveOption("instapaper")}
@@ -1952,7 +1952,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                 >
                   <path d="M20.5 3.5H3.5C2.67 3.5 2 4.17 2 5v14c0 .83.67 1.5 1.5 1.5h17c.83 0 1.5-.67 1.5-1.5V5c0-.83-.67-1.5-1.5-1.5zM12 19.5H4v-15h8v15zm8 0h-7v-15h7v15z" />
                 </svg>
-                Save to Instapaper
+                Save to instapaper
               </button>
               {availableFeatures.bookmarks && (
                 <button
@@ -2164,7 +2164,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                                   />
                                 </span>
                               ) : (
-                                "Submit Feedback"
+                                "Submit feedback"
                               )}
                             </button>
                           </div>
@@ -2262,7 +2262,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                               className="px-4 py-2 bg-gray-200 text-gray-800 rounded shadow hover:bg-gray-300 focus:outline-none"
                               onClick={() => fileInputRef.current?.click()}
                             >
-                              Upload Photo
+                              Upload photo
                             </button>
                           </div>
                           <input

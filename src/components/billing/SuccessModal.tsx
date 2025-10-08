@@ -104,7 +104,7 @@ export default function SuccessModal({
           onClick={handleContinue}
           className="bg-slate-blue text-white px-6 py-2 rounded-lg hover:bg-slate-blue/90 transition-colors"
         >
-          Continue to Dashboard
+          Continue to dashboard
         </button>
       </div>
     </div>

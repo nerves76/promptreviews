@@ -220,7 +220,7 @@ export default function HelpContentPage() {
                 onClick={() => router.push("/dashboard/help-content/new")}
                 size="lg"
               >
-                + Create New Article
+                + Create new article
               </Button>
             </div>
           </div>

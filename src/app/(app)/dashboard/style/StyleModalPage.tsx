@@ -735,7 +735,7 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
         {/* Draggable header */}
         <div className="modal-header flex items-center justify-between p-4 cursor-move bg-gradient-to-r from-indigo-600 via-purple-600 to-fuchsia-600 rounded-t-2xl">
           <div className="w-1/3">
-            <h2 className="text-xl font-semibold text-white">Prompt Page Style</h2>
+            <h2 className="text-xl font-semibold text-white">Prompt page style</h2>
           </div>
           <div className="w-1/3 flex justify-center">
             <div className="bg-white/20 backdrop-blur-sm rounded-lg p-2">
@@ -748,7 +748,7 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
               onClick={handleSave}
               disabled={saving}
             >
-              {saving ? "Saving..." : "Save All Changes"}
+              {saving ? "Saving..." : "Save all changes"}
             </button>
           </div>
         </div>
@@ -827,7 +827,7 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
           <div className="flex flex-col gap-6">
         {/* Font pickers */}
           <div className="bg-white rounded-lg shadow p-6">
-              <label className="block text-sm font-medium text-gray-700 mb-3">Primary Font</label>
+              <label className="block text-sm font-medium text-gray-700 mb-3">Primary font</label>
             <select
               value={settings.primary_font}
               onChange={e => setSettings(s => ({ ...s, primary_font: e.target.value }))}
@@ -847,7 +847,7 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
             <p className="text-xs text-gray-500 mt-1">System fonts may look different on different devices.</p>
           </div>
           <div className="bg-white rounded-lg shadow p-6">
-              <label className="block text-sm font-medium text-gray-700 mb-3">Secondary Font</label>
+              <label className="block text-sm font-medium text-gray-700 mb-3">Secondary font</label>
             <select
               value={settings.secondary_font}
               onChange={e => setSettings(s => ({ ...s, secondary_font: e.target.value }))}
@@ -869,7 +869,7 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
             {/* Primary color */}
           <div className="bg-white rounded-lg shadow p-6">
               <div className="flex items-center mb-3">
-                <label className="text-sm font-medium text-gray-700">Primary Color</label>
+                <label className="text-sm font-medium text-gray-700">Primary color</label>
                 <Tooltip text="Used for main headings and important text elements on your prompt pages" />
               </div>
                 <input type="color" value={settings.primary_color} onChange={e => setSettings(s => ({ ...s, primary_color: e.target.value }))} className="w-full h-10 rounded cursor-pointer" />
@@ -884,7 +884,7 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
           {/* Secondary color - moved here */}
           <div className="bg-white rounded-lg shadow p-6">
               <div className="flex items-center mb-3">
-                <label className="text-sm font-medium text-gray-700">Secondary Color</label>
+                <label className="text-sm font-medium text-gray-700">Secondary color</label>
                 <Tooltip text="Used for buttons, links, and accent elements throughout your prompt pages" />
               </div>
                 <input type="color" value={settings.secondary_color} onChange={e => setSettings(s => ({ ...s, secondary_color: e.target.value }))} className="w-full h-10 rounded cursor-pointer" />
@@ -900,14 +900,14 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
           <div className="flex flex-col gap-6">
         {/* Background type */}
             <div className="bg-white rounded-lg shadow p-6">
-              <label className="block text-sm font-medium text-gray-700 mb-3">Background Type</label>
+              <label className="block text-sm font-medium text-gray-700 mb-3">Background type</label>
           <div className="flex gap-4">
                 <label><input type="radio" name="background_type" value="solid" checked={settings.background_type === "solid"} onChange={() => setSettings(s => ({ ...s, background_type: "solid" }))} /><span className="ml-2">Solid</span></label>
                 <label><input type="radio" name="background_type" value="gradient" checked={settings.background_type === "gradient"} onChange={() => setSettings(s => ({ ...s, background_type: "gradient" }))} /><span className="ml-2">Gradient</span></label>
           </div>
           {settings.background_type === "solid" && (
             <div className="mt-3">
-              <label className="block text-xs text-gray-500 mb-1">Background Color</label>
+              <label className="block text-xs text-gray-500 mb-1">Background color</label>
               <input type="color" value={settings.background_color} onChange={e => setSettings(s => ({ ...s, background_color: e.target.value }))} className="w-full h-10 rounded cursor-pointer" />
               <input 
                 type="text" 
@@ -959,7 +959,7 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
         {/* Card background - moved up and with color picker */}
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center mb-3">
-            <label className="text-sm font-medium text-gray-700">Card Background</label>
+            <label className="text-sm font-medium text-gray-700">Card background</label>
             <Tooltip text="Background color for review cards and content sections on your prompt pages" />
           </div>
           <input type="color" value={settings.card_bg} onChange={e => setSettings(s => ({ ...s, card_bg: e.target.value }))} className="w-full h-10 rounded cursor-pointer" />
@@ -973,7 +973,7 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
         </div>
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center mb-3">
-            <label className="text-sm font-medium text-gray-700">Card Text Color</label>
+            <label className="text-sm font-medium text-gray-700">Card text color</label>
             <Tooltip text="Text color for content inside review cards and sections" />
           </div>
           <input type="color" value={settings.card_text} onChange={e => setSettings(s => ({ ...s, card_text: e.target.value }))} className="w-full h-10 rounded cursor-pointer" />
@@ -987,7 +987,7 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
         </div>
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center mb-3">
-            <label className="text-sm font-medium text-gray-700">Input Text Color</label>
+            <label className="text-sm font-medium text-gray-700">Input text color</label>
             <Tooltip text="Text color for input fields and textareas (the text users type)" />
           </div>
           <input type="color" value={settings.input_text_color || '#1F2937'} onChange={e => setSettings(s => ({ ...s, input_text_color: e.target.value }))} className="w-full h-10 rounded cursor-pointer" />
@@ -1001,7 +1001,7 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
         </div>
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center mb-3">
-            <label className="text-sm font-medium text-gray-700">Placeholder Text Color</label>
+            <label className="text-sm font-medium text-gray-700">Placeholder text color</label>
             <Tooltip text="Color for placeholder text in input fields and text areas" />
           </div>
           <input type="color" value={settings.card_placeholder_color} onChange={e => setSettings(s => ({ ...s, card_placeholder_color: e.target.value }))} className="w-full h-10 rounded cursor-pointer" />
@@ -1018,10 +1018,10 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
 
         {/* Card Styling Settings */}
         <div className="mt-8 p-6 bg-white/95 backdrop-blur-sm rounded-xl border border-white/30">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">Card Styling</h3>
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">Card styling</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3">Card Transparency</label>
+              <label className="block text-sm font-medium text-gray-700 mb-3">Card transparency</label>
               <input
                 type="range"
                 min="0"
@@ -1034,20 +1034,20 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
               <span className="text-xs text-gray-500">{Math.round(settings.card_transparency * 100)}% opacity</span>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3">Inner Shadow Vignette</label>
+              <label className="block text-sm font-medium text-gray-700 mb-3">Inner shadow vignette</label>
               <select
                 value={settings.card_inner_shadow ? 'true' : 'false'}
                 onChange={(e) => setSettings(s => ({ ...s, card_inner_shadow: e.target.value === 'true' }))}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
               >
-                <option value="false">No Vignette</option>
-                <option value="true">Show Vignette</option>
+                <option value="false">No vignette</option>
+                <option value="true">Show vignette</option>
               </select>
             </div>
             {settings.card_inner_shadow && (
               <>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-3">Vignette Color</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">Vignette color</label>
                   <input
                     type="color"
                     value={settings.card_shadow_color}
@@ -1056,7 +1056,7 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-3">Vignette Intensity</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">Vignette intensity</label>
                   <input
                     type="range"
                     min="0"
@@ -1082,14 +1082,14 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3">Kickstarters Design Style</label>
+                <label className="block text-sm font-medium text-gray-700 mb-3">Kickstarters design style</label>
                 <select
                   value={settings.kickstarters_background_design ? 'true' : 'false'}
                   onChange={(e) => setSettings(s => ({ ...s, kickstarters_background_design: e.target.value === 'true' }))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 >
-                  <option value="true">With Background</option>
-                  <option value="false">Without Background</option>
+                  <option value="true">With background</option>
+                  <option value="false">Without background</option>
                 </select>
                 <p className="text-xs text-gray-500 mt-1">
                   Choose card-style background or transparent text using your card colors.
@@ -1097,7 +1097,7 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
               </div>
               <div>
                 <div className="flex items-center mb-3">
-                  <label className="text-sm font-medium text-gray-700">Kickstarters Primary Color</label>
+                  <label className="text-sm font-medium text-gray-700">Kickstarters primary color</label>
                   <Tooltip text="Color for Kickstarter text and controls (uses Primary Color)." />
                 </div>
                 <input
@@ -1123,11 +1123,11 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
 
         {/* Border Settings */}
         <div className="mt-8 p-6 bg-white/95 backdrop-blur-sm rounded-xl border border-white/30">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">Border Settings</h3>
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">Border settings</h3>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3">Border Thickness</label>
+              <label className="block text-sm font-medium text-gray-700 mb-3">Border thickness</label>
               <select
                 value={settings.card_border_width}
                 onChange={(e) => setSettings(s => ({ ...s, card_border_width: parseFloat(e.target.value) }))}
@@ -1146,7 +1146,7 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
             {settings.card_border_width > 0 && (
               <>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-3">Border Color</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">Border color</label>
                   <div className="flex gap-2">
                     <input
                       type="color"
@@ -1166,7 +1166,7 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-3">
-                    Border Transparency: {Math.round(settings.card_border_transparency * 100)}%
+                    Border transparency: {Math.round(settings.card_border_transparency * 100)}%
                   </label>
                   <input
                     type="range"

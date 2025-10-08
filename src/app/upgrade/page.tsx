@@ -137,7 +137,7 @@ export default function UpgradePage() {
         {/* Header */}
         <div className="text-center mb-16">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            Choose Your Growth Plan
+            Choose your growth plan
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
             Select the perfect plan to help your business grow through authentic
@@ -163,7 +163,7 @@ export default function UpgradePage() {
                   {currentPlan ===
                     tier.name.toLowerCase().replace(" ", "_") && (
                     <span className="bg-white text-gray-900 px-3 py-1 rounded-full text-sm font-medium">
-                      Current Plan
+                      Current plan
                     </span>
                   )}
                 </div>
@@ -200,8 +200,8 @@ export default function UpgradePage() {
                   }
                 >
                   {currentPlan === tier.name.toLowerCase().replace(" ", "_")
-                    ? "Current Plan"
-                    : "Upgrade Now"}
+                    ? "Current plan"
+                    : "Upgrade now"}
                 </button>
               </div>
             </div>
@@ -211,7 +211,7 @@ export default function UpgradePage() {
         {/* Contact Section */}
         <div className="mt-16 text-center">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">
-            Need a Custom Plan?
+            Need a custom plan?
           </h2>
           <p className="text-gray-600 mb-8">
             For businesses with unique needs or larger contact lists, we offer
@@ -222,7 +222,7 @@ export default function UpgradePage() {
             className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
           >
             <FaRocket className="mr-2" />
-            Contact Sales
+            Contact sales
           </button>
         </div>
       </div>

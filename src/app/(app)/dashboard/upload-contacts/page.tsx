@@ -481,7 +481,7 @@ export default function UploadContactsPage() {
                 onClick={handleUpload}
                 className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
               >
-                Upload Contacts
+                Upload contacts
               </button>
             </div>
           )}
@@ -529,7 +529,7 @@ export default function UploadContactsPage() {
                 </ul>
               </div>
               <div>
-                <h3 className="font-semibold text-gray-900">Offer & Rewards</h3>
+                <h3 className="font-semibold text-gray-900">Offer & rewards</h3>
                 <ul className="mt-2 space-y-2 text-sm text-gray-600">
                   <li>
                     <span className="font-bold">offer_url</span> - URL where

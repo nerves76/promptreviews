@@ -164,7 +164,7 @@ export default function AccountPage() {
         <PageCard icon={<FaUser className="w-9 h-9 text-[#1A237E]" />}>
           <div className="flex items-center justify-between mb-16">
             <h1 className="text-3xl font-bold text-slate-blue">
-              Account Settings
+              Account settings
             </h1>
           </div>
 
@@ -172,12 +172,12 @@ export default function AccountPage() {
             <div>
               <h2 className="text-2xl font-bold flex items-center gap-3 mb-12 text-slate-blue">
                 <FaIdCard className="w-7 h-7 text-slate-blue" />
-                Profile Information
+                Profile information
               </h2>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
                   <label className="block text-sm font-bold text-gray-700">
-                    First Name
+                    First name
                   </label>
                   <div className="mt-1 text-sm text-gray-900">
                     {user.user_metadata?.first_name || ""}
@@ -185,7 +185,7 @@ export default function AccountPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-bold text-gray-700">
-                    Last Name
+                    Last name
                   </label>
                   <div className="mt-1 text-sm text-gray-900">
                     {user.user_metadata?.last_name || ""}
@@ -200,7 +200,7 @@ export default function AccountPage() {
               </div>
               <h3 className="text-xl font-bold flex items-center gap-2 mb-6 mt-8 text-slate-blue">
                 <FaEnvelope className="w-6 h-6 text-slate-blue" />
-                Email & Password
+                Email & password
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-end">
                 <div>
@@ -288,7 +288,7 @@ export default function AccountPage() {
                   >
                     {isLoading
                       ? "Loading…"
-                      : "Manage Billing (Invoices & Payment Info)"}
+                      : "Manage billing (invoices & payment info)"}
                   </button>
                 </div>
               )}
@@ -298,7 +298,7 @@ export default function AccountPage() {
               <div>
                 <h2 className="text-2xl font-bold flex items-center gap-3 mb-12 text-slate-blue">
                   <FaChartLine className="w-7 h-7 text-slate-blue" />
-                  Admin Access
+                  Admin access
                 </h2>
                 <div className="bg-purple-50 rounded-lg p-6 border border-purple-100">
                   <p className="text-purple-800 mb-4">
@@ -310,7 +310,7 @@ export default function AccountPage() {
                     className="inline-flex items-center gap-2 px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
                   >
                     <FaChartLine className="w-4 h-4" />
-                    Open Admin Dashboard
+                    Open admin dashboard
                   </Link>
                 </div>
               </div>
@@ -366,13 +366,13 @@ function ChangePassword({ supabase }: { supabase: any }) {
         className="inline-flex items-center px-4 py-2 border-2 border-[#1A237E] text-[#1A237E] bg-white rounded-md font-semibold text-sm transition-colors duration-150 hover:bg-[#1A237E] hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#1A237E]"
         onClick={() => setShowForm((v) => !v)}
       >
-        {showForm ? "Cancel" : "Change Password"}
+        {showForm ? "Cancel" : "Change password"}
       </button>
       {showForm && (
         <form onSubmit={handleSubmit} className="mt-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              New Password
+              New password
             </label>
             <input
               type="password"
@@ -386,7 +386,7 @@ function ChangePassword({ supabase }: { supabase: any }) {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Confirm Password
+              Confirm password
             </label>
             <input
               type="password"
@@ -441,7 +441,7 @@ function ChangePassword({ supabase }: { supabase: any }) {
             onMouseOut={(e) => (e.currentTarget.style.background = "#1A237E")}
             disabled={loading}
           >
-            {loading ? "Changing..." : "Change Password"}
+            {loading ? "Changing..." : "Change password"}
           </button>
         </form>
       )}
@@ -490,7 +490,7 @@ function ChangeEmail({
         className="inline-flex items-center px-4 py-2 border-2 border-[#1A237E] text-[#1A237E] bg-white rounded-md font-semibold text-sm transition-colors duration-150 hover:bg-[#1A237E] hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#1A237E]"
         onClick={() => setShowForm((v) => !v)}
       >
-        {showForm ? "Cancel" : "Change Email"}
+        {showForm ? "Cancel" : "Change email"}
       </button>
       {showForm && (
         <form onSubmit={handleSubmit} className="mt-2">
@@ -514,7 +514,7 @@ function ChangeEmail({
             onMouseOut={(e) => (e.currentTarget.style.background = "#1A237E")}
             disabled={loading}
           >
-            {loading ? "Changing..." : "Change Email"}
+            {loading ? "Changing..." : "Change email"}
           </button>
         </form>
       )}

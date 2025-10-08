@@ -101,7 +101,7 @@ export default function LocationSelectionModal({
         {/* Header */}
         <div className="p-6 border-b border-gray-200">
           <h2 className="text-xl font-semibold text-gray-900 mb-2">
-            Select Business Locations to Manage
+            Select business locations to manage
           </h2>
           <p className="text-sm text-gray-600">
             Choose which Google Business Profile locations you want to manage with Prompt Reviews.
@@ -226,7 +226,7 @@ export default function LocationSelectionModal({
               onClick={onCancel}
               className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
             >
-              Cancel Connection
+              Cancel connection
             </button>
             <div className="flex items-center space-x-3">
               {selectedIds.length === 0 && (
@@ -251,7 +251,7 @@ export default function LocationSelectionModal({
                     <span>Saving...</span>
                   </span>
                 ) : (
-                  `Confirm Selection (${selectedIds.length})`
+                  `Confirm selection (${selectedIds.length})`
                 )}
               </button>
             </div>

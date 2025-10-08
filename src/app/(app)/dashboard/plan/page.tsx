@@ -1316,11 +1316,11 @@ export default function PlanPage() {
                         if (tier.key === "grower") {
                           // If they already exhausted the trial, show regular purchase option
                           if (!trialEligibility.eligible || trialMetadata.hasConsumedTrial) {
-                            return "Get Started";
+                            return "Get started";
                           }
                           return "Start Free Trial";
                         }
-                        return "Get Started";
+                        return "Get started";
                       }
                       
                       // Check if this is the current plan AND billing period

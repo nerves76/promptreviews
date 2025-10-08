@@ -95,7 +95,7 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
           className="p-4 border-b cursor-move"
           onMouseDown={handleMouseDown}
         >
-          <h2 className="text-lg font-semibold">Edit Reviews</h2>
+          <h2 className="text-lg font-semibold">Edit reviews</h2>
         </div>
         <div className="flex-1 overflow-y-auto p-4">
           <ReviewList
@@ -106,7 +106,7 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
           {isPhotoWidget && (
             <div className="mb-3">
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Upload Photo
+                Upload photo
               </label>
               {selectedReviews.map((review) => (
                 <PhotoUpload

@@ -638,7 +638,7 @@ export default function TeamPage() {
       {isOwner && account.can_add_more && (
         <div className="bg-white border border-gray-200 rounded-lg p-6 mb-8">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">
-            Invite Team Member
+            Invite team member
           </h2>
           
           {!account.can_add_more && (
@@ -735,7 +735,7 @@ export default function TeamPage() {
                   ) : (
                     <>
                       <PlusIcon className="w-4 h-4 mr-2" />
-                      Send Invitation
+                      Send invitation
                     </>
                   )}
                 </button>
@@ -749,7 +749,7 @@ export default function TeamPage() {
       {isOwner && account.can_add_more && account.plan === 'maven' && (
         <div className="bg-white border border-gray-200 rounded-lg p-6 mb-8">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">
-            Invite Multiple Team Members
+            Invite multiple team members
           </h2>
           <p className="text-sm text-gray-600 mb-4">
             Invite several colleagues at once by entering their email addresses below.
@@ -774,7 +774,7 @@ export default function TeamPage() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
               <div className="lg:col-span-2">
                 <label htmlFor="bulkEmails" className="block text-sm font-medium text-gray-700 mb-1">
-                  Team Member Email Addresses
+                  Team member email addresses
                   <span className="text-xs text-gray-500 ml-1">(separate with commas or new lines)</span>
                 </label>
                 <textarea
@@ -794,7 +794,7 @@ export default function TeamPage() {
               <div>
                 <div className="flex items-center mb-1">
                   <label htmlFor="bulkRole" className="block text-sm font-medium text-gray-700">
-                    Role for All Members
+                    Role for all members
                   </label>
                   <select
                     id="bulkRole"
@@ -823,7 +823,7 @@ export default function TeamPage() {
                   ) : (
                     <>
                       <PlusIcon className="w-4 h-4 mr-2" />
-                      Send All Invitations
+                      Send all invitations
                     </>
                   )}
                 </button>
@@ -836,7 +836,7 @@ export default function TeamPage() {
       {/* Team Members */}
       <div className="bg-white border border-gray-200 rounded-lg p-6 mb-8">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">
-          Team Members ({regularMembers.length})
+          Team members ({regularMembers.length})
         </h2>
         
         {regularMembers.length === 0 ? (
@@ -956,7 +956,7 @@ export default function TeamPage() {
       {isOwner && invitations.length > 0 && (
         <div className="bg-white border border-gray-200 rounded-lg p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">
-            Pending Invitations ({invitations.length})
+            Pending invitations ({invitations.length})
           </h2>
           
           {/* Expiration notice */}
@@ -1067,7 +1067,7 @@ export default function TeamPage() {
       {isOwner && invitations.length === 0 && (
         <div className="bg-white border border-gray-200 rounded-lg p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">
-            Pending Invitations
+            Pending invitations
           </h2>
           <div className="text-center py-8">
             <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">

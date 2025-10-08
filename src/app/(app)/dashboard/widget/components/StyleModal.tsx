@@ -26,7 +26,7 @@ export const StyleModal: React.FC<StyleModalProps> = ({
     <DraggableModal
       isOpen={isOpen}
       onClose={onClose}
-      title="Edit Style"
+      title="Edit style"
       onSave={onSaveDesign}
       onReset={onResetDesign}
     >

@@ -395,7 +395,7 @@ export default function BusinessLocationModal({
             <div className="flex items-center gap-3">
               <Icon name="FaMapMarker" className="w-6 h-6 text-slate-blue" size={24} />
               <h2 className="text-xl font-bold text-slate-blue">
-                {location ? 'Edit Location' : 'Add New Location'}
+                {location ? 'Edit location' : 'Add new location'}
               </h2>
             </div>
             <div className="flex items-center gap-3">
@@ -405,7 +405,7 @@ export default function BusinessLocationModal({
                 disabled={isSubmitting || (!canCreateMore && !location)}
                 className="px-4 py-2 text-sm font-medium text-white bg-slate-blue rounded-md hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-blue disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isSubmitting ? 'Saving...' : (location ? 'Update Location' : 'Create Location')}
+                {isSubmitting ? 'Saving...' : (location ? 'Update location' : 'Create location')}
               </button>
               <button
                 onClick={onClose}
@@ -443,7 +443,7 @@ export default function BusinessLocationModal({
               {/* Location Photo/Logo Upload */}
               <div className="mb-6">
                 <label className="block text-sm font-medium text-gray-700 mb-3">
-                  Location Photo/Logo
+                  Location photo/logo
                 </label>
                 <div className="flex items-center gap-6">
                   {/* Photo Preview */}
@@ -481,7 +481,7 @@ export default function BusinessLocationModal({
                       className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-blue cursor-pointer"
                     >
                       <Icon name="FaImage" className="w-4 h-4 mr-2" style={{ color: "#1A237E" }} size={16} />
-                      Upload Photo
+                      Upload photo
                     </label>
                     {locationPhotoError && (
                       <p className="mt-2 text-sm text-red-600">{locationPhotoError}</p>
@@ -494,7 +494,7 @@ export default function BusinessLocationModal({
               <div className="grid grid-cols-1 gap-4">
                 <div>
                   <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-                    Location Name *
+                    Location name *
                   </label>
                   <input
                     id="name"
@@ -514,7 +514,7 @@ export default function BusinessLocationModal({
                 <div className="grid grid-cols-1 gap-4">
                   <div>
                     <label htmlFor="address_street" className="block text-sm font-medium text-gray-700 mb-1">
-                      Street Address
+                      Street address
                     </label>
                     <input
                       id="address_street"
@@ -591,7 +591,7 @@ export default function BusinessLocationModal({
               <div className="space-y-4">
                 <div>
                   <label htmlFor="business_description" className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1">
-                    Business Description
+                    Business description
                     <RobotTooltip text="This helps AI generate better prompts for your location." />
                   </label>
                   <textarea
@@ -606,7 +606,7 @@ export default function BusinessLocationModal({
 
                 <div>
                   <label htmlFor="unique_aspects" className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1">
-                    Unique Aspects
+                    Unique aspects
                     <RobotTooltip text="What makes this location special? This helps AI generate more personalized prompts." />
                   </label>
                   <textarea
@@ -622,7 +622,7 @@ export default function BusinessLocationModal({
                 <div className="grid grid-cols-1 gap-4">
                   <div>
                     <label htmlFor="ai_dos" className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1">
-                      AI Dos
+                      AI dos
                       <RobotTooltip text="What should AI emphasize when generating prompts for this location?" />
                     </label>
                     <textarea
@@ -636,7 +636,7 @@ export default function BusinessLocationModal({
                   </div>
                   <div>
                     <label htmlFor="ai_donts" className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1">
-                      AI Don'ts
+                      AI don'ts
                       <RobotTooltip text="What should AI avoid when generating prompts for this location?" />
                     </label>
                     <textarea
@@ -752,7 +752,7 @@ export default function BusinessLocationModal({
                 disabled={isSubmitting || (!canCreateMore && !location)}
                 className="px-4 py-2 text-sm font-medium text-white bg-slate-blue rounded-md hover:bg-slate-blue/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-blue disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isSubmitting ? 'Saving...' : (location ? 'Update Location' : 'Create Location')}
+                {isSubmitting ? 'Saving...' : (location ? 'Update location' : 'Create location')}
               </button>
             </div>
           </div>

@@ -787,7 +787,7 @@ export function ReviewManagementModal({
           <span>Manage reviews</span>
           {hasUnsavedChanges && (
             <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-              Unsaved Changes
+              Unsaved changes
             </span>
           )}
           {widgetType && (
@@ -870,7 +870,7 @@ export function ReviewManagementModal({
                     onChange={(e) => setReviewSort(e.target.value as "recent" | "alphabetical")}
                     className="ml-4 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
-                    <option value="recent">Most Recent</option>
+                    <option value="recent">Most recent</option>
                     <option value="alphabetical">Alphabetical</option>
                   </select>
                 </div>
@@ -1168,7 +1168,7 @@ export function ReviewManagementModal({
                         {widgetType === 'photo' && (
                           <div className="mt-4 p-3 bg-gray-50 rounded-lg border">
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                              Review Photo
+                              Review photo
                             </label>
                             <PhotoUpload
                               reviewId={review.review_id}
@@ -1222,7 +1222,7 @@ export function ReviewManagementModal({
                 </svg>
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-gray-900">Character Limit Exceeded</h3>
+                <h3 className="text-lg font-semibold text-gray-900">Character limit exceeded</h3>
               </div>
             </div>
             

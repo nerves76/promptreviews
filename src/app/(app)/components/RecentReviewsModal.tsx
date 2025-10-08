@@ -152,7 +152,7 @@ export default function RecentReviewsModal({
                 fontFamily: businessProfile?.primary_font || "Inter"
               }}
             >
-              Recent Reviews
+              Recent reviews
             </h2>
           </div>
           <p className="text-gray-600 text-sm mt-2">

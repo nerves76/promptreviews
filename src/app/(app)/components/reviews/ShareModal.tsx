@@ -264,7 +264,7 @@ export default function ShareModal({
             {/* Header */}
             <div className="flex items-center justify-between p-6 border-b border-white/20 relative z-10">
               <Dialog.Title className="text-xl font-semibold text-white drop-shadow-md">
-                {selectedPlatform ? 'Share Review' : 'Share on Social Media'}
+                {selectedPlatform ? 'Share review' : 'Share on social media'}
               </Dialog.Title>
             </div>
 
@@ -287,7 +287,7 @@ export default function ShareModal({
                       <div className="flex items-center gap-2">
                         <Icon name="FaHistory" className="w-4 h-4 text-gray-600" size={16} />
                         <span className="text-sm font-medium text-gray-700">
-                          Share History ({shareHistory.length})
+                          Share history ({shareHistory.length})
                         </span>
                       </div>
                       <Icon
@@ -375,7 +375,7 @@ export default function ShareModal({
                 {/* Review Preview */}
                 <div className="mt-8 p-4 bg-white rounded-lg border border-gray-200">
                   <h3 className="text-sm font-semibold text-gray-700 mb-2">
-                    Review Preview
+                    Review preview
                   </h3>
                   <div className="space-y-2">
                     <p className="text-sm text-gray-600">
@@ -426,7 +426,7 @@ export default function ShareModal({
                 {/* Share Text - Editable */}
                 <div>
                   <label className="block text-sm font-medium text-white mb-2">
-                    Share Text (editable)
+                    Share text (editable)
                   </label>
                   <textarea
                     value={shareText}
@@ -459,7 +459,7 @@ export default function ShareModal({
                 {dynamicImageUrl && (
                   <div>
                     <label className="block text-sm font-medium text-white mb-2">
-                      Share Image Preview
+                      Share image preview
                     </label>
                     {imageLoading && !imageError && (
                       <div className="w-full max-w-md h-48 bg-white/5 rounded-lg border border-white/20 flex items-center justify-center backdrop-blur-sm">
@@ -509,7 +509,7 @@ export default function ShareModal({
                           className="mt-3 w-full max-w-md px-4 py-2 border-2 border-white/40 text-white hover:bg-white/10 rounded-lg font-medium text-sm flex items-center justify-center gap-2 transition-colors"
                         >
                           <Icon name="FaDownload" className="w-4 h-4" size={16} />
-                          Download Image
+                          Download image
                         </button>
                         {selectedPlatform === 'linkedin' && (
                           <p className="text-xs text-white/70 mt-2">
@@ -579,7 +579,7 @@ export default function ShareModal({
                   }
                 `}
               >
-                Share Now
+                Share now
               </button>
             </div>
           )}

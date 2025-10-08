@@ -68,7 +68,7 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
             {!showPreview && (
               <div className="mb-6">
                 <h4 className="text-xl font-bold text-slate-blue mb-2">
-                  Turn Everyday Moments Into 5-Star Reviews
+                  Turn everyday moments into 5-star reviews
                 </h4>
                 <p className="text-sm text-gray-700 mb-3 leading-tight">
                   Make it easy for happy customers and clients to share their experience—right when it matters most. A simple scan is all it takes. Frame it, wear it, prop it up on a table—wherever you show up, let your QR code invite the feedback you've earned.
@@ -92,7 +92,7 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
             {/* Frame Size Selector - Always visible */}
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Frame Size
+                Frame size
               </label>
               <select
                 value={selectedFrameSize.label}
@@ -117,7 +117,7 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
                 {/* Headline Input */}
                 <div className="mb-4 mt-6">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Headline Text
+                    Headline text
                   </label>
                   <textarea
                     value={headline}
@@ -136,7 +136,7 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
                 <div className="grid grid-cols-2 gap-4 mb-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Star Color
+                      Star color
                     </label>
                     <input
                       type="color"
@@ -147,7 +147,7 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Main Color
+                      Main color
                     </label>
                     <input
                       type="color"
@@ -167,13 +167,13 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
                       onChange={(e) => setShowStars(e.target.checked)}
                       className="mr-2"
                     />
-                    <span className="text-sm font-medium text-gray-700">Show Stars</span>
+                    <span className="text-sm font-medium text-gray-700">Show stars</span>
                   </label>
                 </div>
 
                 {/* Print Note */}
                 <div className="text-xs text-gray-500 bg-gray-50 p-3 rounded-md">
-                  <p className="font-medium mb-1">Printing Tips:</p>
+                  <p className="font-medium mb-1">Printing tips:</p>
                   <p>• Select your desired frame size above</p>
                   <p>• Print at 300 DPI for best quality</p>
                   {['4x6"', '5x7"', '5x8"'].includes(selectedFrameSize.label) && (
@@ -199,7 +199,7 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
               }}
               className="w-full bg-slate-blue text-white py-2 px-4 rounded-md hover:bg-slate-blue/90 transition-colors"
             >
-              {!showPreview ? 'Generate QR Code' : 'Download QR Code'}
+              {!showPreview ? 'Generate QR code' : 'Download QR code'}
             </button>
           </div>
         </div>
@@ -232,7 +232,7 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl 
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V6a1 1 0 00-1-1H5a1 1 0 00-1 1v1a1 1 0 001 1zm12 0h2a1 1 0 001-1V6a1 1 0 00-1-1h-2a1 1 0 00-1 1v1a1 1 0 001 1zM5 20h2a1 1 0 001-1v-1a1 1 0 00-1-1H5a1 1 0 00-1 1v1a1 1 0 001 1z" />
                   </svg>
                 </div>
-                <p className="text-gray-500">Click "Generate QR Code" to see a preview</p>
+                <p className="text-gray-500">Click "Generate QR code" to see a preview</p>
               </div>
             </div>
           )}

@@ -143,7 +143,7 @@ function TeamAcceptContent() {
             onClick={() => router.push('/dashboard')}
             className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
           >
-            Go to Dashboard
+            Go to dashboard
           </button>
         </div>
       </div>
@@ -168,13 +168,13 @@ function TeamAcceptContent() {
               onClick={() => router.push(`/auth/clear-session?invitation=${encodeURIComponent(token || '')}`)}
               className="w-full bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
             >
-              Log Out & Continue
+              Log out & continue
             </button>
             <button
               onClick={() => router.push('/dashboard')}
               className="w-full bg-gray-200 text-gray-700 px-6 py-2 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
             >
-              Go to Dashboard Instead
+              Go to dashboard instead
             </button>
           </div>
         </div>
@@ -195,7 +195,7 @@ function TeamAcceptContent() {
             onClick={() => router.push('/dashboard')}
             className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
           >
-            Go to Dashboard
+            Go to dashboard
           </button>
         </div>
       </div>
@@ -214,7 +214,7 @@ function TeamAcceptContent() {
             />
           </div>
           <CheckCircleIcon className="w-16 h-16 text-green-500 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Welcome to the Team!</h1>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Welcome to the team!</h1>
           <p className="text-gray-600 mb-6">
             You've successfully joined the team. Redirecting you to the dashboard...
           </p>
@@ -237,7 +237,7 @@ function TeamAcceptContent() {
             onClick={() => router.push('/dashboard')}
             className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
           >
-            Go to Dashboard
+            Go to dashboard
           </button>
         </div>
       </div>
@@ -294,7 +294,7 @@ function TeamAcceptContent() {
             disabled={accepting}
             className="w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
           >
-            {accepting ? 'Accepting...' : 'Accept Invitation'}
+            {accepting ? 'Accepting...' : 'Accept invitation'}
           </button>
 
           <button

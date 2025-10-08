@@ -63,7 +63,7 @@ export default async function UnsubscribePage({ params }: Props) {
           />
         </div>
         <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-gray-900">
-          Unsubscribed Successfully
+          Unsubscribed successfully
         </h2>
         <p className="mt-2 text-center text-sm text-gray-600">
           You won't receive any more emails from our Google Business Profile Optimizer series.

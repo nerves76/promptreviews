@@ -138,7 +138,7 @@ export default function PricingModal({
                     currentPlan === "free" ||
                     currentPlan === "none") && (
                     <span className="absolute -top-5 left-1/2 -translate-x-1/2 bg-yellow-400 text-slate-900 font-bold px-4 py-1 rounded-full text-xs shadow-lg z-10 border border-yellow-300">
-                      14-day Free Trial
+                      14-day free trial
                     </span>
                   )}
                 <h3 className={`text-3xl font-bold mb-2 ${tier.text}`}>

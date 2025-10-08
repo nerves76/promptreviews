@@ -95,7 +95,7 @@ export default function KeywordInspirationModal({
                 fontFamily: businessProfile?.primary_font || "Inter"
               }}
             >
-              Keyword Inspiration
+              Keyword inspiration
             </h2>
           </div>
           <p className="text-sm mt-2" style={{ color: businessProfile?.card_text || "#6B7280" }}>

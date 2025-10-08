@@ -91,7 +91,7 @@ export default function HelpModal({
               </div>
               <div>
                 <h2 className="text-lg md:text-xl font-semibold text-white">
-                  Help & Support
+                  Help & support
                 </h2>
                 <p className="text-xs text-white/80 hidden md:block">
                   Get help, find tutorials, or report issues
@@ -155,7 +155,7 @@ export default function HelpModal({
             >
               <div className="flex items-center justify-center md:justify-start space-x-2">
                 <Icon name="FaCommentDots" className="w-4 h-4" size={16} />
-                <span>Report Issue</span>
+                <span>Report issue</span>
               </div>
             </button>
           </div>

@@ -467,15 +467,15 @@ export default function ArticleEditorPage() {
               </label>
               <Input
                 type="text"
-                value={article.metadata.seo_title || ""}
+                value={article.metadata.seo_title || article.title || ""}
                 onChange={(e) =>
                   handleMetadataChange("seo_title", e.target.value)
                 }
-                placeholder={article.title || "Custom title for search engines"}
+                placeholder="Custom title for search engines"
                 maxLength={60}
               />
               <p className="text-xs text-gray-500 mt-1">
-                {article.metadata.seo_title?.length || 0}/60 characters (optimal: 50-60)
+                {(article.metadata.seo_title || article.title || "").length}/60 characters (optimal: 50-60)
               </p>
             </div>
 
@@ -486,15 +486,15 @@ export default function ArticleEditorPage() {
               <textarea
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 rows={3}
-                value={article.metadata.seo_description || ""}
+                value={article.metadata.seo_description || article.metadata.description || ""}
                 onChange={(e) =>
                   handleMetadataChange("seo_description", e.target.value)
                 }
-                placeholder={article.metadata.description || "Custom description for search results"}
+                placeholder="Custom description for search results"
                 maxLength={160}
               />
               <p className="text-xs text-gray-500 mt-1">
-                {article.metadata.seo_description?.length || 0}/160 characters (optimal: 120-160)
+                {(article.metadata.seo_description || article.metadata.description || "").length}/160 characters (optimal: 120-160)
               </p>
             </div>
 

@@ -225,14 +225,14 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl,
             {!showPreview && (
               <div className="mb-6">
                 <h4 className="text-xl font-bold text-slate-blue mb-2">
-                  Turn Everyday Moments Into 5-Star Reviews
+                  Turn everyday moments into 5-star reviews
                 </h4>
                 <p className="text-sm text-gray-700 mb-3 leading-tight">
                   Make it easy for happy customers and clients to share their experience—right when it matters most. A simple scan is all it takes. Frame it, wear it, prop it up on a table—wherever you show up, let your QR code invite the feedback you've earned.
                 </p>
                 
                 <div className="mb-3">
-                  <h5 className="font-semibold text-gray-800 mb-1 text-sm">Display Ideas:</h5>
+                  <h5 className="font-semibold text-gray-800 mb-1 text-sm">Display ideas:</h5>
                   <ul className="text-xs text-gray-600 space-y-0.5">
                     <li>• Framed countertop signs</li>
                     <li>• Table tents</li>
@@ -333,7 +333,7 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl,
                 {/* Font Size Control */}
                 <div className="mb-4">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Headline Font Size: {fontSize}px
+                    Headline font size: {fontSize}px
                   </label>
                   <input
                     type="range"
@@ -424,7 +424,7 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl,
                         {/* Star Color */}
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Star Color
+                            Star color
                           </label>
                           <input
                             type="color"
@@ -437,7 +437,7 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl,
                         {/* Star Size */}
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Star Size: {starSize}px
+                            Star size: {starSize}px
                           </label>
                           <input
                             type="range"
@@ -481,7 +481,7 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl,
                         {/* NFC Text Size */}
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Text Size: {nfcTextSize}px
+                            Text size: {nfcTextSize}px
                           </label>
                           <input
                             type="range"
@@ -537,13 +537,13 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl,
                           ? "Your logo file is invalid. Please upload a new logo in "
                           : "You must upload your logo for this feature in "
                         }
-                        <a 
-                          href="/dashboard/business-profile" 
+                        <a
+                          href="/dashboard/business-profile"
                           className="text-blue-600 underline hover:text-blue-800"
                           target="_blank"
                           rel="noopener noreferrer"
                         >
-                          Your Business
+                          Your business
                         </a>
                         .
                       </p>
@@ -554,12 +554,12 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl,
                 {/* Decorative Icons Controls */}
                 {showDecorativeIcons && (
                   <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                    <h4 className="text-sm font-medium text-gray-700 mb-3">Decorative Icons</h4>
+                    <h4 className="text-sm font-medium text-gray-700 mb-3">Decorative icons</h4>
                     
                     {/* Icon Selection with same UI as falling stars */}
                     <div className="mb-4">
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Icon Type
+                        Icon type
                       </label>
                       <div className="flex items-center gap-4">
                         <div className="flex items-center justify-center w-12 h-12 rounded-full border-2 border-blue-500 bg-blue-50">
@@ -585,7 +585,7 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl,
                     {/* Icon Count Control */}
                     <div className="mb-4">
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Number of Icons: {decorativeIconCount}
+                        Number of icons: {decorativeIconCount}
                       </label>
                       <input
                         type="range"
@@ -606,7 +606,7 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl,
                     {/* Icon Size Control - Updated to 600px max */}
                     <div className="mb-4">
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Icon Size: {decorativeIconSize}px
+                        Icon size: {decorativeIconSize}px
                       </label>
                       <input
                         type="range"
@@ -629,7 +629,7 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl,
                     {/* Decorative Icon Color */}
                     <div className="mb-4">
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Icon Color
+                        Icon color
                       </label>
                       <input
                         type="color"
@@ -669,19 +669,19 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl,
                 {/* Logo Controls */}
                 {showClientLogo && logoUrl && logoUrl.trim() !== '' && (
                   <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                    <h4 className="text-sm font-medium text-gray-700 mb-3">Logo Settings</h4>
+                    <h4 className="text-sm font-medium text-gray-700 mb-3">Logo settings</h4>
                     
                     {/* Quality Warning */}
                     <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
                       <p className="text-xs text-amber-700">
                         If your logo appears pixelated or blurry, consider uploading a higher quality logo in{" "}
-                        <a 
-                          href="/dashboard/business-profile" 
+                        <a
+                          href="/dashboard/business-profile"
                           className="text-amber-800 underline hover:text-amber-900"
                           target="_blank"
                           rel="noopener noreferrer"
                         >
-                          Your Business
+                          Your business
                         </a>
                         .
                       </p>
@@ -706,7 +706,7 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl,
                     {/* Logo Size Control */}
                     <div className="mb-4">
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Logo Size: {logoSize}px
+                        Logo size: {logoSize}px
                       </label>
                       <input
                         type="range"
@@ -730,7 +730,7 @@ export default function QRCodeModal({ isOpen, onClose, url, clientName, logoUrl,
 
                 {/* Print Note */}
                 <div className="text-xs text-gray-500 bg-gray-50 p-3 rounded-md">
-                  <p className="font-medium mb-1">Printing Tips:</p>
+                  <p className="font-medium mb-1">Printing tips:</p>
                   <p>• <strong>IMPORTANT: Print at 100% scale - do NOT select "Fit to Page"</strong></p>
                   <p>• PDFs are letter-size (8.5" x 11") with QR codes centered at actual dimensions</p>
                   <p>• Generated at 600 DPI for crisp, professional printing</p>

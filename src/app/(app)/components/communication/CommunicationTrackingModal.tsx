@@ -220,7 +220,7 @@ export default function CommunicationTrackingModal({
                 Share Prompt Page with {contact.first_name} {contact.last_name}
               </Dialog.Title>
               <p className="text-sm text-gray-500 mt-1">
-                Send a review request via SMS or Email
+                Send a review request via SMS or email
               </p>
             </div>
             <button
@@ -326,7 +326,7 @@ export default function CommunicationTrackingModal({
             {/* Follow-up Reminder */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Set Follow-up Reminder
+                Set follow-up reminder
               </label>
               <select
                 value={followUpReminder}
@@ -398,7 +398,7 @@ export default function CommunicationTrackingModal({
                     }`}
                   >
                     <Icon name={copiedToClipboard ? 'FaCheck' : 'FaCopy'} className="w-4 h-4" />
-                    {copiedToClipboard ? 'Copied!' : 'Copy Only'}
+                    {copiedToClipboard ? 'Copied!' : 'Copy only'}
                   </Button>
                 )}
                 
@@ -420,7 +420,7 @@ export default function CommunicationTrackingModal({
                   ) : (
                     <>
                       <Icon name={activeTab === 'sms' ? 'FaComments' : 'FaEnvelope'} className="w-4 h-4" />
-                      {activeTab === 'email' ? 'Open in Email' : 'Copy & Send'}
+                      {activeTab === 'email' ? 'Open in email' : 'Copy and send'}
                     </>
                   )}
                 </Button>

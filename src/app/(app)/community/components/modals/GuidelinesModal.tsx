@@ -137,28 +137,28 @@ export function GuidelinesModal({ isOpen, requireAcceptance, onAccept, onClose, 
 
             <h3 className="font-bold text-lg mb-3">Community Guidelines</h3>
 
-            <h4 className="font-semibold mb-2">1. Be Respectful</h4>
+            <h4 className="font-semibold mb-2">1. Be respectful</h4>
             <ul className="mb-4">
               <li>Treat all community members with courtesy and professionalism</li>
               <li>No harassment, hate speech, or personal attacks</li>
               <li>Disagreements are okay - keep them constructive</li>
             </ul>
 
-            <h4 className="font-semibold mb-2">2. No Spam</h4>
+            <h4 className="font-semibold mb-2">2. No spam</h4>
             <ul className="mb-4">
               <li>Don't post repetitive or promotional content outside the Promote channel</li>
               <li>No excessive cross-posting between channels</li>
               <li>Avoid off-topic link sharing</li>
             </ul>
 
-            <h4 className="font-semibold mb-2">3. Respect Privacy</h4>
+            <h4 className="font-semibold mb-2">3. Respect privacy</h4>
             <ul className="mb-4">
               <li>Don't share other businesses' data or confidential information</li>
               <li>Be mindful of what you share publicly</li>
               <li>Don't share personal contact information without permission</li>
             </ul>
 
-            <h4 className="font-semibold mb-2">4. Follow the Law</h4>
+            <h4 className="font-semibold mb-2">4. Follow the law</h4>
             <ul className="mb-4">
               <li>No illegal content or activities</li>
               <li>Respect intellectual property rights</li>
@@ -197,7 +197,7 @@ export function GuidelinesModal({ isOpen, requireAcceptance, onAccept, onClose, 
 
               <div className="flex justify-between">
                 <Button onClick={handleDecline} variant="outline">
-                  Back to Dashboard
+                  Back to dashboard
                 </Button>
                 <Button
                   onClick={handleAccept}
@@ -205,7 +205,7 @@ export function GuidelinesModal({ isOpen, requireAcceptance, onAccept, onClose, 
                   disabled={!accepted}
                   className="disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Accept & Join Community
+                  Accept & join community
                 </Button>
               </div>
             </div>

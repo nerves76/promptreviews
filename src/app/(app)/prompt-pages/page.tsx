@@ -897,7 +897,7 @@ function PromptPagesContent() {
                         className="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-500/20 backdrop-blur-sm text-blue-800 rounded hover:bg-blue-500/30 text-sm font-medium shadow border border-white/30 h-9 align-middle whitespace-nowrap"
                       >
                         <Icon name="FaEnvelope" className="w-5 h-5" size={20} />
-                        Send Email
+                        Send email
                       </button>
 
                       {copySuccess && (
@@ -961,7 +961,7 @@ function PromptPagesContent() {
                         onClick={() => router.push('/upgrade')}
                         className="bg-slate-blue text-white px-6 py-2 rounded hover:bg-slate-blue/90 font-medium transition"
                       >
-                        Upgrade Now
+                        Upgrade now
                       </button>
                     </div>
                   </div>
@@ -1005,7 +1005,7 @@ function PromptPagesContent() {
                         onClick={() => router.push('/upgrade')}
                         className="bg-slate-blue text-white px-6 py-2 rounded hover:bg-slate-blue/90 font-medium transition"
                       >
-                        Upgrade Now
+                        Upgrade now
                       </button>
                     </div>
                   </div>
@@ -1017,7 +1017,7 @@ function PromptPagesContent() {
                   <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
                     <div className="flex items-center justify-between">
                       <div>
-                        <h3 className="font-semibold text-blue-900">Location Limits</h3>
+                        <h3 className="font-semibold text-blue-900">Location limits</h3>
                         <p className="text-sm text-blue-700">
                           {locationLimits.current} of {locationLimits.max} locations used
                         </p>
@@ -1212,7 +1212,7 @@ function PromptPagesContent() {
                 )}
 
                 <div className="flex items-center justify-between p-3 bg-amber-500/30 backdrop-blur-sm rounded-lg border border-amber-300/30">
-                  <span className="text-sm font-medium text-white">View Prompt Page</span>
+                  <span className="text-sm font-medium text-white">View prompt page</span>
                   <a
                     href={postSaveData.url}
                     target="_blank"
@@ -1244,7 +1244,7 @@ function PromptPagesContent() {
                 <Icon name="FaStore" className="h-6 w-6 text-slate-blue" size={24} />
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                Business Profile Required
+                Business profile required
               </h3>
               <p className="text-sm text-gray-600">
                 Before we get started with Prompt Pages, we need some more info about your business.
@@ -1256,13 +1256,13 @@ function PromptPagesContent() {
                 href="/dashboard/business-profile"
                 className="bg-slate-blue text-white px-6 py-3 rounded-lg hover:bg-slate-blue/90 transition-colors font-medium"
               >
-                Go to Your Business
+                Go to your business
               </Link>
               <button
                 onClick={() => router.push('/dashboard')}
                 className="text-gray-500 hover:text-gray-700 px-6 py-2 transition-colors"
               >
-                Back to Dashboard
+                Back to dashboard
               </button>
             </div>
           </div>

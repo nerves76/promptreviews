@@ -160,7 +160,7 @@ export default function AccountReactivation({ onReactivated, onSkip }: Reactivat
           <div className="text-center mb-8">
             <div className="text-6xl mb-4">👋</div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              Welcome Back!
+              Welcome back!
             </h1>
             <p className="text-gray-600">
               We're happy to see you again
@@ -250,7 +250,7 @@ export default function AccountReactivation({ onReactivated, onSkip }: Reactivat
                       Reactivating...
                     </span>
                   ) : (
-                    <>Reactivate Account & Choose Plan</>
+                    <>Reactivate account & choose plan</>
                   )}
                 </button>
                 
@@ -258,7 +258,7 @@ export default function AccountReactivation({ onReactivated, onSkip }: Reactivat
                   onClick={handleCreateNew}
                   className="w-full py-3 px-4 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors"
                 >
-                  Start Fresh with New Account
+                  Start fresh with new account
                 </button>
               </>
             ) : (
@@ -266,7 +266,7 @@ export default function AccountReactivation({ onReactivated, onSkip }: Reactivat
                 onClick={handleCreateNew}
                 className="w-full py-3 px-4 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
               >
-                Create New Account
+                Create new account
               </button>
             )}
             

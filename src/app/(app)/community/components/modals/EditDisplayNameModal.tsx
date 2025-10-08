@@ -79,14 +79,14 @@ export function EditDisplayNameModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
       <div className="bg-white/10 backdrop-blur-xl rounded-xl border border-white/20 max-w-md w-full p-6">
-        <h2 className="text-2xl font-bold text-white mb-4">Edit Community Profile</h2>
+        <h2 className="text-2xl font-bold text-white mb-4">Edit community profile</h2>
 
         <p className="text-white/70 text-sm mb-6">
           Customize how you appear in the community. Your display name and business are shown on all your posts and comments.
         </p>
 
         <div className="mb-4">
-          <label className="block text-white/70 text-sm font-medium mb-2">Display Name</label>
+          <label className="block text-white/70 text-sm font-medium mb-2">Display name</label>
           <input
             type="text"
             value={displayName}
@@ -99,7 +99,7 @@ export function EditDisplayNameModal({
         </div>
 
         <div className="mb-6">
-          <label className="block text-white/70 text-sm font-medium mb-2">Business Name</label>
+          <label className="block text-white/70 text-sm font-medium mb-2">Business name</label>
           {availableBusinessNames.length > 1 ? (
             <select
               value={businessName}
@@ -155,7 +155,7 @@ export function EditDisplayNameModal({
             disabled={isSaving}
             className="flex-1 px-4 py-2 bg-[#452F9F] text-white rounded-lg hover:bg-[#5a3fbf] transition-colors disabled:opacity-50"
           >
-            {isSaving ? 'Saving...' : 'Save Changes'}
+            {isSaving ? 'Saving...' : 'Save changes'}
           </button>
         </div>
       </div>
