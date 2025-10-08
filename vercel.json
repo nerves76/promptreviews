@@ -30,6 +30,10 @@
     {
       "path": "/api/cron/send-optimizer-emails",
       "schedule": "0 */2 * * *"
+    },
+    {
+      "path": "/api/cron/health-monitor",
+      "schedule": "*/30 * * * *"
     }
   ],
   "buildCommand": "npm run build",
