@@ -7,12 +7,12 @@ import { Button } from "@/app/(app)/components/ui/button";
 import { Input } from "@/app/(app)/components/ui/input";
 import PageCard from "@/app/(app)/components/PageCard";
 import StandardLoader from "@/app/(app)/components/StandardLoader";
-import HelpContentBreadcrumbs from "../../components/HelpContentBreadcrumbs";
-import DeployDocsButton from "../../components/DeployDocsButton";
+import HelpContentBreadcrumbs from "../components/HelpContentBreadcrumbs";
+import DeployDocsButton from "../components/DeployDocsButton";
 import MarkdownEditor, {
   MarkdownPreview,
-} from "../../components/MarkdownEditor";
-import ArticleContextsManager from "../../components/ArticleContextsManager";
+} from "../components/MarkdownEditor";
+import ArticleContextsManager from "../components/ArticleContextsManager";
 
 interface ArticleMetadata {
   description?: string;
