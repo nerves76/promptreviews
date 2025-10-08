@@ -472,10 +472,10 @@ export default function ArticleEditorPage() {
                   handleMetadataChange("seo_title", e.target.value)
                 }
                 placeholder="Custom title for search engines"
-                maxLength={60}
+                maxLength={100}
               />
               <p className="text-xs text-gray-500 mt-1">
-                {(article.metadata.seo_title || article.title || "").length}/60 characters (optimal: 50-60)
+                {(article.metadata.seo_title || article.title || "").length}/100 characters (optimal: 50-60)
               </p>
             </div>
 
