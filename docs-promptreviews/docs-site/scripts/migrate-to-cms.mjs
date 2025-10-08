@@ -161,6 +161,30 @@ async function extractPageContent(pagePath) {
       metadata.overview_markdown = convertJSXToMarkdown(overviewMatch[1]);
     }
 
+    // Extract actual markdown content for the article
+    let markdownContent = '';
+
+    // Try to find content passed to MarkdownRenderer
+    const markdownMatch = content.match(/content=\{`([\s\S]*?)`\}/);
+    if (markdownMatch) {
+      markdownContent = markdownMatch[1].trim();
+    }
+
+    // If no markdown found, use overview content if available
+    if (!markdownContent && metadata.overview_markdown) {
+      markdownContent = metadata.overview_markdown;
+    }
+
+    // If still no content, try to extract from return statement
+    if (!markdownContent) {
+      const returnMatch = content.match(/<MarkdownRenderer[\s\S]*?content=\{`([\s\S]*?)`\}/);
+      if (returnMatch) {
+        markdownContent = returnMatch[1].trim();
+      }
+    }
+
+    metadata.extracted_content = markdownContent;
+
     return metadata;
   } catch (error) {
     console.error(`Error reading ${fullPath}:`, error.message);
@@ -240,10 +264,13 @@ function convertJSXToMarkdown(jsx) {
 async function createArticle(slug, title, metadata) {
   const url = `${MAIN_APP_URL}/api/admin/help-content`;
 
+  // Use extracted content if available, otherwise use placeholder
+  const content = metadata.extracted_content || `# ${title}\n\nContent migrated from static page.`;
+
   const article = {
     slug,
     title,
-    content: `# ${title}\n\nContent migrated from static page.`,
+    content,
     metadata: {
       ...metadata,
       seo_title: metadata.seo_title || metadata.title || title,
@@ -288,8 +315,12 @@ async function createArticle(slug, title, metadata) {
 async function updateArticle(slug, title, metadata) {
   const url = `${MAIN_APP_URL}/api/admin/help-content/${slug}`;
 
+  // Use extracted content if available
+  const content = metadata.extracted_content || `# ${title}\n\nContent migrated from static page.`;
+
   const updates = {
     title,
+    content,
     metadata: {
       ...metadata,
       seo_title: metadata.seo_title || metadata.title || title,
