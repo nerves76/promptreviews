@@ -359,11 +359,11 @@ export default function HelpContentPage() {
                   <tr>
                     <th
                       className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
-                      onClick={() => handleSort("published_at")}
+                      onClick={() => handleSort("updated_at")}
                     >
                       <div className="flex items-center gap-1">
-                        Published Date
-                        {sortField === "published_at" && (
+                        Last Updated
+                        {sortField === "updated_at" && (
                           <span>{sortDirection === "asc" ? "↑" : "↓"}</span>
                         )}
                       </div>
@@ -375,6 +375,31 @@ export default function HelpContentPage() {
                       <div className="flex items-center gap-1">
                         Title
                         {sortField === "title" && (
+                          <span>{sortDirection === "asc" ? "↑" : "↓"}</span>
+                        )}
+                      </div>
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Actions
+                    </th>
+                    <th
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
+                      onClick={() => handleSort("status")}
+                    >
+                      <div className="flex items-center gap-1">
+                        Status
+                        {sortField === "status" && (
+                          <span>{sortDirection === "asc" ? "↑" : "↓"}</span>
+                        )}
+                      </div>
+                    </th>
+                    <th
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
+                      onClick={() => handleSort("published_at")}
+                    >
+                      <div className="flex items-center gap-1">
+                        Published Date
+                        {sortField === "published_at" && (
                           <span>{sortDirection === "asc" ? "↑" : "↓"}</span>
                         )}
                       </div>
@@ -392,17 +417,6 @@ export default function HelpContentPage() {
                     </th>
                     <th
                       className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
-                      onClick={() => handleSort("status")}
-                    >
-                      <div className="flex items-center gap-1">
-                        Status
-                        {sortField === "status" && (
-                          <span>{sortDirection === "asc" ? "↑" : "↓"}</span>
-                        )}
-                      </div>
-                    </th>
-                    <th
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
                       onClick={() => handleSort("category")}
                     >
                       <div className="flex items-center gap-1">
@@ -412,20 +426,6 @@ export default function HelpContentPage() {
                         )}
                       </div>
                     </th>
-                    <th
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
-                      onClick={() => handleSort("updated_at")}
-                    >
-                      <div className="flex items-center gap-1">
-                        Last Updated
-                        {sortField === "updated_at" && (
-                          <span>{sortDirection === "asc" ? "↑" : "↓"}</span>
-                        )}
-                      </div>
-                    </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Actions
-                    </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
@@ -433,7 +433,7 @@ export default function HelpContentPage() {
                     <tr key={article.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-500">
-                          {formatDate(article.published_at)}
+                          {formatDate(article.updated_at)}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -441,36 +441,8 @@ export default function HelpContentPage() {
                           {article.title}
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-500">
-                          {article.slug}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span
-                          className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                            article.status === "published"
-                              ? "bg-green-100 text-green-800"
-                              : article.status === "draft"
-                              ? "bg-yellow-100 text-yellow-800"
-                              : "bg-gray-100 text-gray-800"
-                          }`}
-                        >
-                          {article.status}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-500">
-                          {article.metadata?.category || "-"}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-500">
-                          {formatDate(article.updated_at)}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <div className="flex items-center justify-end gap-2">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <div className="flex items-center gap-2">
                           <Button
                             variant="ghost"
                             size="sm"
@@ -517,6 +489,34 @@ export default function HelpContentPage() {
                               Delete
                             </Button>
                           )}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span
+                          className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                            article.status === "published"
+                              ? "bg-green-100 text-green-800"
+                              : article.status === "draft"
+                              ? "bg-yellow-100 text-yellow-800"
+                              : "bg-gray-100 text-gray-800"
+                          }`}
+                        >
+                          {article.status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-500">
+                          {formatDate(article.published_at)}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-500">
+                          {article.slug}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-500">
+                          {article.metadata?.category || "-"}
                         </div>
                       </td>
                     </tr>
