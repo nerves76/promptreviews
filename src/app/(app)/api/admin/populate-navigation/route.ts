@@ -151,31 +151,22 @@ export async function GET() {
         order_index: 14
       },
       {
-        title: 'API',
-        icon_name: 'Terminal',
-        order_index: 15,
-        children: [
-          { title: 'Overview', href: '/docs/api', order_index: 1 },
-          { title: 'API Reference', href: '/docs/api/reference', order_index: 2 },
-        ]
-      },
-      {
         title: 'Advanced',
         icon_name: 'Wrench',
         href: '/docs/advanced',
-        order_index: 16
+        order_index: 15
       },
       {
         title: 'Troubleshooting',
         icon_name: 'AlertCircle',
         href: '/docs/troubleshooting',
-        order_index: 17
+        order_index: 16
       },
       {
         title: 'Help',
         icon_name: 'HelpCircle',
         href: '/docs/help',
-        order_index: 18
+        order_index: 17
       },
     ];
 
