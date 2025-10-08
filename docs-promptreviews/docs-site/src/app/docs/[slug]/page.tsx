@@ -207,16 +207,16 @@ export default async function ArticlePage({ params }: PageProps) {
         </header>
 
         {/* Key Features */}
-        {metadata.key_features && metadata.key_features.length > 0 && (
+        {metadata.key_features && metadata.key_features.length > 0 && metadata.key_features.some((f: any) => f.title && f.description) && (
           <section className="mb-12">
             <h2 className="text-3xl font-bold text-white mb-6">Key Features</h2>
             <div className="grid md:grid-cols-2 gap-6">
-              {metadata.key_features.map((feature, index) => (
+              {metadata.key_features.filter((f: any) => f.title && f.description).map((feature: any, index: number) => (
                 <div
                   key={index}
                   className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6"
                 >
-                  <div className="text-3xl mb-3">{feature.icon}</div>
+                  {feature.icon && <div className="text-3xl mb-3">{feature.icon}</div>}
                   <h3 className="text-xl font-semibold text-white mb-2">
                     {feature.title}
                   </h3>
@@ -228,21 +228,21 @@ export default async function ArticlePage({ params }: PageProps) {
         )}
 
         {/* How It Works */}
-        {metadata.how_it_works && metadata.how_it_works.length > 0 && (
+        {metadata.how_it_works && metadata.how_it_works.length > 0 && metadata.how_it_works.some((s: any) => s.title && s.description) && (
           <section className="mb-12">
             <h2 className="text-3xl font-bold text-white mb-6">How It Works</h2>
             <div className="space-y-6">
-              {metadata.how_it_works.map((step, index) => (
+              {metadata.how_it_works.filter((s: any) => s.title && s.description).map((step: any, index: number) => (
                 <div
                   key={index}
                   className="flex gap-4 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6"
                 >
                   <div className="flex-shrink-0 w-12 h-12 bg-blue-500/20 rounded-full flex items-center justify-center text-yellow-300 font-bold text-lg">
-                    {step.number}
+                    {step.number || index + 1}
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
-                      <span className="text-2xl">{step.icon}</span>
+                      {step.icon && <span className="text-2xl">{step.icon}</span>}
                       <h3 className="text-xl font-semibold text-white">
                         {step.title}
                       </h3>
@@ -261,16 +261,16 @@ export default async function ArticlePage({ params }: PageProps) {
         </section>
 
         {/* Best Practices */}
-        {metadata.best_practices && metadata.best_practices.length > 0 && (
+        {metadata.best_practices && metadata.best_practices.length > 0 && metadata.best_practices.some((p: any) => p.title && p.description) && (
           <section className="mb-12">
             <h2 className="text-3xl font-bold text-white mb-6">Best Practices</h2>
             <div className="grid md:grid-cols-2 gap-6">
-              {metadata.best_practices.map((practice, index) => (
+              {metadata.best_practices.filter((p: any) => p.title && p.description).map((practice: any, index: number) => (
                 <div
                   key={index}
                   className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6"
                 >
-                  <div className="text-3xl mb-3">{practice.icon}</div>
+                  {practice.icon && <div className="text-3xl mb-3">{practice.icon}</div>}
                   <h3 className="text-xl font-semibold text-white mb-2">
                     {practice.title}
                   </h3>
