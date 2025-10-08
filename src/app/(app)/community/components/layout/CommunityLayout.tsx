@@ -70,7 +70,7 @@ export function CommunityLayout({
           </div>
 
           {/* Community Image */}
-          <div className="mt-6 mb-4 relative w-full h-32 rounded-lg overflow-hidden">
+          <div className="mt-auto mb-6 relative w-full h-44 rounded-lg overflow-hidden">
             <Image
               src="/images/the-prompt-reviews-community.png"
               alt="Prompt Reviews Community"
@@ -132,7 +132,7 @@ export function CommunityLayout({
           </div>
 
           {/* Community Image */}
-          <div className="mt-6 mb-4 relative w-full h-32 rounded-lg overflow-hidden">
+          <div className="mt-auto mb-6 relative w-full h-44 rounded-lg overflow-hidden">
             <Image
               src="/images/the-prompt-reviews-community.png"
               alt="Prompt Reviews Community"

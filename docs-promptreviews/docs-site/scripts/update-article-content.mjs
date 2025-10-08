@@ -6,25 +6,34 @@
  * This fixes articles that were created with placeholder content by
  * extracting the real content from page.tsx files and updating the database.
  *
- * Usage: ADMIN_API_KEY=your_key node scripts/update-article-content.mjs
+ * Usage: SUPABASE_SERVICE_ROLE_KEY=your_key node scripts/update-article-content.mjs
  */
 
 import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { createClient } from '@supabase/supabase-js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Configuration
-const MAIN_APP_URL = process.env.MAIN_APP_URL || 'https://app.promptreviews.app';
-const API_KEY = process.env.ADMIN_API_KEY;
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://ltneloufqjktdplodvao.supabase.co';
+const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-if (!API_KEY) {
-  console.error('Error: ADMIN_API_KEY environment variable is required');
-  console.error('Usage: ADMIN_API_KEY=your_key node scripts/update-article-content.mjs');
+if (!SERVICE_ROLE_KEY) {
+  console.error('Error: SUPABASE_SERVICE_ROLE_KEY environment variable is required');
+  console.error('Usage: SUPABASE_SERVICE_ROLE_KEY=your_key node scripts/update-article-content.mjs');
   process.exit(1);
 }
+
+// Create Supabase admin client
+const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
+  auth: {
+    autoRefreshToken: false,
+    persistSession: false
+  }
+});
 
 /**
  * Extract the actual content from a page.tsx file
@@ -107,7 +116,7 @@ function convertJSXToMarkdown(jsx) {
 }
 
 /**
- * Update article content via API
+ * Update article content via Supabase
  */
 async function updateArticleContent(slug, pagePath) {
   console.log(`\nProcessing: ${slug}`);
@@ -122,24 +131,15 @@ async function updateArticleContent(slug, pagePath) {
 
   console.log(`  ✓ Extracted ${markdown.length} characters of markdown`);
 
-  // Update via API
-  const url = `${MAIN_APP_URL}/api/admin/help-content/${slug}`;
-
+  // Update via Supabase
   try {
-    const response = await fetch(url, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${API_KEY}`,
-      },
-      body: JSON.stringify({
-        content: markdown,
-      }),
-    });
+    const { error } = await supabase
+      .from('articles')
+      .update({ content: markdown })
+      .eq('slug', slug);
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(`API error: ${error.error || response.statusText}`);
+    if (error) {
+      throw new Error(`Supabase error: ${error.message}`);
     }
 
     console.log(`  ✅ Updated successfully`);
@@ -156,19 +156,17 @@ async function updateArticleContent(slug, pagePath) {
 async function main() {
   console.log('🚀 Starting article content update...\n');
 
-  // Fetch all articles from the API
+  // Fetch all articles from Supabase
   console.log('Fetching articles from CMS...');
-  const listResponse = await fetch(`${MAIN_APP_URL}/api/admin/help-content`, {
-    headers: {
-      'Authorization': `Bearer ${API_KEY}`,
-    },
-  });
+  const { data: articles, error: fetchError } = await supabase
+    .from('articles')
+    .select('slug, title, status')
+    .order('slug', { ascending: true });
 
-  if (!listResponse.ok) {
-    throw new Error('Failed to fetch articles');
+  if (fetchError) {
+    throw new Error(`Failed to fetch articles: ${fetchError.message}`);
   }
 
-  const { articles } = await listResponse.json();
   console.log(`Found ${articles.length} articles to process\n`);
 
   let updated = 0;

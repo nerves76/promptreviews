@@ -32,13 +32,20 @@ export function GuidelinesModal({ isOpen, requireAcceptance, onAccept, onClose, 
     }
   }, [isOpen]);
 
-  const handleAccept = () => {
+  const handleAccept = async () => {
     if (!accepted && requireAcceptance) {
       error('Please check the box to accept the community guidelines');
       return;
     }
-    onAccept();
-    setAccepted(false);
+
+    try {
+      await onAccept();
+      // Only reset checkbox after successful acceptance
+      setAccepted(false);
+    } catch (err) {
+      // Keep checkbox checked if acceptance fails
+      console.error('Failed to accept guidelines:', err);
+    }
   };
 
   const handleClose = () => {

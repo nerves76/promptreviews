@@ -32,6 +32,8 @@ export default function CommunityPage() {
   const [requireGuidelinesAcceptance, setRequireGuidelinesAcceptance] = useState(false);
   const [isLoadingChannels, setIsLoadingChannels] = useState(true);
   const [displayName, setDisplayName] = useState<string>('');
+  const [businessName, setBusinessName] = useState<string>('');
+  const [availableBusinessNames, setAvailableBusinessNames] = useState<Array<{ id: string; name: string }>>([]);
   const [showEditDisplayName, setShowEditDisplayName] = useState(false);
 
   // Get active channel from query params or default to 'general'
@@ -82,7 +84,7 @@ export default function CommunityPage() {
       try {
         const { data, error } = await supabase
           .from('community_profiles')
-          .select('guidelines_ack_at, display_name_override')
+          .select('guidelines_ack_at, display_name_override, business_name_override')
           .eq('user_id', user.id)
           .single();
 
@@ -95,12 +97,49 @@ export default function CommunityPage() {
         if (data?.display_name_override) {
           setDisplayName(data.display_name_override);
         }
+
+        // Set business name if available
+        if (data?.business_name_override) {
+          setBusinessName(data.business_name_override);
+        } else {
+          // Fallback to account business name if no override
+          setBusinessName(account?.business_name || 'Your Business');
+        }
       } catch (error) {
         console.error('Error checking guidelines:', error);
       }
     };
 
     checkGuidelines();
+  }, [user, account, supabase]);
+
+  // Fetch available business names for the user
+  useEffect(() => {
+    const fetchBusinessNames = async () => {
+      if (!user) return;
+
+      try {
+        const { data, error } = await supabase
+          .from('account_users')
+          .select('account_id, accounts!inner(id, business_name)')
+          .eq('user_id', user.id);
+
+        if (error) throw error;
+
+        const businessNames = data
+          ?.map((item: any) => ({
+            id: item.accounts.id,
+            name: item.accounts.business_name || 'Unnamed Business',
+          }))
+          .filter((b: any) => b.name !== 'Unnamed Business') || [];
+
+        setAvailableBusinessNames(businessNames);
+      } catch (error) {
+        console.error('Error fetching business names:', error);
+      }
+    };
+
+    fetchBusinessNames();
   }, [user, supabase]);
 
   // Get active channel
@@ -164,19 +203,24 @@ export default function CommunityPage() {
     if (!user) return;
 
     try {
-      // Get user's first name from metadata and verify auth
+      // Verify auth session and get fresh user data
       const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
 
-      if (authError || !authUser) {
+      if (authError) {
         console.error('Auth error:', authError);
-        throw new Error('Unable to verify user authentication');
+        throw new Error(`Authentication failed: ${authError.message}`);
       }
+
+      if (!authUser) {
+        throw new Error('No authenticated user found');
+      }
+
+      console.log('Auth user verified:', authUser.id);
 
       const firstName = authUser.user_metadata?.first_name ||
                        authUser.user_metadata?.firstName ||
                        'User';
 
-      // Use authUser.id (from fresh auth check) instead of user.id (from context)
       const userId = authUser.id;
 
       // First, generate a username for the user
@@ -185,21 +229,26 @@ export default function CommunityPage() {
       });
 
       if (usernameError) {
-        console.error('Username generation error:', usernameError.message);
-        throw usernameError;
+        console.error('Username generation error:', usernameError);
+        throw new Error(`Failed to generate username: ${usernameError.message}`);
       }
 
       if (!usernameData) {
-        throw new Error('Failed to generate username');
+        throw new Error('Failed to generate username - no data returned');
       }
 
       const username = usernameData;
+      console.log('Username generated:', username);
+
+      // Get the user's primary business name for initial setup
+      const initialBusinessName = account?.business_name || 'Your Business';
 
       // Then create/update the profile with first name as display name override
       const { error } = await supabase.from('community_profiles').upsert({
         user_id: userId,
         username: username,
         display_name_override: firstName,
+        business_name_override: initialBusinessName,
         guidelines_ack_at: new Date().toISOString(),
         opted_in_at: new Date().toISOString(),
       }, {
@@ -207,15 +256,21 @@ export default function CommunityPage() {
       });
 
       if (error) {
-        console.error('Profile upsert error:', error.message);
-        throw error;
+        console.error('Profile upsert error:', error);
+        throw new Error(`Failed to create profile: ${error.message}`);
       }
 
+      console.log('Community profile created successfully');
+
+      // Successfully joined - update local state
+      setDisplayName(firstName);
+      setBusinessName(initialBusinessName);
       setShowGuidelines(false);
       setRequireGuidelinesAcceptance(false);
     } catch (error: any) {
-      console.error('Error accepting guidelines:', error?.message || error);
-      alert('There was an error joining the community. Please try again or contact support.');
+      console.error('Error accepting guidelines:', error);
+      const errorMessage = error?.message || error?.toString() || 'Unknown error';
+      alert(`There was an error joining the community:\n\n${errorMessage}\n\nPlease try again or contact support.`);
     }
   };
 
@@ -290,11 +345,13 @@ export default function CommunityPage() {
         <EditDisplayNameModal
           isOpen={showEditDisplayName}
           currentDisplayName={displayName}
-          businessName={account?.business_name || 'Your Business'}
+          currentBusinessName={businessName || account?.business_name || 'Your Business'}
+          availableBusinessNames={availableBusinessNames}
           userId={user.id}
           onClose={() => setShowEditDisplayName(false)}
-          onUpdate={(newDisplayName) => {
+          onUpdate={(newDisplayName, newBusinessName) => {
             setDisplayName(newDisplayName);
+            setBusinessName(newBusinessName);
             fetchPosts(); // Refresh posts to show updated display name
           }}
         />

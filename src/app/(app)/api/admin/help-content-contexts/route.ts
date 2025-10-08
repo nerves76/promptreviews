@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { requireAdminAccess } from "@/lib/admin/permissions";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -20,6 +21,7 @@ function getSupabaseAdmin() {
  */
 export async function GET(request: NextRequest) {
   try {
+    await requireAdminAccess();
     const supabase = getSupabaseAdmin();
     // Get slug from query parameter
     const { searchParams } = new URL(request.url);
@@ -77,6 +79,7 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
+    await requireAdminAccess();
     const supabase = getSupabaseAdmin();
     // Get slug from query parameter
     const { searchParams } = new URL(request.url);
