@@ -195,6 +195,22 @@ export default function HelpContentPage() {
               </p>
             </div>
             <div className="flex items-center gap-3">
+              <Button
+                onClick={() => router.push('/dashboard/help-content/navigation')}
+                variant="outline"
+                size="lg"
+                className="border-white/30 text-white hover:bg-white/10 hover:text-white"
+              >
+                Navigation
+              </Button>
+              <Button
+                onClick={() => router.push('/dashboard/help-content/faqs')}
+                variant="outline"
+                size="lg"
+                className="border-white/30 text-white hover:bg-white/10 hover:text-white"
+              >
+                FAQs
+              </Button>
               <DeployDocsButton
                 size="lg"
                 messageFullWidth
