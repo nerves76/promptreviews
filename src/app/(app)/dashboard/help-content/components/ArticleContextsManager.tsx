@@ -85,6 +85,13 @@ export default function ArticleContextsManager({
 
     try {
       setSaving(true);
+
+      console.log("Adding featured route:", {
+        slug: articleSlug,
+        route_pattern: newRoute.trim(),
+        priority: newPriority,
+      });
+
       const response = await fetch(
         `/api/admin/help-content-contexts?slug=${encodeURIComponent(articleSlug)}`,
         {
@@ -98,17 +105,29 @@ export default function ArticleContextsManager({
         }
       );
 
+      console.log("Response status:", response.status);
+
       if (!response.ok) {
         let errorMessage = "Failed to add context";
         try {
           const errorData = await response.json();
+          console.error("Error response:", errorData);
           errorMessage = errorData.error || errorMessage;
+          if (errorData.details) {
+            errorMessage += ` (Details: ${errorData.details})`;
+          }
+          if (errorData.hint) {
+            errorMessage += ` (Hint: ${errorData.hint})`;
+          }
         } catch (e) {
           // Response wasn't JSON, use status text
           errorMessage = `${errorMessage} (${response.status} ${response.statusText})`;
         }
         throw new Error(errorMessage);
       }
+
+      const result = await response.json();
+      console.log("Successfully added context:", result);
 
       await fetchContexts();
       setNewRoute("");

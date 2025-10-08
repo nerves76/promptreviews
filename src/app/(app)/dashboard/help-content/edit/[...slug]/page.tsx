@@ -14,6 +14,25 @@ import MarkdownEditor, {
 } from "../../components/MarkdownEditor";
 import ArticleContextsManager from "../../components/ArticleContextsManager";
 
+interface KeyFeature {
+  icon: string;
+  title: string;
+  description: string;
+}
+
+interface HowItWorksStep {
+  number: number;
+  icon: string;
+  title: string;
+  description: string;
+}
+
+interface BestPractice {
+  icon: string;
+  title: string;
+  description: string;
+}
+
 interface ArticleMetadata {
   description?: string;
   keywords?: string[];
@@ -25,6 +44,10 @@ interface ArticleMetadata {
   available_plans?: string[];
   seo_title?: string;
   seo_description?: string;
+  canonical_url?: string;
+  key_features?: KeyFeature[];
+  how_it_works?: HowItWorksStep[];
+  best_practices?: BestPractice[];
 }
 
 interface Article {
@@ -64,6 +87,9 @@ export default function ArticleEditorPage() {
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [showPreview, setShowPreview] = useState(false);
   const [showMetadataEditor, setShowMetadataEditor] = useState(false);
+  const [showKeyFeatures, setShowKeyFeatures] = useState(false);
+  const [showHowItWorks, setShowHowItWorks] = useState(false);
+  const [showBestPractices, setShowBestPractices] = useState(false);
   const autosaveTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [slugError, setSlugError] = useState<string | null>(null);
 
@@ -607,6 +633,319 @@ export default function ArticleEditorPage() {
               </div>
             )}
           </div>
+        </PageCard>
+
+        {/* Key Features Section */}
+        <PageCard className="mb-6">
+          <div className="mb-4 flex items-center justify-between">
+            <div>
+              <h2 className="text-xl font-bold text-gray-900">Key Features</h2>
+              <p className="text-sm text-gray-500 mt-1">
+                Add feature cards that appear at the top of the article
+              </p>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowKeyFeatures(!showKeyFeatures)}
+            >
+              {showKeyFeatures ? "Hide" : "Show"}
+            </Button>
+          </div>
+
+          {showKeyFeatures && (
+            <div className="space-y-4">
+              {(article.metadata.key_features || []).map((feature, index) => (
+                <div key={index} className="border rounded-lg p-4 bg-gray-50">
+                  <div className="flex items-start justify-between mb-3">
+                    <h4 className="font-medium text-gray-900">Feature {index + 1}</h4>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        const features = [...(article.metadata.key_features || [])];
+                        features.splice(index, 1);
+                        handleMetadataChange("key_features", features);
+                      }}
+                      className="text-red-600 hover:text-red-700"
+                    >
+                      Remove
+                    </Button>
+                  </div>
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Icon (emoji)
+                      </label>
+                      <Input
+                        type="text"
+                        value={feature.icon}
+                        onChange={(e) => {
+                          const features = [...(article.metadata.key_features || [])];
+                          features[index] = { ...features[index], icon: e.target.value };
+                          handleMetadataChange("key_features", features);
+                        }}
+                        placeholder="✨"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Title
+                      </label>
+                      <Input
+                        type="text"
+                        value={feature.title}
+                        onChange={(e) => {
+                          const features = [...(article.metadata.key_features || [])];
+                          features[index] = { ...features[index], title: e.target.value };
+                          handleMetadataChange("key_features", features);
+                        }}
+                        placeholder="Feature title"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Description
+                      </label>
+                      <textarea
+                        value={feature.description}
+                        onChange={(e) => {
+                          const features = [...(article.metadata.key_features || [])];
+                          features[index] = { ...features[index], description: e.target.value };
+                          handleMetadataChange("key_features", features);
+                        }}
+                        placeholder="Feature description"
+                        rows={2}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const features = [...(article.metadata.key_features || [])];
+                  features.push({ icon: "✨", title: "", description: "" });
+                  handleMetadataChange("key_features", features);
+                }}
+              >
+                + Add Feature
+              </Button>
+            </div>
+          )}
+        </PageCard>
+
+        {/* How It Works Section */}
+        <PageCard className="mb-6">
+          <div className="mb-4 flex items-center justify-between">
+            <div>
+              <h2 className="text-xl font-bold text-gray-900">How It Works</h2>
+              <p className="text-sm text-gray-500 mt-1">
+                Add numbered steps explaining how the feature works
+              </p>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowHowItWorks(!showHowItWorks)}
+            >
+              {showHowItWorks ? "Hide" : "Show"}
+            </Button>
+          </div>
+
+          {showHowItWorks && (
+            <div className="space-y-4">
+              {(article.metadata.how_it_works || []).map((step, index) => (
+                <div key={index} className="border rounded-lg p-4 bg-gray-50">
+                  <div className="flex items-start justify-between mb-3">
+                    <h4 className="font-medium text-gray-900">Step {index + 1}</h4>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        const steps = [...(article.metadata.how_it_works || [])];
+                        steps.splice(index, 1);
+                        // Renumber remaining steps
+                        steps.forEach((s, i) => s.number = i + 1);
+                        handleMetadataChange("how_it_works", steps);
+                      }}
+                      className="text-red-600 hover:text-red-700"
+                    >
+                      Remove
+                    </Button>
+                  </div>
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Icon (emoji)
+                      </label>
+                      <Input
+                        type="text"
+                        value={step.icon}
+                        onChange={(e) => {
+                          const steps = [...(article.metadata.how_it_works || [])];
+                          steps[index] = { ...steps[index], icon: e.target.value };
+                          handleMetadataChange("how_it_works", steps);
+                        }}
+                        placeholder="▶️"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Title
+                      </label>
+                      <Input
+                        type="text"
+                        value={step.title}
+                        onChange={(e) => {
+                          const steps = [...(article.metadata.how_it_works || [])];
+                          steps[index] = { ...steps[index], title: e.target.value };
+                          handleMetadataChange("how_it_works", steps);
+                        }}
+                        placeholder="Step title"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Description
+                      </label>
+                      <textarea
+                        value={step.description}
+                        onChange={(e) => {
+                          const steps = [...(article.metadata.how_it_works || [])];
+                          steps[index] = { ...steps[index], description: e.target.value };
+                          handleMetadataChange("how_it_works", steps);
+                        }}
+                        placeholder="Step description"
+                        rows={2}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const steps = [...(article.metadata.how_it_works || [])];
+                  steps.push({
+                    number: steps.length + 1,
+                    icon: "▶️",
+                    title: "",
+                    description: ""
+                  });
+                  handleMetadataChange("how_it_works", steps);
+                }}
+              >
+                + Add Step
+              </Button>
+            </div>
+          )}
+        </PageCard>
+
+        {/* Best Practices Section */}
+        <PageCard className="mb-6">
+          <div className="mb-4 flex items-center justify-between">
+            <div>
+              <h2 className="text-xl font-bold text-gray-900">Best Practices</h2>
+              <p className="text-sm text-gray-500 mt-1">
+                Add best practice tips that appear at the bottom of the article
+              </p>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowBestPractices(!showBestPractices)}
+            >
+              {showBestPractices ? "Hide" : "Show"}
+            </Button>
+          </div>
+
+          {showBestPractices && (
+            <div className="space-y-4">
+              {(article.metadata.best_practices || []).map((practice, index) => (
+                <div key={index} className="border rounded-lg p-4 bg-gray-50">
+                  <div className="flex items-start justify-between mb-3">
+                    <h4 className="font-medium text-gray-900">Practice {index + 1}</h4>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        const practices = [...(article.metadata.best_practices || [])];
+                        practices.splice(index, 1);
+                        handleMetadataChange("best_practices", practices);
+                      }}
+                      className="text-red-600 hover:text-red-700"
+                    >
+                      Remove
+                    </Button>
+                  </div>
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Icon (emoji)
+                      </label>
+                      <Input
+                        type="text"
+                        value={practice.icon}
+                        onChange={(e) => {
+                          const practices = [...(article.metadata.best_practices || [])];
+                          practices[index] = { ...practices[index], icon: e.target.value };
+                          handleMetadataChange("best_practices", practices);
+                        }}
+                        placeholder="💡"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Title
+                      </label>
+                      <Input
+                        type="text"
+                        value={practice.title}
+                        onChange={(e) => {
+                          const practices = [...(article.metadata.best_practices || [])];
+                          practices[index] = { ...practices[index], title: e.target.value };
+                          handleMetadataChange("best_practices", practices);
+                        }}
+                        placeholder="Practice title"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Description
+                      </label>
+                      <textarea
+                        value={practice.description}
+                        onChange={(e) => {
+                          const practices = [...(article.metadata.best_practices || [])];
+                          practices[index] = { ...practices[index], description: e.target.value };
+                          handleMetadataChange("best_practices", practices);
+                        }}
+                        placeholder="Practice description"
+                        rows={2}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const practices = [...(article.metadata.best_practices || [])];
+                  practices.push({ icon: "💡", title: "", description: "" });
+                  handleMetadataChange("best_practices", practices);
+                }}
+              >
+                + Add Practice
+              </Button>
+            </div>
+          )}
         </PageCard>
 
         {/* Content Editor */}

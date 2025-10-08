@@ -131,6 +131,13 @@ export async function POST(request: NextRequest) {
     }
 
     // Insert new context
+    console.log("Attempting to insert context:", {
+      article_id: article.id,
+      route_pattern: route_pattern.trim(),
+      priority: priority || 50,
+      keywords: keywords || [],
+    });
+
     const { data: context, error: insertError } = await supabase
       .from("article_contexts")
       .insert({
@@ -143,12 +150,23 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (insertError) {
-      console.error("Error creating context:", insertError);
+      console.error("Error creating context - full error:", {
+        message: insertError.message,
+        details: insertError.details,
+        hint: insertError.hint,
+        code: insertError.code,
+      });
       return NextResponse.json(
-        { error: "Failed to create article context" },
+        {
+          error: `Failed to create article context: ${insertError.message}`,
+          details: insertError.details,
+          hint: insertError.hint
+        },
         { status: 500 }
       );
     }
+
+    console.log("Successfully created context:", context);
 
     return NextResponse.json({ context }, { status: 201 });
   } catch (error: any) {
