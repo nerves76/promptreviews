@@ -504,11 +504,11 @@ export default function ArticleEditorPage() {
               </label>
               <Input
                 type="url"
-                value={article.metadata.canonical_url || `https://docs.promptreviews.app/docs/${article.slug}` || ""}
+                value={article.metadata.canonical_url || `https://promptreviews.app/docs/${article.slug}` || ""}
                 onChange={(e) =>
                   handleMetadataChange("canonical_url", e.target.value)
                 }
-                placeholder={`https://docs.promptreviews.app/docs/${article.slug}`}
+                placeholder={`https://promptreviews.app/docs/${article.slug}`}
               />
               <p className="text-xs text-gray-500 mt-1">
                 The preferred URL for this page (helps prevent duplicate content issues). Defaults to the docs site URL.

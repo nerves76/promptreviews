@@ -34,7 +34,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   // Use SEO-specific fields if available, otherwise fallback to regular title/description
   const seoTitle = metadata.seo_title || title
   const seoDescription = metadata.seo_description || metadata.description || `Learn about ${title} in the Prompt Reviews documentation.`
-  const canonicalUrl = metadata.canonical_url || `https://docs.promptreviews.app/docs/${slug}`
+  const canonicalUrl = metadata.canonical_url || `https://promptreviews.app/docs/${slug}`
 
   return {
     title: `${seoTitle} | Prompt Reviews Documentation`,
