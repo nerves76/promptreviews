@@ -99,8 +99,15 @@ export default function ArticleContextsManager({
       );
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to add context");
+        let errorMessage = "Failed to add context";
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorMessage;
+        } catch (e) {
+          // Response wasn't JSON, use status text
+          errorMessage = `${errorMessage} (${response.status} ${response.statusText})`;
+        }
+        throw new Error(errorMessage);
       }
 
       await fetchContexts();
