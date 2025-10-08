@@ -123,8 +123,9 @@ export async function GET() {
               article_id: article.id,
               question,
               answer,
-              display_order: order++,
-              status: 'published'
+              category: detail.article_title || slug,
+              order_index: order++,
+              plans: ['grower', 'builder', 'maven']
             });
 
           if (insertError) {

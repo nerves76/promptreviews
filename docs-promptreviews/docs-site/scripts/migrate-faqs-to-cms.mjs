@@ -69,8 +69,9 @@ async function main() {
             article_id: article.id,
             question: faq.question,
             answer: faq.answer,
-            display_order: i + 1,
-            status: 'published'
+            category: article.title || slug,
+            order_index: i + 1,
+            plans: faq.plans || ['grower', 'builder', 'maven']
           });
 
         if (insertError) {
