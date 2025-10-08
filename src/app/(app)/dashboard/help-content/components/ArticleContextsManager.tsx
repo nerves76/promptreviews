@@ -61,8 +61,12 @@ export default function ArticleContextsManager({
 
     try {
       setLoading(true);
+      // Add timestamp to prevent caching
       const response = await fetch(
-        `/api/admin/help-content-contexts?slug=${encodeURIComponent(articleSlug)}`
+        `/api/admin/help-content-contexts?slug=${encodeURIComponent(articleSlug)}&t=${Date.now()}`,
+        {
+          cache: 'no-store'
+        }
       );
 
       if (!response.ok) {
@@ -70,6 +74,7 @@ export default function ArticleContextsManager({
       }
 
       const data = await response.json();
+      console.log("Fetched contexts:", data.contexts);
       setContexts(data.contexts || []);
       setError(null);
     } catch (err: any) {
@@ -129,11 +134,15 @@ export default function ArticleContextsManager({
       const result = await response.json();
       console.log("Successfully added context:", result);
 
-      await fetchContexts();
+      // Clear the form immediately to show it worked
       setNewRoute("");
       setNewPriority(75);
       setShowAddForm(false);
       setError(null);
+
+      // Refetch the contexts list to show the new one
+      // This will show loading spinner while fetching
+      await fetchContexts();
     } catch (err: any) {
       console.error("Error adding context:", err);
       setError(err.message);
