@@ -667,13 +667,13 @@ export default function TutorialsTabNew({
 
         {/* Article content area */}
         <div className="flex-1 overflow-y-auto">
-          <div className="px-4 md:px-6">
+          <div className="px-4 md:px-6 pb-8">
             {loadingContent ? (
               <div className="flex justify-center py-8">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
               </div>
             ) : (
-              <div ref={contentRef} className="space-y-6">
+              <div ref={contentRef} className="space-y-6 pb-4">
                 {/* Main content */}
                 {articleContent && (
                   <div
