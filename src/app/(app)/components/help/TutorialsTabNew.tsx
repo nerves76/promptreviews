@@ -137,6 +137,7 @@ export default function TutorialsTabNew({
   const [selectedArticle, setSelectedArticle] = useState<HelpCategory['articles'][number] | null>(null);
   const [loadingContent, setLoadingContent] = useState(false);
   const [articleContent, setArticleContent] = useState<string>('');
+  const [fullArticleData, setFullArticleData] = useState<any>(null);
   const [isHtmlContent, setIsHtmlContent] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
 
@@ -303,6 +304,7 @@ export default function TutorialsTabNew({
           // The new API returns { article, source }
           // Article content is in markdown format
           setArticleContent(data.article.content);
+          setFullArticleData(data.article); // Store full article with metadata
           setIsHtmlContent(false);
         } else {
           console.warn('New API failed, falling back to legacy fetch-from-docs API');
@@ -571,6 +573,7 @@ export default function TutorialsTabNew({
     setSelectedArticle(null);
     setSelectedCategory(helpCategories[0] ?? null);
     setArticleContent('');
+    setFullArticleData(null);
     setIsHtmlContent(false);
   };
 
@@ -670,15 +673,99 @@ export default function TutorialsTabNew({
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
               </div>
             ) : (
-              <div
-                ref={contentRef}
-                className="article-content prose prose-sm max-w-none"
-                style={{ margin: 0, padding: 0 }}
-              >
-                {isHtmlContent ? (
-                  <div dangerouslySetInnerHTML={{ __html: articleContent }} />
-                ) : (
-                  renderMarkdown(articleContent)
+              <div ref={contentRef} className="space-y-6">
+                {/* Main content */}
+                {articleContent && (
+                  <div
+                    className="article-content prose prose-sm max-w-none"
+                    style={{ margin: 0, padding: 0 }}
+                  >
+                    {isHtmlContent ? (
+                      <div dangerouslySetInnerHTML={{ __html: articleContent }} />
+                    ) : (
+                      renderMarkdown(articleContent)
+                    )}
+                  </div>
+                )}
+
+                {/* Metadata sections */}
+                {fullArticleData?.metadata && (
+                  <>
+                    {/* Key Features */}
+                    {fullArticleData.metadata.key_features && fullArticleData.metadata.key_features.length > 0 && (
+                      <div className="space-y-3">
+                        <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">
+                          {fullArticleData.metadata.key_features_title || 'Key Features'}
+                        </h3>
+                        <div className="grid gap-3">
+                          {fullArticleData.metadata.key_features.map((feature: any, index: number) => (
+                            <div key={index} className="bg-white/50 rounded-lg p-3 border border-gray-200">
+                              <h4 className="font-medium text-gray-900 mb-1">{feature.title}</h4>
+                              <p className="text-sm text-gray-600">{feature.description}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* How It Works */}
+                    {fullArticleData.metadata.how_it_works && fullArticleData.metadata.how_it_works.length > 0 && (
+                      <div className="space-y-3">
+                        <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">
+                          {fullArticleData.metadata.how_it_works_title || 'How It Works'}
+                        </h3>
+                        <div className="space-y-3">
+                          {fullArticleData.metadata.how_it_works.map((step: any, index: number) => (
+                            <div key={index} className="flex gap-3 bg-white/50 rounded-lg p-3 border border-gray-200">
+                              <div className="flex-shrink-0 w-6 h-6 rounded-full bg-indigo-600 text-white flex items-center justify-center text-sm font-semibold">
+                                {step.number || index + 1}
+                              </div>
+                              <div className="flex-1">
+                                <h4 className="font-medium text-gray-900 mb-1">{step.title}</h4>
+                                <p className="text-sm text-gray-600">{step.description}</p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Best Practices */}
+                    {fullArticleData.metadata.best_practices && fullArticleData.metadata.best_practices.length > 0 && (
+                      <div className="space-y-3">
+                        <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">
+                          {fullArticleData.metadata.best_practices_title || 'Best Practices'}
+                        </h3>
+                        <div className="grid gap-3">
+                          {fullArticleData.metadata.best_practices.map((practice: any, index: number) => (
+                            <div key={index} className="bg-white/50 rounded-lg p-3 border border-gray-200">
+                              <h4 className="font-medium text-gray-900 mb-1">{practice.title}</h4>
+                              <p className="text-sm text-gray-600">{practice.description}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* FAQs */}
+                    {fullArticleData.metadata.faqs && fullArticleData.metadata.faqs.length > 0 && (
+                      <div className="space-y-3">
+                        <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">
+                          {fullArticleData.metadata.faqs_title || 'Frequently Asked Questions'}
+                        </h3>
+                        <div className="space-y-3">
+                          {fullArticleData.metadata.faqs.map((faq: any, index: number) => (
+                            <div key={index} className="bg-white/50 rounded-lg p-3 border border-gray-200">
+                              <h4 className="font-medium text-gray-900 mb-2">{faq.question}</h4>
+                              <div className="text-sm text-gray-600 prose prose-sm max-w-none">
+                                {renderMarkdown(faq.answer)}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             )}
