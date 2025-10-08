@@ -157,7 +157,7 @@ export default async function ArticlePage({ params }: PageProps) {
 
         {/* Article header */}
         <header className="mb-8">
-          <h1 className="text-4xl sm:text-5xl font-bold text-white mb-4">
+          <h1 className="text-4xl sm:text-5xl font-bold text-white mb-4 leading-relaxed">
             {title}
           </h1>
 
