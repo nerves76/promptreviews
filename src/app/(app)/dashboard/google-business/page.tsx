@@ -43,6 +43,12 @@ export default function SocialPostingDashboard() {
   const { user } = useAuthUser();
   const { business } = useBusinessData();
   const { account, selectedAccountId } = useAccountData();
+
+  // Track the latest account context so async callbacks always send the correct header
+  const accountIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    accountIdRef.current = selectedAccountId || account?.id || null;
+  }, [selectedAccountId, account?.id]);
   
   
   /**
@@ -551,7 +557,7 @@ export default function SocialPostingDashboard() {
   // }, [isConnected, activeTab, locations.length]);
 
   // Simplified platform loading - no API validation calls
-  const loadPlatforms = useCallback(async () => {
+  const loadPlatforms = useCallback(async (accountOverride?: string) => {
     
     // Prevent multiple simultaneous calls using ref (more reliable)
     if (loadingRef.current) {
@@ -562,6 +568,12 @@ export default function SocialPostingDashboard() {
     setIsLoadingPlatforms(true);
     
     try {
+      const activeAccountId = accountOverride ?? accountIdRef.current;
+
+      if (!activeAccountId) {
+        console.warn('[Google Business] Missing account context for platform status fetch');
+      }
+
       // Get the current session token for authentication
       const supabase = createClient();
       const { data: { session } } = await supabase.auth.getSession();
@@ -580,11 +592,18 @@ export default function SocialPostingDashboard() {
 
       // Check platforms API for database state only (no token validation calls)
       // Add cache-busting to ensure fresh data after disconnect
+      const headers: Record<string, string> = {
+        'Cache-Control': 'no-cache'
+      };
+
+      if (activeAccountId) {
+        headers['X-Selected-Account'] = activeAccountId;
+      }
+
       const response = await fetch(`/api/social-posting/platforms?t=${Date.now()}`, {
         cache: 'no-store',
-        headers: {
-          'Cache-Control': 'no-cache'
-        }
+        headers,
+        credentials: 'same-origin'
       });
       
       if (response.status === 401) {
