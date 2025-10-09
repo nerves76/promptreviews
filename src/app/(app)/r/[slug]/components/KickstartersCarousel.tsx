@@ -37,6 +37,7 @@ interface KickstartersCarouselProps {
     card_bg?: string;
     card_transparency?: number;
     kickstarters_background_design?: boolean;
+    kickstarters_primary_color?: string;
   };
   /** Optional callback when a question is clicked */
   onQuestionClick?: (question: KickstarterQuestion) => void;
@@ -152,7 +153,7 @@ export default function KickstartersCarousel({
             }`}
             style={{
               color: actualBackgroundDesign
-                ? (businessProfile?.primary_color || '#2563EB')
+                ? (businessProfile?.kickstarters_primary_color || businessProfile?.primary_color || '#2563EB')
                 : (businessProfile?.card_text || '#1F2937'),
               borderColor: !actualBackgroundDesign
                 ? (businessProfile?.card_text || '#1F2937')
@@ -175,7 +176,7 @@ export default function KickstartersCarousel({
             }`}
             style={{
               color: actualBackgroundDesign
-                ? (businessProfile?.primary_color || '#2563EB')
+                ? (businessProfile?.kickstarters_primary_color || businessProfile?.primary_color || '#2563EB')
                 : (businessProfile?.card_text || '#1F2937'),
               borderColor: !actualBackgroundDesign
                 ? (businessProfile?.card_text || '#1F2937')
@@ -208,7 +209,7 @@ export default function KickstartersCarousel({
               style={{
                 fontFamily: businessProfile?.primary_font || 'Inter',
                 color: actualBackgroundDesign
-                  ? (businessProfile?.primary_color || '#2563EB')
+                  ? (businessProfile?.kickstarters_primary_color || businessProfile?.primary_color || '#2563EB')
                   : (businessProfile?.card_text || '#1F2937')
               }}
             >
@@ -244,7 +245,7 @@ export default function KickstartersCarousel({
               style={{
                 fontFamily: businessProfile?.primary_font || 'Inter',
                 color: actualBackgroundDesign
-                  ? (businessProfile?.primary_color || '#2563EB')
+                  ? (businessProfile?.kickstarters_primary_color || businessProfile?.primary_color || '#2563EB')
                   : (businessProfile?.card_text || '#1F2937')
               }}
             >

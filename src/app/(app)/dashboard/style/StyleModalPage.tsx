@@ -116,6 +116,7 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
       primary_font: "Playfair Display",
       secondary_font: "Lato",
       card_border_width: 2,
+      kickstarters_primary_color: GLASSY_DEFAULTS.primary_color, // Use primary color for glassy
     },
     solid: {
       name: "Solidly",
@@ -140,6 +141,7 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
       card_border_color: "#334155",
       card_border_transparency: 1.0,
       kickstarters_background_design: false,
+      kickstarters_primary_color: "#60A5FA", // Use same as primary for solid
     },
     paper: {
       name: "Papery",
@@ -164,6 +166,7 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
       card_border_color: "#D1D5DB",
       card_border_transparency: 1.0,
       kickstarters_background_design: true,
+      kickstarters_primary_color: "#6B2C2C", // Use same as primary for paper
     },
     outdoorsy: {
       name: "Outdoorsy",
@@ -188,6 +191,7 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
       card_border_color: "#16A34A",
       card_border_transparency: 0.5,
       kickstarters_background_design: false,
+      kickstarters_primary_color: "#14532D", // Use same as primary for outdoorsy
     },
     snazzy: {
       name: "Snazzy",
@@ -212,6 +216,7 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
       card_border_color: "#FB923C",
       card_border_transparency: 0.5,
       kickstarters_background_design: false,
+      kickstarters_primary_color: "#BE185D", // Separate kickstarters color
     }
   };
 
@@ -219,6 +224,7 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
   const [settings, setSettings] = React.useState({
     ...GLASSY_DEFAULTS,
     card_border_width: 1, // Ensure number type
+    kickstarters_primary_color: GLASSY_DEFAULTS.primary_color, // Default to primary color
   });
 
   // Store the business ID for updates
@@ -300,6 +306,7 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
         card_border_color: settings.card_border_color,
         card_border_transparency: settings.card_border_transparency,
         kickstarters_background_design: settings.kickstarters_background_design,
+        kickstarters_primary_color: settings.kickstarters_primary_color,
       });
     }
   }, [settings, onStyleUpdate, isInitialized]);
@@ -409,6 +416,7 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
           card_border_color: business.card_border_color || settings.card_border_color,
           card_border_transparency: (business.card_border_transparency ?? settings.card_border_transparency) as number,
           kickstarters_background_design: (business.kickstarters_background_design ?? settings.kickstarters_background_design) as boolean,
+          kickstarters_primary_color: business.kickstarters_primary_color || business.primary_color || "#2563EB",
         };
 
         setSettings(newSettings);
@@ -547,6 +555,7 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
         card_border_color: settings.card_border_color,
         card_border_transparency: settings.card_border_transparency,
         kickstarters_background_design: settings.kickstarters_background_design,
+        kickstarters_primary_color: settings.kickstarters_primary_color || settings.primary_color,
       };
 
       console.log('[StyleModal] Gradient values being sent:', {
@@ -1098,23 +1107,23 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
               <div>
                 <div className="flex items-center mb-3">
                   <label className="text-sm font-medium text-gray-700">Kickstarters primary color</label>
-                  <Tooltip text="Color for Kickstarter text and controls (uses Primary Color)." />
+                  <Tooltip text="Dedicated color for Kickstarter text and controls (independent from other elements)." />
                 </div>
                 <input
                   type="color"
-                  value={settings.primary_color}
-                  onChange={e => setSettings(s => ({ ...s, primary_color: e.target.value }))}
+                  value={settings.kickstarters_primary_color || settings.primary_color}
+                  onChange={e => setSettings(s => ({ ...s, kickstarters_primary_color: e.target.value }))}
                   className="w-full h-10 rounded cursor-pointer"
                 />
                 <input
                   type="text"
-                  value={settings.primary_color}
-                  onChange={e => handleHexInputChange('primary_color', e.target.value)}
+                  value={settings.kickstarters_primary_color || settings.primary_color}
+                  onChange={e => handleHexInputChange('kickstarters_primary_color', e.target.value)}
                   className="w-full mt-2 px-2 py-1 text-xs border rounded bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-slate-blue focus:border-transparent"
                   placeholder="#2563EB"
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  This uses your Primary Color. Updating it changes other headings too.
+                  This color only affects Kickstarters and won't change other page elements.
                 </p>
               </div>
             </div>

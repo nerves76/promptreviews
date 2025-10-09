@@ -52,7 +52,7 @@
       flex-shrink: 0;
       width: calc(100% / 3 - 1rem * 2 / 3);
       display: flex;
-      overflow: visible; /* Allow SVG quotes to extend outside card boundaries */
+      overflow: visible !important; /* Allow SVG quotes to extend outside card boundaries */
   }
   
   /* Review Card Styles */
