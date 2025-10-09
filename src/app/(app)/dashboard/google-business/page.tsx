@@ -45,7 +45,7 @@ export default function SocialPostingDashboard() {
   const { account, selectedAccountId } = useAccountData();
 
   // Track the latest account context so async callbacks always send the correct header
-  const accountIdRef = useRef<string | null>(null);
+  const accountIdRef = useRef<string | null>(selectedAccountId || account?.id || null);
   useEffect(() => {
     accountIdRef.current = selectedAccountId || account?.id || null;
   }, [selectedAccountId, account?.id]);
@@ -540,13 +540,13 @@ export default function SocialPostingDashboard() {
 
   // Fetch overview data when tab becomes active (only if not already cached)
   useEffect(() => {
-    if (activeTab === 'overview' && selectedLocationId && isConnected) {
+    if (activeTab === 'overview' && selectedLocationId && isConnected && accountIdRef.current) {
       // Only fetch if we don't have data or if the selected location changed
       if (!overviewData || overviewData.locationId !== selectedLocationId) {
         fetchOverviewData(selectedLocationId);
       }
     }
-  }, [activeTab, selectedLocationId, isConnected]);
+  }, [activeTab, selectedLocationId, isConnected, selectedAccountId, account?.id]);
 
   // REMOVED: Auto-switch to overview tab - let users stay on the tab they choose
   // This was causing confusion when users fetched locations and got moved away from Connect tab
@@ -866,7 +866,8 @@ export default function SocialPostingDashboard() {
         method: 'POST',
         credentials: 'include',  // Changed from 'same-origin' to 'include' to ensure cookies are sent
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          ...(accountIdRef.current ? { 'X-Selected-Account': accountIdRef.current } : {})
         }
       });
       
@@ -1164,8 +1165,10 @@ export default function SocialPostingDashboard() {
       // Save to database
       const response = await fetch('/api/social-posting/platforms/google-business-profile/save-selected-locations', {
         method: 'POST',
+        credentials: 'same-origin',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          ...(accountIdRef.current ? { 'X-Selected-Account': accountIdRef.current } : {})
         },
         body: JSON.stringify({
           locations: selectedLocs.map(loc => ({
@@ -1563,8 +1566,17 @@ export default function SocialPostingDashboard() {
     setOverviewError(null);
 
     try {
+      const activeAccountId = accountIdRef.current;
+
+      if (!activeAccountId) {
+        return;
+      }
+
       const response = await fetch(`/api/google-business-profile/overview?locationId=${encodeURIComponent(locationId)}`, {
-        credentials: 'same-origin'
+        credentials: 'same-origin',
+        headers: {
+          'X-Selected-Account': activeAccountId
+        }
       });
       const data = await response.json();
 
@@ -1651,6 +1663,7 @@ export default function SocialPostingDashboard() {
         credentials: 'same-origin',
         headers: {
           'Content-Type': 'application/json',
+          ...(accountIdRef.current ? { 'X-Selected-Account': accountIdRef.current } : {})
         },
         body: JSON.stringify({
           locationId: selectedLocationId,
