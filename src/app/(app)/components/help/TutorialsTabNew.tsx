@@ -133,6 +133,7 @@ export default function TutorialsTabNew({
   const [helpCategories, setHelpCategories] = useState<HelpCategory[]>([]);
   const [navigationLoading, setNavigationLoading] = useState(true);
   const [featuredArticles, setFeaturedArticles] = useState<any[]>([]);
+  const [featuredFaqs, setFeaturedFaqs] = useState<any[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<HelpCategory | null>(null);
   const [selectedArticle, setSelectedArticle] = useState<HelpCategory['articles'][number] | null>(null);
   const [loadingContent, setLoadingContent] = useState(false);
@@ -140,6 +141,7 @@ export default function TutorialsTabNew({
   const [fullArticleData, setFullArticleData] = useState<any>(null);
   const [isHtmlContent, setIsHtmlContent] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
+  const [expandedFaqId, setExpandedFaqId] = useState<string | null>(null);
 
   // Handle initial article if provided - Store state for later loading
   const [pendingInitialLoad, setPendingInitialLoad] = useState<{
@@ -282,6 +284,36 @@ export default function TutorialsTabNew({
     };
 
     getFeaturedArticles();
+  }, [pathname]);
+
+  // Get featured FAQs based on current page context
+  useEffect(() => {
+    const getFeaturedFaqs = async () => {
+      try {
+        const response = await fetch('/api/docs/faqs/contextual', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            route: pathname,
+            limit: 3,
+            // userPlan can be added later for plan-based filtering
+          })
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setFeaturedFaqs(data.faqs || []);
+        } else {
+          // No contextual FAQs found, that's okay
+          setFeaturedFaqs([]);
+        }
+      } catch (error) {
+        console.error('Error fetching featured FAQs:', error);
+        setFeaturedFaqs([]);
+      }
+    };
+
+    getFeaturedFaqs();
   }, [pathname]);
 
   // Load article content from CMS - updated to use new API

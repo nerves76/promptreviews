@@ -32,6 +32,7 @@ export interface FetchFaqsOptions {
   search?: string;
   limit?: number;
   contextKeywords?: string[];
+  route?: string;
 }
 
 export interface FAQWithScore extends FAQ {
@@ -79,6 +80,43 @@ export async function getFaqs(options: FetchFaqsOptions = {}): Promise<FAQWithSc
     ...faq,
     relevanceScore: calculateRelevanceScore(faq, options.contextKeywords ?? [], search ?? ''),
   }));
+}
+
+/**
+ * Get contextual FAQs for a specific route
+ * Uses the faq_contexts table to fetch FAQs mapped to specific pages
+ */
+export async function getContextualFaqs(route: string, limit: number = 3, userPlan: string = 'grower'): Promise<FAQWithScore[]> {
+  const supabase = getSupabaseClient();
+
+  try {
+    // Call the database function for contextual FAQs
+    const { data, error } = await supabase.rpc('get_contextual_faqs', {
+      route,
+      limit_count: limit,
+      user_plan: userPlan,
+    });
+
+    if (error) {
+      console.error('Error fetching contextual FAQs:', error);
+      return [];
+    }
+
+    // Transform the response to match FAQWithScore interface
+    return (data || []).map((faq: any) => ({
+      id: faq.id,
+      question: faq.question,
+      answer: faq.answer,
+      category: faq.category,
+      plans: faq.plans,
+      order_index: faq.order_index,
+      article_id: faq.article_id,
+      relevanceScore: faq.relevance_score || 50,
+    }));
+  } catch (error) {
+    console.error('Error in getContextualFaqs:', error);
+    return [];
+  }
 }
 
 function calculateRelevanceScore(faq: FAQ, keywords: string[], search: string): number {
