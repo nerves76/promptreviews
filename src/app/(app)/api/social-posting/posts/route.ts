@@ -8,7 +8,7 @@ import { postManager } from '@/features/social-posting';
 import { GoogleBusinessProfileAdapter } from '@/features/social-posting/platforms/google-business-profile/adapter';
 import { GoogleBusinessProfileClient } from '@/features/social-posting/platforms/google-business-profile/googleBusinessProfileClient';
 import { createServerSupabaseClient } from '@/auth/providers/supabase';
-import { getRequestAccountId } from '../utils/getRequestAccountId';
+import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
 import type { UniversalPost, PlatformId } from '@/features/social-posting';
 
 export async function POST(request: NextRequest) {

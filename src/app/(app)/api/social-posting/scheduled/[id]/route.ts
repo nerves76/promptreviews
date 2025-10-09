@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/auth/providers/supabase';
-import { getRequestAccountId } from '../../../utils/getRequestAccountId';
+import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
 import type {
   GoogleBusinessScheduledMediaDescriptor,
   GoogleBusinessScheduledPost,

@@ -11,7 +11,7 @@ import { createClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
 import { buildOverviewData } from '@/lib/googleBusiness/overviewAggregator';
 import { generateMockOverviewData } from '@/utils/googleBusinessProfile/overviewDataHelpers';
-import { getRequestAccountId } from '../../utils/getRequestAccountId';
+import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
 
 export async function GET(request: NextRequest) {
   try {
