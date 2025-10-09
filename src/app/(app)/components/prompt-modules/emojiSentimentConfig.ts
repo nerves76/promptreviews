@@ -5,21 +5,21 @@
  * It defines the labels, Font Awesome icons, and related text for the emoji sentiment interface.
  */
 
-import { FaGrinHearts, FaSmile, FaMeh, FaFrown, FaAngry } from "react-icons/fa";
+import { FaGrinStars, FaSmile, FaMeh, FaSadTear, FaAngry } from "react-icons/fa";
 
 export const EMOJI_SENTIMENT_LABELS = [
   "Excellent",
-  "Satisfied", 
+  "Satisfied",
   "Neutral",
   "Unsatisfied",
   "Frustrated",
 ];
 
 export const EMOJI_SENTIMENT_ICONS = [
-  { icon: FaGrinHearts, color: "text-pink-400" },
+  { icon: FaGrinStars, color: "text-yellow-400" },
   { icon: FaSmile, color: "text-green-500" },
   { icon: FaMeh, color: "text-gray-400" },
-  { icon: FaFrown, color: "text-orange-400" },
+  { icon: FaSadTear, color: "text-blue-400" },
   { icon: FaAngry, color: "text-red-500" },
 ];
 
