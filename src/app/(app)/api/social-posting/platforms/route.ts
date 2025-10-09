@@ -13,6 +13,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
+import { getRequestAccountId } from '../../utils/getRequestAccountId';
 
 /**
  * API Route: GET /api/social-posting/platforms
@@ -53,62 +54,28 @@ export async function GET(request: NextRequest) {
     }
 
 
-    // Get account selection for user using correct table name
-    let { data: accountsData, error: accountsError } = await supabase
-      .from('account_users')
-      .select(`
-        account_id,
-        role,
-        accounts (
-          plan,
-          first_name,
-          last_name
-        )
-      `)
-      .eq('user_id', user.id);
+    const accountId = await getRequestAccountId(request, user.id, supabase);
 
-    if (accountsError) {
-      console.error('❌ Error fetching accounts:', accountsError);
-      return NextResponse.json({ 
+    if (!accountId) {
+      return NextResponse.json({
+        error: 'Account not found',
+        details: 'Unable to resolve an account for this user',
+      }, { status: 404 });
+    }
+
+    const { data: accountRecord, error: accountError } = await supabase
+      .from('accounts')
+      .select('id, plan, first_name, last_name')
+      .eq('id', accountId)
+      .maybeSingle();
+
+    if (accountError || !accountRecord) {
+      console.error('❌ Error loading account record:', accountError);
+      return NextResponse.json({
         error: 'Account lookup failed',
-        details: accountsError.message
-      }, { status: 500 });
+        details: accountError?.message || 'Account not found',
+      }, { status: 404 });
     }
-
-    if (!accountsData || accountsData.length === 0) {
-      // Try fallback: check if user has direct account record
-      const { data: directAccount, error: directError } = await supabase
-        .from('accounts')
-        .select('id, plan, first_name, last_name')
-        .eq('id', user.id)
-        .single();
-
-      if (directError || !directAccount) {
-        return NextResponse.json({ 
-          error: 'Account setup incomplete',
-          details: 'Please complete your account setup in the dashboard'
-        }, { status: 404 });
-      }
-
-      // Use direct account as fallback
-      accountsData = [{
-        account_id: directAccount.id,
-        role: 'owner',
-        accounts: [{
-          plan: directAccount.plan,
-          first_name: directAccount.first_name,
-          last_name: directAccount.last_name
-        }]
-      }];
-
-    }
-
-
-    // Use the first owned account or fallback to the first account
-    const ownedAccount = accountsData?.find(acc => acc.role === 'owner');
-    const selectedAccount = ownedAccount || accountsData?.[0];
-    const accountId = selectedAccount?.account_id;
-    const accountPlan = selectedAccount?.accounts?.[0]?.plan;
 
 
     /**
@@ -125,7 +92,7 @@ export async function GET(request: NextRequest) {
     const { data: googleTokens, error: googleError } = await supabase
       .from('google_business_profiles')
       .select('*')
-      .eq('user_id', user.id)
+      .eq('account_id', accountId)
       .maybeSingle();
     
 
@@ -182,7 +149,7 @@ export async function GET(request: NextRequest) {
                     expires_at: new Date(Date.now() + (newTokens.expires_in || 3600) * 1000).toISOString(),
                     updated_at: new Date().toISOString()
                   })
-                  .eq('user_id', user.id);
+                  .eq('account_id', accountId);
                 
                 if (!updateError) {
                   isGoogleConnected = true;
@@ -224,8 +191,6 @@ export async function GET(request: NextRequest) {
     let locations = [];
     if (isGoogleConnected) {
       // First get the account ID for the user
-      const accountId = accountsData?.[0]?.account_id;
-      
       if (accountId) {
         // For now, skip selected locations and just fetch all
         // TODO: Re-enable once selected_gbp_locations table is created
@@ -236,7 +201,7 @@ export async function GET(request: NextRequest) {
           const { data: locationData, error: locationsError } = await supabase
             .from('google_business_locations')
             .select('*')
-            .eq('user_id', user.id);
+            .eq('account_id', accountId);
 
           if (locationsError) {
             console.error('❌ Error fetching locations:', {
@@ -277,12 +242,11 @@ export async function GET(request: NextRequest) {
         const { data: locationData, error: locationsError } = await supabase
           .from('google_business_locations')
           .select('*')
-          .eq('user_id', user.id);
+          .eq('account_id', accountId);
 
         if (locationsError) {
-          console.error('❌ Error fetching locations (no account):', locationsError);
+          console.error('❌ Error fetching locations for account:', locationsError);
         } else {
-          console.log(`✅ Found ${locationData?.length || 0} locations for user (no account):`, user.id);
           locations = locationData || [];
         }
       }

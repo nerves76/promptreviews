@@ -6,6 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/auth/providers/supabase';
 import { GoogleBusinessProfileClient } from '@/features/social-posting/platforms/google-business-profile/googleBusinessProfileClient';
+import { getRequestAccountId } from '../../utils/getRequestAccountId';
 
 export async function POST(request: NextRequest) {
   try {
@@ -19,6 +20,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { success: false, message: 'Authentication failed' },
         { status: 401 }
+      );
+    }
+
+    const accountId = await getRequestAccountId(request, user.id, supabase);
+    if (!accountId) {
+      return NextResponse.json(
+        { success: false, message: 'Account not found' },
+        { status: 404 }
       );
     }
 
@@ -38,7 +47,7 @@ export async function POST(request: NextRequest) {
     const { data: tokenData, error: tokenError } = await supabase
       .from('google_business_profiles')
       .select('access_token, refresh_token, expires_at')
-      .eq('user_id', user.id)
+      .eq('account_id', accountId)
       .single();
 
     if (tokenError || !tokenData) {

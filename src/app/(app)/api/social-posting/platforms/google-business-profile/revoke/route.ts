@@ -7,6 +7,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
+import { getRequestAccountId } from '../../../utils/getRequestAccountId';
 
 export async function POST(request: NextRequest) {
   try {
@@ -39,14 +40,22 @@ export async function POST(request: NextRequest) {
         { status: 401 }
       );
     }
+
+    const accountId = await getRequestAccountId(request, user.id, supabase);
+    if (!accountId) {
+      return NextResponse.json(
+        { success: false, error: 'Account not found' },
+        { status: 404 }
+      );
+    }
     
     
     // Get the tokens to revoke
     const { data: tokenData } = await supabase
       .from('google_business_profiles')
       .select('access_token, refresh_token')
-      .eq('user_id', user.id)
-      .single();
+      .eq('account_id', accountId)
+      .maybeSingle();
     
     let revokeSuccess = false;
     let revokeMessage = '';
@@ -91,7 +100,7 @@ export async function POST(request: NextRequest) {
     const { error: deleteError } = await supabase
       .from('google_business_profiles')
       .delete()
-      .eq('user_id', user.id);
+      .eq('account_id', accountId);
     
     if (deleteError) {
       console.error('❌ Error removing tokens from database:', deleteError);
@@ -103,12 +112,13 @@ export async function POST(request: NextRequest) {
     await supabase
       .from('google_business_locations')
       .delete()
-      .eq('user_id', user.id);
+      .eq('account_id', accountId);
     
     await supabase
       .from('google_api_rate_limits')
       .delete()
-      .eq('user_id', user.id);
+      .eq('account_id', accountId)
+      .eq('project_id', 'google-business-profile');
     
     return NextResponse.json({
       success: true,

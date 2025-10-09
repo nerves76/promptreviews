@@ -139,8 +139,8 @@ export async function GET(request: NextRequest) {
         const { data: gbpCredentials } = await supabase
           .from('google_business_profiles')
           .select('access_token, refresh_token, expires_at')
-          .eq('user_id', userId)
-          .single();
+          .eq('account_id', account.id)
+          .maybeSingle();
 
         if (!gbpCredentials) {
           skippedCount++;
@@ -265,6 +265,7 @@ export async function GET(request: NextRequest) {
             .from('review_reminder_settings')
             .upsert({
               user_id: userId,
+              account_id: account.id,
               last_reminder_sent: new Date().toISOString(),
               enabled: true
             });

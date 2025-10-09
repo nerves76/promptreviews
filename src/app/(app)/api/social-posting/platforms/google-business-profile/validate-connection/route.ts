@@ -9,6 +9,7 @@ import { createServerClient } from '@supabase/ssr';
 import { createClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
 import { GoogleBusinessProfileClient } from '@/features/social-posting/platforms/google-business-profile/googleBusinessProfileClient';
+import { getRequestAccountId } from '../../../utils/getRequestAccountId';
 
 export async function POST(request: NextRequest) {
   try {
@@ -37,6 +38,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const accountId = await getRequestAccountId(request, user.id, supabase);
+    if (!accountId) {
+      return NextResponse.json({ error: 'Account not found' }, { status: 404 });
+    }
+
 
     // Create service role client for accessing OAuth tokens (bypasses RLS)
     const serviceSupabase = createClient(
@@ -48,7 +54,7 @@ export async function POST(request: NextRequest) {
     const { data: tokens, error: tokenError } = await serviceSupabase
       .from('google_business_profiles')
       .select('*')
-      .eq('user_id', user.id)
+      .eq('account_id', accountId)
       .maybeSingle();
 
     if (tokenError || !tokens) {

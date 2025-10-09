@@ -938,18 +938,32 @@ export default function SocialPostingDashboard() {
     const platformId = 'google-business-profile';
     setShowFetchConfirmModal(false);
     setFetchingLocations(platformId);
-    
+
     try {
+      // CRITICAL: Include account context in request
+      const activeAccountId = selectedAccountId || account?.id;
+      if (!activeAccountId) {
+        setPostResult({
+          success: false,
+          message: 'Unable to determine account context. Please refresh the page and try again.'
+        });
+        setFetchingLocations(null);
+        return;
+      }
+
+      console.log('🔍 [Fetch Locations] Using account ID:', activeAccountId);
+
       // Increase timeout to 5 minutes to account for rate limiting delays
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 5 * 60 * 1000); // 5 minutes
-      
+
       const response = await fetch(`/api/social-posting/platforms/${platformId}/fetch-locations`, {
         method: 'POST',
         signal: controller.signal,
         credentials: 'same-origin',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'X-Selected-Account': activeAccountId
         }
       });
       

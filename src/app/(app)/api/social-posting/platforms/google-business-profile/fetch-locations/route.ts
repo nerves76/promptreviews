@@ -8,6 +8,7 @@ import { createServerClient } from '@supabase/ssr';
 import { createClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
 import { GoogleBusinessProfileClient } from '@/features/social-posting/platforms/google-business-profile/googleBusinessProfileClient';
+import { getRequestAccountId } from '../../../utils/getRequestAccountId';
 
 export async function POST(request: NextRequest) {
   try {
@@ -36,6 +37,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const accountId = await getRequestAccountId(request, user.id, supabase);
+    if (!accountId) {
+      return NextResponse.json({ success: false, error: 'Account not found' }, { status: 404 });
+    }
+
 
     // Create service role client for accessing OAuth tokens (bypasses RLS)
     const serviceSupabase = createClient(
@@ -47,7 +53,7 @@ export async function POST(request: NextRequest) {
     const { data: existingLocations, error: checkError } = await serviceSupabase
       .from('google_business_locations')
       .select('*')
-      .eq('user_id', user.id);
+      .eq('account_id', accountId);
     
     if (!checkError && existingLocations && existingLocations.length > 0) {
       
@@ -78,7 +84,7 @@ export async function POST(request: NextRequest) {
         const { error: deleteError } = await serviceSupabase
           .from('google_business_locations')
           .delete()
-          .eq('user_id', user.id)
+          .eq('account_id', accountId)
           .eq('status', 'UNKNOWN');
         
         if (deleteError) {
@@ -95,6 +101,7 @@ export async function POST(request: NextRequest) {
       .from('google_api_rate_limits')
       .select('last_api_call_at')
       .eq('project_id', 'google-business-profile')
+      .eq('account_id', accountId)
       .maybeSingle();
 
     if (rateLimitError && rateLimitError.code !== 'PGRST116') { // PGRST116 = no rows found
@@ -123,7 +130,7 @@ export async function POST(request: NextRequest) {
     const { data: tokens, error: tokenError } = await serviceSupabase
       .from('google_business_profiles')
       .select('*')
-      .eq('user_id', user.id)
+      .eq('account_id', accountId)
       .maybeSingle();
 
     if (tokenError || !tokens) {
@@ -149,37 +156,21 @@ export async function POST(request: NextRequest) {
         .from('google_api_rate_limits')
         .upsert({
           project_id: 'google-business-profile',
+          account_id: accountId,
           last_api_call_at: new Date().toISOString(),
           user_id: user.id
-        });
+        }, { onConflict: 'project_id,account_id' });
       
       const accounts = await client.listAccounts();
       
+
       let allLocations: any[] = [];
       let hasErrors = false;
       let errorMessages: string[] = [];
-      
-      // Store rate limit tracking in database using service role
-      await serviceSupabase
-        .from('google_business_api_rate_limits')
-        .upsert({
-          project_id: 'google-business-profile',
-          last_api_call_at: new Date().toISOString(),
-          user_id: user.id
-        });
 
       // Process each account to fetch locations
       for (const account of accounts) {
         try {
-          
-          // Store rate limit tracking in database using service role
-          await serviceSupabase
-            .from('google_business_api_rate_limits')
-            .upsert({
-              project_id: 'google-business-profile',
-              last_api_call_at: new Date().toISOString(),
-              user_id: user.id
-            });
           
           const locations = await client.listLocations(account.name);
           
@@ -217,6 +208,7 @@ export async function POST(request: NextRequest) {
             
             const locationData = {
               user_id: user.id,
+              account_id: accountId,
               location_id: location.name,
               location_name: location.title || location.locationName || location.name, // Use title (business name) first
               account_name: account.name, // Store the full account name (accounts/{id})
@@ -233,7 +225,7 @@ export async function POST(request: NextRequest) {
             const { error: insertError } = await serviceSupabase
               .from('google_business_locations')
               .upsert(locationData, { 
-                onConflict: 'user_id,location_id',
+                onConflict: 'account_id,location_id',
                 ignoreDuplicates: false
               });
             
@@ -326,14 +318,14 @@ export async function POST(request: NextRequest) {
                const newTokens = await client.refreshAccessToken();
                if (newTokens && newTokens.access_token) {
                  // Update tokens in database
-                 await serviceSupabase
-                   .from('google_business_profiles')
-                   .update({
-                     access_token: newTokens.access_token,
-                     expires_at: new Date(Date.now() + (newTokens.expires_in || 3600) * 1000).toISOString(),
-                     updated_at: new Date().toISOString()
-                   })
-                   .eq('user_id', user.id);
+                await serviceSupabase
+                  .from('google_business_profiles')
+                  .update({
+                    access_token: newTokens.access_token,
+                    expires_at: new Date(Date.now() + (newTokens.expires_in || 3600) * 1000).toISOString(),
+                    updated_at: new Date().toISOString()
+                  })
+                  .eq('account_id', accountId);
                  
                  return NextResponse.json({
                    success: false,

@@ -11,6 +11,7 @@ import { createClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
 import { buildOverviewData } from '@/lib/googleBusiness/overviewAggregator';
 import { generateMockOverviewData } from '@/utils/googleBusinessProfile/overviewDataHelpers';
+import { getRequestAccountId } from '../../utils/getRequestAccountId';
 
 export async function GET(request: NextRequest) {
   try {
@@ -50,6 +51,11 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Authentication required' }, { status: 401 });
     }
 
+    const accountId = await getRequestAccountId(request, user.id, supabase);
+    if (!accountId) {
+      return NextResponse.json({ success: false, error: 'Account not found' }, { status: 404 });
+    }
+
     const serviceSupabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!,
@@ -58,7 +64,7 @@ export async function GET(request: NextRequest) {
     const { data: tokens, error: tokenError } = await serviceSupabase
       .from('google_business_profiles')
       .select('*')
-      .eq('user_id', user.id)
+      .eq('account_id', accountId)
       .maybeSingle();
 
     if (tokenError || !tokens || !tokens.access_token) {

@@ -6,6 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient, createServiceRoleClient } from '@/auth/providers/supabase';
 import { GoogleBusinessProfileClient } from '@/features/social-posting/platforms/google-business-profile/googleBusinessProfileClient';
+import { getRequestAccountId } from '../../utils/getRequestAccountId';
 
 export async function POST(request: NextRequest) {
   try {
@@ -30,6 +31,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { success: false, message: 'Authentication failed' },
         { status: 401 }
+      );
+    }
+
+    const accountId = await getRequestAccountId(request, user.id, supabase);
+    if (!accountId) {
+      return NextResponse.json(
+        { success: false, message: 'Account not found' },
+        { status: 404 }
       );
     }
 
@@ -77,7 +86,7 @@ export async function POST(request: NextRequest) {
     const { data: tokenData, error: tokenError } = await supabase
       .from('google_business_profiles')
       .select('access_token, refresh_token, expires_at')
-      .eq('user_id', user.id)
+      .eq('account_id', accountId)
       .single();
 
     if (tokenError || !tokenData) {
@@ -101,7 +110,7 @@ export async function POST(request: NextRequest) {
     const { data: locationData, error: locationError } = await supabase
       .from('google_business_locations')
       .select('account_id, location_id')
-      .eq('user_id', user.id)
+      .eq('account_id', accountId)
       .eq('location_id', locationId)
       .single();
 
@@ -113,11 +122,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const accountId = locationData.account_id;
+    const locationAccountId = locationData.account_id || accountId;
 
     // Upload the photo to Google Business Profile
     const uploadResult = await gbpClient.uploadMedia(
-      accountId,
+      locationAccountId,
       locationId,
       file,
       'PHOTO'
@@ -143,7 +152,7 @@ export async function POST(request: NextRequest) {
         .insert({
           user_id: user.id,
           location_id: locationId,
-          account_id: accountId,
+          account_id: locationAccountId,
           file_name: file.name,
           file_size: file.size,
           category: category || 'general',

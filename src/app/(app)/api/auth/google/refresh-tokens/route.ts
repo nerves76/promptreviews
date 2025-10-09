@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
     // Find the user by refresh token (using service role to bypass RLS)
     const { data: tokenData, error: tokenError } = await supabase
       .from('google_business_profiles')
-      .select('user_id, access_token, refresh_token, expires_at')
+      .select('user_id, account_id, access_token, refresh_token, expires_at')
       .eq('refresh_token', refreshToken)
       .single();
 
@@ -111,7 +111,7 @@ export async function POST(request: NextRequest) {
         expires_at: newExpiresAt,
         updated_at: new Date().toISOString()
       })
-      .eq('user_id', tokenData.user_id);
+      .eq('account_id', tokenData.account_id);
 
     if (updateError) {
       console.error('❌ Failed to update tokens in database:', updateError);

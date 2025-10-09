@@ -45,6 +45,7 @@ export async function GET(request: NextRequest) {
     const { data: usersWithGBP, error: gbpError } = await supabase
       .from('google_business_profiles')
       .select(`
+        account_id,
         user_id,
         access_token,
         refresh_token,
@@ -52,11 +53,6 @@ export async function GET(request: NextRequest) {
         profiles!inner(
           first_name,
           email
-        ),
-        review_reminder_settings!left(
-          enabled,
-          frequency,
-          last_reminder_sent
         )
       `)
       .eq('profiles.email', supabase.from('profiles').select('email').neq('email', ''));
@@ -88,13 +84,15 @@ export async function GET(request: NextRequest) {
       try {
         const userId = userData.user_id;
         const profile = Array.isArray(userData.profiles) ? userData.profiles[0] : userData.profiles;
-        const reminderSettings = Array.isArray(userData.review_reminder_settings) 
-          ? userData.review_reminder_settings[0] 
-          : userData.review_reminder_settings;
-
         if (!profile) {
           continue;
         }
+
+        const { data: reminderSettings } = await supabase
+          .from('review_reminder_settings')
+          .select('enabled, frequency, last_reminder_sent')
+          .eq('account_id', userData.account_id)
+          .maybeSingle();
 
         // Check if reminders are enabled for this user
         if (reminderSettings && !reminderSettings.enabled) {
@@ -190,7 +188,7 @@ export async function GET(request: NextRequest) {
             .from('review_reminder_logs')
             .insert({
               user_id: userId,
-              account_id: null, // We'll need to get this from the user's account
+              account_id: userData.account_id,
               location_id: unrespondedReviews[0]?.locationId,
               review_ids: reviewIds,
               reminder_type: 'monthly_review',
@@ -205,6 +203,7 @@ export async function GET(request: NextRequest) {
               .from('review_reminder_settings')
               .upsert({
                 user_id: userId,
+                account_id: userData.account_id,
                 last_reminder_sent: new Date().toISOString()
               });
           } else {
@@ -213,6 +212,7 @@ export async function GET(request: NextRequest) {
               .from('review_reminder_settings')
               .insert({
                 user_id: userId,
+                account_id: userData.account_id,
                 enabled: true,
                 frequency: 'monthly',
                 last_reminder_sent: new Date().toISOString()

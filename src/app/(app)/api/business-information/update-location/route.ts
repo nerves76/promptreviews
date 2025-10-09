@@ -25,6 +25,7 @@ import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { GoogleBusinessProfileClient } from '@/features/social-posting/platforms/google-business-profile/googleBusinessProfileClient';
 import { hasValue } from '@/utils/dataFiltering';
+import { getRequestAccountId } from '../../utils/getRequestAccountId';
 
 export async function POST(request: NextRequest) {
   try {
@@ -89,12 +90,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const accountId = await getRequestAccountId(request, user.id, supabase);
+    if (!accountId) {
+      return NextResponse.json({ error: 'Account not found' }, { status: 404 });
+    }
+
 
     // Get Google Business Profile tokens
     const { data: tokens } = await supabase
       .from('google_business_profiles')
       .select('access_token, refresh_token, expires_at')
-      .eq('user_id', user.id)
+      .eq('account_id', accountId)
       .single();
 
     if (!tokens) {

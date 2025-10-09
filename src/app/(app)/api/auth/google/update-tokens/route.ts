@@ -6,6 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
+import { getRequestAccountId } from '../../utils/getRequestAccountId';
 
 export async function POST(request: NextRequest) {
   try {
@@ -34,6 +35,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const accountId = await getRequestAccountId(request, user.id, supabase);
+    if (!accountId) {
+      return NextResponse.json({ error: 'Account not found' }, { status: 404 });
+    }
+
     const { access_token, refresh_token, expires_at } = await request.json();
 
     if (!access_token || !refresh_token || !expires_at) {
@@ -52,7 +58,7 @@ export async function POST(request: NextRequest) {
         expires_at,
         updated_at: new Date().toISOString()
       })
-      .eq('user_id', user.id);
+      .eq('account_id', accountId);
 
     if (updateError) {
       console.error('❌ Error updating tokens:', updateError);

@@ -8,6 +8,7 @@ import { postManager } from '@/features/social-posting';
 import { GoogleBusinessProfileAdapter } from '@/features/social-posting/platforms/google-business-profile/adapter';
 import { GoogleBusinessProfileClient } from '@/features/social-posting/platforms/google-business-profile/googleBusinessProfileClient';
 import { createServerSupabaseClient } from '@/auth/providers/supabase';
+import { getRequestAccountId } from '../utils/getRequestAccountId';
 import type { UniversalPost, PlatformId } from '@/features/social-posting';
 
 export async function POST(request: NextRequest) {
@@ -32,11 +33,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const accountId = await getRequestAccountId(request, user.id, supabase);
+    if (!accountId) {
+      return NextResponse.json({ error: 'Account not found' }, { status: 404 });
+    }
+
     // Get user's Google Business Profile tokens
     const { data: tokens, error: tokenError } = await supabase
       .from('google_business_profiles')
       .select('*')
-      .eq('user_id', user.id)
+      .eq('account_id', accountId)
       .maybeSingle();
 
     if (tokenError || !tokens) {
@@ -61,7 +67,7 @@ export async function POST(request: NextRequest) {
       const { data: locationData } = await supabase
         .from('google_business_locations')
         .select('account_name')
-        .eq('user_id', user.id)
+        .eq('account_id', accountId)
         .limit(1);
 
       let accountId = null;

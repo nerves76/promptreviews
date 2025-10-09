@@ -167,7 +167,7 @@ export async function POST(request: NextRequest) {
     const { data: platformData, error: platformError } = await supabase
       .from('google_business_profiles')
       .select('access_token, refresh_token')
-      .eq('user_id', user.id)
+      .eq('account_id', accountId)
       .single();
 
     if (platformError || !platformData?.access_token) {

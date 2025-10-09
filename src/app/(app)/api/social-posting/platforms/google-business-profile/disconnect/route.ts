@@ -30,6 +30,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { createClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
+import { getRequestAccountId } from '../../../utils/getRequestAccountId';
 
 export async function POST(request: NextRequest) {
   try {
@@ -76,6 +77,13 @@ export async function POST(request: NextRequest) {
       );
     }
     
+    const accountId = await getRequestAccountId(request, user.id, supabase);
+    if (!accountId) {
+      return NextResponse.json(
+        { success: false, error: 'Account not found' },
+        { status: 404 }
+      );
+    }
     
     // Optional: Revoke tokens with Google first (best practice)
     try {
@@ -84,7 +92,7 @@ export async function POST(request: NextRequest) {
       const { data: tokenData } = await serviceSupabase
         .from('google_business_profiles')
         .select('access_token')
-        .eq('user_id', user.id)
+        .eq('account_id', accountId)
         .single();
       
       if (tokenData?.access_token) {
@@ -112,7 +120,7 @@ export async function POST(request: NextRequest) {
     const { data: existingTokens, error: checkError } = await serviceSupabase
       .from('google_business_profiles')
       .select('id')
-      .eq('user_id', user.id)
+      .eq('account_id', accountId)
       .maybeSingle();
     
     
@@ -120,7 +128,7 @@ export async function POST(request: NextRequest) {
     const { data: deleteData, error: deleteError, count } = await serviceSupabase
       .from('google_business_profiles')
       .delete()
-      .eq('user_id', user.id)
+      .eq('account_id', accountId)
       .select();
     
     if (deleteError) {
@@ -136,7 +144,7 @@ export async function POST(request: NextRequest) {
     const { data: verifyTokens, error: verifyError } = await serviceSupabase
       .from('google_business_profiles')
       .select('id')
-      .eq('user_id', user.id)
+      .eq('account_id', accountId)
       .maybeSingle();
     
     
@@ -144,7 +152,7 @@ export async function POST(request: NextRequest) {
     const { error: locationsDeleteError } = await serviceSupabase
       .from('google_business_locations')
       .delete()
-      .eq('user_id', user.id);
+      .eq('account_id', accountId);
     
     if (locationsDeleteError) {
       console.error('⚠️ Error removing Google Business locations:', locationsDeleteError);
@@ -156,7 +164,8 @@ export async function POST(request: NextRequest) {
     const { error: rateLimitError } = await serviceSupabase
       .from('google_api_rate_limits')
       .delete()
-      .eq('user_id', user.id);
+      .eq('account_id', accountId)
+      .eq('project_id', 'google-business-profile');
     
     if (rateLimitError) {
       console.error('⚠️ Error removing rate limit records:', rateLimitError);

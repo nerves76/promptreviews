@@ -190,7 +190,7 @@ async function processJob(
   const { data: tokens, error: tokenError } = await supabaseAdmin
     .from('google_business_profiles')
     .select('access_token, refresh_token, expires_at, selected_account_id, selected_account_name')
-    .eq('user_id', job.user_id)
+    .eq('account_id', job.account_id)
     .maybeSingle();
 
   if (tokenError || !tokens) {
@@ -248,7 +248,7 @@ async function processJob(
   const { data: locationRecords } = await supabaseAdmin
     .from('google_business_locations')
     .select('location_id, account_name')
-    .eq('user_id', job.user_id)
+    .eq('account_id', job.account_id)
     .in('location_id', locationIds);
 
   const accountMap = new Map<string, string>();
