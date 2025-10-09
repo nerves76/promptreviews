@@ -8,6 +8,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { createClient, User } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
+import { getAccountIdForUser } from '@/auth/utils/accounts';
 
 /**
  * OAuth Callback Route for Google Business Profile
@@ -58,11 +59,14 @@ export async function GET(request: NextRequest) {
     // Parse state to check if this is an embed flow
     let returnUrl = '/dashboard/google-business?tab=connect';
     let isEmbed = false;
+    let requestedAccountId: string | null = null;
     if (state) {
       try {
         const stateData = JSON.parse(decodeURIComponent(state));
+        console.log('🔍 OAuth state parsed:', { stateData, hasAccountId: !!stateData.accountId });
         returnUrl = stateData.returnUrl || '/dashboard/google-business?tab=connect';
         isEmbed = stateData.embed === true;
+        requestedAccountId = stateData.accountId || null;
 
         // If this is an embed flow, redirect to the embed-specific callback
         if (isEmbed) {
@@ -183,6 +187,26 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    // Determine account context
+    // CRITICAL: We MUST have an explicit account ID from the OAuth state
+    // Never fall back to getAccountIdForUser as it returns the first account,
+    // bypassing the account switcher and causing cross-account data leakage
+    const accountId: string | null = requestedAccountId;
+
+    if (!accountId) {
+      console.error('❌ OAuth callback missing account context in state', {
+        requestedAccountId,
+        hasState: !!state,
+        userId: user?.id
+      });
+      const separator = returnUrl.includes('?') ? '&' : '?';
+      return NextResponse.redirect(
+        new URL(`${returnUrl}${separator}error=account_missing&message=${encodeURIComponent('Account context missing from OAuth flow. Please try connecting again from the Google Business page.')}`, request.url)
+      );
+    }
+
+    console.log('✅ OAuth callback has account context:', { accountId, userId: user?.id });
+
     // At this point, user is guaranteed to be non-null
     if (!user) {
       const separator = returnUrl.includes('?') ? '&' : '?';
@@ -249,6 +273,17 @@ export async function GET(request: NextRequest) {
     
 
     // Fetch Google account info to get the email
+    const supabaseAdmin = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
+      }
+    );
+
     let googleEmail = null;
     try {
       const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
@@ -263,11 +298,11 @@ export async function GET(request: NextRequest) {
         
         // Check if this Google account is already connected to a different PR account
         // Use regular supabase client for this read operation
-        const { data: existingConnection } = await supabase
+        const { data: existingConnection } = await supabaseAdmin
           .from('google_business_profiles')
-          .select('user_id')
+          .select('account_id')
           .eq('google_email', googleEmail)
-          .neq('user_id', user.id)
+          .neq('account_id', accountId)
           .single();
           
         if (existingConnection) {
@@ -288,23 +323,12 @@ export async function GET(request: NextRequest) {
     // Store tokens in database
     
     // Create a service role client for database operations (bypasses RLS)
-    const supabaseAdmin = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-      {
-        auth: {
-          autoRefreshToken: false,
-          persistSession: false
-        }
-      }
-    );
-    
     // First check if a record already exists for this user
     // Use maybeSingle() to handle 0 or 1 records gracefully
     const { data: existingRecord } = await supabaseAdmin
       .from('google_business_profiles')
       .select('id')
-      .eq('user_id', user.id)
+      .eq('account_id', accountId)
       .maybeSingle();
     
     const now = Date.now();
@@ -313,6 +337,7 @@ export async function GET(request: NextRequest) {
     
     const upsertData = {
       user_id: user.id,
+      account_id: accountId,
       access_token: tokens.access_token,
       refresh_token: tokens.refresh_token,
       expires_at: expiresAt.toISOString(),
@@ -326,7 +351,7 @@ export async function GET(request: NextRequest) {
       const { error } = await supabaseAdmin
         .from('google_business_profiles')
         .update(upsertData)
-        .eq('user_id', user.id);
+        .eq('account_id', accountId);
       tokenError = error;
     } else {
       // Insert new record
