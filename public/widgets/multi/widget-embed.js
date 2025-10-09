@@ -745,15 +745,37 @@
                 padding-top: 8px; /* Maintain hover space */
             }
         }
-        
+
         @media (max-width: 640px) {
             .pr-carousel-item {
                 width: 100%; /* One card */
-                gap: 0;
                 padding-top: 8px; /* Maintain hover space */
             }
+
+            /* Reduce gap on mobile to maintain spacing */
             .pr-carousel-track {
-              gap: 0;
+                gap: 0.5rem;
+            }
+
+            /* Make dots container scrollable on mobile when too many dots */
+            .pr-dots-container {
+                max-width: 200px;
+                overflow-x: auto;
+                overflow-y: hidden;
+                scrollbar-width: none; /* Firefox */
+                -ms-overflow-style: none; /* IE/Edge */
+                gap: 12px;
+                margin: 0 10px;
+            }
+
+            /* Hide scrollbar for Chrome/Safari */
+            .pr-dots-container::-webkit-scrollbar {
+                display: none;
+            }
+
+            /* Reduce spacing around controls on mobile */
+            .pr-carousel-controls {
+                gap: 5px;
             }
         }
     `;
