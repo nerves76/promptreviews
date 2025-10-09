@@ -792,7 +792,14 @@ function PromptPagesContent() {
                 <button
                   type="button"
                   className="bg-blue-100 text-slate-blue rounded font-semibold px-4 py-2 hover:bg-blue-200 transition whitespace-nowrap flex items-center gap-2 flex-shrink-0"
-                  onClick={() => setShowStyleModal(true)}
+                  onClick={() => {
+                    if (universalPromptPage?.slug) {
+                      router.push(`/r/${universalPromptPage.slug}?openStyleModal=true`);
+                    } else {
+                      // Fallback to opening modal on current page if no universal page exists
+                      setShowStyleModal(true);
+                    }
+                  }}
                 >
                   <Icon name="FaPalette" className="w-5 h-5" size={20} />
                   Style

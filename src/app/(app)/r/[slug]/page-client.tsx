@@ -1564,6 +1564,14 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
     }
   }, [promptPage, searchParams]);
 
+  // Handle URL parameter for auto-opening style modal
+  useEffect(() => {
+    const shouldOpenStyleModal = searchParams.get('openStyleModal');
+    if (shouldOpenStyleModal === 'true') {
+      setShowStyleModal(true);
+    }
+  }, [searchParams]);
+
   // Merge logic: remaining variables (offer variables moved earlier to avoid hoisting issues)
   const mergedReviewPlatforms =
     promptPage?.review_platforms && promptPage.review_platforms.length
