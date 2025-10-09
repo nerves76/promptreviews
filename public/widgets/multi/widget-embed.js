@@ -592,6 +592,14 @@
           font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
           padding: 0 1rem; /* Add horizontal padding here */
           font-size: 16px !important;
+          overflow-x: hidden; /* Prevent horizontal overflow */
+        }
+
+        /* Ensure all children use border-box sizing */
+        .pr-multi-widget *,
+        .pr-multi-widget *::before,
+        .pr-multi-widget *::after {
+          box-sizing: border-box;
         }
 
         /* Enforce minimum font sizes for readability */
@@ -617,7 +625,14 @@
             position: relative;
             overflow: hidden;
             width: 100%;
+            max-width: 100%;
             /* Padding removed from here */
+        }
+
+        /* Prevent submit button from overflowing */
+        .pr-submit-review-container {
+            max-width: 100%;
+            overflow: hidden;
         }
         
         .pr-carousel-track {
@@ -729,13 +744,17 @@
         .pr-submit-review-container {
             text-align: right;
             margin-top: 0.5rem;
+            padding-right: 0;
+            box-sizing: border-box;
         }
-        
+
         .pr-submit-btn {
             display: inline-block;
             padding: 8px 16px;
             text-decoration: none;
             font-weight: 500;
+            box-sizing: border-box;
+            max-width: 100%;
         }
         
         /* Responsive Design */
