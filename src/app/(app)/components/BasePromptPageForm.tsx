@@ -386,7 +386,7 @@ export default function BasePromptPageForm({
   const handleKickstartersBackgroundDesignChange = async (backgroundDesign: boolean) => {
     // Update local state immediately for UI feedback
     setLocalBackgroundDesign(backgroundDesign);
-    
+
     try {
       // Update the global business setting
       const { error } = await supabase
@@ -412,6 +412,28 @@ export default function BasePromptPageForm({
     }
   };
 
+  // Handle kickstarters color changes (updates global business setting)
+  const handleKickstartersColorChange = async (color: string) => {
+    try {
+      // Update the global business setting
+      const { error } = await supabase
+        .from('businesses')
+        .update({ kickstarters_primary_color: color })
+        .eq('account_id', businessProfile?.account_id);
+
+      if (error) {
+        console.error('Error updating kickstarters primary color:', error);
+      } else {
+        // Update the business profile object for immediate sync with live page
+        if (businessProfile) {
+          businessProfile.kickstarters_primary_color = color;
+        }
+      }
+    } catch (error) {
+      console.error('Error updating kickstarters primary color:', error);
+    }
+  };
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Type-specific fields */}
@@ -427,6 +449,7 @@ export default function BasePromptPageForm({
           onEnabledChange={(enabled) => handleKickstartersChange(enabled, formData.selected_kickstarters)}
           onKickstartersChange={(kickstarters) => handleKickstartersChange(formData.kickstarters_enabled, kickstarters)}
           onBackgroundDesignChange={handleKickstartersBackgroundDesignChange}
+          onKickstartersColorChange={handleKickstartersColorChange}
           initialData={{
             kickstarters_enabled: initialData?.kickstarters_enabled,
             selected_kickstarters: initialData?.selected_kickstarters,
@@ -437,6 +460,7 @@ export default function BasePromptPageForm({
 
           businessProfile={{
             primary_color: businessProfile?.primary_color,
+            kickstarters_primary_color: businessProfile?.kickstarters_primary_color,
             card_bg: businessProfile?.card_bg,
             card_text: businessProfile?.card_text,
             card_transparency: businessProfile?.card_transparency,
