@@ -42,7 +42,7 @@ export default function SocialPostingDashboard() {
   const { plan: currentPlan = 'free' } = useSubscriptionData();
   const { user } = useAuthUser();
   const { business } = useBusinessData();
-  const { account } = useAccountData();
+  const { account, selectedAccountId } = useAccountData();
   
   
   /**
@@ -765,10 +765,26 @@ export default function SocialPostingDashboard() {
       // URL encode the entire scope string
       const encodedScope = encodeURIComponent(scope);
       const responseType = 'code';
-      const state = encodeURIComponent(JSON.stringify({ 
+      // CRITICAL: Always require an explicit account ID for OAuth
+      // This prevents cross-account token leakage
+      const activeAccountId = selectedAccountId || account?.id;
+      if (!activeAccountId) {
+        setConnectionError('Unable to determine account context. Please refresh the page and try again.');
+        setIsConnecting(false);
+        return;
+      }
+
+      const statePayload = {
         platform: 'google-business-profile',
-        returnUrl: '/dashboard/google-business?tab=connect'
-      }));
+        returnUrl: '/dashboard/google-business?tab=connect',
+        accountId: activeAccountId
+      };
+
+      console.log('🔍 [OAuth] Starting OAuth flow with state:', statePayload);
+
+      const state = encodeURIComponent(JSON.stringify(statePayload));
+
+      console.log('🔍 [OAuth] Encoded state:', state);
 
       // Construct Google OAuth URL
       // Use prompt=select_account+consent to force account selection AND show all permissions
