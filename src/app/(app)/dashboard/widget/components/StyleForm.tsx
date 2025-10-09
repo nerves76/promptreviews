@@ -378,19 +378,6 @@ const StyleForm: React.FC<StyleFormProps> = ({ design, onDesignChange, onSave, o
               <span>Maximum blur</span>
             </div>
           </div>
-
-          <div className="p-3 bg-white/10 rounded-md border border-white/20">
-            <p className="text-xs text-white">
-              💡 <strong>Creating a glassmorphic effect:</strong>
-            </p>
-            <ul className="text-xs text-white/90 mt-2 space-y-1 ml-4">
-              <li>• Set <strong>Background Opacity</strong> to 20-70%</li>
-              <li>• Use <strong>Backdrop Blur</strong> at 8-12px</li>
-              <li>• Add a thin <strong>Border</strong> (0.5-1px)</li>
-              <li>• Set <strong>Border Opacity</strong> to 30-50%</li>
-              <li>• Works best over colorful or patterned backgrounds</li>
-            </ul>
-          </div>
         </div>
       </div>
       
