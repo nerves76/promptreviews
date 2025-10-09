@@ -151,8 +151,8 @@
     }
     
     // Use curly quotes and apply quote size - positioned absolutely so they don't affect layout
-    const openingQuote = design.showQuotes ? `<span class="decorative-quote-opening" style="color: ${accentColor}; font-size: ${quoteSize}rem; font-weight: bold; line-height: 1; opacity: 0.2; position: absolute; top: -0.25rem; left: 0; pointer-events: none;">&#8220;</span>` : '';
-    const closingQuote = design.showQuotes ? `<span class="decorative-quote-closing" style="color: ${accentColor}; font-size: ${quoteSize}rem; font-weight: bold; line-height: 1; opacity: 0.2; position: absolute; bottom: -0.25rem; right: 0; pointer-events: none;">&#8221;</span>` : '';
+    const openingQuote = design.showQuotes ? `<span class="decorative-quote-opening" style="color: ${accentColor}; font-size: ${quoteSize}rem; font-weight: bold; line-height: 1; opacity: 0.2; position: absolute; top: -0.25rem; left: 0; pointer-events: none;">"</span>` : '';
+    const closingQuote = design.showQuotes ? `<span class="decorative-quote-closing" style="color: ${accentColor}; font-size: ${quoteSize}rem; font-weight: bold; line-height: 1; opacity: 0.2; position: absolute; bottom: -0.25rem; right: 0; pointer-events: none;">"</span>` : '';
 
     const starsHTML = review.star_rating ? `<div class="stars-row" style="margin-bottom: 0.75rem; display: flex; justify-content: center;">${renderStars(review.star_rating)}</div>` : '';
     const dateHTML = design.showRelativeDate && review.created_at ? `<div class="reviewer-date" style="color: ${roleColor}; opacity: 0.65; margin-top: 0.5rem;">${getRelativeTime(review.created_at)}</div>` : '';
