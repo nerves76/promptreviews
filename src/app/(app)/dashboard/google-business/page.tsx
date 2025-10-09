@@ -3340,6 +3340,10 @@ export default function SocialPostingDashboard() {
 
               <div className="space-y-3">
                 <p className="text-sm font-medium text-gray-700">Import Options:</p>
+                <p className="text-xs text-gray-500">
+                  If you've imported before, choose the second option to grab only the Google reviews that are
+                  new since your last import. We'll ignore anything that's already saved in Prompt Reviews.
+                </p>
                 <div className="space-y-2">
                   <button
                     onClick={() => handleImportReviews('all')}
@@ -3361,8 +3365,8 @@ export default function SocialPostingDashboard() {
                   >
                     <div className="flex items-center justify-between">
                       <div>
-                        <div className="font-medium text-gray-900">Import New Reviews Only</div>
-                        <div className="text-sm text-gray-500">Skip reviews that already exist</div>
+                        <div className="font-medium text-gray-900">Import Only New Reviews</div>
+                        <div className="text-sm text-gray-500">Add reviews Google received after your last import (duplicates are skipped)</div>
                       </div>
                     </div>
                   </button>
