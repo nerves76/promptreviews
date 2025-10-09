@@ -162,7 +162,7 @@
     return `
       <div class="pr-review-card" style="${cardStyle}">
         ${starsHTML}
-        <div class="review-content" style="flex-grow: 1; position: relative;">
+        <div class="review-content" style="flex-grow: 1; position: relative; overflow: visible;">
           ${openingQuote}
           <p class="review-text" style="margin: 0; line-height: 1.4; color: ${textColor};">${review.review_content}</p>
           ${closingQuote}
