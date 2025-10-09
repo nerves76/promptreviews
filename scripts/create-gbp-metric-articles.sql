@@ -1,6 +1,3 @@
--- Google Business Profile Metric Help Articles
--- Run this in Supabase SQL editor to create all 18 help articles
-
 -- 1. Monthly Patterns
 INSERT INTO articles (slug, title, content, status, metadata, published_at, created_at, updated_at)
 VALUES (
