@@ -19,10 +19,10 @@ interface ReactionBarProps {
 }
 
 // Map reaction types to sprite icon names
-const REACTION_ICONS: Record<ReactionType, { icon: 'FaThumbsUp' | 'FaHeart' | 'FaStar' | 'FaSmile' | 'FaFrown', label: string }> = {
+const REACTION_ICONS: Record<ReactionType, { icon: 'FaThumbsUp' | 'FaHeart' | 'FaStar' | 'FaSmile' | 'FaUnhappy', label: string }> = {
   thumbs_up: { icon: 'FaThumbsUp', label: 'Like' },
   star: { icon: 'FaStar', label: 'Star' },
-  celebrate: { icon: 'FaFrown', label: 'Disapprove' },
+  celebrate: { icon: 'FaUnhappy', label: 'Unhappy' },
   clap: { icon: 'FaHeart', label: 'Clap' },
   laugh: { icon: 'FaSmile', label: 'Laugh' },
 };
