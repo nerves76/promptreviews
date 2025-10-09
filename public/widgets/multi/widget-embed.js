@@ -643,7 +643,7 @@
         }
         
         /* This is a key part of the fix: making the item a flex container */
-        .pr-carousel-item {
+        .pr-multi-widget .pr-carousel-item {
             flex-shrink: 0;
             width: calc(100% / 3 - 1rem * 2 / 3);
             display: flex;
@@ -761,14 +761,14 @@
         
         /* Responsive Design */
         @media (max-width: 1024px) {
-            .pr-carousel-item {
+            .pr-multi-widget .pr-carousel-item {
                 width: calc(100% / 2 - 1rem * 1 / 2); /* Two cards */
                 padding-top: 8px; /* Maintain hover space */
             }
         }
 
         @media (max-width: 640px) {
-            .pr-carousel-item {
+            .pr-multi-widget .pr-carousel-item {
                 width: 100%; /* One card */
                 padding-top: 8px; /* Maintain hover space */
             }
