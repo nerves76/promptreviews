@@ -51,7 +51,8 @@
   .pr-carousel-item {
       flex-shrink: 0;
       width: calc(100% / 3 - 1rem * 2 / 3);
-      display: flex; 
+      display: flex;
+      overflow: visible; /* Allow SVG quotes to extend outside card boundaries */
   }
   
   /* Review Card Styles */

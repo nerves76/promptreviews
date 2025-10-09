@@ -48,7 +48,7 @@ interface Design {
 function renderStars(rating: number) {
   let stars = '';
   for (let i = 1; i <= 5; i++) {
-    stars += `<span class="star${i <= rating ? ' filled' : ''}" style="color: ${i <= rating ? '#ffc107' : '#e0e0e0'};">&#9733;</span>`;
+    stars += `<span class="star${i <= rating ? ' filled' : ''}" style="color: ${i <= rating ? '#ffc107' : '#e0e0e0'}; font-size: 1.2rem;">&#9733;</span>`;
   }
   return stars;
 }
