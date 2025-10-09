@@ -9,6 +9,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Icon, { IconName } from '@/components/Icon';
+import { GBPHelpBubble } from '@/components/ui/HelpBubble';
 
 interface ProfileData {
   categoriesUsed: number;
@@ -302,7 +303,14 @@ export default function BusinessHealthMetrics({
                   <span className="text-lg font-bold text-gray-900">{engagementData.totalReviews}</span>
                 </div>
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm text-gray-600">Response Rate</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-gray-600">Response Rate</span>
+                    <GBPHelpBubble
+                      metric="metrics/response-rate"
+                      tooltip="Why response rate matters"
+                      size="sm"
+                    />
+                  </div>
                   <span className={`text-sm font-medium ${
                     responseRate >= 80 ? 'text-green-600' : responseRate >= 50 ? 'text-yellow-600' : 'text-red-600'
                   }`}>
@@ -322,6 +330,11 @@ export default function BusinessHealthMetrics({
               <div className="flex items-center space-x-3">
                 <Icon name="FaExclamationTriangle" className="w-5 h-5 text-red-600" />
                 <span className="text-sm font-medium text-red-800">Reviews Need Response</span>
+                <GBPHelpBubble
+                  metric="metrics/unresponded-reviews"
+                  tooltip="Why responding matters"
+                  size="sm"
+                />
               </div>
               <span className="text-lg font-bold text-red-600">{engagementData?.unrespondedReviews || 0}</span>
             </div>
@@ -330,11 +343,25 @@ export default function BusinessHealthMetrics({
             <div className="grid grid-cols-2 gap-3">
               <div className="text-center p-3 bg-gray-50 rounded-lg">
                 <div className="text-2xl font-bold text-gray-900">{engagementData?.totalQuestions || 0}</div>
-                <div className="text-xs text-gray-600">Total Q&A</div>
+                <div className="flex items-center justify-center gap-1 text-xs text-gray-600">
+                  <span>Total Q&A</span>
+                  <GBPHelpBubble
+                    metric="metrics/questions"
+                    tooltip="Why Q&A matters"
+                    size="sm"
+                  />
+                </div>
               </div>
               <div className="text-center p-3 bg-yellow-50 rounded-lg">
                 <div className="text-2xl font-bold text-yellow-600">{engagementData?.unansweredQuestions || 0}</div>
-                <div className="text-xs text-gray-600">Unanswered</div>
+                <div className="flex items-center justify-center gap-1 text-xs text-gray-600">
+                  <span>Unanswered</span>
+                  <GBPHelpBubble
+                    metric="metrics/unanswered-questions"
+                    tooltip="Importance of answering"
+                    size="sm"
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -365,7 +392,14 @@ export default function BusinessHealthMetrics({
             {/* Categories */}
             <div>
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-gray-700">Categories Used</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium text-gray-700">Categories Used</span>
+                  <GBPHelpBubble
+                    metric="optimization/categories"
+                    tooltip="Why categories matter"
+                    size="sm"
+                  />
+                </div>
                 <span className="text-sm text-gray-600">
                   {profileData?.categoriesUsed || 0}/{profileData?.maxCategories || 0}
                 </span>
@@ -379,7 +413,14 @@ export default function BusinessHealthMetrics({
             {/* Services */}
             <div>
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-gray-700">Services</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium text-gray-700">Services</span>
+                  <GBPHelpBubble
+                    metric="optimization/services"
+                    tooltip="Why services matter"
+                    size="sm"
+                  />
+                </div>
                 <span className="text-sm text-gray-600">{profileData?.servicesCount || 0} total</span>
               </div>
               <div className="space-y-2">
@@ -413,7 +454,14 @@ export default function BusinessHealthMetrics({
             {/* Business Description */}
             <div>
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-gray-700">Business Description</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium text-gray-700">Business Description</span>
+                  <GBPHelpBubble
+                    metric="optimization/business-description"
+                    tooltip="Why description matters"
+                    size="sm"
+                  />
+                </div>
                 <span className="text-sm text-gray-600">
                   {profileData?.businessDescriptionLength || 0}/{profileData?.businessDescriptionMaxLength || 0} characters
                 </span>
@@ -432,7 +480,14 @@ export default function BusinessHealthMetrics({
             {profileData?.businessAttributes !== undefined && (
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-gray-700">Business Attributes</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-gray-700">Business Attributes</span>
+                    <GBPHelpBubble
+                      metric="optimization/attributes"
+                      tooltip="Why attributes matter"
+                      size="sm"
+                    />
+                  </div>
                   <span className="text-sm text-gray-600">
                     {profileData.businessAttributes}/8
                   </span>
@@ -452,7 +507,14 @@ export default function BusinessHealthMetrics({
             {profileData?.productsCount !== undefined && (
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-gray-700">Products Listed</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-gray-700">Products Listed</span>
+                    <GBPHelpBubble
+                      metric="optimization/products"
+                      tooltip="Why products matter"
+                      size="sm"
+                    />
+                  </div>
                   <span className="text-sm text-gray-600">
                     {profileData.productsCount}/5
                   </span>
@@ -471,7 +533,14 @@ export default function BusinessHealthMetrics({
             {/* Recent Photos */}
             <div>
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-gray-700">Photo Activity</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium text-gray-700">Photo Activity</span>
+                  <GBPHelpBubble
+                    metric="optimization/photos"
+                    tooltip="Why photos matter"
+                    size="sm"
+                  />
+                </div>
                 <span className="text-sm text-gray-600">
                   {engagementData?.recentPhotos || 0}/2 this month
                 </span>
@@ -497,7 +566,14 @@ export default function BusinessHealthMetrics({
             {engagementData && (
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-gray-700">Monthly Posts</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-gray-700">Monthly Posts</span>
+                    <GBPHelpBubble
+                      metric="optimization/posts"
+                      tooltip="Why posts matter"
+                      size="sm"
+                    />
+                  </div>
                   <span className="text-sm text-gray-600">
                     {engagementData.recentPosts}/4 this month
                   </span>
@@ -549,7 +625,14 @@ export default function BusinessHealthMetrics({
           {/* Monthly Views */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-gray-700">Profile Views</span>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-gray-700">Profile Views</span>
+                <GBPHelpBubble
+                  metric="performance/profile-views"
+                  tooltip="Why profile views matter"
+                  size="sm"
+                />
+              </div>
               <div className="flex items-center space-x-1">
                 {performanceData.viewsTrend !== 0 && (
                                 <Icon
@@ -566,37 +649,54 @@ export default function BusinessHealthMetrics({
           </div>
 
           {/* Customer Actions */}
-          <div className="grid grid-cols-2 gap-2">
-            <div className="text-center p-2 bg-blue-50 rounded">
-              <div className="text-lg font-bold text-blue-600">
-                {performanceData.customerActions.websiteClicks === 0 ? 'N/A' : performanceData.customerActions.websiteClicks}
-              </div>
-              <div className="text-xs text-gray-600">Website clicks</div>
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-sm font-medium text-gray-700">Customer Actions</span>
+              <GBPHelpBubble
+                metric="performance/customer-actions"
+                tooltip="Why customer actions matter"
+                size="sm"
+              />
             </div>
-            <div className="text-center p-2 bg-green-50 rounded">
-              <div className="text-lg font-bold text-green-600">
-                {performanceData.customerActions.phoneCalls === 0 ? 'N/A' : performanceData.customerActions.phoneCalls}
+            <div className="grid grid-cols-2 gap-2">
+              <div className="text-center p-2 bg-blue-50 rounded">
+                <div className="text-lg font-bold text-blue-600">
+                  {performanceData.customerActions.websiteClicks === 0 ? 'N/A' : performanceData.customerActions.websiteClicks}
+                </div>
+                <div className="text-xs text-gray-600">Website clicks</div>
               </div>
-              <div className="text-xs text-gray-600">Phone calls</div>
-            </div>
-            <div className="text-center p-2 bg-purple-50 rounded">
-              <div className="text-lg font-bold text-purple-600">
-                {performanceData.customerActions.directionRequests === 0 ? 'N/A' : performanceData.customerActions.directionRequests}
+              <div className="text-center p-2 bg-green-50 rounded">
+                <div className="text-lg font-bold text-green-600">
+                  {performanceData.customerActions.phoneCalls === 0 ? 'N/A' : performanceData.customerActions.phoneCalls}
+                </div>
+                <div className="text-xs text-gray-600">Phone calls</div>
               </div>
-              <div className="text-xs text-gray-600">Directions</div>
-            </div>
-            <div className="text-center p-2 bg-orange-50 rounded">
-              <div className="text-lg font-bold text-orange-600">
-                {performanceData.customerActions.photoViews === 0 ? 'N/A' : performanceData.customerActions.photoViews}
+              <div className="text-center p-2 bg-purple-50 rounded">
+                <div className="text-lg font-bold text-purple-600">
+                  {performanceData.customerActions.directionRequests === 0 ? 'N/A' : performanceData.customerActions.directionRequests}
+                </div>
+                <div className="text-xs text-gray-600">Directions</div>
               </div>
-              <div className="text-xs text-gray-600">Photo views</div>
+              <div className="text-center p-2 bg-orange-50 rounded">
+                <div className="text-lg font-bold text-orange-600">
+                  {performanceData.customerActions.photoViews === 0 ? 'N/A' : performanceData.customerActions.photoViews}
+                </div>
+                <div className="text-xs text-gray-600">Photo views</div>
+              </div>
             </div>
           </div>
 
           {/* Top Search Queries */}
           {performanceData.topSearchQueries.length > 0 && (
             <div>
-              <div className="text-sm font-medium text-gray-700 mb-2">Top Search Queries</div>
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-sm font-medium text-gray-700">Top Search Queries</span>
+                <GBPHelpBubble
+                  metric="performance/search-queries"
+                  tooltip="Why search queries matter"
+                  size="sm"
+                />
+              </div>
               <div className="space-y-1">
                 {performanceData.topSearchQueries.slice(0, 3).map((query, index) => (
                   <div key={index} className="text-sm text-gray-600 bg-gray-50 px-2 py-1 rounded">
