@@ -244,19 +244,24 @@ async function fetchWidgetData(widget: any, widgetId: string, req: Request) {
 
   // Add CORS headers for cross-domain embedding - more restrictive but backward compatible
   const jsonResponse = NextResponse.json(response);
-  
+
   // Get the origin of the request
   const origin = req.headers.get('origin') || '';
-  
+
   // For widgets, we need to allow embedding from customer sites
   // Log non-promptreviews origins for monitoring but still allow them
   if (origin && !origin.includes('promptreviews.app') && !origin.includes('localhost')) {
   }
-  
+
   // Still allow all origins for backward compatibility with existing embeds
   jsonResponse.headers.set('Access-Control-Allow-Origin', '*');
   jsonResponse.headers.set('Access-Control-Allow-Methods', 'GET, OPTIONS');
   jsonResponse.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+  // Prevent caching so design/review changes appear immediately
+  jsonResponse.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+  jsonResponse.headers.set('Pragma', 'no-cache');
+  jsonResponse.headers.set('Expires', '0');
 
   return jsonResponse;
 }
