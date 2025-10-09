@@ -648,6 +648,7 @@
             width: calc(100% / 3 - 1rem * 2 / 3);
             display: flex;
             padding-top: 8px; /* Space for hover lift effect */
+            overflow: visible !important; /* Allow SVG quotes to extend outside card boundaries */
         }
         
         /* Review Card Styles */

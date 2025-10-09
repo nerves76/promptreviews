@@ -65,6 +65,7 @@ export interface KickstartersFeatureProps {
   /** Business profile for styling the example */
   businessProfile?: {
     primary_color?: string;
+    kickstarters_primary_color?: string;
     card_bg?: string;
     card_text?: string;
     card_transparency?: number;
