@@ -150,10 +150,10 @@
       cardStyle += `box-shadow: ${shadows.join(', ')};`;
     }
     
-    // Use curly quotes and apply quote size
-    const openingQuote = design.showQuotes ? `<span class="decorative-quote-opening" style="color: ${accentColor}; font-size: ${quoteSize}rem; font-weight: bold; line-height: 1; opacity: 0.3; margin-bottom: 0.5rem; display: block; text-align: left; width: 100%;">&#8220;</span>` : '';
-    const closingQuote = design.showQuotes ? `<span class="decorative-quote-closing" style="color: ${accentColor}; font-size: ${quoteSize}rem; font-weight: bold; line-height: 1; opacity: 0.3; position: absolute; bottom: 1rem; right: 1rem;">&#8221;</span>` : '';
-    
+    // Use curly quotes and apply quote size - positioned absolutely so they don't affect layout
+    const openingQuote = design.showQuotes ? `<span class="decorative-quote-opening" style="color: ${accentColor}; font-size: ${quoteSize}rem; font-weight: bold; line-height: 1; opacity: 0.2; position: absolute; top: -0.25rem; left: 0; pointer-events: none;">&#8220;</span>` : '';
+    const closingQuote = design.showQuotes ? `<span class="decorative-quote-closing" style="color: ${accentColor}; font-size: ${quoteSize}rem; font-weight: bold; line-height: 1; opacity: 0.2; position: absolute; bottom: -0.25rem; right: 0; pointer-events: none;">&#8221;</span>` : '';
+
     const starsHTML = review.star_rating ? `<div class="stars-row" style="margin-bottom: 0.75rem; display: flex; justify-content: center;">${renderStars(review.star_rating)}</div>` : '';
     const dateHTML = design.showRelativeDate && review.created_at ? `<div class="reviewer-date" style="color: ${roleColor}; opacity: 0.65; margin-top: 0.5rem;">${getRelativeTime(review.created_at)}</div>` : '';
     const platformHTML = design.showPlatform && review.platform ? `<div class="reviewer-platform" style="color: ${roleColor}; opacity: 0.7; margin-top: 0.125rem;">via ${review.platform}</div>` : '';
@@ -163,7 +163,7 @@
         ${starsHTML}
         <div class="review-content" style="flex-grow: 1; position: relative;">
           ${openingQuote}
-          <p class="review-text" style="margin: 0; line-height: 1.4; color: ${textColor}; padding-left: ${design.showQuotes ? '0.75rem' : '0'}; padding-right: ${design.showQuotes ? '1.5rem' : '0'}; padding-bottom: ${design.showQuotes ? '1.5rem' : '0'};">${review.review_content}</p>
+          <p class="review-text" style="margin: 0; line-height: 1.4; color: ${textColor};">${review.review_content}</p>
           ${closingQuote}
         </div>
         <div class="reviewer-details" style="margin-top: 0.75rem; text-align: center;">
