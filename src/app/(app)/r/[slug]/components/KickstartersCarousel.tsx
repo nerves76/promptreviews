@@ -138,6 +138,14 @@ export default function KickstartersCarousel({
 
   const currentQuestion = questions[currentIndex];
 
+  // Debug: Log color values
+  console.log('[KickstartersCarousel] Color values:', {
+    kickstarters_primary_color: businessProfile?.kickstarters_primary_color,
+    primary_color: businessProfile?.primary_color,
+    finalColor: businessProfile?.kickstarters_primary_color || businessProfile?.primary_color || '#2563EB',
+    backgroundDesign: actualBackgroundDesign
+  });
+
   return (
     <>
       {/* Main Carousel with Side Arrows */}
