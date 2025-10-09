@@ -204,7 +204,7 @@ export default function KickstartersCarousel({
               : 'transparent'
           }}
         >
-          {/* Header with Inspiration centered */}
+          {/* Header with Kickstarters centered */}
           <div className="flex items-center justify-center mb-1">
             <span
               className="text-xs tracking-wide font-medium"
@@ -213,7 +213,7 @@ export default function KickstartersCarousel({
                 color: businessProfile?.kickstarters_primary_color || businessProfile?.primary_color || '#2563EB'
               }}
             >
-              Inspiration
+              Kickstarters
             </span>
           </div>
 
