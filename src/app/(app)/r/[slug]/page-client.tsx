@@ -1296,8 +1296,23 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
       if (newStyles.primary_color) {
         document.documentElement.style.setProperty('--primary-color', newStyles.primary_color);
       }
+      if (newStyles.secondary_color) {
+        document.documentElement.style.setProperty('--secondary-color', newStyles.secondary_color);
+      }
       if (newStyles.background_color) {
         document.documentElement.style.setProperty('--background-color', newStyles.background_color);
+      }
+      if (newStyles.text_color) {
+        document.documentElement.style.setProperty('--text-color', newStyles.text_color);
+      }
+      if (newStyles.card_bg) {
+        document.documentElement.style.setProperty('--card-bg', newStyles.card_bg);
+      }
+      if (newStyles.card_text) {
+        document.documentElement.style.setProperty('--card-text', newStyles.card_text);
+      }
+      if (newStyles.input_text_color) {
+        document.documentElement.style.setProperty('--input-text-color', newStyles.input_text_color);
       }
       if (newStyles.primary_font) {
         document.documentElement.style.setProperty('--primary-font', newStyles.primary_font);

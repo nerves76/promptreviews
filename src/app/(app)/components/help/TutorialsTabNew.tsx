@@ -825,10 +825,10 @@ export default function TutorialsTabNew({
               className="flex items-center space-x-2 md:space-x-3 p-2.5 md:p-3 bg-white/90 backdrop-blur-sm border border-gray-200 rounded-lg hover:border-indigo-300 hover:bg-indigo-50/50 transition-colors text-left group"
             >
               <div className="flex-shrink-0">
-                <Icon 
-                  name={featured.icon} 
-                  className="w-4 h-4 md:w-5 md:h-5 text-slate-600 group-hover:text-indigo-600" 
-                  size={20} 
+                <Icon
+                  name={featured.icon}
+                  className="w-4 h-4 md:w-5 md:h-5 text-slate-600 group-hover:text-indigo-600"
+                  size={20}
                 />
               </div>
               <div className="flex-1 min-w-0">
@@ -836,15 +836,62 @@ export default function TutorialsTabNew({
                   {featured.title}
                 </h4>
               </div>
-              <Icon 
-                name="FaChevronRight" 
-                className="w-3 h-3 md:w-4 md:h-4 text-gray-400 group-hover:text-indigo-600 flex-shrink-0" 
-                size={16} 
+              <Icon
+                name="FaChevronRight"
+                className="w-3 h-3 md:w-4 md:h-4 text-gray-400 group-hover:text-indigo-600 flex-shrink-0"
+                size={16}
               />
             </button>
           ))}
         </div>
       </div>
+
+      {/* Featured FAQs Section */}
+      {featuredFaqs.length > 0 && (
+        <div className="mb-4 md:mb-6">
+          <h3 className="text-xs md:text-sm font-semibold text-gray-700 uppercase tracking-wider mb-3">
+            Common questions
+          </h3>
+          <div className="grid gap-2">
+            {featuredFaqs.map((faq: any) => (
+              <div
+                key={faq.id}
+                className="bg-white/90 backdrop-blur-sm border border-gray-200 rounded-lg hover:border-purple-300 transition-colors"
+              >
+                <button
+                  onClick={() => setExpandedFaqId(expandedFaqId === faq.id ? null : faq.id)}
+                  className="w-full flex items-start space-x-2 md:space-x-3 p-2.5 md:p-3 text-left group"
+                >
+                  <div className="flex-shrink-0 pt-0.5">
+                    <Icon
+                      name="FaQuestionCircle"
+                      className="w-4 h-4 md:w-5 md:h-5 text-purple-600"
+                      size={20}
+                    />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-medium text-sm md:text-base text-gray-900 group-hover:text-purple-700">
+                      {faq.question}
+                    </h4>
+                  </div>
+                  <Icon
+                    name={expandedFaqId === faq.id ? "FaChevronUp" : "FaChevronDown"}
+                    className="w-3 h-3 md:w-4 md:h-4 text-gray-400 flex-shrink-0"
+                    size={16}
+                  />
+                </button>
+                {expandedFaqId === faq.id && (
+                  <div className="px-2.5 md:px-3 pb-2.5 md:pb-3 pt-0">
+                    <div className="pl-6 md:pl-8 text-sm text-gray-700 leading-relaxed">
+                      {faq.answer}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Divider */}
       <div className="border-t border-gray-200 my-3 md:my-4"></div>

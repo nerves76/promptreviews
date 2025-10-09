@@ -199,9 +199,10 @@ export function createReviewCardHTML(review: Review, design: Design) {
     cardStyle += `box-shadow: ${shadows.join(', ')};`;
   }
   
-  // Use curly quotes and apply quote size
-  const openingQuote = design.showQuotes ? `<span class="decorative-quote-opening" style="color: ${accentColor}; font-size: ${quoteSize}rem; font-weight: bold; line-height: 1; opacity: 0.3; margin-bottom: 0.5rem; display: block; text-align: left; width: 100%;">&#8220;</span>` : '';
-  const closingQuote = design.showQuotes ? `<span class="decorative-quote-closing" style="color: ${accentColor}; font-size: ${quoteSize}rem; font-weight: bold; line-height: 1; opacity: 0.3; position: absolute; bottom: 1rem; right: 1rem;">&#8221;</span>` : '';
+  // Use SVG decorative quotes - positioned absolutely so they don't affect layout
+  const quoteWidth = quoteSize * 16; // Convert rem to px (assuming 16px base)
+  const openingQuote = design.showQuotes ? `<svg class="decorative-quote-opening" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 379.51" style="position: absolute; top: -16px; left: -16px; width: ${quoteWidth}px; height: ${quoteWidth * 0.74}px; opacity: 0.2; pointer-events: none; fill: ${accentColor};"><path d="M212.27 33.98C131.02 56.52 78.14 103.65 64.99 185.67c-3.58 22.32 1.42 5.46 16.55-5.86 49.4-36.96 146.53-23.88 160.01 60.56 27.12 149.48-159.79 175.36-215.11 92.8-12.87-19.19-21.39-41.59-24.46-66.19C-11.35 159.99 43.48 64.7 139.8 19.94c17.82-8.28 36.6-14.76 56.81-19.51 10.12-2.05 17.47 3.46 20.86 12.77 2.87 7.95 3.85 16.72-5.2 20.78zm267.78 0c-81.25 22.54-134.14 69.67-147.28 151.69-3.58 22.32 1.42 5.46 16.55-5.86 49.4-36.96 146.53-23.88 160 60.56 27.13 149.48-159.78 175.36-215.1 92.8-12.87-19.19-21.39-41.59-24.46-66.19C256.43 159.99 311.25 64.7 407.58 19.94 425.4 11.66 444.17 5.18 464.39.43c10.12-2.05 17.47 3.46 20.86 12.77 2.87 7.95 3.85 16.72-5.2 20.78z"/></svg>` : '';
+  const closingQuote = design.showQuotes ? `<svg class="decorative-quote-closing" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 379.51" style="position: absolute; bottom: -16px; right: -16px; width: ${quoteWidth}px; height: ${quoteWidth * 0.74}px; opacity: 0.2; pointer-events: none; fill: ${accentColor};"><path d="M299.73 345.54c81.25-22.55 134.13-69.68 147.28-151.7 3.58-22.31-1.42-5.46-16.55 5.86-49.4 36.97-146.53 23.88-160.01-60.55C243.33-10.34 430.24-36.22 485.56 46.34c12.87 19.19 21.39 41.59 24.46 66.19 13.33 106.99-41.5 202.28-137.82 247.04-17.82 8.28-36.6 14.76-56.81 19.52-10.12 2.04-17.47-3.46-20.86-12.78-2.87-7.95-3.85-16.72 5.2-20.77zm-267.78 0c81.25-22.55 134.14-69.68 147.28-151.7 3.58-22.31-1.42-5.46-16.55 5.86-49.4 36.97-146.53 23.88-160-60.55-27.14-149.49 159.78-175.37 215.1-92.81 12.87 19.19 21.39 41.59 24.46 66.19 13.33 106.99-41.5 202.28-137.82 247.04-17.82 8.28-36.59 14.76-56.81 19.52-10.12 2.04-17.47-3.46-20.86-12.78-2.87-7.95-3.85-16.72 5.2-20.77z"/></svg>` : '';
   
   // Added justify-content: center to stars row
   const starsHTML = review.star_rating ? `<div class="stars-row" style="margin-bottom: 0.75rem; display: flex; justify-content: center;">${renderStars(review.star_rating)}</div>` : '';
@@ -213,7 +214,7 @@ export function createReviewCardHTML(review: Review, design: Design) {
       ${starsHTML}
       <div class="review-content" style="flex-grow: 1; position: relative;">
         ${openingQuote}
-        <p class="review-text" style="margin: 0; font-size: 0.9rem; line-height: 1.4; color: ${textColor}; padding-left: ${design.showQuotes ? '0.75rem' : '0'}; padding-right: ${design.showQuotes ? '1.5rem' : '0'}; padding-bottom: ${design.showQuotes ? '1.5rem' : '0'};">${review.review_content}</p>
+        <p class="review-text" style="margin: 0; font-size: 0.9rem; line-height: 1.4; color: ${textColor};">${review.review_content}</p>
         ${closingQuote}
       </div>
       <div class="reviewer-details" style="margin-top: 0.75rem; text-align: center;">
