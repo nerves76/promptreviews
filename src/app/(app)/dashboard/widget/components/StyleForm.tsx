@@ -23,11 +23,11 @@ const StyleForm: React.FC<StyleFormProps> = ({ design, onDesignChange, onSave, o
     <div className="space-y-6 max-h-[70vh] overflow-y-auto pr-2 relative">
       {/* Card Appearance */}
       <div className="space-y-4">
-        <h3 className="text-sm font-semibold text-gray-900 border-b pb-2">Card Appearance</h3>
-        
+        <h3 className="text-sm font-semibold text-white border-b border-white/30 pb-2">Card Appearance</h3>
+
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Background Color</label>
+            <label className="block text-sm font-medium text-white mb-2">Background Color</label>
             <input
               type="color"
               value={design.bgColor || '#ffffff'}
@@ -35,9 +35,9 @@ const StyleForm: React.FC<StyleFormProps> = ({ design, onDesignChange, onSave, o
               className="w-full h-10 border border-gray-300 rounded-md cursor-pointer"
             />
           </div>
-          
+
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Background Opacity</label>
+            <label className="block text-sm font-medium text-white mb-2">Background Opacity</label>
             <div className="flex items-center gap-2">
               <input
                 type="range"
@@ -48,13 +48,13 @@ const StyleForm: React.FC<StyleFormProps> = ({ design, onDesignChange, onSave, o
                 onChange={(e) => updateDesign({ bgOpacity: parseFloat(e.target.value) })}
                 className="flex-1"
               />
-              <span className="text-xs text-gray-500 w-10">{Math.round((design.bgOpacity || 1) * 100)}%</span>
+              <span className="text-xs text-white/80 w-10">{Math.round((design.bgOpacity || 1) * 100)}%</span>
             </div>
           </div>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Corner Roundness</label>
+          <label className="block text-sm font-medium text-white mb-2">Corner Roundness</label>
           <div className="flex items-center gap-2">
             <input
               type="range"
@@ -65,15 +65,15 @@ const StyleForm: React.FC<StyleFormProps> = ({ design, onDesignChange, onSave, o
               onChange={(e) => updateDesign({ borderRadius: parseInt(e.target.value) })}
               className="flex-1"
             />
-            <span className="text-xs text-gray-500 w-10">{design.borderRadius || 16}px</span>
+            <span className="text-xs text-white/80 w-10">{design.borderRadius || 16}px</span>
           </div>
         </div>
       </div>
 
       {/* Border Settings */}
       <div className="space-y-4">
-        <h3 className="text-sm font-semibold text-gray-900 border-b pb-2">Border</h3>
-        
+        <h3 className="text-sm font-semibold text-white border-b border-white/30 pb-2">Border</h3>
+
         <div className="flex items-center">
           <input
             type="checkbox"
@@ -82,15 +82,15 @@ const StyleForm: React.FC<StyleFormProps> = ({ design, onDesignChange, onSave, o
             onChange={(e) => updateDesign({ border: e.target.checked })}
             className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
           />
-          <label htmlFor="showBorder" className="ml-2 block text-sm text-gray-700">
+          <label htmlFor="showBorder" className="ml-2 block text-sm text-white">
             Show border
           </label>
         </div>
-        
+
         {design.border && (
           <div className="grid grid-cols-2 gap-4 pl-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Border Color</label>
+              <label className="block text-sm font-medium text-white mb-2">Border Color</label>
               <input
                 type="color"
                 value={design.borderColor || '#cccccc'}
@@ -99,7 +99,7 @@ const StyleForm: React.FC<StyleFormProps> = ({ design, onDesignChange, onSave, o
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Border Width</label>
+              <label className="block text-sm font-medium text-white mb-2">Border Width</label>
               <input
                 type="number"
                 min="0.5"
@@ -111,7 +111,7 @@ const StyleForm: React.FC<StyleFormProps> = ({ design, onDesignChange, onSave, o
               />
             </div>
             <div className="col-span-2">
-              <label className="block text-xs font-medium text-gray-700 mb-1">
+              <label className="block text-xs font-medium text-white mb-1">
                 Border Transparency: {Math.round((design.borderOpacity || 1) * 100)}%
               </label>
               <div className="flex items-center gap-2">
@@ -125,7 +125,7 @@ const StyleForm: React.FC<StyleFormProps> = ({ design, onDesignChange, onSave, o
                   className="flex-1"
                 />
               </div>
-              <div className="flex justify-between text-xs text-gray-500 mt-1">
+              <div className="flex justify-between text-xs text-white/80 mt-1">
                 <span>More transparent</span>
                 <span>Fully opaque</span>
               </div>
@@ -136,10 +136,10 @@ const StyleForm: React.FC<StyleFormProps> = ({ design, onDesignChange, onSave, o
 
       {/* Typography */}
       <div className="space-y-4">
-        <h3 className="text-sm font-semibold text-gray-900 border-b pb-2">Typography</h3>
-        
+        <h3 className="text-sm font-semibold text-white border-b border-white/30 pb-2">Typography</h3>
+
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Font Family</label>
+          <label className="block text-sm font-medium text-white mb-2">Font Family</label>
           <select
             value={design.font || 'Inter'}
             onChange={(e) => updateDesign({ font: e.target.value })}
@@ -156,7 +156,7 @@ const StyleForm: React.FC<StyleFormProps> = ({ design, onDesignChange, onSave, o
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Review Text Color</label>
+            <label className="block text-sm font-medium text-white mb-2">Review Text Color</label>
             <input
               type="color"
               value={design.textColor || '#22223b'}
@@ -164,9 +164,9 @@ const StyleForm: React.FC<StyleFormProps> = ({ design, onDesignChange, onSave, o
               className="w-full h-10 border border-gray-300 rounded-md cursor-pointer"
             />
           </div>
-          
+
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Reviewer Name Color</label>
+            <label className="block text-sm font-medium text-white mb-2">Reviewer Name Color</label>
             <input
               type="color"
               value={design.nameTextColor || '#1a237e'}
@@ -177,7 +177,7 @@ const StyleForm: React.FC<StyleFormProps> = ({ design, onDesignChange, onSave, o
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Accent Color (Buttons, Navigation)</label>
+          <label className="block text-sm font-medium text-white mb-2">Accent Color (Buttons, Navigation)</label>
           <input
             type="color"
             value={design.accentColor || '#6a5acd'}
@@ -189,8 +189,8 @@ const StyleForm: React.FC<StyleFormProps> = ({ design, onDesignChange, onSave, o
 
       {/* Shadow Effects */}
       <div className="space-y-4">
-        <h3 className="text-sm font-semibold text-gray-900 border-b pb-2">Shadow Effects</h3>
-        
+        <h3 className="text-sm font-semibold text-white border-b border-white/30 pb-2">Shadow Effects</h3>
+
         <div className="flex items-center">
           <input
             type="checkbox"
@@ -199,15 +199,15 @@ const StyleForm: React.FC<StyleFormProps> = ({ design, onDesignChange, onSave, o
             onChange={(e) => updateDesign({ shadow: e.target.checked })}
             className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
           />
-          <label htmlFor="shadow" className="ml-2 block text-sm text-gray-700">
+          <label htmlFor="shadow" className="ml-2 block text-sm text-white">
             Add shadow vignette
           </label>
         </div>
-        
+
         {design.shadow && (
           <div className="grid grid-cols-2 gap-4 pl-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Shadow Color</label>
+              <label className="block text-sm font-medium text-white mb-2">Shadow Color</label>
               <input
                 type="color"
                 value={design.shadowColor || '#222222'}
@@ -216,7 +216,7 @@ const StyleForm: React.FC<StyleFormProps> = ({ design, onDesignChange, onSave, o
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Shadow Intensity</label>
+              <label className="block text-sm font-medium text-white mb-2">Shadow Intensity</label>
               <div className="flex items-center gap-2">
                 <input
                   type="range"
@@ -227,7 +227,7 @@ const StyleForm: React.FC<StyleFormProps> = ({ design, onDesignChange, onSave, o
                   onChange={(e) => updateDesign({ shadowIntensity: parseFloat(e.target.value) })}
                   className="flex-1"
                 />
-                <span className="text-xs text-gray-500 w-10">{Math.round((design.shadowIntensity || 0.5) * 100)}%</span>
+                <span className="text-xs text-white/80 w-10">{Math.round((design.shadowIntensity || 0.5) * 100)}%</span>
               </div>
             </div>
           </div>
@@ -236,8 +236,8 @@ const StyleForm: React.FC<StyleFormProps> = ({ design, onDesignChange, onSave, o
 
       {/* Display Options */}
       <div className="space-y-4">
-        <h3 className="text-sm font-semibold text-gray-900 border-b pb-2">Display Options</h3>
-        
+        <h3 className="text-sm font-semibold text-white border-b border-white/30 pb-2">Display Options</h3>
+
         <div className="space-y-3">
           <div className="flex items-center">
             <input
@@ -247,15 +247,15 @@ const StyleForm: React.FC<StyleFormProps> = ({ design, onDesignChange, onSave, o
               onChange={(e) => updateDesign({ showQuotes: e.target.checked })}
               className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
             />
-            <label htmlFor="showQuotes" className="ml-2 block text-sm text-gray-700">
+            <label htmlFor="showQuotes" className="ml-2 block text-sm text-white">
               Show quotation marks around reviews
             </label>
           </div>
-          
+
           {/* Quote Size Slider - only show when quotes are enabled */}
           {design.showQuotes && (
             <div className="ml-6">
-              <label htmlFor="quoteSize" className="block text-sm text-gray-700 mb-1">
+              <label htmlFor="quoteSize" className="block text-sm text-white mb-1">
                 Quote Size: {(design.quoteSize || 1.5).toFixed(1)}rem
               </label>
               <input
@@ -268,13 +268,13 @@ const StyleForm: React.FC<StyleFormProps> = ({ design, onDesignChange, onSave, o
                 onChange={(e) => updateDesign({ quoteSize: parseFloat(e.target.value) })}
                 className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
               />
-              <div className="flex justify-between text-xs text-gray-500 mt-1">
+              <div className="flex justify-between text-xs text-white/80 mt-1">
                 <span>Small</span>
                 <span>Large</span>
               </div>
             </div>
           )}
-          
+
           <div className="flex items-center">
             <input
               type="checkbox"
@@ -283,11 +283,11 @@ const StyleForm: React.FC<StyleFormProps> = ({ design, onDesignChange, onSave, o
               onChange={(e) => updateDesign({ showRelativeDate: e.target.checked })}
               className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
             />
-            <label htmlFor="showRelativeDate" className="ml-2 block text-sm text-gray-700">
+            <label htmlFor="showRelativeDate" className="ml-2 block text-sm text-white">
               Show relative date (e.g., "2 days ago")
             </label>
           </div>
-          
+
           <div className="flex items-center">
             <input
               type="checkbox"
@@ -296,11 +296,11 @@ const StyleForm: React.FC<StyleFormProps> = ({ design, onDesignChange, onSave, o
               onChange={(e) => updateDesign({ showPlatform: e.target.checked })}
               className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
             />
-            <label htmlFor="showPlatform" className="ml-2 block text-sm text-gray-700">
+            <label htmlFor="showPlatform" className="ml-2 block text-sm text-white">
               Show platform source (e.g., "via Google")
             </label>
           </div>
-          
+
           <div className="flex items-center">
             <input
               type="checkbox"
@@ -309,7 +309,7 @@ const StyleForm: React.FC<StyleFormProps> = ({ design, onDesignChange, onSave, o
               onChange={(e) => updateDesign({ showSubmitReviewButton: e.target.checked })}
               className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
             />
-            <label htmlFor="showSubmitReviewButton" className="ml-2 block text-sm text-gray-700">
+            <label htmlFor="showSubmitReviewButton" className="ml-2 block text-sm text-white">
               Show "Submit a review" button
             </label>
           </div>
@@ -318,8 +318,8 @@ const StyleForm: React.FC<StyleFormProps> = ({ design, onDesignChange, onSave, o
 
       {/* Animation Settings */}
       <div className="space-y-4">
-        <h3 className="text-sm font-semibold text-gray-900 border-b pb-2">Animation</h3>
-        
+        <h3 className="text-sm font-semibold text-white border-b border-white/30 pb-2">Animation</h3>
+
         <div className="flex items-center">
           <input
             type="checkbox"
@@ -328,14 +328,14 @@ const StyleForm: React.FC<StyleFormProps> = ({ design, onDesignChange, onSave, o
             onChange={(e) => updateDesign({ autoAdvance: e.target.checked })}
             className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
           />
-          <label htmlFor="autoAdvance" className="ml-2 block text-sm text-gray-700">
+          <label htmlFor="autoAdvance" className="ml-2 block text-sm text-white">
             Auto-advance slideshow
           </label>
         </div>
-        
+
         {design.autoAdvance && (
           <div className="pl-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">Slideshow Speed</label>
+            <label className="block text-sm font-medium text-white mb-2">Slideshow Speed</label>
             <div className="flex items-center gap-2">
               <input
                 type="range"
@@ -346,7 +346,7 @@ const StyleForm: React.FC<StyleFormProps> = ({ design, onDesignChange, onSave, o
                 onChange={(e) => updateDesign({ slideshowSpeed: parseFloat(e.target.value) })}
                 className="flex-1"
               />
-              <span className="text-xs text-gray-500 w-10">{design.slideshowSpeed || 4}s</span>
+              <span className="text-xs text-white/80 w-10">{design.slideshowSpeed || 4}s</span>
             </div>
           </div>
         )}
@@ -354,11 +354,11 @@ const StyleForm: React.FC<StyleFormProps> = ({ design, onDesignChange, onSave, o
 
       {/* Backdrop Blur Effect */}
       <div className="space-y-4">
-        <h3 className="text-sm font-semibold text-gray-900 border-b pb-2">Backdrop Blur</h3>
-        
+        <h3 className="text-sm font-semibold text-white border-b border-white/30 pb-2">Backdrop Blur</h3>
+
         <div className="space-y-3">
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">
+            <label className="block text-xs font-medium text-white mb-1">
               Blur Intensity
             </label>
             <div className="flex items-center gap-2">
@@ -371,19 +371,19 @@ const StyleForm: React.FC<StyleFormProps> = ({ design, onDesignChange, onSave, o
                 onChange={(e) => updateDesign({ backdropBlur: parseInt(e.target.value) })}
                 className="flex-1"
               />
-              <span className="text-xs text-gray-500 w-12">{design.backdropBlur || 10}px</span>
+              <span className="text-xs text-white/80 w-12">{design.backdropBlur || 10}px</span>
             </div>
-            <div className="flex justify-between text-xs text-gray-500 mt-1">
+            <div className="flex justify-between text-xs text-white/80 mt-1">
               <span>No blur</span>
               <span>Maximum blur</span>
             </div>
           </div>
-          
-          <div className="p-3 bg-gray-50 rounded-md">
-            <p className="text-xs text-gray-600">
+
+          <div className="p-3 bg-white/10 rounded-md border border-white/20">
+            <p className="text-xs text-white">
               💡 <strong>Creating a glassmorphic effect:</strong>
             </p>
-            <ul className="text-xs text-gray-600 mt-2 space-y-1 ml-4">
+            <ul className="text-xs text-white/90 mt-2 space-y-1 ml-4">
               <li>• Set <strong>Background Opacity</strong> to 20-70%</li>
               <li>• Use <strong>Backdrop Blur</strong> at 8-12px</li>
               <li>• Add a thin <strong>Border</strong> (0.5-1px)</li>
@@ -395,7 +395,7 @@ const StyleForm: React.FC<StyleFormProps> = ({ design, onDesignChange, onSave, o
       </div>
       
       {/* Bottom action buttons */}
-      <div className="flex justify-end gap-4 pt-6 border-t border-gray-200 mt-8">
+      <div className="flex justify-end gap-4 pt-6 border-t border-white/30 mt-8">
         <button
           onClick={handleReset}
           className="px-4 py-2 border border-slate-300 bg-white text-slate-blue rounded-md font-semibold shadow-sm hover:bg-slate-50 transition text-sm"

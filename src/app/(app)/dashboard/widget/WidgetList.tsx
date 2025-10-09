@@ -273,15 +273,8 @@ export default function WidgetList({
         accountId={selectedAccount?.account_id}
         design={design}
         onReviewsChange={() => {
-          // If this widget is currently selected in preview, refresh its data
-          if (selectedWidgetForReviews && selectedWidgetId === selectedWidgetForReviews) {
-            // Use the dedicated refresh function which will fetch fresh data
-            if (onRefreshWidget) {
-              onRefreshWidget();
-            }
-          }
-          // Optionally, auto-select the widget after editing reviews to show the changes
-          else if (selectedWidgetForReviews && onSelectWidget) {
+          // Always auto-select the widget after editing reviews to show the changes
+          if (selectedWidgetForReviews && onSelectWidget) {
             const widget = widgets.find(w => w.id === selectedWidgetForReviews);
             if (widget) {
               onSelectWidget(widget);

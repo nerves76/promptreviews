@@ -165,7 +165,7 @@ export const WidgetEditorForm: React.FC<WidgetEditorFormProps> = ({
     <div className="p-4">
       <div className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700">Widget name</label>
+          <label className="block text-sm font-medium text-white">Widget name</label>
           <input
             ref={nameInputRef}
             type="text"
@@ -177,7 +177,7 @@ export const WidgetEditorForm: React.FC<WidgetEditorFormProps> = ({
           {nameError && <p className="text-red-500 text-xs mt-1">{nameError}</p>}
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700">Widget type</label>
+          <label className="block text-sm font-medium text-white">Widget type</label>
           <select
             value={form.widgetType || ""}
             onChange={(e) => setForm({ ...form, widgetType: e.target.value })}
@@ -189,7 +189,7 @@ export const WidgetEditorForm: React.FC<WidgetEditorFormProps> = ({
             <option value="photo">Photo</option>
           </select>
           {/* Widget type description */}
-          <p className="mt-2 text-sm text-gray-600">
+          <p className="mt-2 text-sm text-white">
             {form.widgetType === 'single' && 'Shows reviews one-at-a-time in a carousel.'}
             {form.widgetType === 'multi' && 'Shows 3 reviews at a time in a carousel.'}
             {form.widgetType === 'photo' && 'Allows you to upload photos of reviewer (Photo + Testimonial Prompt Pages).'}
