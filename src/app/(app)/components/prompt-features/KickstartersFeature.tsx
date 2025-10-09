@@ -52,6 +52,8 @@ export interface KickstartersFeatureProps {
   onCustomKickstartersChange?: (customKickstarters: Kickstarter[]) => void;
   /** Callback when background design changes (updates global business setting) */
   onBackgroundDesignChange?: (backgroundDesign: boolean) => void;
+  /** Callback when kickstarters color changes (updates global business setting) */
+  onKickstartersColorChange?: (color: string) => void;
   /** Initial values for the component */
   initialData?: {
     kickstarters_enabled?: boolean;
@@ -90,6 +92,7 @@ export default function KickstartersFeature({
   onKickstartersChange,
   onCustomKickstartersChange,
   onBackgroundDesignChange,
+  onKickstartersColorChange,
   initialData,
   disabled = false,
   editMode = false,
@@ -323,7 +326,7 @@ export default function KickstartersFeature({
 
 
           {/* Controls Row - Manage button and Background options */}
-          <div className="mb-4 flex items-center justify-between">
+          <div className="mb-4 flex items-center justify-between flex-wrap gap-3">
             <div className="flex items-center gap-3">
               <button
                 type="button"
@@ -335,52 +338,72 @@ export default function KickstartersFeature({
                 Manage
               </button>
               <span className="text-xs text-gray-500">
-                {selected && selected.length > 0 
-                  ? `${selected.length} selected` 
+                {selected && selected.length > 0
+                  ? `${selected.length} selected`
                   : 'All 40+ questions included'
                 }
               </span>
             </div>
-            
-            <div className="flex items-center gap-3">
-              <span className="text-sm font-medium text-gray-700">Background:</span>
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setLocalBackgroundDesign(true);
-                    onBackgroundDesignChange?.(true);
+
+            <div className="flex items-center gap-4">
+              {/* Color Picker */}
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-gray-700">Color:</span>
+                <input
+                  type="color"
+                  value={businessProfile?.kickstarters_primary_color || businessProfile?.primary_color || '#2563EB'}
+                  onChange={(e) => {
+                    if (onKickstartersColorChange) {
+                      onKickstartersColorChange(e.target.value);
+                    }
                   }}
-                  className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${
-                    localBackgroundDesign 
-                      ? 'bg-slate-blue text-white' 
-                      : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
-                  }`}
                   disabled={disabled}
-                >
-                  With
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setLocalBackgroundDesign(false);
-                    onBackgroundDesignChange?.(false);
-                  }}
-                  className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${
-                    !localBackgroundDesign 
-                      ? 'bg-slate-blue text-white' 
-                      : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
-                  }`}
-                  disabled={disabled}
-                >
-                  Without
-                </button>
+                  className="w-10 h-8 rounded border border-gray-300 cursor-pointer"
+                  title="Kickstarters primary color"
+                />
+              </div>
+
+              {/* Background Toggle */}
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-gray-700">Background:</span>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setLocalBackgroundDesign(true);
+                      onBackgroundDesignChange?.(true);
+                    }}
+                    className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${
+                      localBackgroundDesign
+                        ? 'bg-slate-blue text-white'
+                        : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
+                    }`}
+                    disabled={disabled}
+                  >
+                    With
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setLocalBackgroundDesign(false);
+                      onBackgroundDesignChange?.(false);
+                    }}
+                    className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${
+                      !localBackgroundDesign
+                        ? 'bg-slate-blue text-white'
+                        : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
+                    }`}
+                    disabled={disabled}
+                  >
+                    Without
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-          
+
           <p className="text-xs text-gray-500 mb-4 text-right">
-            Background setting affects all instances
+            Color and background settings affect all instances
           </p>
 
           {/* Example Implementation - Always Show */}
@@ -412,11 +435,11 @@ export default function KickstartersFeature({
                       ? 'bg-white hover:bg-gray-50' 
                       : 'border-2 hover:opacity-80'
                   }`}
-                  style={{ 
-                    color: localBackgroundDesign 
-                      ? (businessProfile?.primary_color || '#2563EB')
+                  style={{
+                    color: localBackgroundDesign
+                      ? (businessProfile?.kickstarters_primary_color || businessProfile?.primary_color || '#2563EB')
                       : applyCardTransparency(businessProfile?.card_bg || "#F9FAFB", businessProfile?.card_transparency ?? 1.0),
-                    borderColor: !localBackgroundDesign 
+                    borderColor: !localBackgroundDesign
                       ? applyCardTransparency(businessProfile?.card_bg || "#F9FAFB", businessProfile?.card_transparency ?? 1.0)
                       : undefined
                   }}
@@ -427,7 +450,7 @@ export default function KickstartersFeature({
                 </button>
 
                 {/* Right Arrow */}
-                <button 
+                <button
                   type="button"
                   onClick={(e) => {
                     e.preventDefault();
@@ -435,15 +458,15 @@ export default function KickstartersFeature({
                     handleNextPreview();
                   }}
                   className={`absolute right-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full flex items-center justify-center transition-all focus:outline-none ${
-                    localBackgroundDesign 
-                      ? 'bg-white hover:bg-gray-50' 
+                    localBackgroundDesign
+                      ? 'bg-white hover:bg-gray-50'
                       : 'border-2 hover:opacity-80'
                   }`}
-                  style={{ 
-                    color: localBackgroundDesign 
-                      ? (businessProfile?.primary_color || '#2563EB')
+                  style={{
+                    color: localBackgroundDesign
+                      ? (businessProfile?.kickstarters_primary_color || businessProfile?.primary_color || '#2563EB')
                       : applyCardTransparency(businessProfile?.card_bg || "#F9FAFB", businessProfile?.card_transparency ?? 1.0),
-                    borderColor: !localBackgroundDesign 
+                    borderColor: !localBackgroundDesign
                       ? applyCardTransparency(businessProfile?.card_bg || "#F9FAFB", businessProfile?.card_transparency ?? 1.0)
                       : undefined
                   }}
@@ -468,11 +491,11 @@ export default function KickstartersFeature({
                 >
                   {/* Header with Inspiration centered */}
                   <div className="flex items-center justify-center mb-1">
-                    <span 
+                    <span
                       className="text-xs tracking-wide font-medium"
-                      style={{ 
-                        color: localBackgroundDesign 
-                          ? (businessProfile?.primary_color || '#2563EB')
+                      style={{
+                        color: localBackgroundDesign
+                          ? (businessProfile?.kickstarters_primary_color || businessProfile?.primary_color || '#2563EB')
                           : applyCardTransparency(businessProfile?.card_bg || "#F9FAFB", businessProfile?.card_transparency ?? 1.0)
                       }}
                     >
@@ -506,9 +529,9 @@ export default function KickstartersFeature({
                       type="button"
                       onClick={() => setShowViewAll(true)}
                       className="text-[10px] font-medium hover:underline transition-colors focus:outline-none rounded px-1"
-                      style={{ 
-                        color: localBackgroundDesign 
-                          ? (businessProfile?.primary_color || '#2563EB')
+                      style={{
+                        color: localBackgroundDesign
+                          ? (businessProfile?.kickstarters_primary_color || businessProfile?.primary_color || '#2563EB')
                           : applyCardTransparency(businessProfile?.card_bg || "#F9FAFB", businessProfile?.card_transparency ?? 1.0)
                       }}
                     >
