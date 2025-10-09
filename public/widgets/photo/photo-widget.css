@@ -27,7 +27,7 @@
   all: revert;
   box-sizing: border-box;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
-  
+
   /* Sizing */
   width: 100%;
   max-width: 650px !important;
@@ -41,6 +41,27 @@
 
   /* Padding */
   padding: 0 1rem;
+
+  /* Font size */
+  font-size: 16px !important;
+}
+
+/* Enforce minimum font sizes for readability */
+.pr-photo-widget .pr-photo-review-text {
+  font-size: 14px !important;
+}
+
+.pr-photo-widget .pr-photo-reviewer-name {
+  font-size: 14px !important;
+}
+
+.pr-photo-widget .pr-photo-reviewer-role {
+  font-size: 13px !important;
+}
+
+.pr-photo-widget .pr-photo-reviewer-date,
+.pr-photo-widget .pr-photo-reviewer-platform {
+  font-size: 12px !important;
 }
   
 /* Carousel Layout */

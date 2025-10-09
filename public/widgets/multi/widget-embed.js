@@ -155,20 +155,20 @@
     const closingQuote = design.showQuotes ? `<span class="decorative-quote-closing" style="color: ${accentColor}; font-size: ${quoteSize}rem; font-weight: bold; line-height: 1; opacity: 0.3; position: absolute; bottom: 1rem; right: 1rem;">&#8221;</span>` : '';
     
     const starsHTML = review.star_rating ? `<div class="stars-row" style="margin-bottom: 0.75rem; display: flex; justify-content: center;">${renderStars(review.star_rating)}</div>` : '';
-    const dateHTML = design.showRelativeDate && review.created_at ? `<div class="reviewer-date" style="font-size: 0.75rem; color: ${roleColor}; opacity: 0.65; margin-top: 0.5rem;">${getRelativeTime(review.created_at)}</div>` : '';
-    const platformHTML = design.showPlatform && review.platform ? `<div class="reviewer-platform" style="font-size: 0.75rem; color: ${roleColor}; opacity: 0.7; margin-top: 0.125rem;">via ${review.platform}</div>` : '';
+    const dateHTML = design.showRelativeDate && review.created_at ? `<div class="reviewer-date" style="color: ${roleColor}; opacity: 0.65; margin-top: 0.5rem;">${getRelativeTime(review.created_at)}</div>` : '';
+    const platformHTML = design.showPlatform && review.platform ? `<div class="reviewer-platform" style="color: ${roleColor}; opacity: 0.7; margin-top: 0.125rem;">via ${review.platform}</div>` : '';
 
     return `
       <div class="pr-review-card" style="${cardStyle}">
         ${starsHTML}
         <div class="review-content" style="flex-grow: 1; position: relative;">
           ${openingQuote}
-          <p class="review-text" style="margin: 0; font-size: 0.9rem; line-height: 1.4; color: ${textColor}; padding-left: ${design.showQuotes ? '0.75rem' : '0'}; padding-right: ${design.showQuotes ? '1.5rem' : '0'}; padding-bottom: ${design.showQuotes ? '1.5rem' : '0'};">${review.review_content}</p>
+          <p class="review-text" style="margin: 0; line-height: 1.4; color: ${textColor}; padding-left: ${design.showQuotes ? '0.75rem' : '0'}; padding-right: ${design.showQuotes ? '1.5rem' : '0'}; padding-bottom: ${design.showQuotes ? '1.5rem' : '0'};">${review.review_content}</p>
           ${closingQuote}
         </div>
         <div class="reviewer-details" style="margin-top: 0.75rem; text-align: center;">
-          <div class="reviewer-name" style="font-weight: bold; font-size: 0.9rem; color: ${nameColor};">${review.first_name || ''} ${review.last_name || ''}</div>
-          ${review.reviewer_role ? `<div class="reviewer-role" style="font-size: 0.8rem; color: ${roleColor}; opacity: 0.65;">${review.reviewer_role}</div>` : ''}
+          <div class="reviewer-name" style="font-weight: bold; color: ${nameColor};">${review.first_name || ''} ${review.last_name || ''}</div>
+          ${review.reviewer_role ? `<div class="reviewer-role" style="color: ${roleColor}; opacity: 0.65;">${review.reviewer_role}</div>` : ''}
           ${dateHTML}
           ${platformHTML}
         </div>
@@ -591,6 +591,25 @@
           box-sizing: border-box;
           font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
           padding: 0 1rem; /* Add horizontal padding here */
+          font-size: 16px !important;
+        }
+
+        /* Enforce minimum font sizes for readability */
+        .pr-multi-widget .review-text {
+          font-size: 14px !important;
+        }
+
+        .pr-multi-widget .reviewer-name {
+          font-size: 14px !important;
+        }
+
+        .pr-multi-widget .reviewer-role {
+          font-size: 13px !important;
+        }
+
+        .pr-multi-widget .reviewer-date,
+        .pr-multi-widget .reviewer-platform {
+          font-size: 12px !important;
         }
         
         /* Carousel Layout */

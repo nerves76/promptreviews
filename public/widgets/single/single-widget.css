@@ -30,6 +30,25 @@
   max-width: 650px;
   margin: 2rem auto;
   text-align: center;
+  font-size: 16px !important;
+}
+
+/* Enforce minimum font sizes for readability */
+.pr-widget-container.pr-single-widget .pr-single-review-text {
+  font-size: 14px !important;
+}
+
+.pr-widget-container.pr-single-widget .pr-single-reviewer-name {
+  font-size: 14px !important;
+}
+
+.pr-widget-container.pr-single-widget .pr-single-reviewer-role {
+  font-size: 13px !important;
+}
+
+.pr-widget-container.pr-single-widget .pr-single-reviewer-date,
+.pr-widget-container.pr-single-widget .pr-single-reviewer-platform {
+  font-size: 12px !important;
 }
   
 /* Carousel Layout */
