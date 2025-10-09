@@ -55,7 +55,7 @@ const MultiWidget: React.FC<MultiWidgetProps> = ({ data, design }) => {
     
     // Load the CSS if not already loaded
     const loadWidgetCSS = (): Promise<void> => {
-      if (document.querySelector('link[href="/widgets/multi/multi-widget.css"]')) {
+      if (document.querySelector('link[href^="/widgets/multi/multi-widget.css"]')) {
         return Promise.resolve();
       }
 
