@@ -1314,6 +1314,18 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
       if (newStyles.input_text_color) {
         document.documentElement.style.setProperty('--input-text-color', newStyles.input_text_color);
       }
+      if (newStyles.card_placeholder_color) {
+        document.documentElement.style.setProperty('--card-placeholder-color', newStyles.card_placeholder_color);
+      }
+      if (newStyles.card_border_color) {
+        document.documentElement.style.setProperty('--card-border-color', newStyles.card_border_color);
+      }
+      if (newStyles.card_border_width !== undefined) {
+        document.documentElement.style.setProperty('--card-border-width', `${newStyles.card_border_width}px`);
+      }
+      if (newStyles.card_border_transparency !== undefined) {
+        document.documentElement.style.setProperty('--card-border-transparency', String(newStyles.card_border_transparency));
+      }
       if (newStyles.primary_font) {
         document.documentElement.style.setProperty('--primary-font', newStyles.primary_font);
         loadGoogleFont(newStyles.primary_font).catch(console.warn);

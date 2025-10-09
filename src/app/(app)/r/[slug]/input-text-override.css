@@ -7,5 +7,6 @@ textarea.prompt-input {
 /* Placeholder styling */
 input::placeholder,
 textarea::placeholder {
+  color: var(--card-placeholder-color, #9CA3AF) !important;
   opacity: 1 !important;
 }
