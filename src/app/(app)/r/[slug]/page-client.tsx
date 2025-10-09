@@ -157,6 +157,7 @@ interface BusinessProfile {
   card_border_color?: string;
   card_border_transparency?: number;
   kickstarters_background_design?: boolean;
+  kickstarters_primary_color?: string;
   // Additional fields for AI generation
   services_offered?: string;
   company_values?: string;

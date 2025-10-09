@@ -662,11 +662,13 @@
             width: 100%;
             text-align: center;
             /* This is the other key part: making the card grow */
-            flex-grow: 1; 
+            flex-grow: 1;
+            overflow: visible !important; /* Allow SVG quotes to extend outside */
         }
         
         .pr-multi-widget .review-content {
             flex-grow: 1; /* Ensures the text content area grows, pushing footer down */
+            overflow: visible !important; /* Allow SVG quotes to extend outside */
         }
         
         .pr-multi-widget .reviewer-details {
