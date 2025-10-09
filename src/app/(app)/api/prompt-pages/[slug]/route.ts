@@ -94,7 +94,11 @@ function filterBusinessProfile(business: any) {
     card_border_width: business.card_border_width,
     card_border_color: business.card_border_color,
     card_border_transparency: business.card_border_transparency,
-    
+
+    // Kickstarters styling (needed for proper display)
+    kickstarters_background_design: business.kickstarters_background_design,
+    kickstarters_primary_color: business.kickstarters_primary_color,
+
     // Default offer URL (needed for offer display)
     default_offer_url: business.default_offer_url
     
@@ -113,7 +117,7 @@ function filterBusinessProfile(business: any) {
     // - platform_word_counts (analytics data)
     // - default_* fields (internal business defaults)
     // - emoji_*, falling_*, show_friendly_note, friendly_note (feature configs)
-    // - kickstarters_*, recent_reviews_* (feature settings)
+    // - kickstarters_enabled, recent_reviews_* (feature settings - styling fields are public)
     // - ai_button_enabled, fix_grammar_enabled (feature flags)
     // - card_* (styling internals)
     // - created_at, updated_at (internal timestamps)
