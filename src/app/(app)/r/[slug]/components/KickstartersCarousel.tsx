@@ -148,16 +148,17 @@ export default function KickstartersCarousel({
             onClick={handlePrevious}
             className={`absolute left-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full transition-all focus:outline-none focus:ring-2 focus:ring-blue-300 flex items-center justify-center ${
               actualBackgroundDesign
-                ? 'bg-white shadow-sm hover:shadow-md'
-                : 'border-2 hover:opacity-80'
+                ? 'shadow-sm hover:shadow-md'
+                : 'hover:opacity-80'
             }`}
             style={{
-              color: actualBackgroundDesign
-                ? (businessProfile?.kickstarters_primary_color || businessProfile?.primary_color || '#2563EB')
-                : (businessProfile?.card_text || '#1F2937'),
-              borderColor: !actualBackgroundDesign
-                ? (businessProfile?.card_text || '#1F2937')
-                : undefined
+              color: businessProfile?.kickstarters_primary_color || businessProfile?.primary_color || '#2563EB',
+              background: actualBackgroundDesign
+                ? applyCardTransparency(businessProfile?.card_bg || "#FFFFFF", businessProfile?.card_transparency ?? 1.0)
+                : 'transparent',
+              border: actualBackgroundDesign
+                ? '1px solid rgba(209, 213, 219, 0.3)'
+                : `2px solid ${businessProfile?.kickstarters_primary_color || businessProfile?.primary_color || '#2563EB'}`
             }}
             aria-label="Previous question"
           >
@@ -171,16 +172,17 @@ export default function KickstartersCarousel({
             onClick={handleNext}
             className={`absolute right-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full transition-all focus:outline-none focus:ring-2 focus:ring-blue-300 flex items-center justify-center ${
               actualBackgroundDesign
-                ? 'bg-white shadow-sm hover:shadow-md'
-                : 'border-2 hover:opacity-80'
+                ? 'shadow-sm hover:shadow-md'
+                : 'hover:opacity-80'
             }`}
             style={{
-              color: actualBackgroundDesign
-                ? (businessProfile?.kickstarters_primary_color || businessProfile?.primary_color || '#2563EB')
-                : (businessProfile?.card_text || '#1F2937'),
-              borderColor: !actualBackgroundDesign
-                ? (businessProfile?.card_text || '#1F2937')
-                : undefined
+              color: businessProfile?.kickstarters_primary_color || businessProfile?.primary_color || '#2563EB',
+              background: actualBackgroundDesign
+                ? applyCardTransparency(businessProfile?.card_bg || "#FFFFFF", businessProfile?.card_transparency ?? 1.0)
+                : 'transparent',
+              border: actualBackgroundDesign
+                ? '1px solid rgba(209, 213, 219, 0.3)'
+                : `2px solid ${businessProfile?.kickstarters_primary_color || businessProfile?.primary_color || '#2563EB'}`
             }}
             aria-label="Next question"
           >
@@ -208,9 +210,7 @@ export default function KickstartersCarousel({
               className="text-xs tracking-wide font-medium"
               style={{
                 fontFamily: businessProfile?.primary_font || 'Inter',
-                color: actualBackgroundDesign
-                  ? (businessProfile?.kickstarters_primary_color || businessProfile?.primary_color || '#2563EB')
-                  : (businessProfile?.card_text || '#1F2937')
+                color: businessProfile?.kickstarters_primary_color || businessProfile?.primary_color || '#2563EB'
               }}
             >
               Inspiration
@@ -219,18 +219,12 @@ export default function KickstartersCarousel({
 
           {/* Question - Compact, no quotes */}
           <div
-            className={`cursor-pointer transition-colors text-center mb-2 ${
-              actualBackgroundDesign
-                ? 'text-gray-700 hover:text-gray-900'
-                : 'hover:opacity-80'
-            }`}
+            className="cursor-pointer transition-colors text-center mb-2 hover:opacity-80"
             style={{
               fontFamily: businessProfile?.secondary_font || 'Roboto',
               fontSize: '1rem',
               lineHeight: '1.5rem',
-              color: actualBackgroundDesign
-                ? undefined
-                : (businessProfile?.card_text || '#1F2937')
+              color: businessProfile?.kickstarters_primary_color || businessProfile?.primary_color || '#2563EB'
             }}
             onClick={() => handleQuestionClick(currentQuestion)}
           >
@@ -244,9 +238,7 @@ export default function KickstartersCarousel({
               className="text-[10px] font-medium hover:underline transition-colors focus:outline-none focus:ring-2 focus:ring-blue-300 rounded px-1"
               style={{
                 fontFamily: businessProfile?.primary_font || 'Inter',
-                color: actualBackgroundDesign
-                  ? (businessProfile?.kickstarters_primary_color || businessProfile?.primary_color || '#2563EB')
-                  : (businessProfile?.card_text || '#1F2937')
+                color: businessProfile?.kickstarters_primary_color || businessProfile?.primary_color || '#2563EB'
               }}
             >
               View All
