@@ -384,9 +384,10 @@ export async function GET(
       promptPage: promptPage,
       businessProfile: filteredBusinessProfile
     });
-    
-    // Cache for 5 minutes for dynamic content, 1 hour for CDN
-    response.headers.set('Cache-Control', 'public, s-maxage=300, max-age=60');
+
+    // Cache for 30 seconds for browser, 1 minute for CDN
+    // Short cache times allow style changes to appear quickly while still providing performance benefits
+    response.headers.set('Cache-Control', 'public, s-maxage=60, max-age=30, stale-while-revalidate=30');
     response.headers.set('X-RateLimit-Remaining', remaining.toString());
     
     return response;

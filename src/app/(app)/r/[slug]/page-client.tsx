@@ -515,6 +515,9 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
             document.documentElement.style.setProperty('--card-text', profileData.card_text || '#1A1A1A');
             document.documentElement.style.setProperty('--card-placeholder-color', profileData.card_placeholder_color || '#9CA3AF');
             document.documentElement.style.setProperty('--input-text-color', profileData.input_text_color || '#1F2937');
+            document.documentElement.style.setProperty('--card-border-color', profileData.card_border_color || '#FFFFFF');
+            document.documentElement.style.setProperty('--card-border-width', `${profileData.card_border_width ?? 1}px`);
+            document.documentElement.style.setProperty('--card-border-transparency', String(profileData.card_border_transparency ?? 0.5));
           }
         } else {
           // Use default business profile if none found
@@ -556,6 +559,9 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
             document.documentElement.style.setProperty('--card-text', '#1A1A1A');
             document.documentElement.style.setProperty('--card-placeholder-color', '#9CA3AF');
             document.documentElement.style.setProperty('--input-text-color', '#1F2937');
+            document.documentElement.style.setProperty('--card-border-color', '#FFFFFF');
+            document.documentElement.style.setProperty('--card-border-width', '1px');
+            document.documentElement.style.setProperty('--card-border-transparency', '0.5');
           }
         }
 
@@ -1738,6 +1744,9 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
     document.documentElement.style.setProperty('--background-color', businessProfile.background_color || '#FFFFFF');
     document.documentElement.style.setProperty('--card-placeholder-color', businessProfile.card_placeholder_color || '#9CA3AF');
     document.documentElement.style.setProperty('--input-text-color', businessProfile.input_text_color || '#1F2937');
+    document.documentElement.style.setProperty('--card-border-color', businessProfile.card_border_color || '#FFFFFF');
+    document.documentElement.style.setProperty('--card-border-width', `${businessProfile.card_border_width ?? 1}px`);
+    document.documentElement.style.setProperty('--card-border-transparency', String(businessProfile.card_border_transparency ?? 0.5));
 
     // Set state immediately - don't wait for fonts
     setFontsLoaded(true);
