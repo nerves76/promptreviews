@@ -10,174 +10,230 @@
   and responsive container, just like in the app.
 */
 #promptreviews-widget,
-[id^="promptreviews-widget-"],
-[id^="pr-single-widget-container-"],
-[id^="pr-photo-widget-container-"] {
+#promptreviews-multi-widget,
+#promptreviews-single-widget,
+#promptreviews-photo-widget {
     position: relative;
     width: 100%;
     max-width: 64rem; /* 1024px */
     margin-left: auto;
     margin-right: auto;
     font-size: 16px; /* Set a consistent base font size for rem calculations */
-  }
-  
-  /* Base widget styling
-     Do not reset the container itself to preserve layout (e.g., centering).
-     Instead, reset all descendants so Tailwind/parent styles on the container remain intact. */
-  .pr-multi-widget {
+}
+
+/* Base widget styling reset */
+.pr-multi-widget {
+    all: revert;
     box-sizing: border-box;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
-  }
+    padding: 0 1rem; /* Add horizontal padding here */
+    font-size: 16px !important;
+    overflow-x: hidden; /* Prevent horizontal overflow */
+}
 
-  /* Reset inner elements to avoid inheriting app styles while keeping the container centered */
-  :where(.pr-multi-widget *) {
-    all: revert;
-  }
-  
-  /* Carousel Layout */
-  .pr-carousel-container {
-      position: relative;
-      overflow: hidden;
-      width: 100%;
-  }
-  
-  .pr-carousel-track {
-      display: flex;
-      transition: transform 0.5s ease;
-      gap: 1rem;
-  }
-  
-  /* This is a key part of the fix: making the item a flex container */
-  .pr-carousel-item {
-      flex-shrink: 0;
-      width: calc(100% / 3 - 1rem * 2 / 3);
-      display: flex;
-      overflow: visible !important; /* Allow SVG quotes to extend outside card boundaries */
-  }
-  
-  /* Review Card Styles */
-  .pr-multi-widget .pr-review-card {
-      background: var(--pr-card-bg, #fff);
-      border: var(--pr-card-border, 2px solid #cccccc);
-      border-radius: var(--pr-card-radius, 16px);
-      padding: 1.5rem;
-      display: flex;
-      flex-direction: column;
-      width: 100%;
-      text-align: center;
-      /* This is the other key part: making the card grow */
-      flex-grow: 1; 
-  }
-  
-  .pr-multi-widget .review-content {
-      flex-grow: 1; /* Ensures the text content area grows, pushing footer down */
-  }
-  
-  .pr-multi-widget .reviewer-details {
-      margin-top: auto; /* Pushes details to the bottom of the card */
-  }
-  
-  /* --- Other existing styles below --- */
-  
-  .pr-multi-widget .stars-row {
-      display: flex;
-      justify-content: center;
-  }
-  
-  .pr-multi-widget .review-text {
-      margin: 0;
-  }
-  
-  .pr-carousel-controls {
-      text-align: center;
-      margin-top: 1.5rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 20px;
-  }
-  
-  .pr-prev-btn,
-  .pr-next-btn {
-      cursor: pointer;
-      width: 40px;
-      height: 40px;
-      background: var(--pr-card-bg, #fff);
-      border: var(--pr-card-border, 2px solid #cccccc);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.2s ease;
-      position: relative;
-  }
-  
-  .pr-prev-btn::before,
-  .pr-next-btn::before {
-      content: '';
-      width: 0;
-      height: 0;
-      border-style: solid;
-  }
-  
-  .pr-prev-btn::before {
-      border-width: 6px 8px 6px 0;
-      border-color: transparent #4f46e5 transparent transparent;
-      margin-left: -2px;
-  }
-  
-  .pr-next-btn::before {
-      border-width: 6px 0 6px 8px;
-      border-color: transparent transparent transparent #4f46e5;
-      margin-right: -2px;
-  }
-  
-  .pr-dots-container {
-      display: flex;
-      gap: 16px;
-      align-items: center;
-      margin: 0 20px; /* Add margin to create more space between arrows and dots */
-  }
-  
-  .pr-dot {
-      height: 12px;
-      width: 12px;
-      border: none;
-      border-radius: 50%;
-      cursor: pointer;
-      padding: 0;
-      margin: 0;
-  }
-  
-  .pr-submit-review-container {
-      text-align: right;
-      margin-top: 0.5rem;
-  }
-  
-  .pr-submit-btn {
-      display: inline-block;
-      padding: 6px 12px;
-      text-decoration: none;
-      font-weight: 500;
-      font-size: 0.875rem;
-  }
-  
-  /* Responsive Design */
-  @media (max-width: 1024px) {
-      .pr-carousel-item {
-          width: calc(100% / 2 - 1rem * 1 / 2); /* Two cards */
-      }
-  }
-  
-  @media (max-width: 640px) {
-      .pr-carousel-item {
-          width: 100%; /* One card */
-          gap: 0;
-      }
-      .pr-carousel-track {
-        gap: 0;
-      }
-      .pr-submit-review-container {
-          margin-top: 2rem;
-      }
-  }
+/* Ensure all children use border-box sizing */
+.pr-multi-widget *,
+.pr-multi-widget *::before,
+.pr-multi-widget *::after {
+    box-sizing: border-box;
+}
+
+/* Enforce minimum font sizes for readability */
+.pr-multi-widget .review-text {
+    font-size: 14px !important;
+}
+
+.pr-multi-widget .reviewer-name {
+    font-size: 14px !important;
+}
+
+.pr-multi-widget .reviewer-role {
+    font-size: 13px !important;
+}
+
+.pr-multi-widget .reviewer-date,
+.pr-multi-widget .reviewer-platform {
+    font-size: 12px !important;
+}
+
+/* Carousel Layout */
+.pr-carousel-container {
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    max-width: 100%;
+    /* Padding removed from here */
+}
+
+/* Prevent submit button from overflowing */
+.pr-submit-review-container {
+    max-width: 100%;
+    overflow: hidden;
+}
+
+.pr-carousel-track {
+    display: flex;
+    transition: transform 0.5s ease;
+    gap: 1rem;
+}
+
+/* This is a key part of the fix: making the item a flex container */
+.pr-multi-widget .pr-carousel-item {
+    flex-shrink: 0;
+    width: calc(100% / 3 - 1rem * 2 / 3);
+    display: flex;
+    padding-top: 8px; /* Space for hover lift effect */
+    overflow: visible !important; /* Allow SVG quotes to extend outside card boundaries */
+}
+
+/* Review Card Styles */
+.pr-multi-widget .pr-review-card {
+    background: var(--pr-card-bg, #fff);
+    border: var(--pr-card-border, 2px solid #cccccc);
+    border-radius: var(--pr-card-radius, 16px);
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    text-align: center;
+    /* This is the other key part: making the card grow */
+    flex-grow: 1;
+    overflow: visible !important; /* Allow SVG quotes to extend outside */
+}
+
+.pr-multi-widget .review-content {
+    flex-grow: 1; /* Ensures the text content area grows, pushing footer down */
+    overflow: visible !important; /* Allow SVG quotes to extend outside */
+}
+
+.pr-multi-widget .reviewer-details {
+    margin-top: auto; /* Pushes details to the bottom of the card */
+}
+
+/* --- Other existing styles below --- */
+
+.pr-multi-widget .stars-row {
+    display: flex;
+    justify-content: center;
+}
+
+.pr-multi-widget .review-text {
+    margin: 0;
+}
+
+.pr-carousel-controls {
+    text-align: center;
+    margin-top: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.pr-prev-btn,
+.pr-next-btn {
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.pr-prev-btn::before,
+.pr-next-btn::before {
+    content: '';
+    width: 0;
+    height: 0;
+    border-style: solid;
+}
+
+.pr-prev-btn::before {
+    border-width: 6px 8px 6px 0;
+    border-color: transparent #4f46e5 transparent transparent;
+    margin-left: -2px;
+}
+
+.pr-next-btn::before {
+    border-width: 6px 0 6px 8px;
+    border-color: transparent transparent transparent #4f46e5;
+    margin-right: -2px;
+}
+
+.pr-dots-container {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    margin: 0 20px; /* Add margin to create more space between arrows and dots */
+}
+
+.pr-dot {
+    height: 12px;
+    width: 12px;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    padding: 0;
+    margin: 0;
+}
+
+.pr-submit-review-container {
+    text-align: right;
+    margin-top: 0.5rem;
+    padding-right: 0;
+    box-sizing: border-box;
+}
+
+.pr-submit-btn {
+    display: inline-block;
+    padding: 8px 16px;
+    text-decoration: none;
+    font-weight: 500;
+    box-sizing: border-box;
+    max-width: 100%;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .pr-multi-widget .pr-carousel-item {
+        width: calc(100% / 2 - 1rem * 1 / 2); /* Two cards */
+        padding-top: 8px; /* Maintain hover space */
+    }
+}
+
+@media (max-width: 640px) {
+    .pr-multi-widget .pr-carousel-item {
+        width: 100%; /* One card */
+        padding-top: 8px; /* Maintain hover space */
+    }
+
+    /* Reduce gap on mobile to maintain spacing */
+    .pr-carousel-track {
+        gap: 0.5rem;
+    }
+
+    /* Make dots container scrollable on mobile when too many dots */
+    .pr-dots-container {
+        max-width: 200px;
+        overflow-x: auto;
+        overflow-y: hidden;
+        scrollbar-width: none; /* Firefox */
+        -ms-overflow-style: none; /* IE/Edge */
+        gap: 12px;
+        margin: 0 10px;
+    }
+
+    /* Hide scrollbar for Chrome/Safari */
+    .pr-dots-container::-webkit-scrollbar {
+        display: none;
+    }
+
+    /* Reduce spacing around controls on mobile */
+    .pr-carousel-controls {
+        gap: 5px;
+    }
+}
+
