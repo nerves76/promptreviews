@@ -27,6 +27,8 @@ import { getAccessibleColor, applyCardTransparency, getContrastTextColor } from 
 import { getFallingIcon, getFallingIconColor } from "@/app/(app)/components/prompt-modules/fallingStarsConfig";
 import { GLASSY_DEFAULTS, INPUT_TEXT_COLOR } from "@/app/(app)/config/styleDefaults";
 import dynamic from "next/dynamic";
+// Import CSS for input and placeholder text color overrides
+import "./input-text-override.css";
 // 🔧 CONSOLIDATED: Single import from supabaseClient module
 import { createClient, getUserOrMock } from "@/auth/providers/supabase";
 import { getAccountIdForUser } from "@/auth/utils/accounts";
