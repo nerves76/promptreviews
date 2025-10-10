@@ -3457,16 +3457,16 @@ export default function SocialPostingDashboard() {
       )}
       
       {/* Products Help Modal */}
-      <HelpModal 
+      <HelpModal
         isOpen={showProductsHelpModal}
         onClose={() => setShowProductsHelpModal(false)}
         initialArticleId="google-products"
         initialKeywords={['products', 'google', 'business-profile', 'productize', 'services']}
         initialTab="tutorials"
       />
-      
+
       {/* Post Types Help Modal */}
-      <HelpModal 
+      <HelpModal
         isOpen={showPostTypesHelpModal}
         onClose={() => setShowPostTypesHelpModal(false)}
         initialArticleId="google-post-types"

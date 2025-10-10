@@ -205,19 +205,43 @@ export default function TutorialsTabNew({
   }, [selectedCategory]);
 
   useEffect(() => {
-    if (!initialArticleId || helpCategories.length === 0) {
+    if (!initialArticleId) {
       return;
     }
 
-    for (const category of helpCategories) {
-      const article = category.articles.find((item) => item.id === initialArticleId || item.slug === initialArticleId);
-      if (article) {
-        setSelectedCategory(category);
-        setSelectedArticle(article);
-        setPendingInitialLoad({ article, category });
-        break;
+    // If we have categories, try to find the article in them
+    if (helpCategories.length > 0) {
+      for (const category of helpCategories) {
+        const article = category.articles.find((item) => item.id === initialArticleId || item.slug === initialArticleId);
+        if (article) {
+          setSelectedCategory(category);
+          setSelectedArticle(article);
+          setPendingInitialLoad({ article, category });
+          return;
+        }
       }
     }
+
+    // If article not found in navigation (legacy article), create a fallback entry
+    const fallbackArticle = {
+      id: initialArticleId,
+      slug: initialArticleId,
+      title: initialArticleId.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '),
+      path: `/${initialArticleId}`,
+      icon: 'FaBook'
+    };
+
+    const fallbackCategory = {
+      id: 'help',
+      title: 'Help Articles',
+      icon: 'FaBook',
+      description: null,
+      articles: [fallbackArticle]
+    };
+
+    setSelectedCategory(fallbackCategory);
+    setSelectedArticle(fallbackArticle);
+    setPendingInitialLoad({ article: fallbackArticle, category: fallbackCategory });
   }, [initialArticleId, helpCategories]);
 
   // Get featured articles based on current page context - now using CMS API
@@ -358,7 +382,20 @@ export default function TutorialsTabNew({
   // Legacy fallback for articles not yet in CMS
   const loadArticleContentLegacy = async (identifier: { path?: string; legacyId?: string; slug?: string }) => {
     try {
-      const legacyId = identifier.legacyId || '';
+      const legacyId = identifier.legacyId || identifier.slug || '';
+
+      // First try the content API for standalone articles like google-products, google-post-types
+      const contentResponse = await fetch(`/api/help-docs/content?path=${encodeURIComponent(legacyId)}`);
+      if (contentResponse.ok) {
+        const data = await contentResponse.json();
+        if (data.content) {
+          setArticleContent(formatLegacyHtml(data.content));
+          setIsHtmlContent(true);
+          return;
+        }
+      }
+
+      // Fall back to fetch-from-docs for docs site articles
       const normalizedPath = normalizePath(identifier.path, identifier.slug);
       const isGoogleBizOptimizer = legacyId.startsWith('google-biz-optimizer/');
 
