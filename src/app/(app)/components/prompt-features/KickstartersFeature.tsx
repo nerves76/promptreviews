@@ -139,6 +139,9 @@ export default function KickstartersFeature({
   const [localBackgroundDesign, setLocalBackgroundDesign] = useState(backgroundDesign);
   const [currentPreviewIndex, setCurrentPreviewIndex] = useState(0);
   const [showViewAll, setShowViewAll] = useState(false);
+  const [localKickstartersColor, setLocalKickstartersColor] = useState(
+    businessProfile?.kickstarters_primary_color || businessProfile?.primary_color || '#2563EB'
+  );
 
   // Initialize from prop only once, then use internal state
   useEffect(() => {
@@ -351,10 +354,12 @@ export default function KickstartersFeature({
                 <span className="text-sm font-medium text-gray-700">Color:</span>
                 <input
                   type="color"
-                  value={businessProfile?.kickstarters_primary_color || businessProfile?.primary_color || '#2563EB'}
+                  value={localKickstartersColor}
                   onChange={(e) => {
+                    const newColor = e.target.value;
+                    setLocalKickstartersColor(newColor);
                     if (onKickstartersColorChange) {
-                      onKickstartersColorChange(e.target.value);
+                      onKickstartersColorChange(newColor);
                     }
                   }}
                   disabled={disabled}
@@ -437,7 +442,7 @@ export default function KickstartersFeature({
                   }`}
                   style={{
                     color: localBackgroundDesign
-                      ? (businessProfile?.kickstarters_primary_color || businessProfile?.primary_color || '#2563EB')
+                      ? localKickstartersColor
                       : applyCardTransparency(businessProfile?.card_bg || "#F9FAFB", businessProfile?.card_transparency ?? 1.0),
                     borderColor: !localBackgroundDesign
                       ? applyCardTransparency(businessProfile?.card_bg || "#F9FAFB", businessProfile?.card_transparency ?? 1.0)
@@ -464,7 +469,7 @@ export default function KickstartersFeature({
                   }`}
                   style={{
                     color: localBackgroundDesign
-                      ? (businessProfile?.kickstarters_primary_color || businessProfile?.primary_color || '#2563EB')
+                      ? localKickstartersColor
                       : applyCardTransparency(businessProfile?.card_bg || "#F9FAFB", businessProfile?.card_transparency ?? 1.0),
                     borderColor: !localBackgroundDesign
                       ? applyCardTransparency(businessProfile?.card_bg || "#F9FAFB", businessProfile?.card_transparency ?? 1.0)
@@ -495,7 +500,7 @@ export default function KickstartersFeature({
                       className="text-xs tracking-wide font-medium"
                       style={{
                         color: localBackgroundDesign
-                          ? (businessProfile?.kickstarters_primary_color || businessProfile?.primary_color || '#2563EB')
+                          ? localKickstartersColor
                           : applyCardTransparency(businessProfile?.card_bg || "#F9FAFB", businessProfile?.card_transparency ?? 1.0)
                       }}
                     >
@@ -531,7 +536,7 @@ export default function KickstartersFeature({
                       className="text-[10px] font-medium hover:underline transition-colors focus:outline-none rounded px-1"
                       style={{
                         color: localBackgroundDesign
-                          ? (businessProfile?.kickstarters_primary_color || businessProfile?.primary_color || '#2563EB')
+                          ? localKickstartersColor
                           : applyCardTransparency(businessProfile?.card_bg || "#F9FAFB", businessProfile?.card_transparency ?? 1.0)
                       }}
                     >
