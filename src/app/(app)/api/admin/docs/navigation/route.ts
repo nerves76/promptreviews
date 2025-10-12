@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { requireAdminAccess } from '@/lib/admin/permissions';
+import { revalidatePath } from 'next/cache';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -67,6 +68,9 @@ export async function POST(request: NextRequest) {
       console.error('Error creating navigation item:', error);
       return NextResponse.json({ error: 'Failed to create navigation item' }, { status: 500 });
     }
+
+    // Revalidate navigation cache
+    revalidatePath('/api/docs/navigation');
 
     return NextResponse.json({ item: data }, { status: 201 });
   } catch (error) {

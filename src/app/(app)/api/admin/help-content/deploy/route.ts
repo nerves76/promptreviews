@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { requireAdminAccess } from '@/lib/admin/permissions';
+import { revalidatePath } from 'next/cache';
 
 export async function POST() {
   try {
@@ -38,6 +39,9 @@ export async function POST() {
         { status: response.status }
       );
     }
+
+    // Revalidate all docs cache after deployment
+    revalidatePath('/api/docs/navigation');
 
     return NextResponse.json({
       success: true,

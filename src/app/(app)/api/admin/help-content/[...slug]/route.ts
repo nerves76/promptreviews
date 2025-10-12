@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { requireAdminAccess } from '@/lib/admin/permissions';
+import { revalidatePath } from 'next/cache';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -137,6 +138,26 @@ export async function PUT(
       );
     }
 
+    // If title changed, update navigation entries that link to this article
+    if (body.title && body.title !== existing.title) {
+      const articleHref = `/${slug}`;
+      await supabase
+        .from('navigation')
+        .update({
+          title: body.title,
+          updated_at: new Date().toISOString()
+        })
+        .eq('href', articleHref);
+    }
+
+    // Revalidate docs cache to reflect changes immediately
+    revalidatePath('/api/docs/navigation');
+    revalidatePath(`/api/docs/articles/${slug}`);
+    if (body.slug && body.slug !== slug) {
+      // Also revalidate the new slug if it changed
+      revalidatePath(`/api/docs/articles/${body.slug}`);
+    }
+
     return NextResponse.json({ article: data });
   } catch (error: any) {
     console.error('Error in PUT /api/admin/help-content/[slug]:', error);
@@ -176,6 +197,10 @@ export async function DELETE(
         { status: 500 }
       );
     }
+
+    // Revalidate docs cache to remove deleted article from navigation
+    revalidatePath('/api/docs/navigation');
+    revalidatePath(`/api/docs/articles/${slug}`);
 
     return NextResponse.json({ success: true });
   } catch (error: any) {
