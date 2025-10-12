@@ -126,6 +126,29 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Sync FAQs to global table if requested
+    if (body.metadata?.faqs && Array.isArray(body.metadata.faqs)) {
+      const userId = await requireAdminAccess(); // Get admin user ID
+
+      for (const faq of body.metadata.faqs) {
+        if (faq.addToGlobalFaqs && faq.question && faq.answer) {
+          // Insert new global FAQ
+          await supabase
+            .from('faqs')
+            .insert({
+              question: faq.question,
+              answer: faq.answer,
+              category: body.metadata.category || 'general',
+              plans: ['grower', 'builder', 'maven', 'enterprise'],
+              order_index: 0,
+              article_id: data.id,
+              created_by: userId,
+              updated_by: userId,
+            });
+        }
+      }
+    }
+
     // Revalidate docs cache to include new article in navigation
     revalidatePath('/api/docs/navigation');
     revalidatePath(`/api/docs/articles/${body.slug}`);

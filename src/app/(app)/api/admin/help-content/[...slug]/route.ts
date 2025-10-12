@@ -138,6 +138,50 @@ export async function PUT(
       );
     }
 
+    // Sync FAQs to global table if requested
+    if (body.metadata?.faqs && Array.isArray(body.metadata.faqs)) {
+      const userId = await requireAdminAccess(); // Get admin user ID
+
+      for (const faq of body.metadata.faqs) {
+        if (faq.addToGlobalFaqs && faq.question && faq.answer) {
+          // Check if this FAQ already exists in global table (by question match)
+          const { data: existingFaq } = await supabase
+            .from('faqs')
+            .select('id')
+            .eq('question', faq.question)
+            .eq('article_id', data.id)
+            .single();
+
+          if (!existingFaq) {
+            // Insert new global FAQ
+            await supabase
+              .from('faqs')
+              .insert({
+                question: faq.question,
+                answer: faq.answer,
+                category: body.metadata.category || 'general',
+                plans: ['grower', 'builder', 'maven', 'enterprise'],
+                order_index: 0,
+                article_id: data.id,
+                created_by: userId,
+                updated_by: userId,
+              });
+          } else {
+            // Update existing global FAQ
+            await supabase
+              .from('faqs')
+              .update({
+                answer: faq.answer,
+                category: body.metadata.category || 'general',
+                updated_by: userId,
+                updated_at: new Date().toISOString(),
+              })
+              .eq('id', existingFaq.id);
+          }
+        }
+      }
+    }
+
     // If title changed, update navigation entries that link to this article
     if (body.title && body.title !== existing.title) {
       const articleHref = `/${slug}`;

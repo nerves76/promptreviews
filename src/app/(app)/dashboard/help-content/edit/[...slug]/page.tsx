@@ -33,6 +33,12 @@ interface BestPractice {
   description: string;
 }
 
+interface FAQ {
+  question: string;
+  answer: string;
+  addToGlobalFaqs?: boolean;
+}
+
 interface ArticleMetadata {
   description?: string;
   keywords?: string[];
@@ -48,6 +54,7 @@ interface ArticleMetadata {
   key_features?: KeyFeature[];
   how_it_works?: HowItWorksStep[];
   best_practices?: BestPractice[];
+  faqs?: FAQ[];
 }
 
 interface Article {
@@ -90,6 +97,7 @@ export default function ArticleEditorPage() {
   const [showKeyFeatures, setShowKeyFeatures] = useState(false);
   const [showHowItWorks, setShowHowItWorks] = useState(false);
   const [showBestPractices, setShowBestPractices] = useState(false);
+  const [showFaqs, setShowFaqs] = useState(false);
   const autosaveTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [slugError, setSlugError] = useState<string | null>(null);
 
@@ -943,6 +951,112 @@ export default function ArticleEditorPage() {
                 }}
               >
                 + Add Practice
+              </Button>
+            </div>
+          )}
+        </PageCard>
+
+        {/* FAQs Section */}
+        <PageCard className="mb-6">
+          <div className="mb-4 flex items-center justify-between">
+            <div>
+              <h2 className="text-xl font-bold text-gray-900">FAQs</h2>
+              <p className="text-sm text-gray-500 mt-1">
+                Add frequently asked questions that appear at the bottom of the article
+              </p>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowFaqs(!showFaqs)}
+            >
+              {showFaqs ? "Hide" : "Show"}
+            </Button>
+          </div>
+
+          {showFaqs && (
+            <div className="space-y-4">
+              {(article.metadata.faqs || []).map((faq, index) => (
+                <div key={index} className="border rounded-lg p-4 bg-gray-50">
+                  <div className="flex items-start justify-between mb-3">
+                    <h4 className="font-medium text-gray-900">FAQ {index + 1}</h4>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        const faqs = [...(article.metadata.faqs || [])];
+                        faqs.splice(index, 1);
+                        handleMetadataChange("faqs", faqs);
+                      }}
+                      className="text-red-600 hover:text-red-700"
+                    >
+                      Remove
+                    </Button>
+                  </div>
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Question
+                      </label>
+                      <Input
+                        type="text"
+                        value={faq.question}
+                        onChange={(e) => {
+                          const faqs = [...(article.metadata.faqs || [])];
+                          faqs[index] = { ...faqs[index], question: e.target.value };
+                          handleMetadataChange("faqs", faqs);
+                        }}
+                        placeholder="What is...?"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Answer
+                      </label>
+                      <textarea
+                        value={faq.answer}
+                        onChange={(e) => {
+                          const faqs = [...(article.metadata.faqs || [])];
+                          faqs[index] = { ...faqs[index], answer: e.target.value };
+                          handleMetadataChange("faqs", faqs);
+                        }}
+                        placeholder="The answer is..."
+                        rows={3}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div className="flex items-center mt-2">
+                      <input
+                        type="checkbox"
+                        id={`faq-global-${index}`}
+                        checked={faq.addToGlobalFaqs || false}
+                        onChange={(e) => {
+                          const faqs = [...(article.metadata.faqs || [])];
+                          faqs[index] = { ...faqs[index], addToGlobalFaqs: e.target.checked };
+                          handleMetadataChange("faqs", faqs);
+                        }}
+                        className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                      />
+                      <label
+                        htmlFor={`faq-global-${index}`}
+                        className="ml-2 block text-sm text-gray-700"
+                      >
+                        Also add to global FAQs (help modal)
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              ))}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const faqs = [...(article.metadata.faqs || [])];
+                  faqs.push({ question: "", answer: "" });
+                  handleMetadataChange("faqs", faqs);
+                }}
+              >
+                + Add FAQ
               </Button>
             </div>
           )}
