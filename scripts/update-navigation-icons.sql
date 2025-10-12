@@ -6,9 +6,9 @@ UPDATE navigation
 SET icon_name = 'Rocket'
 WHERE title ILIKE '%getting%start%' OR title = 'Getting Started';
 
--- Prompt Pages section
+-- Prompt Pages section - using Square badge style for [P]
 UPDATE navigation
-SET icon_name = 'FileText'
+SET icon_name = 'SquareP'
 WHERE title ILIKE '%prompt%page%' OR title = 'Prompt Pages';
 
 -- Widgets section
