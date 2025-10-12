@@ -6,6 +6,9 @@ interface DocsLayoutProps {
   children: ReactNode
 }
 
+// Revalidate navigation data every 5 minutes
+export const revalidate = 300
+
 export default async function DocsLayout({ children }: DocsLayoutProps) {
   const navigation = await getNavigationTree()
 
