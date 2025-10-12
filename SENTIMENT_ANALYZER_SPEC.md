@@ -2,7 +2,12 @@
 
 ## Overview
 
-The Sentiment Analyzer is an AI-powered analytics tool that provides businesses with deep insights into customer feedback by analyzing reviews in their database. It goes beyond simple sentiment classification to identify actionable improvement opportunities, trends, and strengths/weaknesses based on what customers are actually saying.
+The Sentiment Analyzer highlights what customers are saying right now so teams can act quickly. Version 1 focuses on three practical outputs drawn straight from recent reviews:
+- Overall sentiment score with positive / mixed / negative breakdown
+- Top three themes, split between strengths and areas to improve, each grounded by real quotes
+- Three improvement ideas tied to the surfaced themes
+
+This keeps implementation lightweight while still surfacing actionable guidance without over-promising deep NLP sophistication.
 
 **Location in App:** Dashboard → Get Reviews → Sentiment Analyzer
 
@@ -50,20 +55,17 @@ Show loading state with progress indicators:
   - "Collecting your reviews..."
   - "Analyzing sentiment patterns..."
   - "Identifying key themes..."
-  - "Generating insights..."
-  - "Preparing recommendations..."
+  - "Summarizing what customers said..."
+  - "Preparing improvement ideas..."
 ↓
 Display results (estimated time: 15-20s for 50 reviews, 30-45s for 100, 60-90s for 500)
 ```
 
 ### 3. Results Display
-Present findings in organized sections with both data and interpretation:
-1. Executive Summary
-2. Sentiment Overview (charts + numbers)
-3. Key Themes & Topics
-4. Strengths & Weaknesses
-5. Actionable Recommendations
-6. Trend Analysis (if multiple runs exist)
+Present findings in three concise sections:
+1. Sentiment Summary (score, distribution, 1–2 sentence takeaway)
+2. Themes Spotlight (up to three cards showing strengths or improvements with quotes)
+3. Improvement Ideas (up to three next steps tied to the themes)
 
 ## Data Structure
 
@@ -94,214 +96,102 @@ interface SentimentAnalysisResult {
     analysisId: string;
     runDate: string;
     reviewCount: number;
-    totalReviewsInAccount: number; // Total reviews user has
-    reviewLimit: number; // Plan-based limit (50/100/500)
+    reviewLimit: number; // plan-based limit (50/100/500)
+    totalReviewsInAccount: number;
     dateRangeAnalyzed: { start: string; end: string };
     analysisVersion: string; // e.g., "1.0"
   };
 
-  executiveSummary: {
-    overallSentiment: 'positive' | 'negative' | 'neutral' | 'mixed';
+  sentimentSummary: {
+    overallLabel: 'positive' | 'mixed' | 'negative';
     sentimentScore: number; // 0-100
-    keyTakeaway: string;
-    urgentIssues: number;
-    strengthsCount: number;
-  };
-
-  sentimentBreakdown: {
-    positive: {
+    breakdown: Record<'positive' | 'mixed' | 'negative', {
       count: number;
       percentage: number;
-      confidenceAvg: number;
-      granularSentiments: {
-        delighted: number;
-        satisfied: number;
-        impressed: number;
-        grateful: number;
-      };
-    };
-    negative: {
-      count: number;
-      percentage: number;
-      confidenceAvg: number;
-      granularSentiments: {
-        frustrated: number;
-        disappointed: number;
-        angry: number;
-        concerned: number;
-      };
-    };
-    neutral: {
-      count: number;
-      percentage: number;
-    };
-    mixed: {
-      count: number;
-      percentage: number;
-    };
+    }>;
+    shortSummary: string; // single sentence takeaway
   };
 
   themes: Array<{
-    name: string; // e.g., "Product Quality", "Customer Service"
+    name: string; // e.g., "Customer Service"
+    sentiment: 'strength' | 'improvement';
     mentionCount: number;
-    sentimentScore: number; // -100 to +100
-    sentiment: 'positive' | 'negative' | 'neutral' | 'mixed';
-    confidence: number; // 0-1
-    keyPhrases: string[]; // Top 5-10 phrases related to this theme
-    exampleReviews: string[]; // 2-3 review excerpts
-    severity?: 'high' | 'medium' | 'low'; // For negative themes
+    supportingQuotes: Array<{
+      reviewId: string;
+      excerpt: string; // <= 80 characters
+    }>; // up to 2 quotes per theme
   }>;
 
-  entities: Array<{
-    name: string; // e.g., "delivery", "staff", specific product name
-    type: 'product' | 'service' | 'feature' | 'person' | 'department';
-    mentionCount: number;
-    sentimentScore: number;
-    sentiment: 'positive' | 'negative' | 'neutral' | 'mixed';
-  }>;
-
-  strengths: Array<{
+  improvementIdeas: Array<{
     title: string;
-    description: string;
-    supportingData: {
-      mentionCount: number;
-      positivePercentage: number;
-      exampleQuotes: string[];
-    };
-    impactLevel: 'high' | 'medium' | 'low';
-  }>;
+    description: string; // 1-2 sentences
+    sourceThemes: string[]; // reference theme names
+  }>; // up to 3 ideas
 
-  weaknesses: Array<{
-    title: string;
-    description: string;
-    supportingData: {
-      mentionCount: number;
-      negativePercentage: number;
-      exampleQuotes: string[];
-    };
-    severity: 'high' | 'medium' | 'low';
-    potentialRootCause?: string;
-  }>;
-
-  recommendations: Array<{
-    priority: 'high' | 'medium' | 'low';
-    category: string; // e.g., "Customer Service", "Product"
-    title: string;
-    description: string;
-    specificActions: string[];
-    estimatedImpact: 'high' | 'medium' | 'low';
-    metricsToTrack: string[];
-    relatedThemes: string[];
-  }>;
-
-  linguisticInsights: {
-    sarcasmDetected: number;
-    negationsHandled: number;
-    domainTermsIdentified: string[];
-    implicitSentimentCount: number;
-  };
-
-  temporalData?: {
-    // Only available if account has multiple analysis runs
-    sentimentTrend: 'improving' | 'declining' | 'stable';
-    previousScore: number;
-    currentScore: number;
-    changePercentage: number;
-    trendHistory: Array<{
-      date: string;
-      score: number;
-      reviewCount: number;
-    }>;
-  };
+  limitations?: string; // optional note when signal is weak or inconsistent
 }
 ```
+
+**Validation rules:**
+- Limit `themes` to a maximum of three entries with at least one strength and one improvement when possible.
+- Limit `improvementIdeas` to three items and ensure each references at least one `sourceThemes` entry.
+- Reject or flag analyses when fewer than 10 reviews pass eligibility or when the model returns empty quotes/ideas.
 
 ## AI Prompt Structure
 
 ### System Prompt
 ```
-You are an expert business analytics AI specializing in customer feedback analysis.
-Your role is to analyze customer reviews and provide actionable insights that help
-businesses improve their products and services.
-
-You have access to advanced sentiment analysis capabilities including:
-- Multi-layered sentiment classification (positive, negative, neutral, mixed)
-- Granular emotion detection
-- Sarcasm and irony detection
-- Theme and entity extraction
-- Root cause analysis
-- Trend identification
-
-Your analysis should be:
-- Data-driven with specific numbers and percentages
-- Actionable with concrete recommendations
-- Balanced, highlighting both strengths and areas for improvement
-- Clear and accessible to non-technical business owners
+You are an insights analyst who reviews customer feedback and produces concise,
+actionable summaries. Stay within the provided schema, ground every claim in the
+review data, and avoid guessing beyond the evidence. If the reviews do not
+support an insight or improvement idea, leave it out or use the `limitations`
+field to explain why.
 ```
 
 ### Analysis Prompt Template
 ```
-Analyze the following {reviewCount} customer reviews for [Business Name] and provide
-comprehensive sentiment analysis and actionable insights.
-
-NOTE: These are the {reviewCount} most recent reviews from a total of {totalReviews} reviews.
-Focus on current trends and recent customer sentiment.
+You are analyzing the {reviewCount} most recent reviews (out of {totalReviews})
+for [Business Name]. Focus on what customers are praising and where they are
+asking for improvements.
 
 REVIEW DATA:
 {reviewsJson}
 
-ANALYSIS REQUIREMENTS:
+TASKS:
+1. Sentiment Summary:
+   - Label overall sentiment as positive, mixed, or negative.
+   - Count how many reviews are positive, mixed, and negative.
+   - Produce a 0-100 sentiment score where >66 is positive, 34-66 is mixed, <34 is negative.
+   - Write a one-sentence summary grounded in the reviews.
 
-1. SENTIMENT CATEGORIZATION:
-   - Classify each review into: Positive, Negative, Neutral, or Mixed
-   - Identify granular sentiments (e.g., delighted, frustrated, disappointed)
-   - Assign confidence scores (0-1) for each classification
-   - Handle negations, sarcasm, and irony appropriately
+2. Themes Spotlight:
+   - Identify up to three recurring themes present in the reviews.
+   - Mark each theme as either a strength or an improvement area.
+   - Provide the mention count and up to two short supporting quotes (≤80 characters) with their review IDs.
 
-2. THEME AND ENTITY EXTRACTION:
-   - Identify key themes (e.g., product quality, customer service, pricing)
-   - Extract specific entities (product names, features, departments)
-   - Determine attribute-level sentiment for each theme/entity
-   - Identify domain-specific terminology
+3. Improvement Ideas:
+   - Suggest up to three ideas that would improve customer experience.
+   - Each idea must reference at least one of the themes and explain how it helps.
 
-3. CONTEXTUAL UNDERSTANDING:
-   - Detect sarcasm and ironic language
-   - Process negations accurately
-   - Identify implicit sentiment
-   - Assess severity for negative feedback
+4. Limitations:
+   - If feedback volume is too small or signals conflict, use the `limitations`
+     field to explain instead of guessing.
 
-4. INSIGHTS GENERATION:
-   - Identify top 5 strengths with supporting data
-   - Identify top 5 weaknesses with severity assessment
-   - Infer potential root causes for recurring issues
-   - Highlight unique or unusual feedback patterns
-
-5. ACTIONABLE RECOMMENDATIONS:
-   - Provide 5-10 prioritized recommendations
-   - Include specific implementable actions
-   - Estimate potential impact
-   - Suggest monitoring metrics
-
-OUTPUT FORMAT:
-Return a structured JSON object matching the SentimentAnalysisResult interface.
-Ensure all percentages add up to 100% and all data is consistent.
-
-IMPORTANT:
-- Be specific with numbers and percentages
-- Provide exact quote excerpts from reviews (keep them under 100 characters)
-- Prioritize recommendations by impact and feasibility
-- Be honest about both positive and negative findings
+OUTPUT:
+- Return JSON that exactly matches the SentimentAnalysisResult interface.
+- Do not invent data or entities not evidenced in the reviews.
+- If eligibility requirements are not met (e.g., <10 reviews), return an
+  object containing only `metadata` and a `limitations` message.
 ```
 
 ### Follow-up Enhancement Prompt (Optional)
 ```
-Based on the analysis results, generate:
-1. A concise executive summary (2-3 sentences) suitable for sharing
-2. Top 3 "Quick Wins" - easy improvements with high impact
-3. One "Hidden Gem" - a unique positive insight that might be overlooked
-4. One "Watch Out" - an emerging issue that needs attention
+Create a shareable summary based on the analysis results:
+1. Two-sentence headline recap covering sentiment score and standout theme.
+2. One quick win improvement idea drawn from `improvementIdeas`.
+3. One strength highlight drawn from `themes`.
 
-Keep it conversational and actionable.
+Stay conversational and point back to evidence from the analysis.
 ```
 
 ## UI Components
@@ -457,141 +347,64 @@ function getTooltipContent(plan: string) {
 
 ### 3. Results Sections
 
-#### Executive Summary Card
+#### Sentiment Summary Card
 ```tsx
-<div className="bg-white rounded-lg shadow p-6">
-  <h2>Executive Summary</h2>
+<SentimentSummaryCard
+  score={sentimentSummary.sentimentScore}
+  label={sentimentSummary.overallLabel}
+  reviewCount={metadata.reviewCount}
+>
   {metadata.totalReviewsInAccount > metadata.reviewLimit && (
     <InfoBanner>
-      Analyzed your {metadata.reviewCount} most recent reviews
-      (out of {metadata.totalReviewsInAccount} total)
+      Analyzed your {metadata.reviewCount} most recent reviews (out of
+      {metadata.totalReviewsInAccount} total)
     </InfoBanner>
   )}
-  <div className="sentiment-score-gauge">
-    {/* Circular gauge showing 0-100 score */}
-  </div>
-  <p className="key-takeaway">{summary.keyTakeaway}</p>
-  <div className="quick-stats">
-    <Stat label="Overall Sentiment" value={summary.overallSentiment} />
-    <Stat label="Reviews Analyzed" value={metadata.reviewCount} />
-    <Stat label="Urgent Issues" value={summary.urgentIssues} highlight />
-  </div>
-</div>
+  <ScoreGauge value={sentimentSummary.sentimentScore} />
+  <p className="mt-4 text-gray-700">{sentimentSummary.shortSummary}</p>
+  <DistributionBar breakdown={sentimentSummary.breakdown} />
+</SentimentSummaryCard>
 ```
 
-#### Sentiment Breakdown Chart
-- Pie chart showing positive/negative/neutral/mixed distribution
-- Bar chart showing granular sentiments
-- Confidence score indicators
-
-#### Themes & Topics Table
-```
-| Theme              | Mentions | Sentiment | Score | Severity |
-|--------------------|----------|-----------|-------|----------|
-| Customer Service   | 45       | Positive  | +72   | -        |
-| Product Quality    | 38       | Mixed     | +12   | Low      |
-| Delivery Speed     | 28       | Negative  | -45   | High     |
-```
-
-#### Strengths List (Expandable Cards)
+#### Themes Spotlight
 ```tsx
-<StrengthCard>
-  <Title>Exceptional Customer Service</Title>
-  <ImpactBadge level="high" />
-  <Description>
-    Customers consistently praise your support team's responsiveness
-    and helpfulness.
-  </Description>
-  <SupportingData>
-    • 45 mentions (38% of reviews)
-    • 93% positive sentiment
-  </SupportingData>
-  <Quotes>
-    "The support team went above and beyond..."
-    "Quick response and actually solved my issue!"
-  </Quotes>
-</StrengthCard>
+<ThemesSpotlight themes={themes}>
+  {themes.map(theme => (
+    <ThemeCard key={theme.name} variant={theme.sentiment}>
+      <header className="flex items-center justify-between">
+        <h3>{theme.name}</h3>
+        <Badge>{theme.sentiment === 'strength' ? 'Strength' : 'Improve'}</Badge>
+      </header>
+      <p className="text-sm text-gray-600">{theme.mentionCount} mentions</p>
+      <div className="mt-3 space-y-2">
+        {theme.supportingQuotes.map(q => (
+          <blockquote key={q.reviewId} className="text-sm italic text-gray-700">
+            “{q.excerpt}”
+          </blockquote>
+        ))}
+      </div>
+    </ThemeCard>
+  ))}
+</ThemesSpotlight>
 ```
 
-#### Weaknesses List (Expandable Cards)
+#### Improvement Ideas List
 ```tsx
-<WeaknessCard severity="high">
-  <Title>Inconsistent Product Quality</Title>
-  <SeverityBadge level="high" />
-  <Description>
-    Multiple customers report receiving damaged or defective items.
-  </Description>
-  <SupportingData>
-    • 22 mentions (18% of reviews)
-    • 86% negative sentiment
-  </SupportingData>
-  <RootCause>
-    Potential issues with packaging or quality control in fulfillment.
-  </RootCause>
-  <Quotes>
-    "Item arrived damaged, had to return it"
-    "Quality not as advertised in photos"
-  </Quotes>
-</WeaknessCard>
+<ImprovementIdeas ideas={improvementIdeas}>
+  {improvementIdeas.map(idea => (
+    <IdeaCard key={idea.title}>
+      <h4>{idea.title}</h4>
+      <p className="text-sm text-gray-700">{idea.description}</p>
+      <small className="text-xs text-gray-500">
+        Based on: {idea.sourceThemes.join(', ')}
+      </small>
+    </IdeaCard>
+  ))}
+</ImprovementIdeas>
 ```
 
-#### Recommendations Section
-```tsx
-<RecommendationCard priority="high">
-  <PriorityBadge>High Priority</PriorityBadge>
-  <Category>Product Quality</Category>
-  <Title>Implement Pre-Shipment Quality Checks</Title>
-  <Description>
-    Add a quality control checkpoint before items leave your facility
-    to reduce damaged/defective shipments.
-  </Description>
-  <Actions>
-    1. Create inspection checklist for common issues
-    2. Train fulfillment staff on quality standards
-    3. Add protective packaging for fragile items
-  </Actions>
-  <EstimatedImpact>
-    Could reduce negative reviews related to quality by 60-70%
-  </EstimatedImpact>
-  <MetricsToTrack>
-    • Defect rate per 100 shipments
-    • Quality-related returns
-    • Customer satisfaction scores
-  </MetricsToTrack>
-</RecommendationCard>
-```
-
-#### Sentiment Over Time Chart (if available)
-```tsx
-{/* Only show if user has run analysis 2+ times */}
-<SentimentOverTimeSection>
-  <h3>Sentiment Over Time</h3>
-  <LineChart
-    data={temporalData.trendHistory}
-    xAxis="date"
-    yAxis="score"
-    yAxisLabel="Sentiment Score"
-  />
-  <TrendIndicator
-    direction={temporalData.sentimentTrend}
-    change={`${temporalData.changePercentage > 0 ? '+' : ''}${temporalData.changePercentage}%`}
-  />
-  <Insights>
-    {temporalData.sentimentTrend === 'improving' && (
-      <p>✅ Your sentiment score has improved by {temporalData.changePercentage}%
-         since your last analysis. Keep up the great work!</p>
-    )}
-    {temporalData.sentimentTrend === 'declining' && (
-      <p>⚠️ Your sentiment score has declined by {Math.abs(temporalData.changePercentage)}%
-         since your last analysis. Review the weaknesses section for action items.</p>
-    )}
-    {temporalData.sentimentTrend === 'stable' && (
-      <p>📊 Your sentiment score has remained stable. Focus on the recommendations
-         to reach the next level.</p>
-    )}
-  </Insights>
-</SentimentOverTimeSection>
-```
+#### Limitations Alert (conditional)
+- If `limitations` exists, render a neutral alert above the results explaining the constraint and collapse the themes/ideas sections to avoid stretching thin signals.
 
 ## Database Schema
 
@@ -731,7 +544,7 @@ Response: {
     id: string;
     runDate: string;
     reviewCount: number;
-    overallSentiment: string;
+    overallLabel: 'positive' | 'mixed' | 'negative';
     sentimentScore: number;
   }>;
   total: number;
@@ -758,26 +571,23 @@ Response: {
 - [ ] Add plan limit constants (PLAN_ANALYSIS_LIMITS, PLAN_REVIEW_LIMITS)
 
 ### Phase 2: AI Integration (Week 2)
-- [ ] Develop comprehensive AI prompt
+- [ ] Finalize evidence-focused AI prompt and schema contract
 - [ ] Integrate OpenAI API for analysis
 - [ ] Implement data transformation layer
 - [ ] Add error handling and retries
 - [ ] Test with sample reviews
 
 ### Phase 3: Results Display (Week 3)
-- [ ] Build executive summary component
-- [ ] Create sentiment breakdown charts
-- [ ] Implement themes and topics table
-- [ ] Build strengths/weaknesses cards
-- [ ] Create recommendations section
+- [ ] Build sentiment summary card with gauge and distribution bar
+- [ ] Implement themes spotlight cards with supporting quotes
+- [ ] Create improvement ideas list tied to themes
+- [ ] Handle limitations state (weak signal / not enough data)
 
 ### Phase 4: Polish & Enhancement (Week 4)
-- [ ] Add analysis history view
-- [ ] Implement trend comparison (multi-run)
-- [ ] Add export functionality (PDF/CSV)
-- [ ] Optimize performance for large review sets
-- [ ] Add loading states and animations
-- [ ] Implement caching for repeated analyses
+- [ ] Add analysis history view (score + timestamp)
+- [ ] Wire up quota reminders and empty states
+- [ ] Add lightweight loading/progress messaging
+- [ ] Monitor token usage and add guardrails for large payloads
 
 ### Phase 5: Testing & Launch (Week 5)
 - [ ] End-to-end testing with real data
@@ -876,7 +686,7 @@ try {
 ### User Documentation
 - [ ] "What is Sentiment Analyzer?" help article
 - [ ] "How to interpret your sentiment analysis" guide
-- [ ] "Acting on recommendations" best practices
+- [ ] "Turning improvement ideas into action" best practices
 - [ ] Video tutorial (3-5 minutes)
 - [ ] FAQ section
 
@@ -891,63 +701,32 @@ try {
 
 ### Sample Analysis Result Preview
 ```
-📊 Sentiment Analysis Report
+📊 Sentiment Snapshot
 Generated: March 15, 2025 | Reviews Analyzed: 100 (most recent)
 Total Reviews in Account: 247
 
-🎯 EXECUTIVE SUMMARY
-Overall Sentiment: Positive (Score: 73/100)
-Your customers love your customer service but have concerns about
-product consistency. Focus on quality control to reach the next level.
+🎯 Sentiment Summary
+Overall: Positive | Score: 73/100
+"Customers rave about the support team but continue to flag inconsistent
+product quality. Tighten QA to unlock higher satisfaction."
 
-📈 SENTIMENT BREAKDOWN
-✅ Positive: 68 reviews (54%)
-⚠️ Mixed: 31 reviews (24%)
-❌ Negative: 28 reviews (22%)
+Distribution
+• Positive: 68 reviews (54%)
+• Mixed: 31 reviews (24%)
+• Negative: 28 reviews (22%)
 
-🔑 TOP THEMES
-1. Customer Service → +82 (Excellent!)
-2. Product Quality → -12 (Needs attention)
-3. Delivery Speed → +45 (Good)
-4. Value for Money → +28 (Satisfactory)
-5. User Experience → +56 (Good)
+🌟 Themes Spotlight
+- Strength — Customer Support (45 mentions)
+  "The support team went above and beyond..."
+- Improvement — Product Quality (22 mentions)
+  "Item arrived damaged, had to return it"
+- Improvement — Website Navigation (14 mentions)
+  "Takes forever to find the product I want"
 
-💪 YOUR STRENGTHS
-1. Exceptional Customer Support (45 mentions, 93% positive)
-   "The support team went above and beyond..."
-
-2. Fast Shipping (32 mentions, 89% positive)
-   "Arrived even faster than expected!"
-
-3. Easy Returns Process (18 mentions, 85% positive)
-   "No hassle returns, very smooth"
-
-⚠️ AREAS FOR IMPROVEMENT
-1. [HIGH] Product Quality Consistency (22 mentions, 86% negative)
-   → Issue: Damaged/defective items arriving
-   → Root Cause: Possible packaging or QC issues
-
-2. [MEDIUM] Website Navigation (14 mentions, 71% negative)
-   → Issue: Hard to find specific products
-
-3. [LOW] Limited Product Variety (8 mentions, 62% negative)
-   → Issue: Customers want more options
-
-🎯 RECOMMENDED ACTIONS
-[HIGH PRIORITY] Implement pre-shipment quality checks
-  → Reduce defective shipments by 60-70%
-  → Actions: Create inspection checklist, train staff, improve packaging
-  → Track: Defect rate, quality-related returns
-
-[MEDIUM PRIORITY] Redesign website navigation
-  → Improve product discovery by 40-50%
-  → Actions: User testing, improve search, add filters
-  → Track: Time to find product, bounce rate
-
-[LOW PRIORITY] Expand product line
-  → Increase customer satisfaction by 15-20%
-  → Actions: Survey for desired products, competitor analysis
-  → Track: New product sales, repeat purchase rate
+🛠️ Improvement Ideas
+1. Harden packaging before shipment to cut damaged orders (Product Quality)
+2. Streamline navigation with clearer categories and search (Website Navigation)
+3. Share support playbook across teams to keep service bar high (Customer Support)
 ```
 
 ---
