@@ -136,6 +136,7 @@ interface SentimentAnalysisResult {
 - Limit `themes` to a maximum of three entries with at least one strength and one improvement when possible.
 - Limit `improvementIdeas` to three items and ensure each references at least one `sourceThemes` entry.
 - Reject or flag analyses when fewer than 10 reviews pass eligibility or when the model returns empty quotes/ideas.
+- Ensure the sentiment breakdown counts sum to `metadata.reviewCount`; reject results that do not align.
 
 ## AI Prompt Structure
 
@@ -163,6 +164,7 @@ TASKS:
    - Count how many reviews are positive, mixed, and negative.
    - Produce a 0-100 sentiment score where >66 is positive, 34-66 is mixed, <34 is negative.
    - Write a one-sentence summary grounded in the reviews.
+   - Ensure the counts add up to {reviewCount} and percentages reflect those counts.
 
 2. Themes Spotlight:
    - Identify up to three recurring themes present in the reviews.
@@ -574,6 +576,7 @@ Response: {
 - [ ] Finalize evidence-focused AI prompt and schema contract
 - [ ] Integrate OpenAI API for analysis
 - [ ] Implement data transformation layer
+- [ ] Add sanity checks to confirm sentiment counts equal `reviewCount`
 - [ ] Add error handling and retries
 - [ ] Test with sample reviews
 
