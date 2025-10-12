@@ -162,28 +162,28 @@ export default function HelpModal({
         </div>
 
         {/* Content Area */}
-        <div className="flex-1 overflow-y-auto rounded-b-2xl">
+        <div className="flex-1 overflow-y-auto rounded-b-2xl" style={{ minHeight: 0 }}>
           <div className="h-full flex flex-col rounded-b-2xl">
-            <div className="flex-1">
+            <div className="flex-1" style={{ minHeight: 0 }}>
               {activeTab === 'tutorials' && (
-                <TutorialsTabNew 
+                <TutorialsTabNew
                   pathname={pathname}
                   contextKeywords={keywords}
                   pageName={pageName}
                   initialArticleId={initialArticleId}
                 />
               )}
-              
+
               {activeTab === 'faqs' && (
-                <FAQsTab 
+                <FAQsTab
                   pathname={pathname}
                   contextKeywords={keywords}
                   pageName={pageName}
                 />
               )}
-              
+
               {activeTab === 'issues' && (
-                <IssuesTab 
+                <IssuesTab
                   pathname={pathname}
                   contextKeywords={keywords}
                   onClose={handleClose}

@@ -716,10 +716,11 @@ export default function TutorialsTabNew({
   if (selectedArticle) {
     return (
       <div className="h-full flex flex-col" style={{
-        background: 'linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 50%, #ddd6fe 100%)'
+        background: 'linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 50%, #ddd6fe 100%)',
+        minHeight: 0
       }}>
         {/* Header with back button */}
-        <div className="px-4 md:px-6 pt-4 md:pt-6 pb-2">
+        <div className="px-4 md:px-6 pt-4 md:pt-6 pb-2 flex-shrink-0">
           <button
             onClick={handleBackToCategories}
             className="flex items-center space-x-2 text-indigo-700 hover:text-indigo-900 font-medium mb-4"
@@ -735,7 +736,7 @@ export default function TutorialsTabNew({
         </div>
 
         {/* Article content area */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto" style={{ minHeight: 0 }}>
           <div className="px-4 md:px-6 pb-8">
             {loadingContent ? (
               <div className="flex justify-center py-8">
