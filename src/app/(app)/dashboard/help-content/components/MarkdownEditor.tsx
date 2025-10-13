@@ -81,15 +81,14 @@ export default function MarkdownEditor({
           height: 100%;
         }
         .markdown-editor-container .EasyMDEContainer .CodeMirror {
-          min-height: 400px;
-          height: auto;
+          height: 600px !important;
           border: 1px solid #e5e7eb;
           border-radius: 0.375rem;
           font-size: 14px;
         }
         .markdown-editor-container .EasyMDEContainer .CodeMirror-scroll {
-          max-height: 600px;
-          overflow-y: auto;
+          height: 100% !important;
+          overflow-y: scroll !important;
         }
         .markdown-editor-container .editor-toolbar {
           border: 1px solid #e5e7eb;
