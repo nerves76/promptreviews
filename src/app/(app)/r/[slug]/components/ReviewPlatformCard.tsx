@@ -30,6 +30,7 @@ interface ReviewPlatformCardProps {
   fixGrammarCounts: number[];
   openInstructionsIdx: number | null;
   submitError: string | null;
+  showAiToast: number | null;
   onToggleAccordion: (idx: number) => void;
   onFirstNameChange: (idx: number, value: string) => void;
   onLastNameChange: (idx: number, value: string) => void;
@@ -63,6 +64,7 @@ export default function ReviewPlatformCard({
   fixGrammarCounts,
   openInstructionsIdx,
   submitError,
+  showAiToast,
   onToggleAccordion,
   onFirstNameChange,
   onLastNameChange,
@@ -341,7 +343,20 @@ export default function ReviewPlatformCard({
           </div>
 
           {/* Review text area */}
-          <div className="mb-4">
+          <div className="mb-4 relative">
+            {/* AI Generation Toast */}
+            {showAiToast === idx && (
+              <div
+                className="absolute -top-2 left-0 right-0 z-30 bg-green-50 border border-green-200 rounded-lg px-4 py-2 shadow-md animate-fadein"
+                style={{
+                  animation: 'fadein 0.3s ease-in-out',
+                }}
+              >
+                <p className="text-sm font-medium text-green-800 text-center">
+                  ✨ Edit to make the review reflect your unique experience
+                </p>
+              </div>
+            )}
             <div className="flex items-center justify-between mb-2">
               <label
                 htmlFor={`reviewText-${idx}`}
@@ -401,8 +416,19 @@ export default function ReviewPlatformCard({
                 {platform.customInstructions && platform.customInstructions.trim() && (
                   <button
                     type="button"
-                    className="text-yellow-600 hover:text-yellow-800 text-sm font-medium flex items-center gap-1"
+                    className="text-sm font-medium flex items-center gap-1 transition-colors duration-200"
                     onClick={() => onToggleInstructions(openInstructionsIdx === idx ? null : idx)}
+                    style={{
+                      color: businessProfile?.secondary_color || "#6B7280",
+                    }}
+                    onMouseEnter={(e) => {
+                      const currentColor = businessProfile?.secondary_color || "#6B7280";
+                      // Darken the color on hover
+                      e.currentTarget.style.opacity = "0.7";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.opacity = "1";
+                    }}
                   >
                     <svg
                       width="16"

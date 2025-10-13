@@ -251,6 +251,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
   const [aiLoading, setAiLoading] = useState<number | null>(null);
   const [fixGrammarCounts, setFixGrammarCounts] = useState<number[]>(Array(promptPage?.review_platforms?.length || 0).fill(0));
   const [fixGrammarLoading, setFixGrammarLoading] = useState<number | null>(null);
+  const [showAiToast, setShowAiToast] = useState<number | null>(null);
   const [showRewardsBanner, setShowRewardsBanner] = useState(true);
   const [showPersonalNote, setShowPersonalNote] = useState(true);
   const [openInstructionsIdx, setOpenInstructionsIdx] = useState<number | null>(
@@ -1047,6 +1048,13 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
         sessionStorage.setItem('aiRewriteCounts', JSON.stringify(newCounts));
         return newCounts;
       });
+
+      // Show toast notification
+      setShowAiToast(idx);
+      setTimeout(() => {
+        setShowAiToast(null);
+      }, 4000); // Hide after 4 seconds
+
       if (
         !currentUser &&
         promptPage?.id &&
@@ -1064,8 +1072,8 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
     } catch (err) {
       console.error("AI generation error:", err);
       setSubmitError(
-        err instanceof Error 
-          ? `AI generation failed: ${err.message}` 
+        err instanceof Error
+          ? `AI generation failed: ${err.message}`
           : "AI generation failed. Please try again."
       );
     } finally {
@@ -2591,6 +2599,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                   fixGrammarCounts={fixGrammarCounts}
                   openInstructionsIdx={openInstructionsIdx}
                   submitError={submitError}
+                  showAiToast={showAiToast}
                   onToggleAccordion={(idx) => {
                     const newOpenPlatforms = [...openPlatforms];
                     newOpenPlatforms[idx] = !newOpenPlatforms[idx];
