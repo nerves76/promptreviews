@@ -60,36 +60,38 @@ export default function SentimentSummaryCard({
           <svg className="w-full h-full overflow-visible" viewBox="0 0 200 110">
             {/* Background arc */}
             <path
-              d="M 10 90 A 80 80 0 0 1 190 90"
+              d="M 20 90 A 80 80 0 0 1 180 90"
               fill="none"
               stroke="#E5E7EB"
               strokeWidth="20"
               strokeLinecap="round"
             />
-            {/* Colored sections */}
+            {/* Red section (0-33%) - left third */}
             <path
-              d="M 10 90 A 80 80 0 0 1 50 20"
+              d="M 20 90 A 80 80 0 0 1 62 24"
               fill="none"
               stroke="#EF4444"
               strokeWidth="20"
               strokeLinecap="round"
-              opacity="0.7"
+              opacity="0.8"
             />
+            {/* Yellow section (33-67%) - middle third */}
             <path
-              d="M 50 20 A 80 80 0 0 1 150 20"
+              d="M 62 24 A 80 80 0 0 1 138 24"
               fill="none"
               stroke="#EAB308"
               strokeWidth="20"
               strokeLinecap="round"
-              opacity="0.7"
+              opacity="0.8"
             />
+            {/* Green section (67-100%) - right third */}
             <path
-              d="M 150 20 A 80 80 0 0 1 190 90"
+              d="M 138 24 A 80 80 0 0 1 180 90"
               fill="none"
               stroke="#22C55E"
               strokeWidth="20"
               strokeLinecap="round"
-              opacity="0.7"
+              opacity="0.8"
             />
             {/* Needle */}
             <line
