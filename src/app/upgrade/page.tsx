@@ -22,7 +22,7 @@ interface PricingTier {
 const pricingTiers: PricingTier[] = [
   {
     name: "Community Grower",
-    price: 15,
+    price: 20,
     trialDays: 15,
     contactLimit: 0,
     promptPageLimit: 3,
@@ -39,7 +39,7 @@ const pricingTiers: PricingTier[] = [
   },
   {
     name: "Community Builder",
-    price: 35,
+    price: 40,
     trialDays: 0,
     contactLimit: 1000,
     promptPageLimit: 50,

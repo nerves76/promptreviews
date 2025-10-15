@@ -8,11 +8,11 @@ const tiers = [
   {
     key: "grower",
     name: "Grower",
-    price: "15",
-    priceMonthly: "15",
-    priceAnnual: "12.75", // $153/year ÷ 12 months
-    annualTotal: "153",
-    savings: "27",
+    price: "20",
+    priceMonthly: "20",
+    priceAnnual: "17", // $204/year ÷ 12 months (15% discount)
+    annualTotal: "204",
+    savings: "36",
     period: "month",
     order: 1,
     bg: "bg-blue-100",
@@ -30,11 +30,11 @@ const tiers = [
   {
     key: "builder",
     name: "Builder",
-    price: "35",
-    priceMonthly: "35",
-    priceAnnual: "29.75", // $357/year ÷ 12 months
-    annualTotal: "357",
-    savings: "63",
+    price: "40",
+    priceMonthly: "40",
+    priceAnnual: "34", // $408/year ÷ 12 months (15% discount)
+    annualTotal: "408",
+    savings: "72",
     period: "month",
     order: 2,
     bg: "bg-purple-200",
@@ -56,7 +56,7 @@ const tiers = [
     name: "Maven",
     price: "100",
     priceMonthly: "100",
-    priceAnnual: "85", // $1020/year ÷ 12 months
+    priceAnnual: "85", // $1020/year ÷ 12 months (15% discount)
     annualTotal: "1020",
     savings: "180",
     period: "month",

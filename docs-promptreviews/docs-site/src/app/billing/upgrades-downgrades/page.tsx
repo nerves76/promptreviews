@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import MarkdownRenderer from '../../../components/MarkdownRenderer'
 import { getArticleBySlug } from '@/lib/docs/articles'
+import { PLAN_DISPLAY, PLAN_LIMITS, calculateAnnualSavings } from '@/lib/billingConfig'
 import {
 
   ArrowUp,
@@ -83,6 +84,25 @@ export default async function UpgradesDowngradesPage() {
   if (!article) {
     notFound()
   }
+
+  // Calculate values dynamically
+  const growerMonthly = PLAN_DISPLAY.grower.monthlyPrice;
+  const builderMonthly = PLAN_DISPLAY.builder.monthlyPrice;
+  const mavenMonthly = PLAN_DISPLAY.maven.monthlyPrice;
+  const growerAnnual = PLAN_DISPLAY.grower.annualPrice;
+  const builderAnnual = PLAN_DISPLAY.builder.annualPrice;
+  const mavenAnnual = PLAN_DISPLAY.maven.annualPrice;
+
+  // Calculate savings
+  const growerSavings = calculateAnnualSavings('grower');
+  const builderSavings = calculateAnnualSavings('builder');
+  const mavenSavings = calculateAnnualSavings('maven');
+
+  // Proration examples (15 days = 0.5 month)
+  const upgradeCredit = (growerMonthly / 2).toFixed(2);
+  const upgradeCharge = (builderMonthly / 2).toFixed(2);
+  const upgradeTotal = (builderMonthly / 2 - growerMonthly / 2).toFixed(2);
+
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
       {/* Breadcrumb */}
@@ -273,24 +293,24 @@ export default async function UpgradesDowngradesPage() {
           <div className="bg-white/5 rounded-lg p-4 border border-white/10">
             <h3 className="font-semibold text-white mb-2">Upgrade Example</h3>
             <p className="text-sm text-white/70 mb-3">
-              You're on Grower ($15/mo) with 15 days left in your billing period. You upgrade to Builder ($35/mo).
+              You're on Grower (${growerMonthly}/mo) with 15 days left in your billing period. You upgrade to Builder (${builderMonthly}/mo).
             </p>
             <div className="text-xs text-green-300 space-y-1">
-              <p>• Credit: $7.50 (15 days of Grower)</p>
-              <p>• Charge: $17.50 (15 days of Builder)</p>
-              <p>• <strong>You pay: $10.00 today</strong></p>
+              <p>• Credit: ${upgradeCredit} (15 days of Grower)</p>
+              <p>• Charge: ${upgradeCharge} (15 days of Builder)</p>
+              <p>• <strong>You pay: ${upgradeTotal} today</strong></p>
             </div>
           </div>
 
           <div className="bg-white/5 rounded-lg p-4 border border-white/10">
             <h3 className="font-semibold text-white mb-2">Downgrade Example</h3>
             <p className="text-sm text-white/70 mb-3">
-              You're on Maven ($100/mo). You downgrade to Builder ($35/mo) with 20 days left.
+              You're on Maven (${mavenMonthly}/mo). You downgrade to Builder (${builderMonthly}/mo) with 20 days left.
             </p>
             <div className="text-xs text-orange-300 space-y-1">
               <p>• No immediate charge</p>
               <p>• Keep Maven features for 20 days</p>
-              <p>• <strong>Pay $35 at next renewal</strong></p>
+              <p>• <strong>Pay ${builderMonthly} at next renewal</strong></p>
             </div>
           </div>
         </div>
@@ -321,9 +341,9 @@ export default async function UpgradesDowngradesPage() {
             <h3 className="font-semibold text-green-300 mb-2">Monthly → Annual</h3>
             <p className="text-sm text-white/70 mb-2">Save 15% instantly</p>
             <ul className="text-xs text-white/60 space-y-1">
-              <li>• Grower: $180/year → $153/year (save $27)</li>
-              <li>• Builder: $420/year → $357/year (save $63)</li>
-              <li>• Maven: $1,200/year → $1,020/year (save $180)</li>
+              <li>• Grower: ${growerMonthly * 12}/year → ${growerAnnual}/year (save ${growerSavings})</li>
+              <li>• Builder: ${builderMonthly * 12}/year → ${builderAnnual}/year (save ${builderSavings})</li>
+              <li>• Maven: ${mavenMonthly * 12}/year → ${mavenAnnual}/year (save ${mavenSavings})</li>
             </ul>
           </div>
 
@@ -356,39 +376,39 @@ export default async function UpgradesDowngradesPage() {
             <tbody className="text-white/80">
               <tr className="border-b border-white/10">
                 <td className="py-3 px-2">Monthly Price</td>
-                <td className="text-center py-3 px-2">$15</td>
-                <td className="text-center py-3 px-2">$35</td>
-                <td className="text-center py-3 px-2">$100</td>
+                <td className="text-center py-3 px-2">${growerMonthly}</td>
+                <td className="text-center py-3 px-2">${builderMonthly}</td>
+                <td className="text-center py-3 px-2">${mavenMonthly}</td>
               </tr>
               <tr className="border-b border-white/10">
                 <td className="py-3 px-2">Annual Price</td>
-                <td className="text-center py-3 px-2">$153/yr</td>
-                <td className="text-center py-3 px-2">$357/yr</td>
-                <td className="text-center py-3 px-2">$1,020/yr</td>
+                <td className="text-center py-3 px-2">${growerAnnual}/yr</td>
+                <td className="text-center py-3 px-2">${builderAnnual}/yr</td>
+                <td className="text-center py-3 px-2">${mavenAnnual}/yr</td>
               </tr>
               <tr className="border-b border-white/10">
                 <td className="py-3 px-2">Team Members</td>
-                <td className="text-center py-3 px-2">1</td>
-                <td className="text-center py-3 px-2">3</td>
-                <td className="text-center py-3 px-2">5</td>
+                <td className="text-center py-3 px-2">{PLAN_LIMITS.grower.maxUsers}</td>
+                <td className="text-center py-3 px-2">{PLAN_LIMITS.builder.maxUsers}</td>
+                <td className="text-center py-3 px-2">{PLAN_LIMITS.maven.maxUsers}</td>
               </tr>
               <tr className="border-b border-white/10">
                 <td className="py-3 px-2">Prompt Pages</td>
-                <td className="text-center py-3 px-2">3</td>
-                <td className="text-center py-3 px-2">50</td>
-                <td className="text-center py-3 px-2">500</td>
+                <td className="text-center py-3 px-2">{PLAN_LIMITS.grower.promptPages}</td>
+                <td className="text-center py-3 px-2">{PLAN_LIMITS.builder.promptPages}</td>
+                <td className="text-center py-3 px-2">{PLAN_LIMITS.maven.promptPages}</td>
               </tr>
               <tr className="border-b border-white/10">
                 <td className="py-3 px-2">Contacts</td>
                 <td className="text-center py-3 px-2 text-red-300">None</td>
-                <td className="text-center py-3 px-2">1,000</td>
-                <td className="text-center py-3 px-2">10,000</td>
+                <td className="text-center py-3 px-2">{PLAN_LIMITS.builder.contacts.toLocaleString()}</td>
+                <td className="text-center py-3 px-2">{PLAN_LIMITS.maven.contacts.toLocaleString()}</td>
               </tr>
               <tr className="border-b border-white/10">
                 <td className="py-3 px-2">Business Locations</td>
-                <td className="text-center py-3 px-2">1</td>
-                <td className="text-center py-3 px-2">3</td>
-                <td className="text-center py-3 px-2">10</td>
+                <td className="text-center py-3 px-2">{PLAN_LIMITS.grower.maxLocations}</td>
+                <td className="text-center py-3 px-2">{PLAN_LIMITS.builder.maxLocations}</td>
+                <td className="text-center py-3 px-2">{PLAN_LIMITS.maven.maxLocations}</td>
               </tr>
               <tr className="border-b border-white/10">
                 <td className="py-3 px-2">Google Business</td>

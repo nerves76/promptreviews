@@ -127,7 +127,7 @@ export const pageFAQs = {
   'google-business': [
     {
       question: 'Which plans include Google Business Profile integration?',
-      answer: 'Google Business Profile integration is available on Builder ($35/month) and Maven ($100/month) plans. This feature is not available on the Grower plan.',
+      answer: 'Google Business Profile integration is available on Builder ($40/month) and Maven ($100/month) plans. This feature is not available on the Grower plan.',
       plans: ['builder', 'maven']
     },
     {
@@ -208,7 +208,7 @@ export const pageFAQs = {
     },
     {
       question: 'Do you offer annual billing discounts?',
-      answer: 'Yes! We offer 15% off when you choose annual billing. This saves you $27/year on Grower, $63/year on Builder, and $180/year on Maven - essentially giving you almost 2 months free.'
+      answer: 'Yes! We offer 15% off when you choose annual billing. This saves you $36/year on Grower, $72/year on Builder, and $180/year on Maven - essentially giving you almost 2 months free.'
     },
     {
       question: 'What happens if my payment fails?',
@@ -471,7 +471,7 @@ export const consolidatedFAQs = [
     faqs: [
       {
         question: 'How much does Prompt Reviews cost?',
-        answer: 'Prompt Reviews starts at $15/month ($153/year) for the Grower plan. We offer Builder ($35/month or $357/year) and Maven ($100/month or $1,020/year) plans. Save 15% with annual billing on any plan!'
+        answer: 'Prompt Reviews starts at $20/month ($204/year) for the Grower plan. We offer Builder ($40/month or $408/year) and Maven ($100/month or $1,020/year) plans. Save 15% with annual billing on any plan!'
       },
       {
         question: 'Is there a free trial available?',
@@ -526,7 +526,7 @@ export const consolidatedFAQs = [
     faqs: [
       {
         question: 'Which plans include Google Business Profile integration?',
-        answer: 'Google Business Profile integration is available on Builder ($35/month) and Maven ($100/month) plans.'
+        answer: 'Google Business Profile integration is available on Builder ($40/month) and Maven ($100/month) plans.'
       },
       {
         question: 'What can I do with Google Business Profile integration?',

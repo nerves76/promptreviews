@@ -5,7 +5,7 @@ const tiers = [
   {
     key: "grower",
     name: "Grower",
-    price: "15 / month",
+    price: "20 / month",
     order: 1,
     bg: "bg-blue-100",
     text: "text-slate-blue",
@@ -21,7 +21,7 @@ const tiers = [
   {
     key: "builder",
     name: "Builder",
-    price: "35 / month",
+    price: "40 / month",
     order: 2,
     bg: "bg-purple-200",
     text: "text-slate-blue",

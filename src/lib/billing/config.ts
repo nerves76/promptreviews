@@ -122,20 +122,20 @@ export const PLAN_LIMITS = {
 export const PLAN_DISPLAY = {
   grower: {
     name: 'Grower',
-    monthlyPrice: 15,
-    annualPrice: 153, // $12.75/month
+    monthlyPrice: 20,
+    annualPrice: 204, // $17/month (15% discount)
     order: 1,
   },
   builder: {
     name: 'Builder',
-    monthlyPrice: 35,
-    annualPrice: 357, // $29.75/month
+    monthlyPrice: 40,
+    annualPrice: 408, // $34/month (15% discount)
     order: 2,
   },
   maven: {
     name: 'Maven',
     monthlyPrice: 100,
-    annualPrice: 1020, // $85/month
+    annualPrice: 1020, // $85/month (15% discount)
     order: 3,
   },
 };

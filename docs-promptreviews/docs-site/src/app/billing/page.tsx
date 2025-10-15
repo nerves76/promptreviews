@@ -4,6 +4,7 @@ import StandardOverviewLayout from '../../components/StandardOverviewLayout'
 import MarkdownRenderer from '../../components/MarkdownRenderer'
 import { pageFAQs } from '../utils/faqData'
 import { getArticleBySlug } from '@/lib/docs/articles'
+import { PLAN_DISPLAY } from '@/lib/billingConfig'
 import { CreditCard, Check, X, ArrowUp, ArrowDown, DollarSign, Calendar, Shield, AlertCircle, ArrowRight, Clock, Users, Percent, RefreshCw } from 'lucide-react'
 const fallbackDescription = 'Comprehensive guide to managing your Prompt Reviews subscription, upgrading/downgrading plans, billing history, and payment methods.'
 
@@ -86,7 +87,7 @@ export default async function BillingPage() {
     {
       number: 1,
       title: 'Choose Your Plan',
-      description: 'Select from Grower ($15/month), Builder ($35/month), or Maven ($100/month) based on your business needs and team size.',
+      description: `Select from Grower ($${PLAN_DISPLAY.grower.monthlyPrice}/month), Builder ($${PLAN_DISPLAY.builder.monthlyPrice}/month), or Maven ($${PLAN_DISPLAY.maven.monthlyPrice}/month) based on your business needs and team size.`,
       icon: Users
     },
     {
