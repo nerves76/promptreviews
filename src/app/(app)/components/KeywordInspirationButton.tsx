@@ -8,6 +8,7 @@
 
 "use client";
 import React from "react";
+import Icon from "@/components/Icon";
 import { getContrastTextColor } from "@/utils/colorUtils";
 
 interface KeywordInspirationButtonProps {
@@ -44,7 +45,7 @@ export default function KeywordInspirationButton({
     <div className="flex justify-start">
       <button
         onClick={onOpenModal}
-        className="inline-flex items-center px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg border-2 font-medium text-xs sm:text-sm transition-all duration-200 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-opacity-50"
+        className="inline-flex items-center gap-1.5 px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg border-2 font-medium text-xs sm:text-sm transition-all duration-200 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-opacity-50"
         style={{
           borderColor: secondaryColor,
           color: secondaryColor,
@@ -61,6 +62,7 @@ export default function KeywordInspirationButton({
         }}
         aria-label="View keyword inspiration"
       >
+        <Icon name="FaSparkles" className="w-3.5 h-3.5 sm:w-4 sm:h-4" size={16} />
         <span>Inspiration</span>
       </button>
     </div>
