@@ -9,7 +9,7 @@
 "use client";
 import React, { useState } from "react";
 import Icon from "@/components/Icon";
-import { getContrastTextColor } from "@/utils/colorUtils";
+import { getContrastTextColor, applyCardTransparency } from "@/utils/colorUtils";
 
 interface KeywordInspirationModalProps {
   /** Whether the modal is open */
@@ -26,6 +26,7 @@ interface KeywordInspirationModalProps {
     business_name?: string;
     card_bg?: string;
     card_text?: string;
+    card_transparency?: number;
   };
 }
 
@@ -61,14 +62,23 @@ export default function KeywordInspirationModal({
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-fadein">
       <div
         className="rounded-2xl max-w-2xl w-full mx-4 max-h-[90vh] relative animate-slideup shadow-2xl border-2 border-white backdrop-blur-sm"
-        style={{ backgroundColor: businessProfile?.card_bg ? `${businessProfile.card_bg}90` : "rgba(255, 255, 255, 0.9)" }}
+        style={{
+          backgroundColor: applyCardTransparency(
+            businessProfile?.card_bg || "#FFFFFF",
+            businessProfile?.card_transparency ?? 0.95
+          )
+        }}
       >
         {/* Standardized red X close button */}
         <button
-          className="absolute -top-3 -right-3 border border-gray-200 rounded-full shadow-lg hover:shadow-xl transition-shadow duration-200 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 z-50 bg-white"
+          className="absolute -top-3 -right-3 border border-gray-200 rounded-full shadow-lg hover:shadow-xl transition-shadow duration-200 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 z-50"
           style={{
             width: 48,
-            height: 48
+            height: 48,
+            backgroundColor: applyCardTransparency(
+              businessProfile?.card_bg || "#FFFFFF",
+              businessProfile?.card_transparency ?? 0.95
+            )
           }}
           onClick={onClose}
           aria-label="Close modal"
