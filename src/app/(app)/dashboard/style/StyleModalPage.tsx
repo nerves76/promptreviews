@@ -814,7 +814,7 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
               >
                 <option value="custom">Custom - Your unique style</option>
                 <option value="glassy">Glassy - Like a crystal goblet for your praise</option>
-                <option value="prompty">Prompty - Match the Prompt Reviews app design</option>
+                <option value="prompty">Prompty - All the kids are doing it</option>
                 <option value="solid">Solidy - Dependable like a bullet-proof briefcase</option>
                 <option value="paper">Papery - Leather-bound books, rich mahogany</option>
                 <option value="outdoorsy">Outdoorsy - Like a Patagonia jacket for your reviews</option>
