@@ -302,6 +302,21 @@ export default function UniversalPromptPageForm({
         initialData={initialData}
       />
 
+      {/* Keyword Inspiration Feature */}
+      <KeywordInspirationFeature
+        enabled={formData.keyword_inspiration_enabled}
+        onEnabledChange={(enabled) => {
+          setFormData((prev: any) => ({ ...prev, keyword_inspiration_enabled: enabled }));
+        }}
+        selectedKeywords={formData.selected_keyword_inspirations}
+        onKeywordsChange={(keywords) => {
+          setFormData((prev: any) => ({ ...prev, selected_keyword_inspirations: keywords }));
+        }}
+        availableKeywords={keywords}
+        initialData={initialData}
+        editMode={true}
+      />
+
       {/* Personalized Note Feature */}
       <PersonalizedNoteFeature
         enabled={formData.show_friendly_note}
@@ -387,21 +402,6 @@ export default function UniversalPromptPageForm({
         onScopeChange={(scope) => {
           setFormData((prev: any) => ({ ...prev, recent_reviews_scope: scope }));
         }}
-        initialData={initialData}
-        editMode={true}
-      />
-
-      {/* Keyword Inspiration Feature */}
-      <KeywordInspirationFeature
-        enabled={formData.keyword_inspiration_enabled}
-        onEnabledChange={(enabled) => {
-          setFormData((prev: any) => ({ ...prev, keyword_inspiration_enabled: enabled }));
-        }}
-        selectedKeywords={formData.selected_keyword_inspirations}
-        onKeywordsChange={(keywords) => {
-          setFormData((prev: any) => ({ ...prev, selected_keyword_inspirations: keywords }));
-        }}
-        availableKeywords={keywords}
         initialData={initialData}
         editMode={true}
       />
