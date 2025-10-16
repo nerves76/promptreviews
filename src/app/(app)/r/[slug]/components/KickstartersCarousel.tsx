@@ -218,7 +218,8 @@ export default function KickstartersCarousel({
               className="text-xs tracking-wide font-medium"
               style={{
                 fontFamily: businessProfile?.primary_font || 'Inter',
-                color: businessProfile?.kickstarters_primary_color || businessProfile?.primary_color || '#2563EB'
+                color: businessProfile?.kickstarters_primary_color || businessProfile?.primary_color || '#2563EB',
+                letterSpacing: '0.05em'
               }}
             >
               Kickstarters
@@ -246,7 +247,8 @@ export default function KickstartersCarousel({
               className="text-[10px] font-medium hover:underline transition-colors focus:outline-none focus:ring-2 focus:ring-blue-300 rounded px-1"
               style={{
                 fontFamily: businessProfile?.primary_font || 'Inter',
-                color: businessProfile?.kickstarters_primary_color || businessProfile?.primary_color || '#2563EB'
+                color: businessProfile?.kickstarters_primary_color || businessProfile?.primary_color || '#2563EB',
+                letterSpacing: '0.05em'
               }}
             >
               View All
