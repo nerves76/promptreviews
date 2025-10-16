@@ -141,7 +141,7 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
       card_border_color: "#E5E7EB",
       card_border_transparency: 1.0,
       kickstarters_background_design: false,
-      kickstarters_primary_color: "#2E4A7D",
+      kickstarters_primary_color: "#FFFFFF",
     },
     solid: {
       name: "Solidly",
