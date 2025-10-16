@@ -577,6 +577,20 @@ export default function ProductPromptPageForm({
           </div>
         </div>
 
+        {/* Keyword Inspiration Feature */}
+        <KeywordInspirationFeature
+          enabled={keywordInspirationEnabled}
+          onEnabledChange={(enabled) => setKeywordInspirationEnabled(enabled)}
+          selectedKeywords={selectedKeywordInspirations}
+          onKeywordsChange={(keywords) => setSelectedKeywordInspirations(keywords)}
+          availableKeywords={keywords || []}
+          initialData={{
+            keyword_inspiration_enabled: keywordInspirationEnabled,
+            selected_keyword_inspirations: selectedKeywordInspirations,
+          }}
+          editMode={true}
+        />
+
         {/* Kickstarters Feature */}
         <KickstartersFeature
           enabled={kickstartersEnabled || false}
@@ -601,20 +615,6 @@ export default function ProductPromptPageForm({
           initialData={{
             recent_reviews_enabled: recentReviewsEnabled,
             recent_reviews_scope: recentReviewsScope,
-          }}
-          editMode={true}
-        />
-
-        {/* Keyword Inspiration Feature */}
-        <KeywordInspirationFeature
-          enabled={keywordInspirationEnabled}
-          onEnabledChange={(enabled) => setKeywordInspirationEnabled(enabled)}
-          selectedKeywords={selectedKeywordInspirations}
-          onKeywordsChange={(keywords) => setSelectedKeywordInspirations(keywords)}
-          availableKeywords={keywords || []}
-          initialData={{
-            keyword_inspiration_enabled: keywordInspirationEnabled,
-            selected_keyword_inspirations: selectedKeywordInspirations,
           }}
           editMode={true}
         />

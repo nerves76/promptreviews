@@ -625,6 +625,17 @@ export default function ServicePromptPageForm({
           </div>
         </div>
 
+        {/* Keyword Inspiration Section */}
+        <KeywordInspirationFeature
+          enabled={formData.keyword_inspiration_enabled}
+          onEnabledChange={(enabled) => updateFormData('keyword_inspiration_enabled', enabled)}
+          selectedKeywords={formData.selected_keyword_inspirations}
+          onKeywordsChange={(keywords) => updateFormData('selected_keyword_inspirations', keywords)}
+          availableKeywords={formData.keywords || []}
+          initialData={initialData}
+          editMode={true}
+        />
+
         {/* Kickstarters Section */}
         <KickstartersFeature
           enabled={formData.kickstarters_enabled}
@@ -650,17 +661,6 @@ export default function ServicePromptPageForm({
             recent_reviews_enabled: initialData?.recent_reviews_enabled || initialData?.recentReviewsEnabled,
             recent_reviews_scope: initialData?.recent_reviews_scope || initialData?.recentReviewsScope,
           }}
-          editMode={true}
-        />
-
-        {/* Keyword Inspiration Section */}
-        <KeywordInspirationFeature
-          enabled={formData.keyword_inspiration_enabled}
-          onEnabledChange={(enabled) => updateFormData('keyword_inspiration_enabled', enabled)}
-          selectedKeywords={formData.selected_keyword_inspirations}
-          onKeywordsChange={(keywords) => updateFormData('selected_keyword_inspirations', keywords)}
-          availableKeywords={formData.keywords || []}
-          initialData={initialData}
           editMode={true}
         />
 
