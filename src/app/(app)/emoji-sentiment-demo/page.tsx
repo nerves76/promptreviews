@@ -13,7 +13,7 @@ export default function EmojiSentimentDemo() {
           className="bg-white"
         />
         <div className="text-center mt-3 text-sm text-gray-600">
-          <p>Interactive Emoji Sentiment Flow Demo</p>
+          <p>Interactive Emoji Feedback Flow Demo</p>
           <p className="text-xs mt-1">Click the emojis to test the flow</p>
         </div>
       </div>

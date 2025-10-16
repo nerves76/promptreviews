@@ -37,7 +37,7 @@ const articlesMetadata = [
   {
     id: 'prompt-page-features',
     title: 'Prompt Page Features',
-    description: 'Explore all features: Emoji Sentiment Flow, AI-powered content, QR codes, and more',
+    description: 'Explore all features: Emoji Feedback Flow, AI-powered content, QR codes, and more',
     url: '/prompt-pages/features',
     category: 'prompt-pages',
     tags: ['prompt-page-features', 'emoji-sentiment-flow', 'ai-powered', 'qr-codes', 'features'],

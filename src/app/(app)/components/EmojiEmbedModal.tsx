@@ -134,7 +134,7 @@ const EmojiEmbedModal: React.FC<EmojiEmbedModalProps> = ({
               Emoji Sentiment Embed
             </h2>
             <p className="text-gray-600 mt-2 text-base">
-              Add Emoji Sentiment Flow to your website, newsletter, or auto-responders
+              Add Emoji Feedback Flow to your website, newsletter, or auto-responders
             </p>
           </div>
 

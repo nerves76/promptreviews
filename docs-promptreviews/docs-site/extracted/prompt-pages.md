@@ -10,7 +10,7 @@ Create personalized review request pages that make it easy for customers to leav
 
 ## Key Features
 
-### Emoji Sentiment Flow
+### Emoji Feedback Flow
 
 Interactive emoji-based review collection that makes leaving reviews fun and engaging for customers.
 

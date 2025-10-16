@@ -77,7 +77,7 @@ Test these high-value pages first:
 
 ### Feature Pages (9)
 1. AI-Powered Content
-2. Emoji Sentiment Flow
+2. Emoji Feedback Flow
 3. QR Code Generation
 4. Customization
 5. Analytics & Insights

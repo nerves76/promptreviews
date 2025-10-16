@@ -693,8 +693,8 @@ export default function BasePromptPageForm({
             <p className="mb-6 text-gray-700">
               You cannot have 2 popups enabled at the same time. You must disable{" "}
               <strong>
-                {showPopupConflictModal === "note" 
-                  ? "Emoji Sentiment Flow" 
+                {showPopupConflictModal === "note"
+                  ? "Emoji Feedback Flow"
                   : "Friendly Note Pop-up"}
               </strong>{" "}
               first.

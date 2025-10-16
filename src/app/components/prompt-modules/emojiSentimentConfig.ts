@@ -16,7 +16,7 @@ export const EMOJI_SENTIMENT_ICONS = [
   { icon: FaAngry, color: "text-red-500" },
 ];
 
-export const EMOJI_SENTIMENT_TITLE = "Emoji Sentiment Flow";
+export const EMOJI_SENTIMENT_TITLE = "Emoji Feedback Flow";
 
 export const EMOJI_SENTIMENT_SUBTEXT =
   'This feature keeps negative reviews off the web and allows you to respond directly while gathering valuable feedback. Users who select "Delighted" or "Satisfied" are sent to your public prompt page, while those who select "Neutral" or "Unsatisfied" are shown a private feedback form that is saved to your account but not shared publicly.';

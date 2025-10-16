@@ -9,7 +9,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
   if (!article) {
     return {
-      title: 'Emoji Sentiment Flow | Prompt Reviews',
+      title: 'Emoji Feedback Flow | Prompt Reviews',
     };
   }
 
@@ -38,7 +38,7 @@ export default async function EmojiSentimentPage() {
         <ChevronRight className="w-4 h-4 mx-2" />
         <Link href="/prompt-pages/features" className="hover:text-white">Features</Link>
         <ChevronRight className="w-4 h-4 mx-2" />
-        <span className="text-white">Emoji Sentiment Flow</span>
+        <span className="text-white">Emoji Feedback Flow</span>
       </div>
 
       {/* Header */}
@@ -58,7 +58,7 @@ export default async function EmojiSentimentPage() {
       <div className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 p-6 mb-8">
         <h2 className="text-2xl font-bold text-white mb-4">What is emoji sentiment flow?</h2>
         <p className="text-white/80 mb-4">
-          The Emoji Sentiment Flow feature allows customers to express their satisfaction through emoji reactions before leaving a detailed review. This creates a quick, engaging way for customers to provide feedback while intelligently routing them to the most appropriate platform.
+          The Emoji Feedback Flow feature allows customers to express their satisfaction through emoji reactions before leaving a detailed review. This creates a quick, engaging way for customers to provide feedback while intelligently routing them to the most appropriate platform.
         </p>
         <p className="text-white/80">
           Instead of asking customers to immediately write a review, we first ask them to select an emoji that represents their experience. This simple interaction increases engagement and helps you direct positive reviews to public platforms while gathering constructive feedback from less satisfied customers privately.

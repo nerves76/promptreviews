@@ -1235,7 +1235,7 @@ The documentation site includes comprehensive guides for all prompt page types a
    - **Universal Prompt Pages**: One-page solution for any business
 
 3. **Features** (`/prompt-pages/features`)
-   - **Emoji Sentiment Flow**: Interactive emotion-based review collection
+   - **Emoji Feedback Flow**: Interactive emotion-based review collection
    - **Prompty AI**: AI-powered review generation and optimization
    - **QR Code Generation**: Easy mobile access from anywhere
    - **Customization Options**: Brand your pages with colors and logos
@@ -1519,7 +1519,7 @@ The documentation site includes comprehensive guides for all prompt page types a
    - **Universal Prompt Pages**: One-page solution for any business
 
 3. **Features** (`/prompt-pages/features`)
-   - **Emoji Sentiment Flow**: Interactive emotion-based review collection
+   - **Emoji Feedback Flow**: Interactive emotion-based review collection
    - **Prompty AI**: AI-powered review generation and optimization
    - **QR Code Generation**: Easy mobile access from anywhere
    - **Customization Options**: Brand your pages with colors and logos

@@ -203,7 +203,7 @@ export default function EmojiSentimentFeature({
           <div className="flex items-center gap-3">
             <FaGrinHearts className={`${editMode ? 'w-7 h-7 text-slate-blue' : 'text-slate-blue text-lg'}`} />
             <h3 className={`${editMode ? 'text-2xl font-bold text-[#1A237E]' : 'text-lg font-semibold text-gray-900'}`}>
-              Emoji Sentiment Flow
+              Emoji Feedback Flow
             </h3>
           </div>
           <div className={`${editMode ? 'text-sm text-gray-700 mt-[3px] ml-10' : 'text-sm text-gray-600'}`}>

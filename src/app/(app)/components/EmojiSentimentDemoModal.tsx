@@ -21,7 +21,7 @@ const EmojiSentimentDemoModal: React.FC<EmojiSentimentDemoModalProps> = ({
     <DraggableModal
       isOpen={isOpen}
       onClose={onClose}
-      title="Emoji Sentiment Flow Demo"
+      title="Emoji Feedback Flow Demo"
       maxWidth="max-w-2xl"
     >
       <div className="w-full flex justify-center items-center" style={{ minHeight: 720 }}>
@@ -29,7 +29,7 @@ const EmojiSentimentDemoModal: React.FC<EmojiSentimentDemoModalProps> = ({
           src={`${typeof window !== 'undefined' ? window.location.origin : ''}/emoji-sentiment-embed.html`}
           className="rounded-2xl border border-gray-200 shadow-lg"
           style={{ width: 400, height: 700 }}
-          title="Emoji Sentiment Flow Demo"
+          title="Emoji Feedback Flow Demo"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           sandbox="allow-scripts allow-same-origin"
         />

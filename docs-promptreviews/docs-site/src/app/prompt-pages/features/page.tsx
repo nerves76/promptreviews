@@ -37,7 +37,7 @@ export async function generateMetadata(): Promise<Metadata> {
   if (!article) {
     return {
       title: 'Prompt Page Features | Prompt Reviews',
-      description: 'Explore all prompt page features: Emoji Sentiment Flow, AI-powered content generation, QR codes, customization, analytics, and more.',
+      description: 'Explore all prompt page features: Emoji Feedback Flow, AI-powered content generation, QR codes, customization, analytics, and more.',
       keywords: 'prompt page features, emoji sentiment flow, prompty ai, qr codes, review analytics, customization',
     };
   }
@@ -76,7 +76,7 @@ const jsonLd = {
       {
         "@type": "ListItem",
         "position": 1,
-        "name": "Emoji Sentiment Flow"
+        "name": "Emoji Feedback Flow"
       },
       {
         "@type": "ListItem",
@@ -110,13 +110,13 @@ const jsonLd = {
 const features = [
   {
     id: 'emoji-sentiment-flow',
-    title: 'Emoji Sentiment Flow',
+    title: 'Emoji Feedback Flow',
     icon: Smile,
     description: 'Interactive emoji-based review collection that makes leaving reviews fun and engaging',
     category: 'engagement',
     priority: 'high',
     details: {
-      overview: 'The Emoji Sentiment Flow feature allows customers to express their satisfaction through emoji reactions before leaving a detailed review. This creates a quick, engaging way for customers to provide feedback.',
+      overview: 'The Emoji Feedback Flow feature allows customers to express their satisfaction through emoji reactions before leaving a detailed review. This creates a quick, engaging way for customers to provide feedback.',
       howItWorks: [
         'Customers see a question with emoji options (Excellent, Satisfied, Neutral, Unsatisfied, Frustrated)',
         'They select an emoji that best represents their experience',

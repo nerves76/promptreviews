@@ -231,7 +231,7 @@ The prompt pages documentation is organized into three main sections:
    - Comparison table
 
 3. **Features** (`/prompt-pages/features`)
-   - Emoji Sentiment Flow
+   - Emoji Feedback Flow
    - Prompty AI
    - QR Code Generation
    - Customization Options

@@ -422,7 +422,7 @@ This project is currently focused on developing a standalone widget for collecti
 - **Seamless Integration**: Choice modal integrates naturally with existing emoji sentiment selection flow
 
 ### Emoji Sentiment Demo Integration (January 2025)
-- **Interactive Demo Access**: Added "View demo" link to Emoji Sentiment Flow configuration section
+- **Interactive Demo Access**: Added "View demo" link to Emoji Feedback Flow configuration section
 - **Demo Modal**: Created dedicated modal component that displays interactive emoji sentiment demo
 - **Embedded Demo**: Demo runs in iframe within draggable modal for optimal user experience
 - **Quick Access**: Users can now preview the emoji sentiment flow functionality directly from the configuration interface

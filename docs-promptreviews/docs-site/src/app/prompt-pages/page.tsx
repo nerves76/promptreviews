@@ -37,7 +37,7 @@ const fallbackDescription = 'Create personalized review request pages that make 
 const defaultKeyFeatures = [
   {
     icon: Heart,
-    title: 'Emoji Sentiment Flow',
+    title: 'Emoji Feedback Flow',
     description: 'Interactive emoji-based review collection that makes leaving reviews fun and engaging for customers.',
     href: '/prompt-pages/features#emoji-sentiment-flow'
   },

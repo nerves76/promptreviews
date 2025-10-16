@@ -23,7 +23,7 @@ export const EMOJI_SENTIMENT_ICONS = [
   { icon: FaAngry, color: "text-red-500" },
 ];
 
-export const EMOJI_SENTIMENT_TITLE = "Emoji Sentiment Flow";
+export const EMOJI_SENTIMENT_TITLE = "Emoji Feedback Flow";
 
 export const EMOJI_SENTIMENT_SUBTEXT =
   'This feature encourages users to think twice before pasting negative reviews online. If users select "Delighted" or "Satisfied," they are sent to your public prompt page, while those who select "Neutral, Unsatisfied, or Frustrated" receive a secondary message which asks if they would rather leave feedback directly or publish publicly. (This is designed to satisfy Google\'s "no gating" policy where users are not given a choice.)';

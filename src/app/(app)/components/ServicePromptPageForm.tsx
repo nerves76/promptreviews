@@ -822,7 +822,7 @@ export default function ServicePromptPageForm({
               You cannot have 2 popups enabled at the same time. You must disable{" "}
               <strong>
                 {showPopupConflictModal === "note" 
-                  ? "Emoji Sentiment Flow" 
+                  ? "Emoji Feedback Flow" 
                   : "Friendly Note Pop-up"}
               </strong>{" "}
               first.

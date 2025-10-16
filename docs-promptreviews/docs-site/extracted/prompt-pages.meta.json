@@ -15,7 +15,7 @@
   "key_features": [
     {
       "icon": "Heart",
-      "title": "Emoji Sentiment Flow",
+      "title": "Emoji Feedback Flow",
       "description": "Interactive emoji-based review collection that makes leaving reviews fun and engaging for customers."
     },
     {
@@ -108,7 +108,7 @@
       "key_features": [
         {
           "icon": "Heart",
-          "title": "Emoji Sentiment Flow",
+          "title": "Emoji Feedback Flow",
           "description": "Interactive emoji-based review collection that makes leaving reviews fun and engaging for customers."
         },
         {

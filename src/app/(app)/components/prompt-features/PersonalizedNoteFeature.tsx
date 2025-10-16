@@ -165,7 +165,7 @@ export default function PersonalizedNoteFeature({
             </h2>
             <p className="mb-6 text-gray-700">
               You cannot have 2 popups enabled at the same time. You must disable{" "}
-              <strong>Emoji Sentiment Flow</strong> first.
+              <strong>Emoji Feedback Flow</strong> first.
             </p>
             <button
               onClick={() => setShowConflictModal(false)}

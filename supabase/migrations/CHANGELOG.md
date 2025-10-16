@@ -1,5 +1,18 @@
 # Database Migrations Changelog
 
+## [2025-10-12]
+### Migrations Added
+
+#### 20251012000001_create_sentiment_analysis_runs.sql
+- **NEW FEATURE**: Sentiment analysis feature for review analytics
+- **sentiment_analysis_runs table**: Stores historical sentiment analysis results with full metrics
+- **Columns**: id, account_id, run_date, review_count_analyzed, date_range_start, date_range_end, plan_at_time, results_json, analysis_version, processing_time_seconds, created_at
+- **Indexes**: idx_sentiment_runs_account_date (account_id, run_date DESC) and idx_sentiment_runs_account_month (account_id, DATE_TRUNC('month', run_date))
+- **accounts table updates**: Added sentiment_analyses_this_month (INTEGER, default 0) and sentiment_last_reset_date (DATE, default CURRENT_DATE)
+- **RLS Policies**: Users can view/create/delete sentiment runs for their own accounts
+- **Purpose**: Track sentiment analysis usage per account and store full analysis results with JSONB for flexible querying
+- **Plan Limits**: Grower (5/month), Builder (20/month), Maven (unlimited)
+
 ## [2025-10-02]
 ### Migrations Added
 
