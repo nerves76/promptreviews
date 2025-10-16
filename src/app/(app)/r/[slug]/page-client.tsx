@@ -2858,7 +2858,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                   />
                 )}
                 <div className="flex flex-col md:flex-row items-center text-center md:text-left gap-4 md:gap-8 md:items-center relative">
-                  <div className="flex-shrink-0 flex items-center justify-center w-full md:w-48 mb-0">
+                  <div className="flex-shrink-0 flex items-center justify-center w-full md:w-40 mb-0">
                     <a
                       href="https://promptreviews.app"
                       target="_blank"
@@ -2867,8 +2867,8 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                     >
                       <PromptReviewsLogo
                         color={businessProfile?.primary_color || "#fff"}
-                        size={360}
-                        className="h-32 w-auto"
+                        size={240}
+                        className="h-20 w-auto"
                       />
                     </a>
                   </div>
