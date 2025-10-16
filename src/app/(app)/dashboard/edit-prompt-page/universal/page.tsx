@@ -24,6 +24,7 @@ interface UniversalPromptFormState {
   offer_title: string;
   offer_body: string;
   offer_url: string;
+  offer_timelock: boolean;
   emoji_sentiment_enabled: boolean;
   emoji_sentiment_question: string;
   emoji_feedback_message: string;
@@ -198,6 +199,10 @@ export default function UniversalEditPromptPage() {
             "",
           offer_url:
             universalPage?.offer_url || businessProfile?.default_offer_url || "",
+          offer_timelock:
+            universalPage?.offer_timelock ??
+            businessProfile?.default_offer_timelock ??
+            false,
           emoji_sentiment_enabled: universalPage?.emoji_sentiment_enabled ?? false,
           emoji_sentiment_question: universalPage?.emoji_sentiment_question || "How was Your Experience?",
           emoji_feedback_message: universalPage?.emoji_feedback_message || "We value your feedback! Let us know how we can do better.",
@@ -336,6 +341,7 @@ export default function UniversalEditPromptPage() {
         offer_title: formState.offer_title,
         offer_body: formState.offer_body,
         offer_url: formState.offer_url,
+        offer_timelock: formState.offer_timelock,
         emoji_sentiment_enabled: formState.emoji_sentiment_enabled,
         emoji_sentiment_question: formState.emoji_sentiment_question,
         emoji_feedback_message: formState.emoji_feedback_message,
@@ -374,6 +380,7 @@ export default function UniversalEditPromptPage() {
         offer_title: formState.offer_title,
         offer_body: formState.offer_body,
         offer_url: formState.offer_url,
+        offer_timelock: formState.offer_timelock,
         emoji_sentiment_enabled: formState.emoji_sentiment_enabled,
         emoji_sentiment_question: formState.emoji_sentiment_question,
         emoji_feedback_message: formState.emoji_feedback_message,
