@@ -118,6 +118,31 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
       card_border_width: 2,
       kickstarters_primary_color: GLASSY_DEFAULTS.primary_color, // Use primary color for glassy
     },
+    prompty: {
+      name: "Prompty",
+      primary_font: "Inter",
+      secondary_font: "Roboto",
+      primary_color: "#2E4A7D",
+      secondary_color: "#2E4A7D",
+      background_type: "gradient",
+      background_color: "#FFFFFF",
+      gradient_start: "#2563EB",
+      gradient_middle: "#7864C8",
+      gradient_end: "#914AAE",
+      card_bg: "#FFFFFF",
+      card_text: "#000000",
+      card_placeholder_color: "#9CA3AF",
+      input_text_color: "#000000",
+      card_inner_shadow: false,
+      card_shadow_color: "#000000",
+      card_shadow_intensity: 0.10,
+      card_transparency: 0.90,
+      card_border_width: 1,
+      card_border_color: "#E5E7EB",
+      card_border_transparency: 1.0,
+      kickstarters_background_design: false,
+      kickstarters_primary_color: "#2E4A7D",
+    },
     solid: {
       name: "Solidly",
       primary_font: "Montserrat",
@@ -789,6 +814,7 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
               >
                 <option value="custom">Custom - Your unique style</option>
                 <option value="glassy">Glassy - Like a crystal goblet for your praise</option>
+                <option value="prompty">Prompty - Match the Prompt Reviews app design</option>
                 <option value="solid">Solidy - Dependable like a bullet-proof briefcase</option>
                 <option value="paper">Papery - Leather-bound books, rich mahogany</option>
                 <option value="outdoorsy">Outdoorsy - Like a Patagonia jacket for your reviews</option>
