@@ -818,7 +818,7 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
                 <option value="solid">Solidy - Dependable like a bullet-proof briefcase</option>
                 <option value="paper">Papery - Leather-bound books, rich mahogany</option>
                 <option value="outdoorsy">Outdoorsy - Like a Patagonia jacket for your reviews</option>
-                <option value="snazzy">Snazzy - It's peachy-keen</option>
+                <option value="snazzy">Snazzy - Peachy-keen appreciation machine</option>
               </select>
             </div>
           </div>
