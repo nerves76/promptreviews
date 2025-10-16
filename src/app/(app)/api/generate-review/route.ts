@@ -13,28 +13,20 @@ export async function POST(request: Request) {
   }
 
   try {
-    // Create Supabase client for auth verification using proper SSR patterns
+    // Create Supabase client for optional auth verification
     const supabase = await createServerSupabaseClient();
-    
-    // Get the authenticated user from the session
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
 
-    if (authError || !user) {
-      console.warn('Generate review API: Authentication failed', { error: authError?.message });
-      return NextResponse.json(
-        { error: "Authentication required" },
-        { status: 401 },
-      );
-    }
+    // Get the authenticated user from the session (optional for public Prompt Pages)
+    const { data: { user } } = await supabase.auth.getUser();
 
     const openai = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY,
     });
-    
+
     const { prompt, user_id } = await request.json();
 
-    // Security: Verify user_id matches authenticated session
-    if (user_id && user_id !== user.id) {
+    // Security: If user_id is provided, verify it matches authenticated session
+    if (user_id && user && user_id !== user.id) {
       return NextResponse.json(
         { error: "Forbidden: User ID mismatch" },
         { status: 403 },
@@ -75,10 +67,10 @@ export async function POST(request: Request) {
 
       // Insert into ai_usage table (using service role for database write)
       const serviceSupabase = createServiceRoleClient();
-      
-      // Use the authenticated user's ID (verified above)
+
+      // Use the authenticated user's ID if available, null for public visitors
       await serviceSupabase.from("ai_usage").insert({
-        user_id: user.id,
+        user_id: user?.id || null,
         prompt_tokens: usage.prompt_tokens,
         completion_tokens: usage.completion_tokens,
         total_tokens: usage.total_tokens,
