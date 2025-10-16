@@ -166,14 +166,12 @@ export default function ReviewPlatformCard({
       <div
         className={`absolute rounded-full shadow-lg p-2 flex items-center justify-center ${blurEnabled ? 'backdrop-blur-2xl' : ''}`}
         title={label}
-        style={{ 
+        style={{
           top: '-20px',
           left: '-20px',
-          zIndex: 20, 
-          // When transparency is enabled, use a neutral translucent background so blur hides the card edge behind
-          backgroundColor: blurEnabled
-            ? `rgba(255,255,255, ${Math.min(0.55, Math.max(0.2, 1 - (transparency ?? 0.95) + 0.2))})`
-            : applyCardTransparency(businessProfile?.card_bg || '#FFFFFF', transparency),
+          zIndex: 20,
+          // Use card background with same transparency setting
+          backgroundColor: applyCardTransparency(businessProfile?.card_bg || '#FFFFFF', transparency),
           border: getCardBorderStyle(),
           backdropFilter: blurEnabled ? 'blur(12px)' : undefined,
           WebkitBackdropFilter: blurEnabled ? 'blur(12px)' : undefined

@@ -110,13 +110,11 @@ export default function BusinessInfoCard({ businessProfile, reviewType, promptPa
         className="absolute left-1/2 -translate-x-1/2 w-52 h-52 aspect-square flex items-center justify-center mb-10"
         style={{ pointerEvents: "none", top: "-100px" }}
       >
-        <div 
+        <div
           className={`rounded-full shadow-lg flex items-center justify-center w-full h-full aspect-square ${blurEnabled ? 'backdrop-blur-2xl' : ''}`}
-          style={{ 
-            // Use a neutral translucent background when transparency is enabled so the blur clearly obscures edges behind the circle
-            backgroundColor: blurEnabled
-              ? `rgba(255,255,255, ${Math.min(0.6, Math.max(0.2, 1 - (transparency ?? 0.95) + 0.25))})`
-              : applyCardTransparency(businessProfile?.card_bg || '#FFFFFF', transparency),
+          style={{
+            // Use card background with same transparency setting
+            backgroundColor: applyCardTransparency(businessProfile?.card_bg || '#FFFFFF', transparency),
             backdropFilter: blurEnabled ? 'blur(24px)' : undefined,
             WebkitBackdropFilter: blurEnabled ? 'blur(24px)' : undefined,
             border: `${businessProfile?.card_border_width ?? 2}px solid rgba(255, 255, 255, ${businessProfile?.card_border_transparency ?? 0.8})`,
