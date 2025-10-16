@@ -1924,7 +1924,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                 style={{ color: businessProfile?.primary_color || "#4F46E5" }}
               >
                 <Icon name="FaEnvelope" className="w-4 h-4" size={16} />
-                Email to Self
+                Email to self
               </button>
               <button
                 onClick={() => handleSaveOption("home-screen")}
@@ -2051,7 +2051,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                                 htmlFor="feedbackFirstName"
                                 className="block text-sm font-medium text-gray-700"
                               >
-                                First Name{" "}
+                                First name{" "}
                                 <span className="text-red-500">*</span>
                               </label>
                               <input
@@ -2077,7 +2077,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                                 htmlFor="feedbackLastName"
                                 className="block text-sm font-medium text-gray-700"
                               >
-                                Last Name{" "}
+                                Last name{" "}
                                 <span className="text-red-500">*</span>
                               </label>
                               <input
@@ -2326,7 +2326,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                               htmlFor="photoReviewerFirstName"
                               className="block text-sm font-medium text-gray-700"
                             >
-                              First Name <span className="text-red-500">*</span>
+                              First name <span className="text-red-500">*</span>
                             </label>
                             <input
                               type="text"
@@ -2350,7 +2350,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                               htmlFor="photoReviewerLastName"
                               className="block text-sm font-medium text-gray-700"
                             >
-                              Last Name <span className="text-red-500">*</span>
+                              Last name <span className="text-red-500">*</span>
                             </label>
                             <input
                               type="text"

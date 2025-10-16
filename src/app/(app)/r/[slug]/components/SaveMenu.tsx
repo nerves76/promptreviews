@@ -75,7 +75,7 @@ export default function SaveMenu({
       >
         <Icon name="FaHeart" className="w-5 h-5 transition-colors group-hover:text-red-500" />
         <span className={`hidden sm:inline${showOnlyHeart ? " sm:hidden" : ""}`}>
-          {showOnlyHeart ? "" : "Save for Later"}
+          {showOnlyHeart ? "" : "Save for later"}
         </span>
         <span className={`inline sm:hidden${showOnlyHeart ? " hidden" : ""}`}>
           {showOnlyHeart ? "" : "Save"}
@@ -90,7 +90,7 @@ export default function SaveMenu({
             style={{ color: businessProfile?.primary_color || "#4F46E5" }}
           >
             <Icon name="FaCalendarAlt" className="w-4 h-4" />
-            Add to Calendar
+            Add to calendar
           </button>
           
           <button
@@ -99,7 +99,7 @@ export default function SaveMenu({
             style={{ color: businessProfile?.primary_color || "#4F46E5" }}
           >
             <Icon name="FaEnvelope" className="w-4 h-4" />
-            Email to Self
+            Email to self
           </button>
           
           <button
@@ -108,7 +108,7 @@ export default function SaveMenu({
             style={{ color: businessProfile?.primary_color || "#4F46E5" }}
           >
             <Icon name="FaHome" className="w-4 h-4" />
-            Add to Home Screen
+            Add to home screen
           </button>
           
           {availableFeatures.clipboard && (
@@ -118,7 +118,7 @@ export default function SaveMenu({
               style={{ color: businessProfile?.primary_color || "#4F46E5" }}
             >
               <Icon name="FaLink" className="w-4 h-4" />
-              Copy Link
+              Copy link
             </button>
           )}
           
@@ -129,7 +129,7 @@ export default function SaveMenu({
               style={{ color: businessProfile?.primary_color || "#4F46E5" }}
             >
               <Icon name="FaBookmark" className="w-4 h-4" />
-              Add to Reading List
+              Add to reading list
             </button>
           )}
           
@@ -145,7 +145,7 @@ export default function SaveMenu({
             >
               <path d="M20.5 3.5H3.5C2.67 3.5 2 4.17 2 5v14c0 .83.67 1.5 1.5 1.5h17c.83 0 1.5-.67 1.5-1.5V5c0-.83-.67-1.5-1.5-1.5zM12 19.5H4v-15h8v15zm8 0h-7v-15h7v15z" />
             </svg>
-            Save to Pocket
+            Save to pocket
           </button>
           
           <button
@@ -160,7 +160,7 @@ export default function SaveMenu({
             >
               <path d="M20.5 3.5H3.5C2.67 3.5 2 4.17 2 5v14c0 .83.67 1.5 1.5 1.5h17c.83 0 1.5-.67 1.5-1.5V5c0-.83-.67-1.5-1.5-1.5zM12 19.5H4v-15h8v15zm8 0h-7v-15h7v15z" />
             </svg>
-            Save to Instapaper
+            Save to instapaper
           </button>
           
           {availableFeatures.bookmarks && (
@@ -170,7 +170,7 @@ export default function SaveMenu({
               style={{ color: businessProfile?.primary_color || "#4F46E5" }}
             >
               <Icon name="FaFavorites" className="w-4 h-4" />
-              Bookmark in Browser
+              Bookmark in browser
             </button>
           )}
         </div>

@@ -260,7 +260,7 @@ export default function ReviewPlatformCard({
                 className="block text-sm font-medium"
                 style={{ color: businessProfile?.card_text || "#1A1A1A" }}
               >
-                First Name <span className="text-red-500">*</span>
+                First name <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
@@ -287,7 +287,7 @@ export default function ReviewPlatformCard({
                 className="block text-sm font-medium"
                 style={{ color: businessProfile?.card_text || "#1A1A1A" }}
               >
-                Last Name <span className="text-red-500">*</span>
+                Last name <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
@@ -361,7 +361,7 @@ export default function ReviewPlatformCard({
                 className="block text-sm font-medium"
                 style={{ color: businessProfile?.card_text || "#1A1A1A" }}
               >
-                Your Review <span className="text-red-500">*</span>
+                Your review <span className="text-red-500">*</span>
               </label>
               <div className="flex items-center gap-2">
                 {fixGrammarEnabled && (
@@ -406,7 +406,7 @@ export default function ReviewPlatformCard({
                           <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
                           <path d="M6 12v5c3 3 9 3 12 0v-5"/>
                         </svg>
-                        Fix Grammar {fixGrammarCounts[idx] > 0 && `(${fixGrammarCounts[idx]}/3)`}
+                        Fix grammar {fixGrammarCounts[idx] > 0 && `(${fixGrammarCounts[idx]}/3)`}
                       </>
                     )}
                   </button>
@@ -574,7 +574,7 @@ export default function ReviewPlatformCard({
                 </>
               ) : (
                 <>
-                  Copy & Submit
+                  Copy & submit
                 </>
               )}
             </button>

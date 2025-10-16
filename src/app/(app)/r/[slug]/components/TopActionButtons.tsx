@@ -91,7 +91,7 @@ export default function TopActionButtons({
         >
           <Icon name="FaHeart" className="w-5 h-5" size={20} />
           <span className={`hidden sm:inline${showOnlyHeart ? " sm:hidden" : ""}`}>
-            {showOnlyHeart ? "" : "Save for Later"}
+            {showOnlyHeart ? "" : "Save for later"}
           </span>
           <span className={`inline sm:hidden${showOnlyHeart ? " hidden" : ""}`}>
             {showOnlyHeart ? "" : "Save"}

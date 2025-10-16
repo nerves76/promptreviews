@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { IconType } from 'react-icons';
 
 interface FallingAnimationProps {
@@ -16,14 +16,31 @@ interface IconConfig {
   category: string;
 }
 
-export default function FallingAnimation({ 
-  fallingIcon, 
-  showStarRain, 
+interface FallingIconProps {
+  left: number;
+  duration: number;
+  delay: number;
+  size: number;
+}
+
+export default function FallingAnimation({
+  fallingIcon,
+  showStarRain,
   falling_icon_color,
-  getFallingIcon 
+  getFallingIcon
 }: FallingAnimationProps) {
   const [iconConfig, setIconConfig] = useState<IconConfig | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Memoize icon properties so they don't recalculate on re-renders
+  const iconProperties = useMemo<FallingIconProps[]>(() => {
+    return [...Array(20)].map(() => ({
+      left: Math.random() * 98 + Math.random() * 2,
+      duration: 3 + Math.random() * 1.5,
+      delay: Math.random() * 0.5,
+      size: 32 + Math.random() * 8,
+    }));
+  }, []); // Empty dependency array means this only calculates once
   
   // Load icon configuration when fallingIcon changes
   useEffect(() => {
@@ -108,35 +125,29 @@ export default function FallingAnimation({
     return colorMap[colorClass] || "#6b7280";
   };
 
+  // Use the loaded iconConfig
+  const IconComponent = iconConfig.icon;
+  // Use custom color if provided, otherwise fall back to icon's default color
+  const iconColor = falling_icon_color || getColorFromClass(iconConfig.color);
+
   return (
     <div className="pointer-events-none fixed inset-0 z-50 overflow-hidden">
-      {[...Array(20)].map((_, i) => {
-        const left = Math.random() * 98 + Math.random() * 2;
-        const duration = 3 + Math.random() * 1.5;
-        const delay = Math.random() * 0.5;
-        const size = 32 + Math.random() * 8;
-        
-        // Use the loaded iconConfig
-        const IconComponent = iconConfig.icon;
-        // Use custom color if provided, otherwise fall back to icon's default color
-        const iconColor = falling_icon_color || getColorFromClass(iconConfig.color);
-
-        return (
-          <IconComponent
-            key={i}
-            className="absolute animate-fall"
-            style={{
-              color: iconColor,
-              fontSize: size,
-              left: `${left}%`,
-              top: -40,
-              animationDuration: `${duration}s`,
-              animationDelay: `${delay}s`,
-              animationFillMode: 'forwards',
-            }}
-          />
-        );
-      })}
+      {iconProperties.map((props, i) => (
+        <IconComponent
+          key={i}
+          className="absolute animate-fall"
+          style={{
+            color: iconColor,
+            fontSize: props.size,
+            left: `${props.left}%`,
+            top: -40,
+            animationDuration: `${props.duration}s`,
+            animationDelay: `${props.delay}s`,
+            animationFillMode: 'forwards',
+            willChange: 'transform, opacity',
+          }}
+        />
+      ))}
     </div>
   );
 } 
