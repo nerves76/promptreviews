@@ -89,6 +89,7 @@ const USED_ICONS = {
   'FaShare': 'fa',
   'FaSignInAlt': 'fa',
   'FaSignOutAlt': 'fa',
+  'FaSparkles': 'fa',
   'FaSpinner': 'fa',
   'FaStar': 'fa',
   'FaStickyNote': 'fa',
