@@ -450,6 +450,7 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
         if (business.style_preset) {
           // Use the explicitly saved preset
           setSelectedPreset(business.style_preset);
+          setHasLoadedPreset(true); // Prevent auto-detection from overriding
           console.log('[StyleModal] Loaded saved preset:', business.style_preset);
         } else {
           // Fallback: try to detect which preset matches (legacy behavior)
@@ -681,6 +682,7 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
       const { name, ...presetSettings } = preset; // Exclude the name property
       setSettings(presetSettings);
       setSelectedPreset(presetKey);
+      setHasLoadedPreset(false); // Allow auto-detection to work for user customizations
       // Show success message
       setSuccessMessage(`${preset.name} preset applied! Remember to save your changes.`);
       setSuccess(true);
@@ -692,12 +694,15 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
   };
 
   // Check for custom settings whenever settings change
+  // BUT: Don't override if we just loaded from database with an explicit preset
+  const [hasLoadedPreset, setHasLoadedPreset] = React.useState(false);
+
   React.useEffect(() => {
-    if (isInitialized) {
+    if (isInitialized && !hasLoadedPreset) {
       const matchingPreset = checkIfMatchesPreset(settings);
       setSelectedPreset(matchingPreset || 'custom');
     }
-  }, [settings, isInitialized]);
+  }, [settings, isInitialized, hasLoadedPreset]);
 
   async function handleReset() {
     if (window.confirm('Are you sure you want to reset all style settings to default? This cannot be undone.')) {
