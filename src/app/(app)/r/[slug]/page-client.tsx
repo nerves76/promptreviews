@@ -1000,18 +1000,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
 
   const handleRewriteWithAI = async (idx: number) => {
     if (!promptPage || !businessProfile) return;
-    
-    // Security: Require authentication and account access for AI features
-    if (!currentUser) {
-      setSubmitError("Please log in to use AI generation features.");
-      return;
-    }
-    
-    if (!isOwner) {
-      setSubmitError("AI generation is only available to account owners and members.");
-      return;
-    }
-    
+
     setAiLoading(idx);
     try {
     const platform = getPlatformForIndex(idx);
@@ -1083,18 +1072,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
 
   const handleFixGrammar = async (idx: number) => {
     if (!promptPage || !businessProfile) return;
-    
-    // Security: Require authentication and account access for AI features
-    if (!currentUser) {
-      setSubmitError("Please log in to use grammar fixing features.");
-      return;
-    }
-    
-    if (!isOwner) {
-      setSubmitError("Grammar fixing is only available to account owners and members.");
-      return;
-    }
-    
+
     // Check if there's text to fix
     if (!platformReviewTexts[idx] || platformReviewTexts[idx].trim() === "") {
       setSubmitError("Please write a review first before fixing grammar.");
@@ -1464,18 +1442,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
 
   const handleGeneratePhotoTestimonial = async () => {
     if (!promptPage || !businessProfile) return;
-    
-    // Security: Require authentication and account access for AI features
-    if (!currentUser) {
-      setSubmitError("Please log in to use AI generation features.");
-      return;
-    }
-    
-    if (!isOwner) {
-      setSubmitError("AI generation is only available to account owners and members.");
-      return;
-    }
-    
+
     setAiLoadingPhoto(true);
     try {
       // Use the centralized AI testimonial generation utility
