@@ -65,11 +65,10 @@ export default function KeywordInspirationModal({
       >
         {/* Standardized red X close button */}
         <button
-          className="absolute -top-3 -right-3 border border-gray-200 rounded-full shadow-lg hover:shadow-xl transition-shadow duration-200 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 z-50"
+          className="absolute -top-3 -right-3 border border-gray-200 rounded-full shadow-lg hover:shadow-xl transition-shadow duration-200 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 z-50 bg-white"
           style={{
             width: 48,
-            height: 48,
-            backgroundColor: businessProfile?.card_bg || "#FFFFFF"
+            height: 48
           }}
           onClick={onClose}
           aria-label="Close modal"
@@ -98,7 +97,10 @@ export default function KeywordInspirationModal({
               Keyword inspiration
             </h2>
           </div>
-          <p className="text-sm mt-2" style={{ color: businessProfile?.card_text || "#6B7280" }}>
+          <p className="text-sm mt-2" style={{
+            color: businessProfile?.card_text || "#6B7280",
+            fontFamily: businessProfile?.primary_font || "Inter"
+          }}>
             Click any keyword phrase below to copy it and use it in your review. This will help us get found online!
           </p>
         </div>
@@ -108,7 +110,7 @@ export default function KeywordInspirationModal({
           {keywords.length === 0 ? (
             <div className="text-center py-8">
               <Icon name="FaSparkles" className="w-8 h-8 text-gray-400 mx-auto mb-3" size={32} />
-              <p className="text-gray-600">No keywords available</p>
+              <p className="text-gray-600" style={{ fontFamily: businessProfile?.primary_font || "Inter" }}>No keywords available</p>
             </div>
           ) : (
             <div className="space-y-3">
