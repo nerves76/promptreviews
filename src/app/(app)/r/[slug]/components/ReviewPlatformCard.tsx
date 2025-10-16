@@ -491,7 +491,7 @@ export default function ReviewPlatformCard({
               <button
                 type="button"
                 onClick={() => onRewriteWithAI(idx)}
-                disabled={aiLoading === idx}
+                disabled={aiLoading === idx || aiRewriteCounts[idx] >= 3}
                 className="flex-1 px-4 py-2 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-all duration-200 border-2"
                 style={{
                   backgroundColor: "rgba(255, 255, 255, 0.1)",
@@ -499,13 +499,13 @@ export default function ReviewPlatformCard({
                   color: businessProfile?.primary_color || "#2563EB",
                 }}
                 onMouseEnter={(e) => {
-                  if (aiLoading !== idx && !e.currentTarget.disabled) {
+                  if (aiLoading !== idx && aiRewriteCounts[idx] < 3) {
                     e.currentTarget.style.backgroundColor = businessProfile?.primary_color || "#2563EB";
                     e.currentTarget.style.color = getContrastTextColor(businessProfile?.primary_color || "#2563EB");
                   }
                 }}
                 onMouseLeave={(e) => {
-                  if (aiLoading !== idx && !e.currentTarget.disabled) {
+                  if (aiLoading !== idx && aiRewriteCounts[idx] < 3) {
                     e.currentTarget.style.backgroundColor = "transparent";
                     e.currentTarget.style.color = businessProfile?.primary_color || "#2563EB";
                   }

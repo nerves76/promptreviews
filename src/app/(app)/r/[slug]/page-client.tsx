@@ -2430,20 +2430,20 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
                             <button
                               type="button"
                               onClick={handleGeneratePhotoTestimonial}
-                              disabled={aiLoadingPhoto}
+                              disabled={aiLoadingPhoto || aiRewriteCounts[0] >= 3}
                               className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-all duration-200 hover:text-white"
                               style={{
                                 borderColor: businessProfile?.secondary_color || "#6B7280",
                                 color: businessProfile?.secondary_color || "#6B7280",
                               }}
                               onMouseEnter={(e) => {
-                                if (!aiLoadingPhoto) {
+                                if (!aiLoadingPhoto && aiRewriteCounts[0] < 3) {
                                   e.currentTarget.style.backgroundColor = businessProfile?.secondary_color || "#6B7280";
                                   e.currentTarget.style.color = "white";
                                 }
                               }}
                               onMouseLeave={(e) => {
-                                if (!aiLoadingPhoto) {
+                                if (!aiLoadingPhoto && aiRewriteCounts[0] < 3) {
                                   e.currentTarget.style.backgroundColor = "transparent";
                                   e.currentTarget.style.color = businessProfile?.secondary_color || "#6B7280";
                                 }
