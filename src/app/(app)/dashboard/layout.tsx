@@ -113,12 +113,15 @@ export default function DashboardLayout({
       // REMOVED: Check for is_additional_account - all accounts need their own plan now
       const hasNoPlan = !account.plan || account.plan === 'no_plan' || account.plan === 'NULL';
 
+      // Free accounts are allowed to access all dashboard pages even without a paid plan
+      const isFreeAccount = account.is_free_account || false;
+
       const isAllowedPath =
         pathname === '/dashboard' ||
         pathname.startsWith('/dashboard/create-business');
       // REMOVED: /dashboard/plan from allowed paths - we shouldn't redirect there
 
-      if (hasNoPlan && !isAllowedPath) {
+      if (hasNoPlan && !isFreeAccount && !isAllowedPath) {
         router.push('/dashboard/create-business');
       }
     }
