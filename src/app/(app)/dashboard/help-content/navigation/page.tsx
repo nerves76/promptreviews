@@ -38,17 +38,28 @@ const VISIBILITY_OPTIONS = [
   { value: "help", label: "Help Modal" },
 ];
 
+interface Article {
+  id: string;
+  title: string;
+  slug: string;
+  status: string;
+}
+
 export default function HelpNavigationAdminPage() {
   const { user, isLoading: authLoading } = useCoreAuth();
   const [items, setItems] = useState<AdminNavItem[]>([]);
+  const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedItem, setSelectedItem] = useState<AdminNavItem | null>(null);
   const [saving, setSaving] = useState(false);
+  const [showArticleDropdown, setShowArticleDropdown] = useState(false);
+  const [articleSearch, setArticleSearch] = useState("");
 
   useEffect(() => {
     if (!authLoading && user) {
       fetchItems();
+      fetchArticles();
     }
   }, [user, authLoading]);
 
@@ -78,12 +89,42 @@ export default function HelpNavigationAdminPage() {
     }
   };
 
+  const fetchArticles = async () => {
+    try {
+      const response = await fetch("/api/admin/help-content?status=published", {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache'
+        }
+      });
+      if (!response.ok) {
+        console.error("Failed to load articles");
+        return;
+      }
+      const data = await response.json();
+      setArticles(data.articles || []);
+    } catch (err: any) {
+      console.error("Error loading articles:", err);
+    }
+  };
+
   const parentOptions = useMemo(() => {
     return items
       .filter((item) => item.id && item.id !== selectedItem?.id)
       .map((item) => ({ id: item.id!, title: item.title }))
       .sort((a, b) => a.title.localeCompare(b.title));
   }, [items, selectedItem?.id]);
+
+  const filteredArticles = useMemo(() => {
+    if (!articleSearch) return articles;
+    const search = articleSearch.toLowerCase();
+    return articles.filter(
+      (article) =>
+        article.title.toLowerCase().includes(search) ||
+        article.slug.toLowerCase().includes(search)
+    );
+  }, [articles, articleSearch]);
 
   const hierarchicalItems = useMemo(() => {
     const map = new Map<string, TreeNode>();
@@ -348,11 +389,73 @@ export default function HelpNavigationAdminPage() {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Link (optional)</label>
-                    <Input
-                      value={selectedItem.href || ""}
-                      onChange={(e) => setSelectedItem({ ...selectedItem!, href: e.target.value })}
-                      placeholder="/getting-started"
-                    />
+                    <div className="space-y-2">
+                      {/* Article Dropdown Toggle */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowArticleDropdown(!showArticleDropdown);
+                          if (showArticleDropdown) {
+                            setArticleSearch(""); // Clear search when closing
+                          }
+                        }}
+                        className="w-full text-left px-3 py-2 text-sm text-indigo-600 hover:text-indigo-700 border border-indigo-200 rounded-md hover:bg-indigo-50 transition-colors"
+                      >
+                        {showArticleDropdown ? '✕ Hide' : '📄 Choose from help articles'}
+                      </button>
+
+                      {/* Article Dropdown */}
+                      {showArticleDropdown && (
+                        <div className="border border-gray-300 rounded-md bg-white shadow-sm">
+                          {/* Search Input */}
+                          <div className="p-2 border-b border-gray-200">
+                            <Input
+                              value={articleSearch}
+                              onChange={(e) => setArticleSearch(e.target.value)}
+                              placeholder="Search articles..."
+                              className="text-sm"
+                              autoFocus
+                            />
+                          </div>
+
+                          {/* Article List */}
+                          <div className="max-h-60 overflow-y-auto">
+                            {filteredArticles.length === 0 ? (
+                              <div className="px-3 py-2 text-sm text-gray-500">
+                                {articleSearch ? 'No articles match your search' : 'No published articles found'}
+                              </div>
+                            ) : (
+                              filteredArticles.map((article) => (
+                                <button
+                                  key={article.id}
+                                  type="button"
+                                  onClick={() => {
+                                    setSelectedItem({ ...selectedItem!, href: `/${article.slug}` });
+                                    setShowArticleDropdown(false);
+                                    setArticleSearch("");
+                                  }}
+                                  className="w-full text-left px-3 py-2 text-sm hover:bg-indigo-50 border-b border-gray-100 last:border-b-0 transition-colors"
+                                >
+                                  <div className="font-medium text-gray-900">{article.title}</div>
+                                  <div className="text-xs text-gray-500">/{article.slug}</div>
+                                </button>
+                              ))
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Manual Input */}
+                      <Input
+                        value={selectedItem.href || ""}
+                        onChange={(e) => setSelectedItem({ ...selectedItem!, href: e.target.value })}
+                        placeholder="/getting-started"
+                        className="text-sm"
+                      />
+                      <p className="text-xs text-gray-500">
+                        Or type a custom URL manually
+                      </p>
+                    </div>
                   </div>
 
                   <IconPicker
