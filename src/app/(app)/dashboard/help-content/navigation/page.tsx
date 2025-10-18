@@ -55,12 +55,19 @@ export default function HelpNavigationAdminPage() {
   const fetchItems = async () => {
     try {
       setLoading(true);
-      const response = await fetch("/api/admin/docs/navigation");
+      const response = await fetch("/api/admin/docs/navigation", {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache'
+        }
+      });
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
         throw new Error(data.error || "Failed to load navigation");
       }
       const data = await response.json();
+      console.log('[Navigation] Fetched items:', data.items?.length, 'items');
       setItems(data.items || []);
       setError(null);
     } catch (err: any) {

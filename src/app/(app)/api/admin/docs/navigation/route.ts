@@ -3,6 +3,10 @@ import { createClient } from '@supabase/supabase-js';
 import { requireAdminAccess } from '@/lib/admin/permissions';
 import { revalidatePath } from 'next/cache';
 
+// Force dynamic rendering and disable caching
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
@@ -31,7 +35,15 @@ export async function GET() {
       return NextResponse.json({ error: 'Failed to load navigation' }, { status: 500 });
     }
 
-    return NextResponse.json({ items: data ?? [] });
+    console.log('[GET Navigation] Returning', data?.length, 'items');
+
+    return NextResponse.json({ items: data ?? [] }, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      }
+    });
   } catch (error) {
     console.error('Admin navigation GET error:', error);
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
