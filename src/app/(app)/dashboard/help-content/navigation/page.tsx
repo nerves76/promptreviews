@@ -357,6 +357,67 @@ export default function HelpNavigationAdminPage() {
                 </p>
               ) : (
                 <div className="space-y-4">
+                  {/* Quick Article Selector at Top */}
+                  <div className="p-3 bg-indigo-50 border border-indigo-200 rounded-lg">
+                    <label className="block text-sm font-medium text-indigo-900 mb-2">
+                      💡 Quick Fill from Article
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setShowArticleDropdown(!showArticleDropdown)}
+                      className="w-full text-left px-3 py-2 text-sm text-indigo-600 hover:text-indigo-700 bg-white border border-indigo-300 rounded-md hover:bg-indigo-50 transition-colors font-medium"
+                    >
+                      {showArticleDropdown ? '✕ Close article selector' : '📄 Select an article to auto-fill title & link'}
+                    </button>
+
+                    {showArticleDropdown && (
+                      <div className="mt-2 border border-gray-300 rounded-md bg-white shadow-sm">
+                        {/* Search Input */}
+                        <div className="p-2 border-b border-gray-200">
+                          <Input
+                            value={articleSearch}
+                            onChange={(e) => setArticleSearch(e.target.value)}
+                            placeholder="Search articles..."
+                            className="text-sm"
+                            autoFocus
+                          />
+                        </div>
+
+                        {/* Article List */}
+                        <div className="max-h-48 overflow-y-auto">
+                          {filteredArticles.length === 0 ? (
+                            <div className="px-3 py-2 text-sm text-gray-500">
+                              {articleSearch ? 'No articles match your search' : 'No published articles found'}
+                            </div>
+                          ) : (
+                            filteredArticles.map((article) => (
+                              <button
+                                key={article.id}
+                                type="button"
+                                onClick={() => {
+                                  setSelectedItem({
+                                    ...selectedItem!,
+                                    title: article.title,
+                                    href: `/${article.slug}`
+                                  });
+                                  setShowArticleDropdown(false);
+                                  setArticleSearch("");
+                                }}
+                                className="w-full text-left px-3 py-2 text-sm hover:bg-indigo-50 border-b border-gray-100 last:border-b-0 transition-colors"
+                              >
+                                <div className="font-medium text-gray-900">{article.title}</div>
+                                <div className="text-xs text-gray-500">/{article.slug}</div>
+                              </button>
+                            ))
+                          )}
+                        </div>
+                      </div>
+                    )}
+                    <p className="text-xs text-indigo-600 mt-2">
+                      Select an article to automatically fill both the title and link fields below
+                    </p>
+                  </div>
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
                     <Input
@@ -389,73 +450,15 @@ export default function HelpNavigationAdminPage() {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Link (optional)</label>
-                    <div className="space-y-2">
-                      {/* Article Dropdown Toggle */}
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setShowArticleDropdown(!showArticleDropdown);
-                          if (showArticleDropdown) {
-                            setArticleSearch(""); // Clear search when closing
-                          }
-                        }}
-                        className="w-full text-left px-3 py-2 text-sm text-indigo-600 hover:text-indigo-700 border border-indigo-200 rounded-md hover:bg-indigo-50 transition-colors"
-                      >
-                        {showArticleDropdown ? '✕ Hide' : '📄 Choose from help articles'}
-                      </button>
-
-                      {/* Article Dropdown */}
-                      {showArticleDropdown && (
-                        <div className="border border-gray-300 rounded-md bg-white shadow-sm">
-                          {/* Search Input */}
-                          <div className="p-2 border-b border-gray-200">
-                            <Input
-                              value={articleSearch}
-                              onChange={(e) => setArticleSearch(e.target.value)}
-                              placeholder="Search articles..."
-                              className="text-sm"
-                              autoFocus
-                            />
-                          </div>
-
-                          {/* Article List */}
-                          <div className="max-h-60 overflow-y-auto">
-                            {filteredArticles.length === 0 ? (
-                              <div className="px-3 py-2 text-sm text-gray-500">
-                                {articleSearch ? 'No articles match your search' : 'No published articles found'}
-                              </div>
-                            ) : (
-                              filteredArticles.map((article) => (
-                                <button
-                                  key={article.id}
-                                  type="button"
-                                  onClick={() => {
-                                    setSelectedItem({ ...selectedItem!, href: `/${article.slug}` });
-                                    setShowArticleDropdown(false);
-                                    setArticleSearch("");
-                                  }}
-                                  className="w-full text-left px-3 py-2 text-sm hover:bg-indigo-50 border-b border-gray-100 last:border-b-0 transition-colors"
-                                >
-                                  <div className="font-medium text-gray-900">{article.title}</div>
-                                  <div className="text-xs text-gray-500">/{article.slug}</div>
-                                </button>
-                              ))
-                            )}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Manual Input */}
-                      <Input
-                        value={selectedItem.href || ""}
-                        onChange={(e) => setSelectedItem({ ...selectedItem!, href: e.target.value })}
-                        placeholder="/getting-started"
-                        className="text-sm"
-                      />
-                      <p className="text-xs text-gray-500">
-                        Or type a custom URL manually
-                      </p>
-                    </div>
+                    <Input
+                      value={selectedItem.href || ""}
+                      onChange={(e) => setSelectedItem({ ...selectedItem!, href: e.target.value })}
+                      placeholder="/getting-started"
+                      className="text-sm"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Use the article selector above or type a custom URL
+                    </p>
                   </div>
 
                   <IconPicker
