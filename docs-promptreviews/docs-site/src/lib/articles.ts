@@ -3,6 +3,7 @@
  */
 
 import { createClient } from '@supabase/supabase-js';
+import { cache } from 'react';
 
 export interface Article {
   id: string;
@@ -54,7 +55,7 @@ function getSupabaseClient() {
   });
 }
 
-export async function getArticleBySlug(slug: string): Promise<Article | null> {
+export const getArticleBySlug = cache(async (slug: string): Promise<Article | null> => {
   const supabase = getSupabaseClient();
 
   const { data, error } = await supabase
@@ -73,9 +74,9 @@ export async function getArticleBySlug(slug: string): Promise<Article | null> {
   }
 
   return data as Article;
-}
+});
 
-export async function getAllArticles(): Promise<Article[]> {
+export const getAllArticles = cache(async (): Promise<Article[]> => {
   const supabase = getSupabaseClient();
 
   const { data, error } = await supabase
@@ -90,4 +91,4 @@ export async function getAllArticles(): Promise<Article[]> {
   }
 
   return data as Article[];
-}
+});
