@@ -6,8 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/auth/server';
-import { createServiceRoleClient } from '@/auth/providers/supabase';
+import { createServerSupabaseClient, createServiceRoleClient } from '@/auth/providers/supabase';
 
 /**
  * GET /api/social-posting/connections
@@ -16,7 +15,7 @@ import { createServiceRoleClient } from '@/auth/providers/supabase';
  */
 export async function GET(request: NextRequest) {
   try {
-    const supabase = createClient();
+    const supabase = await createServerSupabaseClient();
     const {
       data: { user }
     } = await supabase.auth.getUser();
@@ -96,7 +95,7 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createClient();
+    const supabase = await createServerSupabaseClient();
     const {
       data: { user }
     } = await supabase.auth.getUser();
@@ -240,7 +239,7 @@ export async function POST(request: NextRequest) {
  */
 export async function DELETE(request: NextRequest) {
   try {
-    const supabase = createClient();
+    const supabase = await createServerSupabaseClient();
     const {
       data: { user }
     } = await supabase.auth.getUser();
@@ -250,26 +249,12 @@ export async function DELETE(request: NextRequest) {
     }
 
     const url = new URL(request.url);
-    const connectionId = url.searchParams.get('id');
+    const accountId = url.searchParams.get('accountId');
 
-    if (!connectionId) {
+    if (!accountId) {
       return NextResponse.json(
-        { error: 'Connection ID is required' },
+        { error: 'Account ID is required' },
         { status: 400 }
-      );
-    }
-
-    // Get the connection to verify ownership
-    const { data: connection, error: fetchError } = await supabase
-      .from('social_platform_connections')
-      .select('account_id')
-      .eq('id', connectionId)
-      .maybeSingle();
-
-    if (fetchError || !connection) {
-      return NextResponse.json(
-        { error: 'Connection not found' },
-        { status: 404 }
       );
     }
 
@@ -277,22 +262,24 @@ export async function DELETE(request: NextRequest) {
     const { data: membership, error: membershipError } = await supabase
       .from('account_users')
       .select('account_id')
-      .eq('account_id', connection.account_id)
+      .eq('account_id', accountId)
       .eq('user_id', user.id)
       .maybeSingle();
 
     if (membershipError || !membership) {
       return NextResponse.json(
-        { error: 'Access denied to this connection' },
+        { error: 'Access denied to this account' },
         { status: 403 }
       );
     }
 
-    // Delete the connection
+    // Delete all connections for this account and platform (Bluesky)
+    // This allows users to disconnect and reconnect without unique constraint violations
     const { error: deleteError } = await supabase
       .from('social_platform_connections')
       .delete()
-      .eq('id', connectionId);
+      .eq('account_id', accountId)
+      .eq('platform', 'bluesky');
 
     if (deleteError) {
       console.error('Error deleting connection:', deleteError);

@@ -90,7 +90,7 @@ export default function AnnouncementBanner() {
         <div className="flex items-center justify-between">
           <div className="flex items-center flex-1 pr-8">
             <span className="flex p-2 rounded-lg bg-white/15 backdrop-blur-md border border-white/20">
-              <Icon name="FaMegaphone" className="text-white/90" size={24} />
+              <Icon name="FaBell" className="text-white/90" size={24} />
             </span>
             <div className="ml-3">
               <p className="text-sm font-medium text-white/95 drop-shadow-[0_1px_2px_rgba(0,0,0,0.1)]">
