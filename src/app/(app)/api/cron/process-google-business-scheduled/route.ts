@@ -27,6 +27,12 @@ interface ScheduledJobRecord {
   media_paths: GoogleBusinessScheduledMediaDescriptor[] | null;
   status: string;
   error_log: any;
+  additional_platforms?: {
+    bluesky?: {
+      enabled: boolean;
+      connectionId: string;
+    };
+  } | null;
 }
 
 interface LocationAccountRecord {
@@ -161,6 +167,97 @@ async function processPost(options: {
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Failed to create post',
+    };
+  }
+}
+
+/**
+ * Post to Bluesky using the BlueskyAdapter
+ * Only supports 'post' kind, not 'photo' uploads
+ */
+async function processBlueskyPost(options: {
+  supabaseAdmin: ReturnType<typeof createServiceRoleClient>;
+  connectionId: string;
+  content: ScheduledJobRecord['content'];
+  caption: string | null;
+  media: GoogleBusinessScheduledMediaDescriptor[];
+}): Promise<{ success: boolean; postId?: string; error?: string }> {
+  const { supabaseAdmin, connectionId, content, caption, media } = options;
+
+  try {
+    // Fetch Bluesky connection credentials
+    const { data: connection, error: connError } = await supabaseAdmin
+      .from('social_platform_connections')
+      .select('credentials, status')
+      .eq('id', connectionId)
+      .eq('platform', 'bluesky')
+      .maybeSingle();
+
+    if (connError || !connection) {
+      return { success: false, error: 'Bluesky connection not found' };
+    }
+
+    if (connection.status !== 'active') {
+      return { success: false, error: `Bluesky connection status is ${connection.status}` };
+    }
+
+    const credentials = connection.credentials as {
+      identifier: string;
+      appPassword: string;
+      did?: string;
+    };
+
+    if (!credentials.identifier || !credentials.appPassword) {
+      return { success: false, error: 'Missing Bluesky credentials' };
+    }
+
+    // Import and initialize Bluesky adapter
+    const { BlueskyAdapter } = await import('@/features/social-posting/platforms/bluesky');
+    const adapter = new BlueskyAdapter(credentials);
+
+    // Authenticate
+    const authSuccess = await adapter.authenticate();
+    if (!authSuccess) {
+      return { success: false, error: 'Failed to authenticate with Bluesky' };
+    }
+
+    // Prepare post content
+    const postText = content?.summary?.trim() || caption?.trim() || '';
+    if (!postText) {
+      return { success: false, error: 'No content to post to Bluesky' };
+    }
+
+    // Prepare media URLs (Bluesky needs publicly accessible URLs)
+    const mediaUrls = ensureArray(media)
+      .slice(0, 4) // Bluesky supports max 4 images
+      .map((item) => item.publicUrl)
+      .filter(Boolean);
+
+    // Create the post
+    const result = await adapter.createPost({
+      content: postText,
+      platforms: ['bluesky'],
+      mediaUrls: mediaUrls.length > 0 ? mediaUrls : undefined,
+      status: 'published',
+      callToAction: content?.callToAction || undefined,
+    });
+
+    if (result.success) {
+      return {
+        success: true,
+        postId: result.platformPostId,
+      };
+    } else {
+      return {
+        success: false,
+        error: result.error || 'Unknown Bluesky posting error',
+      };
+    }
+  } catch (error) {
+    console.error('[Cron] Bluesky posting error:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unexpected Bluesky error',
     };
   }
 }
@@ -398,6 +495,61 @@ async function processJob(
     await sleep(RATE_DELAY_MS);
   }
 
+  // Process Bluesky posting if enabled (only for 'post' kind, after Google Business succeeds)
+  let blueskySuccess = false;
+  let blueskyError: string | null = null;
+  let blueskyPostId: string | null = null;
+
+  if (
+    successCount > 0 && // Only attempt Bluesky if at least one Google location succeeded
+    job.post_kind === 'post' && // Only support posts, not photo uploads
+    job.additional_platforms?.bluesky?.enabled &&
+    job.additional_platforms.bluesky.connectionId
+  ) {
+    console.log(`[Cron] Attempting Bluesky cross-post for job ${job.id}`);
+
+    try {
+      const blueskyResult = await processBlueskyPost({
+        supabaseAdmin,
+        connectionId: job.additional_platforms.bluesky.connectionId,
+        content: job.content,
+        caption: job.caption,
+        media: ensureArray(job.media_paths),
+      });
+
+      blueskySuccess = blueskyResult.success;
+      blueskyPostId = blueskyResult.postId || null;
+      blueskyError = blueskyResult.error || null;
+
+      if (blueskySuccess) {
+        console.log(`[Cron] Bluesky post successful for job ${job.id}: ${blueskyPostId}`);
+      } else {
+        console.warn(`[Cron] Bluesky post failed for job ${job.id}: ${blueskyError}`);
+      }
+
+      // Store Bluesky result in the results table with platform='bluesky'
+      // Use the first location as a placeholder since Bluesky posts aren't location-specific
+      const firstLocation = locations[0];
+      if (firstLocation) {
+        await supabaseAdmin
+          .from('google_business_scheduled_post_results')
+          .insert({
+            scheduled_post_id: job.id,
+            location_id: firstLocation.id,
+            location_name: firstLocation.name || null,
+            platform: 'bluesky',
+            status: blueskySuccess ? 'success' : 'failed',
+            published_at: blueskySuccess ? new Date().toISOString() : null,
+            google_resource_id: blueskyPostId,
+            error_message: blueskyError,
+          });
+      }
+    } catch (error) {
+      console.error(`[Cron] Unexpected error posting to Bluesky for job ${job.id}:`, error);
+      blueskyError = error instanceof Error ? error.message : 'Unexpected Bluesky error';
+    }
+  }
+
   const overallStatus = successCount === locations.length
     ? 'completed'
     : successCount > 0
@@ -409,7 +561,7 @@ async function processJob(
     .update({
       status: overallStatus,
       published_at: successCount > 0 ? new Date().toISOString() : null,
-      error_log: locationErrors.length > 0 ? { locations: locationErrors } : null,
+      error_log: locationErrors.length > 0 ? { locations: locationErrors, bluesky: blueskyError } : (blueskyError ? { bluesky: blueskyError } : null),
       updated_at: new Date().toISOString(),
     })
     .eq('id', job.id);
@@ -422,6 +574,7 @@ async function processJob(
     status: overallStatus,
     errors: locationErrors,
     googleResourceIds,
+    bluesky: blueskySuccess ? { success: true, postId: blueskyPostId } : (blueskyError ? { success: false, error: blueskyError } : undefined),
   };
 }
 
@@ -471,6 +624,7 @@ export async function GET(request: NextRequest) {
           timezone,
           selected_locations,
           media_paths,
+          additional_platforms,
           status,
           error_log
         `

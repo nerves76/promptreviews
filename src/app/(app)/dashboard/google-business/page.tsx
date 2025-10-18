@@ -2752,13 +2752,14 @@ export default function SocialPostingDashboard() {
             </div>
           )}
 
-          {activeTab === 'schedule' && (
+          {activeTab === 'schedule' && selectedAccountId && (
             <GoogleBusinessScheduler
               locations={scopedLocations}
               initialLocationIds={selectedLocations}
               isConnected={isConnected}
               maxLocations={planLocationLimit ?? undefined}
               minimumDate={todayIso}
+              accountId={selectedAccountId}
             />
           )}
 

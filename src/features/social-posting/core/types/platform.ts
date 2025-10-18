@@ -101,10 +101,11 @@ export interface PostAnalytics {
   };
 }
 
-export type PlatformId = 
+export type PlatformId =
   | 'google-business-profile'
+  | 'bluesky'
   | 'facebook'
-  | 'instagram' 
+  | 'instagram'
   | 'linkedin'
   | 'twitter';
 

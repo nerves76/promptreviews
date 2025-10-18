@@ -252,6 +252,26 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    // Check for Bluesky connection
+    const { data: blueskyConnection, error: blueskyError } = await supabase
+      .from('social_platform_connections')
+      .select('id, platform, status, metadata, error_message')
+      .eq('account_id', accountId)
+      .eq('platform', 'bluesky')
+      .maybeSingle();
+
+    let isBlueskyConnected = false;
+    let blueskyConnectionError = null;
+    let blueskyHandle = null;
+
+    if (!blueskyError && blueskyConnection) {
+      isBlueskyConnected = blueskyConnection.status === 'active';
+      blueskyHandle = blueskyConnection.metadata?.handle || null;
+      if (blueskyConnection.status === 'error') {
+        blueskyConnectionError = blueskyConnection.error_message;
+      }
+    }
+
     const platforms = [
       {
         id: 'google-business-profile',
@@ -261,6 +281,14 @@ export async function GET(request: NextRequest) {
         status: isGoogleConnected ? 'connected' : 'disconnected',
         connectedEmail: googleTokens?.google_email || null, // Show which Google account is connected
         ...(googleConnectionError && { error: googleConnectionError })
+      },
+      {
+        id: 'bluesky',
+        name: 'Bluesky',
+        connected: isBlueskyConnected,
+        status: isBlueskyConnected ? 'connected' : 'disconnected',
+        handle: blueskyHandle,
+        ...(blueskyConnectionError && { error: blueskyConnectionError })
       }
     ];
 

@@ -25,6 +25,12 @@ interface ScheduleRequestBody {
   locations?: Array<{ id: string; name?: string }>;
   media?: GoogleBusinessScheduledMediaDescriptor[];
   errorLog?: Record<string, any> | null;
+  additionalPlatforms?: {
+    bluesky?: {
+      enabled: boolean;
+      connectionId: string;
+    };
+  };
 }
 
 function ensureArray<T>(value: T | T[] | undefined | null): T[] {
@@ -157,6 +163,9 @@ export async function POST(request: NextRequest) {
 
     const postType = postKind === 'post' ? body.postType ?? 'WHATS_NEW' : null;
 
+    // Prepare additional platforms data
+    const additionalPlatforms = body.additionalPlatforms || {};
+
     const insertPayload = {
       account_id: accountId,
       user_id: user.id,
@@ -172,6 +181,7 @@ export async function POST(request: NextRequest) {
       timezone,
       selected_locations: locations,
       media_paths: media,
+      additional_platforms: additionalPlatforms,
       status: 'pending' as const,
       error_log: body.errorLog ?? null,
     };

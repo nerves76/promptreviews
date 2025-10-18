@@ -25,12 +25,21 @@ interface SchedulerQueueResponse {
   past: Array<GoogleBusinessScheduledPost & { results?: GoogleBusinessScheduledPostResult[] }>;
 }
 
+interface BlueskyConnection {
+  id: string;
+  platform: string;
+  status: string;
+  handle: string | null;
+  error?: string | null;
+}
+
 interface GoogleBusinessSchedulerProps {
   locations: GoogleBusinessLocation[];
   isConnected: boolean;
   maxLocations?: number;
   minimumDate?: string;
   initialLocationIds?: string[];
+  accountId: string; // Required for fetching Bluesky connection status
 }
 
 const CALL_TO_ACTION_OPTIONS = [
@@ -117,6 +126,7 @@ export default function GoogleBusinessScheduler({
   maxLocations,
   minimumDate,
   initialLocationIds,
+  accountId,
 }: GoogleBusinessSchedulerProps) {
   const [mode, setMode] = useState<'post' | 'photo'>('post');
   const [postContent, setPostContent] = useState('');
@@ -148,6 +158,11 @@ export default function GoogleBusinessScheduler({
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isLoadingEdit, setIsLoadingEdit] = useState(false);
   const [cancellingIds, setCancellingIds] = useState<Set<string>>(new Set());
+
+  // Bluesky-related state
+  const [blueskyConnection, setBlueskyConnection] = useState<BlueskyConnection | null>(null);
+  const [isLoadingBluesky, setIsLoadingBluesky] = useState(true);
+  const [postToBluesky, setPostToBluesky] = useState(false);
 
   const locationOptions = useMemo(() => (
     locations.map((loc) => ({ id: loc.id, name: loc.name }))
@@ -216,9 +231,34 @@ export default function GoogleBusinessScheduler({
     }
   }, [isConnected]);
 
+  // Fetch Bluesky connection status
+  const fetchBlueskyConnection = useCallback(async () => {
+    if (!accountId) {
+      setIsLoadingBluesky(false);
+      return;
+    }
+
+    try {
+      setIsLoadingBluesky(true);
+      const response = await fetch(`/api/social-posting/connections?accountId=${accountId}`);
+      const data = await response.json();
+
+      if (response.ok && data.connections) {
+        const bluesky = data.connections.find((conn: any) => conn.platform === 'bluesky');
+        setBlueskyConnection(bluesky || null);
+      }
+    } catch (error) {
+      console.error('[Scheduler] Failed to fetch Bluesky connection', error);
+      setBlueskyConnection(null);
+    } finally {
+      setIsLoadingBluesky(false);
+    }
+  }, [accountId]);
+
   useEffect(() => {
     fetchQueue();
-  }, [fetchQueue]);
+    fetchBlueskyConnection();
+  }, [fetchQueue, fetchBlueskyConnection]);
 
   useEffect(() => {
     if (initialLocationIds && initialLocationIds.length > 0) {
@@ -357,6 +397,16 @@ export default function GoogleBusinessScheduler({
         locations: payloadLocations,
         media: mediaItems.map(({ previewUrl, ...rest }) => rest),
       };
+
+      // Add additional platforms if Bluesky is enabled
+      if (postToBluesky && blueskyConnection?.id) {
+        body.additionalPlatforms = {
+          bluesky: {
+            enabled: true,
+            connectionId: blueskyConnection.id,
+          },
+        };
+      }
 
       if (mode === 'post') {
         body.postType = 'WHATS_NEW';
@@ -747,6 +797,79 @@ export default function GoogleBusinessScheduler({
               </label>
             </div>
           </fieldset>
+
+          {/* Bluesky Cross-Posting Option */}
+          {!isLoadingBluesky && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="flex items-start space-x-3">
+                <div className="flex-shrink-0 mt-0.5">
+                  {blueskyConnection && blueskyConnection.status === 'active' ? (
+                    <Icon name="FaCheckCircle" className="w-5 h-5 text-blue-600" />
+                  ) : (
+                    <Icon name="FaInfoCircle" className="w-5 h-5 text-blue-500" />
+                  )}
+                </div>
+                <div className="flex-grow">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="text-sm font-semibold text-gray-900 flex items-center space-x-2">
+                        <span>Also post to Bluesky</span>
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                          Optional
+                        </span>
+                      </h4>
+                      {blueskyConnection && blueskyConnection.status === 'active' ? (
+                        <p className="text-xs text-gray-600 mt-1">
+                          Connected as <span className="font-medium">@{blueskyConnection.handle}</span>
+                        </p>
+                      ) : (
+                        <p className="text-xs text-gray-600 mt-1">
+                          Connect your Bluesky account to cross-post this content
+                        </p>
+                      )}
+                    </div>
+                    {blueskyConnection && blueskyConnection.status === 'active' ? (
+                      <label className="flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={postToBluesky}
+                          onChange={(e) => setPostToBluesky(e.target.checked)}
+                          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                        />
+                        <span className="ml-2 text-sm text-gray-700">
+                          {postToBluesky ? 'Enabled' : 'Enable'}
+                        </span>
+                      </label>
+                    ) : (
+                      <a
+                        href="/dashboard/social-media?tab=connections"
+                        className="text-sm font-medium text-blue-600 hover:text-blue-700"
+                      >
+                        Connect Bluesky
+                      </a>
+                    )}
+                  </div>
+                  {postToBluesky && (
+                    <div className="mt-3 p-3 bg-white rounded border border-blue-200">
+                      <div className="flex items-start space-x-2">
+                        <Icon name="FaInfoCircle" className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
+                        <div className="text-xs text-gray-700 space-y-1">
+                          <p>Your post will be published to both Google Business and Bluesky simultaneously.</p>
+                          <p className="font-medium">Note: Bluesky has a 300 character limit. Longer posts will be truncated.</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  {blueskyConnection?.error && (
+                    <div className="mt-2 p-2 bg-rose-50 border border-rose-200 rounded text-xs text-rose-700">
+                      <Icon name="FaExclamationTriangle" className="inline w-3 h-3 mr-1" />
+                      {blueskyConnection.error}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className="space-y-3">
             <div className="flex items-center justify-between">
