@@ -433,6 +433,7 @@ const nextConfig = {
     ];
   },
   async rewrites() {
+    // Proxy docs site to /docs path (updated 2025-01-18)
     return [
       {
         source: '/docs',
