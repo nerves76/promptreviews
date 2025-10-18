@@ -9,9 +9,11 @@ const withMDX = require('@next/mdx')({
 
 const nextConfig = {
   // Dynamic deployment to Vercel (Supabase-driven content)
+  // basePath: '/docs' tells Next.js all routes should be prefixed with /docs
+  // This is required because the site is accessed via promptreviews.app/docs/
   output: undefined,
-  basePath: '',
-  assetPrefix: '',
+  basePath: '/docs',
+  assetPrefix: '/docs',
   trailingSlash: false,
   
   pageExtensions: ['ts', 'tsx', 'js', 'jsx', 'md', 'mdx'],
