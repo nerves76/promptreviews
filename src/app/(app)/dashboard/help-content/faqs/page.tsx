@@ -207,7 +207,7 @@ export default function HelpFaqsAdminPage() {
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-3xl font-bold text-white">FAQs</h1>
-            <p className="text-white/80 mt-1">Manage frequently asked questions for the help modal and docs.</p>
+            <p className="text-white/80 mt-1">Manage frequently asked questions for the help modal and docs site.</p>
           </div>
           <Button onClick={startCreate} size="lg">
             + New FAQ
