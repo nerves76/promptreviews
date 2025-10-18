@@ -10,8 +10,8 @@ const withMDX = require('@next/mdx')({
 const nextConfig = {
   // Dynamic deployment to Vercel (Supabase-driven content)
   output: undefined,
-  basePath: '/docs',
-  assetPrefix: '/docs',
+  basePath: '',
+  assetPrefix: '',
   trailingSlash: false,
   
   pageExtensions: ['ts', 'tsx', 'js', 'jsx', 'md', 'mdx'],
