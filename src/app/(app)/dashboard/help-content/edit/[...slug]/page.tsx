@@ -13,6 +13,7 @@ import MarkdownEditor, {
   MarkdownPreview,
 } from "../../components/MarkdownEditor";
 import ArticleContextsManager from "../../components/ArticleContextsManager";
+import IconPicker from "../../components/IconPicker";
 
 interface KeyFeature {
   icon: string;
@@ -610,19 +611,13 @@ export default function ArticleEditorPage() {
                     />
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Category Icon
-                    </label>
-                    <Input
-                      type="text"
-                      value={article.metadata.category_icon || ""}
-                      onChange={(e) =>
-                        handleMetadataChange("category_icon", e.target.value)
-                      }
-                      placeholder="BookOpen"
-                    />
-                  </div>
+                  <IconPicker
+                    value={article.metadata.category_icon}
+                    onChange={(iconName) =>
+                      handleMetadataChange("category_icon", iconName)
+                    }
+                    label="Category Icon"
+                  />
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -682,18 +677,14 @@ export default function ArticleEditorPage() {
                   </div>
                   <div className="space-y-3">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Icon (emoji)
-                      </label>
-                      <Input
-                        type="text"
+                      <IconPicker
                         value={feature.icon}
-                        onChange={(e) => {
+                        onChange={(iconName) => {
                           const features = [...(article.metadata.key_features || [])];
-                          features[index] = { ...features[index], icon: e.target.value };
+                          features[index] = { ...features[index], icon: iconName || '' };
                           handleMetadataChange("key_features", features);
                         }}
-                        placeholder="✨"
+                        label="Icon"
                       />
                     </div>
                     <div>
@@ -786,18 +777,14 @@ export default function ArticleEditorPage() {
                   </div>
                   <div className="space-y-3">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Icon (emoji)
-                      </label>
-                      <Input
-                        type="text"
+                      <IconPicker
                         value={step.icon}
-                        onChange={(e) => {
+                        onChange={(iconName) => {
                           const steps = [...(article.metadata.how_it_works || [])];
-                          steps[index] = { ...steps[index], icon: e.target.value };
+                          steps[index] = { ...steps[index], icon: iconName || '' };
                           handleMetadataChange("how_it_works", steps);
                         }}
-                        placeholder="▶️"
+                        label="Icon"
                       />
                     </div>
                     <div>
@@ -893,18 +880,14 @@ export default function ArticleEditorPage() {
                   </div>
                   <div className="space-y-3">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Icon (emoji)
-                      </label>
-                      <Input
-                        type="text"
+                      <IconPicker
                         value={practice.icon}
-                        onChange={(e) => {
+                        onChange={(iconName) => {
                           const practices = [...(article.metadata.best_practices || [])];
-                          practices[index] = { ...practices[index], icon: e.target.value };
+                          practices[index] = { ...practices[index], icon: iconName || '' };
                           handleMetadataChange("best_practices", practices);
                         }}
-                        placeholder="💡"
+                        label="Icon"
                       />
                     </div>
                     <div>
