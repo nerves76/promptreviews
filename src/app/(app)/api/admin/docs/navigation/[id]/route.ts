@@ -57,22 +57,34 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
     await requireAdminAccess();
     const supabase = getSupabaseAdmin();
 
-    const { error } = await supabase
+    console.log('[DELETE Navigation] Attempting to delete navigation item:', params.id);
+
+    const { data, error } = await supabase
       .from('navigation')
       .delete()
-      .eq('id', params.id);
+      .eq('id', params.id)
+      .select();
 
     if (error) {
-      console.error('Error deleting navigation item:', error);
-      return NextResponse.json({ error: 'Failed to delete navigation item' }, { status: 500 });
+      console.error('[DELETE Navigation] Error deleting navigation item:', error);
+      return NextResponse.json({
+        error: 'Failed to delete navigation item',
+        details: error.message,
+        code: error.code
+      }, { status: 500 });
     }
+
+    console.log('[DELETE Navigation] Successfully deleted:', data);
 
     // Revalidate navigation cache
     revalidatePath('/api/docs/navigation');
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, deleted: data });
   } catch (error) {
-    console.error('Admin navigation DELETE error:', error);
+    console.error('[DELETE Navigation] Admin navigation DELETE error:', error);
+    if (error instanceof Error) {
+      return NextResponse.json({ error: error.message }, { status: 401 });
+    }
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 }
