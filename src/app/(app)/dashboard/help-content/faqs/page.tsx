@@ -44,6 +44,8 @@ export default function HelpFaqsAdminPage() {
   const [filterCategory, setFilterCategory] = useState<string>("all");
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  // Force re-render to clear any cached versions
+
   const categories = useMemo(() => {
     const values = new Set<string>();
     faqs.forEach((faq) => values.add(faq.category));
