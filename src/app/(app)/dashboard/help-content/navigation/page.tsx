@@ -7,6 +7,7 @@ import StandardLoader from "@/app/(app)/components/StandardLoader";
 import { Button } from "@/app/(app)/components/ui/button";
 import { Input } from "@/app/(app)/components/ui/input";
 import HelpContentBreadcrumbs from "../components/HelpContentBreadcrumbs";
+import IconPicker from "../components/IconPicker";
 import clsx from "clsx";
 
 interface AdminNavItem {
@@ -347,23 +348,19 @@ export default function HelpNavigationAdminPage() {
                     />
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Icon name</label>
-                      <Input
-                        value={selectedItem.icon_name || ""}
-                        onChange={(e) => setSelectedItem({ ...selectedItem!, icon_name: e.target.value })}
-                        placeholder="e.g. BookOpen"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Order</label>
-                      <Input
-                        type="number"
-                        value={selectedItem.order_index}
-                        onChange={(e) => setSelectedItem({ ...selectedItem!, order_index: Number(e.target.value) })}
-                      />
-                    </div>
+                  <IconPicker
+                    value={selectedItem.icon_name}
+                    onChange={(iconName) => setSelectedItem({ ...selectedItem!, icon_name: iconName })}
+                    label="Icon (optional)"
+                  />
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Order</label>
+                    <Input
+                      type="number"
+                      value={selectedItem.order_index}
+                      onChange={(e) => setSelectedItem({ ...selectedItem!, order_index: Number(e.target.value) })}
+                    />
                   </div>
 
                   <div>
