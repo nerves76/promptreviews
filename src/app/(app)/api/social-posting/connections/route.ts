@@ -6,7 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerSupabaseClient, createServiceRoleClient } from '@/auth/providers/supabase';
+import { createClient } from '@/auth/providers/supabase';
 
 /**
  * GET /api/social-posting/connections
@@ -15,7 +15,7 @@ import { createServerSupabaseClient, createServiceRoleClient } from '@/auth/prov
  */
 export async function GET(request: NextRequest) {
   try {
-    const supabase = await createServerSupabaseClient();
+    const supabase = createClient();
     const {
       data: { user }
     } = await supabase.auth.getUser();
@@ -95,7 +95,7 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createServerSupabaseClient();
+    const supabase = createClient();
     const {
       data: { user }
     } = await supabase.auth.getUser();
@@ -239,7 +239,7 @@ export async function POST(request: NextRequest) {
  */
 export async function DELETE(request: NextRequest) {
   try {
-    const supabase = await createServerSupabaseClient();
+    const supabase = createClient();
     const {
       data: { user }
     } = await supabase.auth.getUser();
