@@ -44,7 +44,11 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to load FAQs' }, { status: 500 });
     }
 
-    return NextResponse.json({ faqs: data ?? [] });
+    // Admin endpoints should never be cached - always return fresh data
+    const response = NextResponse.json({ faqs: data ?? [] });
+    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+    response.headers.set('Pragma', 'no-cache');
+    return response;
   } catch (error) {
     console.error('Admin FAQ GET error:', error);
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

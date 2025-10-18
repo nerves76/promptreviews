@@ -60,7 +60,11 @@ export async function GET(request: NextRequest) {
       archived: data.filter((a) => a.status === 'archived').length,
     };
 
-    return NextResponse.json({ articles: data, stats });
+    // Admin endpoints should never be cached - always return fresh data
+    const response = NextResponse.json({ articles: data, stats });
+    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+    response.headers.set('Pragma', 'no-cache');
+    return response;
   } catch (error: any) {
     console.error('Error in GET /api/admin/help-content:', error);
     return NextResponse.json(
