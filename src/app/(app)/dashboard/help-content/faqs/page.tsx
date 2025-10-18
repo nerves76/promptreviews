@@ -9,6 +9,9 @@ import { Input } from "@/app/(app)/components/ui/input";
 import HelpContentBreadcrumbs from "../components/HelpContentBreadcrumbs";
 import { Textarea } from "@/app/(app)/components/ui/textarea";
 import clsx from "clsx";
+import { Dialog, Transition } from "@headlessui/react";
+import { Fragment } from "react";
+import Icon from "@/components/Icon";
 
 interface AdminFaq {
   id?: string;
@@ -39,6 +42,7 @@ export default function HelpFaqsAdminPage() {
   const [selectedFaq, setSelectedFaq] = useState<AdminFaq | null>(null);
   const [saving, setSaving] = useState(false);
   const [filterCategory, setFilterCategory] = useState<string>("all");
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const categories = useMemo(() => {
     const values = new Set<string>();
@@ -56,10 +60,6 @@ export default function HelpFaqsAdminPage() {
       fetchFaqs();
     }
   }, [user, authLoading]);
-
-  useEffect(() => {
-    console.log('selectedFaq changed to:', selectedFaq);
-  }, [selectedFaq]);
 
   const fetchFaqs = async () => {
     try {
@@ -82,16 +82,17 @@ export default function HelpFaqsAdminPage() {
 
   const startCreate = () => {
     setSelectedFaq({ ...emptyFaq });
+    setIsModalOpen(true);
   };
 
   const startEdit = (faq: AdminFaq) => {
-    console.log('startEdit called with:', faq);
     setSelectedFaq({ ...faq, article_id: faq.article_id ?? null });
-    console.log('selectedFaq should be set');
+    setIsModalOpen(true);
   };
 
   const cancelEdit = () => {
     setSelectedFaq(null);
+    setIsModalOpen(false);
   };
 
   const handleSave = async () => {
@@ -136,6 +137,7 @@ export default function HelpFaqsAdminPage() {
 
       await fetchFaqs();
       setSelectedFaq(null);
+      setIsModalOpen(false);
     } catch (err: any) {
       console.error("Error saving FAQ:", err);
       alert(err.message || "Failed to save FAQ");
@@ -212,154 +214,178 @@ export default function HelpFaqsAdminPage() {
           </Button>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2">
-            <PageCard>
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold text-gray-900">FAQ List</h2>
-                <select
-                  value={filterCategory}
-                  onChange={(e) => setFilterCategory(e.target.value)}
-                  className="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                >
-                  <option value="all">All categories</option>
-                  {categories.map((category) => (
-                    <option key={category} value={category}>
-                      {category}
-                    </option>
-                  ))}
-                </select>
-              </div>
+        <PageCard className="max-w-[1000px]">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold text-gray-900">FAQ List</h2>
+            <select
+              value={filterCategory}
+              onChange={(e) => setFilterCategory(e.target.value)}
+              className="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            >
+              <option value="all">All categories</option>
+              {categories.map((category) => (
+                <option key={category} value={category}>
+                  {category}
+                </option>
+              ))}
+            </select>
+          </div>
 
-              <div className="space-y-3">
-                {filteredFaqs.length === 0 ? (
-                  <div className="border border-dashed border-gray-300 rounded-lg p-6 text-center text-gray-500">
-                    No FAQs found for this filter.
+          <div className="space-y-3">
+            {filteredFaqs.length === 0 ? (
+              <div className="border border-dashed border-gray-300 rounded-lg p-6 text-center text-gray-500">
+                No FAQs found for this filter.
+              </div>
+            ) : (
+              filteredFaqs.map((faq) => (
+                <div
+                  key={faq.id || faq.question}
+                  className="border border-gray-200 rounded-lg p-4 bg-white shadow-sm"
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1">
+                      <h3 className="text-lg font-semibold text-gray-900">{faq.question}</h3>
+                      <p className="text-sm text-gray-600 mt-1">Category: {faq.category}</p>
+                      <p className="text-sm text-gray-500 mt-1">Plans: {faq.plans.join(", ")}</p>
+                    </div>
+                    <div className="flex gap-2 flex-shrink-0">
+                      <Button variant="outline" size="sm" onClick={() => startEdit(faq)}>
+                        Edit
+                      </Button>
+                      <Button variant="destructive" size="sm" onClick={() => handleDelete(faq)}>
+                        Delete
+                      </Button>
+                    </div>
                   </div>
-                ) : (
-                  filteredFaqs.map((faq) => (
-                    <div
-                      key={faq.id || faq.question}
-                      className="border border-gray-200 rounded-lg p-4 bg-white shadow-sm"
+                </div>
+              ))
+            )}
+          </div>
+        </PageCard>
+
+        {/* Edit/Create FAQ Modal */}
+        <Transition appear show={isModalOpen} as={Fragment}>
+          <Dialog as="div" className="relative z-50" onClose={cancelEdit}>
+            <Transition.Child
+              as={Fragment}
+              enter="ease-out duration-300"
+              enterFrom="opacity-0"
+              enterTo="opacity-100"
+              leave="ease-in duration-200"
+              leaveFrom="opacity-100"
+              leaveTo="opacity-0"
+            >
+              <div className="fixed inset-0 bg-black bg-opacity-25" />
+            </Transition.Child>
+
+            <div className="fixed inset-0 overflow-y-auto">
+              <div className="flex min-h-full items-center justify-center p-4 text-center">
+                <Transition.Child
+                  as={Fragment}
+                  enter="ease-out duration-300"
+                  enterFrom="opacity-0 scale-95"
+                  enterTo="opacity-100 scale-100"
+                  leave="ease-in duration-200"
+                  leaveFrom="opacity-100 scale-100"
+                  leaveTo="opacity-0 scale-95"
+                >
+                  <Dialog.Panel className="w-full max-w-2xl transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
+                    <Dialog.Title
+                      as="h3"
+                      className="text-2xl font-bold leading-6 text-gray-900 mb-6"
                     >
-                      <div className="flex items-start justify-between gap-4">
+                      {selectedFaq?.id ? "Edit FAQ" : "Create FAQ"}
+                    </Dialog.Title>
+
+                    {selectedFaq && (
+                      <div className="space-y-4">
                         <div>
-                          <h3 className="text-lg font-semibold text-gray-900">{faq.question}</h3>
-                          <p className="text-sm text-gray-600 mt-1">Category: {faq.category}</p>
-                          <p className="text-sm text-gray-500 mt-1">Plans: {faq.plans.join(", ")}</p>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Question</label>
+                          <Input
+                            value={selectedFaq.question}
+                            onChange={(e) => setSelectedFaq({ ...selectedFaq, question: e.target.value })}
+                            placeholder="Enter FAQ question"
+                          />
                         </div>
-                        <div className="flex gap-2">
-                          <Button variant="outline" size="sm" onClick={() => startEdit(faq)}>
-                            Edit
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Answer</label>
+                          <Textarea
+                            value={selectedFaq.answer}
+                            onChange={(e) => setSelectedFaq({ ...selectedFaq, answer: e.target.value })}
+                            rows={6}
+                            placeholder="Write the answer..."
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                            <Input
+                              value={selectedFaq.category}
+                              onChange={(e) => setSelectedFaq({ ...selectedFaq, category: e.target.value })}
+                              placeholder="e.g. getting-started"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Order</label>
+                            <Input
+                              type="number"
+                              value={selectedFaq.order_index}
+                              onChange={(e) => setSelectedFaq({ ...selectedFaq, order_index: Number(e.target.value) })}
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">Plans</label>
+                          <div className="flex flex-wrap gap-2">
+                            {AVAILABLE_PLANS.map((plan) => {
+                              const active = selectedFaq.plans.includes(plan);
+                              return (
+                                <button
+                                  key={plan}
+                                  type="button"
+                                  onClick={() => togglePlan(plan)}
+                                  className={clsx(
+                                    "px-3 py-1 rounded-full text-xs font-medium border",
+                                    active
+                                      ? "border-indigo-500 bg-indigo-100 text-indigo-700"
+                                      : "border-gray-300 bg-white text-gray-600 hover:border-indigo-300"
+                                  )}
+                                >
+                                  {plan}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Linked article slug (optional)</label>
+                          <Input
+                            value={selectedFaq.article_id || ""}
+                            onChange={(e) => setSelectedFaq({ ...selectedFaq, article_id: e.target.value || null })}
+                            placeholder="e.g. getting-started"
+                          />
+                        </div>
+
+                        <div className="flex items-center justify-end gap-3 pt-4 border-t">
+                          <Button variant="outline" onClick={cancelEdit} disabled={saving}>
+                            Cancel
                           </Button>
-                          <Button variant="destructive" size="sm" onClick={() => handleDelete(faq)}>
-                            Delete
+                          <Button onClick={handleSave} disabled={saving}>
+                            {saving ? "Saving..." : "Save FAQ"}
                           </Button>
                         </div>
                       </div>
-                    </div>
-                  ))
-                )}
+                    )}
+                  </Dialog.Panel>
+                </Transition.Child>
               </div>
-            </PageCard>
-          </div>
-
-          <div>
-            <PageCard>
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                {selectedFaq ? (selectedFaq.id ? "Edit FAQ" : "Create FAQ") : "Select a FAQ"}
-              </h2>
-
-              {!selectedFaq ? (
-                <p className="text-sm text-gray-600">
-                  Choose a FAQ from the list or create a new one to edit details, plan access, and ordering.
-                </p>
-              ) : (
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Question</label>
-                    <Input
-                      value={selectedFaq.question}
-                      onChange={(e) => setSelectedFaq({ ...selectedFaq!, question: e.target.value })}
-                      placeholder="Enter FAQ question"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Answer</label>
-                    <Textarea
-                      value={selectedFaq.answer}
-                      onChange={(e) => setSelectedFaq({ ...selectedFaq!, answer: e.target.value })}
-                      rows={6}
-                      placeholder="Write the answer..."
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                      <Input
-                        value={selectedFaq.category}
-                        onChange={(e) => setSelectedFaq({ ...selectedFaq!, category: e.target.value })}
-                        placeholder="e.g. getting-started"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Order</label>
-                      <Input
-                        type="number"
-                        value={selectedFaq.order_index}
-                        onChange={(e) => setSelectedFaq({ ...selectedFaq!, order_index: Number(e.target.value) })}
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Plans</label>
-                    <div className="flex flex-wrap gap-2">
-                      {AVAILABLE_PLANS.map((plan) => {
-                        const active = selectedFaq.plans.includes(plan);
-                        return (
-                          <button
-                            key={plan}
-                            type="button"
-                            onClick={() => togglePlan(plan)}
-                            className={clsx(
-                              "px-3 py-1 rounded-full text-xs font-medium border",
-                              active
-                                ? "border-indigo-500 bg-indigo-100 text-indigo-700"
-                                : "border-gray-300 bg-white text-gray-600 hover:border-indigo-300"
-                            )}
-                          >
-                            {plan}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Linked article slug (optional)</label>
-                    <Input
-                      value={selectedFaq.article_id || ""}
-                      onChange={(e) => setSelectedFaq({ ...selectedFaq!, article_id: e.target.value || null })}
-                      placeholder="e.g. getting-started"
-                    />
-                  </div>
-
-                  <div className="flex items-center justify-between pt-2">
-                    <Button variant="outline" onClick={cancelEdit} disabled={saving}>
-                      Cancel
-                    </Button>
-                    <Button onClick={handleSave} disabled={saving}>
-                      {saving ? "Saving..." : "Save FAQ"}
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </PageCard>
-          </div>
-        </div>
+            </div>
+          </Dialog>
+        </Transition>
       </div>
     </div>
   );
