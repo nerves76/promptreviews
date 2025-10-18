@@ -227,10 +227,10 @@ export default function HelpNavigationAdminPage() {
             <p className="text-xs text-gray-500 mt-2">Visibility: {node.visibility.join(", ")}</p>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => beginEdit(node)}>
+            <Button type="button" variant="outline" size="sm" onClick={() => beginEdit(node)}>
               Edit
             </Button>
-            <Button variant="destructive" size="sm" onClick={() => handleDelete(node)}>
+            <Button type="button" variant="destructive" size="sm" onClick={() => handleDelete(node)}>
               Delete
             </Button>
           </div>
