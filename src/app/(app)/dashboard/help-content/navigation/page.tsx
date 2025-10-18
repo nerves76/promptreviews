@@ -188,16 +188,24 @@ export default function HelpNavigationAdminPage() {
     if (!confirm(`Delete navigation item "${item.title}"? Child items will also be removed.`)) return;
 
     try {
+      console.log('[Navigation] Deleting item:', item.id, item.title);
       const response = await fetch(`/api/admin/docs/navigation/${item.id}`, {
         method: "DELETE",
       });
+
+      console.log('[Navigation] Delete response status:', response.status);
+      const data = await response.json().catch(() => ({}));
+      console.log('[Navigation] Delete response data:', data);
+
       if (!response.ok) {
-        const data = await response.json().catch(() => ({}));
-        throw new Error(data.error || "Failed to delete navigation item");
+        throw new Error(data.error || data.details || "Failed to delete navigation item");
       }
+
+      console.log('[Navigation] Successfully deleted, refreshing list...');
       await fetchItems();
+      console.log('[Navigation] List refreshed');
     } catch (err: any) {
-      console.error("Error deleting navigation item:", err);
+      console.error("[Navigation] Error deleting navigation item:", err);
       alert(err.message || "Failed to delete navigation item");
     }
   };
