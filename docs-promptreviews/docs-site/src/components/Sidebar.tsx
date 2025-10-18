@@ -3,8 +3,20 @@
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import * as Icons from 'lucide-react'
-import { ChevronDown, ChevronRight } from 'lucide-react'
+import {
+  ChevronDown,
+  ChevronRight,
+  BookOpen,
+  Rocket,
+  FileText,
+  Star,
+  Layout,
+  Plug,
+  Settings,
+  Lightbulb,
+  Code2,
+  Wrench
+} from 'lucide-react'
 import clsx from 'clsx'
 import type { NavigationNode } from '@/lib/docs/articles'
 
@@ -115,28 +127,36 @@ function renderNodes(
 
 function resolveIcon(name?: string | null) {
   if (!name) {
-    console.log('[Sidebar] No icon name provided, using BookOpen')
-    return Icons.BookOpen
+    return BookOpen
   }
 
-  console.log('[Sidebar] Resolving icon:', name)
+  // Map of icon names to components
+  const iconMap: Record<string, typeof BookOpen> = {
+    'Rocket': Rocket,
+    'FileText': FileText,
+    'Star': Star,
+    'Layout': Layout,
+    'Plug': Plug,
+    'Settings': Settings,
+    'Lightbulb': Lightbulb,
+    'Code2': Code2,
+    'Wrench': Wrench,
+    'BookOpen': BookOpen,
+  }
 
-  const candidates = [
-    name,
-    name.toLowerCase(),
-    name.toUpperCase(),
-    name.replace(/[-_\s]+/g, ''),
-    name.charAt(0).toUpperCase() + name.slice(1),
-  ]
+  // Try exact match first
+  if (iconMap[name]) {
+    return iconMap[name]
+  }
 
-  for (const key of candidates) {
-    const IconCandidate = (Icons as Record<string, unknown>)[key]
-    if (typeof IconCandidate === 'function') {
-      console.log('[Sidebar] Found icon for', name, 'using key:', key)
-      return IconCandidate as typeof Icons.BookOpen
+  // Try case-insensitive match
+  const lowerName = name.toLowerCase()
+  for (const [key, icon] of Object.entries(iconMap)) {
+    if (key.toLowerCase() === lowerName) {
+      return icon
     }
   }
 
-  console.log('[Sidebar] No icon found for', name, ', using BookOpen')
-  return Icons.BookOpen
+  // Default to BookOpen
+  return BookOpen
 }
