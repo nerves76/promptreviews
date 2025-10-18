@@ -1,17 +1,16 @@
 #!/usr/bin/env ts-node
 /**
- * Import Navigation Structure to Database
+ * Import Navigation Structure to PRODUCTION Database
  *
- * Migrates hardcoded navigation from Sidebar.tsx to the navigation table
- * Run: npx ts-node docs-promptreviews/docs-site/scripts/import-navigation.ts
+ * Run: npx ts-node docs-promptreviews/docs-site/scripts/import-navigation-production.ts
  */
 
 import { createClient } from '@supabase/supabase-js';
 import * as dotenv from 'dotenv';
 import * as path from 'path';
 
-// Load environment variables
-dotenv.config({ path: path.resolve(process.cwd(), '.env.local') });
+// Load PRODUCTION environment variables
+dotenv.config({ path: path.resolve(process.cwd(), '.env.production') });
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -19,6 +18,8 @@ const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 if (!supabaseUrl || !supabaseKey) {
   throw new Error('Missing Supabase credentials');
 }
+
+console.log(`🌐 Connecting to production Supabase: ${supabaseUrl}\n`);
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
@@ -29,7 +30,7 @@ interface NavItem {
   children?: NavItem[];
 }
 
-// Navigation structure from Sidebar.tsx
+// Navigation structure with updated icons
 const navigation: NavItem[] = [
   {
     title: 'Getting Started',
@@ -114,7 +115,20 @@ const navigation: NavItem[] = [
 ];
 
 async function importNavigation() {
-  console.log('🚀 Starting navigation import...\n');
+  console.log('🚀 Starting PRODUCTION navigation import...\n');
+
+  // First, delete existing navigation to avoid duplicates
+  console.log('🗑️  Clearing existing navigation...');
+  const { error: deleteError } = await supabase
+    .from('navigation')
+    .delete()
+    .neq('id', '00000000-0000-0000-0000-000000000000'); // Delete all
+
+  if (deleteError) {
+    console.error('❌ Error clearing navigation:', deleteError.message);
+  } else {
+    console.log('✅ Existing navigation cleared\n');
+  }
 
   let importCount = 0;
   let errorCount = 0;
@@ -142,7 +156,7 @@ async function importNavigation() {
         return;
       }
 
-      console.log(`✅ Imported: ${item.title} (${item.href})`);
+      console.log(`✅ Imported: ${item.title} (${item.href})${item.icon ? ` [${item.icon}]` : ''}`);
       importCount++;
 
       // Import children recursively
@@ -163,14 +177,15 @@ async function importNavigation() {
   }
 
   console.log('\n' + '='.repeat(60));
-  console.log('📊 IMPORT SUMMARY');
+  console.log('📊 PRODUCTION IMPORT SUMMARY');
   console.log('='.repeat(60));
   console.log(`✅ Items imported: ${importCount}`);
   console.log(`❌ Errors: ${errorCount}`);
   console.log('='.repeat(60) + '\n');
 
   if (errorCount === 0) {
-    console.log('🎉 Navigation successfully imported to database!');
+    console.log('🎉 Navigation successfully imported to PRODUCTION database!');
+    console.log('🔄 Vercel will pick up changes on next request (5min cache)');
   } else {
     console.log('⚠️  Some items failed to import. Check logs above.');
   }
