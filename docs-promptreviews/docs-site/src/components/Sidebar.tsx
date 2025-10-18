@@ -115,8 +115,11 @@ function renderNodes(
 
 function resolveIcon(name?: string | null) {
   if (!name) {
+    console.log('[Sidebar] No icon name provided, using BookOpen')
     return Icons.BookOpen
   }
+
+  console.log('[Sidebar] Resolving icon:', name)
 
   const candidates = [
     name,
@@ -129,9 +132,11 @@ function resolveIcon(name?: string | null) {
   for (const key of candidates) {
     const IconCandidate = (Icons as Record<string, unknown>)[key]
     if (typeof IconCandidate === 'function') {
+      console.log('[Sidebar] Found icon for', name, 'using key:', key)
       return IconCandidate as typeof Icons.BookOpen
     }
   }
 
+  console.log('[Sidebar] No icon found for', name, ', using BookOpen')
   return Icons.BookOpen
 }
