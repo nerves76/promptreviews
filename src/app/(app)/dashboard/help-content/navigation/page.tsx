@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, Fragment } from "react";
 import { useCoreAuth } from "@/auth/context/CoreAuthContext";
 import PageCard from "@/app/(app)/components/PageCard";
 import StandardLoader from "@/app/(app)/components/StandardLoader";
@@ -9,6 +9,7 @@ import { Input } from "@/app/(app)/components/ui/input";
 import HelpContentBreadcrumbs from "../components/HelpContentBreadcrumbs";
 import IconPicker from "../components/IconPicker";
 import clsx from "clsx";
+import { Dialog, Transition } from "@headlessui/react";
 
 interface AdminNavItem {
   id?: string;
@@ -19,6 +20,13 @@ interface AdminNavItem {
   order_index: number;
   visibility: string[];
   is_active: boolean;
+}
+
+interface Article {
+  id: string;
+  title: string;
+  slug: string;
+  status: string;
 }
 
 type TreeNode = AdminNavItem & { children: TreeNode[] };
@@ -38,13 +46,6 @@ const VISIBILITY_OPTIONS = [
   { value: "help", label: "Help Modal" },
 ];
 
-interface Article {
-  id: string;
-  title: string;
-  slug: string;
-  status: string;
-}
-
 export default function HelpNavigationAdminPage() {
   const { user, isLoading: authLoading } = useCoreAuth();
   const [items, setItems] = useState<AdminNavItem[]>([]);
@@ -53,6 +54,7 @@ export default function HelpNavigationAdminPage() {
   const [error, setError] = useState<string | null>(null);
   const [selectedItem, setSelectedItem] = useState<AdminNavItem | null>(null);
   const [saving, setSaving] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [showArticleDropdown, setShowArticleDropdown] = useState(false);
   const [articleSearch, setArticleSearch] = useState("");
 
@@ -155,6 +157,7 @@ export default function HelpNavigationAdminPage() {
 
   const beginCreate = () => {
     setSelectedItem({ ...defaultNavItem });
+    setIsModalOpen(true);
   };
 
   const beginEdit = (item: AdminNavItem) => {
@@ -164,10 +167,14 @@ export default function HelpNavigationAdminPage() {
       href: item.href ?? "",
       icon_name: item.icon_name ?? "",
     });
+    setIsModalOpen(true);
   };
 
   const cancelEdit = () => {
     setSelectedItem(null);
+    setIsModalOpen(false);
+    setShowArticleDropdown(false);
+    setArticleSearch("");
   };
 
   const toggleVisibility = (value: string) => {
@@ -224,6 +231,9 @@ export default function HelpNavigationAdminPage() {
 
       await fetchItems();
       setSelectedItem(null);
+      setIsModalOpen(false);
+      setShowArticleDropdown(false);
+      setArticleSearch("");
     } catch (err: any) {
       console.error("Error saving navigation item:", err);
       alert(err.message || "Failed to save navigation item");
@@ -263,7 +273,7 @@ export default function HelpNavigationAdminPage() {
     return nodes.map((node) => (
       <div key={node.id} className="border border-gray-200 rounded-lg p-4 bg-white shadow-sm mb-3">
         <div className="flex items-start justify-between gap-4">
-          <div>
+          <div className="flex-1">
             <div className="flex items-center gap-2">
               <span className="text-sm uppercase tracking-wide text-gray-500">{depth === 0 ? "Parent" : "Child"}</span>
               {!node.is_active && (
@@ -275,7 +285,7 @@ export default function HelpNavigationAdminPage() {
             {node.href && <p className="text-sm text-gray-600">Link: {node.href}</p>}
             <p className="text-xs text-gray-500 mt-2">Visibility: {node.visibility.join(", ")}</p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-shrink-0">
             <Button type="button" variant="outline" size="sm" onClick={() => beginEdit(node)}>
               Edit
             </Button>
@@ -331,201 +341,233 @@ export default function HelpNavigationAdminPage() {
           </Button>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2">
-            <PageCard>
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Navigation Structure</h2>
-              {hierarchicalItems.length === 0 ? (
-                <div className="border border-dashed border-gray-300 rounded-lg p-6 text-center text-gray-500">
-                  No navigation items yet.
-                </div>
-              ) : (
-                renderTree(hierarchicalItems)
-              )}
-            </PageCard>
-          </div>
+        <PageCard className="max-w-[1000px]">
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">Navigation Structure</h2>
+          {hierarchicalItems.length === 0 ? (
+            <div className="border border-dashed border-gray-300 rounded-lg p-6 text-center text-gray-500">
+              No navigation items yet.
+            </div>
+          ) : (
+            renderTree(hierarchicalItems)
+          )}
+        </PageCard>
 
-          <div>
-            <PageCard>
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                {selectedItem ? (selectedItem.id ? "Edit Item" : "Create Item") : "Select an Item"}
-              </h2>
+        {/* Edit/Create Modal */}
+        <Transition appear show={isModalOpen} as={Fragment}>
+          <Dialog as="div" className="relative z-50" onClose={cancelEdit}>
+            <Transition.Child
+              as={Fragment}
+              enter="ease-out duration-300"
+              enterFrom="opacity-0"
+              enterTo="opacity-100"
+              leave="ease-in duration-200"
+              leaveFrom="opacity-100"
+              leaveTo="opacity-0"
+            >
+              <div className="fixed inset-0 bg-black bg-opacity-25" />
+            </Transition.Child>
 
-              {!selectedItem ? (
-                <p className="text-sm text-gray-600">
-                  Choose an item from the structure or create a new one to adjust titles, links, ordering, and visibility.
-                </p>
-              ) : (
-                <div className="space-y-4">
-                  {/* Quick Article Selector at Top */}
-                  <div className="p-3 bg-indigo-50 border border-indigo-200 rounded-lg">
-                    <label className="block text-sm font-medium text-indigo-900 mb-2">
-                      💡 Quick Fill from Article
-                    </label>
-                    <button
-                      type="button"
-                      onClick={() => setShowArticleDropdown(!showArticleDropdown)}
-                      className="w-full text-left px-3 py-2 text-sm text-indigo-600 hover:text-indigo-700 bg-white border border-indigo-300 rounded-md hover:bg-indigo-50 transition-colors font-medium"
+            <div className="fixed inset-0 overflow-y-auto">
+              <div className="flex min-h-full items-center justify-center p-4 text-center">
+                <Transition.Child
+                  as={Fragment}
+                  enter="ease-out duration-300"
+                  enterFrom="opacity-0 scale-95"
+                  enterTo="opacity-100 scale-100"
+                  leave="ease-in duration-200"
+                  leaveFrom="opacity-100 scale-100"
+                  leaveTo="opacity-0 scale-95"
+                >
+                  <Dialog.Panel className="w-full max-w-2xl transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
+                    <Dialog.Title
+                      as="h3"
+                      className="text-2xl font-bold leading-6 text-gray-900 mb-6"
                     >
-                      {showArticleDropdown ? '✕ Close article selector' : '📄 Select an article to auto-fill title & link'}
-                    </button>
+                      {selectedItem?.id ? "Edit Navigation Item" : "Create Navigation Item"}
+                    </Dialog.Title>
 
-                    {showArticleDropdown && (
-                      <div className="mt-2 border border-gray-300 rounded-md bg-white shadow-sm">
-                        {/* Search Input */}
-                        <div className="p-2 border-b border-gray-200">
+                    {selectedItem && (
+                      <div className="space-y-4">
+                        {/* Quick Article Selector */}
+                        <div className="p-3 bg-indigo-50 border border-indigo-200 rounded-lg">
+                          <label className="block text-sm font-medium text-indigo-900 mb-2">
+                            💡 Quick Fill from Article
+                          </label>
+                          <button
+                            type="button"
+                            onClick={() => setShowArticleDropdown(!showArticleDropdown)}
+                            className="w-full text-left px-3 py-2 text-sm text-indigo-600 hover:text-indigo-700 bg-white border border-indigo-300 rounded-md hover:bg-indigo-50 transition-colors font-medium"
+                          >
+                            {showArticleDropdown ? '✕ Close article selector' : '📄 Select an article to auto-fill title & link'}
+                          </button>
+
+                          {showArticleDropdown && (
+                            <div className="mt-2 border border-gray-300 rounded-md bg-white shadow-sm">
+                              {/* Search Input */}
+                              <div className="p-2 border-b border-gray-200">
+                                <Input
+                                  value={articleSearch}
+                                  onChange={(e) => setArticleSearch(e.target.value)}
+                                  placeholder="Search articles..."
+                                  className="text-sm"
+                                  autoFocus
+                                />
+                              </div>
+
+                              {/* Article List */}
+                              <div className="max-h-48 overflow-y-auto">
+                                {filteredArticles.length === 0 ? (
+                                  <div className="px-3 py-2 text-sm text-gray-500">
+                                    {articleSearch ? 'No articles match your search' : 'No published articles found'}
+                                  </div>
+                                ) : (
+                                  filteredArticles.map((article) => (
+                                    <button
+                                      key={article.id}
+                                      type="button"
+                                      onClick={() => {
+                                        setSelectedItem({
+                                          ...selectedItem!,
+                                          title: article.title,
+                                          href: `/${article.slug}`
+                                        });
+                                        setShowArticleDropdown(false);
+                                        setArticleSearch("");
+                                      }}
+                                      className="w-full text-left px-3 py-2 text-sm hover:bg-indigo-50 border-b border-gray-100 last:border-b-0 transition-colors"
+                                    >
+                                      <div className="font-medium text-gray-900">{article.title}</div>
+                                      <div className="text-xs text-gray-500">/{article.slug}</div>
+                                    </button>
+                                  ))
+                                )}
+                              </div>
+                            </div>
+                          )}
+                          <p className="text-xs text-indigo-600 mt-2">
+                            Select an article to automatically fill both the title and link fields below
+                          </p>
+                        </div>
+
+                        {/* Title */}
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
                           <Input
-                            value={articleSearch}
-                            onChange={(e) => setArticleSearch(e.target.value)}
-                            placeholder="Search articles..."
-                            className="text-sm"
-                            autoFocus
+                            value={selectedItem.title}
+                            onChange={(e) => setSelectedItem({ ...selectedItem!, title: e.target.value })}
+                            placeholder="Navigation label"
                           />
                         </div>
 
-                        {/* Article List */}
-                        <div className="max-h-48 overflow-y-auto">
-                          {filteredArticles.length === 0 ? (
-                            <div className="px-3 py-2 text-sm text-gray-500">
-                              {articleSearch ? 'No articles match your search' : 'No published articles found'}
-                            </div>
-                          ) : (
-                            filteredArticles.map((article) => (
-                              <button
-                                key={article.id}
-                                type="button"
-                                onClick={() => {
-                                  setSelectedItem({
-                                    ...selectedItem!,
-                                    title: article.title,
-                                    href: `/${article.slug}`
-                                  });
-                                  setShowArticleDropdown(false);
-                                  setArticleSearch("");
-                                }}
-                                className="w-full text-left px-3 py-2 text-sm hover:bg-indigo-50 border-b border-gray-100 last:border-b-0 transition-colors"
-                              >
-                                <div className="font-medium text-gray-900">{article.title}</div>
-                                <div className="text-xs text-gray-500">/{article.slug}</div>
-                              </button>
-                            ))
-                          )}
+                        {/* Parent */}
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Parent</label>
+                          <select
+                            value={selectedItem.parent_id || ""}
+                            onChange={(e) =>
+                              setSelectedItem({
+                                ...selectedItem!,
+                                parent_id: e.target.value ? e.target.value : null,
+                              })
+                            }
+                            className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                          >
+                            <option value="">Top level</option>
+                            {parentOptions.map((option) => (
+                              <option key={option.id} value={option.id}>
+                                {option.title}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        {/* Link */}
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Link (optional)</label>
+                          <Input
+                            value={selectedItem.href || ""}
+                            onChange={(e) => setSelectedItem({ ...selectedItem!, href: e.target.value })}
+                            placeholder="/getting-started"
+                            className="text-sm"
+                          />
+                          <p className="text-xs text-gray-500 mt-1">
+                            Use the article selector above or type a custom URL
+                          </p>
+                        </div>
+
+                        {/* Icon */}
+                        <IconPicker
+                          value={selectedItem.icon_name}
+                          onChange={(iconName) => setSelectedItem({ ...selectedItem!, icon_name: iconName })}
+                          label="Icon (optional)"
+                        />
+
+                        {/* Order */}
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Order</label>
+                          <Input
+                            type="number"
+                            value={selectedItem.order_index}
+                            onChange={(e) => setSelectedItem({ ...selectedItem!, order_index: Number(e.target.value) })}
+                          />
+                        </div>
+
+                        {/* Visibility */}
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">Visibility</label>
+                          <div className="flex flex-wrap gap-2">
+                            {VISIBILITY_OPTIONS.map((option) => {
+                              const active = selectedItem.visibility.includes(option.value);
+                              return (
+                                <button
+                                  key={option.value}
+                                  type="button"
+                                  onClick={() => toggleVisibility(option.value)}
+                                  className={clsx(
+                                    "px-3 py-1 rounded-full text-xs font-medium border",
+                                    active
+                                      ? "border-indigo-500 bg-indigo-100 text-indigo-700"
+                                      : "border-gray-300 bg-white text-gray-600 hover:border-indigo-300"
+                                  )}
+                                >
+                                  {option.label}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+
+                        {/* Active */}
+                        <div className="flex items-center gap-2">
+                          <input
+                            id="nav-active"
+                            type="checkbox"
+                            checked={selectedItem.is_active}
+                            onChange={(e) => setSelectedItem({ ...selectedItem!, is_active: e.target.checked })}
+                            className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                          />
+                          <label htmlFor="nav-active" className="text-sm text-gray-700">
+                            Active
+                          </label>
+                        </div>
+
+                        {/* Actions */}
+                        <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-200">
+                          <Button variant="outline" onClick={cancelEdit} disabled={saving}>
+                            Cancel
+                          </Button>
+                          <Button onClick={handleSave} disabled={saving}>
+                            {saving ? "Saving..." : "Save Item"}
+                          </Button>
                         </div>
                       </div>
                     )}
-                    <p className="text-xs text-indigo-600 mt-2">
-                      Select an article to automatically fill both the title and link fields below
-                    </p>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
-                    <Input
-                      value={selectedItem.title}
-                      onChange={(e) => setSelectedItem({ ...selectedItem!, title: e.target.value })}
-                      placeholder="Navigation label"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Parent</label>
-                    <select
-                      value={selectedItem.parent_id || ""}
-                      onChange={(e) =>
-                        setSelectedItem({
-                          ...selectedItem!,
-                          parent_id: e.target.value ? e.target.value : null,
-                        })
-                      }
-                      className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                    >
-                      <option value="">Top level</option>
-                      {parentOptions.map((option) => (
-                        <option key={option.id} value={option.id}>
-                          {option.title}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Link (optional)</label>
-                    <Input
-                      value={selectedItem.href || ""}
-                      onChange={(e) => setSelectedItem({ ...selectedItem!, href: e.target.value })}
-                      placeholder="/getting-started"
-                      className="text-sm"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">
-                      Use the article selector above or type a custom URL
-                    </p>
-                  </div>
-
-                  <IconPicker
-                    value={selectedItem.icon_name}
-                    onChange={(iconName) => setSelectedItem({ ...selectedItem!, icon_name: iconName })}
-                    label="Icon (optional)"
-                  />
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Order</label>
-                    <Input
-                      type="number"
-                      value={selectedItem.order_index}
-                      onChange={(e) => setSelectedItem({ ...selectedItem!, order_index: Number(e.target.value) })}
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Visibility</label>
-                    <div className="flex flex-wrap gap-2">
-                      {VISIBILITY_OPTIONS.map((option) => {
-                        const active = selectedItem.visibility.includes(option.value);
-                        return (
-                          <button
-                            key={option.value}
-                            type="button"
-                            onClick={() => toggleVisibility(option.value)}
-                            className={clsx(
-                              "px-3 py-1 rounded-full text-xs font-medium border",
-                              active
-                                ? "border-indigo-500 bg-indigo-100 text-indigo-700"
-                                : "border-gray-300 bg-white text-gray-600 hover:border-indigo-300"
-                            )}
-                          >
-                            {option.label}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <input
-                      id="nav-active"
-                      type="checkbox"
-                      checked={selectedItem.is_active}
-                      onChange={(e) => setSelectedItem({ ...selectedItem!, is_active: e.target.checked })}
-                      className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                    />
-                    <label htmlFor="nav-active" className="text-sm text-gray-700">
-                      Active
-                    </label>
-                  </div>
-
-                  <div className="flex items-center justify-between pt-2">
-                    <Button variant="outline" onClick={cancelEdit} disabled={saving}>
-                      Cancel
-                    </Button>
-                    <Button onClick={handleSave} disabled={saving}>
-                      {saving ? "Saving..." : "Save Item"}
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </PageCard>
-          </div>
-        </div>
+                  </Dialog.Panel>
+                </Transition.Child>
+              </div>
+            </div>
+          </Dialog>
+        </Transition>
       </div>
     </div>
   );
