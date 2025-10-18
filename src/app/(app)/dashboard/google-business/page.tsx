@@ -26,6 +26,7 @@ import HelpModal from '@/app/(app)/components/help/HelpModal';
 import ButtonSpinner from '@/components/ButtonSpinner';
 import LocationPicker from '@/components/GoogleBusinessProfile/LocationPicker';
 import GoogleBusinessScheduler from '@/app/(app)/components/GoogleBusinessProfile/Scheduler/GoogleBusinessScheduler';
+import BlueskyConnection from '@/app/(app)/components/GoogleBusinessProfile/BlueskyConnection';
 import { exportOverviewToPDF } from '@/utils/googleBusinessProfile/pdfExport';
 // Using built-in alert for notifications instead of react-toastify
 
@@ -2248,7 +2249,14 @@ export default function SocialPostingDashboard() {
                   )}
                 </div>
               )}
-              
+
+              {/* Bluesky Connection Section */}
+              {selectedAccountId && (
+                <div className="mt-6">
+                  <BlueskyConnection accountId={selectedAccountId} />
+                </div>
+              )}
+
             </div>
           )}
 
