@@ -103,13 +103,38 @@ export default async function GoogleBizOptimizerPage() {
         )}
 
         {/* Introduction */}
-        {article.content && (
-          <div className="mb-12">
-            <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6">
+        <div className="mb-12">
+          <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6">
+            {article.content ? (
               <MarkdownRenderer content={article.content} />
-            </div>
+            ) : (
+              <div className="prose prose-invert max-w-none">
+                <h2 className="text-2xl font-bold text-white mb-4">Master Your Google Business Profile Performance</h2>
+                <p className="text-white/80 mb-4">
+                  The Google Biz Optimizer™ is your comprehensive guide to understanding and improving your Google Business Profile performance.
+                  Whether you're struggling with visibility, trying to build trust through reviews, or looking to convert more profile visitors into customers,
+                  this resource provides data-driven insights and actionable strategies.
+                </p>
+                <p className="text-white/80 mb-4">
+                  Unlike generic advice, our guides are built on industry benchmarks, consumer psychology research, and real-world ROI calculations.
+                  Each metric is explained in plain English with specific recommendations you can implement today.
+                </p>
+                <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4 my-6">
+                  <div className="flex items-start">
+                    <Lightbulb className="w-5 h-5 text-yellow-300 mr-3 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <h3 className="font-semibold text-yellow-200 mb-2">What Makes This Different?</h3>
+                      <p className="text-white/70 text-sm">
+                        Every guide includes industry benchmarks so you know where you stand, psychological insights into why certain metrics matter,
+                        and ROI calculations to prioritize your efforts. We don't just tell you what to do—we explain why it works and what results to expect.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
-        )}
+        </div>
 
         {/* Categories Grid */}
         <div className="grid md:grid-cols-2 gap-8 mb-12">
@@ -120,7 +145,8 @@ export default async function GoogleBizOptimizerPage() {
               <h2 className="text-xl font-semibold text-white">Key Metrics</h2>
             </div>
             <p className="text-white/70 mb-4">
-              Understand the metrics that matter most for your Google Business Profile success.
+              Understand the metrics that matter most for your Google Business Profile success. Each guide explains what the numbers mean,
+              how you compare to industry benchmarks, and the psychological factors that influence customer decisions.
             </p>
             <div className="space-y-3">
               <Link href="/google-biz-optimizer/metrics/total-reviews" className="flex items-center text-yellow-300 hover:text-yellow-200">
@@ -153,7 +179,8 @@ export default async function GoogleBizOptimizerPage() {
               <h2 className="text-xl font-semibold text-white">Optimization Strategies</h2>
             </div>
             <p className="text-white/70 mb-4">
-              Proven techniques to improve your visibility and ranking in local search results.
+              Proven techniques to improve your visibility and ranking in local search results. Learn what Google's algorithm rewards
+              and get step-by-step instructions for implementing each optimization.
             </p>
             <div className="space-y-3">
               <Link href="/google-biz-optimizer/optimization/seo-score" className="flex items-center text-yellow-300 hover:text-yellow-200">
@@ -191,7 +218,8 @@ export default async function GoogleBizOptimizerPage() {
               <h2 className="text-xl font-semibold text-white">Customer Engagement</h2>
             </div>
             <p className="text-white/70 mb-4">
-              Build trust and loyalty through strategic customer interaction and response management.
+              Build trust and loyalty through strategic customer interaction and response management. Learn how Google rewards
+              engagement and get templates for responding effectively to reviews, questions, and posts.
             </p>
             <div className="space-y-3">
               <Link href="/google-biz-optimizer/engagement/review-responses" className="flex items-center text-yellow-300 hover:text-yellow-200">
@@ -219,7 +247,8 @@ export default async function GoogleBizOptimizerPage() {
               <h2 className="text-xl font-semibold text-white">Performance & Conversion</h2>
             </div>
             <p className="text-white/70 mb-4">
-              Track and optimize customer actions to maximize ROI from your Google Business Profile.
+              Track and optimize customer actions to maximize ROI from your Google Business Profile. Understand which actions
+              drive revenue and learn how to encourage more calls, direction requests, and website visits.
             </p>
             <div className="space-y-3">
               <Link href="/google-biz-optimizer/performance/customer-actions" className="flex items-center text-yellow-300 hover:text-yellow-200">
