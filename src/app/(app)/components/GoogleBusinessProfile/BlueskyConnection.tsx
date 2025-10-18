@@ -123,8 +123,20 @@ export default function BlueskyConnection({ accountId }: BlueskyConnectionProps)
     <div className="bg-white border border-gray-200 rounded-lg p-6">
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
-            <Icon name="FaCloud" className="w-5 h-5 text-white" />
+          <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center p-2">
+            <svg
+              viewBox="0 0 512 512"
+              className="w-full h-full"
+              role="img"
+              aria-label="Bluesky"
+            >
+              <title>Bluesky social icon</title>
+              <path
+                fill="#ffffff"
+                fillRule="nonzero"
+                d="M110.985 30.442c58.695 44.217 121.837 133.856 145.013 181.961 23.176-48.105 86.322-137.744 145.016-181.961 42.361-31.897 110.985-56.584 110.985 21.96 0 15.681-8.962 131.776-14.223 150.628-18.272 65.516-84.873 82.228-144.112 72.116 103.55 17.68 129.889 76.238 73 134.8-108.04 111.223-155.288-27.905-167.385-63.554-3.489-10.262-2.991-10.498-6.561 0-12.098 35.649-59.342 174.777-167.382 63.554-56.89-58.562-30.551-117.12 72.999-134.8-59.239 10.112-125.84-6.6-144.112-72.116C8.962 184.178 0 68.083 0 52.402c0-78.544 68.633-53.857 110.985-21.96z"
+              />
+            </svg>
           </div>
           <div>
             <h3 className="text-lg font-semibold text-gray-900">Bluesky</h3>
