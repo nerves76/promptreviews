@@ -57,6 +57,10 @@ export default function HelpFaqsAdminPage() {
     }
   }, [user, authLoading]);
 
+  useEffect(() => {
+    console.log('selectedFaq changed to:', selectedFaq);
+  }, [selectedFaq]);
+
   const fetchFaqs = async () => {
     try {
       setLoading(true);
@@ -81,7 +85,9 @@ export default function HelpFaqsAdminPage() {
   };
 
   const startEdit = (faq: AdminFaq) => {
+    console.log('startEdit called with:', faq);
     setSelectedFaq({ ...faq, article_id: faq.article_id ?? null });
+    console.log('selectedFaq should be set');
   };
 
   const cancelEdit = () => {
