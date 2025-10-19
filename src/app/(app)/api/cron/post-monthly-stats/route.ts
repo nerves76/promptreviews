@@ -226,7 +226,12 @@ Keep up the amazing work capturing those reviews! 💫`;
 
     if (postError) {
       console.error('Error creating post:', postError);
-      return NextResponse.json({ error: 'Failed to create post' }, { status: 500 });
+      return NextResponse.json({
+        error: 'Failed to create post',
+        details: postError.message,
+        code: postError.code,
+        hint: postError.hint
+      }, { status: 500 });
     }
 
     console.log('✅ Monthly stats post created successfully:', post.id);
