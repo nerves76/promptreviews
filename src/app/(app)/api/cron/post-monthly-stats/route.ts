@@ -124,8 +124,18 @@ export async function GET(request: NextRequest) {
       }
 
       promptyBotAccountId = newAccount.id;
+    } else {
+      promptyBotAccountId = existingAccount.id;
+    }
 
-      // Create business for PromptyBot
+    // Ensure business exists for PromptyBot (check first, create if missing)
+    const { data: existingBusiness } = await supabaseAdmin
+      .from('businesses')
+      .select('id')
+      .eq('account_id', promptyBotAccountId)
+      .single();
+
+    if (!existingBusiness) {
       const { error: businessError } = await supabaseAdmin
         .from('businesses')
         .insert({
@@ -136,9 +146,8 @@ export async function GET(request: NextRequest) {
 
       if (businessError) {
         console.error('Error creating PromptyBot business:', businessError);
+        return NextResponse.json({ error: 'Failed to create bot business', details: businessError.message }, { status: 500 });
       }
-    } else {
-      promptyBotAccountId = existingAccount.id;
     }
 
     // Calculate stats
