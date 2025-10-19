@@ -12,7 +12,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-const GENERAL_CHANNEL_ID = '641f29a9-155a-4e01-9c6f-91861cd25e5b';
 const PROMPTYBOT_EMAIL = 'promptybot@promptreviews.app';
 
 export async function GET(request: NextRequest) {
@@ -47,6 +46,20 @@ export async function GET(request: NextRequest) {
         }
       }
     );
+
+    // Get the General channel ID by slug
+    const { data: generalChannel, error: channelError } = await supabaseAdmin
+      .from('channels')
+      .select('id')
+      .eq('slug', 'general')
+      .single();
+
+    if (channelError || !generalChannel) {
+      console.error('Error fetching general channel:', channelError);
+      return NextResponse.json({ error: 'General channel not found' }, { status: 500 });
+    }
+
+    const GENERAL_CHANNEL_ID = generalChannel.id;
 
     // Get or create PromptyBot user
     const { data: botUser, error: botUserError } = await supabaseAdmin.auth.admin.listUsers();
