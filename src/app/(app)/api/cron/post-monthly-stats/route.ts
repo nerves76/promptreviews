@@ -124,6 +124,19 @@ export async function GET(request: NextRequest) {
       }
 
       promptyBotAccountId = newAccount.id;
+
+      // Create business for PromptyBot
+      const { error: businessError } = await supabaseAdmin
+        .from('businesses')
+        .insert({
+          account_id: promptyBotAccountId,
+          name: 'Prompt Reviews',
+          logo_url: '/images/prompty-icon-prompt-reviews.png'
+        });
+
+      if (businessError) {
+        console.error('Error creating PromptyBot business:', businessError);
+      }
     } else {
       promptyBotAccountId = existingAccount.id;
     }
@@ -177,21 +190,19 @@ export async function GET(request: NextRequest) {
     // Format numbers with commas
     const formatNumber = (num: number) => num.toLocaleString('en-US');
 
-    // Create the post body with improved text-based formatting
+    // Create the post body with simple formatting (no markdown needed)
     const postTitle = `Happy ${currentMonthName} Star Catchers! 🌟`;
     const postBody = `How many reviews did you capture last month?
 
-📊 **${lastMonthName} Review Stats**
+📊 ${lastMonthName} Review Stats
 
-👥 **${formatNumber(totalAccounts)}** Prompt Reviews Accounts
-
-⭐ **${formatNumber(totalReviewsCount)}** Total Reviews Captured
-
-🎉 **${formatNumber(lastMonthReviewsCount)}** New Reviews in ${lastMonthName}
+👥 ${formatNumber(totalAccounts)} Prompt Reviews Accounts
+⭐ ${formatNumber(totalReviewsCount)} Total Reviews Captured
+🎉 ${formatNumber(lastMonthReviewsCount)} New Reviews in ${lastMonthName}
 
 Keep up the amazing work capturing those reviews! 💫`;
 
-    // Create the community post with Prompty avatar
+    // Create the community post
     const { data: post, error: postError } = await supabaseAdmin
       .from('posts')
       .insert({
@@ -199,8 +210,7 @@ Keep up the amazing work capturing those reviews! 💫`;
         author_id: promptyBotId,
         account_id: promptyBotAccountId,
         title: postTitle,
-        body: postBody,
-        logo_url: '/images/prompty-icon-prompt-reviews.png' // Prompty avatar
+        body: postBody
       })
       .select()
       .single();
