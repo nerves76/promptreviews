@@ -154,10 +154,11 @@ export async function GET(request: NextRequest) {
 
     console.log(`Calculating stats for: ${lastMonthName} ${lastMonth.getFullYear()}`);
 
-    // Get total accounts
+    // Get total accounts (excluding PromptyBot)
     const { count: totalAccounts, error: accountsError } = await supabaseAdmin
       .from('accounts')
-      .select('id', { count: 'exact', head: true });
+      .select('id', { count: 'exact', head: true })
+      .neq('email', PROMPTYBOT_EMAIL);
 
     if (accountsError) {
       console.error('Error fetching accounts:', accountsError);

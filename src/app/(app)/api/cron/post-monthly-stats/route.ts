@@ -171,20 +171,19 @@ export async function GET(request: NextRequest) {
     const lastMonthName = lastMonth.toLocaleString('en-US', { month: 'long' });
     const currentMonthName = now.toLocaleString('en-US', { month: 'long' });
 
-    // Get total accounts
-    const { data: accounts, error: accountsError } = await supabaseAdmin
+    // Get total accounts (excluding PromptyBot)
+    const { count: totalAccounts, error: accountsError } = await supabaseAdmin
       .from('accounts')
-      .select('id', { count: 'exact', head: true });
+      .select('id', { count: 'exact', head: true })
+      .neq('email', PROMPTYBOT_EMAIL);
 
     if (accountsError) {
       console.error('Error fetching accounts:', accountsError);
       return NextResponse.json({ error: 'Failed to fetch accounts' }, { status: 500 });
     }
 
-    const totalAccounts = accounts || 0;
-
     // Get total reviews
-    const { data: totalReviews, error: totalReviewsError } = await supabaseAdmin
+    const { count: totalReviewsCount, error: totalReviewsError } = await supabaseAdmin
       .from('review_submissions')
       .select('id', { count: 'exact', head: true });
 
@@ -193,10 +192,8 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to fetch total reviews' }, { status: 500 });
     }
 
-    const totalReviewsCount = totalReviews || 0;
-
     // Get reviews from last month
-    const { data: lastMonthReviews, error: lastMonthReviewsError } = await supabaseAdmin
+    const { count: lastMonthReviewsCount, error: lastMonthReviewsError } = await supabaseAdmin
       .from('review_submissions')
       .select('id', { count: 'exact', head: true })
       .gte('created_at', lastMonth.toISOString())
@@ -207,10 +204,8 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to fetch last month reviews' }, { status: 500 });
     }
 
-    const lastMonthReviewsCount = lastMonthReviews || 0;
-
     // Format numbers with commas
-    const formatNumber = (num: number) => num.toLocaleString('en-US');
+    const formatNumber = (num: number | null) => (num || 0).toLocaleString('en-US');
 
     // Create the post body with simple formatting (no markdown needed)
     const postTitle = `Happy ${currentMonthName} Star Catchers! 🌟`;
@@ -253,9 +248,9 @@ Keep up the amazing work capturing those reviews! 💫`;
       success: true,
       post_id: post.id,
       stats: {
-        total_accounts: totalAccounts,
-        total_reviews: totalReviewsCount,
-        last_month_reviews: lastMonthReviewsCount,
+        total_accounts: totalAccounts || 0,
+        total_reviews: totalReviewsCount || 0,
+        last_month_reviews: lastMonthReviewsCount || 0,
         month: lastMonthName
       }
     });
