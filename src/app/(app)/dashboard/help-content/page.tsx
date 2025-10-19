@@ -9,6 +9,7 @@ import PageCard from "@/app/(app)/components/PageCard";
 import StandardLoader from "@/app/(app)/components/StandardLoader";
 import HelpContentBreadcrumbs from "./components/HelpContentBreadcrumbs";
 import DeployDocsButton from "./components/DeployDocsButton";
+import { Check, X } from "lucide-react";
 
 interface Article {
   id: string;
@@ -50,6 +51,7 @@ export default function HelpContentPage() {
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [sortField, setSortField] = useState<keyof Article | "category">("updated_at");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
+  const [navigationMap, setNavigationMap] = useState<Record<string, boolean>>({});
 
   // Fetch articles
   const fetchArticles = async () => {
@@ -71,6 +73,31 @@ export default function HelpContentPage() {
       setArticles(data.articles);
       setStats(data.stats);
       setError(null);
+
+      // Fetch navigation data to see which articles are in navigation
+      try {
+        const navResponse = await fetch('/api/admin/docs/navigation');
+        if (navResponse.ok) {
+          const navData = await navResponse.json();
+          const navItems = navData.items || [];
+
+          // Create a map of article slugs to whether they're in navigation
+          const map: Record<string, boolean> = {};
+          data.articles.forEach((article: Article) => {
+            // Check if any navigation item links to this article
+            const hasNav = navItems.some((item: any) =>
+              item.href === `/${article.slug}` ||
+              item.href === `/google-biz-optimizer/${article.slug}` ||
+              item.href.includes(article.slug)
+            );
+            map[article.slug] = hasNav;
+          });
+          setNavigationMap(map);
+        }
+      } catch (navErr) {
+        console.error('Error fetching navigation:', navErr);
+        // Don't fail the whole page if navigation fetch fails
+      }
     } catch (err: any) {
       console.error("Error fetching articles:", err);
       setError(err.message || "Failed to fetch articles");
@@ -379,6 +406,9 @@ export default function HelpContentPage() {
                         )}
                       </div>
                     </th>
+                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      In Nav
+                    </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Actions
                     </th>
@@ -440,6 +470,13 @@ export default function HelpContentPage() {
                         <div className="text-sm font-medium text-gray-900">
                           {article.title}
                         </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-center">
+                        {navigationMap[article.slug] ? (
+                          <Check className="w-5 h-5 text-green-600 mx-auto" />
+                        ) : (
+                          <X className="w-5 h-5 text-gray-300 mx-auto" />
+                        )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div className="flex items-center gap-2">
