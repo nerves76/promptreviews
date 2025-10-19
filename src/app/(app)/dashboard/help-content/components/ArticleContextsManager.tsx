@@ -29,6 +29,7 @@ const COMMON_ROUTES = [
   { value: "/dashboard/widget", label: "Widget Configuration" },
   { value: "/dashboard/google-business", label: "Google Business Profile" },
   { value: "/dashboard/reviews", label: "Reviews Management" },
+  { value: "/dashboard/get-reviews/sentiment-analyzer", label: "Sentiment Analyzer" },
   { value: "/dashboard/team", label: "Team Management" },
   { value: "/dashboard/plan", label: "Billing & Plans" },
   { value: "/dashboard/analytics", label: "Analytics" },
