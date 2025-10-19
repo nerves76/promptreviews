@@ -85,8 +85,8 @@ export default function CommunityPage() {
       try {
         const { data } = await supabase
           .from('admins')
-          .select('user_id')
-          .eq('user_id', user.id)
+          .select('account_id')
+          .eq('account_id', user.id)
           .maybeSingle();
 
         setIsAdmin(!!data);
