@@ -22,6 +22,7 @@ interface PostCardProps {
   post: Post;
   currentUserId: string;
   accountId: string;
+  isAdmin?: boolean;
   onEdit?: () => void;
   onDelete?: () => void;
   onReact: (emoji: ReactionType) => void;
@@ -33,6 +34,7 @@ export function PostCard({
   post,
   currentUserId,
   accountId,
+  isAdmin = false,
   onEdit,
   onDelete,
   onReact,
@@ -44,6 +46,7 @@ export function PostCard({
   const [hasLoadedComments, setHasLoadedComments] = useState(false);
   const [localCommentCount, setLocalCommentCount] = useState(post.comment_count || 0);
   const isAuthor = post.author_id === currentUserId;
+  const canModify = isAuthor || isAdmin;
 
   // Initialize comment hooks
   const { comments, isLoading: commentsLoading, fetchComments, createComment, deleteComment } = useComments(post.id);
@@ -170,8 +173,8 @@ export function PostCard({
           <RelativeTime date={post.created_at} className="text-sm mt-0.5" />
         </div>
 
-        {/* Actions menu (only for author) */}
-        {isAuthor && (
+        {/* Actions menu (for author or admin) */}
+        {canModify && (
           <div className="relative">
             <button
               onClick={() => setShowActionsMenu(!showActionsMenu)}

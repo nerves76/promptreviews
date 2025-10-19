@@ -16,6 +16,7 @@ interface PostFeedProps {
   posts: Post[];
   currentUserId: string;
   accountId: string;
+  isAdmin?: boolean;
   isLoading: boolean;
   hasMore: boolean;
   onLoadMore: () => void;
@@ -29,6 +30,7 @@ export function PostFeed({
   posts,
   currentUserId,
   accountId,
+  isAdmin = false,
   isLoading,
   hasMore,
   onLoadMore,
@@ -103,6 +105,7 @@ export function PostFeed({
           post={post}
           currentUserId={currentUserId}
           accountId={accountId}
+          isAdmin={isAdmin}
           onEdit={onPostEdit ? () => onPostEdit(post.id) : undefined}
           onDelete={onPostDelete ? () => onPostDelete(post.id) : undefined}
           onReact={(emoji) => onPostReact(post.id, emoji)}

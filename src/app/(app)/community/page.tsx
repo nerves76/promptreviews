@@ -35,6 +35,7 @@ export default function CommunityPage() {
   const [businessName, setBusinessName] = useState<string>('');
   const [availableBusinessNames, setAvailableBusinessNames] = useState<Array<{ id: string; name: string }>>([]);
   const [showEditDisplayName, setShowEditDisplayName] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   // Get active channel from query params or default to 'general'
   useEffect(() => {
@@ -74,6 +75,27 @@ export default function CommunityPage() {
     if (user) {
       loadChannels();
     }
+  }, [user, supabase]);
+
+  // Check admin status
+  useEffect(() => {
+    const checkAdmin = async () => {
+      if (!user) return;
+
+      try {
+        const { data } = await supabase
+          .from('admins')
+          .select('user_id')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        setIsAdmin(!!data);
+      } catch (error) {
+        console.error('Error checking admin status:', error);
+      }
+    };
+
+    checkAdmin();
   }, [user, supabase]);
 
   // Check if user has accepted guidelines and fetch display name
@@ -315,6 +337,7 @@ export default function CommunityPage() {
               posts={posts}
               currentUserId={user.id}
               accountId={account?.id || ''}
+              isAdmin={isAdmin}
               isLoading={isLoading}
               hasMore={hasMore}
               onLoadMore={loadMore}
