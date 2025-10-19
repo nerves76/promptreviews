@@ -125,6 +125,9 @@ export default function SocialPostingDashboard() {
   });
   const [selectedLocationId, setSelectedLocationId] = useState<string>('');
 
+  // Track maxLocations from API response
+  const [maxGBPLocations, setMaxGBPLocations] = useState<number | null>(null);
+
   useEffect(() => {
     if (selectedLocations.length === 0) {
       return;
@@ -160,7 +163,7 @@ export default function SocialPostingDashboard() {
     return match || scopedLocations[0];
   })();
   
-  // Enforce single-location UI and selection rules
+  // Enforce location selection rules based on actual account limits
   useEffect(() => {
     // If there's exactly one location, force select it
     if (locations.length === 1) {
@@ -168,12 +171,15 @@ export default function SocialPostingDashboard() {
       if (selectedLocations.length !== 1 || selectedLocations[0] !== only) {
         setSelectedLocations([only]);
       }
+      return;
     }
-    // On Grower plan, allow at most one selected location
-    if (currentPlan === 'grower' && selectedLocations.length > 1) {
-      setSelectedLocations([selectedLocations[0]]);
+
+    // Enforce maxGBPLocations limit if available (respects database overrides)
+    if (maxGBPLocations !== null && maxGBPLocations > 0 && selectedLocations.length > maxGBPLocations) {
+      console.log(`⚠️ Location selection exceeds limit (${selectedLocations.length} > ${maxGBPLocations}). Trimming to limit.`);
+      setSelectedLocations(selectedLocations.slice(0, maxGBPLocations));
     }
-  }, [locations, currentPlan]);
+  }, [locations, maxGBPLocations, selectedLocations]);
   
   // Initialize postContent with saved data
   const [postContent, setPostContent] = useState(() => {
@@ -643,7 +649,13 @@ export default function SocialPostingDashboard() {
         if (googlePlatform && googlePlatform.connected) {
           setIsConnected(true);
           setConnectedEmail(googlePlatform.connectedEmail || null);
-          
+
+          // Extract and store max locations limit from API response
+          if (googlePlatform.maxLocations !== undefined) {
+            setMaxGBPLocations(googlePlatform.maxLocations);
+            console.log(`✅ Account max GBP locations limit: ${googlePlatform.maxLocations}`);
+          }
+
           // Load business locations from the platforms response
           const locations = googlePlatform.locations || [];
           

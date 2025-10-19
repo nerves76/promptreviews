@@ -65,7 +65,7 @@ export async function GET(request: NextRequest) {
 
     const { data: accountRecord, error: accountError } = await supabase
       .from('accounts')
-      .select('id, plan, first_name, last_name')
+      .select('id, plan, first_name, last_name, max_gbp_locations')
       .eq('id', accountId)
       .maybeSingle();
 
@@ -192,25 +192,35 @@ export async function GET(request: NextRequest) {
     if (isGoogleConnected) {
       // First get the account ID for the user
       if (accountId) {
+        // Calculate the max locations limit from account settings or plan defaults
+        const maxLocations = accountRecord.max_gbp_locations ||
+          (accountRecord.plan === 'maven' ? 10 :
+           accountRecord.plan === 'builder' ? 5 :
+           accountRecord.plan === 'grower' ? 1 : 0);
+
         // For now, skip selected locations and just fetch all
         // TODO: Re-enable once selected_gbp_locations table is created
         const skipSelectedLocations = true;
-        
+
         if (skipSelectedLocations) {
-          // Temporarily fetch all locations
+          // Fetch locations with limit enforcement
           const { data: locationData, error: locationsError } = await supabase
             .from('google_business_locations')
             .select('*')
-            .eq('account_id', accountId);
+            .eq('account_id', accountId)
+            .order('created_at', { ascending: true })
+            .limit(maxLocations > 0 ? maxLocations : 100); // If maxLocations is 0, use a reasonable default
 
           if (locationsError) {
             console.error('❌ Error fetching locations:', {
               error: locationsError.message,
               code: locationsError.code,
-              userId: user.id
+              userId: user.id,
+              maxLocations
             });
           } else {
             if (locationData && locationData.length > 0) {
+              console.log(`✅ Fetched ${locationData.length} locations (max: ${maxLocations})`);
             }
             locations = locationData || [];
           }
@@ -272,12 +282,19 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    // Calculate max locations for response
+    const maxLocations = accountRecord.max_gbp_locations ||
+      (accountRecord.plan === 'maven' ? 10 :
+       accountRecord.plan === 'builder' ? 5 :
+       accountRecord.plan === 'grower' ? 1 : 0);
+
     const platforms = [
       {
         id: 'google-business-profile',
         name: 'Google Business Profile',
         connected: isGoogleConnected,
         locations: locations,
+        maxLocations: maxLocations, // Include limit so frontend knows the cap
         status: isGoogleConnected ? 'connected' : 'disconnected',
         connectedEmail: googleTokens?.google_email || null, // Show which Google account is connected
         ...(googleConnectionError && { error: googleConnectionError })
