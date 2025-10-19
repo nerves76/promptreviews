@@ -32,6 +32,7 @@ const COMMON_ROUTES = [
   { value: "/dashboard/team", label: "Team Management" },
   { value: "/dashboard/plan", label: "Billing & Plans" },
   { value: "/dashboard/analytics", label: "Analytics" },
+  { value: "/dashboard/community", label: "Community" },
   { value: "/prompt-pages", label: "Prompt Pages List" },
   { value: "/r/", label: "Review Submission Pages" },
 ];
