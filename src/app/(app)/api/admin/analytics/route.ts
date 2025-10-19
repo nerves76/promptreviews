@@ -37,69 +37,115 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
     }
 
-    // Calculate date ranges
-    const now = new Date();
-    const monthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
-    const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    // Try to get data from analytics tables first (much faster!)
+    let analyticsData: any = {};
+    let usedFastPath = false;
 
-    // Fetch all data using service role (bypasses RLS)
-    const [
-      { data: accounts, error: accountsError },
-      { data: businesses, error: businessesError },
-      { data: reviews, error: reviewsError },
-      { data: promptPages, error: promptPagesError }
-    ] = await Promise.all([
-      supabaseAdmin.from('accounts').select('id, created_at').not('email', 'is', null),
-      supabaseAdmin.from('businesses').select('id, created_at'),
-      supabaseAdmin.from('review_submissions').select('id, created_at, platform, verified'),
-      supabaseAdmin.from('prompt_pages').select('id, created_at')
-    ]);
+    try {
+      // Get platform metrics for lifetime totals
+      const { data: metrics } = await supabaseAdmin
+        .from('platform_metrics')
+        .select('metric_name, metric_value');
 
-    if (accountsError) {
-      console.error('Error fetching accounts:', accountsError);
-      return NextResponse.json({ error: 'Error fetching user data' }, { status: 500 });
+      // Get last 30 days from daily_stats for monthly totals
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      const { data: dailyStats } = await supabaseAdmin
+        .from('daily_stats')
+        .select('*')
+        .gte('date', thirtyDaysAgo.toISOString().split('T')[0])
+        .order('date', { ascending: false });
+
+      // Get latest daily snapshot
+      const latest = dailyStats?.[0];
+
+      if (metrics && latest) {
+        // Use fast path with analytics tables
+        const getMetric = (name: string) => {
+          const metric = metrics.find(m => m.metric_name === name);
+          return metric ? Number(metric.metric_value) : 0;
+        };
+
+        // Calculate monthly totals from daily_stats
+        const last30Days = dailyStats?.slice(0, 30) || [];
+        const reviewsThisMonth = last30Days.reduce((sum, day) => sum + (day.reviews_captured_today || 0), 0);
+        const accountsThisMonth = last30Days.reduce((sum, day) => sum + (day.accounts_created_today || 0), 0);
+        const reviewsThisWeek = last30Days.slice(0, 7).reduce((sum, day) => sum + (day.reviews_captured_today || 0), 0);
+
+        analyticsData = {
+          totalUsers: getMetric('total_accounts_created'),
+          totalAccounts: getMetric('total_accounts_created'),
+          totalBusinesses: latest.accounts_total || 0,
+          totalReviews: getMetric('total_reviews_captured'),
+          totalPromptPages: getMetric('total_prompt_pages_created'),
+          totalWidgets: getMetric('total_widgets_created'),
+          totalGbpLocations: getMetric('total_gbp_locations_connected'),
+          totalGbpPosts: getMetric('total_gbp_posts_published'),
+          reviewsThisMonth,
+          reviewsThisWeek,
+          newUsersThisMonth: accountsThisMonth,
+          newAccountsThisMonth: accountsThisMonth,
+          newBusinessesThisMonth: 0, // Not tracked yet
+          accountsActive: latest.accounts_active || 0,
+          accountsTrial: latest.accounts_trial || 0,
+          accountsPaid: latest.accounts_paid || 0,
+          reviewsByPlatform: latest.reviews_by_platform || {},
+          topPlatforms: [],
+          recentActivity: [],
+          businessGrowth: [],
+          reviewTrends: []
+        };
+
+        usedFastPath = true;
+        console.log('✅ Using fast analytics path');
+      }
+    } catch (error) {
+      console.log('Analytics tables not available, using slow path');
     }
 
-    if (businessesError) {
-      console.error('Error fetching businesses:', businessesError);
-      return NextResponse.json({ error: 'Error fetching business data' }, { status: 500 });
-    }
+    // Fallback to slow path if analytics tables aren't available
+    if (!usedFastPath) {
+      const now = new Date();
+      const monthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+      const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
-    if (reviewsError) {
-      console.error('Error fetching reviews:', reviewsError);
-      return NextResponse.json({ error: 'Error fetching review data' }, { status: 500 });
-    }
+      const [
+        { data: accounts },
+        { data: businesses },
+        { data: reviews },
+        { data: promptPages }
+      ] = await Promise.all([
+        supabaseAdmin.from('accounts').select('id, created_at').not('email', 'is', null),
+        supabaseAdmin.from('businesses').select('id, created_at'),
+        supabaseAdmin.from('review_submissions').select('id, created_at, platform, verified'),
+        supabaseAdmin.from('prompt_pages').select('id, created_at')
+      ]);
 
-    if (promptPagesError) {
-      console.error('Error fetching prompt pages:', promptPagesError);
-      return NextResponse.json({ error: 'Error fetching prompt page data' }, { status: 500 });
-    }
+      analyticsData = {
+        totalUsers: accounts?.length || 0,
+        totalAccounts: accounts?.length || 0,
+        totalBusinesses: businesses?.length || 0,
+        totalReviews: reviews?.length || 0,
+        totalPromptPages: promptPages?.length || 0,
+        reviewsThisMonth: reviews?.filter(r => new Date(r.created_at) >= monthAgo).length || 0,
+        reviewsThisWeek: reviews?.filter(r => new Date(r.created_at) >= weekAgo).length || 0,
+        newUsersThisMonth: accounts?.filter(u => new Date(u.created_at) >= monthAgo).length || 0,
+        newAccountsThisMonth: accounts?.filter(a => new Date(a.created_at) >= monthAgo).length || 0,
+        newBusinessesThisMonth: businesses?.filter(b => new Date(b.created_at) >= monthAgo).length || 0,
+        reviewsByPlatform: {},
+        topPlatforms: [],
+        recentActivity: [],
+        businessGrowth: [],
+        reviewTrends: []
+      };
 
-    // Process analytics data
-    const analyticsData = {
-      totalUsers: accounts?.length || 0,
-      totalAccounts: accounts?.length || 0,  // Count of accounts (not businesses)
-      totalBusinesses: businesses?.length || 0,
-      totalReviews: reviews?.length || 0,
-      totalPromptPages: promptPages?.length || 0,
-      reviewsThisMonth: reviews?.filter(r => new Date(r.created_at) >= monthAgo).length || 0,
-      reviewsThisWeek: reviews?.filter(r => new Date(r.created_at) >= weekAgo).length || 0,
-      newUsersThisMonth: accounts?.filter(u => new Date(u.created_at) >= monthAgo).length || 0,
-      newAccountsThisMonth: accounts?.filter(a => new Date(a.created_at) >= monthAgo).length || 0,
-      newBusinessesThisMonth: businesses?.filter(b => new Date(b.created_at) >= monthAgo).length || 0,
-      topPlatforms: [] as { platform: string; count: number }[],
-      recentActivity: [] as { date: string; reviews: number; users: number }[],
-      businessGrowth: [] as { date: string; count: number }[],
-      reviewTrends: [] as { date: string; count: number }[]
-    };
+      console.log('⚠️  Using slow analytics path');
+    }
 
     // Calculate platform distribution
-    const platformCounts: Record<string, number> = {};
-    reviews?.forEach(review => {
-      platformCounts[review.platform] = (platformCounts[review.platform] || 0) + 1;
-    });
+    const platformCounts = analyticsData.reviewsByPlatform || {};
     analyticsData.topPlatforms = Object.entries(platformCounts)
-      .map(([platform, count]) => ({ platform, count }))
+      .map(([platform, count]) => ({ platform, count: Number(count) }))
       .sort((a, b) => b.count - a.count)
       .slice(0, 5);
 

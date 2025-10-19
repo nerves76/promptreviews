@@ -27,11 +27,18 @@ interface AdminAnalytics {
   totalBusinesses: number;
   totalReviews: number;
   totalPromptPages: number;
+  totalWidgets?: number;
+  totalGbpLocations?: number;
+  totalGbpPosts?: number;
   reviewsThisMonth: number;
   reviewsThisWeek: number;
   newUsersThisMonth: number;
   newAccountsThisMonth: number;
   newBusinessesThisMonth: number;
+  accountsActive?: number;
+  accountsTrial?: number;
+  accountsPaid?: number;
+  reviewsByPlatform?: Record<string, number>;
 }
 
 interface DeleteResult {
@@ -453,6 +460,67 @@ export default function AdminPage() {
           </p>
           <p className="text-sm text-gray-600">Total prompt pages created</p>
         </div>
+      </div>
+
+      {/* New Analytics Section */}
+      <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg p-6 mb-8 border border-indigo-200">
+        <h2 className="text-xl font-bold text-gray-900 mb-4">Platform Analytics</h2>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="bg-white p-4 rounded-lg shadow-sm">
+            <h4 className="text-sm font-medium text-gray-600 mb-1">Widgets Created</h4>
+            <p className="text-2xl font-bold text-indigo-600">
+              {analyticsLoading ? '...' : analytics?.totalWidgets?.toLocaleString() || 0}
+            </p>
+          </div>
+
+          <div className="bg-white p-4 rounded-lg shadow-sm">
+            <h4 className="text-sm font-medium text-gray-600 mb-1">GBP Locations</h4>
+            <p className="text-2xl font-bold text-purple-600">
+              {analyticsLoading ? '...' : analytics?.totalGbpLocations?.toLocaleString() || 0}
+            </p>
+            <p className="text-xs text-gray-500 mt-1">Google Business connected</p>
+          </div>
+
+          <div className="bg-white p-4 rounded-lg shadow-sm">
+            <h4 className="text-sm font-medium text-gray-600 mb-1">GBP Posts</h4>
+            <p className="text-2xl font-bold text-green-600">
+              {analyticsLoading ? '...' : analytics?.totalGbpPosts?.toLocaleString() || 0}
+            </p>
+            <p className="text-xs text-gray-500 mt-1">Published to Google</p>
+          </div>
+
+          <div className="bg-white p-4 rounded-lg shadow-sm">
+            <h4 className="text-sm font-medium text-gray-600 mb-1">Active Accounts</h4>
+            <p className="text-2xl font-bold text-blue-600">
+              {analyticsLoading ? '...' : analytics?.accountsActive?.toLocaleString() || 0}
+            </p>
+            <p className="text-xs text-gray-500 mt-1">
+              {analytics && !analyticsLoading && (
+                <>
+                  Trial: {analytics?.accountsTrial || 0} • Paid: {analytics?.accountsPaid || 0}
+                </>
+              )}
+            </p>
+          </div>
+        </div>
+
+        {/* Platform Distribution */}
+        {analytics?.reviewsByPlatform && Object.keys(analytics.reviewsByPlatform).length > 0 && (
+          <div className="mt-6 bg-white p-4 rounded-lg shadow-sm">
+            <h4 className="text-sm font-semibold text-gray-900 mb-3">Reviews by Platform</h4>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {Object.entries(analytics.reviewsByPlatform)
+                .sort((a, b) => b[1] - a[1])
+                .map(([platform, count]) => (
+                  <div key={platform} className="text-center">
+                    <p className="text-lg font-bold text-gray-900">{count.toLocaleString()}</p>
+                    <p className="text-xs text-gray-600 capitalize">{platform}</p>
+                  </div>
+                ))}
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
