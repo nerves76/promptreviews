@@ -16,7 +16,8 @@ import { getAccountIdForUser } from '@/auth/utils/accounts';
  */
 export async function GET(request: NextRequest) {
   try {
-    
+    console.log('🔵 [OAuth Callback] START - Received callback from Google');
+
     // Get cookies properly for Next.js 15
     const cookieStore = await cookies();
     const supabase = createServerClient(
@@ -36,11 +37,19 @@ export async function GET(request: NextRequest) {
         },
       }
     );
-    
+
     const { searchParams } = new URL(request.url);
     const code = searchParams.get('code');
     const state = searchParams.get('state');
     const error = searchParams.get('error');
+
+    console.log('🔍 [OAuth Callback] Parameters:', {
+      hasCode: !!code,
+      hasState: !!state,
+      hasError: !!error,
+      codeLength: code?.length,
+      url: request.url
+    });
     
     
     // Handle OAuth errors
@@ -435,8 +444,9 @@ export async function GET(request: NextRequest) {
     const separator = returnUrl.includes('?') ? '&' : '?';
     const successMessage = encodeURIComponent('Successfully connected Google Business Profile!');
     const redirectUrl = `${returnUrl}${separator}connected=true&message=${successMessage}`;
-    
-    
+
+    console.log('✅ [OAuth Callback] SUCCESS - Redirecting to:', redirectUrl);
+
     const response = NextResponse.redirect(
       new URL(redirectUrl, request.url)
     );
