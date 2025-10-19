@@ -99,8 +99,18 @@ export default function ArticleEditorPage() {
   const [showHowItWorks, setShowHowItWorks] = useState(false);
   const [showBestPractices, setShowBestPractices] = useState(false);
   const [showFaqs, setShowFaqs] = useState(false);
+  const [showNavigation, setShowNavigation] = useState(false);
   const autosaveTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [slugError, setSlugError] = useState<string | null>(null);
+
+  // Navigation management state
+  const [navigationItems, setNavigationItems] = useState<any[]>([]);
+  const [allNavigationItems, setAllNavigationItems] = useState<any[]>([]);
+  const [navigationLoading, setNavigationLoading] = useState(false);
+  const [selectedParent, setSelectedParent] = useState<string | null>(null);
+  const [navigationTitle, setNavigationTitle] = useState("");
+  const [navigationIcon, setNavigationIcon] = useState("");
+  const [navigationOrder, setNavigationOrder] = useState(0);
 
   const currentBreadcrumbLabel = isNewArticle
     ? "Create Article"
@@ -120,8 +130,44 @@ export default function ArticleEditorPage() {
   useEffect(() => {
     if (!authLoading && user && !isNewArticle) {
       fetchArticle();
+      fetchNavigation();
     }
   }, [user, authLoading, slug]);
+
+  // Fetch navigation items
+  const fetchNavigation = async () => {
+    try {
+      setNavigationLoading(true);
+      const response = await fetch('/api/admin/docs/navigation');
+      if (response.ok) {
+        const data = await response.json();
+        setAllNavigationItems(data.items || []);
+
+        // Find navigation items that link to this article
+        const currentPath = `/google-biz-optimizer/${slug}`;
+        const matching = (data.items || []).filter((item: any) =>
+          item.href === currentPath || item.href === `/${slug}`
+        );
+        setNavigationItems(matching);
+
+        // Pre-fill form if we have an existing nav item
+        if (matching.length > 0) {
+          const nav = matching[0];
+          setSelectedParent(nav.parent_id);
+          setNavigationTitle(nav.title || article.title);
+          setNavigationIcon(nav.icon_name || "");
+          setNavigationOrder(nav.order_index || 0);
+        } else {
+          // Default to article title if no nav item exists
+          setNavigationTitle(article.title);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching navigation:', error);
+    } finally {
+      setNavigationLoading(false);
+    }
+  };
 
   const fetchArticle = async () => {
     try {
@@ -322,6 +368,90 @@ export default function ArticleEditorPage() {
         [field]: value,
       },
     }));
+  };
+
+  const handleNavigationSave = async () => {
+    if (!navigationTitle || !article.slug) {
+      alert('Navigation title and article slug are required');
+      return;
+    }
+
+    try {
+      setNavigationLoading(true);
+
+      const navData = {
+        title: navigationTitle,
+        href: `/${article.slug}`,
+        parent_id: selectedParent || null,
+        icon_name: navigationIcon || null,
+        order_index: navigationOrder,
+        visibility: ['docs', 'help'],
+        is_active: true,
+      };
+
+      let response;
+      if (navigationItems.length > 0) {
+        // Update existing navigation item
+        response = await fetch('/api/admin/docs/navigation', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: navigationItems[0].id, ...navData }),
+        });
+      } else {
+        // Create new navigation item
+        response = await fetch('/api/admin/docs/navigation', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(navData),
+        });
+      }
+
+      if (!response.ok) {
+        throw new Error('Failed to save navigation');
+      }
+
+      // Refresh navigation
+      await fetchNavigation();
+      alert('Navigation saved successfully!');
+    } catch (error) {
+      console.error('Error saving navigation:', error);
+      alert('Failed to save navigation');
+    } finally {
+      setNavigationLoading(false);
+    }
+  };
+
+  const handleNavigationDelete = async () => {
+    if (navigationItems.length === 0) return;
+
+    if (!confirm('Are you sure you want to remove this page from navigation?')) {
+      return;
+    }
+
+    try {
+      setNavigationLoading(true);
+      const response = await fetch(`/api/admin/docs/navigation?id=${navigationItems[0].id}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete navigation');
+      }
+
+      // Refresh navigation
+      await fetchNavigation();
+      setNavigationItems([]);
+      setSelectedParent(null);
+      setNavigationTitle(article.title);
+      setNavigationIcon("");
+      setNavigationOrder(0);
+      alert('Navigation item removed successfully!');
+    } catch (error) {
+      console.error('Error deleting navigation:', error);
+      alert('Failed to delete navigation');
+    } finally {
+      setNavigationLoading(false);
+    }
   };
 
   if (authLoading || loading) {
@@ -1044,6 +1174,126 @@ export default function ArticleEditorPage() {
             </div>
           )}
         </PageCard>
+
+        {/* Navigation Management */}
+        {!isNewArticle && (
+          <PageCard className="mb-6">
+            <div className="mb-4 flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">Navigation</h2>
+                <p className="text-sm text-gray-500 mt-1">
+                  Control where this article appears in the help navigation
+                </p>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowNavigation(!showNavigation)}
+              >
+                {showNavigation ? "Hide" : "Show"}
+              </Button>
+            </div>
+
+            {showNavigation && (
+              <div className="space-y-4">
+                {navigationItems.length > 0 && (
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <p className="text-sm text-green-800 font-medium">
+                      ✓ This article appears in navigation
+                    </p>
+                    <p className="text-sm text-green-700 mt-1">
+                      Path: {navigationItems[0].parent_id ? "Under parent section" : "Top level"}
+                    </p>
+                  </div>
+                )}
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Navigation Title
+                  </label>
+                  <Input
+                    type="text"
+                    value={navigationTitle}
+                    onChange={(e) => setNavigationTitle(e.target.value)}
+                    placeholder="Title as it appears in navigation"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Defaults to article title if not set
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Parent Section
+                  </label>
+                  <select
+                    value={selectedParent || ""}
+                    onChange={(e) => setSelectedParent(e.target.value || null)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">Top Level (No Parent)</option>
+                    {allNavigationItems
+                      .filter((item) => !item.parent_id) // Only show top-level items as potential parents
+                      .map((item) => (
+                        <option key={item.id} value={item.id}>
+                          {item.title}
+                        </option>
+                      ))}
+                  </select>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Choose which section this article belongs to
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <IconPicker
+                    value={navigationIcon}
+                    onChange={(iconName) => setNavigationIcon(iconName || "")}
+                    label="Navigation Icon"
+                  />
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Order Index
+                    </label>
+                    <Input
+                      type="number"
+                      value={navigationOrder}
+                      onChange={(e) => setNavigationOrder(parseInt(e.target.value) || 0)}
+                      placeholder="0"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Lower numbers appear first
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 pt-4 border-t">
+                  <Button
+                    onClick={handleNavigationSave}
+                    disabled={navigationLoading}
+                  >
+                    {navigationLoading
+                      ? "Saving..."
+                      : navigationItems.length > 0
+                      ? "Update Navigation"
+                      : "Add to Navigation"}
+                  </Button>
+                  {navigationItems.length > 0 && (
+                    <Button
+                      variant="outline"
+                      onClick={handleNavigationDelete}
+                      disabled={navigationLoading}
+                      className="text-red-600 hover:text-red-700 border-red-300 hover:border-red-400"
+                    >
+                      Remove from Navigation
+                    </Button>
+                  )}
+                </div>
+              </div>
+            )}
+          </PageCard>
+        )}
 
         {/* Content Editor */}
         <PageCard className="mb-6">

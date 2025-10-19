@@ -91,3 +91,70 @@ export async function POST(request: NextRequest) {
   }
 }
 
+export async function PUT(request: NextRequest) {
+  try {
+    await requireAdminAccess();
+    const body = await request.json();
+    const { id, ...updates } = body;
+
+    if (!id) {
+      return NextResponse.json({ error: 'id is required' }, { status: 400 });
+    }
+
+    const supabase = getSupabaseAdmin();
+    const { data, error } = await supabase
+      .from('navigation')
+      .update({
+        ...updates,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error updating navigation item:', error);
+      return NextResponse.json({ error: 'Failed to update navigation item' }, { status: 500 });
+    }
+
+    // Revalidate navigation cache
+    revalidatePath('/api/docs/navigation');
+
+    return NextResponse.json({ item: data });
+  } catch (error) {
+    console.error('Admin navigation PUT error:', error);
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  try {
+    await requireAdminAccess();
+    const url = new URL(request.url);
+    const id = url.searchParams.get('id');
+
+    if (!id) {
+      return NextResponse.json({ error: 'id is required' }, { status: 400 });
+    }
+
+    const supabase = getSupabaseAdmin();
+    const { error } = await supabase
+      .from('navigation')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error('Error deleting navigation item:', error);
+      return NextResponse.json({ error: 'Failed to delete navigation item' }, { status: 500 });
+    }
+
+    // Revalidate navigation cache
+    revalidatePath('/api/docs/navigation');
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('Admin navigation DELETE error:', error);
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+}
+
