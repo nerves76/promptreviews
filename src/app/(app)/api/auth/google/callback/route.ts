@@ -300,7 +300,7 @@ export async function GET(request: NextRequest) {
         // Check if this Google account is already connected to a different PR account
         const { data: existingConnections, error: checkError } = await supabaseAdmin
           .from('google_business_profiles')
-          .select('account_id, id')
+          .select('account_id, id, access_token, expires_at')
           .eq('google_email', googleEmail)
           .neq('account_id', accountId);
 
@@ -308,23 +308,62 @@ export async function GET(request: NextRequest) {
           console.error('❌ Error checking for existing connections:', checkError);
           // Continue - don't block the flow for database errors
         } else if (existingConnections && existingConnections.length > 0) {
-          const otherAccountId = existingConnections[0].account_id;
-          console.warn('⚠️ Duplicate Google account connection detected:', {
-            googleEmail,
-            currentAccountId: accountId,
-            conflictingAccountId: otherAccountId,
-            userId: user.id
+          // Found existing connection(s) - check if they're actually valid
+          const now = new Date();
+          const validConnections = existingConnections.filter(conn => {
+            // Check if token exists and hasn't expired
+            if (!conn.access_token) {
+              console.log('🧹 Found stale connection (no token):', conn.id);
+              return false;
+            }
+
+            if (conn.expires_at) {
+              const expiresAt = new Date(conn.expires_at);
+              if (expiresAt < now) {
+                console.log('🧹 Found expired connection:', conn.id, 'expired at:', conn.expires_at);
+                return false;
+              }
+            }
+
+            return true; // Token exists and hasn't expired
           });
 
-          const separator = returnUrl.includes('?') ? '&' : '?';
-          const errorMessage = encodeURIComponent(
-            `This Google account (${googleEmail}) is already connected to a different PromptReviews account. ` +
-            `To use it here, please: 1) Switch to the other account and disconnect it, OR 2) Go to Google Account Security → Third-party apps → Revoke PromptReviews access, then try again.`
-          );
+          if (validConnections.length > 0) {
+            // There's at least one VALID connection in another account - block this
+            const otherAccountId = validConnections[0].account_id;
+            console.warn('⚠️ Duplicate Google account connection detected (with valid tokens):', {
+              googleEmail,
+              currentAccountId: accountId,
+              conflictingAccountId: otherAccountId,
+              userId: user.id
+            });
 
-          return NextResponse.redirect(
-            new URL(`${returnUrl}${separator}error=already_connected&conflictEmail=${encodeURIComponent(googleEmail)}&message=${errorMessage}`, request.url)
-          );
+            const separator = returnUrl.includes('?') ? '&' : '?';
+            const errorMessage = encodeURIComponent(
+              `This Google account (${googleEmail}) is already connected to a different PromptReviews account. ` +
+              `To use it here, please: 1) Switch to the other account and disconnect it, OR 2) Go to Google Account Security → Third-party apps → Revoke PromptReviews access, then try again.`
+            );
+
+            return NextResponse.redirect(
+              new URL(`${returnUrl}${separator}error=already_connected&conflictEmail=${encodeURIComponent(googleEmail)}&message=${errorMessage}`, request.url)
+            );
+          } else {
+            // All existing connections are stale/expired - clean them up and allow this connection
+            console.log('🧹 Cleaning up stale connections for email:', googleEmail);
+            const staleIds = existingConnections.map(conn => conn.id);
+
+            const { error: cleanupError } = await supabaseAdmin
+              .from('google_business_profiles')
+              .delete()
+              .in('id', staleIds);
+
+            if (cleanupError) {
+              console.error('⚠️ Failed to clean up stale connections:', cleanupError);
+              // Continue anyway - don't block the new connection
+            } else {
+              console.log('✅ Cleaned up', staleIds.length, 'stale connection(s)');
+            }
+          }
         } else {
           console.log('✅ No duplicate Google account connections found for:', googleEmail);
         }
