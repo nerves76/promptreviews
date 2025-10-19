@@ -2537,8 +2537,14 @@ export default function SocialPostingDashboard() {
                           locations={locations}
                           selectedIds={selectedLocations}
                           onChange={setSelectedLocations}
-                          includeSelectAll={currentPlan !== 'grower'}
-                          maxSelections={currentPlan === 'grower' ? 1 : undefined}
+                          includeSelectAll={maxGBPLocations === null || maxGBPLocations > 1}
+                          maxSelections={maxGBPLocations || undefined}
+                          onMaxSelection={() => {
+                            setPostResult({
+                              success: false,
+                              message: `Your account is limited to ${maxGBPLocations} location${maxGBPLocations !== 1 ? 's' : ''}. Please upgrade your plan to manage more locations.`
+                            });
+                          }}
                           className="bg-gray-50 rounded-lg p-4"
                           helperText={locations.length > 0 ? 'Posts will publish to every selected location.' : undefined}
                           emptyState={(
