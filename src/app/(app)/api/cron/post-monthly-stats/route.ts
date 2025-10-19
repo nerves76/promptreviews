@@ -111,6 +111,7 @@ export async function GET(request: NextRequest) {
           email: PROMPTYBOT_EMAIL,
           first_name: 'Prompty',
           last_name: 'Bot',
+          business_name: 'Prompt Reviews',
           status: 'active',
           plan: 'system' // Special plan for system accounts
         })
@@ -176,28 +177,17 @@ export async function GET(request: NextRequest) {
     // Format numbers with commas
     const formatNumber = (num: number) => num.toLocaleString('en-US');
 
-    // Create the post body with improved formatting
+    // Create the post body with improved text-based formatting
     const postTitle = `Happy ${currentMonthName} Star Catchers! 🌟`;
     const postBody = `How many reviews did you capture last month?
 
-## 📊 ${lastMonthName} Review Stats
+📊 **${lastMonthName} Review Stats**
 
-<table>
-<tr>
-<td align="center">
-<h3>${formatNumber(totalAccounts)}</h3>
-<p>Prompt Reviews Accounts</p>
-</td>
-<td align="center">
-<h3>${formatNumber(totalReviewsCount)}</h3>
-<p>Total Reviews Captured</p>
-</td>
-<td align="center">
-<h3>${formatNumber(lastMonthReviewsCount)}</h3>
-<p>New Reviews in ${lastMonthName}</p>
-</td>
-</tr>
-</table>
+👥 **${formatNumber(totalAccounts)}** Prompt Reviews Accounts
+
+⭐ **${formatNumber(totalReviewsCount)}** Total Reviews Captured
+
+🎉 **${formatNumber(lastMonthReviewsCount)}** New Reviews in ${lastMonthName}
 
 Keep up the amazing work capturing those reviews! 💫`;
 

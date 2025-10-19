@@ -92,7 +92,7 @@ function renderNodes(
           <Link
             href={node.href || '#'}
             className={clsx(
-              'flex items-center gap-2 rounded-lg border border-transparent px-3 py-2 transition-colors',
+              'flex items-center gap-2 rounded-lg border border-transparent px-3 py-2 transition-colors flex-1 min-w-0',
               isActive
                 ? 'bg-white text-slate-900'
                 : isAncestorActive
@@ -100,8 +100,8 @@ function renderNodes(
                 : 'text-white/80 hover:bg-white/10 hover:text-white'
             )}
           >
-            <IconComponent className="h-4 w-4" />
-            <span className="truncate text-sm font-medium">{node.title}</span>
+            <IconComponent className="h-4 w-4 flex-shrink-0" />
+            <span className="break-words text-sm font-medium">{node.title}</span>
           </Link>
 
           {hasChildren && (
