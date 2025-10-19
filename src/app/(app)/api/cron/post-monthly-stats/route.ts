@@ -191,7 +191,7 @@ export async function GET(request: NextRequest) {
 
 Keep up the amazing work capturing those reviews! 💫`;
 
-    // Create the community post
+    // Create the community post with Prompty avatar
     const { data: post, error: postError } = await supabaseAdmin
       .from('posts')
       .insert({
@@ -199,7 +199,8 @@ Keep up the amazing work capturing those reviews! 💫`;
         author_id: promptyBotId,
         account_id: promptyBotAccountId,
         title: postTitle,
-        body: postBody
+        body: postBody,
+        logo_url: '/images/prompty-icon-prompt-reviews.png' // Prompty avatar
       })
       .select()
       .single();

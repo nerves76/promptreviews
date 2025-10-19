@@ -27,7 +27,7 @@ export default function DocsLayoutClient({ children, navigation }: DocsLayoutCli
         {mobileMenuOpen && (
           <div className="lg:hidden fixed inset-0 z-40 bg-black/50" onClick={() => setMobileMenuOpen(false)}>
             <div
-              className="fixed left-0 top-0 bottom-0 w-72 bg-gradient-to-b from-indigo-800 via-purple-700 to-fuchsia-600 p-4 overflow-y-auto"
+              className="fixed left-0 top-0 bottom-0 w-80 bg-gradient-to-b from-indigo-800 via-purple-700 to-fuchsia-600 p-4 overflow-y-auto"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 p-4">
@@ -38,7 +38,7 @@ export default function DocsLayoutClient({ children, navigation }: DocsLayoutCli
         )}
 
         <div className="flex gap-8">
-          <aside className="hidden lg:block w-64 flex-shrink-0">
+          <aside className="hidden lg:block w-80 flex-shrink-0">
             <div className="sticky top-8 bg-white/10 backdrop-blur-md rounded-xl border border-white/20 p-4">
               <Sidebar items={navigation} />
             </div>
