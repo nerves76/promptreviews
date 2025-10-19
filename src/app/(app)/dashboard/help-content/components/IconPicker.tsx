@@ -23,7 +23,10 @@ const COMMON_ICONS = [
   'Sparkles', 'Sun', 'Tag', 'Target', 'Thermometer', 'ThumbsUp',
   'Tool', 'Trash', 'TrendingUp', 'Truck', 'Tv', 'Twitter',
   'Type', 'Umbrella', 'Upload', 'User', 'Users', 'Video',
-  'Volume', 'Watch', 'Wifi', 'Wind', 'X', 'Zap', 'ZoomIn'
+  'Volume', 'Watch', 'Wifi', 'Wind', 'X', 'Zap', 'ZoomIn',
+  // Google & Social
+  'Chrome', 'Building2', 'MapPin', 'Store', 'BarChart3',
+  'MessageSquare', 'ImagePlus'
 ];
 
 interface IconPickerProps {
