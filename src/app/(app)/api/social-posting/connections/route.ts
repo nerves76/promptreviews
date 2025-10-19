@@ -6,7 +6,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/auth/providers/supabase';
+import { createServerSupabaseClient } from '@/auth/providers/supabase';
+import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
 
 /**
  * GET /api/social-posting/connections
@@ -15,13 +16,24 @@ import { createClient } from '@/auth/providers/supabase';
  */
 export async function GET(request: NextRequest) {
   try {
-    const supabase = createClient();
+    const supabase = await createServerSupabaseClient();
     const {
-      data: { user }
+      data: { user },
+      error: userError
     } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      console.error('🔒 [Social Connections GET] Authentication failed:', {
+        error: userError?.message || 'No user session found',
+        hasAuthCookie: !!request.cookies.get('sb-access-token')
+      });
+      return NextResponse.json(
+        {
+          error: 'Authentication required',
+          details: 'You must be logged in to view social platform connections'
+        },
+        { status: 401 }
+      );
     }
 
     // Get the account ID from the request query
@@ -29,8 +41,12 @@ export async function GET(request: NextRequest) {
     const accountId = url.searchParams.get('accountId');
 
     if (!accountId) {
+      console.warn('[Social Connections GET] Missing accountId parameter for user:', user.id);
       return NextResponse.json(
-        { error: 'Account ID is required' },
+        {
+          error: 'Account ID is required',
+          details: 'Please provide an accountId query parameter'
+        },
         { status: 400 }
       );
     }
@@ -44,8 +60,16 @@ export async function GET(request: NextRequest) {
       .maybeSingle();
 
     if (membershipError || !membership) {
+      console.warn('[Social Connections GET] Access denied:', {
+        userId: user.id,
+        requestedAccountId: accountId,
+        membershipError: membershipError?.message
+      });
       return NextResponse.json(
-        { error: 'Access denied to this account' },
+        {
+          error: 'Access denied',
+          details: 'You do not have permission to access this account'
+        },
         { status: 403 }
       );
     }
@@ -57,9 +81,16 @@ export async function GET(request: NextRequest) {
       .eq('account_id', accountId);
 
     if (connectionsError) {
-      console.error('Error fetching connections:', connectionsError);
+      console.error('❌ [Social Connections GET] Database error fetching connections:', {
+        accountId,
+        error: connectionsError.message,
+        code: connectionsError.code
+      });
       return NextResponse.json(
-        { error: 'Failed to fetch connections' },
+        {
+          error: 'Failed to fetch social platform connections',
+          details: connectionsError.message
+        },
         { status: 500 }
       );
     }
@@ -80,9 +111,15 @@ export async function GET(request: NextRequest) {
       connections: formattedConnections
     });
   } catch (error) {
-    console.error('Unexpected error in GET /api/social-posting/connections:', error);
+    console.error('❌ [Social Connections GET] Unexpected error:', {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined
+    });
     return NextResponse.json(
-      { error: 'Internal server error' },
+      {
+        error: 'Internal server error',
+        details: error instanceof Error ? error.message : 'An unexpected error occurred'
+      },
       { status: 500 }
     );
   }
@@ -95,21 +132,41 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createClient();
+    const supabase = await createServerSupabaseClient();
     const {
-      data: { user }
+      data: { user },
+      error: userError
     } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      console.error('🔒 [Social Connections POST] Authentication failed:', {
+        error: userError?.message || 'No user session found',
+        hasAuthCookie: !!request.cookies.get('sb-access-token')
+      });
+      return NextResponse.json(
+        {
+          error: 'Authentication required',
+          details: 'You must be logged in to connect social platforms'
+        },
+        { status: 401 }
+      );
     }
 
     const body = await request.json();
     const { accountId, platform, identifier, appPassword } = body;
 
     if (!accountId || !platform || !identifier || !appPassword) {
+      console.warn('[Social Connections POST] Missing required fields:', {
+        hasAccountId: !!accountId,
+        hasPlatform: !!platform,
+        hasIdentifier: !!identifier,
+        hasAppPassword: !!appPassword
+      });
       return NextResponse.json(
-        { error: 'Missing required fields: accountId, platform, identifier, appPassword' },
+        {
+          error: 'Missing required fields',
+          details: 'accountId, platform, identifier, and appPassword are all required'
+        },
         { status: 400 }
       );
     }
@@ -123,29 +180,46 @@ export async function POST(request: NextRequest) {
       .maybeSingle();
 
     if (membershipError || !membership) {
+      console.warn('[Social Connections POST] Access denied:', {
+        userId: user.id,
+        requestedAccountId: accountId,
+        membershipError: membershipError?.message
+      });
       return NextResponse.json(
-        { error: 'Access denied to this account' },
+        {
+          error: 'Access denied',
+          details: 'You do not have permission to manage connections for this account'
+        },
         { status: 403 }
       );
     }
 
     // Validate platform
     if (platform !== 'bluesky' && platform !== 'twitter' && platform !== 'slack') {
+      console.warn('[Social Connections POST] Invalid platform requested:', platform);
       return NextResponse.json(
-        { error: 'Invalid platform. Supported platforms: bluesky, twitter, slack' },
+        {
+          error: 'Invalid platform',
+          details: `Platform '${platform}' is not supported. Supported platforms: bluesky, twitter, slack`
+        },
         { status: 400 }
       );
     }
 
     // Currently only Bluesky is implemented
     if (platform !== 'bluesky') {
+      console.warn('[Social Connections POST] Platform not yet available:', platform);
       return NextResponse.json(
-        { error: `${platform} integration is not yet available` },
+        {
+          error: 'Platform not available',
+          details: `${platform} integration is coming soon. Currently only Bluesky is supported.`
+        },
         { status: 400 }
       );
     }
 
     // Validate credentials with Bluesky
+    console.log(`[Social Connections POST] Attempting to authenticate with Bluesky for identifier: ${identifier}`);
     const { BlueskyAdapter } = await import('@/features/social-posting/platforms/bluesky');
 
     const adapter = new BlueskyAdapter({
@@ -156,8 +230,15 @@ export async function POST(request: NextRequest) {
     const authSuccess = await adapter.authenticate();
 
     if (!authSuccess) {
+      console.warn('[Social Connections POST] Bluesky authentication failed:', {
+        identifier,
+        accountId
+      });
       return NextResponse.json(
-        { error: 'Failed to authenticate with Bluesky. Please check your credentials.' },
+        {
+          error: 'Bluesky authentication failed',
+          details: 'Unable to authenticate with Bluesky. Please verify your username/email and app password are correct.'
+        },
         { status: 401 }
       );
     }
@@ -168,11 +249,21 @@ export async function POST(request: NextRequest) {
     const did = adapter.getDID();
 
     if (!sessionData || !handle || !did) {
+      console.error('[Social Connections POST] Failed to retrieve Bluesky session data:', {
+        hasSessionData: !!sessionData,
+        hasHandle: !!handle,
+        hasDID: !!did
+      });
       return NextResponse.json(
-        { error: 'Failed to retrieve Bluesky session data' },
+        {
+          error: 'Bluesky session error',
+          details: 'Successfully authenticated but failed to retrieve account information. Please try again.'
+        },
         { status: 500 }
       );
     }
+
+    console.log(`✅ [Social Connections POST] Bluesky authenticated successfully as @${handle}`);
 
     // Store the connection in the database
     // Note: credentials should be encrypted in production
@@ -201,18 +292,40 @@ export async function POST(request: NextRequest) {
     if (insertError) {
       // Check for unique constraint violation
       if (insertError.code === '23505') {
+        console.warn('[Social Connections POST] Duplicate connection attempt:', {
+          accountId,
+          platform,
+          handle
+        });
         return NextResponse.json(
-          { error: `A ${platform} connection already exists for this account` },
+          {
+            error: 'Connection already exists',
+            details: `A ${platform} connection already exists for this account. Please disconnect the existing connection first.`
+          },
           { status: 409 }
         );
       }
 
-      console.error('Error inserting connection:', insertError);
+      console.error('❌ [Social Connections POST] Database error inserting connection:', {
+        accountId,
+        platform,
+        error: insertError.message,
+        code: insertError.code
+      });
       return NextResponse.json(
-        { error: 'Failed to save connection' },
+        {
+          error: 'Failed to save connection',
+          details: insertError.message
+        },
         { status: 500 }
       );
     }
+
+    console.log(`✅ [Social Connections POST] Connection saved successfully:`, {
+      connectionId: connection.id,
+      platform,
+      handle
+    });
 
     return NextResponse.json({
       connection: {
@@ -224,9 +337,15 @@ export async function POST(request: NextRequest) {
       }
     });
   } catch (error) {
-    console.error('Unexpected error in POST /api/social-posting/connections:', error);
+    console.error('❌ [Social Connections POST] Unexpected error:', {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined
+    });
     return NextResponse.json(
-      { error: 'Internal server error' },
+      {
+        error: 'Internal server error',
+        details: error instanceof Error ? error.message : 'An unexpected error occurred'
+      },
       { status: 500 }
     );
   }
@@ -239,21 +358,36 @@ export async function POST(request: NextRequest) {
  */
 export async function DELETE(request: NextRequest) {
   try {
-    const supabase = createClient();
+    const supabase = await createServerSupabaseClient();
     const {
-      data: { user }
+      data: { user },
+      error: userError
     } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      console.error('🔒 [Social Connections DELETE] Authentication failed:', {
+        error: userError?.message || 'No user session found',
+        hasAuthCookie: !!request.cookies.get('sb-access-token')
+      });
+      return NextResponse.json(
+        {
+          error: 'Authentication required',
+          details: 'You must be logged in to disconnect social platforms'
+        },
+        { status: 401 }
+      );
     }
 
     const url = new URL(request.url);
     const accountId = url.searchParams.get('accountId');
 
     if (!accountId) {
+      console.warn('[Social Connections DELETE] Missing accountId parameter for user:', user.id);
       return NextResponse.json(
-        { error: 'Account ID is required' },
+        {
+          error: 'Account ID is required',
+          details: 'Please provide an accountId query parameter'
+        },
         { status: 400 }
       );
     }
@@ -267,14 +401,23 @@ export async function DELETE(request: NextRequest) {
       .maybeSingle();
 
     if (membershipError || !membership) {
+      console.warn('[Social Connections DELETE] Access denied:', {
+        userId: user.id,
+        requestedAccountId: accountId,
+        membershipError: membershipError?.message
+      });
       return NextResponse.json(
-        { error: 'Access denied to this account' },
+        {
+          error: 'Access denied',
+          details: 'You do not have permission to manage connections for this account'
+        },
         { status: 403 }
       );
     }
 
     // Delete all connections for this account and platform (Bluesky)
     // This allows users to disconnect and reconnect without unique constraint violations
+    console.log('[Social Connections DELETE] Deleting Bluesky connection for account:', accountId);
     const { error: deleteError } = await supabase
       .from('social_platform_connections')
       .delete()
@@ -282,21 +425,36 @@ export async function DELETE(request: NextRequest) {
       .eq('platform', 'bluesky');
 
     if (deleteError) {
-      console.error('Error deleting connection:', deleteError);
+      console.error('❌ [Social Connections DELETE] Database error deleting connection:', {
+        accountId,
+        error: deleteError.message,
+        code: deleteError.code
+      });
       return NextResponse.json(
-        { error: 'Failed to delete connection' },
+        {
+          error: 'Failed to delete connection',
+          details: deleteError.message
+        },
         { status: 500 }
       );
     }
 
+    console.log('✅ [Social Connections DELETE] Connection deleted successfully for account:', accountId);
+
     return NextResponse.json({
       success: true,
-      message: 'Connection deleted successfully'
+      message: 'Bluesky connection disconnected successfully'
     });
   } catch (error) {
-    console.error('Unexpected error in DELETE /api/social-posting/connections:', error);
+    console.error('❌ [Social Connections DELETE] Unexpected error:', {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined
+    });
     return NextResponse.json(
-      { error: 'Internal server error' },
+      {
+        error: 'Internal server error',
+        details: error instanceof Error ? error.message : 'An unexpected error occurred'
+      },
       { status: 500 }
     );
   }
