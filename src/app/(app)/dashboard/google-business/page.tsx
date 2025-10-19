@@ -381,23 +381,37 @@ export default function SocialPostingDashboard() {
     // Handle OAuth errors
     if (hasError) {
       const message = urlParams.get('message');
-      
+      const conflictEmail = urlParams.get('conflictEmail');
+
       // Check if this is a missing_scope error
       if (hasError === 'missing_scope') {
-        
+
         // Just show the simple message - no auto-fix attempts
-        setPostResult({ 
-          success: false, 
-          message: message ? decodeURIComponent(message) : 'Please try connecting again and make sure to check the business management permission checkbox when prompted.' 
+        setPostResult({
+          success: false,
+          message: message ? decodeURIComponent(message) : 'Please try connecting again and make sure to check the business management permission checkbox when prompted.'
         });
-        
+
+        // Set active tab to connect so user sees the Connect button
+        setActiveTab('connect');
+      } else if (hasError === 'already_connected') {
+        // Handle duplicate Google account connection error with special formatting
+        const email = conflictEmail ? decodeURIComponent(conflictEmail) : 'this Google account';
+        const detailedMessage = message ? decodeURIComponent(message) :
+          `The Google account ${email} is already connected to a different PromptReviews account. To use it here, you need to disconnect it from the other account first, or revoke access in your Google Account settings.`;
+
+        setPostResult({
+          success: false,
+          message: detailedMessage
+        });
+
         // Set active tab to connect so user sees the Connect button
         setActiveTab('connect');
       } else {
         // Other errors - show the message
-        setPostResult({ 
-          success: false, 
-          message: message ? decodeURIComponent(message) : 'Failed to connect to Google Business Profile' 
+        setPostResult({
+          success: false,
+          message: message ? decodeURIComponent(message) : 'Failed to connect to Google Business Profile'
         });
       }
       

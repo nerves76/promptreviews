@@ -291,26 +291,42 @@ export async function GET(request: NextRequest) {
           'Authorization': `Bearer ${tokens.access_token}`
         }
       });
-      
+
       if (userInfoResponse.ok) {
         const userInfo = await userInfoResponse.json();
         googleEmail = userInfo.email;
-        
+        console.log('📧 Google account email:', googleEmail);
+
         // Check if this Google account is already connected to a different PR account
-        // Use regular supabase client for this read operation
-        const { data: existingConnection } = await supabaseAdmin
+        const { data: existingConnections, error: checkError } = await supabaseAdmin
           .from('google_business_profiles')
-          .select('account_id')
+          .select('account_id, id')
           .eq('google_email', googleEmail)
-          .neq('account_id', accountId)
-          .single();
-          
-        if (existingConnection) {
-          console.warn('⚠️ This Google account is already connected to a different Prompt Reviews account');
+          .neq('account_id', accountId);
+
+        if (checkError) {
+          console.error('❌ Error checking for existing connections:', checkError);
+          // Continue - don't block the flow for database errors
+        } else if (existingConnections && existingConnections.length > 0) {
+          const otherAccountId = existingConnections[0].account_id;
+          console.warn('⚠️ Duplicate Google account connection detected:', {
+            googleEmail,
+            currentAccountId: accountId,
+            conflictingAccountId: otherAccountId,
+            userId: user.id
+          });
+
           const separator = returnUrl.includes('?') ? '&' : '?';
-          return NextResponse.redirect(
-            new URL(`${returnUrl}${separator}error=already_connected&message=${encodeURIComponent('This Google account is already connected to a different Prompt Reviews account')}`, request.url)
+          const errorMessage = encodeURIComponent(
+            `This Google account (${googleEmail}) is already connected to a different PromptReviews account. ` +
+            `To use it here, please: 1) Switch to the other account and disconnect it, OR 2) Go to Google Account Security → Third-party apps → Revoke PromptReviews access, then try again.`
           );
+
+          return NextResponse.redirect(
+            new URL(`${returnUrl}${separator}error=already_connected&conflictEmail=${encodeURIComponent(googleEmail)}&message=${errorMessage}`, request.url)
+          );
+        } else {
+          console.log('✅ No duplicate Google account connections found for:', googleEmail);
         }
       } else {
         console.warn('⚠️ Could not fetch Google account info:', userInfoResponse.statusText);
