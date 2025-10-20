@@ -77,7 +77,7 @@ export default function FeaturesComparisonWidget({ className = '' }: FeaturesCom
   return (
     <div className={`grid md:grid-cols-2 gap-6 ${className}`}>
       {/* Features We Have - Glassmorphic Card */}
-      <div className="bg-white/20 backdrop-blur-lg rounded-2xl shadow-2xl p-8 border border-white/30">
+      <div className="bg-white/20 backdrop-blur-lg rounded-2xl shadow-lg p-8 border border-white/30">
         <div className="mb-6">
           <h3 className="text-2xl font-bold text-white mb-2">Features we <em>do</em> have</h3>
           <p className="text-white/90">
@@ -107,7 +107,7 @@ export default function FeaturesComparisonWidget({ className = '' }: FeaturesCom
       </div>
 
       {/* Features We Don't Have - Glassmorphic Card */}
-      <div className="bg-white/20 backdrop-blur-lg rounded-2xl shadow-2xl p-8 border border-white/30">
+      <div className="bg-white/20 backdrop-blur-lg rounded-2xl shadow-lg p-8 border border-white/30">
         <div className="mb-6">
           <h3 className="text-2xl font-bold text-white mb-2">Features we <em>don't</em> have</h3>
           <p className="text-white/90">

@@ -8,7 +8,7 @@ import FeaturesComparisonWidget from '@/components/marketing/FeaturesComparisonW
 
 export default function FeaturesWidgetEmbed() {
   return (
-    <div className="min-h-screen py-12 px-4">
+    <div className="py-12 px-4" style={{ overflow: 'hidden' }}>
       <div className="max-w-6xl mx-auto">
         <FeaturesComparisonWidget />
       </div>
