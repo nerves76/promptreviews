@@ -91,13 +91,13 @@ export default function FeaturesComparisonWidget({ className = '' }: FeaturesCom
               key={index}
               className="flex items-center gap-4 p-3 rounded-lg transition-colors hover:bg-green-50/50"
             >
-              <div className="flex-shrink-0 w-16 h-16 flex items-center justify-center text-green-600">
+              <div className="flex-shrink-0 w-12 h-12 flex items-center justify-center text-green-600">
                 {feature.customIcon ? (
-                  <span className="font-bold text-3xl">[P]</span>
+                  <span className="font-bold text-2xl">[P]</span>
                 ) : (
                   <Icon
                     name={feature.icon as any}
-                    size={64}
+                    size={48}
                   />
                 )}
               </div>
@@ -122,10 +122,10 @@ export default function FeaturesComparisonWidget({ className = '' }: FeaturesCom
               key={index}
               className="flex items-center gap-4 p-3 rounded-lg transition-colors hover:bg-red-50/50"
             >
-              <div className="flex-shrink-0 w-16 h-16 flex items-center justify-center text-red-500">
+              <div className="flex-shrink-0 w-12 h-12 flex items-center justify-center text-red-500">
                 <Icon
                   name={feature.icon as any}
-                  size={64}
+                  size={48}
                 />
               </div>
               <span className="text-gray-800 leading-relaxed">{feature.text}</span>
