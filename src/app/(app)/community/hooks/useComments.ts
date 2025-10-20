@@ -165,6 +165,42 @@ export function useComments(postId: string) {
     [postId, fetchComments, supabase]
   );
 
+  // Update comment
+  const updateComment = useCallback(
+    async (commentId: string, body: string) => {
+      // Get auth token from Supabase session
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        throw new Error('Not authenticated');
+      }
+
+      // Use API endpoint
+      const response = await fetch(`/api/community/comments/${commentId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ body }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to update comment');
+      }
+
+      // Update local state
+      setComments((prev) =>
+        prev.map((c) =>
+          c.id === commentId
+            ? { ...c, body, updated_at: new Date().toISOString() }
+            : c
+        )
+      );
+    },
+    [supabase]
+  );
+
   // Delete comment (soft delete)
   const deleteComment = useCallback(
     async (commentId: string) => {
@@ -200,6 +236,7 @@ export function useComments(postId: string) {
     error,
     fetchComments,
     createComment,
+    updateComment,
     deleteComment,
   };
 }

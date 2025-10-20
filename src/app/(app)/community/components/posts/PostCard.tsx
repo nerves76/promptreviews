@@ -7,12 +7,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Post, ReactionType } from '../../types/community';
+import { Post, ReactionType, Comment } from '../../types/community';
 import { UserIdentity } from '../shared/UserIdentity';
 import { RelativeTime } from '../shared/RelativeTime';
 import { ReactionBar } from '../reactions/ReactionBar';
 import { CommentList } from '../comments/CommentList';
 import { CommentComposer } from '../comments/CommentComposer';
+import { EditCommentModal } from '../modals/EditCommentModal';
 import { extractDomain } from '../../utils/urlValidator';
 import { parseTextContent } from '../../utils/linkify';
 import { useComments } from '../../hooks/useComments';
@@ -45,11 +46,12 @@ export function PostCard({
   const [showCommentsSection, setShowCommentsSection] = useState(false);
   const [hasLoadedComments, setHasLoadedComments] = useState(false);
   const [localCommentCount, setLocalCommentCount] = useState(post.comment_count || 0);
+  const [editingComment, setEditingComment] = useState<Comment | null>(null);
   const isAuthor = post.author_id === currentUserId;
   const canModify = isAuthor || isAdmin;
 
   // Initialize comment hooks
-  const { comments, isLoading: commentsLoading, fetchComments, createComment, deleteComment } = useComments(post.id);
+  const { comments, isLoading: commentsLoading, fetchComments, createComment, updateComment, deleteComment } = useComments(post.id);
   const { toggleReaction } = useReactions();
 
   // Update local comment count when post prop changes
@@ -86,6 +88,27 @@ export function PostCard({
       setLocalCommentCount((prev) => prev + 1);
     } catch (error) {
       console.error('Error creating comment:', error);
+      throw error;
+    }
+  };
+
+  // Handle comment editing
+  const handleCommentEdit = (commentId: string) => {
+    const comment = comments.find(c => c.id === commentId);
+    if (comment) {
+      setEditingComment(comment);
+    }
+  };
+
+  // Handle comment update
+  const handleCommentUpdate = async (body: string) => {
+    if (!editingComment) return;
+
+    try {
+      await updateComment(editingComment.id, body);
+      setEditingComment(null);
+    } catch (error) {
+      console.error('Error updating comment:', error);
       throw error;
     }
   };
@@ -329,6 +352,7 @@ export function PostCard({
             <CommentList
               comments={comments}
               currentUserId={currentUserId}
+              onEdit={handleCommentEdit}
               onDelete={handleCommentDelete}
               onReact={handleCommentReact}
             />
@@ -341,6 +365,16 @@ export function PostCard({
             </div>
           )}
         </div>
+      )}
+
+      {/* Edit Comment Modal */}
+      {editingComment && (
+        <EditCommentModal
+          isOpen={true}
+          comment={editingComment}
+          onClose={() => setEditingComment(null)}
+          onSubmit={handleCommentUpdate}
+        />
       )}
     </article>
   );
