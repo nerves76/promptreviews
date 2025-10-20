@@ -78,16 +78,14 @@ export function usePosts(channelId: string) {
               .from('businesses')
               .select('name, logo_url')
               .eq('account_id', post.account_id)
-              .limit(1)
-              .single();
+              .maybeSingle();
 
             // Check if user is Prompt Reviews team (via is_admin flag in accounts)
             const { data: accountData } = await supabase
               .from('accounts')
               .select('is_admin')
               .eq('id', post.account_id)
-              .limit(1)
-              .single();
+              .maybeSingle();
 
             const authorInfo = {
               id: profile.user_id,
