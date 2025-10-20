@@ -1,10 +1,10 @@
+"use client";
+
 /**
  * Features Comparison Widget - Embed Version
  *
  * Clean embed version without demo content for iframe embedding
  */
-
-'use client';
 
 import FeaturesComparisonWidget from '@/components/marketing/FeaturesComparisonWidget';
 
