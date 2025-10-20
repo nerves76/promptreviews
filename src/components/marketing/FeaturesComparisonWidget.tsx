@@ -93,11 +93,11 @@ export default function FeaturesComparisonWidget({ className = '' }: FeaturesCom
             >
               <div className="flex-shrink-0 w-8 h-8 flex items-center justify-center text-green-600">
                 {feature.customIcon ? (
-                  <span className="font-bold" style={{ fontSize: '32px' }}>[P]</span>
+                  <span className="font-bold" style={{ fontSize: '28px' }}>[P]</span>
                 ) : (
                   <Icon
                     name={feature.icon as any}
-                    size={32}
+                    size={feature.icon === 'FaQrcode' ? 36 : 32}
                   />
                 )}
               </div>
