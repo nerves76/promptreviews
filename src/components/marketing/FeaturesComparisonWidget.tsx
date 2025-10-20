@@ -46,7 +46,7 @@ const featuresWeHave: Feature[] = [
   },
   {
     text: 'Review Sentiment Analysis for insights',
-    icon: 'FaChartLine'
+    icon: 'FaSentimentAnalyzer'
   }
 ];
 
