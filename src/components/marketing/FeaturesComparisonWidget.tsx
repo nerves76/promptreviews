@@ -18,7 +18,7 @@ interface Feature {
 const featuresWeHave: Feature[] = [
   {
     text: 'Personalized landing pages & review widgets',
-    customIcon: <span className="font-bold text-lg">[P]</span>
+    icon: 'prompty'
   },
   {
     text: 'QR codes to capture reviews instantly',
@@ -92,15 +92,11 @@ export default function FeaturesComparisonWidget({ className = '' }: FeaturesCom
               className="group flex items-center gap-4 p-3 rounded-lg transition-all duration-300 hover:bg-white/20 hover:scale-[1.02]"
             >
               <div className="flex-shrink-0 w-8 h-8 flex items-center justify-center text-white transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3">
-                {feature.customIcon ? (
-                  <span className="font-bold" style={{ fontSize: '28px' }}>[P]</span>
-                ) : (
-                  <Icon
-                    name={feature.icon as any}
-                    size={feature.icon === 'FaQrcode' ? 36 : 32}
-                    color="white"
-                  />
-                )}
+                <Icon
+                  name={feature.icon as any}
+                  size={feature.icon === 'FaQrcode' ? 36 : 32}
+                  color="white"
+                />
               </div>
               <span className="text-white leading-relaxed">{feature.text}</span>
             </li>
