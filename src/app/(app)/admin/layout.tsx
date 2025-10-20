@@ -8,7 +8,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { createClient, getUserOrMock } from "@/auth/providers/supabase";
 
@@ -28,7 +28,11 @@ export default function AdminLayout({
   const [user, setUser] = useState<any>(null);
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const loader = useGlobalLoader();
+
+  // Check if this is an embed view
+  const isEmbed = searchParams?.get('embed') === 'true';
 
   useEffect(() => {
     const checkAdminAccess = async () => {
@@ -79,17 +83,18 @@ export default function AdminLayout({
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 py-6">
-          {/* Admin Header */}
-          <div className="mb-6">
-            <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-            <p className="text-gray-600 mt-2">Welcome, {user?.email}</p>
-          </div>
+      {!isEmbed && (
+        <div className="bg-white border-b border-gray-200">
+          <div className="max-w-7xl mx-auto px-4 py-6">
+            {/* Admin Header */}
+            <div className="mb-6">
+              <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
+              <p className="text-gray-600 mt-2">Welcome, {user?.email}</p>
+            </div>
 
-          {/* Admin Subnav */}
-          <div className="border-b border-gray-200 -mb-px">
-            <nav className="flex space-x-8 overflow-x-auto">
+            {/* Admin Subnav */}
+            <div className="border-b border-gray-200 -mb-px">
+              <nav className="flex space-x-8 overflow-x-auto">
               <Link
                 href="/admin"
                 className={`py-2 px-1 text-sm font-medium transition-colors ${
@@ -181,12 +186,14 @@ export default function AdminLayout({
                 Free Accounts
               </Link>
             </nav>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Page Content */}
-      <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className={`max-w-7xl mx-auto ${isEmbed ? 'p-0' : 'px-4 py-8'}`}>
         {children}
       </div>
     </div>
