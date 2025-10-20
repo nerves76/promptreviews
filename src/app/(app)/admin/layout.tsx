@@ -1,8 +1,9 @@
 /**
  * Admin Layout Component
- * 
+ *
  * This layout provides consistent navigation and styling for all admin pages,
  * including a subnav bar with links to different admin sections.
+ * Updated: 2025-01-19
  */
 
 "use client";
