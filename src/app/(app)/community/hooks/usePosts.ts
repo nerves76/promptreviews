@@ -291,6 +291,42 @@ export function usePosts(channelId: string) {
     [channelId, fetchPosts, supabase]
   );
 
+  // Update post
+  const updatePost = useCallback(
+    async (postId: string, data: { title: string; body: string }) => {
+      // Get auth token from Supabase session
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        throw new Error('Not authenticated');
+      }
+
+      // Use API endpoint
+      const response = await fetch(`/api/community/posts/${postId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to update post');
+      }
+
+      // Update local state
+      setPosts((prev) =>
+        prev.map((p) =>
+          p.id === postId
+            ? { ...p, title: data.title, body: data.body, updated_at: new Date().toISOString() }
+            : p
+        )
+      );
+    },
+    [supabase]
+  );
+
   // Delete post
   const deletePost = useCallback(
     async (postId: string) => {
@@ -328,6 +364,7 @@ export function usePosts(channelId: string) {
     fetchPosts,
     loadMore,
     createPost,
+    updatePost,
     deletePost,
   };
 }

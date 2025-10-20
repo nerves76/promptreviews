@@ -18,7 +18,7 @@ interface Feature {
 const featuresWeHave: Feature[] = [
   {
     text: 'Personalized landing pages & review widgets',
-    customIcon: <span className="font-bold text-2xl">[P]</span>
+    icon: 'prompty'
   },
   {
     text: 'QR codes to capture reviews instantly',
@@ -95,7 +95,7 @@ export default function FeaturesComparisonWidget({ className = '' }: FeaturesCom
                 {feature.customIcon ? feature.customIcon : (
                   <Icon
                     name={feature.icon as any}
-                    size={feature.icon === 'FaQrcode' ? 36 : 32}
+                    size={feature.icon === 'FaQrcode' ? 36 : feature.icon === 'prompty' ? 28 : 32}
                     color="white"
                   />
                 )}

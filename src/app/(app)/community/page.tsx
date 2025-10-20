@@ -15,9 +15,10 @@ import { PostFeed } from './components/posts/PostFeed';
 import { InlinePostComposer } from './components/posts/InlinePostComposer';
 import { GuidelinesModal } from './components/modals/GuidelinesModal';
 import { EditDisplayNameModal } from './components/modals/EditDisplayNameModal';
-import { Channel, ReactionType } from './types/community';
+import { Channel, ReactionType, Post } from './types/community';
 import { usePosts } from './hooks/usePosts';
 import { useReactions } from './hooks/useReactions';
+import { EditPostModal } from './components/modals/EditPostModal';
 
 export default function CommunityPage() {
   const { user, account, isLoading: authLoading } = useAuth();
@@ -36,6 +37,7 @@ export default function CommunityPage() {
   const [availableBusinessNames, setAvailableBusinessNames] = useState<Array<{ id: string; name: string }>>([]);
   const [showEditDisplayName, setShowEditDisplayName] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [editingPost, setEditingPost] = useState<Post | null>(null);
 
   // Get active channel from query params or default to 'general'
   useEffect(() => {
@@ -169,7 +171,7 @@ export default function CommunityPage() {
   const activeChannel = channels.find((c) => c.slug === activeChannelSlug);
 
   // Hooks
-  const { posts, isLoading, hasMore, fetchPosts, loadMore, createPost, deletePost } = usePosts(activeChannel?.id || '');
+  const { posts, isLoading, hasMore, fetchPosts, loadMore, createPost, updatePost, deletePost } = usePosts(activeChannel?.id || '');
   const { toggleReaction } = useReactions();
 
   // Fetch posts when channel changes
@@ -195,6 +197,27 @@ export default function CommunityPage() {
       await createPost({ ...data, account_id: account.id });
     } catch (error) {
       console.error('Error creating post:', error);
+      throw error;
+    }
+  };
+
+  // Handle post editing
+  const handleEditPost = (postId: string) => {
+    const post = posts.find(p => p.id === postId);
+    if (post) {
+      setEditingPost(post);
+    }
+  };
+
+  // Handle post update
+  const handleUpdatePost = async (data: { title: string; body: string }) => {
+    if (!editingPost) return;
+
+    try {
+      await updatePost(editingPost.id, data);
+      setEditingPost(null);
+    } catch (error) {
+      console.error('Error updating post:', error);
       throw error;
     }
   };
@@ -342,6 +365,7 @@ export default function CommunityPage() {
               isLoading={isLoading}
               hasMore={hasMore}
               onLoadMore={loadMore}
+              onPostEdit={handleEditPost}
               onPostDelete={handleDeletePost}
               onPostReact={handlePostReact}
             />
@@ -378,6 +402,16 @@ export default function CommunityPage() {
             setBusinessName(newBusinessName);
             fetchPosts(); // Refresh posts to show updated display name
           }}
+        />
+      )}
+
+      {/* Edit Post Modal */}
+      {editingPost && (
+        <EditPostModal
+          isOpen={true}
+          post={editingPost}
+          onClose={() => setEditingPost(null)}
+          onSubmit={handleUpdatePost}
         />
       )}
     </>

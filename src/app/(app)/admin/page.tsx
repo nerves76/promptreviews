@@ -502,7 +502,7 @@ export default function AdminPage() {
             <p className="text-xs text-gray-600 mt-1">Google Business connected</p>
           </div>
 
-          <div className="bg-white/60 backdrop-blur-sm p-4 rounded-xl shadow-sm border border-white/40">
+          <div className="bg-gray-50 p-4 rounded-lg shadow-sm border border-gray-200">
             <div className="flex items-center gap-2 mb-2">
               <Icon name="FaGoogle" className="w-5 h-5 text-green-600" />
               <h4 className="text-sm font-medium text-gray-700">GBP Posts</h4>
@@ -513,7 +513,7 @@ export default function AdminPage() {
             <p className="text-xs text-gray-600 mt-1">Published to Google</p>
           </div>
 
-          <div className="bg-white/60 backdrop-blur-sm p-4 rounded-xl shadow-sm border border-white/40">
+          <div className="bg-gray-50 p-4 rounded-lg shadow-sm border border-gray-200">
             <div className="flex items-center gap-2 mb-2">
               <Icon name="FaUsers" className="w-5 h-5 text-purple-600" />
               <h4 className="text-sm font-medium text-gray-700">Active Accounts</h4>
