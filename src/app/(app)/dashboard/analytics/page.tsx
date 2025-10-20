@@ -147,19 +147,19 @@ export default function AnalyticsPage() {
 
   useEffect(() => {
     const loadAnalytics = async () => {
-      
+
       // Wait for account selection to complete
-      if (accountLoading || !selectedAccount?.account_id) {
+      if (accountLoading || !selectedAccountId) {
         return;
       }
-      
+
       try {
 
         // Get all prompt page IDs for this account
         const { data: pages } = await supabase
           .from("prompt_pages")
           .select("id, slug, first_name, is_universal")
-          .eq("account_id", selectedAccount.account_id);
+          .eq("account_id", selectedAccountId);
         const pageIds = (pages || []).map((p: any) => p.id);
         if (!pageIds.length) {
           setAnalytics(null);
@@ -464,7 +464,7 @@ export default function AnalyticsPage() {
       }
     };
     loadAnalytics();
-  }, [promptPages, timeRange, router, filter, accountLoading, selectedAccount?.account_id]);
+  }, [promptPages, timeRange, router, filter, accountLoading, selectedAccountId, supabase]);
 
   if (isLoading) {
     return (
