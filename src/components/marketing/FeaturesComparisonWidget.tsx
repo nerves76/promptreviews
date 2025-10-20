@@ -1,8 +1,8 @@
 /**
  * Features Comparison Widget
  *
- * Embeddable two-column widget showing what Prompt Reviews does and doesn't do
- * Uses app icons for visual consistency
+ * Glassmorphic two-column widget showing what Prompt Reviews does and doesn't do
+ * Uses app icons and glassmorphic design aesthetic
  */
 
 'use client';
@@ -17,11 +17,11 @@ interface Feature {
 const featuresWeHave: Feature[] = [
   {
     text: 'Personalized landing pages & review widgets',
-    icon: 'FaGlobe'
+    icon: 'prompty' // [P] icon for Prompt Pages
   },
   {
     text: 'QR codes to capture reviews instantly',
-    icon: 'FaMobile'
+    icon: 'FaQrcode'
   },
   {
     text: 'Tools to make writing reviews easier (with or without AI)',
@@ -29,7 +29,7 @@ const featuresWeHave: Feature[] = [
   },
   {
     text: 'Google Business Profile management (multi-location)',
-    icon: 'FaMapMarker'
+    icon: 'FaGoogle' // Google "G" icon
   },
   {
     text: 'Contact upload & campaign tools',
@@ -41,11 +41,11 @@ const featuresWeHave: Feature[] = [
   },
   {
     text: 'Built-in community for learning & sharing',
-    icon: 'FaHandsHelping'
+    icon: 'FaUsers' // Community uses FaUsers
   },
   {
     text: 'Review Sentiment Analysis for insights',
-    icon: 'FaChartLine'
+    icon: 'FaSmile' // Using emoji/sentiment icon
   }
 ];
 
@@ -74,12 +74,12 @@ interface FeaturesComparisonWidgetProps {
 
 export default function FeaturesComparisonWidget({ className = '' }: FeaturesComparisonWidgetProps) {
   return (
-    <div className={`grid md:grid-cols-2 gap-8 ${className}`}>
-      {/* Features We Have */}
-      <div className="space-y-6">
-        <div>
+    <div className={`grid md:grid-cols-2 gap-6 ${className}`}>
+      {/* Features We Have - Glassmorphic Card */}
+      <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg p-8 border-2 border-white">
+        <div className="mb-6">
           <h3 className="text-2xl font-bold text-gray-900 mb-2">Features we do have</h3>
-          <p className="text-gray-600">
+          <p className="text-gray-700">
             Our human-first & AI-assisted approach means making it easier for you and your customers to connect.
           </p>
         </div>
@@ -87,23 +87,23 @@ export default function FeaturesComparisonWidget({ className = '' }: FeaturesCom
         <ul className="space-y-4">
           {featuresWeHave.map((feature, index) => (
             <li key={index} className="flex items-start gap-3">
-              <div className="flex-shrink-0 w-6 h-6 mt-0.5">
+              <div className="flex-shrink-0 w-7 h-7 mt-0.5 bg-white/60 backdrop-blur-xl rounded-full shadow-md flex items-center justify-center">
                 <Icon
                   name={feature.icon as any}
-                  className="w-6 h-6 text-green-600"
+                  className="w-4 h-4 text-green-600"
                 />
               </div>
-              <span className="text-gray-700 leading-relaxed">{feature.text}</span>
+              <span className="text-gray-800 leading-relaxed">{feature.text}</span>
             </li>
           ))}
         </ul>
       </div>
 
-      {/* Features We Don't Have */}
-      <div className="space-y-6">
-        <div>
+      {/* Features We Don't Have - Glassmorphic Card */}
+      <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg p-8 border-2 border-white">
+        <div className="mb-6">
           <h3 className="text-2xl font-bold text-gray-900 mb-2">Features we don't have</h3>
-          <p className="text-gray-600">
+          <p className="text-gray-700">
             We believe AI should support relationships, not replace them.
           </p>
         </div>
@@ -111,13 +111,13 @@ export default function FeaturesComparisonWidget({ className = '' }: FeaturesCom
         <ul className="space-y-4">
           {featuresWeDontHave.map((feature, index) => (
             <li key={index} className="flex items-start gap-3">
-              <div className="flex-shrink-0 w-6 h-6 mt-0.5">
+              <div className="flex-shrink-0 w-7 h-7 mt-0.5 bg-white/60 backdrop-blur-xl rounded-full shadow-md flex items-center justify-center">
                 <Icon
                   name={feature.icon as any}
-                  className="w-6 h-6 text-red-500"
+                  className="w-4 h-4 text-red-500"
                 />
               </div>
-              <span className="text-gray-700 leading-relaxed">{feature.text}</span>
+              <span className="text-gray-800 leading-relaxed">{feature.text}</span>
             </li>
           ))}
         </ul>
