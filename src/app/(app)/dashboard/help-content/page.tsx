@@ -284,7 +284,7 @@ export default function HelpContentPage() {
                 className="items-end"
               />
               <Button
-                onClick={() => router.push("/dashboard/help-content/new")}
+                onClick={() => router.push("/dashboard/help-content/edit/new")}
                 size="lg"
               >
                 + Create new article

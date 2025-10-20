@@ -349,7 +349,7 @@ export default function ArticleEditorPage() {
 
       // If new article, redirect to edit page
       if (isNewArticle) {
-        router.push(`/dashboard/help-content/${data.article.slug}/edit`);
+        router.push(`/dashboard/help-content/edit/${data.article.slug}`);
       }
     } catch (err: any) {
       console.error("Error saving article:", err);
