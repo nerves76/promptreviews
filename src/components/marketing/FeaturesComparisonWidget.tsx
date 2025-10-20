@@ -75,7 +75,7 @@ interface FeaturesComparisonWidgetProps {
 
 export default function FeaturesComparisonWidget({ className = '' }: FeaturesComparisonWidgetProps) {
   return (
-    <div className={`grid md:grid-cols-2 gap-6 ${className}`}>
+    <div className={`grid md:grid-cols-2 gap-8 ${className}`}>
       {/* Features We Have - Glassmorphic Card */}
       <div className="bg-white/20 backdrop-blur-lg rounded-2xl shadow-lg p-8 border border-white/30">
         <div className="mb-6">
