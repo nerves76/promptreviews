@@ -1739,7 +1739,7 @@ export default function AnimatedInfographic({ isEmbed = false, debug = false }: 
           </div>
 
           {/* Mobile Beam 2: Between Prompt Page and Review Platforms */}
-          <div className="[@media(min-width:960px)]:hidden relative w-3 h-16 mx-auto rounded-full overflow-hidden z-5 -mt-5" 
+          <div className="[@media(min-width:960px)]:hidden relative w-3 h-32 mx-auto rounded-full overflow-hidden z-5 -mt-5" 
             style={{ 
               background: 'linear-gradient(to b, rgba(31, 41, 55, 0.5), rgba(31, 41, 55, 0.3))',
               boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.3), 0 0 20px rgba(147, 51, 234, 0.3)'
