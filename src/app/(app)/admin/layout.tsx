@@ -78,17 +78,18 @@ export default function AdminLayout({
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600 py-8">
-      <div className="max-w-7xl mx-auto px-4">
-        {/* Admin Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white">Admin Dashboard</h1>
-          <p className="text-white/80 mt-2">Welcome, {user?.email}</p>
-        </div>
+    <div className="min-h-screen bg-gray-50">
+      <div className="bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 py-6">
+          {/* Admin Header */}
+          <div className="mb-6">
+            <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
+            <p className="text-gray-600 mt-2">Welcome, {user?.email}</p>
+          </div>
 
-        {/* Admin Subnav */}
-        <div className="mb-8 bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg border border-white/50 p-4">
-          <nav className="flex space-x-8 overflow-x-auto">
+          {/* Admin Subnav */}
+          <div className="border-b border-gray-200 -mb-px">
+            <nav className="flex space-x-8 overflow-x-auto">
               <Link
                 href="/admin"
                 className={`py-2 px-1 text-sm font-medium transition-colors ${
@@ -182,10 +183,13 @@ export default function AdminLayout({
             </nav>
           </div>
 
-        {/* Page Content */}
-        <div className="pb-8">
-          {children}
+          </div>
         </div>
+      </div>
+
+      {/* Page Content */}
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        {children}
       </div>
     </div>
   );

@@ -75,7 +75,7 @@ export function CommunityLayout({
               src="/images/the-prompt-reviews-community.png"
               alt="Prompt Reviews Community"
               fill
-              className="object-cover"
+              className="object-contain"
             />
           </div>
 
@@ -137,7 +137,7 @@ export function CommunityLayout({
               src="/images/the-prompt-reviews-community.png"
               alt="Prompt Reviews Community"
               fill
-              className="object-cover"
+              className="object-contain"
             />
           </div>
 

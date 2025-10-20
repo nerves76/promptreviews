@@ -95,7 +95,8 @@ export async function GET(request: NextRequest) {
         .insert({
           user_id: promptyBotId,
           username: 'prompty-bot',
-          display_name_override: 'Prompty @ Prompt Reviews',
+          display_name_override: 'Prompty',
+          business_name_override: 'Prompt Reviews',
           opted_in_at: new Date().toISOString(),
           guidelines_ack_at: new Date().toISOString()
         });

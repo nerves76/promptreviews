@@ -81,11 +81,11 @@ export function usePosts(channelId: string) {
               .limit(1)
               .single();
 
-            // Check if user is Prompt Reviews team
-            const { data: adminData } = await supabase
-              .from('admins')
-              .select('account_id')
-              .eq('account_id', post.account_id)
+            // Check if user is Prompt Reviews team (via is_admin flag in accounts)
+            const { data: accountData } = await supabase
+              .from('accounts')
+              .select('is_admin')
+              .eq('id', post.account_id)
               .limit(1)
               .single();
 
@@ -93,9 +93,9 @@ export function usePosts(channelId: string) {
               id: profile.user_id,
               username: profile.username,
               display_name: profile.display_name_override || profile.username,
-              business_name: business?.name || 'Unknown',
+              business_name: business?.name || '',
               logo_url: business?.logo_url,
-              is_promptreviews_team: !!adminData,
+              is_promptreviews_team: !!accountData?.is_admin,
             };
 
             // Get reaction counts

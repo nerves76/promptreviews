@@ -407,14 +407,14 @@ export default function AdminPage() {
       <div className="flex justify-between items-center mb-8">
         <button
           onClick={() => router.push("/dashboard/help-content")}
-          className="ml-auto px-4 py-2 bg-white/20 backdrop-blur-sm text-white rounded-lg hover:bg-white/30 transition-colors text-sm font-medium border border-white/30"
+          className="ml-auto px-4 py-2 bg-slate-blue text-white rounded-lg hover:bg-slate-blue/90 transition-colors text-sm font-medium"
         >
           Help Docs
         </button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div className="bg-white/90 backdrop-blur-sm p-6 rounded-2xl shadow-lg border border-white/50">
+        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
           <div className="flex items-center gap-2 mb-2">
             <Icon name="FaUsers" className="w-5 h-5 text-slate-blue" />
             <h3 className="text-lg font-semibold text-gray-900">Users</h3>
@@ -430,7 +430,7 @@ export default function AdminPage() {
           )}
         </div>
 
-        <div className="bg-white/90 backdrop-blur-sm p-6 rounded-2xl shadow-lg border border-white/50">
+        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
           <div className="flex items-center gap-2 mb-2">
             <Icon name="FaBuilding" className="w-5 h-5 text-slate-blue" />
             <h3 className="text-lg font-semibold text-gray-900">Accounts</h3>
@@ -446,7 +446,7 @@ export default function AdminPage() {
           )}
         </div>
 
-        <div className="bg-white/90 backdrop-blur-sm p-6 rounded-2xl shadow-lg border border-white/50">
+        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
           <div className="flex items-center gap-2 mb-2">
             <Icon name="FaSentimentAnalyzer" className="w-5 h-5 text-slate-blue" />
             <h3 className="text-lg font-semibold text-gray-900">Reviews</h3>
@@ -462,7 +462,7 @@ export default function AdminPage() {
           )}
         </div>
 
-        <div className="bg-white/90 backdrop-blur-sm p-6 rounded-2xl shadow-lg border border-white/50">
+        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
           <div className="flex items-center gap-2 mb-2">
             <div className="w-6 h-6 rounded bg-purple-600 flex items-center justify-center">
               <span className="text-white text-xs font-bold">P</span>
@@ -477,11 +477,11 @@ export default function AdminPage() {
       </div>
 
       {/* Platform Analytics Section */}
-      <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg p-6 mb-8 border border-white/50">
+      <div className="bg-white rounded-lg shadow-sm p-6 mb-8 border border-gray-200">
         <h2 className="text-xl font-bold text-gray-900 mb-4">Platform Analytics</h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="bg-white/60 backdrop-blur-sm p-4 rounded-xl shadow-sm border border-white/40">
+          <div className="bg-gray-50 p-4 rounded-lg shadow-sm border border-gray-200">
             <div className="flex items-center gap-2 mb-2">
               <Icon name="FaChartLine" className="w-5 h-5 text-indigo-600" />
               <h4 className="text-sm font-medium text-gray-700">Widgets Created</h4>
@@ -491,7 +491,7 @@ export default function AdminPage() {
             </p>
           </div>
 
-          <div className="bg-white/60 backdrop-blur-sm p-4 rounded-xl shadow-sm border border-white/40">
+          <div className="bg-gray-50 p-4 rounded-lg shadow-sm border border-gray-200">
             <div className="flex items-center gap-2 mb-2">
               <Icon name="FaGoogle" className="w-5 h-5 text-blue-600" />
               <h4 className="text-sm font-medium text-gray-700">GBP Locations</h4>
