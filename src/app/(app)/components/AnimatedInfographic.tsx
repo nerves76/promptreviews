@@ -336,8 +336,16 @@ export default function AnimatedInfographic({ isEmbed = false, debug = false }: 
     {
       category: 'Inspiration',
       tools: [
-        { 
-          name: 'Recent Reviews', 
+        {
+          name: 'Keywords',
+          iconName: 'FaKey' as const,
+          description: 'Improve your online visibility by suggesting important keyword phrases to your customers when they are composing your review.',
+          highlight: 'Boosts SEO',
+          learnMore: null,
+          position: { top: '-2%', left: '22%' } // Above beam - left
+        },
+        {
+          name: 'Recent Reviews',
           iconName: 'FaCommentDots' as const,
           description: 'Showcase recent reviews so customers can gain inspiration from what others have said.',
           highlight: 'Powers social influence',
