@@ -391,9 +391,27 @@ const nextConfig = {
           },
         ],
       },
+      // Features widget demo should allow iframe embedding
+      {
+        source: '/demo/features-widget',
+        headers: [
+          {
+            key: 'X-Frame-Options',
+            value: 'ALLOWALL',
+          },
+          {
+            key: 'Content-Security-Policy',
+            value: "frame-ancestors *;",
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+        ],
+      },
       // All other routes should deny iframe embedding
       {
-        source: '/((?!prompty-power-game|emoji-sentiment-embed|embed/review-dashboard|embed/google-business-optimizer|demo/multi-business-posting|demo/multi-business-posting-embed|demo/review-trends-tablet).*)',
+        source: '/((?!prompty-power-game|emoji-sentiment-embed|embed/review-dashboard|embed/google-business-optimizer|demo/multi-business-posting|demo/multi-business-posting-embed|demo/review-trends-tablet|demo/features-widget).*)',
         headers: [
           {
             key: 'X-Content-Type-Options',

@@ -18,7 +18,7 @@ interface Feature {
 const featuresWeHave: Feature[] = [
   {
     text: 'Personalized landing pages & review widgets',
-    icon: 'prompty'
+    customIcon: <span className="font-bold text-2xl">[P]</span>
   },
   {
     text: 'QR codes to capture reviews instantly',
@@ -34,7 +34,7 @@ const featuresWeHave: Feature[] = [
   },
   {
     text: 'Contact upload & campaign tools',
-    icon: 'FaUsers'
+    icon: 'FaUpload'
   },
   {
     text: 'Emoji-based private feedback flow',
@@ -79,7 +79,7 @@ export default function FeaturesComparisonWidget({ className = '' }: FeaturesCom
       {/* Features We Have - Glassmorphic Card */}
       <div className="bg-white/20 backdrop-blur-lg rounded-2xl shadow-2xl p-8 border border-white/30">
         <div className="mb-6">
-          <h3 className="text-2xl font-bold text-white mb-2">Features we do have</h3>
+          <h3 className="text-2xl font-bold text-white mb-2">Features we <em>do</em> have</h3>
           <p className="text-white/90">
             Our human-first & AI-assisted approach means making it easier for you and your customers to connect.
           </p>
@@ -109,7 +109,7 @@ export default function FeaturesComparisonWidget({ className = '' }: FeaturesCom
       {/* Features We Don't Have - Glassmorphic Card */}
       <div className="bg-white/20 backdrop-blur-lg rounded-2xl shadow-2xl p-8 border border-white/30">
         <div className="mb-6">
-          <h3 className="text-2xl font-bold text-white mb-2">Features we don't have</h3>
+          <h3 className="text-2xl font-bold text-white mb-2">Features we <em>don't</em> have</h3>
           <p className="text-white/90">
             We believe AI should support relationships, not replace them.
           </p>
@@ -121,11 +121,11 @@ export default function FeaturesComparisonWidget({ className = '' }: FeaturesCom
               key={index}
               className="group flex items-center gap-4 p-3 rounded-lg transition-all duration-300 hover:bg-white/20 hover:scale-[1.02]"
             >
-              <div className="flex-shrink-0 w-8 h-8 flex items-center justify-center text-white transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3">
+              <div className="flex-shrink-0 w-8 h-8 flex items-center justify-center transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3">
                 <Icon
                   name={feature.icon as any}
                   size={32}
-                  color="white"
+                  color="#ffb3b3"
                 />
               </div>
               <span className="text-white leading-relaxed">{feature.text}</span>
