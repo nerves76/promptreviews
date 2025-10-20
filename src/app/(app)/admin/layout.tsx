@@ -10,13 +10,13 @@
 import { useState, useEffect } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { createClient, getUserOrMock } from "@/auth/providers/supabase";
-
-const supabase = createClient();
-import { isAdmin } from "@/utils/admin";
 import { useRouter } from "next/navigation";
+import { createClient, getUserOrMock } from "@/auth/providers/supabase";
+import { isAdmin } from "@/utils/admin";
 import AppLoader from "@/app/(app)/components/AppLoader";
 import { useGlobalLoader } from "@/app/(app)/components/GlobalLoaderProvider";
+
+const supabase = createClient();
 
 export default function AdminLayout({
   children,
