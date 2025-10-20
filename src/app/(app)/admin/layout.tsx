@@ -75,6 +75,7 @@ export default function AdminLayout({
     if (loading) loader.show('admin-layout'); else loader.hide('admin-layout');
     return () => loader.hide('admin-layout');
   }, [loading, loader]);
+
   if (loading) return null;
 
   if (!isAdminUser) {
