@@ -13,6 +13,7 @@ import { createClient, getUserOrMock } from "@/auth/providers/supabase";
 import { isAdmin } from "@/utils/admin";
 import { useRouter } from "next/navigation";
 import AppLoader from "@/app/(app)/components/AppLoader";
+import Icon from "@/components/Icon";
 
 interface UserInfo {
   id: string;
@@ -401,21 +402,25 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto">
-      {/* Page Header */}
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-        <button
-          onClick={() => router.push("/dashboard/help-content")}
-          className="px-4 py-2 bg-slate-blue text-white rounded-lg hover:bg-slate-blue/90 transition-colors text-sm font-medium"
-        >
-          Help Docs
-        </button>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600 py-8">
+      <div className="max-w-4xl mx-auto px-4">
+        {/* Page Header */}
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-3xl font-bold text-white">Admin Dashboard</h1>
+          <button
+            onClick={() => router.push("/dashboard/help-content")}
+            className="px-4 py-2 bg-white/20 backdrop-blur-sm text-white rounded-lg hover:bg-white/30 transition-colors text-sm font-medium border border-white/30"
+          >
+            Help Docs
+          </button>
+        </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">Users</h3>
+        <div className="bg-white/90 backdrop-blur-sm p-6 rounded-2xl shadow-lg border border-white/50">
+          <div className="flex items-center gap-2 mb-2">
+            <Icon name="FaUsers" className="w-5 h-5 text-slate-blue" />
+            <h3 className="text-lg font-semibold text-gray-900">Users</h3>
+          </div>
           <p className="text-3xl font-bold text-slate-blue">
             {analyticsLoading ? '...' : analytics?.totalUsers || 0}
           </p>
@@ -427,8 +432,11 @@ export default function AdminPage() {
           )}
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">Accounts</h3>
+        <div className="bg-white/90 backdrop-blur-sm p-6 rounded-2xl shadow-lg border border-white/50">
+          <div className="flex items-center gap-2 mb-2">
+            <Icon name="FaBuilding" className="w-5 h-5 text-slate-blue" />
+            <h3 className="text-lg font-semibold text-gray-900">Accounts</h3>
+          </div>
           <p className="text-3xl font-bold text-slate-blue">
             {analyticsLoading ? '...' : analytics?.totalAccounts || 0}
           </p>
@@ -440,8 +448,11 @@ export default function AdminPage() {
           )}
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">Reviews</h3>
+        <div className="bg-white/90 backdrop-blur-sm p-6 rounded-2xl shadow-lg border border-white/50">
+          <div className="flex items-center gap-2 mb-2">
+            <Icon name="FaSentimentAnalyzer" className="w-5 h-5 text-slate-blue" />
+            <h3 className="text-lg font-semibold text-gray-900">Reviews</h3>
+          </div>
           <p className="text-3xl font-bold text-slate-blue">
             {analyticsLoading ? '...' : analytics?.totalReviews || 0}
           </p>
@@ -453,8 +464,13 @@ export default function AdminPage() {
           )}
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">Prompt Pages</h3>
+        <div className="bg-white/90 backdrop-blur-sm p-6 rounded-2xl shadow-lg border border-white/50">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-6 h-6 rounded bg-purple-600 flex items-center justify-center">
+              <span className="text-white text-xs font-bold">P</span>
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900">Prompt Pages</h3>
+          </div>
           <p className="text-3xl font-bold text-slate-blue">
             {analyticsLoading ? '...' : analytics?.totalPromptPages || 0}
           </p>
@@ -462,40 +478,52 @@ export default function AdminPage() {
         </div>
       </div>
 
-      {/* New Analytics Section */}
-      <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg p-6 mb-8 border border-indigo-200">
+      {/* Platform Analytics Section */}
+      <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg p-6 mb-8 border border-white/50">
         <h2 className="text-xl font-bold text-gray-900 mb-4">Platform Analytics</h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="bg-white p-4 rounded-lg shadow-sm">
-            <h4 className="text-sm font-medium text-gray-600 mb-1">Widgets Created</h4>
+          <div className="bg-white/60 backdrop-blur-sm p-4 rounded-xl shadow-sm border border-white/40">
+            <div className="flex items-center gap-2 mb-2">
+              <Icon name="FaChartLine" className="w-5 h-5 text-indigo-600" />
+              <h4 className="text-sm font-medium text-gray-700">Widgets Created</h4>
+            </div>
             <p className="text-2xl font-bold text-indigo-600">
               {analyticsLoading ? '...' : analytics?.totalWidgets?.toLocaleString() || 0}
             </p>
           </div>
 
-          <div className="bg-white p-4 rounded-lg shadow-sm">
-            <h4 className="text-sm font-medium text-gray-600 mb-1">GBP Locations</h4>
-            <p className="text-2xl font-bold text-purple-600">
+          <div className="bg-white/60 backdrop-blur-sm p-4 rounded-xl shadow-sm border border-white/40">
+            <div className="flex items-center gap-2 mb-2">
+              <Icon name="FaGoogle" className="w-5 h-5 text-blue-600" />
+              <h4 className="text-sm font-medium text-gray-700">GBP Locations</h4>
+            </div>
+            <p className="text-2xl font-bold text-blue-600">
               {analyticsLoading ? '...' : analytics?.totalGbpLocations?.toLocaleString() || 0}
             </p>
-            <p className="text-xs text-gray-500 mt-1">Google Business connected</p>
+            <p className="text-xs text-gray-600 mt-1">Google Business connected</p>
           </div>
 
-          <div className="bg-white p-4 rounded-lg shadow-sm">
-            <h4 className="text-sm font-medium text-gray-600 mb-1">GBP Posts</h4>
+          <div className="bg-white/60 backdrop-blur-sm p-4 rounded-xl shadow-sm border border-white/40">
+            <div className="flex items-center gap-2 mb-2">
+              <Icon name="FaGoogle" className="w-5 h-5 text-green-600" />
+              <h4 className="text-sm font-medium text-gray-700">GBP Posts</h4>
+            </div>
             <p className="text-2xl font-bold text-green-600">
               {analyticsLoading ? '...' : analytics?.totalGbpPosts?.toLocaleString() || 0}
             </p>
-            <p className="text-xs text-gray-500 mt-1">Published to Google</p>
+            <p className="text-xs text-gray-600 mt-1">Published to Google</p>
           </div>
 
-          <div className="bg-white p-4 rounded-lg shadow-sm">
-            <h4 className="text-sm font-medium text-gray-600 mb-1">Active Accounts</h4>
-            <p className="text-2xl font-bold text-blue-600">
+          <div className="bg-white/60 backdrop-blur-sm p-4 rounded-xl shadow-sm border border-white/40">
+            <div className="flex items-center gap-2 mb-2">
+              <Icon name="FaUsers" className="w-5 h-5 text-purple-600" />
+              <h4 className="text-sm font-medium text-gray-700">Active Accounts</h4>
+            </div>
+            <p className="text-2xl font-bold text-purple-600">
               {analyticsLoading ? '...' : analytics?.accountsActive?.toLocaleString() || 0}
             </p>
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-gray-600 mt-1">
               {analytics && !analyticsLoading && (
                 <>
                   Trial: {analytics?.accountsTrial || 0} • Paid: {analytics?.accountsPaid || 0}
@@ -507,7 +535,7 @@ export default function AdminPage() {
 
         {/* Platform Distribution */}
         {analytics?.reviewsByPlatform && Object.keys(analytics.reviewsByPlatform).length > 0 && (
-          <div className="mt-6 bg-white p-4 rounded-lg shadow-sm">
+          <div className="mt-6 bg-white/60 backdrop-blur-sm p-4 rounded-xl shadow-sm border border-white/40">
             <h4 className="text-sm font-semibold text-gray-900 mb-3">Reviews by Platform</h4>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {Object.entries(analytics.reviewsByPlatform)
@@ -523,7 +551,7 @@ export default function AdminPage() {
         )}
       </div>
 
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+      <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg border border-white/50 p-6 mb-8">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
         <div className="space-y-4">
           <button
@@ -1096,6 +1124,7 @@ export default function AdminPage() {
             </div>
           )}
         </div>
+      </div>
       </div>
     </div>
   );
