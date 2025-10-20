@@ -4,6 +4,8 @@
  * Clean embed version without demo content for iframe embedding
  */
 
+'use client';
+
 import FeaturesComparisonWidget from '@/components/marketing/FeaturesComparisonWidget';
 
 export default function FeaturesWidgetEmbed() {
