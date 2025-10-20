@@ -8,6 +8,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { createClient } from '@/auth/providers/supabase';
+import imageCompression from 'browser-image-compression';
 
 interface EditDisplayNameModalProps {
   isOpen: boolean;
@@ -50,7 +51,7 @@ export function EditDisplayNameModal({
   }, [currentDisplayName, currentBusinessName, currentProfilePhotoUrl]);
 
   // Handle file selection
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -60,21 +61,47 @@ export function EditDisplayNameModal({
       return;
     }
 
-    // Validate file size (2MB max)
-    if (file.size > 2 * 1024 * 1024) {
-      setError('Image must be smaller than 2MB');
+    // Validate file size (10MB max before compression)
+    if (file.size > 10 * 1024 * 1024) {
+      setError('Image must be smaller than 10MB');
       return;
     }
 
-    setSelectedFile(file);
     setError(null);
+    setIsUploading(true);
 
-    // Create preview URL
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setPreviewUrl(reader.result as string);
-    };
-    reader.readAsDataURL(file);
+    try {
+      // Compress and resize image to 300x300px
+      const options = {
+        maxSizeMB: 0.5, // Max 500KB after compression
+        maxWidthOrHeight: 300, // Resize to 300px
+        useWebWorker: true,
+        fileType: 'image/webp' as const, // Convert to WebP for better compression
+      };
+
+      const compressedFile = await imageCompression(file, options);
+
+      // Create a new File object with .webp extension
+      const webpFile = new File(
+        [compressedFile],
+        file.name.replace(/\.[^/.]+$/, '.webp'),
+        { type: 'image/webp' }
+      );
+
+      setSelectedFile(webpFile);
+
+      // Create preview URL
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreviewUrl(reader.result as string);
+      };
+      reader.readAsDataURL(compressedFile);
+    } catch (err) {
+      console.error('Error compressing image:', err);
+      setError('Failed to process image. Please try a different photo.');
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   // Remove selected photo
@@ -206,10 +233,10 @@ export function EditDisplayNameModal({
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                disabled={isSaving}
+                disabled={isSaving || isUploading}
                 className="px-4 py-2 bg-white/10 text-white text-sm rounded-lg hover:bg-white/20 transition-colors disabled:opacity-50"
               >
-                {displayPhotoUrl ? 'Change photo' : 'Upload photo'}
+                {isUploading ? 'Processing...' : displayPhotoUrl ? 'Change photo' : 'Upload photo'}
               </button>
               {displayPhotoUrl && (
                 <button
@@ -223,7 +250,9 @@ export function EditDisplayNameModal({
               )}
             </div>
           </div>
-          <p className="text-xs text-white/50 mt-2">JPG, PNG, or WEBP. Max 2MB.</p>
+          <p className="text-xs text-white/50 mt-2">
+            Automatically compressed and resized to 300×300px. Any image format accepted.
+          </p>
         </div>
 
         <div className="mb-4">
