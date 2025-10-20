@@ -402,18 +402,16 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600 py-8">
-      <div className="max-w-4xl mx-auto px-4">
-        {/* Page Header */}
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-white">Admin Dashboard</h1>
-          <button
-            onClick={() => router.push("/dashboard/help-content")}
-            className="px-4 py-2 bg-white/20 backdrop-blur-sm text-white rounded-lg hover:bg-white/30 transition-colors text-sm font-medium border border-white/30"
-          >
-            Help Docs
-          </button>
-        </div>
+    <div>
+      {/* Page Header */}
+      <div className="flex justify-between items-center mb-8">
+        <button
+          onClick={() => router.push("/dashboard/help-content")}
+          className="ml-auto px-4 py-2 bg-white/20 backdrop-blur-sm text-white rounded-lg hover:bg-white/30 transition-colors text-sm font-medium border border-white/30"
+        >
+          Help Docs
+        </button>
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <div className="bg-white/90 backdrop-blur-sm p-6 rounded-2xl shadow-lg border border-white/50">
@@ -1124,7 +1122,6 @@ export default function AdminPage() {
             </div>
           )}
         </div>
-      </div>
       </div>
     </div>
   );

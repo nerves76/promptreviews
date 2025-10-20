@@ -17,7 +17,6 @@ import { isAdmin } from "@/utils/admin";
 import { useRouter } from "next/navigation";
 import AppLoader from "@/app/(app)/components/AppLoader";
 import { useGlobalLoader } from "@/app/(app)/components/GlobalLoaderProvider";
-import PageCard from "@/app/(app)/components/PageCard";
 
 export default function AdminLayout({
   children,
@@ -79,18 +78,17 @@ export default function AdminLayout({
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600">
-      <PageCard>
-        <div className="max-w-7xl mx-auto">
-          {/* Admin Header */}
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-slate-blue">Admin Dashboard</h1>
-            <p className="text-gray-600 mt-2">Welcome, {user?.email}</p>
-          </div>
+    <div className="min-h-screen bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600 py-8">
+      <div className="max-w-7xl mx-auto px-4">
+        {/* Admin Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-white">Admin Dashboard</h1>
+          <p className="text-white/80 mt-2">Welcome, {user?.email}</p>
+        </div>
 
-          {/* Admin Subnav */}
-          <div className="mb-8 border-b border-gray-200">
-            <nav className="-mb-px flex space-x-8 overflow-x-auto">
+        {/* Admin Subnav */}
+        <div className="mb-8 bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg border border-white/50 p-4">
+          <nav className="flex space-x-8 overflow-x-auto">
               <Link
                 href="/admin"
                 className={`py-2 px-1 text-sm font-medium transition-colors ${
@@ -184,12 +182,11 @@ export default function AdminLayout({
             </nav>
           </div>
 
-          {/* Page Content */}
-          <div className="pb-8">
-            {children}
-          </div>
+        {/* Page Content */}
+        <div className="pb-8">
+          {children}
         </div>
-      </PageCard>
+      </div>
     </div>
   );
 } 
