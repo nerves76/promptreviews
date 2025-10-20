@@ -182,8 +182,6 @@ export default function AdminLayout({
               </Link>
             </nav>
           </div>
-
-          </div>
         </div>
       </div>
 
