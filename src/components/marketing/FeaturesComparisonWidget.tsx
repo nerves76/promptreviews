@@ -97,7 +97,7 @@ export default function FeaturesComparisonWidget({ className = '' }: FeaturesCom
                 ) : (
                   <Icon
                     name={feature.icon as any}
-                    className="w-16 h-16"
+                    size={64}
                   />
                 )}
               </div>
@@ -125,7 +125,7 @@ export default function FeaturesComparisonWidget({ className = '' }: FeaturesCom
               <div className="flex-shrink-0 w-16 h-16 flex items-center justify-center text-red-500">
                 <Icon
                   name={feature.icon as any}
-                  className="w-16 h-16"
+                  size={64}
                 />
               </div>
               <span className="text-gray-800 leading-relaxed">{feature.text}</span>
