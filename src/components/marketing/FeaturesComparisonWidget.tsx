@@ -2,7 +2,7 @@
  * Features Comparison Widget
  *
  * Glassmorphic two-column widget showing what Prompt Reviews does and doesn't do
- * Uses app icons and glassmorphic design aesthetic
+ * Uses app icons and glassmorphic design aesthetic with hover states
  */
 
 'use client';
@@ -11,13 +11,14 @@ import Icon from '@/components/Icon';
 
 interface Feature {
   text: string;
-  icon: string;
+  icon?: string;
+  customIcon?: React.ReactNode;
 }
 
 const featuresWeHave: Feature[] = [
   {
     text: 'Personalized landing pages & review widgets',
-    icon: 'prompty' // [P] icon for Prompt Pages
+    customIcon: <span className="font-bold text-lg">[P]</span>
   },
   {
     text: 'QR codes to capture reviews instantly',
@@ -29,7 +30,7 @@ const featuresWeHave: Feature[] = [
   },
   {
     text: 'Google Business Profile management (multi-location)',
-    icon: 'FaGoogle' // Google "G" icon
+    icon: 'FaGoogle'
   },
   {
     text: 'Contact upload & campaign tools',
@@ -41,11 +42,11 @@ const featuresWeHave: Feature[] = [
   },
   {
     text: 'Built-in community for learning & sharing',
-    icon: 'FaUsers' // Community uses FaUsers
+    icon: 'FaUsers'
   },
   {
     text: 'Review Sentiment Analysis for insights',
-    icon: 'FaSmile' // Using emoji/sentiment icon
+    icon: 'FaChartLine'
   }
 ];
 
@@ -84,14 +85,19 @@ export default function FeaturesComparisonWidget({ className = '' }: FeaturesCom
           </p>
         </div>
 
-        <ul className="space-y-4">
+        <ul className="space-y-3">
           {featuresWeHave.map((feature, index) => (
-            <li key={index} className="flex items-start gap-3">
-              <div className="flex-shrink-0 w-7 h-7 mt-0.5 bg-white/60 backdrop-blur-xl rounded-full shadow-md flex items-center justify-center">
-                <Icon
-                  name={feature.icon as any}
-                  className="w-4 h-4 text-green-600"
-                />
+            <li
+              key={index}
+              className="flex items-center gap-4 p-3 rounded-lg transition-colors hover:bg-green-50/50"
+            >
+              <div className="flex-shrink-0 w-8 h-8 flex items-center justify-center text-green-600">
+                {feature.customIcon ? feature.customIcon : (
+                  <Icon
+                    name={feature.icon as any}
+                    className="w-8 h-8"
+                  />
+                )}
               </div>
               <span className="text-gray-800 leading-relaxed">{feature.text}</span>
             </li>
@@ -108,13 +114,16 @@ export default function FeaturesComparisonWidget({ className = '' }: FeaturesCom
           </p>
         </div>
 
-        <ul className="space-y-4">
+        <ul className="space-y-3">
           {featuresWeDontHave.map((feature, index) => (
-            <li key={index} className="flex items-start gap-3">
-              <div className="flex-shrink-0 w-7 h-7 mt-0.5 bg-white/60 backdrop-blur-xl rounded-full shadow-md flex items-center justify-center">
+            <li
+              key={index}
+              className="flex items-center gap-4 p-3 rounded-lg transition-colors hover:bg-red-50/50"
+            >
+              <div className="flex-shrink-0 w-8 h-8 flex items-center justify-center text-red-500">
                 <Icon
                   name={feature.icon as any}
-                  className="w-4 h-4 text-red-500"
+                  className="w-8 h-8"
                 />
               </div>
               <span className="text-gray-800 leading-relaxed">{feature.text}</span>
