@@ -342,23 +342,26 @@ async function cleanupAccountInvitations(accountId: string): Promise<{ deleted: 
 
 /**
  * Clean up admin privileges for a user
- * @param userId - The user ID to clean up
+ * NOTE: Admin status is now stored in accounts.is_admin column
+ * This will be automatically cleaned up when the account is deleted
+ * @param accountId - The account ID to clean up
  * @returns Promise resolving to cleanup result
  */
-async function cleanupAdmins(userId: string): Promise<{ deleted: number; error?: string }> {
+async function cleanupAdmins(accountId: string): Promise<{ deleted: number; error?: string }> {
   try {
+    // Set is_admin to false before deleting the account
     const { error } = await supabaseAdmin
-      .from('admins')
-      .delete()
-      .eq('user_id', userId);
+      .from('accounts')
+      .update({ is_admin: false })
+      .eq('id', accountId);
 
     if (error) {
-      return { deleted: 0, error: `Failed to delete admin privileges: ${error.message}` };
+      return { deleted: 0, error: `Failed to revoke admin privileges: ${error.message}` };
     }
 
     return { deleted: 1 };
   } catch (error) {
-    return { deleted: 0, error: `Exception in admins cleanup: ${error}` };
+    return { deleted: 0, error: `Exception in admin privileges cleanup: ${error}` };
   }
 }
 
@@ -496,8 +499,8 @@ export async function deleteUserCompletely(email: string): Promise<CleanupResult
     // Clean up account invitations
     cleanupResults.account_invitations = await cleanupAccountInvitations(accountId);
 
-    // Clean up admin privileges
-    cleanupResults.admins = await cleanupAdmins(userId);
+    // Clean up admin privileges (sets is_admin to false)
+    cleanupResults.admins = await cleanupAdmins(accountId);
 
     // Clean up account_users relationship
     cleanupResults.account_users = await cleanupAccountUsers(userId);

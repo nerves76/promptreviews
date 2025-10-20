@@ -18,6 +18,7 @@ import { EditDisplayNameModal } from './components/modals/EditDisplayNameModal';
 import { Channel, ReactionType } from './types/community';
 import { usePosts } from './hooks/usePosts';
 import { useReactions } from './hooks/useReactions';
+import { isAdmin } from '@/utils/admin';
 
 export default function CommunityPage() {
   const { user, account, isLoading: authLoading } = useAuth();
@@ -79,23 +80,18 @@ export default function CommunityPage() {
 
   // Check admin status
   useEffect(() => {
-    const checkAdmin = async () => {
+    const checkAdminStatus = async () => {
       if (!user) return;
 
       try {
-        const { data } = await supabase
-          .from('admins')
-          .select('account_id')
-          .eq('account_id', user.id)
-          .maybeSingle();
-
-        setIsAdmin(!!data);
+        const adminStatus = await isAdmin(user.id, supabase);
+        setIsAdmin(adminStatus);
       } catch (error) {
         console.error('Error checking admin status:', error);
       }
     };
 
-    checkAdmin();
+    checkAdminStatus();
   }, [user, supabase]);
 
   // Check if user has accepted guidelines and fetch display name
