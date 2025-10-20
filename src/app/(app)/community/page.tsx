@@ -18,7 +18,6 @@ import { EditDisplayNameModal } from './components/modals/EditDisplayNameModal';
 import { Channel, ReactionType } from './types/community';
 import { usePosts } from './hooks/usePosts';
 import { useReactions } from './hooks/useReactions';
-import { isAdmin } from '@/utils/admin';
 
 export default function CommunityPage() {
   const { user, account, isLoading: authLoading } = useAuth();
@@ -84,8 +83,14 @@ export default function CommunityPage() {
       if (!user) return;
 
       try {
-        const adminStatus = await isAdmin(user.id, supabase);
-        setIsAdmin(adminStatus);
+        // Check if user has is_admin flag in accounts table
+        const { data } = await supabase
+          .from('accounts')
+          .select('is_admin')
+          .eq('id', user.id)
+          .maybeSingle();
+
+        setIsAdmin(!!data?.is_admin);
       } catch (error) {
         console.error('Error checking admin status:', error);
       }
