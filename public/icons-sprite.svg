@@ -462,13 +462,10 @@
     </symbol>
     <symbol id="FaKey" viewBox="0 0 200 200">
       <g transform="rotate(40 100 100)">
-        <!-- Key head (circle with hole, 15% bigger) -->
         <path d="M 100 16 A 34 34 0 1 1 100 84 A 34 34 0 1 1 100 16 M 100 33 A 17 17 0 1 0 100 67 A 17 17 0 1 0 100 33" fill="currentColor" fill-rule="evenodd"/>
         
-        <!-- Key shaft (extended down further, past the teeth, 5% thinner) -->
         <rect x="89" y="75" width="23" height="110" rx="3" fill="currentColor"/>
         
-        <!-- Key teeth (detached with gap, parallel on the lower side of shaft, 20% bigger) -->
         <path d="M 60 143 L 84 143 L 84 179 L 60 179 L 60 167 L 72 167 L 72 157 L 60 157 Z" fill="currentColor"/>
       </g>
     </symbol>
