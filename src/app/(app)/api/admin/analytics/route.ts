@@ -113,13 +113,35 @@ export async function GET(request: NextRequest) {
         { data: accounts },
         { data: businesses },
         { data: reviews },
-        { data: promptPages }
+        { data: promptPages },
+        { data: widgets },
+        { data: gbpLocations }
       ] = await Promise.all([
-        supabaseAdmin.from('accounts').select('id, created_at').not('email', 'is', null),
+        supabaseAdmin.from('accounts').select('id, created_at, status').not('email', 'is', null),
         supabaseAdmin.from('businesses').select('id, created_at'),
         supabaseAdmin.from('review_submissions').select('id, created_at, platform, verified'),
-        supabaseAdmin.from('prompt_pages').select('id, created_at')
+        supabaseAdmin.from('prompt_pages').select('id, created_at'),
+        supabaseAdmin.from('widgets').select('id, created_at'),
+        supabaseAdmin.from('google_business_locations').select('location_id').not('location_id', 'is', null)
       ]);
+
+      // Count GBP posts
+      const { count: gbpPostsCount } = await supabaseAdmin
+        .from('google_business_scheduled_posts')
+        .select('id', { count: 'exact', head: true })
+        .eq('status', 'published');
+
+      // Calculate account status breakdown
+      const accountsActive = accounts?.filter(a => a.status === 'active').length || 0;
+      const accountsTrial = accounts?.filter(a => a.status === 'trial').length || 0;
+      const accountsPaid = accounts?.filter(a => a.status === 'paid').length || 0;
+
+      // Calculate platform distribution
+      const platformCounts: Record<string, number> = {};
+      reviews?.forEach(review => {
+        const platform = review.platform || 'unknown';
+        platformCounts[platform] = (platformCounts[platform] || 0) + 1;
+      });
 
       analyticsData = {
         totalUsers: accounts?.length || 0,
@@ -127,12 +149,18 @@ export async function GET(request: NextRequest) {
         totalBusinesses: businesses?.length || 0,
         totalReviews: reviews?.length || 0,
         totalPromptPages: promptPages?.length || 0,
+        totalWidgets: widgets?.length || 0,
+        totalGbpLocations: new Set(gbpLocations?.map(l => l.location_id)).size || 0,
+        totalGbpPosts: gbpPostsCount || 0,
         reviewsThisMonth: reviews?.filter(r => new Date(r.created_at) >= monthAgo).length || 0,
         reviewsThisWeek: reviews?.filter(r => new Date(r.created_at) >= weekAgo).length || 0,
         newUsersThisMonth: accounts?.filter(u => new Date(u.created_at) >= monthAgo).length || 0,
         newAccountsThisMonth: accounts?.filter(a => new Date(a.created_at) >= monthAgo).length || 0,
         newBusinessesThisMonth: businesses?.filter(b => new Date(b.created_at) >= monthAgo).length || 0,
-        reviewsByPlatform: {},
+        accountsActive,
+        accountsTrial,
+        accountsPaid,
+        reviewsByPlatform: platformCounts,
         topPlatforms: [],
         recentActivity: [],
         businessGrowth: [],
@@ -149,69 +177,75 @@ export async function GET(request: NextRequest) {
       .sort((a, b) => b.count - a.count)
       .slice(0, 5);
 
-    // Calculate recent activity (last 7 days)
-    const activityMap: Record<string, { reviews: number; users: number }> = {};
-    for (let i = 6; i >= 0; i--) {
-      const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
-      const dateStr = date.toISOString().split('T')[0];
-      activityMap[dateStr] = { reviews: 0, users: 0 };
+    // These detailed calculations only work with slow path (when we have raw data)
+    // Fast path already sets these to empty arrays
+    if (!usedFastPath) {
+      const now = new Date();
+
+      // Calculate recent activity (last 7 days)
+      const activityMap: Record<string, { reviews: number; users: number }> = {};
+      for (let i = 6; i >= 0; i--) {
+        const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+        const dateStr = date.toISOString().split('T')[0];
+        activityMap[dateStr] = { reviews: 0, users: 0 };
+      }
+
+      reviews?.forEach(review => {
+        const date = new Date(review.created_at).toISOString().split('T')[0];
+        if (activityMap[date]) {
+          activityMap[date].reviews++;
+        }
+      });
+
+      accounts?.forEach(account => {
+        const date = new Date(account.created_at).toISOString().split('T')[0];
+        if (activityMap[date]) {
+          activityMap[date].users++;
+        }
+      });
+
+      analyticsData.recentActivity = Object.entries(activityMap)
+        .map(([date, data]) => ({ date, ...data }))
+        .sort((a, b) => a.date.localeCompare(b.date));
+
+      // Calculate business growth (last 6 months)
+      const growthMap: Record<string, number> = {};
+      for (let i = 5; i >= 0; i--) {
+        const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const monthStr = date.toISOString().slice(0, 7);
+        growthMap[monthStr] = 0;
+      }
+
+      businesses?.forEach(business => {
+        const month = new Date(business.created_at).toISOString().slice(0, 7);
+        if (growthMap[month] !== undefined) {
+          growthMap[month]++;
+        }
+      });
+
+      analyticsData.businessGrowth = Object.entries(growthMap)
+        .map(([month, count]) => ({ date: month, count }))
+        .sort((a, b) => a.date.localeCompare(b.date));
+
+      // Calculate review trends (last 30 days)
+      const trendMap: Record<string, number> = {};
+      for (let i = 29; i >= 0; i--) {
+        const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+        const dateStr = date.toISOString().split('T')[0];
+        trendMap[dateStr] = 0;
+      }
+
+      reviews?.forEach(review => {
+        const date = new Date(review.created_at).toISOString().split('T')[0];
+        if (trendMap[date] !== undefined) {
+          trendMap[date]++;
+        }
+      });
+
+      analyticsData.reviewTrends = Object.entries(trendMap)
+        .map(([date, count]) => ({ date, count }))
+        .sort((a, b) => a.date.localeCompare(b.date));
     }
-
-    reviews?.forEach(review => {
-      const date = new Date(review.created_at).toISOString().split('T')[0];
-      if (activityMap[date]) {
-        activityMap[date].reviews++;
-      }
-    });
-
-    accounts?.forEach(account => {
-      const date = new Date(account.created_at).toISOString().split('T')[0];
-      if (activityMap[date]) {
-        activityMap[date].users++;
-      }
-    });
-
-    analyticsData.recentActivity = Object.entries(activityMap)
-      .map(([date, data]) => ({ date, ...data }))
-      .sort((a, b) => a.date.localeCompare(b.date));
-
-    // Calculate business growth (last 6 months)
-    const growthMap: Record<string, number> = {};
-    for (let i = 5; i >= 0; i--) {
-      const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      const monthStr = date.toISOString().slice(0, 7);
-      growthMap[monthStr] = 0;
-    }
-
-    businesses?.forEach(business => {
-      const month = new Date(business.created_at).toISOString().slice(0, 7);
-      if (growthMap[month] !== undefined) {
-        growthMap[month]++;
-      }
-    });
-
-    analyticsData.businessGrowth = Object.entries(growthMap)
-      .map(([month, count]) => ({ date: month, count }))
-      .sort((a, b) => a.date.localeCompare(b.date));
-
-    // Calculate review trends (last 30 days)
-    const trendMap: Record<string, number> = {};
-    for (let i = 29; i >= 0; i--) {
-      const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
-      const dateStr = date.toISOString().split('T')[0];
-      trendMap[dateStr] = 0;
-    }
-
-    reviews?.forEach(review => {
-      const date = new Date(review.created_at).toISOString().split('T')[0];
-      if (trendMap[date] !== undefined) {
-        trendMap[date]++;
-      }
-    });
-
-    analyticsData.reviewTrends = Object.entries(trendMap)
-      .map(([date, count]) => ({ date, count }))
-      .sort((a, b) => a.date.localeCompare(b.date));
 
     return NextResponse.json(analyticsData);
 
