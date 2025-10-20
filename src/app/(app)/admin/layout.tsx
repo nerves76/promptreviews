@@ -186,8 +186,6 @@ export default function AdminLayout({
                 Free Accounts
               </Link>
             </nav>
-              </div>
-            </div>
           </div>
         </div>
       )}
