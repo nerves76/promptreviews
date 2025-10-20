@@ -533,7 +533,7 @@ export default function AdminPage() {
 
         {/* Platform Distribution */}
         {analytics?.reviewsByPlatform && Object.keys(analytics.reviewsByPlatform).length > 0 && (
-          <div className="mt-6 bg-white/60 backdrop-blur-sm p-4 rounded-xl shadow-sm border border-white/40">
+          <div className="mt-6 bg-gray-50 p-4 rounded-lg shadow-sm border border-gray-200">
             <h4 className="text-sm font-semibold text-gray-900 mb-3">Reviews by Platform</h4>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {Object.entries(analytics.reviewsByPlatform)
@@ -549,7 +549,7 @@ export default function AdminPage() {
         )}
       </div>
 
-      <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg border border-white/50 p-6 mb-8">
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
         <div className="space-y-4">
           <button
