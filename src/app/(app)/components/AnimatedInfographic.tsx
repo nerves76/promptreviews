@@ -1733,9 +1733,6 @@ export default function AnimatedInfographic({ isEmbed = false, debug = false }: 
                   ))}
                 </div>
                 
-                {/* Features Header - below the icons on desktop */}
-                <h3 className="text-white/95 font-bold text-lg lg:text-xl mt-8">Helpful features</h3>
-                <p className="text-gray-200/90 text-sm text-center mt-1">Help your customers write impactful reviews</p>
               </div>
             </div>
 
@@ -2115,9 +2112,6 @@ export default function AnimatedInfographic({ isEmbed = false, debug = false }: 
             ))}
           </div>
           
-          {/* Features Header - now below the icons */}
-          <h3 className="text-white/95 font-bold text-lg lg:text-xl mt-8">Helpful features</h3>
-          <p className="text-gray-200/90 text-sm text-center mt-1">Help your customers write impactful reviews</p>
         </div>
 
       </div>
