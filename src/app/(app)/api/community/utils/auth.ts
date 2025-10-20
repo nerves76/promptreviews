@@ -61,13 +61,13 @@ export async function verifyAuth(request: NextRequest): Promise<AuthResult> {
 export async function isAdmin(userId: string): Promise<boolean> {
   const supabase = createServiceClient();
 
-  const { data: adminRecord } = await supabase
-    .from('admins')
-    .select('user_id')
-    .eq('user_id', userId)
+  const { data: account } = await supabase
+    .from('accounts')
+    .select('is_admin')
+    .eq('id', userId)
     .maybeSingle();
 
-  return !!adminRecord;
+  return !!account?.is_admin;
 }
 
 /**
