@@ -1,18 +1,19 @@
 /**
  * EditDisplayNameModal Component
  *
- * Modal for editing user's community display name and business name
+ * Modal for editing user's community display name, business name, and profile photo
  */
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { createClient } from '@/auth/providers/supabase';
 
 interface EditDisplayNameModalProps {
   isOpen: boolean;
   currentDisplayName: string;
   currentBusinessName: string;
+  currentProfilePhotoUrl?: string;
   availableBusinessNames: Array<{ id: string; name: string }>;
   userId: string;
   onClose: () => void;
@@ -23,6 +24,7 @@ export function EditDisplayNameModal({
   isOpen,
   currentDisplayName,
   currentBusinessName,
+  currentProfilePhotoUrl,
   availableBusinessNames,
   userId,
   onClose,
@@ -30,14 +32,63 @@ export function EditDisplayNameModal({
 }: EditDisplayNameModalProps) {
   const [displayName, setDisplayName] = useState(currentDisplayName);
   const [businessName, setBusinessName] = useState(currentBusinessName);
+  const [profilePhotoUrl, setProfilePhotoUrl] = useState<string | null>(currentProfilePhotoUrl || null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const supabase = createClient();
 
   useEffect(() => {
     setDisplayName(currentDisplayName);
     setBusinessName(currentBusinessName);
-  }, [currentDisplayName, currentBusinessName]);
+    setProfilePhotoUrl(currentProfilePhotoUrl || null);
+    setSelectedFile(null);
+    setPreviewUrl(null);
+  }, [currentDisplayName, currentBusinessName, currentProfilePhotoUrl]);
+
+  // Handle file selection
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      setError('Please select an image file');
+      return;
+    }
+
+    // Validate file size (2MB max)
+    if (file.size > 2 * 1024 * 1024) {
+      setError('Image must be smaller than 2MB');
+      return;
+    }
+
+    setSelectedFile(file);
+    setError(null);
+
+    // Create preview URL
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setPreviewUrl(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // Remove selected photo
+  const handleRemovePhoto = async () => {
+    setSelectedFile(null);
+    setPreviewUrl(null);
+
+    // If there's an existing photo, offer to remove it
+    if (profilePhotoUrl) {
+      if (confirm('Remove your profile photo? Your business logo will be used instead.')) {
+        setProfilePhotoUrl(null);
+      }
+    }
+  };
 
   const handleSave = async () => {
     if (!displayName.trim()) {
@@ -54,11 +105,44 @@ export function EditDisplayNameModal({
     setError(null);
 
     try {
+      let uploadedPhotoUrl = profilePhotoUrl;
+
+      // Upload new photo if selected
+      if (selectedFile) {
+        setIsUploading(true);
+
+        // Generate unique filename
+        const fileExt = selectedFile.name.split('.').pop();
+        const fileName = `${userId}/profile.${fileExt}`;
+
+        // Upload to Supabase Storage
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('profile-photos')
+          .upload(fileName, selectedFile, {
+            cacheControl: '3600',
+            upsert: true // Replace existing file
+          });
+
+        if (uploadError) {
+          throw new Error(`Failed to upload photo: ${uploadError.message}`);
+        }
+
+        // Get public URL
+        const { data: { publicUrl } } = supabase.storage
+          .from('profile-photos')
+          .getPublicUrl(fileName);
+
+        uploadedPhotoUrl = publicUrl;
+        setIsUploading(false);
+      }
+
+      // Update profile in database
       const { error: updateError } = await supabase
         .from('community_profiles')
         .update({
           display_name_override: displayName.trim(),
-          business_name_override: businessName.trim()
+          business_name_override: businessName.trim(),
+          profile_photo_url: uploadedPhotoUrl
         })
         .eq('user_id', userId);
 
@@ -71,19 +155,76 @@ export function EditDisplayNameModal({
       setError(err.message || 'Failed to update profile');
     } finally {
       setIsSaving(false);
+      setIsUploading(false);
     }
   };
 
   if (!isOpen) return null;
 
+  // Get the current display photo (preview, existing, or placeholder)
+  const displayPhotoUrl = previewUrl || profilePhotoUrl;
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-      <div className="bg-white/10 backdrop-blur-xl rounded-xl border border-white/20 max-w-md w-full p-6">
+      <div className="bg-white/10 backdrop-blur-xl rounded-xl border border-white/20 max-w-md w-full p-6 max-h-[90vh] overflow-y-auto">
         <h2 className="text-2xl font-bold text-white mb-4">Edit community profile</h2>
 
         <p className="text-white/70 text-sm mb-6">
           Customize how you appear in the community. Your display name and business are shown on all your posts and comments.
         </p>
+
+        {/* Profile Photo Upload */}
+        <div className="mb-6">
+          <label className="block text-white/70 text-sm font-medium mb-2">Profile photo</label>
+          <div className="flex items-center gap-4">
+            {/* Avatar preview */}
+            <div className="w-20 h-20 rounded-full overflow-hidden bg-white/10 border border-white/20 flex-shrink-0">
+              {displayPhotoUrl ? (
+                <img
+                  src={displayPhotoUrl}
+                  alt="Profile"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-white/50">
+                  <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                </div>
+              )}
+            </div>
+
+            {/* Upload buttons */}
+            <div className="flex flex-col gap-2 flex-1">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleFileSelect}
+                className="hidden"
+              />
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isSaving}
+                className="px-4 py-2 bg-white/10 text-white text-sm rounded-lg hover:bg-white/20 transition-colors disabled:opacity-50"
+              >
+                {displayPhotoUrl ? 'Change photo' : 'Upload photo'}
+              </button>
+              {displayPhotoUrl && (
+                <button
+                  type="button"
+                  onClick={handleRemovePhoto}
+                  disabled={isSaving}
+                  className="px-4 py-2 text-white/70 text-sm hover:text-white transition-colors disabled:opacity-50"
+                >
+                  Remove photo
+                </button>
+              )}
+            </div>
+          </div>
+          <p className="text-xs text-white/50 mt-2">JPG, PNG, or WEBP. Max 2MB.</p>
+        </div>
 
         <div className="mb-4">
           <label className="block text-white/70 text-sm font-medium mb-2">Display name</label>
@@ -152,10 +293,10 @@ export function EditDisplayNameModal({
           </button>
           <button
             onClick={handleSave}
-            disabled={isSaving}
+            disabled={isSaving || isUploading}
             className="flex-1 px-4 py-2 bg-[#452F9F] text-white rounded-lg hover:bg-[#5a3fbf] transition-colors disabled:opacity-50"
           >
-            {isSaving ? 'Saving...' : 'Save changes'}
+            {isUploading ? 'Uploading...' : isSaving ? 'Saving...' : 'Save changes'}
           </button>
         </div>
       </div>

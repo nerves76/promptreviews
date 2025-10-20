@@ -40,6 +40,7 @@ export interface AuthorInfo {
   display_name: string;
   business_name: string;
   logo_url?: string;
+  profile_photo_url?: string;
   is_promptreviews_team: boolean;
 }
 

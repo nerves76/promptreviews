@@ -34,6 +34,7 @@ export default function CommunityPage() {
   const [isLoadingChannels, setIsLoadingChannels] = useState(true);
   const [displayName, setDisplayName] = useState<string>('');
   const [businessName, setBusinessName] = useState<string>('');
+  const [profilePhotoUrl, setProfilePhotoUrl] = useState<string>('');
   const [availableBusinessNames, setAvailableBusinessNames] = useState<Array<{ id: string; name: string }>>([]);
   const [showEditDisplayName, setShowEditDisplayName] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -109,7 +110,7 @@ export default function CommunityPage() {
       try {
         const { data, error } = await supabase
           .from('community_profiles')
-          .select('guidelines_ack_at, display_name_override, business_name_override')
+          .select('guidelines_ack_at, display_name_override, business_name_override, profile_photo_url')
           .eq('user_id', user.id)
           .single();
 
@@ -129,6 +130,11 @@ export default function CommunityPage() {
         } else {
           // Fallback to account business name if no override
           setBusinessName(account?.business_name || 'Your Business');
+        }
+
+        // Set profile photo URL if available
+        if (data?.profile_photo_url) {
+          setProfilePhotoUrl(data.profile_photo_url);
         }
       } catch (error) {
         console.error('Error checking guidelines:', error);
@@ -394,13 +400,14 @@ export default function CommunityPage() {
           isOpen={showEditDisplayName}
           currentDisplayName={displayName}
           currentBusinessName={businessName || account?.business_name || 'Your Business'}
+          currentProfilePhotoUrl={profilePhotoUrl}
           availableBusinessNames={availableBusinessNames}
           userId={user.id}
           onClose={() => setShowEditDisplayName(false)}
           onUpdate={(newDisplayName, newBusinessName) => {
             setDisplayName(newDisplayName);
             setBusinessName(newBusinessName);
-            fetchPosts(); // Refresh posts to show updated display name
+            fetchPosts(); // Refresh posts to show updated display name and photo
           }}
         />
       )}

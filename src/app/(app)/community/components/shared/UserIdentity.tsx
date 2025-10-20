@@ -26,13 +26,16 @@ export function UserIdentity({ author, showBadge = true, className = '' }: UserI
     );
   }
 
+  // Prioritize profile photo over business logo
+  const avatarUrl = author.profile_photo_url || author.logo_url;
+
   return (
     <div className={`flex items-center gap-2 ${className}`}>
-      {/* Avatar (optional for Phase 2) */}
-      {author.logo_url && (
+      {/* Avatar - profile photo takes precedence over business logo */}
+      {avatarUrl && (
         <img
-          src={author.logo_url}
-          alt={author.business_name}
+          src={avatarUrl}
+          alt={author.display_name}
           className="w-8 h-8 rounded-full object-cover border border-white/20"
         />
       )}

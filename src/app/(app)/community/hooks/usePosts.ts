@@ -60,7 +60,7 @@ export function usePosts(channelId: string) {
             // Get community profile for the author
             const { data: profile, error: profileError } = await supabase
               .from('community_profiles')
-              .select('user_id, username, display_name_override, business_name_override')
+              .select('user_id, username, display_name_override, business_name_override, profile_photo_url')
               .eq('user_id', post.author_id)
               .single();
 
@@ -93,6 +93,7 @@ export function usePosts(channelId: string) {
               display_name: profile.display_name_override || profile.username,
               business_name: profile.business_name_override || business?.name || '',
               logo_url: business?.logo_url,
+              profile_photo_url: profile.profile_photo_url,
               is_promptreviews_team: !!accountData?.is_admin,
             };
 
