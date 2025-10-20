@@ -77,10 +77,10 @@ export default function FeaturesComparisonWidget({ className = '' }: FeaturesCom
   return (
     <div className={`grid md:grid-cols-2 gap-6 ${className}`}>
       {/* Features We Have - Glassmorphic Card */}
-      <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg p-8 border-2 border-white">
+      <div className="bg-white/25 backdrop-blur-lg rounded-2xl shadow-2xl p-8 border border-white/30">
         <div className="mb-6">
-          <h3 className="text-2xl font-bold text-gray-900 mb-2">Features we do have</h3>
-          <p className="text-gray-700">
+          <h3 className="text-2xl font-bold text-white mb-2">Features we do have</h3>
+          <p className="text-white/90">
             Our human-first & AI-assisted approach means making it easier for you and your customers to connect.
           </p>
         </div>
@@ -89,29 +89,30 @@ export default function FeaturesComparisonWidget({ className = '' }: FeaturesCom
           {featuresWeHave.map((feature, index) => (
             <li
               key={index}
-              className="flex items-center gap-4 p-3 rounded-lg transition-colors hover:bg-green-50/50"
+              className="flex items-center gap-4 p-3 rounded-lg transition-colors hover:bg-white/20"
             >
-              <div className="flex-shrink-0 w-8 h-8 flex items-center justify-center text-green-600">
+              <div className="flex-shrink-0 w-8 h-8 flex items-center justify-center text-white">
                 {feature.customIcon ? (
                   <span className="font-bold" style={{ fontSize: '28px' }}>[P]</span>
                 ) : (
                   <Icon
                     name={feature.icon as any}
                     size={feature.icon === 'FaQrcode' ? 36 : 32}
+                    color="white"
                   />
                 )}
               </div>
-              <span className="text-gray-800 leading-relaxed">{feature.text}</span>
+              <span className="text-white leading-relaxed">{feature.text}</span>
             </li>
           ))}
         </ul>
       </div>
 
       {/* Features We Don't Have - Glassmorphic Card */}
-      <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg p-8 border-2 border-white">
+      <div className="bg-white/25 backdrop-blur-lg rounded-2xl shadow-2xl p-8 border border-white/30">
         <div className="mb-6">
-          <h3 className="text-2xl font-bold text-gray-900 mb-2">Features we don't have</h3>
-          <p className="text-gray-700">
+          <h3 className="text-2xl font-bold text-white mb-2">Features we don't have</h3>
+          <p className="text-white/90">
             We believe AI should support relationships, not replace them.
           </p>
         </div>
@@ -120,15 +121,16 @@ export default function FeaturesComparisonWidget({ className = '' }: FeaturesCom
           {featuresWeDontHave.map((feature, index) => (
             <li
               key={index}
-              className="flex items-center gap-4 p-3 rounded-lg transition-colors hover:bg-red-50/50"
+              className="flex items-center gap-4 p-3 rounded-lg transition-colors hover:bg-white/20"
             >
-              <div className="flex-shrink-0 w-8 h-8 flex items-center justify-center text-red-500">
+              <div className="flex-shrink-0 w-8 h-8 flex items-center justify-center text-white">
                 <Icon
                   name={feature.icon as any}
                   size={32}
+                  color="white"
                 />
               </div>
-              <span className="text-gray-800 leading-relaxed">{feature.text}</span>
+              <span className="text-white leading-relaxed">{feature.text}</span>
             </li>
           ))}
         </ul>
