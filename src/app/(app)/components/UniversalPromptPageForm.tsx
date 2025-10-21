@@ -253,20 +253,34 @@ export default function UniversalPromptPageForm({
         aiGeneratingIndex={aiGeneratingIndex}
       />
 
-      {/* Keywords Section */}
+      {/* Keyword Phrases Section */}
       <div className="rounded-lg p-6 bg-slate-50 border border-slate-200 shadow">
         <div className="flex items-center gap-3 mb-4">
           <Icon name="FaSearch" className="w-7 h-7 text-slate-blue" size={28} />
-          <h3 className="text-2xl font-bold text-slate-blue">Keywords</h3>
+          <h3 className="text-2xl font-bold text-slate-blue">Keyword phrases</h3>
         </div>
         <div className="mb-2">
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Add keywords to help guide reviewers and improve SEO
+            Add keyword-powered review suggestions to help guide reviewers and improve your SEO
           </label>
           <KeywordsInput
             keywords={keywords}
             onChange={setKeywords}
             placeholder="Enter keywords separated by commas (e.g., best pizza Seattle, wood-fired oven, authentic Italian)"
+            businessInfo={{
+              name: businessProfile?.name,
+              industry: businessProfile?.industry,
+                industries_other: businessProfile?.industries_other,
+                industry_other: businessProfile?.industry_other,
+              address_city: businessProfile?.address_city,
+              address_state: businessProfile?.address_state,
+              accountId: businessProfile?.account_id,
+                about_us: businessProfile?.about_us,
+                differentiators: businessProfile?.differentiators,
+                years_in_business: businessProfile?.years_in_business,
+                services_offered: businessProfile?.services_offered,
+                industries_served: businessProfile?.industries_served
+            }}
           />
         </div>
         <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">

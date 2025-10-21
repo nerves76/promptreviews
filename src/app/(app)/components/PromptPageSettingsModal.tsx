@@ -321,21 +321,20 @@ export default function PromptPageSettingsModal({
                   <h2 className="text-xl font-bold text-slate-blue mb-1">Global</h2>
                   <p className="text-sm text-gray-600 mb-6">These settings apply immediately to all prompt pages.</p>
                   
-                  {/* Keywords Section */}
+                  {/* Keyword Phrases Section */}
                   <section className="mb-6">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                    Keywords
-                    <RobotTooltip text="These keywords will be pre-populated on all new prompt pages. Each page can then customize their keywords without affecting these global defaults." />
+                    Keyword phrases
+                    <RobotTooltip text="These keyword phrases will be pre-populated on all new prompt pages. Each page can then customize their keyword phrases without affecting these global defaults." />
                   </h3>
                   <KeywordsInput
                     keywords={formData.keywords || []}
                     onChange={(keywords) => handleInputChange('keywords', keywords)}
-                    placeholder="Enter keywords separated by commas (e.g., best therapist Portland, ADHD specialist, group sessions, insurance accepted)"
+                    placeholder="Enter keyword phrases separated by commas (e.g., best therapist Portland, ADHD specialist, group sessions, insurance accepted)"
                   />
                   <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                     <p className="text-xs text-blue-800">
-                      <strong>How it works:</strong> These keywords will automatically appear on new prompt pages you create.
-                      You can then customize them for each page without changing these global defaults.
+                      <strong>How it works:</strong> Add keyword-powered review suggestions to help guide reviewers and improve your SEO.
                     </p>
                   </div>
                 </section>
