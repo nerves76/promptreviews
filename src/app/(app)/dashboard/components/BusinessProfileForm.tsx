@@ -254,179 +254,6 @@ export default function BusinessProfileForm({
         )}
       </div>
 
-      {/* Business Info Section */}
-      <div className="mb-8">
-        <h2 className="mt-4 mb-8 text-2xl font-bold text-slate-blue flex items-center gap-3">
-          <Icon name="FaInfoCircle" className="w-7 h-7 text-slate-blue" size={28} />
-          Business info
-        </h2>
-        <div className="mb-4">
-          <label className="block font-semibold text-sm text-gray-500 mb-1 flex items-center gap-1">
-            Business name *
-            <RobotTooltip text="The official name of your business as you want it to appear to customers. This information is also made available for AI prompt generation." />
-          </label>
-          <input
-            type="text"
-            name="name"
-            className="w-full border px-3 py-2 rounded"
-            value={form.name || ""}
-            onChange={handleChange}
-            required
-          />
-        </div>
-        <div className="mb-4">
-          <label className="block font-semibold text-sm text-gray-500 mb-1">
-            Business website
-          </label>
-          <input
-            type="url"
-            name="business_website"
-            className="w-full border px-3 py-2 rounded"
-            value={form.business_website || ""}
-            onChange={handleChange}
-            placeholder="https://yourbusiness.com"
-          />
-        </div>
-        <div className="mb-4">
-          <label className="block font-semibold text-sm text-gray-500 mb-1">
-            Business address
-          </label>
-          <label
-            className="block text-xs font-medium text-gray-500 mb-1"
-            htmlFor="address_street"
-          >
-            Street address
-          </label>
-          <input
-            type="text"
-            id="address_street"
-            name="address_street"
-            className="w-full border px-3 py-2 rounded mb-4"
-            value={form.address_street || ""}
-            onChange={handleChange}
-            placeholder="Street address (optional)"
-          />
-          <div className="flex gap-2 mb-2">
-            <div className="flex flex-col w-32">
-              <label
-                className="block text-xs font-medium text-gray-500 mb-1 flex items-center gap-1"
-                htmlFor="address_city"
-              >
-                City{" "}
-                <RobotTooltip text="Made available for AI prompt generation." />
-              </label>
-              <input
-                type="text"
-                id="address_city"
-                name="address_city"
-                className="w-full border px-3 py-2 rounded mb-4"
-                value={form.address_city || ""}
-                onChange={handleChange}
-                required
-                placeholder="City"
-              />
-            </div>
-            <div className="flex flex-col w-20">
-              <label
-                className="block text-xs font-medium text-gray-500 mb-1 flex items-center gap-1"
-                htmlFor="address_state"
-              >
-                State{" "}
-                <RobotTooltip text="Made available for AI prompt generation." />
-              </label>
-              <input
-                type="text"
-                id="address_state"
-                name="address_state"
-                className="w-full border px-3 py-2 rounded mb-4"
-                value={form.address_state || ""}
-                onChange={handleChange}
-                required
-                placeholder="State"
-              />
-            </div>
-            <div className="flex flex-col w-24">
-              <label
-                className="block text-xs font-medium text-gray-500 mb-1 flex items-center gap-1"
-                htmlFor="address_zip"
-              >
-                ZIP{" "}
-                <RobotTooltip text="Made available for AI prompt generation." />
-              </label>
-              <input
-                type="text"
-                id="address_zip"
-                name="address_zip"
-                className="w-full border px-3 py-2 rounded mb-4"
-                value={form.address_zip || ""}
-                onChange={handleChange}
-                required
-                placeholder="ZIP"
-              />
-            </div>
-          </div>
-          <label
-            className="block text-xs font-medium text-gray-500 mb-1"
-            htmlFor="address_country"
-          >
-            Country
-          </label>
-          <input
-            type="text"
-            id="address_country"
-            name="address_country"
-            className="w-full border px-3 py-2 rounded"
-            value={form.address_country || ""}
-            onChange={handleChange}
-            required
-            placeholder="Country"
-          />
-        </div>
-        {/* Industry Selector Integration */}
-        <IndustrySelector
-          value={form.industry || []}
-          onChange={(industries, otherValue) =>
-            setForm((f: any) => ({
-              ...f,
-              industry: industries,
-              industry_other: otherValue ?? f.industry_other,
-            }))
-          }
-          otherValue={form.industry_other || ""}
-          onOtherChange={(val) =>
-            setForm((f: any) => ({ ...f, industry_other: val }))
-          }
-          industryType={industryType}
-          setIndustryType={setIndustryType}
-          label={
-            <span className="flex items-center gap-1">
-              Your industry{" "}
-              <RobotTooltip text="Made available for AI prompt generation." />
-            </span>
-          }
-        />
-        {(industryType === "B2B" || industryType === "Both") && (
-          <div className="mb-4">
-            <label className="block font-semibold text-sm text-gray-500 mb-1 flex items-center">
-              Industries you serve (if applicable)
-              <RobotTooltip text="This helps Prompt AI understand your target audience and tailor reviews for your typical clients or customers." />
-            </label>
-            <textarea
-              name="industries_served"
-              className="w-full border px-3 py-2 rounded"
-              value={
-                typeof form.industries_served === "string"
-                  ? form.industries_served
-                  : Array.isArray(form.industries_served)
-                    ? form.industries_served.join(", ")
-                    : ""
-              }
-              onChange={handleChange}
-            />
-          </div>
-        )}
-      </div>
-
       {/* Services Section */}
       <div className="mb-8">
         <h2 className="mt-4 mb-8 text-2xl font-bold text-slate-blue flex items-center gap-3">
@@ -642,6 +469,179 @@ export default function BusinessProfileForm({
         </div>
       </div>
 
+
+      {/* Business Info Section */}
+      <div className="mb-8">
+        <h2 className="mt-4 mb-8 text-2xl font-bold text-slate-blue flex items-center gap-3">
+          <Icon name="FaInfoCircle" className="w-7 h-7 text-slate-blue" size={28} />
+          Business info
+        </h2>
+        <div className="mb-4">
+          <label className="block font-semibold text-sm text-gray-500 mb-1 flex items-center gap-1">
+            Business name *
+            <RobotTooltip text="The official name of your business as you want it to appear to customers. This information is also made available for AI prompt generation." />
+          </label>
+          <input
+            type="text"
+            name="name"
+            className="w-full border px-3 py-2 rounded"
+            value={form.name || ""}
+            onChange={handleChange}
+            required
+          />
+        </div>
+        <div className="mb-4">
+          <label className="block font-semibold text-sm text-gray-500 mb-1">
+            Business website
+          </label>
+          <input
+            type="url"
+            name="business_website"
+            className="w-full border px-3 py-2 rounded"
+            value={form.business_website || ""}
+            onChange={handleChange}
+            placeholder="https://yourbusiness.com"
+          />
+        </div>
+        <div className="mb-4">
+          <label className="block font-semibold text-sm text-gray-500 mb-1">
+            Business address
+          </label>
+          <label
+            className="block text-xs font-medium text-gray-500 mb-1"
+            htmlFor="address_street"
+          >
+            Street address
+          </label>
+          <input
+            type="text"
+            id="address_street"
+            name="address_street"
+            className="w-full border px-3 py-2 rounded mb-4"
+            value={form.address_street || ""}
+            onChange={handleChange}
+            placeholder="Street address (optional)"
+          />
+          <div className="flex gap-2 mb-2">
+            <div className="flex flex-col w-32">
+              <label
+                className="block text-xs font-medium text-gray-500 mb-1 flex items-center gap-1"
+                htmlFor="address_city"
+              >
+                City{" "}
+                <RobotTooltip text="Made available for AI prompt generation." />
+              </label>
+              <input
+                type="text"
+                id="address_city"
+                name="address_city"
+                className="w-full border px-3 py-2 rounded mb-4"
+                value={form.address_city || ""}
+                onChange={handleChange}
+                required
+                placeholder="City"
+              />
+            </div>
+            <div className="flex flex-col w-20">
+              <label
+                className="block text-xs font-medium text-gray-500 mb-1 flex items-center gap-1"
+                htmlFor="address_state"
+              >
+                State{" "}
+                <RobotTooltip text="Made available for AI prompt generation." />
+              </label>
+              <input
+                type="text"
+                id="address_state"
+                name="address_state"
+                className="w-full border px-3 py-2 rounded mb-4"
+                value={form.address_state || ""}
+                onChange={handleChange}
+                required
+                placeholder="State"
+              />
+            </div>
+            <div className="flex flex-col w-24">
+              <label
+                className="block text-xs font-medium text-gray-500 mb-1 flex items-center gap-1"
+                htmlFor="address_zip"
+              >
+                ZIP{" "}
+                <RobotTooltip text="Made available for AI prompt generation." />
+              </label>
+              <input
+                type="text"
+                id="address_zip"
+                name="address_zip"
+                className="w-full border px-3 py-2 rounded mb-4"
+                value={form.address_zip || ""}
+                onChange={handleChange}
+                required
+                placeholder="ZIP"
+              />
+            </div>
+          </div>
+          <label
+            className="block text-xs font-medium text-gray-500 mb-1"
+            htmlFor="address_country"
+          >
+            Country
+          </label>
+          <input
+            type="text"
+            id="address_country"
+            name="address_country"
+            className="w-full border px-3 py-2 rounded"
+            value={form.address_country || ""}
+            onChange={handleChange}
+            required
+            placeholder="Country"
+          />
+        </div>
+        {/* Industry Selector Integration */}
+        <IndustrySelector
+          value={form.industry || []}
+          onChange={(industries, otherValue) =>
+            setForm((f: any) => ({
+              ...f,
+              industry: industries,
+              industries_other: otherValue ?? f.industries_other,
+            }))
+          }
+          otherValue={form.industries_other || ""}
+          onOtherChange={(val) =>
+            setForm((f: any) => ({ ...f, industries_other: val }))
+          }
+          industryType={industryType}
+          setIndustryType={setIndustryType}
+          label={
+            <span className="flex items-center gap-1">
+              Your industry{" "}
+              <RobotTooltip text="Made available for AI prompt generation." />
+            </span>
+          }
+        />
+        {(industryType === "B2B" || industryType === "Both") && (
+          <div className="mb-4">
+            <label className="block font-semibold text-sm text-gray-500 mb-1 flex items-center">
+              Industries you serve (if applicable)
+              <RobotTooltip text="This helps Prompt AI understand your target audience and tailor reviews for your typical clients or customers." />
+            </label>
+            <textarea
+              name="industries_served"
+              className="w-full border px-3 py-2 rounded"
+              value={
+                typeof form.industries_served === "string"
+                  ? form.industries_served
+                  : Array.isArray(form.industries_served)
+                    ? form.industries_served.join(", ")
+                    : ""
+              }
+              onChange={handleChange}
+            />
+          </div>
+        )}
+      </div>
 
       {/* Contact Information Section */}
       <div className="mb-8">

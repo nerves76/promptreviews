@@ -352,6 +352,14 @@ export default function IndustrySelector({
     selected: MultiValue<{ label: string; value: string }>,
   ) => {
     const selectedValues = selected.map((opt) => opt.value);
+
+    // If "Other" is newly selected, close the menu
+    const wasOtherSelected = value.includes("Other");
+    const isOtherSelected = selectedValues.includes("Other");
+    if (!wasOtherSelected && isOtherSelected) {
+      setMenuIsOpen(false);
+    }
+
     // If "Other" is not selected anymore, clear the otherValue
     if (!selectedValues.includes("Other") && onOtherChange) {
       onOtherChange("");

@@ -554,14 +554,14 @@ export default function ProductPromptPageForm({
             />
 
         {/* Keyword Phrases Section */}
-        <div className="rounded-lg p-6 bg-slate-50 border border-slate-200 shadow">
+        <div className="rounded-lg p-6 bg-green-50 border border-green-200 shadow">
           <div className="flex items-center gap-3 mb-4">
-            <Icon name="FaSearch" className="w-7 h-7 text-slate-blue" size={28} />
-            <h3 className="text-2xl font-bold text-slate-blue">Keyword phrases</h3>
+            <Icon name="FaKey" className="w-7 h-7 text-green-700" size={28} />
+            <h3 className="text-2xl font-bold text-green-700">Keyword-Powered Reviews</h3>
           </div>
           <div className="mb-2">
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Add keyword-powered review suggestions to help guide reviewers and improve your SEO
+              Suggest keyword-powered phrases that your customers can use in reviews. This will improve your visibility in search and AI engines
             </label>
             <KeywordsInput
               keywords={keywords}
@@ -653,7 +653,7 @@ export default function ProductPromptPageForm({
                 <div className="flex items-center gap-3">
                   <Icon name="FaStickyNote" className="w-7 h-7" style={{ color: "#1A237E" }} size={28} />
                   <span className="text-2xl font-bold text-slate-blue">
-                    Friendly note pop-up
+                    Friendly Note Pop-up
                   </span>
                 </div>
                 <button

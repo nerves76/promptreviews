@@ -1,6 +1,6 @@
 // -----------------------------------------------------------------------------
 // Location Card Component
-// Displays a business location with sharing functionality similar to universal prompt page
+// Displays a business location with sharing functionality similar to Universal Prompt Page
 // Includes QR code, email, SMS, copy link, and other sharing options
 // -----------------------------------------------------------------------------
 

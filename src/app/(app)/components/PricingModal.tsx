@@ -100,7 +100,7 @@ const featureTooltips: Record<string, string> = {
     "Automate and organize your review collection process.",
   "Review widget": "Embed a review collection widget on your website.",
   Analytics: "Track review performance and engagement.",
-  "Universal prompt page":
+  "Universal Prompt Page":
     "A single page to collect reviews from any platform, including a QR code for easy sharing.",
   "custom prompt pages":
     "Custom prompt pages are designed for sending a personalized review request to an individual customer or client.",

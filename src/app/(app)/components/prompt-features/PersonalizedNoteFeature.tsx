@@ -107,7 +107,7 @@ export default function PersonalizedNoteFeature({
           <div className="flex items-center gap-3">
             <Icon name="FaStickyNote" className={`${editMode ? 'w-7 h-7' : 'text-lg'}`} style={{ color: "#1A237E" }} size={editMode ? 28 : 18} />
             <h3 className={`${editMode ? 'text-2xl font-bold text-[#1A237E]' : 'text-lg font-semibold text-gray-900'}`}>
-              Friendly note pop-up
+              Friendly Note Pop-up
             </h3>
           </div>
           <div className={`${editMode ? 'text-sm text-gray-700 mt-[3px] ml-10' : 'text-sm text-gray-600'}`}>

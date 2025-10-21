@@ -2,6 +2,9 @@
 
 import { useState, KeyboardEvent } from 'react';
 import Icon from '@/components/Icon';
+import KeywordGeneratorModal from './KeywordGeneratorModal';
+import MissingBusinessDetailsModal from './MissingBusinessDetailsModal';
+import { validateBusinessForKeywordGeneration, getMissingFieldsMessage } from '@/utils/businessValidation';
 
 interface PromptPageKeywordsSelectorProps {
   /** Current selected keywords for this prompt page */
@@ -10,6 +13,21 @@ interface PromptPageKeywordsSelectorProps {
   onChange: (keywords: string[]) => void;
   /** Whether the component is disabled */
   disabled?: boolean;
+  /** Business information for keyword generation */
+  businessInfo?: {
+    name?: string;
+    industry?: string[] | null;
+    industries_other?: string;
+    industry_other?: string; // For backward compatibility
+    address_city?: string;
+    address_state?: string;
+    accountId?: string;
+    about_us?: string;
+    differentiators?: string;
+    years_in_business?: string | null;
+    services_offered?: string[] | null;
+    industries_served?: string;
+  };
 }
 
 /**
@@ -21,10 +39,14 @@ interface PromptPageKeywordsSelectorProps {
 export default function PromptPageKeywordsSelector({
   selectedKeywords,
   onChange,
-  disabled = false
+  disabled = false,
+  businessInfo
 }: PromptPageKeywordsSelectorProps) {
   const [customInput, setCustomInput] = useState('');
   const [isFocused, setIsFocused] = useState(false);
+  const [showGeneratorModal, setShowGeneratorModal] = useState(false);
+  const [showMissingFieldsModal, setShowMissingFieldsModal] = useState(false);
+  const [missingFields, setMissingFields] = useState<string[]>([]);
 
   const addCustomKeyword = () => {
     if (!customInput.trim()) return;
@@ -56,13 +78,54 @@ export default function PromptPageKeywordsSelector({
     }
   };
 
+  const handleGenerateClick = () => {
+    // If no businessInfo provided at all, show generic message
+    if (!businessInfo) {
+      setMissingFields(['Business Name', 'Business Type/Industry', 'City', 'State', 'About Us', 'Differentiators', 'Years in Business', 'Services Offered']);
+      setShowMissingFieldsModal(true);
+      return;
+    }
+
+    const validation = validateBusinessForKeywordGeneration(businessInfo);
+
+    if (!validation.isValid) {
+      setMissingFields(validation.missingFields);
+      setShowMissingFieldsModal(true);
+      return;
+    }
+
+    setShowGeneratorModal(true);
+  };
+
+  const handleKeywordsGenerated = (newKeywords: string[]) => {
+    // Merge with existing keywords, avoiding duplicates
+    const uniqueKeywords = [...selectedKeywords];
+    newKeywords.forEach(kw => {
+      if (!uniqueKeywords.includes(kw)) {
+        uniqueKeywords.push(kw);
+      }
+    });
+    onChange(uniqueKeywords);
+  };
+
   return (
     <div className="space-y-4">
       {/* Keywords Section */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Keywords for this prompt page
-        </label>
+        <div className="flex items-center justify-between mb-2">
+          <label className="block text-sm font-medium text-gray-700">
+            Keywords for this prompt page
+          </label>
+          <button
+            type="button"
+            onClick={handleGenerateClick}
+            disabled={disabled}
+            className="inline-flex items-center space-x-1.5 px-3 py-1.5 text-xs font-medium text-white bg-slate-blue rounded-lg hover:bg-opacity-90 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all shadow-sm hover:shadow-md"
+          >
+            <Icon name="FaSparkles" className="w-3.5 h-3.5" />
+            <span>Keyword generate</span>
+          </button>
+        </div>
 
         {/* Display all keywords */}
         {selectedKeywords.length > 0 && (
@@ -128,6 +191,28 @@ export default function PromptPageKeywordsSelector({
           These can help improve your visibility in search engines and AI tools like ChatGPT.
         </p>
       </div>
+
+      {/* Modals */}
+      <KeywordGeneratorModal
+        isOpen={showGeneratorModal}
+        onClose={() => setShowGeneratorModal(false)}
+        onSelectKeywords={handleKeywordsGenerated}
+        businessName={businessInfo?.name || ''}
+        businessType={(businessInfo?.industry?.[0]) || businessInfo?.industries_other || businessInfo?.industry_other || ''}
+        city={businessInfo?.address_city || ''}
+        state={businessInfo?.address_state || ''}
+        accountId={businessInfo?.accountId || ''}
+        aboutUs={businessInfo?.about_us || ''}
+        differentiators={businessInfo?.differentiators || ''}
+        yearsInBusiness={businessInfo?.years_in_business || '0'}
+        servicesOffered={Array.isArray(businessInfo?.services_offered) ? businessInfo.services_offered.join(', ') : ''}
+        industriesServed={businessInfo?.industries_served}
+      />
+      <MissingBusinessDetailsModal
+        isOpen={showMissingFieldsModal}
+        onClose={() => setShowMissingFieldsModal(false)}
+        missingFields={missingFields}
+      />
     </div>
   );
 }

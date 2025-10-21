@@ -706,6 +706,8 @@ export default function BusinessProfilePage() {
           selected_kickstarters: form.selected_kickstarters,
           kickstarters_background_design: form.kickstarters_background_design,
           services_offered: services,
+          industry: form.industry || [],
+          industries_other: form.industries_other || null,
         })
         .eq("account_id", selectedAccountId);
         
@@ -741,20 +743,20 @@ export default function BusinessProfilePage() {
       }
       
       setSuccess("Profile updated successfully!");
-      
+
       // Clear saved form data after successful submission
       if (typeof window !== 'undefined') {
         localStorage.removeItem(formStorageKey);
         localStorage.removeItem('businessProfilePlatforms');
         localStorage.removeItem('businessProfileServices');
       }
-      
+
       // Mark business profile task as completed when user successfully saves
       try {
         if (accountId) {
           await markTaskAsCompleted(accountId, "business-profile");
         }
-        
+
         // Dispatch custom event to notify other components
         if (typeof window !== 'undefined') {
           window.dispatchEvent(new CustomEvent('business-profile-completed'));
@@ -763,7 +765,30 @@ export default function BusinessProfilePage() {
         console.error("Error marking business profile task as complete:", taskError);
         // Don't fail the entire operation if task marking fails
       }
-      
+
+      // Reload the business profile data to sync UI with database
+      // This ensures the form shows exactly what was saved
+      try {
+        const { data: refreshedBusiness } = await supabase
+          .from("businesses")
+          .select("*")
+          .eq("account_id", selectedAccountId)
+          .single();
+
+        if (refreshedBusiness) {
+          setForm({
+            ...form,
+            industry: refreshedBusiness.industry || [],
+            industries_other: refreshedBusiness.industries_other || "",
+            // Update other fields that might have been transformed during save
+            services_offered: refreshedBusiness.services_offered || [],
+          });
+        }
+      } catch (refetchError) {
+        console.error("Error refetching business profile after save:", refetchError);
+        // Don't fail - the save was successful, this is just a UI sync issue
+      }
+
       setLoading(false);
       setIsSubmitting(false);
       clearTimeout(timeoutId);

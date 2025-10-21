@@ -664,7 +664,7 @@ export default function BusinessLocationModal({
                   <div className="flex items-center gap-3">
                     <Icon name="FaStickyNote" className="w-7 h-7" style={{ color: "#1A237E" }} size={28} />
                     <span className="text-2xl font-bold text-slate-blue">
-                      Friendly note pop-up
+                      Friendly Note Pop-up
                     </span>
                   </div>
                   <button

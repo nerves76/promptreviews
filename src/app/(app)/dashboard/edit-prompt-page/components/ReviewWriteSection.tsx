@@ -121,7 +121,7 @@ const ReviewWriteSection: React.FC<ReviewWriteSectionProps> = ({
               key={idx}
               className="relative flex flex-col gap-1 mb-12 px-6 py-3 pt-4 border border-blue-100 rounded-2xl bg-blue-50 shadow-sm"
             >
-              {/* Card title: platform name and action buttons row */}
+              {/* Card title: platform name */}
               <div className="flex items-center justify-between pt-1 pb-2 pr-2">
                 <span className="text-lg font-bold text-slate-blue">
                   {platform.name || "Platform"}
@@ -129,16 +129,6 @@ const ReviewWriteSection: React.FC<ReviewWriteSectionProps> = ({
                     ? `: ${platform.customPlatform}`
                     : ""}
                 </span>
-                {platform.url && (
-                  <a
-                    href={platform.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs text-blue-700 underline"
-                  >
-                    Check if Published
-                  </a>
-                )}
               </div>
               {/* Platform icon in top left, breaching */}
               <div

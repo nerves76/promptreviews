@@ -324,7 +324,7 @@ export default function PromptPageSettingsModal({
                   {/* Keyword Phrases Section */}
                   <section className="mb-6">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                    Keyword phrases
+                    Keyword-Powered Reviews
                     <RobotTooltip text="These keyword phrases will be pre-populated on all new prompt pages. Each page can then customize their keyword phrases without affecting these global defaults." />
                   </h3>
                   <KeywordsInput

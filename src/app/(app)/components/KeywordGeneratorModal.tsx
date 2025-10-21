@@ -252,11 +252,21 @@ export default function KeywordGeneratorModal({
                               className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500"
                             />
                           </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                            Search term
+                          <th className="px-4 py-3 text-left">
+                            <div className="text-sm font-bold text-gray-900">
+                              Review phrase
+                            </div>
+                            <div className="text-xs font-normal text-gray-600 mt-0.5">
+                              This is what will be added to form
+                            </div>
                           </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                            Review phrase
+                          <th className="px-4 py-3 text-left">
+                            <div className="text-sm font-bold text-gray-900">
+                              Search term
+                            </div>
+                            <div className="text-xs font-normal text-gray-600 mt-0.5">
+                              This is the query that your review phrase is targeting
+                            </div>
                           </th>
                         </tr>
                       </thead>
@@ -278,11 +288,11 @@ export default function KeywordGeneratorModal({
                                 onClick={(e) => e.stopPropagation()}
                               />
                             </td>
-                            <td className="px-4 py-3 text-sm font-medium text-gray-900">
-                              {kw.searchTerm}
-                            </td>
                             <td className="px-4 py-3 text-sm text-gray-700">
                               {kw.reviewPhrase}
+                            </td>
+                            <td className="px-4 py-3 text-sm font-medium text-gray-900">
+                              {kw.searchTerm}
                             </td>
                           </tr>
                         ))}

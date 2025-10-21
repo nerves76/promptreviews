@@ -43,7 +43,7 @@ export default function MissingBusinessDetailsModal({
         <div className="bg-white/10 backdrop-blur-md px-6 py-4 rounded-t-2xl border-b border-white/20">
           <div className="flex items-center space-x-3">
             <div className="flex-shrink-0 w-10 h-10 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center border border-white/30">
-              <Icon name="FaExclamationTriangle" className="w-6 h-6 text-white" />
+              <Icon name="FaStore" className="w-6 h-6 text-white" />
             </div>
             <h3 className="text-xl font-semibold text-white">
               Complete Your Business Profile
@@ -62,7 +62,7 @@ export default function MissingBusinessDetailsModal({
                 <ul className="space-y-2">
                   {missingFields.map((field, index) => (
                     <li key={index} className="flex items-start space-x-2">
-                      <Icon name="FaCheckCircle" className="w-4 h-4 text-yellow-300 mt-0.5 flex-shrink-0" />
+                      <Icon name="FaTimes" className="w-4 h-4 text-red-400 mt-0.5 flex-shrink-0" />
                       <span className="text-sm font-medium text-white">{field}</span>
                     </li>
                   ))}
