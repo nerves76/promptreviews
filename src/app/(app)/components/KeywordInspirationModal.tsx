@@ -146,30 +146,12 @@ export default function KeywordInspirationModal({
                   {/* Copy Button */}
                   <button
                     onClick={() => copyToClipboard(keyword, index)}
-                    className="ml-4 px-3 py-1.5 rounded-md border-2 font-medium text-sm transition-all duration-200 flex items-center space-x-2 focus:outline-none focus:ring-2 focus:ring-opacity-50 hover:shadow-md"
+                    className="ml-4 px-3 py-1.5 rounded-md border-2 font-medium text-sm transition-all duration-200 flex items-center space-x-2 focus:outline-none focus:ring-2 focus:ring-opacity-50 hover:shadow-md group"
                     style={{
                       borderColor: copiedIndex === index ? "#6EE7B7" : secondaryColor,
                       backgroundColor: copiedIndex === index ? "#6EE7B7" : "transparent",
                       color: copiedIndex === index ? "#065F46" : secondaryColor,
                       fontFamily: businessProfile?.primary_font || "Inter",
-                    }}
-                    onMouseEnter={(e) => {
-                      if (copiedIndex !== index) {
-                        e.currentTarget.style.backgroundColor = secondaryColor;
-                        e.currentTarget.style.color = hoverTextColor;
-                        // Update icon color on hover
-                        const icon = e.currentTarget.querySelector('svg');
-                        if (icon) icon.style.fill = hoverTextColor;
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (copiedIndex !== index) {
-                        e.currentTarget.style.backgroundColor = "transparent";
-                        e.currentTarget.style.color = secondaryColor;
-                        // Reset icon color
-                        const icon = e.currentTarget.querySelector('svg');
-                        if (icon) icon.style.fill = secondaryColor;
-                      }
                     }}
                     aria-label={`Copy ${keyword}`}
                   >
@@ -180,7 +162,7 @@ export default function KeywordInspirationModal({
                       </>
                     ) : (
                       <>
-                        <Icon name="FaCopy" size={16} color={secondaryColor} />
+                        <Icon name="FaCopy" size={16} style={{ fill: secondaryColor }} />
                         <span>Copy</span>
                       </>
                     )}

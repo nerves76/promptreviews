@@ -198,7 +198,7 @@ export default function KeywordGeneratorModal({
                 AI keyword generator
               </h3>
               <p className="text-sm text-white">
-                Generate SEO-optimized keywords for {businessName}
+                Generate SEO-optimized phrases that can be included in your customer reviews
               </p>
             </div>
           </div>

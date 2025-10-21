@@ -487,10 +487,10 @@ export default function UniversalEditPromptPage() {
     >
       <div className="flex flex-col mt-0 md:mt-[3px] mb-4">
         <h1 className="text-4xl font-bold text-slate-blue mt-0 mb-2">
-          Universal prompt page
+          Universal Prompt Page
         </h1>
         <p className="text-gray-600 text-base max-w-md mt-0 mb-6">
-          The universal prompt page is designed to be shared with many.
+          The Universal Prompt Page is designed to be shared with many.
         </p>
       </div>
 
