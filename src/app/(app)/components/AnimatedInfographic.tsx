@@ -310,13 +310,13 @@ export default function AnimatedInfographic({ isEmbed = false, debug = false }: 
     {
       category: 'Curiosity',
       tools: [
-        { 
-          name: 'AI Generate', 
-          iconName: 'prompty' as const,
-          description: 'Armed with deep info on your business the AI Generate button can create a keyword enhanced review that customers can edit, copy, and post on any platform.',
-          highlight: 'Sparks curiosity',
-          learnMore: 'https://promptreviews.app/ai-assistance',
-          position: { top: '8%', left: '5%' } // Above beam - far left
+        {
+          name: 'Keywords',
+          iconName: 'FaKey' as const,
+          description: 'Improve your online visibility by suggesting important keyword phrases to your customers when they are composing your review.',
+          highlight: 'Boosts SEO',
+          learnMore: null,
+          position: { top: '0%', left: '5%' } // Above beam - far left
         }
       ]
     },
@@ -337,12 +337,12 @@ export default function AnimatedInfographic({ isEmbed = false, debug = false }: 
       category: 'Inspiration',
       tools: [
         {
-          name: 'Keywords',
-          iconName: 'FaKey' as const,
-          description: 'Improve your online visibility by suggesting important keyword phrases to your customers when they are composing your review.',
-          highlight: 'Boosts SEO',
-          learnMore: null,
-          position: { top: '-2%', left: '22%' } // Above beam - left
+          name: 'AI Generate',
+          iconName: 'FaRobot' as const,
+          description: 'Armed with deep info on your business the AI Generate button can create a keyword enhanced review that customers can edit, copy, and post on any platform.',
+          highlight: 'Sparks curiosity',
+          learnMore: 'https://promptreviews.app/ai-assistance',
+          position: { top: '-2%', left: '22%' } // Above beam - left (second position)
         },
         {
           name: 'Recent Reviews',
@@ -1319,7 +1319,7 @@ export default function AnimatedInfographic({ isEmbed = false, debug = false }: 
           </div>
 
           {/* Mobile Beam 1: Between Customer and Prompt Page */}
-          <div className="[@media(min-width:960px)]:hidden relative w-3 h-16 mx-auto rounded-full overflow-hidden z-5" 
+          <div className="[@media(min-width:960px)]:hidden relative w-3 h-32 mx-auto rounded-full overflow-hidden z-5" 
             style={{ 
               background: 'linear-gradient(to b, rgba(31, 41, 55, 0.5), rgba(31, 41, 55, 0.3))',
               boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.3), 0 0 20px rgba(147, 51, 234, 0.3)'
@@ -1341,7 +1341,7 @@ export default function AnimatedInfographic({ isEmbed = false, debug = false }: 
           </div>
 
           {/* STOP 2: Prompt Page with Tools (Center) */}
-          <div ref={promptPageRef} className="relative flex-grow flex justify-center -mt-32 [@media(min-width:960px)]:mt-0">
+          <div ref={promptPageRef} className="relative flex-grow flex justify-center -mt-36 [@media(min-width:960px)]:mt-0">
             <div className="relative w-[500px] h-[500px] lg:w-[600px] lg:h-[600px]">
               
               {/* Central Prompt Page - looks like actual prompt page structure */}
@@ -1704,8 +1704,9 @@ export default function AnimatedInfographic({ isEmbed = false, debug = false }: 
                               ? 'drop-shadow(0 0 8px rgba(249, 168, 212, 0.5)) drop-shadow(0 0 4px rgba(249, 168, 212, 0.3))'
                               : 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3))',
                             transform: hoveredTool === toolIndex ? 'scale(1.1)' : 'scale(1)',
-                            // Adjust vertical position specifically for lightbulb icon
-                            ...(tool.iconName === 'FaLightbulb' ? { marginTop: '-8px' } : {})
+                            // Adjust vertical position specifically for lightbulb and key icons
+                            ...(tool.iconName === 'FaLightbulb' ? { marginTop: window.innerWidth < 960 ? '-8px' : '-16px' } : {}),
+                            ...(tool.iconName === 'FaKey' ? { marginTop: '-20px' } : {})
                           }}
                         />
                       )}
@@ -1769,7 +1770,7 @@ export default function AnimatedInfographic({ isEmbed = false, debug = false }: 
           </div>
 
           {/* STOP 3: Review Form (Right) */}
-          <div ref={reviewPlatformRef} className="relative flex-shrink-0 flex items-center justify-center [@media(min-width:960px)]:ml-4 z-30 [@media(min-width:1024px)]:-translate-x-28 [@media(min-width:1270px)]:-translate-x-16 [@media(min-width:1440px)]:translate-x-0 -mt-4 [@media(min-width:960px)]:mt-0" style={{ marginTop: '39px' }}>
+          <div ref={reviewPlatformRef} className="relative flex-shrink-0 flex items-center justify-center [@media(min-width:960px)]:ml-4 z-30 [@media(min-width:1024px)]:-translate-x-28 [@media(min-width:1270px)]:-translate-x-16 [@media(min-width:1440px)]:translate-x-0 -mt-6 [@media(min-width:960px)]:mt-0" style={window.innerWidth >= 960 ? { marginTop: '39px' } : {}}>
             
             {/* T-connector where beam meets form - aligned with beam - hidden on mobile */}
             <div 
@@ -2033,9 +2034,9 @@ export default function AnimatedInfographic({ isEmbed = false, debug = false }: 
             </div>
           </div>
         </div>
-        
+
         {/* Mobile Features - positioned after all content */}
-        <div className="[@media(min-width:960px)]:hidden mt-32 flex flex-col items-center z-30 relative">
+        <div className="[@media(min-width:960px)]:hidden mt-20 flex flex-col items-center z-30 relative">
           {/* Centered Popup - appears above entire features container */}
           {clickedTool !== null && (
             <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-8 w-64 pointer-events-none z-[99999]">
