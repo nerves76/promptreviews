@@ -18,7 +18,7 @@ interface Feature {
 const featuresWeHave: Feature[] = [
   {
     text: 'Personalized landing pages & review widgets',
-    customIcon: <span className="font-bold text-2xl">[P]</span>
+    icon: 'prompty'
   },
   {
     text: 'QR codes to capture reviews instantly',
