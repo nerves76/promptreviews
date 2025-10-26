@@ -27,7 +27,7 @@ import CommunicationButtons from "@/app/(app)/components/communication/Communica
 import WelcomePopup from "@/app/(app)/components/WelcomePopup";
 import HelpModal from "@/app/(app)/components/help/HelpModal";
 
-import EmojiEmbedButton from "@/app/(app)/components/EmojiEmbedButton";
+import PromptPageEmbedButton from "@/app/(app)/components/PromptPageEmbedButton";
 // Page-level loading uses global overlay
 import { useGlobalLoader } from "@/app/(app)/components/GlobalLoaderProvider";
 import BusinessProfileBanner from "@/app/(app)/components/BusinessProfileBanner";
@@ -874,9 +874,13 @@ function PromptPagesContent() {
                         QR code
                       </button>
                         
-                        {/* Emoji Embed Button - only show when sentiment flow is enabled */}
-                        {universalPromptPage?.emoji_sentiment_enabled && universalPromptPage?.slug && (
-                          <EmojiEmbedButton slug={universalPromptPage.slug} />
+                        {/* Prompt Page Embed Button - show for all prompt pages */}
+                        {universalPromptPage?.slug && (
+                          <PromptPageEmbedButton
+                            slug={universalPromptPage.slug}
+                            emojiSentimentEnabled={universalPromptPage?.emoji_sentiment_enabled}
+                            isUniversal={true}
+                          />
                         )}
                         
                         <button

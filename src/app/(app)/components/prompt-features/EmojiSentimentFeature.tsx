@@ -21,7 +21,7 @@ import { Input } from "@/app/(app)/components/ui/input";
 import { Textarea } from "@/app/(app)/components/ui/textarea";
 import { FaGrinHearts, FaArrowRight, FaCodeBranch } from "react-icons/fa";
 import EmojiSentimentDemoModal from "../EmojiSentimentDemoModal";
-import EmojiEmbedButton from "../EmojiEmbedButton";
+import PromptPageEmbedButton from "../PromptPageEmbedButton";
 import { EMOJI_SENTIMENT_LABELS, EMOJI_SENTIMENT_ICONS } from "../prompt-modules/emojiSentimentConfig";
 
 export interface EmojiSentimentFeatureProps {
@@ -224,10 +224,9 @@ export default function EmojiSentimentFeature({
           
           {/* Embed Button - only show when enabled and slug is available */}
           {isEnabled && slug ? (
-            <EmojiEmbedButton
+            <PromptPageEmbedButton
               slug={slug}
               question={questionText}
-              enabled={isEnabled}
             />
           ) : isEnabled && !slug ? (
             <button

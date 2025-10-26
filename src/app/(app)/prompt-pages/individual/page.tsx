@@ -24,7 +24,7 @@ import BusinessLocationModal from "@/app/(app)/components/BusinessLocationModal"
 import { BusinessLocation } from "@/types/business";
 import { hasLocationAccess, formatLocationAddress, getLocationDisplayName } from "@/utils/locationUtils";
 
-import EmojiEmbedButton from "@/app/(app)/components/EmojiEmbedButton";
+import PromptPageEmbedButton from "@/app/(app)/components/PromptPageEmbedButton";
 import CommunicationButtons from "@/app/(app)/components/communication/CommunicationButtons";
 
 const StylePage = dynamic(() => import("../../dashboard/style/StyleModalPage"), { ssr: false });

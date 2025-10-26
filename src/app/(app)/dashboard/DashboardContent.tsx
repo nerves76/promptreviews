@@ -18,7 +18,7 @@ import { getAccountIdForUser } from "@/auth/utils/accounts";
 import BusinessLocationModal from "@/app/(app)/components/BusinessLocationModal";
 import { BusinessLocation } from "@/types/business";
 import { hasLocationAccess, formatLocationAddress, getLocationDisplayName } from "@/utils/locationUtils";
-import EmojiEmbedButton from "@/app/(app)/components/EmojiEmbedButton";
+import PromptPageEmbedButton from "@/app/(app)/components/PromptPageEmbedButton";
 import { promptTypes } from "@/config/promptTypes";
 
 interface DashboardContentProps {
@@ -603,9 +603,13 @@ const DashboardContent = React.memo(function DashboardContent({
                           QR code
                         </button>
                         
-                        {/* Emoji Embed Button - only show when sentiment flow is enabled */}
-                        {universalPromptPage?.emoji_sentiment_enabled && universalPromptPage?.slug && (
-                          <EmojiEmbedButton slug={universalPromptPage.slug} />
+                        {/* Prompt Page Embed Button - show for all prompt pages */}
+                        {universalPromptPage?.slug && (
+                          <PromptPageEmbedButton
+                            slug={universalPromptPage.slug}
+                            emojiSentimentEnabled={universalPromptPage?.emoji_sentiment_enabled}
+                            isUniversal={true}
+                          />
                         )}
                         
                         <button
