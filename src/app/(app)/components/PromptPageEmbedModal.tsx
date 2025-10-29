@@ -137,7 +137,7 @@ const PromptPageEmbedModal: React.FC<PromptPageEmbedModalProps> = ({
               Prompt Page Embed
             </h2>
             <p className="text-gray-600 mt-2 text-base">
-              Get embed code for your website, newsletter, or email campaigns
+              Get more reviews from your newsletters, automation flows, and website with embeddable review capture widgets.
             </p>
           </div>
 
