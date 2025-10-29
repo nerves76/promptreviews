@@ -16,7 +16,7 @@ The Universal prompt page currently uses **completely different architecture** t
   - ❌ **Separate form structure** from all other forms
   - ❌ **Business defaults fallback** handled differently
 
-### Individual Prompt Pages (Correct Architecture)
+### 1-to-1 Prompt Pages (Correct Architecture)
 - **Examples**: `ServicePromptPageForm.tsx`, `EventPromptPageForm.tsx`, `ProductPromptPageForm.tsx`
 - **Architecture**: Standardized modular system with:
   - ✅ **Consistent form submission** using standard patterns

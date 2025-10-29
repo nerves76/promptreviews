@@ -486,7 +486,7 @@ Product Review Pages turn one-time buyers into brand advocates by making it easy
     "call_to_action": {
       "primary": {
         "text": "Create Product Page",
-        "href": "/prompt-pages?tab=individual"
+        "href": "/prompt-pages?tab=1-to-1"
       },
       "secondary": {
         "text": "View All Page Types",
@@ -980,7 +980,7 @@ Employee Spotlight Pages transform your team from anonymous workers into recogni
     "call_to_action": {
       "primary": {
         "text": "Create Employee Pages",
-        "href": "/prompt-pages?tab=individual"
+        "href": "/prompt-pages?tab=1-to-1"
       },
       "secondary": {
         "text": "View All Page Types",
@@ -1599,7 +1599,7 @@ Event & Space Pages turn one-time guests into vocal advocates by capturing their
     "call_to_action": {
       "primary": {
         "text": "Create Event Page",
-        "href": "/prompt-pages?tab=individual"
+        "href": "/prompt-pages?tab=1-to-1"
       },
       "secondary": {
         "text": "View All Page Types",

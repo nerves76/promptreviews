@@ -588,7 +588,7 @@ Photo + Testimonial Pages turn satisfied customers into powerful visual advocate
     "call_to_action": {
       "primary": {
         "text": "Create Photo Page",
-        "href": "/prompt-pages?tab=individual"
+        "href": "/prompt-pages?tab=1-to-1"
       },
       "secondary": {
         "text": "View All Page Types",
@@ -1683,7 +1683,7 @@ Start simple, measure results, and expand strategically!',
       },
       "secondary": {
         "text": "View Example Pages",
-        "href": "/prompt-pages?tab=public"
+        "href": "/prompt-pages?tab=1-to-all"
       }
     }
   }'::jsonb,

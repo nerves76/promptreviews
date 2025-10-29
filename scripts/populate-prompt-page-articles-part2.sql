@@ -366,7 +366,7 @@ Service Review Pages transform your review collection from generic blasts to per
     "call_to_action": {
       "primary": {
         "text": "Create Service Page",
-        "href": "/prompt-pages?tab=individual"
+        "href": "/prompt-pages?tab=1-to-1"
       },
       "secondary": {
         "text": "View All Page Types",

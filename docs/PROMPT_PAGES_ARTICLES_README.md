@@ -29,8 +29,8 @@ Based on `/src/config/promptTypes.tsx`:
 6. **Video** - Video testimonials (marked as "coming soon")
 
 ### Page Categories
-1. **Universal/Public** (`is_universal: true`) - One page for all customers
-2. **Individual** - Personalized pages (all 6 types above)
+1. **Universal/1-to-all** (`is_universal: true`) - One page for all customers
+2. **1-to-1** - Personalized pages (all 6 types above)
 3. **Location** - Location-specific pages for multi-location businesses
 
 ## What Each Article Includes
@@ -151,7 +151,7 @@ Each remaining article should follow this structure:
   "call_to_action": {
     "primary": {
       "text": "Create [Type] Page",
-      "href": "/prompt-pages?tab=individual"
+      "href": "/prompt-pages?tab=1-to-1"
     },
     "secondary": {
       "text": "View All Page Types",
@@ -171,8 +171,8 @@ Each remaining article should follow this structure:
 - Video type exists in code but marked "comingSoon: true"
 
 ### From App Structure
-- Three main tabs in `/prompt-pages`: public, individual, locations
-- Individual pages include: service, event, product, employee, photo, video
+- Three main tabs in `/prompt-pages`: 1-to-all, 1-to-1, locations
+- 1-to-1 pages include: service, event, product, employee, photo, video
 - Each type has specific icons and descriptions in `promptTypes.tsx`
 - Location pages are separate and require GBP connection
 
