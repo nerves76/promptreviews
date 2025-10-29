@@ -705,7 +705,7 @@ function PromptPagesContent() {
             `}
           >
             <Icon name="FaUsers" className="hidden sm:block w-5 h-5" size={20} />
-            <span>Public</span>
+            <span>One-to-many</span>
           </button>
           <button
             type="button"
@@ -717,7 +717,7 @@ function PromptPagesContent() {
             `}
           >
             <Icon name="FaUserCircle" className="hidden sm:block w-5 h-5" size={20} />
-            <span>Individual</span>
+            <span>One-to-one</span>
           </button>
           <button
             type="button"
@@ -746,8 +746,8 @@ function PromptPagesContent() {
               <div className="flex flex-col mt-0 md:mt-[3px] flex-1 min-w-0">
                 <div className="mb-2">
                   <h1 className="text-3xl lg:text-4xl font-bold text-slate-blue mt-0">
-                    {promptPagesTab === 'public' && 'Public Prompt Pages'}
-                    {promptPagesTab === 'individual' && 'Individual Prompt Pages'}
+                    {promptPagesTab === 'public' && 'One-to-many Prompt Pages'}
+                    {promptPagesTab === 'individual' && 'One-to-one Prompt Pages'}
                     {promptPagesTab === 'locations' && 'Location Prompt Pages'}
                   </h1>
                 </div>
