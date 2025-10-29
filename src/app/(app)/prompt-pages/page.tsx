@@ -694,42 +694,42 @@ function PromptPagesContent() {
        
        {/* Pill navigation at the top of the PageCard */}
        <div className="flex justify-center w-full mt-0 mb-0 z-20 px-4">
-        <div className="flex bg-white/10 backdrop-blur-sm border border-white rounded-full p-1 shadow-lg w-full max-w-md">
+        <div className="flex bg-white/10 backdrop-blur-sm border border-white rounded-full p-1 shadow-lg w-full max-w-xl">
           <button
             type="button"
             onClick={() => handleTabChange('public')}
-            className={`flex-1 px-3 sm:px-6 py-2 font-semibold text-xs sm:text-sm focus:outline-none transition-all duration-200 rounded-full flex items-center justify-center gap-1 sm:gap-2
+            className={`flex-1 px-4 sm:px-8 py-2 font-semibold text-sm focus:outline-none transition-all duration-200 rounded-full flex items-center justify-center gap-2
               ${promptPagesTab === 'public'
                 ? 'bg-slate-blue text-white'
                 : 'bg-transparent text-white'}
             `}
           >
-            <Icon name="FaUsers" className="hidden sm:block w-5 h-5" size={20} />
-            <span>One-to-many</span>
+            <Icon name="FaUsers" className="w-5 h-5" size={20} />
+            <span className="whitespace-nowrap">1-to-all</span>
           </button>
           <button
             type="button"
             onClick={() => handleTabChange('individual')}
-            className={`flex-1 px-3 sm:px-6 py-2 font-semibold text-xs sm:text-sm focus:outline-none transition-all duration-200 rounded-full flex items-center justify-center gap-1 sm:gap-2
+            className={`flex-1 px-4 sm:px-8 py-2 font-semibold text-sm focus:outline-none transition-all duration-200 rounded-full flex items-center justify-center gap-2
               ${promptPagesTab === 'individual'
                 ? 'bg-slate-blue text-white'
                 : 'bg-transparent text-white'}
             `}
           >
-            <Icon name="FaUserCircle" className="hidden sm:block w-5 h-5" size={20} />
-            <span>One-to-one</span>
+            <Icon name="FaUserCircle" className="w-5 h-5" size={20} />
+            <span className="whitespace-nowrap">1-to-1</span>
           </button>
           <button
             type="button"
             onClick={() => handleTabChange('locations')}
-            className={`flex-1 px-3 sm:px-6 py-2 font-semibold text-xs sm:text-sm focus:outline-none transition-all duration-200 rounded-full flex items-center justify-center gap-1 sm:gap-2
+            className={`flex-1 px-4 sm:px-8 py-2 font-semibold text-sm focus:outline-none transition-all duration-200 rounded-full flex items-center justify-center gap-2
               ${promptPagesTab === 'locations'
                 ? 'bg-slate-blue text-white'
                 : 'bg-transparent text-white'}
             `}
           >
-            <Icon name="FaMapMarker" className="hidden sm:block w-5 h-5" size={20} />
-            <span>Locations</span>
+            <Icon name="FaMapMarker" className="w-5 h-5" size={20} />
+            <span className="whitespace-nowrap">Locations</span>
           </button>
         </div>
       </div>
@@ -744,12 +744,25 @@ function PromptPagesContent() {
             
             <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 mt-2 mb-4">
               <div className="flex flex-col mt-0 md:mt-[3px] flex-1 min-w-0">
-                <div className="mb-2">
+                <div className="mb-2 flex items-center gap-3">
                   <h1 className="text-3xl lg:text-4xl font-bold text-slate-blue mt-0">
-                    {promptPagesTab === 'public' && 'One-to-many Prompt Pages'}
-                    {promptPagesTab === 'individual' && 'One-to-one Prompt Pages'}
-                    {promptPagesTab === 'locations' && 'Location Prompt Pages'}
+                    Prompt Pages
                   </h1>
+                  {promptPagesTab === 'public' && (
+                    <span className="px-3 py-1 bg-slate-blue/10 text-slate-blue text-sm font-semibold rounded-full">
+                      1-to-all
+                    </span>
+                  )}
+                  {promptPagesTab === 'individual' && (
+                    <span className="px-3 py-1 bg-slate-blue/10 text-slate-blue text-sm font-semibold rounded-full">
+                      1-to-1
+                    </span>
+                  )}
+                  {promptPagesTab === 'locations' && (
+                    <span className="px-3 py-1 bg-slate-blue/10 text-slate-blue text-sm font-semibold rounded-full">
+                      Locations
+                    </span>
+                  )}
                 </div>
                 <p className="text-gray-600 text-base max-w-md mt-0 mb-6 lg:mb-10">
                   {promptPagesTab === 'public' && 'Capture reviews in person, at your place of business, through your website, or embed in your newsletter. These prompt pages are open to the public.'}
