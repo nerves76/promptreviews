@@ -46,7 +46,7 @@ const FiveStarEmbedGenerator: React.FC<FiveStarEmbedGeneratorProps> = ({
   const generateEmbedHTML = () => {
     return `<!-- 5-star review embed by Prompt Reviews promptreviews.app -->
 <div style="max-width:600px;margin:0 auto;background:transparent;text-align:center;font-family:Arial,sans-serif;">
-  ${showStarImage ? `<div style="margin-bottom:8px;">
+  ${showStarImage ? `<div style="margin-bottom:2px;">
     <img src="${FIVE_STAR_IMAGE_URL}" alt="5 Stars" style="width:240px;height:auto;display:inline-block;" />
   </div>` : ''}
   <div style="margin-bottom:12px;">
@@ -95,7 +95,7 @@ const FiveStarEmbedGenerator: React.FC<FiveStarEmbedGeneratorProps> = ({
             }}
           >
             {showStarImage && (
-              <div style={{ marginBottom: '8px' }}>
+              <div style={{ marginBottom: '2px' }}>
                 <img
                   src={FIVE_STAR_IMAGE_URL}
                   alt="5 Stars"
