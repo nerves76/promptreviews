@@ -143,7 +143,7 @@ export default function SentimentAnalyzerPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-8 w-full gap-2">
         <div className="flex flex-col">
-          <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600 mb-2">
+          <h1 className="text-4xl font-bold text-slate-blue mb-2">
             Sentiment Analyzer
           </h1>
           <p className="text-gray-600 text-base max-w-2xl">
