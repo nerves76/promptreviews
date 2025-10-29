@@ -45,7 +45,7 @@ export default function FeaturesBenefitsSection({
   return (
     <div className="custom-space-y">
       <div className="mt-8 mb-2 flex items-center gap-3">
-        <svg className="w-7 h-7" style={{ color: "#1A237E" }}><use href="/icons-sprite.svg#FaBox" /></svg>
+        <Icon name="FaStar" className="w-7 h-7 text-slate-blue" size={28} />
         <h2 className="text-2xl font-bold text-slate-blue flex items-center gap-1">
           Features or benefits
           <RobotTooltip text="This field is passed to AI for prompt generation." />
