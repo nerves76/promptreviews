@@ -479,8 +479,8 @@ export default function ProductPromptPageForm({
                          <div className="mb-6 flex items-center gap-3">
                <Icon name="FaCommentAlt" className="w-7 h-7 text-slate-blue" size={28} />
                <div>
-                 <h2 className="text-xl font-semibold text-slate-blue">Prompt page name</h2>
-                 <p className="text-gray-600 text-sm">Give your product prompt page a clear, descriptive name</p>
+                 <h2 className="text-xl font-semibold text-slate-blue">Prompt Page name</h2>
+                 <p className="text-gray-600 text-sm">Give your product Prompt Page a clear, descriptive name</p>
                </div>
              </div>
             <div>

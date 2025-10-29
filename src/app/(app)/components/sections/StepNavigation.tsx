@@ -62,7 +62,7 @@ export const TopNavigation = React.memo(function TopNavigation({
             ></path>
           </svg>
         )}
-        {isSaving ? "Saving . . ." : "Save & Publish"}
+        {isSaving ? "Saving . . ." : "Save & publish"}
       </button>
     </div>
   );
@@ -130,7 +130,7 @@ export const BottomNavigation = React.memo(function BottomNavigation({
             ></path>
           </svg>
         )}
-        {isSaving ? "Saving . . ." : "Save & Publish"}
+        {isSaving ? "Saving . . ." : "Save & publish"}
       </button>
     </div>
   );
