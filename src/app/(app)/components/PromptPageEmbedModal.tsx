@@ -196,7 +196,7 @@ const PromptPageEmbedModal: React.FC<PromptPageEmbedModalProps> = ({
                 <>
                   {/* Live Preview section */}
                   <div className="mb-8">
-                <h3 className="text-lg font-medium text-gray-800 mb-4">Live preview</h3>
+                <h3 className="text-lg font-medium text-gray-800 mb-4 text-center">Live preview</h3>
                 <div className="border border-gray-200 rounded-lg p-8 bg-gray-50 flex justify-center">
                   <EmojiSentimentEmbed
                     header={question}

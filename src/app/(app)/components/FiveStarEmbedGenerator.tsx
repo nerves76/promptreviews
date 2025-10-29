@@ -46,8 +46,8 @@ const FiveStarEmbedGenerator: React.FC<FiveStarEmbedGeneratorProps> = ({
   const generateEmbedHTML = () => {
     return `<!-- 5-star review embed by Prompt Reviews promptreviews.app -->
 <div style="max-width:600px;margin:0 auto;background:transparent;text-align:center;font-family:Arial,sans-serif;">
-  ${showStarImage ? `<div style="margin-bottom:16px;">
-    <img src="${FIVE_STAR_IMAGE_URL}" alt="5 Stars" style="width:120px;height:auto;display:inline-block;" />
+  ${showStarImage ? `<div style="margin-bottom:8px;">
+    <img src="${FIVE_STAR_IMAGE_URL}" alt="5 Stars" style="width:240px;height:auto;display:inline-block;" />
   </div>` : ''}
   <div style="margin-bottom:12px;">
     <h2 style="font-size:24px;font-weight:bold;color:${textColor};margin:0 0 16px 0;">${heading}</h2>
@@ -84,7 +84,7 @@ const FiveStarEmbedGenerator: React.FC<FiveStarEmbedGeneratorProps> = ({
     <div className="space-y-6">
       {/* Live Preview */}
       <div>
-        <h3 className="text-lg font-medium text-gray-800 mb-4">Live preview</h3>
+        <h3 className="text-lg font-medium text-gray-800 mb-4 text-center">Live preview</h3>
         <div className="border border-gray-200 rounded-lg p-8 bg-gray-50">
           <div
             style={{
@@ -95,11 +95,11 @@ const FiveStarEmbedGenerator: React.FC<FiveStarEmbedGeneratorProps> = ({
             }}
           >
             {showStarImage && (
-              <div style={{ marginBottom: '16px' }}>
+              <div style={{ marginBottom: '8px' }}>
                 <img
                   src={FIVE_STAR_IMAGE_URL}
                   alt="5 Stars"
-                  style={{ width: '120px', height: 'auto', display: 'inline-block' }}
+                  style={{ width: '240px', height: 'auto', display: 'inline-block' }}
                 />
               </div>
             )}
