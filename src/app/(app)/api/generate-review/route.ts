@@ -45,7 +45,7 @@ export async function POST(request: Request) {
         {
           role: "system",
           content:
-            "You are a helpful assistant that generates authentic, positive reviews for businesses. The reviews should be specific, highlight the business's strengths, and sound natural.",
+            "You are a helpful assistant that generates authentic, positive reviews for businesses. The reviews should be specific, highlight the business's strengths, and sound natural. IMPORTANT: Output only the review text itself with no meta commentary, preamble, or phrases like 'Here is your review'. The output must be ready to post directly to review platforms.",
         },
         {
           role: "user",

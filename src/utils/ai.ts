@@ -66,13 +66,13 @@ export function generateReviewPrompt(
   const state = businessProfile.address_state || "";
   const zip = businessProfile.address_zip || "";
 
-  let customerName = "";
+  let reviewerName = "";
   if (promptPageData.first_name && promptPageData.last_name) {
-    customerName = `- Customer Name: ${promptPageData.first_name} ${promptPageData.last_name}\n`;
+    reviewerName = `- Your Name (the reviewer): ${promptPageData.first_name} ${promptPageData.last_name}\n`;
   } else if (promptPageData.first_name) {
-    customerName = `- Customer Name: ${promptPageData.first_name}\n`;
+    reviewerName = `- Your Name (the reviewer): ${promptPageData.first_name}\n`;
   } else if (promptPageData.last_name) {
-    customerName = `- Customer Name: ${promptPageData.last_name}\n`;
+    reviewerName = `- Your Name (the reviewer): ${promptPageData.last_name}\n`;
   }
 
   let reviewerRole = "";
@@ -83,7 +83,7 @@ export function generateReviewPrompt(
   return `You are a satisfied ${safeReviewerType} writing a review for ${businessName}.
 Please write a genuine, detailed, and positive review based on the following information:
 
-Business Information:
+Business Information (the business you are reviewing):
 - Business Name: ${businessName}
 ${city ? `- City: ${city}\n` : ""}${state ? `- State: ${state}\n` : ""}${zip ? `- ZIP: ${zip}\n` : ""}- Years in Business: ${yearsInBusiness}
 - Services: ${services}
@@ -93,8 +93,8 @@ ${city ? `- City: ${city}\n` : ""}${state ? `- State: ${state}\n` : ""}${zip ? `
 ${industryInfo ? industryInfo + "\n" : ""}- Team/Founder Info: ${teamFounderInfo}
 - Keywords to Include: ${keywords}
 
-Customer Experience:
-${customerName}${reviewerRole}- Service Received: ${projectType}
+Your Experience (you are the reviewer, NOT the business):
+${reviewerName}${reviewerRole}- Service Received: ${projectType}
 - Outcome/Results: ${productDescription}
 
 Platform: ${safePlatform}
@@ -115,8 +115,10 @@ Please write a review that:
 5. Is appropriate for the specified platform
 6. Maintains a professional but warm tone
 7. Stays within the ${wordCountLimit} word limit
+8. Contains ONLY the review text itself - no meta text like "Here is your review" or introductions
+9. Can be posted directly to ${safePlatform} without any editing
 
-The review should be detailed and specific, focusing on the actual experience and results.`;
+The review should be detailed and specific, focusing on the actual experience and results. Start writing the review immediately without any preamble.`;
 }
 
 export async function generateAIReview(
