@@ -95,7 +95,7 @@ export const DraggableModal: React.FC<DraggableModalProps> = ({
       <div
         className={`rounded-2xl shadow-2xl w-full ${maxWidth} relative ${
           opaqueBody
-            ? 'bg-white/95 border border-gray-200'
+            ? 'border border-gray-200'
             : 'bg-gradient-to-br from-indigo-50 via-white to-purple-50 border border-white/20 backdrop-blur-sm'
         }`}
         style={{
@@ -146,7 +146,7 @@ export const DraggableModal: React.FC<DraggableModalProps> = ({
              )}
           </div>
         </div>
-        <div className="p-6">
+        <div className={`p-6 ${opaqueBody ? 'bg-white/95 rounded-b-2xl' : ''}`}>
           {children}
         </div>
       </div>
