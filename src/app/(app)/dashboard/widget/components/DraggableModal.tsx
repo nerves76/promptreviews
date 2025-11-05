@@ -11,6 +11,10 @@ interface DraggableModalProps {
   saveLabel?: string;
   resetLabel?: string;
   maxWidth?: string;
+  /** Optional: Make body opaque white instead of glassmorphic gradient */
+  opaqueBody?: boolean;
+  /** Optional: Reduce backdrop blur for better readability */
+  lightBackdrop?: boolean;
 }
 
 export const DraggableModal: React.FC<DraggableModalProps> = ({
@@ -23,6 +27,8 @@ export const DraggableModal: React.FC<DraggableModalProps> = ({
   saveLabel = 'Save',
   resetLabel = 'Reset',
   maxWidth = 'max-w-xl',
+  opaqueBody = false,
+  lightBackdrop = false,
 }) => {
   const [modalPos, setModalPos] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
@@ -80,14 +86,18 @@ export const DraggableModal: React.FC<DraggableModalProps> = ({
     <div className="fixed inset-0 z-50">
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm"
+        className={lightBackdrop ? "fixed inset-0 bg-black/20" : "fixed inset-0 bg-black/50 backdrop-blur-sm"}
         onClick={onClose}
         aria-label="Close modal"
       />
-      
+
       {/* Modal */}
       <div
-        className={`bg-gradient-to-br from-indigo-50 via-white to-purple-50 rounded-2xl shadow-2xl w-full ${maxWidth} relative border border-white/20 backdrop-blur-sm`}
+        className={`rounded-2xl shadow-2xl w-full ${maxWidth} relative ${
+          opaqueBody
+            ? 'bg-white/95 border border-gray-200'
+            : 'bg-gradient-to-br from-indigo-50 via-white to-purple-50 border border-white/20 backdrop-blur-sm'
+        }`}
         style={{
           position: 'absolute',
           left: modalPos.x,

@@ -68,10 +68,12 @@ export default function KeywordInspirationModal({
         </div>
       }
       maxWidth="max-w-lg"
+      opaqueBody={true}
+      lightBackdrop={true}
     >
       {/* Description */}
       <div className="mb-4">
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-gray-700">
           Click any keyword phrase below to copy it and use it in your review. This will help us get found online!
         </p>
       </div>
@@ -81,24 +83,23 @@ export default function KeywordInspirationModal({
         {keywords.length === 0 ? (
           <div className="text-center py-8">
             <Icon name="FaSparkles" className="w-8 h-8 text-gray-400 mx-auto mb-3" size={32} />
-            <p className="text-gray-600">No keywords available</p>
+            <p className="text-gray-700">No keywords available</p>
           </div>
         ) : (
           <div className="space-y-2">
             {keywords.map((keyword, index) => (
               <div
                 key={index}
-                className="rounded-lg p-3 border-2 flex items-center justify-between transition-colors"
+                className="rounded-lg p-3 border-2 flex items-center justify-between transition-colors bg-white"
                 style={{
                   borderColor: businessProfile?.secondary_color || "#4F46E5",
                 }}
               >
                 {/* Keyword Text */}
                 <span
-                  className="font-medium flex-1 text-sm"
+                  className="font-medium flex-1 text-sm text-gray-800"
                   style={{
                     fontFamily: businessProfile?.primary_font || "Inter",
-                    color: businessProfile?.card_text || "#1F2937"
                   }}
                 >
                   {keyword}
