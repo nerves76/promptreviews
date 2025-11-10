@@ -254,7 +254,6 @@ export const loadAllFallingIcons = async (): Promise<{
     
     // Technology & Media
     { key: "music", label: "Music", icon: FaMusic, color: "text-purple-500", category: "Technology & Media" },
-    { key: "gamepad", label: "Gamepad", icon: FaGamepad, color: "text-indigo-500", category: "Technology & Media" },
     { key: "camera", label: "Camera", icon: FaCamera, color: "text-gray-700", category: "Technology & Media" },
     { key: "book", label: "Book", icon: FaBook, color: "text-amber-700", category: "Technology & Media" },
     { key: "chess", label: "Chess", icon: FaChess, color: "text-gray-800", category: "Technology & Media" },
