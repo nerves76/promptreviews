@@ -82,6 +82,15 @@ export async function PUT(
 
     const body = await request.json();
 
+    // Log the incoming request for debugging
+    console.log('[BUSINESS-BY-ACCOUNT] PUT request received:', {
+      accountId,
+      bodyKeys: Object.keys(body),
+      hasAiDonts: 'ai_donts' in body,
+      aiDontsValue: body.ai_donts,
+      aiDontsType: typeof body.ai_donts
+    });
+
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
@@ -123,12 +132,48 @@ export async function PUT(
 
 
     // Update the business record
-    // Log the body being sent
+    // Filter body to only include valid business table columns
+    // This prevents errors from fields that belong to prompt_pages or other tables
+    const validBusinessFields = [
+      'name', 'facebook_url', 'instagram_url', 'bluesky_url', 'tiktok_url',
+      'youtube_url', 'linkedin_url', 'pinterest_url', 'primary_font', 'secondary_font',
+      'primary_color', 'secondary_color', 'background_color', 'text_color',
+      'address_street', 'address_city', 'address_state', 'address_zip', 'address_country',
+      'offer_url', 'background_type', 'gradient_start', 'gradient_middle', 'gradient_end',
+      'offer_learn_more_url', 'default_offer_enabled', 'default_offer_title', 'default_offer_body',
+      'default_offer_url', 'default_offer_timelock', 'card_inner_shadow', 'card_shadow_color',
+      'card_shadow_intensity', 'card_transparency', 'logo_print_url', 'about_us',
+      'kickstarters_enabled', 'selected_kickstarters', 'kickstarters_background_design',
+      'custom_kickstarters', 'ai_dos', 'ai_donts', 'taglines', 'team_info',
+      'review_platforms', 'platform_word_counts', 'logo_url', 'keywords', 'tagline',
+      'company_values', 'services_offered', 'differentiators', 'years_in_business',
+      'industries_served', 'industry', 'industries_other',
+      'business_website', 'business_email', 'phone', 'referral_source', 'referral_source_other',
+      // Default settings for new prompt pages
+      'ai_button_enabled', 'fix_grammar_enabled', 'emoji_sentiment_enabled',
+      'emoji_sentiment_question', 'emoji_feedback_message', 'emoji_thank_you_message',
+      'emoji_feedback_popup_header', 'emoji_feedback_page_header',
+      'falling_enabled', 'falling_icon', 'falling_icon_color',
+      'show_friendly_note', 'friendly_note', 'recent_reviews_enabled', 'recent_reviews_scope'
+    ];
+
+    const filteredBody: any = {};
+    for (const key of validBusinessFields) {
+      if (key in body) {
+        filteredBody[key] = body[key];
+      }
+    }
+
+    console.log('[BUSINESS-BY-ACCOUNT] Filtered body for update:', {
+      originalKeys: Object.keys(body),
+      filteredKeys: Object.keys(filteredBody),
+      removedKeys: Object.keys(body).filter(k => !(k in filteredBody))
+    });
 
     // Use the business id for the update
     const { data: updatedBusiness, error } = await supabase
       .from('businesses')
-      .update(body)
+      .update(filteredBody)
       .eq('id', existingBusiness.id)
       .select()
       .single();
