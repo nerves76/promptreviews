@@ -45,16 +45,17 @@ export function generateReviewPrompt(
   }
 
   // Defensive: ensure all fields are strings and never undefined/null
+  // Use meaningful defaults when business profile is incomplete
   const businessName = businessProfile.business_name || "";
   const yearsInBusiness = businessProfile.years_in_business || "";
-  const services = businessProfile.features_or_benefits || "";
-  const companyValues = businessProfile.company_values || "";
-  const differentiators = businessProfile.differentiators || "";
+  const services = businessProfile.features_or_benefits || "professional services";
+  const companyValues = businessProfile.company_values || "excellence and customer care";
+  const differentiators = businessProfile.differentiators || "personalized approach and attention to detail";
   const industriesServed = businessProfile.industries_served || "";
   const teamFounderInfo = businessProfile.team_founder_info || "";
   const keywords = businessProfile.keywords || "";
-  const projectType = promptPageData.project_type || "";
-  const productDescription = promptPageData.product_description || "";
+  const projectType = promptPageData.project_type || "service";
+  const productDescription = promptPageData.product_description || "excellent results";
   const safePlatform = platform || "";
   const safeCustomInstructions = customInstructions || "";
   const safeReviewerType = reviewerType || "customer or client";
@@ -117,6 +118,11 @@ Please write a review that:
 7. Stays within the ${wordCountLimit} word limit
 8. Contains ONLY the review text itself - no meta text like "Here is your review" or introductions
 9. Can be posted directly to ${safePlatform} without any editing
+10. NEVER use brackets, placeholders, or variables like [specific service], [business], or [outcome]
+11. NEVER include instructions or suggestions for the user to edit or fill in details
+12. Use ONLY the concrete information provided above - if specific details are missing, be general but natural
+
+CRITICAL: The review must be complete and ready to publish as-is. Do not include ANY placeholder text in brackets or ANY instructions for editing. Write naturally about the actual information provided.
 
 The review should be detailed and specific, focusing on the actual experience and results. Start writing the review immediately without any preamble.`;
 }

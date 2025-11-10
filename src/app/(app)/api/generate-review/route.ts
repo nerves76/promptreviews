@@ -45,7 +45,7 @@ export async function POST(request: Request) {
         {
           role: "system",
           content:
-            "You are a helpful assistant that generates authentic, positive reviews for businesses. The reviews should be specific, highlight the business's strengths, and sound natural. IMPORTANT: Output only the review text itself with no meta commentary, preamble, or phrases like 'Here is your review'. The output must be ready to post directly to review platforms.",
+            "You are a helpful assistant that generates authentic, positive reviews for businesses. The reviews should be specific, highlight the business's strengths, and sound natural. IMPORTANT: Output only the review text itself with no meta commentary, preamble, or phrases like 'Here is your review'. The output must be ready to post directly to review platforms. CRITICAL: NEVER use brackets, placeholders, or variables like [specific service], [business], or [outcome]. Write complete, natural sentences using only the concrete information provided. If certain details are not specified, write generally but naturally without indicating missing information.",
         },
         {
           role: "user",
