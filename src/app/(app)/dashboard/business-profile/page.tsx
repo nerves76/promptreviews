@@ -788,6 +788,25 @@ export default function BusinessProfilePage() {
           if (refreshedBusiness.logo_url) {
             setLogoUrl(refreshedBusiness.logo_url);
           }
+
+          // Update services state to reflect what was actually saved
+          setServices(
+            Array.isArray(refreshedBusiness.services_offered)
+              ? refreshedBusiness.services_offered
+              : typeof refreshedBusiness.services_offered === "string" &&
+                  refreshedBusiness.services_offered.length > 0
+                ? refreshedBusiness.services_offered.trim().startsWith("[") &&
+                  refreshedBusiness.services_offered.trim().endsWith("]")
+                  ? (() => {
+                      try {
+                        return JSON.parse(refreshedBusiness.services_offered);
+                      } catch {
+                        return [refreshedBusiness.services_offered];
+                      }
+                    })()
+                  : refreshedBusiness.services_offered.split("\n")
+                : []
+          );
         }
       } catch (refetchError) {
         console.error("Error refetching business profile after save:", refetchError);
