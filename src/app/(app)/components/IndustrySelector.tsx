@@ -94,6 +94,11 @@ const INDUSTRY_OPTIONS = [
     value: "Marketing & Advertising",
     type: "B2B",
   },
+  { label: "Creative Agency", value: "Creative Agency", type: "B2B" },
+  { label: "Marketing Agency", value: "Marketing Agency", type: "B2B" },
+  { label: "Digital Agency", value: "Digital Agency", type: "B2B" },
+  { label: "PR Agency", value: "PR Agency", type: "B2B" },
+  { label: "SEO Agency", value: "SEO Agency", type: "B2B" },
   { label: "Market Research", value: "Market Research", type: "B2B" },
   {
     label: "Financial Services (B2B)",
