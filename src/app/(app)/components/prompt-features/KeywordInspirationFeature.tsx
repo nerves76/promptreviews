@@ -108,7 +108,7 @@ export default function KeywordInspirationFeature({
           <div className="flex items-center gap-3">
             <Icon name="mushroom" className="w-7 h-7 text-slate-blue" size={28} />
             <span className="text-2xl font-bold text-slate-blue">
-              Keyword Power-ups
+              Keyword Power-Ups
             </span>
           </div>
           <div className="text-sm text-gray-700 mt-[3px] ml-9">
