@@ -233,7 +233,8 @@ export default function KickstartersCarousel({
               fontFamily: businessProfile?.secondary_font || 'Roboto',
               fontSize: '1rem',
               lineHeight: '1.5rem',
-              color: businessProfile?.kickstarters_primary_color || businessProfile?.primary_color || '#2563EB'
+              color: businessProfile?.kickstarters_primary_color || businessProfile?.primary_color || '#2563EB',
+              letterSpacing: '0.015em'
             }}
             onClick={() => handleQuestionClick(currentQuestion)}
           >
