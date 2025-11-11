@@ -63,8 +63,8 @@ export default function KeywordInspirationModal({
       onClose={onClose}
       title={
         <div className="flex items-center space-x-2">
-          <Icon name="FaSparkles" className="w-5 h-5 text-white" size={20} />
-          <span>Keyword inspiration</span>
+          <Icon name="mushroom" className="w-5 h-5 text-white" size={20} />
+          <span>Keyword Power-ups</span>
         </div>
       }
       maxWidth="max-w-lg"
@@ -74,7 +74,7 @@ export default function KeywordInspirationModal({
       {/* Description */}
       <div className="mb-4">
         <p className="text-sm text-gray-700">
-          Click any keyword phrase below to copy it and use it in your review. This will help us get found online!
+          Help other customers find us online by using one or more of these phrases in your review. You can also edit them once they are added.
         </p>
       </div>
 
@@ -82,7 +82,7 @@ export default function KeywordInspirationModal({
       <div className="overflow-y-auto max-h-[60vh]">
         {keywords.length === 0 ? (
           <div className="text-center py-8">
-            <Icon name="FaSparkles" className="w-8 h-8 text-gray-400 mx-auto mb-3" size={32} />
+            <Icon name="mushroom" className="w-8 h-8 text-gray-400 mx-auto mb-3" size={32} />
             <p className="text-gray-700">No keywords available</p>
           </div>
         ) : (
