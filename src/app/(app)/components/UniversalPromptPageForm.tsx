@@ -261,7 +261,7 @@ export default function UniversalPromptPageForm({
         </div>
         <div className="mb-2">
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Suggest keyword-powered phrases that your customers can use in reviews. This will improve your visibility in search and AI engines
+            Improve your online visibility with keyword-powered reviews. Both "AI Generate" and "Keyword Power-Ups" use this feature.
           </label>
           <KeywordsInput
             keywords={keywords}
