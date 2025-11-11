@@ -783,6 +783,11 @@ export default function BusinessProfilePage() {
             // Update other fields that might have been transformed during save
             services_offered: refreshedBusiness.services_offered || [],
           });
+
+          // Update logo URL to display the newly uploaded logo without page refresh
+          if (refreshedBusiness.logo_url) {
+            setLogoUrl(refreshedBusiness.logo_url);
+          }
         }
       } catch (refetchError) {
         console.error("Error refetching business profile after save:", refetchError);
