@@ -629,7 +629,9 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
       console.log('[StyleModal] Successfully saved styles to business:', businessId);
       setSuccessMessage("All style changes saved successfully!");
       setSuccess(true);
-      fetchSettings();
+
+      // Refetch settings from database to get the saved values
+      await fetchSettings();
 
       // Mark the style-prompt-pages task as completed when successfully saved
       try {
@@ -641,12 +643,13 @@ export default function StylePage({ onClose, onStyleUpdate, accountId: propAccou
         console.error("Error marking style task as completed:", taskError);
       }
 
-      // If we're on a prompt page, refresh to apply the new styles
+      // If we're on a prompt page, update the parent with the freshly saved styles
       if (onClose && onStyleUpdate) {
-        onStyleUpdate(settings);
-        // Delay reload to allow success message to be seen
+        // Pass the updated settings that were just refetched from the database
+        onStyleUpdate(updatePayload);
+        // Close modal after a brief delay to show success message
         setTimeout(() => {
-          window.location.reload();
+          onClose();
         }, 1500);
       }
 
