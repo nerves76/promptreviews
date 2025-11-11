@@ -252,7 +252,7 @@ export default function KickstartersCarousel({
                 letterSpacing: '0.05em'
               }}
             >
-              View All
+              View all
             </button>
           </div>
         </div>
