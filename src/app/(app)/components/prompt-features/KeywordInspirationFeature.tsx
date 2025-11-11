@@ -106,13 +106,13 @@ export default function KeywordInspirationFeature({
       <div className="flex flex-row justify-between items-start mb-2 px-4 py-2">
         <div className="flex flex-col">
           <div className="flex items-center gap-3">
-            <Icon name="FaLightbulb" className="w-7 h-7 text-slate-blue" size={28} />
+            <Icon name="mushroom" className="w-7 h-7 text-slate-blue" size={28} />
             <span className="text-2xl font-bold text-slate-blue">
-              Keyword Inspiration
+              Keyword Power-ups
             </span>
           </div>
           <div className="text-sm text-gray-700 mt-[3px] ml-9">
-            Show a "Keyword inspiration" button on your Prompt Page to help visitors come up with ideas for their review. Displays up to 10 keyword phrases with copy buttons for easy use.
+            Show a "Power-up" button on your Prompt Page to help visitors come up with ideas for their review. Displays up to 10 keyword phrases with copy buttons for easy use.
           </div>
         </div>
         <div className="flex flex-col justify-start pt-1">
@@ -224,7 +224,7 @@ export default function KeywordInspirationFeature({
             <div className="text-sm text-green-800">
               <p className="font-medium mb-1">How it works:</p>
               <ul className="space-y-1 text-green-700">
-                <li>• Activates "Keyword inspiration" button on your Prompt Page</li>
+                <li>• Activates "Power-up" button on your Prompt Page</li>
                 <li>• Button appears on the left side below the hero area</li>
                 <li>• On click, displays your selected keywords in a modal</li>
                 <li>• Each keyword has a copy button for easy use</li>
