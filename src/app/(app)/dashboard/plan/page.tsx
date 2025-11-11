@@ -1134,21 +1134,6 @@ export default function PlanPage() {
                     : `You're currently on the ${tiers.find(t => t.key === currentPlan)?.name || currentPlan} plan${account?.billing_period === 'annual' ? ' (Annual billing)' : account?.billing_period === 'monthly' ? ' (Monthly billing)' : ''}.`
                   }
                 </p>
-            
-            {/* Admin account notice */}
-            {isAdminAccount && (
-              <div className="mt-6 p-4 bg-green-900/30 border border-green-700 rounded-lg max-w-2xl mx-auto">
-                <div className="flex items-center justify-center space-x-2 text-green-300">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <p className="text-sm font-medium">
-                    Admin testing mode active: 99% discount will be applied at checkout (~$1-3 pricing)
-                  </p>
-                </div>
-              </div>
-            )}
-            
             {/* Permission messaging for non-owners */}
             {!canManageBilling && (
               <div className="mt-6 p-4 bg-blue-900/30 border border-blue-700 rounded-lg max-w-2xl mx-auto">
