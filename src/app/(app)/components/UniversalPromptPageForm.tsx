@@ -256,7 +256,7 @@ export default function UniversalPromptPageForm({
       {/* Keyword Phrases Section */}
       <div className="rounded-lg p-6 bg-green-50 border border-green-200 shadow">
         <div className="flex items-center gap-2 mb-4">
-          <Icon name="FaKey" className="w-7 h-7 text-slate-blue" size={28} />
+          <Icon name="FaSearch" className="w-7 h-7 text-slate-blue" size={28} />
           <h3 className="text-2xl font-bold text-slate-blue">Keyword-Powered Reviews</h3>
         </div>
         <div className="mb-2">
