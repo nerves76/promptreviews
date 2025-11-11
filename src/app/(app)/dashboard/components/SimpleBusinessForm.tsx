@@ -768,7 +768,7 @@ const SimpleBusinessForm = forwardRef<HTMLFormElement, SimpleBusinessFormProps>(
       {/* Promotion Code Section */}
       <div className="mb-16">
         <h2 className="mt-4 mb-8 text-2xl font-bold text-slate-blue flex items-center gap-3">
-          <Icon name="FaTags" size={28} className="text-slate-blue" />
+          <Icon name="FaGift" size={28} className="text-slate-blue" />
           Promotion code
         </h2>
         <div className="mb-4">
