@@ -968,8 +968,7 @@ export default function ReviewsPage() {
                     id={`review-details-${review.id}`}
                     className="px-4 pb-4 pt-2 border-t border-gray-100 animate-fade-in bg-gray-50 rounded-b-lg shadow-inner"
                   >
-                    <div className="flex items-center gap-2 mb-2">
-                      <Icon name="FaComments" className="w-5 h-5 text-slate-500" size={20} />
+                    <div className="mb-2">
                       <span
                         className="text-gray-800 text-sm"
                         style={{ whiteSpace: "pre-line" }}
@@ -994,22 +993,24 @@ export default function ReviewsPage() {
                             Check if Published
                           </a>
                         )}
-                        <a
-                          href={
-                            review.id.startsWith("sample-")
-                              ? undefined
-                              : `/dashboard/prompt-pages/${review.prompt_page_id}`
-                          }
-                          className={`text-xs text-indigo-700 underline ${review.id.startsWith("sample-") ? "cursor-not-allowed opacity-60" : ""}`}
-                          onClick={(e) => {
-                            if (review.id.startsWith("sample-")) {
-                              e.preventDefault();
-                              handleSampleNotice();
+                        {review.prompt_page_id && (
+                          <a
+                            href={
+                              review.id.startsWith("sample-")
+                                ? undefined
+                                : `/dashboard/prompt-pages/${review.prompt_page_id}`
                             }
-                          }}
-                        >
-                          View prompt page
-                        </a>
+                            className={`text-xs text-indigo-700 underline ${review.id.startsWith("sample-") ? "cursor-not-allowed opacity-60" : ""}`}
+                            onClick={(e) => {
+                              if (review.id.startsWith("sample-")) {
+                                e.preventDefault();
+                                handleSampleNotice();
+                              }
+                            }}
+                          >
+                            View prompt page
+                          </a>
+                        )}
                         {review.contact_id && (
                           <a
                             href={`/dashboard/contacts?id=${review.contact_id}`}

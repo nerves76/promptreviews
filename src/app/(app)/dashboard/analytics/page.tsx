@@ -468,7 +468,7 @@ export default function AnalyticsPage() {
 
   if (isLoading) {
     return (
-      <PageCard icon={<Icon name="FaChartBar" className="w-9 h-9 text-slate-blue" size={36} />}>
+      <PageCard icon={<Icon name="FaChartLine" className="w-9 h-9 text-slate-blue" size={36} />}>
         <StandardLoader isLoading={true} mode="inline" />
       </PageCard>
     );
@@ -487,7 +487,7 @@ export default function AnalyticsPage() {
   }
 
   return (
-          <PageCard icon={<Icon name="FaChartBar" className="w-9 h-9 text-slate-blue" size={36} />}>
+          <PageCard icon={<Icon name="FaChartLine" className="w-9 h-9 text-slate-blue" size={36} />}>
       <div className="flex items-center justify-between mt-2 mb-8">
         <div className="flex flex-col mt-0 md:mt-[-2px]">
           <h1 className="text-4xl font-bold text-slate-blue mt-0 mb-2">
