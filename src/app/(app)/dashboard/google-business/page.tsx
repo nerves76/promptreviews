@@ -1681,6 +1681,12 @@ export default function SocialPostingDashboard() {
 
   // Handle importing reviews from Google Business Profile
   const handleImportReviews = async (type: 'all' | 'new') => {
+    // Prevent multiple simultaneous imports
+    if (isImportingReviews) {
+      console.warn('⚠️ Import already in progress, ignoring duplicate call');
+      return;
+    }
+
     if (!selectedLocationId) {
       setImportResult({ success: false, message: 'Please select a location first' });
       return;
