@@ -249,45 +249,28 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Fetch reviews from widget_reviews via widgets join
-    const { data: widgetReviews } = await serviceSupabase
-      .from('widget_reviews')
-      .select('id, review_content, star_rating, created_at, review_type, widgets!inner(account_id)')
-      .eq('widgets.account_id', accountId)
-      .order('created_at', { ascending: false })
-      .limit(reviewLimit);
-
+    // Fetch reviews from review_submissions only (excluding widget_reviews as they are curated/duplicate entries)
     const { data: submissions } = await serviceSupabase
       .from('review_submissions')
-      .select('id, review_content, star_rating, created_at, platform, reviewer_name')
+      .select('id, review_content, star_rating, created_at, platform, reviewer_name, first_name, last_name')
       .eq('account_id', accountId)
       .order('created_at', { ascending: false })
       .limit(reviewLimit);
 
-    // Combine and sort reviews
-    const allReviews: Review[] = [
-      ...(widgetReviews || []).map(r => ({
-        id: r.id,
-        content: r.review_content || '',
-        rating: r.star_rating || 0,
-        created_at: r.created_at,
-        platform: r.review_type
-      })),
-      ...(submissions || []).map(r => ({
-        id: r.id,
-        content: r.review_content || '',
-        rating: r.star_rating || 0,
-        created_at: r.created_at,
-        platform: r.platform,
-        reviewer_name: r.reviewer_name
-      }))
-    ];
+    // Map to Review format
+    const allReviews: Review[] = (submissions || []).map(r => ({
+      id: r.id,
+      content: r.review_content || '',
+      rating: r.star_rating || 0,
+      created_at: r.created_at,
+      platform: r.platform,
+      reviewer_name: r.reviewer_name || (r.first_name && r.last_name ? `${r.first_name} ${r.last_name}` : undefined)
+    }));
 
-    // Sort by date and limit
-    allReviews.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-    const reviewsToAnalyze = allReviews.slice(0, reviewLimit).filter(r => r.content && r.content.trim().length > 0);
+    // Filter out reviews without content
+    const reviewsToAnalyze = allReviews.filter(r => r.content && r.content.trim().length > 0);
 
-    const totalReviewCount = allReviews.length;
+    const totalReviewCount = reviewsToAnalyze.length;
 
     // Check minimum reviews
     if (reviewsToAnalyze.length < MIN_REVIEWS_REQUIRED) {

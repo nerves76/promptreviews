@@ -155,18 +155,23 @@ export async function GET(request: NextRequest): Promise<NextResponse<Eligibilit
       }
     }
 
-    // Count total reviews in account (joining through widgets for account_id)
-    const { count: widgetReviewsCount } = await supabase
-      .from('widget_reviews')
-      .select('id, widgets!inner(account_id)', { count: 'exact', head: true })
-      .eq('widgets.account_id', accountId);
-
-    const { count: submissionsCount } = await supabase
+    // Count total reviews in account from review_submissions only
+    // (excluding widget_reviews as they are curated/duplicate entries)
+    // Only count reviews with actual content
+    const { count: submissionsCount, error: countError } = await supabase
       .from('review_submissions')
       .select('id', { count: 'exact', head: true })
-      .eq('account_id', accountId);
+      .eq('account_id', accountId)
+      .not('review_content', 'is', null)
+      .neq('review_content', '');
 
-    const totalReviewCount = (widgetReviewsCount || 0) + (submissionsCount || 0);
+    if (countError) {
+      console.error('Error counting reviews:', countError);
+    }
+
+    console.log(`[Sentiment Analyzer] Account ${accountId} review count: ${submissionsCount || 0}`);
+
+    const totalReviewCount = submissionsCount || 0;
 
     // Calculate next reset date and days until reset
     const nextResetDate = getNextResetDate();
