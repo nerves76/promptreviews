@@ -265,12 +265,22 @@ export async function POST(request: NextRequest) {
         // Google only provides display names like "John S." which are impossible to match reliably
         let contactId: string | null = null;
         
+        // Log the first contact creation attempt for debugging
+        if (importedCount === 0 && errors.length === 0) {
+          console.log('🔍 First contact creation attempt:', {
+            accountId,
+            reviewerDisplayName,
+            accountIdType: typeof accountId,
+            accountIdLength: accountId?.length
+          });
+        }
+
         const { data: newContact, error: contactError } = await serviceSupabase
           .from('contacts')
           .insert({
             account_id: accountId, // Use proper account ID from request context
             first_name: `Google User`, // Generic first name for system contact
-            last_name: '', 
+            last_name: '',
             google_reviewer_name: reviewerDisplayName, // Store actual Google display name here
             email: '', // Google doesn't provide email
             phone: '', // Google doesn't provide phone
@@ -286,8 +296,20 @@ export async function POST(request: NextRequest) {
           console.error('Contact data attempted:', {
             account_id: accountId,
             first_name: 'Google User',
-            google_reviewer_name: reviewerDisplayName
+            google_reviewer_name: reviewerDisplayName,
+            errorCode: contactError.code,
+            errorDetails: contactError.details
           });
+
+          // Log first error with more detail
+          if (errors.length === 0) {
+            console.error('❌ First contact error - full details:', {
+              error: contactError,
+              accountId,
+              constraint: contactError.message
+            });
+          }
+
           errors.push(`Failed to create contact for ${reviewerDisplayName}: ${contactError.message}`);
           continue;
         }
