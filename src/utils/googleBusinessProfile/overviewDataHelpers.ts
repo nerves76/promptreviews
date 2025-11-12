@@ -159,10 +159,12 @@ export function processReviewTrends(reviews: any[]): ReviewTrendsData {
   const totalReviews = reviews.length;
   const now = new Date();
   const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-  
-  // Debug: Log first few reviews to see their structure
-  if (reviews.length > 0) {
-  }
+
+  console.log('📈 Processing Review Trends:', {
+    totalReviews,
+    firstReview: reviews[0],
+    reviewDates: reviews.slice(0, 5).map(r => r.createTime)
+  });
   
   // Calculate average rating
   const ratingsSum = reviews.reduce((sum, review) => {
@@ -216,18 +218,26 @@ export function processReviewTrends(reviews: any[]): ReviewTrendsData {
 function generateMonthlyReviewData(reviews: any[]): ReviewTrendsData['monthlyReviewData'] {
   const months = [];
   const now = new Date();
-  
+
+  console.log('📅 Generating Monthly Review Data:', {
+    totalReviews: reviews.length,
+    currentDate: now,
+    reviewsWithDates: reviews.map(r => ({ createTime: r.createTime, starRating: r.starRating }))
+  });
+
   // Generate last 12 months
   for (let i = 11; i >= 0; i--) {
     const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
     const monthName = date.toLocaleDateString('en-US', { month: 'short' });
-    
+
     // Filter reviews for this month
     const monthReviews = reviews.filter(review => {
       const reviewDate = new Date(review.createTime);
-      return reviewDate.getMonth() === date.getMonth() && 
+      return reviewDate.getMonth() === date.getMonth() &&
              reviewDate.getFullYear() === date.getFullYear();
     });
+
+    console.log(`  ${monthName} ${date.getFullYear()}:`, monthReviews.length, 'reviews');
 
     // Count by star rating
     const starCounts = {
@@ -273,6 +283,8 @@ function generateMonthlyReviewData(reviews: any[]): ReviewTrendsData['monthlyRev
       ...starCounts
     });
   }
+
+  console.log('📊 Final Monthly Data:', months);
 
   return months;
 }

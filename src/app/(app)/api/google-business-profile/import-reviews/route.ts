@@ -12,15 +12,20 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { createClient } from '@supabase/supabase-js';
 import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
+import { GoogleBusinessProfileClient } from '@/features/social-posting/platforms/google-business-profile/googleBusinessProfileClient';
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('📥 Import reviews request received');
 
     // Get request body
     const body = await request.json();
     const { locationId, importType } = body;
 
+    console.log('📋 Import request params:', { locationId, importType });
+
     if (!locationId) {
+      console.error('❌ No location ID provided');
       return NextResponse.json(
         { success: false, error: 'Location ID is required' },
         { status: 400 }
@@ -120,75 +125,33 @@ export async function POST(request: NextRequest) {
     const defaultPromptPageId = null;
 
     // Get Google Business Profile access token from database
-    const { data: platformData, error: platformError } = await supabase
+    const { data: platformData, error: platformError } = await serviceSupabase
       .from('google_business_profiles')
-      .select('access_token, refresh_token')
+      .select('access_token, refresh_token, expires_at')
       .eq('account_id', accountId)
       .single();
 
     if (platformError || !platformData?.access_token) {
+      console.error('❌ No Google Business Profile tokens found');
       return NextResponse.json(
         { success: false, error: 'Google Business Profile not connected' },
         { status: 400 }
       );
     }
 
-    // First get account ID - Google API requires account/location format
-    const accountsResponse = await fetch(
-      'https://mybusinessaccountmanagement.googleapis.com/v1/accounts',
-      {
-        headers: {
-          'Authorization': `Bearer ${platformData.access_token}`,
-          'Content-Type': 'application/json',
-        },
-      }
-    );
+    // Use the GoogleBusinessProfileClient for proper API handling
+    console.log('🔍 Creating Google Business Profile client');
+    const client = new GoogleBusinessProfileClient({
+      accessToken: platformData.access_token,
+      refreshToken: platformData.refresh_token || undefined,
+      expiresAt: platformData.expires_at ? new Date(platformData.expires_at).getTime() : undefined,
+    });
 
-    if (!accountsResponse.ok) {
-      const errorText = await accountsResponse.text();
-      console.error('❌ Failed to get accounts:', accountsResponse.status, errorText);
-      return NextResponse.json(
-        { success: false, error: `Failed to get Google Business accounts: ${accountsResponse.status}` },
-        { status: 500 }
-      );
-    }
+    // Fetch reviews using the client
+    console.log('🔍 Fetching reviews from Google API for location:', locationId);
+    const googleReviews = await client.getReviews(locationId);
 
-    const accountsData = await accountsResponse.json();
-    const accounts = accountsData.accounts || [];
-    
-    if (accounts.length === 0) {
-      return NextResponse.json(
-        { success: false, error: 'No Google Business accounts found' },
-        { status: 404 }
-      );
-    }
-
-    // Use first account and clean location ID format
-    const googleAccountId = accounts[0].name.replace('accounts/', '');
-    const cleanLocationId = locationId.replace('locations/', '');
-
-    // Fetch reviews using correct v4 API endpoint format
-    const reviewsResponse = await fetch(
-      `https://mybusiness.googleapis.com/v4/accounts/${googleAccountId}/locations/${cleanLocationId}/reviews`,
-      {
-        headers: {
-          'Authorization': `Bearer ${platformData.access_token}`,
-          'Content-Type': 'application/json',
-        },
-      }
-    );
-
-    if (!reviewsResponse.ok) {
-      const errorText = await reviewsResponse.text();
-      console.error('❌ Google API Error:', reviewsResponse.status, errorText);
-      return NextResponse.json(
-        { success: false, error: `Failed to fetch reviews from Google: ${reviewsResponse.status}` },
-        { status: 500 }
-      );
-    }
-
-    const reviewsData = await reviewsResponse.json();
-    const googleReviews = reviewsData.reviews || [];
+    console.log('✅ Reviews fetched from Google:', googleReviews.length);
     
 
     if (googleReviews.length === 0) {
@@ -356,11 +319,18 @@ export async function POST(request: NextRequest) {
 
   } catch (error: any) {
     console.error('❌ Import reviews error:', error);
-    
+    console.error('Error stack:', error.stack);
+    console.error('Error details:', {
+      message: error.message,
+      code: error.code,
+      name: error.name
+    });
+
     return NextResponse.json(
       {
         success: false,
-        error: error.message || 'Failed to import reviews'
+        error: error.message || 'Failed to import reviews',
+        details: process.env.NODE_ENV === 'development' ? error.stack : undefined
       },
       { status: 500 }
     );

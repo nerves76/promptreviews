@@ -222,6 +222,7 @@ export default function SocialPostingDashboard() {
   const [showImportModal, setShowImportModal] = useState(false);
   const [isImportingReviews, setIsImportingReviews] = useState(false);
   const [importResult, setImportResult] = useState<{ success: boolean; message: string; count?: number; errors?: string[]; totalErrorCount?: number } | null>(null);
+  const [selectedImportType, setSelectedImportType] = useState<'all' | 'new'>('all');
   const [showFetchConfirmModal, setShowFetchConfirmModal] = useState(false);
   const [showProductsHelpModal, setShowProductsHelpModal] = useState(false);
   const [showPostTypesHelpModal, setShowPostTypesHelpModal] = useState(false);
@@ -1609,6 +1610,11 @@ export default function SocialPostingDashboard() {
 
       if (data.success) {
         // Include locationId in the stored data for cache validation
+        console.log('📊 Overview Data Received:', {
+          totalReviews: data.data?.reviewTrends?.totalReviews,
+          monthlyDataLength: data.data?.reviewTrends?.monthlyReviewData?.length,
+          monthlyData: data.data?.reviewTrends?.monthlyReviewData
+        });
         setOverviewData({ ...data.data, locationId });
       } else {
         setOverviewError(data.error || 'Failed to fetch overview data');
@@ -2393,14 +2399,25 @@ export default function SocialPostingDashboard() {
                       totalReviews={overviewData?.reviewTrends?.totalReviews || 0}
                       reviewTrend={overviewData?.reviewTrends?.reviewTrend || 0}
                       averageRating={overviewData?.reviewTrends?.averageRating || 0}
-                      monthlyReviewData={overviewData?.reviewTrends?.monthlyReviewData || [
-                        { month: 'Jan', fiveStar: 0, fourStar: 0, threeStar: 0, twoStar: 0, oneStar: 0, noRating: 0 },
-                        { month: 'Feb', fiveStar: 0, fourStar: 0, threeStar: 0, twoStar: 0, oneStar: 0, noRating: 0 },
-                        { month: 'Mar', fiveStar: 0, fourStar: 0, threeStar: 0, twoStar: 0, oneStar: 0, noRating: 0 },
-                        { month: 'Apr', fiveStar: 0, fourStar: 0, threeStar: 0, twoStar: 0, oneStar: 0, noRating: 0 },
-                        { month: 'May', fiveStar: 0, fourStar: 0, threeStar: 0, twoStar: 0, oneStar: 0, noRating: 0 },
-                        { month: 'Jun', fiveStar: 0, fourStar: 0, threeStar: 0, twoStar: 0, oneStar: 0, noRating: 0 }
-                      ]}
+                      monthlyReviewData={overviewData?.reviewTrends?.monthlyReviewData || (() => {
+                        // Generate 12 months of empty data as fallback
+                        const months = [];
+                        const now = new Date();
+                        for (let i = 11; i >= 0; i--) {
+                          const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                          const monthName = date.toLocaleDateString('en-US', { month: 'short' });
+                          months.push({
+                            month: monthName,
+                            fiveStar: 0,
+                            fourStar: 0,
+                            threeStar: 0,
+                            twoStar: 0,
+                            oneStar: 0,
+                            noRating: 0
+                          });
+                        }
+                        return months;
+                      })()}
                       isLoading={overviewLoading}
                     />
                   )}
@@ -3385,33 +3402,58 @@ export default function SocialPostingDashboard() {
                   If you've imported before, choose the second option to grab only the Google reviews that are
                   new since your last import. We'll ignore anything that's already saved in Prompt Reviews.
                 </p>
-                <div className="space-y-2">
-                  <button
-                    onClick={() => handleImportReviews('all')}
-                    disabled={isImportingReviews || !selectedLocationId}
-                    className="w-full px-4 py-3 text-left border border-gray-200 rounded-md hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed transition-colors"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="font-medium text-gray-900">Import All Reviews</div>
-                        <div className="text-sm text-gray-500">Import all reviews from this location</div>
-                      </div>
+                <div className="space-y-3">
+                  <label className="flex items-start space-x-3 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="importType"
+                      value="all"
+                      checked={selectedImportType === 'all'}
+                      onChange={(e) => setSelectedImportType(e.target.value as 'all')}
+                      disabled={isImportingReviews}
+                      className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 disabled:opacity-50"
+                    />
+                    <div className="flex-1">
+                      <div className="font-medium text-gray-900">Import All Reviews</div>
+                      <div className="text-sm text-gray-500">Import all reviews from this location</div>
                     </div>
-                  </button>
-                  
-                  <button
-                    onClick={() => handleImportReviews('new')}
-                    disabled={isImportingReviews || !selectedLocationId}
-                    className="w-full px-4 py-3 text-left border border-gray-200 rounded-md hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed transition-colors"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="font-medium text-gray-900">Import Only New Reviews</div>
-                        <div className="text-sm text-gray-500">Add reviews Google received after your last import (duplicates are skipped)</div>
-                      </div>
+                  </label>
+
+                  <label className="flex items-start space-x-3 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="importType"
+                      value="new"
+                      checked={selectedImportType === 'new'}
+                      onChange={(e) => setSelectedImportType(e.target.value as 'new')}
+                      disabled={isImportingReviews}
+                      className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 disabled:opacity-50"
+                    />
+                    <div className="flex-1">
+                      <div className="font-medium text-gray-900">Import Only New Reviews</div>
+                      <div className="text-sm text-gray-500">Add reviews Google received after your last import (duplicates are skipped)</div>
                     </div>
-                  </button>
+                  </label>
                 </div>
+
+                {/* Import Button */}
+                <button
+                  onClick={() => handleImportReviews(selectedImportType)}
+                  disabled={isImportingReviews || !selectedLocationId}
+                  className="w-full mt-4 px-4 py-3 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center justify-center space-x-2"
+                >
+                  {isImportingReviews ? (
+                    <>
+                      <Icon name="FaSpinner" className="w-4 h-4 animate-spin" />
+                      <span>Importing...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Icon name="FaDownload" className="w-4 h-4" />
+                      <span>Import Reviews</span>
+                    </>
+                  )}
+                </button>
               </div>
 
               {importResult && (
