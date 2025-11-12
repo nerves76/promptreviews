@@ -67,19 +67,42 @@ export async function POST(request: NextRequest) {
 
     // Get user's account ID
     const accountId = await getRequestAccountId(request, user.id, supabase);
+    console.log('🔑 Account ID retrieved:', accountId);
+    console.log('👤 User ID:', user.id);
+
     if (!accountId) {
+      console.error('❌ No account ID found for user:', user.id);
       return NextResponse.json(
         { success: false, error: 'Account not found' },
         { status: 404 }
       );
     }
 
-
     // Create service role client for database operations (bypasses RLS)
     const serviceSupabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
+
+    // Verify the account actually exists
+    const { data: accountExists, error: accountCheckError } = await serviceSupabase
+      .from('accounts')
+      .select('id')
+      .eq('id', accountId)
+      .single();
+
+    if (accountCheckError || !accountExists) {
+      console.error('❌ Account does not exist in database:', {
+        accountId,
+        error: accountCheckError
+      });
+      return NextResponse.json(
+        { success: false, error: 'Invalid account ID - account does not exist' },
+        { status: 400 }
+      );
+    }
+
+    console.log('✅ Account verified:', accountExists.id);
 
     // Get or create business record
     let businessId: string;
