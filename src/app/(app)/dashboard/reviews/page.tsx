@@ -357,8 +357,34 @@ export default function ReviewsPage() {
 
         const promptPageIds = promptPages?.map(p => p.id) || [];
 
-        if (promptPageIds.length === 0) {
-          // No prompt pages = no reviews
+        // Build query to include both:
+        // 1. Reviews submitted through prompt pages (prompt_page_id matches)
+        // 2. Imported Google reviews (prompt_page_id is null AND imported_from_google is true AND business_id matches)
+        let countQuery = supabase
+          .from("review_submissions")
+          .select("id", { count: "exact", head: true });
+
+        let reviewsQuery = supabase
+          .from("review_submissions")
+          .select(
+            "id, prompt_page_id, first_name, last_name, reviewer_role, platform, review_content, created_at, status, emoji_sentiment_selection, verified, verified_at, platform_url, imported_from_google, contact_id"
+          );
+
+        // Apply filtering based on what data we have
+        if (promptPageIds.length > 0 && businessData?.id) {
+          // Include reviews from prompt pages OR imported Google reviews for this business
+          countQuery = countQuery.or(`prompt_page_id.in.(${promptPageIds.join(',')}),and(prompt_page_id.is.null,imported_from_google.eq.true,business_id.eq.${businessData.id})`);
+          reviewsQuery = reviewsQuery.or(`prompt_page_id.in.(${promptPageIds.join(',')}),and(prompt_page_id.is.null,imported_from_google.eq.true,business_id.eq.${businessData.id})`);
+        } else if (promptPageIds.length > 0) {
+          // Only include reviews from prompt pages
+          countQuery = countQuery.in('prompt_page_id', promptPageIds);
+          reviewsQuery = reviewsQuery.in('prompt_page_id', promptPageIds);
+        } else if (businessData?.id) {
+          // Only include imported Google reviews for this business
+          countQuery = countQuery.is('prompt_page_id', null).eq('imported_from_google', true).eq('business_id', businessData.id);
+          reviewsQuery = reviewsQuery.is('prompt_page_id', null).eq('imported_from_google', true).eq('business_id', businessData.id);
+        } else {
+          // No prompt pages and no business = no reviews
           setReviews([]);
           setTotalPages(1);
           setLoading(false);
@@ -366,10 +392,7 @@ export default function ReviewsPage() {
         }
 
         // First, get total count with account filtering
-        const { count, error: countError } = await supabase
-          .from("review_submissions")
-          .select("id", { count: "exact", head: true })
-          .in('prompt_page_id', promptPageIds);
+        const { count, error: countError } = await countQuery;
 
         if (countError) throw countError;
 
@@ -378,12 +401,7 @@ export default function ReviewsPage() {
         setTotalPages(total);
 
         // Fetch paginated reviews with account filtering
-        const { data: existingReviews, error: fetchError } = await supabase
-          .from("review_submissions")
-          .select(
-            "id, prompt_page_id, first_name, last_name, reviewer_role, platform, review_content, created_at, status, emoji_sentiment_selection, verified, verified_at, platform_url, imported_from_google, contact_id"
-          )
-          .in('prompt_page_id', promptPageIds)
+        const { data: existingReviews, error: fetchError } = await reviewsQuery
           .order("created_at", { ascending: false })
           .range(
             (currentPage - 1) * ITEMS_PER_PAGE,

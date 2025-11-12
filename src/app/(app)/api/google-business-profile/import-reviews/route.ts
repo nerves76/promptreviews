@@ -328,6 +328,7 @@ export async function POST(request: NextRequest) {
         const { error: reviewError } = await serviceSupabase
           .from('review_submissions')
           .insert({
+            account_id: accountId, // Required for RLS to work correctly
             prompt_page_id: defaultPromptPageId, // Use the default prompt page for imports
             business_id: businessId, // Use the business ID, not account ID
             contact_id: contactId,
