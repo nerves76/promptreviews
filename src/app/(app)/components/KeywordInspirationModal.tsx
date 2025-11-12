@@ -63,7 +63,7 @@ export default function KeywordInspirationModal({
       onClose={onClose}
       title={
         <div className="flex items-center space-x-2">
-          <Icon name="mushroom" className="w-5 h-5 text-white" size={20} />
+          <Icon name="mushroom" className="w-5 h-5 text-slate-300" size={20} />
           <span>Keyword Power-ups</span>
         </div>
       }
@@ -71,6 +71,13 @@ export default function KeywordInspirationModal({
       opaqueBody={true}
       lightBackdrop={true}
     >
+      {/* Subheader */}
+      <div className="mb-3">
+        <h3 className="text-lg font-semibold text-gray-900">
+          Power-up your review with keywords
+        </h3>
+      </div>
+
       {/* Description */}
       <div className="mb-4">
         <p className="text-sm text-gray-700">
@@ -90,7 +97,7 @@ export default function KeywordInspirationModal({
             {keywords.map((keyword, index) => (
               <div
                 key={index}
-                className="rounded-lg p-3 border-2 flex items-center justify-between transition-colors bg-white"
+                className="rounded-lg p-3 border flex items-center justify-between transition-colors bg-white"
                 style={{
                   borderColor: businessProfile?.secondary_color || "#4F46E5",
                 }}
@@ -108,7 +115,7 @@ export default function KeywordInspirationModal({
                 {/* Copy Button */}
                 <button
                   onClick={() => copyToClipboard(keyword, index)}
-                  className="ml-3 px-2.5 py-1.5 rounded-md border-2 font-medium text-xs transition-all duration-200 flex items-center gap-1.5 focus:outline-none focus:ring-2 focus:ring-opacity-50 hover:shadow-md"
+                  className="ml-3 px-2.5 py-1.5 rounded-md border font-medium text-xs transition-all duration-200 flex items-center gap-1.5 focus:outline-none focus:ring-2 focus:ring-opacity-50 hover:shadow-md"
                   style={{
                     borderColor: copiedIndex === index ? "#6EE7B7" : secondaryColor,
                     backgroundColor: copiedIndex === index ? "#6EE7B7" : "transparent",
