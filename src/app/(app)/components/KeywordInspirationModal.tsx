@@ -63,8 +63,8 @@ export default function KeywordInspirationModal({
       onClose={onClose}
       title={
         <div className="flex items-center space-x-2">
-          <Icon name="mushroom" className="w-5 h-5 text-slate-600" size={20} />
-          <span>Keyword Power-ups</span>
+          <Icon name="mushroom" className="w-7 h-7 text-slate-600" size={28} />
+          <span>Power-ups</span>
         </div>
       }
       maxWidth="max-w-lg"
@@ -97,10 +97,7 @@ export default function KeywordInspirationModal({
             {keywords.map((keyword, index) => (
               <div
                 key={index}
-                className="rounded-lg p-3 border flex items-center justify-between transition-colors bg-white"
-                style={{
-                  borderColor: businessProfile?.secondary_color || "#4F46E5",
-                }}
+                className="rounded-lg p-3 flex items-center justify-between transition-all duration-200 bg-white shadow-sm hover:shadow-md hover:-translate-y-0.5"
               >
                 {/* Keyword Text */}
                 <span
