@@ -87,22 +87,55 @@ export async function POST(request: NextRequest) {
     // Verify the account actually exists
     const { data: accountExists, error: accountCheckError } = await serviceSupabase
       .from('accounts')
-      .select('id')
+      .select('id, created_by, account_name')
       .eq('id', accountId)
-      .single();
+      .maybeSingle();
 
-    if (accountCheckError || !accountExists) {
-      console.error('❌ Account does not exist in database:', {
+    if (accountCheckError) {
+      console.error('❌ Error checking account existence:', {
         accountId,
         error: accountCheckError
       });
+      Sentry.captureException(accountCheckError, {
+        tags: { endpoint: 'import-reviews', issue: 'account-check-error' },
+        extra: { accountId }
+      });
       return NextResponse.json(
-        { success: false, error: 'Invalid account ID - account does not exist' },
+        { success: false, error: `Database error checking account: ${accountCheckError.message}` },
+        { status: 500 }
+      );
+    }
+
+    if (!accountExists) {
+      console.error('❌ Account does not exist in database:', {
+        accountId,
+        userId: user.id,
+        headerValue: request.headers.get('x-selected-account')
+      });
+      Sentry.captureMessage('Import attempted with non-existent account ID', {
+        level: 'warning',
+        tags: { endpoint: 'import-reviews', issue: 'invalid-account' },
+        extra: { accountId, userId: user.id }
+      });
+      return NextResponse.json(
+        {
+          success: false,
+          error: `Account not found. The account ID "${accountId}" does not exist in the database. Please try refreshing the page or contact support.`,
+          details: process.env.NODE_ENV === 'development' ? {
+            accountId,
+            userId: user.id,
+            headerSent: request.headers.get('x-selected-account')
+          } : undefined
+        },
         { status: 400 }
       );
     }
 
-    console.log('✅ Account verified:', accountExists.id);
+    console.log('✅ Account verified:', {
+      id: accountExists.id,
+      name: accountExists.account_name,
+      createdBy: accountExists.created_by
+    });
 
     // Get or create business record
     let businessId: string;
