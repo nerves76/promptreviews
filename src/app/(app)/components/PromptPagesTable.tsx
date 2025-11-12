@@ -31,6 +31,13 @@ interface PromptPagesTableProps {
   business: any;
   account: any;
   universalUrl: string;
+  statusLabels?: {
+    draft: string;
+    in_queue: string;
+    sent: string;
+    follow_up: string;
+    complete: string;
+  };
   onStatusUpdate: (pageId: string, newStatus: PromptPage["status"]) => void;
   onDeletePages: (pageIds: string[]) => void;
   onCreatePromptPage?: () => void;
@@ -49,6 +56,13 @@ export default function PromptPagesTable({
   business,
   account,
   universalUrl,
+  statusLabels = {
+    draft: "Draft",
+    in_queue: "In Queue",
+    sent: "Sent",
+    follow_up: "Follow Up",
+    complete: "Complete",
+  },
   onStatusUpdate,
   onDeletePages,
   onCreatePromptPage,
@@ -169,7 +183,7 @@ export default function PromptPagesTable({
             `}
             onClick={() => setSelectedTab("draft")}
           >
-            Draft ({draftCount})
+            {statusLabels.draft} ({draftCount})
           </button>
           <button
             className={`px-4 py-1.5 rounded-t-md text-sm font-semibold border-b-2 transition-colors
@@ -179,7 +193,7 @@ export default function PromptPagesTable({
             `}
             onClick={() => setSelectedTab("in_queue")}
           >
-            In queue ({inQueueCount})
+            {statusLabels.in_queue} ({inQueueCount})
           </button>
           <button
             className={`px-4 py-1.5 rounded-t-md text-sm font-semibold border-b-2 transition-colors
@@ -189,7 +203,7 @@ export default function PromptPagesTable({
             `}
             onClick={() => setSelectedTab("sent")}
           >
-            Sent ({sentCount})
+            {statusLabels.sent} ({sentCount})
           </button>
           <button
             className={`px-4 py-1.5 rounded-t-md text-sm font-semibold border-b-2 transition-colors
@@ -199,7 +213,7 @@ export default function PromptPagesTable({
             `}
             onClick={() => setSelectedTab("follow_up")}
           >
-            Follow up ({followUpCount})
+            {statusLabels.follow_up} ({followUpCount})
           </button>
           <button
             className={`px-4 py-1.5 rounded-t-md text-sm font-semibold border-b-2 transition-colors
@@ -209,7 +223,7 @@ export default function PromptPagesTable({
             `}
             onClick={() => setSelectedTab("complete")}
           >
-            Complete ({completeCount})
+            {statusLabels.complete} ({completeCount})
           </button>
         </div>
         <select
@@ -237,11 +251,11 @@ export default function PromptPagesTable({
               onChange={(e) => setBatchStatus(e.target.value as PromptPage["status"])}
               className="rounded-md border-gray-300 text-sm"
             >
-              <option value="draft">Draft</option>
-              <option value="in_queue">In queue</option>
-              <option value="sent">Sent</option>
-              <option value="follow_up">Follow up</option>
-              <option value="complete">Complete</option>
+              <option value="draft">{statusLabels.draft}</option>
+              <option value="in_queue">{statusLabels.in_queue}</option>
+              <option value="sent">{statusLabels.sent}</option>
+              <option value="follow_up">{statusLabels.follow_up}</option>
+              <option value="complete">{statusLabels.complete}</option>
             </select>
             <button
               onClick={handleBatchStatusUpdate}
@@ -335,11 +349,11 @@ export default function PromptPagesTable({
                     onChange={(e) => onStatusUpdate(page.id, e.target.value as PromptPage["status"])}
                     className={`rounded-full px-2 py-1 text-xs font-medium ${STATUS_COLORS[page.status] || "bg-gray-100 text-gray-800"}`}
                   >
-                    <option value="draft">Draft</option>
-                    <option value="in_queue">In queue</option>
-                    <option value="sent">Sent</option>
-                    <option value="follow_up">Follow up</option>
-                    <option value="complete">Complete</option>
+                    <option value="draft">{statusLabels.draft}</option>
+                    <option value="in_queue">{statusLabels.in_queue}</option>
+                    <option value="sent">{statusLabels.sent}</option>
+                    <option value="follow_up">{statusLabels.follow_up}</option>
+                    <option value="complete">{statusLabels.complete}</option>
                   </select>
                 </td>
                 <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{new Date(page.created_at).toLocaleDateString()}</td>

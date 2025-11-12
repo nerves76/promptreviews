@@ -12,7 +12,10 @@ import { useGlobalLoader } from "@/app/(app)/components/GlobalLoaderProvider";
 import QRCodeGenerator, { QR_FRAME_SIZES } from "../../dashboard/components/QRCodeGenerator";
 import dynamic from "next/dynamic";
 import PromptPagesTable from "@/app/(app)/components/PromptPagesTable";
+import PromptPagesKanban from "@/app/(app)/components/PromptPagesKanban";
+import StatusLabelEditor from "@/app/(app)/components/StatusLabelEditor";
 import PromptTypeSelectModal from "@/app/(app)/components/PromptTypeSelectModal";
+import { useStatusLabels } from "@/hooks/useStatusLabels";
 
 import { useRouter } from "next/navigation";
 import QRCodeModal from "../../components/QRCodeModal";
@@ -63,7 +66,7 @@ export default function IndividualOutreach() {
   const [showPostSaveModal, setShowPostSaveModal] = useState(false);
   const [postSaveData, setPostSaveData] = useState<any>(null);
   const [showStars, setShowStars] = useState(false);
-  
+
   // Location-related state
   const [locations, setLocations] = useState<BusinessLocation[]>([]);
   const [locationPromptPages, setLocationPromptPages] = useState<any[]>([]);
@@ -71,11 +74,38 @@ export default function IndividualOutreach() {
   const [editingLocation, setEditingLocation] = useState<BusinessLocation | null>(null);
   const [locationLimits, setLocationLimits] = useState({ current: 0, max: 0, canCreateMore: false });
 
+  // View toggle state (table vs kanban)
+  const [viewMode, setViewMode] = useState<"table" | "kanban">("table");
+  const [selectedType, setSelectedType] = useState("");
+  const [showLabelEditor, setShowLabelEditor] = useState(false);
+  const [editingLabelStatus, setEditingLabelStatus] = useState<string | null>(null);
+
+  // Custom status labels
+  const { statusLabels, updateStatusLabels, isLoading: labelsLoading } = useStatusLabels();
+
   const router = useRouter();
+
+  // Load view preference from localStorage
+  useEffect(() => {
+    if (accountId) {
+      const savedView = localStorage.getItem(`promptpage-view-preference-${accountId}`);
+      if (savedView === "kanban" || savedView === "table") {
+        setViewMode(savedView);
+      }
+    }
+  }, [accountId]);
+
+  // Save view preference to localStorage
+  const handleViewChange = (newView: "table" | "kanban") => {
+    setViewMode(newView);
+    if (accountId) {
+      localStorage.setItem(`promptpage-view-preference-${accountId}`, newView);
+    }
+  };
 
   // Prevent background scroll when modal is open
   React.useEffect(() => {
-    if (showStyleModal || showLocationModal) {
+    if (showStyleModal || showLocationModal || showLabelEditor) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = '';
@@ -83,7 +113,7 @@ export default function IndividualOutreach() {
     return () => {
       document.body.style.overflow = '';
     };
-  }, [showStyleModal, showLocationModal]);
+  }, [showStyleModal, showLocationModal, showLabelEditor]);
 
   useEffect(() => {
     async function fetchData() {
@@ -455,7 +485,7 @@ export default function IndividualOutreach() {
             
             {/* Custom Prompt Pages Section */}
             <div className="my-12">
-              <div className="flex items-center justify-between mb-[75px]">
+              <div className="flex items-center justify-between mb-6">
                 <div>
                   <h2 className="text-2xl font-bold text-slate-blue mb-2 flex items-center gap-3">
                     <Icon name="FaStar" className="w-8 h-8 text-slate-blue" size={32} />
@@ -465,36 +495,124 @@ export default function IndividualOutreach() {
                     These Prompt Pages are great for personalized outreach. For best results, send as a text.
                   </p>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    // Validate business profile before allowing prompt page creation
-                    if (!business) {
-                      alert('Please create a business profile first before creating prompt pages. You can do this from the "Your Business" section in the dashboard.');
-                      router.push('/dashboard/business-profile');
-                      return;
-                    }
-                    
-                    if (!business.name || business.name.trim() === '') {
-                      alert('Please complete your business profile by adding your business name. This is required for creating prompt pages.');
-                      router.push('/dashboard/business-profile');
-                      return;
-                    }
-                    
-                    setShowTypeModal(true);
-                  }}
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-slate-blue text-white rounded hover:bg-slate-blue/90 font-medium transition"
-                >
-                  + Prompt Page
-                </button>
+                <div className="flex items-center gap-3">
+                  {/* View Toggle */}
+                  <div className="flex items-center bg-gray-100 rounded-lg p-1">
+                    <button
+                      type="button"
+                      onClick={() => handleViewChange("table")}
+                      className={`px-3 py-2 rounded flex items-center gap-2 text-sm font-medium transition ${
+                        viewMode === "table"
+                          ? "bg-white text-slate-blue shadow"
+                          : "text-gray-600 hover:text-gray-900"
+                      }`}
+                      title="Table view"
+                    >
+                      <Icon name="MdViewList" size={18} />
+                      Table
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleViewChange("kanban")}
+                      className={`px-3 py-2 rounded flex items-center gap-2 text-sm font-medium transition ${
+                        viewMode === "kanban"
+                          ? "bg-white text-slate-blue shadow"
+                          : "text-gray-600 hover:text-gray-900"
+                      }`}
+                      title="Kanban view"
+                    >
+                      <Icon name="MdViewColumn" size={18} />
+                      Kanban
+                    </button>
+                  </div>
+
+                  {/* Type Filter */}
+                  {viewMode === "kanban" && (
+                    <select
+                      value={selectedType}
+                      onChange={(e) => setSelectedType(e.target.value)}
+                      className="rounded-md border border-gray-300 px-3 py-2 text-sm"
+                    >
+                      <option value="">All types</option>
+                      <option value="service">Service review</option>
+                      <option value="product">Product review</option>
+                      <option value="event">Events & spaces</option>
+                      <option value="video">Video testimonial</option>
+                      <option value="photo">Photo + testimonial</option>
+                    </select>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      // Validate business profile before allowing prompt page creation
+                      if (!business) {
+                        alert('Please create a business profile first before creating prompt pages. You can do this from the "Your Business" section in the dashboard.');
+                        router.push('/dashboard/business-profile');
+                        return;
+                      }
+
+                      if (!business.name || business.name.trim() === '') {
+                        alert('Please complete your business profile by adding your business name. This is required for creating prompt pages.');
+                        router.push('/dashboard/business-profile');
+                        return;
+                      }
+
+                      setShowTypeModal(true);
+                    }}
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-slate-blue text-white rounded hover:bg-slate-blue/90 font-medium transition"
+                  >
+                    + Prompt Page
+                  </button>
+                </div>
               </div>
-              
-              <div className="overflow-x-auto shadow border-l border-r border-b border-gray-200 sm:rounded-b-lg">
-                <PromptPagesTable
+
+              {/* Conditional Render: Table or Kanban View */}
+              {viewMode === "table" ? (
+                <div className="overflow-x-auto shadow border-l border-r border-b border-gray-200 sm:rounded-b-lg">
+                  <PromptPagesTable
+                    promptPages={promptPages}
+                    business={business}
+                    account={account}
+                    universalUrl={universalUrl}
+                    statusLabels={statusLabels}
+                    onStatusUpdate={async (pageId, newStatus) => {
+                      await supabase.from("prompt_pages").update({ status: newStatus }).eq("id", pageId);
+                      setPromptPages((pages) =>
+                        pages.map((page) =>
+                          page.id === pageId ? { ...page, status: newStatus } : page
+                        )
+                      );
+                    }}
+                    onDeletePages={async (pageIds) => {
+                      await supabase.from("prompt_pages").delete().in("id", pageIds);
+                      setPromptPages((pages) => pages.filter((page) => !pageIds.includes(page.id)));
+                    }}
+                    onCreatePromptPage={() => {
+                      // Validate business profile before allowing prompt page creation
+                      if (!business) {
+                        alert('Please create a business profile first before creating prompt pages. You can do this from the "Your Business" section in the dashboard.');
+                        router.push('/dashboard/business-profile');
+                        return;
+                      }
+
+                      if (!business.name || business.name.trim() === '') {
+                        alert('Please complete your business profile by adding your business name. This is required for creating prompt pages.');
+                        router.push('/dashboard/business-profile');
+                        return;
+                      }
+
+                      setShowTypeModal(true);
+                    }}
+                  />
+                </div>
+              ) : (
+                <PromptPagesKanban
                   promptPages={promptPages}
                   business={business}
-                  account={business}
-                  universalUrl={universalUrl}
+                  account={account}
+                  statusLabels={statusLabels}
+                  selectedType={selectedType}
                   onStatusUpdate={async (pageId, newStatus) => {
                     await supabase.from("prompt_pages").update({ status: newStatus }).eq("id", pageId);
                     setPromptPages((pages) =>
@@ -503,28 +621,12 @@ export default function IndividualOutreach() {
                       )
                     );
                   }}
-                  onDeletePages={async (pageIds) => {
-                    await supabase.from("prompt_pages").delete().in("id", pageIds);
-                    setPromptPages((pages) => pages.filter((page) => !pageIds.includes(page.id)));
-                  }}
-                  onCreatePromptPage={() => {
-                    // Validate business profile before allowing prompt page creation
-                    if (!business) {
-                      alert('Please create a business profile first before creating prompt pages. You can do this from the "Your Business" section in the dashboard.');
-                      router.push('/dashboard/business-profile');
-                      return;
-                    }
-                    
-                    if (!business.name || business.name.trim() === '') {
-                      alert('Please complete your business profile by adding your business name. This is required for creating prompt pages.');
-                      router.push('/dashboard/business-profile');
-                      return;
-                    }
-                    
-                    setShowTypeModal(true);
+                  onEditLabel={(status) => {
+                    setEditingLabelStatus(status);
+                    setShowLabelEditor(true);
                   }}
                 />
-              </div>
+              )}
             </div>
           </div>
         </PageCard>
@@ -716,6 +818,20 @@ export default function IndividualOutreach() {
           businessReviewPlatforms={business?.review_platforms || []}
         />
       )}
+
+      {/* Status Label Editor Modal */}
+      <StatusLabelEditor
+        isOpen={showLabelEditor}
+        onClose={() => {
+          setShowLabelEditor(false);
+          setEditingLabelStatus(null);
+        }}
+        currentLabels={statusLabels}
+        onSave={async (newLabels) => {
+          const success = await updateStatusLabels(newLabels);
+          return success;
+        }}
+      />
 
     </>
   );

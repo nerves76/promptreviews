@@ -982,7 +982,7 @@ function PromptPagesContent() {
                       </p>
                       <button
                         type="button"
-                        onClick={() => router.push('/upgrade')}
+                        onClick={() => router.push('/dashboard/plan')}
                         className="bg-slate-blue text-white px-6 py-2 rounded hover:bg-slate-blue/90 font-medium transition"
                       >
                         Upgrade now
@@ -1026,7 +1026,7 @@ function PromptPagesContent() {
                       </p>
                       <button
                         type="button"
-                        onClick={() => router.push('/upgrade')}
+                        onClick={() => router.push('/dashboard/plan')}
                         className="bg-slate-blue text-white px-6 py-2 rounded hover:bg-slate-blue/90 font-medium transition"
                       >
                         Upgrade now
