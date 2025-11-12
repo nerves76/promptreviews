@@ -221,12 +221,14 @@ export default function ReviewPlatformCard({
       {isOpen && (
         <>
           {/* Process Indicator */}
-          <ProcessIndicator 
-            primaryColor={businessProfile?.primary_color} 
-            cardBackgroundColor={businessProfile?.card_bg}
-            cardTransparency={businessProfile?.card_transparency ?? 0.30}
-            cardTextColor={businessProfile?.card_text || "#1A1A1A"}
-          />
+          <div className="mt-6">
+            <ProcessIndicator
+              primaryColor={businessProfile?.primary_color}
+              cardBackgroundColor={businessProfile?.card_bg}
+              cardTransparency={businessProfile?.card_transparency ?? 0.30}
+              cardTextColor={businessProfile?.card_text || "#1A1A1A"}
+            />
+          </div>
           
           {/* Custom instructions popup */}
           {openInstructionsIdx === idx &&
