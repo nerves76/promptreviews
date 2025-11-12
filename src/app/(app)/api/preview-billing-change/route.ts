@@ -51,9 +51,17 @@ export async function POST(req: NextRequest) {
 
 
     if (!account.stripe_customer_id || !account.stripe_subscription_id) {
-      return NextResponse.json({ 
-        error: "No active subscription",
-        message: "No subscription found to modify. Please contact support if you believe this is an error." 
+      console.log('Preview attempted for account without Stripe subscription:', {
+        userId,
+        hasCustomerId: !!account.stripe_customer_id,
+        hasSubscriptionId: !!account.stripe_subscription_id,
+        plan: account.plan
+      });
+
+      return NextResponse.json({
+        error: "NO_SUBSCRIPTION",
+        message: "No subscription found to modify. Please use the checkout flow for new subscriptions.",
+        requiresCheckout: true
       }, { status: 400 });
     }
 

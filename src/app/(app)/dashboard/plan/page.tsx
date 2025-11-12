@@ -542,22 +542,62 @@ export default function PlanPage() {
               }
             });
           } else {
-            // If preview fails, just proceed without proration details
+            // If preview fails, check if it's because user needs checkout
             console.error('Billing preview failed with status:', previewRes.status);
-            
+
             let errorData: any = { error: 'Unknown error' };
             const responseText = await previewRes.text();
-            
+
             try {
               errorData = JSON.parse(responseText);
             } catch (e) {
               console.error('Failed to parse error response:', e);
               errorData = { error: 'Server error', message: responseText || 'Unable to calculate billing changes' };
             }
-            
+
             console.error('Failed to fetch billing preview:', errorData);
-            
-            // Show error message to user
+
+            // If user requires checkout (free trial/no subscription), redirect to checkout
+            if (errorData.error === 'NO_SUBSCRIPTION' || errorData.requiresCheckout) {
+              console.log('Preview failed because user needs checkout - redirecting to checkout flow');
+              setShowUpgradeModal(false);
+              setUpgrading(true);
+              setUpgradingPlan(`Setting up ${targetTier.name} plan...`);
+
+              try {
+                const res = await fetch("/api/create-checkout-session", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    priceId: getPriceId(tierKey, billing),
+                    plan: tierKey,
+                    billingPeriod: billing,
+                    userId: account.id,
+                    isReactivation: false,
+                    isAdditionalAccount: account.is_additional_account === true,
+                    successPath: '/dashboard/plan',
+                    cancelPath: '/dashboard/plan',
+                  }),
+                });
+
+                if (res.ok) {
+                  const data = await res.json();
+                  window.location.href = data.url;
+                  return;
+                } else {
+                  const checkoutError = await res.json();
+                  throw new Error(checkoutError.message || 'Checkout failed');
+                }
+              } catch (error) {
+                console.error("Checkout error:", error);
+                alert("Failed to create checkout session. Please try again.");
+                setUpgrading(false);
+                setUpgradingPlan('');
+              }
+              return;
+            }
+
+            // Show error message to user for other errors
             setConfirmModalConfig({
               title: 'Unable to Calculate Billing',
               message: errorData.message || 'Unable to calculate billing changes. You can still proceed with the upgrade.',
