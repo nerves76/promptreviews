@@ -1699,7 +1699,10 @@ export default function SocialPostingDashboard() {
       console.log('🔄 Starting import with:', {
         locationId: selectedLocationId,
         importType: type,
-        accountId: accountIdRef.current
+        accountId: accountIdRef.current,
+        selectedAccountId: selectedAccountId,
+        accountFromContext: account?.id,
+        fullAccount: account
       });
 
       const response = await fetch('/api/google-business-profile/import-reviews', {
