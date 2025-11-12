@@ -559,38 +559,52 @@ export default function PlanPage() {
 
             // If user requires checkout (free trial/no subscription), redirect to checkout
             if (errorData.error === 'NO_SUBSCRIPTION' || errorData.requiresCheckout) {
-              console.log('Preview failed because user needs checkout - redirecting to checkout flow');
+              console.log('✅ Preview failed because user needs checkout - redirecting to checkout flow');
+              console.log('Account data:', {
+                accountId: account?.id,
+                plan: account?.plan,
+                hasStripeCustomer: !!account?.stripe_customer_id
+              });
+
               setShowUpgradeModal(false);
               setUpgrading(true);
               setUpgradingPlan(`Setting up ${targetTier.name} plan...`);
 
               try {
+                const checkoutPayload = {
+                  priceId: getPriceId(tierKey, billing),
+                  plan: tierKey,
+                  billingPeriod: billing,
+                  userId: account.id,
+                  isReactivation: false,
+                  isAdditionalAccount: account.is_additional_account === true,
+                  successPath: '/dashboard/plan',
+                  cancelPath: '/dashboard/plan',
+                };
+
+                console.log('📤 Creating checkout session with:', checkoutPayload);
+
                 const res = await fetch("/api/create-checkout-session", {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({
-                    priceId: getPriceId(tierKey, billing),
-                    plan: tierKey,
-                    billingPeriod: billing,
-                    userId: account.id,
-                    isReactivation: false,
-                    isAdditionalAccount: account.is_additional_account === true,
-                    successPath: '/dashboard/plan',
-                    cancelPath: '/dashboard/plan',
-                  }),
+                  body: JSON.stringify(checkoutPayload),
                 });
+
+                console.log('📥 Checkout session response status:', res.status);
 
                 if (res.ok) {
                   const data = await res.json();
+                  console.log('✅ Checkout session created, redirecting to:', data.url);
                   window.location.href = data.url;
                   return;
                 } else {
                   const checkoutError = await res.json();
-                  throw new Error(checkoutError.message || 'Checkout failed');
+                  console.error('❌ Checkout session creation failed:', checkoutError);
+                  throw new Error(checkoutError.message || checkoutError.error || 'Checkout failed');
                 }
               } catch (error) {
-                console.error("Checkout error:", error);
-                alert("Failed to create checkout session. Please try again.");
+                console.error("❌ Checkout error:", error);
+                alert(`Failed to create checkout session: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again.`);
                 setUpgrading(false);
                 setUpgradingPlan('');
               }
