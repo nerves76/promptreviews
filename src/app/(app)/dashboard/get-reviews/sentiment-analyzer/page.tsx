@@ -43,6 +43,7 @@ export default function SentimentAnalyzerPage() {
         }
 
         const eligibilityData: EligibilityResponse = await eligibilityResponse.json();
+        console.log('[Sentiment Analyzer Page] Eligibility data:', eligibilityData);
         setEligibility(eligibilityData);
 
         // Fetch latest analysis from history
