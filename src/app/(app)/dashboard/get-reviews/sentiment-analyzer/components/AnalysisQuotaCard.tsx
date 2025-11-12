@@ -67,7 +67,20 @@ export default function AnalysisQuotaCard({ eligibility }: AnalysisQuotaCardProp
           </div>
 
           {/* Usage Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+            {/* Total Reviews */}
+            <div className="bg-white rounded-lg p-4 shadow-sm">
+              <div className="text-xs font-semibold text-gray-500 uppercase mb-1">
+                Your Reviews
+              </div>
+              <div className="text-2xl font-bold mb-2 text-blue-600">
+                {reviewCount}
+              </div>
+              <div className="text-xs text-gray-500">
+                Total reviews in account
+              </div>
+            </div>
+
             {/* Monthly Analyses */}
             <div className="bg-white rounded-lg p-4 shadow-sm">
               <div className="text-xs font-semibold text-gray-500 uppercase mb-1">
