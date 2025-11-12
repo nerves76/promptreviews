@@ -207,9 +207,9 @@ function TeamAcceptContent() {
       <div className="min-h-screen bg-gradient-to-br from-indigo-800 via-purple-700 to-fuchsia-600 flex items-center justify-center">
         <div className="max-w-md w-full bg-white/90 backdrop-blur-sm rounded-2xl shadow-2xl p-8 text-center border-2 border-white">
           <div className="mb-6">
-            <img 
-              src="/images/prompty-catching-stars.png" 
-              alt="Prompty catching stars" 
+            <img
+              src="https://ltneloufqjktdplodvao.supabase.co/storage/v1/object/public/logos/prompt-assets/small-prompty-success.png"
+              alt="Prompty Success"
               className="w-32 h-32 mx-auto mb-4"
             />
           </div>
