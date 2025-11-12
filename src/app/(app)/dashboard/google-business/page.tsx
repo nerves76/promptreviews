@@ -1690,7 +1690,12 @@ export default function SocialPostingDashboard() {
     setImportResult(null);
 
     try {
-      
+      console.log('🔄 Starting import with:', {
+        locationId: selectedLocationId,
+        importType: type,
+        accountId: accountIdRef.current
+      });
+
       const response = await fetch('/api/google-business-profile/import-reviews', {
         method: 'POST',
         credentials: 'same-origin',
@@ -1704,31 +1709,41 @@ export default function SocialPostingDashboard() {
         }),
       });
 
+      console.log('📡 Import response status:', response.status);
+
       const result = await response.json();
+      console.log('📦 Import result:', result);
 
       if (result.success) {
         const locationName = locations.find(l => l.id === selectedLocationId)?.name || 'selected location';
-        setImportResult({ 
-          success: true, 
+        setImportResult({
+          success: true,
           message: result.message || `Reviews imported successfully from ${locationName}!`,
           count: result.count,
           errors: result.errors, // Include error details for debugging
           totalErrorCount: result.totalErrorCount
         });
         if (result.errors && result.errors.length > 0) {
+          console.warn('⚠️ Import had some errors:', result.errors);
         }
       } else {
-        setImportResult({ 
-          success: false, 
-          message: result.error || 'Failed to import reviews'
+        const errorMsg = result.error || result.message || 'Failed to import reviews';
+        setImportResult({
+          success: false,
+          message: errorMsg
         });
-        console.error('❌ Failed to import reviews:', result.error);
+        console.error('❌ Failed to import reviews:', {
+          error: result.error,
+          message: result.message,
+          details: result.details,
+          fullResult: result
+        });
       }
     } catch (error) {
       console.error('❌ Error importing reviews:', error);
-      setImportResult({ 
-        success: false, 
-        message: 'Failed to import reviews. Please try again.' 
+      setImportResult({
+        success: false,
+        message: `Failed to import reviews: ${error instanceof Error ? error.message : 'Unknown error'}`
       });
     } finally {
       setIsImportingReviews(false);
