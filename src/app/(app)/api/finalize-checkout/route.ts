@@ -63,6 +63,14 @@ export async function POST(req: NextRequest) {
     const maxUsers = planLimits?.maxUsers ?? 1;
     const maxLocations = planLimits?.maxLocations ?? 0;
 
+    console.log('🔄 Finalizing checkout - updating account:', {
+      userId,
+      plan: actualPlan,
+      billing_period: actualBilling,
+      subscription_status: subscription.status,
+      customerId: customerId?.substring(0, 20) + '...'
+    });
+
     const { error: updateError } = await supabase
       .from('accounts')
       .update({
@@ -82,6 +90,8 @@ export async function POST(req: NextRequest) {
       console.error('❌ finalize-checkout update error:', updateError);
       return NextResponse.json({ error: "Failed to update account" }, { status: 500 });
     }
+
+    console.log('✅ Account updated successfully via finalize-checkout');
 
     return NextResponse.json({
       success: true,
