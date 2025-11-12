@@ -115,53 +115,9 @@ export async function POST(request: NextRequest) {
       businessId = newBusiness.id;
     }
 
-    // Get or create a default prompt page for imported reviews
-    let defaultPromptPageId: string | null = null;
-    const { data: existingPromptPage } = await serviceSupabase
-      .from('prompt_pages')
-      .select('id')
-      .eq('account_id', accountId)
-      .eq('slug', 'google-imports')
-      .single();
-
-    if (existingPromptPage) {
-      defaultPromptPageId = existingPromptPage.id;
-    } else {
-      // Create a default prompt page for imports
-      const { data: newPromptPage, error: promptPageError } = await serviceSupabase
-        .from('prompt_pages')
-        .insert({
-          account_id: accountId,
-          slug: 'google-imports',
-          status: 'draft', // Keep it as a draft
-          is_universal: false,
-          created_at: new Date().toISOString()
-        })
-        .select('id')
-        .single();
-
-      if (!promptPageError && newPromptPage) {
-        defaultPromptPageId = newPromptPage.id;
-      } else {
-        console.error('⚠️ Could not create default prompt page:', promptPageError);
-        // If we can't create a prompt page, we can't import reviews
-        return NextResponse.json(
-          { 
-            success: false, 
-            error: `Failed to create import prompt page: ${promptPageError?.message || 'Unknown error'}` 
-          },
-          { status: 500 }
-        );
-      }
-    }
-    
-    // Ensure we have a prompt page ID
-    if (!defaultPromptPageId) {
-      return NextResponse.json(
-        { success: false, error: 'Failed to get or create prompt page for imports' },
-        { status: 500 }
-      );
-    }
+    // Imported reviews don't need to be associated with a prompt page
+    // They were collected by Google, not through our system
+    const defaultPromptPageId = null;
 
     // Get Google Business Profile access token from database
     const { data: platformData, error: platformError } = await supabase
