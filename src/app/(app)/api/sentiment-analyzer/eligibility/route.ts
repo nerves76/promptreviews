@@ -9,7 +9,6 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/auth/providers/supabase';
-import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
 import {
   PLAN_ANALYSIS_LIMITS,
   PLAN_REVIEW_LIMITS,
@@ -74,8 +73,10 @@ export async function GET(request: NextRequest): Promise<NextResponse<Eligibilit
       );
     }
 
-    // Get user's account ID
-    const accountId = await getRequestAccountId(request, user.id, supabase);
+    // Get accountId from query params (frontend sends selected account)
+    const { searchParams } = new URL(request.url);
+    const accountId = searchParams.get('accountId');
+
     if (!accountId) {
       return NextResponse.json(
         {
@@ -91,6 +92,32 @@ export async function GET(request: NextRequest): Promise<NextResponse<Eligibilit
           daysUntilReset: getDaysUntilReset()
         } as EligibilityResponse,
         { status: 400 }
+      );
+    }
+
+    // Verify user has access to this account
+    const { data: accountUser } = await supabase
+      .from('account_users')
+      .select('account_id')
+      .eq('user_id', user.id)
+      .eq('account_id', accountId)
+      .maybeSingle();
+
+    if (!accountUser) {
+      return NextResponse.json(
+        {
+          eligible: false,
+          reason: 'no_access',
+          reviewCount: 0,
+          reviewLimit: 0,
+          minReviewsRequired: MIN_REVIEWS_REQUIRED,
+          usageThisMonth: 0,
+          usageLimit: 0,
+          nextResetDate: getNextResetDate().toISOString(),
+          plan: 'grower',
+          daysUntilReset: getDaysUntilReset()
+        } as EligibilityResponse,
+        { status: 403 }
       );
     }
 

@@ -8,7 +8,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 import { createServerSupabaseClient, createServiceRoleClient } from '@/auth/providers/supabase';
-import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
 import {
   PLAN_ANALYSIS_LIMITS,
   PLAN_REVIEW_LIMITS,
@@ -193,8 +192,14 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify user has access to this account
-    const userAccountId = await getRequestAccountId(request, user.id, supabase);
-    if (userAccountId !== accountId) {
+    const { data: accountUser } = await supabase
+      .from('account_users')
+      .select('account_id')
+      .eq('user_id', user.id)
+      .eq('account_id', accountId)
+      .maybeSingle();
+
+    if (!accountUser) {
       return NextResponse.json(
         { success: false, error: 'Access denied to this account' },
         { status: 403 }
