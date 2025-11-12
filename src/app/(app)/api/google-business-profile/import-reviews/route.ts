@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
     // Verify the account actually exists
     const { data: accountExists, error: accountCheckError } = await serviceSupabase
       .from('accounts')
-      .select('id, created_by, account_name')
+      .select('id, created_by, business_name')
       .eq('id', accountId)
       .maybeSingle();
 
@@ -133,7 +133,7 @@ export async function POST(request: NextRequest) {
 
     console.log('✅ Account verified:', {
       id: accountExists.id,
-      name: accountExists.account_name,
+      name: accountExists.business_name,
       createdBy: accountExists.created_by
     });
 
