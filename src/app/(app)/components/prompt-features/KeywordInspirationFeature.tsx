@@ -112,7 +112,7 @@ export default function KeywordInspirationFeature({
             </span>
           </div>
           <div className="text-sm text-gray-700 mt-[3px] ml-9">
-            Show a "Power-up" button on your Prompt Page to help visitors come up with ideas for their review. Displays up to 10 keyword phrases with copy buttons for easy use.
+            Show a "Power-up" button on your Prompt Page to encourage users to include your suggested keyword phrases in their review. Displays up to 10 keyword phrases with copy buttons to easily add to a review.
           </div>
         </div>
         <div className="flex flex-col justify-start pt-1">

@@ -81,7 +81,7 @@ export default function KeywordInspirationModal({
       {/* Description */}
       <div className="mb-4">
         <p className="text-sm text-gray-700">
-          Help {businessProfile?.business_name || 'us'} show up online by including one or more of these suggested keyword phrases. You can also edit them once they have been added below.
+          Help {businessProfile?.business_name || 'us'} show up online by including one or more of these suggested phrases. (You can also edit them once they have been added.)
         </p>
       </div>
 

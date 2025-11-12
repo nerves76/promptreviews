@@ -113,16 +113,25 @@ export default function PromptPageKeywordsSelector({
       {/* Keywords Section */}
       <div>
         <div className="flex items-center justify-between mb-2">
-          <label className="block text-sm font-medium text-gray-700">
-            Keywords for this prompt page
-          </label>
+          <div className="flex items-center gap-2">
+            <label className="block text-sm font-medium text-gray-700">
+              Keywords for this prompt page
+            </label>
+            <div className="relative group">
+              <Icon name="prompty" className="w-5 h-5 text-indigo-600 cursor-help" size={20} />
+              <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 hidden group-hover:block w-64 p-2 bg-gray-900 text-white text-xs rounded-lg shadow-lg z-10">
+                If you enable the "AI Generate" button Prompty will use your keywords to generate a review.
+                <div className="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-l-transparent border-r-transparent border-t-gray-900"></div>
+              </div>
+            </div>
+          </div>
           <button
             type="button"
             onClick={handleGenerateClick}
             disabled={disabled}
-            className="inline-flex items-center space-x-1.5 px-3 py-1.5 text-xs font-medium text-white bg-slate-blue rounded-lg hover:bg-opacity-90 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all shadow-sm hover:shadow-md"
+            className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-white bg-slate-blue rounded-lg hover:bg-opacity-90 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all shadow-sm hover:shadow-md"
           >
-            <Icon name="FaSparkles" className="w-3.5 h-3.5" />
+            <Icon name="FaSparkles" className="w-4 h-4" size={16} />
             <span>Keyword generate</span>
           </button>
         </div>

@@ -263,7 +263,8 @@ export const loadAllFallingIcons = async (): Promise<{
     { key: "headphones", label: "Headphones", icon: FaHeadphones, color: "text-purple-600", category: "Technology & Media" },
     { key: "palette", label: "Palette", icon: FaPalette, color: "text-pink-500", category: "Technology & Media" },
     { key: "brush", label: "Brush", icon: FaBrush, color: "text-blue-500", category: "Technology & Media" },
-    
+    { key: "robot", label: "Robot", icon: FaRobot, color: "text-blue-600", category: "Technology & Media" },
+
     // Education & Learning
     { key: "graduationcap", label: "Graduation Cap", icon: FaGraduationCap, color: "text-blue-600", category: "Education & Learning" },
     { key: "usergraduate", label: "Graduate", icon: FaUserGraduate, color: "text-green-600", category: "Education & Learning" },
@@ -296,10 +297,7 @@ export const loadAllFallingIcons = async (): Promise<{
     { key: "wizardhat", label: "Wizard Hat", icon: FaHatWizard, color: "text-purple-600", category: "Mythical & Fantasy" },
     { key: "skull", label: "Skull", icon: FaSkull, color: "text-gray-600", category: "Mythical & Fantasy" },
     { key: "yinyang", label: "Yin Yang", icon: FaYinYang, color: "text-gray-700", category: "Mythical & Fantasy" },
-    
-    { key: "robot", label: "Robot", icon: FaRobot, color: "text-blue-600", category: "Technology & Media" },
-    { key: "prompty", label: "Prompty (AI Assistant)", icon: PromptySprite, color: "text-slate-500", category: "Technology & Media" },
-    
+
     // Nature & Weather
     { key: "cannabis", label: "Cannabis Leaf", icon: FaCannabis, color: "text-green-600", category: "Nature & Weather" },
     
