@@ -3463,7 +3463,7 @@ export default function SocialPostingDashboard() {
                 <button
                   onClick={() => handleImportReviews(selectedImportType)}
                   disabled={isImportingReviews || !selectedLocationId}
-                  className="w-full px-4 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center justify-center space-x-2 shadow-sm"
+                  className="w-full mt-6 px-4 py-3 bg-slate-600 text-white font-medium rounded-lg hover:bg-slate-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center justify-center space-x-2 shadow-sm"
                 >
                   {isImportingReviews ? (
                     <>
