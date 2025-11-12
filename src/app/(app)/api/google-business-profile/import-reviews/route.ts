@@ -13,6 +13,7 @@ import { createServerClient } from '@supabase/ssr';
 import { createClient } from '@supabase/supabase-js';
 import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
 import { GoogleBusinessProfileClient } from '@/features/social-posting/platforms/google-business-profile/googleBusinessProfileClient';
+import * as Sentry from '@sentry/nextjs';
 
 export async function POST(request: NextRequest) {
   try {
@@ -324,6 +325,19 @@ export async function POST(request: NextRequest) {
       message: error.message,
       code: error.code,
       name: error.name
+    });
+
+    // Capture error in Sentry
+    Sentry.captureException(error, {
+      tags: {
+        endpoint: 'import-reviews',
+        feature: 'google-business-profile'
+      },
+      extra: {
+        errorMessage: error.message,
+        errorCode: error.code,
+        errorName: error.name
+      }
     });
 
     return NextResponse.json(
