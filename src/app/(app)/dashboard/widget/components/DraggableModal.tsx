@@ -118,9 +118,9 @@ export const DraggableModal: React.FC<DraggableModalProps> = ({
             </svg>
           </button>
 
-        <div className="modal-header flex items-center justify-between p-4 cursor-move bg-slate-600/80 backdrop-blur-md rounded-t-2xl">
+        <div className="modal-header flex items-center justify-between p-4 cursor-move bg-white/10 backdrop-blur-md rounded-t-2xl">
           <div className="w-1/3">
-            <h2 className="text-xl font-semibold text-white">{title}</h2>
+            <h2 className="text-xl font-semibold text-slate-600">{title}</h2>
           </div>
           <div className="w-1/3 flex justify-center">
              <div className="bg-white/20 backdrop-blur-sm rounded-lg p-2">

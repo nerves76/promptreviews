@@ -63,7 +63,7 @@ export default function KeywordInspirationModal({
       onClose={onClose}
       title={
         <div className="flex items-center space-x-2">
-          <Icon name="mushroom" className="w-5 h-5 text-slate-300" size={20} />
+          <Icon name="mushroom" className="w-5 h-5 text-slate-600" size={20} />
           <span>Keyword Power-ups</span>
         </div>
       }
