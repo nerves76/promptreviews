@@ -926,7 +926,7 @@ function PromptPagesContent() {
 
           {/* Public Prompt Pages Table */}
           <div className="max-w-7xl mx-auto">
-            <div className="flex items-center justify-end gap-4 mb-4">
+            <div className="flex items-center justify-between gap-4 mb-4">
               {/* + Prompt Page Button */}
               <button
                 type="button"
@@ -939,6 +939,21 @@ function PromptPagesContent() {
                 <Icon name="FaPlus" className="w-4 h-4" size={16} />
                 Prompt page
               </button>
+
+              {/* Type Filter - Glassmorphic */}
+              <select
+                value={selectedType}
+                onChange={(e) => setSelectedType(e.target.value)}
+                className="pl-4 pr-10 py-3 bg-white/10 backdrop-blur-sm border border-white/30 rounded-full text-white text-sm focus:outline-none focus:ring-2 focus:ring-white/50 shadow-lg appearance-none bg-[url('data:image/svg+xml;charset=UTF-8,%3csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22white%22%3E%3cpath%20fill-rule%3D%22evenodd%22%20d%3D%22M5.293%207.293a1%201%200%20011.414%200L10%2010.586l3.293-3.293a1%201%200%20111.414%201.414l-4%204a1%201%200%2001-1.414%200l-4-4a1%201%200%20010-1.414z%22%20clip-rule%3D%22evenodd%22%2F%3E%3c%2Fsvg%3E')] bg-[length:1.5em_1.5em] bg-[right_0.5rem_center] bg-no-repeat"
+              >
+                <option value="" className="bg-slate-blue">All types</option>
+                <option value="service" className="bg-slate-blue">Service</option>
+                <option value="photo" className="bg-slate-blue">Photo</option>
+                <option value="video" className="bg-slate-blue">Video</option>
+                <option value="event" className="bg-slate-blue">Event</option>
+                <option value="product" className="bg-slate-blue">Product</option>
+                <option value="employee" className="bg-slate-blue">Employee</option>
+              </select>
             </div>
             <div className="overflow-x-auto shadow border border-white/30 rounded-lg backdrop-blur-sm bg-white/5">
               <PublicPromptPagesTable
