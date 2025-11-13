@@ -2927,7 +2927,7 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
             <h2 className="text-2xl font-bold mb-6 text-center" style={{
               color: businessProfile?.primary_color || "#4F46E5"
             }}>
-              Copy & submit your review on {fallbackModalPlatform || "the review site"}
+              Copy & continue your review on {fallbackModalPlatform || "the review site"}
             </h2>
             <textarea
               className="w-full rounded-lg border p-3 mb-4 text-base focus:outline-none prompt-input"

@@ -11,8 +11,11 @@ import PageCard from "@/app/(app)/components/PageCard";
 import QRCodeGenerator, { QR_FRAME_SIZES } from "../dashboard/components/QRCodeGenerator";
 import dynamic from "next/dynamic";
 import PromptPagesTable from "@/app/(app)/components/PromptPagesTable";
+import PromptPagesKanban from "@/app/(app)/components/PromptPagesKanban";
+import StatusLabelEditor from "@/app/(app)/components/StatusLabelEditor";
 import PublicPromptPagesTable from "@/app/(app)/components/PublicPromptPagesTable";
 import PromptTypeSelectModal from "@/app/(app)/components/PromptTypeSelectModal";
+import { useStatusLabels } from "@/hooks/useStatusLabels";
 
 import { useRouter, useSearchParams } from "next/navigation";
 import QRCodeModal from "../components/QRCodeModal";
@@ -98,6 +101,14 @@ function PromptPagesContent() {
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [showWelcomePopup, setShowWelcomePopup] = useState(false);
   const [showHelpModal, setShowHelpModal] = useState(false);
+
+  // Kanban view state
+  const [viewMode, setViewMode] = useState<"table" | "kanban">("kanban");
+  const [selectedType, setSelectedType] = useState("");
+  const [showLabelEditor, setShowLabelEditor] = useState(false);
+
+  // Custom status labels
+  const { statusLabels, updateStatusLabels, isLoading: labelsLoading } = useStatusLabels();
   const [helpArticleId, setHelpArticleId] = useState<string | undefined>(undefined);
 
   // Check if user has access to individual prompt pages (exclude grower plan)
@@ -189,10 +200,23 @@ function PromptPagesContent() {
 
   // Track when auth is fully initialized - only set to true once
   useEffect(() => {
-    if (!authInitialized && !authLoading && authAccountId !== undefined) {
+    // Wait for auth loading to complete AND account loading to complete before considering auth "initialized"
+    // This prevents premature redirects during page refresh hydration
+    if (!authInitialized && !authLoading && !primaryAccountLoading) {
       setAuthInitialized(true);
     }
-  }, [authLoading, authAccountId, authInitialized]);
+  }, [authLoading, primaryAccountLoading, authInitialized]);
+
+  // Listen for reorder events to refetch data
+  useEffect(() => {
+    const handleReorder = () => {
+      // Force a refetch by clearing business state
+      setBusiness(null);
+    };
+
+    window.addEventListener('prompt-pages-reordered', handleReorder);
+    return () => window.removeEventListener('prompt-pages-reordered', handleReorder);
+  }, []);
 
   useEffect(() => {
     async function fetchData() {
@@ -200,12 +224,12 @@ function PromptPagesContent() {
       if (!authInitialized) {
         return;
       }
-      
+
       // Don't fetch if we're already loading
       if (loading && business) {
         return;
       }
-      
+
       // Don't refetch if we already have data for this account
       const currentAccountId = selectedAccountId || authAccountId;
       if (business && currentAccountId && business.account_id === currentAccountId) {
@@ -219,20 +243,22 @@ function PromptPagesContent() {
           router.push('/auth/sign-in');
           return;
         }
-        
-        // If no account ID, user needs to create a business first
-        if (!authAccountId && !selectedAccountId) {
-          if (authLoading || primaryAccountLoading) {
-            // Wait for account context to finish loading before deciding
-            return;
-          }
-          router.push('/dashboard/create-business');
-          return;
-        }
-        
+
         setUser(authUser);
+
         // Use selectedAccountId if available (from account switcher), otherwise fall back to authAccountId
         const accountId = selectedAccountId || authAccountId;
+
+        // Wait for account ID to be available before proceeding
+        if (!accountId) {
+          // Still loading
+          if (authLoading || primaryAccountLoading || !authInitialized) {
+            return;
+          }
+          // If still no account after loading, show the modal (handled below by checking business profile)
+          // For now, just return and let the loading state continue
+          return;
+        }
 
         // Fetch account data for plan info
         const { data: accountData } = await supabase
@@ -344,7 +370,8 @@ function PromptPagesContent() {
               first_name,
               last_name,
               email,
-              phone
+              phone,
+              business_name
             )
           `)
           .eq("account_id", accountId)
@@ -686,19 +713,52 @@ function PromptPagesContent() {
           businessReviewPlatforms={business?.review_platforms || []}
         />
       )}
-      
-            {/* Title above navigation */}
-      <div className="flex justify-center w-full mt-16 mb-6 z-20">
-        <h2 className="text-white text-xl font-semibold">Prompt Page campaign type</h2>
+
+
+      {/* Page Title and Settings Icons */}
+      <div className="px-4 sm:px-6 lg:px-8 pt-8 mt-8">
+        <div className="max-w-7xl mx-auto flex flex-col items-center mb-3">
+          <div className="flex items-center gap-4 mb-3">
+            <h1 className="text-3xl lg:text-4xl font-bold text-white">
+              Prompt Pages
+            </h1>
+
+            {/* Settings Icons */}
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  if (universalPromptPage?.slug) {
+                    router.push(`/r/${universalPromptPage.slug}?openStyleModal=true`);
+                  } else {
+                    setShowStyleModal(true);
+                  }
+                }}
+                className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-sm border border-white/30 flex items-center justify-center hover:bg-white/20 transition"
+                title="Style settings"
+              >
+                <Icon name="FaPalette" className="w-5 h-5 text-white" size={20} />
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowSettingsModal(true)}
+                className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-sm border border-white/30 flex items-center justify-center hover:bg-white/20 transition"
+                title="Prompt page settings"
+              >
+                <Icon name="FaCog" className="w-5 h-5 text-white" size={20} />
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
-       
-       {/* Pill navigation at the top of the PageCard */}
+
+       {/* Campaign Type Selector - Tab navigation */}
        <div className="flex justify-center w-full mt-0 mb-0 z-20 px-4">
-        <div className="flex bg-white/10 backdrop-blur-sm border border-white rounded-full p-1 shadow-lg w-full max-w-xl">
+        <div className="flex bg-white/10 backdrop-blur-sm border border-white/30 rounded-full p-1 shadow-lg w-full max-w-xl">
           <button
             type="button"
             onClick={() => handleTabChange('public')}
-            className={`flex-1 px-4 sm:px-8 py-2 font-semibold text-sm focus:outline-none transition-all duration-200 rounded-full flex items-center justify-center gap-2
+            className={`flex-1 px-4 sm:px-8 py-1.5 font-semibold text-sm focus:outline-none transition-all duration-200 rounded-full flex items-center justify-center gap-2
               ${promptPagesTab === 'public'
                 ? 'bg-slate-blue text-white'
                 : 'bg-transparent text-white'}
@@ -710,7 +770,7 @@ function PromptPagesContent() {
           <button
             type="button"
             onClick={() => handleTabChange('individual')}
-            className={`flex-1 px-4 sm:px-8 py-2 font-semibold text-sm focus:outline-none transition-all duration-200 rounded-full flex items-center justify-center gap-2
+            className={`flex-1 px-4 sm:px-8 py-1.5 font-semibold text-sm focus:outline-none transition-all duration-200 rounded-full flex items-center justify-center gap-2
               ${promptPagesTab === 'individual'
                 ? 'bg-slate-blue text-white'
                 : 'bg-transparent text-white'}
@@ -722,7 +782,7 @@ function PromptPagesContent() {
           <button
             type="button"
             onClick={() => handleTabChange('locations')}
-            className={`flex-1 px-4 sm:px-8 py-2 font-semibold text-sm focus:outline-none transition-all duration-200 rounded-full flex items-center justify-center gap-2
+            className={`flex-1 px-4 sm:px-8 py-1.5 font-semibold text-sm focus:outline-none transition-all duration-200 rounded-full flex items-center justify-center gap-2
               ${promptPagesTab === 'locations'
                 ? 'bg-slate-blue text-white'
                 : 'bg-transparent text-white'}
@@ -733,104 +793,32 @@ function PromptPagesContent() {
           </button>
         </div>
       </div>
-      <PageCard icon={<span className="text-3xl font-bold align-middle text-slate-blue" style={{ fontFamily: 'Inter, sans-serif' }}>[P]</span>}>
-        {/* Card content below tabs */}
-        <div className="p-6 pt-2">
-            {/* Business Profile Banner */}
-            <BusinessProfileBanner 
+
+      {/* Public (1-to-all) Tab Content */}
+      {promptPagesTab === 'public' && (
+        <div className="mt-12 mb-8 px-4 sm:px-6 lg:px-8">
+          {/* Business Profile Banner */}
+          <div className="max-w-7xl mx-auto mb-6">
+            <BusinessProfileBanner
               userId={user?.id}
               hasBusiness={hasBusiness}
             />
-            
-            <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 mt-2 mb-4">
-              <div className="flex flex-col mt-0 md:mt-[3px] flex-1 min-w-0">
-                <div className="mb-2 flex items-center gap-3">
-                  <h1 className="text-3xl lg:text-4xl font-bold text-slate-blue mt-0">
-                    Prompt Pages
-                  </h1>
-                  {promptPagesTab === 'public' && (
-                    <span className="px-3 py-1 bg-slate-blue/10 text-slate-blue text-sm font-semibold rounded-full">
-                      1-to-all
-                    </span>
-                  )}
-                  {promptPagesTab === 'individual' && (
-                    <span className="px-3 py-1 bg-slate-blue/10 text-slate-blue text-sm font-semibold rounded-full">
-                      1-to-1
-                    </span>
-                  )}
-                  {promptPagesTab === 'locations' && (
-                    <span className="px-3 py-1 bg-slate-blue/10 text-slate-blue text-sm font-semibold rounded-full">
-                      Locations
-                    </span>
-                  )}
-                </div>
-                <p className="text-gray-600 text-base max-w-md mt-0 mb-6 lg:mb-10">
-                  {promptPagesTab === 'public' && 'Capture reviews in person, at your place of business, through your website, or embed in your newsletter. These prompt pages are open to the public.'}
-                  {promptPagesTab === 'individual' && 'Create personalized prompt pages for individuals and make them feel special. Pre-populated contact information, write your own review templates, and add custom messaging.'}
-                  {promptPagesTab === 'locations' && 'Create location-specific prompt pages for each of your business locations.'}
-                </p>
-              </div>
-              <div className="flex flex-row lg:items-start gap-3 flex-shrink-0">
-                {(promptPagesTab === 'individual' || promptPagesTab === 'public') && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      localStorage.setItem('campaign_type', promptPagesTab);
-                      setShowTypeModal(true);
-                    }}
-                    disabled={promptPagesTab === 'individual' && account?.plan === 'grower'}
-                    className={`inline-flex items-center gap-2 px-4 py-2 rounded font-medium transition whitespace-nowrap ${
-                      promptPagesTab === 'individual' && account?.plan === 'grower'
-                        ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
-                        : 'bg-slate-blue text-white hover:bg-slate-blue/90'
-                    }`}
-                  >
-                    + Prompt Page
-                  </button>
-                )}
-                {promptPagesTab === 'locations' && (
-                  <button
-                    type="button"
-                    onClick={() => setShowLocationModal(true)}
-                    disabled={account?.plan === 'grower' || account?.plan === 'builder'}
-                    className={`inline-flex items-center gap-2 px-4 py-2 rounded font-medium transition whitespace-nowrap ${
-                      account?.plan === 'grower' || account?.plan === 'builder'
-                        ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
-                        : 'bg-slate-blue text-white hover:bg-slate-blue/90'
-                    }`}
-                  >
-                    + Location
-                  </button>
-                )}
-                <button
-                  type="button"
-                  className="bg-blue-100 text-slate-blue rounded font-semibold px-4 py-2 hover:bg-blue-200 transition whitespace-nowrap flex items-center gap-2 flex-shrink-0"
-                  onClick={() => {
-                    if (universalPromptPage?.slug) {
-                      router.push(`/r/${universalPromptPage.slug}?openStyleModal=true`);
-                    } else {
-                      // Fallback to opening modal on current page if no universal page exists
-                      setShowStyleModal(true);
-                    }
-                  }}
-                >
-                  <Icon name="FaPalette" className="w-5 h-5" size={20} />
-                  Style
-                </button>
-                <button
-                  type="button"
-                  className="bg-blue-100 text-slate-blue rounded font-semibold px-4 py-2 hover:bg-blue-200 transition whitespace-nowrap flex items-center gap-2 flex-shrink-0"
-                  onClick={() => setShowSettingsModal(true)}
-                >
-                  <Icon name="FaCog" className="w-5 h-5" size={20} />
-                  Settings
-                </button>
-              </div>
+          </div>
+
+          {/* Subheading and Description */}
+          <div className="max-w-7xl mx-auto mb-6">
+            <div className="flex items-center gap-3 mb-3">
+              <h2 className="text-2xl font-bold text-white">1-to-all campaigns</h2>
             </div>
-            
-            {/* Universal Prompt Page Card - Only visible on public tab */}
-            {promptPagesTab === 'public' && universalPromptPage && (
-              <div className="rounded-lg p-6 bg-blue-50 border border-blue-200 flex items-center gap-4 shadow relative mt-2">
+            <p className="text-white/80 text-sm max-w-2xl">
+              Use a single Prompt Page to capture many reviews from many people.
+            </p>
+          </div>
+
+          {/* Universal Prompt Page Card */}
+          {universalPromptPage && (
+            <div className="max-w-7xl mx-auto mb-12">
+              <div className="max-w-[800px] rounded-lg p-6 bg-blue-50 border border-blue-200 flex items-center gap-4 shadow-lg relative">
                 <div className="flex-1">
                   <div className="flex items-center justify-between mb-1">
                     <div className="flex items-center gap-2">
@@ -843,29 +831,29 @@ function PromptPagesContent() {
                     <div className="flex gap-4 items-center">
                       <Link
                         href={`/r/${universalPromptPage.slug}`}
-                        className="text-slate-blue underline hover:text-slate-blue/80 hover:underline"
+                        className="text-slate-blue underline hover:text-slate-blue/80"
                       >
                         View
                       </Link>
                       {universalPromptPage?.slug && (
                         <Link
                           href={"/dashboard/edit-prompt-page/universal"}
-                          className="text-slate-blue underline hover:text-slate-blue/80 hover:underline"
+                          className="text-slate-blue underline hover:text-slate-blue/80"
                         >
                           Edit
                         </Link>
                       )}
                     </div>
                   </div>
-                  <p className="mt-4 text-blue-900 mb-4 text-sm">
-                    Your Universal Prompt Page is your general-use Prompt Page that can be shared with one or many.
+                  <p className="mt-4 text-gray-700 mb-4 text-sm">
+                    Your Universal Prompt Page is designed to be used in a wide variety of formats and settings.
                   </p>
                   <div className="flex flex-wrap gap-2 items-center">
                     <div className="flex flex-wrap gap-2 items-center">
                       <button
                         type="button"
                         onClick={() => handleCopyLink()}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-purple-500/20 backdrop-blur-sm text-purple-800 rounded hover:bg-purple-500/30 text-sm font-medium shadow border border-white/30 h-9 align-middle whitespace-nowrap"
+                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-purple-100 text-purple-800 rounded hover:bg-purple-200 text-sm font-medium shadow border border-purple-300 h-9 align-middle whitespace-nowrap"
                       >
                         <Icon name="FaLink" className="w-5 h-5" size={20} />
                         Copy link
@@ -881,12 +869,12 @@ function PromptPagesContent() {
                             showNfcText: universalPromptPage?.nfc_text_enabled ?? false,
                           });
                         }}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-amber-500/20 backdrop-blur-sm text-amber-800 rounded hover:bg-amber-500/30 text-sm font-medium shadow border border-white/30 h-9 align-middle whitespace-nowrap"
+                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-amber-100 text-amber-800 rounded hover:bg-amber-200 text-sm font-medium shadow border border-amber-300 h-9 align-middle whitespace-nowrap"
                       >
                         <Icon name="MdDownload" className="w-5 h-5" size={20} />
                         QR code
                       </button>
-                        
+
                         {/* Prompt Page Embed Button - show for all prompt pages */}
                         {universalPromptPage?.slug && (
                           <PromptPageEmbedButton
@@ -895,7 +883,7 @@ function PromptPagesContent() {
                             isUniversal={true}
                           />
                         )}
-                        
+
                         <button
                           type="button"
                           onClick={() => {
@@ -904,7 +892,7 @@ function PromptPagesContent() {
                             const message = `Hi! I'd love to get your feedback on ${businessName}. Please leave a review here: ${reviewUrl}`;
                             window.location.href = `sms:?&body=${encodeURIComponent(message)}`;
                           }}
-                          className="inline-flex items-center gap-1 px-3 py-1.5 bg-green-500/20 backdrop-blur-sm text-green-800 rounded hover:bg-green-500/30 text-sm font-medium shadow border border-white/30 h-9 align-middle whitespace-nowrap"
+                          className="inline-flex items-center gap-1 px-3 py-1.5 bg-green-100 text-green-800 rounded hover:bg-green-200 text-sm font-medium shadow border border-green-300 h-9 align-middle whitespace-nowrap"
                         >
                           <Icon name="FaMobile" className="w-5 h-5" size={20} />
                           Send SMS
@@ -918,7 +906,7 @@ function PromptPagesContent() {
                           const message = `Hi,\n\nI'd love to get your feedback on ${businessName}. Please leave a review here: ${reviewUrl}\n\nThank you!`;
                           window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(message)}`;
                         }}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-500/20 backdrop-blur-sm text-blue-800 rounded hover:bg-blue-500/30 text-sm font-medium shadow border border-white/30 h-9 align-middle whitespace-nowrap"
+                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-100 text-blue-800 rounded hover:bg-blue-200 text-sm font-medium shadow border border-blue-300 h-9 align-middle whitespace-nowrap"
                       >
                         <Icon name="FaEnvelope" className="w-5 h-5" size={20} />
                         Send email
@@ -933,45 +921,81 @@ function PromptPagesContent() {
                   </div>
                 </div>
               </div>
-            )}
-            
-            {/* QR Code Download Modal */}
-            <QRCodeModal
-              isOpen={qrModal?.open || false}
-              onClose={() => setQrModal(null)}
-              url={qrModal?.url || ""}
-              clientName={qrModal?.clientName || ""}
-              logoUrl={qrModal?.logoUrl}
-              showNfcText={qrModal?.showNfcText}
-            />
-            
-            {/* Public Outreach Content */}
-            {promptPagesTab === 'public' && (
-              <>
-                {/* Public Prompt Pages Section */}
-                <div className="my-12">
-                  <h2 className="text-2xl font-bold text-slate-blue mb-6">Your public Prompt Pages</h2>
-                
-                <div className="overflow-x-auto shadow border-l border-r border-b border-gray-200 sm:rounded-b-lg">
-                  <PublicPromptPagesTable
-                    promptPages={promptPages}
-                    business={business}
-                    account={business}
-                    universalUrl={universalUrl}
-                    onDeletePages={async (pageIds) => {
-                      await supabase.from("prompt_pages").delete().in("id", pageIds);
-                      setPromptPages((pages) => pages.filter((page) => !pageIds.includes(page.id)));
-                    }}
-                    onCreatePromptPage={() => setShowTypeModal(true)}
-                  />
-                </div>
-              </div>
-              </>
-            )}
-            
-            {/* Individual Outreach Content */}
+            </div>
+          )}
+
+          {/* Public Prompt Pages Table */}
+          <div className="max-w-7xl mx-auto">
+            <div className="flex items-center justify-between gap-4 mb-4">
+              {/* + Prompt Page Button */}
+              <button
+                type="button"
+                onClick={() => {
+                  localStorage.setItem('campaign_type', promptPagesTab);
+                  setShowTypeModal(true);
+                }}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-slate-blue text-white rounded hover:bg-slate-blue/90 font-medium transition whitespace-nowrap shadow-lg"
+              >
+                <Icon name="FaPlus" className="w-4 h-4" size={16} />
+                Prompt page
+              </button>
+
+              {/* Type Filter */}
+              <select
+                value={selectedType}
+                onChange={(e) => setSelectedType(e.target.value)}
+                className="pl-4 pr-10 py-3 bg-white/10 backdrop-blur-sm border border-white/30 rounded-full text-white text-sm focus:outline-none focus:ring-2 focus:ring-white/50 shadow-lg appearance-none bg-[url('data:image/svg+xml;charset=UTF-8,%3csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22white%22%3E%3cpath%20fill-rule%3D%22evenodd%22%20d%3D%22M5.293%207.293a1%201%200%20011.414%200L10%2010.586l3.293-3.293a1%201%200%20111.414%201.414l-4%204a1%201%200%2001-1.414%200l-4-4a1%201%200%20010-1.414z%22%20clip-rule%3D%22evenodd%22%2F%3E%3c%2Fsvg%3E')] bg-[length:1.5em_1.5em] bg-[right_0.5rem_center] bg-no-repeat"
+              >
+                <option value="" className="bg-slate-blue">All types</option>
+                <option value="service" className="bg-slate-blue">Service</option>
+                <option value="photo" className="bg-slate-blue">Photo</option>
+                <option value="video" className="bg-slate-blue">Video</option>
+                <option value="event" className="bg-slate-blue">Event</option>
+                <option value="product" className="bg-slate-blue">Product</option>
+                <option value="employee" className="bg-slate-blue">Employee</option>
+              </select>
+            </div>
+            <div className="overflow-x-auto shadow border border-white/30 rounded-lg backdrop-blur-sm bg-white/5">
+              <PublicPromptPagesTable
+                promptPages={promptPages}
+                business={business}
+                account={business}
+                universalUrl={universalUrl}
+                selectedType={selectedType}
+                onDeletePages={async (pageIds) => {
+                  await supabase.from("prompt_pages").delete().in("id", pageIds);
+                  setPromptPages((pages) => pages.filter((page) => !pageIds.includes(page.id)));
+                }}
+                onCreatePromptPage={() => setShowTypeModal(true)}
+              />
+            </div>
+          </div>
+
+          {/* QR Code Download Modal */}
+          <QRCodeModal
+            isOpen={qrModal?.open || false}
+            onClose={() => setQrModal(null)}
+            url={qrModal?.url || ""}
+            clientName={qrModal?.clientName || ""}
+            logoUrl={qrModal?.logoUrl}
+            showNfcText={qrModal?.showNfcText}
+          />
+        </div>
+      )}
+
+            {/* Individual Outreach Content - Full Width */}
             {promptPagesTab === 'individual' && (
-              <div className="my-12">
+              <div className="mt-12 mb-8 px-4 sm:px-6 lg:px-8">
+                {/* Subheading and Description */}
+                <div className="max-w-7xl mx-auto mb-6">
+                  <div className="flex items-center gap-3 mb-3">
+                    <h2 className="text-2xl font-bold text-white">1-to-1 campaigns</h2>
+                  </div>
+                  <p className="text-white/80 text-sm max-w-2xl">
+                    Create personalized Prompt Pages for review outreach campaigns.
+                  </p>
+                </div>
+
                 {(!account || !hasIndividualAccess(account.plan)) ? (
                   <div className="text-center py-12">
                     <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 max-w-md mx-auto">
@@ -990,101 +1014,217 @@ function PromptPagesContent() {
                     </div>
                   </div>
                 ) : (
-                <PromptPagesTable
-                  promptPages={individualPromptPages}
-                  business={business}
-                  account={account}
-                  universalUrl={universalUrl}
-                  onStatusUpdate={async (pageId: string, newStatus: any) => {
-                    await supabase.from("prompt_pages").update({ status: newStatus }).eq("id", pageId);
-                    setIndividualPromptPages((pages) =>
-                      pages.map((page) =>
-                        page.id === pageId ? { ...page, status: newStatus } : page
-                      )
-                    );
-                  }}
-                  onDeletePages={async (pageIds: string[]) => {
-                    await supabase.from("prompt_pages").delete().in("id", pageIds);
-                    setIndividualPromptPages((pages) => pages.filter((page) => !pageIds.includes(page.id)));
-                  }}
-                  onCreatePromptPage={() => setShowTypeModal(true)}
-                />
+                  <>
+                    {/* Controls Bar */}
+                    <div className="mb-6 max-w-7xl mx-auto flex items-center justify-between gap-4">
+                      {/* + Prompt Page Button */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          localStorage.setItem('campaign_type', 'individual');
+                          setShowTypeModal(true);
+                        }}
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-slate-blue text-white rounded hover:bg-slate-blue/90 font-medium transition whitespace-nowrap shadow-lg"
+                      >
+                        <Icon name="FaPlus" className="w-4 h-4" size={16} />
+                        Prompt page
+                      </button>
+
+                      {/* View Toggle and Type Filter */}
+                      <div className="flex items-center gap-4 flex-wrap">
+                        {/* View Mode Toggle */}
+                        <div className="flex items-center bg-white/10 backdrop-blur-sm border border-white/30 rounded-full p-1 shadow-lg">
+                        <button
+                          type="button"
+                          onClick={() => setViewMode("table")}
+                          className={`flex items-center gap-2 px-6 py-1.5 rounded-full font-medium transition-all ${
+                            viewMode === "table"
+                              ? "bg-slate-blue text-white"
+                              : "text-white hover:bg-white/10"
+                          }`}
+                        >
+                          <Icon name="FaBars" size={18} />
+                          Table
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setViewMode("kanban")}
+                          className={`flex items-center gap-2 px-6 py-1.5 rounded-full font-medium transition-all ${
+                            viewMode === "kanban"
+                              ? "bg-slate-blue text-white"
+                              : "text-white hover:bg-white/10"
+                          }`}
+                        >
+                          <Icon name="FaColumns" size={18} />
+                          Kanban
+                        </button>
+                      </div>
+
+                      {/* Type Filter - Always visible */}
+                      <select
+                        value={selectedType}
+                        onChange={(e) => setSelectedType(e.target.value)}
+                        className="pl-4 pr-10 py-3 bg-white/10 backdrop-blur-sm border border-white/30 rounded-full text-white text-sm focus:outline-none focus:ring-2 focus:ring-white/50 shadow-lg appearance-none bg-[url('data:image/svg+xml;charset=UTF-8,%3csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22white%22%3E%3cpath%20fill-rule%3D%22evenodd%22%20d%3D%22M5.293%207.293a1%201%200%20011.414%200L10%2010.586l3.293-3.293a1%201%200%20111.414%201.414l-4%204a1%201%200%2001-1.414%200l-4-4a1%201%200%20010-1.414z%22%20clip-rule%3D%22evenodd%22%2F%3E%3c%2Fsvg%3E')] bg-[length:1.5em_1.5em] bg-[right_0.5rem_center] bg-no-repeat"
+                      >
+                        <option value="" className="bg-slate-blue">All types</option>
+                        <option value="service" className="bg-slate-blue">Service</option>
+                        <option value="photo" className="bg-slate-blue">Photo</option>
+                        <option value="video" className="bg-slate-blue">Video</option>
+                        <option value="event" className="bg-slate-blue">Event</option>
+                        <option value="product" className="bg-slate-blue">Product</option>
+                        <option value="employee" className="bg-slate-blue">Employee</option>
+                      </select>
+                      </div>
+                    </div>
+
+                    {/* Table or Kanban View */}
+                    {viewMode === "table" ? (
+                      <div className="max-w-7xl mx-auto">
+                        <PromptPagesTable
+                        promptPages={individualPromptPages}
+                        business={business}
+                        account={account}
+                        universalUrl={universalUrl}
+                        statusLabels={statusLabels}
+                        onStatusUpdate={async (pageId: string, newStatus: any) => {
+                          await supabase.from("prompt_pages").update({ status: newStatus }).eq("id", pageId);
+                          setIndividualPromptPages((pages) =>
+                            pages.map((page) =>
+                              page.id === pageId ? { ...page, status: newStatus } : page
+                            )
+                          );
+                        }}
+                        onDeletePages={async (pageIds: string[]) => {
+                          await supabase.from("prompt_pages").delete().in("id", pageIds);
+                          setIndividualPromptPages((pages) => pages.filter((page) => !pageIds.includes(page.id)));
+                        }}
+                        onCreatePromptPage={() => setShowTypeModal(true)}
+                      />
+                      </div>
+                    ) : (
+                      <div className="max-w-7xl mx-auto">
+                        <PromptPagesKanban
+                          promptPages={individualPromptPages}
+                          business={business}
+                          account={account}
+                          statusLabels={statusLabels}
+                          selectedType={selectedType}
+                          onStatusUpdate={async (pageId: string, newStatus: any) => {
+                            await supabase.from("prompt_pages").update({ status: newStatus }).eq("id", pageId);
+                            setIndividualPromptPages((pages) =>
+                              pages.map((page) =>
+                                page.id === pageId ? { ...page, status: newStatus } : page
+                              )
+                            );
+                          }}
+                          onEditLabel={(status) => {
+                            setShowLabelEditor(true);
+                          }}
+                        />
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             )}
-            
+
             {/* Locations Content */}
             {promptPagesTab === 'locations' && (
-              <div className="my-12">
+              <div className="mt-12 mb-8 px-4 sm:px-6 lg:px-8">
+                {/* Subheading and Description */}
+                <div className="max-w-7xl mx-auto mb-6">
+                  <div className="flex items-center gap-3 mb-3">
+                    <h2 className="text-2xl font-bold text-white">Location campaigns</h2>
+                  </div>
+                  <p className="text-white/80 text-sm max-w-2xl">
+                    Create location-specific prompt pages for each of your business locations.
+                  </p>
+                </div>
+
                 {(!account || !hasLocationAccess(account.plan)) ? (
-                  <div className="text-center py-12">
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 max-w-md mx-auto">
-                      <Icon name="FaMapMarker" className="w-16 h-16 mx-auto mb-4 text-slate-blue" size={64} />
-                      <h3 className="font-semibold text-blue-900 mb-2">Upgrade to Maven</h3>
-                      <p className="text-sm text-blue-700 mb-4">
+                  <div className="max-w-7xl mx-auto text-center py-12">
+                    <div className="bg-white/10 backdrop-blur-sm border border-white/30 rounded-lg p-6 max-w-md mx-auto">
+                      <Icon name="FaMapMarker" className="w-16 h-16 mx-auto mb-4 text-white" size={64} />
+                      <h3 className="font-semibold text-white mb-2">Upgrade to Maven</h3>
+                      <p className="text-sm text-white/80 mb-4">
                         Location prompt pages are available with the Maven tier. Upgrade your plan to unlock this feature.
                       </p>
                       <button
                         type="button"
                         onClick={() => router.push('/dashboard/plan')}
-                        className="bg-slate-blue text-white px-6 py-2 rounded hover:bg-slate-blue/90 font-medium transition"
+                        className="bg-teal-500 text-white px-6 py-2 rounded hover:bg-teal-600 font-medium transition"
                       >
                         Upgrade now
                       </button>
                     </div>
                   </div>
                 ) : (
-                  <>
-                
-                {/* Location Limits Info */}
-                {account && (
-                  <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="font-semibold text-blue-900">Location limits</h3>
-                        <p className="text-sm text-blue-700">
-                          {locationLimits.current} of {locationLimits.max} locations used
-                        </p>
+                  <div className="max-w-7xl mx-auto">
+                    {/* Location Limits Info */}
+                    {account && (
+                      <div className="mb-6 p-4 bg-white/10 backdrop-blur-sm border border-white/30 rounded-lg">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h3 className="font-semibold text-white">Location limits</h3>
+                            <p className="text-sm text-white/80">
+                              {locationLimits.current} of {locationLimits.max} locations used
+                            </p>
+                          </div>
+                          {!locationLimits.canCreateMore && (
+                            <div className="text-sm text-red-400 font-medium">
+                              Location limit reached
+                            </div>
+                          )}
+                        </div>
                       </div>
-                      {!locationLimits.canCreateMore && (
-                        <div className="text-sm text-red-600 font-medium">
-                          Location limit reached
+                    )}
+
+                    {/* Locations List Header */}
+                    <div className="flex items-center justify-between mb-4">
+                      <h2 className="text-2xl font-bold text-white">Your locations</h2>
+                      <button
+                        type="button"
+                        onClick={() => setShowLocationModal(true)}
+                        disabled={account?.plan === 'grower' || account?.plan === 'builder' || !locationLimits.canCreateMore}
+                        className={`inline-flex items-center gap-2 px-4 py-2 rounded font-medium transition whitespace-nowrap shadow-lg ${
+                          account?.plan === 'grower' || account?.plan === 'builder' || !locationLimits.canCreateMore
+                            ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
+                            : 'bg-slate-blue text-white hover:bg-slate-blue/90'
+                        }`}
+                      >
+                        <Icon name="FaPlus" className="w-4 h-4" size={16} />
+                        Location
+                      </button>
+                    </div>
+
+                    {/* Locations List */}
+                    <div className="space-y-4">
+                      {locations.map((location) => (
+                        <LocationCard
+                          key={location.id}
+                          location={location}
+                          businessName={business?.name}
+                          businessLogoUrl={business?.logo_url}
+                          onEdit={(location) => {
+                            setEditingLocation(location);
+                            setShowLocationModal(true);
+                          }}
+                          onDelete={handleDeleteLocation}
+                        />
+                      ))}
+
+                      {locations.length === 0 && (
+                        <div className="text-center py-8 text-white/80">
+                          <Icon name="FaMapMarker" className="w-12 h-12 mx-auto mb-4 text-white" size={48} />
+                          <p>No locations added yet.</p>
+                          <p className="text-sm">Add your first location to get started.</p>
                         </div>
                       )}
                     </div>
                   </div>
                 )}
-                
-                {/* Locations List */}
-                <div className="space-y-4">
-                  {locations.map((location) => (
-                    <LocationCard
-                      key={location.id}
-                      location={location}
-                      businessName={business?.name}
-                      businessLogoUrl={business?.logo_url}
-                      onEdit={(location) => {
-                        setEditingLocation(location);
-                        setShowLocationModal(true);
-                      }}
-                      onDelete={handleDeleteLocation}
-                    />
-                  ))}
-                  
-                  {locations.length === 0 && (
-                    <div className="text-center py-8 text-gray-500">
-                      <Icon name="FaMapMarker" className="w-12 h-12 mx-auto mb-4 text-slate-blue" size={48} />
-                      <p>No locations added yet.</p>
-                      <p className="text-sm">Add your first location to get started.</p>
-                    </div>
-                  )}
-                </div>
-                  </>
-                )}
               </div>
             )}
-          </div>
-        </PageCard>
       {/* Style Modal */}
       {showStyleModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
@@ -1359,7 +1499,7 @@ function PromptPagesContent() {
         title="Prompt Pages and YOU!"
         message={`Prompt Pages are brand-able and customizable review collection pages. You can enable a variety of features to make it easy for your customers to provide valuable reviews, testimonials, and feedback.
 
-When a customer writes a review and clicks "Copy & submit" a few important things happen:
+When a customer writes a review and clicks "Copy & continue" a few important things happen:
 
 1. The review is saved to your Prompt Reviews account.
 2. The review is copied to the users clipboard
@@ -1388,6 +1528,17 @@ Also, the help bubble in the bottom-right of your screen is always there for you
           setHelpArticleId(undefined);
         }}
         initialArticleId={helpArticleId}
+      />
+
+      {/* Status Label Editor Modal */}
+      <StatusLabelEditor
+        isOpen={showLabelEditor}
+        onClose={() => setShowLabelEditor(false)}
+        currentLabels={statusLabels}
+        onSave={async (newLabels) => {
+          const success = await updateStatusLabels(newLabels);
+          return success;
+        }}
       />
 
     </div>

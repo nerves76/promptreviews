@@ -1587,13 +1587,13 @@ export default function AnimatedInfographic({ isEmbed = false, debug = false }: 
                             {promptPageStep >= 3 && (
                               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-pulse" />
                             )}
-                            <span 
+                            <span
                               className="text-[9px] lg:text-[10px] font-medium relative z-10 transition-colors duration-700"
                               style={{
                                 color: promptPageStep >= 3 ? 'rgba(255, 255, 255, 0.9)' : 'rgba(156, 163, 175, 0.5)'
                               }}
                             >
-                              Copy & submit
+                              Copy & continue
                             </span>
                           </div>
                         </div>

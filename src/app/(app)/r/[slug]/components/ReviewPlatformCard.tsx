@@ -576,7 +576,7 @@ export default function ReviewPlatformCard({
                 </>
               ) : (
                 <>
-                  Copy & submit
+                  Copy & continue
                 </>
               )}
             </button>
