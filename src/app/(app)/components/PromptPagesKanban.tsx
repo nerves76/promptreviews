@@ -15,14 +15,15 @@ interface PromptPagesKanbanProps {
   statusLabels: StatusLabels;
   onEditLabel: (status: keyof StatusLabels) => void;
   selectedType?: string;
+  onLocalStatusUpdate?: (pageId: string, newStatus: PromptPage["status"]) => void;
 }
 
 const STATUS_COLORS = {
-  draft: "bg-gray-500/20 backdrop-blur-sm border-gray-300/30",
-  in_queue: "bg-blue-500/20 backdrop-blur-sm border-blue-300/30",
-  sent: "bg-purple-500/20 backdrop-blur-sm border-purple-300/30",
-  follow_up: "bg-yellow-500/20 backdrop-blur-sm border-yellow-300/30",
-  complete: "bg-green-500/20 backdrop-blur-sm border-green-300/30",
+  draft: "bg-gray-300/60 backdrop-blur-sm border-gray-100/70",
+  in_queue: "bg-blue-300/60 backdrop-blur-sm border-blue-100/70",
+  sent: "bg-purple-300/60 backdrop-blur-sm border-purple-100/70",
+  follow_up: "bg-amber-300/60 backdrop-blur-sm border-amber-100/70",
+  complete: "bg-emerald-300/60 backdrop-blur-sm border-emerald-100/70",
 };
 
 export default function PromptPagesKanban({
@@ -33,6 +34,7 @@ export default function PromptPagesKanban({
   statusLabels,
   onEditLabel,
   selectedType,
+  onLocalStatusUpdate,
 }: PromptPagesKanbanProps) {
   const [draggedCardId, setDraggedCardId] = useState<string | null>(null);
 
@@ -41,12 +43,23 @@ export default function PromptPagesKanban({
     const statuses: Array<keyof StatusLabels> = ["draft", "in_queue", "sent", "follow_up", "complete"];
 
     return statuses.map((status) => {
-      const pages = promptPages.filter((page) => {
-        if (page.is_universal) return false;
-        if (page.status !== status) return false;
-        if (selectedType && page.review_type !== selectedType) return false;
-        return true;
-      });
+      const pages = promptPages
+        .filter((page) => {
+          if (page.is_universal) return false;
+          if (page.status !== status) return false;
+          if (selectedType && page.review_type !== selectedType) return false;
+          return true;
+        })
+        .sort((a, b) => {
+          // Sort by sort_order (ascending), fallback to created_at (descending) for pages without sort_order
+          const aOrder = a.sort_order ?? 999999;
+          const bOrder = b.sort_order ?? 999999;
+          if (aOrder !== bOrder) {
+            return aOrder - bOrder;
+          }
+          // If sort_order is the same, sort by created_at descending
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        });
 
       return {
         id: status,
@@ -61,7 +74,7 @@ export default function PromptPagesKanban({
     setDraggedCardId(result.draggableId);
   };
 
-  const handleDragEnd = (result: DropResult) => {
+  const handleDragEnd = async (result: DropResult) => {
     setDraggedCardId(null);
 
     // Dropped outside the list
@@ -69,13 +82,114 @@ export default function PromptPagesKanban({
       return;
     }
 
-    const { draggableId, destination } = result;
+    const { draggableId, source, destination } = result;
     const newStatus = destination.droppableId as PromptPage["status"];
+    const oldStatus = source.droppableId as PromptPage["status"];
 
-    // Update status if changed
+    // If dropped in the same position, do nothing
+    if (source.droppableId === destination.droppableId && source.index === destination.index) {
+      return;
+    }
+
     const page = promptPages.find((p) => p.id === draggableId);
-    if (page && page.status !== newStatus) {
+    if (!page) return;
+
+    // Handle status change (moved to different column)
+    if (oldStatus !== newStatus) {
       onStatusUpdate(draggableId, newStatus);
+
+      // Log campaign action for status change
+      try {
+        await fetch('/api/campaign-actions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            promptPageId: draggableId,
+            contactId: page.contact_id,
+            accountId: page.account_id || account?.id,
+            activityType: 'status_change',
+            content: `Status changed from "${statusLabels[oldStatus] || oldStatus}" to "${statusLabels[newStatus] || newStatus}"`,
+            metadata: {
+              status_from: oldStatus,
+              status_to: newStatus,
+            },
+          }),
+        });
+      } catch (error) {
+        // Don't fail the status update if campaign action logging fails
+        console.error('Failed to log status change campaign action:', error);
+      }
+    }
+
+    // Handle reordering within same column
+    // Get all pages in the destination column
+    const columnPages = promptPages.filter((p) => {
+      if (p.is_universal) return false;
+      if (selectedType && p.review_type !== selectedType) return false;
+      return p.status === newStatus;
+    });
+
+    // Calculate new sort orders
+    const updates: Array<{ id: string; sort_order: number }> = [];
+
+    // Remove the dragged page from its old position
+    const withoutDragged = columnPages.filter(p => p.id !== draggableId);
+
+    // Insert it at the new position
+    const reordered = [
+      ...withoutDragged.slice(0, destination.index),
+      page,
+      ...withoutDragged.slice(destination.index)
+    ];
+
+    // Assign new sort orders (1-indexed)
+    reordered.forEach((p, index) => {
+      updates.push({
+        id: p.id,
+        sort_order: index + 1
+      });
+    });
+
+    // Persist the new sort orders to the database
+    try {
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+      };
+
+      // Add selected account header if available
+      if (typeof window !== 'undefined') {
+        const userId = localStorage.getItem('promptreviews_last_user_id');
+        if (userId) {
+          const accountKey = `promptreviews_selected_account_${userId}`;
+          const selectedAccountId = localStorage.getItem(accountKey);
+          if (selectedAccountId) {
+            headers['X-Selected-Account'] = selectedAccountId;
+          }
+        }
+      }
+
+      const response = await fetch('/api/prompt-pages/reorder', {
+        method: 'PATCH',
+        headers,
+        credentials: 'include',
+        body: JSON.stringify({ updates }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to persist sort order');
+      }
+
+      // Trigger a refetch to show the new order
+      // The parent component should pass a refresh callback
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('prompt-pages-reordered'));
+      }
+    } catch (error) {
+      console.error('Failed to persist sort order:', error);
+      // The UI will still show the reordered state optimistically
     }
   };
 
@@ -102,9 +216,9 @@ export default function PromptPagesKanban({
 
   return (
     <DragDropContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-      <div className="flex gap-4 overflow-x-auto pb-4 px-2">
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 pb-4">
         {columnData.map((column) => (
-          <div key={column.id} className="min-w-[320px] flex-shrink-0">
+          <div key={column.id} className="min-w-0">
             {/* Column Header */}
             <div
               className={`${column.color} border rounded-t-lg p-3 flex items-center justify-between`}
@@ -120,7 +234,7 @@ export default function PromptPagesKanban({
                 title="Edit column name"
                 aria-label={`Edit ${column.label} label`}
               >
-                <Icon name="MdEdit" size={18} />
+                <Icon name="FaEdit" size={18} />
               </button>
             </div>
 
@@ -131,15 +245,15 @@ export default function PromptPagesKanban({
                   ref={provided.innerRef}
                   {...provided.droppableProps}
                   className={`
-                    bg-gray-50 border-l border-r border-b rounded-b-lg p-3
+                    bg-white/30 backdrop-blur-md border-l border-r border-b rounded-b-lg p-3
                     min-h-[400px] max-h-[calc(100vh-300px)] overflow-y-auto
                     transition-colors
-                    ${snapshot.isDraggingOver ? "bg-blue-50 border-blue-300" : ""}
+                    ${snapshot.isDraggingOver ? "bg-blue-100/40 border-blue-300" : "border-white/40"}
                   `}
                 >
                   {column.pages.length === 0 ? (
-                    <div className="text-center py-12 text-gray-400">
-                      <Icon name="MdDragIndicator" size={32} className="mx-auto mb-2 opacity-50" />
+                    <div className="text-center py-12 text-white">
+                      <Icon name="FaArrowsAlt" size={32} className="mx-auto mb-2 opacity-70" />
                       <p className="text-sm">No pages in {column.label}</p>
                       <p className="text-xs mt-1">Drag cards here</p>
                     </div>
@@ -170,6 +284,7 @@ export default function PromptPagesKanban({
                                 page={page}
                                 business={business}
                                 isDragging={snapshot.isDragging || draggedCardId === page.id}
+                                onLocalStatusUpdate={onLocalStatusUpdate}
                               />
                             </div>
                           )}
@@ -189,7 +304,7 @@ export default function PromptPagesKanban({
       {promptPages.length > maxPages && (
         <div className="mt-4 p-4 bg-amber-500/20 backdrop-blur-sm border border-amber-300/30 rounded-lg">
           <div className="flex items-start gap-3">
-            <Icon name="MdLock" size={20} className="text-amber-700 flex-shrink-0 mt-0.5" />
+            <Icon name="FaLock" size={20} className="text-amber-700 flex-shrink-0 mt-0.5" />
             <div>
               <p className="text-sm font-medium text-amber-900">
                 You've reached the limit for your {account?.plan} plan

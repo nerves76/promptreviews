@@ -33,21 +33,10 @@ export async function checkAccountLimits(
     return { allowed: false, reason: "Account not found" };
   }
 
-  // SAFEGUARD: Detect if a user ID was passed instead of an account ID
-  // User IDs are UUIDs, account IDs follow a different pattern
-  // This helps catch development errors early
-  if (accountId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
-    // This looks like a user UUID - log a warning for debugging
-    console.warn(
-      `⚠️ WARNING: checkAccountLimits received what appears to be a user ID (${accountId}). ` +
-      `This function expects an account ID. Please update the calling code to pass the correct account ID.`
-    );
-
-    // In development, log stack trace to help debugging
-    if (process.env.NODE_ENV === 'development') {
-      console.trace('Stack trace for user ID warning'); // Log stack trace to help find the problematic caller
-    }
-  }
+  // Note: Account IDs are UUIDs. For a user's first account, the account ID
+  // matches the user ID by design (set by database trigger on user creation).
+  // Both user IDs and account IDs use the same UUID format, so we cannot
+  // distinguish them by pattern matching alone.
 
   // Fetch account using the account ID
   const { data: account, error: accountError } = await supabase

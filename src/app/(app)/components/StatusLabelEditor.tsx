@@ -19,7 +19,7 @@ const STATUS_INFO = {
   },
   in_queue: {
     key: "in_queue" as const,
-    defaultLabel: "In Queue",
+    defaultLabel: "In queue",
     description: "Pages ready to be sent to customers",
   },
   sent: {
@@ -29,7 +29,7 @@ const STATUS_INFO = {
   },
   follow_up: {
     key: "follow_up" as const,
-    defaultLabel: "Follow Up",
+    defaultLabel: "Follow up",
     description: "Pages that need a follow-up reminder",
   },
   complete: {
@@ -93,9 +93,9 @@ export default function StatusLabelEditor({
   const handleReset = () => {
     const defaultLabels: StatusLabels = {
       draft: "Draft",
-      in_queue: "In Queue",
+      in_queue: "In queue",
       sent: "Sent",
-      follow_up: "Follow Up",
+      follow_up: "Follow up",
       complete: "Complete",
     };
     setLabels(defaultLabels);
@@ -123,7 +123,7 @@ export default function StatusLabelEditor({
               className="text-gray-400 hover:text-gray-600 transition"
               aria-label="Close"
             >
-              <Icon name="MdClose" size={24} />
+              <Icon name="FaTimes" size={24} />
             </button>
           </div>
         </div>
@@ -168,7 +168,7 @@ export default function StatusLabelEditor({
 
           {error && (
             <div className="p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2">
-              <Icon name="MdError" size={20} className="text-red-600 flex-shrink-0 mt-0.5" />
+              <Icon name="FaExclamationTriangle" size={20} className="text-red-600 flex-shrink-0 mt-0.5" />
               <p className="text-sm text-red-800">{error}</p>
             </div>
           )}
@@ -198,7 +198,7 @@ export default function StatusLabelEditor({
               className="px-4 py-2 bg-slate-blue text-white rounded-lg hover:bg-slate-blue/90 font-medium disabled:opacity-50 disabled:cursor-not-allowed text-sm flex items-center gap-2"
             >
               {isSaving && (
-                <Icon name="MdSync" size={16} className="animate-spin" />
+                <Icon name="FaSpinner" size={16} className="animate-spin" />
               )}
               {isSaving ? "Saving..." : "Save Changes"}
             </button>

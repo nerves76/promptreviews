@@ -118,7 +118,8 @@ export default function DashboardLayout({
 
       const isAllowedPath =
         pathname === '/dashboard' ||
-        pathname.startsWith('/dashboard/create-business');
+        pathname.startsWith('/dashboard/create-business') ||
+        pathname.startsWith('/dashboard/business-profile');
       // REMOVED: /dashboard/plan from allowed paths - we shouldn't redirect there
 
       if (hasNoPlan && !isFreeAccount && !isAllowedPath) {

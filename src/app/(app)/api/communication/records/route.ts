@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/auth/providers/supabase';
 import { createCommunicationRecord, getCommunicationHistory } from '@/utils/communication';
+import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
 
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createServerSupabaseClient();
-    
+
     // Get the current user (more reliable than getSession for server routes)
     const { data: { user }, error: userError } = await supabase.auth.getUser();
     if (userError || !user) {
@@ -13,6 +14,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'Authentication required' },
         { status: 401 }
+      );
+    }
+
+    // Get the proper account ID using the header and validate access
+    const accountId = await getRequestAccountId(request, user.id, supabase);
+    if (!accountId) {
+      return NextResponse.json(
+        { error: 'No valid account found or access denied' },
+        { status: 403 }
       );
     }
 
@@ -34,7 +44,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create the communication record
+    // Create the communication record with proper account ID
     const record = await createCommunicationRecord(
       {
         contactId,
@@ -44,7 +54,7 @@ export async function POST(request: NextRequest) {
         message,
         followUpReminder
       },
-      user.id,
+      accountId,
       supabase
     );
 
@@ -62,7 +72,7 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     const supabase = await createServerSupabaseClient();
-    
+
     // Get the current user (more reliable than getSession for server routes)
     const { data: { user }, error: userError } = await supabase.auth.getUser();
     if (userError || !user) {
@@ -70,6 +80,15 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(
         { error: 'Authentication required' },
         { status: 401 }
+      );
+    }
+
+    // Get the proper account ID using the header and validate access
+    const accountId = await getRequestAccountId(request, user.id, supabase);
+    if (!accountId) {
+      return NextResponse.json(
+        { error: 'No valid account found or access denied' },
+        { status: 403 }
       );
     }
 
@@ -83,8 +102,8 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Get communication history for the contact
-    const records = await getCommunicationHistory(contactId, user.id);
+    // Get communication history for the contact with proper account ID
+    const records = await getCommunicationHistory(contactId, accountId);
 
     return NextResponse.json({ records }, { status: 200 });
 

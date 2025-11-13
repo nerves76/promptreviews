@@ -1,5 +1,6 @@
-import { NextResponse } from "next/server";
-import { createClient } from "@/auth/providers/supabase";
+import { NextRequest, NextResponse } from "next/server";
+import { createServerSupabaseClient } from "@/auth/providers/supabase";
+import { getRequestAccountId } from "@/app/(app)/api/utils/getRequestAccountId";
 
 const DEFAULT_LABELS = {
   draft: "Draft",
@@ -15,9 +16,9 @@ const MAX_LABEL_LENGTH = 20;
  * GET /api/account/status-labels
  * Fetch custom status labels for the current account
  */
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const supabase = createClient();
+    const supabase = await createServerSupabaseClient();
 
     // Get authenticated user
     const {
@@ -29,14 +30,10 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Get account for this user
-    const { data: accountUser, error: accountUserError } = await supabase
-      .from("account_users")
-      .select("account_id")
-      .eq("user_id", user.id)
-      .single();
+    // Get account ID respecting account switcher
+    const accountId = await getRequestAccountId(request, user.id, supabase);
 
-    if (accountUserError || !accountUser) {
+    if (!accountId) {
       return NextResponse.json({ error: "Account not found" }, { status: 404 });
     }
 
@@ -44,7 +41,7 @@ export async function GET() {
     const { data: account, error: accountError } = await supabase
       .from("accounts")
       .select("prompt_page_status_labels")
-      .eq("id", accountUser.account_id)
+      .eq("id", accountId)
       .single();
 
     if (accountError) {
@@ -71,9 +68,9 @@ export async function GET() {
  * PUT /api/account/status-labels
  * Update custom status labels for the current account
  */
-export async function PUT(request: Request) {
+export async function PUT(request: NextRequest) {
   try {
-    const supabase = createClient();
+    const supabase = await createServerSupabaseClient();
 
     // Get authenticated user
     const {
@@ -85,14 +82,10 @@ export async function PUT(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Get account for this user
-    const { data: accountUser, error: accountUserError } = await supabase
-      .from("account_users")
-      .select("account_id")
-      .eq("user_id", user.id)
-      .single();
+    // Get account ID respecting account switcher
+    const accountId = await getRequestAccountId(request, user.id, supabase);
 
-    if (accountUserError || !accountUser) {
+    if (!accountId) {
       return NextResponse.json({ error: "Account not found" }, { status: 404 });
     }
 
@@ -138,7 +131,7 @@ export async function PUT(request: Request) {
     const { error: updateError } = await supabase
       .from("accounts")
       .update({ prompt_page_status_labels: labels })
-      .eq("id", accountUser.account_id);
+      .eq("id", accountId);
 
     if (updateError) {
       console.error("Error updating status labels:", updateError);

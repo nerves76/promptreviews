@@ -41,8 +41,12 @@ function logClientCreation(instanceId: number, creationLocation: string) {
 /**
  * Create a browser client for client-side usage
  * This client can read server-side cookies and maintain session state
- * 
+ *
  * SINGLETON PATTERN: Only one instance should exist per application
+ *
+ * ⚠️ WARNING: DO NOT USE IN API ROUTES!
+ * For API routes (src/app/api/**), use createServerSupabaseClient() instead.
+ * This browser client does not have access to HTTP-only cookies on the server.
  */
 export function createClient(): SupabaseClient {
   if (!_browserClient) {
@@ -65,6 +69,19 @@ export function createClient(): SupabaseClient {
 /**
  * Create a server client for API routes and middleware
  * This handles cookies properly for SSR with Next.js 15 async cookies API
+ *
+ * ✅ USE THIS IN API ROUTES (src/app/api/**)
+ * This is the ONLY correct way to create a Supabase client in API routes.
+ * It has access to HTTP-only cookies where auth tokens are stored.
+ *
+ * Example:
+ * ```typescript
+ * export async function POST(request: NextRequest) {
+ *   const supabase = await createServerSupabaseClient();
+ *   const { data: { user } } = await supabase.auth.getUser();
+ *   // ...
+ * }
+ * ```
  */
 export async function createServerSupabaseClient() {
   // Import cookies dynamically to avoid client-side import issues

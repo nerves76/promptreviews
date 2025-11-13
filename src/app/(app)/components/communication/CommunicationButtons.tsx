@@ -20,6 +20,7 @@ interface PromptPage {
   status: string;
   client_name?: string;
   location?: string;
+  account_id?: string;
 }
 
 interface CommunicationButtonsProps {
@@ -78,7 +79,7 @@ export default function CommunicationButtons({
 
   const handleSendCommunication = async (data: CommunicationData) => {
     setIsLoading(true);
-    
+
     try {
       // Create communication record
       await apiClient.post('/communication/records', {
@@ -89,6 +90,32 @@ export default function CommunicationButtons({
         message: data.message,
         followUpReminder: data.followUpReminder
       });
+
+      // Log campaign action for the communication
+      try {
+        await fetch('/api/campaign-actions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            promptPageId: data.promptPageId,
+            contactId: data.contactId,
+            accountId: promptPage.account_id,
+            activityType: data.communicationType,
+            content: data.communicationType === 'email'
+              ? `Email sent: ${data.subject || 'No subject'}`
+              : `SMS sent: ${data.message.substring(0, 50)}${data.message.length > 50 ? '...' : ''}`,
+            metadata: {
+              subject: data.subject,
+              message: data.message,
+            },
+          }),
+        });
+      } catch (activityError) {
+        // Don't fail the whole operation if campaign action logging fails
+        console.error('Failed to log campaign action:', activityError);
+      }
 
       // Update prompt page status if changed
       if (data.newStatus !== promptPage.status) {
@@ -101,7 +128,7 @@ export default function CommunicationButtons({
 
       // Callback to parent component
       onCommunicationSent?.();
-      
+
     } catch (error: any) {
       throw new Error(error.message || 'Failed to record communication');
     } finally {
@@ -161,8 +188,8 @@ export default function CommunicationButtons({
               disabled={isLoading}
               className="flex items-center gap-2 bg-green-50 border-green-200 text-green-700 hover:bg-green-100"
             >
-              <Icon name="FaComments" className="w-4 h-4" />
-              <span className="hidden sm:inline">Text</span>
+              <Icon name="FaMobile" className="w-4 h-4" />
+              <span className="hidden sm:inline">SMS</span>
             </Button>
           )}
         </div>

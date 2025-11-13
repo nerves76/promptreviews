@@ -1,17 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/auth/providers/supabase';
 import { getPendingReminders } from '@/utils/communication';
+import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
 
 export async function GET(request: NextRequest) {
   try {
     const supabase = await createServerSupabaseClient();
-    
+
     // Get the current user
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-    if (sessionError || !session?.user) {
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) {
       return NextResponse.json(
         { error: 'Authentication required' },
         { status: 401 }
+      );
+    }
+
+    // Get the proper account ID using the header and validate access
+    const accountId = await getRequestAccountId(request, user.id, supabase);
+    if (!accountId) {
+      return NextResponse.json(
+        { error: 'No valid account found or access denied' },
+        { status: 403 }
       );
     }
 
@@ -20,7 +30,7 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '10');
 
     if (contactId) {
-      // Get reminders for specific contact
+      // Get reminders for specific contact (with account filter)
       const { data: reminders, error } = await supabase
         .from('follow_up_reminders')
         .select(`
@@ -34,6 +44,7 @@ export async function GET(request: NextRequest) {
           )
         `)
         .eq('contact_id', contactId)
+        .eq('account_id', accountId)
         .eq('status', 'pending')
         .lte('reminder_date', new Date().toISOString())
         .order('reminder_date', { ascending: true })
@@ -49,8 +60,8 @@ export async function GET(request: NextRequest) {
 
       return NextResponse.json({ reminders: reminders || [] }, { status: 200 });
     } else {
-      // Get all pending reminders for user
-      const reminders = await getPendingReminders(session.user.id, limit);
+      // Get all pending reminders for account
+      const reminders = await getPendingReminders(accountId, limit);
       return NextResponse.json({ reminders }, { status: 200 });
     }
 
@@ -66,13 +77,22 @@ export async function GET(request: NextRequest) {
 export async function PATCH(request: NextRequest) {
   try {
     const supabase = await createServerSupabaseClient();
-    
+
     // Get the current user
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-    if (sessionError || !session?.user) {
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) {
       return NextResponse.json(
         { error: 'Authentication required' },
         { status: 401 }
+      );
+    }
+
+    // Get the proper account ID using the header and validate access
+    const accountId = await getRequestAccountId(request, user.id, supabase);
+    if (!accountId) {
+      return NextResponse.json(
+        { error: 'No valid account found or access denied' },
+        { status: 403 }
       );
     }
 
@@ -95,14 +115,15 @@ export async function PATCH(request: NextRequest) {
 
     const newStatus = action === 'complete' ? 'completed' : 'cancelled';
 
-    // Update the reminder status
+    // Update the reminder status (with account filter for security)
     const { data: updatedReminder, error: updateError } = await supabase
       .from('follow_up_reminders')
-      .update({ 
+      .update({
         status: newStatus,
         updated_at: new Date().toISOString()
       })
       .eq('id', reminderId)
+      .eq('account_id', accountId)
       .select()
       .single();
 

@@ -195,5 +195,33 @@ When testing account isolation:
 - 19 source files updated with security enhancements
 - All changes committed to main branch
 
+## Security Fixes Applied (2025-01-13)
+
+### Additional Account Isolation Issues Fixed:
+
+1. **Communication System**
+   - `communication/records/route.ts`: Changed from using `user.id` to `getRequestAccountId()`
+   - `communication/reminders/route.ts`: Changed from using `session.user.id` to `getRequestAccountId()`
+   - Added account_id filters to all reminder queries and updates
+   - `CommunicationHistory.tsx`: Switched from bare fetch to `apiClient` with auth headers
+   - `UpcomingReminders.tsx`: Switched from bare fetch to `apiClient` with auth headers
+
+2. **Contacts System**
+   - `dashboard/contacts/page.tsx`: Added `.eq("account_id", selectedAccountId)` to all queries
+   - `contacts/find-duplicates/route.ts`: Changed from `user.id` to `getRequestAccountId()`
+   - `contacts/export/route.ts`: Changed from query params to `getRequestAccountId()`
+
+3. **Social Posting**
+   - `google-business-profile/save-selected-locations/route.ts`: Changed from `getAccountIdForUser()` to `getRequestAccountId()`
+   - `improve-with-ai/route.ts`: Changed from `getAccountIdForUser()` to `getRequestAccountId()`
+
+4. **Account APIs**
+   - `accounts/payment-status/route.ts`: Updated fallback to use `getRequestAccountId()`
+   - `accounts/navigation-target/route.ts`: Updated fallback to use `getRequestAccountId()`
+   - `account/status-labels/route.ts`: Changed from `createClient()` to `createServerSupabaseClient()`
+
+### Known Issue Not Fixed:
+- **PromptPageCard Sharing**: Share modal opens mailto:/sms: links without CRM tracking. Requires major refactoring to integrate CommunicationTrackingModal.
+
 ## Last Updated
-2025-09-03 - Implemented comprehensive security fixes for all prompt page features and AI endpoints
+2025-01-13 - Fixed comprehensive account isolation issues in communication, contacts, and social posting systems

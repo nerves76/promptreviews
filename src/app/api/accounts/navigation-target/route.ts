@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/auth/providers/supabase";
-import { getAccountIdForUser } from "@/auth/utils/accounts";
+import { getRequestAccountId } from "@/app/(app)/api/utils/getRequestAccountId";
 
 /**
  * Determine where to navigate an account based on its setup status
@@ -22,7 +22,7 @@ export async function GET(req: NextRequest) {
     // Get the account ID from query params or use the user's selected account
     const searchParams = req.nextUrl.searchParams;
     const requestedAccountId = searchParams.get('accountId');
-    const accountId = requestedAccountId || await getAccountIdForUser(user.id);
+    const accountId = requestedAccountId || await getRequestAccountId(req, user.id, supabase);
 
     if (!accountId) {
       // No account exists - need to create business (which will create account)

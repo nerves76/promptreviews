@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { Card } from "@/app/(app)/components/ui/card";
 import Icon, { IconName } from "@/components/Icon";
 import { formatDistanceToNow, format } from "date-fns";
+import { apiClient } from "@/utils/apiClient";
 
 interface CommunicationRecord {
   id: string;
@@ -80,16 +81,11 @@ export default function CommunicationHistory({
       setIsLoading(true);
       setError(null);
 
-      const response = await fetch(`/api/communication/records?contactId=${contactId}`);
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to fetch communication history');
-      }
-
-      const data = await response.json();
+      // Use apiClient which automatically includes auth headers and X-Selected-Account
+      const data = await apiClient.get(`/communication/records?contactId=${contactId}`);
       setRecords(data.records);
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message || 'Failed to fetch communication history');
     } finally {
       setIsLoading(false);
     }

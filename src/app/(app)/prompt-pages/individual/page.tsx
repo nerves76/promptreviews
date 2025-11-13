@@ -85,6 +85,14 @@ export default function IndividualOutreach() {
 
   const router = useRouter();
 
+  const updateLocalPromptPageStatus = (pageId: string, newStatus: string) => {
+    setPromptPages((pages) =>
+      pages.map((page) =>
+        page.id === pageId ? { ...page, status: newStatus } : page
+      )
+    );
+  };
+
   // Load view preference from localStorage
   useEffect(() => {
     if (accountId) {
@@ -508,7 +516,7 @@ export default function IndividualOutreach() {
                       }`}
                       title="Table view"
                     >
-                      <Icon name="MdViewList" size={18} />
+                      <Icon name="FaBars" size={18} />
                       Table
                     </button>
                     <button
@@ -521,7 +529,7 @@ export default function IndividualOutreach() {
                       }`}
                       title="Kanban view"
                     >
-                      <Icon name="MdViewColumn" size={18} />
+                      <Icon name="FaDatabase" size={18} />
                       Kanban
                     </button>
                   </div>
@@ -578,11 +586,7 @@ export default function IndividualOutreach() {
                     statusLabels={statusLabels}
                     onStatusUpdate={async (pageId, newStatus) => {
                       await supabase.from("prompt_pages").update({ status: newStatus }).eq("id", pageId);
-                      setPromptPages((pages) =>
-                        pages.map((page) =>
-                          page.id === pageId ? { ...page, status: newStatus } : page
-                        )
-                      );
+                      updateLocalPromptPageStatus(pageId, newStatus);
                     }}
                     onDeletePages={async (pageIds) => {
                       await supabase.from("prompt_pages").delete().in("id", pageIds);
@@ -604,6 +608,7 @@ export default function IndividualOutreach() {
 
                       setShowTypeModal(true);
                     }}
+                    onLocalStatusUpdate={updateLocalPromptPageStatus}
                   />
                 </div>
               ) : (
@@ -615,16 +620,13 @@ export default function IndividualOutreach() {
                   selectedType={selectedType}
                   onStatusUpdate={async (pageId, newStatus) => {
                     await supabase.from("prompt_pages").update({ status: newStatus }).eq("id", pageId);
-                    setPromptPages((pages) =>
-                      pages.map((page) =>
-                        page.id === pageId ? { ...page, status: newStatus } : page
-                      )
-                    );
+                    updateLocalPromptPageStatus(pageId, newStatus);
                   }}
                   onEditLabel={(status) => {
                     setEditingLabelStatus(status);
                     setShowLabelEditor(true);
                   }}
+                  onLocalStatusUpdate={updateLocalPromptPageStatus}
                 />
               )}
             </div>
@@ -643,10 +645,10 @@ export default function IndividualOutreach() {
       />
       
       {/* Style Modal */}
-      {showStyleModal && (
+      {showStyleModal && accountId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-          <StylePage 
-            onClose={() => setShowStyleModal(false)} 
+          <StylePage
+            onClose={() => setShowStyleModal(false)}
             accountId={accountId}
           />
         </div>
@@ -757,6 +759,7 @@ export default function IndividualOutreach() {
                       id: postSaveData.prompt_page_id || postSaveData.id || `temp-${Date.now()}`,
                       slug: postSaveData.url ? postSaveData.url.split('/r/')[1] || '' : '',
                       status: postSaveData.status || 'draft',
+                      account_id: account?.id,
                       client_name: business?.name || 'Your Business',
                       location: postSaveData.location || ''
                     }}

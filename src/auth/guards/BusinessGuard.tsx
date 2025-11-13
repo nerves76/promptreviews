@@ -71,20 +71,20 @@ function BusinessGuard({ children }: BusinessGuardProps) {
       "/sign-up",
       "/sign-out",
       "/reset-password",
-      
+
       // Business creation pages
       "/dashboard/create-business",
-      
+
       // Public pages (review pages)
       "/r/",
-      
+
       // Public pages and legal
       "/privacy",
       "/terms",
-      
+
       // Team invitation pages
       "/team/accept",
-      
+
       // Debug and test pages
       "/debug-cookies",
       "/debug-nav",
@@ -95,12 +95,15 @@ function BusinessGuard({ children }: BusinessGuardProps) {
       "/test-ga",
       "/test-sentry",
       "/auth-test",
-      
+
       // API routes
       "/api/",
-      
+
       // Payment demo
-      "/payment-demo"
+      "/payment-demo",
+
+      // Prompt pages (dashboard page with business guard logic)
+      "/prompt-pages"
     ];
 
     // Check if current path is exempt
@@ -211,11 +214,6 @@ function BusinessGuard({ children }: BusinessGuardProps) {
 
       // ONLY redirect if business_creation_complete is false
       if (!businessCreationComplete) {
-        console.log('[BusinessGuard] Redirecting to business onboarding:', {
-          accountId: account.id,
-          pathname,
-        });
-
         if (typeof window !== 'undefined') {
           sessionStorage.setItem('intentionallyOnCreateBusiness', 'true');
         }

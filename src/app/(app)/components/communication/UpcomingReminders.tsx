@@ -5,6 +5,7 @@ import { Card } from "@/app/(app)/components/ui/card";
 import { Button } from "@/app/(app)/components/ui/button";
 import Icon, { IconName } from "@/components/Icon";
 import { formatDistanceToNow, format } from "date-fns";
+import { apiClient } from "@/utils/apiClient";
 
 interface UpcomingReminder {
   id: string;
@@ -64,16 +65,11 @@ export default function UpcomingReminders({
       setIsLoading(true);
       setError(null);
 
-      const response = await fetch(`/api/communication/reminders?contactId=${contactId}`);
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to fetch reminders');
-      }
-
-      const data = await response.json();
+      // Use apiClient which automatically includes auth headers and X-Selected-Account
+      const data = await apiClient.get(`/communication/reminders?contactId=${contactId}`);
       setReminders(data.reminders);
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message || 'Failed to fetch reminders');
     } finally {
       setIsLoading(false);
     }
@@ -83,23 +79,13 @@ export default function UpcomingReminders({
     try {
       setUpdatingReminders(prev => new Set([...prev, reminderId]));
 
-      const response = await fetch('/api/communication/reminders', {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ reminderId, action }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || `Failed to ${action} reminder`);
-      }
+      // Use apiClient for PATCH request with auth headers
+      await apiClient.patch('/communication/reminders', { reminderId, action });
 
       // Remove the reminder from the list
       setReminders(prev => prev.filter(r => r.id !== reminderId));
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message || `Failed to ${action} reminder`);
     } finally {
       setUpdatingReminders(prev => {
         const newSet = new Set(prev);

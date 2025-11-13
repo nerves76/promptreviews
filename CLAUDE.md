@@ -38,6 +38,37 @@ PromptReviews is a review management platform that allows businesses to collect,
 - **Edge Functions:** Vercel Functions (30s max duration)
 - **Cron Jobs:** Vercel Cron
 
+### ⚠️ CRITICAL: Supabase Client Usage Pattern
+
+**ALWAYS use the correct Supabase client based on context:**
+
+1. **API Routes** (`src/app/api/**`):
+   ```typescript
+   import { createServerSupabaseClient } from "@/auth/providers/supabase";
+
+   export async function POST(request: NextRequest) {
+     const supabase = await createServerSupabaseClient(); // ✅ CORRECT
+     const { data: { user } } = await supabase.auth.getUser();
+     // ...
+   }
+   ```
+
+2. **Client Components** (React components with "use client"):
+   ```typescript
+   import { createClient } from "@/auth/providers/supabase";
+
+   function MyComponent() {
+     const supabase = createClient(); // ✅ CORRECT
+     // ...
+   }
+   ```
+
+**Why this matters:**
+- `createClient()` is a browser client without access to HTTP-only auth cookies
+- `createServerSupabaseClient()` properly reads cookies from the request
+- Using wrong client in API routes causes 401 Unauthorized errors
+- Auth will appear to work in client but fail silently in API routes
+
 ## Recent Major Fixes
 
 ### Widget Page Refresh Issue (2024)
@@ -446,7 +477,131 @@ const accounts = await prisma.accounts.findMany({
 - **Generated types** provide full TypeScript support
 - **Both approaches work together** - Supabase for migrations, Prisma for queries
 
+## ⚠️ CRITICAL: Account Isolation Rules
+
+**PromptReviews supports multiple accounts per user. ALL new code MUST properly isolate data by account.**
+
+### API Routes - REQUIRED Patterns
+
+#### ✅ DO: Use `getRequestAccountId()` in ALL API routes
+```typescript
+import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
+
+export async function POST(request: NextRequest) {
+  const supabase = await createServerSupabaseClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  // REQUIRED: Get account ID from X-Selected-Account header
+  const accountId = await getRequestAccountId(request, user.id, supabase);
+  if (!accountId) {
+    return NextResponse.json({ error: 'No valid account found' }, { status: 403 });
+  }
+
+  // Use accountId in all queries
+  await supabase.from('table').insert({ account_id: accountId, ... });
+}
+```
+
+#### ❌ DON'T: Use `user.id` as account ID
+```typescript
+// WRONG - This breaks multi-account support
+await createCommunicationRecord(data, user.id, supabase);
+
+// WRONG - Always returns first account, bypasses switcher
+const accountId = await getAccountIdForUser(user.id);
+```
+
+#### ✅ DO: Use server Supabase client in API routes
+```typescript
+import { createServerSupabaseClient } from '@/auth/providers/supabase';
+
+export async function GET(request: NextRequest) {
+  const supabase = await createServerSupabaseClient(); // ✅ Can read HTTP-only cookies
+}
+```
+
+#### ❌ DON'T: Use browser client in API routes
+```typescript
+import { createClient } from '@/auth/providers/supabase';
+
+export async function GET(request: NextRequest) {
+  const supabase = createClient(); // ❌ Cannot read HTTP-only cookies, auth fails
+}
+```
+
+### Frontend Components - REQUIRED Patterns
+
+#### ✅ DO: Use `apiClient` for API calls
+```typescript
+import { apiClient } from '@/utils/apiClient';
+
+// Automatically includes Authorization and X-Selected-Account headers
+const data = await apiClient.get('/communication/records?contactId=123');
+const result = await apiClient.post('/contacts/create', { ... });
+```
+
+#### ❌ DON'T: Use bare `fetch()` for authenticated API calls
+```typescript
+// WRONG - Missing auth headers and account context
+const response = await fetch('/api/communication/records?contactId=123');
+```
+
+#### ✅ DO: Filter by `selectedAccountId` in client-side queries
+```typescript
+import { useAccountData } from '@/auth/hooks/granularAuthHooks';
+
+function MyComponent() {
+  const { selectedAccountId } = useAccountData();
+
+  const { data } = await supabase
+    .from('contacts')
+    .select('*')
+    .eq('account_id', selectedAccountId); // ✅ REQUIRED
+}
+```
+
+#### ❌ DON'T: Query without account filter
+```typescript
+// WRONG - Returns data from ALL accounts
+const { data } = await supabase
+  .from('contacts')
+  .select('*');
+```
+
+### Testing Checklist
+
+Before submitting ANY code that touches multi-tenant data:
+
+1. ✅ Created test account with different data
+2. ✅ Tested account switcher - verified correct data appears
+3. ✅ Tested account switcher - verified NO data leakage from other account
+4. ✅ Checked browser console for "ACCOUNT ISOLATION BREACH" errors
+5. ✅ Verified API routes use `getRequestAccountId()`
+6. ✅ Verified frontend uses `apiClient` or properly filtered queries
+
+### Common Mistakes to Avoid
+
+1. **Using `getAccountIdForUser()`** - This function bypasses the account switcher
+2. **Using `user.id` as `account_id`** - User ID ≠ Account ID in multi-account systems
+3. **Bare fetch() calls** - Missing auth headers and account context
+4. **Browser client in API routes** - Cannot read HTTP-only cookies
+5. **Unfiltered Supabase queries** - Must always filter by `account_id`
+
+### See Also
+- `/docs/ACCOUNT_ISOLATION_AND_INHERITED_SETTINGS.md` - Comprehensive guide
+- `/src/app/(app)/api/utils/getRequestAccountId.ts` - Account resolution logic
+- `/src/utils/apiClient.ts` - Authenticated fetch wrapper
+
 ## Recent Issues Log
+
+### 2025-01-13 - Communication & Contacts Account Isolation Fixes
+- **Issues Found:** Communication records, reminders, and contacts not isolated by account
+- **Communication System:** Fixed APIs to use `getRequestAccountId()`, components to use `apiClient`
+- **Contacts System:** Fixed page queries and API endpoints to filter by account
+- **Social Posting:** Fixed GBP and AI endpoints to use proper account context
+- **Status Labels:** Fixed to use server Supabase client
+- **Status:** RESOLVED - All data properly isolated by account
+- **Files Fixed:** 11 files across communication, contacts, and social posting systems
 
 ### 2025-09-03 - Comprehensive Security Audit and Fixes
 - **Issues Found:** Multiple account isolation vulnerabilities in prompt page features

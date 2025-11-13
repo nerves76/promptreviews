@@ -9,6 +9,7 @@ export interface PromptPage {
   slug: string;
   status: "draft" | "in_queue" | "sent" | "follow_up" | "complete";
   created_at: string;
+  account_id?: string;
   phone?: string;
   email?: string;
   first_name?: string;
@@ -17,6 +18,7 @@ export interface PromptPage {
   review_type?: string;
   nfc_text_enabled?: boolean;
   contact_id?: string;
+  notes?: string;
   contacts?: {
     id: string;
     first_name: string;
@@ -41,6 +43,7 @@ interface PromptPagesTableProps {
   onStatusUpdate: (pageId: string, newStatus: PromptPage["status"]) => void;
   onDeletePages: (pageIds: string[]) => void;
   onCreatePromptPage?: () => void;
+  onLocalStatusUpdate?: (pageId: string, newStatus: PromptPage["status"]) => void;
 }
 
 const STATUS_COLORS = {
@@ -58,17 +61,17 @@ export default function PromptPagesTable({
   universalUrl,
   statusLabels = {
     draft: "Draft",
-    in_queue: "In Queue",
+    in_queue: "In queue",
     sent: "Sent",
-    follow_up: "Follow Up",
+    follow_up: "Follow up",
     complete: "Complete",
   },
   onStatusUpdate,
   onDeletePages,
   onCreatePromptPage,
+  onLocalStatusUpdate,
 }: PromptPagesTableProps) {
   // Table state
-  const [selectedType, setSelectedType] = useState("");
   const [selectedTab, setSelectedTab] = useState<"draft" | "in_queue" | "sent" | "follow_up" | "complete">("draft");
   const [sortField, setSortField] = useState<"first_name" | "last_name" | "review_type" | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
@@ -79,10 +82,9 @@ export default function PromptPagesTable({
   const [qrModal, setQrModal] = useState<{ open: boolean; url: string; clientName: string; logoUrl?: string; showNfcText?: boolean } | null>(null);
   const [copyLinkId, setCopyLinkId] = useState<string | null>(null);
 
-  // Filtering and sorting
+  // Filtering and sorting (type filtering is now done at page level)
   const filteredPromptPages = promptPages.filter((page) => {
     if (page.is_universal) return false;
-    if (selectedType && page.review_type !== selectedType) return false;
     if (selectedTab === "draft") return page.status === "draft";
     if (selectedTab === "in_queue") return page.status === "in_queue";
     if (selectedTab === "sent") return page.status === "sent";
@@ -96,6 +98,24 @@ export default function PromptPagesTable({
   const sentCount = promptPages.filter((p) => p.status === "sent" && !p.is_universal).length;
   const followUpCount = promptPages.filter((p) => p.status === "follow_up" && !p.is_universal).length;
   const completeCount = promptPages.filter((p) => p.status === "complete" && !p.is_universal).length;
+
+  // Get header background color based on selected tab
+  const getHeaderBgColor = () => {
+    switch (selectedTab) {
+      case "draft":
+        return "bg-gray-200/80";
+      case "in_queue":
+        return "bg-blue-200/80";
+      case "sent":
+        return "bg-purple-200/80";
+      case "follow_up":
+        return "bg-amber-200/80";
+      case "complete":
+        return "bg-emerald-200/80";
+      default:
+        return "bg-gray-50";
+    }
+  };
 
   const handleSort = (field: "first_name" | "last_name" | "review_type") => {
     if (sortField === field) {
@@ -172,14 +192,14 @@ export default function PromptPagesTable({
         : [];
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between mb-2">
+    <div className="space-y-1">
+      <div className="flex items-center justify-between mb-0">
         <div className="flex gap-2">
           <button
             className={`px-4 py-1.5 rounded-t-md text-sm font-semibold border-b-2 transition-colors
               ${selectedTab === "draft"
-                ? "border-blue-500 bg-white text-blue-600 shadow-sm z-10"
-                : "border-transparent bg-gray-500 text-white hover:bg-gray-600"}
+                ? "bg-gray-200/80 backdrop-blur-sm text-gray-900 border-gray-300 shadow-sm z-10"
+                : "bg-gray-300/40 backdrop-blur-sm text-white border-transparent hover:bg-gray-300/60"}
             `}
             onClick={() => setSelectedTab("draft")}
           >
@@ -188,8 +208,8 @@ export default function PromptPagesTable({
           <button
             className={`px-4 py-1.5 rounded-t-md text-sm font-semibold border-b-2 transition-colors
               ${selectedTab === "in_queue"
-                ? "border-blue-500 bg-white text-blue-600 shadow-sm z-10"
-                : "border-transparent bg-gray-500 text-white hover:bg-gray-600"}
+                ? "bg-blue-200/80 backdrop-blur-sm text-blue-900 border-blue-300 shadow-sm z-10"
+                : "bg-blue-300/40 backdrop-blur-sm text-white border-transparent hover:bg-blue-300/60"}
             `}
             onClick={() => setSelectedTab("in_queue")}
           >
@@ -198,8 +218,8 @@ export default function PromptPagesTable({
           <button
             className={`px-4 py-1.5 rounded-t-md text-sm font-semibold border-b-2 transition-colors
               ${selectedTab === "sent"
-                ? "border-blue-500 bg-white text-blue-600 shadow-sm z-10"
-                : "border-transparent bg-gray-500 text-white hover:bg-gray-600"}
+                ? "bg-purple-200/80 backdrop-blur-sm text-purple-900 border-purple-300 shadow-sm z-10"
+                : "bg-purple-300/40 backdrop-blur-sm text-white border-transparent hover:bg-purple-300/60"}
             `}
             onClick={() => setSelectedTab("sent")}
           >
@@ -208,8 +228,8 @@ export default function PromptPagesTable({
           <button
             className={`px-4 py-1.5 rounded-t-md text-sm font-semibold border-b-2 transition-colors
               ${selectedTab === "follow_up"
-                ? "border-blue-500 bg-white text-blue-600 shadow-sm z-10"
-                : "border-transparent bg-gray-500 text-white hover:bg-gray-600"}
+                ? "bg-amber-200/80 backdrop-blur-sm text-amber-900 border-amber-300 shadow-sm z-10"
+                : "bg-amber-300/40 backdrop-blur-sm text-white border-transparent hover:bg-amber-300/60"}
             `}
             onClick={() => setSelectedTab("follow_up")}
           >
@@ -218,26 +238,14 @@ export default function PromptPagesTable({
           <button
             className={`px-4 py-1.5 rounded-t-md text-sm font-semibold border-b-2 transition-colors
               ${selectedTab === "complete"
-                ? "border-blue-500 bg-white text-blue-600 shadow-sm z-10"
-                : "border-transparent bg-gray-500 text-white hover:bg-gray-600"}
+                ? "bg-emerald-200/80 backdrop-blur-sm text-emerald-900 border-emerald-300 shadow-sm z-10"
+                : "bg-emerald-300/40 backdrop-blur-sm text-white border-transparent hover:bg-emerald-300/60"}
             `}
             onClick={() => setSelectedTab("complete")}
           >
             {statusLabels.complete} ({completeCount})
           </button>
         </div>
-        <select
-          value={selectedType}
-          onChange={(e) => setSelectedType(e.target.value)}
-          className="rounded-md border border-gray-300 px-2 py-1 text-sm"
-        >
-          <option value="">All types</option>
-          <option value="service">Service review</option>
-          <option value="product">Product review</option>
-          <option value="event">Events & spaces</option>
-          <option value="video">Video testimonial</option>
-          <option value="photo">Photo + testimonial</option>
-        </select>
       </div>
       {/* Batch Actions */}
       {selectedPages.length > 0 && (
@@ -275,7 +283,7 @@ export default function PromptPagesTable({
       {/* Table */}
       <div className="overflow-x-auto shadow sm:rounded-lg">
         <table className="min-w-full divide-y divide-gray-300">
-          <thead className="bg-gray-50">
+          <thead className={getHeaderBgColor()}>
             <tr>
               <th className="relative w-12 px-3 py-3.5">
                 <input
@@ -372,12 +380,16 @@ export default function PromptPagesTable({
                           id: page.id,
                           slug: page.slug,
                           status: page.status,
+                          account_id: page.account_id || account?.id,
                           client_name: `${page.first_name || ""} ${page.last_name || ""}`.trim(),
                           location: business?.name
                         }}
                         singleButton={true}
                         buttonText="Send"
                         className="inline-flex items-center px-3 py-1.5 bg-teal-100 text-teal-800 rounded hover:bg-teal-200 text-sm font-medium shadow h-9 align-middle whitespace-nowrap w-full sm:w-auto"
+                        onStatusUpdated={(newStatus) => {
+                          onLocalStatusUpdate?.(page.id, newStatus as PromptPage["status"]);
+                        }}
                       />
                     )}
                     {!page.is_universal && (

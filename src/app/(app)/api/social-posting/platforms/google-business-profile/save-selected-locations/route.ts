@@ -6,7 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
-import { getAccountIdForUser } from '@/auth/utils/accounts';
+import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
 
 export async function POST(request: NextRequest) {
   try {
@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
         },
       }
     );
-    
+
     // Get authenticated user
     const { data: { user }, error: userError } = await supabase.auth.getUser();
     if (userError || !user) {
@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
 
     // Get request body
     const { locations } = await request.json();
-    
+
     if (!locations || !Array.isArray(locations)) {
       return NextResponse.json(
         { error: 'Invalid request: locations array required' },
@@ -43,13 +43,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get the account ID for the user using the proper utility
-    const accountId = await getAccountIdForUser(user.id, supabase);
-    
+    // Get the proper account ID using the header and validate access
+    const accountId = await getRequestAccountId(request, user.id, supabase);
+
     if (!accountId) {
       return NextResponse.json(
-        { error: 'No account found for user' },
-        { status: 404 }
+        { error: 'No valid account found or access denied' },
+        { status: 403 }
       );
     }
     

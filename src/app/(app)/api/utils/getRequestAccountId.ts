@@ -2,17 +2,41 @@ import { getAccountIdForUser } from '@/auth/utils/accounts';
 import { createServiceRoleClient } from '@/auth/providers/supabase';
 
 /**
- * Get the account ID for a request, respecting client-selected account when provided
+ * ⚠️ CRITICAL: Get the account ID for API requests with proper account isolation
+ *
+ * **REQUIRED for ALL API routes that access account-scoped data.**
  *
  * This helper ensures consistency between client and server account context by:
- * 1. Checking for X-Selected-Account header from the client
+ * 1. Checking for X-Selected-Account header from the client (sent by apiClient)
  * 2. Validating the user has access to that account
  * 3. Falling back to automatic account selection if needed
  *
- * @param request - The incoming request
+ * **DO NOT USE user.id as account_id** - Users can belong to multiple accounts.
+ * **DO NOT USE getAccountIdForUser() directly** - It bypasses the account switcher.
+ *
+ * @example
+ * ```typescript
+ * export async function POST(request: NextRequest) {
+ *   const supabase = await createServerSupabaseClient();
+ *   const { data: { user } } = await supabase.auth.getUser();
+ *
+ *   // REQUIRED: Get proper account ID
+ *   const accountId = await getRequestAccountId(request, user.id, supabase);
+ *   if (!accountId) {
+ *     return NextResponse.json({ error: 'No valid account found' }, { status: 403 });
+ *   }
+ *
+ *   // Use accountId in all queries
+ *   await supabase.from('table').insert({ account_id: accountId, ... });
+ * }
+ * ```
+ *
+ * @param request - The incoming request (contains X-Selected-Account header)
  * @param userId - The authenticated user's ID
  * @param supabaseClient - Optional Supabase client to use for validation
- * @returns The account ID to use for this request
+ * @returns The account ID to use for this request, or null if access denied
+ *
+ * @see {@link /CLAUDE.md#critical-account-isolation-rules} for complete guidelines
  */
 export async function getRequestAccountId(
   request: Request,

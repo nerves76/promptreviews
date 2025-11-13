@@ -1,36 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSessionOrMock, createClient, createServiceRoleClient } from '@/auth/providers/supabase';
+import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
 
 export async function GET(request: NextRequest) {
   try {
     const supabase = createClient();
     const supabaseAdmin = createServiceRoleClient();
-    
+
     // Get authenticated user
     const { data: { session }, error: sessionError } = await getSessionOrMock(supabase);
-    
+
     if (sessionError || !session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get account ID from query parameters
-    const { searchParams } = new URL(request.url);
-    const accountId = searchParams.get('account_id');
-    
-    if (!accountId) {
-      return NextResponse.json({ error: 'account_id query parameter is required' }, { status: 400 });
-    }
-    
-    // Validate user has access to this account
-    const { data: accountUser } = await supabaseAdmin
-      .from('account_users')
-      .select('account_id')
-      .eq('user_id', session.user.id)
-      .eq('account_id', accountId)
-      .single();
+    // Get account ID using the standard method (checks X-Selected-Account header)
+    const accountId = await getRequestAccountId(request, session.user.id, supabase);
 
-    if (!accountUser) {
-      return NextResponse.json({ error: 'Access denied to this account' }, { status: 403 });
+    if (!accountId) {
+      return NextResponse.json({ error: 'No valid account found or access denied' }, { status: 403 });
     }
 
     // Fetch all contacts for the user's account

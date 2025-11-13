@@ -413,6 +413,24 @@ export async function ensureAccountExists(
 }
 
 /**
+ * ⚠️ WARNING: DO NOT USE THIS FUNCTION IN API ROUTES OR NEW CODE
+ *
+ * **USE `getRequestAccountId()` INSTEAD FOR ALL API ROUTES**
+ *
+ * This function is DEPRECATED for most use cases because:
+ * - It always returns the first/best account, bypassing account switcher
+ * - It doesn't respect the X-Selected-Account header
+ * - It causes account isolation breaches in multi-account scenarios
+ *
+ * **When to use:**
+ * - Initial auth context setup (useAuthGuard, BusinessGuard)
+ * - Account discovery before user has selected an account
+ *
+ * **When NOT to use:**
+ * - API routes (use getRequestAccountId instead)
+ * - Dashboard pages (use selectedAccountId from context)
+ * - Any component that should respect account switcher
+ *
  * Get the account ID for a given user ID
  *
  * Simplified priority system:
@@ -420,9 +438,12 @@ export async function ensureAccountExists(
  * 2. Any account with active paid plan
  * 3. First available account
  *
+ * @deprecated Use getRequestAccountId() in API routes or selectedAccountId from context
  * @param userId - The user ID to get the account for
  * @param supabaseClient - Optional Supabase client instance. If not provided, creates a new one.
  * @returns Promise<string | null> - The account ID or null if not found
+ * @see {@link /src/app/(app)/api/utils/getRequestAccountId.ts} for API route usage
+ * @see {@link /CLAUDE.md#critical-account-isolation-rules} for complete guidelines
  */
 export async function getAccountIdForUser(userId: string, supabaseClient?: any): Promise<string | null> {
   try {

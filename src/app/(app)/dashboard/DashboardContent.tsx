@@ -574,7 +574,7 @@ const DashboardContent = React.memo(function DashboardContent({
                       </div>
                     </div>
                     <p className="mt-4 text-blue-900 mb-4 text-sm">
-                      Your Universal Prompt Page is your general-use Prompt Page that can be shared with one or many.
+                      Your Universal Prompt Page is designed to be used in a wide variety of formats and settings.
                     </p>
                     <div className="flex flex-wrap gap-2 items-center">
                       <div className="flex flex-wrap gap-2 items-center">

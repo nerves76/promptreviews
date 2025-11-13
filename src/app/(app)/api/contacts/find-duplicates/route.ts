@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
+import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
 
 interface DuplicateGroup {
   contacts: any[];
@@ -75,16 +76,22 @@ export async function GET(request: NextRequest) {
     );
 
     const { data: { user }, error: authError } = await supabase.auth.getUser();
-    
+
     if (authError || !user) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
 
-    // Get all contacts for the user
+    // Get the proper account ID using the header and validate access
+    const accountId = await getRequestAccountId(request, user.id, supabase);
+    if (!accountId) {
+      return NextResponse.json({ error: 'No valid account found or access denied' }, { status: 403 });
+    }
+
+    // Get all contacts for the selected account
     const { data: contacts, error } = await supabase
       .from('contacts')
       .select('*')
-      .eq('account_id', user.id)
+      .eq('account_id', accountId)
       .order('created_at', { ascending: false });
 
     if (error) throw error;

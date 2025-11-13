@@ -98,12 +98,12 @@ Here's your first tip: [icon] <— click here`;
 
   const renderMessage = (text: string) => {
     if (!text) return null;
-    
+
     return text.split('\n').map((paragraph, index) => {
       if (paragraph.trim() === '') {
         return <div key={index} className="h-2" />;
       }
-      
+
       // Check for [icon] placeholder
       if (paragraph.includes('[icon]')) {
         return (
@@ -131,7 +131,24 @@ Here's your first tip: [icon] <— click here`;
           </div>
         );
       }
-      
+
+      // Check if this is the Carl Sagan quote
+      if (paragraph.startsWith('"The cosmos is within us.')) {
+        return (
+          <div key={index} className="relative bg-blue-50 rounded-lg p-6 my-4">
+            {/* Opening quote mark */}
+            <div className="absolute -top-2 -left-2 text-6xl text-blue-300 leading-none font-serif">"</div>
+
+            <p className="text-lg text-gray-800 font-medium italic leading-relaxed px-4">
+              {paragraph.replace(/^"|"$/g, '')}
+            </p>
+
+            {/* Closing quote mark */}
+            <div className="absolute -bottom-4 -right-2 text-6xl text-blue-300 leading-none font-serif">"</div>
+          </div>
+        );
+      }
+
       return <p key={index} className="text-sm text-gray-700">{paragraph}</p>;
     });
   };

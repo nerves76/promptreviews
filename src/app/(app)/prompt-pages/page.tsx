@@ -11,6 +11,7 @@ import PageCard from "@/app/(app)/components/PageCard";
 import QRCodeGenerator, { QR_FRAME_SIZES } from "../dashboard/components/QRCodeGenerator";
 import dynamic from "next/dynamic";
 import PromptPagesTable from "@/app/(app)/components/PromptPagesTable";
+import type { PromptPage as PromptPageRecord } from "@/app/(app)/components/PromptPagesTable";
 import PromptPagesKanban from "@/app/(app)/components/PromptPagesKanban";
 import StatusLabelEditor from "@/app/(app)/components/StatusLabelEditor";
 import PublicPromptPagesTable from "@/app/(app)/components/PublicPromptPagesTable";
@@ -101,6 +102,14 @@ function PromptPagesContent() {
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [showWelcomePopup, setShowWelcomePopup] = useState(false);
   const [showHelpModal, setShowHelpModal] = useState(false);
+
+  const updateLocalPromptPageStatus = (pageId: string, newStatus: PromptPageRecord["status"]) => {
+    setIndividualPromptPages((pages) =>
+      pages.map((page) =>
+        page.id === pageId ? { ...page, status: newStatus } : page
+      )
+    );
+  };
 
   // Kanban view state
   const [viewMode, setViewMode] = useState<"table" | "kanban">("kanban");
@@ -1086,19 +1095,16 @@ function PromptPagesContent() {
                         account={account}
                         universalUrl={universalUrl}
                         statusLabels={statusLabels}
-                        onStatusUpdate={async (pageId: string, newStatus: any) => {
+                        onStatusUpdate={async (pageId: string, newStatus: PromptPageRecord["status"]) => {
                           await supabase.from("prompt_pages").update({ status: newStatus }).eq("id", pageId);
-                          setIndividualPromptPages((pages) =>
-                            pages.map((page) =>
-                              page.id === pageId ? { ...page, status: newStatus } : page
-                            )
-                          );
+                          updateLocalPromptPageStatus(pageId, newStatus);
                         }}
                         onDeletePages={async (pageIds: string[]) => {
                           await supabase.from("prompt_pages").delete().in("id", pageIds);
                           setIndividualPromptPages((pages) => pages.filter((page) => !pageIds.includes(page.id)));
                         }}
                         onCreatePromptPage={() => setShowTypeModal(true)}
+                        onLocalStatusUpdate={updateLocalPromptPageStatus}
                       />
                       </div>
                     ) : (
@@ -1109,17 +1115,14 @@ function PromptPagesContent() {
                           account={account}
                           statusLabels={statusLabels}
                           selectedType={selectedType}
-                          onStatusUpdate={async (pageId: string, newStatus: any) => {
+                          onStatusUpdate={async (pageId: string, newStatus: PromptPageRecord["status"]) => {
                             await supabase.from("prompt_pages").update({ status: newStatus }).eq("id", pageId);
-                            setIndividualPromptPages((pages) =>
-                              pages.map((page) =>
-                                page.id === pageId ? { ...page, status: newStatus } : page
-                              )
-                            );
+                            updateLocalPromptPageStatus(pageId, newStatus);
                           }}
                           onEditLabel={(status) => {
                             setShowLabelEditor(true);
                           }}
+                          onLocalStatusUpdate={updateLocalPromptPageStatus}
                         />
                       </div>
                     )}
@@ -1341,6 +1344,7 @@ function PromptPagesContent() {
                         id: postSaveData.prompt_page_id || 'temp-page',
                         slug: postSaveData.slug || '',
                         status: 'draft',
+                        account_id: account?.id,
                         client_name: postSaveData.first_name || ''
                       }}
                       singleButton={true}

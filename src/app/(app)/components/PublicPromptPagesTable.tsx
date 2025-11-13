@@ -24,6 +24,7 @@ interface PublicPromptPagesTableProps {
   universalUrl: string;
   onDeletePages: (pageIds: string[]) => void;
   onCreatePromptPage?: () => void;
+  selectedType?: string;
 }
 
 export default function PublicPromptPagesTable({
@@ -33,9 +34,9 @@ export default function PublicPromptPagesTable({
   universalUrl,
   onDeletePages,
   onCreatePromptPage,
+  selectedType = "",
 }: PublicPromptPagesTableProps) {
   // Table state
-  const [selectedType, setSelectedType] = useState("");
   const [sortField, setSortField] = useState<"name" | "review_type" | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [selectedPages, setSelectedPages] = useState<string[]>([]);
@@ -103,24 +104,8 @@ export default function PublicPromptPagesTable({
 
   return (
     <div className="space-y-4">
-      {/* Filter and Table Container */}
+      {/* Table Container */}
       <div className="border border-gray-200 rounded-lg">
-        {/* Filter dropdown */}
-        <div className="flex justify-start p-4">
-          <select
-            value={selectedType}
-            onChange={(e) => setSelectedType(e.target.value)}
-            className="rounded-md border border-gray-300 px-2 py-1 text-sm"
-          >
-            <option value="">All types</option>
-            <option value="service">Service review</option>
-            <option value="product">Product review</option>
-            <option value="event">Events & spaces</option>
-            <option value="video">Video testimonial</option>
-            <option value="photo">Photo + testimonial</option>
-          </select>
-        </div>
-        
         {/* Table */}
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/auth/providers/supabase";
-import { getAccountIdForUser } from "@/auth/utils/accounts";
+import { getRequestAccountId } from "@/app/(app)/api/utils/getRequestAccountId";
 
 /**
  * Check if the current account requires payment/plan selection
@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
     const requestedAccountId = searchParams.get('accountId');
 
     // Get the account to check - either the requested one or the user's current selection
-    const accountId = requestedAccountId || await getAccountIdForUser(user.id);
+    const accountId = requestedAccountId || await getRequestAccountId(req, user.id, supabase);
 
     if (!accountId) {
       return NextResponse.json({

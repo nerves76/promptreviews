@@ -285,25 +285,27 @@ export default function UploadContactsPage() {
   // Function to refresh contacts data
   const refreshContacts = async () => {
     setContactsLoading(true);
-    
-    // Get total count
+
+    // Get total count with account filter
     const { count, error: countError } = await supabase
       .from("contacts")
-      .select("*", { count: "exact", head: true });
-    
+      .select("*", { count: "exact", head: true })
+      .eq("account_id", selectedAccountId);
+
     if (!countError && count !== null) {
       setTotalCount(count);
     }
-    
+
     // Get paginated data with review counts
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage - 1;
-    
+
     const { data, error } = await supabase
       .from("contacts")
       .select(`
         *
       `)
+      .eq("account_id", selectedAccountId)
       .order("created_at", { ascending: false })
       .range(startIndex, endIndex);
       
@@ -340,25 +342,27 @@ export default function UploadContactsPage() {
   useEffect(() => {
     const fetchContacts = async () => {
       setContactsLoading(true);
-      
-      // Get total count
+
+      // Get total count with account filter
       const { count, error: countError } = await supabase
         .from("contacts")
-        .select("*", { count: "exact", head: true });
-      
+        .select("*", { count: "exact", head: true })
+        .eq("account_id", selectedAccountId);
+
       if (!countError && count !== null) {
         setTotalCount(count);
       }
-      
+
       // Get paginated data with review counts
       const startIndex = (currentPage - 1) * itemsPerPage;
       const endIndex = startIndex + itemsPerPage - 1;
-      
+
       const { data, error } = await supabase
         .from("contacts")
         .select(`
           *
         `)
+        .eq("account_id", selectedAccountId)
         .order("created_at", { ascending: false })
         .range(startIndex, endIndex);
         
@@ -391,7 +395,7 @@ export default function UploadContactsPage() {
       setContactsLoading(false);
     };
     fetchContacts();
-  }, [supabase, currentPage]);
+  }, [supabase, currentPage, selectedAccountId]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

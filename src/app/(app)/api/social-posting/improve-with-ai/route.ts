@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/auth/providers/supabase';
-import { getAccountIdForUser } from '@/auth/utils/accounts';
+import { getRequestAccountId } from '@/app/(app)/api/utils/getRequestAccountId';
 import OpenAI from 'openai';
 
 interface ImprovementRequest {
@@ -58,19 +58,19 @@ export async function POST(request: NextRequest) {
     }
 
     if (!businessLocations?.length) {
-      return NextResponse.json({ 
-        success: false, 
-        message: 'Business locations are required for context' 
+      return NextResponse.json({
+        success: false,
+        message: 'Business locations are required for context'
       }, { status: 400 });
     }
 
-    // Get user's account ID
-    const userAccountId = await getAccountIdForUser(user.id, supabase);
+    // Get the proper account ID using the header and validate access
+    const userAccountId = await getRequestAccountId(request, user.id, supabase);
     if (!userAccountId) {
-      return NextResponse.json({ 
-        success: false, 
-        message: 'No account found for user' 
-      }, { status: 400 });
+      return NextResponse.json({
+        success: false,
+        message: 'No valid account found or access denied'
+      }, { status: 403 });
     }
 
     // Get business data for context

@@ -143,7 +143,7 @@ export default function CommunicationTrackingModal({
     }
   };
 
-  const handleCopyAndSend = async (openApp: boolean = true) => {
+  const handleSend = async (openApp: boolean = true) => {
     if (!message.trim()) {
       setError('Please enter a message');
       return;
@@ -172,12 +172,12 @@ export default function CommunicationTrackingModal({
       }
 
       await onSend(data);
-      
+
       // Update prompt page status if changed
       if (newStatus !== promptPage.status) {
         await onStatusUpdate(newStatus);
       }
-      
+
       // Open the communication app with pre-filled message if requested
       if (openApp) {
         if (activeTab === 'email' && contact.email) {
@@ -202,6 +202,15 @@ export default function CommunicationTrackingModal({
     }
   };
 
+  const handleCopyOnly = async () => {
+    const copied = await handleCopyToClipboard();
+    if (copied) {
+      // Give the user quick visual feedback before closing the modal
+      setTimeout(() => {
+        onClose();
+      }, 500);
+    }
+  };
 
   // Don't render if contact has no communication methods
   if (!hasEmail && !hasSMS) {
@@ -383,13 +392,7 @@ export default function CommunicationTrackingModal({
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={async () => {
-                      const copied = await handleCopyToClipboard();
-                      if (copied) {
-                        // Still save record, update status, and set follow-up
-                        await handleCopyAndSend(false);
-                      }
-                    }}
+                    onClick={handleCopyOnly}
                     disabled={isLoading}
                     className={`flex items-center gap-2 ${
                       copiedToClipboard 
@@ -404,7 +407,7 @@ export default function CommunicationTrackingModal({
                 
                 <Button
                   type="button"
-                  onClick={() => handleCopyAndSend(true)}
+                  onClick={() => handleSend(true)}
                   disabled={isLoading}
                   className={`flex items-center gap-2 ${
                     activeTab === 'sms' 
