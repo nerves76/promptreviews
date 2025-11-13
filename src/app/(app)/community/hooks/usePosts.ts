@@ -38,7 +38,7 @@ export function usePosts(channelId: string) {
         .select('*')
         .eq('channel_id', channelId)
         .is('deleted_at', null)
-        .order('created_at', { ascending: false })
+        .order('created_at', { ascending: true })
         .limit(POSTS_PER_PAGE);
 
       console.log('Posts query result:', { data, error: fetchError });
@@ -171,8 +171,8 @@ export function usePosts(channelId: string) {
         .select('*')
         .eq('channel_id', channelId)
         .is('deleted_at', null)
-        .lt('created_at', posts[posts.length - 1].created_at)
-        .order('created_at', { ascending: false })
+        .gt('created_at', posts[posts.length - 1].created_at)
+        .order('created_at', { ascending: true })
         .limit(POSTS_PER_PAGE);
 
       if (fetchError) throw fetchError;
