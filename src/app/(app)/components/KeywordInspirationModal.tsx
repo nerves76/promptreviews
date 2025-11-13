@@ -73,7 +73,7 @@ export default function KeywordInspirationModal({
     >
       {/* Subheader */}
       <div className="mb-3">
-        <h3 className="text-lg font-semibold text-gray-900">
+        <h3 className="text-2xl font-semibold text-gray-900">
           Power-up your review with keywords
         </h3>
       </div>
