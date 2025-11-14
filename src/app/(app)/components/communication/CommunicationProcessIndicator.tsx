@@ -20,16 +20,16 @@ export default function CommunicationProcessIndicator({
   const [isFirstRun, setIsFirstRun] = useState(true);
   
   // Customize steps based on communication type
-  const steps = communicationType === 'sms' 
+  const steps = communicationType === 'sms'
     ? [
         "Edit message",
-        "Click \"Copy & Send\"", 
-        "Send via SMS"
+        "Click \"Copy & Send\"",
+        "Finish in your SMS app"
       ]
     : [
         "Edit message",
-        "Choose send method", 
-        "Send via email"
+        "Choose send method",
+        "Finish in your email app"
       ];
 
   useEffect(() => {

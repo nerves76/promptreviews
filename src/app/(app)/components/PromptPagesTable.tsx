@@ -9,6 +9,7 @@ export interface PromptPage {
   slug: string;
   status: "draft" | "in_queue" | "sent" | "follow_up" | "complete";
   created_at: string;
+  last_contact_at?: string | null;
   account_id?: string;
   phone?: string;
   email?: string;
@@ -43,7 +44,7 @@ interface PromptPagesTableProps {
   onStatusUpdate: (pageId: string, newStatus: PromptPage["status"]) => void;
   onDeletePages: (pageIds: string[]) => void;
   onCreatePromptPage?: () => void;
-  onLocalStatusUpdate?: (pageId: string, newStatus: PromptPage["status"]) => void;
+  onLocalStatusUpdate?: (pageId: string, newStatus: PromptPage["status"], lastContactAt?: string | null) => void;
 }
 
 const STATUS_COLORS = {
@@ -389,6 +390,9 @@ export default function PromptPagesTable({
                         className="inline-flex items-center px-3 py-1.5 bg-teal-100 text-teal-800 rounded hover:bg-teal-200 text-sm font-medium shadow h-9 align-middle whitespace-nowrap w-full sm:w-auto"
                         onStatusUpdated={(newStatus) => {
                           onLocalStatusUpdate?.(page.id, newStatus as PromptPage["status"]);
+                        }}
+                        onContactLogged={(timestamp, newStatus) => {
+                          onLocalStatusUpdate?.(page.id, newStatus as PromptPage["status"], timestamp);
                         }}
                       />
                     )}

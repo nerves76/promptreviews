@@ -104,22 +104,16 @@ export default function CommunicationTrackingModal({
     const customerName = contact?.first_name || 'there';
     const reviewUrl = `${window.location.origin}/r/${promptPage?.slug}`;
     
+    const baseMessage =
+      `Hi ${customerName}, could you take 1–3 minutes to leave a review for ${businessName}? ` +
+      `I’ve prewritten a draft to make it easy, and you can edit it however you’d like, or use the AI feature to kickstart your own review. ` +
+      `Reviews make a huge difference for small businesses trying to get found online. Really appreciate your help! ${reviewUrl}`;
+
     if (activeTab === 'email') {
       setSubject(`Quick Review Request from ${businessName}`);
-      setMessage(
-        `Hi ${customerName},\n\n` +
-        `Thank you for choosing ${businessName}! We hope you had a great experience with us.\n\n` +
-        `We would greatly appreciate it if you could take a moment to share your feedback by leaving us a review. Your review helps us improve our services and helps other customers find us.\n\n` +
-        `You can leave your review here: ${reviewUrl}\n\n` +
-        `Thank you for your time and support!\n\n` +
-        `Best regards,\n${businessName} Team`
-      );
+      setMessage(baseMessage);
     } else {
-      setMessage(
-        `Hi ${customerName}, do you have 1-3 minutes to leave a review for ${businessName}? ` +
-        `I have a review you can use and everything. Positive reviews really help small businesses get found online. ` +
-        `Thanks so much! ${reviewUrl}`
-      );
+      setMessage(baseMessage);
     }
   }, [isOpen, activeTab, contact, promptPage]);
 

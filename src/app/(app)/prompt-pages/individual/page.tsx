@@ -85,12 +85,54 @@ export default function IndividualOutreach() {
 
   const router = useRouter();
 
-  const updateLocalPromptPageStatus = (pageId: string, newStatus: string) => {
+  const updateLocalPromptPageStatus = (
+    pageId: string,
+    newStatus: string,
+    lastContactAt?: string | null
+  ) => {
     setPromptPages((pages) =>
       pages.map((page) =>
-        page.id === pageId ? { ...page, status: newStatus } : page
+        page.id === pageId
+          ? {
+              ...page,
+              status: newStatus,
+              last_contact_at: lastContactAt ?? page.last_contact_at,
+            }
+          : page
       )
     );
+  };
+
+  const attachLastContactInfo = async (pages: any[] | null) => {
+    if (!pages || pages.length === 0) {
+      return pages || [];
+    }
+    const promptPageIds = pages.map((page) => page.id).filter(Boolean);
+    if (!promptPageIds.length) {
+      return pages;
+    }
+    const { data, error } = await supabase
+      .from("communication_records")
+      .select("prompt_page_id, sent_at")
+      .in("prompt_page_id", promptPageIds)
+      .order("sent_at", { ascending: false });
+
+    if (error) {
+      console.error("Error fetching last contact timestamps:", error);
+      return pages;
+    }
+
+    const lastContactMap: Record<string, string> = {};
+    (data || []).forEach((record) => {
+      if (!lastContactMap[record.prompt_page_id]) {
+        lastContactMap[record.prompt_page_id] = record.sent_at;
+      }
+    });
+
+    return pages.map((page) => ({
+      ...page,
+      last_contact_at: lastContactMap[page.id] || null,
+    }));
   };
 
   // Load view preference from localStorage
@@ -210,7 +252,8 @@ export default function IndividualOutreach() {
           .eq("is_universal", false)
           .is("business_location_id", null)  // Only get non-location pages
           .order("created_at", { ascending: false });
-        setPromptPages(pages || []);
+        const enrichedPages = await attachLastContactInfo(pages || []);
+        setPromptPages(enrichedPages || []);
         
         // Fetch location prompt pages separately
         const { data: locationPages } = await supabase

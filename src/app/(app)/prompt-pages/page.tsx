@@ -103,12 +103,54 @@ function PromptPagesContent() {
   const [showWelcomePopup, setShowWelcomePopup] = useState(false);
   const [showHelpModal, setShowHelpModal] = useState(false);
 
-  const updateLocalPromptPageStatus = (pageId: string, newStatus: PromptPageRecord["status"]) => {
+  const updateLocalPromptPageStatus = (
+    pageId: string,
+    newStatus: PromptPageRecord["status"],
+    lastContactAt?: string | null
+  ) => {
     setIndividualPromptPages((pages) =>
       pages.map((page) =>
-        page.id === pageId ? { ...page, status: newStatus } : page
+        page.id === pageId
+          ? {
+              ...page,
+              status: newStatus,
+              last_contact_at: lastContactAt ?? page.last_contact_at,
+            }
+          : page
       )
     );
+  };
+
+  const attachLastContactInfo = async (pages: any[] | null) => {
+    if (!pages || pages.length === 0) {
+      return pages || [];
+    }
+    const promptPageIds = pages.map((page) => page.id).filter(Boolean);
+    if (!promptPageIds.length) {
+      return pages;
+    }
+    const { data, error } = await supabase
+      .from("communication_records")
+      .select("prompt_page_id, sent_at")
+      .in("prompt_page_id", promptPageIds)
+      .order("sent_at", { ascending: false });
+
+    if (error) {
+      console.error("Error fetching last contact timestamps:", error);
+      return pages;
+    }
+
+    const lastContactMap: Record<string, string> = {};
+    (data || []).forEach((record) => {
+      if (!lastContactMap[record.prompt_page_id]) {
+        lastContactMap[record.prompt_page_id] = record.sent_at;
+      }
+    });
+
+    return pages.map((page) => ({
+      ...page,
+      last_contact_at: lastContactMap[page.id] || null,
+    }));
   };
 
   // Kanban view state
@@ -388,7 +430,8 @@ function PromptPagesContent() {
           .eq("campaign_type", "individual")
           .is("business_location_id", null)  // Only get non-location pages
           .order("created_at", { ascending: false });
-        setIndividualPromptPages(individualPages || []);
+        const enrichedIndividualPages = await attachLastContactInfo(individualPages || []);
+        setIndividualPromptPages(enrichedIndividualPages || []);
         
         // Fetch location prompt pages separately
         const { data: locationPages } = await supabase
@@ -946,7 +989,7 @@ function PromptPagesContent() {
                 className="inline-flex items-center gap-2 px-4 py-2 bg-slate-blue text-white rounded hover:bg-slate-blue/90 font-medium transition whitespace-nowrap shadow-lg"
               >
                 <Icon name="FaPlus" className="w-4 h-4" size={16} />
-                Prompt page
+                Prompt Page
               </button>
 
               {/* Type Filter - Glassmorphic */}
@@ -1277,23 +1320,21 @@ function PromptPagesContent() {
 
           {/* Modal Content */}
           <div className="bg-white/10 backdrop-blur-lg rounded-2xl shadow-2xl max-w-md w-full mx-4 relative z-50 border border-white/30">
-            {/* Glass-style close button */}
-            <button
-              onClick={() => {
-                setShowPostSaveModal(false);
-                setShowStars(false);
-                setPostSaveData(null);
-              }}
-              className="absolute -top-3 -right-3 bg-white/70 backdrop-blur-sm border border-white/40 rounded-full shadow-lg flex items-center justify-center hover:bg-white/90 focus:outline-none z-20 transition-colors p-2"
-              style={{ width: 36, height: 36 }}
-              aria-label="Close modal"
-            >
-              <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
+            <div className="flex justify-end p-4">
+              <button
+                onClick={() => {
+                  setShowPostSaveModal(false);
+                  setShowStars(false);
+                  setPostSaveData(null);
+                }}
+                className="text-white/80 hover:text-white focus:outline-none"
+                aria-label="Close modal"
+              >
+                <Icon name="FaTimes" size={18} />
+              </button>
+            </div>
 
-            <div className="p-6">
+            <div className="px-6 pb-6">
               <div className="text-center mb-6">
                 {/* Prompty Success Image */}
                 <div className="mb-3 flex justify-center">
@@ -1330,27 +1371,32 @@ function PromptPagesContent() {
 
                 {/* For individual prompt pages with contact info, show CommunicationButtons */}
                 {(postSaveData.first_name || postSaveData.email || postSaveData.phone) && !postSaveData.isLocationCreation ? (
-                  <div className="flex items-center justify-between p-3 bg-teal-500/30 backdrop-blur-sm rounded-lg border border-teal-300/30">
-                    <span className="text-sm font-medium text-white">SMS or Email</span>
-                    <CommunicationButtons
-                      contact={{
-                        id: postSaveData.contact_id || 'temp-contact',
-                        first_name: postSaveData.first_name || '',
-                        last_name: postSaveData.last_name || '',
-                        email: postSaveData.email,
-                        phone: postSaveData.phone
-                      }}
-                      promptPage={{
-                        id: postSaveData.prompt_page_id || 'temp-page',
-                        slug: postSaveData.slug || '',
-                        status: 'draft',
-                        account_id: account?.id,
-                        client_name: postSaveData.first_name || ''
-                      }}
-                      singleButton={true}
-                      buttonText="Send"
-                      className="px-3 py-1.5 text-sm"
-                    />
+                  <div className="space-y-2 p-3 bg-teal-500/30 backdrop-blur-sm rounded-lg border border-teal-300/30">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-white">SMS or Email</span>
+                      <CommunicationButtons
+                        contact={{
+                          id: postSaveData.contact_id || 'temp-contact',
+                          first_name: postSaveData.first_name || '',
+                          last_name: postSaveData.last_name || '',
+                          email: postSaveData.email,
+                          phone: postSaveData.phone
+                        }}
+                        promptPage={{
+                          id: postSaveData.prompt_page_id || 'temp-page',
+                          slug: postSaveData.slug || '',
+                          status: 'draft',
+                          account_id: account?.id,
+                          client_name: postSaveData.first_name || ''
+                        }}
+                        singleButton={true}
+                        buttonText="Send"
+                        className="px-3 py-1.5 text-sm"
+                      />
+                    </div>
+                    <p className="text-xs text-white/80">
+                      CRM tracking, alerts, and reminders are enabled on 1-to-1 Prompt Pages.
+                    </p>
                   </div>
                 ) : (
                   <>
@@ -1376,6 +1422,9 @@ function PromptPagesContent() {
                         Send
                       </a>
                     </div>
+                    <p className="text-xs text-white/80">
+                      CRM tracking and alerts are only available on 1-to-1 Prompt Pages.
+                    </p>
                   </>
                 )}
 

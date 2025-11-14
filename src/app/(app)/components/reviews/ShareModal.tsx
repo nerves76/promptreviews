@@ -244,18 +244,6 @@ export default function ShareModal({
 
       <div className="fixed inset-0 flex items-center justify-center p-4">
         <div className="relative max-w-2xl w-full">
-          {/* Glassmorphic close button - breaching top-right corner */}
-          <button
-            className="absolute -top-3 -right-3 bg-white/70 backdrop-blur-sm border border-white/40 rounded-full shadow-lg flex items-center justify-center hover:bg-white/90 focus:outline-none z-20 transition-colors p-2"
-            style={{ width: 36, height: 36 }}
-            onClick={onClose}
-            aria-label="Close modal"
-          >
-            <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-
           <Dialog.Panel className="mx-auto w-full rounded-2xl border border-white/30 bg-white/10 shadow-2xl backdrop-blur-2xl max-h-[90vh] overflow-hidden relative pb-4">
             {/* Glass effect overlays */}
             <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/25 via-white/5 to-transparent rounded-2xl" />
@@ -266,6 +254,13 @@ export default function ShareModal({
               <Dialog.Title className="text-xl font-semibold text-white drop-shadow-md">
                 {selectedPlatform ? 'Share review' : 'Share on social media'}
               </Dialog.Title>
+              <button
+                onClick={onClose}
+                className="text-white/80 hover:text-white focus:outline-none"
+                aria-label="Close modal"
+              >
+                <XMarkIcon className="h-6 w-6" />
+              </button>
             </div>
 
           {/* Content */}

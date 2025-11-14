@@ -28,6 +28,7 @@ interface CommunicationButtonsProps {
   promptPage: PromptPage;
   onCommunicationSent?: () => void;
   onStatusUpdated?: (newStatus: string) => void;
+  onContactLogged?: (timestamp: string, newStatus: string) => void;
   className?: string;
   singleButton?: boolean; // Show single "Share" button instead of separate Email/Text
   buttonText?: string; // Custom button text for single button mode
@@ -48,6 +49,7 @@ export default function CommunicationButtons({
   promptPage,
   onCommunicationSent,
   onStatusUpdated,
+  onContactLogged,
   className = "",
   singleButton = false,
   buttonText = "Share"
@@ -90,6 +92,9 @@ export default function CommunicationButtons({
         message: data.message,
         followUpReminder: data.followUpReminder
       });
+
+      const timestamp = new Date().toISOString();
+      onContactLogged?.(timestamp, data.newStatus);
 
       // Log campaign action for the communication
       try {

@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
 import { PromptPage } from "./PromptPagesTable";
 import PromptPageCard from "./PromptPageCard";
 import Icon from "@/components/Icon";
 import { StatusLabels } from "@/hooks/useStatusLabels";
+import PromptPageDetailsPanel from "./PromptPageDetailsPanel";
 
 interface PromptPagesKanbanProps {
   promptPages: PromptPage[];
@@ -15,7 +16,7 @@ interface PromptPagesKanbanProps {
   statusLabels: StatusLabels;
   onEditLabel: (status: keyof StatusLabels) => void;
   selectedType?: string;
-  onLocalStatusUpdate?: (pageId: string, newStatus: PromptPage["status"]) => void;
+  onLocalStatusUpdate?: (pageId: string, newStatus: PromptPage["status"], lastContactAt?: string | null) => void;
 }
 
 const STATUS_COLORS = {
@@ -37,6 +38,7 @@ export default function PromptPagesKanban({
   onLocalStatusUpdate,
 }: PromptPagesKanbanProps) {
   const [draggedCardId, setDraggedCardId] = useState<string | null>(null);
+  const [activePage, setActivePage] = useState<PromptPage | null>(null);
 
   // Group pages by status
   const columnData = useMemo(() => {
@@ -284,7 +286,7 @@ export default function PromptPagesKanban({
                                 page={page}
                                 business={business}
                                 isDragging={snapshot.isDragging || draggedCardId === page.id}
-                                onLocalStatusUpdate={onLocalStatusUpdate}
+                                onOpen={(selected) => setActivePage(selected)}
                               />
                             </div>
                           )}
@@ -316,6 +318,54 @@ export default function PromptPagesKanban({
           </div>
         </div>
       )}
+      {activePage && (
+        <PromptPageDetailsDrawer
+          page={activePage}
+          business={business}
+          onClose={() => setActivePage(null)}
+          onLocalStatusUpdate={onLocalStatusUpdate}
+        />
+      )}
     </DragDropContext>
+  );
+}
+
+interface PromptPageDetailsDrawerProps {
+  page: PromptPage;
+  business: any;
+  onClose: () => void;
+  onLocalStatusUpdate?: (pageId: string, newStatus: PromptPage["status"], lastContactAt?: string | null) => void;
+}
+
+function PromptPageDetailsDrawer({
+  page,
+  business,
+  onClose,
+  onLocalStatusUpdate,
+}: PromptPageDetailsDrawerProps) {
+  useEffect(() => {
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, []);
+
+  return (
+    <div className="fixed inset-0 z-50 flex justify-end">
+      <div
+        className="flex-1 bg-black/40"
+        onClick={onClose}
+        aria-label="Close details overlay"
+      />
+      <div className="relative h-full w-full max-w-full sm:max-w-md md:max-w-lg lg:max-w-2xl bg-white shadow-2xl transform transition-transform duration-300 translate-x-0">
+        <PromptPageDetailsPanel
+          page={page}
+          business={business}
+          onClose={onClose}
+          onLocalStatusUpdate={onLocalStatusUpdate}
+        />
+      </div>
+    </div>
   );
 }
