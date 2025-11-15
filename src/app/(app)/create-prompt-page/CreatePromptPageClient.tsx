@@ -18,6 +18,7 @@ import ProductPromptPageForm from "../components/ProductPromptPageForm";
 import PhotoPromptPageForm from "../components/PhotoPromptPageForm";
 import EmployeePromptPageForm from "../components/EmployeePromptPageForm";
 import EventPromptPageForm from "../components/EventPromptPageForm";
+import ReviewBuilderPromptPageForm from "../components/ReviewBuilderPromptPageForm";
 import { useGlobalLoader } from "../components/GlobalLoaderProvider";
 import { apiClient } from "@/utils/apiClient";
 import { clampWordLimit, getWordLimitOrDefault, PROMPT_PAGE_WORD_LIMITS } from "@/constants/promptPageWordLimits";
@@ -33,10 +34,17 @@ interface ReviewPlatformLink {
 
 interface BusinessProfile {
   business_name: string;
+  name?: string;
+  industry?: (string | null)[];
+  industries_other?: string | null;
+  industry_other?: string | null;
+  address_city?: string | null;
+  address_state?: string | null;
+  about_us?: string | null;
   services_offered: string[];
   company_values?: string;
   differentiators?: string;
-  years_in_business?: number;
+  years_in_business?: string | number | null;
   industries_served?: string;
   taglines?: string;
   team_founder_info?: string;
@@ -52,8 +60,6 @@ interface BusinessProfile {
   background_color?: string;
   text_color?: string;
   header_color?: string;
-  // Additional properties from database
-  name?: string;
   review_platforms?: any;
   facebook_url?: string;
   instagram_url?: string;
@@ -64,6 +70,8 @@ interface BusinessProfile {
   pinterest_url?: string;
   created_at?: string;
   updated_at?: string;
+  account_id?: string;
+  phone?: string;
 }
 
 const initialFormData = {
@@ -109,6 +117,9 @@ const initialFormData = {
   aiButtonEnabled: true,
   business_name: "",
   contact_id: "",
+  keywords: [] as string[],
+  selected_keyword_inspirations: [] as string[],
+  builder_questions: [] as any[],
 };
 
 // Note: mapToDbColumns function replaced with centralized preparePromptPageData utility
@@ -183,10 +194,18 @@ export default function CreatePromptPageClient({
       // Initialize with a default profile to avoid null issues
       return {
         business_name: "Your Business",
+        name: "Your Business",
+        account_id: account?.id || "",
+        industry: [],
+        industries_other: "",
+        industry_other: "",
+        address_city: "",
+        address_state: "",
+        about_us: "",
         services_offered: [],
         company_values: "",
         differentiators: "",
-        years_in_business: 0,
+        years_in_business: "0",
         industries_served: "",
         taglines: "",
         team_founder_info: "",
@@ -314,51 +333,15 @@ export default function CreatePromptPageClient({
         
         // Only fetch business data if we have an account ID
         if (accountId) {
-          while (retryCount < maxRetries && !businessData && !businessError) {
+        while (retryCount < maxRetries && !businessData && !businessError) {
             if (isPostBusinessCreation) {
             }
             
             const result = await supabase
               .from("businesses")
               .select(`
-                name, 
-                services_offered, 
-                default_offer_enabled, 
-                default_offer_title, 
-                default_offer_body, 
-                default_offer_url,
-                default_offer_timelock,
-                review_platforms, 
-                facebook_url, 
-                instagram_url, 
-                bluesky_url, 
-                tiktok_url, 
-                youtube_url, 
-                linkedin_url, 
-                pinterest_url, 
-                created_at, 
-                updated_at,
-                kickstarters_enabled,
-                selected_kickstarters,
-                kickstarters_background_design,
-                emoji_sentiment_enabled,
-                emoji_sentiment_question,
-                emoji_feedback_message,
-                emoji_thank_you_message,
-                emoji_feedback_popup_header,
-                emoji_feedback_page_header,
-                falling_enabled,
-                falling_icon,
-                falling_icon_color,
-                show_friendly_note,
-                friendly_note,
-                recent_reviews_enabled,
-                recent_reviews_scope,
-                ai_button_enabled,
-                fix_grammar_enabled,
-                keywords,
-                ai_dos,
-                ai_donts
+                *,
+                services_offered
               `)
               .eq("account_id", accountId)
               .maybeSingle();
@@ -393,10 +376,18 @@ export default function CreatePromptPageClient({
           // Use default business profile when no business exists
           setBusinessProfile({
             business_name: "Your Business",
+            name: "Your Business",
+            account_id: accountId || "",
+            industry: [],
+            industries_other: "",
+            industry_other: "",
+            address_city: "",
+            address_state: "",
+            about_us: "",
             services_offered: [],
             company_values: "",
             differentiators: "",
-            years_in_business: 0,
+            years_in_business: "0",
             industries_served: "",
             taglines: "",
             team_founder_info: "",
@@ -443,10 +434,18 @@ export default function CreatePromptPageClient({
         if (!businessData) {
           setBusinessProfile({
             business_name: "Your Business",
+            name: "Your Business",
+            account_id: accountId || "",
+            industry: [],
+            industries_other: "",
+            industry_other: "",
+            address_city: "",
+            address_state: "",
+            about_us: "",
             services_offered: [],
             company_values: "",
             differentiators: "",
-            years_in_business: 0,
+            years_in_business: "0",
             industries_served: "",
             taglines: "",
             team_founder_info: "",
@@ -495,49 +494,23 @@ export default function CreatePromptPageClient({
         
         if (!hasBusinessName) {
           setBusinessProfile({
+            ...businessData,
             business_name: businessData.name || "Your Business",
-            services_offered: [],
-            company_values: "",
-            differentiators: "",
-            years_in_business: 0,
-            industries_served: "",
-            taglines: "",
-            team_founder_info: "",
-            keywords: "",
-            default_offer_enabled: false,
-            default_offer_title: "",
-            default_offer_body: "",
-            default_offer_url: "",
-            default_offer_timelock: false,
-            gradient_start: "",
-            gradient_middle: "",
-            gradient_end: "",
-            background_type: "",
-            background_color: "",
-            text_color: "",
-            header_color: "",
-            // Add all new default fields
-            kickstarters_enabled: true,
-            selected_kickstarters: [],
-            kickstarters_background_design: false,
-            emoji_sentiment_enabled: false,
-            emoji_sentiment_question: "How was your experience?",
-            emoji_feedback_message: "Please tell us more about your experience",
-            emoji_thank_you_message: "Thank you for your feedback!",
-            emoji_feedback_popup_header: "",
-            emoji_feedback_page_header: "",
-            falling_enabled: true,
-            falling_icon: "star",
-            falling_icon_color: "#FFD700",
-            show_friendly_note: false,
-            friendly_note: "",
-            recent_reviews_enabled: false,
-            recent_reviews_scope: "current_page",
-            ai_button_enabled: false,
-            fix_grammar_enabled: false,
-            ai_dos: "",
-            ai_donts: "",
-            review_platforms: [],
+            name: businessData.name || "Your Business",
+            industry: Array.isArray(businessData.industry) ? businessData.industry : [],
+            industries_other: businessData.industries_other || "",
+            industry_other: businessData.industry_other || "",
+            address_city: businessData.address_city || "",
+            address_state: businessData.address_state || "",
+            about_us: businessData.about_us || "",
+          services_offered: Array.isArray(businessData.services_offered)
+            ? businessData.services_offered.map((service: string) => service?.trim()).filter(Boolean)
+            : typeof businessData.services_offered === "string"
+              ? businessData.services_offered
+                  .split(/,|\n/)
+                  .map((service) => service.trim())
+                  .filter(Boolean)
+              : [],
           });
           setIsLoadingBusinessProfile(false);
           return;
@@ -548,6 +521,7 @@ export default function CreatePromptPageClient({
           const updates = {
             businessProfile: {
               ...businessData,
+              name: businessData.name || businessData.business_name || "Your Business",
               business_name: businessData.name || "Your Business",
               services_offered: Array.isArray(businessData.services_offered)
                 ? businessData.services_offered
@@ -751,10 +725,18 @@ export default function CreatePromptPageClient({
           if (!current) {
             return {
               business_name: "Your Business",
+              name: "Your Business",
+              account_id: accountId || "",
+              industry: [],
+              industries_other: "",
+              industry_other: "",
+              address_city: "",
+              address_state: "",
+              about_us: "",
               services_offered: [],
               company_values: "",
               differentiators: "",
-              years_in_business: 0,
+              years_in_business: "0",
               industries_served: "",
               taglines: "",
               team_founder_info: "",
@@ -1478,8 +1460,12 @@ export default function CreatePromptPageClient({
         account_id: accountId,
         // Note: business_name column doesn't exist - removed
         review_type: mergedFormData.review_type || "service", // Use the review_type from form data
-        status: "draft", // Start as draft for individual prompt pages
+        status: mergedFormData.status || "draft",  // Use status from form data
         campaign_type: campaignType,
+        visibility:
+          mergedFormData.review_type === "review_builder" || campaignType === "public"
+            ? "public"
+            : "individual",
         // Include only valid prompt_pages fields from formData
         name: mergedFormData.name || '',
         notes: mergedFormData.description || '', // Using 'notes' instead of 'description'
@@ -1571,6 +1557,14 @@ export default function CreatePromptPageClient({
         (insertData as any).eve_organizer = (mergedFormData as any).eve_organizer || '';
         (insertData as any).eve_special_features = (mergedFormData as any).eve_special_features || [];
         (insertData as any).eve_review_guidance = (mergedFormData as any).eve_review_guidance || '';
+      }
+
+      // Add Review Builder-specific fields
+      if (mergedFormData.review_type === 'review_builder') {
+        (insertData as any).builder_questions = mergedFormData.builder_questions || [];
+        (insertData as any).keywords = mergedFormData.keywords || [];
+        (insertData as any).selected_keyword_inspirations = mergedFormData.selected_keyword_inspirations || [];
+        (insertData as any).keyword_inspiration_enabled = mergedFormData.keyword_inspiration_enabled ?? true;
       }
 
       // Generate slug
@@ -1723,7 +1717,7 @@ export default function CreatePromptPageClient({
       const updateData = preparePromptPageData({
         ...formData,
         campaign_type: campaignType,  // Ensure campaign_type is included in final submission
-        status: 'published'
+        status: formData.status || 'in_queue'  // Use status from form, default to in_queue
       });
       
       // Validate the prepared data
@@ -1825,6 +1819,8 @@ export default function CreatePromptPageClient({
         return <Icon name="FaUser" className="w-9 h-9 text-slate-blue" size={36} />;
       case "event":
         return <Icon name="FaCalendarAlt" className="w-9 h-9 text-slate-blue" size={36} />;
+      case "review_builder":
+        return <Icon name="FaTools" className="w-9 h-9 text-slate-blue" size={36} />;
       default:
         return undefined; // No icon for fallback
     }
@@ -2030,6 +2026,21 @@ export default function CreatePromptPageClient({
             router.push(redirectUrl);
           }}
           campaignType={formData.campaign_type || 'individual'}
+          onGenerateReview={handleGenerateAIReview}
+        />
+      );
+    }
+
+    if (formData.review_type === "review_builder") {
+      return (
+        <ReviewBuilderPromptPageForm
+          mode="create"
+          initialData={formData}
+          onSave={handleServicePageSubmit}
+          pageTitle="Review Builder"
+          supabase={createClient()}
+          businessProfile={businessProfile}
+          campaignType={formData.campaign_type || 'public'}
           onGenerateReview={handleGenerateAIReview}
         />
       );

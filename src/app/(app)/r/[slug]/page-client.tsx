@@ -77,6 +77,7 @@ import ReviewPlatformCard from "./components/ReviewPlatformCard";
 import SaveMenu from "./components/SaveMenu";
 import TopActionButtons from "./components/TopActionButtons";
 import FontLoader from "../../components/FontLoader";
+import ReviewBuilderWizard from "./components/ReviewBuilderWizard";
 import { getFontClass } from "./utils/fontUtils";
 import { getPlatformIcon, splitName, sendAnalyticsEvent, isOffWhiteOrCream } from "./utils/helperFunctions";
 import { sentimentOptions } from "./utils/sentimentConfig";
@@ -1787,6 +1788,23 @@ export default function PromptPage({ initialData }: PromptPageProps = {}) {
           Page not found.
         </div>
       </div>
+    );
+  }
+
+  if (promptPage?.review_type === "review_builder") {
+    if (!businessProfile) {
+      return (
+        <div className="min-h-screen flex items-center justify-center">
+          <AppLoader />
+        </div>
+      );
+    }
+    return (
+      <ReviewBuilderWizard
+        promptPage={promptPage}
+        businessProfile={businessProfile}
+        currentUser={currentUser}
+      />
     );
   }
 

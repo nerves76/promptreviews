@@ -29,6 +29,9 @@ export async function POST(request: NextRequest) {
       sentiment,
       email,
       phone,
+      role,
+      builderAnswers,
+      builderKeywords,
     } = body;
 
     if (!promptPageId) {
@@ -76,6 +79,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Reviewer name is required" }, { status: 400 });
     }
     
+    const normalizedBuilderAnswers = Array.isArray(builderAnswers) ? builderAnswers : null;
+    const normalizedBuilderKeywords = Array.isArray(builderKeywords) ? builderKeywords : null;
+
     // Insert review with business_id (source of truth for stats)
     // NOTE: Temporarily setting business_id to NULL to avoid foreign key constraint issues
     const { data, error } = await supabase
@@ -86,6 +92,7 @@ export async function POST(request: NextRequest) {
         platform,
         status,
         reviewer_name, // Use combined name to satisfy constraint
+        reviewer_role: role || null,
         first_name,
         last_name,
         review_content: reviewContent,
@@ -96,6 +103,8 @@ export async function POST(request: NextRequest) {
         phone,
         user_agent: userAgent,
         ip_address: ipAddress,
+        builder_answers: normalizedBuilderAnswers,
+        builder_keywords: normalizedBuilderKeywords,
       })
       .select()
       .single();

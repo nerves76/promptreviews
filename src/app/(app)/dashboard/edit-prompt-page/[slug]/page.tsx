@@ -409,7 +409,10 @@ export default function EditPromptPage() {
 
   useEffect(() => {
     const fetchAnalytics = async () => {
-      if (!params.slug) return;
+      if (!params.slug || !account?.id) {
+        setAnalytics(null);
+        return;
+      }
 
       setAnalyticsLoading(true);
       try {
@@ -418,6 +421,7 @@ export default function EditPromptPage() {
           .from("prompt_pages")
           .select("id")
           .eq("slug", params.slug)
+          .eq("account_id", account.id)
           .single();
 
         if (fetchError || !promptPage)
@@ -448,7 +452,7 @@ export default function EditPromptPage() {
     };
 
     fetchAnalytics();
-  }, [params.slug, supabase]);
+  }, [params.slug, account?.id, supabase]);
 
   useEffect(() => {
     const logCurrentUserUid = async () => {
@@ -1343,6 +1347,9 @@ export default function EditPromptPage() {
     if ((formData as any).review_type === "event") {
       return <Icon name="MdEvent" className="w-9 h-9" style={{ color: "#1A237E" }} />;
     }
+    if ((formData as any).review_type === "review_builder") {
+      return <Icon name="FaTools" className="w-9 h-9" style={{ color: "#1A237E" }} />;
+    }
     if (formData.type === "universal") {
       return <Icon name="FaGlobe" className="w-9 h-9" style={{ color: "#1A237E" }} size={36} />;
     }
@@ -1366,6 +1373,9 @@ export default function EditPromptPage() {
     }
     if ((formData as any).review_type === "event") {
       return "Edit Event Review Page";
+    }
+    if ((formData as any).review_type === "review_builder") {
+      return "Edit Review Builder";
     }
     if (formData.type === "universal") {
       return "Edit Universal Prompt Page";

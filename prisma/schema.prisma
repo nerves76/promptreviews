@@ -1348,6 +1348,7 @@ model prompt_pages {
   keywords                                                                 String[]                  @default([])
   keyword_inspiration_enabled                                              Boolean?                  @default(false)
   selected_keyword_inspirations                                            String[]                  @default([])
+  builder_questions                                                        Json?                     @default(dbgenerated("'[]'::jsonb"))
   analytics_events                                                         analytics_events[]
   business_locations_business_locations_prompt_page_idToprompt_pages       business_locations[]      @relation("business_locations_prompt_page_idToprompt_pages")
   campaign_actions                                                         campaign_actions[]
@@ -1486,6 +1487,8 @@ model review_submissions {
   phone                                            String?       @db.VarChar(50)
   prompt_page_type                                 String?
   review_type                                      String?
+  builder_answers                                  Json?
+  builder_keywords                                 String[]      @default([])
   verified                                         Boolean?      @default(false)
   verified_at                                      DateTime?     @db.Timestamptz(6)
   platform_url                                     String?

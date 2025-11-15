@@ -39,42 +39,79 @@ export function validateBusinessForKeywordGeneration(
 ): BusinessValidationResult {
   const missingFields: string[] = [];
 
+  console.log('[BusinessValidation] Validating business:', business);
+
+  // Normalize and check business name
   if (!business.name || business.name.trim() === '') {
+    console.log('[BusinessValidation] ❌ Missing: Business Name');
     missingFields.push('Business Name');
+  } else {
+    console.log('[BusinessValidation] ✅ Has: Business Name =', business.name);
   }
 
   // Check industry array OR industries_other/industry_other field (both singular and plural for compatibility)
-  const hasIndustry = (business.industry && business.industry.length > 0) ||
+  const hasIndustry = (Array.isArray(business.industry) && business.industry.length > 0 && business.industry.some(i => i && i.trim())) ||
                       (business.industries_other && business.industries_other.trim() !== '') ||
                       (business.industry_other && business.industry_other.trim() !== '');
 
   if (!hasIndustry) {
+    console.log('[BusinessValidation] ❌ Missing: Business Type/Industry', {
+      industry: business.industry,
+      industries_other: business.industries_other,
+      industry_other: business.industry_other
+    });
     missingFields.push('Business Type/Industry');
+  } else {
+    console.log('[BusinessValidation] ✅ Has: Business Type/Industry');
   }
 
   if (!business.address_city || business.address_city.trim() === '') {
+    console.log('[BusinessValidation] ❌ Missing: City');
     missingFields.push('City');
+  } else {
+    console.log('[BusinessValidation] ✅ Has: City =', business.address_city);
   }
 
   if (!business.address_state || business.address_state.trim() === '') {
+    console.log('[BusinessValidation] ❌ Missing: State');
     missingFields.push('State');
+  } else {
+    console.log('[BusinessValidation] ✅ Has: State =', business.address_state);
   }
 
   if (!business.about_us || business.about_us.trim() === '') {
+    console.log('[BusinessValidation] ❌ Missing: About Us');
     missingFields.push('About Us');
+  } else {
+    console.log('[BusinessValidation] ✅ Has: About Us');
   }
 
   if (!business.differentiators || business.differentiators.trim() === '') {
+    console.log('[BusinessValidation] ❌ Missing: Differentiators');
     missingFields.push('Differentiators');
+  } else {
+    console.log('[BusinessValidation] ✅ Has: Differentiators');
   }
 
-  if (!business.years_in_business || business.years_in_business.trim() === '' || parseInt(business.years_in_business) <= 0) {
+  // More robust years check - handle string, number, null, undefined
+  const yearsValue = business.years_in_business;
+  const yearsInt = yearsValue ? parseInt(String(yearsValue)) : 0;
+  if (!yearsValue || String(yearsValue).trim() === '' || isNaN(yearsInt) || yearsInt <= 0) {
+    console.log('[BusinessValidation] ❌ Missing: Years in Business', { yearsValue, yearsInt });
     missingFields.push('Years in Business');
+  } else {
+    console.log('[BusinessValidation] ✅ Has: Years in Business =', yearsValue);
   }
 
-  if (!business.services_offered || business.services_offered.length === 0) {
+  // More robust services check - handle array, null, undefined, empty array
+  if (!Array.isArray(business.services_offered) || business.services_offered.length === 0 || !business.services_offered.some(s => s && s.trim())) {
+    console.log('[BusinessValidation] ❌ Missing: Services Offered', { services_offered: business.services_offered });
     missingFields.push('Services Offered');
+  } else {
+    console.log('[BusinessValidation] ✅ Has: Services Offered =', business.services_offered);
   }
+
+  console.log('[BusinessValidation] Result:', { isValid: missingFields.length === 0, missingFields });
 
   return {
     isValid: missingFields.length === 0,

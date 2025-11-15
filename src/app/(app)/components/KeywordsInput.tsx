@@ -112,6 +112,49 @@ export default function KeywordsInput({
     onChange(updatedKeywords);
   };
 
+  const normalizeBusinessInfo = () => {
+    if (!businessInfo) return null;
+
+    // Handle services_offered which can be: array, string, jsonb object, or null
+    let normalizedServices: string[] = [];
+    if (Array.isArray(businessInfo.services_offered)) {
+      normalizedServices = businessInfo.services_offered.filter((service) => typeof service === "string" && service.trim() !== "");
+    } else if (typeof businessInfo.services_offered === "string") {
+      normalizedServices = businessInfo.services_offered.split(",").map((service) => service.trim()).filter(Boolean);
+    } else if (businessInfo.services_offered && typeof businessInfo.services_offered === "object") {
+      // Handle JSONB object format - might be stored as { "0": "service1", "1": "service2" } or similar
+      const servicesObj = businessInfo.services_offered as any;
+      normalizedServices = Object.values(servicesObj)
+        .filter((service) => typeof service === "string" && service.trim() !== "") as string[];
+    }
+
+    const normalized = {
+      ...businessInfo,
+      name: businessInfo.name || "",
+      industry: Array.isArray(businessInfo.industry)
+        ? businessInfo.industry.filter(Boolean)
+        : businessInfo.industry
+          ? [businessInfo.industry as unknown as string].filter(Boolean)
+          : [],
+      industries_other: businessInfo.industries_other || businessInfo.industry_other || "",
+      address_city: businessInfo.address_city || "",
+      address_state: businessInfo.address_state || "",
+      about_us: businessInfo.about_us || "",
+      differentiators: businessInfo.differentiators || "",
+      years_in_business:
+        businessInfo.years_in_business !== undefined && businessInfo.years_in_business !== null
+          ? String(businessInfo.years_in_business)
+          : "",
+      services_offered: normalizedServices,
+    };
+
+    // Debug logging to help diagnose false negatives
+    console.log('[KeywordGeneration] Original businessInfo:', businessInfo);
+    console.log('[KeywordGeneration] Normalized businessInfo:', normalized);
+
+    return normalized;
+  };
+
   const handleGenerateClick = async () => {
     // If no businessInfo provided at all, show generic message
     if (!businessInfo) {
@@ -120,7 +163,14 @@ export default function KeywordsInput({
       return;
     }
 
-    const validation = validateBusinessForKeywordGeneration(businessInfo);
+    const normalized = normalizeBusinessInfo();
+    if (!normalized) {
+      setMissingFields(['Business Name', 'Business Type/Industry', 'City', 'State', 'About Us', 'Differentiators', 'Years in Business', 'Services Offered']);
+      setShowMissingFieldsModal(true);
+      return;
+    }
+
+    const validation = validateBusinessForKeywordGeneration(normalized);
 
     if (!validation.isValid) {
       setMissingFields(validation.missingFields);
@@ -139,16 +189,16 @@ export default function KeywordsInput({
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          businessName: businessInfo.name || '',
-          businessType: (businessInfo.industry?.[0]) || businessInfo.industries_other || businessInfo.industry_other || '',
-          city: businessInfo.address_city || '',
-          state: businessInfo.address_state || '',
-          accountId: businessInfo.accountId || '',
-          aboutUs: businessInfo.about_us || '',
-          differentiators: businessInfo.differentiators || '',
-          yearsInBusiness: businessInfo.years_in_business || '0',
-          servicesOffered: Array.isArray(businessInfo.services_offered) ? businessInfo.services_offered.join(', ') : '',
-          industriesServed: businessInfo.industries_served,
+          businessName: normalized.name || '',
+          businessType: (normalized.industry?.[0]) || normalized.industries_other || normalized.industry_other || '',
+          city: normalized.address_city || '',
+          state: normalized.address_state || '',
+          accountId: normalized.accountId || '',
+          aboutUs: normalized.about_us || '',
+          differentiators: normalized.differentiators || '',
+          yearsInBusiness: normalized.years_in_business || '0',
+          servicesOffered: Array.isArray(normalized.services_offered) ? normalized.services_offered.join(', ') : '',
+          industriesServed: normalized.industries_served,
         }),
       });
 

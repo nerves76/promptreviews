@@ -59,6 +59,12 @@ export const promptTypes: PromptType[] = [
     description: "Capture a headshot and testimonial to display on your website or in marketing materials.",
   },
   {
+    key: "review_builder",
+    label: "Review builder",
+    icon: <Icon name="FaTools" className="w-7 h-7 text-slate-blue" size={28} />,
+    description: "Guide reviewers through a quick AI-powered questionnaire.",
+  },
+  {
     key: "video",
     label: "Video testimonial",
     icon: <Icon name="FaVideo" className="w-7 h-7 text-slate-blue" size={28} />,

@@ -58,9 +58,16 @@ export interface FormData {
   // Kickstarters
   selectedKickstarters?: string[];
   
+  // Keywords / Review Builder
+  keywords?: string[] | string;
+  selected_keyword_inspirations?: string[];
+  builder_questions?: any;
+  keyword_inspiration_enabled?: boolean;
+  
   // Other
   slug?: string;
   account_id?: string;
+  visibility?: string;
 }
 
 export interface DatabaseRow {
@@ -112,6 +119,11 @@ export interface DatabaseRow {
   youtube_url?: string;
   linkedin_url?: string;
   pinterest_url?: string;
+  keywords?: string[];
+  selected_keyword_inspirations?: string[];
+  builder_questions?: any;
+  keyword_inspiration_enabled?: boolean;
+  visibility?: string;
 }
 
 /**
@@ -131,8 +143,9 @@ export function mapFormDataToDatabase(formData: FormData): DatabaseRow {
     'offer_title', 'offer_body', 'offer_url', 'offer_timelock', 'friendly_note', 'emoji_labels',
     'emoji_sentiment_question', 'emoji_feedback_message', 
     'emoji_feedback_popup_header', 'emoji_feedback_page_header', 'emoji_thank_you_message',
-    'selected_kickstarters',
-    'facebook_url', 'instagram_url', 'bluesky_url', 'tiktok_url', 'youtube_url', 'linkedin_url', 'pinterest_url'
+    'selected_kickstarters', 'keywords', 'selected_keyword_inspirations', 'builder_questions', 'keyword_inspiration_enabled',
+    'facebook_url', 'instagram_url', 'bluesky_url', 'tiktok_url', 'youtube_url', 'linkedin_url', 'pinterest_url',
+    'visibility'
   ];
   
   directFields.forEach(field => {
@@ -180,6 +193,27 @@ export function mapFormDataToDatabase(formData: FormData): DatabaseRow {
     } else {
       mappedData.services_offered = formData.services_offered;
     }
+  }
+
+  // Keywords normalization
+  if (formData.keywords !== undefined) {
+    if (typeof formData.keywords === 'string') {
+      const normalizedKeywords = formData.keywords
+        .split(',')
+        .map((k: string) => k.trim())
+        .filter(Boolean);
+      mappedData.keywords = normalizedKeywords;
+    } else if (Array.isArray(formData.keywords)) {
+      mappedData.keywords = formData.keywords;
+    }
+  }
+  
+  if (formData.selected_keyword_inspirations) {
+    mappedData.selected_keyword_inspirations = formData.selected_keyword_inspirations;
+  }
+  
+  if (formData.builder_questions) {
+    mappedData.builder_questions = formData.builder_questions;
   }
   
   // Review platforms with word count validation
@@ -230,7 +264,8 @@ export function filterToAllowedColumns(data: DatabaseRow): DatabaseRow {
     "offer_enabled", "offer_title", "offer_body", "offer_url", "friendly_note",
     "nfc_text_enabled", "note_popup_enabled", "show_friendly_note",
     "kickstarters_enabled", "selected_kickstarters",
-    "facebook_url", "instagram_url", "bluesky_url", "tiktok_url", "youtube_url", "linkedin_url", "pinterest_url"
+    "facebook_url", "instagram_url", "bluesky_url", "tiktok_url", "youtube_url", "linkedin_url", "pinterest_url",
+    "keywords", "selected_keyword_inspirations", "builder_questions", "keyword_inspiration_enabled", "visibility"
   ];
   
   const filtered: DatabaseRow = {};
