@@ -748,7 +748,7 @@ const builderQuestions = useMemo(() => {
         {/* Business Logo */}
         {businessProfile?.logo_url && (
           <div className="flex justify-center mb-8">
-            <div className="relative w-24 h-24 rounded-full overflow-hidden bg-white shadow-lg ring-4 ring-white/20">
+            <div className="relative w-28 h-28 rounded-full overflow-hidden bg-white shadow-lg ring-4 ring-white/20">
               <img
                 src={businessProfile.logo_url}
                 alt={businessProfile.business_name || businessProfile.name || "Business logo"}
