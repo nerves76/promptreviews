@@ -710,10 +710,7 @@ const builderQuestions = useMemo(() => {
     <div
       className="min-h-screen p-6 md:p-12 relative overflow-hidden"
       style={{
-        background:
-          businessProfile?.background_type === "gradient"
-            ? `linear-gradient(135deg, ${businessProfile?.gradient_start || "#EEF2FF"}, ${businessProfile?.gradient_end || "#E0E7FF"})`
-            : businessProfile?.background_color || "#F4F6FB",
+        background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
       }}
     >
       {/* Falling animation when review is generated */}
@@ -863,7 +860,7 @@ const builderQuestions = useMemo(() => {
         )}
 
         {/* PromptReviews Footer */}
-        <div className="mt-12 mb-12 rounded-2xl shadow-lg p-4 md:p-8 bg-white/10 backdrop-blur-sm border border-white/20">
+        <div className="mt-12 mb-12 rounded-2xl shadow-lg p-4 md:p-8 bg-black/20 backdrop-blur-sm border border-white/20">
           <div className="flex flex-col md:flex-row items-center text-center md:text-left gap-4 md:gap-8 md:items-center">
             <div className="flex-shrink-0 flex items-center justify-center w-full md:w-40 mb-0">
               <a
@@ -873,7 +870,7 @@ const builderQuestions = useMemo(() => {
                 aria-label="Prompt Reviews Home"
               >
                 <PromptReviewsLogo
-                  color={businessProfile?.primary_color || "#fff"}
+                  color="#ffffff"
                   size={240}
                   className="h-20 w-auto"
                 />

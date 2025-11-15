@@ -41,24 +41,27 @@ export interface BuilderQuestion {
   options?: string[];
 }
 
-const DEFAULT_QUESTIONS: BuilderQuestion[] = [
-  {
-    id: "builder-q1",
-    prompt: "What did we help you accomplish?",
-    helperText: "Share the outcome or transformation you experienced.",
-    placeholderText: "Type your answer...",
-    required: true,
-    questionType: 'text',
-  },
-  {
-    id: "builder-q2",
-    prompt: "What specific detail should the review highlight?",
-    helperText: "Mention a service, team member, or detail other prospects should know.",
-    placeholderText: "Type your answer...",
-    required: true,
-    questionType: 'text',
-  },
-];
+const getDefaultQuestions = (businessName?: string): BuilderQuestion[] => {
+  const name = businessName || "[Business Name]";
+  return [
+    {
+      id: "builder-q1",
+      prompt: `What surprised you, in a good way, during your time with ${name}?`,
+      helperText: "Think about unexpected positives, exceptional service moments, or delightful details that stood out.",
+      placeholderText: "Share a specific moment or detail that exceeded your expectations...",
+      required: true,
+      questionType: 'text',
+    },
+    {
+      id: "builder-q2",
+      prompt: `What was the highlight of your experience with ${name}?`,
+      helperText: "Describe the best part of working with this business—what made the biggest positive impact?",
+      placeholderText: "Tell us about the most memorable or valuable part of your experience...",
+      required: true,
+      questionType: 'text',
+    },
+  ];
+};
 
 const MIN_QUESTIONS = 2;
 const MAX_QUESTIONS = 5;
@@ -68,9 +71,9 @@ const generateQuestionId = () =>
     ? crypto.randomUUID()
     : `builder-${Date.now()}`;
 
-const normalizeQuestions = (rawQuestions?: any): BuilderQuestion[] => {
+const normalizeQuestions = (rawQuestions?: any, businessName?: string): BuilderQuestion[] => {
   if (!Array.isArray(rawQuestions) || rawQuestions.length === 0) {
-    return DEFAULT_QUESTIONS;
+    return getDefaultQuestions(businessName);
   }
   return rawQuestions
     .map((q) => ({
@@ -123,7 +126,7 @@ export default function ReviewBuilderPromptPageForm({
     initialData?.keywords_required ?? true
   );
   const [questions, setQuestions] = useState<BuilderQuestion[]>(
-    normalizeQuestions(initialData?.builder_questions),
+    normalizeQuestions(initialData?.builder_questions, businessProfile?.name || businessProfile?.business_name),
   );
   const [configError, setConfigError] = useState<string | null>(null);
   const [campaignName, setCampaignName] = useState(initialData?.name || "");
@@ -167,9 +170,10 @@ export default function ReviewBuilderPromptPageForm({
     if (questions.length < MIN_QUESTIONS) {
       setQuestions((prev) => {
         const next = [...prev];
+        const defaultQuestions = getDefaultQuestions(businessProfile?.name || businessProfile?.business_name);
         while (next.length < MIN_QUESTIONS) {
           next.push({
-            ...DEFAULT_QUESTIONS[next.length] ?? {
+            ...defaultQuestions[next.length] ?? {
               id: generateQuestionId(),
               prompt: "",
               helperText: "",
@@ -181,7 +185,7 @@ export default function ReviewBuilderPromptPageForm({
         return next;
       });
     }
-  }, [questions.length]);
+  }, [questions.length, businessProfile?.name, businessProfile?.business_name]);
 
   // Keep selected inspirations in sync with keyword list
   useEffect(() => {
