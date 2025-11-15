@@ -709,9 +709,6 @@ const builderQuestions = useMemo(() => {
   return (
     <div
       className="review-builder-container min-h-screen p-6 md:p-12 relative overflow-hidden"
-      style={{
-        background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important",
-      }}
     >
       {/* Falling animation when review is generated */}
       {showFallingAnimation && promptPage?.falling_enabled !== false && (
